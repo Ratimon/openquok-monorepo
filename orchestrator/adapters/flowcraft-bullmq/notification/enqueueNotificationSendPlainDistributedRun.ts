@@ -6,6 +6,7 @@ import { logger } from "backend/utils/Logger.js";
 import { buildNotificationSendPlainBlueprintDistributed } from "../../../blueprints/notificationEmailBlueprint.js";
 import { NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID } from "../../../blueprints/notificationEmailFlowTypes.js";
 import { seedNotificationSendPlainWorkflowContext } from "./seedNotificationEmailWorkflowContext.js";
+import { flowcraftExecuteNodeJobOptions } from "../flowcraftBullMqJobOptions.js";
 
 /**
  * Enqueues the notification-send-plain Flowcraft blueprint on BullMQ (`executeNode` jobs).
@@ -38,6 +39,7 @@ export async function enqueueNotificationSendPlainDistributedRun(
         const startJobs = analysis.startNodeIds.map((nodeId) => ({
             name: "executeNode" as const,
             data: { runId, blueprintId: NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID, nodeId },
+            opts: flowcraftExecuteNodeJobOptions(),
         }));
         await queue.addBulk(startJobs);
         logger.info({

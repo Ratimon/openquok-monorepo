@@ -1,4 +1,5 @@
 import supertest from "supertest";
+import { createClient } from "@supabase/supabase-js";
 import { app } from "../../app";
 import { config } from "../../config/GlobalConfig";
 import { EmailService } from "../../services/EmailService";
@@ -25,6 +26,7 @@ const authPath = `${apiPrefix}/auth`;
 const usersPath = `${apiPrefix}/users`;
 const settingsPath = `${apiPrefix}/settings`;
 const publicPostsPath = `${apiPrefix}/public/posts`;
+const publicIsConnectedPath = `${apiPrefix}/public/is-connected`;
 
 const supabaseUrl = (config.supabase as { supabaseUrl?: string }).supabaseUrl;
 const supabaseSecretKey = (config.supabase as { supabaseSecretKey?: string }).supabaseSecretKey;
@@ -110,6 +112,48 @@ describeIfSupabase("Programmatic API plan enforcement (integration)", () => {
 
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body?.data?.posts)).toBe(true);
+    });
+
+    it("allows platform admin programmatic token on FREE tier (billing bypass)", async () => {
+        const payload = userHelper.setupTestUser1();
+        const { accessToken, orgId } = await signupVerifyAndSignIn(payload);
+
+        const meRes = await supertest(app)
+            .get(`${usersPath}/me`)
+            .set("Authorization", `Bearer ${accessToken}`);
+        const publicUserId = meRes.body?.data?.id as string;
+        expect(publicUserId).toBeDefined();
+
+        const adminSupabase = createClient(supabaseUrl!, supabaseSecretKey!);
+        const { error: promoteErr } = await adminSupabase
+            .from("users")
+            .update({ is_super_admin: true })
+            .eq("id", publicUserId);
+        expect(promoteErr).toBeNull();
+
+        const bearerToken = await exchangeOAuthProgrammaticToken(accessToken, orgId);
+
+        const freeLimits = planLimitsForTier("FREE");
+        const tierSpy = jest.spyOn(subscriptionGuard, "getTierAndLimits").mockResolvedValue({
+            tier: "FREE",
+            limits: freeLimits,
+            subscription: null,
+        });
+
+        try {
+            const res = await supertest(app)
+                .get(publicIsConnectedPath)
+                .set(programmaticBearerAuth(bearerToken));
+
+            expect(res.status).toBe(200);
+            expect(res.body).toEqual({ connected: true });
+        } finally {
+            tierSpy.mockRestore();
+            await adminSupabase
+                .from("users")
+                .update({ is_super_admin: false })
+                .eq("id", publicUserId);
+        }
     });
 
     it("returns 402 PUBLIC_API when workspace tier resolves to FREE", async () => {

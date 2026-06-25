@@ -102,7 +102,7 @@ export function startWorkerHealthServer(options: WorkerHealthServerOptions): {
     let server: Server | undefined;
     const httpServer = createServer((req, res) => {
         const path = req.url?.split("?")[0] ?? "";
-        if (req.method !== "GET" || (path !== "/health" && path !== "/health/status")) {
+        if (req.method !== "GET" || (path !== "/" && path !== "/health" && path !== "/health/status")) {
             res.writeHead(404, { "content-type": "application/json" });
             res.end(JSON.stringify({ status: "not_found" }));
             return;
@@ -133,7 +133,7 @@ export function startWorkerHealthServer(options: WorkerHealthServerOptions): {
             msg: "[Worker] Health HTTP server listening",
             worker: options.label,
             port,
-            paths: ["/health", "/health/status"],
+            paths: ["/", "/health", "/health/status"],
         });
     });
 

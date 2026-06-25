@@ -390,6 +390,7 @@ describe("OauthAppService", () => {
                 organizationId: orgId,
                 oauthAppId,
                 tokenId: authzId,
+                userId,
             });
         });
     });

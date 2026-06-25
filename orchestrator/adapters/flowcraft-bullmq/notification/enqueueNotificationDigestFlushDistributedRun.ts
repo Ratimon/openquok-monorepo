@@ -7,6 +7,7 @@ import { logger } from "backend/utils/Logger.js";
 import { buildNotificationDigestFlushBlueprintDistributed } from "../../../blueprints/notificationEmailBlueprint.js";
 import { NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID } from "../../../blueprints/notificationEmailFlowTypes.js";
 import { seedNotificationDigestFlushWorkflowContext } from "./seedNotificationEmailWorkflowContext.js";
+import { flowcraftExecuteNodeJobOptions } from "../flowcraftBullMqJobOptions.js";
 
 /**
  * Enqueues one `notification-digest-flush` Flowcraft run. Does **not** close `redis` (shared worker connection).
@@ -34,6 +35,7 @@ export async function enqueueNotificationDigestFlushDistributedRun(
         const startJobs = analysis.startNodeIds.map((nodeId) => ({
             name: "executeNode" as const,
             data: { runId, blueprintId: NOTIFICATION_DIGEST_FLUSH_BLUEPRINT_ID, nodeId },
+            opts: flowcraftExecuteNodeJobOptions(),
         }));
         await queue.addBulk(startJobs);
         logger.info({

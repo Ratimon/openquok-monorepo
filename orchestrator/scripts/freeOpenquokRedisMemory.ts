@@ -118,6 +118,8 @@ separate invocations to clear cache (uses REDIS_DB) vs queues (uses REDIS_BULLMQ
 setting env or using two shells.
 
 Env: REDIS_HOST, REDIS_PORT, REDIS_PASSWORD, REDIS_DB, REDIS_BULLMQ_DB, optional REDIS_TLS, REDIS_PREFIX
+
+  --env-file <path>            e.g. .env.production.local (from orchestrator/) or orchestrator/.env.production.local (from repo root)
 `);
             process.exit(0);
         }

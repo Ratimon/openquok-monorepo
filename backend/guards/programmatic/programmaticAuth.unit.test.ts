@@ -13,6 +13,7 @@ faker.seed(55_010);
 const organizationId = faker.string.uuid();
 const oauthAppId = faker.string.uuid();
 const tokenId = faker.string.uuid();
+const publicUserId = faker.string.uuid();
 const programmaticToken = `opo_${faker.string.alphanumeric(32)}`;
 const invalidBearer = `not_a_valid_programmatic_token_${faker.string.alphanumeric(16)}`;
 
@@ -136,6 +137,7 @@ describe("requireProgrammaticAuth", () => {
             organizationId,
             oauthAppId,
             tokenId,
+            userId: publicUserId,
         });
         organizationRepository.findOrganizationById.mockResolvedValue({
             organization: null,
@@ -165,6 +167,7 @@ describe("requireProgrammaticAuth", () => {
             organizationId,
             oauthAppId,
             tokenId,
+            userId: publicUserId,
         });
         organizationRepository.findOrganizationById.mockResolvedValue({
             organization,
@@ -183,6 +186,7 @@ describe("requireProgrammaticAuth", () => {
         expect(subscriptionGuard.assert).toHaveBeenCalledWith(SubscriptionSection.PUBLIC_API, {
             scope: "workspace",
             organizationId,
+            publicUserId,
         });
         expect(req.organization).toEqual(organization);
         expect(req.oauthApp).toEqual({ id: oauthAppId, tokenId });
@@ -200,6 +204,7 @@ describe("requireProgrammaticAuth", () => {
             organizationId,
             oauthAppId,
             tokenId,
+            userId: publicUserId,
         });
         organizationRepository.findOrganizationById.mockResolvedValue({
             organization,

@@ -69,13 +69,20 @@ export class SubscriptionGuardService {
      * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
      * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
      */
+    async shouldBypassBillingForPublicUserId(publicUserId?: string): Promise<boolean> {
+        if (!publicUserId?.trim() || !this.subscriptionService.billingEnabled()) {
+            return false;
+        }
+        return this.rbacRepository.isPlatformAdmin(publicUserId.trim());
+    }
+
     async shouldBypassBillingForAuthUser(authUserId?: string): Promise<boolean> {
         if (!authUserId?.trim() || !this.subscriptionService.billingEnabled()) {
             return false;
         }
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
         if (!userId) return false;
-        return this.rbacRepository.isPlatformAdmin(userId);
+        return this.shouldBypassBillingForPublicUserId(userId);
     }
 
     /**
@@ -109,6 +116,9 @@ export class SubscriptionGuardService {
 
         const authUserId = ctx.scope === "account" ? ctx.authUserId : ctx.authUserId;
         if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+
+        const publicUserId = ctx.scope !== "account" ? ctx.publicUserId : undefined;
+        if (await this.shouldBypassBillingForPublicUserId(publicUserId)) return;
 
         const entry = GUARD_REGISTRY[section];
         if (!entry) return;

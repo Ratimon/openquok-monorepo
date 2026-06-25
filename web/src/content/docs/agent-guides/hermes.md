@@ -2,7 +2,7 @@
 title: Hermes Agent
 description: Install the openquok-core skill and Openquok CLI on a Hermes Agent host (Telegram, Discord, Slack, and more).
 order: 1
-lastUpdated: 2026-06-23
+lastUpdated: 2026-06-24
 ---
 
 <script>
@@ -227,10 +227,35 @@ On headless hosts prefer <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> 
 
 ## Troubleshooting
 
-<Callout type="danger" title="Skill not found">
-<p>Confirm <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> exists and start a new session. Run <Badge text="/skills" variant="default" /> in the CLI to list loaded skills.</p>
+<Callout type="warning" title="Outdated skill or CLI">
+<p>Installing or updating the skill does <strong>not</strong> upgrade <Badge text="openquok --version" variant="default" />. Run both updates in the <strong>same shell environment</strong> Hermes uses for terminal tools, then start a <strong>new</strong> chat session so Hermes reloads skills and the Openquok bot runs its opening checks again.</p>
+
+<p><strong>On the host (terminal)</strong></p>
+
+```bash
+hermes skills update openquok-core
+npm install -g @openquok/auto-cli@latest
+openquok --version
+```
+
+<p><strong>In Telegram (or another messaging gateway)</strong> — slash commands run in the chat, not in the shell:</p>
+
+```text
+/new
+```
+
+<p>Starts a fresh conversation (alias <Badge text="/reset" variant="default" />). Use this after upgrading so the Openquok skill re-reads <Badge text="openquok --version" variant="default" /> and <Badge text="auth:status" variant="default" /> on the first turn.</p>
+
+```text
+/sessions
+```
+
+<p>Lists recent sessions so you can resume an older thread or confirm you are not still in a pre-upgrade chat. You can also run <Badge text="/resume &lt;name&gt;" variant="default" /> to jump to a named session. In the Hermes CLI, <Badge text="/reload-skills" variant="default" /> reloads skill metadata without a full reset when you only changed the skill file.</p>
 </Callout>
 
+<Callout type="danger" title="Skill not found">
+<p>Confirm <Badge text="~/.hermes/skills/openquok-core/SKILL.md" variant="path" /> exists. Install with <Badge text="hermes skills install" variant="default" /> (see <a href="#install-the-openquok-core-skill">Install the openquok-core skill</a>) or update an existing copy with <Badge text="hermes skills update openquok-core" variant="default" />. Start a new session — in Telegram send <Badge text="/new" variant="default" /> — then run <Badge text="/skills" variant="default" /> or <Badge text="hermes skills list" variant="default" /> to confirm the skill is loaded.</p>
+</Callout>
 
 <Callout type="note" title="Invalid or expired code">
 <p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about 15 minutes. Pre-login at openquok.com alone does not validate the device code.</p>

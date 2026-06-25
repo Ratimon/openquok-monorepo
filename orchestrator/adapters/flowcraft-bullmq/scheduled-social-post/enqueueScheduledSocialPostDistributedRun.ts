@@ -6,6 +6,7 @@ import { logger } from "backend/utils/Logger.js";
 import { buildScheduledSocialPostBlueprintDistributed } from "../../../blueprints/scheduledSocialPostBlueprint.js";
 import { SCHEDULED_SOCIAL_POST_BLUEPRINT_ID } from "../../../blueprints/scheduledSocialPostFlowTypes.js";
 import { seedScheduledSocialPostWorkflowContext } from "./seedScheduledSocialPostWorkflowContext.js";
+import { flowcraftExecuteNodeJobOptions } from "../flowcraftBullMqJobOptions.js";
 
 const MAX_DELAY_MS = 0x7fffffff; // ~24.8 days; BullMQ uses 32-bit delay (see JobsOptions)
 
@@ -43,7 +44,7 @@ export async function enqueueScheduledSocialPostDistributedRun(
         const startJobs = analysis.startNodeIds.map((nodeId) => ({
             name: "executeNode" as const,
             data: { runId, blueprintId: SCHEDULED_SOCIAL_POST_BLUEPRINT_ID, nodeId },
-            opts: { delay },
+            opts: flowcraftExecuteNodeJobOptions({ delay }),
         }));
         await queue.addBulk(startJobs);
         logger.info({

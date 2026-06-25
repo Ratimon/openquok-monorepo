@@ -5,6 +5,8 @@ export type WorkspaceMembershipRole = "user" | "admin" | "owner";
 type WorkspaceGuardBase = {
     organizationId: string;
     authUserId?: string;
+    /** `public.users.id` for programmatic tokens when auth UUID is unavailable. */
+    publicUserId?: string;
     workspaceRole?: WorkspaceMembershipRole;
 };
 

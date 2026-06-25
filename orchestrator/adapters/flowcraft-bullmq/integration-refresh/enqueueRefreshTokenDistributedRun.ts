@@ -6,6 +6,7 @@ import { logger } from "backend/utils/Logger.js";
 import { buildRefreshTokenBlueprintDistributed } from "../../../blueprints/refreshTokenBlueprint.js";
 import { REFRESH_TOKEN_BLUEPRINT_ID } from "../../../blueprints/refreshTokenTypes.js";
 import { seedRefreshTokenWorkflowContext } from "./seedRefreshTokenWorkflowContext.js";
+import { flowcraftExecuteNodeJobOptions } from "../flowcraftBullMqJobOptions.js";
 
 /**
  * Enqueues the integration refresh Flowcraft blueprint on BullMQ (see worker script).
@@ -41,6 +42,7 @@ export async function enqueueRefreshTokenDistributedRun(
         const startJobs = analysis.startNodeIds.map((nodeId) => ({
             name: "executeNode" as const,
             data: { runId, blueprintId: REFRESH_TOKEN_BLUEPRINT_ID, nodeId },
+            opts: flowcraftExecuteNodeJobOptions(),
         }));
         await queue.addBulk(startJobs);
         logger.info({

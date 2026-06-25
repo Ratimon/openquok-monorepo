@@ -25,3 +25,4 @@ if (missing.length > 0) {
 }
 
 console.log(`[verify-worker-social-providers] OK (${registered.join(", ")})`);
+process.exit(0);

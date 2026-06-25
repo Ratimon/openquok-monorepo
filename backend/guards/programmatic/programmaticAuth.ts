@@ -19,7 +19,8 @@ function parseRawToken(req: Request): string | null {
 
 /**
  * Programmatic auth middleware: OAuth app tokens (`opo_…`) only.
- * After organization resolution, enforces the workspace `public_api` plan capability.
+ * After organization resolution, enforces the workspace `public_api` plan capability
+ * (platform admins bypass via the token owner's `public.users.id`).
  */
 export function requireProgrammaticAuth(params: {
     oauthAppService: OauthAppService;
@@ -51,6 +52,7 @@ export function requireProgrammaticAuth(params: {
             await params.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
                 scope: "workspace",
                 organizationId: organization.id,
+                publicUserId: verified.userId,
             });
 
             (req as ProgrammaticAuthRequest).organization = organization;

@@ -230,7 +230,9 @@ export class OauthAppService {
     /**
      * Programmatic access token verification for `/public/*` (OAuth2 access token).
      */
-    async verifyProgrammaticToken(rawToken: string): Promise<{ organizationId: string; oauthAppId: string; tokenId: string } | null> {
+    async verifyProgrammaticToken(
+        rawToken: string
+    ): Promise<{ organizationId: string; oauthAppId: string; tokenId: string; userId: string } | null> {
         const secretKey = (config.auth as { programmaticTokenSecret?: string })?.programmaticTokenSecret ?? "";
         if (!secretKey.trim()) return null;
         const [v2, legacy] = hashProgrammaticTokenCandidates(rawToken, secretKey);
@@ -238,7 +240,12 @@ export class OauthAppService {
             (await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(v2)) ??
             (await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(legacy));
         if (!authz) return null;
-        return { organizationId: authz.organization_id, oauthAppId: authz.oauth_app_id, tokenId: authz.id };
+        return {
+            organizationId: authz.organization_id,
+            oauthAppId: authz.oauth_app_id,
+            tokenId: authz.id,
+            userId: authz.user_id,
+        };
     }
 
 }

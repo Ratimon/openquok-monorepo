@@ -394,6 +394,17 @@ describe("SubscriptionGuardService boolean and role gates", () => {
         });
     });
 
+    it("allows PUBLIC_API on FREE when token owner is platform admin", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: true });
+        await expect(
+            guard.assert(SubscriptionSection.PUBLIC_API, {
+                scope: "workspace",
+                organizationId,
+                publicUserId: userId,
+            })
+        ).resolves.toBeUndefined();
+    });
+
     it("allows PUBLIC_API on SOLO tier", async () => {
         const guard = createGuardHarness({ workspaceTier: "SOLO" });
         await expect(

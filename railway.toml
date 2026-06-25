@@ -27,3 +27,6 @@ buildCommand = "export NODE_OPTIONS=--max-old-space-size=8192 && pnpm install --
 [deploy]
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+# Workers expose GET /health and GET /health/status on Railway's injected PORT.
+healthcheckPath = "/health"
+healthcheckTimeout = 300

@@ -12,15 +12,17 @@ var crypto = require('crypto');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var dayjs5 = require('dayjs');
+var fs = require('fs/promises');
+var path = require('path');
 var stream = require('stream');
 var googleapis = require('googleapis');
+var twitterApiV2 = require('twitter-api-v2');
+var twitterText = require('twitter-text');
 var Stripe2 = require('stripe');
 var groupBy = require('lodash/groupBy.js');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
 var http = require('http');
 var https = require('https');
-var fs = require('fs/promises');
-var path = require('path');
 var express = require('express');
 var helmet = require('helmet');
 var cors = require('cors');
@@ -60,12 +62,13 @@ var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
 var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
+var fs__default = /*#__PURE__*/_interopDefault(fs);
+var path__default = /*#__PURE__*/_interopDefault(path);
+var twitterText__default = /*#__PURE__*/_interopDefault(twitterText);
 var Stripe2__default = /*#__PURE__*/_interopDefault(Stripe2);
 var groupBy__default = /*#__PURE__*/_interopDefault(groupBy);
 var http__default = /*#__PURE__*/_interopDefault(http);
 var https__default = /*#__PURE__*/_interopDefault(https);
-var fs__default = /*#__PURE__*/_interopDefault(fs);
-var path__default = /*#__PURE__*/_interopDefault(path);
 var express__default = /*#__PURE__*/_interopDefault(express);
 var helmet__default = /*#__PURE__*/_interopDefault(helmet);
 var cors__default = /*#__PURE__*/_interopDefault(cors);
@@ -469,7 +472,7 @@ function quietVerboseLogsNow() {
   if (typeof process === "undefined" || process.env.BACKEND_TEST_VERBOSE_LOGS === "true") {
     return false;
   }
-  return process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID !== void 0 && process.env.JEST_WORKER_ID !== "";
+  return process.env.NODE_ENV === "test" || process.env.OPENQUOK_JEST_HARNESS === "1" || process.env.JEST_WORKER_ID !== void 0 && process.env.JEST_WORKER_ID !== "";
 }
 var log, logger;
 var init_Logger = __esm({
@@ -619,7 +622,7 @@ function orchestrationTransportFromEnv(envKey, fallback) {
   }
   return fallback;
 }
-var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server, stripeCfg;
+var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server, underJestHarness, stripeCfg;
 var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
@@ -974,13 +977,27 @@ var init_GlobalConfig = __esm({
         tiktok: {
           clientId: getEnvTrimmed("TIKTOK_CLIENT_ID"),
           clientSecret: getEnvTrimmed("TIKTOK_CLIENT_SECRET")
+        },
+        /** LinkedIn — personal profile and company Page OAuth (same developer app). */
+        linkedin: {
+          clientId: getEnvTrimmed("LINKEDIN_CLIENT_ID"),
+          clientSecret: getEnvTrimmed("LINKEDIN_CLIENT_SECRET")
+        },
+        /** X (Twitter) — OAuth 1.0a Native App with Read + Write. */
+        x: {
+          apiKey: getEnvTrimmed("X_API_KEY"),
+          apiSecret: getEnvTrimmed("X_API_SECRET"),
+          disableAnalytics: getEnvBoolean("DISABLE_X_ANALYTICS", false)
         }
       }
     };
     server = config.server;
-    logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+    underJestHarness = getEnv("OPENQUOK_JEST_HARNESS", "") === "1" || getEnv("JEST_WORKER_ID", "") !== "";
+    if (!underJestHarness) {
+      logger.info({ msg: "[Config] Loaded", env: server?.nodeEnv });
+    }
     stripeCfg = config.stripe;
-    if (server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
+    if (!underJestHarness && server?.nodeEnv === "development" && stripeCfg?.secretKey?.trim()) {
       const wh = stripeCfg.webhookSecret?.trim() ?? "";
       if (wh) {
         logger.info({
@@ -7350,6 +7367,27 @@ var init_IntegrationRepository = __esm({
         }
         return data;
       }
+      /**
+       * Sync OAuth tokens across sibling channels that share the same `root_internal_id`
+       * (LinkedIn personal + Page channels from one OAuth grant).
+       */
+      async syncTokensByRootInternalId(params) {
+        const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
+        const { error } = await this.supabase.from(TABLE2).update({
+          token: params.token,
+          refresh_token: params.refreshToken || null,
+          token_expiration: tokenExpiration,
+          refresh_needed: false,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("organization_id", params.organizationId).eq("root_internal_id", params.rootInternalId).neq("id", params.excludeIntegrationId).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Failed to sync sibling integration tokens", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE2 }
+          });
+        }
+      }
       /** @returns whether a row was updated */
       async softDeleteChannel(organizationId, id, internalId) {
         const suffix = `${Date.now().toString(36)}`;
@@ -7599,6 +7637,7 @@ function parseProviderThreadsPreviewFromPostSettings(settings) {
 }
 function replyChainBucketForProvider(providerIdentifier) {
   const id = (providerIdentifier ?? "").trim().toLowerCase();
+  if (id === "x") return "x";
   return id.startsWith("instagram") ? "instagram" : "threads";
 }
 function mapRawRepliesToFollowUpDrafts(repliesRaw) {
@@ -13139,6 +13178,1252 @@ var init_threadsProvider = __esm({
   }
 });
 
+// integrations/providers/linkedin/linkedinCommon.ts
+function linkedinOAuth() {
+  return config.integrations.linkedin;
+}
+function linkedinRedirectUri(identifier) {
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath(identifier)}`;
+}
+function linkedinRestHeaders(accessToken2) {
+  return {
+    Authorization: `Bearer ${accessToken2}`,
+    "X-Restli-Protocol-Version": "2.0.0",
+    "LinkedIn-Version": LINKEDIN_API_VERSION
+  };
+}
+function checkLinkedInScopes(required, grantedScope) {
+  const granted = (grantedScope ?? "").split(/[\s,]+/).map((s) => s.trim()).filter(Boolean);
+  const missing = required.filter((s) => !granted.includes(s));
+  if (missing.length > 0) {
+    throw new Error(`Missing LinkedIn permissions: ${missing.join(", ")}`);
+  }
+}
+function resolveLinkedInPageIdFromPayload(data) {
+  if (!data || typeof data !== "object") {
+    throw new Error("Missing page selection");
+  }
+  const o = data;
+  const page = typeof o.page === "string" ? o.page.trim() : "";
+  const pageId = typeof o.pageId === "string" ? o.pageId.trim() : "";
+  const id = typeof o.id === "string" ? o.id.trim() : "";
+  const resolved = page || pageId || id;
+  if (!resolved) throw new Error("Missing page selection");
+  return resolved;
+}
+var LINKEDIN_API_VERSION, LINKEDIN_SCOPES;
+var init_linkedinCommon = __esm({
+  "integrations/providers/linkedin/linkedinCommon.ts"() {
+    init_GlobalConfig();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+    LINKEDIN_API_VERSION = "202601";
+    LINKEDIN_SCOPES = [
+      "openid",
+      "profile",
+      "w_member_social",
+      "r_basicprofile",
+      "rw_organization_admin",
+      "w_organization_social",
+      "r_organization_social"
+    ];
+  }
+});
+function formatStatDate(ms) {
+  return dayjs5__default.default(ms ?? Date.now()).format("YYYY-MM-DD");
+}
+async function fetchLinkedInPageAnalytics(organizationId, accessToken2, dateWindowDays) {
+  const endDate = dayjs5__default.default().unix() * 1e3;
+  const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
+  const orgUrn = encodeURIComponent(`urn:li:organization:${organizationId}`);
+  const interval = `(timeRange:(start:${startDate},end:${endDate}),timeGranularityType:DAY)`;
+  const headers = linkedinRestHeaders(accessToken2);
+  const [pageStats, followerStats, shareStats] = await Promise.all([
+    fetch(
+      `https://api.linkedin.com/v2/organizationPageStatistics?q=organization&organization=${orgUrn}&timeIntervals=${interval}`,
+      { headers }
+    ).then((r) => r.json()),
+    fetch(
+      `https://api.linkedin.com/v2/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=${orgUrn}&timeIntervals=${interval}`,
+      { headers }
+    ).then((r) => r.json()),
+    fetch(
+      `https://api.linkedin.com/v2/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=${orgUrn}&timeIntervals=${interval}`,
+      { headers }
+    ).then((r) => r.json())
+  ]);
+  const analytics = {
+    "Page Views": [],
+    Clicks: [],
+    Shares: [],
+    Engagement: [],
+    Comments: [],
+    "Organic Followers": [],
+    "Paid Followers": []
+  };
+  for (const current of [...followerStats.elements ?? [], ...pageStats.elements ?? [], ...shareStats.elements ?? []]) {
+    const date = formatStatDate(current.timeRange?.start);
+    const pageViews = current.totalPageStatistics?.views?.allPageViews?.pageViews;
+    if (typeof pageViews !== "undefined") {
+      analytics["Page Views"].push({ total: String(pageViews), date });
+    }
+    if (typeof current.followerGains?.organicFollowerGain !== "undefined") {
+      analytics["Organic Followers"].push({
+        total: String(current.followerGains.organicFollowerGain),
+        date
+      });
+    }
+    if (typeof current.followerGains?.paidFollowerGain !== "undefined") {
+      analytics["Paid Followers"].push({
+        total: String(current.followerGains.paidFollowerGain),
+        date
+      });
+    }
+    if (current.totalShareStatistics) {
+      const s = current.totalShareStatistics;
+      analytics.Clicks.push({ total: String(s.clickCount ?? 0), date });
+      analytics.Shares.push({ total: String(s.shareCount ?? 0), date });
+      analytics.Engagement.push({ total: String(s.engagement ?? 0), date });
+      analytics.Comments.push({ total: String(s.commentCount ?? 0), date });
+    }
+  }
+  return Object.entries(analytics).filter(([, data]) => data.length > 0).map(([label, data]) => ({
+    label,
+    data,
+    percentageChange: 0
+  }));
+}
+async function fetchLinkedInPostAnalytics(organizationId, accessToken2, releaseId, dateWindowDays) {
+  const endDate = dayjs5__default.default().unix() * 1e3;
+  const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
+  const orgUrn = encodeURIComponent(`urn:li:organization:${organizationId}`);
+  const interval = `(timeRange:(start:${startDate},end:${endDate}),timeGranularityType:DAY)`;
+  const headers = linkedinRestHeaders(accessToken2);
+  const shareStatsUrl = `https://api.linkedin.com/v2/organizationalEntityShareStatistics?q=organizationalEntity&organizationalEntity=${orgUrn}&shares=List(${encodeURIComponent(releaseId)})&timeIntervals=${interval}`;
+  const { elements: shareElements } = await fetch(shareStatsUrl, { headers }).then(
+    (r) => r.json()
+  );
+  let socialActions = null;
+  try {
+    socialActions = await fetch(
+      `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(releaseId)}`,
+      { headers }
+    ).then((r) => r.json());
+  } catch {
+    socialActions = null;
+  }
+  const analytics = {
+    Impressions: [],
+    "Unique Impressions": [],
+    Clicks: [],
+    Likes: [],
+    Comments: [],
+    Shares: [],
+    Engagement: []
+  };
+  for (const current of shareElements ?? []) {
+    if (!current.totalShareStatistics) continue;
+    const date = formatStatDate(current.timeRange?.start);
+    const s = current.totalShareStatistics;
+    analytics.Impressions.push({ total: String(s.impressionCount ?? 0), date });
+    analytics["Unique Impressions"].push({ total: String(s.uniqueImpressionsCount ?? 0), date });
+    analytics.Clicks.push({ total: String(s.clickCount ?? 0), date });
+    analytics.Likes.push({ total: String(s.likeCount ?? 0), date });
+    analytics.Comments.push({ total: String(s.commentCount ?? 0), date });
+    analytics.Shares.push({ total: String(s.shareCount ?? 0), date });
+    analytics.Engagement.push({ total: String(s.engagement ?? 0), date });
+  }
+  if (Object.values(analytics).every((arr) => arr.length === 0) && socialActions) {
+    const today = dayjs5__default.default().format("YYYY-MM-DD");
+    analytics.Likes.push({ total: String(socialActions.likesSummary?.totalLikes ?? 0), date: today });
+    analytics.Comments.push({
+      total: String(socialActions.commentsSummary?.totalFirstLevelComments ?? 0),
+      date: today
+    });
+  }
+  return Object.entries(analytics).filter(([, data]) => data.length > 0).map(([label, data]) => ({
+    label,
+    data,
+    percentageChange: 0
+  }));
+}
+var init_linkedinAnalytics = __esm({
+  "integrations/providers/linkedin/linkedinAnalytics.ts"() {
+    init_linkedinCommon();
+  }
+});
+function safeJoin(base, p) {
+  const out = path__default.default.join(base, p);
+  const rel = path__default.default.relative(base, out);
+  if (rel.startsWith("..") || path__default.default.isAbsolute(rel)) {
+    throw new Error("Invalid upload path");
+  }
+  return out;
+}
+function buildPublicUrl(relativePath) {
+  const server2 = config.server;
+  const origin = String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
+  if (!origin) return null;
+  return `${origin}/uploads/${relativePath.replace(/^\/+/, "")}`;
+}
+var LocalStorage;
+var init_local_storage = __esm({
+  "connections/upload/local.storage.ts"() {
+    init_GlobalConfig();
+    init_makeId();
+    init_InfraError();
+    LocalStorage = class {
+      constructor(uploadDirectory) {
+        this.uploadDirectory = uploadDirectory;
+      }
+      supportsMultipart = false;
+      assertConfigured() {
+        if (!this.uploadDirectory?.trim()) {
+          throw new DatabaseError("Local upload storage is not configured for this environment", {
+            operation: "upload",
+            resource: { type: "storage", name: "local" },
+            statusCode: 503
+          });
+        }
+      }
+      async uploadFile(params) {
+        this.assertConfigured();
+        const ext = path__default.default.extname(params.originalName) || "";
+        const fileName = `${makeId(20)}${ext}`;
+        const relative = fileName;
+        const onDisk = safeJoin(this.uploadDirectory, relative);
+        await fs__default.default.mkdir(path__default.default.dirname(onDisk), { recursive: true });
+        await fs__default.default.writeFile(onDisk, params.buffer);
+        return { path: relative, publicUrl: buildPublicUrl(relative) };
+      }
+      async downloadObject(p) {
+        this.assertConfigured();
+        const onDisk = safeJoin(this.uploadDirectory, p);
+        const buffer = await fs__default.default.readFile(onDisk);
+        return { buffer, contentType: "application/octet-stream" };
+      }
+      async deleteObject(p) {
+        this.assertConfigured();
+        const onDisk = safeJoin(this.uploadDirectory, p);
+        await fs__default.default.rm(onDisk, { force: true });
+      }
+    };
+  }
+});
+var R2Storage;
+var init_r2_storage = __esm({
+  "connections/upload/r2.storage.ts"() {
+    init_MediaRepository();
+    init_makeId();
+    R2Storage = class {
+      constructor(storageR2Repository2) {
+        this.storageR2Repository = storageR2Repository2;
+      }
+      supportsMultipart = true;
+      async uploadFile(params) {
+        const ext = path__default.default.extname(params.originalName) || "";
+        const key = `${makeId(20)}${ext || ".bin"}`;
+        await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
+        return { path: key, publicUrl: publicUrlForObjectKey(key) };
+      }
+      async downloadObject(path7) {
+        const { data } = await this.storageR2Repository.downloadObject(path7);
+        const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
+        const contentType = data.type ?? "application/octet-stream";
+        return { buffer, contentType };
+      }
+      async deleteObject(path7) {
+        await this.storageR2Repository.deleteObject(path7);
+      }
+    };
+  }
+});
+
+// connections/upload/upload.factory.ts
+var UploadFactory;
+var init_upload_factory = __esm({
+  "connections/upload/upload.factory.ts"() {
+    init_GlobalConfig();
+    init_local_storage();
+    init_r2_storage();
+    UploadFactory = class {
+      static createStorage(storageR2Repository2) {
+        const storageCfg = config.storage;
+        const provider = String(storageCfg?.provider ?? "r2").toLowerCase();
+        if (provider === "local") {
+          const dir = String(storageCfg?.local?.uploadDirectory ?? "");
+          return new LocalStorage(dir);
+        }
+        return new R2Storage(storageR2Repository2);
+      }
+    };
+  }
+});
+
+// integrations/providers/tiktok/tiktokPublishValidation.ts
+function isPlainObject3(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mediaExtFromUrlOrKey3(path7) {
+  const raw = String(path7 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    return (u.pathname.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function extractTiktokMediaFromSettings(settings) {
+  if (!isPlainObject3(settings)) return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolveTiktokPublicMediaUrl(path7) {
+  const raw = path7.trim();
+  if (!raw) {
+    throw new Error("Media path is empty");
+  }
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for TikTok (set STORAGE_R2_PUBLIC_BASE_URL for R2, STORAGE_PROVIDER=local with FRONTEND_DOMAIN_URL, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function classifyTiktokMedia(media) {
+  if (media.length === 0) return null;
+  const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path));
+  const hasVideo = exts.some((ext) => VIDEO_EXTENSIONS.has(ext));
+  const hasImage = exts.some((ext) => IMAGE_EXTENSIONS.has(ext));
+  if (hasVideo && hasImage) return null;
+  if (hasVideo) return media.length === 1 ? "video" : null;
+  if (hasImage) return "photo";
+  return null;
+}
+function validateTiktokMedia(media) {
+  if (media.length === 0) {
+    throw new Error("TikTok requires one video or one or more images");
+  }
+  const kind = classifyTiktokMedia(media);
+  if (!kind) {
+    const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path)).join(", ");
+    if (media.length > 1 && media.some((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
+      throw new Error("TikTok does not support mixing video and images in one post");
+    }
+    if (media.length > 1 && media.every((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
+      throw new Error("TikTok requires exactly one MP4 video");
+    }
+    throw new Error(`TikTok media type is not supported (extensions: ${exts || "unknown"})`);
+  }
+  if (kind === "video") {
+    const ext = mediaExtFromUrlOrKey3(media[0].path);
+    if (ext !== "mp4") {
+      throw new Error("TikTok requires an MP4 video attachment");
+    }
+  } else {
+    for (const item of media) {
+      const ext = mediaExtFromUrlOrKey3(item.path);
+      if (!IMAGE_EXTENSIONS.has(ext)) {
+        throw new Error("TikTok photo posts require JPEG, PNG, or WEBP images");
+      }
+    }
+    if (media.length > 35) {
+      throw new Error("TikTok photo posts support at most 35 images");
+    }
+  }
+  return {
+    kind,
+    urls: media.map((m) => resolveTiktokPublicMediaUrl(m.path))
+  };
+}
+var IMAGE_EXTENSIONS, VIDEO_EXTENSIONS;
+var init_tiktokPublishValidation = __esm({
+  "integrations/providers/tiktok/tiktokPublishValidation.ts"() {
+    init_MediaRepository();
+    IMAGE_EXTENSIONS = /* @__PURE__ */ new Set(["jpg", "jpeg", "png", "webp"]);
+    VIDEO_EXTENSIONS = /* @__PURE__ */ new Set(["mp4"]);
+  }
+});
+
+// integrations/providers/linkedin/linkedinSettings.ts
+function isPlainObject4(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readBoolean(source, key) {
+  const value = source[key];
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return void 0;
+}
+function readString(source, key) {
+  const value = source[key];
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return void 0;
+}
+function resolveLinkedInSettings(settings) {
+  if (!isPlainObject4(settings)) return {};
+  const out = {};
+  const readFrom = (source) => {
+    const carousel = readBoolean(source, "post_as_images_carousel") ?? readBoolean(source, "postAsImagesCarousel");
+    if (carousel !== void 0) out.post_as_images_carousel = carousel;
+    const carouselName = readString(source, "carousel_name") ?? readString(source, "carouselName");
+    if (carouselName) out.carousel_name = carouselName;
+  };
+  readFrom(settings);
+  const providerSettings = settings.providerSettings;
+  if (isPlainObject4(providerSettings)) {
+    readFrom(providerSettings);
+    const linkedin = providerSettings.linkedin;
+    if (isPlainObject4(linkedin)) {
+      readFrom(linkedin);
+    }
+  }
+  const linkedinRoot = settings.linkedin;
+  if (isPlainObject4(linkedinRoot)) {
+    readFrom(linkedinRoot);
+  }
+  return out;
+}
+var init_linkedinSettings = __esm({
+  "integrations/providers/linkedin/linkedinSettings.ts"() {
+  }
+});
+
+// integrations/providers/linkedin/linkedinPublish.ts
+function extractMedia2(settings) {
+  if (!settings || typeof settings !== "object") return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolvePublicMediaUrl3(path7) {
+  const raw = path7.trim();
+  if (!raw) throw new Error("Media path is empty");
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for LinkedIn (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function isMp4Path2(path7) {
+  return path7.toLowerCase().includes(".mp4") || path7.toLowerCase().includes("mp4");
+}
+async function loadMediaBuffer(path7) {
+  const resolved = path7.startsWith("http://") || path7.startsWith("https://") ? path7 : resolvePublicMediaUrl3(path7);
+  if (resolved.startsWith("http://") || resolved.startsWith("https://")) {
+    const res = await fetch(resolved);
+    if (!res.ok) {
+      throw new Error(`Failed to download media for LinkedIn (HTTP ${res.status})`);
+    }
+    return Buffer.from(await res.arrayBuffer());
+  }
+  const upload4 = UploadFactory.createStorage(storageR2Repository);
+  const { buffer } = await upload4.downloadObject(path7);
+  return buffer;
+}
+function fixLinkedInCommentary(text) {
+  const pattern = /@\[.+?]\(urn:li:organization.+?\)/g;
+  const matches = text.match(pattern) ?? [];
+  const splitAll = text.split(pattern);
+  const splitTextReformat = splitAll.map(
+    (p) => p.replace(/\\/g, "\\\\").replace(/</g, "\\<").replace(/>/g, "\\>").replace(/#/g, "\\#").replace(/~/g, "\\~").replace(/_/g, "\\_").replace(/\|/g, "\\|").replace(/\[/g, "\\[").replace(/]/g, "\\]").replace(/\*/g, "\\*").replace(/\(/g, "\\(").replace(/\)/g, "\\)").replace(/\{/g, "\\{").replace(/}/g, "\\}").replace(/@/g, "\\@")
+  );
+  const connectAll = splitTextReformat.reduce((all, current) => {
+    const match = matches.shift();
+    all.push(current);
+    if (match) all.push(match);
+    return all;
+  }, []);
+  return connectAll.join("");
+}
+function buildPostContent(isPdf, mediaIds, pdfTitle) {
+  if (mediaIds.length === 0) return {};
+  if (mediaIds.length === 1) {
+    return {
+      content: {
+        media: {
+          ...isPdf ? { title: pdfTitle || "slides" } : {},
+          id: mediaIds[0]
+        }
+      }
+    };
+  }
+  return {
+    content: {
+      multiImage: {
+        images: mediaIds.map((id) => ({ id }))
+      }
+    }
+  };
+}
+async function uploadLinkedInMedia(accessToken2, personOrOrgId, mediaPath, mediaBuffer, authorType) {
+  const isVideo = isMp4Path2(mediaPath);
+  const isPdf = mediaPath.toLowerCase().includes(".pdf");
+  const endpoint = isVideo ? "videos" : isPdf ? "documents" : "images";
+  const owner = authorType === "personal" ? `urn:li:person:${personOrOrgId}` : `urn:li:organization:${personOrOrgId}`;
+  const initRes = await fetch(`https://api.linkedin.com/rest/${endpoint}?action=initializeUpload`, {
+    method: "POST",
+    headers: {
+      ...linkedinRestHeaders(accessToken2),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      initializeUploadRequest: {
+        owner,
+        ...isVideo ? {
+          fileSizeBytes: mediaBuffer.length,
+          uploadCaptions: false,
+          uploadThumbnail: false
+        } : {}
+      }
+    })
+  });
+  const initJson = await initRes.json();
+  if (!initRes.ok) {
+    throw new Error(initJson.message ?? `LinkedIn ${endpoint} initializeUpload failed (HTTP ${initRes.status})`);
+  }
+  const value = initJson.value ?? {};
+  const sendUrlRequest = value.uploadInstructions?.[0]?.uploadUrl ?? value.uploadUrl;
+  const finalOutput = value.video ?? value.image ?? value.document;
+  if (!sendUrlRequest || !finalOutput) {
+    throw new Error(`LinkedIn ${endpoint} initializeUpload returned an incomplete payload`);
+  }
+  const etags = [];
+  for (let i = 0; i < mediaBuffer.length; i += CHUNK_BYTES) {
+    const chunk = mediaBuffer.subarray(i, i + CHUNK_BYTES);
+    const uploadRes = await fetch(sendUrlRequest, {
+      method: "PUT",
+      headers: {
+        ...linkedinRestHeaders(accessToken2),
+        ...isVideo ? { "Content-Type": "application/octet-stream" } : isPdf ? { "Content-Type": "application/pdf" } : {}
+      },
+      body: new Uint8Array(chunk)
+    });
+    const etag = uploadRes.headers.get("etag");
+    if (etag) etags.push(etag);
+  }
+  if (isVideo) {
+    const finalizeRes = await fetch("https://api.linkedin.com/rest/videos?action=finalizeUpload", {
+      method: "POST",
+      headers: {
+        ...linkedinRestHeaders(accessToken2),
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        finalizeUploadRequest: {
+          video: value.video,
+          uploadToken: "",
+          uploadedPartIds: etags
+        }
+      })
+    });
+    if (!finalizeRes.ok) {
+      const finalizeJson = await finalizeRes.json().catch(() => ({}));
+      throw new Error(finalizeJson.message ?? "LinkedIn video finalizeUpload failed");
+    }
+  }
+  return finalOutput;
+}
+async function prepareMediaBuffer(mediaPath) {
+  if (isMp4Path2(mediaPath)) {
+    return loadMediaBuffer(mediaPath);
+  }
+  const sharp = (await import('sharp')).default;
+  const raw = await loadMediaBuffer(mediaPath);
+  const ext = mediaExtFromUrlOrKey3(mediaPath);
+  return sharp(raw, { animated: ext === "gif" }).jpeg().resize({ width: 1e3 }).toBuffer();
+}
+async function convertImagesToPdfCarousel(media) {
+  const sharp = (await import('sharp')).default;
+  const imageToPDF = (await import('image-to-pdf')).default;
+  const images = await Promise.all(
+    media.map(async (item) => {
+      const raw = await loadMediaBuffer(item.path);
+      const image = sharp(raw, { animated: false }).jpeg();
+      const { width, height } = await image.metadata();
+      const buffer = await image.toBuffer();
+      return { buffer, width: width ?? 0, height: height ?? 0 };
+    })
+  );
+  const largest = images.reduce(
+    (max, img) => img.width * img.height > max.width * max.height ? img : max
+  );
+  const pdfStream = imageToPDF(
+    images.map((img) => img.buffer),
+    [largest.width, largest.height]
+  );
+  const chunks = [];
+  for await (const chunk of pdfStream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+async function processMediaForPost(postDetails, accessToken2, authorId, authorType) {
+  const settings = resolveLinkedInSettings(postDetails.settings);
+  let media = extractMedia2(postDetails.settings);
+  if (settings.post_as_images_carousel) {
+    if (media.length >= 2) {
+      const pdfBuffer = await convertImagesToPdfCarousel(media);
+      return [
+        await uploadLinkedInMedia(accessToken2, authorId, "carousel.pdf", pdfBuffer, authorType)
+      ];
+    }
+  }
+  const uploaded = [];
+  for (const item of media) {
+    const buffer = await prepareMediaBuffer(item.path);
+    uploaded.push(await uploadLinkedInMedia(accessToken2, authorId, item.path, buffer, authorType));
+  }
+  return uploaded;
+}
+function createLinkedInPostPayload(authorId, authorType, message, mediaIds, isPdf, pdfTitle) {
+  const author = authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
+  return {
+    author,
+    commentary: fixLinkedInCommentary(message),
+    visibility: "PUBLIC",
+    distribution: {
+      feedDistribution: "MAIN_FEED",
+      targetEntities: [],
+      thirdPartyDistributionChannels: []
+    },
+    ...buildPostContent(isPdf, mediaIds, pdfTitle),
+    lifecycleState: "PUBLISHED",
+    isReshareDisabledByAuthor: false
+  };
+}
+async function publishLinkedInPost(authorId, accessToken2, postDetails, authorType) {
+  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const settings = resolveLinkedInSettings(postDetails.settings);
+  const mediaIds = await processMediaForPost(postDetails, accessToken2, authorId, authorType);
+  const isPdf = Boolean(settings.post_as_images_carousel && mediaIds.length === 1);
+  const pdfTitle = isPdf ? settings.carousel_name || "slides" : void 0;
+  const payload = createLinkedInPostPayload(
+    authorId,
+    authorType,
+    message,
+    mediaIds,
+    isPdf,
+    pdfTitle
+  );
+  const res = await fetch("https://api.linkedin.com/rest/posts", {
+    method: "POST",
+    headers: {
+      ...linkedinRestHeaders(accessToken2),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  if (res.status !== 201 && res.status !== 200) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.message ?? `LinkedIn post failed (HTTP ${res.status})`);
+  }
+  const postId = res.headers.get("x-restli-id") ?? "";
+  return {
+    id: postDetails.id,
+    postId,
+    status: "posted",
+    releaseURL: `https://www.linkedin.com/feed/update/${postId}`
+  };
+}
+async function publishLinkedInComment(authorId, accessToken2, parentPostId, postDetails, authorType) {
+  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const actor = authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
+  const res = await fetch(
+    `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(parentPostId)}/comments`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken2}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        actor,
+        object: parentPostId,
+        message: { text: fixLinkedInCommentary(message) }
+      })
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message ?? `LinkedIn comment failed (HTTP ${res.status})`);
+  }
+  const commentId = json.object ?? "";
+  return {
+    id: postDetails.id,
+    postId: commentId,
+    status: "posted",
+    releaseURL: `https://www.linkedin.com/embed/feed/update/${commentId}`
+  };
+}
+var CHUNK_BYTES;
+var init_linkedinPublish = __esm({
+  "integrations/providers/linkedin/linkedinPublish.ts"() {
+    init_upload_factory();
+    init_MediaRepository();
+    init_repositories();
+    init_htmlToPlain();
+    init_tiktokPublishValidation();
+    init_linkedinSettings();
+    init_linkedinCommon();
+    CHUNK_BYTES = 2 * 1024 * 1024;
+  }
+});
+
+// integrations/providers/linkedin/linkedinPlugs.ts
+function sleepMs3(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+async function fetchLinkedInPostLikes(accessToken2, postId) {
+  const res = await fetch(
+    `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postId)}`,
+    {
+      method: "GET",
+      headers: linkedinRestHeaders(accessToken2)
+    }
+  );
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.message ?? `LinkedIn likes lookup failed (HTTP ${res.status})`);
+  }
+  return Number(json.likesSummary?.totalLikes ?? 0);
+}
+async function linkedInResharePost(integration, postId, authorType) {
+  const author = authorType === "personal" ? `urn:li:person:${integration.internal_id}` : `urn:li:organization:${integration.internal_id}`;
+  const res = await fetch("https://api.linkedin.com/rest/posts", {
+    method: "POST",
+    headers: {
+      ...linkedinRestHeaders(integration.token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      author,
+      commentary: "",
+      visibility: "PUBLIC",
+      distribution: {
+        feedDistribution: "MAIN_FEED",
+        targetEntities: [],
+        thirdPartyDistributionChannels: []
+      },
+      lifecycleState: "PUBLISHED",
+      isReshareDisabledByAuthor: false,
+      reshareContext: {
+        parent: postId
+      }
+    })
+  });
+  if (!res.ok) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.message ?? `LinkedIn reshare failed (HTTP ${res.status})`);
+  }
+}
+async function runLinkedInAddCommentPlug(acting, postId, information, authorType) {
+  const comment = typeof information.comment === "string" ? information.comment.trim() : "";
+  if (!comment.length) return;
+  await publishLinkedInComment(
+    acting.internal_id,
+    acting.token,
+    postId,
+    { id: makeId(10), message: comment},
+    authorType
+  );
+}
+async function runLinkedInAutoPlugPost(integration, postId, fields, authorType) {
+  const threshold = Number(fields.likesAmount);
+  if (!Number.isFinite(threshold) || threshold < 0) return false;
+  const totalLikes = await fetchLinkedInPostLikes(integration.token, postId);
+  if (totalLikes < threshold) return false;
+  await sleepMs3(2e3);
+  const text = fixLinkedInCommentary(htmlToPlainText(fields.post ?? "").trim());
+  if (text.length < 3) return false;
+  const actor = `urn:li:organization:${integration.internal_id}`;
+  const res = await fetch(
+    `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postId)}/comments`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${integration.token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        actor,
+        object: postId,
+        message: { text }
+      })
+    }
+  );
+  if (!res.ok) {
+    const json = await res.json().catch(() => ({}));
+    throw new Error(json.message ?? `LinkedIn auto plug comment failed (HTTP ${res.status})`);
+  }
+  return true;
+}
+var LINKEDIN_INTERNAL_PLUG_CATALOG, LINKEDIN_PAGE_GLOBAL_PLUG_CATALOG;
+var init_linkedinPlugs = __esm({
+  "integrations/providers/linkedin/linkedinPlugs.ts"() {
+    init_makeId();
+    init_linkedinPublish();
+    init_linkedinCommon();
+    init_htmlToPlain();
+    LINKEDIN_INTERNAL_PLUG_CATALOG = [
+      {
+        identifier: "linkedin-add-comment",
+        methodName: "addComment",
+        title: "Add comments by a different account",
+        description: "Choose other LinkedIn channels to comment on this post after it goes live.",
+        pickIntegration: ["linkedin", "linkedin-page"],
+        fields: [
+          {
+            name: "comment",
+            description: "The comment to add to the post",
+            type: "textarea",
+            placeholder: "Enter your comment here"
+          }
+        ]
+      },
+      {
+        identifier: "linkedin-repost-post-users",
+        methodName: "repostPostUsers",
+        title: "Add re-posters",
+        description: "Choose other LinkedIn channels to reshare this post after it goes live.",
+        pickIntegration: ["linkedin", "linkedin-page"],
+        fields: []
+      }
+    ];
+    LINKEDIN_PAGE_GLOBAL_PLUG_CATALOG = [
+      {
+        methodName: "autoRepostPost",
+        identifier: "linkedin-page-auto-repost",
+        title: "Auto repost posts",
+        description: "When a post reaches a certain number of likes, reshare it to increase engagement (runs up to 3 times, every 6 hours).",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the repost",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          }
+        ]
+      },
+      {
+        methodName: "autoPlugPost",
+        identifier: "linkedin-page-auto-plug",
+        title: "Auto plug post",
+        description: "When a post reaches a certain number of likes, add a comment from this Page to promote it.",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the comment",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          },
+          {
+            name: "post",
+            description: "Message content for the promotional comment",
+            type: "richtext",
+            placeholder: "Post to plug",
+            validation: "/^[\\s\\S]{3,}$/g"
+          }
+        ]
+      }
+    ];
+  }
+});
+
+// integrations/providers/linkedin/linkedinProvider.ts
+var LinkedInProvider;
+var init_linkedinProvider = __esm({
+  "integrations/providers/linkedin/linkedinProvider.ts"() {
+    init_AppError();
+    init_makeId();
+    init_linkedinCommon();
+    init_linkedinPlugs();
+    init_linkedinPublish();
+    LinkedInProvider = class {
+      identifier = "linkedin";
+      name = "LinkedIn";
+      editor = "normal";
+      isBetweenSteps = false;
+      refreshWait = true;
+      refreshCron = true;
+      oneTimeToken = true;
+      toolTip = "Personal LinkedIn profile \u2014 one OAuth step (no company Page)";
+      scopes = [...LINKEDIN_SCOPES];
+      rules = "LinkedIn posts support up to 3,000 characters, images, a single MP4 video, or a document carousel (2+ images converted to PDF). Follow-up comments are text-only. Video posts allow one attachment.";
+      maxLength(_additionalSettings) {
+        return 3e3;
+      }
+      validateCreatePost(_input) {
+        return null;
+      }
+      internalPlugCatalog() {
+        return LINKEDIN_INTERNAL_PLUG_CATALOG;
+      }
+      tools() {
+        return [
+          {
+            methodName: "company",
+            description: "Resolve a linkedin.com/company/{vanity} URL to an organization mention tag.",
+            dataSchema: {
+              type: "object",
+              properties: { url: { type: "string" } },
+              required: ["url"]
+            }
+          }
+        ];
+      }
+      async company(token, data, _internalId, _integration) {
+        const url = typeof data.url === "string" ? data.url.trim() : "";
+        const match = url.match(/^https?:\/\/(?:www\.)?linkedin\.com\/company\/([^/]+)\/?$/i);
+        if (!match?.[1]) {
+          throw new Error("Invalid LinkedIn company URL");
+        }
+        const res = await fetch(
+          `https://api.linkedin.com/v2/organizations?q=vanityName&vanityName=${encodeURIComponent(match[1])}`,
+          { headers: linkedinRestHeaders(token) }
+        );
+        const json = await res.json();
+        if (!res.ok || !json.elements?.length) {
+          throw new Error(json.message ?? "Company not found");
+        }
+        const org = json.elements[0];
+        const name = org.localizedName ?? String(org.id);
+        return {
+          options: {
+            label: name,
+            value: `@[${name}](urn:li:organization:${org.id})`
+          }
+        };
+      }
+      /**
+       * Cross-account internal plug: comment from another connected LinkedIn channel.
+       */
+      async addComment(acting, _original, postId, information, authorType = "personal") {
+        await runLinkedInAddCommentPlug(acting, postId, information, authorType);
+      }
+      /**
+       * Cross-account internal plug: reshare from another connected LinkedIn channel.
+       */
+      async repostPostUsers(acting, _original, postId, _information, authorType = "personal") {
+        await linkedInResharePost(acting, postId, authorType);
+      }
+      async generateAuthUrl() {
+        const { clientId } = linkedinOAuth();
+        if (!clientId) {
+          throw new AppError(
+            "LinkedIn OAuth is not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET.",
+            503
+          );
+        }
+        const state = makeId(6);
+        const codeVerifier = makeId(30);
+        const url = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&prompt=none&redirect_uri=${encodeURIComponent(linkedinRedirectUri("linkedin"))}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent(this.scopes.join(" "))}`;
+        return { url, codeVerifier, state };
+      }
+      async authenticate(params) {
+        const { clientId, clientSecret } = linkedinOAuth();
+        if (!clientId || !clientSecret) {
+          throw new AppError("LinkedIn OAuth is not configured.", 503);
+        }
+        const body = new URLSearchParams();
+        body.append("grant_type", "authorization_code");
+        body.append("code", params.code);
+        body.append("redirect_uri", linkedinRedirectUri("linkedin"));
+        body.append("client_id", clientId);
+        body.append("client_secret", clientSecret);
+        const tokenRes = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        const tokenJson = await tokenRes.json();
+        if (!tokenJson.access_token) {
+          throw new Error(tokenJson.error_description ?? "LinkedIn token exchange failed");
+        }
+        checkLinkedInScopes(this.scopes, tokenJson.scope);
+        const profile = await this.fetchLinkedInProfile(tokenJson.access_token);
+        return {
+          id: profile.id,
+          name: profile.name,
+          accessToken: tokenJson.access_token,
+          refreshToken: tokenJson.refresh_token,
+          expiresIn: tokenJson.expires_in,
+          picture: profile.picture,
+          username: profile.username
+        };
+      }
+      async refreshToken(refresh_token) {
+        const { clientId, clientSecret } = linkedinOAuth();
+        if (!clientId || !clientSecret) {
+          throw new AppError("LinkedIn OAuth is not configured.", 503);
+        }
+        const tokenRes = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token,
+            client_id: clientId,
+            client_secret: clientSecret
+          })
+        });
+        const tokenJson = await tokenRes.json();
+        if (!tokenJson.access_token) {
+          throw new Error(tokenJson.error_description ?? "LinkedIn token refresh failed");
+        }
+        const profile = await this.fetchLinkedInProfile(tokenJson.access_token);
+        return {
+          id: profile.id,
+          name: profile.name,
+          accessToken: tokenJson.access_token,
+          refreshToken: tokenJson.refresh_token ?? refresh_token,
+          expiresIn: tokenJson.expires_in,
+          picture: profile.picture,
+          username: profile.username
+        };
+      }
+      async fetchLinkedInProfile(accessToken2) {
+        const [userinfoRes, meRes] = await Promise.all([
+          fetch("https://api.linkedin.com/v2/userinfo", {
+            headers: { Authorization: `Bearer ${accessToken2}` }
+          }),
+          fetch("https://api.linkedin.com/v2/me", {
+            headers: { Authorization: `Bearer ${accessToken2}` }
+          })
+        ]);
+        const userinfo = await userinfoRes.json();
+        const me = await meRes.json();
+        return {
+          id: String(userinfo.sub ?? ""),
+          name: userinfo.name ?? "",
+          picture: userinfo.picture ?? "",
+          username: me.vanityName ?? ""
+        };
+      }
+      async post(id, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishLinkedInPost(id, accessToken2, postDetails[0], "personal");
+        return [result];
+      }
+      async comment(id, postId, _lastCommentId, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishLinkedInComment(id, accessToken2, postId, postDetails[0], "personal");
+        return [result];
+      }
+      async mention(token, data, _id, _integration) {
+        const res = await fetch(
+          `https://api.linkedin.com/v2/organizations?q=vanityName&vanityName=${encodeURIComponent(data.query)}&projection=(elements*(id,localizedName,logoV2(original~:playableStreams)))`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "X-Restli-Protocol-Version": "2.0.0",
+              "LinkedIn-Version": "202601",
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        const json = await res.json();
+        const elements = json.elements ?? [];
+        if (!elements.length) return { none: true };
+        return elements.map((p) => ({
+          id: String(p.id),
+          label: p.localizedName ?? String(p.id),
+          image: p.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier ?? ""
+        }));
+      }
+      mentionFormat(idOrHandle, name) {
+        return `@[${name.replace("@", "")}](urn:li:organization:${idOrHandle})`;
+      }
+    };
+  }
+});
+
+// integrations/providers/linkedin/linkedinPageProvider.ts
+var LinkedInPageProvider;
+var init_linkedinPageProvider = __esm({
+  "integrations/providers/linkedin/linkedinPageProvider.ts"() {
+    init_AppError();
+    init_makeId();
+    init_linkedinAnalytics();
+    init_linkedinPlugs();
+    init_linkedinCommon();
+    init_linkedinPublish();
+    init_linkedinProvider();
+    LinkedInPageProvider = class extends LinkedInProvider {
+      identifier = "linkedin-page";
+      name = "LinkedIn Page";
+      isBetweenSteps = true;
+      toolTip = "Company Page you administer \u2014 Page picker, document carousels, and analytics";
+      globalPlugCatalog() {
+        return LINKEDIN_PAGE_GLOBAL_PLUG_CATALOG;
+      }
+      async addComment(acting, original, postId, information) {
+        return super.addComment(acting, original, postId, information, "company");
+      }
+      async repostPostUsers(acting, original, postId, information) {
+        return super.repostPostUsers(acting, original, postId, information, "company");
+      }
+      async autoRepostPost(integration, postId, fields) {
+        const threshold = Number(fields.likesAmount);
+        if (!Number.isFinite(threshold) || threshold < 0) return false;
+        const totalLikes = await fetchLinkedInPostLikes(integration.token, postId);
+        if (totalLikes < threshold) return false;
+        await linkedInResharePost(integration, postId, "company");
+        return true;
+      }
+      async autoPlugPost(integration, postId, fields) {
+        return runLinkedInAutoPlugPost(integration, postId, fields);
+      }
+      async generateAuthUrl() {
+        const { clientId } = linkedinOAuth();
+        if (!clientId) {
+          throw new AppError(
+            "LinkedIn OAuth is not configured. Set LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET.",
+            503
+          );
+        }
+        const state = makeId(6);
+        const codeVerifier = makeId(30);
+        const url = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${encodeURIComponent(clientId)}&prompt=none&redirect_uri=${encodeURIComponent(linkedinRedirectUri("linkedin-page"))}&state=${encodeURIComponent(state)}&scope=${encodeURIComponent(this.scopes.join(" "))}`;
+        return { url, codeVerifier, state };
+      }
+      async authenticate(params) {
+        const { clientId, clientSecret } = linkedinOAuth();
+        if (!clientId || !clientSecret) {
+          throw new AppError("LinkedIn OAuth is not configured.", 503);
+        }
+        const body = new URLSearchParams();
+        body.append("grant_type", "authorization_code");
+        body.append("code", params.code);
+        body.append("redirect_uri", linkedinRedirectUri("linkedin-page"));
+        body.append("client_id", clientId);
+        body.append("client_secret", clientSecret);
+        const tokenRes = await fetch("https://www.linkedin.com/oauth/v2/accessToken", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body
+        });
+        const tokenJson = await tokenRes.json();
+        if (!tokenJson.access_token) {
+          throw new Error(tokenJson.error_description ?? "LinkedIn token exchange failed");
+        }
+        checkLinkedInScopes(this.scopes, tokenJson.scope);
+        const profile = await this.fetchLinkedInProfile(tokenJson.access_token);
+        return {
+          id: `p_${profile.id}`,
+          name: profile.name,
+          accessToken: tokenJson.access_token,
+          refreshToken: tokenJson.refresh_token,
+          expiresIn: tokenJson.expires_in,
+          picture: profile.picture,
+          username: profile.username
+        };
+      }
+      async pages(accessToken2) {
+        const rows = await this.listAdminOrganizations(accessToken2);
+        return rows.map((row) => ({
+          id: row.id,
+          name: row.name,
+          username: row.username,
+          pictureUrl: row.picture ?? ""
+        }));
+      }
+      async listAdminOrganizations(accessToken2) {
+        const res = await fetch(
+          "https://api.linkedin.com/v2/organizationalEntityAcls?q=roleAssignee&role=ADMINISTRATOR&projection=(elements*(organizationalTarget~(localizedName,vanityName,logoV2(original~:playableStreams))))",
+          { headers: linkedinRestHeaders(accessToken2) }
+        );
+        const json = await res.json();
+        if (!res.ok) {
+          throw new Error(json.message ?? "Could not list LinkedIn Pages");
+        }
+        return (json.elements ?? []).map((e) => {
+          const target = e.organizationalTarget ?? "";
+          const id = target.split(":").pop() ?? "";
+          const meta = e["organizationalTarget~"];
+          return {
+            id,
+            name: meta?.localizedName ?? id,
+            username: meta?.vanityName,
+            picture: meta?.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier
+          };
+        });
+      }
+      async fetchPageInformation(accessToken2, data) {
+        const pageId = resolveLinkedInPageIdFromPayload(data);
+        const res = await fetch(
+          `https://api.linkedin.com/v2/organizations/${pageId}?projection=(id,localizedName,vanityName,logoV2(original~:playableStreams))`,
+          { headers: { Authorization: `Bearer ${accessToken2}` } }
+        );
+        const org = await res.json();
+        if (!res.ok || org.id == null) {
+          throw new Error(org.message ?? "Could not load LinkedIn Page");
+        }
+        return {
+          id: String(org.id),
+          name: org.localizedName ?? String(org.id),
+          access_token: accessToken2,
+          picture: org.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier ?? "",
+          username: org.vanityName ?? ""
+        };
+      }
+      async reConnect(_userSub, pageId, accessToken2) {
+        const information = await this.fetchPageInformation(accessToken2, { page: pageId });
+        return {
+          id: information.id,
+          name: information.name,
+          accessToken: information.access_token,
+          picture: information.picture,
+          username: information.username
+        };
+      }
+      async post(id, accessToken2, postDetails, integration) {
+        if (!postDetails.length) return [];
+        const result = await publishLinkedInPost(id, accessToken2, postDetails[0], "company");
+        return [result];
+      }
+      async comment(id, postId, lastCommentId, accessToken2, postDetails, integration) {
+        if (!postDetails.length) return [];
+        const result = await publishLinkedInComment(id, accessToken2, postId, postDetails[0], "company");
+        return [result];
+      }
+      async analytics(id, accessToken2, dateWindowDays) {
+        return fetchLinkedInPageAnalytics(id, accessToken2, dateWindowDays);
+      }
+      async postAnalytics(integrationId, accessToken2, releaseId, fromDateDays) {
+        return fetchLinkedInPostAnalytics(integrationId, accessToken2, releaseId, fromDateDays);
+      }
+    };
+  }
+});
+
 // integrations/providers/tiktok/tiktokApiErrors.ts
 function mapTiktokApiErrorCode(code, fallbackMessage) {
   const key = (code ?? "").trim();
@@ -13245,7 +14530,7 @@ var init_tiktokApiClient = __esm({
 });
 
 // integrations/providers/tiktok/resolveTiktokSettings.ts
-function isPlainObject3(value) {
+function isPlainObject5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyLevel(source) {
@@ -13280,7 +14565,7 @@ function readTitle(source) {
 }
 function resolveTiktokSettings(postDetailsSettings, message = "") {
   const caption = typeof message === "string" ? message.trim() : "";
-  if (!isPlainObject3(postDetailsSettings)) {
+  if (!isPlainObject5(postDetailsSettings)) {
     return {
       privacy_level: DEFAULT_PRIVACY,
       content_posting_method: DEFAULT_POSTING_METHOD,
@@ -13296,13 +14581,13 @@ function resolveTiktokSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject3(providerSettings)) {
+  if (isPlainObject5(providerSettings)) {
     const { tiktok: tiktokBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject3(tiktokBucket)) {
+    if (isPlainObject5(tiktokBucket)) {
       source = { ...source, ...tiktokBucket };
     }
-  } else if (isPlainObject3(postDetailsSettings.tiktok)) {
+  } else if (isPlainObject5(postDetailsSettings.tiktok)) {
     source = { ...source, ...postDetailsSettings.tiktok };
   }
   const explicitTitle = readTitle(source);
@@ -13327,103 +14612,6 @@ var init_resolveTiktokSettings = __esm({
   }
 });
 
-// integrations/providers/tiktok/tiktokPublishValidation.ts
-function isPlainObject4(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-function mediaExtFromUrlOrKey3(path7) {
-  const raw = String(path7 || "").trim();
-  if (!raw) return "";
-  try {
-    const u = new URL(raw);
-    return (u.pathname.split(".").pop() ?? "").toLowerCase();
-  } catch {
-    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
-  }
-}
-function extractTiktokMediaFromSettings(settings) {
-  if (!isPlainObject4(settings)) return [];
-  const media = settings.media;
-  if (Array.isArray(media)) {
-    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
-  }
-  const items = media?.items;
-  if (Array.isArray(items)) {
-    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
-  }
-  return [];
-}
-function resolveTiktokPublicMediaUrl(path7) {
-  const raw = path7.trim();
-  if (!raw) {
-    throw new Error("Media path is empty");
-  }
-  if (raw.startsWith("http://") || raw.startsWith("https://")) {
-    return raw;
-  }
-  const url = publicUrlForObjectKey(raw);
-  if (!url) {
-    throw new Error(
-      "Cannot build a public media URL for TikTok (set STORAGE_R2_PUBLIC_BASE_URL for R2, STORAGE_PROVIDER=local with FRONTEND_DOMAIN_URL, or use full https:// URLs)"
-    );
-  }
-  return url;
-}
-function classifyTiktokMedia(media) {
-  if (media.length === 0) return null;
-  const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path));
-  const hasVideo = exts.some((ext) => VIDEO_EXTENSIONS.has(ext));
-  const hasImage = exts.some((ext) => IMAGE_EXTENSIONS.has(ext));
-  if (hasVideo && hasImage) return null;
-  if (hasVideo) return media.length === 1 ? "video" : null;
-  if (hasImage) return "photo";
-  return null;
-}
-function validateTiktokMedia(media) {
-  if (media.length === 0) {
-    throw new Error("TikTok requires one video or one or more images");
-  }
-  const kind = classifyTiktokMedia(media);
-  if (!kind) {
-    const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path)).join(", ");
-    if (media.length > 1 && media.some((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
-      throw new Error("TikTok does not support mixing video and images in one post");
-    }
-    if (media.length > 1 && media.every((m) => mediaExtFromUrlOrKey3(m.path) === "mp4")) {
-      throw new Error("TikTok requires exactly one MP4 video");
-    }
-    throw new Error(`TikTok media type is not supported (extensions: ${exts || "unknown"})`);
-  }
-  if (kind === "video") {
-    const ext = mediaExtFromUrlOrKey3(media[0].path);
-    if (ext !== "mp4") {
-      throw new Error("TikTok requires an MP4 video attachment");
-    }
-  } else {
-    for (const item of media) {
-      const ext = mediaExtFromUrlOrKey3(item.path);
-      if (!IMAGE_EXTENSIONS.has(ext)) {
-        throw new Error("TikTok photo posts require JPEG, PNG, or WEBP images");
-      }
-    }
-    if (media.length > 35) {
-      throw new Error("TikTok photo posts support at most 35 images");
-    }
-  }
-  return {
-    kind,
-    urls: media.map((m) => resolveTiktokPublicMediaUrl(m.path))
-  };
-}
-var IMAGE_EXTENSIONS, VIDEO_EXTENSIONS;
-var init_tiktokPublishValidation = __esm({
-  "integrations/providers/tiktok/tiktokPublishValidation.ts"() {
-    init_MediaRepository();
-    IMAGE_EXTENSIONS = /* @__PURE__ */ new Set(["jpg", "jpeg", "png", "webp"]);
-    VIDEO_EXTENSIONS = /* @__PURE__ */ new Set(["mp4"]);
-  }
-});
-
 // integrations/providers/tiktok/tiktokDataPublish.ts
 function tiktokStatusPollMs() {
   return process.env.JEST_WORKER_ID !== void 0 ? 10 : 1e4;
@@ -13431,7 +14619,7 @@ function tiktokStatusPollMs() {
 function tiktokStatusMaxPolls() {
   return process.env.JEST_WORKER_ID !== void 0 ? 5 : 360;
 }
-function sleepMs3(ms) {
+function sleepMs4(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function buildTiktokVideoPostInfoBody(settings, caption) {
@@ -13495,7 +14683,7 @@ async function pollTiktokPublishStatus(accessToken2, publishId) {
     if (status === "PUBLISH_COMPLETE" || status === "SEND_TO_USER_INBOX") {
       return { status, postId: firstPostId, failReason };
     }
-    await sleepMs3(tiktokStatusPollMs());
+    await sleepMs4(tiktokStatusPollMs());
   }
   throw new Error("TikTok publish timed out while waiting for processing to complete");
 }
@@ -13955,7 +15143,7 @@ var init_tiktokProvider = __esm({
 });
 
 // integrations/providers/youtube/resolveYoutubeSettings.ts
-function isPlainObject5(value) {
+function isPlainObject6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyStatus(source) {
@@ -13981,7 +15169,7 @@ function normalizeTags(raw) {
       if (label) out.push(label);
       continue;
     }
-    if (isPlainObject5(item)) {
+    if (isPlainObject6(item)) {
       const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
       if (label) out.push(label);
     }
@@ -13990,7 +15178,7 @@ function normalizeTags(raw) {
 }
 function readThumbnailPath(source) {
   const thumb = source.thumbnail;
-  if (isPlainObject5(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
+  if (isPlainObject6(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
     return thumb.path.trim();
   }
   if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
@@ -14000,7 +15188,7 @@ function readThumbnailPath(source) {
 }
 function resolveYoutubeSettings(postDetailsSettings, message = "") {
   const description = typeof message === "string" ? message : "";
-  if (!isPlainObject5(postDetailsSettings)) {
+  if (!isPlainObject6(postDetailsSettings)) {
     return {
       title: "",
       description,
@@ -14011,13 +15199,13 @@ function resolveYoutubeSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject5(providerSettings)) {
+  if (isPlainObject6(providerSettings)) {
     const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject5(youtubeBucket)) {
+    if (isPlainObject6(youtubeBucket)) {
       source = { ...source, ...youtubeBucket };
     }
-  } else if (isPlainObject5(postDetailsSettings.youtube)) {
+  } else if (isPlainObject6(postDetailsSettings.youtube)) {
     source = { ...source, ...postDetailsSettings.youtube };
   }
   return {
@@ -14041,7 +15229,7 @@ function shouldSkipYoutubeThumbnail(byteLength) {
   if (byteLength == null || !Number.isFinite(byteLength)) return false;
   return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
 }
-function isPlainObject6(value) {
+function isPlainObject7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromUrlOrKey4(path7) {
@@ -14055,7 +15243,7 @@ function mediaExtFromUrlOrKey4(path7) {
   }
 }
 function extractYoutubeMediaFromSettings(settings) {
-  if (!isPlainObject6(settings)) return [];
+  if (!isPlainObject7(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -14531,6 +15719,710 @@ var init_youtubeProvider = __esm({
     };
   }
 });
+function xRedirectUri() {
+  return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("x")}`;
+}
+function xOAuth() {
+  return config.integrations.x;
+}
+function parseXAccessToken(stored) {
+  const idx = stored.indexOf(":");
+  if (idx <= 0) {
+    throw new ProviderAccessTokenExpiredError("X access token is malformed; reconnect the channel");
+  }
+  const accessToken2 = stored.slice(0, idx);
+  const accessSecret = stored.slice(idx + 1);
+  if (!accessToken2 || !accessSecret) {
+    throw new ProviderAccessTokenExpiredError("X access token is malformed; reconnect the channel");
+  }
+  return { accessToken: accessToken2, accessSecret };
+}
+function formatXAccessToken(accessToken2, accessSecret) {
+  return `${accessToken2}:${accessSecret}`;
+}
+function createXAppClient() {
+  const { apiKey, apiSecret } = xOAuth();
+  if (!apiKey || !apiSecret) {
+    throw new Error("X OAuth is not configured");
+  }
+  return new twitterApiV2.TwitterApi({ appKey: apiKey, appSecret: apiSecret });
+}
+function createXUserClient(storedToken) {
+  const { apiKey, apiSecret } = xOAuth();
+  const { accessToken: accessToken2, accessSecret } = parseXAccessToken(storedToken);
+  return new twitterApiV2.TwitterApi({
+    appKey: apiKey,
+    appSecret: apiSecret,
+    accessToken: accessToken2,
+    accessSecret
+  });
+}
+function xReleaseUrl(_username, tweetId) {
+  return `https://x.com/i/status/${tweetId}`;
+}
+var init_xCommon = __esm({
+  "integrations/providers/x/xCommon.ts"() {
+    init_GlobalConfig();
+    init_ProviderIntegrationErrors();
+    init_oauthFrontendOrigin();
+    init_oauthFrontendCallbackPath();
+  }
+});
+function readApiErrorCode(err) {
+  if (typeof err.code === "number") return err.code;
+  const data = err.data;
+  const nested = data?.errors?.[0]?.code;
+  return typeof nested === "number" ? nested : void 0;
+}
+function mapXApiError(err) {
+  if (err instanceof ProviderAccessTokenExpiredError) {
+    return err;
+  }
+  if (err instanceof twitterApiV2.ApiResponseError) {
+    const code = readApiErrorCode(err);
+    const data = err.data;
+    const detail = data?.detail ?? data?.title ?? err.message;
+    if (code != null && AUTH_ERROR_CODES.has(Number(code))) {
+      return new ProviderAccessTokenExpiredError(
+        "X rejected the access token. Reconnect the channel and try again."
+      );
+    }
+    const lower = String(detail ?? "").toLowerCase();
+    if (lower.includes("usage cap") || lower.includes("rate limit")) {
+      return new Error("X API usage limit reached. Wait a few minutes and try again.");
+    }
+    if (lower.includes("duplicate") || lower.includes("already posted")) {
+      return new Error("This post looks like a duplicate on X. Edit the text and try again.");
+    }
+    if (lower.includes("invalid url") || lower.includes("malformed url")) {
+      return new Error("X rejected a URL in this post. Check links and try again.");
+    }
+    if (lower.includes("video") && (lower.includes("140") || lower.includes("2 minute") || lower.includes("duration"))) {
+      return new Error("X videos must be 140 seconds or shorter for this account.");
+    }
+    if (detail) {
+      return new Error(String(detail));
+    }
+  }
+  if (err instanceof Error) {
+    const lower = err.message.toLowerCase();
+    if (lower.includes("could not authenticate") || lower.includes("invalid or expired token")) {
+      return new ProviderAccessTokenExpiredError(
+        "X rejected the access token. Reconnect the channel and try again."
+      );
+    }
+    if (lower.includes("usage cap") || lower.includes("rate limit")) {
+      return new Error("X API usage limit reached. Wait a few minutes and try again.");
+    }
+    if (lower.includes("duplicate") || lower.includes("already posted")) {
+      return new Error("This post looks like a duplicate on X. Edit the text and try again.");
+    }
+    if (lower.includes("invalid url") || lower.includes("malformed url")) {
+      return new Error("X rejected a URL in this post. Check links and try again.");
+    }
+    if (lower.includes("video") && (lower.includes("140") || lower.includes("2 minute") || lower.includes("duration"))) {
+      return new Error("X videos must be 140 seconds or shorter for this account.");
+    }
+    return err;
+  }
+  return new Error(String(err));
+}
+async function withXErrorMapping(fn) {
+  try {
+    return await fn();
+  } catch (err) {
+    throw mapXApiError(err);
+  }
+}
+var AUTH_ERROR_CODES;
+var init_xErrors = __esm({
+  "integrations/providers/x/xErrors.ts"() {
+    init_ProviderIntegrationErrors();
+    AUTH_ERROR_CODES = /* @__PURE__ */ new Set([32, 89, 215, 326, 401]);
+  }
+});
+
+// integrations/providers/x/xMediaUpload.ts
+function isPlainObject8(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function mediaExtFromPath(path7) {
+  const raw = String(path7 || "").trim();
+  if (!raw) return "";
+  try {
+    const u = new URL(raw);
+    return (u.pathname.split(".").pop() ?? "").toLowerCase();
+  } catch {
+    return (raw.split("?")[0]?.split("#")[0]?.split(".").pop() ?? "").toLowerCase();
+  }
+}
+function isVideoPath(path7) {
+  const ext = mediaExtFromPath(path7);
+  return ext === "mp4" || ext === "mov" || ext === "m4v" || path7.toLowerCase().includes("video");
+}
+async function loadMediaBuffer2(path7) {
+  const resolved = path7.startsWith("http://") || path7.startsWith("https://") ? path7 : publicUrlForObjectKey(path7);
+  if (!resolved) {
+    throw new Error("Media path could not be resolved to a public URL");
+  }
+  if (resolved.startsWith("http://") || resolved.startsWith("https://")) {
+    const res = await fetch(resolved);
+    if (!res.ok) {
+      throw new Error(`Failed to download media for X (HTTP ${res.status})`);
+    }
+    return Buffer.from(await res.arrayBuffer());
+  }
+  const upload4 = UploadFactory.createStorage(storageR2Repository);
+  const { buffer } = await upload4.downloadObject(path7);
+  return buffer;
+}
+function mimeFromPath(path7) {
+  const ext = mediaExtFromPath(path7);
+  if (ext === "gif") return "image/gif";
+  if (ext === "png") return "image/png";
+  if (ext === "jpg" || ext === "jpeg") return "image/jpeg";
+  if (ext === "mp4" || ext === "mov" || ext === "m4v") return "video/mp4";
+  return "application/octet-stream";
+}
+async function prepareImageBuffer(raw, path7) {
+  const ext = mediaExtFromPath(path7);
+  if (ext === "gif") {
+    return { buffer: raw, mimeType: "image/gif" };
+  }
+  const sharp = (await import('sharp')).default;
+  const jpeg = await sharp(raw, { animated: ext === "gif" }).jpeg().resize({ width: 1e3 }).toBuffer();
+  return { buffer: jpeg, mimeType: "image/jpeg" };
+}
+function extractXMedia(settings) {
+  if (!isPlainObject8(settings)) return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  if (isPlainObject8(media) && Array.isArray(media.items)) {
+    return media.items.filter(
+      (m) => !!m && typeof m.path === "string" && m.path.length > 0
+    );
+  }
+  return [];
+}
+async function uploadXMediaForSettings(client, settings) {
+  const media = extractXMedia(settings);
+  if (media.length === 0) return [];
+  const hasVideo = media.some((m) => isVideoPath(m.path));
+  if (hasVideo && media.length > 1) {
+    throw new Error("X allows one video or up to four images per post, not both.");
+  }
+  if (media.length > 4) {
+    throw new Error("X allows up to four images per post.");
+  }
+  const mediaIds = [];
+  for (const item of media) {
+    const raw = await loadMediaBuffer2(item.path);
+    if (isVideoPath(item.path)) {
+      const mimeType2 = mimeFromPath(item.path);
+      const mediaId2 = await client.v1.uploadMedia(raw, { mimeType: mimeType2, target: "tweet" });
+      mediaIds.push(mediaId2);
+      continue;
+    }
+    const { buffer, mimeType } = await prepareImageBuffer(raw, item.path);
+    const mediaId = await client.v1.uploadMedia(buffer, { mimeType, target: "tweet" });
+    mediaIds.push(mediaId);
+  }
+  return mediaIds;
+}
+var init_xMediaUpload = __esm({
+  "integrations/providers/x/xMediaUpload.ts"() {
+    init_upload_factory();
+    init_repositories();
+    init_MediaRepository();
+  }
+});
+function isPlainObject9(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readString2(source, key) {
+  const value = source[key];
+  if (typeof value === "string" && value.trim()) return value.trim();
+  return void 0;
+}
+function readBoolean2(source, key) {
+  const value = source[key];
+  if (value === true || value === "true") return true;
+  if (value === false || value === "false") return false;
+  return void 0;
+}
+function normalizeReplySetting(raw) {
+  if (!raw) return void 0;
+  const normalized = raw.trim();
+  return REPLY_SETTING_VALUES.has(normalized) ? normalized : void 0;
+}
+function parseXCommunityIdFromUrl(url) {
+  const trimmed = url.trim();
+  if (!trimmed) return void 0;
+  const match = trimmed.match(/\/communities\/(\d+)/i);
+  if (match?.[1]) return match[1];
+  if (/^\d+$/.test(trimmed)) return trimmed;
+  return void 0;
+}
+function readReplySetting(source) {
+  return normalizeReplySetting(
+    readString2(source, "who_can_reply_post") ?? readString2(source, "whoCanReplyPost")
+  );
+}
+function readCommunityId(source) {
+  const direct = readString2(source, "community_id") ?? readString2(source, "communityId");
+  if (direct) return parseXCommunityIdFromUrl(direct) ?? direct;
+  const url = readString2(source, "community") ?? readString2(source, "community_url");
+  if (url) return parseXCommunityIdFromUrl(url);
+  return void 0;
+}
+function mergeResolvedSettings(target, source) {
+  const who = readReplySetting(source);
+  if (who) target.who_can_reply = who;
+  const communityId = readCommunityId(source);
+  if (communityId) target.community_id = communityId;
+  const madeWithAi = readBoolean2(source, "made_with_ai") ?? readBoolean2(source, "madeWithAi");
+  if (typeof madeWithAi === "boolean") target.made_with_ai = madeWithAi;
+  const paidPartnership = readBoolean2(source, "paid_partnership") ?? readBoolean2(source, "paidPartnership");
+  if (typeof paidPartnership === "boolean") target.paid_partnership = paidPartnership;
+  return target;
+}
+function resolveXSettings(settings) {
+  if (!isPlainObject9(settings)) return {};
+  const out = {};
+  mergeResolvedSettings(out, settings);
+  const providerSettings = settings.providerSettings;
+  if (isPlainObject9(providerSettings)) {
+    mergeResolvedSettings(out, providerSettings);
+    const xBucket = providerSettings.x;
+    if (isPlainObject9(xBucket)) {
+      mergeResolvedSettings(out, xBucket);
+    }
+  }
+  const xRoot = settings.x;
+  if (isPlainObject9(xRoot)) {
+    mergeResolvedSettings(out, xRoot);
+  }
+  return out;
+}
+function buildTweetText(message, _settings) {
+  return htmlToPlainText(message ?? "").trim();
+}
+function validateTweetWeightedLength(text, maxLength) {
+  const parsed = twitterText__default.default.parseTweet(text);
+  if (parsed.weightedLength > maxLength) {
+    throw new Error(`Tweet exceeds the ${maxLength} character limit for this account.`);
+  }
+}
+function buildTweetPayload(text, settings, mediaIds, replyToTweetId) {
+  const payload = { text };
+  if (mediaIds.length > 0) {
+    const ids = mediaIds.slice(0, 4);
+    if (ids.length === 1) payload.media = { media_ids: [ids[0]] };
+    else if (ids.length === 2) payload.media = { media_ids: [ids[0], ids[1]] };
+    else if (ids.length === 3) payload.media = { media_ids: [ids[0], ids[1], ids[2]] };
+    else payload.media = { media_ids: [ids[0], ids[1], ids[2], ids[3]] };
+  }
+  if (settings.who_can_reply) {
+    payload.reply_settings = settings.who_can_reply;
+  }
+  if (settings.community_id) {
+    payload.community_id = settings.community_id;
+  }
+  if (replyToTweetId?.trim()) {
+    payload.reply = { in_reply_to_tweet_id: replyToTweetId.trim() };
+  }
+  if (settings.made_with_ai === true) {
+    payload.content_disclosure = {
+      made_with_ai: true,
+      ...settings.paid_partnership === true ? { paid_partnership: true } : {}
+    };
+  } else if (settings.paid_partnership === true) {
+    payload.content_disclosure = { paid_partnership: true };
+  }
+  return payload;
+}
+var REPLY_SETTING_VALUES;
+var init_xPublish = __esm({
+  "integrations/providers/x/xPublish.ts"() {
+    init_htmlToPlain();
+    REPLY_SETTING_VALUES = /* @__PURE__ */ new Set([
+      "following",
+      "mentionedUsers",
+      "subscribers",
+      "verified"
+    ]);
+  }
+});
+function xAnalyticsDisabled() {
+  return config.integrations.x?.disableAnalytics === true;
+}
+function formatDateFromIso(iso) {
+  if (!iso) return dayjs5__default.default().format("YYYY-MM-DD");
+  return dayjs5__default.default(iso).format("YYYY-MM-DD");
+}
+async function fetchXAccountAnalytics(client, userId, dateWindowDays) {
+  if (xAnalyticsDisabled()) return [];
+  const since = dayjs5__default.default().subtract(dateWindowDays, "day").toISOString();
+  const timeline = await client.v2.userTimeline(userId, {
+    max_results: 100,
+    start_time: since,
+    "tweet.fields": ["public_metrics", "created_at"],
+    exclude: ["retweets", "replies"]
+  });
+  const buckets = {};
+  for await (const tweet of timeline) {
+    const date = formatDateFromIso(tweet.created_at);
+    const metrics = tweet.public_metrics;
+    if (!metrics) continue;
+    buckets[date] ??= {
+      Likes: 0,
+      Replies: 0,
+      Reposts: 0,
+      Quotes: 0,
+      Impressions: 0
+    };
+    buckets[date].Likes += metrics.like_count ?? 0;
+    buckets[date].Replies += metrics.reply_count ?? 0;
+    buckets[date].Reposts += metrics.retweet_count ?? 0;
+    buckets[date].Quotes += metrics.quote_count ?? 0;
+    buckets[date].Impressions += metrics.impression_count ?? 0;
+  }
+  const labels = ["Likes", "Replies", "Reposts", "Quotes", "Impressions"];
+  return labels.map((label) => ({
+    label,
+    percentageChange: 0,
+    data: Object.entries(buckets).map(([date, totals]) => ({
+      date,
+      total: String(totals[label] ?? 0)
+    }))
+  })).filter((row) => row.data.length > 0);
+}
+async function fetchXPostAnalytics(client, releaseId) {
+  if (xAnalyticsDisabled()) return [];
+  const tweet = await client.v2.singleTweet(releaseId, {
+    "tweet.fields": ["public_metrics", "created_at"]
+  });
+  const metrics = tweet.data.public_metrics;
+  if (!metrics) return [];
+  const date = formatDateFromIso(tweet.data.created_at);
+  const rows = [
+    { label: "Likes", data: [{ total: String(metrics.like_count ?? 0), date }], percentageChange: 0 },
+    { label: "Replies", data: [{ total: String(metrics.reply_count ?? 0), date }], percentageChange: 0 },
+    { label: "Reposts", data: [{ total: String(metrics.retweet_count ?? 0), date }], percentageChange: 0 },
+    { label: "Quotes", data: [{ total: String(metrics.quote_count ?? 0), date }], percentageChange: 0 }
+  ];
+  if (typeof metrics.impression_count === "number") {
+    rows.push({
+      label: "Impressions",
+      data: [{ total: String(metrics.impression_count), date }],
+      percentageChange: 0
+    });
+  }
+  return rows;
+}
+async function fetchXTweetLikeCount(client, tweetId) {
+  const tweet = await client.v2.singleTweet(tweetId, { "tweet.fields": ["public_metrics"] });
+  return tweet.data.public_metrics?.like_count ?? 0;
+}
+var init_xAnalytics = __esm({
+  "integrations/providers/x/xAnalytics.ts"() {
+    init_GlobalConfig();
+  }
+});
+
+// integrations/providers/x/xPlugs.ts
+function sleepMs5(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+async function runXAutoRepostPlug(client, userId, tweetId, fields) {
+  const threshold = Number(fields.likesAmount);
+  if (!Number.isFinite(threshold) || threshold < 0) return false;
+  const likes = await fetchXTweetLikeCount(client, tweetId);
+  if (likes < threshold) return false;
+  await sleepMs5(2e3);
+  await withXErrorMapping(() => client.v2.retweet(userId, tweetId));
+  return true;
+}
+async function runXAutoPlugPost(client, tweetId, fields, publishReply) {
+  const threshold = Number(fields.likesAmount);
+  if (!Number.isFinite(threshold) || threshold < 0) return false;
+  const likes = await fetchXTweetLikeCount(client, tweetId);
+  if (likes < threshold) return false;
+  await sleepMs5(2e3);
+  const text = htmlToPlainText(fields.post ?? "").trim();
+  if (text.length < 3) return false;
+  await publishReply(text, tweetId);
+  return true;
+}
+async function runXRepostFromAccount(client, userId, tweetId) {
+  if (!tweetId.trim()) return;
+  await withXErrorMapping(() => client.v2.retweet(userId, tweetId.trim()));
+}
+async function runXRepostPostUsersPlug(acting, _original, tweetId, _information, createClient3) {
+  const client = createClient3(acting.token);
+  await runXRepostFromAccount(client, acting.internal_id, tweetId);
+}
+var X_GLOBAL_PLUG_CATALOG, X_INTERNAL_PLUG_CATALOG;
+var init_xPlugs = __esm({
+  "integrations/providers/x/xPlugs.ts"() {
+    init_htmlToPlain();
+    init_xAnalytics();
+    init_xErrors();
+    X_GLOBAL_PLUG_CATALOG = [
+      {
+        methodName: "autoRepostPost",
+        identifier: "x-auto-repost",
+        title: "Auto repost posts",
+        description: "When a post reaches a certain number of likes, repost it to increase engagement (runs up to 3 times, every 6 hours).",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the repost",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          }
+        ]
+      },
+      {
+        methodName: "autoPlugPost",
+        identifier: "x-auto-plug",
+        title: "Auto plug post",
+        description: "When a post reaches a certain number of likes, publish a reply from this account to promote it.",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the reply",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          },
+          {
+            name: "post",
+            description: "Message content for the reply",
+            type: "richtext",
+            placeholder: "Post to plug",
+            validation: "/^[\\s\\S]{3,}$/g"
+          }
+        ]
+      }
+    ];
+    X_INTERNAL_PLUG_CATALOG = [
+      {
+        identifier: "x-repost-post-users",
+        methodName: "repostPostUsers",
+        title: "Add re-posters",
+        description: "Choose other X channels to repost this post after it goes live.",
+        pickIntegration: ["x"],
+        fields: []
+      }
+    ];
+  }
+});
+var XProvider;
+var init_xProvider = __esm({
+  "integrations/providers/x/xProvider.ts"() {
+    init_makeId();
+    init_xCommon();
+    init_xErrors();
+    init_xMediaUpload();
+    init_xPublish();
+    init_xAnalytics();
+    init_xPlugs();
+    XProvider = class {
+      identifier = "x";
+      name = "X";
+      editor = "normal";
+      isBetweenSteps = false;
+      scopes = ["tweet.read", "tweet.write", "users.read", "offline.access"];
+      rules = "Posts support plain text with up to four images or one video. Standard accounts have a 280 weighted character limit; Verified (Premium) accounts may use up to 4000. Thread replies chain as quote-less replies. OAuth tokens are long-lived \u2014 reconnect on auth errors.";
+      globalPlugCatalog() {
+        return X_GLOBAL_PLUG_CATALOG;
+      }
+      internalPlugCatalog() {
+        return X_INTERNAL_PLUG_CATALOG;
+      }
+      maxLength(verified) {
+        return verified === true ? 4e3 : 280;
+      }
+      validateCreatePost(input) {
+        if (input.mediaCount > 4) {
+          return "X allows up to four images or one video per post.";
+        }
+        return null;
+      }
+      async post(_userId, accessToken2, postDetails, integration) {
+        if (!postDetails.length) return [];
+        const client = createXUserClient(accessToken2);
+        const verified = this.readVerifiedFromIntegration(integration);
+        const maxLen = this.maxLength(verified);
+        const out = [];
+        for (const detail of postDetails) {
+          const settings = resolveXSettings(detail.settings);
+          const text = buildTweetText(detail.message);
+          validateTweetWeightedLength(text, maxLen);
+          const mediaIds = await withXErrorMapping(
+            () => uploadXMediaForSettings(client, detail.settings)
+          );
+          const payload = buildTweetPayload(text, settings, mediaIds);
+          const tweet = await withXErrorMapping(() => client.v2.tweet(payload));
+          const tweetId = tweet.data.id;
+          out.push({
+            id: detail.id,
+            postId: tweetId,
+            status: "success",
+            releaseURL: xReleaseUrl(integration.name || integration.internal_id, tweetId)
+          });
+        }
+        return out;
+      }
+      async comment(_userId, postId, lastCommentId, accessToken2, postDetails, integration) {
+        if (!postDetails.length) return [];
+        const client = createXUserClient(accessToken2);
+        const [first] = postDetails;
+        const settings = resolveXSettings(first.settings);
+        const text = buildTweetText(first.message);
+        const verified = this.readVerifiedFromIntegration(integration);
+        const maxLen = this.maxLength(verified);
+        validateTweetWeightedLength(text, maxLen);
+        const replyToId = (lastCommentId ?? postId ?? "").trim();
+        if (!replyToId) {
+          throw new Error("X reply target tweet id is required");
+        }
+        const mediaIds = await withXErrorMapping(() => uploadXMediaForSettings(client, first.settings));
+        const payload = buildTweetPayload(text, settings, mediaIds, replyToId);
+        const tweet = await withXErrorMapping(() => client.v2.tweet(payload));
+        return [
+          {
+            id: first.id,
+            postId: tweet.data.id,
+            status: "success",
+            releaseURL: xReleaseUrl(integration.name || integration.internal_id, tweet.data.id)
+          }
+        ];
+      }
+      async mention(token, data, _id, _integration) {
+        const query = (data.query ?? "").trim().replace(/^@/, "");
+        if (!query) return { none: true };
+        const client = createXUserClient(token);
+        const result = await withXErrorMapping(
+          () => client.v1.get("users/search.json", { q: query, count: 10, include_entities: false })
+        );
+        const users = result.users;
+        if (!users?.length) return { none: true };
+        return users.map((user) => ({
+          id: user.id_str ?? "",
+          label: user.name ? `${user.name} (@${user.screen_name ?? ""})` : `@${user.screen_name ?? ""}`,
+          image: user.profile_image_url_https ?? ""
+        }));
+      }
+      mentionFormat(idOrHandle, name) {
+        const handle = idOrHandle.replace(/^@/, "").trim();
+        const display = name.replace(/^@/, "").trim();
+        return `@${handle || display}`;
+      }
+      async generateAuthUrl() {
+        const client = createXAppClient();
+        const link = await withXErrorMapping(
+          () => client.generateAuthLink(xRedirectUri(), { linkMode: "authorize" })
+        );
+        return {
+          url: link.url,
+          state: link.oauth_token,
+          codeVerifier: `${link.oauth_token}:${link.oauth_token_secret}`
+        };
+      }
+      async authenticate(params) {
+        const { apiKey, apiSecret } = xOAuth();
+        if (!apiKey || !apiSecret) return "X OAuth is not configured";
+        const separator = params.codeVerifier.indexOf(":");
+        if (separator <= 0) return "Invalid X OAuth session";
+        const oauthToken = params.codeVerifier.slice(0, separator);
+        const oauthSecret = params.codeVerifier.slice(separator + 1);
+        if (!oauthToken || !oauthSecret) return "Invalid X OAuth session";
+        const requestClient = new twitterApiV2.TwitterApi({
+          appKey: apiKey,
+          appSecret: apiSecret,
+          accessToken: oauthToken,
+          accessSecret: oauthSecret
+        });
+        const { client: loggedClient, accessToken: accessToken2, accessSecret } = await withXErrorMapping(
+          () => requestClient.login(params.code)
+        );
+        const me = await withXErrorMapping(
+          () => loggedClient.v2.me({ "user.fields": ["profile_image_url", "username"] })
+        );
+        const username = me.data.username ?? "";
+        return {
+          id: me.data.id,
+          name: me.data.name ?? username,
+          username,
+          picture: me.data.profile_image_url ?? "",
+          accessToken: formatXAccessToken(accessToken2, accessSecret),
+          additionalSettings: [
+            {
+              title: "Verified",
+              description: "Enable when this account has X Premium for longer posts (4000 characters).",
+              type: "checkbox",
+              value: false
+            }
+          ]
+        };
+      }
+      async refreshToken(refreshToken) {
+        const [accessToken2] = refreshToken.split(":");
+        if (!accessToken2) {
+          throw new Error("X tokens cannot be refreshed automatically. Reconnect the channel.");
+        }
+        throw new Error("X tokens cannot be refreshed automatically. Reconnect the channel.");
+      }
+      async analytics(id, accessToken2, dateWindowDays) {
+        const client = createXUserClient(accessToken2);
+        return withXErrorMapping(() => fetchXAccountAnalytics(client, id, dateWindowDays));
+      }
+      async postAnalytics(_integrationId, accessToken2, releaseId, _fromDateDays) {
+        const client = createXUserClient(accessToken2);
+        return withXErrorMapping(() => fetchXPostAnalytics(client, releaseId));
+      }
+      async autoRepostPost(integration, tweetId, fields) {
+        const client = createXUserClient(integration.token);
+        return runXAutoRepostPlug(client, integration.internal_id, tweetId, fields);
+      }
+      async autoPlugPost(integration, tweetId, fields) {
+        const client = createXUserClient(integration.token);
+        return runXAutoPlugPost(client, tweetId, fields, async (message, replyToTweetId) => {
+          await this.comment(
+            integration.internal_id,
+            tweetId,
+            replyToTweetId,
+            integration.token,
+            [{ id: makeId(10), message, settings: {} }],
+            integration
+          );
+        });
+      }
+      async repostPostUsers(acting, original, tweetId, information) {
+        await runXRepostPostUsersPlug(acting, original, tweetId, information, createXUserClient);
+      }
+      readVerifiedFromIntegration(integration) {
+        const raw = integration.additional_settings;
+        if (!raw?.trim()) return false;
+        try {
+          const parsed = JSON.parse(raw);
+          return parsed.find((s) => s.title === "Verified")?.value === true;
+        } catch {
+          return false;
+        }
+      }
+    };
+  }
+});
 
 // integrations/integrationManager.ts
 var socialIntegrationList, IntegrationManager;
@@ -14540,15 +16432,21 @@ var init_integrationManager = __esm({
     init_instagramBusinessProvider();
     init_instagramStandaloneProvider();
     init_threadsProvider();
+    init_linkedinPageProvider();
+    init_linkedinProvider();
     init_tiktokProvider();
     init_youtubeProvider();
+    init_xProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
       new InstagramBusinessProvider(),
       new InstagramStandaloneProvider(),
+      new LinkedInProvider(),
+      new LinkedInPageProvider(),
       new YoutubeProvider(),
-      new TiktokProvider()
+      new TiktokProvider(),
+      new XProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {
@@ -14914,6 +16812,22 @@ var init_RefreshIntegrationService = __esm({
           postingTimesJson: integration.posting_times,
           rootInternalId: integration.root_internal_id
         });
+        if (socialProvider.oneTimeToken && integration.root_internal_id && refresh.accessToken) {
+          await this.integrationRepository.syncTokensByRootInternalId({
+            organizationId: integration.organization_id,
+            excludeIntegrationId: integration.id,
+            rootInternalId: integration.root_internal_id,
+            token: refresh.accessToken,
+            refreshToken: refresh.refreshToken ?? integration.refresh_token ?? "",
+            expiresInSeconds: refresh.expiresIn
+          }).catch((err) => {
+            logger.warn({
+              msg: "Sibling token sync after refresh failed (best-effort)",
+              integrationId: integration.id,
+              error: err instanceof Error ? err.message : String(err)
+            });
+          });
+        }
         return refresh;
       }
       async startRefreshWorkflow(organizationId, integrationId, integration) {
@@ -15060,6 +16974,9 @@ var init_IntegrationService = __esm({
         const result = await this.integrationRepository.upsertIntegration(params);
         await this.invalidateIntegrationDomainCacheForProvider(params.organizationId, params.providerIdentifier);
         return result;
+      }
+      async syncTokensByRootInternalId(params) {
+        await this.integrationRepository.syncTokensByRootInternalId(params);
       }
       async setPostingTimes(organizationId, integrationId, json) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
@@ -15292,6 +17209,25 @@ function parseAdditionalSettings(raw) {
 function isVerifiedFromAdditionalSettings(settings) {
   const verified = settings.find((s) => s?.title === "Verified")?.value;
   return verified === true;
+}
+function integrationLikeToRecord(row) {
+  return {
+    id: row.id,
+    organization_id: row.organization_id,
+    internal_id: row.internal_id,
+    name: row.name,
+    picture: row.picture,
+    provider_identifier: row.provider_identifier,
+    type: row.type,
+    token: row.token,
+    refresh_token: row.refresh_token,
+    token_expiration: row.token_expiration,
+    root_internal_id: row.root_internal_id,
+    in_between_steps: row.in_between_steps,
+    refresh_needed: row.refresh_needed,
+    deleted_at: row.deleted_at,
+    additional_settings: row.additional_settings
+  };
 }
 var CACHE_KEYS11, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
 var init_IntegrationConnectionService = __esm({
@@ -15569,6 +17505,21 @@ var init_IntegrationConnectionService = __esm({
           return { output: result };
         }
       }
+      /** POST /integrations/mentions — provider @-mention autocomplete for composer. */
+      async searchIntegrationMentions(authUserId, organizationId, integrationId, query) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row) {
+          throw new AppError("Integration not found", 404);
+        }
+        const provider = this.manager.getSocialIntegration(row.provider_identifier);
+        if (!provider?.mention) {
+          throw new AppError("Mentions are not supported for this channel", 400);
+        }
+        const record = integrationLikeToRecord(row);
+        const mentions = await provider.mention(row.token, { query }, row.internal_id, record);
+        return { mentions };
+      }
       async connectSocialMediaInternal(authUserId, integration, body) {
         if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
           throw new AppError("Integration not allowed", 400);
@@ -15660,6 +17611,25 @@ var init_IntegrationConnectionService = __esm({
           postingTimesJson: postingTimes,
           rootInternalId: rootInternalId(String(id))
         });
+        if (integrationProvider.oneTimeToken) {
+          const root = row.root_internal_id ?? rootInternalId(String(id));
+          if (root) {
+            await this.integrations.syncTokensByRootInternalId({
+              organizationId,
+              excludeIntegrationId: row.id,
+              rootInternalId: root,
+              token: accessToken2,
+              refreshToken: refreshToken ?? "",
+              expiresInSeconds: expiresIn
+            }).catch((err) => {
+              logger.debug({
+                msg: "Sibling token sync after connect failed (best-effort)",
+                integrationId: row.id,
+                error: err instanceof Error ? err.message : String(err)
+              });
+            });
+          }
+        }
         void this.refreshIntegrationService.startRefreshWorkflow(organizationId, row.id, integrationProvider).catch((err) => {
           logger.debug({
             msg: "startRefreshWorkflow failed",
@@ -16152,7 +18122,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-function sleepMs4(ms) {
+function sleepMs6(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
@@ -17161,7 +19131,7 @@ var init_PostsService = __esm({
           }
           integrationRow.token = refreshed.accessToken;
           if (provider?.refreshWait) {
-            await sleepMs4(1e4);
+            await sleepMs6(1e4);
           }
         }
         return integrationRow;
@@ -18303,7 +20273,12 @@ var init_OauthAppService = __esm({
         const [v2, legacy] = hashProgrammaticTokenCandidates(rawToken, secretKey);
         const authz = await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(v2) ?? await this.oauthAppRepository.findActiveAuthorizationByAccessTokenHash(legacy);
         if (!authz) return null;
-        return { organizationId: authz.organization_id, oauthAppId: authz.oauth_app_id, tokenId: authz.id };
+        return {
+          organizationId: authz.organization_id,
+          oauthAppId: authz.oauth_app_id,
+          tokenId: authz.id,
+          userId: authz.user_id
+        };
       }
     };
   }
@@ -18869,13 +20844,19 @@ var init_SubscriptionGuardService = __esm({
        * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
        * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
        */
+      async shouldBypassBillingForPublicUserId(publicUserId) {
+        if (!publicUserId?.trim() || !this.subscriptionService.billingEnabled()) {
+          return false;
+        }
+        return this.rbacRepository.isPlatformAdmin(publicUserId.trim());
+      }
       async shouldBypassBillingForAuthUser(authUserId) {
         if (!authUserId?.trim() || !this.subscriptionService.billingEnabled()) {
           return false;
         }
         const { userId } = await this.organizationRepository.findUserIdByAuthId(authUserId.trim());
         if (!userId) return false;
-        return this.rbacRepository.isPlatformAdmin(userId);
+        return this.shouldBypassBillingForPublicUserId(userId);
       }
       /**
        * Maps real subscription tier/limits to the operator-facing TEAM catalog when billing is bypassed.
@@ -18898,6 +20879,8 @@ var init_SubscriptionGuardService = __esm({
         if (!this.subscriptionService.billingEnabled()) return;
         const authUserId = ctx.scope === "account" ? ctx.authUserId : ctx.authUserId;
         if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+        const publicUserId = ctx.scope !== "account" ? ctx.publicUserId : void 0;
+        if (await this.shouldBypassBillingForPublicUserId(publicUserId)) return;
         const entry = GUARD_REGISTRY[section];
         if (!entry) return;
         switch (entry.kind) {
@@ -22936,6 +24919,29 @@ var init_IntegrationController = __esm({
           next(error);
         }
       };
+      /** POST /integrations/:integrationId/trigger?organizationId= */
+      triggerIntegrationTool = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const organizationId = req.query.organizationId;
+          const integrationId = req.params.integrationId;
+          const body = req.body;
+          await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
+          const result = await this.integrationConnectionService.triggerIntegrationTool(
+            organizationId,
+            integrationId,
+            body.methodName,
+            body.data ?? {}
+          );
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
       /** GET /integrations/:integrationId/plugs?organizationId= */
       listIntegrationPlugs = async (req, res, next) => {
         try {
@@ -23013,6 +25019,26 @@ var init_IntegrationController = __esm({
             authUserId,
             organizationId,
             plugId
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /integrations/mentions — @-mention autocomplete for a connected channel. */
+      searchIntegrationMentions = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const body = req.body;
+          const data = await this.integrationConnectionService.searchIntegrationMentions(
+            authUserId,
+            body.organizationId,
+            body.integrationId,
+            body.query
           );
           res.status(200).json({ success: true, data });
         } catch (error) {
@@ -24404,113 +26430,6 @@ var init_TrackController = __esm({
     };
   }
 });
-function safeJoin(base, p) {
-  const out = path__default.default.join(base, p);
-  const rel = path__default.default.relative(base, out);
-  if (rel.startsWith("..") || path__default.default.isAbsolute(rel)) {
-    throw new Error("Invalid upload path");
-  }
-  return out;
-}
-function buildPublicUrl(relativePath) {
-  const server2 = config.server;
-  const origin = String(server2.frontendDomainUrl ?? server2.backendDomainUrl ?? "").trim().replace(/\/+$/, "");
-  if (!origin) return null;
-  return `${origin}/uploads/${relativePath.replace(/^\/+/, "")}`;
-}
-var LocalStorage;
-var init_local_storage = __esm({
-  "connections/upload/local.storage.ts"() {
-    init_GlobalConfig();
-    init_makeId();
-    init_InfraError();
-    LocalStorage = class {
-      constructor(uploadDirectory) {
-        this.uploadDirectory = uploadDirectory;
-      }
-      supportsMultipart = false;
-      assertConfigured() {
-        if (!this.uploadDirectory?.trim()) {
-          throw new DatabaseError("Local upload storage is not configured for this environment", {
-            operation: "upload",
-            resource: { type: "storage", name: "local" },
-            statusCode: 503
-          });
-        }
-      }
-      async uploadFile(params) {
-        this.assertConfigured();
-        const ext = path__default.default.extname(params.originalName) || "";
-        const fileName = `${makeId(20)}${ext}`;
-        const relative = fileName;
-        const onDisk = safeJoin(this.uploadDirectory, relative);
-        await fs__default.default.mkdir(path__default.default.dirname(onDisk), { recursive: true });
-        await fs__default.default.writeFile(onDisk, params.buffer);
-        return { path: relative, publicUrl: buildPublicUrl(relative) };
-      }
-      async downloadObject(p) {
-        this.assertConfigured();
-        const onDisk = safeJoin(this.uploadDirectory, p);
-        const buffer = await fs__default.default.readFile(onDisk);
-        return { buffer, contentType: "application/octet-stream" };
-      }
-      async deleteObject(p) {
-        this.assertConfigured();
-        const onDisk = safeJoin(this.uploadDirectory, p);
-        await fs__default.default.rm(onDisk, { force: true });
-      }
-    };
-  }
-});
-var R2Storage;
-var init_r2_storage = __esm({
-  "connections/upload/r2.storage.ts"() {
-    init_MediaRepository();
-    init_makeId();
-    R2Storage = class {
-      constructor(storageR2Repository2) {
-        this.storageR2Repository = storageR2Repository2;
-      }
-      supportsMultipart = true;
-      async uploadFile(params) {
-        const ext = path__default.default.extname(params.originalName) || "";
-        const key = `${makeId(20)}${ext || ".bin"}`;
-        await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
-        return { path: key, publicUrl: publicUrlForObjectKey(key) };
-      }
-      async downloadObject(path7) {
-        const { data } = await this.storageR2Repository.downloadObject(path7);
-        const buffer = data instanceof Buffer ? data : Buffer.from(await data.arrayBuffer());
-        const contentType = data.type ?? "application/octet-stream";
-        return { buffer, contentType };
-      }
-      async deleteObject(path7) {
-        await this.storageR2Repository.deleteObject(path7);
-      }
-    };
-  }
-});
-
-// connections/upload/upload.factory.ts
-var UploadFactory;
-var init_upload_factory = __esm({
-  "connections/upload/upload.factory.ts"() {
-    init_GlobalConfig();
-    init_local_storage();
-    init_r2_storage();
-    UploadFactory = class {
-      static createStorage(storageR2Repository2) {
-        const storageCfg = config.storage;
-        const provider = String(storageCfg?.provider ?? "r2").toLowerCase();
-        if (provider === "local") {
-          const dir = String(storageCfg?.local?.uploadDirectory ?? "");
-          return new LocalStorage(dir);
-        }
-        return new R2Storage(storageR2Repository2);
-      }
-    };
-  }
-});
 
 // controllers/index.ts
 var controllers_exports = {};
@@ -25299,7 +27218,8 @@ function requireProgrammaticAuth(params) {
       }
       await params.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
         scope: "workspace",
-        organizationId: organization.id
+        organizationId: organization.id,
+        publicUserId: verified.userId
       });
       req.organization = organization;
       req.oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
@@ -26512,6 +28432,14 @@ var validateIntegrationGroup = validateRequest({
   params: integrationGroupParamsSchema,
   body: integrationGroupBodySchema
 });
+var integrationMentionsBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  integrationId: zod.z.string().uuid("Invalid integration id"),
+  query: zod.z.string().trim().min(1, "query is required").max(200)
+});
+var validateIntegrationMentionsRequest = validateRequest({
+  body: integrationMentionsBodySchema
+});
 
 // routes/integrationApi/NoAuthRoutes.ts
 var integrationNoAuthRouter = express.Router();
@@ -26576,6 +28504,15 @@ var validateIntegrationPlugDeleteRequest = validateRequest({
   query: integrationOrganizationQuerySchema,
   params: integrationPlugActivateParamsSchema
 });
+var integrationTriggerBodySchema = zod.z.object({
+  methodName: zod.z.string().min(1, "methodName is required"),
+  data: zod.z.record(zod.z.string(), zod.z.unknown()).optional()
+});
+var validateIntegrationTriggerRequest = validateRequest({
+  query: integrationOrganizationQuerySchema,
+  params: integrationPlugIntegrationParamsSchema,
+  body: integrationTriggerBodySchema
+});
 var integrationTimeBodySchema = zod.z.object({
   time: zod.z.array(zod.z.object({ time: zod.z.number() })).min(1)
 });
@@ -26597,6 +28534,11 @@ integrationSessionRouter.get(
   "/internal-plugs/:providerIdentifier",
   validateIntegrationInternalPlugsRequest,
   integrationController.getInternalPlugDefinitions
+);
+integrationSessionRouter.post(
+  "/:integrationId/trigger",
+  validateIntegrationTriggerRequest,
+  integrationController.triggerIntegrationTool
 );
 integrationSessionRouter.put(
   "/plugs/:plugId/activate",
@@ -26659,6 +28601,11 @@ integrationSessionRouter.post(
     resolveOrganizationId: (req) => req.body?.organizationId
   }),
   integrationController.connectSocialMedia
+);
+integrationSessionRouter.post(
+  "/mentions",
+  validateIntegrationMentionsRequest,
+  integrationController.searchIntegrationMentions
 );
 integrationSessionRouter.post("/disable", validateIntegrationOrgAndIdBody, integrationController.disable);
 integrationSessionRouter.post("/enable", validateIntegrationOrgAndIdBody, integrationController.enable);

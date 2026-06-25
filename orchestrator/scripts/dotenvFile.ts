@@ -1,5 +1,26 @@
 import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, isAbsolute, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const orchestratorRoot = resolve(scriptDir, "..");
+const repoRoot = resolve(orchestratorRoot, "..");
+
+function resolveEnvFilePath(filePath: string): string {
+    const candidates = isAbsolute(filePath)
+        ? [filePath]
+        : [
+              resolve(process.cwd(), filePath),
+              resolve(orchestratorRoot, filePath),
+              resolve(repoRoot, filePath),
+          ];
+    for (const candidate of candidates) {
+        if (existsSync(candidate)) {
+            return candidate;
+        }
+    }
+    throw new Error(`Env file not found: ${filePath} (tried: ${candidates.join(", ")})`);
+}
 
 function stripOptionalQuotes(value: string): string {
     const v = value.trim();
@@ -10,10 +31,7 @@ function stripOptionalQuotes(value: string): string {
 }
 
 export function parseDotenvFile(filePath: string): Record<string, string> {
-    const abs = resolve(process.cwd(), filePath);
-    if (!existsSync(abs)) {
-        throw new Error(`Env file not found: ${filePath}`);
-    }
+    const abs = resolveEnvFilePath(filePath);
     const raw = readFileSync(abs, "utf8");
     const out: Record<string, string> = {};
     for (const line of raw.split(/\r?\n/)) {
