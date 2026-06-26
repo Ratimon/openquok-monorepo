@@ -88,11 +88,6 @@ export function mediaUploadLimitsHint(): string {
 	return `${formatLimitLabel(MAX_MEDIA_IMAGE_UPLOAD_BYTES_FRONTEND)} per image, ${formatLimitLabel(MAX_MEDIA_VIDEO_UPLOAD_BYTES)} per video`;
 }
 
-/** @deprecated Use {@link mediaUploadLimitsHint} for UI copy. */
-export function maxMediaUploadShortLabel(): string {
-	return mediaUploadLimitsHint();
-}
-
 /** Returns an error message when the file exceeds its cap, or `null` if valid. */
 export function validateMediaFileUploadSize(
 	size: number,

@@ -201,7 +201,7 @@
 					aria-hidden="true"
 				>
 					<AbstractIcon
-						name={icons.Bot.name}
+						name={icons.Grid3x3.name}
 						width="16"
 						height="16"
 						class="size-4"

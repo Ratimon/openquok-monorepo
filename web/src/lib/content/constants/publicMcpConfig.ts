@@ -175,7 +175,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		slug: 'cursor',
 		label: 'Cursor',
 		mcpClient: 'Cursor',
-		icon: icons.Code.name,
+		icon: icons.Cursor.name,
 		hubDescription: 'Project-level .cursor/mcp.json for Agent and Composer',
 		heroDescription:
 			'Cursor reads MCP servers from .cursor/mcp.json at your project root. Add the openquok server with your programmatic token so Agent and Composer can draft and schedule social posts while you approve on the calendar or kanban.',
@@ -209,7 +209,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		slug: 'claude-cowork',
 		label: 'Claude Cowork',
 		mcpClient: 'Claude Cowork',
-		icon: icons.Claude.name,
+		icon: icons.ClaudeGlyph.name,
 		hubDescription: 'Custom connectors and managedMcpServers',
 		heroDescription:
 			'Claude Cowork supports custom connectors and managedMcpServers for organization-wide MCP. Wire OpenQuok so coworkers draft and schedule social posts with human approval in your workspace.',
@@ -226,7 +226,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		slug: 'vscode-copilot',
 		label: 'VS Code / Copilot',
 		mcpClient: 'VS Code / Copilot',
-		icon: icons.FolderCode.name,
+		icon: icons.Copilot.name,
 		hubDescription: 'Project .vscode/mcp.json for GitHub Copilot',
 		heroDescription:
 			'VS Code with GitHub Copilot reads MCP servers from .vscode/mcp.json in the workspace you opened. Add openquok so Copilot Chat can schedule social posts while you stay in control of publishing.',

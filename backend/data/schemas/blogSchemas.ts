@@ -28,11 +28,6 @@ export const blogPostIdParamSchema = z.object({
     id: z.string().uuid("Invalid post id"),
 });
 
-/** Params schema for GET /posts/slug/:slug (public published post by slug). @deprecated Prefer GET /posts/:identifier with blogPostIdentifierParamSchema. */
-export const blogPostSlugParamSchema = z.object({
-    slug: z.string().min(1, "Slug is required"),
-});
-
 /** Params schema for GET /posts/:identifier (id = UUID for auth flow, or slug for public published post). */
 export const blogPostIdentifierParamSchema = z.object({
     identifier: z.string().min(1, "Identifier is required"),

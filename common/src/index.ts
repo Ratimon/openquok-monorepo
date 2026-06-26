@@ -7,7 +7,6 @@ export {
 	MAX_MEDIA_UPLOAD_SESSION_BYTES,
 	MAX_MEDIA_VIDEO_UPLOAD_BYTES,
 	maxMediaUploadBytesForMime,
-	maxMediaUploadShortLabel,
 	mediaUploadLimitsHint,
 	validateMediaFileUploadSize,
 	validateMediaUploadSessionSize,

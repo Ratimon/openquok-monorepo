@@ -733,9 +733,6 @@ export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPag
 	HERMES_AGENT
 ];
 
-/** @deprecated Use {@link PUBLIC_AGENT_HOST_LANDING_PAGES}. */
-export const PUBLIC_AGENT_LANDING_PAGES = PUBLIC_AGENT_HOST_LANDING_PAGES;
-
 const agentHostBySlug = new Map(
 	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])
 );
@@ -745,24 +742,12 @@ export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPa
 	return agentHostBySlug.get(key);
 }
 
-/** @deprecated Use {@link getPublicAgentHostBySlug}. */
-export function getPublicAgentBySlug(slug: string): PublicAgentHostLandingPage | undefined {
-	return getPublicAgentHostBySlug(slug);
-}
-
 export function getAvailablePublicAgentHostBySlug(
 	slug: string
 ): PublicAgentHostLandingPage | undefined {
 	const page = getPublicAgentHostBySlug(slug);
 	if (!page?.available) return undefined;
 	return page;
-}
-
-/** @deprecated Use {@link getAvailablePublicAgentHostBySlug}. */
-export function getAvailablePublicAgentBySlug(
-	slug: string
-): PublicAgentHostLandingPage | undefined {
-	return getAvailablePublicAgentHostBySlug(slug);
 }
 
 export function listPublicAgentsForHub(): PublicAgentHostLandingPage[] {

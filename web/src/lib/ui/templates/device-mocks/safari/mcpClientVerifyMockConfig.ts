@@ -81,7 +81,7 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		mockUrl: 'claude.com/cowork',
 		productLabel: 'Claude Cowork',
 		panelLabel: 'Connectors',
-		icon: icons.Claude.name,
+		icon: icons.ClaudeGlyph.name,
 		surfaceClass: 'bg-[#f7f3ef]',
 		accentClass: 'text-[#b85c3d]',
 		accentSoftClass: 'bg-[#d77655]/12 text-[#8f4a31]',

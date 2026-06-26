@@ -32,9 +32,6 @@ export const OPENQUOK_CORE_SKILL_INSTALL_HERMES_CURL = `mkdir -p ~/.hermes/skill
 curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
   -o ~/.hermes/skills/openquok-core/SKILL.md`;
 
-/** @deprecated Use agent-specific `skillInstallOptions` instead. */
-export const OPENQUOK_CORE_SKILL_INSTALL_COMMAND = OPENQUOK_CORE_SKILL_INSTALL_NPX;
-
 export const OPENCLAW_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX },
 	{ id: 'clawhub', label: 'ClawHub', command: OPENQUOK_CORE_SKILL_INSTALL_CLAWHUB }
