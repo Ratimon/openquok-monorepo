@@ -13,9 +13,13 @@ export function registerIntegrationSchemaTool(
                 "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook).",
             inputSchema: {
                 platform: z.string().describe("Social provider identifier (e.g. threads, facebook, x)"),
+                isPremium: z
+                    .boolean()
+                    .optional()
+                    .describe("Whether the workspace has premium; affects maxLength when the provider tiers limits"),
             },
         },
-        async ({ platform }) => {
+        async ({ platform, isPremium }) => {
             const identifier = platform.trim().toLowerCase();
             const provider = deps.integrationManager.getSocialIntegration(identifier);
             if (!provider) {
@@ -24,7 +28,7 @@ export function registerIntegrationSchemaTool(
 
             const output = {
                 rules: deps.integrationManager.getAllRulesDescription()[identifier] ?? "",
-                maxLength: provider.maxLength(false),
+                maxLength: provider.maxLength(isPremium ?? false),
                 settings: provider.settingsSchema ? provider.settingsSchema() : "No additional settings required",
                 tools: deps.integrationManager.getAllTools()[identifier] ?? [],
             };

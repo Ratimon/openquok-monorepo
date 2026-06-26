@@ -164,6 +164,7 @@ describeIfSupabase("Hosted MCP auth + tools/list (integration)", () => {
 
             const toolNames = result.tools.map((tool) => tool.name).sort();
             expect(toolNames).toEqual([
+                "groupList",
                 "integrationList",
                 "integrationSchema",
                 "schedulePostTool",

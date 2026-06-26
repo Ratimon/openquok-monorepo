@@ -27,8 +27,16 @@ export class OpenquokApi {
     });
   }
 
-  async listIntegrations(): Promise<unknown> {
-    return await requestJson({ url: this.url("/public/integrations"), apiKey: this.cfg.apiKey });
+  async listIntegrations(group?: string): Promise<unknown> {
+    const u = new URL(this.url("/public/integrations"));
+    if (group?.trim()) {
+      u.searchParams.set("group", group.trim());
+    }
+    return await requestJson({ url: u.toString(), apiKey: this.cfg.apiKey });
+  }
+
+  async listGroups(): Promise<unknown> {
+    return await requestJson({ url: this.url("/public/groups"), apiKey: this.cfg.apiKey });
   }
 
   async getIntegrationSettings(id: string): Promise<unknown> {

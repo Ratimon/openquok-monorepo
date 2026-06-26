@@ -2,6 +2,15 @@ import { z } from "zod";
 import type { RequestHandler } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
 
+/** Optional `group` query on `GET /public/integrations` (channel group / customer id). */
+export const publicIntegrationsListQuerySchema = z.object({
+    group: z.string().uuid("Invalid channel group id").optional(),
+});
+
+export const validatePublicIntegrationsListQuery: RequestHandler = validateRequest({
+    query: publicIntegrationsListQuerySchema,
+});
+
 /** Optional `refresh` integration id when requesting an OAuth URL via programmatic API. */
 export const publicSocialOAuthQuerySchema = z.object({
     refresh: z.string().uuid().optional(),

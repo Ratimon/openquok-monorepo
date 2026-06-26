@@ -87,6 +87,10 @@ Repeat with different <Badge text="date" variant="param" /> values (or ask the a
 - Agent prompts use natural language — see <a href="/docs/getting-started-for-mcp">MCP introduction</a> for the canonical prompt shape (<Badge text="action" variant="param" /> to <Badge text="channel" variant="param" /> <Badge text="when" variant="param" />: <Badge text="body" variant="param" />).
 - <Badge text="attachments" variant="param" /> must be public <Badge text="https://" variant="new" /> URLs. OpenQuok downloads each URL, uploads it to your workspace media storage, then attaches it to the post.
 
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of pasting a public URL in your prompt, you can attach an image or video file directly in your MCP client chat (paste, drag-and-drop, or the attachment control). The agent uploads the file and fills <Badge text="attachments" variant="param" /> before calling <Badge text="schedulePostTool" variant="default" />.</p>
+</Callout>
+
 <Callout type="warning" title="Rate limits">
 <p>Public API and MCP share the same <strong>30 requests per hour</strong> limit per token. Batch multi-channel schedules into one <Badge text="schedulePostTool" variant="default" /> call when possible.</p>
 </Callout>
@@ -94,7 +98,7 @@ Repeat with different <Badge text="date" variant="param" /> values (or ask the a
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="MCP introduction" description="Endpoints, authentication, and the four v1 tools" href="/docs/getting-started-for-mcp" />
+<LinkCard title="MCP introduction" description="Endpoints, authentication, and the five v1 tools" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Tools reference" description="Full input tables for schedulePostTool and triggerTool" href="/docs/mcp-references/tools" />
 <LinkCard title="Client setup" description="Connect Cursor, Claude Code, or Codex to OpenQuok MCP" href="/docs/getting-started-for-mcp/setup" />
 <LinkCard title="CLI examples" description="The same workflows with the openquok CLI" href="/docs/cli-examples" />

@@ -57,6 +57,10 @@ The agent calls <Badge text="integrationList" variant="default" />, optionally <
 }
 ```
 
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public URL in your prompt, attach the image directly in your MCP client chat — then ask the agent to schedule the tweet with that file and your caption.</p>
+</Callout>
+
 ## Create a thread
 
 > Draft a three-part X thread: hook, two lessons learned, and a call to action.

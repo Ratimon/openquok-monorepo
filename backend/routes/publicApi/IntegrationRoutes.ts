@@ -6,6 +6,7 @@ import { SubscriptionSection } from "openquok-common";
 import {
     validatePublicIntegrationIdParams,
     validatePublicIntegrationTriggerRequest,
+    validatePublicIntegrationsListQuery,
     validatePublicSocialOAuthQuery,
 } from "../../data/schemas/publicIntegrationsSchemas";
 import { oauthAppService, subscriptionGuard } from "../../services/index";
@@ -24,7 +25,17 @@ const apiKeyAuth = requireProgrammaticAuth({ oauthAppService, organizationReposi
 
 publicIntegrationRouter.get("/is-connected", apiKeyAuth, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/workspace", apiKeyAuth, publicIntegrationController.getWorkspace);
-publicIntegrationRouter.get("/integrations", apiKeyAuth, publicIntegrationController.listIntegrations);
+publicIntegrationRouter.get(
+    "/groups",
+    apiKeyAuth,
+    publicIntegrationController.listGroups
+);
+publicIntegrationRouter.get(
+    "/integrations",
+    apiKeyAuth,
+    validatePublicIntegrationsListQuery,
+    publicIntegrationController.listIntegrations
+);
 publicIntegrationRouter.get(
     "/social/:integration",
     apiKeyAuth,

@@ -43,6 +43,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 }
 ```
 
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public URL in your prompt, attach the video or image files directly in your MCP client chat — then ask the agent to schedule the TikTok with that media and your caption.</p>
+</Callout>
+
 <Callout type="tip" title="Inbox vs direct post">
 <p>Some workspaces use <Badge text="content_posting_method: SEND_TO_INBOX" variant="param" /> so creators finish editing in the TikTok app. Ask the agent to read <Badge text="integrationSchema" variant="default" /> for allowed values on your account.</p>
 </Callout>

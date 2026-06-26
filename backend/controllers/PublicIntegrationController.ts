@@ -41,12 +41,28 @@ export class PublicIntegrationController {
         }
     };
 
-    /** GET /public/integrations */
+    /** GET /public/integrations?group= */
     listIntegrations = async (req: Request, res: Response, next: NextFunction) => {
         try {
             countPublicApiRequest("integrations");
             const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
-            const data = await this.integrationConnectionService.publicListIntegrations(organizationId);
+            const group =
+                typeof req.query.group === "string" && req.query.group.trim().length > 0
+                    ? req.query.group.trim()
+                    : undefined;
+            const data = await this.integrationConnectionService.publicListIntegrations(organizationId, group);
+            res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /public/groups — channel groups (`integration_customers`) for the workspace */
+    listGroups = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("groups");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const data = await this.integrationConnectionService.publicListCustomerGroups(organizationId);
             res.status(200).json(data);
         } catch (error) {
             next(error);

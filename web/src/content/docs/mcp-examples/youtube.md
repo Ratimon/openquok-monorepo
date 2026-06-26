@@ -41,6 +41,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 }
 ```
 
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public URL in your prompt, attach the video file directly in your MCP client chat — then ask the agent to schedule the YouTube upload with that file, title, and description.</p>
+</Callout>
+
 <Callout type="note" title="Description vs title">
 <p>The first <Badge text="postsAndComments" variant="param" /> string becomes the YouTube <strong>description</strong>. Set <Badge text="title" variant="param" /> and <Badge text="type" variant="param" /> (privacy) in <Badge text="settings" variant="param" />.</p>
 </Callout>

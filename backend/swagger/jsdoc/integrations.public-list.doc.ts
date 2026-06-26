@@ -15,6 +15,15 @@
  *       Returns the connected social channels for the organization the API key belongs to.
  *       Each row exposes the provider identifier, display name, picture, disabled flag,
  *       and (when assigned) the customer the channel was bound to via the UI.
+ *       Pass `group` (channel group UUID from `GET /public/groups`) to return only channels in that group.
+ *     parameters:
+ *       - in: query
+ *         name: group
+ *         required: false
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Channel group id from `GET /public/groups`.
  *     responses:
  *       '200':
  *         description: Connected channels for this workspace.

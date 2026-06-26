@@ -290,8 +290,12 @@ export class IntegrationConnectionService {
         }
     }
 
-    async publicListIntegrations(organizationId: string) {
-        const rows = await this.integrations.listByOrganization(organizationId);
+    async publicListIntegrations(organizationId: string, customerGroupId?: string) {
+        let rows = await this.integrations.listByOrganization(organizationId);
+        const groupId = customerGroupId?.trim();
+        if (groupId) {
+            rows = rows.filter((row) => row.customer_id === groupId);
+        }
         return rows.map((p) => ({
             id: p.id,
             name: p.name,
@@ -304,6 +308,11 @@ export class IntegrationConnectionService {
                     ? { id: p.customer_id, name: p.customer_name }
                     : null,
         }));
+    }
+
+    /** Channel groups (`integration_customers`) for programmatic / MCP clients. */
+    async publicListCustomerGroups(organizationId: string): Promise<{ id: string; name: string }[]> {
+        return this.integrations.customers(organizationId);
     }
 
     async getIntegrationUrlPublicApi(

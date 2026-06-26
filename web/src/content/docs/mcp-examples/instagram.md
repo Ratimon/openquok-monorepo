@@ -38,8 +38,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 OpenQuok downloads each attachment URL, uploads it to your workspace media storage, then attaches it to the post.
 
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public URL in your prompt, attach the image directly in your MCP client chat — then ask the agent to schedule the post with that file and your caption.</p>
+</Callout>
+
 <Callout type="warning" title="Scheduled posts need media">
-<p>Instagram rejects scheduled posts with zero attachments. Always include at least one public URL in <Badge text="attachments" variant="param" />, or save as <Badge text="type: draft" variant="param" /> and attach media from the web UI later.</p>
+<p>Instagram rejects scheduled posts with zero attachments. Include at least one image or video (a public URL in <Badge text="attachments" variant="param" />, a file attached in chat, or media added in the web UI), or save as <Badge text="type: draft" variant="param" /> and attach later.</p>
 </Callout>
 
 ## Reel (single video URL)
@@ -59,6 +63,10 @@ OpenQuok downloads each attachment URL, uploads it to your workspace media stora
   ]
 }
 ```
+
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public video URL in your prompt, attach the <Badge text=".mp4" variant="param" /> file directly in your MCP client chat — then ask the agent to schedule the reel with that file and your caption.</p>
+</Callout>
 
 A single <Badge text=".mp4" variant="param" /> attachment is published as a Reel automatically.
 

@@ -2,7 +2,7 @@
 title: Integrations
 description: Discover connected channels, fetch each provider's settings schema, and trigger allow-listed provider tools.
 order: 2
-lastUpdated: 2026-05-12
+lastUpdated: 2026-06-26
 ---
 
 <script>
@@ -21,6 +21,13 @@ The <Badge text="integrations:*" variant="default" />  wraps the <a href="/docs/
 
 ```bash
 openquok integrations:list
+```
+
+Filter to one channel group (customer):
+
+```bash
+openquok integrations:groups
+openquok integrations:list --group <customer-group-id>
 ```
 
 Pipe through `jq` to extract just the identifying fields:

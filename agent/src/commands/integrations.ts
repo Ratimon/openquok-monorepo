@@ -11,11 +11,35 @@ export const registerIntegrationCommands: RegisterCommands = (y: Argv, ctx: Comm
       "integrations:list",
       "List connected integrations (programmatic)",
       (yy: Argv) =>
-        yy.example("$0 integrations:list", "List every connected channel for the current workspace"),
-      async () => {
+        yy
+          .option("group", {
+            type: "string",
+            describe:
+              "Optional channel-group UUID (`integration_customers.id` from `openquok integrations:groups`)",
+          })
+          .example("$0 integrations:list", "List every connected channel for the current workspace")
+          .example(
+            "$0 integrations:list --group 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b",
+            "List only channels assigned to one channel group"
+          ),
+      async (args: any) => {
         await runCommand("integrations:list", async () => {
           const api = await ctx.buildApi();
-          const out = await api.listIntegrations();
+          const group = typeof args.group === "string" ? args.group : undefined;
+          const out = await api.listIntegrations(group);
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "integrations:groups",
+      "List channel groups (customers) for the current workspace",
+      (yy: Argv) =>
+        yy.example("$0 integrations:groups", "List every channel group; use ids with integrations:list --group"),
+      async () => {
+        await runCommand("integrations:groups", async () => {
+          const api = await ctx.buildApi();
+          const out = await api.listGroups();
           printJson(out);
         });
       }

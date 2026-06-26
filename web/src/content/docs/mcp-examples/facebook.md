@@ -6,7 +6,7 @@ lastUpdated: 2026-06-26
 ---
 
 <script>
-import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Channel quick reference
@@ -50,6 +50,10 @@ import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js'
   ]
 }
 ```
+
+<Callout type="tip" title="Attach media in chat">
+<p>Instead of a public URL in your prompt, attach the image directly in your MCP client chat — then ask the agent to schedule the post with that file and your caption.</p>
+</Callout>
 
 ## Link post
 

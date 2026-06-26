@@ -2,7 +2,7 @@
 title: Introduction to Openquok MCP
 description: Connect Cursor, Claude Code, Codex, and other MCP (Model Context Protocol) clients to OpenQuok.
 order: 0
-lastUpdated: 2026-06-25
+lastUpdated: 2026-06-26
 ---
 
 <script>
@@ -30,16 +30,17 @@ Use the same <Badge text="opo_" variant="default" /> programmatic access token y
 
 ## How it works
 
-The server registers **four v1 tools** that AI clients discover at connect time. The agent reads each tool’s schema, then calls them on your behalf against the authenticated workspace.
+The server registers **five v1 tools** that AI clients discover at connect time. The agent reads each tool’s schema, then calls them on your behalf against the authenticated workspace.
 
 <Mermaid string={mcpFlow} />
 
 A typical flow:
 
 1. **Agent connects** — sends your <Badge text="opo_" variant="default" /> token (Bearer header or URL path).
-2. **Agent calls <Badge text="integrationList" variant="default" />** — returns connected channels (X, Threads, Discord, etc.).
-3. **Agent calls <Badge text="integrationSchema" variant="default" />** — learns character limits, compose settings, and allow-listed provider tools for a platform.
-4. **Agent calls <Badge text="schedulePostTool" variant="default" />** — drafts, schedules, or publishes content in the correct shape.
+2. **Agent calls <Badge text="groupList" variant="default" />** (optional) — returns channel groups when your workspace assigns channels to groups.
+3. **Agent calls <Badge text="integrationList" variant="default" />** — returns connected channels (X, Threads, Discord, etc.).
+4. **Agent calls <Badge text="integrationSchema" variant="default" />** — learns character limits, compose settings, and allow-listed provider tools for a platform.
+5. **Agent calls <Badge text="schedulePostTool" variant="default" />** — drafts, schedules, or publishes content in the correct shape.
 
 All of this can happen when you ask your agent something like:
 
@@ -81,16 +82,18 @@ https://api.openquok.com/mcp/opo_your_programmatic_token
 
 OAuth2 access tokens from third-party apps also use the <Badge text="opo_" variant="default" /> prefix and work the same way.
 
-## Available tools (v1)
+## Available tools
 
 | Tool | Purpose |
 | --- | --- |
-| <Badge text="integrationList" variant="default" /> | List connected social channels for the authenticated workspace |
+| <Badge text="groupList" variant="default" /> | List channel groups (customers) for the authenticated workspace |
+| <Badge text="integrationList" variant="default" /> | List connected social channels; optionally filter by group id from <Badge text="groupList" variant="default" /> |
 | <Badge text="integrationSchema" variant="default" /> | Character limits, compose settings, and allow-listed provider tools for a platform identifier |
 | <Badge text="triggerTool" variant="default" /> | Invoke an allow-listed provider method on a connected channel |
 | <Badge text="schedulePostTool" variant="default" /> | Draft, schedule, or publish-now posts across one or more channels |
 
-Image and video generation tools are not available in v1.
+Image and video generation MCP tools are not available yet.
+
 
 ## Verify connection
 

@@ -106,6 +106,15 @@
 									width="16"
 									height="16"
 								/>
+								<span><strong class="font-medium text-base-content">groupList</strong> — list channel groups when channels are organized by customer</span>
+							</li>
+							<li class="flex gap-2">
+								<AbstractIcon
+									name={icons.Check.name}
+									class="mt-0.5 size-4 shrink-0 text-success"
+									width="16"
+									height="16"
+								/>
 								<span><strong class="font-medium text-base-content">integrationList</strong> — list connected channels from chat</span>
 							</li>
 							<li class="flex gap-2">
@@ -116,6 +125,15 @@
 									height="16"
 								/>
 								<span><strong class="font-medium text-base-content">integrationSchema</strong> — platform limits and compose rules</span>
+							</li>
+							<li class="flex gap-2">
+								<AbstractIcon
+									name={icons.Check.name}
+									class="mt-0.5 size-4 shrink-0 text-success"
+									width="16"
+									height="16"
+								/>
+								<span><strong class="font-medium text-base-content">triggerTool</strong> — run provider helpers (subreddits, pages, Discord channels)</span>
 							</li>
 							<li class="flex gap-2">
 								<AbstractIcon
