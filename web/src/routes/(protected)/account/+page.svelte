@@ -79,6 +79,7 @@
 	const cliAuthDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli/authentication`));
 	const openclawGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/openclaw`));
 	const hermesGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/hermes`));
+	const mcpSetupGuidesHref = $derived(url(`${publicDocsPath}/mcp-setup-guides`));
 
 	const rootPathPublicAgents = getRootPathPublicAgents();
 	const publicAgentsPath = route(rootPathPublicAgents);
@@ -659,6 +660,13 @@
 			description: 'Install openquok-core on Hermes Agent.',
 			iconName: icons.BookOpen.name,
 			href: hermesGuideHref,
+			external: true
+		},
+		{
+			label: 'MCP setup guides',
+			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
+			iconName: icons.BookOpen.name,
+			href: mcpSetupGuidesHref,
 			external: true
 		}
 	]);

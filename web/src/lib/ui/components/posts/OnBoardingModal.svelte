@@ -22,12 +22,15 @@
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import OnboardingAgentConnectPanel from '$lib/ui/components/posts/OnboardingAgentConnectPanel.svelte';
+	import OnboardingMcpConnectPanel from '$lib/ui/components/posts/OnboardingMcpConnectPanel.svelte';
+	import DevelopersAccessBadges from '$lib/ui/components/posts/DevelopersAccessBadges.svelte';
+	import type { OnboardingMcpClientId } from '$lib/ui/components/posts/onboardingMcpClients';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as Tabs from '$lib/ui/tabs';
 	import * as Tooltip from '$lib/ui/tooltip';
 
-	type OnboardingMode = 'agent' | 'dashboard';
-	type StepKind = 'channel' | 'connect-agent' | 'cli' | 'tutorial';
+	type OnboardingMode = 'agent' | 'mcp' | 'dashboard';
+	type StepKind = 'channel' | 'connect-agent' | 'cli' | 'connect-mcp' | 'tutorial';
 
 	type Props = {
 		open: boolean;
@@ -38,6 +41,7 @@
 
 	let onboardingMode = $state<OnboardingMode>('agent');
 	let modeTabValue = $state<OnboardingMode>('agent');
+	let mcpClientId = $state<OnboardingMcpClientId>('cursor');
 	let step = $state(1);
 	let loading = $state(false);
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
@@ -70,15 +74,24 @@
 		`https://img.youtube.com/vi/${onboardingYoutubeVideoId}/maxresdefault.jpg`
 	);
 
-	const totalSteps = $derived(onboardingMode === 'agent' ? 4 : 2);
-	const stepLabels = $derived(
-		onboardingMode === 'agent'
-			? (['Add channel', 'Connect agent', 'CLI & agents', 'Watch tutorial'] as const)
-			: (['Add channel', 'Watch tutorial'] as const)
-	);
+	const totalSteps = $derived(onboardingMode === 'dashboard' ? 2 : onboardingMode === 'mcp' ? 3 : 4);
+	const stepLabels = $derived.by(() => {
+		if (onboardingMode === 'dashboard') {
+			return ['Add channel', 'Watch tutorial'] as const;
+		}
+		if (onboardingMode === 'mcp') {
+			return ['Add channel', 'Connect MCP client', 'Watch tutorial'] as const;
+		}
+		return ['Add channel', 'Connect agent', 'CLI & agents', 'Watch tutorial'] as const;
+	});
 	const stepKind = $derived.by((): StepKind => {
 		if (onboardingMode === 'dashboard') {
 			return step === 1 ? 'channel' : 'tutorial';
+		}
+		if (onboardingMode === 'mcp') {
+			if (step === 1) return 'channel';
+			if (step === 2) return 'connect-mcp';
+			return 'tutorial';
 		}
 		if (step === 1) return 'channel';
 		if (step === 2) return 'connect-agent';
@@ -91,6 +104,12 @@
 
 	const inlineTerminalCodeClass =
 		'rounded bg-primary/15 px-1.5 py-0.5 font-mono text-xs text-primary';
+
+	const dialogContentClass =
+		'flex w-full max-w-[min(96vw,90rem)] max-h-[min(92vh,900px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]';
+	const modalBodyClass = 'flex min-h-0 flex-1 flex-col overflow-hidden';
+	const scrollBodyClass = 'min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]';
+	const footerClass = 'flex shrink-0 items-center gap-2 border-t border-base-300 bg-base-100 px-6 py-4';
 
 	async function ensureWorkspaceLoaded() {
 		if (currentWorkspaceId) return;
@@ -112,6 +131,7 @@
 		if (!open) return;
 		onboardingMode = 'agent';
 		modeTabValue = 'agent';
+		mcpClientId = 'cursor';
 		step = 1;
 		void ensureWorkspaceLoaded().then(() => {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
@@ -187,11 +207,10 @@
 </script>
 
 <Dialog.Root bind:open onOpenChange={(v) => onOpenChange?.(v)}>
-	<Dialog.Content
-		class={cn('w-full max-w-[min(96vw,90rem)] p-0 sm:max-w-6xl lg:max-w-7xl xl:max-w-[min(96vw,90rem)]')}
-	>
+	<Dialog.Content class={cn(dialogContentClass)}>
 		<Tooltip.Provider delayDuration={200}>
-			<div class="relative border-b border-base-300 px-6 py-5">
+			<div class={modalBodyClass}>
+			<div class="relative shrink-0 border-b border-base-300 px-6 py-5">
 				<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div>
 						<Dialog.Title class="text-xl font-semibold text-base-content">Connect your channels</Dialog.Title>
@@ -205,6 +224,7 @@
 							class="inline-flex gap-0 rounded-full border border-base-content/15 bg-base-300 p-1 !border-solid"
 						>
 							<Tabs.Trigger value="agent" class={modeTabTriggerClass}>Agent</Tabs.Trigger>
+							<Tabs.Trigger value="mcp" class={modeTabTriggerClass}>MCP</Tabs.Trigger>
 							<Tabs.Trigger value="dashboard" class={modeTabTriggerClass}>Dashboard</Tabs.Trigger>
 						</Tabs.List>
 					</Tabs.Root>
@@ -218,10 +238,11 @@
 						{@const stepNumber = index + 1}
 						<li
 							class={cn(
-								'step relative cursor-pointer transition-opacity hover:opacity-80',
+								'step group relative cursor-pointer',
 								step >= stepNumber && 'step-primary',
 								step === stepNumber && 'font-semibold'
 							)}
+							style:z-index={totalSteps - index}
 							aria-current={step === stepNumber ? 'step' : undefined}
 						>
 							<button
@@ -231,12 +252,13 @@
 								onclick={() => goToStep(stepNumber)}
 								onkeydown={(event) => onStepKeydown(stepNumber, event)}
 							></button>
-							<span class="pointer-events-none">{label}</span>
+							<span class="pointer-events-none transition-opacity group-hover:opacity-80">{label}</span>
 						</li>
 					{/each}
 				</ul>
 			</div>
 
+			<div class={scrollBodyClass}>
 			{#if stepKind === 'channel'}
 				<div class="px-6 py-6">
 					<p class="mb-4 text-sm text-base-content/70">Click a channel to add it.</p>
@@ -303,11 +325,6 @@
 						</div>
 					{/if}
 				</div>
-
-				<div class="flex items-center justify-end gap-2 border-t border-base-300 px-6 py-4">
-					<Button variant="ghost" type="button" onclick={close}>Close</Button>
-					<Button type="button" onclick={goNext}>Next</Button>
-				</div>
 			{:else if stepKind === 'connect-agent'}
 				<div class="px-6 py-6">
 					<h3 class="text-lg font-semibold text-base-content">Connect your AI agent</h3>
@@ -320,10 +337,21 @@
 						<OnboardingAgentConnectPanel />
 					</div>
 				</div>
+			{:else if stepKind === 'connect-mcp'}
+				<div class="px-6 py-6">
+					<h3 class="text-lg font-semibold text-base-content">Connect your MCP client</h3>
+					<p class="mt-2 max-w-3xl text-sm text-base-content/70">
+						Pick Cursor, Claude Code, Codex, or VS Code, generate an
+						<code class={inlineTerminalCodeClass}>opo_…</code> token, and paste the config — no CLI
+						skill required.
+					</p>
 
-				<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
-					<Button variant="ghost" type="button" onclick={goBack}>Back</Button>
-					<Button type="button" onclick={goNext}>Next</Button>
+					<div class="mt-6">
+						<OnboardingMcpConnectPanel
+							bind:selectedClient={mcpClientId}
+							apiKeySettingsHref={apiKeySettingsHref}
+						/>
+					</div>
 				</div>
 			{:else if stepKind === 'cli'}
 				<div class="px-6 py-6">
@@ -360,11 +388,11 @@
 									for device-flow login. Credentials are stored at
 									<code class={inlineTerminalCodeClass}>~/.openquok/credentials.json</code>.
 								</p>
-								<p>
+								<p class="inline-flex flex-wrap items-center gap-1">
 									<strong class="font-medium text-base-content">Programmatic token</strong> — for CI and
 									scripts, rotate an
 									<code class={inlineTerminalCodeClass}>opo_…</code>
-									token from Developers → Access, then run
+									token from <DevelopersAccessBadges />, then run
 									<code class={inlineTerminalCodeClass}>openquok auth:login --apiKey "opo_…"</code>.
 								</p>
 							</div>
@@ -442,17 +470,15 @@
 						<Button variant="primary" size="sm" href={apiKeySettingsHref}>Get programmatic token</Button>
 					</div>
 				</div>
-
-				<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
-					<Button variant="ghost" type="button" onclick={goBack}>Back</Button>
-					<Button type="button" onclick={goNext}>Next</Button>
-				</div>
 			{:else}
 				<div class="px-6 py-6">
 					<h3 class="text-lg font-semibold text-base-content">Watch a quick tutorial</h3>
 					<p class="mt-2 max-w-2xl text-sm text-base-content/70">
 						{#if onboardingMode === 'agent'}
 							See how to connect channels, use the CLI, and automate posting with your agent.
+						{:else if onboardingMode === 'mcp'}
+							See how to connect channels and schedule posts from Cursor, Claude Code, or another MCP
+							client.
 						{:else}
 							See how to connect channels and manage posts from the OpenQuok dashboard.
 						{/if}
@@ -467,15 +493,25 @@
 						/>
 					</div>
 				</div>
+			{/if}
+			</div>
 
-				<div class="flex items-center justify-between gap-2 border-t border-base-300 px-6 py-4">
+			<div class={cn(footerClass, stepKind === 'channel' ? 'justify-end' : 'justify-between')}>
+				{#if stepKind === 'channel'}
+					<Button variant="ghost" type="button" onclick={close}>Close</Button>
+					<Button type="button" onclick={goNext}>Next</Button>
+				{:else if stepKind === 'tutorial'}
 					<Button variant="ghost" type="button" onclick={goBack}>Back</Button>
 					<div class="flex items-center gap-2">
 						<Button variant="ghost" type="button" onclick={close}>Close</Button>
 						<Button type="button" onclick={finish}>Finish</Button>
 					</div>
-				</div>
-			{/if}
+				{:else}
+					<Button variant="ghost" type="button" onclick={goBack}>Back</Button>
+					<Button type="button" onclick={goNext}>Next</Button>
+				{/if}
+			</div>
+			</div>
 		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
