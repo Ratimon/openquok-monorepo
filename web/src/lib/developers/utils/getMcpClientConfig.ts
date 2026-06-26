@@ -6,7 +6,7 @@ export const MCP_CLIENTS = [
 	'Claude Cowork',
 	'Cursor',
 	'VS Code / Copilot',
-	'Windsurf',
+	'Devin Desktop',
 	'Amp',
 	'Codex',
 	'Gemini CLI',
@@ -24,7 +24,7 @@ export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	'Claude Cowork': 'claude-cowork',
 	Cursor: 'cursor',
 	'VS Code / Copilot': 'vscode-copilot',
-	Windsurf: 'windsurf',
+	'Devin Desktop': 'devin-desktop',
 	Amp: 'amp',
 	Codex: 'codex',
 	'Gemini CLI': 'gemini-cli',
@@ -85,12 +85,12 @@ export function getMcpClientConfig(
 					}),
 					hint: 'Add to .vscode/mcp.json in your project root.'
 				};
-			case 'Windsurf':
+			case 'Devin Desktop':
 				return {
 					config: json({
 						mcpServers: { [MCP_SERVER_NAME]: { serverUrl: urlWithKey } }
 					}),
-					hint: 'Add to ~/.codeium/windsurf/mcp_config.json'
+					hint: 'Add to ~/.codeium/mcp_config.json'
 				};
 			case 'Amp':
 				return {
@@ -155,7 +155,7 @@ export function getMcpClientConfig(
 				}),
 				hint: 'Add to .vscode/mcp.json in your project root.'
 			};
-		case 'Windsurf':
+		case 'Devin Desktop':
 			return {
 				config: json({
 					mcpServers: {
@@ -165,7 +165,7 @@ export function getMcpClientConfig(
 						}
 					}
 				}),
-				hint: 'Add to ~/.codeium/windsurf/mcp_config.json'
+				hint: 'Add to ~/.codeium/mcp_config.json'
 			};
 		case 'Amp':
 			return {

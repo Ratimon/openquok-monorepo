@@ -51,6 +51,16 @@ describe('getMcpClientConfig', () => {
 		expect(parsed[0]?.url).toBe(`${MCP_BASE}/mcp`);
 		expect(parsed[0]?.headers.Authorization).toBe(`Bearer ${API_KEY}`);
 	});
+
+	it('generates Devin Desktop header auth with global mcp_config.json hint', () => {
+		const { config, hint } = getMcpClientConfig('Devin Desktop', 'header', MCP_BASE, API_KEY);
+		expect(hint).toContain('~/.codeium/mcp_config.json');
+		const parsed = JSON.parse(config) as {
+			mcpServers: Record<string, { serverUrl: string; headers: { Authorization: string } }>;
+		};
+		expect(parsed.mcpServers[MCP_SERVER_NAME].serverUrl).toBe(`${MCP_BASE}/mcp`);
+		expect(parsed.mcpServers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
+	});
 });
 
 describe('maskApiKeyInConfig', () => {

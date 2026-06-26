@@ -9,7 +9,7 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-claude-code'
 	| 'mcp-verify-claude-cowork'
 	| 'mcp-verify-vscode-copilot'
-	| 'mcp-verify-windsurf'
+	| 'mcp-verify-devin-desktop'
 	| 'mcp-verify-amp'
 	| 'mcp-verify-codex'
 	| 'mcp-verify-gemini-cli'
@@ -20,7 +20,7 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-claude-code'
 	| 'mcp-install-claude-cowork'
 	| 'mcp-install-vscode-copilot'
-	| 'mcp-install-windsurf'
+	| 'mcp-install-devin-desktop'
 	| 'mcp-install-amp'
 	| 'mcp-install-codex'
 	| 'mcp-install-gemini-cli'
@@ -99,17 +99,17 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		borderClass: 'border-white/10',
 		configFileHint: 'mcp.json'
 	},
-	Windsurf: {
+	'Devin Desktop': {
 		layout: 'ide',
-		mockUrl: 'windsurf.com',
-		productLabel: 'Windsurf',
-		panelLabel: 'Cascade',
-		icon: icons.Sparkles.name,
+		mockUrl: 'docs.devin.ai',
+		productLabel: 'Devin Desktop',
+		panelLabel: 'Devin Local',
+		icon: icons.Devin.name,
 		surfaceClass: 'bg-[#101418]',
 		accentClass: 'text-cyan-300',
 		accentSoftClass: 'bg-cyan-500/15 text-cyan-100',
 		borderClass: 'border-white/10',
-		configFileHint: '.windsurf/mcp.json'
+		configFileHint: 'mcp_config.json'
 	},
 	Amp: {
 		layout: 'ide',

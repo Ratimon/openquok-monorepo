@@ -58,7 +58,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | <Badge text="Claude Cowork" variant="default" /> | Custom connector or <Badge text="managedMcpServers" variant="param" /> entry | <a href="/docs/mcp-setup-guides/claude-cowork">Claude Cowork</a> |
 | <Badge text="Cursor" variant="default" /> | <Badge text=".cursor/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/cursor">Cursor</a> |
 | <Badge text="VS Code / Copilot" variant="default" /> | <Badge text=".vscode/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/vscode-copilot">VS Code / Copilot</a> |
-| <Badge text="Windsurf" variant="default" /> | <Badge text="~/.codeium/windsurf/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/windsurf">Windsurf</a> |
+| <Badge text="Devin Desktop" variant="default" /> | <Badge text="~/.codeium/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/devin-desktop">Devin Desktop</a> |
 | <Badge text="Amp" variant="default" /> | Terminal command or Amp <Badge text="settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/amp">Amp</a> |
 | <Badge text="Codex" variant="default" /> | <Badge text="~/.codex/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/codex">Codex</a> |
 | <Badge text="Gemini CLI" variant="default" /> | <Badge text="~/.gemini/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/gemini-cli">Gemini CLI</a> |

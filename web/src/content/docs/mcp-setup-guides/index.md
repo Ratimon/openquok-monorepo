@@ -22,7 +22,7 @@ For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Telegram bot
 <LinkCard title="Claude Code" description="claude mcp add with HTTP transport" href="/docs/mcp-setup-guides/claude-code" />
 <LinkCard title="Claude Cowork" description="Custom connectors and managedMcpServers" href="/docs/mcp-setup-guides/claude-cowork" />
 <LinkCard title="VS Code / Copilot" description="Project .vscode/mcp.json for GitHub Copilot" href="/docs/mcp-setup-guides/vscode-copilot" />
-<LinkCard title="Windsurf" description="Codeium Windsurf MCP config file" href="/docs/mcp-setup-guides/windsurf" />
+<LinkCard title="Devin Desktop" description="Global ~/.codeium/mcp_config.json for Devin Local" href="/docs/mcp-setup-guides/devin-desktop" />
 <LinkCard title="Amp" description="amp mcp add or Amp settings.json" href="/docs/mcp-setup-guides/amp" />
 <LinkCard title="Codex" description="OpenAI Codex config.toml MCP servers" href="/docs/mcp-setup-guides/codex" />
 <LinkCard title="Gemini CLI" description="Google Gemini CLI settings.json" href="/docs/mcp-setup-guides/gemini-cli" />

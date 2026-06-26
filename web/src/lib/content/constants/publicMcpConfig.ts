@@ -240,20 +240,20 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		]
 	},
 	{
-		slug: 'windsurf',
-		label: 'Windsurf',
-		mcpClient: 'Windsurf',
-		icon: icons.Sparkles.name,
-		hubDescription: 'Codeium Windsurf MCP config file',
+		slug: 'devin-desktop',
+		label: 'Devin Desktop',
+		mcpClient: 'Devin Desktop',
+		icon: icons.Devin.name,
+		hubDescription: 'Global ~/.codeium/mcp_config.json for Devin Local',
 		heroDescription:
-			'Windsurf loads MCP servers from its mcp_config.json. Add openquok with your programmatic token so Cascade can draft and schedule social posts from the editor.',
+			'Devin Desktop loads MCP servers from ~/.codeium/mcp_config.json. Add openquok with your programmatic token so Devin Local can draft and schedule social posts from the editor.',
 		metaDescription:
-			'Connect OpenQuok MCP to Windsurf via the Codeium MCP config file — schedule social posts from Cascade.',
+			'Connect OpenQuok MCP to Devin Desktop via mcp_config.json — schedule social posts from Devin Local.',
 		setupSteps: [
-			'Download and install Windsurf from windsurf.com — Cascade reads MCP servers from the Windsurf MCP config.',
+			'Download and install Devin Desktop from docs.devin.ai — Devin Local reads MCP servers from ~/.codeium/mcp_config.json.',
 			'Generate a programmatic token under Developers → Access.',
-			'Add the openquok entry to ~/.codeium/windsurf/mcp_config.json using the snippet below.',
-			'Reload Windsurf and verify with: List my connected social media accounts.'
+			'Add the openquok entry to ~/.codeium/mcp_config.json using the snippet below (or Settings → Tools → View Raw Config).',
+			'Reload Devin Desktop and verify with: List my connected social media accounts.'
 		]
 	},
 	{
