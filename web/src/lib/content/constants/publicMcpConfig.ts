@@ -172,6 +172,40 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
 
 const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	{
+		slug: 'antigravity-cli',
+		label: 'Antigravity CLI',
+		mcpClient: 'Antigravity CLI',
+		icon: icons.Antigravity.name,
+		hubDescription: 'Global ~/.gemini/config/mcp_config.json for agy',
+		heroDescription:
+			'Antigravity CLI reads MCP servers from ~/.gemini/config/mcp_config.json. Add openquok with your programmatic token so the agy agent can list channels and schedule social posts from natural language.',
+		metaDescription:
+			'Connect OpenQuok MCP to Antigravity CLI via mcp_config.json — schedule social posts from your terminal agent.',
+		setupSteps: [
+			'Install Antigravity CLI from antigravity.google — the agy binary loads MCP servers from ~/.gemini/config/mcp_config.json.',
+			'Create a programmatic token under Developers → Access.',
+			'Add the openquok entry to ~/.gemini/config/mcp_config.json using the snippet below (serverUrl ending in /mcp — not url).',
+			'Restart agy and verify with: List my connected social media accounts.'
+		]
+	},
+	{
+		slug: 'codex',
+		label: 'Codex',
+		mcpClient: 'Codex',
+		icon: icons.ChatGPT.name,
+		hubDescription: 'OpenAI Codex config.toml MCP servers',
+		heroDescription:
+			'OpenAI Codex loads MCP servers from ~/.codex/config.toml. Add an [mcp_servers.openquok] table with your API URL and token so Codex can draft and schedule posts while you approve.',
+		metaDescription:
+			'Connect OpenQuok MCP to OpenAI Codex via config.toml — schedule social posts from your Codex agent.',
+		setupSteps: [
+			'Install OpenAI Codex from the official docs — MCP servers are configured in ~/.codex/config.toml.',
+			'Generate a programmatic token under Developers → Access.',
+			'Append the [mcp_servers.openquok] block from the configuration section to ~/.codex/config.toml.',
+			'Restart Codex or open a fresh session, then ask: List my connected social media accounts.'
+		]
+	},
+	{
 		slug: 'cursor',
 		label: 'Cursor',
 		mcpClient: 'Cursor',
@@ -260,7 +294,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		slug: 'amp',
 		label: 'Amp',
 		mcpClient: 'Amp',
-		icon: icons.Terminal.name,
+		icon: icons.Amp.name,
 		hubDescription: 'amp mcp add or Amp settings.json',
 		heroDescription:
 			'Amp supports MCP over HTTP via amp mcp add or settings.json. Connect OpenQuok so your Amp agent can schedule social posts with structured tools and human approval.',
@@ -274,44 +308,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		]
 	},
 	{
-		slug: 'codex',
-		label: 'Codex',
-		mcpClient: 'Codex',
-		icon: icons.ChatGPT.name,
-		hubDescription: 'OpenAI Codex config.toml MCP servers',
-		heroDescription:
-			'OpenAI Codex loads MCP servers from ~/.codex/config.toml. Add an [mcp_servers.openquok] table with your API URL and token so Codex can draft and schedule posts while you approve.',
-		metaDescription:
-			'Connect OpenQuok MCP to OpenAI Codex via config.toml — schedule social posts from your Codex agent.',
-		setupSteps: [
-			'Install OpenAI Codex from the official docs — MCP servers are configured in ~/.codex/config.toml.',
-			'Generate a programmatic token under Developers → Access.',
-			'Append the [mcp_servers.openquok] block from the configuration section to ~/.codex/config.toml.',
-			'Restart Codex or open a fresh session, then ask: List my connected social media accounts.'
-		]
-	},
-	{
-		slug: 'antigravity-cli',
-		label: 'Antigravity CLI',
-		mcpClient: 'Antigravity CLI',
-		icon: icons.Antigravity.name,
-		hubDescription: 'Global ~/.gemini/config/mcp_config.json for agy',
-		heroDescription:
-			'Antigravity CLI reads MCP servers from ~/.gemini/config/mcp_config.json. Add openquok with your programmatic token so the agy agent can list channels and schedule social posts from natural language.',
-		metaDescription:
-			'Connect OpenQuok MCP to Antigravity CLI via mcp_config.json — schedule social posts from your terminal agent.',
-		setupSteps: [
-			'Install Antigravity CLI from antigravity.google — the agy binary loads MCP servers from ~/.gemini/config/mcp_config.json.',
-			'Create a programmatic token under Developers → Access.',
-			'Add the openquok entry to ~/.gemini/config/mcp_config.json using the snippet below (serverUrl ending in /mcp — not url).',
-			'Restart agy and verify with: List my connected social media accounts.'
-		]
-	},
-	{
 		slug: 'warp',
 		label: 'Warp',
 		mcpClient: 'Warp',
-		icon: icons.Terminal.name,
+		icon: icons.Warp.name,
 		hubDescription: 'Warp terminal MCP server settings',
 		heroDescription:
 			'Warp terminal supports MCP server settings in-app. Add openquok with your programmatic token so Warp AI can draft and schedule social posts while you approve in OpenQuok.',

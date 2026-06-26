@@ -18,14 +18,14 @@ For a quick copy-paste snippet, start at <a href="/docs/getting-started-for-mcp/
 For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Telegram bots), see <a href="/docs/agent-setup-guides">Agent setup guides</a> instead.
 
 <CardGrid>
+<LinkCard title="Antigravity CLI" description="Global ~/.gemini/config/mcp_config.json for agy" href="/docs/mcp-setup-guides/antigravity-cli" />
+<LinkCard title="Codex" description="OpenAI Codex config.toml MCP servers" href="/docs/mcp-setup-guides/codex" />
 <LinkCard title="Cursor" description="Project-level .cursor/mcp.json for Agent and Composer" href="/docs/mcp-setup-guides/cursor" />
 <LinkCard title="Claude Code" description="claude mcp add with HTTP transport" href="/docs/mcp-setup-guides/claude-code" />
 <LinkCard title="Claude Cowork" description="Custom connectors and managedMcpServers" href="/docs/mcp-setup-guides/claude-cowork" />
 <LinkCard title="VS Code / Copilot" description="Project .vscode/mcp.json for GitHub Copilot" href="/docs/mcp-setup-guides/vscode-copilot" />
 <LinkCard title="Devin Desktop" description="Global ~/.codeium/mcp_config.json for Devin Local" href="/docs/mcp-setup-guides/devin-desktop" />
 <LinkCard title="Amp" description="amp mcp add or Amp settings.json" href="/docs/mcp-setup-guides/amp" />
-<LinkCard title="Codex" description="OpenAI Codex config.toml MCP servers" href="/docs/mcp-setup-guides/codex" />
-<LinkCard title="Antigravity CLI" description="Global ~/.gemini/config/mcp_config.json for agy" href="/docs/mcp-setup-guides/antigravity-cli" />
 <LinkCard title="Warp" description="Warp terminal MCP server settings" href="/docs/mcp-setup-guides/warp" />
 </CardGrid>
 
