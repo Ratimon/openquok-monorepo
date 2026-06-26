@@ -1,9 +1,44 @@
+import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
 import {
-	getAvailablePublicAgentBySlug,
-	type PublicAgentLandingPage
+	getAvailablePublicAgentHostBySlug,
+	getPublicAgentHostBySlug
 } from '$lib/content/constants/publicAgentConfig';
+import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
+import {
+	getAvailablePublicMcpLandingBySlug,
+	getPublicMcpLandingBySlug,
+	listPublicMcpLandingPages
+} from '$lib/content/constants/publicMcpConfig';
 
-export type PublicAgentViewModel = PublicAgentLandingPage;
+export type PublicAgentsLandingPage = PublicAgentHostLandingPage | PublicMcpLandingPage;
+
+export type PublicAgentViewModel = PublicAgentsLandingPage;
+
+export function isPublicMcpLandingPage(
+	page: PublicAgentsLandingPage
+): page is PublicMcpLandingPage {
+	return page.pageType === 'mcp-client';
+}
+
+export function isPublicAgentHostLandingPage(
+	page: PublicAgentsLandingPage
+): page is PublicAgentHostLandingPage {
+	return page.pageType === 'agent-host';
+}
+
+export function getPublicAgentsLandingBySlug(slug: string): PublicAgentsLandingPage | undefined {
+	return getPublicAgentHostBySlug(slug) ?? getPublicMcpLandingBySlug(slug);
+}
+
+export function getAvailablePublicAgentsLandingBySlug(
+	slug: string
+): PublicAgentsLandingPage | undefined {
+	return getAvailablePublicAgentHostBySlug(slug) ?? getAvailablePublicMcpLandingBySlug(slug);
+}
+
+export function listAllPublicAgentsLandingPages(): PublicAgentsLandingPage[] {
+	return [...listPublicMcpLandingPages()];
+}
 
 export class PublicAgentByPagePresenter {
 	public agentVm: PublicAgentViewModel | null = $state(null);
@@ -16,8 +51,8 @@ export class PublicAgentByPagePresenter {
 	 * Returns `null` when the slug is missing or the agent is not available.
 	 */
 	loadAgentBySlugStateless(slug: string): PublicAgentViewModel | null {
-		const agent = getAvailablePublicAgentBySlug(slug);
-		return agent ? toPublicAgentVm(agent) : null;
+		const agent = getAvailablePublicAgentsLandingBySlug(slug);
+		return agent ?? null;
 	}
 
 	/** Stateful wrapper — calls {@link loadAgentBySlugStateless} and assigns {@link agentVm}. */
@@ -26,8 +61,4 @@ export class PublicAgentByPagePresenter {
 		this.agentVm = agentVm;
 		return agentVm;
 	}
-}
-
-function toPublicAgentVm(page: PublicAgentLandingPage): PublicAgentViewModel {
-	return page;
 }

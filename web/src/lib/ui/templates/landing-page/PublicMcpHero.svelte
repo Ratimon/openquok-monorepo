@@ -1,36 +1,28 @@
 <script lang="ts">
-	import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
-	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
-	type LandingHeroTheme = {
-		titleHighlightPillClass: string;
-		titleSegmentClass: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
-		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
-	};
-
 	type Props = {
-		agent: PublicAgentHostLandingPage;
-		heroTheme: LandingHeroTheme;
+		mcp: PublicMcpLandingPage;
 		ctaText: string;
 		ctaHref: string;
 		docsCtaText?: string;
 		docsCtaHref?: string;
 	};
 
-	let { agent, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let { mcp, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
-	const headingId = 'public-agent-hero-heading';
-	const installHeadingId = 'public-agent-hero-install-heading';
+	const headingId = 'public-mcp-hero-heading';
 
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agent.heroTitle));
+	const titleSegments = $derived(landingHeroTheme.parseLandingHeroTitlePartSegments(mcp.heroTitle));
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
@@ -40,11 +32,13 @@
 				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
 				aria-hidden="true"
 			>
-				<AbstractIcon name={agent.icon} width="36" height="36" class="size-9" focusable="false" />
+				<AbstractIcon name={mcp.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
-			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{agent.agentLabel}
+			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">MCP</p>
+
+			<p class="mt-2 text-xs font-bold tracking-[0.2em] text-base-content/60 uppercase sm:text-sm">
+				{mcp.agentLabel}
 			</p>
 
 			<h1
@@ -53,15 +47,17 @@
 			>
 				{#each titleSegments as seg, segmentIndex (segmentIndex)}
 					{#if seg.highlight}
-						<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+						<span class={landingHeroTheme.titleHighlightPillClass}>{seg.text}</span>
 					{:else}
-						<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
+						<span class={landingHeroTheme.titleSegmentClass(segmentIndex, titleSegments)}
+							>{seg.text}</span
+						>
 					{/if}
 				{/each}
 			</h1>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-				{agent.heroDescription}
+				{mcp.heroDescription}
 			</p>
 
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -86,16 +82,6 @@
 					{ctaText}
 				</ButtonGlitchBrightness>
 			</div>
-
-			<section class="mt-8 w-full max-w-2xl space-y-3" aria-labelledby={installHeadingId}>
-				<h2
-					id={installHeadingId}
-					class="text-center text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
-				>
-					Install our core skill:
-				</h2>
-				<SkillInstallCommandTabs options={agent.skillInstallOptions} />
-			</section>
 		</div>
 	</div>
 </AuroraBackground>

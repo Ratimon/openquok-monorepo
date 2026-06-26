@@ -1,28 +1,20 @@
 import {
 	listPublicAgentsForHub,
-	type PublicAgentLandingPage
+	type PublicAgentHostLandingPage
 } from '$lib/content/constants/publicAgentConfig';
 
-import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
-
-export type { PublicAgentViewModel };
-
 export class PublicAgentsPagePresenter {
-	public agentsVm: PublicAgentViewModel[] = $state([]);
+	public agentsVm: PublicAgentHostLandingPage[] = $state([]);
 
 	/** Stateless — safe for `+page.server.ts` (SSR): hub catalog → VM without mutating `$state`. */
-	loadAgentsHubStateless(): PublicAgentViewModel[] {
-		return listPublicAgentsForHub().map(toPublicAgentVm);
+	loadAgentsHubStateless(): PublicAgentHostLandingPage[] {
+		return listPublicAgentsForHub();
 	}
 
 	/** Stateful wrapper — calls {@link loadAgentsHubStateless} and assigns {@link agentsVm}. */
-	loadAgentsHub(): PublicAgentViewModel[] {
+	loadAgentsHub(): PublicAgentHostLandingPage[] {
 		const agentsVm = this.loadAgentsHubStateless();
 		this.agentsVm = agentsVm;
 		return agentsVm;
 	}
-}
-
-function toPublicAgentVm(page: PublicAgentLandingPage): PublicAgentViewModel {
-	return page;
 }

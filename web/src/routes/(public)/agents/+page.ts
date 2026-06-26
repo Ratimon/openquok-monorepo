@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
 
 import type { PageLoad } from './$types';
 
@@ -18,7 +18,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			agentsVm: PublicAgentViewModel[];
+			agentsVm: PublicAgentHostLandingPage[];
 			schemaData: unknown;
 		};
 

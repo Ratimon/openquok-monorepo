@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+    import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
     import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
     import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+    import type { SettingsPanelMockContentId } from '$lib/ui/templates/device-mocks/settings-panel/settingsPanelMock.types';
     import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
 	import { onMount } from 'svelte';
@@ -10,10 +12,14 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import FeaturesAnimated from '$lib/ui/templates/FeaturesAnimated.svelte';
+	import DesktopMock from '$lib/ui/templates/device-mocks/desktop/DesktopMock.svelte';
+	import DesktopMockContent from '$lib/ui/templates/device-mocks/desktop/DesktopMockContent.svelte';
 	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
 	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import SafariMock from '$lib/ui/templates/device-mocks/safari/SafariMock.svelte';
 	import SafariMockContent from '$lib/ui/templates/device-mocks/safari/SafariMockContent.svelte';
+	import SettingsPanelMockContent from '$lib/ui/templates/device-mocks/settings-panel/SettingsPanelMockContent.svelte';
+	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
@@ -75,14 +81,18 @@
 	);
 
 	const isIphoneMock = $derived(activeStep?.deviceMock === 'iphone-15-pro');
+	const isDesktopMock = $derived(activeStep?.deviceMock === 'desktop');
 	const isTerminalMock = $derived(activeStep?.deviceMock === 'terminal');
+	const isSettingsPanelMock = $derived(activeStep?.deviceMock === 'settings-panel');
 
 	const mediaPanelClass = $derived(
 		isIphoneMock
 			? 'h-[400px] min-h-[320px] w-auto lg:h-[480px]'
-			: isTerminalMock
+			: isTerminalMock || isSettingsPanelMock
 				? 'h-auto w-full'
-				: 'h-[350px] min-h-[200px] w-auto'
+				: isDesktopMock
+					? 'h-[350px] min-h-[240px] w-full'
+					: 'h-[350px] min-h-[200px] w-auto'
 	);
 
 	function scrollToIndex(index: number) {
@@ -272,6 +282,18 @@
 									/>
 								</SafariMock>
 							</div>
+						{:else if activeStep?.deviceMock === 'desktop'}
+							<div
+								class="flex size-full items-center justify-center overflow-hidden"
+								role="img"
+								aria-label={activeStep.mediaAlt ?? activeStep.title}
+							>
+								<DesktopMock class="size-full">
+									<DesktopMockContent
+										content={activeStep.deviceMockContent as DesktopMockContentId | undefined}
+									/>
+								</DesktopMock>
+							</div>
 						{:else if activeStep?.deviceMock === 'iphone-15-pro'}
 							<div
 								class="flex size-full items-center justify-center overflow-hidden"
@@ -286,8 +308,19 @@
 								</Iphone15ProMock>
 							</div>
 						{:else if activeStep?.deviceMock === 'terminal'}
-							<TerminalCommandMockContent
-								content={activeStep.deviceMockContent as TerminalMockContentId | undefined}
+							{#if activeStep.terminalCode}
+								<TerminalCommandMock
+									code={activeStep.terminalCode}
+									ariaLabel={activeStep.mediaAlt ?? activeStep.title}
+								/>
+							{:else}
+								<TerminalCommandMockContent
+									content={activeStep.deviceMockContent as TerminalMockContentId | undefined}
+								/>
+							{/if}
+						{:else if activeStep?.deviceMock === 'settings-panel'}
+							<SettingsPanelMockContent
+								content={activeStep.deviceMockContent as SettingsPanelMockContentId | undefined}
 							/>
 						{:else if activeStep?.animatedContent === 'llm-models'}
 							<FeaturesAnimated

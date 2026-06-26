@@ -1,9 +1,12 @@
 <script lang="ts">
+	import type { IconName } from '$data/icons';
 	import type { PublicAgentLandingPage } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
 	import { listPublicAgentsForHub } from '$lib/content/constants/publicAgentConfig';
+	import { listPublicMcpLandingPages } from '$lib/content/constants/publicMcpConfig';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { isParentRoute, route } from '$lib/utils/path';
 
@@ -18,6 +21,13 @@
 		whenUnselected?: string;
 	};
 
+	type AgentsNavEntry = {
+		slug: string;
+		label: string;
+		icon: IconName;
+		available: boolean;
+	};
+
 	let {
 		title,
 		agentsPath,
@@ -26,10 +36,21 @@
 		whenUnselected = ''
 	}: Props = $props();
 
-	const agents = listPublicAgentsForHub();
-	const columns = splitIntoColumns(agents, 2);
+	const agentHosts = listPublicAgentsForHub();
+	const mcpClients = listPublicMcpLandingPages();
+	const agentColumns = splitIntoColumns(agentHosts.map(toNavEntry), 2);
+	const mcpColumns = splitIntoColumns(mcpClients.map(toNavEntry), 3);
 
 	let isActive = $derived(isParentRoute(page.url.pathname, agentsPath));
+
+	function toNavEntry(landingPage: PublicAgentLandingPage | PublicMcpLandingPage): AgentsNavEntry {
+		return {
+			slug: landingPage.slug,
+			label: landingPage.agentLabel,
+			icon: landingPage.icon,
+			available: landingPage.available
+		};
+	}
 
 	function splitIntoColumns<T>(items: readonly T[], columnCount: number): T[][] {
 		if (columnCount <= 0 || items.length === 0) return [];
@@ -39,9 +60,9 @@
 		).filter((column) => column.length > 0);
 	}
 
-	function agentHref(agent: PublicAgentLandingPage): string | undefined {
-		if (!agent.available) return undefined;
-		return route(getRootPathPublicAgent(agent.slug));
+	function entryHref(entry: AgentsNavEntry): string | undefined {
+		if (!entry.available) return undefined;
+		return route(getRootPathPublicAgent(entry.slug));
 	}
 </script>
 
@@ -66,13 +87,13 @@
 	<DropdownMenu.Content
 		align="center"
 		sideOffset={10}
-		class="w-[min(calc(100vw-2rem),28rem)] rounded-xl border border-base-content/10 bg-base-200 p-4 shadow-xl"
+		class="w-[min(calc(100vw-2rem),42rem)] rounded-xl border border-base-content/10 bg-base-200 p-4 shadow-xl"
 	>
 		<div class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2" aria-label="AI agent integrations">
-			{#each columns as column (column.map((agent) => agent.slug).join('-'))}
+			{#each agentColumns as column (column.map((entry) => entry.slug).join('-'))}
 				<div class="flex min-w-0 flex-col gap-0.5">
-					{#each column as agent (agent.slug)}
-						{@const href = agentHref(agent)}
+					{#each column as entry (entry.slug)}
+						{@const href = entryHref(entry)}
 						{#if href}
 							<a
 								href={href}
@@ -83,14 +104,14 @@
 									aria-hidden="true"
 								>
 									<AbstractIcon
-										name={agent.icon}
+										name={entry.icon}
 										width="16"
 										height="16"
 										class="size-4"
 										focusable="false"
 									/>
 								</span>
-								<span class="truncate">{agent.agentLabel}</span>
+								<span class="truncate">{entry.label}</span>
 							</a>
 						{:else}
 							<span
@@ -102,19 +123,73 @@
 									aria-hidden="true"
 								>
 									<AbstractIcon
-										name={agent.icon}
+										name={entry.icon}
 										width="16"
 										height="16"
 										class="size-4 opacity-60"
 										focusable="false"
 									/>
 								</span>
-								<span class="truncate">{agent.agentLabel}</span>
+								<span class="truncate">{entry.label}</span>
 							</span>
 						{/if}
 					{/each}
 				</div>
 			{/each}
+		</div>
+		<div class="mt-3 border-t border-base-content/10 pt-3">
+			<p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">MCP</p>
+			<div
+				class="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-3"
+				aria-label="MCP client integrations"
+			>
+				{#each mcpColumns as column (column.map((entry) => entry.slug).join('-'))}
+					<div class="flex min-w-0 flex-col gap-0.5">
+						{#each column as entry (entry.slug)}
+							{@const href = entryHref(entry)}
+							{#if href}
+								<a
+									href={href}
+									class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
+								>
+									<span
+										class="grid size-7 shrink-0 place-items-center rounded-md border border-white/10 bg-base-100/80"
+										aria-hidden="true"
+									>
+										<AbstractIcon
+											name={entry.icon}
+											width="16"
+											height="16"
+											class="size-4"
+											focusable="false"
+										/>
+									</span>
+									<span class="truncate">{entry.label}</span>
+								</a>
+							{:else}
+								<span
+									class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content/45"
+									title="Coming soon"
+								>
+									<span
+										class="grid size-7 shrink-0 place-items-center rounded-md border border-white/5 bg-base-100/40"
+										aria-hidden="true"
+									>
+										<AbstractIcon
+											name={entry.icon}
+											width="16"
+											height="16"
+											class="size-4 opacity-60"
+											focusable="false"
+										/>
+									</span>
+									<span class="truncate">{entry.label}</span>
+								</span>
+							{/if}
+						{/each}
+					</div>
+				{/each}
+			</div>
 		</div>
 		<div class="mt-2 border-t border-base-content/10 pt-2">
 			<a

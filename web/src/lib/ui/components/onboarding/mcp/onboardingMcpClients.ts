@@ -32,7 +32,7 @@ export const ONBOARDING_MCP_CLIENTS: readonly OnboardingMcpClientDefinition[] = 
 		summary:
 			'Claude Code registers remote MCP servers with claude mcp add over HTTP transport — no local proxy required.',
 		steps: [
-			'Generate an opo_ programmatic token in Developers → Access.',
+			'Generate a programmatic token in Developers → Access.',
 			'Run the claude mcp add openquok command from the next step in your terminal.',
 			'Start a new Claude Code session and ask your agent to list connected channels.'
 		]

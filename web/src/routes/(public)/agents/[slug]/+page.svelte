@@ -10,7 +10,7 @@
 		OPENCLAW_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/openclaw-messaging-channels';
 
-	import { publicAgentByPagePresenter } from '$lib/area-public';
+	import { publicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -32,6 +32,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
+	import PublicMcpLandingPage from '$lib/ui/templates/landing-page/PublicMcpLandingPage.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -42,6 +43,8 @@
 
 	let agentVm = $derived(data.agentVm);
 	let schemaData = $derived(data.schemaData);
+	let agentHostVm = $derived(agentVm && isPublicAgentHostLandingPage(agentVm) ? agentVm : null);
+	let mcpVm = $derived(agentVm && isPublicMcpLandingPage(agentVm) ? agentVm : null);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
@@ -55,21 +58,21 @@
 	);
 
 	const coreMessagingChannels = $derived(
-		agentVm?.slug === 'hermes'
+		agentHostVm?.slug === 'hermes'
 			? HERMES_CORE_MESSAGING_CHANNELS
 			: OPENCLAW_CORE_MESSAGING_CHANNELS
 	);
 	const extensionMessagingChannels = $derived(
-		agentVm?.slug === 'hermes'
+		agentHostVm?.slug === 'hermes'
 			? HERMES_EXTENSION_MESSAGING_CHANNELS
 			: OPENCLAW_EXTENSION_MESSAGING_CHANNELS
 	);
 
 	const telegramAgentBranding = $derived(
-		agentVm
+		agentHostVm
 			? {
-					agentIcon: agentVm.icon,
-					agentLabel: agentVm.telegramBotLabel ?? agentVm.agentLabel
+					agentIcon: agentHostVm.icon,
+					agentLabel: agentHostVm.telegramBotLabel ?? agentHostVm.agentLabel
 				}
 			: undefined
 	);
@@ -77,34 +80,40 @@
 
 <JsonLdHead schemaData={schemaData} />
 
-{#if agentVm}
+{#if mcpVm}
+	<PublicMcpLandingPage
+		mcp={mcpVm}
+		secondaryCtaText={secondaryCtaText}
+		secondaryCtaHref={secondaryCtaHref}
+	/>
+{:else if agentHostVm}
 	<PublicAgentHero
-		agent={agentVm}
+		agent={agentHostVm}
 		heroTheme={landingHeroTheme}
 		ctaText={secondaryCtaText}
 		ctaHref={secondaryCtaHref}
 		docsCtaText="View Docs"
-		docsCtaHref={agentVm.docsPath}
+		docsCtaHref={agentHostVm.docsPath}
 	/>
 
-	{#if agentVm.setupSteps.length > 0}
+	{#if agentHostVm.setupSteps.length > 0}
 		<FeaturesOrdered
-			steps={agentVm.setupSteps}
+			steps={agentHostVm.setupSteps}
 			heroTheme={landingHeroTheme}
-			sectionSubtitle={agentVm.setupStepsSubtitle}
-			sectionTitle={agentVm.setupStepsTitle}
+			sectionSubtitle={agentHostVm.setupStepsSubtitle}
+			sectionTitle={agentHostVm.setupStepsTitle}
 			{telegramAgentBranding}
 		/>
 	{/if}
 
 	<WhoIsFor
 		heroTheme={landingHeroTheme}
-		landingSubtitle={agentVm.audienceSubtitle}
-		landingTitle={agentVm.audienceTitle}
-		cards={agentVm.audienceCards}
+		landingSubtitle={agentHostVm.audienceSubtitle}
+		landingTitle={agentHostVm.audienceTitle}
+		cards={agentHostVm.audienceCards}
 	/>
 
-	{#each agentVm.featureSections as section, index (index)}
+	{#each agentHostVm.featureSections as section, index (index)}
 		<PublicAgentFeatureSection
 			{section}
 			{index}
@@ -114,36 +123,36 @@
 		/>
 	{/each}
 
-	{#if agentVm.comparisonSection}
+	{#if agentHostVm.comparisonSection}
 		<WithWithout
 			heroTheme={landingHeroTheme}
-			landingSubtitle={agentVm.comparisonSection.subtitle}
-			landingTitle={agentVm.comparisonSection.title}
-			landingDescription={agentVm.comparisonSection.description}
-			withoutTitle={agentVm.comparisonSection.withoutTitle}
-			withTitle={agentVm.comparisonSection.withTitle}
-			points={agentVm.comparisonSection.points}
+			landingSubtitle={agentHostVm.comparisonSection.subtitle}
+			landingTitle={agentHostVm.comparisonSection.title}
+			landingDescription={agentHostVm.comparisonSection.description}
+			withoutTitle={agentHostVm.comparisonSection.withoutTitle}
+			withTitle={agentHostVm.comparisonSection.withTitle}
+			points={agentHostVm.comparisonSection.points}
 		/>
 	{/if}
 
-	{#if agentVm.commandReferenceSection}
+	{#if agentHostVm.commandReferenceSection}
 		<CliCommandReference
 			heroTheme={landingHeroTheme}
-			landingSubtitle={agentVm.commandReferenceSection.subtitle}
-			landingTitle={agentVm.commandReferenceSection.title}
-			landingDescription={agentVm.commandReferenceSection.description}
-			commands={agentVm.commandReferenceSection.commands ?? []}
+			landingSubtitle={agentHostVm.commandReferenceSection.subtitle}
+			landingTitle={agentHostVm.commandReferenceSection.title}
+			landingDescription={agentHostVm.commandReferenceSection.description}
+			commands={agentHostVm.commandReferenceSection.commands ?? []}
 		/>
 	{/if}
 
-	{#if agentVm.supportedChannelsSection}
+	{#if agentHostVm.supportedChannelsSection}
 		<SimpleCardGrid
 			heroTheme={landingHeroTheme}
 			headingId="agent-supported-channels-heading"
-			title={agentVm.supportedChannelsSection.title}
-			description={agentVm.supportedChannelsSection.description}
-			subtitle={agentVm.supportedChannelsSection.subtitle}
-			extensionLabel={agentVm.supportedChannelsSection.extensionLabel}
+			title={agentHostVm.supportedChannelsSection.title}
+			description={agentHostVm.supportedChannelsSection.description}
+			subtitle={agentHostVm.supportedChannelsSection.subtitle}
+			extensionLabel={agentHostVm.supportedChannelsSection.extensionLabel}
 			items={coreMessagingChannels}
 			extensionItems={extensionMessagingChannels}
 		/>
@@ -152,10 +161,10 @@
 	<div class="container mx-auto px-4">
 		<PublicFaq
 			heroTheme={landingHeroTheme}
-			faqSubtitle={agentVm.faqSubtitle}
-			faqTitle={agentVm.faqTitle}
-			faqDescription={agentVm.faqDescription}
-			faqItems={agentVm.faqItems}
+			faqSubtitle={agentHostVm.faqSubtitle}
+			faqTitle={agentHostVm.faqTitle}
+			faqDescription={agentHostVm.faqDescription}
+			faqItems={agentHostVm.faqItems}
 			sectionClass="py-16 sm:py-20"
 		/>
 

@@ -3,8 +3,10 @@ import { icons } from '$data/icons';
 
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 import type { SafariMockContentId } from '$lib/ui/templates/device-mocks/safari/safariMock.types';
+import type { SettingsPanelMockContentId } from '$lib/ui/templates/device-mocks/settings-panel/settingsPanelMock.types';
 import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import type {
@@ -98,7 +100,12 @@ export const DEFAULT_AGENT_INTEGRATIONS: FeaturesAnimatedModel[] = [
 	}
 ];
 
-export type FeaturesOrderedDeviceMock = 'safari' | 'iphone-15-pro' | 'terminal';
+export type FeaturesOrderedDeviceMock =
+	| 'safari'
+	| 'iphone-15-pro'
+	| 'terminal'
+	| 'settings-panel'
+	| 'desktop';
 
 export type FeaturesOrderedStep = {
 	id: number;
@@ -110,7 +117,14 @@ export type FeaturesOrderedStep = {
 	/** Overrides default carousel models when `animatedContent` is set. */
 	animatedModels?: FeaturesAnimatedModel[];
 	deviceMock?: FeaturesOrderedDeviceMock;
-	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
+	deviceMockContent?:
+		| SafariMockContentId
+		| IphoneMockContentId
+		| TerminalMockContentId
+		| SettingsPanelMockContentId
+		| DesktopMockContentId;
+	/** Inline terminal preview when `deviceMock` is `terminal` (overrides `deviceMockContent`). */
+	terminalCode?: string;
 	mockUrl?: string;
 	iconName: IconName;
 };
@@ -153,12 +167,18 @@ export type PublicAgentFeatureSection = {
 	/** Heading above `cliCommands` (defaults to “CLI command options”). */
 	cliCommandsTitle?: string;
 	deviceMock?: FeaturesOrderedDeviceMock;
-	deviceMockContent?: SafariMockContentId | IphoneMockContentId | TerminalMockContentId;
+	deviceMockContent?:
+		| SafariMockContentId
+		| IphoneMockContentId
+		| TerminalMockContentId
+		| SettingsPanelMockContentId
+		| DesktopMockContentId;
 	/** When true, media renders on the right; otherwise on the left. */
 	mediaOnRight?: boolean;
 };
 
-export type PublicAgentLandingPage = {
+export type PublicAgentHostLandingPage = {
+	pageType: 'agent-host';
 	slug: string;
 	/** Catalog identifier used for icons and docs links. */
 	agentId: string;
@@ -195,7 +215,11 @@ export type PublicAgentLandingPage = {
 	available: boolean;
 };
 
-const OPENCLAW_AGENT: PublicAgentLandingPage = {
+/** Agent host catalog entries (OpenClaw, Hermes, …). */
+export type PublicAgentLandingPage = PublicAgentHostLandingPage;
+
+const OPENCLAW_AGENT: PublicAgentHostLandingPage = {
+	pageType: 'agent-host',
 	slug: 'openclaw',
 	agentId: 'openclaw',
 	agentLabel: 'OpenClaw',
@@ -438,7 +462,8 @@ openquok analytics:post <post-id> -d 7`
 	available: true
 };
 
-const HERMES_AGENT: PublicAgentLandingPage = {
+const HERMES_AGENT: PublicAgentHostLandingPage = {
+	pageType: 'agent-host',
 	slug: 'hermes',
 	agentId: 'hermes',
 	agentLabel: 'Hermes Agent',
@@ -697,34 +722,53 @@ export const PUBLIC_AGENTS_HUB = {
 	mcpHubSubtitle: 'MCP',
 	mcpHubTitle: 'Native MCP clients',
 	mcpHubDescription:
-		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent. Pick a client below for the setup guide, or copy a ready-to-paste config.',
+		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent. Pick a client below for setup steps and a copy-paste MCP config.',
 	mcpConfigTitle: 'Copy configuration',
 	mcpConfigDescription:
-		'Generate an opo_ programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.'
+		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.'
 } as const;
 
-export const PUBLIC_AGENT_LANDING_PAGES: readonly PublicAgentLandingPage[] = [
+export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPage[] = [
 	OPENCLAW_AGENT,
 	HERMES_AGENT
 ];
 
-const agentBySlug = new Map(PUBLIC_AGENT_LANDING_PAGES.map((page) => [page.slug, page]));
+/** @deprecated Use {@link PUBLIC_AGENT_HOST_LANDING_PAGES}. */
+export const PUBLIC_AGENT_LANDING_PAGES = PUBLIC_AGENT_HOST_LANDING_PAGES;
 
-export function getPublicAgentBySlug(slug: string): PublicAgentLandingPage | undefined {
+const agentHostBySlug = new Map(
+	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])
+);
+
+export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPage | undefined {
 	const key = slug.trim().toLowerCase();
-	return agentBySlug.get(key);
+	return agentHostBySlug.get(key);
 }
 
-export function getAvailablePublicAgentBySlug(slug: string): PublicAgentLandingPage | undefined {
-	const page = getPublicAgentBySlug(slug);
+/** @deprecated Use {@link getPublicAgentHostBySlug}. */
+export function getPublicAgentBySlug(slug: string): PublicAgentHostLandingPage | undefined {
+	return getPublicAgentHostBySlug(slug);
+}
+
+export function getAvailablePublicAgentHostBySlug(
+	slug: string
+): PublicAgentHostLandingPage | undefined {
+	const page = getPublicAgentHostBySlug(slug);
 	if (!page?.available) return undefined;
 	return page;
 }
 
-export function listPublicAgentsForHub(): PublicAgentLandingPage[] {
-	return [...PUBLIC_AGENT_LANDING_PAGES];
+/** @deprecated Use {@link getAvailablePublicAgentHostBySlug}. */
+export function getAvailablePublicAgentBySlug(
+	slug: string
+): PublicAgentHostLandingPage | undefined {
+	return getAvailablePublicAgentHostBySlug(slug);
 }
 
-export function listAvailablePublicAgents(): PublicAgentLandingPage[] {
-	return PUBLIC_AGENT_LANDING_PAGES.filter((page) => page.available);
+export function listPublicAgentsForHub(): PublicAgentHostLandingPage[] {
+	return [...PUBLIC_AGENT_HOST_LANDING_PAGES];
+}
+
+export function listAvailablePublicAgents(): PublicAgentHostLandingPage[] {
+	return PUBLIC_AGENT_HOST_LANDING_PAGES.filter((page) => page.available);
 }

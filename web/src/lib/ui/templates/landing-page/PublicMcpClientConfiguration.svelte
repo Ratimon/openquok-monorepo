@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import {
 		getMcpClientConfig,
 		MCP_CLIENT_DOCS_SLUG,
@@ -10,35 +9,20 @@
 		type McpClient
 	} from '$lib/developers/utils/getMcpClientConfig';
 	import { route, url } from '$lib/utils/path';
-
-	import { icons } from '$data/icons';
-
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
 		sectionTitle: string;
 		sectionDescription: string;
 		headingId: string;
-		activeClient?: McpClient;
+		activeClient: McpClient;
 	};
 
-	let {
-		sectionTitle,
-		sectionDescription,
-		headingId,
-		activeClient = $bindable<McpClient>('Cursor')
-	}: Props = $props();
+	let { sectionTitle, sectionDescription, headingId, activeClient }: Props = $props();
 
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
-	const mcpDocsHref = url(`${publicDocsPath}/getting-started-for-mcp`);
-	const mcpSetupGuidesHref = url(`${publicDocsPath}/mcp-setup-guides`);
-
-	// /sign-up
-	const rootPathSignUp = getRootPathSignup();
-	const signUpPath = route(rootPathSignUp);
 
 	const authPillClass = (active: boolean) =>
 		`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
@@ -103,39 +87,5 @@
 			/>
 		</div>
 
-		<div class="flex flex-wrap justify-center gap-2 pt-1">
-			<Button variant="primary" size="sm" href={signUpPath}>Get started free</Button>
-			<Button
-				variant="outline"
-				size="sm"
-				class="gap-1.5"
-				href={activeClientDocsHref}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
-				{activeClient} setup guide
-			</Button>
-			<Button
-				variant="ghost"
-				size="sm"
-				class="gap-1.5"
-				href={mcpDocsHref}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
-				MCP introduction
-			</Button>
-			<Button
-				variant="ghost"
-				size="sm"
-				href={mcpSetupGuidesHref}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				All MCP clients
-			</Button>
-		</div>
 	</div>
 </section>

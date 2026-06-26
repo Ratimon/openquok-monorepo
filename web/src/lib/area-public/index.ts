@@ -8,7 +8,7 @@ import { PublicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/Publ
 import { PublicBlogBySlugPagePresenter } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
 import { PublicPreviewPostByIdPagePresenter } from '$lib/area-public/PublicPreviewPostByIdPage.presenter.svelte';
 import { PublicLayoutPagePresenter } from '$lib/area-public/PublicLayoutPage.presenter.svelte';
-import { PublicAgentByPagePresenter } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+import { PublicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
 import { PublicAgentsPagePresenter } from '$lib/area-public/PublicAgentsPage.presenter.svelte';
 import { PublicChannelByPagePresenter } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
@@ -43,5 +43,7 @@ export {
 	publicBlogAuthorByIdentifierPagePresenter,
 	publicBlogBySlugPagePresenter,
 	publicPreviewPostByIdPagePresenter,
-	PublicPricingPagePresenter
+	PublicPricingPagePresenter,
+	isPublicAgentHostLandingPage,
+	isPublicMcpLandingPage
 };

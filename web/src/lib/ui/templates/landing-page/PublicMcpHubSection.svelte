@@ -1,17 +1,12 @@
 <script lang="ts">
 	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
 	import { listPublicMcpIntegrationsForHub } from '$lib/content/constants/publicMcpConfig';
-	import type { McpClient } from '$lib/developers/utils/getMcpClientConfig';
 
-	import PublicMcpClientConfiguration from '$lib/ui/templates/landing-page/PublicMcpClientConfiguration.svelte';
 	import PublicMcpHubGrid from '$lib/ui/templates/landing-page/PublicMcpHubGrid.svelte';
 
 	const integrations = listPublicMcpIntegrationsForHub();
 
 	const sectionHeadingId = 'public-mcp-hub-heading';
-	const configHeadingId = 'public-mcp-hub-config-heading';
-
-	let selectedClient = $state<McpClient>('Cursor');
 </script>
 
 <section class="border-t border-base-content/10 py-10 md:py-14" aria-labelledby={sectionHeadingId}>
@@ -31,19 +26,6 @@
 	</div>
 
 	<div class="mt-12">
-		<PublicMcpHubGrid
-			{integrations}
-			{selectedClient}
-			onSelect={(client) => (selectedClient = client)}
-		/>
+		<PublicMcpHubGrid {integrations} />
 	</div>
-
-	<!-- <div class="mx-auto mt-12 max-w-4xl">
-		<PublicMcpClientConfiguration
-			bind:activeClient={selectedClient}
-			headingId={configHeadingId}
-			sectionTitle={PUBLIC_AGENTS_HUB.mcpConfigTitle}
-			sectionDescription={PUBLIC_AGENTS_HUB.mcpConfigDescription}
-		/>
-	</div> -->
 </section>

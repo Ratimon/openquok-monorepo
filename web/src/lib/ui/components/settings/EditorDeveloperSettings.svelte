@@ -224,8 +224,7 @@
 			onDismiss={dismissCliDeviceLoginNotice}
 		>
 			<p class="text-base-content/90">
-				For everyday CLI use, run <code class={inlineTerminalCodeClass}>openquok auth:login</code> — official device login uses the
-				hosted auth server. You only need an
+				For everyday CLI use, run <code class={inlineTerminalCodeClass}>openquok auth:login</code>. You only need an
 				<code class={inlineTerminalCodeClass}>opo_…</code> token for CI or headless automation. Follow the
 				<a class="link link-primary font-medium" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
 					CLI authentication tutorial
