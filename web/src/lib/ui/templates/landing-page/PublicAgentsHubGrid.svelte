@@ -1,10 +1,18 @@
 <script lang="ts">
-	import type { PublicAgentLandingPage } from '$lib/content/constants/publicAgentConfig';
-
+	import {
+		PUBLIC_AGENTS_HUB,
+		type PublicAgentLandingPage
+	} from '$lib/content/constants/publicAgentConfig';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
 
+	import {
+		INSTALL_AGENT_SKILL_COMMAND,
+		INSTALL_CLI_COMMAND
+	} from '$lib/ui/components/onboarding/onboardingConstants';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
 		agents: PublicAgentLandingPage[];
@@ -13,26 +21,59 @@
 	let { agents }: Props = $props();
 
 	const headingId = 'public-agents-hub-heading';
+	const cliInstallHeadingId = 'public-agents-hub-cli-install-heading';
+	const skillInstallHeadingId = 'public-agents-hub-skill-install-heading';
 </script>
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
 	<div class="mx-auto max-w-3xl space-y-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">Agents</p>
+		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
+			{PUBLIC_AGENTS_HUB.subtitle}
+		</p>
 		<h1
 			id={headingId}
 			class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl"
 		>
-			Social media CLI built for AI agents
+			{PUBLIC_AGENTS_HUB.title}
 		</h1>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			See which AI agent hosts connect to OpenQuok — compare OpenClaw and others, install a skill,
-			and let your assistant schedule posts while you approve what goes live.
+			{PUBLIC_AGENTS_HUB.description}
 		</p>
+	</div>
+
+	<div class="mx-auto mt-10 w-full max-w-4xl space-y-6">
+		<section class="space-y-3" aria-labelledby={cliInstallHeadingId}>
+			<h2
+				id={cliInstallHeadingId}
+				class="text-center text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
+			>
+				{PUBLIC_AGENTS_HUB.cliInstallTitle}
+			</h2>
+			<TerminalCommandMock
+				code={INSTALL_CLI_COMMAND}
+				ariaLabel="Copy OpenQuok CLI install command to clipboard"
+				class="[&>div]:text-sm sm:[&>div]:text-base"
+			/>
+		</section>
+
+		<section class="space-y-3" aria-labelledby={skillInstallHeadingId}>
+			<h2
+				id={skillInstallHeadingId}
+				class="text-center text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
+			>
+				{PUBLIC_AGENTS_HUB.skillInstallTitle}
+			</h2>
+			<TerminalCommandMock
+				code={INSTALL_AGENT_SKILL_COMMAND}
+				ariaLabel="Copy openquok-core skill install command to clipboard"
+				class="[&>div]:text-sm sm:[&>div]:text-base"
+			/>
+		</section>
 	</div>
 
 	<ul
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
-		aria-label="AI agent integrations you can connect"
+		aria-label="AI agent hosts and integrations you can connect"
 	>
 		{#each agents as agent (agent.slug)}
 			{@const href = agent.available ? route(getRootPathPublicAgent(agent.slug)) : undefined}

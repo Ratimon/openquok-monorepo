@@ -19,6 +19,18 @@ export type McpAuthMethod = 'header' | 'path';
 export const MCP_SERVER_NAME = 'openquok';
 export const MCP_TOKEN_PLACEHOLDER = 'opo_your_programmatic_token';
 
+export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
+	'Claude Code': 'claude-code',
+	'Claude Cowork': 'claude-cowork',
+	Cursor: 'cursor',
+	'VS Code / Copilot': 'vscode-copilot',
+	Windsurf: 'windsurf',
+	Amp: 'amp',
+	Codex: 'codex',
+	'Gemini CLI': 'gemini-cli',
+	Warp: 'warp'
+};
+
 const json = (obj: object) => JSON.stringify(obj, null, 2);
 
 /** Backend origin for MCP (`/mcp` lives on the API host, not under `/api/v1`). */

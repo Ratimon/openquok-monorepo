@@ -16,6 +16,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
+	import PublicMcpHubSection from '$lib/ui/templates/landing-page/PublicMcpHubSection.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -36,6 +37,8 @@
 
 <SectionOuterContainer class="py-10 md:py-16">
 	<PublicAgentsHubGrid agents={agentsVm} />
+
+	<PublicMcpHubSection />
 
 	<AccentSplitCtaBanner
 		title={ACCENT_SPLIT_CTA_BANNER_TITLE}

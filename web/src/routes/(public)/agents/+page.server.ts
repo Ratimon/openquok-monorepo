@@ -1,6 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicAgentsPagePresenter } from '$lib/area-public';
+import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -20,8 +21,7 @@ export async function load({ url, cookies, parent }) {
 	const agentsVm = publicAgentsPagePresenter.loadAgentsHubStateless();
 
 	const customTitle = 'AI agent integrations';
-	const customDescription =
-		'See which AI agent hosts connect to OpenQuok — OpenClaw and more. Install a skill, authenticate the CLI, and schedule social posts while you approve what goes live.';
+	const customDescription = PUBLIC_AGENTS_HUB.description;
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -33,6 +33,8 @@ export async function load({ url, cookies, parent }) {
 			'AI agent social media',
 			'OpenClaw skill',
 			'openquok CLI',
+			'OpenQuok MCP',
+			'Cursor MCP social media',
 			'agentic social scheduler',
 			'social media automation'
 		],

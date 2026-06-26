@@ -687,6 +687,22 @@ openquok analytics:post <post-id> -d 7`
 	available: true
 };
 
+export const PUBLIC_AGENTS_HUB = {
+	subtitle: 'Agents',
+	title: 'Social media CLI and MCP for AI agents',
+	description:
+		'Connect OpenClaw, Hermes, or any skill-based host — install openquok-core for local agents and custom workflows. Or plug OpenQuok into Cursor, Claude Code, Codex, and other MCP clients. Schedule posts from chat while you approve what goes live.',
+	cliInstallTitle: 'Install the CLI:',
+	skillInstallTitle: 'Install our core skill:',
+	mcpHubSubtitle: 'MCP',
+	mcpHubTitle: 'Native MCP clients',
+	mcpHubDescription:
+		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent. Pick a client below for the setup guide, or copy a ready-to-paste config.',
+	mcpConfigTitle: 'Copy configuration',
+	mcpConfigDescription:
+		'Generate an opo_ programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.'
+} as const;
+
 export const PUBLIC_AGENT_LANDING_PAGES: readonly PublicAgentLandingPage[] = [
 	OPENCLAW_AGENT,
 	HERMES_AGENT
