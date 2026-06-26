@@ -32,6 +32,10 @@ Tokens belong to the **workspace (organization)** you selected and act with that
 <p>Prefer <Badge text="openquok auth:login" variant="default" /> (device OAuth) when a browser is available — it stores an <Badge text="opo_" variant="default" /> token without pasting secrets. For headless hosts, set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> to the same <Badge text="opo_" variant="default" /> value. See <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
+<Callout type="tip" title="Native MCP clients">
+<p>Cursor, Claude Code, Codex, and other MCP hosts can connect directly to OpenQuok over HTTP streaming with your <Badge text="opo_" variant="default" /> token — no CLI skill required. See <a href="/docs/getting-started-for-mcp">MCP introduction</a> and copy snippets from <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> in the dashboard.</p>
+</Callout>
+
 ### OAuth2 access token (third-party apps)
 
 If you are building an app **for other Openquok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/developer-guidelines/oauth2-authentication">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
@@ -65,6 +69,7 @@ For per-channel settings, and copy-paste API examples — plus the **channel vs 
 
 <CardGrid>
 <LinkCard title="Supported social channels" description="Provider identifiers, per-channel settings (Threads, Instagram)" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="MCP (HTTP streaming)" description="Connect Cursor, Claude Code, and Codex with your opo_ token" href="/docs/getting-started-for-mcp" />
 </CardGrid>
 
 ## Generate Output
@@ -130,6 +135,7 @@ For the full method list (`upload`, `post`, `postList`, `getPost`, `flipPostStat
 
 <CardGrid>
 <LinkCard title="Supported social channels" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Integrations APIs" description="Programmatic endpoints for connecting channels and triggering provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts against your connected channels" href="/docs/apis-posts" />
 <LinkCard title="Analytics APIs" description="Platform and per-post insights backed by each provider's native analytics" href="/docs/apis-analytics" />

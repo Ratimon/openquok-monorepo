@@ -1,6 +1,6 @@
 ---
 title: Instagram
-description: Openquok CLI examples for Instagram (Business and Standalone) — feed posts, auto-detected reels, carousels, and scheduled reply chains.
+description: Openquok CLI examples for Instagram (Business and Standalone Accounts) — feed posts, auto-detected reels, carousels, and scheduled reply chains.
 order: 2
 lastUpdated: 2026-06-06
 ---

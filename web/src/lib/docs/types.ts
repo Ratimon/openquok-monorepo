@@ -75,7 +75,7 @@ export interface SidebarSection {
 	icon?: IconName;
 }
 
-export type DocsDocTabId = 'cli' | 'public-api' | 'learn-more';
+export type DocsDocTabId = 'cli' | 'public-api' | 'mcp' | 'learn-more';
 
 export interface DocsTabDefinition {
 	id: DocsDocTabId;
@@ -86,7 +86,7 @@ export interface DocsTabDefinition {
 export interface DocsConfig {
 	site: SiteConfig;
 	sidebar: SidebarSection[];
-	/** Primary docs areas (CLI, Public API, Learn more); sidebar chrome is scoped to the active tab. */
+	/** Primary docs areas (CLI, Public API, MCP, Learn more); sidebar chrome is scoped to the active tab. */
 	tabs?: DocsTabDefinition[];
 	toc?: { minDepth?: number; maxDepth?: number };
 	versions?: VersionConfig;

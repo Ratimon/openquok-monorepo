@@ -165,6 +165,9 @@ async function createApp(): Promise<Express> {
 
     configureCoreMiddleware(app, config as ConfigObject, supabaseAnonClient);
 
+    const { mountMcpRoutes } = await import("./mcp/startMcp.js");
+    mountMcpRoutes(app);
+
     // Local uploads (STORAGE_PROVIDER=local): serve files from disk at /uploads/*
     const storageCfg = config.storage as
         | { provider?: string; local?: { uploadDirectory?: string; publicBaseUrl?: string } }

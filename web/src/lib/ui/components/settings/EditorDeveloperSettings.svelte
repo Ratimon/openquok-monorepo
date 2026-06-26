@@ -10,12 +10,16 @@
 	import { icons } from '$data/icons';
 
 	import UpdateDeveloperAccess from '$lib/ui/components/developer/UpdateDeveloperAccess.svelte';
+	import McpClientConfiguration from '$lib/ui/components/developer/McpClientConfiguration.svelte';
 	import UpdateDeveloperOauth from '$lib/ui/components/developer/UpdateDeveloperOauth.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
 	const CLI_DEVICE_LOGIN_NOTICE_STORAGE_KEY = 'settings:developers:cli-device-login-dismissed';
+
+	const inlineTerminalCodeClass =
+		'rounded bg-primary/15 px-1.5 py-0.5 font-mono text-xs text-primary';
 
 	// /docs/getting-started-for-cli/authentication
 	const rootPathPublicDocs = getRootPathPublicDocs();
@@ -179,7 +183,7 @@
 		<div class="min-w-0 flex-1">
 			{#if developerTab === 'access'}
 				<p class="text-sm text-base-content/70">
-					Generate a programmatic token (<code class="text-xs">opo_…</code>) for CI and headless scripts using your
+					Generate a programmatic token (<code class={inlineTerminalCodeClass}>opo_…</code>) for CI and headless scripts using your
 					workspace OAuth app. Create that app on the Apps tab first, then rotate the token here.
 				</p>
 			{:else if developerTab === 'apps'}
@@ -220,9 +224,9 @@
 			onDismiss={dismissCliDeviceLoginNotice}
 		>
 			<p class="text-base-content/90">
-				For everyday CLI use, run <code class="text-xs">openquok auth:login</code> — official device login uses the
-				hosted auth server and is separate from the programmatic token on this page. You only need an
-				<code class="text-xs">opo_…</code> token for CI or headless automation. Follow the
+				For everyday CLI use, run <code class={inlineTerminalCodeClass}>openquok auth:login</code> — official device login uses the
+				hosted auth server. You only need an
+				<code class={inlineTerminalCodeClass}>opo_…</code> token for CI or headless automation. Follow the
 				<a class="link link-primary font-medium" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
 					CLI authentication tutorial
 				</a>.
@@ -248,6 +252,17 @@
 			{oauthAppReady}
 			{oauthAppLoading}
 			{onSetTokenVisible}
+			{onRotateToken}
+			{onGoToAppsTab}
+		/>
+		<McpClientConfiguration
+			{programmaticAccessToken}
+			{programmaticAccessConfigured}
+			{oauthAppReady}
+			{oauthAppLoading}
+			{canRotate}
+			{rotating}
+			{onCopy}
 			{onRotateToken}
 			{onGoToAppsTab}
 		/>

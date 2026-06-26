@@ -1,6 +1,6 @@
 ---
 title: CLI authentication
-description: Setup OAuth2 (interactive terminal) authentication for Openquok CLI.
+description: Setup OAuth2 authentication for Openquok CLI.
 order: 1
 lastUpdated: 2026-05-29
 ---
@@ -89,8 +89,8 @@ openquok auth:login --authServer "https://auth.example.com"
 
 For **local** auth server development, the default API URL is <Badge text="http://localhost:3111" variant="default" />. With only the auth server running (no web proxy), the browser opens <Badge text="http://localhost:3111/device/verify" variant="default" />. To test the production-style split locally, run the web dev server, set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> on the auth server, and set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> on web — see <a href="/docs/installation/development-environment#optional-cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
-<Callout type="note" title="Deploy the auth server">
-<p>Environment variables for <strong>running</strong> the auth server (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />, OAuth client keys) and the web app (<Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />) are documented under <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/configuration-web">Configuration - Web</a>, not on this page.</p>
+<Callout type="note" title="Deploy your auth server">
+<p>Environment variables for <strong>running</strong> the auth server, OAuth client keys and the web app are documented under <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/configuration-web">Configuration - Web</a></p>
 </Callout>
 
 ## Programmatic token
@@ -144,8 +144,8 @@ Use <Badge text="openquok config:show" variant="default" /> to print the **resol
 3. Run <Badge text="openquok config:show" variant="default" /> — you should see the hosted API and auth origins and <Badge text="deployment" variant="param" />: <Badge text="openquok_cloud" variant="param" />.
 4. If you still use **OAuth stored credentials** from a local stack, run <Badge text="openquok auth:logout" variant="default" /> and <Badge text="openquok auth:login" variant="default" /> again **without** <Badge text="--authServer" variant="default" /> and without <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> set, so the token and stored <Badge text="apiUrl" variant="default" /> match production.
 
-<Callout type="note" title="Logout doesnt change envs">
-<p><Badge text="openquok auth:logout" variant="default" /> deletes <Badge text="~/.openquok/credentials.json" variant="path" /> only. It does <strong>not</strong> unset <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <Badge text="OPENQUOK_API_URL" variant="envBackend" />. If <Badge text="config:show" variant="default" /> shows <Badge text="auth_server_url_source" variant="param" />: <Badge text="environment" variant="param" /> but you expected production, your shell still has a dev <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> — use <Badge text="unset" variant="param" /> (above) or fix your profile.</p>
+<Callout type="note">
+<p><Badge text="openquok auth:logout" variant="default" /> deletes <Badge text="~/.openquok/credentials.json" variant="path" /> only. It does <strong>not</strong> unset <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <Badge text="OPENQUOK_API_URL" variant="envBackend" />.
 </Callout>
 
 ### Point the CLI at local or self-hosted again

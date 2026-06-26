@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
-import { SubscriptionSection } from "openquok-common";
 import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
 import type { OauthAppService } from "../../services/OauthAppService";
 import type { SubscriptionGuardService } from "../subscription/SubscriptionGuardService";
 import type { OrganizationLike } from "../../utils/dtos/OrganizationDTO";
+import { resolveProgrammaticAuth } from "./resolveProgrammaticAuth";
 
 export interface ProgrammaticAuthRequest extends Request {
     organization?: OrganizationLike;
@@ -35,28 +35,14 @@ export function requireProgrammaticAuth(params: {
         }
 
         try {
-            const verified = await params.oauthAppService.verifyProgrammaticToken(token);
-            if (!verified) {
+            const resolved = await resolveProgrammaticAuth(token, params);
+            if (!resolved) {
                 res.status(401).json({ msg: "Invalid API key" });
                 return;
             }
 
-            const { organization } = await params.organizationRepository.findOrganizationById(
-                verified.organizationId
-            );
-            if (!organization) {
-                res.status(401).json({ msg: "Invalid API key" });
-                return;
-            }
-
-            await params.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
-                scope: "workspace",
-                organizationId: organization.id,
-                publicUserId: verified.userId,
-            });
-
-            (req as ProgrammaticAuthRequest).organization = organization;
-            (req as ProgrammaticAuthRequest).oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
+            (req as ProgrammaticAuthRequest).organization = resolved.organization;
+            (req as ProgrammaticAuthRequest).oauthApp = resolved.oauthApp;
             next();
         } catch (err) {
             next(err);

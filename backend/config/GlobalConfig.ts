@@ -376,6 +376,11 @@ export const config: ConfigObject = {
     },
 
     /** Social integration OAuth (per-provider secrets). */
+    /** Hosted HTTP MCP server (`GET/POST /mcp`). */
+    mcp: {
+        enabled: getEnvBoolean("MCP_ENABLED", true),
+    },
+
     integrations: {
         threads: {
             appId: getEnvTrimmed("THREADS_APP_ID"),

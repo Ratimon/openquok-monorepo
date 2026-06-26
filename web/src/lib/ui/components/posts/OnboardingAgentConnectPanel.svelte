@@ -98,7 +98,8 @@
 						<span
 							class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
 							aria-hidden="true"
-						>2</span>
+						>2
+						</span>
 						<span>
 							Run <code class={inlineTerminalCodeClass}>hermes setup --portal</code> or
 							<code class={inlineTerminalCodeClass}>hermes model</code> to pick your chat model.

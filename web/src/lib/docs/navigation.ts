@@ -62,6 +62,13 @@ function isCliDocsPath(segmentOrSlug: string): boolean {
 	);
 }
 
+function isMcpDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'getting-started-for-mcp' ||
+		segmentOrSlug.startsWith('getting-started-for-mcp/')
+	);
+}
+
 export function stripDocsLocaleFromPathname(pathname: string): string {
 	const parts = pathname.split('/').filter(Boolean);
 	if (parts[0] !== 'docs') return pathname;
@@ -87,6 +94,7 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 	const rest = parts.slice(1);
 
 	if (rest.length === 0) return 'cli';
+	if (typeof rest[0] === 'string' && isMcpDocsPath(rest[0])) return 'mcp';
 	if (
 		rest[0] === 'getting-started-for-public-api' ||
 		(typeof rest[0] === 'string' && rest[0].startsWith('apis-'))
@@ -98,6 +106,7 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 
 export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
 	if (!slug || isCliDocsPath(slug)) return 'cli';
+	if (isMcpDocsPath(slug)) return 'mcp';
 	if (
 		slug === 'getting-started-for-public-api' ||
 		slug.startsWith('getting-started-for-public-api/') ||
@@ -122,6 +131,8 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 			return base;
 		case 'public-api':
 			return `${base}/getting-started-for-public-api`;
+		case 'mcp':
+			return `${base}/getting-started-for-mcp`;
 		case 'learn-more':
 			return `${base}/getting-started-for-dev`;
 	}

@@ -218,9 +218,7 @@ The <Badge text="image_generate" variant="default" /> tool appears only when at 
 
 Then ask in Telegram or the Control UI:
 
-```text
-Generate a square image of a product hero shot on a clean white background
-```
+> Generate a square image of a product hero shot on a clean white background
 
 OpenClaw routes that to <Badge text="image_generate" variant="default" /> using <Badge text="imageGenerationModel.primary" variant="param" /> (or the next fallback) — your main chat model stays on Sonnet.
 

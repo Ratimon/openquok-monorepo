@@ -17,3 +17,4 @@ export { default as ExternalLink } from '$lib/ui/components/ExternalLink.svelte'
 export { default as DocsExternalLink } from '$lib/ui/components/docs/mdx/DocsExternalLink.svelte';
 export { default as ParamField } from '$lib/ui/components/docs/mdx/ParamField.svelte';
 export { default as ResponseField } from '$lib/ui/components/docs/mdx/ResponseField.svelte';
+export { default as Mermaid } from '$lib/ui/components/docs/mdx/DocsMermaid.svelte';

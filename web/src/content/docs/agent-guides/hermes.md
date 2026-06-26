@@ -148,9 +148,9 @@ Hermes uses <strong>two separate systems</strong>:
 | Main chat (Telegram, CLI, scheduling) | <Badge text="hermes model" variant="default" /> → <Badge text="model.default" variant="param" /> in <Badge text="~/.hermes/config.yaml" variant="path" /> | <Badge text="claude-sonnet-4-6" variant="default" /> |
 | Image generation (on demand) | <Badge text="hermes tools" variant="default" /> → <Badge text="image_gen" variant="param" /> in <Badge text="config.yaml" variant="path" /> | <Badge text="fal-ai/nano-banana-pro" variant="default" /> via the <Badge text="image_generate" variant="default" /> tool |
 
-Do <strong>not</strong> set an image-only model (for example <Badge text="gemini-3-pro-image" variant="default" />) as your main Telegram model. Those models are not general chat backends — Hermes will fail with <strong>Provider authentication failed</strong> before it can run tools or answer questions.
+Do <strong>not</strong> set an image-only model (for example <Badge text="gemini-3-pro-image" variant="default" />) as your main Telegram model. Hermes will fail with <strong>Provider authentication failed</strong>.
 
-<Callout type="warning" title="Capable chat + quality images">
+<Callout type="warning">
 <p>Pick a capable chat model for <Badge text="model.default" variant="param" /> (for example <Badge text="claude-sonnet-4-6" variant="default" /> on provider <Badge text="anthropic" variant="default" />). Configure image generation separately under <Badge text="image_gen" variant="param" /> — the agent calls <Badge text="image_generate" variant="default" /> when the user asks for a picture, without changing the main model.</p>
 </Callout>
 
@@ -207,9 +207,7 @@ Set <Badge text="use_gateway: true" variant="param" /> when using Nous Subscript
 
 Then ask in Telegram or the CLI:
 
-```text
-Generate a square image of a product hero shot on a clean white background
-```
+> Generate a square image of a product hero shot on a clean white background
 
 Hermes routes that to <Badge text="image_generate" variant="default" /> using the configured <Badge text="image_gen.model" variant="param" /> — your main chat model stays on Sonnet.
 
@@ -240,15 +238,11 @@ openquok --version
 
 <p><strong>In Telegram (or another messaging gateway)</strong> — slash commands run in the chat, not in the shell:</p>
 
-```text
-/new
-```
+<blockquote><p>/new</p></blockquote>
 
 <p>Starts a fresh conversation (alias <Badge text="/reset" variant="default" />). Use this after upgrading so the Openquok skill re-reads <Badge text="openquok --version" variant="default" /> and <Badge text="auth:status" variant="default" /> on the first turn.</p>
 
-```text
-/sessions
-```
+<blockquote><p>/sessions</p></blockquote>
 
 <p>Lists recent sessions so you can resume an older thread or confirm you are not still in a pre-upgrade chat. You can also run <Badge text="/resume &lt;name&gt;" variant="default" /> to jump to a named session. In the Hermes CLI, <Badge text="/reload-skills" variant="default" /> reloads skill metadata without a full reset when you only changed the skill file.</p>
 </Callout>

@@ -32,7 +32,7 @@ export type DocsSidebarSection = {
 	items?: { label: string; href: string }[];
 };
 
-/** CLI & programmatic usage — default `/docs` landing. Order: left tab → middle → right in the header. */
+/** CLI & programmatic usage — default `/docs` landing. Order: CLI → Public API → MCP → Learn more in the header. */
 export const docsSidebarCli: DocsSidebarSection[] = [
 	{
 		label: 'Get Started',
@@ -55,6 +55,14 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		autogenerate: { directory: 'agent-guides' }
 	}
 	
+];
+
+export const docsSidebarMcp: DocsSidebarSection[] = [
+	{
+		label: 'Getting Started',
+		icon: icons.Bot.name,
+		autogenerate: { directory: 'getting-started-for-mcp' }
+	}
 ];
 
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
@@ -147,6 +155,7 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 export const docsTabs: DocsTabDefinition[] = [
 	{ id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
 	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
+	{ id: 'mcp', label: 'MCP', sidebar: docsSidebarMcp },
 	{ id: 'learn-more', label: 'Learn more', sidebar: docsSidebarLearnMore }
 ];
 

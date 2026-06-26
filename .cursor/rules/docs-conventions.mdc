@@ -1,5 +1,5 @@
 ---
-description: Authoring docs under web/src/content/docs — DocsExternalLink, Badges, Callouts (HTML not Markdown in children), Steps, fenced code (bash for shell commands), CardGrid/LinkCard
+description: Authoring docs under web/src/content/docs — DocsExternalLink, Badges, Callouts (HTML not Markdown in children), Steps, fenced code (bash for shell commands), agent chat blockquotes, CardGrid/LinkCard
 globs: web/src/content/docs/**/*
 alwaysApply: false
 ---
@@ -166,6 +166,23 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 - **Directory trees and ASCII layout** (not executable commands): use **` ```text `**, not **` ```bash `** and not a bare **` ``` `**.
 - **URLs, redirect URIs, or label-only examples** where shell highlighting is wrong: **` ```txt `** or **` ```text `** as fits.
 - **Other languages** (`typescript`, `svelte`, `json`, `yaml`, `html`, …): keep the correct language tag.
+
+## Agent chat prompts (MCP / AI assistant examples)
+
+When docs show what a user would **type or say to an AI agent** (MCP clients, Cursor, ChatGPT, etc.) — not shell commands or `openquok` CLI invocations — use **Markdown blockquotes**, not fenced `bash` or `text` blocks.
+
+- **Lead-in**: One short sentence that frames the example as something the reader asks their agent — e.g. `All of this can happen when you ask your agent something like:`, `After configuring your client, ask your agent:`, or `ask:`.
+- **Prompt**: Blank line, then a single **`>` blockquote** with natural-language text — plain instructions the user would paste or speak, not API field names or CLI syntax.
+- **Shape**: Prefer one imperative sentence. For scheduling posts, follow **`{action} to {channel} {when}: {body}`** (canonical reference: **`web/src/content/docs/getting-started-for-mcp/index.md`**).
+
+```markdown
+All of this can happen when you ask your agent something like:
+
+> Schedule a post to X for tomorrow at 10am: Excited to announce our new feature!
+```
+
+- **Do not** wrap agent prompts in **` ```text `** or **` ```bash `** — those are for terminal/CLI transcripts (see **Fenced code blocks** above).
+- Multi-step workflow examples may add brief context inside the blockquote (e.g. “use integrationList first…”) — see **`web/src/content/docs/getting-started-for-mcp/examples.md`** — but keep the same lead-in + blockquote format.
 
 ## CLI commands in prose
 

@@ -37,6 +37,9 @@
 		onGoToAppsTab
 	}: Props = $props();
 
+	const inlineTerminalCodeClass =
+		'rounded bg-primary/15 px-1.5 py-0.5 font-mono text-xs text-primary';
+
 	const canGenerateToken = $derived(canRotate && oauthAppReady && !oauthAppLoading);
 
 	// /docs
@@ -86,7 +89,8 @@
 				{/if}
 			</div>
 			<p class="text-sm text-base-content/70">
-				Bearer token for <code class="text-xs">/public/*</code> and the CLI (<code class="text-xs">opo_…</code>).
+				Use this token to call the Public API from CI pipelines and other automated scripts. Tokens start with
+				<code class={inlineTerminalCodeClass}>opo_…</code>.
 			</p>
 		</div>
 
@@ -189,8 +193,8 @@
 		<div>
 			<h3 class="text-base font-semibold">CLI &amp; AI Skills</h3>
 			<p class="text-sm text-base-content/70">
-				Install the CLI and set <code class="text-xs">OPENQUOK_API_KEY</code> to your programmatic token, or use
-				device login.
+				Install the CLI, then sign in with device login or set
+				<code class={inlineTerminalCodeClass}>OPENQUOK_API_KEY</code> to this token for headless use.
 			</p>
 		</div>
 		<Button variant="ghost" href={cliAuthDocsHref} target="_blank">Docs</Button>

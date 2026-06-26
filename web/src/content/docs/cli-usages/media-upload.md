@@ -18,8 +18,8 @@ The <Badge text="upload" variant="param" /> and <Badge text="upload-from-url" va
 
 Both return the same JSON envelope so downstream code (especially <Badge text="posts:create" variant="default" /> <Badge text="-m" variant="param" />) is identical regardless of the source.
 
-<Callout type="warning" title="Why uploads are mandatory">
-<p>Most providers (Instagram, Threads, TikTok, YouTube, …) require the asset to live on a verified URL controlled by Openquok. External links — even <code>https://</code> — are rejected at publish time. Upload first, then pass the returned <code>data.id</code> and <code>data.filePath</code> to <code>posts:create</code>.</p>
+<Callout type="warning" title="Why uploads ?">
+<p>Instagram, Threads, TikTok, YouTube and etc require the asset to live on a verified URL. External links — even <code>https://</code> — are rejected at publish time. Upload first, then pass the returned <code>data.id</code> and <code>data.filePath</code> to <code>posts:create</code>.</p>
 </Callout>
 
 ## Upload a local file
