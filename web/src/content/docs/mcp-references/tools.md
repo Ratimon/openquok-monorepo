@@ -1,19 +1,19 @@
 ---
-title: MCP Tools Reference
+title: Tools Reference
 description: OpenQuok MCP v1 tools — integrationList, integrationSchema, triggerTool, and schedulePostTool.
-order: 2
-lastUpdated: 2026-06-25
+order: 0
+lastUpdated: 2026-06-26
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
 
 All tools run in the context of the workspace tied to your <Badge text="opo_" variant="default" /> token. They call the same backend services as <Badge text="/api/v1/public/*" variant="path" /> — lower latency, no HTTP loopback.
 
-v1 includes scheduling and integration tools only. Image and video generation MCP tools are not available yet.
+Parameter and response shapes follow the catalog in <DocsExternalLink href="https://docs.postiz.com/mcp/tools">Postiz MCP tools reference</DocsExternalLink>, adapted to OpenQuok's v1 surface. Image and video generation MCP tools from that catalog are not available yet.
 
 ## integrationList
 
@@ -129,7 +129,8 @@ Each <Badge text="socialPost" variant="param" /> entry:
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Examples" description="End-to-end agent prompts for scheduling and channel tools" href="/docs/getting-started-for-mcp/examples" />
+<LinkCard title="MCP introduction" description="Endpoints, authentication, and the four v1 tools" href="/docs/getting-started-for-mcp" />
+<LinkCard title="MCP examples" description="End-to-end agent prompts for scheduling and channel tools" href="/docs/mcp-examples" />
 <LinkCard title="Supported social channels" description="Per-provider settings for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
 <LinkCard title="Posts APIs" description="REST equivalent of schedulePostTool" href="/docs/apis-posts" />
 <LinkCard title="Integrations APIs" description="REST list and trigger endpoints" href="/docs/apis-integrations" />

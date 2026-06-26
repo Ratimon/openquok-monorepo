@@ -42,6 +42,21 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 			'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
 	},
 	{
+		title: 'What do OAuth app counts on pricing plans mean?',
+		description:
+			'Each workspace includes one OAuth application. The totals on pricing plans match your workspace limit — for example, Solo includes 1 OAuth app (1 workspace), Team includes 3, Ultimate includes 5, and Max includes 10. Register the app under Developers → Apps to get client credentials for third-party OAuth flows.\n\nYou cannot register two OAuth apps inside the same workspace. If you need separate apps for different products, clients, or redirect URLs — such as one integration built with our SDK and another product with its own OAuth consent screen — create an additional workspace and register one app there. Each workspace keeps its own channels, credentials, and tokens isolated.\n\nWithin one workspace, that single OAuth app also backs your workspace programmatic token (opo_…) for the Public API, SDK, CI scripts, and MCP.'
+	},
+	{
+		title: 'What is MCP and how does OpenQuok use it?',
+		description:
+			'MCP (Model Context Protocol) is how AI assistants plug into the apps you use. Connect OpenQuok once in Cursor, Claude Code, Codex, or another MCP client and your agent can manage your social presence — list channels, read platform rules, and schedule posts — without opening the dashboard or copy-pasting between tools. Ask in plain language, e.g. “Schedule a post to X for tomorrow at 10am.”'
+	},
+	{
+		title: 'How does MCP relate to my OAuth app?',
+		description:
+			'Each workspace has one MCP server. It uses the same programmatic token (opo_…) as Public API and SDK — issued from that workspace’s single OAuth app. Setup: Developers → Apps (create OAuth app) → Access (generate token, copy MCP client config). Multi-workspace plans get one MCP endpoint per workspace; switch workspace to manage credentials separately.'
+	},
+	{
 		title: 'What counts as a channel?',
 		description:
 			'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'

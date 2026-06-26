@@ -182,7 +182,7 @@ All of this can happen when you ask your agent something like:
 ```
 
 - **Do not** wrap agent prompts in **` ```text `** or **` ```bash `** — those are for terminal/CLI transcripts (see **Fenced code blocks** above).
-- Multi-step workflow examples may add brief context inside the blockquote (e.g. “use integrationList first…”) — see **`web/src/content/docs/getting-started-for-mcp/examples.md`** — but keep the same lead-in + blockquote format.
+- Multi-step workflow examples may add brief context inside the blockquote (e.g. “use integrationList first…”) — see **`web/src/content/docs/mcp-examples/`** — but keep the same lead-in + blockquote format.
 
 ## CLI commands in prose
 

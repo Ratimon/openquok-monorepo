@@ -1,6 +1,6 @@
 ---
 title: Overview - Integrations APIs
-description: Programmatic endpoints for connecting social channels, and invoking provider-specific tools using a workspace programmatic token (opo_).
+description: Programmatic endpoints for connecting social channels, and invoking provider-specific tools using a workspace programmatic token.
 order: 0
 lastUpdated: 2026-05-29
 ---

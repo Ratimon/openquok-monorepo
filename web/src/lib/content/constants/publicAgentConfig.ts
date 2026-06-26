@@ -433,7 +433,7 @@ openquok analytics:post <post-id> -d 7`
 				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.'
 		}
 	],
-	docsPath: '/docs/agent-guides/openclaw',
+	docsPath: '/docs/agent-setup-guides/openclaw',
 	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
 	available: true
 };
@@ -682,7 +682,7 @@ openquok analytics:post <post-id> -d 7`
 				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on Hermes, and begin scheduling from chat.'
 		}
 	],
-	docsPath: '/docs/agent-guides/hermes',
+	docsPath: '/docs/agent-setup-guides/hermes',
 	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
 	available: true
 };

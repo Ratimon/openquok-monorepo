@@ -84,7 +84,11 @@
 		}}
 	/>
 
-	<PublicPricingPlanCards plans={pageVm.plans} {ctaHref} {ctaLabel} />
+	<PublicPricingPlanCards
+		plans={pageVm.plans}
+		{ctaHref}
+		{ctaLabel}
+	/>
 
 	<PublicPricingCompareSection
 		plans={pageVm.plans}

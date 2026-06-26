@@ -47,7 +47,7 @@ export const PUBLIC_PRICING_LANDING_TAB_ICONS: Record<PaidSubscriptionTier, Icon
 };
 
 /** Max feature bullets in the landing tab detail card (two-column grid). */
-export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 6;
+export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 9;
 
 /** Product capabilities included on every paid plan (marketing copy for cards). */
 export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
@@ -73,6 +73,8 @@ export type PublicPricingCompareRowId =
 	| 'team_members'
 	| 'share_post_preview'
 	| 'public_api'
+	| 'oauth_apps'
+	| 'mcp_server'
 	| 'cloud_storage'
 	| 'multi_channel_publishing'
 	| 'agent_integrations'
@@ -135,6 +137,18 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		tooltip: 'Programmatic access to schedule and manage content via REST API from the terminal.'
 	},
 	{
+		id: 'oauth_apps',
+		label: 'OAuth apps',
+		tooltip:
+			'One OAuth application per workspace for third-party integrations, client credentials, and programmatic access tokens.'
+	},
+	{
+		id: 'mcp_server',
+		label: 'MCP server',
+		tooltip:
+			'One MCP endpoint per workspace for Cursor, Claude Code, Codex, and other agents.\nUses the same OAuth app and programmatic token as Public API access in that workspace.'
+	},
+	{
 		id: 'cloud_storage',
 		label: 'Cloud media storage',
 		tooltip:
@@ -149,7 +163,7 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		id: 'agent_integrations',
 		label: 'Agent integrations',
 		tooltip:
-			'Connect to OpenClaw, Hermes, or Claude.\nAuthenticate with OAuth or an API key; install the skill so agents can schedule posts and upload media from the terminal.'
+			'Connect to OpenClaw, Hermes, ChatGPT, Claude or other agents.\nAuthenticate with OAuth or an API key; install the skill so agents can schedule posts and upload media from the terminal.'
 	},
 	{
 		id: 'analytics',

@@ -50,17 +50,19 @@ https://api.openquok.com/mcp/opo_your_programmatic_token
 
 The dashboard generator produces configs for these clients. Server name in JSON files is always <Badge text="openquok" variant="default" />.
 
-| Client | Config location |
-| --- | --- |
-| <Badge text="Claude Code" variant="default" /> | Terminal <Badge text="claude mcp add" variant="default" /> command |
-| <Badge text="Claude Cowork" variant="default" /> | Custom connector or <Badge text="managedMcpServers" variant="param" /> entry |
-| <Badge text="Cursor" variant="default" /> | <Badge text=".cursor/mcp.json" variant="path" /> |
-| <Badge text="VS Code / Copilot" variant="default" /> | <Badge text=".vscode/mcp.json" variant="path" /> |
-| <Badge text="Windsurf" variant="default" /> | <Badge text="~/.codeium/windsurf/mcp_config.json" variant="path" /> |
-| <Badge text="Amp" variant="default" /> | Terminal command or Amp <Badge text="settings.json" variant="path" /> |
-| <Badge text="Codex" variant="default" /> | <Badge text="~/.codex/config.toml" variant="path" /> |
-| <Badge text="Gemini CLI" variant="default" /> | <Badge text="~/.gemini/settings.json" variant="path" /> |
-| <Badge text="Warp" variant="default" /> | Settings → MCP Servers |
+For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guides">MCP setup guides</a>.
+
+| Client | Config location | Guide |
+| --- | --- | --- |
+| <Badge text="Claude Code" variant="default" /> | Terminal <Badge text="claude mcp add" variant="default" /> command | <a href="/docs/mcp-setup-guides/claude-code">Claude Code</a> |
+| <Badge text="Claude Cowork" variant="default" /> | Custom connector or <Badge text="managedMcpServers" variant="param" /> entry | <a href="/docs/mcp-setup-guides/claude-cowork">Claude Cowork</a> |
+| <Badge text="Cursor" variant="default" /> | <Badge text=".cursor/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/cursor">Cursor</a> |
+| <Badge text="VS Code / Copilot" variant="default" /> | <Badge text=".vscode/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/vscode-copilot">VS Code / Copilot</a> |
+| <Badge text="Windsurf" variant="default" /> | <Badge text="~/.codeium/windsurf/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/windsurf">Windsurf</a> |
+| <Badge text="Amp" variant="default" /> | Terminal command or Amp <Badge text="settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/amp">Amp</a> |
+| <Badge text="Codex" variant="default" /> | <Badge text="~/.codex/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/codex">Codex</a> |
+| <Badge text="Gemini CLI" variant="default" /> | <Badge text="~/.gemini/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/gemini-cli">Gemini CLI</a> |
+| <Badge text="Warp" variant="default" /> | Settings → MCP Servers | <a href="/docs/mcp-setup-guides/warp">Warp</a> |
 
 ### Cursor (header auth)
 
@@ -140,8 +142,9 @@ Run this checklist after copying a snippet from the dashboard. Use a workspace t
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, Warp, and other clients" href="/docs/mcp-setup-guides" />
 <LinkCard title="MCP introduction" description="Endpoints, authentication, and v1 tool list" href="/docs/getting-started-for-mcp" />
-<LinkCard title="Tools reference" description="schedulePostTool input shape and provider settings" href="/docs/getting-started-for-mcp/tools" />
-<LinkCard title="Examples" description="Copy-paste agent workflows for scheduling posts" href="/docs/getting-started-for-mcp/examples" />
+<LinkCard title="Tools reference" description="schedulePostTool input shape and provider settings" href="/docs/mcp-references/tools" />
+<LinkCard title="MCP examples" description="Copy-paste agent workflows for scheduling posts by platform" href="/docs/mcp-examples" />
 <LinkCard title="CLI authentication" description="Alternative to MCP for terminal and device-login flows" href="/docs/getting-started-for-cli/authentication" />
 </CardGrid>

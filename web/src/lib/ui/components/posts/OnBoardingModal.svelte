@@ -51,8 +51,8 @@
 	const publicDocsPath = route(rootPathPublicDocs);
 	const cliDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli`));
 	const cliAuthDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli/authentication`));
-	const openclawDocsHref = $derived(url(`${publicDocsPath}/agent-guides/openclaw`));
-	const hermesDocsHref = $derived(url(`${publicDocsPath}/agent-guides/hermes`));
+	const openclawDocsHref = $derived(url(`${publicDocsPath}/agent-setup-guides/openclaw`));
+	const hermesDocsHref = $derived(url(`${publicDocsPath}/agent-setup-guides/hermes`));
 	const apiKeySettingsHref = $derived(
 		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers')}`)
 	);

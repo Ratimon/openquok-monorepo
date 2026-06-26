@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 <p>For your AI agent to work best with Openquok, install the <strong>openquok-core</strong>:</p>
 <pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core</code></pre>
 <p>That updates agent instructions only — it does <strong>not</strong> install or upgrade the <code>openquok</code> CLI. After adding the skill, run <code>npm install -g @openquok/auto-cli@latest</code> on the same host and check <code>openquok --version</code>.</p>
-<p>On <strong>OpenClaw</strong> (Docker, Telegram), <code>cd</code> to your workspace first (often <code>/data/workspace</code>) — see <a href="/docs/agent-guides/openclaw">OpenClaw agent guide</a>.</p>
+<p>On <strong>OpenClaw</strong> (Docker, Telegram), <code>cd</code> to your workspace first (often <code>/data/workspace</code>) — see <a href="/docs/agent-setup-guides/openclaw">OpenClaw agent guide</a>.</p>
 <p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/skills/openquok-core/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/skills/openquok-core/SKILL.md</code>).</p>
 </Callout>
 
@@ -190,7 +190,7 @@ openquok posts:delete <post-id>
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
-<LinkCard title="Configuration - Agent" description="Deploy the CLI auth server (env vars, SERVER_URL, callbacks, Vercel)" href="/docs/configuration-agent" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="Configuration - Agent" description="Deploy the CLI auth server" href="/docs/configuration-agent" />
 <LinkCard title="Auth server architecture" description="Device flow, endpoints, and Postgres state" href="/docs/configuration-agent/architecture" />
 </CardGrid>

@@ -56,8 +56,8 @@ function isCliDocsPath(segmentOrSlug: string): boolean {
 	return (
 		segmentOrSlug === 'getting-started-for-cli' ||
 		segmentOrSlug.startsWith('getting-started-for-cli/') ||
-		segmentOrSlug === 'agent-guides' ||
-		segmentOrSlug.startsWith('agent-guides/') ||
+		segmentOrSlug === 'agent-setup-guides' ||
+		segmentOrSlug.startsWith('agent-setup-guides/') ||
 		segmentOrSlug.startsWith('cli-')
 	);
 }
@@ -65,7 +65,13 @@ function isCliDocsPath(segmentOrSlug: string): boolean {
 function isMcpDocsPath(segmentOrSlug: string): boolean {
 	return (
 		segmentOrSlug === 'getting-started-for-mcp' ||
-		segmentOrSlug.startsWith('getting-started-for-mcp/')
+		segmentOrSlug.startsWith('getting-started-for-mcp/') ||
+		segmentOrSlug === 'mcp-setup-guides' ||
+		segmentOrSlug.startsWith('mcp-setup-guides/') ||
+		segmentOrSlug === 'mcp-examples' ||
+		segmentOrSlug.startsWith('mcp-examples/') ||
+		segmentOrSlug === 'mcp-references' ||
+		segmentOrSlug.startsWith('mcp-references/')
 	);
 }
 

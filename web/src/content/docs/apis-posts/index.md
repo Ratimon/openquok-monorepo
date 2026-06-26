@@ -1,6 +1,6 @@
 ---
 title: Overview - Posts APIs
-description: Programmatic endpoints for scheduling, listing, flipping draft ↔ scheduled, and deleting posts using a workspace programmatic token (opo_).
+description: Programmatic endpoints for scheduling, listing, flipping draft ↔ scheduled, and deleting posts using a workspace programmatic token.
 order: 0
 lastUpdated: 2026-05-29
 ---

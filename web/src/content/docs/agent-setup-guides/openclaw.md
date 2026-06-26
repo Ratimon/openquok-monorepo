@@ -242,7 +242,7 @@ Full model list, editing, aspect ratios, and provider deep dives: <DocsExternalL
 
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
-<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token (opo_), and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
-<LinkCard title="Hermes agent guide" description="Install openquok-core for Hermes" href="/docs/agent-guides/hermes" />
+<LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="Hermes agent guide" description="Install openquok-core for Hermes" href="/docs/agent-setup-guides/hermes" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />
 </CardGrid>

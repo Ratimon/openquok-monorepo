@@ -93,6 +93,13 @@ function formatCloudStorageCell(limits: PlanLimits): PublicPricingCompareCellVie
 	};
 }
 
+function formatPerWorkspaceOAuthResourceCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
+	if (!limits.public_api) return { kind: 'excluded' };
+	const count = limits.workspaces;
+	if (count <= 1) return { kind: 'text', text: '1' };
+	return { kind: 'text', text: `${count} (1/ workspace)` };
+}
+
 function formatTeamMembersCell(limits: PlanLimits): PublicPricingCompareCellViewModel {
 	if (isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace)) {
 		return { kind: 'text', text: 'Unlimited' };
@@ -124,6 +131,9 @@ function compareCellForRow(
 			return limits.share_post_preview ? { kind: 'included' } : { kind: 'excluded' };
 		case 'public_api':
 			return limits.public_api ? { kind: 'included' } : { kind: 'excluded' };
+		case 'oauth_apps':
+		case 'mcp_server':
+			return formatPerWorkspaceOAuthResourceCell(limits);
 		case 'cloud_storage':
 			return formatCloudStorageCell(limits);
 		case 'multi_channel_publishing':

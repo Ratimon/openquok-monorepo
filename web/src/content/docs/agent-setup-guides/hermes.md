@@ -268,6 +268,6 @@ openquok --version
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
-<LinkCard title="OpenClaw agent guide" description="Install openquok-core for OpenClaw " href="/docs/agent-guides/openclaw" />
+<LinkCard title="OpenClaw agent guide" description="Install openquok-core for OpenClaw " href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />
 </CardGrid>

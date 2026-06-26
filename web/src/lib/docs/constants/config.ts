@@ -50,9 +50,9 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		autogenerate: { directory: 'cli-examples' }
 	},
 	{
-		label: 'Agent Guides',
-		icon: icons.Lock.name,
-		autogenerate: { directory: 'agent-guides' }
+		label: 'Agent Setup Guides',
+		icon: icons.Link.name,
+		autogenerate: { directory: 'agent-setup-guides' }
 	}
 	
 ];
@@ -62,7 +62,22 @@ export const docsSidebarMcp: DocsSidebarSection[] = [
 		label: 'Getting Started',
 		icon: icons.Bot.name,
 		autogenerate: { directory: 'getting-started-for-mcp' }
-	}
+	},
+	{
+		label: 'MCP Examples',
+		icon: icons.Sparkles.name,
+		autogenerate: { directory: 'mcp-examples' }
+	},
+	{
+		label: 'MCP References',
+		icon: icons.FileText.name,
+		autogenerate: { directory: 'mcp-references' }
+	},
+	{
+		label: 'MCP Setup Guides',
+		icon: icons.Link.name,
+		autogenerate: { directory: 'mcp-setup-guides' }
+	},
 ];
 
 export const docsSidebarPublicApi: DocsSidebarSection[] = [

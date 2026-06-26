@@ -104,7 +104,8 @@ If authentication succeeds, the agent calls <Badge text="integrationList" varian
 
 <CardGrid>
 <LinkCard title="Client setup" description="MCP configuration snippets for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp/setup" />
-<LinkCard title="Tools reference" description="Input shapes and responses for integrationList, schedulePostTool, and other v1 tools" href="/docs/getting-started-for-mcp/tools" />
-<LinkCard title="Examples" description="Schedule to X, Discord channel posts, and Threads reply chains" href="/docs/getting-started-for-mcp/examples" />
+<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, Warp, and other clients" href="/docs/mcp-setup-guides" />
+<LinkCard title="Tools reference" description="Input shapes and responses for integrationList, schedulePostTool, and other v1 tools" href="/docs/mcp-references/tools" />
+<LinkCard title="MCP examples" description="Agent workflows by platform — X threads, Instagram media, Threads reply chains" href="/docs/mcp-examples" />
 <LinkCard title="Public API overview" description="REST authentication, rate limits, and SDK quick start" href="/docs/getting-started-for-public-api" />
 </CardGrid>

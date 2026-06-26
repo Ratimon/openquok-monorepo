@@ -108,6 +108,19 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 		linesVm.push({ label: 'Shareable post preview links' });
 	}
 
+	if (plan.publicApi) {
+		linesVm.push({ label: 'Public API access' });
+		if (plan.workspaces === 1) {
+			linesVm.push({ label: '1 OAuth app' });
+			linesVm.push({ label: '1 MCP server (same OAuth connection)' });
+		} else {
+			linesVm.push({ label: `Total ${plan.workspaces} apps` });
+			linesVm.push({
+				label: `Total ${plan.workspaces} MCP servers`
+			});
+		}
+	}
+
 	const storageTotalBytes = plan.mediaStorageBytesPerWorkspace * plan.workspaces;
 	linesVm.push({
 		label: `Total ${formatBytes(storageTotalBytes)} cloud storage`,
@@ -116,10 +129,6 @@ export function buildPlanFeatureLinesVm(plan: BillingPlanProgrammerModel): PlanF
 				? `${formatBytes(plan.mediaStorageBytesPerWorkspace)} cloud storage per Agent workspace`
 				: undefined
 	});
-
-	if (plan.publicApi) {
-		linesVm.push({ label: 'Public API access' });
-	}
 
 	return linesVm;
 }
