@@ -17,8 +17,7 @@ export const ONBOARDING_MCP_CLIENTS: readonly OnboardingMcpClientDefinition[] = 
 		label: 'Cursor',
 		mcpClient: 'Cursor',
 		docsSlug: 'cursor',
-		summary:
-			'Cursor reads MCP servers from .cursor/mcp.json',
+		summary: 'Cursor reads MCP servers from .cursor/mcp.json',
 		steps: [
 			'Create or open .cursor/mcp.json at your project root.',
 			'Add the openquok server entry from Developers → Access (or the snippet on the next step).',

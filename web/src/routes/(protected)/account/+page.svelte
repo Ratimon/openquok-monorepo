@@ -47,7 +47,7 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
-	import OnBoardingModal from '$lib/ui/components/posts/OnBoardingModal.svelte';
+	import OnBoardingModal from '$lib/ui/components/onboarding/OnBoardingModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
