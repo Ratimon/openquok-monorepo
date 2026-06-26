@@ -9,7 +9,7 @@ export const MCP_CLIENTS = [
 	'Devin Desktop',
 	'Amp',
 	'Codex',
-	'Gemini CLI',
+	'Antigravity CLI',
 	'Warp'
 ] as const;
 
@@ -27,7 +27,7 @@ export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	'Devin Desktop': 'devin-desktop',
 	Amp: 'amp',
 	Codex: 'codex',
-	'Gemini CLI': 'gemini-cli',
+	'Antigravity CLI': 'antigravity-cli',
 	Warp: 'warp'
 };
 
@@ -102,10 +102,12 @@ export function getMcpClientConfig(
 					config: `# ~/.codex/config.toml\n\n[mcp_servers.${MCP_SERVER_NAME}]\nurl = "${urlWithKey}"`,
 					hint: 'Add to ~/.codex/config.toml'
 				};
-			case 'Gemini CLI':
+			case 'Antigravity CLI':
 				return {
-					config: json({ mcpServers: { [MCP_SERVER_NAME]: { url: urlWithKey } } }),
-					hint: 'Add to ~/.gemini/settings.json'
+					config: json({
+						mcpServers: { [MCP_SERVER_NAME]: { serverUrl: urlWithKey } }
+					}),
+					hint: 'Add to ~/.gemini/config/mcp_config.json'
 				};
 			case 'Warp':
 				return {
@@ -181,14 +183,17 @@ export function getMcpClientConfig(
 				config: `# ~/.codex/config.toml\n\n[mcp_servers.${MCP_SERVER_NAME}]\nurl = "${urlBase}"\nhttp_headers = { "Authorization" = "${bearer}" }`,
 				hint: 'Add to ~/.codex/config.toml'
 			};
-		case 'Gemini CLI':
+		case 'Antigravity CLI':
 			return {
 				config: json({
 					mcpServers: {
-						[MCP_SERVER_NAME]: { url: urlBase, headers: { Authorization: bearer } }
+						[MCP_SERVER_NAME]: {
+							serverUrl: urlBase,
+							headers: { Authorization: bearer }
+						}
 					}
 				}),
-				hint: 'Add to ~/.gemini/settings.json'
+				hint: 'Add to ~/.gemini/config/mcp_config.json'
 			};
 		case 'Warp':
 			return {

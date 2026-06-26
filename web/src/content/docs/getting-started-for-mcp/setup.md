@@ -61,7 +61,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | <Badge text="Devin Desktop" variant="default" /> | <Badge text="~/.codeium/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/devin-desktop">Devin Desktop</a> |
 | <Badge text="Amp" variant="default" /> | Terminal command or Amp <Badge text="settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/amp">Amp</a> |
 | <Badge text="Codex" variant="default" /> | <Badge text="~/.codex/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/codex">Codex</a> |
-| <Badge text="Gemini CLI" variant="default" /> | <Badge text="~/.gemini/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/gemini-cli">Gemini CLI</a> |
+| <Badge text="Antigravity CLI" variant="default" /> | <Badge text="~/.gemini/config/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/antigravity-cli">Antigravity CLI</a> |
 | <Badge text="Warp" variant="default" /> | Settings → MCP Servers | <a href="/docs/mcp-setup-guides/warp">Warp</a> |
 
 ### Cursor (header auth)

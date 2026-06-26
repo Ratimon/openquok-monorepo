@@ -61,6 +61,16 @@ describe('getMcpClientConfig', () => {
 		expect(parsed.mcpServers[MCP_SERVER_NAME].serverUrl).toBe(`${MCP_BASE}/mcp`);
 		expect(parsed.mcpServers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
 	});
+
+	it('generates Antigravity CLI header auth with mcp_config.json hint', () => {
+		const { config, hint } = getMcpClientConfig('Antigravity CLI', 'header', MCP_BASE, API_KEY);
+		expect(hint).toContain('~/.gemini/config/mcp_config.json');
+		const parsed = JSON.parse(config) as {
+			mcpServers: Record<string, { serverUrl: string; headers: { Authorization: string } }>;
+		};
+		expect(parsed.mcpServers[MCP_SERVER_NAME].serverUrl).toBe(`${MCP_BASE}/mcp`);
+		expect(parsed.mcpServers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
+	});
 });
 
 describe('maskApiKeyInConfig', () => {

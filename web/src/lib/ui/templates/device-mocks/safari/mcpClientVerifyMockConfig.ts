@@ -12,7 +12,7 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-devin-desktop'
 	| 'mcp-verify-amp'
 	| 'mcp-verify-codex'
-	| 'mcp-verify-gemini-cli'
+	| 'mcp-verify-antigravity-cli'
 	| 'mcp-verify-warp';
 
 export type McpInstallSafariMockContentId =
@@ -23,7 +23,7 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-devin-desktop'
 	| 'mcp-install-amp'
 	| 'mcp-install-codex'
-	| 'mcp-install-gemini-cli'
+	| 'mcp-install-antigravity-cli'
 	| 'mcp-install-warp';
 
 export type McpVerifyMockLayout = 'ide' | 'terminal' | 'cowork';
@@ -134,16 +134,17 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		accentSoftClass: 'bg-emerald-500/15 text-emerald-100',
 		borderClass: 'border-white/10'
 	},
-	'Gemini CLI': {
+	'Antigravity CLI': {
 		layout: 'terminal',
-		mockUrl: 'gemini.google.com',
-		productLabel: 'Gemini CLI',
-		panelLabel: 'gemini',
-		icon: icons.Gemini.name,
+		mockUrl: 'antigravity.google',
+		productLabel: 'Antigravity CLI',
+		panelLabel: 'agy',
+		icon: icons.Antigravity.name,
 		surfaceClass: 'bg-[#131314]',
 		accentClass: 'text-blue-300',
 		accentSoftClass: 'bg-blue-500/15 text-blue-100',
-		borderClass: 'border-white/10'
+		borderClass: 'border-white/10',
+		configFileHint: 'mcp_config.json'
 	},
 	Warp: {
 		layout: 'terminal',

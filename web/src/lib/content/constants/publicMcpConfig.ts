@@ -252,8 +252,8 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		setupSteps: [
 			'Download and install Devin Desktop from docs.devin.ai — Devin Local reads MCP servers from ~/.codeium/mcp_config.json.',
 			'Generate a programmatic token under Developers → Access.',
-			'Add the openquok entry to ~/.codeium/mcp_config.json using the snippet below (or Settings → Tools → View Raw Config).',
-			'Reload Devin Desktop and verify with: List my connected social media accounts.'
+			'Add the openquok entry to ~/.codeium/mcp_config.json using the snippet below (serverUrl ending in /mcp; or Settings → Tools → View Raw Config).',
+			'Reload Devin Desktop (or refresh MCP in Settings → Tools) and verify with: List my connected social media accounts.'
 		]
 	},
 	{
@@ -291,20 +291,20 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		]
 	},
 	{
-		slug: 'gemini-cli',
-		label: 'Gemini CLI',
-		mcpClient: 'Gemini CLI',
-		icon: icons.Gemini.name,
-		hubDescription: 'Google Gemini CLI settings.json',
+		slug: 'antigravity-cli',
+		label: 'Antigravity CLI',
+		mcpClient: 'Antigravity CLI',
+		icon: icons.Antigravity.name,
+		hubDescription: 'Global ~/.gemini/config/mcp_config.json for agy',
 		heroDescription:
-			'Google Gemini CLI reads MCP servers from ~/.gemini/settings.json. Add openquok so your CLI agent can list channels and schedule social posts from natural language.',
+			'Antigravity CLI reads MCP servers from ~/.gemini/config/mcp_config.json. Add openquok with your programmatic token so the agy agent can list channels and schedule social posts from natural language.',
 		metaDescription:
-			'Connect OpenQuok MCP to Google Gemini CLI via settings.json — schedule social posts from your terminal agent.',
+			'Connect OpenQuok MCP to Antigravity CLI via mcp_config.json — schedule social posts from your terminal agent.',
 		setupSteps: [
-			'Install Google Gemini CLI from the official docs — MCP servers load from ~/.gemini/settings.json.',
+			'Install Antigravity CLI from antigravity.google — the agy binary loads MCP servers from ~/.gemini/config/mcp_config.json.',
 			'Create a programmatic token under Developers → Access.',
-			'Add the mcpServers.openquok entry from the configuration section to ~/.gemini/settings.json.',
-			'Restart Gemini CLI and verify with: List my connected social media accounts.'
+			'Add the openquok entry to ~/.gemini/config/mcp_config.json using the snippet below (serverUrl ending in /mcp — not url).',
+			'Restart agy and verify with: List my connected social media accounts.'
 		]
 	},
 	{

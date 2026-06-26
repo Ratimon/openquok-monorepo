@@ -25,7 +25,7 @@ For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Telegram bot
 <LinkCard title="Devin Desktop" description="Global ~/.codeium/mcp_config.json for Devin Local" href="/docs/mcp-setup-guides/devin-desktop" />
 <LinkCard title="Amp" description="amp mcp add or Amp settings.json" href="/docs/mcp-setup-guides/amp" />
 <LinkCard title="Codex" description="OpenAI Codex config.toml MCP servers" href="/docs/mcp-setup-guides/codex" />
-<LinkCard title="Gemini CLI" description="Google Gemini CLI settings.json" href="/docs/mcp-setup-guides/gemini-cli" />
+<LinkCard title="Antigravity CLI" description="Global ~/.gemini/config/mcp_config.json for agy" href="/docs/mcp-setup-guides/antigravity-cli" />
 <LinkCard title="Warp" description="Warp terminal MCP server settings" href="/docs/mcp-setup-guides/warp" />
 </CardGrid>
 
