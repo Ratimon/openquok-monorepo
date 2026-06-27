@@ -1,13 +1,14 @@
 <script lang="ts">
 	import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
+	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
+
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import PublicAgentFeatureMedia from '$lib/ui/templates/landing-page/PublicAgentFeatureMedia.svelte';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
-	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	type Props = {
 		section: PublicAgentFeatureSection;
@@ -21,6 +22,9 @@
 
 	const bgColorClass = $derived(index % 2 === 0 ? 'bg-base-100' : 'bg-base-200');
 	const cliCommandsTitle = $derived(section.cliCommandsTitle ?? 'CLI command options');
+	const hasSideMedia = $derived(Boolean(section.deviceMock || section.bentoId));
+	const mediaOnRight = $derived(section.mediaOnRight !== false);
+
 	const sharedHeroProps = $derived({
 		heroTheme: landingHeroTheme,
 		landingSubtitle: section.subtitle,
@@ -33,10 +37,23 @@
 		ctaHref,
 		bgColorClass
 	});
+
+	const heroProps = $derived({
+		...sharedHeroProps,
+		...(section.deviceMock
+			? {
+					imageSrc: undefined,
+					mediaContainerClass: 'max-w-[320px]',
+					mediaColumnClass: 'justify-center'
+				}
+			: {})
+	});
 </script>
 
-{#snippet sectionBento()}
-	{#if section.bentoId}
+{#snippet sideMedia()}
+	{#if section.deviceMock}
+		<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
+	{:else if section.bentoId}
 		<BentoPublicChannelFeature bentoId={section.bentoId} />
 	{/if}
 {/snippet}
@@ -53,58 +70,12 @@
 	{/if}
 {/snippet}
 
-{#if section.mediaOnRight !== false}
-	{#if section.deviceMock}
-		<HeroWithRightMedia
-			{...sharedHeroProps}
-			imageSrc={undefined}
-			mediaContainerClass="max-w-[320px]"
-			mediaColumnClass="justify-center"
-		>
-			{#snippet rightMedia()}
-				<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
-			{/snippet}
-			{#snippet children()}
-				{@render cliCommandsBlock()}
-			{/snippet}
-		</HeroWithRightMedia>
-	{:else if section.bentoId}
-		<HeroWithRightMedia {...sharedHeroProps} rightMedia={sectionBento}>
-			{#snippet children()}
-				{@render cliCommandsBlock()}
-			{/snippet}
-		</HeroWithRightMedia>
-	{:else}
-		<HeroWithRightMedia {...sharedHeroProps}>
-			{#snippet children()}
-				{@render cliCommandsBlock()}
-			{/snippet}
-		</HeroWithRightMedia>
-	{/if}
-{:else if section.deviceMock}
-	<HeroWithLeftMedia
-		{...sharedHeroProps}
-		imageSrc={undefined}
-		mediaContainerClass="max-w-[320px]"
-		mediaColumnClass="justify-center"
-	>
-		{#snippet leftMedia()}
-			<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
-		{/snippet}
-		{#snippet children()}
-			{@render cliCommandsBlock()}
-		{/snippet}
-	</HeroWithLeftMedia>
-{:else if section.bentoId}
-	<HeroWithLeftMedia {...sharedHeroProps} leftMedia={sectionBento}>
-		{#snippet children()}
-			{@render cliCommandsBlock()}
-		{/snippet}
-	</HeroWithLeftMedia>
+{#if mediaOnRight}
+	<HeroWithRightMedia {...heroProps} rightMedia={hasSideMedia ? sideMedia : undefined}>
+		{@render cliCommandsBlock()}
+	</HeroWithRightMedia>
 {:else}
-	<HeroWithLeftMedia {...sharedHeroProps}>
-		{#snippet children()}
-			{@render cliCommandsBlock()}
-		{/snippet}
+	<HeroWithLeftMedia {...heroProps} leftMedia={hasSideMedia ? sideMedia : undefined}>
+		{@render cliCommandsBlock()}
 	</HeroWithLeftMedia>
 {/if}
