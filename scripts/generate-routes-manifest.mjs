@@ -17,7 +17,14 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ROUTES_DIR = path.join(__dirname, '../web/src/routes');
+const WEB_CONSTANTS_DIR = path.join(__dirname, '../web/src/lib/content/constants');
 const OUTPUT_FILE = path.join(__dirname, '../backend/static/routes-manifest.json');
+
+const AGENT_HOST_PAGE_REGEX =
+	/pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
+
+const CHANNEL_PAGE_REGEX =
+	/slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
 
 const EXCLUDED_PATTERNS = {
 	includes: ['(protected)', '(auth)', 'not-found'],
@@ -78,6 +85,77 @@ function scanRoutes(dirPath, previousFolder = '') {
 	return routes;
 }
 
+function extractMcpSeedSlugs(content) {
+	const seedsStart = content.indexOf('MCP_LANDING_SEEDS');
+	if (seedsStart === -1) return [];
+
+	const seedsEnd = content.indexOf('];', seedsStart);
+	if (seedsEnd === -1) return [];
+
+	const seedsSection = content.slice(seedsStart, seedsEnd);
+	const slugs = [];
+	const slugRegex = /slug:\s*['"]([^'"]+)['"]/g;
+
+	for (const match of seedsSection.matchAll(slugRegex)) {
+		if (match[1]) slugs.push(match[1]);
+	}
+
+	return slugs;
+}
+
+function extractAvailableSlugs(content, regex) {
+	const slugs = [];
+
+	for (const match of content.matchAll(regex)) {
+		const slug = match[1];
+		const available = match[2];
+		if (slug && available === 'true') {
+			slugs.push(slug);
+		}
+	}
+
+	return slugs;
+}
+
+function extractPublicCatalogSlugs(constantsDir = WEB_CONSTANTS_DIR) {
+	const agentContent = fs.readFileSync(path.join(constantsDir, 'publicAgentConfig.ts'), 'utf-8');
+	const mcpContent = fs.readFileSync(path.join(constantsDir, 'publicMcpConfig.ts'), 'utf-8');
+	const channelContent = fs.readFileSync(path.join(constantsDir, 'publicChannelConfig.ts'), 'utf-8');
+
+	const agentHosts = extractAvailableSlugs(agentContent, AGENT_HOST_PAGE_REGEX);
+	const mcpClients = extractMcpSeedSlugs(mcpContent);
+	const channels = extractAvailableSlugs(channelContent, CHANNEL_PAGE_REGEX);
+
+	return {
+		agents: [...new Set([...agentHosts, ...mcpClients])],
+		channels: [...new Set(channels)]
+	};
+}
+
+function publicCatalogSlugsToRoutes(catalog) {
+	const routes = [];
+
+	for (const slug of catalog.agents) {
+		routes.push({
+			path: `/agents/${encodeURIComponent(slug)}`,
+			priority: 0.8,
+			changeFreq: 'monthly',
+			type: 'public-catalog'
+		});
+	}
+
+	for (const slug of catalog.channels) {
+		routes.push({
+			path: `/channels/${encodeURIComponent(slug)}`,
+			priority: 0.8,
+			changeFreq: 'monthly',
+			type: 'public-catalog'
+		});
+	}
+
+	return routes;
+}
+
 function generateManifest() {
 	console.log('Scanning routes directory...');
 	console.log(`   Source: ${ROUTES_DIR}`);
@@ -88,6 +166,8 @@ function generateManifest() {
 	}
 
 	const routes = scanRoutes(ROUTES_DIR);
+	const catalogRoutes = publicCatalogSlugsToRoutes(extractPublicCatalogSlugs());
+	routes.push(...catalogRoutes);
 
 	const manifest = {
 		generated: new Date().toISOString(),
@@ -108,13 +188,17 @@ function generateManifest() {
 	fs.writeFileSync(OUTPUT_FILE, JSON.stringify(manifest, null, 2));
 
 	console.log(`Routes manifest written: ${OUTPUT_FILE}`);
-	console.log(`   Routes found: ${routes.length}`);
+	console.log(`   Routes found: ${routes.length} (${catalogRoutes.length} from public catalog)`);
 	if (routes.length > 0) {
 		console.log('\nSample routes:');
 		routes.slice(0, 8).forEach((route) => console.log(`   - ${route.path}`));
 		if (routes.length > 8) {
 			console.log(`   ... and ${routes.length - 8} more`);
 		}
+	}
+	if (catalogRoutes.length > 0) {
+		console.log('\nPublic catalog routes:');
+		catalogRoutes.forEach((route) => console.log(`   - ${route.path}`));
 	}
 }
 

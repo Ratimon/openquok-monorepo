@@ -41,6 +41,110 @@ const CUSTOM_CHANGEFREQ: Record<string, string> = {
 
 const MANIFEST_EXCLUDED = new Set(["sitemap.xml", "robots.txt", "api", "favicon.ico"]);
 
+/** Keep parsing logic in sync with scripts/generate-routes-manifest.mjs. */
+const AGENT_HOST_PAGE_REGEX =
+    /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
+
+const CHANNEL_PAGE_REGEX =
+    /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+
+interface PublicCatalogSlugs {
+    agents: string[];
+    channels: string[];
+}
+
+function extractMcpSeedSlugs(content: string): string[] {
+    const seedsStart = content.indexOf("MCP_LANDING_SEEDS");
+    if (seedsStart === -1) return [];
+
+    const seedsEnd = content.indexOf("];", seedsStart);
+    if (seedsEnd === -1) return [];
+
+    const seedsSection = content.slice(seedsStart, seedsEnd);
+    const slugs: string[] = [];
+    const slugRegex = /slug:\s*['"]([^'"]+)['"]/g;
+
+    for (const match of seedsSection.matchAll(slugRegex)) {
+        if (match[1]) slugs.push(match[1]);
+    }
+
+    return slugs;
+}
+
+function extractAvailableSlugs(content: string, regex: RegExp): string[] {
+    const slugs: string[] = [];
+
+    for (const match of content.matchAll(regex)) {
+        const slug = match[1];
+        const available = match[2];
+        if (slug && available === "true") {
+            slugs.push(slug);
+        }
+    }
+
+    return slugs;
+}
+
+function extractPublicCatalogSlugsFromFiles(options: {
+    agentConfigPath: string;
+    mcpConfigPath: string;
+    channelConfigPath: string;
+}): PublicCatalogSlugs {
+    const agentContent = fs.readFileSync(options.agentConfigPath, "utf-8");
+    const mcpContent = fs.readFileSync(options.mcpConfigPath, "utf-8");
+    const channelContent = fs.readFileSync(options.channelConfigPath, "utf-8");
+
+    const agentHosts = extractAvailableSlugs(agentContent, AGENT_HOST_PAGE_REGEX);
+    const mcpClients = extractMcpSeedSlugs(mcpContent);
+    const channels = extractAvailableSlugs(channelContent, CHANNEL_PAGE_REGEX);
+
+    return {
+        agents: [...new Set([...agentHosts, ...mcpClients])],
+        channels: [...new Set(channels)],
+    };
+}
+
+function resolveWebConstantsDir(routesPath?: string): string | undefined {
+    const candidates = [
+        routesPath ? path.join(routesPath, "../lib/content/constants") : null,
+        path.join(process.cwd(), "../web/src/lib/content/constants"),
+        path.join(process.cwd(), "web/src/lib/content/constants"),
+    ].filter((candidate): candidate is string => Boolean(candidate));
+
+    for (const dir of candidates) {
+        if (fs.existsSync(path.join(dir, "publicChannelConfig.ts"))) {
+            return dir;
+        }
+    }
+
+    return undefined;
+}
+
+function loadPublicCatalogSlugs(routesPath?: string): PublicCatalogSlugs | null {
+    const constantsDir = resolveWebConstantsDir(routesPath);
+    if (!constantsDir) return null;
+
+    try {
+        return extractPublicCatalogSlugsFromFiles({
+            agentConfigPath: path.join(constantsDir, "publicAgentConfig.ts"),
+            mcpConfigPath: path.join(constantsDir, "publicMcpConfig.ts"),
+            channelConfigPath: path.join(constantsDir, "publicChannelConfig.ts"),
+        });
+    } catch {
+        return null;
+    }
+}
+
+function publicCatalogSlugsToSitemapPaths(catalog: PublicCatalogSlugs): {
+    agents: string[];
+    channels: string[];
+} {
+    return {
+        agents: catalog.agents.map((slug) => `/agents/${encodeURIComponent(slug)}`),
+        channels: catalog.channels.map((slug) => `/channels/${encodeURIComponent(slug)}`),
+    };
+}
+
 function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[] {
     const urls: SitemapUrl[] = [];
     const disabledIncludes = ["(protected)", "(auth)", "not-found"];
@@ -273,6 +377,34 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
     } catch (error) {
         logger.error({
             msg: "Error processing blog authors for sitemap",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
+    try {
+        const catalog = loadPublicCatalogSlugs(routesPath);
+        if (catalog) {
+            const { agents, channels } = publicCatalogSlugsToSitemapPaths(catalog);
+            const today = new Date().toISOString().slice(0, 10);
+
+            for (const agentUrl of agents) {
+                urls.push({ url: agentUrl, lastMod: today, changeFreq: "monthly" });
+            }
+            for (const channelUrl of channels) {
+                urls.push({ url: channelUrl, lastMod: today, changeFreq: "monthly" });
+            }
+
+            logger.info({
+                msg: "Added public catalog URLs to sitemap",
+                agentCount: agents.length,
+                channelCount: channels.length,
+            });
+        } else {
+            logger.warn({ msg: "Public catalog config not found for sitemap", routesPath });
+        }
+    } catch (error) {
+        logger.error({
+            msg: "Error processing public catalog for sitemap",
             error: error instanceof Error ? error.message : String(error),
         });
     }
