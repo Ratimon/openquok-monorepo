@@ -4,6 +4,7 @@ import { icons } from '$data/icons';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type {
 	FeaturesOrderedStep,
+	PublicAgentFeatureSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/publicAgentConfig';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
@@ -19,6 +20,7 @@ import {
 	getMcpVerifySafariContentId
 } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
 import { getMcpWorkflowScheduleContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowScheduleMockConfig';
+import { getMcpWorkflowAnalyticsContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowAnalyticsMockConfig';
 
 export type PublicMcpIntegrationTab = 'mcp' | 'skill';
 
@@ -51,6 +53,7 @@ export type PublicMcpLandingPageViewModel = {
 	skillSetupStepsSubtitle: string;
 	skillSetupStepsTitle: string;
 	skillSetupSteps: FeaturesOrderedStep[];
+	featureSections: PublicAgentFeatureSection[];
 	workflowSection: PublicLandingWorkflowSection;
 	faqSubtitle: string;
 	faqTitle: string;
@@ -113,8 +116,7 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 		},
 		{
 			title: 'Do I need the CLI or openquok-core skill?',
-			description:
-				'No. Native MCP clients connect directly with an opo_ programmatic token. Agent hosts like OpenClaw and Hermes can still use the CLI skill if you prefer shell-based workflows.'
+			description: `No — ${label} connects over MCP with an opo_ token and built-in tools, which is the fastest path for editor and terminal workflows. The openquok-core skill on agent hosts like OpenClaw and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.`
 		},
 		{
 			title: `Why use ${label} MCP instead of an agent host?`,
@@ -336,6 +338,81 @@ function buildMcpWorkflowSection(
 	};
 }
 
+function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAgentFeatureSection[] {
+	const scheduleContentId = getMcpWorkflowScheduleContentId(mcpClient);
+	const analyticsContentId = getMcpWorkflowAnalyticsContentId(mcpClient);
+
+	return [
+		{
+			subtitle: 'Minimal setup',
+			title: 'stay in your editor or terminal, connect once, schedule without switching apps',
+			description: `${label} is built for focused sessions where you already ship work — paste one MCP config, and OpenQuok tools live inside that flow. List channels, draft posts, and queue schedules, without opening another dashboard or chat app.`,
+			parallelMocks: [
+				{
+					deviceMock: 'settings-panel',
+					deviceMockContent: 'programmatic-access-token',
+					imageAlt: 'Generate a programmatic OpenQuok access token'
+				},
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: getMcpVerifySafariContentId(mcpClient),
+					imageAlt: `Verify OpenQuok MCP connection inside ${label}`
+				}
+			],
+			imageAlt: `Connect OpenQuok to ${label} with a token and in-client verification`,
+			mediaOnRight: true,
+			cliCommandsTitle: 'First prompt to try',
+			cliCommands: `List my connected social media accounts`
+		},
+		{
+			subtitle: 'Kanban + smart filters',
+			title: 'Review every AI draft, sign off confidently, before it goes live',
+			description:
+				'Move agent-generated posts from draft to review to scheduled on a kanban board — with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+			bentoId: 'facebook-bulk-scheduling',
+			mediaOnRight: false,
+			cliCommandsTitle: 'Example prompts',
+			cliCommands: `Move post <id> to review and add a note to check the CTA before schedule`
+		},
+		{
+			subtitle: 'Analytics',
+			title: 'Ask what worked, see winners, and adapt from chat',
+			description: `Ask ${label} to pull impressions, engagement, and post insights for any connected channel — compare 7, 30, or 90 days without opening the dashboard.`,
+			deviceMock: 'desktop',
+			deviceMockContent: analyticsContentId,
+			imageAlt: `${label} chat showing OpenQuok platform and post analytics`,
+			mediaOnRight: true,
+			cliCommandsTitle: 'Example prompts',
+			cliCommands: `What performed best on my channels over the last 30 days?
+Break down likes, comments, and shares for post <id>`
+		},
+		{
+			subtitle: 'Scale what works',
+			title: 'when a format hits, run more sessions and reach every connected channel',
+			description: `Spot a winner in analytics, then queue the next wave in one ${label} session while another tracks performance — add parallel desktop sessions as you grow.`,
+			parallelMocks: [
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: scheduleContentId,
+					imageAlt: `${label} desktop session scheduling posts in parallel`
+				},
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: analyticsContentId,
+					imageAlt: `Second ${label} desktop session pulling live analytics concurrently`
+				}
+			],
+			mediaOnRight: false,
+			cliCommandsTitle: 'Parallel sessions',
+			cliCommands: `# Session A — schedule (concurrent)
+Queue my launch thread for Tue 9am across Facebook and Instagram
+
+# Session B — metrics (concurrent)
+What performed best on my channels over the last 7 days?`
+		}
+	];
+}
+
 function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewModel {
 	const {
 		slug,
@@ -377,6 +454,7 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewMode
 		skillSetupStepsSubtitle: 'How it works',
 		skillSetupStepsTitle: `Four steps,to ${label} + openquok-core`,
 		skillSetupSteps: toSkillSetupSteps(label, setupSteps[0], mcpClient),
+		featureSections: buildMcpFeatureSections(label, mcpClient),
 		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,

@@ -20,6 +20,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'quickly',
 	'agents',
 	'B2B',
+	'editor',
+	'terminal',
 	'tweets',
 	'trending audio',
 	'channels',

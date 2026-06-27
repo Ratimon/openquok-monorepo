@@ -21,6 +21,7 @@
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
@@ -103,6 +104,15 @@
 		/>
 	{/key}
 {/if}
+
+{#each mcpVm.featureSections as section, index (index)}
+	<PublicAgentFeatureSection
+		{section}
+		{index}
+		ctaText={secondaryCtaText}
+		ctaHref={secondaryCtaHref}
+	/>
+{/each}
 
 <div class="container mx-auto px-4">
 	<PublicFaq

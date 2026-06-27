@@ -172,13 +172,18 @@ export type PublicLandingWorkflowSection = {
 	imageAlt?: string;
 };
 
-export type PublicAgentParallelMockDevice = 'desktop' | 'iphone-15-pro' | 'terminal';
+export type PublicAgentParallelMockDevice =
+	| 'desktop'
+	| 'iphone-15-pro'
+	| 'settings-panel'
+	| 'terminal';
 
 export type PublicAgentParallelMockItem = {
 	deviceMock: PublicAgentParallelMockDevice;
 	deviceMockContent?:
 		| DesktopMockContentId
 		| IphoneMockContentId
+		| SettingsPanelMockContentId
 		| TerminalMockContentId;
 	/** Inline terminal preview when `deviceMock` is `terminal`, or CLI inside a `desktop` frame. */
 	terminalCode?: string;

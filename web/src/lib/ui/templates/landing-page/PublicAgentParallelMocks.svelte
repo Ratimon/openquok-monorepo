@@ -3,6 +3,7 @@
 	import type { DesktopMockContentId } from '$lib/ui/templates/device-mocks/desktop/desktopMock.types';
 	import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 	import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
+	import type { SettingsPanelMockContentId } from '$lib/ui/templates/device-mocks/settings-panel/settingsPanelMock.types';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	import { cn } from '$lib/ui/helpers/common';
@@ -13,6 +14,7 @@
 	import Iphone15ProMockContent from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMockContent.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
+	import SettingsPanelMockContent from '$lib/ui/templates/device-mocks/settings-panel/SettingsPanelMockContent.svelte';
 
 	type Props = {
 		items: PublicAgentParallelMockItem[];
@@ -86,6 +88,19 @@
 							{telegramAgentBranding}
 						/>
 					</DesktopMock>
+				</div>
+			{:else if item.deviceMock === 'settings-panel'}
+				<div
+					class={cn(
+						'overflow-hidden rounded-xl border border-base-content/10 shadow-2xl',
+						index > 0 && items.length > 1 && !isThreeUpLayout && 'scale-[0.96] sm:scale-[0.98]'
+					)}
+					role="img"
+					aria-label={item.imageAlt ?? sectionSubtitle}
+				>
+					<SettingsPanelMockContent
+						content={item.deviceMockContent as SettingsPanelMockContentId | undefined}
+					/>
 				</div>
 			{:else if item.deviceMock === 'iphone-15-pro'}
 				<div

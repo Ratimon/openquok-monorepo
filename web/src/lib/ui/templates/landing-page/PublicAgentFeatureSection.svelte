@@ -27,6 +27,11 @@
 		Boolean(section.parallelMocks?.length || section.deviceMock || section.bentoId)
 	);
 	const mediaOnRight = $derived(section.mediaOnRight !== false);
+	const isWideMedia = $derived(
+		Boolean(section.parallelMocks?.length) ||
+			section.deviceMock === 'desktop' ||
+			section.deviceMock === 'settings-panel'
+	);
 
 	const sharedHeroProps = $derived({
 		heroTheme: landingHeroTheme,
@@ -43,7 +48,7 @@
 
 	const heroProps = $derived({
 		...sharedHeroProps,
-		...(section.parallelMocks?.length
+		...(isWideMedia
 			? {
 					imageSrc: undefined,
 					mediaContainerClass: 'max-w-3xl',
