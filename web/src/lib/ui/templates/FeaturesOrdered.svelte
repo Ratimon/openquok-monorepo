@@ -125,17 +125,18 @@
 	}
 
 	function startAutoScroll() {
-		if (steps.length === 0) return;
+		if (!steps?.length) return;
 
 		clearInterval(autoScrollTimer);
 		autoScrollTimer = setInterval(() => {
+			if (!steps?.length) return;
 			const next = indexRef.current < 0 ? 0 : (indexRef.current + 1) % steps.length;
 			selectStep(next);
 		}, collapseDelay);
 	}
 
 	onMount(() => {
-		if (steps.length === 0) return;
+		if (!steps?.length) return;
 
 		const initTimer = setTimeout(() => {
 			selectStep(0);

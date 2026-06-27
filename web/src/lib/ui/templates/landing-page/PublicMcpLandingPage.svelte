@@ -1,5 +1,10 @@
 <script lang="ts">
-	import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpLandingPage, PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
+	import {
+		resolvePublicMcpSkillSetupSteps,
+		resolvePublicMcpSkillSetupStepsSubtitle,
+		resolvePublicMcpSkillSetupStepsTitle
+	} from '$lib/content/constants/publicMcpConfig';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -13,11 +18,11 @@
 	} from '$lib/config/constants/config';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicMcpClientConfiguration from '$lib/ui/templates/landing-page/PublicMcpClientConfiguration.svelte';
+	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
-	import PublicMcpToolsPanel from '$lib/ui/templates/landing-page/PublicMcpToolsPanel.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 
@@ -35,6 +40,24 @@
 
 	const configHeadingId = 'public-mcp-landing-config-heading';
 
+	let integrationTab = $state<PublicMcpIntegrationTab>('mcp');
+
+	let resolvedSkillSetupSteps = $derived(resolvePublicMcpSkillSetupSteps(mcp));
+
+	let activeSetupSteps = $derived(
+		integrationTab === 'skill' ? resolvedSkillSetupSteps : (mcp.setupSteps ?? [])
+	);
+	let activeSetupStepsTitle = $derived(
+		integrationTab === 'skill'
+			? resolvePublicMcpSkillSetupStepsTitle(mcp)
+			: mcp.setupStepsTitle
+	);
+	let activeSetupStepsSubtitle = $derived(
+		integrationTab === 'skill'
+			? resolvePublicMcpSkillSetupStepsSubtitle(mcp)
+			: mcp.setupStepsSubtitle
+	);
+
 	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(mcp.agentLabel));
 </script>
 
@@ -48,23 +71,20 @@
 
 <div class="container mx-auto px-4 py-12 sm:py-16">
 	<div class="mx-auto max-w-4xl">
-		<PublicMcpClientConfiguration
+		<PublicMcpIntegrationSetup
+			agentLabel={mcp.agentLabel}
 			activeClient={mcp.mcpClient}
 			headingId={configHeadingId}
-			sectionTitle="Copy configuration"
-			sectionDescription={`Generate an programmatic token after sign-up, then paste the snippet for ${mcp.agentLabel}.`}
+			bind:integrationTab
 		/>
 	</div>
 </div>
 
-{#if mcp.setupSteps.length > 0}
-	<FeaturesOrdered
-		steps={mcp.setupSteps}
-		heroTheme={landingHeroTheme}
-		sectionSubtitle={mcp.setupStepsSubtitle}
-		sectionTitle={mcp.setupStepsTitle}
-	/>
-{/if}
+<PublicLandingWorkflowSection
+	section={mcp.workflowSection}
+	ctaText={secondaryCtaText}
+	ctaHref={secondaryCtaHref}
+/>
 
 <WhoIsFor
 	heroTheme={landingHeroTheme}
@@ -73,9 +93,16 @@
 	cards={mcp.audienceCards}
 />
 
-<div class="container mx-auto px-4 py-12 sm:py-16">
-	<PublicMcpToolsPanel />
-</div>
+{#if activeSetupSteps.length > 0}
+	{#key integrationTab}
+		<FeaturesOrdered
+			steps={activeSetupSteps}
+			heroTheme={landingHeroTheme}
+			sectionSubtitle={activeSetupStepsSubtitle}
+			sectionTitle={activeSetupStepsTitle}
+		/>
+	{/key}
+{/if}
 
 <div class="container mx-auto px-4">
 	<PublicFaq

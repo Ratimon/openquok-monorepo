@@ -22,6 +22,7 @@
 	} from '$lib/config/constants/config';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -70,12 +71,11 @@
 	docsCtaHref={agent.docsPath}
 />
 
-{#if agent.setupSteps.length > 0}
-	<FeaturesOrdered
-		steps={agent.setupSteps}
-		heroTheme={landingHeroTheme}
-		sectionSubtitle={agent.setupStepsSubtitle}
-		sectionTitle={agent.setupStepsTitle}
+{#if agent.workflowSection}
+	<PublicLandingWorkflowSection
+		section={agent.workflowSection}
+		ctaText={secondaryCtaText}
+		ctaHref={secondaryCtaHref}
 		{telegramAgentBranding}
 	/>
 {/if}
@@ -86,6 +86,17 @@
 	landingTitle={agent.audienceTitle}
 	cards={agent.audienceCards}
 />
+
+{#if agent.setupSteps.length > 0}
+	<FeaturesOrdered
+		steps={agent.setupSteps}
+		heroTheme={landingHeroTheme}
+		sectionSubtitle={agent.setupStepsSubtitle}
+		sectionTitle={agent.setupStepsTitle}
+		{telegramAgentBranding}
+	/>
+{/if}
+
 
 {#each agent.featureSections as section, index (index)}
 	<PublicAgentFeatureSection

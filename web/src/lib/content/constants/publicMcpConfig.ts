@@ -2,7 +2,10 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
-import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+import type {
+	FeaturesOrderedStep,
+	PublicLandingWorkflowSection
+} from '$lib/content/constants/publicAgentConfig';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import {
 	getMcpClientConfig,
@@ -15,6 +18,9 @@ import {
 	getMcpVerifyMockThemeForClient,
 	getMcpVerifySafariContentId
 } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
+import { getMcpWorkflowScheduleContentId } from '$lib/ui/templates/device-mocks/safari/mcpWorkflowScheduleMockConfig';
+
+export type PublicMcpIntegrationTab = 'mcp' | 'skill';
 
 export type PublicMcpIntegration = {
 	slug: string;
@@ -42,6 +48,10 @@ export type PublicMcpLandingPage = {
 	setupStepsSubtitle: string;
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
+	skillSetupStepsSubtitle: string;
+	skillSetupStepsTitle: string;
+	skillSetupSteps: FeaturesOrderedStep[];
+	workflowSection: PublicLandingWorkflowSection;
 	faqSubtitle: string;
 	faqTitle: string;
 	faqDescription: string;
@@ -124,6 +134,17 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 	];
 }
 
+function buildMcpIntegrationsSetupStep(stepId: number, label: string): FeaturesOrderedStep {
+	return {
+		id: stepId,
+		title: `${stepId}. Integrate & customize other skills or MCPs`,
+		content: `Add Bloom, RevenueCat, or any skill or MCP beside openquok-core in ${label} — find your own viral formats and scale!`,
+		animatedContent: 'agent-integrations',
+		mediaAlt: 'Agent skills and integrations with OpenQuok',
+		iconName: icons.Sparkles.name
+	};
+}
+
 function toSetupSteps(
 	label: string,
 	steps: readonly [string, string, string, string],
@@ -138,41 +159,117 @@ function toSetupSteps(
 	).config;
 	const installTheme = getMcpVerifyMockThemeForClient(mcpClient);
 
-	return steps.map((content, index) => ({
-		id: index + 1,
-		title: `${index + 1}. ${index === 0 ? `${titles[index]} ${label}` : titles[index]}`,
-		content,
-		iconName: index === steps.length - 1 ? icons.Check.name : icons.Terminal.name,
-		...(index === 0
-			? {
-					deviceMock: 'safari' as const,
-					deviceMockContent: getMcpInstallSafariContentId(mcpClient),
-					mockUrl: installTheme.mockUrl,
-					mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
-				}
-			: {}),
-		...(index === 1
-			? {
-					deviceMock: 'settings-panel' as const,
-					deviceMockContent: 'programmatic-access-token' as const,
-					mediaAlt: 'Generate a programmatic access token in Developers Access'
-				}
-			: {}),
-		...(index === 2
-			? {
-					deviceMock: 'terminal' as const,
-					terminalCode: mcpInstallCommand,
-					mediaAlt: `Add OpenQuok MCP configuration for ${mcpClient}`
-				}
-			: {}),
-		...(index === 3
-			? {
-					deviceMock: 'desktop' as const,
-					deviceMockContent: getMcpVerifySafariContentId(mcpClient),
-					mediaAlt: `Verify OpenQuok MCP in ${mcpClient}`
-				}
-			: {})
-	}));
+	return [
+		...steps.map((content, index) => ({
+			id: index + 1,
+			title: `${index + 1}. ${index === 0 ? `${titles[index]} ${label}` : titles[index]}`,
+			content,
+			iconName:
+				index === 3
+					? icons.Check.name
+					: index === 1 || index === 2
+						? icons.OpenQuok.name
+						: icons.Terminal.name,
+			...(index === 0
+				? {
+						deviceMock: 'safari' as const,
+						deviceMockContent: getMcpInstallSafariContentId(mcpClient),
+						mockUrl: installTheme.mockUrl,
+						mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
+					}
+				: {}),
+			...(index === 1
+				? {
+						deviceMock: 'settings-panel' as const,
+						deviceMockContent: 'programmatic-access-token' as const,
+						mediaAlt: 'Generate a programmatic access token in Developers Access'
+					}
+				: {}),
+			...(index === 2
+				? {
+						deviceMock: 'terminal' as const,
+						terminalCode: mcpInstallCommand,
+						mediaAlt: `Add OpenQuok MCP configuration for ${mcpClient}`
+					}
+				: {}),
+			...(index === 3
+				? {
+						deviceMock: 'desktop' as const,
+						deviceMockContent: getMcpVerifySafariContentId(mcpClient),
+						mediaAlt: `Verify OpenQuok MCP in ${mcpClient}`
+					}
+				: {})
+		})),
+		buildMcpIntegrationsSetupStep(5, label)
+	];
+}
+
+function buildSkillSetupStepTexts(
+	label: string,
+	installStep: string
+): readonly [string, string, string] {
+	return [
+		installStep,
+		`'Add openquok-core skill and authenticate the CLI once.' — ${label} discovers commands from SKILL.md in your project.`,
+		`Start a fresh ${label} session and ask: List my connected social media accounts — the agent should read the skill and return your workspace channels.`
+	];
+}
+
+function toSkillSetupSteps(
+	label: string,
+	installStep: string,
+	mcpClient: McpClient
+): FeaturesOrderedStep[] {
+	const steps = buildSkillSetupStepTexts(label, installStep);
+	const titles = ['Install', 'Install openquok-core', 'Verify in your client'] as const;
+	const installTheme = getMcpVerifyMockThemeForClient(mcpClient);
+
+	return [
+		...steps.map((content, index) => ({
+			id: index + 1,
+			title: `${index + 1}. ${index === 0 ? `${titles[index]} ${label}` : titles[index]}`,
+			content,
+			iconName: index === 2 ? icons.Check.name : icons.Terminal.name,
+			...(index === 0
+				? {
+						deviceMock: 'safari' as const,
+						deviceMockContent: getMcpInstallSafariContentId(mcpClient),
+						mockUrl: installTheme.mockUrl,
+						mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
+					}
+				: {}),
+			...(index === 1
+				? {
+						deviceMock: 'terminal' as const,
+						deviceMockContent: 'openquok-skill-install' as const,
+						mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI'
+					}
+				: {}),
+			...(index === 2
+				? {
+						deviceMock: 'desktop' as const,
+						deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
+						mediaAlt: `Verify openquok-core skill in ${label}`
+					}
+				: {})
+		})),
+		buildMcpIntegrationsSetupStep(4, label)
+	];
+}
+
+function buildMcpWorkflowSection(
+	label: string,
+	mcpClient: McpClient,
+	workflowPhrase: string
+): PublicLandingWorkflowSection {
+	return {
+		subtitle: `Prompt from ${workflowPhrase}`,
+		title: 'One prompt, cross-channel schedule',
+		description: `Describe what to publish in ${label}. Agent lists your connected channels, attaches media, and queues drafts for the time you pick — you approve on the calendar before anything goes live.`,
+		deviceMock: 'desktop',
+		deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
+		imageAlt: `Schedule social posts from ${label} via OpenQuok MCP`
+	};
 }
 
 function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
@@ -211,8 +308,12 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
 		],
 		docsPath: `/docs/mcp-setup-guides/${slug}`,
 		setupStepsSubtitle: 'How it works',
-		setupStepsTitle: `Four steps,to ${label} + OpenQuok`,
+		setupStepsTitle: `Five steps,to ${label} + OpenQuok`,
 		setupSteps: toSetupSteps(label, setupSteps, mcpClient),
+		skillSetupStepsSubtitle: 'How it works',
+		skillSetupStepsTitle: `Four steps,to ${label} + openquok-core`,
+		skillSetupSteps: toSkillSetupSteps(label, setupSteps[0], mcpClient),
+		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over HTTP MCP — authentication, verification, and scheduling posts from chat.`,
@@ -235,7 +336,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Antigravity CLI — draft and schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your terminal',
 		setupSteps: [
-			'Install Antigravity CLI from antigravity.google — the agy binary loads MCP servers from ~/.gemini/config/mcp_config.json.',
+			'Install Antigravity CLI from antigravity.google —  with the agy binary',
 			'Create a programmatic token under Developers → Access.',
 			'Add the openquok entry to ~/.gemini/config/mcp_config.json using the snippet below (serverUrl ending in /mcp — not url).',
 			'Restart agy and verify with: List my connected social media accounts.'
@@ -253,7 +354,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to OpenAI Codex — draft and schedule social posts from your CLI and IDE. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'the CLI and your IDE',
 		setupSteps: [
-			'Install OpenAI Codex from the official docs — MCP servers are configured in ~/.codex/config.toml.',
+			'Install OpenAI Codex from the official docs',
 			'Generate a programmatic token under Developers → Access.',
 			'Append the [mcp_servers.openquok] block from the configuration section to ~/.codex/config.toml.',
 			'Restart Codex or open a fresh session, then ask: List my connected social media accounts.'
@@ -271,7 +372,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Cursor — schedule social posts from Agent and Composer. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your editor',
 		setupSteps: [
-			'Download and install Cursor from cursor.com — recent stable builds include MCP support for Agent and Composer.',
+			'Download and install Cursor from cursor.com',
 			'Create an opo_ programmatic token under Account → Settings → Developers → Access.',
 			'Create or open .cursor/mcp.json at your project root and add the openquok server entry from the configuration section.',
 			'Reload Cursor, start a new Agent session, and ask: List my connected social media accounts.'
@@ -289,7 +390,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Claude Code — schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your terminal',
 		setupSteps: [
-			'Install Claude Code from the official Anthropic docs — use the one-line installer or your preferred package manager.',
+			'Install Claude Code from the official Anthropic docs',
 			'Generate a programmatic token in Developers → Access.',
 			'Run the claude mcp add openquok command from the configuration section in your terminal.',
 			'Start a new Claude Code session and ask your agent to list connected channels.'
@@ -307,7 +408,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Claude Cowork — organization-wide social scheduling with human approval on every publish.',
 		workflowPhrase: 'your Cowork sessions',
 		setupSteps: [
-			'Access Claude Cowork through claude.com — your organization needs custom connectors or managed MCP servers enabled.',
+			'Access Claude Cowork through claude.com',
 			'Generate a programmatic token for your workspace under Developers → Access.',
 			'Add the openquok connector JSON from the configuration section via Custom connectors or managedMcpServers in Cowork organization settings.',
 			'Start a new Cowork session and verify with: List my connected social media accounts.'
@@ -325,7 +426,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to VS Code and GitHub Copilot — schedule social posts from your IDE. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your IDE',
 		setupSteps: [
-			'Install VS Code from code.visualstudio.com and enable GitHub Copilot — MCP servers load from .vscode/mcp.json in your workspace.',
+			'Install VS Code from code.visualstudio.com and enable GitHub Copilot',
 			'Create a programmatic token under Developers → Access.',
 			'Create or edit .vscode/mcp.json in your workspace root and paste the openquok server entry with type http.',
 			'Reload the window, confirm openquok appears in the MCP panel, and ask Copilot to list your channels.'
@@ -343,7 +444,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Devin Desktop — schedule social posts from Devin Local. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your editor',
 		setupSteps: [
-			'Download and install Devin Desktop from docs.devin.ai — Devin Local reads MCP servers from ~/.codeium/mcp_config.json.',
+			'Download and install Devin Desktop from docs.devin.ai',
 			'Generate a programmatic token under Developers → Access.',
 			'Add the openquok entry to ~/.codeium/mcp_config.json using the snippet below (serverUrl ending in /mcp; or Settings → Tools → View Raw Config).',
 			'Reload Devin Desktop (or refresh MCP in Settings → Tools) and verify with: List my connected social media accounts.'
@@ -361,7 +462,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Amp — schedule social posts from your coding agent. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your terminal and IDE',
 		setupSteps: [
-			'Install Amp from amp.dev and sign in — register remote MCP servers via amp mcp add or settings.json.',
+			'Install Amp from amp.dev and sign in',
 			'Create a programmatic token under Developers → Access.',
 			'Run amp mcp add openquok with your URL, or add the amp.mcpServers block from the configuration section to your Amp settings.json.',
 			'Open a fresh Amp session and ask: List my connected social media accounts.'
@@ -379,7 +480,7 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 			'Connect OpenQuok MCP to Warp terminal — schedule social posts from Warp AI. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your terminal',
 		setupSteps: [
-			'Download and install Warp from warp.dev — add MCP servers under Settings → MCP Servers.',
+			'Download and install Warp from warp.dev',
 			'Generate an opo_ programmatic token under Developers → Access.',
 			'Open Settings → MCP Servers → + Add in Warp and paste the openquok config from the section.',
 			'Start a new Warp AI session and ask: List my connected social media accounts.'
@@ -389,6 +490,40 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 
 export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPage[] =
 	MCP_LANDING_SEEDS.map(buildMcpLandingPage);
+
+type PublicMcpSkillSetupResolveInput = Pick<
+	PublicMcpLandingPage,
+	| 'skillSetupSteps'
+	| 'setupSteps'
+	| 'agentLabel'
+	| 'mcpClient'
+	| 'skillSetupStepsTitle'
+	| 'skillSetupStepsSubtitle'
+	| 'setupStepsTitle'
+	| 'setupStepsSubtitle'
+>;
+
+/** Resolves skill setup steps — always rebuilt from MCP install step so config edits apply without stale SSR data. */
+export function resolvePublicMcpSkillSetupSteps(
+	page: PublicMcpSkillSetupResolveInput
+): FeaturesOrderedStep[] {
+	const installStep = page.setupSteps?.[0]?.content;
+	if (installStep) {
+		return toSkillSetupSteps(page.agentLabel, installStep, page.mcpClient);
+	}
+
+	return page.skillSetupSteps ?? [];
+}
+
+export function resolvePublicMcpSkillSetupStepsTitle(page: PublicMcpSkillSetupResolveInput): string {
+	return `Four steps,to ${page.agentLabel} + openquok-core`;
+}
+
+export function resolvePublicMcpSkillSetupStepsSubtitle(
+	page: PublicMcpSkillSetupResolveInput
+): string {
+	return page.skillSetupStepsSubtitle ?? page.setupStepsSubtitle ?? 'How it works';
+}
 
 const mcpBySlug = new Map(PUBLIC_MCP_LANDING_PAGES.map((page) => [page.slug, page]));
 

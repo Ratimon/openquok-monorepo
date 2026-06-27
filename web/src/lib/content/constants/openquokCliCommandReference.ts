@@ -42,6 +42,24 @@ export const HERMES_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl', command: OPENQUOK_CORE_SKILL_INSTALL_HERMES_CURL }
 ];
 
+/** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
+export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }
+];
+
+export const OPENQUOK_CORE_SKILL_AUTH_SNIPPET = `# Install global CLI
+npm install -g @openquok/auto-cli@latest
+openquok --version
+
+# Authenticate — pick one option:
+
+# Option 1: OAuth2 device flow (opens browser — pick workspace)
+openquok auth:login
+
+# Option 2: Programmatic token — generate from Developers → Access (headless / CI)
+export OPENQUOK_API_KEY="opo_..."
+openquok auth:status`;
+
 /** Essential openquok commands for public agent landing pages (full list in agent skill docs). */
 export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenceItem[] = [
 	{

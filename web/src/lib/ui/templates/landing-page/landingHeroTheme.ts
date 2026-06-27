@@ -24,6 +24,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'trending audio',
 	'channels',
 	'reels',
+	'prompt',
 	'plan',
 	'plugs',
 	'perfect plan',

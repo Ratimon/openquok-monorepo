@@ -17,6 +17,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
 	import PublicMcpHubSection from '$lib/ui/templates/landing-page/PublicMcpHubSection.svelte';
+	import PublicMcpToolsPanel from '$lib/ui/templates/landing-page/PublicMcpToolsPanel.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = { data: PageData };
@@ -39,6 +40,10 @@
 	<PublicAgentsHubGrid agents={agentsVm} />
 
 	<PublicMcpHubSection />
+
+	<div class="container mx-auto px-4 py-12 sm:py-16">
+		<PublicMcpToolsPanel />
+	</div>
 
 	<AccentSplitCtaBanner
 		title={ACCENT_SPLIT_CTA_BANNER_TITLE}

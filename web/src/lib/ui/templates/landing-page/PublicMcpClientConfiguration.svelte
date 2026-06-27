@@ -13,13 +13,20 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
-		sectionTitle: string;
-		sectionDescription: string;
-		headingId: string;
+		sectionTitle?: string;
+		sectionDescription?: string;
+		headingId?: string;
 		activeClient: McpClient;
+		hideSectionHeader?: boolean;
 	};
 
-	let { sectionTitle, sectionDescription, headingId, activeClient }: Props = $props();
+	let {
+		sectionTitle = '',
+		sectionDescription = '',
+		headingId = '',
+		activeClient,
+		hideSectionHeader = false
+	}: Props = $props();
 
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
@@ -42,18 +49,20 @@
 	);
 </script>
 
-<section class="space-y-4" aria-labelledby={headingId}>
-	<div class="space-y-2 text-center">
-		<h3
-			id={headingId}
-			class="text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
-		>
-			{sectionTitle}
-		</h3>
-		<p class="text-sm leading-relaxed text-pretty text-base-content/65 sm:text-base">
-			{sectionDescription}
-		</p>
-	</div>
+<section class="space-y-4" aria-labelledby={hideSectionHeader ? undefined : headingId}>
+	{#if !hideSectionHeader}
+		<div class="space-y-2 text-center">
+			<h3
+				id={headingId}
+				class="text-sm font-semibold tracking-tight text-base-content/75 sm:text-base"
+			>
+				{sectionTitle}
+			</h3>
+			<p class="text-sm leading-relaxed text-pretty text-base-content/65 sm:text-base">
+				{sectionDescription}
+			</p>
+		</div>
+	{/if}
 
 	<div class="space-y-4 rounded-2xl border border-base-content/10 bg-base-200/40 p-5 sm:p-6">
 		<div>

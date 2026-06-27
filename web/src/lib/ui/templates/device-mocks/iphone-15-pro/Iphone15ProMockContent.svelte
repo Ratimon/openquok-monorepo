@@ -4,6 +4,7 @@
 	import type { IphoneMockContentId } from '$lib/ui/templates/device-mocks/iphone-15-pro/iphoneMock.types';
 	import OpenquokLoginMock from '$lib/ui/templates/device-mocks/iphone-15-pro/content/OpenquokLoginMock.svelte';
 	import TelegramAnalyticsMock from '$lib/ui/templates/device-mocks/iphone-15-pro/content/TelegramAnalyticsMock.svelte';
+	import AgentChatScheduleMock from '$lib/ui/templates/device-mocks/iphone-15-pro/content/AgentChatScheduleMock.svelte';
 	import TelegramConnectMock from '$lib/ui/templates/device-mocks/iphone-15-pro/content/TelegramConnectMock.svelte';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 	import { DEFAULT_TELEGRAM_MOCK_AGENT_BRANDING } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
@@ -28,4 +29,6 @@
 	<OpenquokLoginMock {agentIcon} {agentLabel} />
 {:else if content === 'telegram-analytics'}
 	<TelegramAnalyticsMock {agentIcon} {agentLabel} />
+{:else if content === 'agent-chat-schedule'}
+	<AgentChatScheduleMock {agentIcon} {agentLabel} />
 {/if}

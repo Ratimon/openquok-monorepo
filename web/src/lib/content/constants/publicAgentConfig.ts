@@ -152,6 +152,16 @@ export type PublicAgentCommandReferenceSection = {
 	commands?: readonly OpenquokCliCommandReferenceItem[];
 };
 
+export type PublicLandingWorkflowSection = {
+	subtitle: string;
+	/** Comma-separated lines; each part gets landing-page gradient styling. */
+	title: string;
+	description: string;
+	deviceMock: 'desktop' | 'iphone-15-pro';
+	deviceMockContent: DesktopMockContentId | IphoneMockContentId;
+	imageAlt?: string;
+};
+
 export type PublicAgentFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling. */
@@ -204,6 +214,7 @@ export type PublicAgentHostLandingPage = {
 	setupStepsSubtitle: string;
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
+	workflowSection?: PublicLandingWorkflowSection;
 	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
 	comparisonSection?: PublicAgentComparisonSection;
 	commandReferenceSection?: PublicAgentCommandReferenceSection;
@@ -288,6 +299,15 @@ openquok analytics:platform <integration-uuid> -d 30
 openquok analytics:post <post-id> -d 7`
 		}
 	],
+	workflowSection: {
+		subtitle: 'Your messaging apps',
+		title: 'Text from Telegram, WhatsApp, or Slack',
+		description:
+			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
+		deviceMock: 'iphone-15-pro',
+		deviceMockContent: 'agent-chat-schedule',
+		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'
+	},
 	setupStepsSubtitle: 'How it works',
 	setupStepsTitle: 'Five steps,to OpenClaw + OpenQuok',
 	setupSteps: [
@@ -320,7 +340,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			id: 4,
-			title: '4. Install OpenQuok skill',
+			title: '4. Install openquok-core skill',
 			content: 'Add openquok-core skill and authenticate the CLI once.',
 			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
 			deviceMock: 'terminal',
@@ -329,7 +349,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			id: 5,
-			title: '5. Integrate & customize other skills',
+			title: '5. Integrate & customize other skills or MCPs',
 			content:
 				'Add Bloom, RevenueCat, or any OpenClaw skill beside openquok-core — find your own viral formats and scale!',
 			animatedContent: 'agent-integrations',
@@ -422,7 +442,7 @@ openquok analytics:post <post-id> -d 7`
 				'OpenClaw is the open-source personal AI agent. It runs locally or on your own host, connects to chat apps you already use, and takes real actions on your behalf — including drafting and scheduling social media through OpenQuok.'
 		},
 		{
-			title: 'How do I install the OpenQuok skill in OpenClaw?',
+			title: 'How do I install the openquok-core skill in OpenClaw?',
 			description:
 				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core (add -y on headless hosts), or after ClawHub publish run clawhub install openquok-core. Install the global CLI with npm install -g @openquok/auto-cli, set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, and OpenClaw discovers the skill automatically. See the OpenClaw agent guide in Dev Docs for the exact commands.'
 		},
@@ -533,6 +553,15 @@ openquok analytics:platform <integration-uuid> -d 30
 openquok analytics:post <post-id> -d 7`
 		}
 	],
+	workflowSection: {
+		subtitle: 'Your messaging gateways',
+		title: 'Message Hermes from Telegram, Discord, or Slack',
+		description:
+			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar — you sign off before publish.',
+		deviceMock: 'iphone-15-pro',
+		deviceMockContent: 'agent-chat-schedule',
+		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'
+	},
 	setupStepsSubtitle: 'How it works',
 	setupStepsTitle: 'Five steps,to Hermes + OpenQuok',
 	setupSteps: [
@@ -568,7 +597,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			id: 4,
-			title: '4. Install OpenQuok skill',
+			title: '4. Install openquok-core skill',
 			content: 'Add openquok-core under ~/.hermes/skills/ and authenticate the global CLI once.',
 			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
 			deviceMock: 'terminal',
@@ -577,7 +606,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			id: 5,
-			title: '5. Integrate & customize other skills',
+			title: '5. Integrate & customize other skills or MCPs',
 			content:
 				'Add Bloom, RevenueCat, or any Hermes skill beside openquok-core — find your own viral formats and scale!',
 			animatedContent: 'agent-integrations',
@@ -672,7 +701,7 @@ openquok analytics:post <post-id> -d 7`
 				'Hermes Agent is an autonomous AI assistant built by Nous Research. It runs on your laptop, a VPS, or serverless hosts, connects to 20+ chat platforms, creates and improves skills from experience, and takes real actions — including drafting and scheduling social media through OpenQuok.'
 		},
 		{
-			title: 'How do I install the OpenQuok skill in Hermes Agent?',
+			title: 'How do I install the openquok-core skill in Hermes Agent?',
 			description:
 				'Install the global CLI with npm install -g @openquok/auto-cli, then run hermes skills install with the openquok-core SKILL.md URL from the monorepo (or copy the file into ~/.hermes/skills/openquok-core/). Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, then start a new Hermes session so the skill loads. See the Hermes agent guide in Dev Docs for exact commands.'
 		},
