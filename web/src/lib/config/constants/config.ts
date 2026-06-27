@@ -367,6 +367,28 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
+	FEATURE_7_SUBTITLE: {
+		description: 'Tag above the seventh secondary hero section',
+		type: 'string',
+		default: 'Scale what works',
+		inputType: 'input',
+		maxInputLength: 60
+	},
+	FEATURE_7_TITLE: {
+		description: 'Headline for the seventh secondary hero section (comma separates accent phrase)',
+		type: 'string',
+		default: 'when a viral format hits, run more sessions, and reach every connected channel',
+		inputType: 'input',
+		maxInputLength: 100
+	},
+	FEATURE_7_DESCRIPTION: {
+		description: 'Support copy for the seventh secondary hero section',
+		type: 'string',
+		default:
+			'Spot a winner in analytics, queue the next wave from your desktop while you track performance from your phone — add parallel agent sessions and connect more channels as you grow.',
+		inputType: 'textarea',
+		maxInputLength: 300
+	},
 	FEATURES_GRID_TITLE: {
 		description:
 			'Headline for the supported social channels grid (the word "channels" is highlighted like other landing accent words)',

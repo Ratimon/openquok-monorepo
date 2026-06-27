@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 	import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/publicAgentConfig';
 
 	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
@@ -13,6 +14,7 @@
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
+	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
@@ -157,6 +159,47 @@
 		landingPageConfigVm.FEATURE_6_DESCRIPTION ||
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_6_DESCRIPTION.default)
 	);
+
+	const feature7Subtitle = $derived(
+		landingPageConfigVm.FEATURE_7_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_SUBTITLE.default)
+	);
+	const feature7Title = $derived(
+		landingPageConfigVm.FEATURE_7_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_TITLE.default)
+	);
+	const feature7Description = $derived(
+		landingPageConfigVm.FEATURE_7_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_DESCRIPTION.default)
+	);
+
+	const feature7Section = $derived<FeatureSectionConfig>({
+		subtitle: feature7Subtitle,
+		title: feature7Title,
+		description: feature7Description,
+		parallelMocks: [
+			{
+				deviceMock: 'desktop',
+				deviceMockContent: 'agent-parallel-schedule',
+				imageAlt: 'Desktop agent session scheduling posts in parallel'
+			},
+			{
+				deviceMock: 'iphone-15-pro',
+				deviceMockContent: 'telegram-analytics',
+				imageAlt: 'Mobile agent chat pulling post analytics while desktop sessions run'
+			}
+		],
+		imageAlt: 'Parallel OpenQuok agent sessions on desktop and mobile',
+		mediaOnRight: true,
+		cliCommandsTitle: 'Parallel CLI sessions',
+		cliCommands: `# Session A — draft + schedule
+openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
+openquok posts:status <post-id> -s schedule
+
+# Session B — metrics (runs at the same time)
+openquok analytics:platform <integration-uuid> -d 7
+openquok analytics:post <post-id> -d 30`
+	});
 
 	const pricingSubtitle = $derived(
 		landingPageConfigVm.PRICING_SUBTITLE ||
@@ -329,6 +372,12 @@
 	ctaHref={secondaryCtaHref}
 />
 
+<PublicAgentFeatureSection
+	section={feature7Section}
+	index={6}
+	ctaText={secondaryCtaText}
+	ctaHref={secondaryCtaHref}
+/>
 
 <IconTileGrid
 	heroTheme={landingHeroTheme}

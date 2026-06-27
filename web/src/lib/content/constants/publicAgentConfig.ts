@@ -330,7 +330,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a viral format hits, run more sessions and reach every connected channel',
+			title: 'when a viral format hits, run more sessions, and reach every connected channel',
 			description:
 				'Spot a winner in analytics, then let OpenClaw queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
 			parallelMocks: [
@@ -625,7 +625,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a viral format hits, run more sessions and reach every connected channel',
+			title: 'when a viral format hits, run more sessions, and reach every connected channel',
 			description:
 				'Spot a winner in analytics, then let Hermes queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
 			parallelMocks: [

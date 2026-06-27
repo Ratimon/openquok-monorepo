@@ -388,7 +388,7 @@ Break down likes, comments, and shares for post <id>`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a format hits, run more sessions and reach every connected channel',
+			title: 'when a format hits, run more sessions, and reach every connected channel',
 			description: `Spot a winner in analytics, then queue the next wave in one ${label} session while another tracks performance — add parallel desktop sessions as you grow.`,
 			parallelMocks: [
 				{
