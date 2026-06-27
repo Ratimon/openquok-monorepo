@@ -16,7 +16,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
-	import PublicMcpHubSection from '$lib/ui/templates/landing-page/PublicMcpHubSection.svelte';
+	import PublicMcpHubGrid from '$lib/ui/templates/landing-page/PublicMcpHubGrid.svelte';
 	import PublicMcpToolsPanel from '$lib/ui/templates/landing-page/PublicMcpToolsPanel.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -25,6 +25,7 @@
 	let { data }: Props = $props();
 
 	let agentsVm = $derived(data.agentsVm ?? []);
+	let mcpIntegrationsVm = $derived(data.mcpIntegrationsVm ?? []);
 	let schemaData = $derived(data.schemaData);
 
 	// /sign-up
@@ -37,9 +38,13 @@
 <JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-10 md:py-16">
-	<PublicAgentsHubGrid agents={agentsVm} />
+	<PublicAgentsHubGrid
+		agentsVm={agentsVm}
+	/>
 
-	<PublicMcpHubSection />
+	<PublicMcpHubGrid
+		integrationsVm={mcpIntegrationsVm}
+	/>
 
 	<div class="container mx-auto px-4 py-12 sm:py-16">
 		<PublicMcpToolsPanel />

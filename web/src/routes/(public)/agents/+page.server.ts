@@ -19,6 +19,7 @@ export async function load({ url, cookies, parent }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const agentsVm = publicAgentsPagePresenter.loadAgentsHubStateless();
+	const mcpIntegrationsVm = publicAgentsPagePresenter.loadMcpIntegrationsHubStateless();
 
 	const customTitle = 'AI agent integrations';
 	const customDescription = PUBLIC_AGENTS_HUB.description;
@@ -73,6 +74,7 @@ export async function load({ url, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		agentsVm,
+		mcpIntegrationsVm,
 		schemaData
 	};
 }

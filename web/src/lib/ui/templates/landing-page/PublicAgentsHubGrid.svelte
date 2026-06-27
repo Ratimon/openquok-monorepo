@@ -15,10 +15,10 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
-		agents: PublicAgentHostLandingPage[];
+		agentsVm: PublicAgentHostLandingPage[];
 	};
 
-	let { agents }: Props = $props();
+	let { agentsVm }: Props = $props();
 
 	const headingId = 'public-agents-hub-heading';
 	const cliInstallHeadingId = 'public-agents-hub-cli-install-heading';
@@ -75,7 +75,7 @@
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
 		aria-label="AI agent hosts and integrations you can connect"
 	>
-		{#each agents as agent (agent.slug)}
+		{#each agentsVm as agent (agent.slug)}
 			{@const href = agent.available ? route(getRootPathPublicAgent(agent.slug)) : undefined}
 			<li>
 				{#if href}
