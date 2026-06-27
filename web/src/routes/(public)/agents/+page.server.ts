@@ -6,6 +6,7 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 
@@ -36,6 +37,9 @@ export async function load({ url, cookies, parent }) {
 			'openquok CLI',
 			'OpenQuok MCP',
 			'Cursor MCP social media',
+			'agent host vs MCP client',
+			'Codex CLI social media',
+			'Claude Code MCP',
 			'agentic social scheduler',
 			'social media automation'
 		],
@@ -66,8 +70,14 @@ export async function load({ url, cookies, parent }) {
 					name: companyName,
 					url: url.origin
 				}
-			}
-		]
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: PUBLIC_AGENTS_HUB.faqSection.faqTitle,
+				description: PUBLIC_AGENTS_HUB.faqSection.faqDescription,
+				items: PUBLIC_AGENTS_HUB.faqSection.faqItems
+			})
+		].filter((node) => Object.keys(node).length > 0)
 	};
 
 	return {

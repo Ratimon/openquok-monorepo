@@ -4,6 +4,7 @@
 	type LandingHeroTheme = {
 		subtitleClass?: string;
 		titleHighlightPillClass: string;
+		titleSegmentClass?: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 	};
 
@@ -13,9 +14,19 @@
 		title: string;
 		description?: string;
 		subtitle?: string;
+		headingLevel?: 'h1' | 'h2';
+		titleClass?: string;
 	};
 
-	let { heroTheme, headingId, title, description = '', subtitle = '' }: Props = $props();
+	let {
+		heroTheme,
+		headingId,
+		title,
+		description = '',
+		subtitle = '',
+		headingLevel = 'h2',
+		titleClass = 'text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl'
+	}: Props = $props();
 
 	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(title));
 </script>
@@ -26,18 +37,21 @@
 			{subtitle}
 		</p>
 	{/if}
-	<h2
+	<svelte:element
+		this={headingLevel}
 		id={headingId}
-		class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl lg:text-4xl"
+		class={titleClass}
 	>
 		{#each titleSegments as seg, segmentIndex (segmentIndex)}
 			{#if seg.highlight}
 				<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+			{:else if heroTheme.titleSegmentClass}
+				<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
 			{:else}
 				{seg.text}
 			{/if}
 		{/each}
-	</h2>
+	</svelte:element>
 	{#if description}
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{description}

@@ -10,8 +10,10 @@
 		INSTALL_AGENT_SKILL_COMMAND,
 		INSTALL_CLI_COMMAND
 	} from '$lib/ui/components/onboarding/onboardingConstants';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
@@ -26,20 +28,15 @@
 </script>
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
-	<div class="mx-auto max-w-3xl space-y-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
-			{PUBLIC_AGENTS_HUB.subtitle}
-		</p>
-		<h1
-			id={headingId}
-			class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl"
-		>
-			{PUBLIC_AGENTS_HUB.title}
-		</h1>
-		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			{PUBLIC_AGENTS_HUB.description}
-		</p>
-	</div>
+	<FeaturesSectionHeader
+		heroTheme={landingHeroTheme}
+		headingId={headingId}
+		headingLevel="h1"
+		titleClass="text-3xl font-black tracking-tight text-balance sm:text-4xl"
+		title={PUBLIC_AGENTS_HUB.title}
+		description={PUBLIC_AGENTS_HUB.description}
+		subtitle={PUBLIC_AGENTS_HUB.subtitle}
+	/>
 
 	<div class="mx-auto mt-10 w-full max-w-4xl space-y-6">
 		<section class="space-y-3" aria-labelledby={cliInstallHeadingId}>

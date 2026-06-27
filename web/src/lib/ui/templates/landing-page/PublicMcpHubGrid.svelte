@@ -4,8 +4,10 @@
 
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 
 	type Props = {
 		integrationsVm: readonly PublicMcpIntegrationViewModel[];
@@ -17,20 +19,14 @@
 </script>
 
 <section class="border-t border-base-content/10 py-10 md:py-14" aria-labelledby={sectionHeadingId}>
-	<div class="mx-auto max-w-3xl space-y-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
-			{PUBLIC_AGENTS_HUB.mcpHubSubtitle}
-		</p>
-		<h2
-			id={sectionHeadingId}
-			class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl"
-		>
-			{PUBLIC_AGENTS_HUB.mcpHubTitle}
-		</h2>
-		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			{PUBLIC_AGENTS_HUB.mcpHubDescription}
-		</p>
-	</div>
+	<FeaturesSectionHeader
+		heroTheme={landingHeroTheme}
+		headingId={sectionHeadingId}
+		titleClass="text-2xl font-black tracking-tight text-balance sm:text-3xl"
+		title={PUBLIC_AGENTS_HUB.mcpHubTitle}
+		description={PUBLIC_AGENTS_HUB.mcpHubDescription}
+		subtitle={PUBLIC_AGENTS_HUB.mcpHubSubtitle}
+	/>
 
 	<ul
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"

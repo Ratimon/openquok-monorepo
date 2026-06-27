@@ -20,6 +20,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import Compare from '$lib/ui/templates/Compare.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
 	import PublicMcpHubGrid from '$lib/ui/templates/landing-page/PublicMcpHubGrid.svelte';
 	import PublicMcpToolsPanel from '$lib/ui/templates/landing-page/PublicMcpToolsPanel.svelte';
@@ -64,6 +65,17 @@
 		rightTitle={PUBLIC_AGENTS_HUB.compareSection.rightTitle}
 		points={PUBLIC_AGENTS_HUB.compareSection.points}
 	/>
+
+	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_AGENTS_HUB.faqSection.faqSubtitle}
+			faqTitle={PUBLIC_AGENTS_HUB.faqSection.faqTitle}
+			faqDescription={PUBLIC_AGENTS_HUB.faqSection.faqDescription}
+			faqItems={[...PUBLIC_AGENTS_HUB.faqSection.faqItems]}
+			sectionClass="py-16 sm:py-20"
+		/>
+	</div>
 
 	<AccentSplitCtaBanner
 		title={ACCENT_SPLIT_CTA_BANNER_TITLE}

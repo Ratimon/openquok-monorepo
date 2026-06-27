@@ -37,6 +37,11 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 			'Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled.'
 	},
 	{
+		title: 'How do I pay for agent hosts vs MCP clients?',
+		description:
+			'OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw and Hermes are open source (BYOK or optional Nous Portal pay-as-you-go / Plus from $20/mo); Cursor, Claude Code, and Codex bill through their own subscriptions. OpenQuok MCP only needs your programmatic token — no per-call fee beyond your OpenQuok plan.'
+	},
+	{
 		title: 'What is the agent workspace?',
 		description:
 			'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
