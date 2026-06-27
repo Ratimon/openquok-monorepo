@@ -145,74 +145,163 @@ function buildMcpIntegrationsSetupStep(stepId: number, label: string): FeaturesO
 	};
 }
 
+type McpStepBuildContext = {
+	label: string;
+	mcpClient: McpClient;
+	installTheme: ReturnType<typeof getMcpVerifyMockThemeForClient>;
+	mcpInstallCommand: string;
+};
+
+type McpSetupStepVisual = Partial<
+	Pick<
+		FeaturesOrderedStep,
+		'deviceMock' | 'deviceMockContent' | 'terminalCode' | 'mockUrl' | 'mediaAlt'
+	>
+>;
+
+/** Declarative step shape — edit titles, icons, and media here; per-client copy stays in MCP_LANDING_SEEDS. */
+type McpSetupStepTemplate = {
+	title: string;
+	/** When true, title becomes "{title} {label}" (e.g. "Install Cursor"). */
+	suffixLabel?: boolean;
+	iconName: IconName;
+	resolveVisual: (ctx: McpStepBuildContext) => McpSetupStepVisual;
+	/** When set, overrides seed copy for this step (skill flow uses this for steps 2–3). */
+	resolveContent?: (ctx: McpStepBuildContext, seedContent?: string) => string;
+};
+
+const MCP_SETUP_STEP_TEMPLATES: readonly McpSetupStepTemplate[] = [
+	{
+		title: 'Install',
+		suffixLabel: true,
+		iconName: icons.Terminal.name,
+		resolveVisual: ({ label, mcpClient, installTheme }) => ({
+			deviceMock: 'safari',
+			deviceMockContent: getMcpInstallSafariContentId(mcpClient),
+			mockUrl: installTheme.mockUrl,
+			mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
+		})
+	},
+	{
+		title: 'Generate your token',
+		iconName: icons.OpenQuok.name,
+		resolveVisual: () => ({
+			deviceMock: 'settings-panel',
+			deviceMockContent: 'programmatic-access-token',
+			mediaAlt: 'Generate a programmatic access token in Developers Access'
+		})
+	},
+	{
+		title: 'Add OpenQuok MCP',
+		iconName: icons.OpenQuok.name,
+		resolveVisual: ({ mcpClient, mcpInstallCommand }) => ({
+			deviceMock: 'terminal',
+			terminalCode: mcpInstallCommand,
+			mediaAlt: `Add OpenQuok MCP configuration for ${mcpClient}`
+		})
+	},
+	{
+		title: 'Verify in your client',
+		iconName: icons.Check.name,
+		resolveVisual: ({ mcpClient }) => ({
+			deviceMock: 'desktop',
+			deviceMockContent: getMcpVerifySafariContentId(mcpClient),
+			mediaAlt: `Verify OpenQuok MCP in ${mcpClient}`
+		})
+	}
+];
+
+const MCP_SKILL_SETUP_STEP_TEMPLATES: readonly McpSetupStepTemplate[] = [
+	{
+		title: 'Install',
+		suffixLabel: true,
+		iconName: icons.Terminal.name,
+		resolveVisual: ({ label, mcpClient, installTheme }) => ({
+			deviceMock: 'safari',
+			deviceMockContent: getMcpInstallSafariContentId(mcpClient),
+			mockUrl: installTheme.mockUrl,
+			mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
+		}),
+		resolveContent: (_ctx, installStep) => installStep ?? ''
+	},
+	{
+		title: 'Install openquok-core',
+		iconName: icons.Terminal.name,
+		resolveVisual: () => ({
+			deviceMock: 'terminal',
+			deviceMockContent: 'openquok-skill-install',
+			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI'
+		}),
+		resolveContent: ({ label }) =>
+			`'Add openquok-core skill and authenticate the CLI once.' — ${label} discovers commands from SKILL.md in your project.`
+	},
+	{
+		title: 'Verify in your client',
+		iconName: icons.Check.name,
+		resolveVisual: ({ label, mcpClient }) => ({
+			deviceMock: 'desktop',
+			deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
+			mediaAlt: `Verify openquok-core skill in ${label}`
+		}),
+		resolveContent: ({ label }) =>
+			`Start a fresh ${label} session and ask: List my connected social media accounts — the agent should read the skill and return your workspace channels.`
+	}
+];
+
+function createMcpStepBuildContext(label: string, mcpClient: McpClient): McpStepBuildContext {
+	return {
+		label,
+		mcpClient,
+		installTheme: getMcpVerifyMockThemeForClient(mcpClient),
+		mcpInstallCommand: getMcpClientConfig(
+			mcpClient,
+			'header',
+			resolveMcpBaseUrl(),
+			MCP_TOKEN_PLACEHOLDER
+		).config
+	};
+}
+
+function formatMcpSetupStepTitle(
+	stepNumber: number,
+	{ title, suffixLabel }: McpSetupStepTemplate,
+	label: string
+): string {
+	const stepTitle = suffixLabel ? `${title} ${label}` : title;
+	return `${stepNumber}. ${stepTitle}`;
+}
+
+function buildSetupStepsFromTemplates(
+	templates: readonly McpSetupStepTemplate[],
+	seedContents: readonly string[] | null,
+	ctx: McpStepBuildContext,
+	integrationsStepId: number
+): FeaturesOrderedStep[] {
+	return [
+		...templates.map((template, index) => ({
+			id: index + 1,
+			title: formatMcpSetupStepTitle(index + 1, template, ctx.label),
+			content: template.resolveContent
+				? template.resolveContent(ctx, seedContents?.[index])
+				: (seedContents?.[index] ?? ''),
+			iconName: template.iconName,
+			...template.resolveVisual(ctx)
+		})),
+		buildMcpIntegrationsSetupStep(integrationsStepId, ctx.label)
+	];
+}
+
 function toSetupSteps(
 	label: string,
 	steps: readonly [string, string, string, string],
 	mcpClient: McpClient
 ): FeaturesOrderedStep[] {
-	const titles = ['Install', 'Generate your token', 'Add OpenQuok MCP', 'Verify in your client'] as const;
-	const mcpInstallCommand = getMcpClientConfig(
-		mcpClient,
-		'header',
-		resolveMcpBaseUrl(),
-		MCP_TOKEN_PLACEHOLDER
-	).config;
-	const installTheme = getMcpVerifyMockThemeForClient(mcpClient);
-
-	return [
-		...steps.map((content, index) => ({
-			id: index + 1,
-			title: `${index + 1}. ${index === 0 ? `${titles[index]} ${label}` : titles[index]}`,
-			content,
-			iconName:
-				index === 3
-					? icons.Check.name
-					: index === 1 || index === 2
-						? icons.OpenQuok.name
-						: icons.Terminal.name,
-			...(index === 0
-				? {
-						deviceMock: 'safari' as const,
-						deviceMockContent: getMcpInstallSafariContentId(mcpClient),
-						mockUrl: installTheme.mockUrl,
-						mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
-					}
-				: {}),
-			...(index === 1
-				? {
-						deviceMock: 'settings-panel' as const,
-						deviceMockContent: 'programmatic-access-token' as const,
-						mediaAlt: 'Generate a programmatic access token in Developers Access'
-					}
-				: {}),
-			...(index === 2
-				? {
-						deviceMock: 'terminal' as const,
-						terminalCode: mcpInstallCommand,
-						mediaAlt: `Add OpenQuok MCP configuration for ${mcpClient}`
-					}
-				: {}),
-			...(index === 3
-				? {
-						deviceMock: 'desktop' as const,
-						deviceMockContent: getMcpVerifySafariContentId(mcpClient),
-						mediaAlt: `Verify OpenQuok MCP in ${mcpClient}`
-					}
-				: {})
-		})),
-		buildMcpIntegrationsSetupStep(5, label)
-	];
-}
-
-function buildSkillSetupStepTexts(
-	label: string,
-	installStep: string
-): readonly [string, string, string] {
-	return [
-		installStep,
-		`'Add openquok-core skill and authenticate the CLI once.' — ${label} discovers commands from SKILL.md in your project.`,
-		`Start a fresh ${label} session and ask: List my connected social media accounts — the agent should read the skill and return your workspace channels.`
-	];
+	return buildSetupStepsFromTemplates(
+		MCP_SETUP_STEP_TEMPLATES,
+		steps,
+		createMcpStepBuildContext(label, mcpClient),
+		5
+	);
 }
 
 function toSkillSetupSteps(
@@ -220,41 +309,12 @@ function toSkillSetupSteps(
 	installStep: string,
 	mcpClient: McpClient
 ): FeaturesOrderedStep[] {
-	const steps = buildSkillSetupStepTexts(label, installStep);
-	const titles = ['Install', 'Install openquok-core', 'Verify in your client'] as const;
-	const installTheme = getMcpVerifyMockThemeForClient(mcpClient);
-
-	return [
-		...steps.map((content, index) => ({
-			id: index + 1,
-			title: `${index + 1}. ${index === 0 ? `${titles[index]} ${label}` : titles[index]}`,
-			content,
-			iconName: index === 2 ? icons.Check.name : icons.Terminal.name,
-			...(index === 0
-				? {
-						deviceMock: 'safari' as const,
-						deviceMockContent: getMcpInstallSafariContentId(mcpClient),
-						mockUrl: installTheme.mockUrl,
-						mediaAlt: `${label} documentation at ${installTheme.mockUrl}`
-					}
-				: {}),
-			...(index === 1
-				? {
-						deviceMock: 'terminal' as const,
-						deviceMockContent: 'openquok-skill-install' as const,
-						mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI'
-					}
-				: {}),
-			...(index === 2
-				? {
-						deviceMock: 'desktop' as const,
-						deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
-						mediaAlt: `Verify openquok-core skill in ${label}`
-					}
-				: {})
-		})),
-		buildMcpIntegrationsSetupStep(4, label)
-	];
+	return buildSetupStepsFromTemplates(
+		MCP_SKILL_SETUP_STEP_TEMPLATES,
+		[installStep],
+		createMcpStepBuildContext(label, mcpClient),
+		4
+	);
 }
 
 function buildMcpWorkflowSection(
