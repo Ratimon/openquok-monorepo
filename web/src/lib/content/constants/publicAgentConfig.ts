@@ -19,6 +19,7 @@ import {
 	OPENQUOK_CLI_COMMAND_REFERENCE
 } from '$lib/content/constants/openquokCliCommandReference';
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
+import type { ComparePoint } from '$lib/ui/templates/Compare.svelte';
 
 export type FeaturesAnimatedContentId = 'llm-models' | 'agent-integrations';
 
@@ -145,6 +146,15 @@ export type PublicAgentComparisonSection = {
 	points: ComparisonPoint[];
 };
 
+export type PublicAgentsHubCompareSection = {
+	subtitle: string;
+	title: string;
+	description: string;
+	leftTitle: string;
+	rightTitle: string;
+	points: ComparePoint[];
+};
+
 export type PublicAgentCommandReferenceSection = {
 	subtitle: string;
 	title: string;
@@ -162,6 +172,19 @@ export type PublicLandingWorkflowSection = {
 	imageAlt?: string;
 };
 
+export type PublicAgentParallelMockDevice = 'desktop' | 'iphone-15-pro' | 'terminal';
+
+export type PublicAgentParallelMockItem = {
+	deviceMock: PublicAgentParallelMockDevice;
+	deviceMockContent?:
+		| DesktopMockContentId
+		| IphoneMockContentId
+		| TerminalMockContentId;
+	/** Inline terminal preview when `deviceMock` is `terminal`, or CLI inside a `desktop` frame. */
+	terminalCode?: string;
+	imageAlt?: string;
+};
+
 export type PublicAgentFeatureSection = {
 	subtitle: string;
 	/** Comma-separated lines; each part gets landing-page gradient styling. */
@@ -172,6 +195,8 @@ export type PublicAgentFeatureSection = {
 	imageAlt?: string;
 	/** Interactive bento showcase (takes precedence over `imageSrc`). */
 	bentoId?: PublicChannelFeatureBentoId;
+	/** Staggered multi-device preview (takes precedence over single `deviceMock`). */
+	parallelMocks?: PublicAgentParallelMockItem[];
 	/** Multi-line OpenQuok CLI example rendered below the description. */
 	cliCommands?: string;
 	/** Heading above `cliCommands` (defaults to “CLI command options”). */
@@ -297,6 +322,42 @@ openquok analytics:platform <integration-uuid> -d 30
 
 # Per-post insights (likes, comments, shares)
 openquok analytics:post <post-id> -d 7`
+		},
+		{
+			subtitle: 'Scale what works',
+			title: 'when a viral format hits, run more sessions and reach every connected channel',
+			description:
+				'Spot a winner in analytics, then let OpenClaw queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
+			parallelMocks: [
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: 'agent-parallel-schedule',
+					imageAlt: 'OpenClaw desktop chat session scheduling posts in parallel'
+				},
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: 'agent-parallel-analytics',
+					imageAlt: 'Second OpenClaw desktop chat session pulling live analytics concurrently'
+				},
+				{
+					deviceMock: 'iphone-15-pro',
+					deviceMockContent: 'agent-chat-schedule',
+					imageAlt: 'OpenClaw Telegram chat scheduling posts while desktop sessions run in parallel'
+				}
+			],
+			mediaOnRight: false,
+			cliCommandsTitle: 'Parallel CLI sessions',
+			cliCommands: `# Session A — draft + schedule
+openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
+openquok posts:status <post-id> -s schedule
+
+# Session B — metrics (runs at the same time)
+openquok analytics:platform <integration-uuid> -d 7
+openquok analytics:post <post-id> -d 30
+
+# Session C — review queue (runs at the same time)
+openquok posts:review-todo <post-id> --note "Check CTA before publish"
+openquok posts:list --status draft`
 		}
 	],
 	workflowSection: {
@@ -407,7 +468,7 @@ openquok analytics:post <post-id> -d 7`
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
 				feature:
-					'Eligibility is checked automatically — OPENQUOK_API_KEY must be set; credentials stay on your host'
+					'Eligibility is checked automatically — credentials stay on your host'
 			},
 			{
 				pain: 'Always-on integrations that bloat agent context',
@@ -465,6 +526,11 @@ openquok analytics:post <post-id> -d 7`
 			title: 'Does it work with other AI agents?',
 			description:
 				'Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including Claude Code, ChatGPT, and custom automation. This page focuses on OpenClaw plus the openquok-core skill; pair it with other OpenClaw skills (Bloom, RevenueCat, or your own) for richer workflows.'
+		},
+		{
+			title: 'Why use OpenClaw instead of an MCP client?',
+			description:
+				'MCP clients like Codex, Claude Code, and Cursor fit focused editor and terminal sessions. OpenClaw fits always-on scheduling from Telegram, WhatsApp, or Slack — persistent memory, parallel sessions across channels, and one assistant that can run openquok-core beside your other skills. Choose OpenClaw when messaging and scale matter; choose MCP when OpenQuok should live inside a single coding workflow. Many teams use both.'
 		},
 		{
 			title: 'Can I run OpenClaw on Railway or another host?',
@@ -551,6 +617,42 @@ openquok analytics:platform <integration-uuid> -d 30
 
 # Per-post insights (likes, comments, shares)
 openquok analytics:post <post-id> -d 7`
+		},
+		{
+			subtitle: 'Scale what works',
+			title: 'when a viral format hits, run more sessions and reach every connected channel',
+			description:
+				'Spot a winner in analytics, then let Hermes queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
+			parallelMocks: [
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: 'agent-parallel-schedule',
+					imageAlt: 'Hermes desktop chat session scheduling posts in parallel'
+				},
+				{
+					deviceMock: 'desktop',
+					deviceMockContent: 'agent-parallel-analytics',
+					imageAlt: 'Second Hermes desktop chat session pulling live analytics concurrently'
+				},
+				{
+					deviceMock: 'iphone-15-pro',
+					deviceMockContent: 'agent-chat-schedule',
+					imageAlt: 'Hermes Telegram chat scheduling posts while desktop sessions run in parallel'
+				}
+			],
+			mediaOnRight: false,
+			cliCommandsTitle: 'Parallel CLI sessions',
+			cliCommands: `# Session A — draft + schedule
+openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
+openquok posts:status <post-id> -s schedule
+
+# Session B — metrics (runs at the same time)
+openquok analytics:platform <integration-uuid> -d 7
+openquok analytics:post <post-id> -d 30
+
+# Session C — review queue (runs at the same time)
+openquok posts:review-todo <post-id> --note "Check CTA before publish"
+openquok posts:list --status draft`
 		}
 	],
 	workflowSection: {
@@ -665,7 +767,7 @@ openquok analytics:post <post-id> -d 7`
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
 				feature:
-					'Eligibility is checked automatically — OPENQUOK_API_KEY must be set; credentials stay on your host'
+					'Eligibility is checked automatically — credentials stay on your host'
 			},
 			{
 				pain: 'Always-on integrations that bloat agent context',
@@ -726,6 +828,11 @@ openquok analytics:post <post-id> -d 7`
 				'Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including OpenClaw, Claude Code, and custom automation. This page focuses on Hermes plus the openquok-core skill; pair it with Skills Hub workflows, MCP servers, or cron for richer pipelines.'
 		},
 		{
+			title: 'Why use Hermes Agent instead of an MCP client?',
+			description:
+				'MCP clients like Codex, Claude Code, and Cursor fit focused editor and terminal sessions. Hermes fits always-on scheduling from Telegram, Discord, Slack, or WhatsApp — persistent memory, parallel sessions across channels, and one gateway for 20+ chat platforms. Choose Hermes when messaging and scale matter; choose MCP when OpenQuok should live inside a single coding workflow. Many teams use both.'
+		},
+		{
 			title: 'Can I run Hermes on a VPS or serverless host?',
 			description:
 				'Yes. Hermes supports local, Docker, SSH, Daytona, Singularity, and Modal backends. Mount a persistent ~/.hermes/ volume, install openquok-core and the global CLI in the same shell Hermes uses for tools, then authenticate. On headless hosts prefer OPENQUOK_API_KEY or openquok auth:login --json so the user opens verification_uri_complete on another device.'
@@ -754,7 +861,37 @@ export const PUBLIC_AGENTS_HUB = {
 		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent. Pick a client below for setup steps and a copy-paste MCP config.',
 	mcpConfigTitle: 'Copy configuration',
 	mcpConfigDescription:
-		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.'
+		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.',
+	compareSection: {
+		subtitle: 'Hosted Agent vs MCP client',
+		title: 'agent hosts vs MCP clients, match the tool to how you work',
+		description:
+			'Both paths connect to OpenQuok. Agent hosts like OpenClaw and Hermes shine when you want messaging, memory, and parallel sessions. MCP clients like Codex and Claude Code shine when you want focused coding workflows in your editor or terminal.',
+		leftTitle: 'Agent hosts (OpenClaw, Hermes)',
+		rightTitle: 'MCP clients (Codex, Claude Code, Cursor)',
+		points: [
+			{
+				left: 'Schedule from Telegram, Discord, Slack, or WhatsApp',
+				right: 'Work in Cursor, Claude Code, or Codex'
+			},
+			{
+				left: 'Persistent memory across sessions',
+				right: 'Focused, per-session coding sprints'
+			},
+			{
+				left: 'Parallel sessions across channels',
+				right: 'Async tasks with clear specs'
+			},
+			{
+				left: 'Messaging, memory, and workflows in one assistant',
+				right: 'Native OpenQuok MCP tool calls'
+			},
+			{
+				left: 'Model-agnostic — swap providers freely',
+				right: 'Ticket- and PR-friendly review flows'
+			}
+		]
+	} satisfies PublicAgentsHubCompareSection
 } as const;
 
 export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPageViewModel[] = [

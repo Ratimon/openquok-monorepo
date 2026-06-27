@@ -13,10 +13,13 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		accentSplitCtaBannerDescription
 	} from '$lib/config/constants/config';
+	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import Compare from '$lib/ui/templates/Compare.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
 	import PublicMcpHubGrid from '$lib/ui/templates/landing-page/PublicMcpHubGrid.svelte';
 	import PublicMcpToolsPanel from '$lib/ui/templates/landing-page/PublicMcpToolsPanel.svelte';
@@ -51,6 +54,16 @@
 	<div class="container mx-auto px-4 py-12 sm:py-16">
 		<PublicMcpToolsPanel />
 	</div>
+	
+	<Compare
+		heroTheme={landingHeroTheme}
+		landingSubtitle={PUBLIC_AGENTS_HUB.compareSection.subtitle}
+		landingTitle={PUBLIC_AGENTS_HUB.compareSection.title}
+		landingDescription={PUBLIC_AGENTS_HUB.compareSection.description}
+		leftTitle={PUBLIC_AGENTS_HUB.compareSection.leftTitle}
+		rightTitle={PUBLIC_AGENTS_HUB.compareSection.rightTitle}
+		points={PUBLIC_AGENTS_HUB.compareSection.points}
+	/>
 
 	<AccentSplitCtaBanner
 		title={ACCENT_SPLIT_CTA_BANNER_TITLE}

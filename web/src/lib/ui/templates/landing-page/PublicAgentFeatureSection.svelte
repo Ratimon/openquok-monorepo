@@ -9,6 +9,7 @@
 	import BentoPublicChannelFeature from '$lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import PublicAgentFeatureMedia from '$lib/ui/templates/landing-page/PublicAgentFeatureMedia.svelte';
+	import PublicAgentParallelMocks from '$lib/ui/templates/landing-page/PublicAgentParallelMocks.svelte';
 
 	type Props = {
 		section: PublicAgentFeatureSection;
@@ -22,7 +23,9 @@
 
 	const bgColorClass = $derived(index % 2 === 0 ? 'bg-base-100' : 'bg-base-200');
 	const cliCommandsTitle = $derived(section.cliCommandsTitle ?? 'CLI command options');
-	const hasSideMedia = $derived(Boolean(section.deviceMock || section.bentoId));
+	const hasSideMedia = $derived(
+		Boolean(section.parallelMocks?.length || section.deviceMock || section.bentoId)
+	);
 	const mediaOnRight = $derived(section.mediaOnRight !== false);
 
 	const sharedHeroProps = $derived({
@@ -40,18 +43,30 @@
 
 	const heroProps = $derived({
 		...sharedHeroProps,
-		...(section.deviceMock
+		...(section.parallelMocks?.length
 			? {
 					imageSrc: undefined,
-					mediaContainerClass: 'max-w-[320px]',
+					mediaContainerClass: 'max-w-3xl',
 					mediaColumnClass: 'justify-center'
 				}
-			: {})
+			: section.deviceMock
+				? {
+						imageSrc: undefined,
+						mediaContainerClass: 'max-w-[320px]',
+						mediaColumnClass: 'justify-center'
+					}
+				: {})
 	});
 </script>
 
 {#snippet sideMedia()}
-	{#if section.deviceMock}
+	{#if section.parallelMocks?.length}
+		<PublicAgentParallelMocks
+			items={section.parallelMocks}
+			sectionSubtitle={section.subtitle}
+			{telegramAgentBranding}
+		/>
+	{:else if section.deviceMock}
 		<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
 	{:else if section.bentoId}
 		<BentoPublicChannelFeature bentoId={section.bentoId} />

@@ -117,6 +117,10 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 				'No. Native MCP clients connect directly with an opo_ programmatic token. Agent hosts like OpenClaw and Hermes can still use the CLI skill if you prefer shell-based workflows.'
 		},
 		{
+			title: `Why use ${label} MCP instead of an agent host?`,
+			description: `OpenClaw and Hermes fit always-on scheduling from Telegram, Discord, or Slack — persistent memory and parallel sessions across channels. ${label} fits when OpenQuok should live inside your editor or terminal: native MCP tool calls, focused sessions, and async tasks with clear specs. Choose ${label} when you already work there; choose an agent host when messaging-first scale matters. Many teams use both.`
+		},
+		{
 			title: 'How do I authenticate?',
 			description:
 				'Create an OAuth app in Developers → Apps, generate an opo_ token under Developers → Access, then paste the MCP config with either an Authorization header or the API key in the URL path.'
