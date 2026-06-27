@@ -22,7 +22,7 @@ import { getMcpWorkflowScheduleContentId } from '$lib/ui/templates/device-mocks/
 
 export type PublicMcpIntegrationTab = 'mcp' | 'skill';
 
-export type PublicMcpIntegration = {
+export type PublicMcpIntegrationViewModel = {
 	slug: string;
 	label: string;
 	mcpClient: McpClient;
@@ -31,7 +31,7 @@ export type PublicMcpIntegration = {
 	hubDescription: string;
 };
 
-export type PublicMcpLandingPage = {
+export type PublicMcpLandingPageViewModel = {
 	pageType: 'mcp-client';
 	slug: string;
 	agentId: string;
@@ -62,7 +62,7 @@ export type PublicMcpLandingPage = {
 	available: boolean;
 };
 
-type McpLandingSeed = PublicMcpIntegration & {
+type McpLandingSeed = PublicMcpIntegrationViewModel & {
 	heroDescription: string;
 	metaDescription: string;
 	/** Where users spend time with this client (e.g. "your editor", "the CLI and your IDE"). */
@@ -74,7 +74,7 @@ type McpLandingSeed = PublicMcpIntegration & {
 function buildMcpAudienceSection(
 	label: string,
 	workflowPhrase: string
-): Pick<PublicMcpLandingPage, 'audienceSubtitle' | 'audienceTitle' | 'audienceCards'> {
+): Pick<PublicMcpLandingPageViewModel, 'audienceSubtitle' | 'audienceTitle' | 'audienceCards'> {
 	return {
 		audienceSubtitle: `Built for ${label}`,
 		audienceTitle: `Who connects ${label} to OpenQuok?`,
@@ -332,7 +332,7 @@ function buildMcpWorkflowSection(
 	};
 }
 
-function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
+function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewModel {
 	const {
 		slug,
 		label,
@@ -548,11 +548,11 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	}
 ];
 
-export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPage[] =
+export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPageViewModel[] =
 	MCP_LANDING_SEEDS.map(buildMcpLandingPage);
 
 type PublicMcpSkillSetupResolveInput = Pick<
-	PublicMcpLandingPage,
+	PublicMcpLandingPageViewModel,
 	| 'skillSetupSteps'
 	| 'setupSteps'
 	| 'agentLabel'
@@ -587,22 +587,22 @@ export function resolvePublicMcpSkillSetupStepsSubtitle(
 
 const mcpBySlug = new Map(PUBLIC_MCP_LANDING_PAGES.map((page) => [page.slug, page]));
 
-export function getPublicMcpLandingBySlug(slug: string): PublicMcpLandingPage | undefined {
+export function getPublicMcpLandingBySlug(slug: string): PublicMcpLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
 	return mcpBySlug.get(key);
 }
 
-export function getAvailablePublicMcpLandingBySlug(slug: string): PublicMcpLandingPage | undefined {
+export function getAvailablePublicMcpLandingBySlug(slug: string): PublicMcpLandingPageViewModel | undefined {
 	const page = getPublicMcpLandingBySlug(slug);
 	if (!page?.available) return undefined;
 	return page;
 }
 
-export function listPublicMcpLandingPages(): PublicMcpLandingPage[] {
+export function listPublicMcpLandingPages(): PublicMcpLandingPageViewModel[] {
 	return [...PUBLIC_MCP_LANDING_PAGES];
 }
 
-export function listPublicMcpIntegrationsForHub(): PublicMcpIntegration[] {
+export function listPublicMcpIntegrationsForHub(): PublicMcpIntegrationViewModel[] {
 	return PUBLIC_MCP_LANDING_PAGES.map(
 		({ slug, agentLabel, mcpClient, icon, hubDescription }) => ({
 			slug,

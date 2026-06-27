@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 
 	import { publicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public';
 
@@ -13,10 +16,11 @@
 
 	const pagePresenter = publicAgentByPagePresenter;
 
-	let agentVm = $derived(data.agentVm);
 	let schemaData = $derived(data.schemaData);
-	let agentHostVm = $derived(agentVm && isPublicAgentHostLandingPage(agentVm) ? agentVm : null);
-	let mcpVm = $derived(agentVm && isPublicMcpLandingPage(agentVm) ? agentVm : null);
+
+	let agentVm: PublicAgentViewModel | null = $derived(data.agentVm);
+	let agentHostVm: PublicAgentHostLandingPageViewModel | null = $derived(agentVm && isPublicAgentHostLandingPage(agentVm) ? agentVm : null);
+	let mcpVm: PublicMcpLandingPageViewModel | null = $derived(agentVm && isPublicMcpLandingPage(agentVm) ? agentVm : null);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
@@ -26,13 +30,13 @@
 
 {#if mcpVm}
 	<PublicMcpLandingPage
-		mcp={mcpVm}
+		mcpVm={mcpVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
 	/>
 {:else if agentHostVm}
 	<PublicAgentLandingPage
-		agent={agentHostVm}
+		agentVm={agentHostVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
 	/>

@@ -187,7 +187,7 @@ export type PublicAgentFeatureSection = {
 	mediaOnRight?: boolean;
 };
 
-export type PublicAgentHostLandingPage = {
+export type PublicAgentHostLandingPageViewModel = {
 	pageType: 'agent-host';
 	slug: string;
 	/** Catalog identifier used for icons and docs links. */
@@ -227,9 +227,9 @@ export type PublicAgentHostLandingPage = {
 };
 
 /** Agent host catalog entries (OpenClaw, Hermes, …). */
-export type PublicAgentLandingPage = PublicAgentHostLandingPage;
+export type PublicAgentLandingPageViewModel = PublicAgentHostLandingPageViewModel;
 
-const OPENCLAW_AGENT: PublicAgentHostLandingPage = {
+const OPENCLAW_AGENT: PublicAgentHostLandingPageViewModel = {
 	pageType: 'agent-host',
 	slug: 'openclaw',
 	agentId: 'openclaw',
@@ -482,7 +482,7 @@ openquok analytics:post <post-id> -d 7`
 	available: true
 };
 
-const HERMES_AGENT: PublicAgentHostLandingPage = {
+const HERMES_AGENT: PublicAgentHostLandingPageViewModel = {
 	pageType: 'agent-host',
 	slug: 'hermes',
 	agentId: 'hermes',
@@ -757,7 +757,7 @@ export const PUBLIC_AGENTS_HUB = {
 		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.'
 } as const;
 
-export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPage[] = [
+export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPageViewModel[] = [
 	OPENCLAW_AGENT,
 	HERMES_AGENT
 ];
@@ -766,23 +766,23 @@ const agentHostBySlug = new Map(
 	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])
 );
 
-export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPage | undefined {
+export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
 	return agentHostBySlug.get(key);
 }
 
 export function getAvailablePublicAgentHostBySlug(
 	slug: string
-): PublicAgentHostLandingPage | undefined {
+): PublicAgentHostLandingPageViewModel | undefined {
 	const page = getPublicAgentHostBySlug(slug);
 	if (!page?.available) return undefined;
 	return page;
 }
 
-export function listPublicAgentsForHub(): PublicAgentHostLandingPage[] {
+export function listPublicAgentsForHub(): PublicAgentHostLandingPageViewModel[] {
 	return [...PUBLIC_AGENT_HOST_LANDING_PAGES];
 }
 
-export function listAvailablePublicAgents(): PublicAgentHostLandingPage[] {
+export function listAvailablePublicAgents(): PublicAgentHostLandingPageViewModel[] {
 	return PUBLIC_AGENT_HOST_LANDING_PAGES.filter((page) => page.available);
 }

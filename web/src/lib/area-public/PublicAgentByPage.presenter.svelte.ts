@@ -1,28 +1,29 @@
-import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
+import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 import {
 	getAvailablePublicAgentHostBySlug,
 	getPublicAgentHostBySlug
 } from '$lib/content/constants/publicAgentConfig';
-import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
+import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 import {
 	getAvailablePublicMcpLandingBySlug,
 	getPublicMcpLandingBySlug,
 	listPublicMcpLandingPages
 } from '$lib/content/constants/publicMcpConfig';
 
-export type PublicAgentsLandingPage = PublicAgentHostLandingPage | PublicMcpLandingPage;
+export type PublicAgentsLandingPage =
+	PublicAgentHostLandingPageViewModel | PublicMcpLandingPageViewModel;
 
 export type PublicAgentViewModel = PublicAgentsLandingPage;
 
 export function isPublicMcpLandingPage(
 	page: PublicAgentsLandingPage
-): page is PublicMcpLandingPage {
+): page is PublicMcpLandingPageViewModel {
 	return page.pageType === 'mcp-client';
 }
 
 export function isPublicAgentHostLandingPage(
 	page: PublicAgentsLandingPage
-): page is PublicAgentHostLandingPage {
+): page is PublicAgentHostLandingPageViewModel {
 	return page.pageType === 'agent-host';
 }
 

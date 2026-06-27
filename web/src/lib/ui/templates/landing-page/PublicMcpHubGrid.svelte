@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicMcpIntegration } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
 	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
 
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
@@ -8,7 +8,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		integrationsVm: readonly PublicMcpIntegration[];
+		integrationsVm: readonly PublicMcpIntegrationViewModel[];
 	};
 
 	let { integrationsVm }: Props = $props();

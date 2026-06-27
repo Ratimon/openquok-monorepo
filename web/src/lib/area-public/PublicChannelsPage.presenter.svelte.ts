@@ -1,6 +1,6 @@
 import {
 	listPublicChannelsForHub,
-	type PublicChannelLandingPage
+	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/publicChannelConfig';
 
 import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
@@ -23,6 +23,6 @@ export class PublicChannelsPagePresenter {
 	}
 }
 
-function toPublicChannelVm(page: PublicChannelLandingPage): PublicChannelViewModel {
+function toPublicChannelVm(page: PublicChannelLandingPageViewModel): PublicChannelViewModel {
 	return page;
 }

@@ -1,28 +1,26 @@
 <script lang="ts">
-	import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
-	type LandingHeroTitleSegment = { text: string; highlight: boolean };
-
 	type Props = {
-		mcp: PublicMcpLandingPage;
+		mcpVm: PublicMcpLandingPageViewModel;
 		ctaText: string;
 		ctaHref: string;
 		docsCtaText?: string;
 		docsCtaHref?: string;
 	};
 
-	let { mcp, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let { mcpVm, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
 	const headingId = 'public-mcp-hero-heading';
 
-	const titleSegments = $derived(landingHeroTheme.parseLandingHeroTitlePartSegments(mcp.heroTitle));
+	const titleSegments = $derived(landingHeroTheme.parseLandingHeroTitlePartSegments(mcpVm.heroTitle));
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
@@ -32,13 +30,13 @@
 				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
 				aria-hidden="true"
 			>
-				<AbstractIcon name={mcp.icon} width="36" height="36" class="size-9" focusable="false" />
+				<AbstractIcon name={mcpVm.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
 			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">MCP</p>
 
 			<p class="mt-2 text-xs font-bold tracking-[0.2em] text-base-content/60 uppercase sm:text-sm">
-				{mcp.agentLabel}
+				{mcpVm.agentLabel}
 			</p>
 
 			<h1
@@ -57,7 +55,7 @@
 			</h1>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-				{mcp.heroDescription}
+				{mcpVm.heroDescription}
 			</p>
 
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">

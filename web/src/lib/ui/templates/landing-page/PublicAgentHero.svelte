@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
@@ -15,7 +15,7 @@
 	};
 
 	type Props = {
-		agent: PublicAgentHostLandingPage;
+		agentVm: PublicAgentHostLandingPageViewModel;
 		heroTheme: LandingHeroTheme;
 		ctaText: string;
 		ctaHref: string;
@@ -23,14 +23,14 @@
 		docsCtaHref?: string;
 	};
 
-	let { agent, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let { agentVm, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
 	const headingId = 'public-agent-hero-heading';
 	const installHeadingId = 'public-agent-hero-install-heading';
 
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agent.heroTitle));
+	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agentVm.heroTitle));
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
@@ -40,11 +40,11 @@
 				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
 				aria-hidden="true"
 			>
-				<AbstractIcon name={agent.icon} width="36" height="36" class="size-9" focusable="false" />
+				<AbstractIcon name={agentVm.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
 			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{agent.agentLabel}
+				{agentVm.agentLabel}
 			</p>
 
 			<h1
@@ -61,7 +61,7 @@
 			</h1>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-				{agent.heroDescription}
+				{agentVm.heroDescription}
 			</p>
 
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
@@ -94,7 +94,7 @@
 				>
 					Install our core skill:
 				</h2>
-				<SkillInstallCommandTabs options={agent.skillInstallOptions} />
+				<SkillInstallCommandTabs options={agentVm.skillInstallOptions} />
 			</section>
 		</div>
 	</div>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
+	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
@@ -14,17 +14,17 @@
 	};
 
 	type Props = {
-		channel: PublicChannelLandingPage;
+		channelVm: PublicChannelLandingPageViewModel;
 		heroTheme: LandingHeroTheme;
 		ctaText: string;
 		ctaHref: string;
 	};
 
-	let { channel, heroTheme, ctaText, ctaHref }: Props = $props();
+	let { channelVm, heroTheme, ctaText, ctaHref }: Props = $props();
 
 	const headingId = 'public-channel-hero-heading';
 
-	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(channel.heroTitle));
+	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(channelVm.heroTitle));
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
@@ -34,11 +34,11 @@
 				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
 				aria-hidden="true"
 			>
-				<AbstractIcon name={channel.icon} width="36" height="36" class="size-9" focusable="false" />
+				<AbstractIcon name={channelVm.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
 			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{channel.platformLabel}
+				{channelVm.platformLabel}
 			</p>
 
 			<h1
@@ -55,7 +55,7 @@
 			</h1>
 
 			<p class="mt-6 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-				{channel.heroDescription}
+				{channelVm.heroDescription}
 			</p>
 
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">

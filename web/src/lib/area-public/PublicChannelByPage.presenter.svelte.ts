@@ -1,9 +1,9 @@
 import {
 	getAvailablePublicChannelBySlug,
-	type PublicChannelLandingPage
+	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/publicChannelConfig';
 
-export type PublicChannelViewModel = PublicChannelLandingPage;
+export type PublicChannelViewModel = PublicChannelLandingPageViewModel;
 
 export class PublicChannelByPagePresenter {
 	public channelVm: PublicChannelViewModel | null = $state(null);
@@ -28,6 +28,6 @@ export class PublicChannelByPagePresenter {
 	}
 }
 
-function toPublicChannelVm(page: PublicChannelLandingPage): PublicChannelViewModel {
+function toPublicChannelVm(page: PublicChannelLandingPageViewModel): PublicChannelViewModel {
 	return page;
 }

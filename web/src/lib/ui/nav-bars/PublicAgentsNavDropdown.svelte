@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
-	import type { PublicAgentLandingPage } from '$lib/content/constants/publicAgentConfig';
-	import type { PublicMcpLandingPage } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicAgentLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
@@ -43,7 +43,9 @@
 
 	let isActive = $derived(isParentRoute(page.url.pathname, agentsPath));
 
-	function toNavEntry(landingPage: PublicAgentLandingPage | PublicMcpLandingPage): AgentsNavEntry {
+	function toNavEntry(
+		landingPage: PublicAgentLandingPageViewModel | PublicMcpLandingPageViewModel
+	): AgentsNavEntry {
 		return {
 			slug: landingPage.slug,
 			label: landingPage.agentLabel,

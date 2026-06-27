@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicMcpLandingPage, PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicMcpLandingPageViewModel, PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
 	import {
 		resolvePublicMcpSkillSetupSteps,
 		resolvePublicMcpSkillSetupStepsSubtitle,
@@ -27,12 +27,12 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 
 	type Props = {
-		mcp: PublicMcpLandingPage;
+		mcpVm: PublicMcpLandingPageViewModel;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
 	};
 
-	let { mcp, secondaryCtaText, secondaryCtaHref }: Props = $props();
+	let { mcpVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -42,38 +42,38 @@
 
 	let integrationTab = $state<PublicMcpIntegrationTab>('mcp');
 
-	let resolvedSkillSetupSteps = $derived(resolvePublicMcpSkillSetupSteps(mcp));
+	let resolvedSkillSetupSteps = $derived(resolvePublicMcpSkillSetupSteps(mcpVm));
 
 	let activeSetupSteps = $derived(
-		integrationTab === 'skill' ? resolvedSkillSetupSteps : (mcp.setupSteps ?? [])
+		integrationTab === 'skill' ? resolvedSkillSetupSteps : (mcpVm.setupSteps ?? [])
 	);
 	let activeSetupStepsTitle = $derived(
 		integrationTab === 'skill'
-			? resolvePublicMcpSkillSetupStepsTitle(mcp)
-			: mcp.setupStepsTitle
+			? resolvePublicMcpSkillSetupStepsTitle(mcpVm)
+			: mcpVm.setupStepsTitle
 	);
 	let activeSetupStepsSubtitle = $derived(
 		integrationTab === 'skill'
-			? resolvePublicMcpSkillSetupStepsSubtitle(mcp)
-			: mcp.setupStepsSubtitle
+			? resolvePublicMcpSkillSetupStepsSubtitle(mcpVm)
+			: mcpVm.setupStepsSubtitle
 	);
 
-	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(mcp.agentLabel));
+	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(mcpVm.agentLabel));
 </script>
 
 <PublicMcpHero
-	{mcp}
+	{mcpVm}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 	docsCtaText="View Docs"
-	docsCtaHref={mcp.docsPath}
+	docsCtaHref={mcpVm.docsPath}
 />
 
 <div class="container mx-auto px-4 py-12 sm:py-16">
 	<div class="mx-auto max-w-4xl">
 		<PublicMcpIntegrationSetup
-			agentLabel={mcp.agentLabel}
-			activeClient={mcp.mcpClient}
+			agentLabel={mcpVm.agentLabel}
+			activeClient={mcpVm.mcpClient}
 			headingId={configHeadingId}
 			bind:integrationTab
 		/>
@@ -81,16 +81,16 @@
 </div>
 
 <PublicLandingWorkflowSection
-	section={mcp.workflowSection}
+	section={mcpVm.workflowSection}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />
 
 <WhoIsFor
 	heroTheme={landingHeroTheme}
-	landingSubtitle={mcp.audienceSubtitle}
-	landingTitle={mcp.audienceTitle}
-	cards={mcp.audienceCards}
+	landingSubtitle={mcpVm.audienceSubtitle}
+	landingTitle={mcpVm.audienceTitle}
+	cards={mcpVm.audienceCards}
 />
 
 {#if activeSetupSteps.length > 0}
@@ -107,10 +107,10 @@
 <div class="container mx-auto px-4">
 	<PublicFaq
 		heroTheme={landingHeroTheme}
-		faqSubtitle={mcp.faqSubtitle}
-		faqTitle={mcp.faqTitle}
-		faqDescription={mcp.faqDescription}
-		faqItems={mcp.faqItems}
+		faqSubtitle={mcpVm.faqSubtitle}
+		faqTitle={mcpVm.faqTitle}
+		faqDescription={mcpVm.faqDescription}
+		faqItems={mcpVm.faqItems}
 		sectionClass="py-16 sm:py-20"
 	/>
 

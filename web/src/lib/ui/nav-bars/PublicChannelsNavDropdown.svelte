@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
+	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
@@ -39,7 +39,7 @@
 		).filter((column) => column.length > 0);
 	}
 
-	function channelHref(channel: PublicChannelLandingPage): string | undefined {
+	function channelHref(channel: PublicChannelLandingPageViewModel): string | undefined {
 		if (!channel.available) return undefined;
 		return route(getRootPathPublicChannel(channel.slug));
 	}

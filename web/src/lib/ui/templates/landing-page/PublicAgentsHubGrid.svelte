@@ -1,7 +1,7 @@
 <script lang="ts">
 	import {
 		PUBLIC_AGENTS_HUB,
-		type PublicAgentHostLandingPage
+		type PublicAgentHostLandingPageViewModel
 	} from '$lib/content/constants/publicAgentConfig';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
@@ -15,7 +15,7 @@
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
-		agentsVm: PublicAgentHostLandingPage[];
+		agentsVm: PublicAgentHostLandingPageViewModel[];
 	};
 
 	let { agentsVm }: Props = $props();

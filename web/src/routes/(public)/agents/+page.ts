@@ -1,8 +1,8 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
-import type { PublicMcpIntegration } from '$lib/content/constants/publicMcpConfig';
+import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
 
 import type { PageLoad } from './$types';
 
@@ -19,8 +19,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			agentsVm: PublicAgentHostLandingPage[];
-			mcpIntegrationsVm: PublicMcpIntegration[];
+			agentsVm: PublicAgentHostLandingPageViewModel[];
+			mcpIntegrationsVm: PublicMcpIntegrationViewModel[];
 			schemaData: unknown;
 		};
 

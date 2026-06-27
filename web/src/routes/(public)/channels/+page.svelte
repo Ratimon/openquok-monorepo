@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -19,8 +20,8 @@
 
 	let { data }: Props = $props();
 
-	let channelsVm = $derived(data.channelsVm ?? []);
 	let schemaData = $derived(data.schemaData);
+	let channelsVm: PublicChannelViewModel[] = $derived(data.channelsVm ?? []);
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -30,7 +31,9 @@
 <JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-10 md:py-16">
-	<PublicChannelsHubGrid channels={channelsVm} />
+	<PublicChannelsHubGrid
+		channelsVm={channelsVm}
+	/>
 
 	<CenteredDarkCtaBanner
 		title={CENTERED_DARK_CTA_BANNER_TITLE}

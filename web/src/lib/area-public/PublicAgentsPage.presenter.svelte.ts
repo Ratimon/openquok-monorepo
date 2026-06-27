@@ -1,37 +1,37 @@
 import {
 	listPublicAgentsForHub,
-	type PublicAgentHostLandingPage
+	type PublicAgentHostLandingPageViewModel
 } from '$lib/content/constants/publicAgentConfig';
 import {
 	listPublicMcpIntegrationsForHub,
-	type PublicMcpIntegration
+	type PublicMcpIntegrationViewModel
 } from '$lib/content/constants/publicMcpConfig';
 
 export class PublicAgentsPagePresenter {
-	public agentsViewModel: PublicAgentHostLandingPage[] = $state([]);
-	public mcpIntegrationsViewModel: PublicMcpIntegration[] = $state([]);
+	public agentsVm: PublicAgentHostLandingPageViewModel[] = $state([]);
+	public mcpIntegrationsVm: PublicMcpIntegrationViewModel[] = $state([]);
 
 	/** Stateless — safe for `+page.server.ts` (SSR): hub catalog → VM without mutating `$state`. */
-	loadAgentsHubStateless(): PublicAgentHostLandingPage[] {
+	loadAgentsHubStateless(): PublicAgentHostLandingPageViewModel[] {
 		return listPublicAgentsForHub();
 	}
 
 	/** Stateful wrapper — calls {@link loadAgentsHubStateless} and assigns {@link agentsViewModel}. */
-	loadAgentsHub(): PublicAgentHostLandingPage[] {
-		const agentsViewModel = this.loadAgentsHubStateless();
-		this.agentsViewModel = agentsViewModel;
-		return agentsViewModel;
+	loadAgentsHub(): PublicAgentHostLandingPageViewModel[] {
+		const agentsVm = this.loadAgentsHubStateless();
+		this.agentsVm = agentsVm;
+		return agentsVm;
 	}
 
 	/** Stateless — safe for `+page.server.ts` (SSR): MCP hub catalog → VM without mutating `$state`. */
-	loadMcpIntegrationsHubStateless(): PublicMcpIntegration[] {
+	loadMcpIntegrationsHubStateless(): PublicMcpIntegrationViewModel[] {
 		return listPublicMcpIntegrationsForHub();
 	}
 
 	/** Stateful wrapper — calls {@link loadMcpIntegrationsHubStateless} and assigns {@link mcpIntegrationsViewModel}. */
-	loadMcpIntegrationsHub(): PublicMcpIntegration[] {
-		const mcpIntegrationsViewModel = this.loadMcpIntegrationsHubStateless();
-		this.mcpIntegrationsViewModel = mcpIntegrationsViewModel;
-		return mcpIntegrationsViewModel;
+	loadMcpIntegrationsHub(): PublicMcpIntegrationViewModel[] {
+		const mcpIntegrationsVm = this.loadMcpIntegrationsHubStateless();
+		this.mcpIntegrationsVm = mcpIntegrationsVm;
+		return mcpIntegrationsVm;
 	}
 }

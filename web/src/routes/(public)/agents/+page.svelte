@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
@@ -24,8 +26,8 @@
 
 	let { data }: Props = $props();
 
-	let agentsVm = $derived(data.agentsVm ?? []);
-	let mcpIntegrationsVm = $derived(data.mcpIntegrationsVm ?? []);
+	let agentsVm: PublicAgentHostLandingPageViewModel[] = $derived(data.agentsVm ?? []);
+	let mcpIntegrationsVm: PublicMcpIntegrationViewModel[] = $derived(data.mcpIntegrationsVm ?? []);
 	let schemaData = $derived(data.schemaData);
 
 	// /sign-up

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicAgentHostLandingPage } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 
 	import {
 		HERMES_CORE_MESSAGING_CHANNELS,
@@ -34,46 +34,46 @@
 	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
 
 	type Props = {
-		agent: PublicAgentHostLandingPage;
+		agentVm: PublicAgentHostLandingPageViewModel;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
 	};
 
-	let { agent, secondaryCtaText, secondaryCtaHref }: Props = $props();
+	let { agentVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
-	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(agent.agentLabel));
+	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(agentVm.agentLabel));
 
 	const coreMessagingChannels = $derived(
-		agent.slug === 'hermes' ? HERMES_CORE_MESSAGING_CHANNELS : OPENCLAW_CORE_MESSAGING_CHANNELS
+		agentVm.slug === 'hermes' ? HERMES_CORE_MESSAGING_CHANNELS : OPENCLAW_CORE_MESSAGING_CHANNELS
 	);
 	const extensionMessagingChannels = $derived(
-		agent.slug === 'hermes'
+		agentVm.slug === 'hermes'
 			? HERMES_EXTENSION_MESSAGING_CHANNELS
 			: OPENCLAW_EXTENSION_MESSAGING_CHANNELS
 	);
 
 	const telegramAgentBranding = $derived({
-		agentIcon: agent.icon,
-		agentLabel: agent.telegramBotLabel ?? agent.agentLabel
+		agentIcon: agentVm.icon,
+		agentLabel: agentVm.telegramBotLabel ?? agentVm.agentLabel
 	});
 </script>
 
 <PublicAgentHero
-	{agent}
+	{agentVm}
 	heroTheme={landingHeroTheme}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 	docsCtaText="View Docs"
-	docsCtaHref={agent.docsPath}
+	docsCtaHref={agentVm.docsPath}
 />
 
-{#if agent.workflowSection}
+{#if agentVm.workflowSection}
 	<PublicLandingWorkflowSection
-		section={agent.workflowSection}
+		section={agentVm.workflowSection}
 		ctaText={secondaryCtaText}
 		ctaHref={secondaryCtaHref}
 		{telegramAgentBranding}
@@ -82,23 +82,23 @@
 
 <WhoIsFor
 	heroTheme={landingHeroTheme}
-	landingSubtitle={agent.audienceSubtitle}
-	landingTitle={agent.audienceTitle}
-	cards={agent.audienceCards}
+	landingSubtitle={agentVm.audienceSubtitle}
+	landingTitle={agentVm.audienceTitle}
+	cards={agentVm.audienceCards}
 />
 
-{#if agent.setupSteps.length > 0}
+{#if agentVm.setupSteps.length > 0}
 	<FeaturesOrdered
-		steps={agent.setupSteps}
+		steps={agentVm.setupSteps}
 		heroTheme={landingHeroTheme}
-		sectionSubtitle={agent.setupStepsSubtitle}
-		sectionTitle={agent.setupStepsTitle}
+		sectionSubtitle={agentVm.setupStepsSubtitle}
+		sectionTitle={agentVm.setupStepsTitle}
 		{telegramAgentBranding}
 	/>
 {/if}
 
 
-{#each agent.featureSections as section, index (index)}
+{#each agentVm.featureSections as section, index (index)}
 	<PublicAgentFeatureSection
 		{section}
 		{index}
@@ -108,36 +108,36 @@
 	/>
 {/each}
 
-{#if agent.comparisonSection}
+{#if agentVm.comparisonSection}
 	<WithWithout
 		heroTheme={landingHeroTheme}
-		landingSubtitle={agent.comparisonSection.subtitle}
-		landingTitle={agent.comparisonSection.title}
-		landingDescription={agent.comparisonSection.description}
-		withoutTitle={agent.comparisonSection.withoutTitle}
-		withTitle={agent.comparisonSection.withTitle}
-		points={agent.comparisonSection.points}
+		landingSubtitle={agentVm.comparisonSection.subtitle}
+		landingTitle={agentVm.comparisonSection.title}
+		landingDescription={agentVm.comparisonSection.description}
+		withoutTitle={agentVm.comparisonSection.withoutTitle}
+		withTitle={agentVm.comparisonSection.withTitle}
+		points={agentVm.comparisonSection.points}
 	/>
 {/if}
 
-{#if agent.commandReferenceSection}
+{#if agentVm.commandReferenceSection}
 	<CliCommandReference
 		heroTheme={landingHeroTheme}
-		landingSubtitle={agent.commandReferenceSection.subtitle}
-		landingTitle={agent.commandReferenceSection.title}
-		landingDescription={agent.commandReferenceSection.description}
-		commands={agent.commandReferenceSection.commands ?? []}
+		landingSubtitle={agentVm.commandReferenceSection.subtitle}
+		landingTitle={agentVm.commandReferenceSection.title}
+		landingDescription={agentVm.commandReferenceSection.description}
+		commands={agentVm.commandReferenceSection.commands ?? []}
 	/>
 {/if}
 
-{#if agent.supportedChannelsSection}
+{#if agentVm.supportedChannelsSection}
 	<SimpleCardGrid
 		heroTheme={landingHeroTheme}
 		headingId="agent-supported-channels-heading"
-		title={agent.supportedChannelsSection.title}
-		description={agent.supportedChannelsSection.description}
-		subtitle={agent.supportedChannelsSection.subtitle}
-		extensionLabel={agent.supportedChannelsSection.extensionLabel}
+		title={agentVm.supportedChannelsSection.title}
+		description={agentVm.supportedChannelsSection.description}
+		subtitle={agentVm.supportedChannelsSection.subtitle}
+		extensionLabel={agentVm.supportedChannelsSection.extensionLabel}
 		items={coreMessagingChannels}
 		extensionItems={extensionMessagingChannels}
 	/>
@@ -146,10 +146,10 @@
 <div class="container mx-auto px-4">
 	<PublicFaq
 		heroTheme={landingHeroTheme}
-		faqSubtitle={agent.faqSubtitle}
-		faqTitle={agent.faqTitle}
-		faqDescription={agent.faqDescription}
-		faqItems={agent.faqItems}
+		faqSubtitle={agentVm.faqSubtitle}
+		faqTitle={agentVm.faqTitle}
+		faqDescription={agentVm.faqDescription}
+		faqItems={agentVm.faqItems}
 		sectionClass="py-16 sm:py-20"
 	/>
 

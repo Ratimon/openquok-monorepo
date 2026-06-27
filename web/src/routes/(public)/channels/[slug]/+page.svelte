@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 
 	import { publicChannelByPagePresenter } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -26,8 +27,8 @@
 
 	const pagePresenter = publicChannelByPagePresenter;
 
-	let channelVm = $derived(data.channelVm);
-	let schemaData = $derived(data.schemaData);
+	let schemaData  = $derived(data.schemaData);
+	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
@@ -41,7 +42,7 @@
 
 {#if channelVm}
 	<PublicChannelHero
-		channel={channelVm}
+		channelVm={channelVm}
 		heroTheme={landingHeroTheme}
 		ctaText={secondaryCtaText}
 		ctaHref={secondaryCtaHref}

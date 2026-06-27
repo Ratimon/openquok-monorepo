@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PublicChannelLandingPage } from '$lib/content/constants/publicChannelConfig';
+	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 	import { route } from '$lib/utils/path';
@@ -7,10 +7,10 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		channels: PublicChannelLandingPage[];
+		channelsVm: PublicChannelLandingPageViewModel[];
 	};
 
-	let { channels }: Props = $props();
+	let { channelsVm }: Props = $props();
 
 	const headingId = 'public-channels-hub-heading';
 </script>
@@ -34,8 +34,8 @@
 		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
 		aria-label="Social channels you can connect"
 	>
-		{#each channels as channel (channel.slug)}
-			{@const href = channel.available ? route(getRootPathPublicChannel(channel.slug)) : undefined}
+		{#each channelsVm as channelVm (channelVm.slug)}
+			{@const href = channelVm.available ? route(getRootPathPublicChannel(channelVm.slug)) : undefined}
 			<li>
 				{#if href}
 					<a
@@ -48,7 +48,7 @@
 								aria-hidden="true"
 							>
 								<AbstractIcon
-									name={channel.icon}
+									name={channelVm.icon}
 									width="28"
 									height="28"
 									class="size-7"
@@ -58,10 +58,10 @@
 						</div>
 						<div class="space-y-2 text-left">
 							<h2 class="text-lg font-bold text-base-content group-hover:text-primary">
-								{channel.platformLabel}
+								{channelVm.platformLabel}
 							</h2>
 							<p class="text-sm leading-relaxed text-base-content/70">
-								{channel.hubDescription ?? channel.metaDescription}
+								{channelVm.hubDescription ?? channelVm.metaDescription}
 							</p>
 						</div>
 						<span class="mt-auto text-sm font-semibold text-primary">View scheduler →</span>
@@ -76,7 +76,7 @@
 								aria-hidden="true"
 							>
 								<AbstractIcon
-									name={channel.icon}
+									name={channelVm.icon}
 									width="28"
 									height="28"
 									class="size-7 opacity-70"
@@ -90,9 +90,11 @@
 							</span>
 						</div>
 						<div class="space-y-2 text-left">
-							<h2 class="text-lg font-bold text-base-content/80">{channel.platformLabel}</h2>
+							<h2 class="text-lg font-bold text-base-content/80">
+								{channelVm.platformLabel}
+							</h2>
 							<p class="text-sm leading-relaxed text-base-content/60">
-								{channel.hubDescription ?? channel.metaDescription}
+								{channelVm.hubDescription ?? channelVm.metaDescription}
 							</p>
 						</div>
 					</div>

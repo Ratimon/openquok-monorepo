@@ -19,7 +19,7 @@ export type PublicChannelFeatureSection = {
 	mediaOnRight?: boolean;
 };
 
-export type PublicChannelLandingPage = {
+export type PublicChannelLandingPageViewModel = {
 	slug: string;
 	/** Integration catalog identifier used for icons and docs links. */
 	platformId: string;
@@ -53,7 +53,7 @@ const SHARED_CHANNEL_SEO_KEYWORDS = [
 ] as const;
 
 
-const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
+const FACEBOOK_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'facebook',
 	platformId: 'facebook',
 	platformLabel: 'Facebook',
@@ -180,7 +180,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const THREADS_CHANNEL: PublicChannelLandingPage = {
+const THREADS_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'threads',
 	platformId: 'threads',
 	platformLabel: 'Threads',
@@ -305,7 +305,7 @@ const THREADS_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
+const INSTAGRAM_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'instagram',
 	platformId: 'instagram',
 	platformLabel: 'Instagram',
@@ -438,7 +438,7 @@ const INSTAGRAM_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
+const YOUTUBE_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'youtube',
 	platformId: 'youtube',
 	platformLabel: 'YouTube',
@@ -585,7 +585,7 @@ const YOUTUBE_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const TIKTOK_CHANNEL: PublicChannelLandingPage = {
+const TIKTOK_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'tiktok',
 	platformId: 'tiktok',
 	platformLabel: 'TikTok',
@@ -726,7 +726,7 @@ const TIKTOK_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const LINKEDIN_CHANNEL: PublicChannelLandingPage = {
+const LINKEDIN_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'linkedin',
 	platformId: 'linkedin',
 	platformLabel: 'LinkedIn',
@@ -868,7 +868,7 @@ const LINKEDIN_CHANNEL: PublicChannelLandingPage = {
 	available: true
 };
 
-const X_CHANNEL: PublicChannelLandingPage = {
+const X_CHANNEL: PublicChannelLandingPageViewModel = {
 	slug: 'x',
 	platformId: 'x',
 	platformLabel: 'X',
@@ -1004,9 +1004,9 @@ const X_CHANNEL: PublicChannelLandingPage = {
 };
 
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
-const COMING_SOON_CHANNELS: PublicChannelLandingPage[] = [];
+const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
 
-export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] = [
+export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageViewModel[] = [
 	FACEBOOK_CHANNEL,
 	THREADS_CHANNEL,
 	INSTAGRAM_CHANNEL,
@@ -1019,21 +1019,21 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPage[] =
 
 const channelBySlug = new Map(PUBLIC_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page]));
 
-export function getPublicChannelBySlug(slug: string): PublicChannelLandingPage | undefined {
+export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
 	return channelBySlug.get(key);
 }
 
-export function getAvailablePublicChannelBySlug(slug: string): PublicChannelLandingPage | undefined {
+export function getAvailablePublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
 	const page = getPublicChannelBySlug(slug);
 	if (!page?.available) return undefined;
 	return page;
 }
 
-export function listPublicChannelsForHub(): PublicChannelLandingPage[] {
+export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] {
 	return [...PUBLIC_CHANNEL_LANDING_PAGES];
 }
 
-export function listAvailablePublicChannels(): PublicChannelLandingPage[] {
+export function listAvailablePublicChannels(): PublicChannelLandingPageViewModel[] {
 	return PUBLIC_CHANNEL_LANDING_PAGES.filter((page) => page.available);
 }
