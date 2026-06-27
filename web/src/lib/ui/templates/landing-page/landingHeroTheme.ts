@@ -28,6 +28,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'plugs',
 	'perfect plan',
 	'questions',
+	'winners',
 	'thumbnail',
 	'setup',
 	'batch',

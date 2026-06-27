@@ -3,6 +3,7 @@ import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import {
 	getMcpClientConfig,
 	MCP_TOKEN_PLACEHOLDER,
@@ -45,15 +46,54 @@ export type PublicMcpLandingPage = {
 	faqTitle: string;
 	faqDescription: string;
 	faqItems: PublicFaqItem[];
+	audienceSubtitle: string;
+	audienceTitle: string;
+	audienceCards: AudienceCard[];
 	available: boolean;
 };
 
 type McpLandingSeed = PublicMcpIntegration & {
 	heroDescription: string;
 	metaDescription: string;
+	/** Where users spend time with this client (e.g. "your editor", "the CLI and your IDE"). */
+	workflowPhrase: string;
 	/** Plain-text steps: install client, generate token, add MCP config, verify. */
 	setupSteps: readonly [string, string, string, string];
 };
+
+function buildMcpAudienceSection(
+	label: string,
+	workflowPhrase: string
+): Pick<PublicMcpLandingPage, 'audienceSubtitle' | 'audienceTitle' | 'audienceCards'> {
+	return {
+		audienceSubtitle: `Built for ${label}`,
+		audienceTitle: `Who connects ${label} to OpenQuok?`,
+		audienceCards: [
+			{
+				iconName: icons.CustomizedDrawnLaptop.name,
+				iconClass: 'text-sky-400',
+				title: 'IDE & workflow users',
+				description: `Stay in ${workflowPhrase} — draft and schedule social posts from your agent without opening another dashboard.`,
+				containerClass: 'h-full min-h-[18rem]'
+			},
+			{
+				iconName: icons.CustomizedDrawnRobot.name,
+				iconClass: 'text-cyan-400',
+				title: 'Developers & builders',
+				description: `Connect OpenQuok over HTTP MCP with a programmatic token — ${label} lists channels and schedules posts with structured tools.`,
+				containerClass: 'h-full min-h-[18rem]'
+			},
+			{
+				iconName: icons.CustomizedDrawnHouse.name,
+				iconClass: 'text-teal-400',
+				title: 'Startup founders',
+				description:
+					'Schedule across Facebook, Instagram, Threads, YouTube, and TikTok from one workspace — you approve on the calendar or kanban before anything goes live.',
+				containerClass: 'h-full min-h-[18rem]'
+			}
+		]
+	};
+}
 
 function buildMcpFaqItems(label: string): PublicFaqItem[] {
 	return [
@@ -136,8 +176,19 @@ function toSetupSteps(
 }
 
 function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
-	const { slug, label, mcpClient, icon, hubDescription, heroDescription, metaDescription, setupSteps } =
-		seed;
+	const {
+		slug,
+		label,
+		mcpClient,
+		icon,
+		hubDescription,
+		heroDescription,
+		metaDescription,
+		workflowPhrase,
+		setupSteps
+	} = seed;
+
+	const audience = buildMcpAudienceSection(label, workflowPhrase);
 
 	return {
 		pageType: 'mcp-client',
@@ -166,6 +217,7 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPage {
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over HTTP MCP — authentication, verification, and scheduling posts from chat.`,
 		faqItems: buildMcpFaqItems(label),
+		...audience,
 		available: true
 	};
 }
@@ -178,9 +230,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Antigravity.name,
 		hubDescription: 'Global ~/.gemini/config/mcp_config.json for agy',
 		heroDescription:
-			'Antigravity CLI reads MCP servers from ~/.gemini/config/mcp_config.json. Add openquok with your programmatic token so the agy agent can list channels and schedule social posts from natural language.',
+			'Antigravity CLI is Google\'s terminal agent for Gemini — run agy from your shell to automate tasks with natural language. Connect OpenQuok over MCP so your agent drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Antigravity CLI via mcp_config.json — schedule social posts from your terminal agent.',
+			'Connect OpenQuok MCP to Antigravity CLI — draft and schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your terminal',
 		setupSteps: [
 			'Install Antigravity CLI from antigravity.google — the agy binary loads MCP servers from ~/.gemini/config/mcp_config.json.',
 			'Create a programmatic token under Developers → Access.',
@@ -195,9 +248,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.ChatGPT.name,
 		hubDescription: 'OpenAI Codex config.toml MCP servers',
 		heroDescription:
-			'OpenAI Codex loads MCP servers from ~/.codex/config.toml. Add an [mcp_servers.openquok] table with your API URL and token so Codex can draft and schedule posts while you approve.',
+			'OpenAI Codex is a terminal-first coding agent — run it from your CLI or IDE to ship code with natural language. Connect OpenQuok over MCP so Codex drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to OpenAI Codex via config.toml — schedule social posts from your Codex agent.',
+			'Connect OpenQuok MCP to OpenAI Codex — draft and schedule social posts from your CLI and IDE. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'the CLI and your IDE',
 		setupSteps: [
 			'Install OpenAI Codex from the official docs — MCP servers are configured in ~/.codex/config.toml.',
 			'Generate a programmatic token under Developers → Access.',
@@ -212,9 +266,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Cursor.name,
 		hubDescription: 'Project-level .cursor/mcp.json for Agent and Composer',
 		heroDescription:
-			'Cursor reads MCP servers from .cursor/mcp.json at your project root. Add the openquok server with your programmatic token so Agent and Composer can draft and schedule social posts while you approve on the calendar or kanban.',
+			'Cursor is an AI-native code editor with Agent and Composer built in. Connect OpenQuok over MCP so you draft and schedule social posts from your editor while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Cursor via .cursor/mcp.json for Agent, Composer, and inline chat tools — schedule social posts from your editor.',
+			'Connect OpenQuok MCP to Cursor — schedule social posts from Agent and Composer. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your editor',
 		setupSteps: [
 			'Download and install Cursor from cursor.com — recent stable builds include MCP support for Agent and Composer.',
 			'Create an opo_ programmatic token under Account → Settings → Developers → Access.',
@@ -229,9 +284,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Claude.name,
 		hubDescription: 'claude mcp add with HTTP transport',
 		heroDescription:
-			'Claude Code registers remote MCP servers with claude mcp add over HTTP transport — no local proxy required. Connect OpenQuok so your terminal agent drafts and schedules posts while you approve what goes live.',
+			'Claude Code is Anthropic\'s terminal-first coding agent — run it from your shell with remote MCP servers over HTTP. Connect OpenQuok so Claude Code drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Add OpenQuok to Claude Code with claude mcp add and HTTP streamable transport — schedule social posts from your terminal agent.',
+			'Connect OpenQuok MCP to Claude Code — schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your terminal',
 		setupSteps: [
 			'Install Claude Code from the official Anthropic docs — use the one-line installer or your preferred package manager.',
 			'Generate a programmatic token in Developers → Access.',
@@ -246,9 +302,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.ClaudeGlyph.name,
 		hubDescription: 'Custom connectors and managedMcpServers',
 		heroDescription:
-			'Claude Cowork supports custom connectors and managedMcpServers for organization-wide MCP. Wire OpenQuok so coworkers draft and schedule social posts with human approval in your workspace.',
+			'Claude Cowork brings Anthropic\'s models to organization-wide AI workflows with custom connectors. Connect OpenQuok over MCP so coworkers draft and schedule social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Claude Cowork via custom connectors or managedMcpServers — organization-wide social scheduling for AI coworkers.',
+			'Connect OpenQuok MCP to Claude Cowork — organization-wide social scheduling with human approval on every publish.',
+		workflowPhrase: 'your Cowork sessions',
 		setupSteps: [
 			'Access Claude Cowork through claude.com — your organization needs custom connectors or managed MCP servers enabled.',
 			'Generate a programmatic token for your workspace under Developers → Access.',
@@ -263,9 +320,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Copilot.name,
 		hubDescription: 'Project .vscode/mcp.json for GitHub Copilot',
 		heroDescription:
-			'VS Code with GitHub Copilot reads MCP servers from .vscode/mcp.json in the workspace you opened. Add openquok so Copilot Chat can schedule social posts while you stay in control of publishing.',
+			'GitHub Copilot in VS Code brings AI chat and agent tools into the editor you already use. Connect OpenQuok over MCP so Copilot drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to VS Code and GitHub Copilot via .vscode/mcp.json — schedule social posts from your IDE.',
+			'Connect OpenQuok MCP to VS Code and GitHub Copilot — schedule social posts from your IDE. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your IDE',
 		setupSteps: [
 			'Install VS Code from code.visualstudio.com and enable GitHub Copilot — MCP servers load from .vscode/mcp.json in your workspace.',
 			'Create a programmatic token under Developers → Access.',
@@ -280,9 +338,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Devin.name,
 		hubDescription: 'Global ~/.codeium/mcp_config.json for Devin Local',
 		heroDescription:
-			'Devin Desktop loads MCP servers from ~/.codeium/mcp_config.json. Add openquok with your programmatic token so Devin Local can draft and schedule social posts from the editor.',
+			'Devin Desktop is Cognition\'s local AI coding agent — Devin Local runs in your editor with MCP tool support. Connect OpenQuok so Devin drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Devin Desktop via mcp_config.json — schedule social posts from Devin Local.',
+			'Connect OpenQuok MCP to Devin Desktop — schedule social posts from Devin Local. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your editor',
 		setupSteps: [
 			'Download and install Devin Desktop from docs.devin.ai — Devin Local reads MCP servers from ~/.codeium/mcp_config.json.',
 			'Generate a programmatic token under Developers → Access.',
@@ -297,9 +356,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Amp.name,
 		hubDescription: 'amp mcp add or Amp settings.json',
 		heroDescription:
-			'Amp supports MCP over HTTP via amp mcp add or settings.json. Connect OpenQuok so your Amp agent can schedule social posts with structured tools and human approval.',
+			'Amp is a fast AI coding agent built for terminal and IDE workflows. Connect OpenQuok over MCP so Amp drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Amp with amp mcp add or Amp settings.json — schedule social posts from your Amp agent.',
+			'Connect OpenQuok MCP to Amp — schedule social posts from your coding agent. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your terminal and IDE',
 		setupSteps: [
 			'Install Amp from amp.dev and sign in — register remote MCP servers via amp mcp add or settings.json.',
 			'Create a programmatic token under Developers → Access.',
@@ -314,9 +374,10 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 		icon: icons.Warp.name,
 		hubDescription: 'Warp terminal MCP server settings',
 		heroDescription:
-			'Warp terminal supports MCP server settings in-app. Add openquok with your programmatic token so Warp AI can draft and schedule social posts while you approve in OpenQuok.',
+			'Warp is a modern terminal with built-in AI — run commands and agent workflows from one place. Connect OpenQuok over MCP so Warp AI drafts and schedules social posts while you review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Warp terminal — schedule social posts from Warp AI with your programmatic token.',
+			'Connect OpenQuok MCP to Warp terminal — schedule social posts from Warp AI. Approve every publish on the calendar or kanban.',
+		workflowPhrase: 'your terminal',
 		setupSteps: [
 			'Download and install Warp from warp.dev — add MCP servers under Settings → MCP Servers.',
 			'Generate an opo_ programmatic token under Developers → Access.',

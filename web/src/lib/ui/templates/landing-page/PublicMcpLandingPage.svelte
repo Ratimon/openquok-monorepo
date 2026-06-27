@@ -13,6 +13,7 @@
 	} from '$lib/config/constants/config';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
+	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicMcpClientConfiguration from '$lib/ui/templates/landing-page/PublicMcpClientConfiguration.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
@@ -64,6 +65,13 @@
 		sectionTitle={mcp.setupStepsTitle}
 	/>
 {/if}
+
+<WhoIsFor
+	heroTheme={landingHeroTheme}
+	landingSubtitle={mcp.audienceSubtitle}
+	landingTitle={mcp.audienceTitle}
+	cards={mcp.audienceCards}
+/>
 
 <div class="container mx-auto px-4 py-12 sm:py-16">
 	<PublicMcpToolsPanel />
