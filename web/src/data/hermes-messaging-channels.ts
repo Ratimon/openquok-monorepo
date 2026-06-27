@@ -81,7 +81,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'dingtalk',
 		title: 'DingTalk',
 		description: 'Images, files, reactions, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.DingTalk.name,
 		containerClass: 'bg-[#0089FF] text-white',
 		iconClass: 'size-6'
 	},
@@ -89,7 +89,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'feishu',
 		title: 'Feishu/Lark',
 		description: 'Voice, images, threads, typing, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.Feishu.name,
 		containerClass: 'bg-[#3370FF] text-white',
 		iconClass: 'size-6'
 	},
@@ -97,7 +97,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'wecom',
 		title: 'WeCom',
 		description: 'Voice, images, and files for WeCom workspaces',
-		icon: icons.MessageCircle.name,
+		icon: icons.WeCom.name,
 		containerClass: 'bg-[#2EAB49] text-white',
 		iconClass: 'size-6'
 	},
@@ -105,7 +105,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'weixin',
 		title: 'Weixin',
 		description: 'Voice, images, typing, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.WeChat.name,
 		containerClass: 'bg-[#07C160] text-white',
 		iconClass: 'size-6'
 	},
@@ -113,7 +113,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'qq',
 		title: 'QQ',
 		description: 'Voice, images, files, and typing',
-		icon: icons.MessageCircle.name,
+		icon: icons.QQ.name,
 		containerClass: 'bg-[#12B7F5] text-white',
 		iconClass: 'size-6'
 	},
@@ -121,7 +121,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'yuanbao',
 		title: 'Yuanbao',
 		description: 'Voice, images, files, typing, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.Yuanbao.name,
 		containerClass: 'bg-[#6B4EFF] text-white',
 		iconClass: 'size-6'
 	},
@@ -153,7 +153,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'mattermost',
 		title: 'Mattermost',
 		description: 'Voice, images, threads, typing, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.Mattermost.name,
 		containerClass: 'bg-[#0058CC] text-white',
 		iconClass: 'size-6'
 	},
@@ -171,7 +171,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'bluebubbles',
 		title: 'BlueBubbles',
 		description: 'iMessage via BlueBubbles bridge',
-		icon: icons.IMessage.name,
+		icon: icons.BlueBubbles.name,
 		containerClass: 'bg-gradient-to-br from-[#34C759] to-[#30B350] text-white',
 		iconClass: 'size-6'
 	},
@@ -179,7 +179,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'line',
 		title: 'LINE',
 		description: 'Images, files, typing, and streaming',
-		icon: icons.MessageCircle.name,
+		icon: icons.LINE.name,
 		containerClass: 'bg-[#06C755] text-white',
 		iconClass: 'size-6'
 	},
@@ -187,7 +187,7 @@ export const HERMES_EXTENSION_MESSAGING_CHANNELS: HermesMessagingChannel[] = [
 		id: 'ntfy',
 		title: 'ntfy',
 		description: 'Push notifications to your phone or desktop',
-		icon: icons.Bell.name,
+		icon: icons.Ntfy.name,
 		containerClass: 'bg-[#317f6f] text-white',
 		iconClass: 'size-6'
 	}
