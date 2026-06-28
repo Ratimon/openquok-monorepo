@@ -13,8 +13,6 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what you can **ask your agent** in plain language and the <Badge text="schedulePostTool" variant="default" /> / <Badge text="triggerTool" variant="default" /> payloads the agent builds behind the scenes.
 
-Workflow patterns follow a multi-step flow — list channels, read platform schema, then schedule — on OpenQuok's v1 tool surface.
-
 <Callout type="note">
 <p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>LinkedIn</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>

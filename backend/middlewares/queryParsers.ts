@@ -315,3 +315,44 @@ export function createCategoriesPaginationParser(): RequestHandler {
         offset: QueryParsers.number,
     });
 }
+
+/** Admin listing comments list query. */
+export interface ParsedAdminListingCommentsQuery extends Record<string, unknown> {
+    limit?: number;
+    searchTerm?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+const adminListingCommentsRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.search,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range
+);
+
+export function createAdminListingCommentsParser(): RequestHandler {
+    return createQueryParser<ParsedAdminListingCommentsQuery>(adminListingCommentsRules);
+}
+
+/** Admin listing activities list query. */
+export interface ParsedAdminListingActivitiesQuery extends Record<string, unknown> {
+    limit?: number;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+    listing_id?: string | null;
+    activity_type?: string | null;
+}
+
+const adminListingActivitiesRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range,
+    { listing_id: QueryParsers.string, activity_type: QueryParsers.string }
+);
+
+export function createAdminListingActivitiesParser(): RequestHandler {
+    return createQueryParser<ParsedAdminListingActivitiesQuery>(adminListingActivitiesRules);
+}

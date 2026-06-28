@@ -74,3 +74,7 @@ export const listingStatParamSchema = z.object({
 export const listingCreatorUsernameParamSchema = z.object({
     username: z.string().min(1, "Username is required"),
 });
+
+export const listingCommentIdParamSchema = z.object({
+    id: z.string().uuid("Invalid comment id"),
+});

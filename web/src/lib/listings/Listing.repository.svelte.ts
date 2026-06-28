@@ -1,0 +1,1006 @@
+import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
+
+import { CONFIG_SCHEMA_LISTINGS } from '$lib/listings/constants/config';
+import type {
+	ListingCategoryFormSchemaType,
+	ListingFormSchemaType,
+	ListingTagFormSchemaType
+} from '$lib/listings/listing.types';
+
+/** API response shape for a single listing (camelCase from backend ListingDTOMapper). */
+export interface ListingDto {
+	id: string;
+	ownerId: string | null;
+	title: string;
+	slug: string;
+	description: string | null;
+	excerpt: string | null;
+	content: string | null;
+	listingKind: string;
+	extensionType: string | null;
+	installCommandSkills: string | null;
+	installCommandMcp: string | null;
+	isOfficial: boolean;
+	sourceRepoUrl: string | null;
+	likes: number;
+	views: number;
+	clicks: number;
+	bookmarkCount: number;
+	averageRating: number;
+	ratingsCount: number;
+	isUserPublished: boolean;
+	isAdminPublished: boolean;
+	schemaType: string | null;
+	schemaJson: Record<string, unknown> | null;
+	listingCategoryId: string | null;
+	defaultImageUrl: string | null;
+	listingImageUrls: string[];
+	logoImageUrl: string | null;
+	faq: unknown;
+	listingTagSlugs: string[];
+	createdAt: string;
+	updatedAt: string | null;
+	publishedAt: string | null;
+	category: { id: string; name: string; slug: string; parentPath?: string } | null;
+	tags: Array<{ id: string; name: string; slug: string }>;
+	owner: {
+		id: string;
+		fullName: string | null;
+		username: string | null;
+		avatarUrl: string | null;
+		tagLine: string | null;
+	} | null;
+}
+
+export interface ListingCategoryDto {
+	id: string;
+	name: string;
+	slug: string;
+	headline?: string | null;
+	description?: string | null;
+	image_url_hero?: string | null;
+	image_url_small?: string | null;
+	href?: string | null;
+	color?: string | null;
+	emoji?: string | null;
+	parent_id?: string | null;
+	parent_path?: string;
+}
+
+export interface ListingTagDto {
+	id: string;
+	name: string;
+	slug: string;
+	headline?: string | null;
+	description?: string | null;
+	image_url_hero?: string | null;
+	image_url_small?: string | null;
+	href?: string | null;
+	color?: string | null;
+	emoji?: string | null;
+}
+
+export interface AdminListingCommentDto {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	listingId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	listing: { id: string; title: string; slug: string } | null;
+}
+
+export interface AdminListingActivityDto {
+	id: string;
+	activityType: string;
+	createdAt: string;
+	userId: string | null;
+	listingId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	listing: { id: string; title: string; slug: string } | null;
+}
+
+export interface ListingConfig {
+	endpoints: {
+		getListingInformation: string;
+		getPublishedListings: string;
+		getPublishedBySlug: (slug: string) => string;
+		getAdminListings: string;
+		getListingById: (id: string) => string;
+		createListing: string;
+		updateListing: (id: string) => string;
+		deleteListing: (id: string) => string;
+		getAllCategories: string;
+		getActiveCategories: string;
+		createCategory: string;
+		updateCategory: (id: string) => string;
+		deleteCategory: (id: string) => string;
+		getAllTags: string;
+		createTag: string;
+		updateTag: (id: string) => string;
+		deleteTag: (id: string) => string;
+		getAdminComments: string;
+		getAdminActivities: string;
+		approveComment: (id: string) => string;
+		deleteComment: (id: string) => string;
+		trackView: (listingId: string) => string;
+		trackLike: (listingId: string) => string;
+	};
+}
+
+export interface GetListingResponseDto {
+	success: boolean;
+	data: ListingDto;
+	message?: string;
+}
+
+export interface GetListingsCollectionResponseDto {
+	success: boolean;
+	data: ListingDto[];
+	count: number;
+	message?: string;
+}
+
+export interface GetListingCategoriesResponseDto {
+	success: boolean;
+	data: ListingCategoryDto[];
+	message?: string;
+}
+
+export interface GetListingTagsResponseDto {
+	success: boolean;
+	data: ListingTagDto[];
+	message?: string;
+}
+
+export interface UpsertListingResponseDto {
+	success: boolean;
+	data: { id: string };
+	message?: string;
+}
+
+export interface DeleteListingResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface UpsertCategoryResponseDto {
+	success: boolean;
+	data: { id: string };
+	message?: string;
+}
+
+export interface DeleteCategoryResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface UpsertTagResponseDto {
+	success: boolean;
+	data: { id: string };
+	message?: string;
+}
+
+export interface DeleteTagResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface GetAdminListingCommentsResponseDto {
+	success: boolean;
+	data: {
+		commentsResult: AdminListingCommentDto[];
+		countResult: number;
+	};
+	message?: string;
+}
+
+export interface GetAdminListingActivitiesResponseDto {
+	success: boolean;
+	data: {
+		activitiesResult: AdminListingActivityDto[];
+		countResult: number;
+	};
+	message?: string;
+}
+
+export interface ApproveListingCommentResponseDto {
+	success: boolean;
+	data?: { id: string };
+	message?: string;
+}
+
+export interface DeleteListingCommentResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface TrackListingStatResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface GetListingInformationResponseDto {
+	success: boolean;
+	data: ListingInformationProgrammerModel;
+	message?: string;
+}
+
+export type ListingUpsertProgrammerModel =
+	| { ok: true; id?: string }
+	| { ok: false; error: string };
+
+/** Alias used by public extension page presenters for stat mutations. */
+export type ListingMutationProgrammerModel = ListingUpsertProgrammerModel;
+
+export interface ListingInformationProgrammerModel {
+	[key: string]: string;
+}
+
+export interface ListingProgrammerModel {
+	id: string;
+	ownerId: string | null;
+	title: string;
+	slug: string;
+	description: string | null;
+	excerpt: string | null;
+	content: string | null;
+	listingKind: string;
+	extensionType: string | null;
+	installCommandSkills: string | null;
+	installCommandMcp: string | null;
+	isOfficial: boolean;
+	sourceRepoUrl: string | null;
+	likes: number;
+	views: number;
+	clicks: number;
+	bookmarkCount: number;
+	averageRating: number;
+	ratingsCount: number;
+	isUserPublished: boolean;
+	isAdminPublished: boolean;
+	schemaType: string | null;
+	schemaJson: Record<string, unknown> | null;
+	listingCategoryId: string | null;
+	defaultImageUrl: string | null;
+	listingImageUrls: string[];
+	logoImageUrl: string | null;
+	faq: unknown;
+	listingTagSlugs: string[];
+	createdAt: string;
+	updatedAt: string | null;
+	publishedAt: string | null;
+	category: { id: string; name: string; slug: string; parentPath?: string } | null;
+	tags: Array<{ id: string; name: string; slug: string }>;
+	owner: {
+		id: string;
+		fullName: string | null;
+		username: string | null;
+		avatarUrl: string | null;
+		tagLine: string | null;
+	} | null;
+}
+
+export interface ListingCategoryProgrammerModel {
+	id: string;
+	name: string;
+	slug: string;
+	parentPath: string;
+	description: string | null;
+	parentId: string | null;
+	parent: { id: string; name: string; slug: string } | null;
+	headline: string | null;
+	emoji: string | null;
+	color: string | null;
+	imageUrlHero: string | null;
+	imageUrlSmall: string | null;
+	href: string | null;
+}
+
+export interface ListingTagProgrammerModel {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	headline: string | null;
+	emoji: string | null;
+	color: string | null;
+	imageUrlHero: string | null;
+	imageUrlSmall: string | null;
+	href: string | null;
+}
+
+export interface AdminListingCommentProgrammerModel {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	listingId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	listing: { id: string; title: string; slug: string } | null;
+}
+
+export interface AdminListingActivityProgrammerModel {
+	id: string;
+	activityType: string;
+	createdAt: string;
+	userId: string | null;
+	listingId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+	listing: { id: string; title: string; slug: string } | null;
+}
+
+export class ListingRepository {
+	constructor(
+		private readonly httpGateway: HttpGateway,
+		private readonly config: ListingConfig
+	) {}
+
+	async getListingInformation(fetch?: typeof globalThis.fetch): Promise<ListingInformationProgrammerModel> {
+		const fallback: ListingInformationProgrammerModel = {
+			EXTENSIONS_META_TITLE: String(CONFIG_SCHEMA_LISTINGS.EXTENSIONS_META_TITLE.default ?? 'Extensions Hub'),
+			EXTENSIONS_META_DESCRIPTION: String(
+				CONFIG_SCHEMA_LISTINGS.EXTENSIONS_META_DESCRIPTION.default ??
+					'Browse skills and MCP server extensions for your agent stack.'
+			),
+			LISTING_SCHEMA_TYPE: String(CONFIG_SCHEMA_LISTINGS.LISTING_SCHEMA_TYPE.default ?? 'SoftwareApplication')
+		};
+
+		try {
+			const { data: getListingInformationDto, ok } =
+				await this.httpGateway.get<GetListingInformationResponseDto>(
+					this.config.endpoints.getListingInformation,
+					undefined,
+					{ withCredentials: false, fetch }
+				);
+
+			if (ok && getListingInformationDto?.success && getListingInformationDto.data) {
+				return getListingInformationDto.data;
+			}
+			return fallback;
+		} catch {
+			return fallback;
+		}
+	}
+
+	async getPublishedListings(
+		{
+			limit,
+			skip,
+			skipId,
+			searchTerm,
+			tagSlugs,
+			categorySlug,
+			extensionType,
+			listingKind,
+			sortByKey,
+			sortByOrder,
+			fetch: customFetch
+		}: {
+			limit: number;
+			skip: number;
+			skipId?: string | null;
+			searchTerm?: string | null;
+			tagSlugs?: string[] | null;
+			categorySlug?: string | null;
+			extensionType?: string | null;
+			listingKind?: string | null;
+			sortByKey?: string | null;
+			sortByOrder?: boolean | null;
+			fetch?: typeof globalThis.fetch;
+		}
+	): Promise<{ listings: ListingProgrammerModel[]; count: number }> {
+		const params: Record<string, string | number | boolean> = { limit, skip };
+		if (skipId) params.skipId = skipId;
+		const term = searchTerm?.trim();
+		if (term) params.searchTerm = term;
+		if (tagSlugs?.length) params.tagSlugs = tagSlugs.join(',');
+		if (categorySlug) params.categorySlug = categorySlug;
+		if (extensionType) params.extensionType = extensionType;
+		if (listingKind) params.listingKind = listingKind;
+		if (sortByKey) params.sortByKey = sortByKey;
+		if (sortByOrder != null) params.sortByOrder = sortByOrder;
+
+		const { data: getPublishedListingsDto, ok } =
+			await this.httpGateway.get<GetListingsCollectionResponseDto>(
+				this.config.endpoints.getPublishedListings,
+				params,
+				{ withCredentials: false, fetch: customFetch }
+			);
+
+		if (ok && getPublishedListingsDto?.success && Array.isArray(getPublishedListingsDto.data)) {
+			return {
+				listings: getPublishedListingsDto.data.map((row) => this.toListingPm(row)),
+				count: getPublishedListingsDto.count ?? 0
+			};
+		}
+		return { listings: [], count: 0 };
+	}
+
+	async getPublishedBySlug(slug: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {
+		const { data: getPublishedBySlugDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+			this.config.endpoints.getPublishedBySlug(slug),
+			undefined,
+			{ withCredentials: false, fetch }
+		);
+		if (ok && getPublishedBySlugDto?.success && getPublishedBySlugDto.data) {
+			return this.toListingPm(getPublishedBySlugDto.data);
+		}
+		return null;
+	}
+
+	async getAdminListings(
+		params?: {
+			limit?: number;
+			searchTerm?: string | null;
+			listingKind?: string | null;
+			sortByKey?: string | null;
+			sortByOrder?: boolean | null;
+		},
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingProgrammerModel[]> {
+		const query: Record<string, string | number | boolean> = {
+			limit: params?.limit ?? 500
+		};
+		const term = params?.searchTerm?.trim();
+		if (term) query.searchTerm = term;
+		if (params?.listingKind) query.listingKind = params.listingKind;
+		if (params?.sortByKey) query.sortByKey = params.sortByKey;
+		if (params?.sortByOrder != null) query.sortByOrder = params.sortByOrder;
+
+		const { data: getAdminListingsDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+			this.config.endpoints.getAdminListings,
+			query,
+			{ withCredentials: true, fetch }
+		);
+
+		if (ok && getAdminListingsDto?.success && Array.isArray(getAdminListingsDto.data)) {
+			return getAdminListingsDto.data.map((row) => this.toListingPm(row));
+		}
+		return [];
+	}
+
+	async getListingById(id: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {
+		const { data: getListingByIdDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+			this.config.endpoints.getListingById(id),
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getListingByIdDto?.success && getListingByIdDto.data) {
+			return this.toListingPm(getListingByIdDto.data);
+		}
+		return null;
+	}
+
+	async createListing(
+		payload: ListingFormSchemaType,
+		listingTagsData: Array<{ id: string; slug: string }>,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const body = this.toListingUpsertBody(payload, listingTagsData);
+			const { data: createListingDto, ok } = await this.httpGateway.post<UpsertListingResponseDto>(
+				this.config.endpoints.createListing,
+				body,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && createListingDto?.success && createListingDto.data?.id) {
+				return { ok: true, id: createListingDto.data.id };
+			}
+			return { ok: false, error: createListingDto?.message ?? 'Failed to create listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async updateListing(
+		id: string,
+		payload: ListingFormSchemaType,
+		listingTagsData: Array<{ id: string; slug: string }>,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const body = this.toListingUpsertBody({ ...payload, id }, listingTagsData);
+			const { data: updateListingDto, ok } = await this.httpGateway.put<UpsertListingResponseDto>(
+				this.config.endpoints.updateListing(id),
+				body,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && updateListingDto?.success) {
+				return { ok: true, id: updateListingDto.data?.id ?? id };
+			}
+			return { ok: false, error: updateListingDto?.message ?? 'Failed to update listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async deleteListing(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteListingDto, ok } = await this.httpGateway.delete<DeleteListingResponseDto>(
+				this.config.endpoints.deleteListing(listingId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteListingDto?.success) return { ok: true };
+			return { ok: false, error: deleteListingDto?.message ?? 'Failed to delete listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async getAllCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
+		const { data: getAllCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
+			this.config.endpoints.getAllCategories,
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getAllCategoriesDto?.success && Array.isArray(getAllCategoriesDto.data)) {
+			return getAllCategoriesDto.data.map((row) => this.toCategoryPm(row));
+		}
+		return [];
+	}
+
+	/** @deprecated Use {@link getAllCategories}. */
+	async getAllFullCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
+		return this.getAllCategories(fetch);
+	}
+
+	async getActiveCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
+		const { data: getActiveCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
+			this.config.endpoints.getActiveCategories,
+			undefined,
+			{ withCredentials: false, fetch }
+		);
+		if (ok && getActiveCategoriesDto?.success && Array.isArray(getActiveCategoriesDto.data)) {
+			return getActiveCategoriesDto.data.map((row) => this.toCategoryPm(row));
+		}
+		return [];
+	}
+
+	async createCategory(
+		payload: ListingCategoryFormSchemaType,
+		categoryGroupIds: string[] = [],
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: createCategoryDto, ok } = await this.httpGateway.post<UpsertCategoryResponseDto>(
+				this.config.endpoints.createCategory,
+				{ categoryData: payload, categoryGroupIds },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && createCategoryDto?.success && createCategoryDto.data?.id) {
+				return { ok: true, id: createCategoryDto.data.id };
+			}
+			return { ok: false, error: createCategoryDto?.message ?? 'Failed to create category.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async updateCategory(
+		id: string,
+		payload: ListingCategoryFormSchemaType,
+		categoryGroupIds: string[] = [],
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: updateCategoryDto, ok } = await this.httpGateway.put<UpsertCategoryResponseDto>(
+				this.config.endpoints.updateCategory(id),
+				{ categoryData: { ...payload, id }, categoryGroupIds },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && updateCategoryDto?.success) {
+				return { ok: true, id: updateCategoryDto.data?.id ?? id };
+			}
+			return { ok: false, error: updateCategoryDto?.message ?? 'Failed to update category.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async upsertListingCategory(
+		payload: ListingCategoryFormSchemaType,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		const id = payload.id?.trim();
+		if (id) return this.updateCategory(id, payload, [], fetch);
+		return this.createCategory(payload, [], fetch);
+	}
+
+	async deleteCategory(categoryId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteCategoryDto, ok } = await this.httpGateway.delete<DeleteCategoryResponseDto>(
+				this.config.endpoints.deleteCategory(categoryId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteCategoryDto?.success) return { ok: true };
+			return { ok: false, error: deleteCategoryDto?.message ?? 'Failed to delete category.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	/** @deprecated Use {@link deleteCategory}. */
+	async deleteListingCategory(categoryId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		return this.deleteCategory(categoryId, fetch);
+	}
+
+	async getAllTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
+		const { data: getAllTagsDto, ok } = await this.httpGateway.get<GetListingTagsResponseDto>(
+			this.config.endpoints.getAllTags,
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getAllTagsDto?.success && Array.isArray(getAllTagsDto.data)) {
+			return getAllTagsDto.data.map((row) => this.toTagPm(row));
+		}
+		return [];
+	}
+
+	/** @deprecated Use {@link getAllTags}. */
+	async getAllFullTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
+		return this.getAllTags(fetch);
+	}
+
+	async createTag(
+		payload: ListingTagFormSchemaType,
+		tagGroupIds: string[] = [],
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: createTagDto, ok } = await this.httpGateway.post<UpsertTagResponseDto>(
+				this.config.endpoints.createTag,
+				{ tagData: payload, tagGroupIds },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && createTagDto?.success && createTagDto.data?.id) {
+				return { ok: true, id: createTagDto.data.id };
+			}
+			return { ok: false, error: createTagDto?.message ?? 'Failed to create tag.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async updateTag(
+		id: string,
+		payload: ListingTagFormSchemaType,
+		tagGroupIds: string[] = [],
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: updateTagDto, ok } = await this.httpGateway.put<UpsertTagResponseDto>(
+				this.config.endpoints.updateTag(id),
+				{ tagData: { ...payload, id }, tagGroupIds },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && updateTagDto?.success) {
+				return { ok: true, id: updateTagDto.data?.id ?? id };
+			}
+			return { ok: false, error: updateTagDto?.message ?? 'Failed to update tag.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async upsertListingTag(
+		payload: ListingTagFormSchemaType,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		const id = payload.id?.trim();
+		if (id) return this.updateTag(id, payload, [], fetch);
+		return this.createTag(payload, [], fetch);
+	}
+
+	async deleteTag(tagId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteTagDto, ok } = await this.httpGateway.delete<DeleteTagResponseDto>(
+				this.config.endpoints.deleteTag(tagId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteTagDto?.success) return { ok: true };
+			return { ok: false, error: deleteTagDto?.message ?? 'Failed to delete tag.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	/** @deprecated Use {@link deleteTag}. */
+	async deleteListingTag(tagId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		return this.deleteTag(tagId, fetch);
+	}
+
+	async getAdminComments(
+		params?: { limit?: number; searchTerm?: string | null },
+		fetch?: typeof globalThis.fetch
+	): Promise<AdminListingCommentProgrammerModel[]> {
+		const query: Record<string, string | number> = {
+			limit: params?.limit ?? 100
+		};
+		const term = params?.searchTerm?.trim();
+		if (term) query.searchTerm = term;
+
+		const { data: getAdminCommentsDto, ok } = await this.httpGateway.get<GetAdminListingCommentsResponseDto>(
+			this.config.endpoints.getAdminComments,
+			query,
+			{ withCredentials: true, fetch }
+		);
+
+		if (ok && getAdminCommentsDto?.success && Array.isArray(getAdminCommentsDto.data?.commentsResult)) {
+			return getAdminCommentsDto.data.commentsResult.map((row) => this.toAdminCommentPm(row));
+		}
+		return [];
+	}
+
+	/** @deprecated Use {@link getAdminComments}. */
+	async getAdminListingComments(
+		params?: { limit?: number; searchTerm?: string | null },
+		fetch?: typeof globalThis.fetch
+	): Promise<AdminListingCommentProgrammerModel[]> {
+		return this.getAdminComments(params, fetch);
+	}
+
+	async getAdminActivities(
+		params?: { limit?: number },
+		fetch?: typeof globalThis.fetch
+	): Promise<AdminListingActivityProgrammerModel[]> {
+		const query: Record<string, string | number> = {
+			limit: params?.limit ?? 100
+		};
+
+		const { data: getAdminActivitiesDto, ok } = await this.httpGateway.get<GetAdminListingActivitiesResponseDto>(
+			this.config.endpoints.getAdminActivities,
+			query,
+			{ withCredentials: true, fetch }
+		);
+
+		if (ok && getAdminActivitiesDto?.success && Array.isArray(getAdminActivitiesDto.data?.activitiesResult)) {
+			return getAdminActivitiesDto.data.activitiesResult.map((row) => this.toAdminActivityPm(row));
+		}
+		return [];
+	}
+
+	/** @deprecated Use {@link getAdminActivities}. */
+	async getAdminListingActivities(
+		params?: { limit?: number },
+		fetch?: typeof globalThis.fetch
+	): Promise<AdminListingActivityProgrammerModel[]> {
+		return this.getAdminActivities(params, fetch);
+	}
+
+	async approveComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: approveCommentDto, ok } = await this.httpGateway.request<ApproveListingCommentResponseDto>({
+				method: HttpMethod.PATCH,
+				url: this.config.endpoints.approveComment(commentId),
+				withCredentials: true,
+				fetch
+			});
+			if (ok && approveCommentDto?.success) {
+				return { ok: true, id: approveCommentDto.data?.id ?? commentId };
+			}
+			return { ok: false, error: approveCommentDto?.message ?? 'Failed to approve comment.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	/** @deprecated Use {@link approveComment}. */
+	async approveListingComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		return this.approveComment(commentId, fetch);
+	}
+
+	async deleteComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteCommentDto, ok } = await this.httpGateway.delete<DeleteListingCommentResponseDto>(
+				this.config.endpoints.deleteComment(commentId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteCommentDto?.success) return { ok: true };
+			return { ok: false, error: deleteCommentDto?.message ?? 'Failed to delete comment.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	/** @deprecated Use {@link deleteComment}. */
+	async deleteListingComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		return this.deleteComment(commentId, fetch);
+	}
+
+	async trackView(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		return this.incrementViews(listingId, fetch);
+	}
+
+	async incrementViews(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: trackViewDto, ok } = await this.httpGateway.put<TrackListingStatResponseDto>(
+				this.config.endpoints.trackView(listingId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && trackViewDto?.success) return { ok: true };
+			return { ok: false, error: trackViewDto?.message ?? 'Failed to record view.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async incrementLikes(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: trackLikeDto, ok } = await this.httpGateway.put<TrackListingStatResponseDto>(
+				this.config.endpoints.trackLike(listingId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && trackLikeDto?.success) return { ok: true };
+			return { ok: false, error: trackLikeDto?.message ?? 'Failed to record like.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	private toListingUpsertBody(
+		payload: ListingFormSchemaType,
+		listingTagsData: Array<{ id: string; slug: string }>
+	): { listingData: Record<string, unknown>; listingTagsData: Array<{ id: string; slug: string }> } {
+		const { tag_ids: _tagIds, ...listingFields } = payload;
+		return {
+			listingData: listingFields,
+			listingTagsData
+		};
+	}
+
+	private toListingPm(row: ListingDto): ListingProgrammerModel {
+		return {
+			id: row.id,
+			ownerId: row.ownerId ?? null,
+			title: row.title,
+			slug: row.slug,
+			description: row.description ?? null,
+			excerpt: row.excerpt ?? null,
+			content: row.content ?? null,
+			listingKind: row.listingKind,
+			extensionType: row.extensionType ?? null,
+			installCommandSkills: row.installCommandSkills ?? null,
+			installCommandMcp: row.installCommandMcp ?? null,
+			isOfficial: row.isOfficial,
+			sourceRepoUrl: row.sourceRepoUrl ?? null,
+			likes: row.likes ?? 0,
+			views: row.views ?? 0,
+			clicks: row.clicks ?? 0,
+			bookmarkCount: row.bookmarkCount ?? 0,
+			averageRating: row.averageRating ?? 0,
+			ratingsCount: row.ratingsCount ?? 0,
+			isUserPublished: row.isUserPublished,
+			isAdminPublished: row.isAdminPublished,
+			schemaType: row.schemaType ?? null,
+			schemaJson: row.schemaJson ?? null,
+			listingCategoryId: row.listingCategoryId ?? null,
+			defaultImageUrl: row.defaultImageUrl ?? null,
+			listingImageUrls: row.listingImageUrls ?? [],
+			logoImageUrl: row.logoImageUrl ?? null,
+			faq: row.faq ?? null,
+			listingTagSlugs: row.listingTagSlugs ?? [],
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt ?? null,
+			publishedAt: row.publishedAt ?? null,
+			category: row.category ? { ...row.category } : null,
+			tags: row.tags?.map((t) => ({ ...t })) ?? [],
+			owner: row.owner
+				? {
+						id: row.owner.id,
+						fullName: row.owner.fullName ?? null,
+						username: row.owner.username ?? null,
+						avatarUrl: row.owner.avatarUrl ?? null,
+						tagLine: row.owner.tagLine ?? null
+					}
+				: null
+		};
+	}
+
+	private toCategoryPm(row: ListingCategoryDto): ListingCategoryProgrammerModel {
+		return {
+			id: row.id,
+			name: row.name,
+			slug: row.slug,
+			parentPath: row.parent_path ?? '/',
+			description: row.description ?? null,
+			parentId: row.parent_id ?? null,
+			parent: null,
+			headline: row.headline ?? null,
+			emoji: row.emoji ?? null,
+			color: row.color ?? null,
+			imageUrlHero: row.image_url_hero ?? null,
+			imageUrlSmall: row.image_url_small ?? null,
+			href: row.href ?? null
+		};
+	}
+
+	private toTagPm(row: ListingTagDto): ListingTagProgrammerModel {
+		return {
+			id: row.id,
+			name: row.name,
+			slug: row.slug,
+			description: row.description ?? null,
+			headline: row.headline ?? null,
+			emoji: row.emoji ?? null,
+			color: row.color ?? null,
+			imageUrlHero: row.image_url_hero ?? null,
+			imageUrlSmall: row.image_url_small ?? null,
+			href: row.href ?? null
+		};
+	}
+
+	private toAdminCommentPm(row: AdminListingCommentDto): AdminListingCommentProgrammerModel {
+		return {
+			id: row.id,
+			content: row.content,
+			isApproved: row.isApproved,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt,
+			parentId: row.parentId,
+			userId: row.userId,
+			listingId: row.listingId,
+			author: row.author
+				? {
+						id: row.author.id,
+						fullName: row.author.fullName ?? null,
+						avatarUrl: row.author.avatarUrl ?? null
+					}
+				: null,
+			listing: row.listing ? { ...row.listing } : null
+		};
+	}
+
+	private toAdminActivityPm(row: AdminListingActivityDto): AdminListingActivityProgrammerModel {
+		return {
+			id: row.id,
+			activityType: row.activityType,
+			createdAt: row.createdAt,
+			userId: row.userId,
+			listingId: row.listingId,
+			author: row.author
+				? {
+						id: row.author.id,
+						fullName: row.author.fullName ?? null,
+						avatarUrl: row.author.avatarUrl ?? null
+					}
+				: null,
+			listing: row.listing ? { ...row.listing } : null
+		};
+	}
+
+	private extractMessage(err: unknown): string {
+		if (err && typeof err === 'object' && 'data' in err) {
+			const data = (err as { data?: unknown }).data;
+			if (data && typeof data === 'object' && 'message' in data && typeof (data as { message?: string }).message === 'string') {
+				return (data as { message: string }).message;
+			}
+		}
+		if (err instanceof Error) return err.message;
+		return 'An error occurred. Please try again.';
+	}
+}

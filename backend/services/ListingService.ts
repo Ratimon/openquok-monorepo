@@ -10,6 +10,10 @@ import type {
     ListingCreator,
     ListingKind,
     ExtensionType,
+    AdminListingCommentsFilterOptions,
+    AdminListingActivitiesFilterOptions,
+    AdminListingComment,
+    AdminListingActivity,
 } from "../data/types/listingTypes";
 import type {
     CategoryPaginationOptions,
@@ -37,6 +41,7 @@ import type {
 import {
     buildPublishedListingCacheKey,
     buildAdminListingCacheKey,
+    buildAdminListingCommentsCacheKey,
     type ListingLike,
 } from "../utils/dtos/ListingDTO";
 import { ListingId } from "../utils/valueObjects/ListingId";
@@ -62,6 +67,8 @@ const CACHE_KEYS = {
     LISTING_TAGS_ACTIVE_FULL: "listing:tags:active:full",
     LISTING_TAGS_ALL_FULL: "listing:tags:all:full",
     LISTING_USER_BOOKMARKS: "listing:bookmarks:user",
+    LISTING_ADMIN_COMMENTS_LIST: "listing:admin:comments:list",
+    LISTING_ADMIN_ACTIVITIES_LIST: "listing:admin:activities:list",
 };
 
 const LISTING_CACHE_TTL_SEC = 300;
@@ -435,6 +442,70 @@ export class ListingService {
         };
         if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
         return factory();
+    }
+
+    async getAdminListingComments(
+        options: AdminListingCommentsFilterOptions
+    ): Promise<{ commentsResult: AdminListingComment[]; countResult: number }> {
+        const normalized: AdminListingCommentsFilterOptions = {
+            limit: options.limit ?? 100,
+            searchTerm: options.searchTerm ?? null,
+            sortByKey: options.sortByKey ?? "created_at",
+            sortByOrder: options.sortByOrder ?? false,
+            range: options.range ?? null,
+        };
+        const cacheKey = buildAdminListingCommentsCacheKey(
+            normalized,
+            CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST
+        );
+        const factory = async (): Promise<{ commentsResult: AdminListingComment[]; countResult: number }> => {
+            const { data, count } = await this.listingRepository.findAdminListingComments(normalized);
+            return { commentsResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+    }
+
+    async getAdminListingActivities(
+        options: AdminListingActivitiesFilterOptions
+    ): Promise<{ activitiesResult: AdminListingActivity[]; countResult: number }> {
+        const normalized: AdminListingActivitiesFilterOptions = {
+            limit: options.limit ?? 100,
+            sortByKey: options.sortByKey ?? "created_at",
+            sortByOrder: options.sortByOrder ?? false,
+            range: options.range ?? null,
+            listing_id: options.listing_id ?? null,
+            activity_type: options.activity_type ?? null,
+        };
+        const cacheKey = [
+            CACHE_KEYS.LISTING_ADMIN_ACTIVITIES_LIST,
+            `limit:${normalized.limit}`,
+            `listing:${normalized.listing_id ?? "all"}`,
+            `type:${normalized.activity_type ?? "all"}`,
+            `sort:${normalized.sortByKey}`,
+            `order:${normalized.sortByOrder ? "asc" : "desc"}`,
+        ].join(":");
+        const factory = async (): Promise<{ activitiesResult: AdminListingActivity[]; countResult: number }> => {
+            const { data, count } = await this.listingRepository.findAdminListingActivities(normalized);
+            return { activitiesResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+    }
+
+    async approveListingComment(commentId: string): Promise<{ id: string }> {
+        const result = await this.listingRepository.approveListingComment(commentId);
+        if (this.cacheInvalidator) {
+            await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
+        }
+        return { id: result.id };
+    }
+
+    async deleteListingComment(commentId: string): Promise<void> {
+        await this.listingRepository.deleteListingComment(commentId);
+        if (this.cacheInvalidator) {
+            await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
+        }
     }
 
     private async _assertCommunityFeatures(authUserId?: string): Promise<void> {

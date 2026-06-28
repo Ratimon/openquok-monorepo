@@ -9,6 +9,8 @@ import {
     createPublishedListingsParser,
     createAdminListingsParser,
     createCategoriesPaginationParser,
+    createAdminListingCommentsParser,
+    createAdminListingActivitiesParser,
 } from "../middlewares/queryParsers";
 import { supabaseAnonClient } from "../connections/index";
 import { userRepository, rbacRepository } from "../repositories/index";
@@ -20,6 +22,7 @@ import {
     listingSlugParamSchema,
     listingStatParamSchema,
     listingCreatorUsernameParamSchema,
+    listingCommentIdParamSchema,
 } from "../data/schemas/listingSchemas";
 import {
     listingCategoryCreateSchema,
@@ -52,6 +55,8 @@ const optionalAuth = optionalAuthWithRoles(
 const parsePublishedListingsQuery = createPublishedListingsParser();
 const parseAdminListingsQuery = createAdminListingsParser();
 const parseCategoriesPaginationQuery = createCategoriesPaginationParser();
+const parseAdminListingCommentsQuery = createAdminListingCommentsParser();
+const parseAdminListingActivitiesQuery = createAdminListingActivitiesParser();
 
 const categoryBodySchema = z.object({
     categoryData: listingCategoryCreateSchema,
@@ -194,6 +199,38 @@ listingRouter.get(
 );
 
 // --- Admin ---
+listingRouter.get(
+    "/admin/comments",
+    authWithRoles,
+    requireEditor,
+    parseAdminListingCommentsQuery,
+    listingController.getAdminListingComments
+);
+
+listingRouter.get(
+    "/admin/activities",
+    authWithRoles,
+    requireEditor,
+    parseAdminListingActivitiesQuery,
+    listingController.getAdminListingActivities
+);
+
+listingRouter.patch(
+    "/comments/:id/approve",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: listingCommentIdParamSchema }),
+    listingController.approveListingComment
+);
+
+listingRouter.delete(
+    "/comments/:id",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: listingCommentIdParamSchema }),
+    listingController.deleteListingComment
+);
+
 listingRouter.get(
     "/all-full",
     authWithRoles,

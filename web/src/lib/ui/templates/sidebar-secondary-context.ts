@@ -6,3 +6,6 @@ export const BLOG_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:blog-manager';
 
 /** Context key for config-manager secondary sidebar. Set by secret-admin/config-manager layout. */
 export const CONFIG_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:config-manager';
+
+/** Context key for listing-manager secondary sidebar. Set by secret-admin/listing-manager layout. */
+export const LISTING_MANAGER_SIDEBAR_KEY = 'sidebar-secondary:listing-manager';

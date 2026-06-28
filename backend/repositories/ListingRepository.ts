@@ -4,6 +4,11 @@ import type {
     AdminListingsFilterOptions,
     ListingCreator,
     ListingKind,
+    AdminListingCommentsFilterOptions,
+    AdminListingActivitiesFilterOptions,
+    AdminListingComment,
+    AdminListingActivity,
+    ListingActivityType,
 } from "../data/types/listingTypes";
 import type {
     ListingCreateSchemaType,
@@ -18,6 +23,8 @@ import { stringToSlug } from "../utils/blog/slug";
 const TABLE_LISTINGS = "listings";
 const TABLE_TAG_ASSOC = "listings_listing_tags_association";
 const TABLE_BOOKMARKS = "listing_bookmarks";
+const TABLE_LISTING_COMMENTS = "listing_comments";
+const TABLE_LISTING_ACTIVITIES = "listing_activities";
 
 const RPC_GET_LISTING_CREATORS = "get_listing_creators";
 
@@ -82,6 +89,32 @@ const ALLOWED_ADMIN_SORT_KEYS = new Set([
     "is_admin_published",
     "is_user_published",
 ]);
+
+const ALLOWED_ADMIN_COMMENT_SORT_KEYS = new Set(["created_at", "updated_at", "content"]);
+const ALLOWED_ADMIN_ACTIVITY_SORT_KEYS = new Set(["created_at", "activity_type"]);
+
+const SELECT_LISTING_COMMENT_ADMIN = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  listing_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  listing:listing_id(id, title, slug)
+`;
+
+const SELECT_LISTING_ACTIVITY_ADMIN = `
+  id,
+  activity_type,
+  created_at,
+  user_id,
+  listing_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  listing:listing_id(id, title, slug)
+`;
 
 function resolveOrderKey(
     candidate: string | null | undefined,
@@ -584,5 +617,184 @@ export class ListingRepository {
                 operation: "insert",
             });
         }
+    }
+
+    async findAdminListingComments(
+        options: AdminListingCommentsFilterOptions
+    ): Promise<{ data: AdminListingComment[]; count: number }> {
+        const { limit = 10, searchTerm, sortByKey, sortByOrder, range } = options;
+
+        let query = this.supabase
+            .from(TABLE_LISTING_COMMENTS)
+            .select(SELECT_LISTING_COMMENT_ADMIN, { count: "exact" });
+
+        if (searchTerm) {
+            query = query.ilike("content", `%${searchTerm}%`);
+        }
+
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_COMMENT_SORT_KEYS);
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+
+        if (range) {
+            query = query.range(range.start, range.end);
+        } else {
+            query = query.range(0, limit - 1);
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error fetching admin listing comments: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_LISTING_COMMENTS },
+            });
+        }
+
+        const rows = (data ?? []) as Array<{
+            id: string;
+            content: string;
+            is_approved: boolean;
+            created_at: string;
+            updated_at: string | null;
+            parent_id: string | null;
+            user_id: string;
+            listing_id: string;
+            author?: Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }> | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null } | null;
+            listing?: Array<{ id: string; title: string; slug: string }> | { id: string; title: string; slug: string } | null;
+        }>;
+
+        const comments: AdminListingComment[] = rows.map((row) => {
+            const rawAuthor = Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null;
+            const profile = rawAuthor?.user_profiles;
+            const avatar_url =
+                profile && typeof profile === "object" && "avatar_url" in profile
+                    ? profile.avatar_url
+                    : null;
+            const rawListing = Array.isArray(row.listing) ? row.listing[0] ?? null : row.listing ?? null;
+            return {
+                id: row.id,
+                content: row.content,
+                is_approved: row.is_approved,
+                created_at: row.created_at,
+                updated_at: row.updated_at ?? null,
+                parent_id: row.parent_id ?? null,
+                user_id: row.user_id,
+                listing_id: row.listing_id,
+                author: rawAuthor
+                    ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null }
+                    : null,
+                listing: rawListing
+                    ? { id: rawListing.id, title: rawListing.title, slug: rawListing.slug }
+                    : null,
+            };
+        });
+        return { data: comments, count: (count ?? 0) as number };
+    }
+
+    async findAdminListingActivities(
+        options: AdminListingActivitiesFilterOptions
+    ): Promise<{ data: AdminListingActivity[]; count: number }> {
+        const { limit = 10, sortByKey, sortByOrder, range, listing_id, activity_type } = options;
+
+        let query = this.supabase
+            .from(TABLE_LISTING_ACTIVITIES)
+            .select(SELECT_LISTING_ACTIVITY_ADMIN, { count: "exact" });
+
+        if (listing_id) {
+            query = query.eq("listing_id", listing_id);
+        }
+        if (activity_type) {
+            query = query.eq("activity_type", activity_type);
+        }
+
+        const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_ACTIVITY_SORT_KEYS);
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+
+        if (range) {
+            query = query.range(range.start, range.end);
+        } else {
+            query = query.range(0, limit - 1);
+        }
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error fetching admin listing activities: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_LISTING_ACTIVITIES },
+            });
+        }
+
+        const rows = (data ?? []) as Array<{
+            id: string;
+            activity_type: string;
+            created_at: string;
+            user_id: string | null;
+            listing_id: string;
+            author?: Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }> | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null } | null;
+            listing?: Array<{ id: string; title: string; slug: string }> | { id: string; title: string; slug: string } | null;
+        }>;
+
+        const activities: AdminListingActivity[] = rows.map((row) => {
+            const rawAuthor = Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null;
+            const profile = rawAuthor?.user_profiles;
+            const avatar_url =
+                profile && typeof profile === "object" && "avatar_url" in profile
+                    ? profile.avatar_url
+                    : null;
+            const rawListing = Array.isArray(row.listing) ? row.listing[0] ?? null : row.listing ?? null;
+            return {
+                id: row.id,
+                activity_type: row.activity_type as ListingActivityType,
+                created_at: row.created_at,
+                user_id: row.user_id,
+                listing_id: row.listing_id,
+                author: rawAuthor
+                    ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null }
+                    : null,
+                listing: rawListing
+                    ? { id: rawListing.id, title: rawListing.title, slug: rawListing.slug }
+                    : null,
+            };
+        });
+        return { data: activities, count: (count ?? 0) as number };
+    }
+
+    async approveListingComment(commentId: string): Promise<{ id: string; listing_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_LISTING_COMMENTS)
+            .update({ is_approved: true, updated_at: new Date().toISOString() })
+            .eq("id", commentId)
+            .select("id, listing_id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError("Error approving listing comment", {
+                cause: error as unknown as Error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_LISTING_COMMENTS },
+            });
+        }
+        return { id: data.id as string, listing_id: data.listing_id as string };
+    }
+
+    async deleteListingComment(commentId: string): Promise<{ listing_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_LISTING_COMMENTS)
+            .delete()
+            .eq("id", commentId)
+            .select("listing_id")
+            .single();
+
+        if (error || !data?.listing_id) {
+            throw new DatabaseError("Error deleting listing comment", {
+                cause: error as unknown as Error,
+                operation: "delete",
+                resource: { type: "table", name: TABLE_LISTING_COMMENTS },
+            });
+        }
+        return { listing_id: data.listing_id as string };
     }
 }

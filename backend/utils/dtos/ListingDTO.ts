@@ -2,6 +2,9 @@ import type {
     PublishedListingsFilterOptions,
     AdminListingsFilterOptions,
     ListingCreator,
+    AdminListingComment,
+    AdminListingActivity,
+    AdminListingCommentsFilterOptions,
 } from "../../data/types/listingTypes";
 import type {
     PartialListingCategory,
@@ -244,5 +247,115 @@ export function buildAdminListingCacheKey(
         `range:${range}`,
     ].join(":");
 }
+
+export interface ListingCommentDTO {
+    id: string;
+    content: string;
+    isApproved: boolean;
+    createdAt: string;
+    updatedAt: string | null;
+    parentId: string | null;
+    userId: string;
+    author: {
+        id: string;
+        fullName: string | null;
+        avatarUrl: string | null;
+    } | null;
+}
+
+export interface AdminListingCommentDTO extends ListingCommentDTO {
+    listingId: string;
+    listing: { id: string; title: string; slug: string } | null;
+}
+
+export interface AdminListingActivityDTO {
+    id: string;
+    activityType: string;
+    createdAt: string;
+    userId: string | null;
+    listingId: string;
+    author: {
+        id: string;
+        fullName: string | null;
+        avatarUrl: string | null;
+    } | null;
+    listing: { id: string; title: string; slug: string } | null;
+}
+
+export function buildAdminListingCommentsCacheKey(
+    options: AdminListingCommentsFilterOptions,
+    prefix: string
+): string {
+    const range = options.range ? `start:${options.range.start}:end:${options.range.end}` : "none";
+    return [
+        prefix,
+        `limit:${options.limit ?? 10}`,
+        `search:${options.searchTerm ?? "none"}`,
+        `sort:${options.sortByKey ?? "created_at"}`,
+        `order:${options.sortByOrder ? "asc" : "desc"}`,
+        `range:${range}`,
+    ].join(":");
+}
+
+export const ListingAdminDTOMapper = {
+    toCommentDTO(row: AdminListingComment): ListingCommentDTO {
+        return {
+            id: row.id,
+            content: row.content,
+            isApproved: row.is_approved,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at ?? null,
+            parentId: row.parent_id ?? null,
+            userId: row.user_id,
+            author: row.author
+                ? {
+                      id: row.author.id,
+                      fullName: row.author.full_name ?? null,
+                      avatarUrl: row.author.avatar_url ?? null,
+                  }
+                : null,
+        };
+    },
+
+    toAdminCommentDTO(row: AdminListingComment): AdminListingCommentDTO {
+        return {
+            ...ListingAdminDTOMapper.toCommentDTO(row),
+            listingId: row.listing_id,
+            listing: row.listing
+                ? { id: row.listing.id, title: row.listing.title, slug: row.listing.slug }
+                : null,
+        };
+    },
+
+    toAdminCommentDTOCollection(rows: AdminListingComment[]): AdminListingCommentDTO[] {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toAdminCommentDTO(r));
+    },
+
+    toAdminActivityDTO(row: AdminListingActivity): AdminListingActivityDTO {
+        return {
+            id: row.id,
+            activityType: row.activity_type,
+            createdAt: row.created_at,
+            userId: row.user_id ?? null,
+            listingId: row.listing_id,
+            author: row.author
+                ? {
+                      id: row.author.id,
+                      fullName: row.author.full_name ?? null,
+                      avatarUrl: row.author.avatar_url ?? null,
+                  }
+                : null,
+            listing: row.listing
+                ? { id: row.listing.id, title: row.listing.title, slug: row.listing.slug }
+                : null,
+        };
+    },
+
+    toAdminActivityDTOCollection(rows: AdminListingActivity[]): AdminListingActivityDTO[] {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toAdminActivityDTO(r));
+    },
+};
 
 export type { ListingCreator, PartialListingCategory, FullListingCategory, PartialListingTag, FullListingTag };

@@ -12,8 +12,11 @@ import { PublicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLa
 import { PublicAgentsPagePresenter } from '$lib/area-public/PublicAgentsPage.presenter.svelte';
 import { PublicChannelByPagePresenter } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
+import { PublicExtensionBySlugPagePresenter } from '$lib/area-public/PublicExtensionBySlugPage.presenter.svelte';
+import { PublicExtensionsPagePresenter } from '$lib/area-public/PublicExtensionsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
 import { getPublicPricingPresenter } from '$lib/billing';
+import { getListingPresenter, listingRepository } from '$lib/listings/index';
 
 const publicLayoutPagePresenter = new PublicLayoutPagePresenter();
 const publicBlogPagePresenter = new PublicBlogPagePresenter(getBlogPresenter);
@@ -28,12 +31,19 @@ const publicAgentsPagePresenter = new PublicAgentsPagePresenter();
 const publicAgentByPagePresenter = new PublicAgentByPagePresenter();
 const publicChannelsPagePresenter = new PublicChannelsPagePresenter();
 const publicChannelByPagePresenter = new PublicChannelByPagePresenter();
+const publicExtensionsPagePresenter = new PublicExtensionsPagePresenter(getListingPresenter);
+const publicExtensionBySlugPagePresenter = new PublicExtensionBySlugPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
 
 export {
 	publicAgentByPagePresenter,
 	publicAgentsPagePresenter,
 	publicChannelByPagePresenter,
 	publicChannelsPagePresenter,
+	publicExtensionBySlugPagePresenter,
+	publicExtensionsPagePresenter,
 	publicPricingPagePresenter,
 	publicLayoutPagePresenter,
 	publicBlogPagePresenter,

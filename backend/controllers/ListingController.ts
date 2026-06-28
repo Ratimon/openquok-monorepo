@@ -16,9 +16,11 @@ import type {
     ParsedPublishedListingsQuery,
     ParsedAdminListingsQuery,
     ParsedCategoriesPaginationQuery,
+    ParsedAdminListingCommentsQuery,
+    ParsedAdminListingActivitiesQuery,
 } from "../middlewares/queryParsers";
 import { ListingService } from "../services/ListingService";
-import { ListingDTOMapper } from "../utils/dtos/ListingDTO";
+import { ListingDTOMapper, ListingAdminDTOMapper } from "../utils/dtos/ListingDTO";
 import { DatabaseEntityNotFoundError } from "../errors/InfraError";
 import type { ExtensionType, ListingKind } from "../data/types/listingTypes";
 
@@ -426,6 +428,71 @@ export class ListingController {
         try {
             const data = await this.listingService.getAllTagGroups();
             res.status(200).json({ success: true, data });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getAdminListingComments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const parsedQuery = (req as Request & { parsedQuery?: ParsedAdminListingCommentsQuery }).parsedQuery ?? {};
+            const { commentsResult, countResult } = await this.listingService.getAdminListingComments({
+                limit: parsedQuery.limit,
+                searchTerm: parsedQuery.searchTerm,
+                sortByKey: parsedQuery.sortByKey,
+                sortByOrder: parsedQuery.sortByOrder,
+                range: parsedQuery.range,
+            });
+            res.status(200).json({
+                success: true,
+                data: {
+                    commentsResult: ListingAdminDTOMapper.toAdminCommentDTOCollection(commentsResult),
+                    countResult,
+                },
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getAdminListingActivities = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const parsedQuery = (req as Request & { parsedQuery?: ParsedAdminListingActivitiesQuery }).parsedQuery ?? {};
+            const { activitiesResult, countResult } = await this.listingService.getAdminListingActivities({
+                limit: parsedQuery.limit,
+                sortByKey: parsedQuery.sortByKey,
+                sortByOrder: parsedQuery.sortByOrder,
+                range: parsedQuery.range,
+                listing_id: parsedQuery.listing_id,
+                activity_type: parsedQuery.activity_type as import("../data/types/listingTypes").ListingActivityType | null,
+            });
+            res.status(200).json({
+                success: true,
+                data: {
+                    activitiesResult: ListingAdminDTOMapper.toAdminActivityDTOCollection(activitiesResult),
+                    countResult,
+                },
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    approveListingComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const result = await this.listingService.approveListingComment(id);
+            res.status(200).json({ success: true, data: result, message: "Comment approved." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    deleteListingComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            await this.listingService.deleteListingComment(id);
+            res.status(200).json({ success: true, message: "Comment deleted." });
         } catch (err) {
             next(err);
         }

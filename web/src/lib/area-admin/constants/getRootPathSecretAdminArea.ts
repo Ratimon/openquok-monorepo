@@ -258,3 +258,136 @@ export function getRootPathConfigManagerPublicFaq(): string {
 export function getRootPathSecretAdminConfigManagerPublicFaq(): string {
 	return `${getRootPathSecretAdminConfigManager()}/${getRootPathConfigManagerPublicFaq()}`;
 }
+
+/**
+ * Segment for secret-admin listing manager.
+ */
+export function getRootPathListingManagerSegment(): string {
+	return 'listing-manager';
+}
+
+/**
+ * Segment for secret-admin listing manager listings.
+ */
+export function getRootPathListingManagerListingsSegment(): string {
+	return 'listings';
+}
+
+/**
+ * Segment for secret-admin listing manager stacks.
+ */
+export function getRootPathListingManagerStacksSegment(): string {
+	return 'stacks';
+}
+
+/**
+ * Segment for secret-admin listing manager categories.
+ */
+export function getRootPathListingManagerCategoriesSegment(): string {
+	return 'categories';
+}
+
+/**
+ * Segment for secret-admin listing manager tags.
+ */
+export function getRootPathListingManagerTagsSegment(): string {
+	return 'tags';
+}
+
+/**
+ * Segment for secret-admin listing manager comments.
+ */
+export function getRootPathListingManagerCommentsSegment(): string {
+	return 'comments';
+}
+
+/**
+ * Segment for secret-admin listing manager activities.
+ */
+export function getRootPathListingManagerActivitiesSegment(): string {
+	return 'activities';
+}
+
+/**
+ * Segment for secret-admin listing manager new listing page.
+ */
+export function getRootPathListingManagerNewSegment(): string {
+	return 'new';
+}
+
+/**
+ * Full path for secret-admin listing manager (dashboard).
+ */
+export function getRootPathSecretAdminListingManager(): string {
+	return `${getRootPathSecretAdminArea()}/${getRootPathListingManagerSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager extensions list.
+ */
+export function getRootPathSecretAdminListingManagerListings(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerListingsSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager new extension page.
+ */
+export function getRootPathSecretAdminListingManagerNewExtension(): string {
+	return `${getRootPathSecretAdminListingManagerListings()}/${getRootPathListingManagerNewSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager extension editor.
+ */
+export function getRootPathSecretAdminListingManagerExtensionEditor(id: string): string {
+	return `${getRootPathSecretAdminListingManagerListings()}/${id}`;
+}
+
+/**
+ * Full path for secret-admin listing manager stacks list.
+ */
+export function getRootPathSecretAdminListingManagerStacks(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerStacksSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager new stack page.
+ */
+export function getRootPathSecretAdminListingManagerNewStack(): string {
+	return `${getRootPathSecretAdminListingManagerStacks()}/${getRootPathListingManagerNewSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager stack editor.
+ */
+export function getRootPathSecretAdminListingManagerStackEditor(id: string): string {
+	return `${getRootPathSecretAdminListingManagerStacks()}/${id}`;
+}
+
+/**
+ * Full path for secret-admin listing manager categories.
+ */
+export function getRootPathSecretAdminListingManagerCategories(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerCategoriesSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager tags.
+ */
+export function getRootPathSecretAdminListingManagerTags(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerTagsSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager comments.
+ */
+export function getRootPathSecretAdminListingManagerComments(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerCommentsSegment()}`;
+}
+
+/**
+ * Full path for secret-admin listing manager activities.
+ */
+export function getRootPathSecretAdminListingManagerActivities(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerActivitiesSegment()}`;
+}

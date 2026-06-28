@@ -9,8 +9,16 @@ import { AdminBlogPostsManagerPagePresenter } from '$lib/area-admin/AdminBlogPos
 import { AdminBlogTopicsManagerPagePresenter } from '$lib/area-admin/AdminBlogTopicsManagerPage.presenter.svelte';
 import { AdminBlogActivitiesManagerPagePresenter } from '$lib/area-admin/AdminBlogActivitiesManagerPage.presenter.svelte';
 import { AdminBlogCommentsManagerPagePresenter } from '$lib/area-admin/AdminBlogCommentsManagerPage.presenter.svelte';
+import { AdminListingEditorPagePresenter } from '$lib/area-admin/AdminListingEditorPage.presenter.svelte';
+import { AdminListingExtensionsManagerPagePresenter } from '$lib/area-admin/AdminListingExtensionsManagerPage.presenter.svelte';
+import { AdminListingStacksManagerPagePresenter } from '$lib/area-admin/AdminListingStacksManagerPage.presenter.svelte';
+import { AdminListingCategoriesManagerPagePresenter } from '$lib/area-admin/AdminListingCategoriesManagerPage.presenter.svelte';
+import { AdminListingTagsManagerPagePresenter } from '$lib/area-admin/AdminListingTagsManagerPage.presenter.svelte';
+import { AdminListingCommentsManagerPagePresenter } from '$lib/area-admin/AdminListingCommentsManagerPage.presenter.svelte';
+import { AdminListingActivitiesManagerPagePresenter } from '$lib/area-admin/AdminListingActivitiesManagerPage.presenter.svelte';
 import { getRolePresenter, rbacRepository } from '$lib/rbac';
 import { blogRepository, getBlogPresenter } from '$lib/blogs';
+import { listingRepository, getListingPresenter } from '$lib/listings';
 import { emailRepository, getEmailPresenter } from '$lib/email';
 import { imageRepository } from '$lib/core/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
@@ -39,6 +47,36 @@ const adminBlogCommentsManagerPagePresenter = new AdminBlogCommentsManagerPagePr
 
 const adminBlogActivitiesManagerPagePresenter = new AdminBlogActivitiesManagerPagePresenter(getBlogPresenter);
 
+/** Edit extension: `/listing-manager/listings/[id]` */
+const adminListingExtensionEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+/** New extension: `/listing-manager/listings/new` */
+const adminListingNewExtensionPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+/** Edit stack: `/listing-manager/stacks/[id]` */
+const adminListingStackEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+/** New stack: `/listing-manager/stacks/new` */
+const adminListingNewStackPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+
+const adminListingExtensionsManagerPagePresenter = new AdminListingExtensionsManagerPagePresenter(
+	getListingPresenter
+);
+
+const adminListingStacksManagerPagePresenter = new AdminListingStacksManagerPagePresenter(getListingPresenter);
+
+const adminListingCategoriesManagerPagePresenter = new AdminListingCategoriesManagerPagePresenter(
+	listingRepository
+);
+
+const adminListingTagsManagerPagePresenter = new AdminListingTagsManagerPagePresenter(listingRepository);
+
+const adminListingCommentsManagerPagePresenter = new AdminListingCommentsManagerPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
+
+const adminListingActivitiesManagerPagePresenter = new AdminListingActivitiesManagerPagePresenter(
+	getListingPresenter
+);
+
 const adminPermissionManagerPagePresenter = new AdminPermissionManagerPagePresenter(
 	getRolePresenter,
 	rbacRepository
@@ -65,6 +103,16 @@ export {
 	adminBlogTopicsManagerPagePresenter,
 	adminBlogCommentsManagerPagePresenter,
 	adminBlogActivitiesManagerPagePresenter,
+	adminListingExtensionEditorPagePresenter,
+	adminListingNewExtensionPagePresenter,
+	adminListingStackEditorPagePresenter,
+	adminListingNewStackPagePresenter,
+	adminListingExtensionsManagerPagePresenter,
+	adminListingStacksManagerPagePresenter,
+	adminListingCategoriesManagerPagePresenter,
+	adminListingTagsManagerPagePresenter,
+	adminListingCommentsManagerPagePresenter,
+	adminListingActivitiesManagerPagePresenter,
 	publicFaqFormPresenter,
 	blogInformationFormPresenter
 };
@@ -72,3 +120,4 @@ export type { FeedbackViewModel } from '$lib/feedbacks';
 export type { AppRole, AppPermission } from '$lib/rbac/rbac.types';
 export type { ExtendedFullUserViewModel } from '$lib/user-management';
 export type { BlogPostViewModel } from '$lib/blogs';
+export type { ListingViewModel } from '$lib/listings';
