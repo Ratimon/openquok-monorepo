@@ -26,6 +26,7 @@
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
@@ -113,6 +114,18 @@
 		ctaHref={secondaryCtaHref}
 	/>
 {/each}
+
+{#if mcpVm.comparisonSection}
+	<WithWithout
+		heroTheme={landingHeroTheme}
+		landingSubtitle={mcpVm.comparisonSection.subtitle}
+		landingTitle={mcpVm.comparisonSection.title}
+		landingDescription={mcpVm.comparisonSection.description}
+		withoutTitle={mcpVm.comparisonSection.withoutTitle}
+		withTitle={mcpVm.comparisonSection.withTitle}
+		points={mcpVm.comparisonSection.points}
+	/>
+{/if}
 
 <div class="container mx-auto px-4">
 	<PublicFaq

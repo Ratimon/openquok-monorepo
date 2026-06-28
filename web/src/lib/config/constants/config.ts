@@ -253,7 +253,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the first secondary hero section',
 		type: 'string',
 		default:
-			'Give each brand, client, or agent its own workspace with isolated channels and chat. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.',
+			'Give each brand, client, or agent its own workspace with isolated channels. Reach your agents from Telegram or other chat apps (ChatGPT, Claude, Openclaw, etc.), then run dozens of social channels without one shared context — or your AI mixing up workflows.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -377,7 +377,8 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_7_TITLE: {
 		description: 'Headline for the seventh secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'when a viral format hits, run more sessions, and reach every connected channel',
+		default:
+			'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -385,7 +386,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the seventh secondary hero section',
 		type: 'string',
 		default:
-			'Spot a winner in analytics, queue the next wave from your desktop while you track performance from your phone — add parallel agent sessions and connect more channels as you grow.',
+			'Spot a winner in analytics, then clone more dedicated workspaces for the next brand while parallel sessions queue the next wave and track performance — channels, and agent context stay isolated as you scale.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

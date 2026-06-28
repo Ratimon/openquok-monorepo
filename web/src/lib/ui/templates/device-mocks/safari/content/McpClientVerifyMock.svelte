@@ -120,8 +120,8 @@
 						<p class="text-sm text-[#6f5f55]">HTTP MCP · social scheduling tools</p>
 					</div>
 					<span class={`rounded-full px-3 py-1 text-xs font-semibold ${theme.accentSoftClass}`}
-						>Connected</span
-					>
+						>Connected
+					</span>
 				</div>
 			</div>
 

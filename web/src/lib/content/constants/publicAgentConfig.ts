@@ -323,7 +323,7 @@ openquok posts:status <post-id> -s schedule`
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
 			description:
-				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance over 7, 30, or 90 days and schedule more of what already resonates — without opening the dashboard.',
+				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance  and schedule more of what already resonates — without opening the dashboard.',
 			deviceMock: 'iphone-15-pro',
 			deviceMockContent: 'telegram-analytics',
 			imageAlt: 'OpenClaw Telegram chat showing OpenQuok platform and post analytics',
@@ -337,9 +337,9 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a viral format hits, run more sessions, and reach every connected channel',
+			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
 			description:
-				'Spot a winner in analytics, then let OpenClaw queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
+				'Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while OpenClaw queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
 			parallelMocks: [
 				{
 					deviceMock: 'desktop',
@@ -359,17 +359,16 @@ openquok analytics:post <post-id> -d 7`
 			],
 			mediaOnRight: false,
 			cliCommandsTitle: 'Parallel CLI sessions',
-			cliCommands: `# Session A — draft + schedule
+			cliCommands: `# Workspace A — launch (client brand)
 openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
 openquok posts:status <post-id> -s schedule
 
-# Session B — metrics (runs at the same time)
-openquok analytics:platform <integration-uuid> -d 7
-openquok analytics:post <post-id> -d 30
+# Workspace B — another client (isolated credentials)
+openquok posts:list --status draft
 
-# Session C — review queue (runs at the same time)
-openquok posts:review-todo <post-id> --note "Check CTA before publish"
-openquok posts:list --status draft`
+# Same workspace — metrics in parallel
+openquok analytics:platform <integration-uuid> -d 7
+openquok analytics:post <post-id> -d 30`
 		}
 	],
 	workflowSection: {
@@ -475,7 +474,7 @@ openquok posts:list --status draft`
 			{
 				pain: 'Copy posts between your AI chat and a separate scheduling tool',
 				feature:
-					'Message OpenClaw from WhatsApp, Telegram, or Slack to draft and schedule in one thread'
+					'Message OpenClaw from WhatsApp, Telegram, or Slack to draft and schedule'
 			},
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
@@ -491,9 +490,14 @@ openquok posts:list --status draft`
 				feature: 'Works with any LLM: Claude, GPT, Gemini, Llama, and more'
 			},
 			{
+				pain: 'One workspace mixing every context as you add channels and parallel sessions',
+				feature:
+					'Multi-workspace isolation — spin up a workspace per context so channels, and drafts never cross wires'
+			},
+			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve on the calendar or kanban before anything goes live'
+					'Every post lands as draft or scheduled — you approve before anything goes live'
 			}
 		]
 	},
@@ -618,7 +622,7 @@ openquok posts:status <post-id> -s schedule`
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
 			description:
-				'Message Hermes on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance over 7, 30, or 90 days and schedule more of what already resonates — without opening the dashboard.',
+				'Message Hermes on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
 			deviceMock: 'iphone-15-pro',
 			deviceMockContent: 'telegram-analytics',
 			imageAlt: 'Hermes Telegram chat showing OpenQuok platform and post analytics',
@@ -632,9 +636,9 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a viral format hits, run more sessions, and reach every connected channel',
+			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
 			description:
-				'Spot a winner in analytics, then let Hermes queue the next wave on that template while another session tracks performance — add parallel sessions and connect more channels as you grow, without waiting for one job to finish.',
+				'Spot a winner in analytics, then cl a dedicated workspace for the next client or brand while Hermes queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
 			parallelMocks: [
 				{
 					deviceMock: 'desktop',
@@ -654,17 +658,16 @@ openquok analytics:post <post-id> -d 7`
 			],
 			mediaOnRight: false,
 			cliCommandsTitle: 'Parallel CLI sessions',
-			cliCommands: `# Session A — draft + schedule
+			cliCommands: `# Workspace A — launch (client brand)
 openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
 openquok posts:status <post-id> -s schedule
 
-# Session B — metrics (runs at the same time)
-openquok analytics:platform <integration-uuid> -d 7
-openquok analytics:post <post-id> -d 30
+# Workspace B — another client (isolated credentials)
+openquok posts:list --status draft
 
-# Session C — review queue (runs at the same time)
-openquok posts:review-todo <post-id> --note "Check CTA before publish"
-openquok posts:list --status draft`
+# Same workspace — metrics in parallel
+openquok analytics:platform <integration-uuid> -d 7
+openquok analytics:post <post-id> -d 30`
 		}
 	],
 	workflowSection: {
@@ -774,7 +777,7 @@ openquok posts:list --status draft`
 			{
 				pain: 'Copy posts between your AI chat and a separate scheduling tool',
 				feature:
-					'Message Hermes from Telegram, Discord, or Slack to draft and schedule in one thread'
+					'Message Hermes from Telegram, Discord, or Slack to draft and schedule'
 			},
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
@@ -791,9 +794,14 @@ openquok posts:list --status draft`
 					'Works with Nous Portal, OpenRouter, Anthropic, OpenAI, Gemini, and self-hosted endpoints'
 			},
 			{
+				pain: 'One workspace mixing every context as you add channels and parallel sessions',
+				feature:
+					'Multi-workspace isolation — spin up a workspace per context so channels, and drafts never cross wires'
+			},
+			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve on the calendar or kanban before anything goes live'
+					'Every post lands as draft or scheduled — you approve before anything goes live'
 			}
 		]
 	},

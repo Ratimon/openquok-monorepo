@@ -27,6 +27,21 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 			'Yes. OpenQuok is open source, so you can run it on your own infrastructure (eg. AWS, GCP, Hezner, or even vercel) and manage limits locally without needing a subscription.'
 	},
 	{
+		title: 'What is the agent workspace?',
+		description:
+			'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
+	},
+	{
+		title: "Why should I use OpenQuok's multi-workspace?",
+		description:
+			'Most schedulers treat one account as one pile of channels — fine at first, risky when you add clients, brands, or agents. OpenQuok gives each workspace its own channels, OAuth app, programmatic token, and MCP endpoint so credentials and drafts never cross wires. Spin up a workspace per client or brand when a format wins, run parallel sessions inside each, and scale volume without an agent posting to the wrong Page or mixing analytics. It is the safeguard Buffer and Hootsuite do not ship for agent-driven workflows.'
+	},
+	{
+		title: 'What do OAuth app counts on pricing plans mean?',
+		description:
+			'Each workspace includes one OAuth application. The totals on pricing plans match your workspace limit — for example, Solo includes 1 OAuth app (1 workspace), Team includes 3, Ultimate includes 5, and Max includes 10. Register the app under Developers → Apps to get client credentials for third-party OAuth flows.\n\n. If you need separate apps for different products, clients, or redirect URLs — such as one integration built with our SDK and another product with its own OAuth consent screen — create an additional workspace and register one app there. Each workspace keeps its own channels, credentials, and tokens isolated.\n\nWithin one workspace, that single OAuth app also backs your workspace programmatic token (opo_…) for the Public API, SDK, CI scripts, and MCP.'
+	},
+	{
 		title: 'Can I get a refund?',
 		description:
 			'With in 1 month, you can get a refund if you have not used the product during a billing period. If you have used the product during a billing period, contact support and we will work with you on a fair resolution. Self-hosted deployments follow your own billing policies.'
@@ -40,16 +55,6 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		title: 'How do I pay for agent hosts vs MCP clients?',
 		description:
 			'OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw and Hermes are open source (BYOK or optional Nous Portal pay-as-you-go / Plus from $20/mo); Cursor, Claude Code, and Codex bill through their own subscriptions. OpenQuok MCP only needs your programmatic token — no per-call fee beyond your OpenQuok plan.'
-	},
-	{
-		title: 'What is the agent workspace?',
-		description:
-			'An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded.'
-	},
-	{
-		title: 'What do OAuth app counts on pricing plans mean?',
-		description:
-			'Each workspace includes one OAuth application. The totals on pricing plans match your workspace limit — for example, Solo includes 1 OAuth app (1 workspace), Team includes 3, Ultimate includes 5, and Max includes 10. Register the app under Developers → Apps to get client credentials for third-party OAuth flows.\n\n. If you need separate apps for different products, clients, or redirect URLs — such as one integration built with our SDK and another product with its own OAuth consent screen — create an additional workspace and register one app there. Each workspace keeps its own channels, credentials, and tokens isolated.\n\nWithin one workspace, that single OAuth app also backs your workspace programmatic token (opo_…) for the Public API, SDK, CI scripts, and MCP.'
 	},
 	{
 		title: 'What is MCP and how does OpenQuok use it?',

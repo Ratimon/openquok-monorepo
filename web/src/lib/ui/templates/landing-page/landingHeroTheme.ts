@@ -21,6 +21,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'agents',
 	'agent hosts',
 	'agent-native',
+	'MCP-native',
 	'MCP clients',
 	'B2B',
 	'editor',

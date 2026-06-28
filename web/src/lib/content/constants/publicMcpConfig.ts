@@ -4,6 +4,7 @@ import { icons } from '$data/icons';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type {
 	FeaturesOrderedStep,
+	PublicAgentComparisonSection,
 	PublicAgentFeatureSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/publicAgentConfig';
@@ -62,6 +63,7 @@ export type PublicMcpLandingPageViewModel = {
 	audienceSubtitle: string;
 	audienceTitle: string;
 	audienceCards: AudienceCard[];
+	comparisonSection?: PublicAgentComparisonSection;
 	available: boolean;
 };
 
@@ -86,14 +88,14 @@ function buildMcpAudienceSection(
 				iconName: icons.CustomizedDrawnLaptop.name,
 				iconClass: 'text-sky-400',
 				title: 'IDE & workflow users',
-				description: `Stay in ${workflowPhrase} — draft and schedule social posts from your agent without opening another dashboard.`,
+				description: `Stay in ${workflowPhrase} — Schedule social posts from your agent without opening another dashboard.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
 				iconName: icons.CustomizedDrawnRobot.name,
 				iconClass: 'text-cyan-400',
 				title: 'Developers & builders',
-				description: `Connect OpenQuok over HTTP MCP with a programmatic token — ${label} lists channels and schedules posts with structured tools.`,
+				description: `Connect OpenQuok over MCP with a programmatic token — ${label} lists channels and schedules posts with structured tools.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
@@ -112,7 +114,7 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 	return [
 		{
 			title: `What is OpenQuok MCP for ${label}?`,
-			description: `OpenQuok exposes social scheduling tools over HTTP MCP so ${label} can list connected channels, read platform limits, and draft or schedule posts in natural language — you approve what publishes in your OpenQuok workspace.`
+			description: `OpenQuok exposes social scheduling tools over MCP so ${label} can list connected channels, read platform limits, and draft or schedule posts in natural language — you approve what publishes in your OpenQuok workspace.`
 		},
 		{
 			title: 'Do I need the CLI or openquok-core skill?',
@@ -377,7 +379,7 @@ function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAge
 		{
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
-			description: `Ask ${label} to pull impressions, engagement, and post insights for any connected channel — compare 7, 30, or 90 days without opening the dashboard.`,
+			description: `Ask ${label} to pull impressions, engagement, and post insights for any connected channel — compare without opening the dashboard.`,
 			deviceMock: 'desktop',
 			deviceMockContent: analyticsContentId,
 			imageAlt: `${label} chat showing OpenQuok platform and post analytics`,
@@ -388,8 +390,8 @@ Break down likes, comments, and shares for post <id>`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a format hits, run more sessions, and reach every connected channel',
-			description: `Spot a winner in analytics, then queue the next wave in one ${label} session while another tracks performance — add parallel desktop sessions as you grow.`,
+			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
+			description: `Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while parallel ${label} sessions queue posts and pull metrics — multi-workspace isolation keeps credentials and channels from mixing as you scale.`,
 			parallelMocks: [
 				{
 					deviceMock: 'desktop',
@@ -404,13 +406,55 @@ Break down likes, comments, and shares for post <id>`
 			],
 			mediaOnRight: false,
 			cliCommandsTitle: 'Parallel sessions',
-			cliCommands: `# Session A — schedule (concurrent)
+			cliCommands: `# Workspace A — launch (client brand)
 Queue my launch thread for Tue 9am across Facebook and Instagram
 
-# Session B — metrics (concurrent)
+# Workspace B — another client (switch workspace + token)
+List draft posts waiting for review in this workspace
+
+# Same workspace — metrics in parallel
 What performed best on my channels over the last 7 days?`
 		}
 	];
+}
+
+function buildMcpComparisonSection(
+	label: string,
+	workflowPhrase: string
+): PublicAgentComparisonSection {
+	return {
+		subtitle: 'comparisons',
+		title: 'MCP-native scheduling, not another dashboard',
+		description:
+			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for MCP clients in your editor and terminal',
+		withoutTitle: 'Typical social scheduler SaaS',
+		withTitle: `OpenQuok + ${label}`,
+		points: [
+			{
+				pain: 'Copy posts between your AI session and a separate scheduling tool',
+				feature: `Stay in ${workflowPhrase} — Schedule from ${label} in one session`
+			},
+			{
+				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
+				feature:
+					'Connect over MCP — credentials stay in your workspace'
+			},
+			{
+				pain: 'Custom integrations you maintain for every tool and channel',
+				feature:
+					'Built-in MCP tools that upload media, and schedule with structured responses'
+			},
+			{
+				pain: "Locked to one vendor's models or automation layer",
+				feature: `Works with any model ${label} supports — Claude, GPT, Gemini, and more`
+			},
+			{
+				pain: 'Autopilot publishing with no human checkpoint',
+				feature:
+					'Every post lands as draft or scheduled — you approve before anything goes live'
+			}
+		]
+	};
 }
 
 function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewModel {
@@ -458,9 +502,10 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewMode
 		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
-		faqDescription: `Connect ${label} to OpenQuok over HTTP MCP — authentication, verification, and scheduling posts from chat.`,
+		faqDescription: `Connect ${label} to OpenQuok over MCP — authentication, verification, and scheduling posts from chat.`,
 		faqItems: buildMcpFaqItems(label),
 		...audience,
+		comparisonSection: buildMcpComparisonSection(label, workflowPhrase),
 		available: true
 	};
 }
