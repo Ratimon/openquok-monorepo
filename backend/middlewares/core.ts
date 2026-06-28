@@ -17,6 +17,9 @@ interface RequestWithId extends Request {
 const BLOG_POSTS_PREFIX = "/blog-system/posts/";
 /** PUT /blog-system/posts/:postId/activity — public; route may still attach user if token is sent. */
 const BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
+const LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
+const LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
+const LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
 
 /**
  * Routes under the API prefix normally require `Authorization: Bearer` (see `requireFullAuth`).
@@ -53,11 +56,31 @@ function shouldSkipApiAuth(
         return true;
     }
 
-    // Blog HTML embeds images via <img src>; browsers do not send Bearer on those requests.
+    // Listings: public stat counters (view/like/click).
+    if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+        return true;
+    }
+
+    // Listings: published extension/stack detail by slug.
+    if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
+        return true;
+    }
+    if (req.method === "GET" && routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX)) {
+        return true;
+    }
+
+    if (req.method === "GET" && routePath.startsWith("/listings/creators/")) {
+        return true;
+    }
+
+    // Public image download for blog/listing embeds (browsers do not send Bearer on <img src>).
     if (req.method === "GET" && routePath === "/image/download") {
         const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
         const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-        if (dbName === "blog_images" && imageUrlParam.length > 0) {
+        if (
+            (dbName === "blog_images" || dbName === "listing_images") &&
+            imageUrlParam.length > 0
+        ) {
             return true;
         }
     }
@@ -125,6 +148,19 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
             "/blog-system/authors",
             "/blog-system/topics",
             "/blog-system/topics/active",
+            "/listings/published",
+            "/listings/stacks/published",
+            "/listings/information",
+            "/listings/categories/active-partial",
+            "/listings/categories/active-full",
+            "/listings/categories/all-partial",
+            "/listings/categories/all-full",
+            "/listings/categories/groups",
+            "/listings/tags/active-partial",
+            "/listings/tags/active-full",
+            "/listings/tags/all-full",
+            "/listings/tags/groups",
+            "/listings/creators",
             "/openapi.json",
             /** Join-org page: invitees validate the link before sign-in. */
             "/settings/invite/validate",

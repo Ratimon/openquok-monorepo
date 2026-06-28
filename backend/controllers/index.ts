@@ -5,6 +5,7 @@ import { SettingsController } from "./SettingsController";
 import { RbacController } from "./RbacController";
 import { FeedbackController } from "./FeedbackController";
 import { BlogController } from "./BlogController";
+import { ListingController } from "./ListingController";
 import { ImageController } from "./ImageController";
 import { MediaController, MAX_MEDIA_UPLOAD_BYTES } from "./MediaController";
 import { BillingController } from "./BillingController";
@@ -35,6 +36,7 @@ import {
     rbacService,
     feedbackService,
     blogService,
+    listingService,
     configService,
     integrationConnectionService,
     integrationManager,
@@ -80,6 +82,7 @@ export const settingsController = new SettingsController(organizationService);
 export const rbacController = new RbacController(rbacService, userRepository);
 export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
+export const listingController = new ListingController(listingService);
 export const imageController = new ImageController(storageSupabaseRepository);
 export const mediaController = new MediaController(
     mediaService,

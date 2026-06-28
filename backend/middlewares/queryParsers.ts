@@ -247,3 +247,71 @@ export function createNotificationPaginatedQueryParser(): RequestHandler {
         page: notificationPageParser,
     });
 }
+
+/** Published listings list query. */
+export interface ParsedPublishedListingsQuery extends Record<string, unknown> {
+    limit?: number;
+    skipId?: string | null;
+    skip?: number;
+    searchTerm?: string | null;
+    tagSlugs?: string[] | null;
+    categorySlug?: string | null;
+    extensionType?: string | null;
+    listingKind?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+const publishedListingsRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.skip,
+    CommonQueryParsers.search,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range,
+    {
+        tagSlugs: stringArray,
+        categorySlug: QueryParsers.string,
+        extensionType: QueryParsers.string,
+        listingKind: QueryParsers.string,
+    }
+);
+
+export function createPublishedListingsParser(): RequestHandler {
+    return createQueryParser<ParsedPublishedListingsQuery>(publishedListingsRules);
+}
+
+/** Admin listings list query. */
+export interface ParsedAdminListingsQuery extends Record<string, unknown> {
+    limit?: number;
+    searchTerm?: string | null;
+    listingKind?: string | null;
+    sortByKey?: string | null;
+    sortByOrder?: boolean | null;
+    range?: { start: number; end: number } | null;
+}
+
+const adminListingsRules = combineParsers(
+    CommonQueryParsers.pagination,
+    CommonQueryParsers.search,
+    CommonQueryParsers.sorting,
+    CommonQueryParsers.range,
+    { listingKind: QueryParsers.string }
+);
+
+export function createAdminListingsParser(): RequestHandler {
+    return createQueryParser<ParsedAdminListingsQuery>(adminListingsRules);
+}
+
+/** Category/tag pagination (limit, offset). */
+export interface ParsedCategoriesPaginationQuery extends Record<string, unknown> {
+    limit?: number;
+    offset?: number;
+}
+
+export function createCategoriesPaginationParser(): RequestHandler {
+    return createQueryParser<ParsedCategoriesPaginationQuery>({
+        limit: QueryParsers.number,
+        offset: QueryParsers.number,
+    });
+}

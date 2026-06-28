@@ -7,6 +7,9 @@ import {
     rbacRepository,
     feedbackRepository,
     blogRepository,
+    listingRepository,
+    listingCategoryRepository,
+    listingTagRepository,
     integrationRepository,
     plugRepository,
     notificationRepository,
@@ -27,6 +30,7 @@ import { OrganizationService } from "./OrganizationService";
 import { RbacService } from "../guards/rbac/RbacService";
 import { FeedbackService } from "./FeedbackService";
 import { BlogService } from "./BlogService";
+import { ListingService } from "./ListingService";
 import { ConfigService } from "./ConfigService";
 import { IntegrationManager } from "../integrations/integrationManager";
 import { RefreshIntegrationService } from "./RefreshIntegrationService";
@@ -131,6 +135,15 @@ export const blogService = new BlogService(
     configRepository,
     subscriptionGuard
 );
+export const listingService = new ListingService(
+    listingRepository,
+    listingCategoryRepository,
+    listingTagRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection,
+    configRepository,
+    subscriptionGuard
+);
 export const userSessionService = new UserSessionService(
     organizationRepository,
     subscriptionGuard,
@@ -213,6 +226,7 @@ export { OrganizationService } from "./OrganizationService";
 export { RbacService } from "../guards/rbac/RbacService";
 export { FeedbackService } from "./FeedbackService";
 export { BlogService } from "./BlogService";
+export { ListingService } from "./ListingService";
 export { ConfigService } from "./ConfigService";
 export { IntegrationService } from "./IntegrationService";
 export { PlugService } from "./PlugService";

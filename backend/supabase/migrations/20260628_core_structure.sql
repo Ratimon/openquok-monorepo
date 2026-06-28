@@ -78,6 +78,29 @@ COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed
 -- ---------------------------
 
 
+-- Module: user-management, File: 105_20260628_username.sql
+-- ---------------------------
+-- MODULE NAME: User Management
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS username TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_unique
+    ON public.users (username)
+    WHERE username IS NOT NULL;
+
+COMMENT ON COLUMN public.users.username IS 'Public creator slug for /creators/[username]; nullable until set by user or admin';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-auth, File: 102_20260227_tables.sql
 -- ---------------------------
 -- MODULE NAME: User Auth
@@ -843,6 +866,215 @@ CREATE TABLE IF NOT EXISTS public.blog_activities (
 -- ---------------------------
 
 
+-- Module: listing-categories, File: 102_20260628_tables.sql
+-- ---------------------------
+-- MODULE NAME: Listing Categories
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.listing_categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    parent_id UUID REFERENCES public.listing_categories(id) ON DELETE SET NULL,
+    parent_path TEXT NOT NULL DEFAULT '/',
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    headline TEXT,
+    description TEXT,
+    image_url_hero TEXT,
+    image_url_small TEXT,
+    href TEXT,
+    color TEXT,
+    emoji TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_category_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_category_groups_listing_categories_association (
+    listing_category_id UUID NOT NULL REFERENCES public.listing_categories(id) ON DELETE CASCADE,
+    listing_category_group_id UUID NOT NULL REFERENCES public.listing_category_groups(id) ON DELETE CASCADE,
+    PRIMARY KEY (listing_category_id, listing_category_group_id)
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-tags, File: 102_20260628_tables.sql
+-- ---------------------------
+-- MODULE NAME: Listing Tags
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.listing_tags (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    headline TEXT,
+    description TEXT,
+    image_url_hero TEXT,
+    image_url_small TEXT,
+    href TEXT,
+    color TEXT,
+    emoji TEXT
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_tag_groups (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_tag_groups_listing_tags_association (
+    listing_tag_id UUID NOT NULL REFERENCES public.listing_tags(id) ON DELETE CASCADE,
+    listing_tag_group_id UUID NOT NULL REFERENCES public.listing_tag_groups(id) ON DELETE CASCADE,
+    PRIMARY KEY (listing_tag_id, listing_tag_group_id)
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listings, File: 102_20260628_tables.sql
+-- ---------------------------
+-- MODULE NAME: Listings
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.listings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    published_at TIMESTAMPTZ,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    description TEXT,
+    excerpt TEXT,
+    content TEXT,
+    listing_kind TEXT NOT NULL DEFAULT 'extension'
+        CHECK (listing_kind IN ('extension', 'stack')),
+    extension_type TEXT
+        CHECK (extension_type IS NULL OR extension_type IN ('skills', 'mcp', 'both')),
+    install_command_skills TEXT,
+    install_command_mcp TEXT,
+    is_official BOOLEAN NOT NULL DEFAULT false,
+    source_repo_url TEXT,
+    cloned_from_listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
+    likes INTEGER NOT NULL DEFAULT 0,
+    views INTEGER NOT NULL DEFAULT 0,
+    clicks INTEGER NOT NULL DEFAULT 0,
+    bookmark_count INTEGER NOT NULL DEFAULT 0,
+    average_rating DOUBLE PRECISION NOT NULL DEFAULT 0,
+    ratings_count INTEGER NOT NULL DEFAULT 0,
+    is_user_published BOOLEAN NOT NULL DEFAULT false,
+    is_admin_published BOOLEAN NOT NULL DEFAULT false,
+    schema_type TEXT,
+    schema_json JSONB,
+    listing_category_id UUID REFERENCES public.listing_categories(id) ON DELETE SET NULL,
+    default_image_url TEXT,
+    listing_image_urls TEXT[],
+    logo_image_url TEXT,
+    faq JSONB,
+    listing_tag_slugs TEXT[],
+    fts TSVECTOR GENERATED ALWAYS AS (
+        to_tsvector(
+            'english'::regconfig,
+            COALESCE(title, ''::text) || ' ' ||
+            COALESCE(description, ''::text) || ' ' ||
+            COALESCE(excerpt, ''::text) || ' ' ||
+            COALESCE(content, ''::text)
+        )
+    ) STORED
+);
+
+CREATE TABLE IF NOT EXISTS public.listings_listing_tags_association (
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    listing_tag_id UUID NOT NULL REFERENCES public.listing_tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (listing_id, listing_tag_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_stack_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stack_listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    member_listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    member_role TEXT NOT NULL CHECK (member_role IN ('skills', 'mcp')),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (stack_listing_id, member_listing_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_relations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    related_listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    relation_type TEXT NOT NULL DEFAULT 'related',
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (listing_id, related_listing_id, relation_type)
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_bookmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (user_id, listing_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_ratings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    rating SMALLINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (user_id, listing_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    parent_id UUID REFERENCES public.listing_comments(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    is_approved BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS public.listing_activities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
+    activity_type TEXT NOT NULL CHECK (activity_type IN ('view', 'like', 'bookmark', 'rating', 'comment', 'click')),
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: notification, File: 101_20260406_tables.sql
 -- ---------------------------
 -- MODULE NAME: notification
@@ -1233,6 +1465,101 @@ CREATE INDEX IF NOT EXISTS idx_blog_activities_post_id ON public.blog_activities
 CREATE INDEX IF NOT EXISTS idx_blog_activities_user_id ON public.blog_activities(user_id);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_type ON public.blog_activities(activity_type);
 CREATE INDEX IF NOT EXISTS idx_blog_activities_created_at ON public.blog_activities(created_at);
+
+
+-- Module: listing-categories, File: 201_20260628_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Listing Categories
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_listing_categories_slug ON public.listing_categories (slug);
+CREATE INDEX IF NOT EXISTS idx_listing_categories_parent_id ON public.listing_categories (parent_id);
+
+CREATE INDEX IF NOT EXISTS idx_lcg_lca_category_id
+    ON public.listing_category_groups_listing_categories_association (listing_category_id);
+CREATE INDEX IF NOT EXISTS idx_lcg_lca_group_id
+    ON public.listing_category_groups_listing_categories_association (listing_category_group_id);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-tags, File: 201_20260628_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Listing Tags
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_listing_tags_slug ON public.listing_tags (slug);
+
+CREATE INDEX IF NOT EXISTS idx_ltg_lta_tag_id
+    ON public.listing_tag_groups_listing_tags_association (listing_tag_id);
+CREATE INDEX IF NOT EXISTS idx_ltg_lta_group_id
+    ON public.listing_tag_groups_listing_tags_association (listing_tag_group_id);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listings, File: 201_20260628_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Listings
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+BEGIN;
+
+CREATE INDEX IF NOT EXISTS idx_listings_listing_category_id ON public.listings (listing_category_id);
+CREATE INDEX IF NOT EXISTS idx_listings_owner_id ON public.listings (owner_id);
+CREATE INDEX IF NOT EXISTS idx_listings_published ON public.listings (is_user_published, is_admin_published);
+CREATE INDEX IF NOT EXISTS idx_listings_slug ON public.listings (slug);
+CREATE INDEX IF NOT EXISTS idx_listings_listing_kind ON public.listings (listing_kind);
+CREATE INDEX IF NOT EXISTS idx_listings_extension_type ON public.listings (extension_type)
+    WHERE extension_type IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_listings_created_at ON public.listings (created_at);
+CREATE INDEX IF NOT EXISTS idx_listings_published_at ON public.listings (published_at);
+CREATE INDEX IF NOT EXISTS idx_listings_fts ON public.listings USING gin (fts);
+
+CREATE INDEX IF NOT EXISTS idx_listings_tags_assoc_tag_id
+    ON public.listings_listing_tags_association (listing_tag_id);
+CREATE INDEX IF NOT EXISTS idx_listings_tags_assoc_listing_id
+    ON public.listings_listing_tags_association (listing_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_stack_members_stack_id
+    ON public.listing_stack_members (stack_listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_stack_members_member_id
+    ON public.listing_stack_members (member_listing_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_relations_listing_id ON public.listing_relations (listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_relations_related_id ON public.listing_relations (related_listing_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_bookmarks_user_id ON public.listing_bookmarks (user_id);
+CREATE INDEX IF NOT EXISTS idx_listing_bookmarks_listing_id ON public.listing_bookmarks (listing_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_ratings_listing_id ON public.listing_ratings (listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_ratings_user_id ON public.listing_ratings (user_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_comments_listing_id ON public.listing_comments (listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_comments_user_id ON public.listing_comments (user_id);
+CREATE INDEX IF NOT EXISTS idx_listing_comments_parent_id ON public.listing_comments (parent_id);
+
+CREATE INDEX IF NOT EXISTS idx_listing_activities_listing_id ON public.listing_activities (listing_id);
+CREATE INDEX IF NOT EXISTS idx_listing_activities_user_id ON public.listing_activities (user_id);
+CREATE INDEX IF NOT EXISTS idx_listing_activities_type ON public.listing_activities (activity_type);
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: notification, File: 201_20260406_indexes.sql
@@ -3327,6 +3654,581 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 
+-- Module: listing-categories, File: 302_20260628_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Listing Categories
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.listing_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_category_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_category_groups_listing_categories_association ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Everyone can view listing categories" ON public.listing_categories;
+CREATE POLICY "Everyone can view listing categories" ON public.listing_categories
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage listing categories" ON public.listing_categories;
+CREATE POLICY "Super admin admins editors can manage listing categories" ON public.listing_categories
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view listing category groups" ON public.listing_category_groups;
+CREATE POLICY "Everyone can view listing category groups" ON public.listing_category_groups
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage listing category groups" ON public.listing_category_groups;
+CREATE POLICY "Super admin admins editors can manage listing category groups" ON public.listing_category_groups
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view category group associations" ON public.listing_category_groups_listing_categories_association;
+CREATE POLICY "Everyone can view category group associations" ON public.listing_category_groups_listing_categories_association
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage category group associations" ON public.listing_category_groups_listing_categories_association;
+CREATE POLICY "Super admin admins editors can manage category group associations" ON public.listing_category_groups_listing_categories_association
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+GRANT SELECT ON public.listing_categories TO anon;
+GRANT SELECT ON public.listing_category_groups TO anon;
+GRANT SELECT ON public.listing_category_groups_listing_categories_association TO anon;
+
+GRANT ALL ON public.listing_categories TO authenticated;
+GRANT ALL ON public.listing_category_groups TO authenticated;
+GRANT ALL ON public.listing_category_groups_listing_categories_association TO authenticated;
+
+GRANT ALL ON public.listing_categories TO service_role;
+GRANT ALL ON public.listing_category_groups TO service_role;
+GRANT ALL ON public.listing_category_groups_listing_categories_association TO service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-tags, File: 302_20260628_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Listing Tags
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.listing_tags ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_tag_groups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_tag_groups_listing_tags_association ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Everyone can view listing tags" ON public.listing_tags;
+CREATE POLICY "Everyone can view listing tags" ON public.listing_tags
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage listing tags" ON public.listing_tags;
+CREATE POLICY "Super admin admins editors can manage listing tags" ON public.listing_tags
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view listing tag groups" ON public.listing_tag_groups;
+CREATE POLICY "Everyone can view listing tag groups" ON public.listing_tag_groups
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage listing tag groups" ON public.listing_tag_groups;
+CREATE POLICY "Super admin admins editors can manage listing tag groups" ON public.listing_tag_groups
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+DROP POLICY IF EXISTS "Everyone can view tag group associations" ON public.listing_tag_groups_listing_tags_association;
+CREATE POLICY "Everyone can view tag group associations" ON public.listing_tag_groups_listing_tags_association
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage tag group associations" ON public.listing_tag_groups_listing_tags_association;
+CREATE POLICY "Super admin admins editors can manage tag group associations" ON public.listing_tag_groups_listing_tags_association
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+GRANT SELECT ON public.listing_tags TO anon;
+GRANT SELECT ON public.listing_tag_groups TO anon;
+GRANT SELECT ON public.listing_tag_groups_listing_tags_association TO anon;
+
+GRANT ALL ON public.listing_tags TO authenticated;
+GRANT ALL ON public.listing_tag_groups TO authenticated;
+GRANT ALL ON public.listing_tag_groups_listing_tags_association TO authenticated;
+
+GRANT ALL ON public.listing_tags TO service_role;
+GRANT ALL ON public.listing_tag_groups TO service_role;
+GRANT ALL ON public.listing_tag_groups_listing_tags_association TO service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listings, File: 302_20260628_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Listings
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Row Level Security and Grants
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listings_listing_tags_association ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_stack_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_relations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_bookmarks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.listing_activities ENABLE ROW LEVEL SECURITY;
+
+-- ---------------------------
+-- Listings
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Public can view published listings" ON public.listings;
+CREATE POLICY "Public can view published listings" ON public.listings
+    FOR SELECT TO anon, authenticated
+    USING (is_user_published = true AND is_admin_published = true);
+
+DROP POLICY IF EXISTS "Owners can manage their own listings" ON public.listings;
+CREATE POLICY "Owners can manage their own listings" ON public.listings
+    FOR ALL TO authenticated
+    USING (
+        owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage all listings" ON public.listings;
+CREATE POLICY "Super admin admins editors can manage all listings" ON public.listings
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Tag association (owners + editors)
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view listing tag associations" ON public.listings_listing_tags_association;
+CREATE POLICY "Everyone can view listing tag associations" ON public.listings_listing_tags_association
+    FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Listing owners and editors can manage tag associations" ON public.listings_listing_tags_association;
+CREATE POLICY "Listing owners and editors can manage tag associations" ON public.listings_listing_tags_association
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    );
+
+-- ---------------------------
+-- Stack members
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Public can view stack members of published stacks" ON public.listing_stack_members;
+CREATE POLICY "Public can view stack members of published stacks" ON public.listing_stack_members
+    FOR SELECT TO anon, authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.listings s
+            WHERE s.id = stack_listing_id
+              AND s.is_user_published = true
+              AND s.is_admin_published = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Owners and editors can manage stack members" ON public.listing_stack_members;
+CREATE POLICY "Owners and editors can manage stack members" ON public.listing_stack_members
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = stack_listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = stack_listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    );
+
+-- ---------------------------
+-- Relations
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Public can view relations of published listings" ON public.listing_relations;
+CREATE POLICY "Public can view relations of published listings" ON public.listing_relations
+    FOR SELECT TO anon, authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = listing_id
+              AND l.is_user_published = true
+              AND l.is_admin_published = true
+        )
+    );
+
+DROP POLICY IF EXISTS "Owners and editors can manage listing relations" ON public.listing_relations;
+CREATE POLICY "Owners and editors can manage listing relations" ON public.listing_relations
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+        OR EXISTS (
+            SELECT 1 FROM public.listings l
+            WHERE l.id = listing_id
+              AND l.owner_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    );
+
+-- ---------------------------
+-- Bookmarks
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Users can manage their own bookmarks" ON public.listing_bookmarks;
+CREATE POLICY "Users can manage their own bookmarks" ON public.listing_bookmarks
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Editors can view all bookmarks" ON public.listing_bookmarks;
+CREATE POLICY "Editors can view all bookmarks" ON public.listing_bookmarks
+    FOR SELECT TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Ratings
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Users can manage their own ratings" ON public.listing_ratings;
+CREATE POLICY "Users can manage their own ratings" ON public.listing_ratings
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Public can view listing ratings aggregate via listings" ON public.listing_ratings;
+CREATE POLICY "Public can view listing ratings aggregate via listings" ON public.listing_ratings
+    FOR SELECT TO anon, authenticated USING (true);
+
+-- ---------------------------
+-- Comments
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Everyone can view approved listing comments" ON public.listing_comments;
+CREATE POLICY "Everyone can view approved listing comments" ON public.listing_comments
+    FOR SELECT TO anon, authenticated USING (is_approved = true);
+
+DROP POLICY IF EXISTS "Users can manage their own listing comments" ON public.listing_comments;
+CREATE POLICY "Users can manage their own listing comments" ON public.listing_comments
+    FOR ALL TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    )
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "Super admin admins editors can manage listing comments" ON public.listing_comments;
+CREATE POLICY "Super admin admins editors can manage listing comments" ON public.listing_comments
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    )
+    WITH CHECK (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Activities
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Users can view their own listing activities" ON public.listing_activities;
+CREATE POLICY "Users can view their own listing activities" ON public.listing_activities
+    FOR SELECT TO authenticated
+    USING (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+    );
+
+DROP POLICY IF EXISTS "System can insert listing activities" ON public.listing_activities;
+CREATE POLICY "System can insert listing activities" ON public.listing_activities
+    FOR INSERT TO authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Super admin admins editors can view all listing activities" ON public.listing_activities;
+CREATE POLICY "Super admin admins editors can view all listing activities" ON public.listing_activities
+    FOR ALL TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'editor')
+        )
+    );
+
+-- ---------------------------
+-- Storage: listing_images
+-- ---------------------------
+
+DROP POLICY IF EXISTS "Allow authenticated users to delete their listing images" ON storage.objects;
+CREATE POLICY "Allow authenticated users to delete their listing images"
+    ON storage.objects
+    AS PERMISSIVE FOR DELETE TO authenticated
+    USING (
+        bucket_id = 'listing_images'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow authenticated users to update their listing images" ON storage.objects;
+CREATE POLICY "Allow authenticated users to update their listing images"
+    ON storage.objects
+    AS PERMISSIVE FOR UPDATE TO authenticated
+    USING (
+        bucket_id = 'listing_images'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow authenticated users to upload listing images" ON storage.objects;
+CREATE POLICY "Allow authenticated users to upload listing images"
+    ON storage.objects
+    AS PERMISSIVE FOR INSERT TO authenticated
+    WITH CHECK (
+        bucket_id = 'listing_images'::text
+        AND auth.role() = 'authenticated'::text
+        AND auth.uid() = owner
+    );
+
+DROP POLICY IF EXISTS "Allow read access to listing images" ON storage.objects;
+CREATE POLICY "Allow read access to listing images"
+    ON storage.objects
+    AS PERMISSIVE FOR SELECT TO anon, authenticated
+    USING (bucket_id = 'listing_images'::text);
+
+DROP POLICY IF EXISTS "Allow service_role to manage listing images" ON storage.objects;
+CREATE POLICY "Allow service_role to manage listing images"
+    ON storage.objects
+    AS PERMISSIVE FOR ALL TO service_role
+    USING (bucket_id = 'listing_images'::text);
+
+-- ---------------------------
+-- Grants
+-- ---------------------------
+
+GRANT SELECT ON public.listings TO anon;
+GRANT SELECT ON public.listings_listing_tags_association TO anon;
+GRANT SELECT ON public.listing_stack_members TO anon;
+GRANT SELECT ON public.listing_relations TO anon;
+GRANT SELECT ON public.listing_comments TO anon;
+GRANT SELECT ON storage.objects TO anon;
+
+GRANT ALL ON public.listings TO authenticated;
+GRANT ALL ON public.listings_listing_tags_association TO authenticated;
+GRANT ALL ON public.listing_stack_members TO authenticated;
+GRANT ALL ON public.listing_relations TO authenticated;
+GRANT ALL ON public.listing_bookmarks TO authenticated;
+GRANT ALL ON public.listing_ratings TO authenticated;
+GRANT ALL ON public.listing_comments TO authenticated;
+GRANT INSERT ON public.listing_activities TO authenticated;
+GRANT DELETE, INSERT, SELECT, UPDATE ON storage.objects TO authenticated;
+
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON storage.objects TO service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: notification, File: 301_20260406_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: notification
@@ -3797,6 +4699,59 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS)';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: user-management, File: 402_20260628_listing_creators.sql
+-- ---------------------------
+-- MODULE NAME: User Management
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.get_listing_creators()
+RETURNS TABLE (
+    id UUID,
+    username TEXT,
+    full_name TEXT,
+    avatar_url TEXT,
+    tag_line TEXT,
+    extension_count BIGINT,
+    stack_count BIGINT,
+    total_likes BIGINT,
+    total_bookmarks BIGINT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        u.id,
+        u.username,
+        u.full_name,
+        up.avatar_url,
+        up.tag_line,
+        COUNT(l.id) FILTER (WHERE l.listing_kind = 'extension') AS extension_count,
+        COUNT(l.id) FILTER (WHERE l.listing_kind = 'stack') AS stack_count,
+        COALESCE(SUM(l.likes), 0)::BIGINT AS total_likes,
+        COALESCE(SUM(l.bookmark_count), 0)::BIGINT AS total_bookmarks
+    FROM public.users u
+    INNER JOIN public.listings l ON l.owner_id = u.id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.user_profiles up ON up.owner_id = u.id
+    WHERE u.username IS NOT NULL
+    GROUP BY u.id, u.username, u.full_name, up.avatar_url, up.tag_line
+    ORDER BY extension_count DESC, stack_count DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO anon, authenticated, service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -4944,6 +5899,374 @@ CREATE TRIGGER update_blog_post_like_count_trigger
   EXECUTE FUNCTION public.update_blog_post_like_count();
 
 
+-- Module: listing-categories, File: 401_20260628_functions.sql
+-- ---------------------------
+-- MODULE NAME: Listing Categories
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.get_active_listing_categories()
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    slug TEXT,
+    parent_path TEXT,
+    listing_category_groups JSONB
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT DISTINCT
+        c.id,
+        c.name,
+        c.slug,
+        c.parent_path,
+        COALESCE(
+            jsonb_agg(
+                DISTINCT jsonb_build_object('id', cg.id, 'name', cg.name)
+            ) FILTER (WHERE cg.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS listing_category_groups
+    FROM public.listing_categories c
+    INNER JOIN public.listings l ON c.id = l.listing_category_id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.listing_category_groups_listing_categories_association cgca ON c.id = cgca.listing_category_id
+    LEFT JOIN public.listing_category_groups cg ON cgca.listing_category_group_id = cg.id
+    GROUP BY c.id, c.name, c.slug, c.parent_path;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_full_active_listing_categories()
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    slug TEXT,
+    headline TEXT,
+    description TEXT,
+    image_url_hero TEXT,
+    image_url_small TEXT,
+    href TEXT,
+    color TEXT,
+    emoji TEXT,
+    listing_category_groups JSONB
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        c.id,
+        c.name,
+        c.slug,
+        c.headline,
+        c.description,
+        c.image_url_hero,
+        c.image_url_small,
+        c.href,
+        c.color,
+        c.emoji,
+        COALESCE(
+            jsonb_agg(
+                DISTINCT jsonb_build_object('id', cg.id, 'name', cg.name)
+            ) FILTER (WHERE cg.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS listing_category_groups
+    FROM public.listing_categories c
+    INNER JOIN public.listings l ON c.id = l.listing_category_id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.listing_category_groups_listing_categories_association cgca ON c.id = cgca.listing_category_id
+    LEFT JOIN public.listing_category_groups cg ON cgca.listing_category_group_id = cg.id
+    GROUP BY
+        c.id, c.name, c.slug, c.headline, c.description,
+        c.image_url_hero, c.image_url_small, c.href, c.color, c.emoji;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_active_listing_categories() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_categories() TO anon, authenticated, service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-tags, File: 401_20260628_functions.sql
+-- ---------------------------
+-- MODULE NAME: Listing Tags
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.get_active_listing_tags()
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    slug TEXT,
+    listing_tag_groups JSONB
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        t.id,
+        t.name,
+        t.slug,
+        COALESCE(
+            jsonb_agg(
+                DISTINCT jsonb_build_object('id', tg.id, 'name', tg.name)
+            ) FILTER (WHERE tg.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS listing_tag_groups
+    FROM public.listing_tags t
+    INNER JOIN public.listings_listing_tags_association lt ON t.id = lt.listing_tag_id
+    INNER JOIN public.listings l ON lt.listing_id = l.id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.listing_tag_groups_listing_tags_association tgta ON t.id = tgta.listing_tag_id
+    LEFT JOIN public.listing_tag_groups tg ON tgta.listing_tag_group_id = tg.id
+    GROUP BY t.id, t.name, t.slug;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_full_active_listing_tags()
+RETURNS TABLE (
+    id UUID,
+    name TEXT,
+    slug TEXT,
+    headline TEXT,
+    description TEXT,
+    image_url_hero TEXT,
+    image_url_small TEXT,
+    href TEXT,
+    color TEXT,
+    emoji TEXT,
+    listing_tag_groups JSONB
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        t.id,
+        t.name,
+        t.slug,
+        t.headline,
+        t.description,
+        t.image_url_hero,
+        t.image_url_small,
+        t.href,
+        t.color,
+        t.emoji,
+        COALESCE(
+            jsonb_agg(
+                DISTINCT jsonb_build_object('id', tg.id, 'name', tg.name)
+            ) FILTER (WHERE tg.id IS NOT NULL),
+            '[]'::jsonb
+        ) AS listing_tag_groups
+    FROM public.listing_tags t
+    INNER JOIN public.listings_listing_tags_association lt ON t.id = lt.listing_tag_id
+    INNER JOIN public.listings l ON lt.listing_id = l.id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.listing_tag_groups_listing_tags_association tgta ON t.id = tgta.listing_tag_id
+    LEFT JOIN public.listing_tag_groups tg ON tgta.listing_tag_group_id = tg.id
+    GROUP BY
+        t.id, t.name, t.slug, t.headline, t.description,
+        t.image_url_hero, t.image_url_small, t.href, t.color, t.emoji;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_active_listing_tags() TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_tags() TO anon, authenticated, service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listings, File: 401_20260628_functions.sql
+-- ---------------------------
+-- MODULE NAME: Listings
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION public.update_listing_updated_at_column()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS update_listings_updated_at ON public.listings;
+CREATE TRIGGER update_listings_updated_at
+    BEFORE UPDATE ON public.listings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_listing_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_listing_ratings_updated_at ON public.listing_ratings;
+CREATE TRIGGER update_listing_ratings_updated_at
+    BEFORE UPDATE ON public.listing_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_listing_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_listing_comments_updated_at ON public.listing_comments;
+CREATE TRIGGER update_listing_comments_updated_at
+    BEFORE UPDATE ON public.listing_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_listing_updated_at_column();
+
+CREATE OR REPLACE FUNCTION public.generate_listing_slug()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.slug IS NULL OR NEW.slug = '' THEN
+        NEW.slug := public.generate_unique_slug(NEW.title, 'listings');
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS set_listing_slug ON public.listings;
+CREATE TRIGGER set_listing_slug
+    BEFORE INSERT ON public.listings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.generate_listing_slug();
+
+CREATE OR REPLACE FUNCTION public.update_listing_published_at()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.is_admin_published AND NEW.is_user_published AND OLD.published_at IS NULL THEN
+        NEW.published_at = CURRENT_TIMESTAMP;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS set_listing_published_at ON public.listings;
+CREATE TRIGGER set_listing_published_at
+    BEFORE UPDATE ON public.listings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_listing_published_at();
+
+CREATE OR REPLACE FUNCTION public.increment_field(p_listing_id UUID, field_name TEXT)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF field_name NOT IN ('likes', 'views', 'clicks', 'bookmark_count') THEN
+        RAISE EXCEPTION 'Invalid field name';
+    END IF;
+
+    EXECUTE format(
+        'UPDATE public.listings SET %I = %I + 1 WHERE id = $1',
+        field_name,
+        field_name
+    )
+    USING p_listing_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.increment_field(UUID, TEXT) TO anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.recompute_listing_rating_aggregate(p_listing_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_count INTEGER;
+    v_avg DOUBLE PRECISION;
+BEGIN
+    SELECT COUNT(*)::INTEGER, COALESCE(AVG(rating)::DOUBLE PRECISION, 0)
+    INTO v_count, v_avg
+    FROM public.listing_ratings
+    WHERE listing_id = p_listing_id;
+
+    UPDATE public.listings
+    SET ratings_count = v_count,
+        average_rating = v_avg
+    WHERE id = p_listing_id;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.trigger_recompute_listing_rating_aggregate()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    PERFORM public.recompute_listing_rating_aggregate(COALESCE(NEW.listing_id, OLD.listing_id));
+    RETURN COALESCE(NEW, OLD);
+END;
+$$;
+
+DROP TRIGGER IF EXISTS recompute_listing_rating_on_change ON public.listing_ratings;
+CREATE TRIGGER recompute_listing_rating_on_change
+    AFTER INSERT OR UPDATE OR DELETE ON public.listing_ratings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.trigger_recompute_listing_rating_aggregate();
+
+CREATE OR REPLACE FUNCTION public.get_listing_statistics(logged_user_id UUID DEFAULT NULL)
+RETURNS JSONB
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    result JSONB;
+BEGIN
+    SELECT jsonb_build_object(
+        'total_listings', COUNT(l.id),
+        'total_likes', COALESCE(SUM(l.likes), 0),
+        'total_views', COALESCE(SUM(l.views), 0),
+        'total_clicks', COALESCE(SUM(l.clicks), 0),
+        'total_ratings', COALESCE(SUM(l.ratings_count), 0),
+        'total_bookmarks', COALESCE(SUM(l.bookmark_count), 0)
+    )
+    INTO result
+    FROM public.listings l
+    WHERE (logged_user_id IS NULL OR l.owner_id = logged_user_id)
+      AND l.is_user_published = true
+      AND l.is_admin_published = true;
+
+    RETURN result;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_listing_statistics(UUID) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.recompute_listing_rating_aggregate(UUID) TO service_role;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: notification, File: 402_20260406_rlsgrants.sql
 -- ---------------------------
 -- MODULE NAME: notification
@@ -5310,6 +6633,82 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "BLOG_POST_SEO_META_TITLE": "Blog",
   "BLOG_POST_SEO_META_DESCRIPTION": "Here you can find all published blog posts.",
   "BLOG_POST_SEO_META_TAGS": "blog, articles, news, content"
+}'::jsonb
+)
+ON CONFLICT (module_name) DO NOTHING;
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-categories, File: 501_20260628_seed.sql
+-- ---------------------------
+-- MODULE NAME: Listing Categories
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Seed
+-- ---------------------------
+
+BEGIN;
+
+-- Reserved for initial taxonomy seed data (admin UI creates categories in v1).
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listing-tags, File: 501_20260628_seed.sql
+-- ---------------------------
+-- MODULE NAME: Listing Tags
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Seed
+-- ---------------------------
+
+BEGIN;
+
+-- Reserved for initial tag taxonomy seed data (admin UI creates tags in v1).
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
+-- Module: listings, File: 501_20260628_seed.sql
+-- ---------------------------
+-- MODULE NAME: Listings
+-- MODULE DATE: 20260628
+-- MODULE SCOPE: Seed
+-- ---------------------------
+
+BEGIN;
+
+INSERT INTO storage.buckets (
+    id,
+    name,
+    public,
+    avif_autodetection,
+    file_size_limit,
+    allowed_mime_types
+) VALUES (
+    'listing_images',
+    'listing_images',
+    TRUE,
+    FALSE,
+    5242880,
+    ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::text[]
+)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.module_configs (module_name, config) VALUES
+(
+    'listings',
+    '{
+  "EXTENSIONS_META_TITLE": "Extensions Hub",
+  "EXTENSIONS_META_DESCRIPTION": "Browse skills and MCP server extensions for your agent stack.",
+  "LISTING_SCHEMA_TYPE": "SoftwareApplication",
+  "PRE_ADMIN_APPROVE_NEW_LISTINGS": false,
+  "PRE_ADMIN_APPROVE_UPDATED_LISTINGS": true
 }'::jsonb
 )
 ON CONFLICT (module_name) DO NOTHING;
