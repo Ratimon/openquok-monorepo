@@ -75,11 +75,11 @@
 			<section class="border-t border-base-content/10 py-10">
 				<h2 class="mb-4 text-xl font-bold">Related extensions</h2>
 				<ul class="space-y-4">
-					{#each relatedExtensions as related (related.id)}
+					{#each relatedExtensions as relatedVm (relatedVm.id)}
 						<li>
 							<ExtensionCard
-								extension={related}
-								expanded={expandedRelatedId === related.id}
+								extensionVm={relatedVm}
+								expanded={expandedRelatedId === relatedVm.id}
 								onToggle={toggleRelatedExpanded}
 							/>
 						</li>

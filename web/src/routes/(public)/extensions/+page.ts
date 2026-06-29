@@ -25,11 +25,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			metaTitle: string;
 			metaDescription: string;
-			extensions: ExtensionCardViewModel[];
-			allExtensions: ExtensionCardViewModel[];
-			categories: ExtensionCategoryViewModel[];
-			stats: ExtensionsHubStatsViewModel;
-			filters: ExtensionsHubFilters;
+			extensionsVm: ExtensionCardViewModel[];
+			allExtensionsVm: ExtensionCardViewModel[];
+			categoriesVm: ExtensionCategoryViewModel[];
+			statsVm: ExtensionsHubStatsViewModel;
+			filtersVm: ExtensionsHubFilters;
 			totalCount: number;
 			schemaData: unknown;
 		};
@@ -43,11 +43,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isEditor,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			extensions: serverData.extensions,
-			allExtensions: serverData.allExtensions,
-			categories: serverData.categories,
-			stats: serverData.stats,
-			filters: serverData.filters,
+			extensionsVm: serverData.extensionsVm,
+			allExtensionsVm: serverData.allExtensionsVm,
+			categoriesVm: serverData.categoriesVm,
+			statsVm: serverData.statsVm,
+			filtersVm: serverData.filtersVm,
 			totalCount: serverData.totalCount,
 			schemaData: serverData.schemaData
 		};

@@ -10,19 +10,19 @@
 	import ExtensionCardExpanded from '$lib/ui/templates/extensions/ExtensionCardExpanded.svelte';
 
 	type Props = {
-		extension: ExtensionCardViewModel;
+		extensionVm: ExtensionCardViewModel;
 		expanded: boolean;
 		onToggle?: (id: string) => void;
 		class?: string;
 	};
 
-	let { extension, expanded = false, onToggle, class: className = '' }: Props = $props();
+	let { extensionVm, expanded = false, onToggle, class: className = '' }: Props = $props();
 
-	const detailHref = $derived(url(`/${getRootPathPublicExtension(extension.slug)}`));
+	const detailHref = $derived(url(`/${getRootPathPublicExtension(extensionVm.slug)}`));
 
 	const typeLabel = $derived.by(() => {
-		if (extension.isOfficial) return 'Official';
-		switch (extension.extensionType) {
+		if (extensionVm.isOfficial) return 'Official';
+		switch (extensionVm.extensionType) {
 			case 'skills':
 				return 'Skills';
 			case 'mcp':
@@ -38,16 +38,16 @@
 <Collapsible.Root
 	open={expanded}
 	onOpenChange={(open) => {
-		if (open !== expanded) onToggle?.(extension.id);
+		if (open !== expanded) onToggle?.(extensionVm.id);
 	}}
 	class={cn('rounded-2xl border border-base-content/10 bg-base-100/80', className)}
 >
 	<Collapsible.Trigger
 		class="flex w-full items-start gap-4 p-4 text-left transition hover:bg-base-200/40"
 	>
-		{#if extension.logoImageUrl}
+		{#if extensionVm.logoImageUrl}
 			<img
-				src={extension.logoImageUrl}
+				src={extensionVm.logoImageUrl}
 				alt=""
 				width="48"
 				height="48"
@@ -59,31 +59,31 @@
 				class="grid size-12 shrink-0 place-items-center rounded-xl border border-base-content/10 bg-base-200 text-sm font-bold"
 				aria-hidden="true"
 			>
-				{extension.title.slice(0, 1).toUpperCase()}
+				{extensionVm.title.slice(0, 1).toUpperCase()}
 			</div>
 		{/if}
 
 		<div class="min-w-0 flex-1 space-y-1">
 			<div class="flex flex-wrap items-center gap-2">
-				<h3 class="text-base font-semibold text-base-content">{extension.title}</h3>
+				<h3 class="text-base font-semibold text-base-content">{extensionVm.title}</h3>
 				<span class="badge badge-outline badge-sm">{typeLabel}</span>
 			</div>
-			{#if extension.excerpt || extension.description}
+			{#if extensionVm.excerpt || extensionVm.description}
 				<p class="line-clamp-2 text-sm text-base-content/70">
-					{extension.excerpt ?? extension.description}
+					{extensionVm.excerpt ?? extensionVm.description}
 				</p>
 			{/if}
 			<div class="flex flex-wrap gap-3 text-xs text-base-content/60">
-				{#if extension.category}
-					<span>{extension.category.name}</span>
+				{#if extensionVm.category}
+					<span>{extensionVm.category.name}</span>
 				{/if}
-				<span>{extension.likes} likes</span>
-				<span>{extension.views} views</span>
+				<span>{extensionVm.likes} likes</span>
+				<span>{extensionVm.views} views</span>
 			</div>
 		</div>
 	</Collapsible.Trigger>
 
 	<Collapsible.Content class="border-t border-base-content/10 px-4 pb-4">
-		<ExtensionCardExpanded extension={extension} detailHref={detailHref} />
+		<ExtensionCardExpanded extensionVm={extensionVm} detailHref={detailHref} />
 	</Collapsible.Content>
 </Collapsible.Root>

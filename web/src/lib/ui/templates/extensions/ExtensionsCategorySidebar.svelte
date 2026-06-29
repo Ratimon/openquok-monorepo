@@ -4,13 +4,13 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
-		categories: ExtensionCategoryViewModel[];
+		categoriesVm: ExtensionCategoryViewModel[];
 		activeCategorySlug: string | null;
 		onSelect?: (slug: string | null) => void;
 		class?: string;
 	};
 
-	let { categories, activeCategorySlug, onSelect, class: className = '' }: Props = $props();
+	let { categoriesVm, activeCategorySlug, onSelect, class: className = '' }: Props = $props();
 </script>
 
 <nav class={cn('space-y-1', className)} aria-label="Extension categories">
@@ -26,7 +26,7 @@
 		All categories
 	</button>
 
-	{#each categories as category (category.id)}
+	{#each categoriesVm as category (category.id)}
 		<button
 			type="button"
 			class={cn(

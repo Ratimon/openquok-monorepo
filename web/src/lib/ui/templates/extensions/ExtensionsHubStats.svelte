@@ -4,16 +4,16 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	type Props = {
-		stats: ExtensionsHubStatsViewModel;
+		statsVm: ExtensionsHubStatsViewModel;
 		class?: string;
 	};
 
-	let { stats, class: className = '' }: Props = $props();
+	let { statsVm, class: className = '' }: Props = $props();
 
 	const items = $derived([
-		{ label: 'Official', value: stats.official, valueClass: 'text-emerald-400' },
-		{ label: 'Community', value: stats.community, valueClass: 'text-sky-400' },
-		{ label: 'Categories', value: stats.categories, valueClass: 'text-violet-400' }
+		{ label: 'Official', value: statsVm.official, valueClass: 'text-emerald-400' },
+		{ label: 'Community', value: statsVm.community, valueClass: 'text-sky-400' },
+		{ label: 'Categories', value: statsVm.categories, valueClass: 'text-violet-400' }
 	]);
 </script>
 

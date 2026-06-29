@@ -76,11 +76,11 @@ export async function load({ url, cookies, fetch, parent }) {
 		isLoggedIn,
 		metaTitle: hub.metaTitle,
 		metaDescription: hub.metaDescription,
-		extensions: filteredExtensions,
-		allExtensions: hub.extensions,
-		categories: hub.categories,
-		stats: statsVm,
-		filters,
+		extensionsVm: filteredExtensions,
+		allExtensionsVm: hub.extensions,
+		categoriesVm: hub.categories,
+		statsVm,
+		filtersVm: filters,
 		totalCount: hub.totalCount,
 		schemaData
 	};
