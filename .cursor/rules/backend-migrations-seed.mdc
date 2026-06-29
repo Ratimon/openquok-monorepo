@@ -1,0 +1,74 @@
+---
+description: Seed migration conventions for Supabase modules (listings, tags, catalog data)
+alwaysApply: true
+---
+
+# Seed migrations
+
+Extends **backend-migrations-naming** for data seeds under `backend/supabase/db/**`.
+
+## Filename pattern
+
+- **Default scope**: `501_<YYYYMMDD>_seed.sql`, `502_<YYYYMMDD>_seed.sql`, …
+- **Named catalog seeds** (one listing or cohesive dataset per file): `502_<YYYYMMDD>_seed_<subject>.sql`
+  - Examples: `502_20260629_seed_openquok_core.sql`, `503_20260629_seed_bloom.sql`, `504_20260629_seed_revenuecat.sql`
+- Keep the numeric prefix stable within the module tier; bump the prefix when order matters (e.g. tag associations before listing rows that reference tags).
+- Update the `MODULE DATE` and `MODULE SCOPE` header comments when renaming.
+
+## Extensions Hub listing seeds (`listings/`)
+
+### MCP-only (`extension_type = 'mcp'`)
+
+The hub **expanded card** (`ExtensionCardExpanded.svelte`) shows an **MCP tools** table — not raw `mcp_server_config` JSON. Full JSON config belongs on the detail page (`McpExtensionDetail.svelte`).
+
+| Column | Rule |
+| --- | --- |
+| `mcp_tools` | **Required** — non-empty JSON array of `{ "name", "description" }` objects. Drives the hub card tools table. |
+| `mcp_server_config` | Set for the detail-page copy config; **not** shown on the hub card. |
+| `install_command_mcp` | Leave `NULL` unless there is a real shell install command. Do not use JSON config as a stand-in. |
+| `mcp_transport` | `http`, `stdio`, or `sse` as appropriate. |
+| `click_url_mcp` | **Required** — official setup guide URL. Powers the **MCP Setup Doc** button on the expanded card. |
+| `click_url` | Mirror `click_url_mcp` when no separate landing URL exists. |
+| `click_url_skills` | `NULL` for MCP-only listings. |
+| `description_mcp` / `content_mcp` | Populate; `description_skills` / `content_skills` stay `NULL`. |
+| `is_official` | `FALSE` for third-party MCP servers; `TRUE` only for first-party OpenQuok entries. |
+| `listing_tag_slugs` | Use existing catalog tags (client + content-type tags). Do not add a tag row per third-party product unless it is a social channel (see **social-provider-integration**). |
+
+### Skills-only (`extension_type = 'skills'`)
+
+| Column | Rule |
+| --- | --- |
+| `install_command_skills` | Shell command shown on the hub card. |
+| `click_url_skills` | Powers the **Skill Setup Doc** button on the expanded card. |
+| `mcp_tools` / `mcp_server_config` | `NULL` or empty. |
+
+### Both (`extension_type = 'both'`)
+
+| Column | Rule |
+| --- | --- |
+| `install_command_skills` | Skills install command (Skills tab). |
+| `mcp_tools` | Non-empty array (MCP tab on hub card). |
+| `click_url_skills` / `click_url_mcp` | Separate doc URLs for **Skill Setup Doc** and **MCP Setup Doc** buttons. |
+| `click_url` | General landing doc when no tab-specific URL applies (e.g. OpenQuok Core → `/docs/getting-started-for-cli`). |
+| `mcp_server_config` | Detail page only. |
+
+**OpenQuok Core** (`openquok-core`, `both`):
+
+| Column | URL |
+| --- | --- |
+| `click_url` | `https://www.openquok.com/docs/getting-started-for-cli` |
+| `click_url_skills` | `https://www.openquok.com/docs/agent-setup-guides` |
+| `click_url_mcp` | `https://www.openquok.com/docs/mcp-setup-guides` |
+
+Doc URLs in `502_*_seed_openquok_core.sql` re-sync these on deploy.
+
+### Tag associations
+
+After inserting a listing, wire `listings_listing_tags_association` and `listing_tag_slugs` to existing `listing_tags` rows. For **openquok-core**, a `CROSS JOIN` on all catalog tags is acceptable when the listing should expose every tag.
+
+## PR checklist (listing seeds)
+
+- [ ] One subject per named seed file when the listing is large or independently maintained.
+- [ ] MCP listings: `mcp_tools` populated; `click_url_mcp` set; hub card does not rely on `mcp_server_config`.
+- [ ] Doc buttons: `click_url_skills` and/or `click_url_mcp` match shipped setup guides.
+- [ ] Re-aggregate migrations (`backend/scripts/aggregate_migrations_all.mjs`) after adding or renaming seed files.

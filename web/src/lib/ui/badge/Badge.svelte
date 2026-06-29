@@ -41,9 +41,12 @@
             surfaceStyle?: string | undefined;
             /** When `href` is set, forwarded to the anchor for nav chips (e.g. topic filters). */
             ariaCurrent?: "page" | undefined;
+            /** When rendered as a button, forwarded for toggle chips (e.g. filter tags). */
+            ariaPressed?: boolean | undefined;
             /** References an element `id` (e.g. a visually hidden label). */
             ariaLabelledby?: string | undefined;
             dataTestid?: string | undefined;
+            onclick?: ((event: MouseEvent) => void) | undefined;
         };
     
         let {
@@ -53,8 +56,10 @@
             variant = "default",
             surfaceStyle = undefined,
             ariaCurrent = undefined,
+            ariaPressed = undefined,
             ariaLabelledby = undefined,
             dataTestid = undefined,
+            onclick = undefined,
         }: Props = $props();
   </script>
   
@@ -70,6 +75,19 @@
         >
         {@render children?.()}
         </a>
+  {:else if onclick}
+        <button
+            type="button"
+            data-slot="badge"
+            data-testid={dataTestid}
+            aria-labelledby={ariaLabelledby}
+            aria-pressed={ariaPressed}
+            style={surfaceStyle}
+            class={cn(badgeVariants({ variant }), className)}
+            {onclick}
+        >
+        {@render children?.()}
+        </button>
   {:else}
         <span
             data-slot="badge"

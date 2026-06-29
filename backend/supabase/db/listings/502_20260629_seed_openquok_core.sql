@@ -1,10 +1,21 @@
 -- ---------------------------
 -- MODULE NAME: Listings
 -- MODULE DATE: 20260629
--- MODULE SCOPE: Seed
+-- MODULE SCOPE: Seed (openquok-core)
 -- ---------------------------
+-- Sync openquok-core listing tags with the full listing_tags catalog.
+-- Listing row (extension_type both, mcp_tools) lives in 501_20260628_seed.sql.
+-- Hub expanded card: Skills tab → Skill Setup Doc (click_url_skills); MCP tab → MCP Setup Doc (click_url_mcp).
 
 BEGIN;
+
+UPDATE public.listings
+SET
+    click_url = 'https://www.openquok.com/docs/getting-started-for-cli',
+    click_url_skills = 'https://www.openquok.com/docs/agent-setup-guides',
+    click_url_mcp = 'https://www.openquok.com/docs/mcp-setup-guides',
+    updated_at = NOW()
+WHERE slug = 'openquok-core';
 
 UPDATE public.listings l
 SET listing_tag_slugs = sub.slugs

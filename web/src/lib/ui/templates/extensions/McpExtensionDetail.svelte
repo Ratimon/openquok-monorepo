@@ -174,7 +174,9 @@
 
 {#if extension.mcpTools.length > 0}
 	<section class="border-b border-base-content/10 py-8">
-		<h2 class="mb-4 text-lg font-semibold">MCP tools</h2>
+		<h2 class="mb-4 text-lg font-semibold">
+			MCP tools
+		</h2>
 		<div class="overflow-x-auto rounded-lg border border-base-content/10">
 			<table class="table table-zebra">
 				<thead>

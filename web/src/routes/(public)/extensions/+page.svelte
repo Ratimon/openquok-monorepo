@@ -31,11 +31,29 @@
 
 	const pagePresenter = publicExtensionsPagePresenter;
 
+	const EXTENSIONS_GRID_PAGE_SIZE = 20;
+
 	let expandedId = $state<string | null>(null);
 	let searchDraft = $state('');
+	let visibleCount = $state(EXTENSIONS_GRID_PAGE_SIZE);
+
+	let visibleExtensions = $derived(extensionsVm.slice(0, visibleCount));
+	let remainingCount = $derived(Math.max(0, extensionsVm.length - visibleCount));
+	let hasMoreExtensions = $derived(remainingCount > 0);
 
 	$effect(() => {
 		searchDraft = filtersVm.search ?? '';
+	});
+
+	$effect(() => {
+		void filtersVm.type;
+		void filtersVm.sort;
+		void filtersVm.search;
+		void filtersVm.category;
+		void filtersVm.tagGroup;
+		void filtersVm.tags?.join(',');
+		visibleCount = EXTENSIONS_GRID_PAGE_SIZE;
+		expandedId = null;
 	});
 
 	const sortOptions: { id: ExtensionSort; label: string }[] = [
@@ -89,6 +107,10 @@
 
 	function toggleExpanded(id: string) {
 		expandedId = expandedId === id ? null : id;
+	}
+
+	function showMoreExtensions() {
+		visibleCount = Math.min(visibleCount + EXTENSIONS_GRID_PAGE_SIZE, extensionsVm.length);
 	}
 </script>
 
@@ -155,9 +177,9 @@
 						No extensions match your filters yet.
 					</p>
 				{:else}
-					<ul class="space-y-4">
-						{#each extensionsVm as extensionVm (extensionVm.id)}
-							<li>
+					<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						{#each visibleExtensions as extensionVm (extensionVm.id)}
+							<li class={expandedId === extensionVm.id ? 'col-span-full' : undefined}>
 								<ExtensionCard
 									extensionVm={extensionVm}
 									expanded={expandedId === extensionVm.id}
@@ -166,6 +188,17 @@
 							</li>
 						{/each}
 					</ul>
+					{#if hasMoreExtensions}
+						<div class="mt-8 flex justify-center">
+							<button
+								type="button"
+								class="btn btn-outline btn-warning rounded-full px-6"
+								onclick={showMoreExtensions}
+							>
+								Show more ({remainingCount.toLocaleString()} remaining)
+							</button>
+						</div>
+					{/if}
 				{/if}
 			</section>
 		</div>

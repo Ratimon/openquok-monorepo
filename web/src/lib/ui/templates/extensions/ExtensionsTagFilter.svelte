@@ -70,6 +70,9 @@
 	function handleAllClick() {
 		onClear?.();
 	}
+
+	const chipClass =
+		'cursor-pointer gap-1.5 px-3 py-1.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary';
 </script>
 
 <div class={cn('space-y-3', className)}>
@@ -84,35 +87,26 @@
 				role="group"
 				aria-label="Filter by tag group"
 			>
-			<button
-				type="button"
-				class={cn(
-					'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-					!hasTagFilters
-						? 'bg-primary text-primary-content'
-						: 'border border-base-content/15 bg-transparent text-base-content/80 hover:bg-base-content/5'
-				)}
-				aria-pressed={!hasTagFilters}
+			<Badge
+				variant={!hasTagFilters ? 'default' : 'outline'}
+				class={chipClass}
+				ariaPressed={!hasTagFilters}
 				onclick={handleAllClick}
 			>
 				<span>All</span>
-				<span class={cn('tabular-nums', !hasTagFilters ? 'text-primary-content/80' : 'text-base-content/50')}>
-					{tagFilterVm.totalCount.toLocaleString()}
-				</span>
-			</button>
+				<span class="tabular-nums opacity-70">{tagFilterVm.totalCount.toLocaleString()}</span>
+			</Badge>
 
 			{#each visibleGroups as group (group.slug)}
-				<button
-					type="button"
-					class="inline-flex"
-					aria-pressed={activeTagGroup === group.slug && selectedTagSet.size === 0}
+				<Badge
+					variant={groupBadgeVariant(group)}
+					class={chipClass}
+					ariaPressed={activeTagGroup === group.slug && selectedTagSet.size === 0}
 					onclick={() => handleGroupClick(group)}
 				>
-					<Badge variant={groupBadgeVariant(group)} class="cursor-pointer gap-1.5 px-3 py-1.5 text-sm">
-						{group.label}
-						<span class="tabular-nums opacity-70">{group.count.toLocaleString()}</span>
-					</Badge>
-				</button>
+					{group.label}
+					<span class="tabular-nums opacity-70">{group.count.toLocaleString()}</span>
+				</Badge>
 			{/each}
 			</div>
 		</div>
@@ -125,34 +119,29 @@
 			<div class="flex flex-wrap items-center gap-2" role="group" aria-label="Filter by tag">
 				{#each visibleTags as tag (tag.slug)}
 					{@const isActive = selectedTagSet.has(tag.slug)}
-					<button
-						type="button"
-						class="inline-flex"
-						aria-pressed={isActive}
+					<Badge
+						variant={isActive ? 'default' : 'muted'}
+						class={cn(chipClass, !isActive && 'hover:bg-base-content/40')}
+						surfaceStyle={!isActive && tag.color ? `background-color: ${tag.color}22; color: inherit;` : undefined}
+						ariaPressed={isActive}
 						onclick={() => onTagToggle?.(tag.slug)}
 					>
-						<Badge
-							variant={isActive ? 'default' : 'muted'}
-							class={cn('cursor-pointer gap-1.5 px-3 py-1.5 text-sm', !isActive && 'hover:bg-base-content/40')}
-							surfaceStyle={!isActive && tag.color ? `background-color: ${tag.color}22; color: inherit;` : undefined}
-						>
-							{#if tag.color}
-								<span
-									class="size-2 shrink-0 rounded-full border border-base-content/10"
-									style:background-color={tag.color}
-									aria-hidden="true"
-								></span>
-							{/if}
-							{tag.label}
-							<span class="tabular-nums opacity-70">{tag.count.toLocaleString()}</span>
-						</Badge>
-					</button>
+						{#if tag.color}
+							<span
+								class="size-2 shrink-0 rounded-full border border-base-content/10"
+								style:background-color={tag.color}
+								aria-hidden="true"
+							></span>
+						{/if}
+						{tag.label}
+						<span class="tabular-nums opacity-70">{tag.count.toLocaleString()}</span>
+					</Badge>
 				{/each}
 
 				{#if hiddenTagCount > 0}
-					<button
-						type="button"
-						class="inline-flex items-center gap-1 rounded-full border border-base-content/15 px-3 py-1.5 text-sm text-base-content/70 hover:bg-base-content/5"
+					<Badge
+						variant="outline"
+						class={cn(chipClass, 'text-base-content/70')}
 						onclick={() => {
 							expanded = !expanded;
 						}}
@@ -164,7 +153,7 @@
 							width="14"
 							height="14"
 						/>
-					</button>
+					</Badge>
 				{/if}
 			</div>
 		</div>

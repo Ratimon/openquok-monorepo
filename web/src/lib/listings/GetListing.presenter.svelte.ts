@@ -55,6 +55,7 @@ export interface ListingPublicViewModel {
 	installCommandMcp: string | null;
 	clickUrlSkills: string | null;
 	clickUrlMcp: string | null;
+	mcpTools: McpToolProgrammerModel[];
 	mcpServerConfig: Record<string, unknown> | null;
 	isOfficial: boolean;
 	likes: number;
@@ -481,6 +482,7 @@ export class GetListingPresenter {
 			installCommandMcp: listing.installCommandMcp,
 			clickUrlSkills: listing.clickUrlSkills,
 			clickUrlMcp: listing.clickUrlMcp,
+			mcpTools: listing.mcpTools.map((tool) => ({ ...tool })),
 			mcpServerConfig: listing.mcpServerConfig,
 			isOfficial: listing.isOfficial,
 			likes: listing.likes,

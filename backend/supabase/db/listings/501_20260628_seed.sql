@@ -89,8 +89,9 @@ INSERT INTO public.listings (
     NULL,
     'Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrati',
     NULL,
-    'https://openquok.com/docs/getting-started-for-cli',
-    'https://openquok.com/docs/getting-started-for-cli/getting-started-for-mcp',
+    'https://www.openquok.com/docs/getting-started-for-cli',
+    'https://www.openquok.com/docs/agent-setup-guides',
+    'https://www.openquok.com/docs/mcp-setup-guides',
     $openquok_core_skill$<!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->
 <!-- SPDX-License-Identifier: MIT -->
 
