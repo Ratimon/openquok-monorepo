@@ -121,6 +121,7 @@
     "twitter-api-v2": "^1.28.0",
     "twitter-text": "^3.1.0",
     "uuid": "^8.3.2",
+    "yaml": "^2.8.3",
     "zod": "^3.24.0"
   },
   "devDependencies": {

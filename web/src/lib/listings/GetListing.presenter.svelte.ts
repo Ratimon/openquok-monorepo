@@ -63,7 +63,14 @@ export interface ListingDetailPublicViewModel {
 	slug: string;
 	excerpt: string | null;
 	description: string | null;
+	descriptionSkills: string | null;
+	descriptionMcp: string | null;
+	clickUrl: string | null;
+	clickUrlSkills: string | null;
+	clickUrlMcp: string | null;
 	content: string | null;
+	contentSkills: string | null;
+	contentMcp: string | null;
 	logoImageUrl: string | null;
 	defaultImageUrl: string | null;
 	listingImageUrls: string[];
@@ -72,6 +79,16 @@ export interface ListingDetailPublicViewModel {
 	installCommandMcp: string | null;
 	isOfficial: boolean;
 	sourceRepoUrl: string | null;
+	skillSourceUrl: string | null;
+	skillName: string | null;
+	skillMetadata: Record<string, unknown> | null;
+	sourceSyncedAt: string | null;
+	sourceContentHash: string | null;
+	license: string | null;
+	version: string | null;
+	mcpTools: Array<{ name: string; description: string }>;
+	mcpTransport: string | null;
+	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
 	clicks: number;
@@ -434,7 +451,14 @@ export class GetListingPresenter {
 			slug: listing.slug,
 			excerpt: listing.excerpt,
 			description: listing.description,
+			descriptionSkills: listing.descriptionSkills,
+			descriptionMcp: listing.descriptionMcp,
+			clickUrl: listing.clickUrl,
+			clickUrlSkills: listing.clickUrlSkills,
+			clickUrlMcp: listing.clickUrlMcp,
 			content: listing.content,
+			contentSkills: listing.contentSkills,
+			contentMcp: listing.contentMcp,
 			logoImageUrl: listing.logoImageUrl,
 			defaultImageUrl: listing.defaultImageUrl,
 			listingImageUrls: listing.listingImageUrls,
@@ -443,6 +467,16 @@ export class GetListingPresenter {
 			installCommandMcp: listing.installCommandMcp,
 			isOfficial: listing.isOfficial,
 			sourceRepoUrl: listing.sourceRepoUrl,
+			skillSourceUrl: listing.skillSourceUrl,
+			skillName: listing.skillName,
+			skillMetadata: listing.skillMetadata,
+			sourceSyncedAt: listing.sourceSyncedAt,
+			sourceContentHash: listing.sourceContentHash,
+			license: listing.license,
+			version: listing.version,
+			mcpTools: listing.mcpTools.map((tool) => ({ ...tool })),
+			mcpTransport: listing.mcpTransport,
+			mcpServerConfig: listing.mcpServerConfig,
 			likes: listing.likes,
 			views: listing.views,
 			clicks: listing.clicks,

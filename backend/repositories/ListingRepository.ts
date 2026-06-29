@@ -34,14 +34,31 @@ const SELECT_LISTING = `
   title,
   slug,
   description,
+  description_skills,
+  description_mcp,
   excerpt,
+  click_url,
+  click_url_skills,
+  click_url_mcp,
   content,
+  content_skills,
+  content_mcp,
   listing_kind,
   extension_type,
   install_command_skills,
   install_command_mcp,
   is_official,
   source_repo_url,
+  skill_source_url,
+  skill_name,
+  skill_metadata,
+  source_synced_at,
+  source_content_hash,
+  license,
+  version,
+  mcp_tools,
+  mcp_transport,
+  mcp_server_config,
   likes,
   views,
   clicks,
@@ -584,6 +601,42 @@ export class ListingRepository {
         }
 
         return (data?.content as string | null) ?? null;
+    }
+
+    async updateListingGithubSync(
+        listingId: string,
+        fields: {
+            content: string;
+            sourceContentHash: string;
+            sourceSyncedAt: string;
+            description?: string | null;
+            excerpt?: string | null;
+            skillMetadata?: Record<string, unknown> | null;
+            license?: string | null;
+            version?: string | null;
+        }
+    ): Promise<void> {
+        const { error } = await this.supabase
+            .from(TABLE_LISTINGS)
+            .update({
+                content: fields.content,
+                source_content_hash: fields.sourceContentHash,
+                source_synced_at: fields.sourceSyncedAt,
+                ...(fields.description !== undefined ? { description: fields.description } : {}),
+                ...(fields.excerpt !== undefined ? { excerpt: fields.excerpt } : {}),
+                ...(fields.skillMetadata !== undefined ? { skill_metadata: fields.skillMetadata } : {}),
+                ...(fields.license !== undefined ? { license: fields.license } : {}),
+                ...(fields.version !== undefined ? { version: fields.version } : {}),
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", listingId);
+
+        if (error) {
+            throw new DatabaseError(`Error syncing listing from GitHub: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "update",
+            });
+        }
     }
 
     private async syncListingTags(

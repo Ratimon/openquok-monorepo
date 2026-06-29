@@ -1,3 +1,5 @@
+import { externalLinkRelForHref } from '$lib/utils/externalLinkRel';
+
 function escapeHtml(text: string): string {
 	return text
 		.replace(/&/g, '&amp;')
@@ -16,14 +18,21 @@ function inlineMarkdown(text: string): string {
 		if (!/^https?:\/\//i.test(safeHref)) {
 			return escapeHtml(String(label));
 		}
-		return `<a href="${escapeHtml(safeHref)}" rel="noopener noreferrer nofollow" target="_blank">${escapeHtml(String(label))}</a>`;
+		const rel = externalLinkRelForHref(safeHref);
+		const relAttr = rel ? ` rel="${escapeHtml(rel)}"` : '';
+		return `<a href="${escapeHtml(safeHref)}"${relAttr} target="_blank" class="font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary">${escapeHtml(String(label))}</a>`;
 	});
 	return out;
 }
 
+/** Strip HTML comments (e.g. SPDX headers in imported SKILL.md) before rendering. */
+function stripHtmlComments(markdown: string): string {
+	return markdown.replace(/<!--[\s\S]*?-->/g, '');
+}
+
 /** Minimal Markdown → HTML for listing bodies (headings, lists, paragraphs, inline code/links). */
 export function markdownToHtml(markdown: string): string {
-	const trimmed = markdown.trim();
+	const trimmed = stripHtmlComments(markdown).trim();
 	if (!trimmed) return '';
 	if (/^<[a-z][\s\S]*>/i.test(trimmed)) {
 		return trimmed;

@@ -497,4 +497,27 @@ export class ListingController {
             next(err);
         }
     };
+
+    importFromGithub = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { githubUrl, extensionType } = req.body as {
+                githubUrl: string;
+                extensionType?: "skills" | "mcp" | "both" | null;
+            };
+            const preview = await this.listingService.previewGithubImport(githubUrl, extensionType ?? null);
+            res.status(200).json({ success: true, data: preview });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    syncListingFromGithub = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const result = await this.listingService.syncListingFromGithub(id);
+            res.status(200).json({ success: true, data: result, message: result.contentChanged ? "Content updated from GitHub." : "Already up to date." });
+        } catch (err) {
+            next(err);
+        }
+    };
 }

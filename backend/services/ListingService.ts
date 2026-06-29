@@ -49,6 +49,9 @@ import { ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
+import type { ListingGithubImportPreview, ListingGithubSyncResult } from "../data/types/extensionTypeModels";
+import { listingImportService } from "./ListingImportService";
+import { hashContent, parseGithubUrl, parseSkillMarkdown } from "./ListingImportService";
 
 const CACHE_KEYS = {
     LISTING_BY_ID: "listing:byId",
@@ -548,5 +551,63 @@ export class ListingService {
         await this.cacheInvalidator.invalidatePattern("listing:tags:*");
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_PUBLISHED}:*`);
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_LIST}:*`);
+    }
+
+    async previewGithubImport(
+        githubUrl: string,
+        extensionType?: "skills" | "mcp" | "both" | null
+    ): Promise<ListingGithubImportPreview> {
+        return listingImportService.previewGithubImport(githubUrl, extensionType);
+    }
+
+    async syncListingFromGithub(listingId: string): Promise<ListingGithubSyncResult> {
+        const idVO = ListingId.create(listingId);
+        if (!idVO) throw new ValidationError(`Invalid listing ID: ${listingId}`);
+
+        const listing = await this.getListingById(idVO.value);
+        const skillSourceUrl = listing.skill_source_url;
+        if (!skillSourceUrl) {
+            throw new ValidationError("This listing has no skill_source_url to sync.");
+        }
+
+        const raw = await listingImportService.fetchRawMarkdown(skillSourceUrl);
+        const parsedUrl = parseGithubUrl(skillSourceUrl);
+        if (!parsedUrl) {
+            throw new ValidationError("Stored skill_source_url is not a valid GitHub URL.");
+        }
+
+        const parsed = parseSkillMarkdown(raw);
+        const nextHash = hashContent(raw);
+        const previousHash = listing.source_content_hash ?? null;
+        const contentChanged = previousHash !== nextHash;
+        const syncedAt = new Date().toISOString();
+
+        if (contentChanged) {
+            const excerpt = parsed.description ? parsed.description.slice(0, 160) : null;
+            await this.listingRepository.updateListingGithubSync(listingId, {
+                content: parsed.body,
+                sourceContentHash: nextHash,
+                sourceSyncedAt: syncedAt,
+                description: parsed.description,
+                excerpt,
+                skillMetadata: parsed.metadata,
+                license: parsed.license,
+                version: parsed.version,
+            });
+            await this._invalidateListingMutationCaches(listingId);
+        } else {
+            await this.listingRepository.updateListingGithubSync(listingId, {
+                content: listing.content ?? parsed.body,
+                sourceContentHash: nextHash,
+                sourceSyncedAt: syncedAt,
+            });
+        }
+
+        return {
+            updated: true,
+            contentChanged,
+            sourceSyncedAt: syncedAt,
+            sourceContentHash: nextHash,
+        };
     }
 }

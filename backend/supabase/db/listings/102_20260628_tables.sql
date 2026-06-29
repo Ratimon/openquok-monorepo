@@ -15,8 +15,15 @@ CREATE TABLE IF NOT EXISTS public.listings (
     title TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
     description TEXT,
+    description_skills TEXT,
+    description_mcp TEXT,
     excerpt TEXT,
+    click_url TEXT,
+    click_url_skills TEXT,
+    click_url_mcp TEXT,
     content TEXT,
+    content_skills TEXT,
+    content_mcp TEXT,
     listing_kind TEXT NOT NULL DEFAULT 'extension'
         CHECK (listing_kind IN ('extension', 'stack')),
     extension_type TEXT
@@ -25,6 +32,17 @@ CREATE TABLE IF NOT EXISTS public.listings (
     install_command_mcp TEXT,
     is_official BOOLEAN NOT NULL DEFAULT false,
     source_repo_url TEXT,
+    skill_source_url TEXT,
+    skill_name TEXT,
+    skill_metadata JSONB,
+    source_synced_at TIMESTAMPTZ,
+    source_content_hash TEXT,
+    license TEXT,
+    version TEXT,
+    mcp_tools JSONB,
+    mcp_transport TEXT
+        CHECK (mcp_transport IS NULL OR mcp_transport IN ('stdio', 'sse', 'http')),
+    mcp_server_config JSONB,
     cloned_from_listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
     likes INTEGER NOT NULL DEFAULT 0,
     views INTEGER NOT NULL DEFAULT 0,
@@ -47,8 +65,12 @@ CREATE TABLE IF NOT EXISTS public.listings (
             'english'::regconfig,
             COALESCE(title, ''::text) || ' ' ||
             COALESCE(description, ''::text) || ' ' ||
+            COALESCE(description_skills, ''::text) || ' ' ||
+            COALESCE(description_mcp, ''::text) || ' ' ||
             COALESCE(excerpt, ''::text) || ' ' ||
-            COALESCE(content, ''::text)
+            COALESCE(content, ''::text) || ' ' ||
+            COALESCE(content_skills, ''::text) || ' ' ||
+            COALESCE(content_mcp, ''::text)
         )
     ) STORED
 );

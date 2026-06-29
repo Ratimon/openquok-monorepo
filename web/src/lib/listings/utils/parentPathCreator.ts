@@ -1,6 +1,7 @@
 export type CategoryLike = {
 	id: string;
 	name: string;
+	slug?: string;
 	parentId?: string | null;
 };
 
@@ -25,12 +26,13 @@ export function sortCategories<T extends CategoryLike>(categories: T[]): T[] {
 
 export function createSortedCategoryChoices<T extends CategoryLike>(
 	categories: T[]
-): { value: string; label: string }[] {
+): { value: string; label: string; slug?: string }[] {
 	const safeAll = [...categories];
 	return safeAll
 		.map((category) => ({
 			value: category.id,
-			label: createCategoryPath(category, safeAll)
+			label: createCategoryPath(category, safeAll),
+			...(category.slug ? { slug: category.slug } : {})
 		}))
 		.sort((a, b) => a.label.localeCompare(b.label));
 }

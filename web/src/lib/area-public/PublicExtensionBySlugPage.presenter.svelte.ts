@@ -83,4 +83,11 @@ export class PublicExtensionBySlugPagePresenter {
 			this.submittingLike = false;
 		}
 	}
+
+	async trackExtensionClick(listingId: string): Promise<void> {
+		const resultPm = await this.listingRepository.incrementClicks(listingId);
+		if (resultPm.ok && this.extensionVm?.id === listingId) {
+			this.extensionVm = { ...this.extensionVm, clicks: this.extensionVm.clicks + 1 };
+		}
+	}
 }

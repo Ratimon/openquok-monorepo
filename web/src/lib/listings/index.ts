@@ -29,7 +29,10 @@ const listingConfig = {
 		approveComment: (id: string) => `/api/v1/listings/comments/${id}/approve`,
 		deleteComment: (id: string) => `/api/v1/listings/comments/${id}`,
 		trackView: (listingId: string) => `/api/v1/listings/stats/views/${listingId}`,
-		trackLike: (listingId: string) => `/api/v1/listings/stats/likes/${listingId}`
+		trackLike: (listingId: string) => `/api/v1/listings/stats/likes/${listingId}`,
+		trackClick: (listingId: string) => `/api/v1/listings/stats/clicks/${listingId}`,
+		importFromGithub: '/api/v1/listings/import/github',
+		syncFromGithub: (id: string) => `/api/v1/listings/${id}/sync-github`
 	}
 };
 
@@ -78,7 +81,11 @@ export {
 	upsertListingTagModalPresenter
 };
 export type {
-	AdminListingActivityVm,
+	ListingFaqItem,
+	ListingGithubImportPreview,
+	ListingGithubSyncResult,
+	McpToolDefinition,
+	McpTransport,
 	AdminListingCommentVm,
 	CategoryChoice,
 	ExtensionSort,

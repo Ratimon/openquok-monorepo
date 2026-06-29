@@ -1,38 +1,99 @@
 import { z } from 'zod';
 
-const extensionTypeSchema = z.enum(['skills', 'mcp', 'both']);
-const faqItemSchema = z.object({
-	question: z.string(),
-	answer: z.string()
+import { LISTING_SCHEMA_TYPES } from '$lib/listings/constants/listingSchemaTypes';
+import type { McpTransport } from '$lib/listings/extension-type-models';
+
+const extensionTypeSchema = z.enum(['skills', 'mcp', 'both'], {
+	message: 'Extension type is required.'
+});
+const listingSchemaTypeSchema = z.enum(LISTING_SCHEMA_TYPES, {
+	message: 'Schema type is required.'
+});
+const mcpToolSchema = z.object({
+	name: z.string().min(1),
+	description: z.string()
+});
+const mcpTransportSchema = z.enum(['stdio', 'sse', 'http']);
+export const listingFaqItemSchema = z.object({
+	question: z.string().min(1, 'Question is required'),
+	answer: z.string().min(1, 'Answer is required')
+});
+
+const clickUrlFieldSchema = z
+	.string()
+	.optional()
+	.nullable()
+	.refine(
+		(value) => {
+			if (value === '' || value == null) return true;
+			try {
+				new URL(value);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		{ message: 'Click URL must be a valid URL' }
+	);
+
+const listingIdFieldSchema = z
+	.union([z.string().uuid('Invalid listing id'), z.literal('')])
+	.optional();
+
+const listingCategoryIdFieldSchema = z.string().superRefine((value, ctx) => {
+	if (!value.trim()) {
+		ctx.addIssue({ code: 'custom', message: 'Category is missing.' });
+		return;
+	}
+	if (!z.string().uuid().safeParse(value).success) {
+		ctx.addIssue({ code: 'custom', message: 'Invalid category id' });
+	}
 });
 
 const listingSharedFields = {
-	id: z.string().uuid('Invalid listing id').optional(),
+	id: listingIdFieldSchema,
 	title: z.string().min(2, 'Title must be at least 2 characters'),
 	excerpt: z.string().max(160, 'Excerpt must be at most 160 characters').optional().nullable(),
+	click_url: clickUrlFieldSchema,
+	click_url_skills: clickUrlFieldSchema,
+	click_url_mcp: clickUrlFieldSchema,
 	description: z.string().max(10000).optional().nullable(),
+	description_skills: z.string().max(10000).optional().nullable(),
+	description_mcp: z.string().max(10000).optional().nullable(),
 	content: z.string().optional().nullable(),
+	content_skills: z.string().optional().nullable(),
+	content_mcp: z.string().optional().nullable(),
 	install_command_skills: z.string().optional().nullable(),
 	install_command_mcp: z.string().optional().nullable(),
 	is_official: z.boolean().default(false),
 	source_repo_url: z.string().url().optional().nullable().or(z.literal('')),
-	listing_category_id: z.string().uuid('Invalid category id').optional().nullable(),
+	skill_source_url: z.string().url().optional().nullable().or(z.literal('')),
+	skill_name: z.string().optional().nullable(),
+	skill_metadata: z.record(z.unknown()).optional().nullable(),
+	source_synced_at: z.string().datetime().optional().nullable(),
+	source_content_hash: z.string().optional().nullable(),
+	license: z.string().optional().nullable(),
+	version: z.string().optional().nullable(),
+	mcp_tools: z.array(mcpToolSchema).optional().nullable(),
+	mcp_transport: mcpTransportSchema.optional().nullable(),
+	mcp_server_config: z.record(z.unknown()).optional().nullable(),
+	listing_category_id: listingCategoryIdFieldSchema,
 	tag_ids: z.array(z.string().uuid('Invalid tag id')).default([]),
 	listing_image_urls: z.array(z.string()).optional().nullable(),
 	default_image_url: z.string().optional().nullable(),
 	logo_image_url: z.string().optional().nullable(),
 	is_user_published: z.boolean().default(false),
 	is_admin_published: z.boolean().optional().nullable(),
-	schema_type: z.string().optional().nullable(),
+	schema_type: listingSchemaTypeSchema,
 	schema_json: z.record(z.unknown()).optional().nullable(),
-	faq: z.array(faqItemSchema).optional().nullable()
+	faq: z.array(listingFaqItemSchema).default([])
 };
 
 /** Form schema for create/update extension listings (aligned with backend listingCreateSchema). */
 export const listingExtensionFormSchema = z.object({
 	...listingSharedFields,
 	listing_kind: z.literal('extension').default('extension'),
-	extension_type: extensionTypeSchema.optional().nullable()
+	extension_type: extensionTypeSchema
 });
 
 export type ListingExtensionFormSchemaType = z.infer<typeof listingExtensionFormSchema>;
@@ -84,10 +145,19 @@ export const listingTagFormSchema = z.object({
 
 export type ListingTagFormSchemaType = z.infer<typeof listingTagFormSchema>;
 
+export type { McpTransport };
+export type {
+	ListingFaqItem,
+	ListingGithubImportPreview,
+	ListingGithubSyncResult,
+	McpToolDefinition
+} from '$lib/listings/extension-type-models';
+
 /** Choice for category select: value + label (with hierarchy path). */
 export interface CategoryChoice {
 	value: string;
 	label: string;
+	slug?: string;
 }
 
 /** Choice for tags multi-select. */

@@ -95,10 +95,16 @@
 				listingKind="extension"
 				{isPlatformAdmin}
 				isSubmitting={adminListingExtensionEditorPagePresenter.submitting}
+				importingGithub={adminListingExtensionEditorPagePresenter.importingGithub}
+				syncingGithub={adminListingExtensionEditorPagePresenter.syncingGithub}
+				listingId={data.listingId}
 				{slugDisplay}
 				noListingFound={!listingFound}
 				onSave={handleSave}
 				onDiscard={handleDiscard}
+				onImportGithub={(url, extensionType) =>
+					adminListingExtensionEditorPagePresenter.importFromGithub(url, extensionType)}
+				onSyncGithub={(id) => adminListingExtensionEditorPagePresenter.syncFromGithub(id)}
 			/>
 		{/key}
 	{/if}

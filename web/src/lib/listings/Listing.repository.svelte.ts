@@ -14,14 +14,31 @@ export interface ListingDto {
 	title: string;
 	slug: string;
 	description: string | null;
+	descriptionSkills: string | null;
+	descriptionMcp: string | null;
 	excerpt: string | null;
+	clickUrl: string | null;
+	clickUrlSkills: string | null;
+	clickUrlMcp: string | null;
 	content: string | null;
+	contentSkills: string | null;
+	contentMcp: string | null;
 	listingKind: string;
 	extensionType: string | null;
 	installCommandSkills: string | null;
 	installCommandMcp: string | null;
 	isOfficial: boolean;
 	sourceRepoUrl: string | null;
+	skillSourceUrl: string | null;
+	skillName: string | null;
+	skillMetadata: Record<string, unknown> | null;
+	sourceSyncedAt: string | null;
+	sourceContentHash: string | null;
+	license: string | null;
+	version: string | null;
+	mcpTools: Array<{ name: string; description: string }>;
+	mcpTransport: string | null;
+	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
 	clicks: number;
@@ -136,6 +153,9 @@ export interface ListingConfig {
 		deleteComment: (id: string) => string;
 		trackView: (listingId: string) => string;
 		trackLike: (listingId: string) => string;
+		trackClick: (listingId: string) => string;
+		importFromGithub: string;
+		syncFromGithub: (id: string) => string;
 	};
 }
 
@@ -172,6 +192,18 @@ export interface UpsertListingResponseDto {
 
 export interface DeleteListingResponseDto {
 	success: boolean;
+	message?: string;
+}
+
+export interface ListingGithubImportResponseDto {
+	success: boolean;
+	data: import('$lib/listings/extension-type-models').ListingGithubImportPreview;
+	message?: string;
+}
+
+export interface ListingGithubSyncResponseDto {
+	success: boolean;
+	data: import('$lib/listings/extension-type-models').ListingGithubSyncResult;
 	message?: string;
 }
 
@@ -254,14 +286,31 @@ export interface ListingProgrammerModel {
 	title: string;
 	slug: string;
 	description: string | null;
+	descriptionSkills: string | null;
+	descriptionMcp: string | null;
 	excerpt: string | null;
+	clickUrl: string | null;
+	clickUrlSkills: string | null;
+	clickUrlMcp: string | null;
 	content: string | null;
+	contentSkills: string | null;
+	contentMcp: string | null;
 	listingKind: string;
 	extensionType: string | null;
 	installCommandSkills: string | null;
 	installCommandMcp: string | null;
 	isOfficial: boolean;
 	sourceRepoUrl: string | null;
+	skillSourceUrl: string | null;
+	skillName: string | null;
+	skillMetadata: Record<string, unknown> | null;
+	sourceSyncedAt: string | null;
+	sourceContentHash: string | null;
+	license: string | null;
+	version: string | null;
+	mcpTools: Array<{ name: string; description: string }>;
+	mcpTransport: string | null;
+	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
 	clicks: number;
@@ -862,6 +911,65 @@ export class ListingRepository {
 		}
 	}
 
+	async incrementClicks(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: trackClickDto, ok } = await this.httpGateway.put<TrackListingStatResponseDto>(
+				this.config.endpoints.trackClick(listingId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && trackClickDto?.success) return { ok: true };
+			return { ok: false, error: trackClickDto?.message ?? 'Failed to record click.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async importFromGithub(
+		githubUrl: string,
+		extensionType?: 'skills' | 'mcp' | 'both' | null,
+		fetch?: typeof globalThis.fetch
+	): Promise<
+		| { ok: true; preview: import('$lib/listings/extension-type-models').ListingGithubImportPreview }
+		| { ok: false; error: string }
+	> {
+		try {
+			const { data: importDto, ok } = await this.httpGateway.post<ListingGithubImportResponseDto>(
+				this.config.endpoints.importFromGithub,
+				{ githubUrl, ...(extensionType ? { extensionType } : {}) },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && importDto?.success && importDto.data) {
+				return { ok: true, preview: importDto.data };
+			}
+			return { ok: false, error: importDto?.message ?? 'GitHub import failed.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async syncFromGithub(
+		listingId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<
+		| { ok: true; result: import('$lib/listings/extension-type-models').ListingGithubSyncResult }
+		| { ok: false; error: string }
+	> {
+		try {
+			const { data: syncDto, ok } = await this.httpGateway.post<ListingGithubSyncResponseDto>(
+				this.config.endpoints.syncFromGithub(listingId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && syncDto?.success && syncDto.data) {
+				return { ok: true, result: syncDto.data };
+			}
+			return { ok: false, error: syncDto?.message ?? 'GitHub sync failed.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
 	private toListingUpsertBody(
 		payload: ListingFormSchemaType,
 		listingTagsData: Array<{ id: string; slug: string }>
@@ -880,14 +988,31 @@ export class ListingRepository {
 			title: row.title,
 			slug: row.slug,
 			description: row.description ?? null,
+			descriptionSkills: row.descriptionSkills ?? null,
+			descriptionMcp: row.descriptionMcp ?? null,
 			excerpt: row.excerpt ?? null,
+			clickUrl: row.clickUrl ?? null,
+			clickUrlSkills: row.clickUrlSkills ?? null,
+			clickUrlMcp: row.clickUrlMcp ?? null,
 			content: row.content ?? null,
+			contentSkills: row.contentSkills ?? null,
+			contentMcp: row.contentMcp ?? null,
 			listingKind: row.listingKind,
 			extensionType: row.extensionType ?? null,
 			installCommandSkills: row.installCommandSkills ?? null,
 			installCommandMcp: row.installCommandMcp ?? null,
 			isOfficial: row.isOfficial,
 			sourceRepoUrl: row.sourceRepoUrl ?? null,
+			skillSourceUrl: row.skillSourceUrl ?? null,
+			skillName: row.skillName ?? null,
+			skillMetadata: row.skillMetadata ?? null,
+			sourceSyncedAt: row.sourceSyncedAt ?? null,
+			sourceContentHash: row.sourceContentHash ?? null,
+			license: row.license ?? null,
+			version: row.version ?? null,
+			mcpTools: row.mcpTools ?? [],
+			mcpTransport: row.mcpTransport ?? null,
+			mcpServerConfig: row.mcpServerConfig ?? null,
 			likes: row.likes ?? 0,
 			views: row.views ?? 0,
 			clicks: row.clicks ?? 0,

@@ -21,14 +21,31 @@ export interface ListingLike {
     title: string;
     slug: string;
     description?: string | null;
+    description_skills?: string | null;
+    description_mcp?: string | null;
     excerpt?: string | null;
+    click_url?: string | null;
+    click_url_skills?: string | null;
+    click_url_mcp?: string | null;
     content?: string | null;
+    content_skills?: string | null;
+    content_mcp?: string | null;
     listing_kind: string;
     extension_type?: string | null;
     install_command_skills?: string | null;
     install_command_mcp?: string | null;
     is_official?: boolean | null;
     source_repo_url?: string | null;
+    skill_source_url?: string | null;
+    skill_name?: string | null;
+    skill_metadata?: Record<string, unknown> | null;
+    source_synced_at?: string | null;
+    source_content_hash?: string | null;
+    license?: string | null;
+    version?: string | null;
+    mcp_tools?: Array<{ name: string; description: string }> | null;
+    mcp_transport?: string | null;
+    mcp_server_config?: Record<string, unknown> | null;
     likes?: number | null;
     views?: number | null;
     clicks?: number | null;
@@ -87,14 +104,31 @@ export interface ListingDTO {
     title: string;
     slug: string;
     description: string | null;
+    descriptionSkills: string | null;
+    descriptionMcp: string | null;
     excerpt: string | null;
+    clickUrl: string | null;
+    clickUrlSkills: string | null;
+    clickUrlMcp: string | null;
     content: string | null;
+    contentSkills: string | null;
+    contentMcp: string | null;
     listingKind: string;
     extensionType: string | null;
     installCommandSkills: string | null;
     installCommandMcp: string | null;
     isOfficial: boolean;
     sourceRepoUrl: string | null;
+    skillSourceUrl: string | null;
+    skillName: string | null;
+    skillMetadata: Record<string, unknown> | null;
+    sourceSyncedAt: string | null;
+    sourceContentHash: string | null;
+    license: string | null;
+    version: string | null;
+    mcpTools: Array<{ name: string; description: string }>;
+    mcpTransport: string | null;
+    mcpServerConfig: Record<string, unknown> | null;
     likes: number;
     views: number;
     clicks: number;
@@ -156,14 +190,31 @@ export class ListingDTOMapper {
             title: listing.title,
             slug: listing.slug,
             description: listing.description ?? null,
+            descriptionSkills: listing.description_skills ?? null,
+            descriptionMcp: listing.description_mcp ?? null,
             excerpt: listing.excerpt ?? null,
+            clickUrl: listing.click_url ?? null,
+            clickUrlSkills: listing.click_url_skills ?? null,
+            clickUrlMcp: listing.click_url_mcp ?? null,
             content: listing.content ?? null,
+            contentSkills: listing.content_skills ?? null,
+            contentMcp: listing.content_mcp ?? null,
             listingKind: listing.listing_kind,
             extensionType: listing.extension_type ?? null,
             installCommandSkills: listing.install_command_skills ?? null,
             installCommandMcp: listing.install_command_mcp ?? null,
             isOfficial: listing.is_official === true,
             sourceRepoUrl: listing.source_repo_url ?? null,
+            skillSourceUrl: listing.skill_source_url ?? null,
+            skillName: listing.skill_name ?? null,
+            skillMetadata: (listing.skill_metadata as Record<string, unknown> | null) ?? null,
+            sourceSyncedAt: listing.source_synced_at ?? null,
+            sourceContentHash: listing.source_content_hash ?? null,
+            license: listing.license ?? null,
+            version: listing.version ?? null,
+            mcpTools: listing.mcp_tools ?? [],
+            mcpTransport: listing.mcp_transport ?? null,
+            mcpServerConfig: (listing.mcp_server_config as Record<string, unknown> | null) ?? null,
             likes: listing.likes ?? 0,
             views: listing.views ?? 0,
             clicks: listing.clicks ?? 0,

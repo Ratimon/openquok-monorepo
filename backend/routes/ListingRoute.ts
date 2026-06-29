@@ -23,6 +23,7 @@ import {
     listingStatParamSchema,
     listingCreatorUsernameParamSchema,
     listingCommentIdParamSchema,
+    listingGithubImportBodySchema,
 } from "../data/schemas/listingSchemas";
 import {
     listingCategoryCreateSchema,
@@ -247,6 +248,23 @@ const whenParamIsId = (req: Request, _res: Response, next: NextFunction): void =
         next("route");
     }
 };
+
+listingRouter.post(
+    "/import/github",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ body: listingGithubImportBodySchema }),
+    listingController.importFromGithub
+);
+
+listingRouter.post(
+    "/:id/sync-github",
+    whenParamIsId,
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.syncListingFromGithub
+);
 
 listingRouter.get(
     "/:id",

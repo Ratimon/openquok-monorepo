@@ -5,8 +5,12 @@ import type {
 	ListingCategoryViewModel,
 	ListingTagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
-import type { ListingFormSchemaType, ListingExtensionFormSchemaType, ListingStackFormSchemaType } from '$lib/listings/listing.types';
+import type { ListingFormSchemaType, ListingExtensionFormSchemaType, ListingStackFormSchemaType, ListingGithubImportPreview, ListingFaqItem } from '$lib/listings/listing.types';
 import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
+import {
+	getDefaultSchemaTypeForListingKind,
+	getSchemaTypeForExtensionCategory
+} from '$lib/listings/constants/listingSchemaTypes';
 
 export class AdminListingEditorPagePresenter {
 	public listing: ListingEditorViewModel | null = $state(null);
@@ -16,6 +20,8 @@ export class AdminListingEditorPagePresenter {
 	public loadingListing = $state(false);
 	public loadingTaxonomy = $state(false);
 	public submitting = $state(false);
+	public importingGithub = $state(false);
+	public syncingGithub = $state(false);
 	public showToastMessage = $state(false);
 	public toastMessage = $state('');
 	public redirectToList = $state(false);
@@ -111,34 +117,119 @@ export class AdminListingEditorPagePresenter {
 			return {
 				title: '',
 				excerpt: '',
+				click_url: '',
+				click_url_skills: '',
+				click_url_mcp: '',
 				description: '',
+				description_skills: '',
+				description_mcp: '',
 				content: '',
+				content_skills: '',
+				content_mcp: '',
 				listing_kind: this.listingKind,
-				extension_type: null,
+				extension_type: this.listingKind === 'extension' ? 'skills' : undefined,
 				install_command_skills: '',
 				install_command_mcp: '',
 				is_official: false,
-				listing_category_id: null,
+				source_repo_url: '',
+				skill_source_url: '',
+				skill_name: '',
+				license: '',
+				version: '',
+				mcp_tools: [],
+				mcp_transport: null,
+				mcp_server_config: null,
+				listing_category_id: '',
 				tag_ids: [],
 				is_user_published: false,
-				is_admin_published: false
+				is_admin_published: false,
+				schema_type: getDefaultSchemaTypeForListingKind(this.listingKind),
+				faq: []
 			};
 		}
+		const categorySlug = listing.category?.slug;
+		const schemaType =
+			(listing.schemaType as ListingFormSchemaType['schema_type']) ??
+			(this.listingKind === 'extension'
+				? getSchemaTypeForExtensionCategory(categorySlug)
+				: getDefaultSchemaTypeForListingKind('stack'));
+		const faq = Array.isArray(listing.faq)
+			? (listing.faq as ListingFaqItem[]).map((item) => ({
+					question: item.question ?? '',
+					answer: item.answer ?? ''
+				}))
+			: [];
+
 		return {
 			id: listing.id,
 			title: listing.title,
 			excerpt: listing.excerpt ?? '',
+			click_url: listing.clickUrl ?? '',
+			click_url_skills: listing.clickUrlSkills ?? '',
+			click_url_mcp: listing.clickUrlMcp ?? '',
 			description: listing.description ?? '',
+			description_skills: listing.descriptionSkills ?? '',
+			description_mcp: listing.descriptionMcp ?? '',
 			content: listing.content ?? '',
+			content_skills: listing.contentSkills ?? '',
+			content_mcp: listing.contentMcp ?? '',
 			listing_kind: listing.listingKind as 'extension' | 'stack',
-			extension_type: (listing.extensionType as 'skills' | 'mcp' | 'both' | null) ?? null,
+			extension_type: (listing.extensionType as 'skills' | 'mcp' | 'both' | null) ?? 'skills',
 			install_command_skills: listing.installCommandSkills ?? '',
 			install_command_mcp: listing.installCommandMcp ?? '',
 			is_official: listing.isOfficial,
-			listing_category_id: listing.listingCategoryId,
+			source_repo_url: listing.sourceRepoUrl ?? '',
+			skill_source_url: listing.skillSourceUrl ?? '',
+			skill_name: listing.skillName ?? '',
+			skill_metadata: listing.skillMetadata,
+			source_synced_at: listing.sourceSyncedAt,
+			source_content_hash: listing.sourceContentHash,
+			license: listing.license ?? '',
+			version: listing.version ?? '',
+			mcp_tools: listing.mcpTools ?? [],
+			mcp_transport: (listing.mcpTransport as 'stdio' | 'sse' | 'http' | null) ?? null,
+			mcp_server_config: listing.mcpServerConfig,
+			listing_category_id: listing.listingCategoryId ?? '',
 			tag_ids: listing.tags.map((t) => t.id),
 			is_user_published: listing.isUserPublished,
-			is_admin_published: listing.isAdminPublished
+			is_admin_published: listing.isAdminPublished,
+			schema_type: schemaType,
+			faq
 		};
+	}
+
+	async importFromGithub(
+		githubUrl: string,
+		extensionType?: 'skills' | 'mcp' | 'both' | null,
+		fetch?: typeof globalThis.fetch
+	): Promise<{ ok: true; preview: ListingGithubImportPreview } | { ok: false; error: string }> {
+		this.importingGithub = true;
+		try {
+			return await this.listingRepository.importFromGithub(githubUrl, extensionType, fetch);
+		} finally {
+			this.importingGithub = false;
+		}
+	}
+
+	async syncFromGithub(
+		listingId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<{ ok: true; message: string } | { ok: false; error: string }> {
+		this.syncingGithub = true;
+		try {
+			const resultPm = await this.listingRepository.syncFromGithub(listingId, fetch);
+			if (resultPm.ok) {
+				await this.loadListingById(listingId, fetch);
+				return {
+					ok: true,
+					message: resultPm.result.contentChanged
+						? 'Content updated from GitHub.'
+						: 'Already up to date with GitHub.'
+				};
+			}
+			return { ok: false, error: resultPm.error };
+		} finally {
+			this.syncingGithub = false;
+		}
 	}
 }
