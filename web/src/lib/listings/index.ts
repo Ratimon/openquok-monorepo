@@ -81,11 +81,6 @@ export {
 	upsertListingTagModalPresenter
 };
 export type {
-	ListingFaqItem,
-	ListingGithubImportPreview,
-	ListingGithubSyncResult,
-	McpToolDefinition,
-	McpTransport,
 	AdminListingCommentVm,
 	CategoryChoice,
 	ExtensionSort,
@@ -93,6 +88,7 @@ export type {
 	ExtensionsHubFilters,
 	ListingCategoryFormSchemaType,
 	ListingExtensionFormSchemaType,
+	ListingFaqItemProgrammerModel,
 	ListingFormSchemaType,
 	ListingStackFormSchemaType,
 	ListingTagFormSchemaType,
@@ -103,10 +99,16 @@ export type {
 	AdminListingCommentProgrammerModel,
 	ListingCategoryProgrammerModel,
 	ListingConfig,
+	ListingGithubImportPreviewProgrammerModel,
+	ListingGithubSyncResultProgrammerModel,
 	ListingMutationProgrammerModel,
 	ListingProgrammerModel,
 	ListingTagProgrammerModel,
-	ListingUpsertProgrammerModel
+	ListingUpsertProgrammerModel,
+	McpExtensionFieldsProgrammerModel,
+	McpToolProgrammerModel,
+	McpTransport,
+	SkillsExtensionFieldsProgrammerModel
 } from '$lib/listings/Listing.repository.svelte';
 export type {
 	CategoryViewModel,

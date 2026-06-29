@@ -11,8 +11,11 @@ import type {
 	ListingCategoryProgrammerModel,
 	ListingProgrammerModel,
 	ListingRepository,
-	ListingTagProgrammerModel
+	ListingTagProgrammerModel,
+	McpToolProgrammerModel,
+	McpTransport
 } from '$lib/listings/Listing.repository.svelte';
+import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
 
 /** View model for admin listings list (e.g. extensions manager page). */
 export interface ListingViewModel {
@@ -86,8 +89,8 @@ export interface ListingDetailPublicViewModel {
 	sourceContentHash: string | null;
 	license: string | null;
 	version: string | null;
-	mcpTools: Array<{ name: string; description: string }>;
-	mcpTransport: string | null;
+	mcpTools: McpToolProgrammerModel[];
+	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
@@ -100,7 +103,7 @@ export interface ListingDetailPublicViewModel {
 	updatedAt: string | null;
 	schemaType: string | null;
 	schemaJson: Record<string, unknown> | null;
-	faq: unknown;
+	faq: ListingFaqItemProgrammerModel[] | null;
 	category: { id: string; name: string; slug: string; parentPath?: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
 	owner: {

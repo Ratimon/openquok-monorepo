@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { LISTING_SCHEMA_TYPES } from '$lib/listings/constants/listingSchemaTypes';
-import type { McpTransport } from '$lib/listings/extension-type-models';
 
 const extensionTypeSchema = z.enum(['skills', 'mcp', 'both'], {
 	message: 'Extension type is required.'
@@ -18,6 +17,7 @@ export const listingFaqItemSchema = z.object({
 	question: z.string().min(1, 'Question is required'),
 	answer: z.string().min(1, 'Answer is required')
 });
+export type ListingFaqItemProgrammerModel = z.infer<typeof listingFaqItemSchema>;
 
 const clickUrlFieldSchema = z
 	.string()
@@ -144,14 +144,6 @@ export const listingTagFormSchema = z.object({
 });
 
 export type ListingTagFormSchemaType = z.infer<typeof listingTagFormSchema>;
-
-export type { McpTransport };
-export type {
-	ListingFaqItem,
-	ListingGithubImportPreview,
-	ListingGithubSyncResult,
-	McpToolDefinition
-} from '$lib/listings/extension-type-models';
 
 /** Choice for category select: value + label (with hierarchy path). */
 export interface CategoryChoice {

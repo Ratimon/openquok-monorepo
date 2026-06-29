@@ -15,7 +15,7 @@ import type {
 } from 'schema-dts';
 
 import type { ListingSchemaType } from '$lib/listings/constants/listingSchemaTypes';
-import type { ListingFaqItem } from '$lib/listings/extension-type-models';
+import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
 
 type ListingSeoInput = {
 	title: string;
@@ -25,7 +25,7 @@ type ListingSeoInput = {
 	clickUrl?: string | null;
 	defaultImageUrl?: string | null;
 	schemaType?: string | null;
-	faq?: ListingFaqItem[] | null;
+	faq?: ListingFaqItemProgrammerModel[] | null;
 	categoryName?: string | null;
 	tagNames?: string[];
 	likes?: number;

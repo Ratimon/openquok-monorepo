@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ExtensionDetailViewModel, ListingFaqItem } from '$lib/listings/index';
+	import type { ExtensionDetailViewModel } from '$lib/listings/index';
 
 	import { browser } from '$app/environment';
 
@@ -31,7 +31,7 @@
 
 	let activeModality = $state<'skills' | 'mcp'>('skills');
 
-	const faqItems = $derived(Array.isArray(extension.faq) ? (extension.faq as ListingFaqItem[]) : []);
+	const faqItems = $derived(extension.faq ?? []);
 	const githubRepo = $derived(parseGithubRepoFromUrl(extension.sourceRepoUrl));
 	const skillMarkdownHref = $derived(url(`/api/v1/listings/published/${extension.slug}/skill-markdown`));
 

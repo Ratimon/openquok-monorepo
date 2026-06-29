@@ -3,6 +3,7 @@ import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 import { CONFIG_SCHEMA_LISTINGS } from '$lib/listings/constants/config';
 import type {
 	ListingCategoryFormSchemaType,
+	ListingFaqItemProgrammerModel,
 	ListingFormSchemaType,
 	ListingTagFormSchemaType
 } from '$lib/listings/listing.types';
@@ -36,8 +37,8 @@ export interface ListingDto {
 	sourceContentHash: string | null;
 	license: string | null;
 	version: string | null;
-	mcpTools: Array<{ name: string; description: string }>;
-	mcpTransport: string | null;
+	mcpTools: McpToolProgrammerModel[];
+	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
@@ -197,13 +198,13 @@ export interface DeleteListingResponseDto {
 
 export interface ListingGithubImportResponseDto {
 	success: boolean;
-	data: import('$lib/listings/extension-type-models').ListingGithubImportPreview;
+	data: ListingGithubImportPreviewProgrammerModel;
 	message?: string;
 }
 
 export interface ListingGithubSyncResponseDto {
 	success: boolean;
-	data: import('$lib/listings/extension-type-models').ListingGithubSyncResult;
+	data: ListingGithubSyncResultProgrammerModel;
 	message?: string;
 }
 
@@ -276,6 +277,62 @@ export type ListingUpsertProgrammerModel =
 /** Alias used by public extension page presenters for stat mutations. */
 export type ListingMutationProgrammerModel = ListingUpsertProgrammerModel;
 
+/** MCP tool row for the tools table on MCP detail pages. */
+export interface McpToolProgrammerModel {
+	name: string;
+	description: string;
+}
+
+export type McpTransport = 'stdio' | 'sse' | 'http';
+
+/** Fields specific to skills extensions (SKILL.md import + detail pages). */
+export interface SkillsExtensionFieldsProgrammerModel {
+	skillName: string | null;
+	skillSourceUrl: string | null;
+	skillMetadata: Record<string, unknown> | null;
+	sourceSyncedAt: string | null;
+	sourceContentHash: string | null;
+	license: string | null;
+	version: string | null;
+}
+
+/** Fields specific to MCP server listings. */
+export interface McpExtensionFieldsProgrammerModel {
+	mcpTools: McpToolProgrammerModel[];
+	mcpTransport: McpTransport | null;
+	mcpServerConfig: Record<string, unknown> | null;
+}
+
+/** Preview returned by POST /listings/import/github (admin one-link import). */
+export interface ListingGithubImportPreviewProgrammerModel {
+	title: string;
+	slug: string;
+	description: string | null;
+	excerpt: string | null;
+	content: string | null;
+	extensionType: 'skills' | 'mcp' | 'both';
+	descriptionSkills?: string | null;
+	descriptionMcp?: string | null;
+	contentSkills?: string | null;
+	contentMcp?: string | null;
+	skillName: string | null;
+	skillMetadata: Record<string, unknown> | null;
+	sourceRepoUrl: string;
+	skillSourceUrl: string;
+	installCommandSkills: string | null;
+	license: string | null;
+	version: string | null;
+	sourceContentHash: string;
+}
+
+/** Result of POST /listings/:id/sync-github. */
+export interface ListingGithubSyncResultProgrammerModel {
+	updated: boolean;
+	contentChanged: boolean;
+	sourceSyncedAt: string;
+	sourceContentHash: string;
+}
+
 export interface ListingInformationProgrammerModel {
 	[key: string]: string;
 }
@@ -308,8 +365,8 @@ export interface ListingProgrammerModel {
 	sourceContentHash: string | null;
 	license: string | null;
 	version: string | null;
-	mcpTools: Array<{ name: string; description: string }>;
-	mcpTransport: string | null;
+	mcpTools: McpToolProgrammerModel[];
+	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
 	views: number;
@@ -325,7 +382,7 @@ export interface ListingProgrammerModel {
 	defaultImageUrl: string | null;
 	listingImageUrls: string[];
 	logoImageUrl: string | null;
-	faq: unknown;
+	faq: ListingFaqItemProgrammerModel[] | null;
 	listingTagSlugs: string[];
 	createdAt: string;
 	updatedAt: string | null;
@@ -930,7 +987,7 @@ export class ListingRepository {
 		extensionType?: 'skills' | 'mcp' | 'both' | null,
 		fetch?: typeof globalThis.fetch
 	): Promise<
-		| { ok: true; preview: import('$lib/listings/extension-type-models').ListingGithubImportPreview }
+		| { ok: true; preview: ListingGithubImportPreviewProgrammerModel }
 		| { ok: false; error: string }
 	> {
 		try {
@@ -952,7 +1009,7 @@ export class ListingRepository {
 		listingId: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<
-		| { ok: true; result: import('$lib/listings/extension-type-models').ListingGithubSyncResult }
+		| { ok: true; result: ListingGithubSyncResultProgrammerModel }
 		| { ok: false; error: string }
 	> {
 		try {
@@ -1027,7 +1084,7 @@ export class ListingRepository {
 			defaultImageUrl: row.defaultImageUrl ?? null,
 			listingImageUrls: row.listingImageUrls ?? [],
 			logoImageUrl: row.logoImageUrl ?? null,
-			faq: row.faq ?? null,
+			faq: Array.isArray(row.faq) ? (row.faq as ListingFaqItemProgrammerModel[]) : null,
 			listingTagSlugs: row.listingTagSlugs ?? [],
 			createdAt: row.createdAt,
 			updatedAt: row.updatedAt ?? null,

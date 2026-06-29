@@ -5,7 +5,12 @@ import type {
 	ListingCategoryViewModel,
 	ListingTagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
-import type { ListingFormSchemaType, ListingExtensionFormSchemaType, ListingStackFormSchemaType, ListingGithubImportPreview, ListingFaqItem } from '$lib/listings/listing.types';
+import type { ListingGithubImportPreviewProgrammerModel } from '$lib/listings/Listing.repository.svelte';
+import type {
+	ListingFormSchemaType,
+	ListingExtensionFormSchemaType,
+	ListingStackFormSchemaType
+} from '$lib/listings/listing.types';
 import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
 import {
 	getDefaultSchemaTypeForListingKind,
@@ -153,12 +158,10 @@ export class AdminListingEditorPagePresenter {
 			(this.listingKind === 'extension'
 				? getSchemaTypeForExtensionCategory(categorySlug)
 				: getDefaultSchemaTypeForListingKind('stack'));
-		const faq = Array.isArray(listing.faq)
-			? (listing.faq as ListingFaqItem[]).map((item) => ({
-					question: item.question ?? '',
-					answer: item.answer ?? ''
-				}))
-			: [];
+		const faq = listing.faq?.map((item) => ({
+			question: item.question ?? '',
+			answer: item.answer ?? ''
+		})) ?? [];
 
 		return {
 			id: listing.id,
@@ -202,7 +205,7 @@ export class AdminListingEditorPagePresenter {
 		githubUrl: string,
 		extensionType?: 'skills' | 'mcp' | 'both' | null,
 		fetch?: typeof globalThis.fetch
-	): Promise<{ ok: true; preview: ListingGithubImportPreview } | { ok: false; error: string }> {
+	): Promise<{ ok: true; preview: ListingGithubImportPreviewProgrammerModel } | { ok: false; error: string }> {
 		this.importingGithub = true;
 		try {
 			return await this.listingRepository.importFromGithub(githubUrl, extensionType, fetch);

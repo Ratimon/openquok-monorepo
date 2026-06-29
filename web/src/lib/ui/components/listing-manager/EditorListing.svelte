@@ -4,9 +4,9 @@
 		CategoryChoice,
 		TagChoice,
 		ListingExtensionFormSchemaType,
-		ListingStackFormSchemaType,
-		ListingGithubImportPreview
+		ListingStackFormSchemaType
 	} from '$lib/listings/listing.types';
+	import type { ListingGithubImportPreviewProgrammerModel } from '$lib/listings/Listing.repository.svelte';
 
 	import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
 	import {
@@ -47,7 +47,7 @@
 		onImportGithub?: (
 			githubUrl: string,
 			extensionType?: 'skills' | 'mcp' | 'both' | null
-		) => Promise<{ ok: true; preview: ListingGithubImportPreview } | { ok: false; error: string }>;
+		) => Promise<{ ok: true; preview: ListingGithubImportPreviewProgrammerModel } | { ok: false; error: string }>;
 		onSyncGithub?: (
 			listingId: string
 		) => Promise<{ ok: true; message: string } | { ok: false; error: string }>;
@@ -305,7 +305,7 @@
 	}
 
 	function applyGithubPreview(
-		preview: ListingGithubImportPreview,
+		preview: ListingGithubImportPreviewProgrammerModel,
 		currentExtensionType: 'skills' | 'mcp' | 'both' | null
 	) {
 		form.setFieldValue('title', preview.title);

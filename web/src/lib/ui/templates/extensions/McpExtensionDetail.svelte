@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { ExtensionDetailViewModel, ListingFaqItem } from '$lib/listings/index';
+	import type { ExtensionDetailViewModel } from '$lib/listings/index';
 
 	import { browser } from '$app/environment';
 
@@ -32,9 +32,7 @@
 	let activeTab = $state<'about' | 'readme' | 'faq'>('about');
 	let configClient = $state<'cursor' | 'claude' | 'vscode'>('cursor');
 
-	const faqItems = $derived(
-		Array.isArray(extension.faq) ? (extension.faq as ListingFaqItem[]) : []
-	);
+	const faqItems = $derived(extension.faq ?? []);
 	const mcpDescription = $derived(extension.descriptionMcp);
 	const mcpContent = $derived(extension.contentMcp);
 	const mcpClickUrl = $derived(extension.clickUrlMcp);
