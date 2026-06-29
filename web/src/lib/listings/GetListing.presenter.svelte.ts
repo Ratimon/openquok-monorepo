@@ -133,11 +133,9 @@ export interface ExtensionCategoryViewModel {
 
 /** Stats summary for extensions hub header. */
 export interface ExtensionsHubStatsViewModel {
-	total: number;
 	official: number;
-	skills: number;
-	mcp: number;
-	both: number;
+	community: number;
+	categories: number;
 }
 
 /** Full extensions hub load payload. */
@@ -399,13 +397,14 @@ export class GetListingPresenter {
 		return rows;
 	}
 
-	public computeHubStats(extensions: ExtensionCardViewModel[]): ExtensionsHubStatsViewModel {
+	public computeHubStats(
+		extensions: ExtensionCardViewModel[],
+		categories: ExtensionCategoryViewModel[]
+	): ExtensionsHubStatsViewModel {
 		return {
-			total: extensions.length,
 			official: extensions.filter((row) => row.isOfficial).length,
-			skills: extensions.filter((row) => row.extensionType === 'skills').length,
-			mcp: extensions.filter((row) => row.extensionType === 'mcp').length,
-			both: extensions.filter((row) => row.extensionType === 'both').length
+			community: extensions.filter((row) => !row.isOfficial).length,
+			categories: categories.length
 		};
 	}
 

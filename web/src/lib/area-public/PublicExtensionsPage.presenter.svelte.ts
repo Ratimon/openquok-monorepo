@@ -14,16 +14,15 @@ export type {
 	ExtensionsHubViewModel
 };
 
+
 export class PublicExtensionsPagePresenter {
 	public hubVm: ExtensionsHubViewModel | null = $state(null);
 	public filtersVm: ExtensionsHubFilters = $state({ type: 'all', sort: 'newest' });
 	public filteredExtensionsVm: ExtensionCardViewModel[] = $state([]);
 	public statsVm: ExtensionsHubStatsViewModel = $state({
-		total: 0,
 		official: 0,
-		skills: 0,
-		mcp: 0,
-		both: 0
+		community: 0,
+		categories: 0
 	});
 
 	constructor(private readonly getListingPresenter: GetListingPresenter) {}
@@ -63,7 +62,10 @@ export class PublicExtensionsPagePresenter {
 		this.hubVm = params.hub;
 		this.filtersVm = params.filters;
 		this.filteredExtensionsVm = this.applyClientFilters(params.hub.extensions, params.filters);
-		this.statsVm = this.getListingPresenter.computeHubStats(params.hub.extensions);
+		this.statsVm = this.getListingPresenter.computeHubStats(
+			params.hub.extensions,
+			params.hub.categories
+		);
 	}
 
 	/** Update filters and recompute filtered extensions (client-side). */

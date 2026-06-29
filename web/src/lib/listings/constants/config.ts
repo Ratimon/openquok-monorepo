@@ -2,11 +2,12 @@ import type { ModuleConfigSchema } from '$lib/config/constants/types';
 
 export const LISTING_IMAGES_BUCKET = 'listing_images' as const;
 
+
 export const CONFIG_SCHEMA_LISTINGS: ModuleConfigSchema = {
 	EXTENSIONS_META_TITLE: {
 		description: 'SEO meta title for the public extensions overview page.',
 		type: 'string',
-		default: 'Extensions Hub',
+		default: 'Skills & MCP Hub',
 		inputType: 'input',
 		maxInputLength: 60
 	},

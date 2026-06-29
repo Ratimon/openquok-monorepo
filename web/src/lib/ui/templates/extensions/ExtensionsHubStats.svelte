@@ -10,25 +10,25 @@
 
 	let { stats, class: className = '' }: Props = $props();
 
-	const pills = $derived([
-		{ label: 'Total', value: stats.total, tone: 'bg-base-200 text-base-content' },
-		{ label: 'Official', value: stats.official, tone: 'bg-primary/10 text-primary' },
-		{ label: 'Skills', value: stats.skills, tone: 'bg-secondary/10 text-secondary' },
-		{ label: 'MCP', value: stats.mcp, tone: 'bg-accent/10 text-accent' },
-		{ label: 'Both', value: stats.both, tone: 'bg-info/10 text-info' }
+	const items = $derived([
+		{ label: 'Official', value: stats.official, valueClass: 'text-emerald-400' },
+		{ label: 'Community', value: stats.community, valueClass: 'text-sky-400' },
+		{ label: 'Categories', value: stats.categories, valueClass: 'text-violet-400' }
 	]);
 </script>
 
-<div class={cn('flex flex-wrap gap-2', className)} aria-label="Extension counts">
-	{#each pills as pill (pill.label)}
-		<span
-			class={cn(
-				'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold',
-				pill.tone
-			)}
-		>
-			<span>{pill.label}</span>
-			<span class="tabular-nums">{pill.value}</span>
-		</span>
+<div
+	class={cn('flex flex-wrap items-start justify-center gap-x-10 gap-y-4 sm:gap-x-14', className)}
+	aria-label="Extension counts"
+>
+	{#each items as item (item.label)}
+		<div class="flex flex-col items-center gap-1">
+			<span class={cn('text-3xl font-bold tabular-nums tracking-tight sm:text-4xl', item.valueClass)}>
+				{item.value.toLocaleString()}
+			</span>
+			<span class="text-[0.65rem] font-semibold tracking-[0.2em] text-base-content/45 uppercase sm:text-xs">
+				{item.label}
+			</span>
+		</div>
 	{/each}
 </div>

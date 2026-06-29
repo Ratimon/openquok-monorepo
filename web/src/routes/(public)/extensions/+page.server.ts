@@ -22,7 +22,7 @@ export async function load({ url, cookies, fetch, parent }) {
 	const hub = await publicExtensionsPagePresenter.loadExtensionsHubStateless({ fetch, limit: 50 });
 	const filteredExtensions = publicExtensionsPagePresenter.applyClientFilters(hub.extensions, filters);
 
-	const statsVm = getListingPresenter.computeHubStats(hub.extensions);
+	const statsVm = getListingPresenter.computeHubStats(hub.extensions, hub.categories);
 
 	const customTitle = hub.metaTitle;
 	const customDescription = hub.metaDescription;

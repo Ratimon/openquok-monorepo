@@ -85,7 +85,9 @@
 			{metaDescription}
 		</p>
 		<div class="flex justify-center pt-2">
-			<ExtensionsHubStats stats={stats} />
+			<ExtensionsHubStats
+				stats={stats}
+			/>
 		</div>
 	</header>
 
