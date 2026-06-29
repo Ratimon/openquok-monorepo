@@ -125,7 +125,7 @@ export type {
 	ListingViewModel,
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
-export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/listings/constants/config';
+export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';
 export { markdownToHtml } from '$lib/listings/utils/markdownToHtml';
 export { mergeListingSchemaIntoGraph } from '$lib/listings/utils/mergeListingSchemaJson';
 export { createSortedCategoryChoices } from '$lib/listings/utils/parentPathCreator';

@@ -1,6 +1,6 @@
 import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 
-import { CONFIG_SCHEMA_LISTINGS } from '$lib/listings/constants/config';
+import { CONFIG_SCHEMA_LISTINGS } from '$lib/config/constants/config';
 import type {
 	ListingCategoryFormSchemaType,
 	ListingFaqItemProgrammerModel,
