@@ -25,6 +25,7 @@
 	const headingId = 'public-agents-hub-heading';
 	const cliInstallHeadingId = 'public-agents-hub-cli-install-heading';
 	const skillInstallHeadingId = 'public-agents-hub-skill-install-heading';
+	const autonomousAgentHubHeadingId = 'public-autonomous-agent-hub-heading';
 </script>
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
@@ -68,10 +69,20 @@
 		</section>
 	</div>
 
-	<ul
-		class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
-		aria-label="AI agent hosts and integrations you can connect"
-	>
+	<div class="mt-12 border-t border-base-content/10 pt-10 md:pt-14">
+		<FeaturesSectionHeader
+			heroTheme={landingHeroTheme}
+			headingId={autonomousAgentHubHeadingId}
+			titleClass="text-2xl font-black tracking-tight text-balance sm:text-3xl"
+			title={PUBLIC_AGENTS_HUB.autonomousAgentHubTitle}
+			description={PUBLIC_AGENTS_HUB.autonomousAgentHubDescription}
+			subtitle={PUBLIC_AGENTS_HUB.autonomousAgentHubSubtitle}
+		/>
+
+		<ul
+			class="mx-auto mt-12 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3"
+			aria-label="Autonomous agent hosts you can connect"
+		>
 		{#each agentsVm as agent (agent.slug)}
 			{@const href = agent.available ? route(getRootPathPublicAgent(agent.slug)) : undefined}
 			<li>
@@ -137,5 +148,6 @@
 				{/if}
 			</li>
 		{/each}
-	</ul>
+		</ul>
+	</div>
 </section>

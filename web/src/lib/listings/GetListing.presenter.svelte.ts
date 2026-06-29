@@ -3,7 +3,8 @@ import type {
 	AdminListingCommentVm,
 	ExtensionSort,
 	ExtensionTypeFilter,
-	ExtensionsHubFilters
+	ExtensionsHubFilters,
+	ExtensionsTagFilterViewModel
 } from '$lib/listings/listing.types';
 import type {
 	AdminListingActivityProgrammerModel,
@@ -16,6 +17,7 @@ import type {
 	McpTransport
 } from '$lib/listings/Listing.repository.svelte';
 import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
+import { buildExtensionsTagFilterVm } from '$lib/listings/utils/buildExtensionsTagFilterVm';
 
 /** View model for admin listings list (e.g. extensions manager page). */
 export interface ListingViewModel {
@@ -155,7 +157,7 @@ export type ListingCategoryViewModel = CategoryViewModel;
 export type TagViewModel = ListingTagProgrammerModel;
 export type ListingTagViewModel = TagViewModel;
 
-export type { ExtensionSort, ExtensionTypeFilter, ExtensionsHubFilters };
+export type { ExtensionSort, ExtensionTypeFilter, ExtensionsHubFilters, ExtensionsTagFilterViewModel };
 
 export class GetListingPresenter {
 	constructor(private readonly listingRepository: ListingRepository) {}
@@ -307,11 +309,31 @@ export class GetListingPresenter {
 			.map((listing) => this.toListingPublicVm(listing));
 	}
 
+	public async loadAllTagsVm(fetch?: typeof globalThis.fetch): Promise<TagViewModel[]> {
+		const tagsPm = await this.listingRepository.getAllTags(fetch);
+		return tagsPm.map((tag) => this.toTagVm(tag));
+	}
+
+	public buildExtensionsTagFilterVm(params: {
+		tagsCatalog: TagViewModel[];
+		extensions: ExtensionCardViewModel[];
+	}): ExtensionsTagFilterViewModel {
+		return buildExtensionsTagFilterVm(params);
+	}
+
 	public parseHubFiltersFromUrl(searchParams: URLSearchParams): ExtensionsHubFilters {
 		const type = searchParams.get('type');
 		const sort = searchParams.get('sort');
 		const search = searchParams.get('search')?.trim();
 		const category = searchParams.get('category')?.trim();
+		const tagGroup = searchParams.get('tagGroup')?.trim();
+		const tagsParam = searchParams.get('tags')?.trim();
+		const tags = tagsParam
+			? tagsParam
+					.split(',')
+					.map((slug) => slug.trim())
+					.filter(Boolean)
+			: undefined;
 
 		const typeFilter: ExtensionTypeFilter =
 			type === 'skills' || type === 'mcp' || type === 'both' || type === 'official' ? type : 'all';
@@ -322,7 +344,9 @@ export class GetListingPresenter {
 			type: typeFilter,
 			sort: sortFilter,
 			...(search ? { search } : {}),
-			...(category ? { category } : {})
+			...(category ? { category } : {}),
+			...(tags?.length ? { tags } : {}),
+			...(tagGroup ? { tagGroup } : {})
 		};
 	}
 
@@ -337,13 +361,16 @@ export class GetListingPresenter {
 		if (next.sort !== 'newest') params.set('sort', next.sort);
 		if (next.search?.trim()) params.set('search', next.search.trim());
 		if (next.category?.trim()) params.set('category', next.category.trim());
+		if (next.tags?.length) params.set('tags', next.tags.join(','));
+		if (next.tagGroup?.trim()) params.set('tagGroup', next.tagGroup.trim());
 		const query = params.toString();
 		return query ? `${pathname}?${query}` : pathname;
 	}
 
 	public filterAndSortExtensions(
 		extensions: ExtensionCardViewModel[],
-		filters: ExtensionsHubFilters
+		filters: ExtensionsHubFilters,
+		tagFilterVm?: ExtensionsTagFilterViewModel
 	): ExtensionCardViewModel[] {
 		let rows = [...extensions];
 
@@ -359,6 +386,18 @@ export class GetListingPresenter {
 
 		if (filters.category) {
 			rows = rows.filter((row) => row.category?.slug === filters.category);
+		}
+
+		const selectedTagSlugs = new Set(filters.tags ?? []);
+		if (selectedTagSlugs.size > 0) {
+			rows = rows.filter((row) => row.tags.some((tag) => selectedTagSlugs.has(tag.slug)));
+		} else if (filters.tagGroup && tagFilterVm) {
+			const groupTagSlugs = new Set(
+				tagFilterVm.groups.find((group) => group.slug === filters.tagGroup)?.tagSlugs ?? []
+			);
+			if (groupTagSlugs.size > 0) {
+				rows = rows.filter((row) => row.tags.some((tag) => groupTagSlugs.has(tag.slug)));
+			}
 		}
 
 		switch (filters.type) {
@@ -505,6 +544,13 @@ export class GetListingPresenter {
 
 	private toCategoryVm(category: ListingCategoryProgrammerModel): CategoryViewModel {
 		return { ...category };
+	}
+
+	private toTagVm(tag: ListingTagProgrammerModel): TagViewModel {
+		return {
+			...tag,
+			tagGroups: tag.tagGroups.map((group) => ({ ...group }))
+		};
 	}
 
 	private toExtensionCategoryVm(category: ListingCategoryProgrammerModel): ExtensionCategoryViewModel {

@@ -64,7 +64,7 @@ openquok auth:status`;
 export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenceItem[] = [
 	{
 		command: 'openquok auth:login --json',
-		description: 'Start device OAuth for agents; user opens verification_uri_complete from stdout'
+		description: 'Start device OAuth for agents; user then opens verification url in browser'
 	},
 	{
 		command: 'openquok integrations:list',

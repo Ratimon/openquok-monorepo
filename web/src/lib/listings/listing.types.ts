@@ -169,6 +169,34 @@ export interface ExtensionsHubFilters {
 	sort: ExtensionSort;
 	search?: string;
 	category?: string;
+	/** Selected listing tag slugs (OR match). */
+	tags?: string[];
+	/** Active tag-group slug (matches any tag in the group). */
+	tagGroup?: string;
+}
+
+/** Chip for a single tag on the extensions hub filter bar. */
+export interface ExtensionTagFilterChip {
+	slug: string;
+	label: string;
+	count: number;
+	color?: string | null;
+	groupSlugs: string[];
+}
+
+/** Chip for a tag group on the extensions hub filter bar. */
+export interface ExtensionTagGroupFilterChip {
+	slug: string;
+	label: string;
+	count: number;
+	tagSlugs: string[];
+}
+
+/** View model for extensions hub tag / tag-group filters. */
+export interface ExtensionsTagFilterViewModel {
+	groups: ExtensionTagGroupFilterChip[];
+	tags: ExtensionTagFilterChip[];
+	totalCount: number;
 }
 
 /** View model for admin comments manager UI (presenter + table); not a wire DTO. */

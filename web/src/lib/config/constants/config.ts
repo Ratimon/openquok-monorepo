@@ -380,7 +380,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Headline for the seventh secondary hero section (comma separates accent phrase)',
 		type: 'string',
 		default:
-			'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
+			'when a format hits, scale by adding workspaces and parallel sessions',
 		inputType: 'input',
 		maxInputLength: 100
 	},

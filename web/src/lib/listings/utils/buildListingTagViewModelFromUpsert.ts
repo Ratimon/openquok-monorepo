@@ -16,6 +16,7 @@ export function buildListingTagViewModelFromUpsert(params: {
 		color: null,
 		imageUrlHero: null,
 		imageUrlSmall: null,
-		href: null
+		href: null,
+		tagGroups: []
 	};
 }

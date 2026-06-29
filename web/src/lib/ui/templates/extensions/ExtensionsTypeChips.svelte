@@ -22,7 +22,10 @@
 	];
 </script>
 
-<div class={cn('flex flex-wrap gap-2', className)} role="group" aria-label="Filter by extension type">
+<div class={cn('space-y-2', className)}>
+	<p class="text-[0.65rem] font-semibold tracking-[0.18em] text-base-content/45 uppercase">Type</p>
+
+	<div class="flex flex-wrap gap-2" role="group" aria-label="Filter by extension type">
 	{#each chips as chip (chip.id)}
 		<button
 			type="button"
@@ -36,4 +39,5 @@
 			{chip.label}
 		</button>
 	{/each}
+	</div>
 </div>

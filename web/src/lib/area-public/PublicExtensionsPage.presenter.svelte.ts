@@ -3,6 +3,7 @@ import type {
 	ExtensionCategoryViewModel,
 	ExtensionsHubStatsViewModel,
 	ExtensionsHubViewModel,
+	ExtensionsTagFilterViewModel,
 	GetListingPresenter
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
@@ -41,9 +42,10 @@ export class PublicExtensionsPagePresenter {
 
 	applyClientFilters(
 		extensions: ExtensionCardViewModel[],
-		filters: ExtensionsHubFilters
+		filters: ExtensionsHubFilters,
+		tagFilterVm?: ExtensionsTagFilterViewModel
 	): ExtensionCardViewModel[] {
-		return this.getListingPresenter.filterAndSortExtensions(extensions, filters);
+		return this.getListingPresenter.filterAndSortExtensions(extensions, filters, tagFilterVm);
 	}
 
 	/** Stateless — safe for `+page.server.ts` (SSR). */

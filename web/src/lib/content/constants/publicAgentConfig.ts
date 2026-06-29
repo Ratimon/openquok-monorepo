@@ -337,7 +337,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
+			title: 'when a format hits, scale by adding workspaces and parallel sessions',
 			description:
 				'Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while OpenClaw queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
 			parallelMocks: [
@@ -531,7 +531,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, YouTube, and TikTok are available today. LinkedIn and X are on the roadmap. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				'Facebook, Instagram (Business and Standalone), Threads, YouTube, TikTok, LinkedIn, and X are available today. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',
@@ -636,7 +636,7 @@ openquok analytics:post <post-id> -d 7`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
+			title: 'when a format hits, scale by adding workspaces and parallel sessions',
 			description:
 				'Spot a winner in analytics, then cl a dedicated workspace for the next client or brand while Hermes queues the next wave in parallel — credentials, channels, and agent context stay isolated as you scale.',
 			parallelMocks: [
@@ -835,7 +835,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, YouTube, and TikTok are available today. LinkedIn and X are on the roadmap. Connect channels in the OpenQuok web app; Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				'Facebook, Instagram (Business and Standalone), Threads, YouTube, TikTok, LinkedIn, and X are available today. Connect channels in the OpenQuok web app; Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.'
 		},
 		{
 			title: 'Does Hermes publish immediately or wait for approval?',
@@ -875,6 +875,10 @@ export const PUBLIC_AGENTS_HUB = {
 		'Connect OpenClaw, Hermes, or any skill-based host — install openquok-core for local agents and custom workflows. Or plug OpenQuok into Cursor, Claude Code, Codex, and other MCP clients. Schedule posts from chat while you approve what goes live.',
 	cliInstallTitle: 'Install the CLI:',
 	skillInstallTitle: 'Install our core skill:',
+	autonomousAgentHubSubtitle: 'Autonomous Agent',
+	autonomousAgentHubTitle: 'Self-hosted agent hosts',
+	autonomousAgentHubDescription:
+		'Message your assistant from Telegram, Discord, or Slack, install openquok-core, and schedule posts from chat. Pick a host below for setup steps and skill install commands.',
 	mcpHubSubtitle: 'MCP',
 	mcpHubTitle: 'Native MCP clients',
 	mcpHubDescription:

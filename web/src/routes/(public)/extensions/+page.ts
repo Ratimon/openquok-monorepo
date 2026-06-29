@@ -5,7 +5,8 @@ import type {
 	ExtensionCardViewModel,
 	ExtensionCategoryViewModel,
 	ExtensionsHubFilters,
-	ExtensionsHubStatsViewModel
+	ExtensionsHubStatsViewModel,
+	ExtensionsTagFilterViewModel
 } from '$lib/listings/index';
 
 import type { PageLoad } from './$types';
@@ -30,6 +31,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			categoriesVm: ExtensionCategoryViewModel[];
 			statsVm: ExtensionsHubStatsViewModel;
 			filtersVm: ExtensionsHubFilters;
+			tagFilterVm: ExtensionsTagFilterViewModel;
 			totalCount: number;
 			schemaData: unknown;
 		};
@@ -48,6 +50,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			categoriesVm: serverData.categoriesVm,
 			statsVm: serverData.statsVm,
 			filtersVm: serverData.filtersVm,
+			tagFilterVm: serverData.tagFilterVm,
 			totalCount: serverData.totalCount,
 			schemaData: serverData.schemaData
 		};

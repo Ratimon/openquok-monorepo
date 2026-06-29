@@ -85,6 +85,11 @@ export interface ListingCategoryDto {
 	parent_path?: string;
 }
 
+export interface ListingTagGroupDto {
+	id: string;
+	name: string;
+}
+
 export interface ListingTagDto {
 	id: string;
 	name: string;
@@ -96,6 +101,10 @@ export interface ListingTagDto {
 	href?: string | null;
 	color?: string | null;
 	emoji?: string | null;
+	listing_tag_groups?: Array<
+		| ListingTagGroupDto
+		| { listing_tag_groups: ListingTagGroupDto | null }
+	> | null;
 }
 
 export interface AdminListingCommentDto {
@@ -414,6 +423,11 @@ export interface ListingCategoryProgrammerModel {
 	href: string | null;
 }
 
+export interface ListingTagGroupProgrammerModel {
+	id: string;
+	name: string;
+}
+
 export interface ListingTagProgrammerModel {
 	id: string;
 	name: string;
@@ -425,6 +439,7 @@ export interface ListingTagProgrammerModel {
 	imageUrlHero: string | null;
 	imageUrlSmall: string | null;
 	href: string | null;
+	tagGroups: ListingTagGroupProgrammerModel[];
 }
 
 export interface AdminListingCommentProgrammerModel {
@@ -1132,8 +1147,30 @@ export class ListingRepository {
 			color: row.color ?? null,
 			imageUrlHero: row.image_url_hero ?? null,
 			imageUrlSmall: row.image_url_small ?? null,
-			href: row.href ?? null
+			href: row.href ?? null,
+			tagGroups: this.normalizeTagGroups(row.listing_tag_groups)
 		};
+	}
+
+	private normalizeTagGroups(
+		raw: ListingTagDto['listing_tag_groups']
+	): ListingTagGroupProgrammerModel[] {
+		if (!raw?.length) return [];
+
+		const groups: ListingTagGroupProgrammerModel[] = [];
+		const seen = new Set<string>();
+
+		for (const entry of raw) {
+			const group =
+				entry && 'listing_tag_groups' in entry
+					? entry.listing_tag_groups
+					: entry;
+			if (!group?.id || seen.has(group.id)) continue;
+			seen.add(group.id);
+			groups.push({ id: group.id, name: group.name });
+		}
+
+		return groups.sort((a, b) => a.name.localeCompare(b.name));
 	}
 
 	private toAdminCommentPm(row: AdminListingCommentDto): AdminListingCommentProgrammerModel {

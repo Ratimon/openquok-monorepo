@@ -137,7 +137,7 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 		{
 			title: 'Which social platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, YouTube, and TikTok are available today. LinkedIn and X are on the roadmap. Connect channels in the OpenQuok web app first.'
+				'Facebook, Instagram (Business and Standalone), Threads, YouTube, TikTok, LinkedIn, and X are available today. Connect channels in the OpenQuok web app first.'
 		}
 	];
 }
@@ -390,7 +390,7 @@ Break down likes, comments, and shares for post <id>`
 		},
 		{
 			subtitle: 'Scale what works',
-			title: 'when a format hits, add workspaces and parallel sessions — keep every brand isolated',
+			title: 'when a format hits, scale by adding workspaces and parallel sessions',
 			description: `Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while parallel ${label} sessions queue posts and pull metrics — multi-workspace isolation keeps credentials and channels from mixing as you scale.`,
 			parallelMocks: [
 				{

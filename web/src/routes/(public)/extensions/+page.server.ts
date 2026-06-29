@@ -20,7 +20,16 @@ export async function load({ url, cookies, fetch, parent }) {
 
 	const filters = publicExtensionsPagePresenter.parseFiltersFromUrl(url.searchParams);
 	const hub = await publicExtensionsPagePresenter.loadExtensionsHubStateless({ fetch, limit: 50 });
-	const filteredExtensions = publicExtensionsPagePresenter.applyClientFilters(hub.extensions, filters);
+	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
+	const tagFilterVm = getListingPresenter.buildExtensionsTagFilterVm({
+		tagsCatalog,
+		extensions: hub.extensions
+	});
+	const filteredExtensions = publicExtensionsPagePresenter.applyClientFilters(
+		hub.extensions,
+		filters,
+		tagFilterVm
+	);
 
 	const statsVm = getListingPresenter.computeHubStats(hub.extensions, hub.categories);
 
@@ -81,6 +90,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,
+		tagFilterVm,
 		totalCount: hub.totalCount,
 		schemaData
 	};

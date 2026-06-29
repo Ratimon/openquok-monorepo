@@ -12,6 +12,7 @@
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
 	import ExtensionsSearchBar from '$lib/ui/templates/extensions/ExtensionsSearchBar.svelte';
 	import ExtensionsTypeChips from '$lib/ui/templates/extensions/ExtensionsTypeChips.svelte';
+	import ExtensionsTagFilter from '$lib/ui/templates/extensions/ExtensionsTagFilter.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -25,6 +26,7 @@
 	let categoriesVm = $derived(data.categoriesVm);
 	let statsVm = $derived(data.statsVm);
 	let filtersVm = $derived(data.filtersVm);
+	let tagFilterVm = $derived(data.tagFilterVm);
 	let schemaData = $derived(data.schemaData);
 
 	const pagePresenter = publicExtensionsPagePresenter;
@@ -55,6 +57,25 @@
 
 	function handleTypeSelect(type: ExtensionTypeFilter) {
 		navigateFilters({ type });
+	}
+
+	function handleTagGroupSelect(groupSlug: string | null) {
+		navigateFilters({ tagGroup: groupSlug ?? undefined, tags: undefined });
+	}
+
+	function handleTagToggle(tagSlug: string) {
+		const current = new Set(filtersVm.tags ?? []);
+		if (current.has(tagSlug)) current.delete(tagSlug);
+		else current.add(tagSlug);
+		const tags = [...current];
+		navigateFilters({
+			tags: tags.length ? tags : undefined,
+			tagGroup: tags.length ? undefined : filtersVm.tagGroup
+		});
+	}
+
+	function handleTagClear() {
+		navigateFilters({ tags: undefined, tagGroup: undefined });
 	}
 
 	function handleCategorySelect(slug: string | null) {
@@ -104,7 +125,19 @@
 			</label>
 		</div>
 
-		<ExtensionsTypeChips activeType={filtersVm.type ?? 'all'} onSelect={handleTypeSelect} />
+		<ExtensionsTypeChips
+			activeType={filtersVm.type ?? 'all'}
+			onSelect={handleTypeSelect}
+		/>
+
+		<ExtensionsTagFilter
+			tagFilterVm={tagFilterVm}
+			activeTagGroup={filtersVm.tagGroup ?? null}
+			activeTags={filtersVm.tags ?? []}
+			onGroupSelect={handleTagGroupSelect}
+			onTagToggle={handleTagToggle}
+			onClear={handleTagClear}
+		/>
 
 		<div class="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
 			<aside class="lg:sticky lg:top-24 lg:self-start">

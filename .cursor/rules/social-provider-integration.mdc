@@ -1,9 +1,11 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + feature bento showcases
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
   - backend/services/IntegrationConnectionService.ts
+  - backend/supabase/db/listing-tags/**
+  - backend/supabase/db/listings/**
   - web/src/lib/ui/components/posts/providers/**
   - web/src/lib/ui/components/posts/SettingsAccordion.svelte
   - web/src/lib/ui/components/posts/IntegrationContinue.svelte
@@ -17,6 +19,7 @@ globs:
   - web/src/lib/ui/templates/bento/**
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
   - web/src/routes/(public)/channels/**
+  - web/src/routes/(public)/extensions/**
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte
@@ -27,11 +30,11 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page + feature bento showcases** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
+Ship **backend + web + docs + public channel landing page + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/social-integration/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, and `/channels/{slug}`. Do not fork slugs between layers.
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, and `/channels/{slug}`. Do not fork slugs between layers.
 
 ## Backend (required)
 
@@ -41,6 +44,47 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **Tests** — unit tests for OAuth edge cases, publish payload shaping, and connection save when behavior differs.
+
+## Extensions Hub listing tags (required for social channels)
+
+The public **Extensions Hub** (`/extensions`) filters skills and MCP listings by **tag** and **tag group**. Each social channel needs a matching `listing_tags` row and group associations so hub filters stay aligned with shipped providers.
+
+Follow **backend-migrations-naming** (`listing-tags_<YYYYMMDD>_seed.sql` under `backend/supabase/db/listing-tags/`). Re-aggregate migrations after seed changes.
+
+| Artifact | Path / action |
+| --- | --- |
+| Channel tag row | New `INSERT` in `backend/supabase/db/listing-tags/501_*.sql` (or a later `501`-tier seed if `501` already shipped) |
+| Group associations | `backend/supabase/db/listing-tags/502_*.sql` — append rows to `listing_tag_groups_listing_tags_association` with slug comments (see existing file) |
+| Slug + name | `slug` = `provider.identifier`; `name` = human label (e.g. `Facebook`, `X`) |
+| Description | One neutral sentence on what the channel integration covers (no third-party attribution) |
+| Stable UUID | New `d5f7c000-0000-4000-a000-…` id; never reuse or reassign ids |
+
+### Tag groups (social channels only)
+
+A channel tag usually belongs to **Social platforms** plus one or more **content-type** groups. Tags may belong to multiple groups. Group ids and membership rules live in `502_*.sql` — keep the overview comment block there up to date.
+
+| Group | When to add the channel tag |
+| --- | --- |
+| **Social platforms** | **Always** — every social channel tag |
+| **Videos** | Video-first publish (e.g. YouTube, TikTok) |
+| **Photos** | Image-first feed workflows (e.g. Instagram, Facebook Page photos) |
+| **Text** | Text and microblog channels (e.g. Threads, LinkedIn, X) |
+
+Agent / MCP tags (OpenClaw, Cursor, Codex, …) are **not** part of this checklist — only add those when shipping agent or MCP catalog entries, not when adding a social provider.
+
+### Listing associations
+
+When **openquok-core** (or another seed listing) should expose every catalog tag, `backend/supabase/db/listings/502_*.sql` uses a `CROSS JOIN` on `listing_tags` — new channel tags are picked up automatically after migrations run. For other listings, update `listing_tag_slugs` and `listings_listing_tags_association` explicitly.
+
+### Seed edit checklist
+
+1. Insert `listing_tags` row (`ON CONFLICT (id) DO NOTHING`).
+2. Add association to **Social platforms** (`listing_tag_group_id` …`000002`).
+3. Add **Videos** / **Photos** / **Text** associations when the provider fits (see table above).
+4. Comment each association line with `-- {slug}` and update the group header comment listing member slugs.
+5. If the provider is live (`available: true` on the channel landing), ship the tag in the **same PR** as the integration — do not leave hub filters missing a channel users can connect.
+
+Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter.svelte` (no per-provider page changes when only seed data changes).
 
 ## Web (composer + connect)
 
@@ -191,3 +235,4 @@ Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** 
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
+- **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

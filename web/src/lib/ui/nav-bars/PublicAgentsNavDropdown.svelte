@@ -91,7 +91,14 @@
 		sideOffset={10}
 		class="w-[min(calc(100vw-2rem),42rem)] rounded-xl border border-base-content/10 bg-base-200 p-4 shadow-xl"
 	>
-		<div class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2" aria-label="AI agent integrations">
+		<div>
+			<p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+				Autonomous Agent
+			</p>
+			<div
+				class="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-2"
+				aria-label="Autonomous agent integrations"
+			>
 			{#each agentColumns as column (column.map((entry) => entry.slug).join('-'))}
 				<div class="flex min-w-0 flex-col gap-0.5">
 					{#each column as entry (entry.slug)}
@@ -138,6 +145,7 @@
 					{/each}
 				</div>
 			{/each}
+			</div>
 		</div>
 		<div class="mt-3 border-t border-base-content/10 pt-3">
 			<p class="px-2 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">MCP</p>
