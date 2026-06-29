@@ -51,6 +51,9 @@ export interface ListingPublicViewModel {
 	extensionType: string | null;
 	installCommandSkills: string | null;
 	installCommandMcp: string | null;
+	clickUrlSkills: string | null;
+	clickUrlMcp: string | null;
+	mcpServerConfig: Record<string, unknown> | null;
 	isOfficial: boolean;
 	likes: number;
 	views: number;
@@ -438,6 +441,9 @@ export class GetListingPresenter {
 			extensionType: listing.extensionType,
 			installCommandSkills: listing.installCommandSkills,
 			installCommandMcp: listing.installCommandMcp,
+			clickUrlSkills: listing.clickUrlSkills,
+			clickUrlMcp: listing.clickUrlMcp,
+			mcpServerConfig: listing.mcpServerConfig,
 			isOfficial: listing.isOfficial,
 			likes: listing.likes,
 			views: listing.views,
