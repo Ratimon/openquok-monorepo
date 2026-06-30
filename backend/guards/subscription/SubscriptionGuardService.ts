@@ -1,4 +1,5 @@
 import {
+    isPaidSubscriptionTier,
     planLimitsForTier,
     pricing,
     type SubscriptionTier,
@@ -474,6 +475,23 @@ export class SubscriptionGuardService {
         const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
         const viewerTier = owned?.subscription_tier ?? "FREE";
         return planLimitsForTier(viewerTier).community_features;
+    }
+
+    /** Extension hub bookmarks require a paid owned-account tier (SOLO+), not community_features alone. */
+    async assertPaidOwnedAccountForBookmarks(authUserId?: string): Promise<void> {
+        if (!authUserId?.trim()) return;
+        if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const tier = this.subscriptionService.resolveTier(owned);
+        if (!isPaidSubscriptionTier(tier)) {
+            throw new SubscriptionError(
+                "Extension bookmarks require a paid plan. Upgrade to save extensions from the hub.",
+                SubscriptionSection.COMMUNITY_FEATURES,
+                this.billingUrl()
+            );
+        }
     }
 
     async assertTeamInviteCapacity(organizationId: string, authUserId?: string): Promise<void> {

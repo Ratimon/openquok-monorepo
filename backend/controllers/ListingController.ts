@@ -566,6 +566,57 @@ export class ListingController {
         }
     };
 
+    getUserBookmarks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const listings = await this.listingService.getUserBookmarks(userId, authReq.user?.id);
+            res.status(200).json({
+                success: true,
+                data: ListingDTOMapper.toDTOCollection(listings),
+                count: listings.length,
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    addBookmark = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            await this.listingService.addBookmark(id, userId, authReq.user?.id);
+            res.status(200).json({ success: true, message: "Extension bookmarked." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    removeBookmark = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            await this.listingService.removeBookmark(id, userId, authReq.user?.id);
+            res.status(200).json({ success: true, message: "Bookmark removed." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
     deleteListingComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params as { id: string };

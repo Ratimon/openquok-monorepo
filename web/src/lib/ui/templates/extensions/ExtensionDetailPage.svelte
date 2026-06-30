@@ -13,8 +13,10 @@
 	import BothExtensionDetail from '$lib/ui/templates/extensions/BothExtensionDetail.svelte';
 	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
 	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
+	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
 
 	type MutationResult = { ok: true } | { ok: false; error: string };
+	type BookmarkToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
 	type Props = {
 		extension: ExtensionDetailViewModel;
@@ -32,6 +34,10 @@
 		submittingRating?: boolean;
 		onUpgradeRequired?: () => void;
 		onSignInRequired?: () => void;
+		bookmarksPaidEnabled?: boolean | null;
+		upgradeHref?: string;
+		isBookmarked?: boolean;
+		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<BookmarkToggleResult>;
 	};
 
 	let {
@@ -45,7 +51,11 @@
 		submittingComment = false,
 		submittingRating = false,
 		onUpgradeRequired,
-		onSignInRequired
+		onSignInRequired,
+		bookmarksPaidEnabled = null,
+		upgradeHref,
+		isBookmarked = false,
+		onToggleBookmark
 	}: Props = $props();
 
 	const pagePresenter = publicExtensionBySlugPagePresenter;
@@ -75,6 +85,18 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<article class="container mx-auto max-w-4xl px-4">
+		{#if onToggleBookmark}
+			<div class="mb-4 flex justify-end">
+				<ExtensionBookmarkButton
+					listingId={extension.id}
+					{isBookmarked}
+					{isLoggedIn}
+					{bookmarksPaidEnabled}
+					{upgradeHref}
+					onToggle={onToggleBookmark}
+				/>
+			</div>
+		{/if}
 		{#if extension.extensionType === 'mcp'}
 			<McpExtensionDetail
 				{extension}
@@ -111,6 +133,12 @@
 								extensionVm={relatedVm}
 								expanded={expandedRelatedId === relatedVm.id}
 								onToggle={toggleRelatedExpanded}
+								showBookmark={Boolean(onToggleBookmark)}
+								isBookmarked={false}
+								{isLoggedIn}
+								{bookmarksPaidEnabled}
+								{upgradeHref}
+								onToggleBookmark={onToggleBookmark}
 							/>
 						</li>
 					{/each}

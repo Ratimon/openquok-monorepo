@@ -206,6 +206,9 @@ export interface ListingConfig {
 		createListingComment: string;
 		upsertListingRating: (listingId: string) => string;
 		cloneStack: (stackId: string) => string;
+		getMyBookmarks: string;
+		addBookmark: (listingId: string) => string;
+		removeBookmark: (listingId: string) => string;
 	};
 }
 
@@ -779,6 +782,45 @@ export class ListingRepository {
 				return { ok: true, id: cloneDto.data.id };
 			}
 			return { ok: false, error: cloneDto?.message ?? 'Failed to clone stack.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async getMyBookmarks(fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel[]> {
+		const { data: getMyBookmarksDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+			this.config.endpoints.getMyBookmarks,
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getMyBookmarksDto?.success && Array.isArray(getMyBookmarksDto.data)) {
+			return getMyBookmarksDto.data.map((row) => this.toListingPm(row));
+		}
+		return [];
+	}
+
+	async addBookmark(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: addBookmarkDto, ok } = await this.httpGateway.post<{ success: boolean; message?: string }>(
+				this.config.endpoints.addBookmark(listingId),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && addBookmarkDto?.success) return { ok: true };
+			return { ok: false, error: addBookmarkDto?.message ?? 'Failed to bookmark extension.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async removeBookmark(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: removeBookmarkDto, ok } = await this.httpGateway.delete<{ success: boolean; message?: string }>(
+				this.config.endpoints.removeBookmark(listingId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && removeBookmarkDto?.success) return { ok: true };
+			return { ok: false, error: removeBookmarkDto?.message ?? 'Failed to remove bookmark.' };
 		} catch (err) {
 			return { ok: false, error: this.extractMessage(err) };
 		}

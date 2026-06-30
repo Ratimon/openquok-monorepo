@@ -21,6 +21,7 @@ export class PublicExtensionBySlugPagePresenter {
 	public submittingLike = $state(false);
 	public submittingComment = $state(false);
 	public submittingRating = $state(false);
+	public submittingBookmark = $state(false);
 
 	constructor(
 		private readonly getListingPresenter: GetListingPresenter,
@@ -129,6 +130,25 @@ export class PublicExtensionBySlugPagePresenter {
 			return mutationPmToVm(resultPm);
 		} finally {
 			this.submittingRating = false;
+		}
+	}
+
+	async toggleBookmark(
+		listingId: string,
+		nextBookmarked: boolean
+	): Promise<PublicExtensionMutationResultViewModel & { bookmarked?: boolean }> {
+		this.submittingBookmark = true;
+		try {
+			const resultPm = nextBookmarked
+				? await this.listingRepository.addBookmark(listingId)
+				: await this.listingRepository.removeBookmark(listingId);
+			const resultVm = mutationPmToVm(resultPm);
+			if (resultVm.ok) {
+				return { ...resultVm, bookmarked: nextBookmarked };
+			}
+			return resultVm;
+		} finally {
+			this.submittingBookmark = false;
 		}
 	}
 }

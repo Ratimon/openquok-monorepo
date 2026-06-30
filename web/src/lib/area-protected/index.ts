@@ -4,7 +4,8 @@ export {
 	getRootPathAnalytics,
 	getRootPathMedia,
 	getRootPathPlugs,
-	getRootPathTemplates
+	getRootPathTemplates,
+	getRootPathExtensions
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
@@ -17,7 +18,9 @@ import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsP
 import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTemplatesPage.presenter.svelte';
 import { ProtectedPayloadWizardPagePresenter } from '$lib/area-protected/ProtectedPayloadWizardPage.presenter.svelte';
 import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBillingPage.presenter.svelte';
+import { ProtectedAccountExtensionsPagePresenter } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
 import { billingPresenter, firstBillingGatePresenter, getBillingPresenter } from '$lib/billing';
+import { getListingPresenter, listingRepository } from '$lib/listings';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { editorAccountSettingsPresenter } from '$lib/account';
 import { integrationsRepository } from '$lib/integrations';
@@ -173,6 +176,12 @@ const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 	setGridFilterBuilder
 );
 
+const protectedAccountExtensionsPagePresenter = new ProtectedAccountExtensionsPagePresenter(
+	getListingPresenter,
+	listingRepository,
+	getBillingPresenter
+);
+
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
 	ProtectedSettingsPagePresenter,
@@ -191,6 +200,8 @@ export {
 	protectedPlugsPagePresenter,
 	ProtectedTemplatesPagePresenter,
 	protectedTemplatesPagePresenter,
+	ProtectedAccountExtensionsPagePresenter,
+	protectedAccountExtensionsPagePresenter,
 	ProtectedBillingPagePresenter,
 	protectedBillingPagePresenter,
 	ProtectedMediaPagePresenter,

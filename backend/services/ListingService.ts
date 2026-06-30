@@ -429,24 +429,29 @@ export class ListingService {
     }
 
     async addBookmark(listingId: string, userId: string, authUserId?: string): Promise<void> {
-        await this._assertCommunityFeatures(authUserId);
+        await this._assertPaidAccountForBookmarks(authUserId);
         await this.listingRepository.addBookmark(userId, listingId);
         await this.listingRepository.insertListingActivity(listingId, "bookmark", userId);
         await this._invalidateUserBookmarkCaches(userId, listingId);
     }
 
     async removeBookmark(listingId: string, userId: string, authUserId?: string): Promise<void> {
-        await this._assertCommunityFeatures(authUserId);
+        await this._assertPaidAccountForBookmarks(authUserId);
         await this.listingRepository.removeBookmark(userId, listingId);
         await this._invalidateUserBookmarkCaches(userId, listingId);
     }
 
     async getUserBookmarks(userId: string, authUserId?: string): Promise<ListingLike[]> {
-        await this._assertCommunityFeatures(authUserId);
+        await this._assertPaidAccountForBookmarks(authUserId);
         const cacheKey = `${CACHE_KEYS.LISTING_USER_BOOKMARKS}:${userId}`;
         const factory = async () => {
             const { data } = await this.listingRepository.findBookmarkedListingsByUserId(userId);
-            return data;
+            return data.filter(
+                (listing) =>
+                    listing.is_user_published === true &&
+                    listing.is_admin_published === true &&
+                    listing.listing_kind === "extension"
+            );
         };
         if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
         return factory();
@@ -572,6 +577,12 @@ export class ListingService {
                 scope: "account",
                 authUserId,
             });
+        }
+    }
+
+    private async _assertPaidAccountForBookmarks(authUserId?: string): Promise<void> {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+            await this.subscriptionGuard.assertPaidOwnedAccountForBookmarks(authUserId);
         }
     }
 

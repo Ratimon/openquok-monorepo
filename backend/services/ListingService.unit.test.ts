@@ -16,7 +16,6 @@ import {
 } from "../utils/dtos/ListingDTO";
 import { ValidationError } from "../errors/InfraError";
 import { stringToSlug } from "../utils/blog/slug";
-import { SubscriptionSection } from "openquok-common";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 
 const ownerId = faker.string.uuid();
@@ -63,8 +62,11 @@ const validCreateBody: ListingCreateBodySchemaType = {
         is_user_published: true,
         is_admin_published: false,
         listing_category_id: categoryId,
+        schema_type: "SoftwareApplication",
+        faq: [],
     },
     listingTagsData: [],
+    stackMembersData: [],
 };
 
 const validUpdateBody: ListingUpdateBodySchemaType = {
@@ -79,8 +81,11 @@ const validUpdateBody: ListingUpdateBodySchemaType = {
         is_user_published: true,
         is_admin_published: true,
         listing_category_id: categoryId,
+        schema_type: "SoftwareApplication",
+        faq: [],
     },
     listingTagsData: [],
+    stackMembersData: [],
 };
 
 function createMockListingRepo(): jest.Mocked<ListingRepository> {
@@ -303,7 +308,8 @@ describe("ListingService", () => {
                 validCreateBody.listingData,
                 validCreateBody.listingTagsData,
                 ownerId,
-                false
+                false,
+                []
             );
         });
 
@@ -324,7 +330,8 @@ describe("ListingService", () => {
                 expect.objectContaining({ is_admin_published: true }),
                 body.listingTagsData,
                 ownerId,
-                true
+                true,
+                []
             );
         });
 
@@ -344,7 +351,8 @@ describe("ListingService", () => {
                 validCreateBody.listingData,
                 validCreateBody.listingTagsData,
                 ownerId,
-                true
+                true,
+                []
             );
         });
 
@@ -385,7 +393,8 @@ describe("ListingService", () => {
                 validUpdateBody.listingData,
                 validUpdateBody.listingTagsData,
                 ownerId,
-                true
+                true,
+                []
             );
         });
 
@@ -408,7 +417,8 @@ describe("ListingService", () => {
                 expect.objectContaining({ is_user_published: false }),
                 body.listingTagsData,
                 ownerId,
-                false
+                false,
+                []
             );
         });
     });
@@ -469,12 +479,16 @@ describe("ListingService", () => {
         function createMockSubscriptionGuard(): jest.Mocked<SubscriptionGuardService> {
             return {
                 assert: jest.fn().mockResolvedValue(undefined),
+                assertPaidOwnedAccountForBookmarks: jest.fn().mockResolvedValue(undefined),
             } as unknown as jest.Mocked<SubscriptionGuardService>;
         }
 
         it("returns both bookmarked listings for the user dashboard", async () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
-                data: [mockListing, secondListing],
+                data: [
+                    { ...mockListing, is_admin_published: true },
+                    { ...secondListing, is_admin_published: true },
+                ],
             });
             const service = new ListingService(listingRepo, categoryRepo, tagRepo);
             const result = await service.getUserBookmarks(userId);
@@ -485,7 +499,7 @@ describe("ListingService", () => {
 
         it("returns a single listing after one of two bookmarks is removed", async () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
-                data: [secondListing],
+                data: [{ ...secondListing, is_admin_published: true }],
             });
             const service = new ListingService(listingRepo, categoryRepo, tagRepo);
             await service.removeBookmark(listingId, userId);
@@ -510,7 +524,10 @@ describe("ListingService", () => {
         });
 
         it("uses per-user cache key for getUserBookmarks when cache provided", async () => {
-            const bookmarks = [mockListing, secondListing];
+            const bookmarks = [
+                { ...mockListing, is_admin_published: true },
+                { ...secondListing, is_admin_published: true },
+            ];
             const getOrSet = jest.fn().mockResolvedValue(bookmarks);
             const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
             const result = await service.getUserBookmarks(userId);
@@ -523,9 +540,11 @@ describe("ListingService", () => {
             expect(listingRepo.findBookmarkedListingsByUserId).not.toHaveBeenCalled();
         });
 
-        it("asserts community_features when subscription guard and auth user id are provided", async () => {
+        it("asserts paid owned account when subscription guard and auth user id are provided", async () => {
             const subscriptionGuard = createMockSubscriptionGuard();
-            listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({ data: [mockListing] });
+            listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
+                data: [{ ...mockListing, is_admin_published: true }],
+            });
             const service = new ListingService(
                 listingRepo,
                 categoryRepo,
@@ -536,10 +555,7 @@ describe("ListingService", () => {
                 subscriptionGuard
             );
             await service.getUserBookmarks(userId, userId);
-            expect(subscriptionGuard.assert).toHaveBeenCalledWith(SubscriptionSection.COMMUNITY_FEATURES, {
-                scope: "account",
-                authUserId: userId,
-            });
+            expect(subscriptionGuard.assertPaidOwnedAccountForBookmarks).toHaveBeenCalledWith(userId);
         });
     });
 });

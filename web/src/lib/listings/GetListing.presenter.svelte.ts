@@ -593,6 +593,11 @@ export class GetListingPresenter {
 		};
 	}
 
+	/** Stateless mapper for account bookmark grids. */
+	toExtensionCardVmStateless(listing: ListingProgrammerModel): ExtensionCardViewModel {
+		return this.toListingPublicVm(listing);
+	}
+
 	private toListingDetailPublicVm(listing: ListingProgrammerModel): ListingDetailPublicViewModel {
 		return {
 			id: listing.id,

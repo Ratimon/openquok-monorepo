@@ -4,8 +4,16 @@
 
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
+	import { browser } from '$app/environment';
 
+	import { getRootPathAccount } from '$lib/area-protected';
 	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
+	import { getBillingPresenter } from '$lib/billing';
+	import { listingRepository } from '$lib/listings';
+	import { isPaidSubscriptionTier } from 'openquok-common';
+	import { authenticationRepository } from '$lib/user-auth';
+	import { route, url } from '$lib/utils/path';
+	import { toast } from '$lib/ui/sonner';
 
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
@@ -30,6 +38,39 @@
 	let schemaData = $derived(data.schemaData);
 
 	const pagePresenter = publicExtensionsPagePresenter;
+
+	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
+	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
+
+	let bookmarksPaidEnabled = $state<boolean | null>(null);
+	let bookmarkedIds = $state<Record<string, boolean>>({});
+
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			bookmarksPaidEnabled = null;
+			return;
+		}
+		let cancelled = false;
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
+		const resultPm = nextBookmarked
+			? await listingRepository.addBookmark(listingId)
+			: await listingRepository.removeBookmark(listingId);
+		if (!resultPm.ok) {
+			toast.error(resultPm.error);
+			return { ok: false as const, error: resultPm.error };
+		}
+		bookmarkedIds = { ...bookmarkedIds, [listingId]: nextBookmarked };
+		return { ok: true as const, bookmarked: nextBookmarked };
+	}
 
 	const EXTENSIONS_GRID_PAGE_SIZE = 20;
 
@@ -184,6 +225,12 @@
 									extensionVm={extensionVm}
 									expanded={expandedId === extensionVm.id}
 									onToggle={toggleExpanded}
+									showBookmark={true}
+									isBookmarked={bookmarkedIds[extensionVm.id] === true}
+									{isLoggedIn}
+									{bookmarksPaidEnabled}
+									upgradeHref={accountBillingHref}
+									onToggleBookmark={handleToggleBookmark}
 								/>
 							</li>
 						{/each}

@@ -44,3 +44,8 @@ export function getRootPathTemplates(): string {
 export function getRootPathPayloadWizard(): string {
 	return 'payload-wizard';
 }
+
+/** Bookmarked extensions segment under the account area. */
+export function getRootPathExtensions(): string {
+	return 'extensions';
+}

@@ -16,6 +16,7 @@
 		getRootPathPlugs,
 		getRootPathAnalytics,
 		getRootPathMedia,
+		getRootPathExtensions,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
@@ -66,6 +67,10 @@
 	const rootPathMedia = getRootPathMedia();
 	const mediaPath = route(`${rootPathAccount}/${rootPathMedia}`);
 
+	// /account/extensions
+	const rootPathExtensions = getRootPathExtensions();
+	const extensionsPath = route(`${rootPathAccount}/${rootPathExtensions}`);
+
 	
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Home', href: accountPath, iconName: icons.House.name },
@@ -74,6 +79,7 @@
 		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
 		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
 		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },
+		{ label: 'Viral Format', href: extensionsPath, iconName: icons.Bookmark.name },
 	];
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [

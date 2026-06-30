@@ -38,7 +38,10 @@ const listingConfig = {
 		getListingComments: (listingId: string) => `/api/v1/listings/${listingId}/comments`,
 		createListingComment: '/api/v1/listings/comments',
 		upsertListingRating: (listingId: string) => `/api/v1/listings/${listingId}/ratings`,
-		cloneStack: (stackId: string) => `/api/v1/listings/stacks/${stackId}/clone`
+		cloneStack: (stackId: string) => `/api/v1/listings/stacks/${stackId}/clone`,
+		getMyBookmarks: '/api/v1/listings/me/bookmarks',
+		addBookmark: (listingId: string) => `/api/v1/listings/${listingId}/bookmark`,
+		removeBookmark: (listingId: string) => `/api/v1/listings/${listingId}/bookmark`
 	}
 };
 

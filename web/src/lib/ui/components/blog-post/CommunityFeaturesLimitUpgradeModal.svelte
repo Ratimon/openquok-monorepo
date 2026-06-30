@@ -5,13 +5,31 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 
+	type UpgradeFeature = 'community' | 'bookmarks';
+
 	type Props = {
 		open?: boolean;
 		upgradeHref?: string;
+		feature?: UpgradeFeature;
 		onOpenChange?: (open: boolean) => void;
 	};
 
-	let { open = $bindable(false), upgradeHref, onOpenChange }: Props = $props();
+	let {
+		open = $bindable(false),
+		upgradeHref,
+		feature = 'community',
+		onOpenChange
+	}: Props = $props();
+
+	const title = $derived(
+		feature === 'bookmarks' ? 'Upgrade to bookmark extensions' : 'Upgrade for community features'
+	);
+
+	const description = $derived(
+		feature === 'bookmarks'
+			? 'Bookmark extensions and access your saved list on a paid plan. Upgrade to get started.'
+			: 'Blog comments and other community features are not included on your current plan. Upgrade to Creator or higher to join the conversation on blog posts.'
+	);
 </script>
 
 <Dialog.Root
@@ -22,10 +40,9 @@
 >
 	<Dialog.Content class="max-w-lg" showCloseButton>
 		<Dialog.Header>
-			<Dialog.Title>Upgrade for community features</Dialog.Title>
+			<Dialog.Title>{title}</Dialog.Title>
 			<Dialog.Description>
-				Blog comments and other community features are not included on your current plan. Upgrade to
-				Creator or higher to join the conversation on blog posts.
+				{description}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>

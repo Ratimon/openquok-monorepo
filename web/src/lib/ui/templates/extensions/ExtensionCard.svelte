@@ -11,15 +11,35 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExtensionCardExpanded from '$lib/ui/templates/extensions/ExtensionCardExpanded.svelte';
+	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+
+	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
 	type Props = {
 		extensionVm: ExtensionCardViewModel;
 		expanded: boolean;
 		onToggle?: (id: string) => void;
 		class?: string;
+		showBookmark?: boolean;
+		isBookmarked?: boolean;
+		isLoggedIn?: boolean;
+		bookmarksPaidEnabled?: boolean | null;
+		upgradeHref?: string;
+		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
 	};
 
-	let { extensionVm, expanded = false, onToggle, class: className = '' }: Props = $props();
+	let {
+		extensionVm,
+		expanded = false,
+		onToggle,
+		class: className = '',
+		showBookmark = false,
+		isBookmarked = false,
+		isLoggedIn = false,
+		bookmarksPaidEnabled = null,
+		upgradeHref,
+		onToggleBookmark
+	}: Props = $props();
 
 	const detailHref = $derived(url(`/${getRootPathPublicExtension(extensionVm.slug)}`));
 
@@ -37,15 +57,32 @@
 	});
 </script>
 
+<div class={cn(showBookmark && onToggleBookmark && 'relative', className)}>
+	{#if showBookmark && onToggleBookmark}
+		<div class="absolute top-3 right-3 z-10">
+			<ExtensionBookmarkButton
+				listingId={extensionVm.id}
+				{isBookmarked}
+				{isLoggedIn}
+				{bookmarksPaidEnabled}
+				{upgradeHref}
+				onToggle={onToggleBookmark}
+			/>
+		</div>
+	{/if}
+
 <Collapsible.Root
 	open={expanded}
 	onOpenChange={(open) => {
 		if (open !== expanded) onToggle?.(extensionVm.id);
 	}}
-	class={cn('rounded-2xl border border-base-content/10 bg-base-100/80', className)}
+	class="rounded-2xl border border-base-content/10 bg-base-100/80"
 >
 	<Collapsible.Trigger
-		class="flex w-full items-start gap-4 p-4 text-left transition hover:bg-base-200/40"
+		class={cn(
+			'flex w-full items-start gap-4 p-4 text-left transition hover:bg-base-200/40',
+			showBookmark && onToggleBookmark && 'pr-12'
+		)}
 	>
 		{#if extensionVm.logoImageUrl}
 			<img
@@ -91,16 +128,19 @@
 			</div>
 		</div>
 
-		<AbstractIcon
-			name={expanded ? icons.ChevronUp.name : icons.ChevronDown.name}
-			class="size-4 shrink-0 self-center text-base-content/60"
-			width="16"
-			height="16"
-			aria-hidden="true"
-		/>
+		<div class="flex shrink-0 items-center self-center">
+			<AbstractIcon
+				name={expanded ? icons.ChevronUp.name : icons.ChevronDown.name}
+				class="size-4 text-base-content/60"
+				width="16"
+				height="16"
+				aria-hidden="true"
+			/>
+		</div>
 	</Collapsible.Trigger>
 
 	<Collapsible.Content class="border-t border-base-content/10 px-4 pb-4">
 		<ExtensionCardExpanded extensionVm={extensionVm} detailHref={detailHref} />
 	</Collapsible.Content>
 </Collapsible.Root>
+</div>

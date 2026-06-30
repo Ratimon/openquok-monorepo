@@ -219,6 +219,8 @@ listingRouter.get(
     listingController.getPublishedListingBySlug
 );
 
+listingRouter.get("/me/bookmarks", authWithRoles, listingController.getUserBookmarks);
+
 listingRouter.get(
     "/:listingId/comments",
     validateRequest({ params: listingCommentsParamSchema }),
@@ -322,6 +324,22 @@ listingRouter.post(
     authWithRoles,
     validateRequest({ params: listingIdParamSchema, body: listingRatingBodySchema }),
     listingController.upsertListingRating
+);
+
+listingRouter.post(
+    "/:id/bookmark",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.addBookmark
+);
+
+listingRouter.delete(
+    "/:id/bookmark",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.removeBookmark
 );
 
 listingRouter.delete(
