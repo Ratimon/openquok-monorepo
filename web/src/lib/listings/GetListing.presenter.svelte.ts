@@ -17,7 +17,7 @@ import type {
 	McpToolProgrammerModel,
 	McpTransport
 } from '$lib/listings/Listing.repository.svelte';
-import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
+import type { ListingFaqItemProgrammerModel, StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
 import { buildExtensionsTagFilterVm } from '$lib/listings/utils/buildExtensionsTagFilterVm';
 
 /** View model for admin listings list (e.g. extensions manager page). */
@@ -57,6 +57,7 @@ export interface ListingPublicViewModel {
 	clickUrlSkills: string | null;
 	clickUrlMcp: string | null;
 	mcpTools: McpToolProgrammerModel[];
+	skillCommands: SkillCommandViewModel[];
 	mcpServerConfig: Record<string, unknown> | null;
 	isOfficial: boolean;
 	likes: number;
@@ -64,6 +65,16 @@ export interface ListingPublicViewModel {
 	createdAt: string;
 	category: { id: string; name: string; slug: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
+}
+
+/** CLI command row for skills extension detail pages. */
+export interface SkillCommandViewModel {
+	name: string;
+	description: string;
+	kind?: 'cli' | 'mcp';
+	commandTemplate?: string;
+	examplePrompt?: string;
+	examplePayload?: Record<string, unknown>;
 }
 
 /** Public listing detail view model (extension slug page). */
@@ -97,6 +108,7 @@ export interface ListingDetailPublicViewModel {
 	license: string | null;
 	version: string | null;
 	mcpTools: McpToolProgrammerModel[];
+	skillCommands: SkillCommandViewModel[];
 	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
@@ -143,6 +155,8 @@ export interface StackMemberViewModel {
 		isOfficial: boolean;
 		installCommandSkills: string | null;
 		installCommandMcp: string | null;
+		clickUrlSkills: string | null;
+		clickUrlMcp: string | null;
 	} | null;
 }
 
@@ -168,6 +182,7 @@ export interface StackDetailViewModel {
 	excerpt: string | null;
 	description: string | null;
 	content: string | null;
+	stackBlueprint: StackBlueprintProgrammerModel | null;
 	logoImageUrl: string | null;
 	likes: number;
 	views: number;
@@ -583,6 +598,14 @@ export class GetListingPresenter {
 			clickUrlSkills: listing.clickUrlSkills,
 			clickUrlMcp: listing.clickUrlMcp,
 			mcpTools: listing.mcpTools.map((tool) => ({ ...tool })),
+			skillCommands: listing.skillCommands.map((command) => ({
+				name: command.name,
+				description: command.description,
+				kind: command.kind,
+				commandTemplate: command.command_template,
+				examplePrompt: command.example_prompt,
+				examplePayload: command.example_payload
+			})),
 			mcpServerConfig: listing.mcpServerConfig,
 			isOfficial: listing.isOfficial,
 			likes: listing.likes,
@@ -629,6 +652,14 @@ export class GetListingPresenter {
 			license: listing.license,
 			version: listing.version,
 			mcpTools: listing.mcpTools.map((tool) => ({ ...tool })),
+			skillCommands: listing.skillCommands.map((command) => ({
+				name: command.name,
+				description: command.description,
+				kind: command.kind,
+				commandTemplate: command.command_template,
+				examplePrompt: command.example_prompt,
+				examplePayload: command.example_payload
+			})),
 			mcpTransport: listing.mcpTransport,
 			mcpServerConfig: listing.mcpServerConfig,
 			likes: listing.likes,
@@ -720,6 +751,7 @@ export class GetListingPresenter {
 			excerpt: listing.excerpt,
 			description: listing.description,
 			content: listing.content,
+			stackBlueprint: listing.stackBlueprint ? { ...listing.stackBlueprint } : null,
 			logoImageUrl: listing.logoImageUrl,
 			likes: listing.likes,
 			views: listing.views,

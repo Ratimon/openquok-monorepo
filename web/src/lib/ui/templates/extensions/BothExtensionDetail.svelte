@@ -16,8 +16,14 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
-	import ListingMarkdownContent from '$lib/ui/templates/extensions/ListingMarkdownContent.svelte';
+	import ExtensionSkillCommandsTable from '$lib/ui/components/extensions/ExtensionSkillCommandsTable.svelte';
+	import ExtensionMcpToolsTable from '$lib/ui/components/extensions/ExtensionMcpToolsTable.svelte';
+	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
+	import {
+		extensionDetailTabTriggerClass,
+		extensionDetailTabsListClass
+	} from '$lib/ui/templates/extensions/extensionDetailTabClasses';
 
 	type Props = {
 		extension: ExtensionDetailViewModel;
@@ -48,9 +54,6 @@
 		if (!config || Object.keys(config).length === 0) return null;
 		return JSON.stringify(config, null, 2);
 	});
-
-	const tabTriggerClass =
-		'h-auto min-h-0 rounded-lg border-0 !border-b-0 bg-transparent px-4 py-2 text-sm font-semibold text-base-content/75 transition-colors hover:bg-base-content/10 hover:text-base-content [&.tab-active]:bg-primary [&.tab-active]:text-primary-content';
 
 	async function copyText(value: string | null | undefined, successMessage: string) {
 		if (!value?.trim()) return;
@@ -128,17 +131,13 @@
 </header>
 
 <section class="py-8">
-	<Tabs.Root bind:value={activeModality} class="w-full space-y-6">
-		<Tabs.List class="inline-flex gap-1 rounded-xl border border-base-content/15 bg-base-200/60 p-1">
-			<Tabs.Trigger value="skills" class={tabTriggerClass}>Skills</Tabs.Trigger>
-			<Tabs.Trigger value="mcp" class={tabTriggerClass}>MCP</Tabs.Trigger>
+	<Tabs.Root bind:value={activeModality} class="w-full space-y-8">
+		<Tabs.List class={extensionDetailTabsListClass}>
+			<Tabs.Trigger value="skills" class={extensionDetailTabTriggerClass}>Skills</Tabs.Trigger>
+			<Tabs.Trigger value="mcp" class={extensionDetailTabTriggerClass}>MCP</Tabs.Trigger>
 		</Tabs.List>
 
 		<Tabs.Content value="skills" class="space-y-8">
-			{#if skillsDescription}
-				<p class="text-lg text-base-content/75">{skillsDescription}</p>
-			{/if}
-
 			{#if skillsClickUrl}
 				<ExtensionExternalLinkButton
 					href={skillsClickUrl}
@@ -147,6 +146,14 @@
 					onClick={onExternalClick}
 				/>
 			{/if}
+
+			<ExtensionListingContentTabs
+				description={skillsDescription}
+				content={skillsContent}
+				faq={faqItems}
+				aboutEmptyMessage="No Skills documentation yet."
+				readmeEmptyMessage="No SKILL.md content yet."
+			/>
 
 			{#if extension.installCommandSkills}
 				<div>
@@ -167,14 +174,15 @@
 				</div>
 			{/if}
 
-			<ListingMarkdownContent markdown={skillsContent} emptyMessage="No Skills documentation yet." />
+			{#if extension.skillCommands.length > 0}
+				<div>
+					<h2 class="mb-4 text-lg font-semibold">CLI commands</h2>
+					<ExtensionSkillCommandsTable commands={extension.skillCommands} />
+				</div>
+			{/if}
 		</Tabs.Content>
 
 		<Tabs.Content value="mcp" class="space-y-8">
-			{#if mcpDescription}
-				<p class="text-lg text-base-content/75">{mcpDescription}</p>
-			{/if}
-
 			<div class="flex flex-wrap items-center gap-2">
 				{#if extension.mcpTransport}
 					<span class="badge badge-ghost uppercase">{extension.mcpTransport}</span>
@@ -190,27 +198,18 @@
 				/>
 			{/if}
 
+			<ExtensionListingContentTabs
+				description={mcpDescription}
+				content={mcpContent}
+				faq={faqItems}
+				aboutEmptyMessage="No MCP about content yet."
+				readmeEmptyMessage="No MCP README content yet."
+			/>
+
 			{#if extension.mcpTools.length > 0}
 				<div>
 					<h2 class="mb-4 text-lg font-semibold">MCP tools</h2>
-					<div class="overflow-x-auto rounded-lg border border-base-content/10">
-						<table class="table table-zebra">
-							<thead>
-								<tr>
-									<th>Tool</th>
-									<th>Description</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each extension.mcpTools as tool (tool.name)}
-									<tr>
-										<td class="font-mono text-sm">{tool.name}</td>
-										<td>{tool.description}</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
+					<ExtensionMcpToolsTable tools={extension.mcpTools} />
 				</div>
 			{/if}
 
@@ -242,22 +241,6 @@
 					<p class="text-base-content/70">Install instructions coming soon.</p>
 				{/if}
 			</div>
-
-			<ListingMarkdownContent markdown={mcpContent} emptyMessage="No MCP documentation yet." />
 		</Tabs.Content>
 	</Tabs.Root>
 </section>
-
-{#if faqItems.length > 0}
-	<section class="border-t border-base-content/10 py-8">
-		<h2 class="mb-4 text-lg font-semibold">FAQ</h2>
-		<div class="space-y-4">
-			{#each faqItems as item, index (index)}
-				<div class="rounded-lg border border-base-content/10 p-4">
-					<h3 class="font-semibold">{item.question}</h3>
-					<p class="mt-2 text-base-content/75">{item.answer}</p>
-				</div>
-			{/each}
-		</div>
-	</section>
-{/if}

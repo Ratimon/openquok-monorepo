@@ -4,7 +4,6 @@
 	import { browser } from '$app/environment';
 
 	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
-	import ListingMarkdownContent from '$lib/ui/templates/extensions/ListingMarkdownContent.svelte';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
 
@@ -12,10 +11,11 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Tabs from '$lib/ui/tabs';
 	import { toast } from '$lib/ui/sonner';
 
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
+	import ExtensionSkillCommandsTable from '$lib/ui/components/extensions/ExtensionSkillCommandsTable.svelte';
+	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 
@@ -29,16 +29,12 @@
 
 	let { extension, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
 
-	let activeTab = $state<'skill' | 'stats'>('skill');
-
+	const faqItems = $derived(extension.faq ?? []);
 	const skillMarkdownHref = $derived(url(`/api/v1/listings/published/${extension.slug}/skill-markdown`));
 	const githubRepo = $derived(parseGithubRepoFromUrl(extension.sourceRepoUrl));
 	const skillsDescription = $derived(extension.descriptionSkills ?? extension.description);
 	const skillsContent = $derived(extension.contentSkills ?? extension.content);
 	const skillsClickUrl = $derived(extension.clickUrlSkills ?? extension.clickUrl);
-
-	const tabTriggerClass =
-		'h-auto min-h-0 rounded-lg border-0 !border-b-0 bg-transparent px-4 py-2 text-sm font-semibold text-base-content/75 transition-colors hover:bg-base-content/10 hover:text-base-content [&.tab-active]:bg-primary [&.tab-active]:text-primary-content';
 
 	async function handleCopyInstall() {
 		const command = extension.installCommandSkills?.trim();
@@ -94,9 +90,7 @@
 		{#if extension.skillName}
 			<p class="font-mono text-sm text-base-content/60">{extension.skillName}</p>
 		{/if}
-		{#if skillsDescription}
-			<p class="text-lg text-base-content/75">{skillsDescription}</p>
-		{:else if extension.excerpt}
+		{#if extension.excerpt}
 			<p class="text-lg text-base-content/75">{extension.excerpt}</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
@@ -125,15 +119,9 @@
 			Share
 		</Button>
 		{#if skillsClickUrl}
-			<ExtensionExternalLinkButton
-				href={skillsClickUrl}
-				label="Get started"
-				onClick={onExternalClick}
-			/>
+			<ExtensionExternalLinkButton href={skillsClickUrl} label="Get started" onClick={onExternalClick} />
 		{/if}
-		<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>
-			Download SKILL.md
-		</Button>
+		<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>Download SKILL.md</Button>
 		{#if extension.sourceRepoUrl}
 			<Button href={extension.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
 				Source repo
@@ -143,7 +131,7 @@
 </header>
 
 {#if extension.installCommandSkills}
-	<section class="py-8">
+	<section class="border-b border-base-content/10 py-8">
 		<h2 class="mb-3 text-lg font-semibold">Install</h2>
 		<TerminalCommandMock code={extension.installCommandSkills} ariaLabel={`Install command for ${extension.title}`} />
 		<div class="mt-3">
@@ -152,43 +140,48 @@
 	</section>
 {/if}
 
-<section class="border-t border-base-content/10 py-8">
-	<Tabs.Root bind:value={activeTab} class="w-full space-y-4">
-		<Tabs.List class="inline-flex gap-1 rounded-xl border border-base-content/15 bg-base-200/60 p-1">
-			<Tabs.Trigger value="skill" class={tabTriggerClass}>SKILL.md</Tabs.Trigger>
-			<Tabs.Trigger value="stats" class={tabTriggerClass}>Stats</Tabs.Trigger>
-		</Tabs.List>
+{#if extension.skillCommands.length > 0}
+	<section class="border-b border-base-content/10 py-8">
+		<h2 class="mb-4 text-lg font-semibold">CLI commands</h2>
+		<ExtensionSkillCommandsTable commands={extension.skillCommands} />
+	</section>
+{/if}
 
-		<Tabs.Content value="skill">
-			<ListingMarkdownContent markdown={skillsContent} emptyMessage="No skill documentation yet." />
-		</Tabs.Content>
+<section class="border-b border-base-content/10 py-8">
+	<ExtensionListingContentTabs
+		description={skillsDescription}
+		content={skillsContent}
+		faq={faqItems}
+		aboutEmptyMessage="No skill documentation yet."
+		readmeEmptyMessage="No SKILL.md content yet."
+	/>
+</section>
 
-		<Tabs.Content value="stats">
-			<dl class="grid gap-4 sm:grid-cols-2">
-				<div>
-					<dt class="text-sm text-base-content/60">Views</dt>
-					<dd class="text-2xl font-semibold">{extension.views}</dd>
-				</div>
-				<div>
-					<dt class="text-sm text-base-content/60">Likes</dt>
-					<dd class="text-2xl font-semibold">{displayLikes}</dd>
-				</div>
-				<div>
-					<dt class="text-sm text-base-content/60">Bookmarks</dt>
-					<dd class="text-2xl font-semibold">{extension.bookmarkCount}</dd>
-				</div>
-				<div>
-					<dt class="text-sm text-base-content/60">Rating</dt>
-					<dd class="text-2xl font-semibold">
-						{extension.averageRating.toFixed(1)} ({extension.ratingsCount})
-					</dd>
-				</div>
-			</dl>
-			{#if extension.sourceSyncedAt}
-				<p class="mt-4 text-sm text-base-content/60">
-					Last synced from GitHub: {new Date(extension.sourceSyncedAt).toLocaleString()}
-				</p>
-			{/if}
-		</Tabs.Content>
-	</Tabs.Root>
+<section class="py-8">
+	<h2 class="mb-4 text-lg font-semibold">Stats</h2>
+	<dl class="grid gap-4 sm:grid-cols-2">
+		<div>
+			<dt class="text-sm text-base-content/60">Views</dt>
+			<dd class="text-2xl font-semibold">{extension.views}</dd>
+		</div>
+		<div>
+			<dt class="text-sm text-base-content/60">Likes</dt>
+			<dd class="text-2xl font-semibold">{displayLikes}</dd>
+		</div>
+		<div>
+			<dt class="text-sm text-base-content/60">Bookmarks</dt>
+			<dd class="text-2xl font-semibold">{extension.bookmarkCount}</dd>
+		</div>
+		<div>
+			<dt class="text-sm text-base-content/60">Rating</dt>
+			<dd class="text-2xl font-semibold">
+				{extension.averageRating.toFixed(1)} ({extension.ratingsCount})
+			</dd>
+		</div>
+	</dl>
+	{#if extension.sourceSyncedAt}
+		<p class="mt-4 text-sm text-base-content/60">
+			Last synced from GitHub: {new Date(extension.sourceSyncedAt).toLocaleString()}
+		</p>
+	{/if}
 </section>

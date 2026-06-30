@@ -12,6 +12,42 @@ const mcpToolSchema = z.object({
 	name: z.string().min(1),
 	description: z.string()
 });
+const skillCommandSchema = z.object({
+	name: z.string().min(1),
+	description: z.string(),
+	kind: z.enum(['cli', 'mcp']).optional(),
+	command_template: z.string().optional(),
+	example_prompt: z.string().optional(),
+	example_payload: z.record(z.unknown()).optional()
+});
+const stackBlueprintWorkflowStepSchema = z.discriminatedUnion('type', [
+	z.object({
+		type: z.literal('command'),
+		listing_slug: z.string().optional(),
+		command_name: z.string().optional(),
+		prompt: z.string().optional(),
+		example_payload: z.record(z.unknown()).optional()
+	}),
+	z.object({
+		type: z.literal('text'),
+		content: z.string().optional()
+	})
+]);
+const stackBlueprintReferenceAssetSchema = z.object({
+	type: z.enum(['image', 'json']),
+	label: z.string().min(1),
+	payload: z.string().optional(),
+	data_url: z.string().optional()
+});
+const stackBlueprintSchema = z.object({
+	workflow_steps: z.array(stackBlueprintWorkflowStepSchema).default([]),
+	reference_assets: z.array(stackBlueprintReferenceAssetSchema).default([]),
+	generated_markdown: z.string().optional()
+});
+export type SkillCommandProgrammerModel = z.infer<typeof skillCommandSchema>;
+export type StackBlueprintProgrammerModel = z.infer<typeof stackBlueprintSchema>;
+export type StackBlueprintWorkflowStepProgrammerModel =
+	StackBlueprintProgrammerModel['workflow_steps'][number];
 const mcpTransportSchema = z.enum(['stdio', 'sse', 'http']);
 export const listingFaqItemSchema = z.object({
 	question: z.string().min(1, 'Question is required'),
@@ -75,6 +111,8 @@ const listingSharedFields = {
 	license: z.string().optional().nullable(),
 	version: z.string().optional().nullable(),
 	mcp_tools: z.array(mcpToolSchema).optional().nullable(),
+	skill_commands: z.array(skillCommandSchema).optional().nullable(),
+	stack_blueprint: stackBlueprintSchema.optional().nullable(),
 	mcp_transport: mcpTransportSchema.optional().nullable(),
 	mcp_server_config: z.record(z.unknown()).optional().nullable(),
 	listing_category_id: listingCategoryIdFieldSchema,

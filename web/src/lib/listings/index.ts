@@ -136,6 +136,8 @@ export type {
 	ListingPublicViewModel,
 	ListingTagViewModel,
 	ListingViewModel,
+	SkillCommandViewModel,
+	StackDetailViewModel,
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';

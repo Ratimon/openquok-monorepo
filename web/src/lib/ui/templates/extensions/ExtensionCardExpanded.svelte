@@ -2,6 +2,8 @@
 	import type { ExtensionCardViewModel } from '$lib/listings/index';
 
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
+	import ExtensionSkillCommandsTable from '$lib/ui/components/extensions/ExtensionSkillCommandsTable.svelte';
+	import ExtensionMcpToolsTable from '$lib/ui/components/extensions/ExtensionMcpToolsTable.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tabs from '$lib/ui/tabs';
 
@@ -18,11 +20,18 @@
 
 	const skillsInstall = $derived(extensionVm.installCommandSkills?.trim() || null);
 	const mcpTools = $derived(extensionVm.mcpTools ?? []);
+	const skillCommands = $derived(extensionVm.skillCommands ?? []);
 
 	const showMcpTools = $derived(
 		mcpTools.length > 0 &&
 			(extensionVm.extensionType === 'mcp' ||
 				(extensionVm.extensionType === 'both' && installTab === 'mcp'))
+	);
+
+	const showSkillCommands = $derived(
+		skillCommands.length > 0 &&
+			(extensionVm.extensionType === 'skills' ||
+				(extensionVm.extensionType === 'both' && installTab === 'skills'))
 	);
 
 	const showSkillsInstall = $derived(
@@ -32,13 +41,24 @@
 	);
 
 	const showBothInstallTabs = $derived(
-		extensionVm.extensionType === 'both' && (skillsInstall || mcpTools.length > 0)
+		extensionVm.extensionType === 'both' &&
+			(skillsInstall || skillCommands.length > 0 || mcpTools.length > 0)
 	);
 
 	const showMcpOnlySection = $derived(extensionVm.extensionType === 'mcp' && mcpTools.length > 0);
 
+	const showSkillsOnlySection = $derived(
+		extensionVm.extensionType === 'skills' && (skillCommands.length > 0 || Boolean(skillsInstall))
+	);
+
 	const skillsGuideUrl = $derived(extensionVm.clickUrlSkills?.trim() || null);
 	const mcpGuideUrl = $derived(extensionVm.clickUrlMcp?.trim() || null);
+
+	const installSectionTitle = $derived.by(() => {
+		if (showMcpTools) return 'MCP tools';
+		if (showSkillCommands) return 'CLI commands';
+		return 'Install';
+	});
 
 	const docButton = $derived.by(() => {
 		if (extensionVm.extensionType === 'skills' && skillsGuideUrl) {
@@ -70,9 +90,7 @@
 
 	{#if showBothInstallTabs}
 		<div>
-			<h4 class="mb-2 text-sm font-semibold text-base-content">
-				{showMcpTools && installTab === 'mcp' ? 'MCP tools' : 'Install'}
-			</h4>
+			<h4 class="mb-2 text-sm font-semibold text-base-content">{installSectionTitle}</h4>
 			<Tabs.Root bind:value={installTab} class="space-y-3">
 				<Tabs.List class="inline-flex gap-1 rounded-lg border border-base-content/15 bg-base-200/60 p-1">
 					<Tabs.Trigger value="skills" class={tabTriggerClass}>Skills</Tabs.Trigger>
@@ -84,30 +102,18 @@
 							code={skillsInstall}
 							ariaLabel={`Skills install command for ${extensionVm.title}`}
 						/>
-					{:else}
-						<p class="text-sm text-base-content/70">Skills install command coming soon.</p>
+					{/if}
+					{#if skillCommands.length > 0}
+						<div class={skillsInstall ? 'mt-3' : ''}>
+							<ExtensionSkillCommandsTable commands={skillCommands} compact />
+						</div>
+					{:else if !skillsInstall}
+						<p class="text-sm text-base-content/70">Skills commands coming soon.</p>
 					{/if}
 				</Tabs.Content>
 				<Tabs.Content value="mcp">
 					{#if mcpTools.length > 0}
-						<div class="overflow-x-auto rounded-lg border border-base-content/10">
-							<table class="table table-zebra table-sm">
-								<thead>
-									<tr>
-										<th>Tool</th>
-										<th>Description</th>
-									</tr>
-								</thead>
-								<tbody>
-									{#each mcpTools as tool (tool.name)}
-										<tr>
-											<td class="font-mono text-xs">{tool.name}</td>
-											<td class="text-sm">{tool.description}</td>
-										</tr>
-									{/each}
-								</tbody>
-							</table>
-						</div>
+						<ExtensionMcpToolsTable tools={mcpTools} compact />
 					{:else}
 						<p class="text-sm text-base-content/70">MCP tools coming soon.</p>
 					{/if}
@@ -117,29 +123,21 @@
 	{:else if showMcpOnlySection}
 		<div>
 			<h4 class="mb-2 text-sm font-semibold text-base-content">MCP tools</h4>
-			<div class="overflow-x-auto rounded-lg border border-base-content/10">
-				<table class="table table-zebra table-sm">
-					<thead>
-						<tr>
-							<th>Tool</th>
-							<th>Description</th>
-						</tr>
-					</thead>
-					<tbody>
-						{#each mcpTools as tool (tool.name)}
-							<tr>
-								<td class="font-mono text-xs">{tool.name}</td>
-								<td class="text-sm">{tool.description}</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
+			<ExtensionMcpToolsTable tools={mcpTools} compact />
 		</div>
-	{:else if showSkillsInstall && skillsInstall}
+	{:else if showSkillsOnlySection}
 		<div>
-			<h4 class="mb-2 text-sm font-semibold text-base-content">Install</h4>
-			<TerminalCommandMock code={skillsInstall} ariaLabel={`Install command for ${extensionVm.title}`} />
+			<h4 class="mb-2 text-sm font-semibold text-base-content">
+				{skillCommands.length > 0 ? 'CLI commands' : 'Install'}
+			</h4>
+			{#if skillsInstall}
+				<TerminalCommandMock code={skillsInstall} ariaLabel={`Install command for ${extensionVm.title}`} />
+			{/if}
+			{#if skillCommands.length > 0}
+				<div class={skillsInstall ? 'mt-3' : ''}>
+					<ExtensionSkillCommandsTable commands={skillCommands} compact />
+				</div>
+			{/if}
 		</div>
 	{/if}
 

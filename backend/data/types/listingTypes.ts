@@ -2,6 +2,42 @@ export type ListingKind = "extension" | "stack";
 export type ExtensionType = "skills" | "mcp" | "both";
 export type StackMemberRole = "skills" | "mcp";
 export type ListingActivityType = "view" | "like" | "bookmark" | "rating" | "comment" | "click";
+export type ListingCommandKind = "cli" | "mcp";
+
+export interface ListingCommandItem {
+    name: string;
+    description: string;
+    kind?: ListingCommandKind;
+    command_template?: string;
+    example_prompt?: string;
+    example_payload?: Record<string, unknown>;
+}
+
+export type StackBlueprintWorkflowStep =
+    | {
+          type: "command";
+          listing_slug?: string;
+          command_name?: string;
+          prompt?: string;
+          example_payload?: Record<string, unknown>;
+      }
+    | {
+          type: "text";
+          content?: string;
+      };
+
+export interface StackBlueprintReferenceAsset {
+    type: "image" | "json";
+    label: string;
+    payload?: string;
+    data_url?: string;
+}
+
+export interface StackBlueprint {
+    workflow_steps: StackBlueprintWorkflowStep[];
+    reference_assets: StackBlueprintReferenceAsset[];
+    generated_markdown?: string;
+}
 
 export interface StackMemberRef {
     member_listing_id: string;

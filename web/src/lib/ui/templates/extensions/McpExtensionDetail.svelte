@@ -4,20 +4,20 @@
 	import { browser } from '$app/environment';
 
 	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
-	import ListingMarkdownContent from '$lib/ui/templates/extensions/ListingMarkdownContent.svelte';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
+	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Tabs from '$lib/ui/tabs';
 	import { toast } from '$lib/ui/sonner';
 
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
+	import ExtensionMcpToolsTable from '$lib/ui/components/extensions/ExtensionMcpToolsTable.svelte';
+	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
-	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 
 	type Props = {
 		extension: ExtensionDetailViewModel;
@@ -29,7 +29,6 @@
 
 	let { extension, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
 
-	let activeTab = $state<'about' | 'readme' | 'faq'>('about');
 	let configClient = $state<'cursor' | 'claude' | 'vscode'>('cursor');
 
 	const faqItems = $derived(extension.faq ?? []);
@@ -42,9 +41,6 @@
 		return JSON.stringify(config, null, 2);
 	});
 	const githubRepo = $derived(parseGithubRepoFromUrl(extension.sourceRepoUrl));
-
-	const tabTriggerClass =
-		'h-auto min-h-0 rounded-lg border-0 !border-b-0 bg-transparent px-4 py-2 text-sm font-semibold text-base-content/75 transition-colors hover:bg-base-content/10 hover:text-base-content [&.tab-active]:bg-primary [&.tab-active]:text-primary-content';
 
 	async function handleCopyInstall() {
 		const command = extension.installCommandMcp?.trim();
@@ -122,11 +118,7 @@
 			Share
 		</Button>
 		{#if mcpClickUrl}
-			<ExtensionExternalLinkButton
-				href={mcpClickUrl}
-				label="Setup guide"
-				onClick={onExternalClick}
-			/>
+			<ExtensionExternalLinkButton href={mcpClickUrl} label="Setup guide" onClick={onExternalClick} />
 		{/if}
 		{#if extension.sourceRepoUrl}
 			<Button href={extension.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
@@ -137,39 +129,13 @@
 </header>
 
 <section class="border-b border-base-content/10 py-8">
-	<Tabs.Root bind:value={activeTab} class="w-full space-y-4">
-		<Tabs.List class="inline-flex flex-wrap gap-1 rounded-xl border border-base-content/15 bg-base-200/60 p-1">
-			<Tabs.Trigger value="about" class={tabTriggerClass}>About</Tabs.Trigger>
-			<Tabs.Trigger value="readme" class={tabTriggerClass}>README</Tabs.Trigger>
-			{#if faqItems.length > 0}
-				<Tabs.Trigger value="faq" class={tabTriggerClass}>FAQ</Tabs.Trigger>
-			{/if}
-		</Tabs.List>
-
-		<Tabs.Content value="about">
-			{#if mcpDescription}
-				<p class="mb-4 text-base-content/80">{mcpDescription}</p>
-			{/if}
-			<ListingMarkdownContent markdown={mcpContent} emptyMessage="No about content yet." />
-		</Tabs.Content>
-
-		<Tabs.Content value="readme">
-			<ListingMarkdownContent markdown={mcpContent} emptyMessage="No README content yet." />
-		</Tabs.Content>
-
-		{#if faqItems.length > 0}
-			<Tabs.Content value="faq">
-				<div class="space-y-4">
-					{#each faqItems as item, index (index)}
-						<div class="rounded-lg border border-base-content/10 p-4">
-							<h3 class="font-semibold text-base-content">{item.question}</h3>
-							<p class="mt-2 text-base-content/75">{item.answer}</p>
-						</div>
-					{/each}
-				</div>
-			</Tabs.Content>
-		{/if}
-	</Tabs.Root>
+	<ExtensionListingContentTabs
+		description={mcpDescription}
+		content={mcpContent}
+		faq={faqItems}
+		aboutEmptyMessage="No about content yet."
+		readmeEmptyMessage="No README content yet."
+	/>
 </section>
 
 {#if extension.mcpTools.length > 0}
@@ -177,24 +143,7 @@
 		<h2 class="mb-4 text-lg font-semibold">
 			MCP tools
 		</h2>
-		<div class="overflow-x-auto rounded-lg border border-base-content/10">
-			<table class="table table-zebra">
-				<thead>
-					<tr>
-						<th>Tool</th>
-						<th>Description</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each extension.mcpTools as tool (tool.name)}
-						<tr>
-							<td class="font-mono text-sm">{tool.name}</td>
-							<td>{tool.description}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
+		<ExtensionMcpToolsTable tools={extension.mcpTools} />
 	</section>
 {/if}
 

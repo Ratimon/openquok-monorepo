@@ -5,7 +5,9 @@ import type {
 	ListingCategoryFormSchemaType,
 	ListingFaqItemProgrammerModel,
 	ListingFormSchemaType,
-	ListingTagFormSchemaType
+	ListingTagFormSchemaType,
+	SkillCommandProgrammerModel,
+	StackBlueprintProgrammerModel
 } from '$lib/listings/listing.types';
 
 /** API response shape for a single listing (camelCase from backend ListingDTOMapper). */
@@ -38,6 +40,8 @@ export interface ListingDto {
 	license: string | null;
 	version: string | null;
 	mcpTools: McpToolProgrammerModel[];
+	skillCommands: SkillCommandProgrammerModel[];
+	stackBlueprint: StackBlueprintProgrammerModel | null;
 	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
@@ -86,6 +90,8 @@ export interface StackMemberDto {
 		isOfficial: boolean;
 		installCommandSkills: string | null;
 		installCommandMcp: string | null;
+		clickUrlSkills: string | null;
+		clickUrlMcp: string | null;
 	} | null;
 }
 
@@ -351,6 +357,8 @@ export interface SkillsExtensionFieldsProgrammerModel {
 /** Fields specific to MCP server listings. */
 export interface McpExtensionFieldsProgrammerModel {
 	mcpTools: McpToolProgrammerModel[];
+	skillCommands: SkillCommandProgrammerModel[];
+	stackBlueprint: StackBlueprintProgrammerModel | null;
 	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 }
@@ -418,6 +426,8 @@ export interface ListingProgrammerModel {
 	license: string | null;
 	version: string | null;
 	mcpTools: McpToolProgrammerModel[];
+	skillCommands: SkillCommandProgrammerModel[];
+	stackBlueprint: StackBlueprintProgrammerModel | null;
 	mcpTransport: McpTransport | null;
 	mcpServerConfig: Record<string, unknown> | null;
 	likes: number;
@@ -466,6 +476,8 @@ export interface StackMemberProgrammerModel {
 		isOfficial: boolean;
 		installCommandSkills: string | null;
 		installCommandMcp: string | null;
+		clickUrlSkills: string | null;
+		clickUrlMcp: string | null;
 	} | null;
 }
 
@@ -1348,6 +1360,8 @@ export class ListingRepository {
 			license: row.license ?? null,
 			version: row.version ?? null,
 			mcpTools: row.mcpTools ?? [],
+			skillCommands: row.skillCommands ?? [],
+			stackBlueprint: row.stackBlueprint ?? null,
 			mcpTransport: row.mcpTransport ?? null,
 			mcpServerConfig: row.mcpServerConfig ?? null,
 			likes: row.likes ?? 0,
@@ -1395,7 +1409,9 @@ export class ListingRepository {
 							logoImageUrl: member.member.logoImageUrl ?? null,
 							isOfficial: member.member.isOfficial,
 							installCommandSkills: member.member.installCommandSkills ?? null,
-							installCommandMcp: member.member.installCommandMcp ?? null
+							installCommandMcp: member.member.installCommandMcp ?? null,
+							clickUrlSkills: member.member.clickUrlSkills ?? null,
+							clickUrlMcp: member.member.clickUrlMcp ?? null
 						}
 					: null
 			}))

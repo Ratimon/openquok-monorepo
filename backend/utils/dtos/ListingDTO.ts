@@ -6,6 +6,8 @@ import type {
     AdminListingActivity,
     AdminListingCommentsFilterOptions,
     ListingComment,
+    ListingCommandItem,
+    StackBlueprint,
 } from "../../data/types/listingTypes";
 import type {
     PartialListingCategory,
@@ -45,6 +47,8 @@ export interface ListingLike {
     license?: string | null;
     version?: string | null;
     mcp_tools?: Array<{ name: string; description: string }> | null;
+    skill_commands?: ListingCommandItem[] | null;
+    stack_blueprint?: StackBlueprint | null;
     mcp_transport?: string | null;
     mcp_server_config?: Record<string, unknown> | null;
     likes?: number | null;
@@ -115,6 +119,8 @@ export interface ListingLike {
                         is_official?: boolean | null;
                         install_command_skills?: string | null;
                         install_command_mcp?: string | null;
+                        click_url_skills?: string | null;
+                        click_url_mcp?: string | null;
                     }>
                   | {
                         id: string;
@@ -126,6 +132,8 @@ export interface ListingLike {
                         is_official?: boolean | null;
                         install_command_skills?: string | null;
                         install_command_mcp?: string | null;
+                        click_url_skills?: string | null;
+                        click_url_mcp?: string | null;
                     }
                   | null;
           }>
@@ -161,6 +169,8 @@ export interface ListingDTO {
     license: string | null;
     version: string | null;
     mcpTools: Array<{ name: string; description: string }>;
+    skillCommands: ListingCommandItem[];
+    stackBlueprint: StackBlueprint | null;
     mcpTransport: string | null;
     mcpServerConfig: Record<string, unknown> | null;
     likes: number;
@@ -209,6 +219,8 @@ export interface StackMemberDTO {
         isOfficial: boolean;
         installCommandSkills: string | null;
         installCommandMcp: string | null;
+        clickUrlSkills: string | null;
+        clickUrlMcp: string | null;
     } | null;
 }
 
@@ -258,6 +270,8 @@ export class ListingDTOMapper {
                               isOfficial: rawMember.is_official === true,
                               installCommandSkills: rawMember.install_command_skills ?? null,
                               installCommandMcp: rawMember.install_command_mcp ?? null,
+                              clickUrlSkills: rawMember.click_url_skills ?? null,
+                              clickUrlMcp: rawMember.click_url_mcp ?? null,
                           }
                         : null,
                 };
@@ -292,6 +306,8 @@ export class ListingDTOMapper {
             license: listing.license ?? null,
             version: listing.version ?? null,
             mcpTools: listing.mcp_tools ?? [],
+            skillCommands: listing.skill_commands ?? [],
+            stackBlueprint: (listing.stack_blueprint as StackBlueprint | null) ?? null,
             mcpTransport: listing.mcp_transport ?? null,
             mcpServerConfig: (listing.mcp_server_config as Record<string, unknown> | null) ?? null,
             likes: listing.likes ?? 0,

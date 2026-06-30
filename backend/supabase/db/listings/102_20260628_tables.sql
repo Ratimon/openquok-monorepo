@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS public.listings (
     license TEXT,
     version TEXT,
     mcp_tools JSONB,
+    skill_commands JSONB,
+    stack_blueprint JSONB,
     mcp_transport TEXT
         CHECK (mcp_transport IS NULL OR mcp_transport IN ('stdio', 'sse', 'http')),
     mcp_server_config JSONB,

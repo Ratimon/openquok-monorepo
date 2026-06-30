@@ -63,6 +63,8 @@ const SELECT_LISTING = `
   license,
   version,
   mcp_tools,
+  skill_commands,
+  stack_blueprint,
   mcp_transport,
   mcp_server_config,
   likes,
@@ -104,7 +106,9 @@ const SELECT_LISTING = `
       logo_image_url,
       is_official,
       install_command_skills,
-      install_command_mcp
+      install_command_mcp,
+      click_url_skills,
+      click_url_mcp
     )
   )
 `;
@@ -1011,6 +1015,8 @@ export class ListingRepository {
                 license: source.license ?? null,
                 version: source.version ?? null,
                 mcp_tools: source.mcp_tools ?? null,
+                skill_commands: source.skill_commands ?? null,
+                stack_blueprint: source.stack_blueprint as ListingCreateSchemaType["stack_blueprint"],
                 mcp_transport: (source.mcp_transport as "stdio" | "sse" | "http" | null) ?? null,
                 mcp_server_config: (source.mcp_server_config as Record<string, unknown> | null) ?? null,
                 listing_category_id: source.listing_category_id ?? "",
