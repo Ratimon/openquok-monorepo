@@ -1,27 +1,27 @@
 <script lang="ts">
-	import type { StackBuilderWorkflowStep } from '$lib/stack-builder/stackBuilder.types';
+	import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
-	type CommandStep = Extract<StackBuilderWorkflowStep, { type: 'command' }>;
+	type CommandStepViewModel = Extract<StackBuilderWorkflowStepViewModel, { type: 'command' }>;
 
 	type Props = {
-		step: CommandStep;
+		stepVm: CommandStepViewModel;
 		stepNumber: number;
-		onUpdate: (patch: Partial<CommandStep>) => void;
+		onUpdate: (patch: Partial<CommandStepViewModel>) => void;
 		onRemove: () => void;
 	};
 
-	let { step, stepNumber, onUpdate, onRemove }: Props = $props();
+	let { stepVm, stepNumber, onUpdate, onRemove }: Props = $props();
 
 	let payloadDraft = $state('');
 
 	$effect(() => {
 		payloadDraft =
-			step.examplePayload && Object.keys(step.examplePayload).length > 0
-				? JSON.stringify(step.examplePayload, null, 2)
+			stepVm.examplePayload && Object.keys(stepVm.examplePayload).length > 0
+				? JSON.stringify(stepVm.examplePayload, null, 2)
 				: '';
 	});
 
@@ -45,9 +45,9 @@
 		<div class="min-w-0">
 			<p class="text-xs font-semibold tracking-wide text-primary uppercase">Step {stepNumber}</p>
 			<p class="mt-1 font-mono text-sm font-semibold text-base-content">
-				{step.listingSlug} · {step.commandName}
+				{stepVm.listingSlug} · {stepVm.commandName}
 			</p>
-			<p class="text-xs text-base-content/60">{step.listingTitle}</p>
+			<p class="text-xs text-base-content/60">{stepVm.listingTitle}</p>
 		</div>
 		<button
 			type="button"
@@ -64,18 +64,18 @@
 		<textarea
 			class="textarea textarea-bordered w-full text-sm"
 			rows="3"
-			value={step.prompt}
+			value={stepVm.prompt}
 			oninput={(event) => onUpdate({ prompt: event.currentTarget.value })}
 			placeholder="Describe what the agent should do with this command or tool."
 		></textarea>
 	</label>
 
-	{#if step.commandTemplate}
+	{#if stepVm.commandTemplate}
 		<label class="mt-3 block space-y-1">
 			<span class="text-xs font-medium text-base-content/70">Command template</span>
 			<input
 				class="input input-bordered w-full font-mono text-xs"
-				value={step.commandTemplate}
+				value={stepVm.commandTemplate}
 				oninput={(event) => onUpdate({ commandTemplate: event.currentTarget.value })}
 			/>
 		</label>

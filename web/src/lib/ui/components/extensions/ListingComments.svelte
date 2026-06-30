@@ -20,7 +20,7 @@
 	type MutationResult = { ok: true } | { ok: false; error: string };
 
 	type Props = {
-		comments: ListingCommentViewModel[];
+		commentsVm: ListingCommentViewModel[];
 		listingId: string;
 		isLoggedIn?: boolean;
 		signInHref?: string;
@@ -37,7 +37,7 @@
 	};
 
 	let {
-		comments,
+		commentsVm,
 		listingId,
 		isLoggedIn = false,
 		signInHref = signInHrefDefault,
@@ -58,7 +58,7 @@
 	const canPostComments = $derived(isLoggedIn && communityCommentsEnabled);
 
 	function repliesFor(parentId: string): ListingCommentViewModel[] {
-		return comments.filter((c) => c.parentId === parentId);
+		return commentsVm.filter((c) => c.parentId === parentId);
 	}
 
 	async function handleComment() {
@@ -131,10 +131,10 @@
 <div class={cn('mx-auto w-full space-y-6', className)} aria-labelledby="listing-comments-heading">
 	<div class="space-y-4">
 		<h2 id="listing-comments-heading" class="text-2xl font-bold">Comments</h2>
-		{#if comments.length === 0}
+		{#if commentsVm.length === 0}
 			<p class="text-base-content/70">No comments yet.</p>
 		{/if}
-		{#each comments as comment (comment.id)}
+		{#each commentsVm as comment (comment.id)}
 			{#if !comment.parentId}
 				<div class="space-y-4">
 					{@render commentBlock(comment, false)}

@@ -20,24 +20,24 @@
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 
 	type Props = {
-		extension: ExtensionDetailViewModel;
+		extensionVm: ExtensionDetailViewModel;
 		displayLikes: number;
 		onLike: () => void | Promise<void>;
 		onExternalClick?: () => void | Promise<void>;
 		likeDisabled?: boolean;
 	};
 
-	let { extension, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
+	let { extensionVm, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
 
-	const faqItems = $derived(extension.faq ?? []);
-	const skillMarkdownHref = $derived(url(`/api/v1/listings/published/${extension.slug}/skill-markdown`));
-	const githubRepo = $derived(parseGithubRepoFromUrl(extension.sourceRepoUrl));
-	const skillsDescription = $derived(extension.descriptionSkills ?? extension.description);
-	const skillsContent = $derived(extension.contentSkills ?? extension.content);
-	const skillsClickUrl = $derived(extension.clickUrlSkills ?? extension.clickUrl);
+	const faqItems = $derived(extensionVm.faq ?? []);
+	const skillMarkdownHref = $derived(url(`/api/v1/listings/published/${extensionVm.slug}/skill-markdown`));
+	const githubRepo = $derived(parseGithubRepoFromUrl(extensionVm.sourceRepoUrl));
+	const skillsDescription = $derived(extensionVm.descriptionSkills ?? extensionVm.description);
+	const skillsContent = $derived(extensionVm.contentSkills ?? extensionVm.content);
+	const skillsClickUrl = $derived(extensionVm.clickUrlSkills ?? extensionVm.clickUrl);
 
 	async function handleCopyInstall() {
-		const command = extension.installCommandSkills?.trim();
+		const command = extensionVm.installCommandSkills?.trim();
 		if (!command) return;
 		const ok = await copyToClipboard(command);
 		if (ok) toast.success('Install command copied.');
@@ -45,12 +45,12 @@
 	}
 
 	async function handleShare() {
-		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicExtension(extension.slug)}`);
+		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicExtension(extensionVm.slug)}`);
 		if (browser && navigator.share) {
 			try {
 				await navigator.share({
-					title: extension.title,
-					text: extension.excerpt ?? extension.title,
+					title: extensionVm.title,
+					text: extensionVm.excerpt ?? extensionVm.title,
 					url: shareUrl
 				});
 				return;
@@ -77,7 +77,7 @@
 
 <header class="space-y-6 border-b border-base-content/10 pb-8">
 	<div class="flex flex-wrap gap-2">
-		{#each extension.tags as tag (tag.id)}
+		{#each extensionVm.tags as tag (tag.id)}
 			<span class="badge badge-ghost">{tag.name}</span>
 		{/each}
 		{#if githubRepo}
@@ -86,25 +86,25 @@
 	</div>
 
 	<div class="space-y-3">
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extension.title}</h1>
-		{#if extension.skillName}
-			<p class="font-mono text-sm text-base-content/60">{extension.skillName}</p>
+		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extensionVm.title}</h1>
+		{#if extensionVm.skillName}
+			<p class="font-mono text-sm text-base-content/60">{extensionVm.skillName}</p>
 		{/if}
-		{#if extension.excerpt}
-			<p class="text-lg text-base-content/75">{extension.excerpt}</p>
+		{#if extensionVm.excerpt}
+			<p class="text-lg text-base-content/75">{extensionVm.excerpt}</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
-			{#if extension.owner?.fullName || extension.owner?.username}
-				<span>By {extension.owner.fullName ?? extension.owner.username}</span>
+			{#if extensionVm.owner?.fullName || extensionVm.owner?.username}
+				<span>By {extensionVm.owner.fullName ?? extensionVm.owner.username}</span>
 			{/if}
-			{#if extension.version}
-				<span>v{extension.version}</span>
+			{#if extensionVm.version}
+				<span>v{extensionVm.version}</span>
 			{/if}
-			{#if extension.license}
-				<span>{extension.license}</span>
+			{#if extensionVm.license}
+				<span>{extensionVm.license}</span>
 			{/if}
-			{#if extension.category}
-				<span>{extension.category.name}</span>
+			{#if extensionVm.category}
+				<span>{extensionVm.category.name}</span>
 			{/if}
 		</div>
 	</div>
@@ -122,28 +122,28 @@
 			<ExtensionExternalLinkButton href={skillsClickUrl} label="Get started" onClick={onExternalClick} />
 		{/if}
 		<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>Download SKILL.md</Button>
-		{#if extension.sourceRepoUrl}
-			<Button href={extension.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
+		{#if extensionVm.sourceRepoUrl}
+			<Button href={extensionVm.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
 				Source repo
 			</Button>
 		{/if}
 	</div>
 </header>
 
-{#if extension.installCommandSkills}
+{#if extensionVm.installCommandSkills}
 	<section class="border-b border-base-content/10 py-8">
 		<h2 class="mb-3 text-lg font-semibold">Install</h2>
-		<TerminalCommandMock code={extension.installCommandSkills} ariaLabel={`Install command for ${extension.title}`} />
+		<TerminalCommandMock code={extensionVm.installCommandSkills} ariaLabel={`Install command for ${extensionVm.title}`} />
 		<div class="mt-3">
 			<Button variant="outline" size="sm" onclick={() => void handleCopyInstall()}>Copy command</Button>
 		</div>
 	</section>
 {/if}
 
-{#if extension.skillCommands.length > 0}
+{#if extensionVm.skillCommands.length > 0}
 	<section class="border-b border-base-content/10 py-8">
 		<h2 class="mb-4 text-lg font-semibold">CLI commands</h2>
-		<ExtensionSkillCommandsTable commands={extension.skillCommands} />
+		<ExtensionSkillCommandsTable commands={extensionVm.skillCommands} />
 	</section>
 {/if}
 
@@ -162,7 +162,7 @@
 	<dl class="grid gap-4 sm:grid-cols-2">
 		<div>
 			<dt class="text-sm text-base-content/60">Views</dt>
-			<dd class="text-2xl font-semibold">{extension.views}</dd>
+			<dd class="text-2xl font-semibold">{extensionVm.views}</dd>
 		</div>
 		<div>
 			<dt class="text-sm text-base-content/60">Likes</dt>
@@ -170,18 +170,18 @@
 		</div>
 		<div>
 			<dt class="text-sm text-base-content/60">Bookmarks</dt>
-			<dd class="text-2xl font-semibold">{extension.bookmarkCount}</dd>
+			<dd class="text-2xl font-semibold">{extensionVm.bookmarkCount}</dd>
 		</div>
 		<div>
 			<dt class="text-sm text-base-content/60">Rating</dt>
 			<dd class="text-2xl font-semibold">
-				{extension.averageRating.toFixed(1)} ({extension.ratingsCount})
+				{extensionVm.averageRating.toFixed(1)} ({extensionVm.ratingsCount})
 			</dd>
 		</div>
 	</dl>
-	{#if extension.sourceSyncedAt}
+	{#if extensionVm.sourceSyncedAt}
 		<p class="mt-4 text-sm text-base-content/60">
-			Last synced from GitHub: {new Date(extension.sourceSyncedAt).toLocaleString()}
+			Last synced from GitHub: {new Date(extensionVm.sourceSyncedAt).toLocaleString()}
 		</p>
 	{/if}
 </section>

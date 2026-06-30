@@ -1,11 +1,11 @@
 export type {
 	AgentBuilderPageViewModel,
-	StackBuilderExtensionVm,
-	StackBuilderLibraryItem,
+	StackBuilderExtensionViewModel,
 	StackBuilderLibraryItemKind,
-	StackBuilderReferenceAsset,
-	StackBuilderWorkflowStep,
-	ToolsIndexToolCard
+	StackBuilderLibraryItemViewModel,
+	StackBuilderReferenceAssetViewModel,
+	StackBuilderWorkflowStepViewModel,
+	ToolsIndexToolCardViewModel
 } from '$lib/stack-builder/stackBuilder.types';
 
 export {

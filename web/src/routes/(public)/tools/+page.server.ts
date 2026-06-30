@@ -35,11 +35,31 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		}
 	];
 
+	const canonical = new URL(requestUrl.pathname, requestUrl.origin).href;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'CollectionPage',
+				'@id': `${canonical}#webpage`,
+				name: metaTitle,
+				description: metaDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: requestUrl.origin
+				}
+			}
+		]
+	};
+
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn,
 		metaTitle,
 		metaDescription,
-		toolsVm: tools
+		toolsVm: tools,
+		schemaData
 	};
 }

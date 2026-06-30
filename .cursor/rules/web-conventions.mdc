@@ -1,12 +1,12 @@
 ---
-description: Web lib conventions — $lib imports, icons, external links (ExternalLink + programmatic new tabs), config/endpoint style, backend calls via repository (not gateway), route path helpers, form validation (Zod in domain *.types.ts + toast), SvelteKit page `data` destructuring
+description: Web lib conventions — $lib imports, icons, external links (ExternalLink + programmatic new tabs), config/endpoint style, backend calls via repository (not gateway), route path helpers, form validation (Zod in domain *.types.ts + toast), SvelteKit page `data` destructuring, route SEO/JSON-LD in +page.server.ts, avoid route page wrapper components
 globs: web/**/*
 alwaysApply: false
 ---
 
 # Web: Lib Conventions
 
-Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement) and section **6** (`data` on pages) also apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation). Section **1b** documents external link behavior for UI (`ExternalLink` and programmatic new tabs).
+Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement), section **6** (`data` on pages), section **7** (route page markup), and section **8** (route SEO / JSON-LD) apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation). Section **1b** documents external link behavior for UI (`ExternalLink` and programmatic new tabs).
 
 ---
 
@@ -499,3 +499,109 @@ In `+page.svelte` and `+layout.svelte`, avoid repeating `data.posts`, `data.hero
 - Shorter, clearer markup; less noise than `data.` on every reference.
 - Stays valid Svelte 5 and keeps load output reactive when `data` updates.
 - Clash-prone keys get one `$derived` alias (e.g. `listPage` vs `page` from `$app/state`).
+
+---
+
+## 7. Route pages: keep markup in `+page.svelte`, extract reusable pieces only
+
+Do **not** add thin `*Page.svelte` wrappers under `$lib/ui/templates/` (or similar) whose only job is to mirror a single route’s load props. The route file **is** the page — put page layout, copy, and route-specific state there.
+
+### Put in `+page.svelte`
+
+- Page header, sections, and layout for that URL.
+- Route-specific client state (e.g. hydration from load data, URL sync, form handlers tied to this page).
+- `<JsonLdHead schemaData={schemaData} />` when the route exposes JSON-LD — pass load data only; do not build schema objects inline (see **§8**).
+
+Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived` aliases, then use those names in the template.
+
+### Extract to `$lib/ui/**` when
+
+- The same UI is used on **two or more routes** or in multiple features.
+- The piece is a **focused sub-component** with a clear boundary (e.g. a panel, card, modal, table row) — not the entire page shell.
+- Logic belongs in a **presenter**, **repository**, or **util** under the domain module (see **§3**), not in a page-shaped template file.
+
+### Avoid
+
+- `+page.svelte` that only forwards `data.*` into `<FooPage … />` with no other behavior.
+- `FooPage.svelte` under `$lib/ui/templates/` that duplicates the route’s prop list one-to-one and is imported by a single route.
+
+### Example
+
+```svelte
+<!-- ✅ GOOD — route owns the page; lib holds reusable panels -->
+<!-- web/src/routes/(public)/tools/agent-builder/+page.svelte -->
+<script lang="ts">
+	import type { PageData } from './$types';
+	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
+
+	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
+
+	type Props = { data: PageData };
+	let { data }: Props = $props();
+	let selectedExtensions = $derived(data.selectedExtensions);
+	// … page state and handlers …
+</script>
+
+<header>…</header>
+<StackBuilderLibraryPanel items={libraryItems} onAddItem={addLibraryItem} />
+```
+
+```svelte
+<!-- ❌ BAD — pointless indirection for a single route -->
+<!-- +page.svelte -->
+<AgentBuilderPage metaTitle={data.metaTitle} selectedExtensions={data.selectedExtensions} … />
+
+<!-- $lib/ui/templates/stack-builder/AgentBuilderPage.svelte -->
+<!-- entire page markup lives here, used only by one route -->
+```
+
+### Benefits
+
+- One file to open per URL; no prop-plumbing layer between load and UI.
+- Shared components stay genuinely reusable; domain logic stays in lib modules, not faux “page templates.”
+
+---
+
+## 8. Route SEO and JSON-LD: build in `+page.server.ts`
+
+Public routes that ship meta tags and structured data should follow the same split as **agents**, **channels**, and **extensions**:
+
+- **`+page.server.ts`** owns SSR SEO: `createMetaData` → `pageMetaTags`, plus a `schemaData` object for JSON-LD (`CollectionPage` hubs, `FAQPage` add-ons, or domain helpers such as `createBlogPostSEOSchema` / `createPostSEOSchema`).
+- **`+page.svelte`** renders `<JsonLdHead schemaData={schemaData} />` where `schemaData` comes from load (`let schemaData = $derived(data.schemaData)` per **§6**).
+- **`+page.ts`** (universal load): when present, include `schemaData` (and `pageMetaTags` when typed) in the `browser && data` cast and explicit return so client navigations keep SEO fields. See **web-sveltekit-universal-page-load**.
+
+### Hub `CollectionPage` pattern
+
+For catalog-style public hubs, build `schemaData` in the server load with a `@graph` node (not a flat inline object in Svelte):
+
+```ts
+const canonical = new URL(url.pathname, url.origin).href;
+const schemaData = {
+	'@context': 'https://schema.org',
+	'@graph': [
+		{
+			'@type': 'CollectionPage',
+			'@id': `${canonical}#webpage`,
+			name: customTitle,
+			description: customDescription,
+			url: canonical,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
+			}
+		}
+	]
+};
+```
+
+Return `schemaData` from `load` alongside `pageMetaTags` and view models.
+
+### Reusable schema builders
+
+When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`.
+
+### Avoid
+
+- Inline `schemaData={{ '@context': … }}` objects in `+page.svelte`.
+- Duplicating title/description strings for JSON-LD in the component when they already exist in the server load.

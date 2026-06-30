@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 
-import type { ToolsIndexToolCard } from '$lib/stack-builder/stackBuilder.types';
+import type { ToolsIndexToolCardViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 import type { PageLoad } from './$types';
 
@@ -17,11 +17,15 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			metaTitle: string;
 			metaDescription: string;
-			toolsVm: ToolsIndexToolCard[];
+			toolsVm: ToolsIndexToolCardViewModel[];
+			schemaData: unknown;
 		};
 
 		return {
-			...serverData,
+			metaTitle: serverData.metaTitle,
+			metaDescription: serverData.metaDescription,
+			toolsVm: serverData.toolsVm,
+			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
 			isPlatformAdmin,

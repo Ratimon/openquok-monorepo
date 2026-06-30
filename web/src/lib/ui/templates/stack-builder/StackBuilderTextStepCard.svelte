@@ -1,20 +1,20 @@
 <script lang="ts">
-	import type { StackBuilderWorkflowStep } from '$lib/stack-builder/stackBuilder.types';
+	import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
-	type TextStep = Extract<StackBuilderWorkflowStep, { type: 'text' }>;
+	type TextStepViewModel = Extract<StackBuilderWorkflowStepViewModel, { type: 'text' }>;
 
 	type Props = {
-		step: TextStep;
+		stepVm: TextStepViewModel;
 		stepNumber: number;
-		onUpdate: (patch: Partial<TextStep>) => void;
+		onUpdate: (patch: Partial<TextStepViewModel>) => void;
 		onRemove: () => void;
 	};
 
-	let { step, stepNumber, onUpdate, onRemove }: Props = $props();
+	let { stepVm, stepNumber, onUpdate, onRemove }: Props = $props();
 </script>
 
 <div class="p-4">
@@ -38,7 +38,7 @@
 		<textarea
 			class="textarea textarea-bordered w-full text-sm"
 			rows="3"
-			value={step.content}
+			value={stepVm.content}
 			oninput={(event) => onUpdate({ content: event.currentTarget.value })}
 			placeholder="e.g. Wait for publish, then review metrics before the next command."
 		></textarea>

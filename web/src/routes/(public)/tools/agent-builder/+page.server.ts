@@ -30,9 +30,19 @@ export async function load({ url, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@type': 'WebApplication',
+		name: builderVm.metaTitle,
+		description: builderVm.metaDescription,
+		applicationCategory: 'DeveloperApplication',
+		offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+	};
+
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn,
+		schemaData,
 		...builderVm
 	};
 }

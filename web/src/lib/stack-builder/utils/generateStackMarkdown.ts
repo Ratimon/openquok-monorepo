@@ -1,13 +1,15 @@
 import type {
-	StackBuilderReferenceAsset,
-	StackBuilderWorkflowStep
+	StackBuilderReferenceAssetViewModel,
+	StackBuilderWorkflowStepViewModel
 } from '$lib/stack-builder/stackBuilder.types';
 
 function escapeMarkdownInline(value: string): string {
 	return value.replace(/([\\`*_[\]])/g, '\\$1');
 }
 
-function formatCommandStepTitle(step: Extract<StackBuilderWorkflowStep, { type: 'command' }>): string {
+function formatCommandStepTitle(
+	step: Extract<StackBuilderWorkflowStepViewModel, { type: 'command' }>
+): string {
 	return `${step.listingSlug} · ${step.commandName}`;
 }
 
@@ -19,8 +21,8 @@ function formatPayloadBlock(payload: Record<string, unknown>): string {
 export function generateStackMarkdown(params: {
 	title?: string;
 	extensionSlugs: string[];
-	workflowSteps: StackBuilderWorkflowStep[];
-	referenceAssets: StackBuilderReferenceAsset[];
+	workflowSteps: StackBuilderWorkflowStepViewModel[];
+	referenceAssets: StackBuilderReferenceAssetViewModel[];
 }): string {
 	const lines: string[] = [];
 	const title = params.title?.trim() || 'Agent workflow stack';

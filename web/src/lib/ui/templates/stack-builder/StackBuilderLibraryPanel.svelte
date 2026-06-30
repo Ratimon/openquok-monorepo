@@ -1,14 +1,14 @@
 <script lang="ts">
-	import type { StackBuilderLibraryItem } from '$lib/stack-builder/stackBuilder.types';
+	import type { StackBuilderLibraryItemViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 	type Props = {
-		items: StackBuilderLibraryItem[];
-		onAddItem: (item: StackBuilderLibraryItem) => void;
+		itemsVm: StackBuilderLibraryItemViewModel[];
+		onAddItem: (itemVm: StackBuilderLibraryItemViewModel) => void;
 	};
 
-	let { items, onAddItem }: Props = $props();
+	let { itemsVm, onAddItem }: Props = $props();
 
-	function kindLabel(kind: StackBuilderLibraryItem['kind']): string {
+	function kindLabel(kind: StackBuilderLibraryItemViewModel['kind']): string {
 		return kind === 'cli' ? 'CLI' : 'MCP';
 	}
 </script>
@@ -20,13 +20,13 @@
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-y-auto p-3">
-		{#if items.length === 0}
+		{#if itemsVm.length === 0}
 			<p class="rounded-lg border border-dashed border-base-content/15 p-4 text-sm text-base-content/60">
 				Select at least one extension to populate the library.
 			</p>
 		{:else}
 			<ul class="space-y-2">
-				{#each items as item (item.id)}
+				{#each itemsVm as item (item.id)}
 					<li>
 						<button
 							type="button"

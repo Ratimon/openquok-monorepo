@@ -14,9 +14,16 @@
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
 
-	import ExtensionDetailPage from '$lib/ui/templates/extensions/ExtensionDetailPage.svelte';
-	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
+	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
+	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
+	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
+	import SkillExtensionDetail from '$lib/ui/templates/extensions/SkillExtensionDetail.svelte';
+	import McpExtensionDetail from '$lib/ui/templates/extensions/McpExtensionDetail.svelte';
+	import BothExtensionDetail from '$lib/ui/templates/extensions/BothExtensionDetail.svelte';
 
 	type Props = { data: PageData };
 
@@ -27,12 +34,20 @@
 	let commentsVm = $derived((data.commentsVm ?? []) as ListingCommentViewModel[]);
 	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
-	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
+
+	// /account/billing
+	const rootPathAccount = getRootPathAccount();
+	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
 	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let isBookmarked = $state(false);
 	let showUpgradeModal = $state(false);
+	let extraLikes = $state(0);
+	let expandedRelatedId = $state<string | null>(null);
+
+	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
+	let displayLikes = $derived(extensionVm.likes + extraLikes);
 
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
@@ -50,8 +65,6 @@
 			cancelled = true;
 		};
 	});
-
-	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
 
 	onMount(() => {
 		if (!browser || !extensionVm?.id) return;
@@ -74,31 +87,126 @@
 		}
 		return { ok: true as const, bookmarked: nextBookmarked };
 	}
+
+	async function handleLike() {
+		const result = await publicExtensionBySlugPagePresenter.trackExtensionLike(extensionVm.id);
+		if (result.ok) {
+			extraLikes += 1;
+			toast.success('Thanks for the like!');
+			return;
+		}
+		toast.error(result.error);
+	}
+
+	function handleExternalClick() {
+		void publicExtensionBySlugPagePresenter.trackExtensionClick(extensionVm.id);
+	}
+
+	function toggleRelatedExpanded(id: string) {
+		expandedRelatedId = expandedRelatedId === id ? null : id;
+	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
 
-<ExtensionDetailPage
-	extension={extensionVm}
-	relatedExtensions={relatedExtensionsVm}
-	{commentsVm}
-	{isLoggedIn}
-	communityCommentsEnabled={communityEnabled}
-	submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
-	submitListingRating={(listingId, rating) =>
-		publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-	submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
-	submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
-	onUpgradeRequired={() => {
-		showUpgradeModal = true;
-	}}
-	onSignInRequired={() => {
-		toast.error('Sign in to use community features.');
-	}}
-	{bookmarksPaidEnabled}
-	upgradeHref={accountBillingHref}
-	{isBookmarked}
-	onToggleBookmark={handleToggleBookmark}
-/>
+<SectionOuterContainer class="py-10 md:py-14">
+	<article class="container mx-auto max-w-4xl px-4">
+		<div class="mb-4 flex justify-end">
+			<ExtensionBookmarkButton
+				listingId={extensionVm.id}
+				{isBookmarked}
+				{isLoggedIn}
+				{bookmarksPaidEnabled}
+				upgradeHref={accountBillingHref}
+				onToggle={handleToggleBookmark}
+			/>
+		</div>
+		{#if extensionVm.extensionType === 'mcp'}
+			<McpExtensionDetail
+				{extensionVm}
+				{displayLikes}
+				onLike={handleLike}
+				onExternalClick={handleExternalClick}
+				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+			/>
+		{:else if extensionVm.extensionType === 'both'}
+			<BothExtensionDetail
+				{extensionVm}
+				{displayLikes}
+				onLike={handleLike}
+				onExternalClick={handleExternalClick}
+				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+			/>
+		{:else}
+			<SkillExtensionDetail
+				{extensionVm}
+				{displayLikes}
+				onLike={handleLike}
+				onExternalClick={handleExternalClick}
+				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+			/>
+		{/if}
 
-<CommunityFeaturesLimitUpgradeModal bind:open={showUpgradeModal} upgradeHref={accountBillingHref} />
+		{#if relatedExtensionsVm.length > 0}
+			<section class="border-t border-base-content/10 py-10">
+				<h2 class="mb-4 text-xl font-bold">Related extensions</h2>
+				<ul class="space-y-4">
+					{#each relatedExtensionsVm as relatedVm (relatedVm.id)}
+						<li>
+							<ExtensionCard
+								extensionVm={relatedVm}
+								expanded={expandedRelatedId === relatedVm.id}
+								onToggle={toggleRelatedExpanded}
+								showBookmark={true}
+								isBookmarked={false}
+								{isLoggedIn}
+								{bookmarksPaidEnabled}
+								upgradeHref={accountBillingHref}
+								onToggleBookmark={handleToggleBookmark}
+							/>
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
+
+		<section class="border-t border-base-content/10 py-10">
+			<ListingRating
+				listingId={extensionVm.id}
+				averageRating={extensionVm.averageRating}
+				ratingsCount={extensionVm.ratingsCount}
+				{isLoggedIn}
+				communityEnabled={communityEnabled}
+				submitRating={(listingId, rating) =>
+					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
+				submitting={publicExtensionBySlugPagePresenter.submittingRating}
+				onSignInRequired={() => {
+					toast.error('Sign in to use community features.');
+				}}
+				onUpgradeRequired={() => {
+					showUpgradeModal = true;
+				}}
+			/>
+		</section>
+
+		<section class="border-t border-base-content/10 py-10">
+			<ListingComments
+				{commentsVm}
+				listingId={extensionVm.id}
+				{isLoggedIn}
+				submitListingComment={(params) =>
+					publicExtensionBySlugPagePresenter.submitListingComment(params)}
+				submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
+				communityCommentsEnabled={communityEnabled}
+				onUpgradeRequired={() => {
+					showUpgradeModal = true;
+				}}
+			/>
+		</section>
+	</article>
+</SectionOuterContainer>
+
+<CommunityFeaturesLimitUpgradeModal
+	bind:open={showUpgradeModal}
+	upgradeHref={accountBillingHref}
+/>

@@ -17,7 +17,7 @@
 	type Props = {
 		stack: StackDetailViewModel;
 		isLoggedIn?: boolean;
-		comments: import('$lib/listings/GetListing.presenter.svelte').ListingCommentViewModel[];
+		commentsVm: import('$lib/listings/GetListing.presenter.svelte').ListingCommentViewModel[];
 		communityCommentsEnabled?: boolean;
 		onClone?: () => void | Promise<void>;
 		cloning?: boolean;
@@ -36,7 +36,7 @@
 	let {
 		stack,
 		isLoggedIn = false,
-		comments,
+		commentsVm,
 		communityCommentsEnabled = true,
 		onClone,
 		cloning = false,
@@ -253,7 +253,7 @@
 
 		<section class="border-t border-base-content/10 py-10">
 			<ListingComments
-				{comments}
+				{commentsVm}
 				listingId={stack.id}
 				{isLoggedIn}
 				{submitListingComment}

@@ -15,6 +15,7 @@
 	let stacksVm = $derived(data.stacksVm);
 	let metaTitle = $derived(data.metaTitle);
 	let metaDescription = $derived(data.metaDescription);
+	let schemaData = $derived(data.schemaData);
 	let searchTerm = $derived(data.searchTerm ?? '');
 	let searchDraft = $state('');
 
@@ -31,14 +32,7 @@
 	}
 </script>
 
-<JsonLdHead
-	schemaData={{
-		'@context': 'https://schema.org',
-		'@type': 'CollectionPage',
-		name: metaTitle,
-		description: metaDescription
-	}}
-/>
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">

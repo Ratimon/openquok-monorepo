@@ -20,30 +20,30 @@
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
 
 	type Props = {
-		extension: ExtensionDetailViewModel;
+		extensionVm: ExtensionDetailViewModel;
 		displayLikes: number;
 		onLike: () => void | Promise<void>;
 		onExternalClick?: () => void | Promise<void>;
 		likeDisabled?: boolean;
 	};
 
-	let { extension, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
+	let { extensionVm, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
 
 	let configClient = $state<'cursor' | 'claude' | 'vscode'>('cursor');
 
-	const faqItems = $derived(extension.faq ?? []);
-	const mcpDescription = $derived(extension.descriptionMcp);
-	const mcpContent = $derived(extension.contentMcp);
-	const mcpClickUrl = $derived(extension.clickUrlMcp);
+	const faqItems = $derived(extensionVm.faq ?? []);
+	const mcpDescription = $derived(extensionVm.descriptionMcp);
+	const mcpContent = $derived(extensionVm.contentMcp);
+	const mcpClickUrl = $derived(extensionVm.clickUrlMcp);
 	const configJson = $derived.by(() => {
-		const config = extension.mcpServerConfig;
+		const config = extensionVm.mcpServerConfig;
 		if (!config || Object.keys(config).length === 0) return null;
 		return JSON.stringify(config, null, 2);
 	});
-	const githubRepo = $derived(parseGithubRepoFromUrl(extension.sourceRepoUrl));
+	const githubRepo = $derived(parseGithubRepoFromUrl(extensionVm.sourceRepoUrl));
 
 	async function handleCopyInstall() {
-		const command = extension.installCommandMcp?.trim();
+		const command = extensionVm.installCommandMcp?.trim();
 		if (!command) return;
 		const ok = await copyToClipboard(command);
 		if (ok) toast.success('Install command copied.');
@@ -58,12 +58,12 @@
 	}
 
 	async function handleShare() {
-		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicExtension(extension.slug)}`);
+		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicExtension(extensionVm.slug)}`);
 		if (browser && navigator.share) {
 			try {
 				await navigator.share({
-					title: extension.title,
-					text: extension.excerpt ?? extension.title,
+					title: extensionVm.title,
+					text: extensionVm.excerpt ?? extensionVm.title,
 					url: shareUrl
 				});
 				return;
@@ -79,11 +79,11 @@
 
 <header class="space-y-6 border-b border-base-content/10 pb-8">
 	<div class="flex flex-wrap items-center gap-2">
-		{#if extension.category}
-			<span class="badge badge-outline">{extension.category.name}</span>
+		{#if extensionVm.category}
+			<span class="badge badge-outline">{extensionVm.category.name}</span>
 		{/if}
-		{#if extension.mcpTransport}
-			<span class="badge badge-ghost uppercase">{extension.mcpTransport}</span>
+		{#if extensionVm.mcpTransport}
+			<span class="badge badge-ghost uppercase">{extensionVm.mcpTransport}</span>
 		{/if}
 		{#if githubRepo}
 			<Stargazers owner={githubRepo.owner} name={githubRepo.name} />
@@ -91,19 +91,19 @@
 	</div>
 
 	<div class="space-y-3">
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extension.title}</h1>
-		{#if extension.excerpt}
-			<p class="text-lg text-base-content/75">{extension.excerpt}</p>
+		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extensionVm.title}</h1>
+		{#if extensionVm.excerpt}
+			<p class="text-lg text-base-content/75">{extensionVm.excerpt}</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
-			{#if extension.owner?.fullName || extension.owner?.username}
-				<span>By {extension.owner.fullName ?? extension.owner.username}</span>
+			{#if extensionVm.owner?.fullName || extensionVm.owner?.username}
+				<span>By {extensionVm.owner.fullName ?? extensionVm.owner.username}</span>
 			{/if}
-			{#if extension.version}
-				<span>v{extension.version}</span>
+			{#if extensionVm.version}
+				<span>v{extensionVm.version}</span>
 			{/if}
-			{#if extension.license}
-				<span>{extension.license}</span>
+			{#if extensionVm.license}
+				<span>{extensionVm.license}</span>
 			{/if}
 		</div>
 	</div>
@@ -120,8 +120,8 @@
 		{#if mcpClickUrl}
 			<ExtensionExternalLinkButton href={mcpClickUrl} label="Setup guide" onClick={onExternalClick} />
 		{/if}
-		{#if extension.sourceRepoUrl}
-			<Button href={extension.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
+		{#if extensionVm.sourceRepoUrl}
+			<Button href={extensionVm.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
 				Source repo
 			</Button>
 		{/if}
@@ -138,12 +138,12 @@
 	/>
 </section>
 
-{#if extension.mcpTools.length > 0}
+{#if extensionVm.mcpTools.length > 0}
 	<section class="border-b border-base-content/10 py-8">
 		<h2 class="mb-4 text-lg font-semibold">
 			MCP tools
 		</h2>
-		<ExtensionMcpToolsTable tools={extension.mcpTools} />
+		<ExtensionMcpToolsTable tools={extensionVm.mcpTools} />
 	</section>
 {/if}
 
@@ -155,12 +155,12 @@
 			<button type="button" class:tab-active={configClient === 'claude'} class="btn btn-sm btn-ghost" onclick={() => (configClient = 'claude')}>Claude</button>
 			<button type="button" class:tab-active={configClient === 'vscode'} class="btn btn-sm btn-ghost" onclick={() => (configClient = 'vscode')}>VS Code</button>
 		</div>
-		<TerminalCommandMock code={configJson} language="bash" ariaLabel={`MCP config for ${extension.title}`} />
+		<TerminalCommandMock code={configJson} language="bash" ariaLabel={`MCP config for ${extensionVm.title}`} />
 		<div class="mt-3">
 			<Button variant="outline" size="sm" onclick={() => void handleCopyConfig()}>Copy config</Button>
 		</div>
-	{:else if extension.installCommandMcp}
-		<TerminalCommandMock code={extension.installCommandMcp} ariaLabel={`Install command for ${extension.title}`} />
+	{:else if extensionVm.installCommandMcp}
+		<TerminalCommandMock code={extensionVm.installCommandMcp} ariaLabel={`Install command for ${extensionVm.title}`} />
 		<div class="mt-3">
 			<Button variant="outline" size="sm" onclick={() => void handleCopyInstall()}>Copy command</Button>
 		</div>

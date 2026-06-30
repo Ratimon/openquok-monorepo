@@ -23,6 +23,7 @@
 
 	let stackVm = $derived(data.stackVm);
 	let commentsVm = $derived(data.commentsVm);
+	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
@@ -64,19 +65,12 @@
 	}
 </script>
 
-<JsonLdHead
-	schemaData={{
-		'@context': 'https://schema.org',
-		'@type': 'WebPage',
-		name: stackVm.title,
-		description: stackVm.excerpt ?? stackVm.description
-	}}
-/>
+<JsonLdHead schemaData={schemaData} />
 
 <StackDetailPage
 	stack={stackVm}
 	{isLoggedIn}
-	comments={commentsVm}
+	commentsVm={commentsVm}
 	communityCommentsEnabled={communityEnabled}
 	onClone={handleClone}
 	cloning={publicStackBySlugPagePresenter.submittingClone}

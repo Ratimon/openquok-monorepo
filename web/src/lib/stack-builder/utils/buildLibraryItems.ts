@@ -1,14 +1,16 @@
 import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
-import type { StackBuilderLibraryItem } from '$lib/stack-builder/stackBuilder.types';
+import type { StackBuilderLibraryItemViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 function libraryItemId(listingSlug: string, kind: 'cli' | 'mcp', name: string): string {
 	return `${listingSlug}:${kind}:${name}`;
 }
 
 /** Flatten CLI commands and MCP tools from selected extensions into library rows. */
-export function buildLibraryItems(extensions: ExtensionDetailViewModel[]): StackBuilderLibraryItem[] {
-	const items: StackBuilderLibraryItem[] = [];
+export function buildLibraryItems(
+	extensions: ExtensionDetailViewModel[]
+): StackBuilderLibraryItemViewModel[] {
+	const items: StackBuilderLibraryItemViewModel[] = [];
 
 	for (const extension of extensions) {
 		for (const command of extension.skillCommands) {

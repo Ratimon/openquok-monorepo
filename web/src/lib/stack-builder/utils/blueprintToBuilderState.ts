@@ -2,14 +2,14 @@ import { nanoid } from 'nanoid';
 
 import type { StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
 import type {
-	StackBuilderReferenceAsset,
-	StackBuilderWorkflowStep
+	StackBuilderReferenceAssetViewModel,
+	StackBuilderWorkflowStepViewModel
 } from '$lib/stack-builder/stackBuilder.types';
 
 export function blueprintToWorkflowSteps(
 	blueprint: StackBlueprintProgrammerModel | null | undefined,
 	extensionTitlesBySlug: Record<string, string>
-): StackBuilderWorkflowStep[] {
+): StackBuilderWorkflowStepViewModel[] {
 	if (!blueprint?.workflow_steps?.length) return [];
 
 	return blueprint.workflow_steps.map((step) => {
@@ -36,7 +36,7 @@ export function blueprintToWorkflowSteps(
 
 export function blueprintToReferenceAssets(
 	blueprint: StackBlueprintProgrammerModel | null | undefined
-): StackBuilderReferenceAsset[] {
+): StackBuilderReferenceAssetViewModel[] {
 	if (!blueprint?.reference_assets?.length) return [];
 
 	return blueprint.reference_assets.map((asset, index) => ({

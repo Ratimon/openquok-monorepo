@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { nanoid } from 'nanoid';
+	import type { StackBuilderReferenceAssetViewModel } from '$lib/stack-builder/stackBuilder.types';
 
-	import type { StackBuilderReferenceAsset } from '$lib/stack-builder/stackBuilder.types';
+	import { nanoid } from 'nanoid';
 	import { CHARACTER_BRIEF_TEMPLATE_JSON } from '$lib/stack-builder/constants/defaults';
 
 	import { icons } from '$data/icons';
@@ -9,25 +9,25 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		assets: StackBuilderReferenceAsset[];
-		onChange: (assets: StackBuilderReferenceAsset[]) => void;
+		assetsVm: StackBuilderReferenceAssetViewModel[];
+		onChange: (assetsVm: StackBuilderReferenceAssetViewModel[]) => void;
 	};
 
-	let { assets, onChange }: Props = $props();
+	let { assetsVm, onChange }: Props = $props();
 
 	let dragOver = $state(false);
 
-	function updateAsset(assetId: string, patch: Partial<StackBuilderReferenceAsset>) {
-		onChange(assets.map((asset) => (asset.id === assetId ? { ...asset, ...patch } : asset)));
+	function updateAsset(assetId: string, patch: Partial<StackBuilderReferenceAssetViewModel>) {
+		onChange(assetsVm.map((asset) => (asset.id === assetId ? { ...asset, ...patch } : asset)));
 	}
 
 	function removeAsset(assetId: string) {
-		onChange(assets.filter((asset) => asset.id !== assetId));
+		onChange(assetsVm.filter((asset) => asset.id !== assetId));
 	}
 
 	function addJsonAsset() {
 		onChange([
-			...assets,
+			...assetsVm,
 			{
 				id: nanoid(),
 				type: 'json',
@@ -48,7 +48,7 @@
 
 	async function handleFiles(fileList: FileList | null) {
 		if (!fileList?.length) return;
-		const nextAssets = [...assets];
+		const nextAssets = [...assetsVm];
 
 		for (const file of Array.from(fileList)) {
 			if (file.type.startsWith('image/')) {
@@ -119,9 +119,9 @@
 		</label>
 	</div>
 
-	{#if assets.length > 0}
+	{#if assetsVm.length > 0}
 		<ul class="space-y-3 px-4 pb-4">
-			{#each assets as asset (asset.id)}
+			{#each assetsVm as asset (asset.id)}
 				<li class="rounded-xl border border-base-content/10 p-4">
 					<div class="flex items-start justify-between gap-3">
 						<div class="min-w-0 flex-1 space-y-3">

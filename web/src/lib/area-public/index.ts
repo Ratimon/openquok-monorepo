@@ -18,10 +18,8 @@ import {
 	PublicStackBySlugPagePresenter,
 	PublicStacksPagePresenter
 } from '$lib/area-public/PublicStacksPage.presenter.svelte';
-import {
-	PublicAgentBuilderPagePresenter,
-	PublicToolsPagePresenter
-} from '$lib/area-public/PublicToolsPage.presenter.svelte';
+import { PublicAgentBuilderPagePresenter } from '$lib/area-public/PublicAgentBuilderPage.presenter.svelte';
+import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
 import { getPublicPricingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';

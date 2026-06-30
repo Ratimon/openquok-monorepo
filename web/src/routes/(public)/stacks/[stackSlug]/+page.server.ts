@@ -45,10 +45,30 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
+	const canonical = new URL(url.pathname, url.origin).href;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'WebPage',
+				'@id': `${canonical}#webpage`,
+				name: stackVm.title,
+				description: customDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				}
+			}
+		]
+	};
+
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn: !!cookies.get('access_token'),
 		stackVm,
-		commentsVm: comments
+		commentsVm: comments,
+		schemaData
 	};
 }

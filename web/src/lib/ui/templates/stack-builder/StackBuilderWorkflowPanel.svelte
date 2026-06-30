@@ -1,18 +1,18 @@
 <script lang="ts">
-	import type { StackBuilderWorkflowStep } from '$lib/stack-builder/stackBuilder.types';
+	import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 	import StackBuilderCommandStepCard from '$lib/ui/templates/stack-builder/StackBuilderCommandStepCard.svelte';
 	import StackBuilderTextStepCard from '$lib/ui/templates/stack-builder/StackBuilderTextStepCard.svelte';
 
 	type Props = {
-		steps: StackBuilderWorkflowStep[];
-		onUpdateStep: (stepId: string, patch: Partial<StackBuilderWorkflowStep>) => void;
+		stepsVm: StackBuilderWorkflowStepViewModel[];
+		onUpdateStep: (stepId: string, patch: Partial<StackBuilderWorkflowStepViewModel>) => void;
 		onRemoveStep: (stepId: string) => void;
 		onReorder: (fromIndex: number, toIndex: number) => void;
 		onAddTextStep: () => void;
 	};
 
-	let { steps, onUpdateStep, onRemoveStep, onReorder, onAddTextStep }: Props = $props();
+	let { stepsVm, onUpdateStep, onRemoveStep, onReorder, onAddTextStep }: Props = $props();
 
 	let dragIndex = $state<number | null>(null);
 
@@ -42,13 +42,13 @@
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-y-auto p-3">
-		{#if steps.length === 0}
+		{#if stepsVm.length === 0}
 			<p class="rounded-lg border border-dashed border-base-content/15 p-4 text-sm text-base-content/60">
 				Add commands from the library or insert a text step for review notes.
 			</p>
 		{:else}
 			<ol class="space-y-3">
-				{#each steps as step, index (step.id)}
+				{#each stepsVm as step, index (step.id)}
 					<li
 						class="rounded-xl border border-base-content/10 bg-base-100"
 						draggable="true"
@@ -58,14 +58,14 @@
 					>
 						{#if step.type === 'command'}
 							<StackBuilderCommandStepCard
-								{step}
+								stepVm={step}
 								stepNumber={index + 1}
 								onUpdate={(patch) => onUpdateStep(step.id, patch)}
 								onRemove={() => onRemoveStep(step.id)}
 							/>
 						{:else}
 							<StackBuilderTextStepCard
-								{step}
+								stepVm={step}
 								stepNumber={index + 1}
 								onUpdate={(patch) => onUpdateStep(step.id, patch)}
 								onRemove={() => onRemoveStep(step.id)}

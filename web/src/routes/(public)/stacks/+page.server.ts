@@ -31,6 +31,25 @@ export async function load({ url, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
+	const canonical = new URL(url.pathname, url.origin).href;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'CollectionPage',
+				'@id': `${canonical}#webpage`,
+				name: metaTitle,
+				description: metaDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				}
+			}
+		]
+	};
+
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn,
@@ -38,6 +57,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		totalCount: count,
 		searchTerm,
 		metaTitle,
-		metaDescription
+		metaDescription,
+		schemaData
 	};
 }

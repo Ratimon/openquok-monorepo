@@ -3,7 +3,7 @@ import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presente
 export type StackBuilderLibraryItemKind = 'cli' | 'mcp';
 
 /** Clickable command row in the library column. */
-export interface StackBuilderLibraryItem {
+export interface StackBuilderLibraryItemViewModel {
 	id: string;
 	listingSlug: string;
 	listingTitle: string;
@@ -16,7 +16,7 @@ export interface StackBuilderLibraryItem {
 	examplePayload?: Record<string, unknown>;
 }
 
-export type StackBuilderWorkflowStep =
+export type StackBuilderWorkflowStepViewModel =
 	| {
 			id: string;
 			type: 'command';
@@ -33,7 +33,7 @@ export type StackBuilderWorkflowStep =
 			content: string;
 	  };
 
-export interface StackBuilderReferenceAsset {
+export interface StackBuilderReferenceAssetViewModel {
 	id: string;
 	type: 'image' | 'json';
 	label: string;
@@ -41,7 +41,7 @@ export interface StackBuilderReferenceAsset {
 	dataUrl?: string;
 }
 
-export interface StackBuilderExtensionVm {
+export interface StackBuilderExtensionViewModel {
 	id: string;
 	title: string;
 	slug: string;
@@ -54,15 +54,15 @@ export interface AgentBuilderPageViewModel {
 	metaTitle: string;
 	metaDescription: string;
 	selectedExtensionSlugs: string[];
-	extensionsCatalog: StackBuilderExtensionVm[];
+	extensionsCatalog: StackBuilderExtensionViewModel[];
 	selectedExtensions: ExtensionDetailViewModel[];
-	initialWorkflowSteps: StackBuilderWorkflowStep[];
-	initialReferenceAssets: StackBuilderReferenceAsset[];
+	initialWorkflowSteps: StackBuilderWorkflowStepViewModel[];
+	initialReferenceAssets: StackBuilderReferenceAssetViewModel[];
 	stackTitle: string | null;
 	stackSlug: string | null;
 }
 
-export interface ToolsIndexToolCard {
+export interface ToolsIndexToolCardViewModel {
 	id: string;
 	title: string;
 	description: string;

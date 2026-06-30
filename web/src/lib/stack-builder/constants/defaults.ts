@@ -1,4 +1,4 @@
-import type { StackBuilderReferenceAsset } from '$lib/stack-builder/stackBuilder.types';
+import type { StackBuilderReferenceAssetViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 export const DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS = ['openquok-core'] as const;
 
@@ -10,7 +10,7 @@ export const CHARACTER_BRIEF_TEMPLATE_JSON = `{
   "cta": "Follow for daily Y2K vibes"
 }`;
 
-export function createDefaultCharacterBriefAsset(): StackBuilderReferenceAsset {
+export function createDefaultCharacterBriefAsset(): StackBuilderReferenceAssetViewModel {
 	return {
 		id: 'character-brief-template',
 		type: 'json',

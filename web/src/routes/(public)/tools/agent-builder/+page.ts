@@ -14,10 +14,22 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as AgentBuilderPageViewModel & { isLoggedIn?: boolean };
+		const serverData = data as AgentBuilderPageViewModel & {
+			isLoggedIn?: boolean;
+			schemaData: unknown;
+		};
 
 		return {
-			...serverData,
+			metaTitle: serverData.metaTitle,
+			metaDescription: serverData.metaDescription,
+			selectedExtensionSlugs: serverData.selectedExtensionSlugs,
+			extensionsCatalog: serverData.extensionsCatalog,
+			selectedExtensions: serverData.selectedExtensions,
+			initialWorkflowSteps: serverData.initialWorkflowSteps,
+			initialReferenceAssets: serverData.initialReferenceAssets,
+			stackTitle: serverData.stackTitle,
+			stackSlug: serverData.stackSlug,
+			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
 			isPlatformAdmin,
