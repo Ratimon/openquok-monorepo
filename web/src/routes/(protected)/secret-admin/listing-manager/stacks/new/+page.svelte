@@ -84,9 +84,12 @@
 				listingKind="stack"
 				{isPlatformAdmin}
 				isSubmitting={adminListingNewStackPagePresenter.submitting}
+				importingGithub={adminListingNewStackPagePresenter.importingGithub}
 				noListingFound={false}
 				onSave={handleSave}
 				onDiscard={handleDiscard}
+				onImportGithub={(url, extensionType) =>
+					adminListingNewStackPagePresenter.importFromGithub(url, extensionType)}
 			/>
 		{/key}
 	{/if}

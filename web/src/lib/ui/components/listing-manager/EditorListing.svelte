@@ -342,7 +342,8 @@
 
 	async function handleImportGithub(extensionType?: 'skills' | 'mcp' | 'both' | null) {
 		if (!onImportGithub) return;
-		if (extensionType === 'mcp') {
+		const effectiveType = listingKind === 'stack' ? 'skills' : extensionType;
+		if (effectiveType === 'mcp') {
 			toast.error('GitHub import reads SKILL.md — select Skills or Both first.');
 			return;
 		}
@@ -351,9 +352,9 @@
 			toast.error('Paste a GitHub URL first.');
 			return;
 		}
-		const result = await onImportGithub(urlValue, extensionType ?? null);
+		const result = await onImportGithub(urlValue, effectiveType ?? null);
 		if (result.ok) {
-			applyGithubPreview(result.preview, extensionType ?? null);
+			applyGithubPreview(result.preview, effectiveType ?? null);
 			toast.success('Imported from GitHub. Review the fields and save.');
 			return;
 		}
@@ -608,6 +609,31 @@
 					{/if}
 				{/snippet}
 			</form.Subscribe>
+		{/if}
+
+		{#if listingKind === 'stack' && onImportGithub}
+			<div class="space-y-3 rounded-lg border border-base-300 p-4">
+				<Field.Label>Import from GitHub (SKILL.md)</Field.Label>
+				<Field.Description>
+					Prefills title and content from SKILL.md.
+				</Field.Description>
+				<div class="flex flex-col gap-2 sm:flex-row">
+					<Input
+						value={githubImportUrl}
+						oninput={(e) => (githubImportUrl = e.currentTarget.value)}
+						placeholder="https://github.com/owner/repo/..."
+						disabled={isSubmitting || importingGithub}
+					/>
+					<Button
+						type="button"
+						variant="outline"
+						disabled={isSubmitting || importingGithub}
+						onclick={() => void handleImportGithub('skills')}
+					>
+						{importingGithub ? 'Importing…' : 'Import from GitHub'}
+					</Button>
+				</div>
+			</div>
 		{/if}
 
 		<form.Field name="title">
