@@ -20,6 +20,7 @@ const BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
 const LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
 const LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
 const LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
+const LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
 
 /**
  * Routes under the API prefix normally require `Authorization: Bearer` (see `requireFullAuth`).
@@ -66,6 +67,10 @@ function shouldSkipApiAuth(
         return true;
     }
     if (req.method === "GET" && routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX)) {
+        return true;
+    }
+
+    if (req.method === "GET" && LISTING_COMMENTS_PATH.test(routePath)) {
         return true;
     }
 

@@ -30,6 +30,12 @@ export class AdminListingEditorPagePresenter {
 	public showToastMessage = $state(false);
 	public toastMessage = $state('');
 	public redirectToList = $state(false);
+	public extensionChoices: Array<{
+		id: string;
+		title: string;
+		slug: string;
+		extensionType: string | null;
+	}> = $state([]);
 
 	constructor(private readonly listingRepository: ListingRepository) {}
 
@@ -71,7 +77,9 @@ export class AdminListingEditorPagePresenter {
 			this.listing = null;
 		}
 		const loadListing = listingId ? this.loadListingById(listingId, fetch) : Promise.resolve(false);
-		await Promise.all([loadListing, this.loadTaxonomy(fetch)]);
+		const loadExtensions =
+			listingKind === 'stack' ? this.loadExtensionChoices(fetch) : Promise.resolve();
+		await Promise.all([loadListing, this.loadTaxonomy(fetch), loadExtensions]);
 		const listingFound = !listingId || this.listing != null;
 		return { listingFound };
 	}
@@ -116,6 +124,21 @@ export class AdminListingEditorPagePresenter {
 		}
 	}
 
+	async loadExtensionChoices(fetch?: typeof globalThis.fetch): Promise<void> {
+		const listings = await this.listingRepository.getAdminListings(
+			{ listingKind: 'extension', limit: 500 },
+			fetch
+		);
+		this.extensionChoices = listings
+			.filter((listing) => listing.listingKind === 'extension')
+			.map((listing) => ({
+				id: listing.id,
+				title: listing.title,
+				slug: listing.slug,
+				extensionType: listing.extensionType
+			}));
+	}
+
 	getFormDefaults(): Partial<ListingFormSchemaType> {
 		const listing = this.listing;
 		if (!listing) {
@@ -149,7 +172,8 @@ export class AdminListingEditorPagePresenter {
 				is_user_published: false,
 				is_admin_published: false,
 				schema_type: getDefaultSchemaTypeForListingKind(this.listingKind),
-				faq: []
+				faq: [],
+				stack_members: []
 			};
 		}
 		const categorySlug = listing.category?.slug;
@@ -197,7 +221,12 @@ export class AdminListingEditorPagePresenter {
 			is_user_published: listing.isUserPublished,
 			is_admin_published: listing.isAdminPublished,
 			schema_type: schemaType,
-			faq
+			faq,
+			stack_members: (listing.stackMembers ?? []).map((member, index) => ({
+				member_listing_id: member.memberListingId,
+				member_role: member.memberRole as 'skills' | 'mcp',
+				sort_order: member.sortOrder ?? index
+			}))
 		};
 	}
 

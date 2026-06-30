@@ -34,7 +34,6 @@
 	const rootPathCalendar = getRootPathCalendar();
 	const calendarPath = route(`${rootPathAccount}/${rootPathCalendar}`);
 
-
 	const pagePresenter = protectedTemplatesPagePresenter;
 	const gridPresenter = pagePresenter.setGridTable;
 	const filterPresenter = pagePresenter.setGridFilterBuilder;

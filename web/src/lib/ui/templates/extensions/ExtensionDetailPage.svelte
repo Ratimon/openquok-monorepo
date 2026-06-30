@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ExtensionCardViewModel, ExtensionDetailViewModel } from '$lib/listings/index';
+	import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
 
@@ -10,13 +11,42 @@
 	import SkillExtensionDetail from '$lib/ui/templates/extensions/SkillExtensionDetail.svelte';
 	import McpExtensionDetail from '$lib/ui/templates/extensions/McpExtensionDetail.svelte';
 	import BothExtensionDetail from '$lib/ui/templates/extensions/BothExtensionDetail.svelte';
+	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
+	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
+
+	type MutationResult = { ok: true } | { ok: false; error: string };
 
 	type Props = {
 		extension: ExtensionDetailViewModel;
 		relatedExtensions: ExtensionCardViewModel[];
+		commentsVm: ListingCommentViewModel[];
+		isLoggedIn?: boolean;
+		communityCommentsEnabled?: boolean;
+		submitListingComment: (params: {
+			listingId: string;
+			content: string;
+			parentId: string | null;
+		}) => Promise<MutationResult>;
+		submitListingRating: (listingId: string, rating: number) => Promise<MutationResult>;
+		submittingComment?: boolean;
+		submittingRating?: boolean;
+		onUpgradeRequired?: () => void;
+		onSignInRequired?: () => void;
 	};
 
-	let { extension, relatedExtensions }: Props = $props();
+	let {
+		extension,
+		relatedExtensions,
+		commentsVm,
+		isLoggedIn = false,
+		communityCommentsEnabled = true,
+		submitListingComment,
+		submitListingRating,
+		submittingComment = false,
+		submittingRating = false,
+		onUpgradeRequired,
+		onSignInRequired
+	}: Props = $props();
 
 	const pagePresenter = publicExtensionBySlugPagePresenter;
 
@@ -89,8 +119,29 @@
 		{/if}
 
 		<section class="border-t border-base-content/10 py-10">
-			<h2 class="mb-2 text-xl font-bold">Comments</h2>
-			<p class="text-base-content/70">Comments are coming soon.</p>
+			<ListingRating
+				listingId={extension.id}
+				averageRating={extension.averageRating}
+				ratingsCount={extension.ratingsCount}
+				{isLoggedIn}
+				communityEnabled={communityCommentsEnabled}
+				submitRating={submitListingRating}
+				submitting={submittingRating}
+				{onSignInRequired}
+				{onUpgradeRequired}
+			/>
+		</section>
+
+		<section class="border-t border-base-content/10 py-10">
+			<ListingComments
+				comments={commentsVm}
+				listingId={extension.id}
+				{isLoggedIn}
+				{submitListingComment}
+				{submittingComment}
+				{communityCommentsEnabled}
+				{onUpgradeRequired}
+			/>
 		</section>
 	</article>
 </SectionOuterContainer>

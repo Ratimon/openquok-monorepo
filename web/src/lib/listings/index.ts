@@ -10,6 +10,8 @@ const listingConfig = {
 		getListingInformation: '/api/v1/listings/information',
 		getPublishedListings: '/api/v1/listings/published',
 		getPublishedBySlug: (slug: string) => `/api/v1/listings/published/${slug}`,
+		getPublishedStacks: '/api/v1/listings/stacks/published',
+		getPublishedStackBySlug: (slug: string) => `/api/v1/listings/stacks/published/${slug}`,
 		getAdminListings: '/api/v1/listings/all-full',
 		getListingById: (id: string) => `/api/v1/listings/${id}`,
 		createListing: '/api/v1/listings',
@@ -32,7 +34,11 @@ const listingConfig = {
 		trackLike: (listingId: string) => `/api/v1/listings/stats/likes/${listingId}`,
 		trackClick: (listingId: string) => `/api/v1/listings/stats/clicks/${listingId}`,
 		importFromGithub: '/api/v1/listings/import/github',
-		syncFromGithub: (id: string) => `/api/v1/listings/${id}/sync-github`
+		syncFromGithub: (id: string) => `/api/v1/listings/${id}/sync-github`,
+		getListingComments: (listingId: string) => `/api/v1/listings/${listingId}/comments`,
+		createListingComment: '/api/v1/listings/comments',
+		upsertListingRating: (listingId: string) => `/api/v1/listings/${listingId}/ratings`,
+		cloneStack: (stackId: string) => `/api/v1/listings/stacks/${stackId}/clone`
 	}
 };
 

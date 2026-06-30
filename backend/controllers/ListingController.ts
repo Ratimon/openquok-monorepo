@@ -22,7 +22,7 @@ import type {
 import { ListingService } from "../services/ListingService";
 import { ListingDTOMapper, ListingAdminDTOMapper } from "../utils/dtos/ListingDTO";
 import { DatabaseEntityNotFoundError } from "../errors/InfraError";
-import type { ExtensionType, ListingKind } from "../data/types/listingTypes";
+import type { ExtensionType, ListingKind, ListingComment } from "../data/types/listingTypes";
 
 export class ListingController {
     constructor(private readonly listingService: ListingService) {}
@@ -483,6 +483,84 @@ export class ListingController {
             const { id } = req.params as { id: string };
             const result = await this.listingService.approveListingComment(id);
             res.status(200).json({ success: true, data: result, message: "Comment approved." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getListingComments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { listingId } = req.params as { listingId: string };
+            const comments = await this.listingService.getListingComments(listingId);
+            res.status(200).json({
+                success: true,
+                data: ListingAdminDTOMapper.toPublicCommentDTOCollection(comments),
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    createListingComment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const result = await this.listingService.createListingComment(
+                req.body as import("../data/schemas/listingSchemas").ListingCommentCreateSchemaType,
+                userId,
+                authReq.user?.id
+            );
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: "Comment submitted. It may appear after moderation.",
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    upsertListingRating = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            const { rating } = req.body as { rating: number };
+            const result = await this.listingService.upsertListingRating(
+                id,
+                rating,
+                userId,
+                authReq.user?.id
+            );
+            res.status(200).json({ success: true, data: result, message: "Rating saved." });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    cloneStack = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            const result = await this.listingService.cloneStack(id, userId, authReq.user?.id);
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: "Stack cloned as a new draft.",
+            });
         } catch (err) {
             next(err);
         }

@@ -14,6 +14,7 @@ import type {
     AdminListingActivitiesFilterOptions,
     AdminListingComment,
     AdminListingActivity,
+    ListingComment,
 } from "../data/types/listingTypes";
 import type {
     CategoryPaginationOptions,
@@ -29,6 +30,7 @@ import type {
 import type {
     ListingCreateBodySchemaType,
     ListingUpdateBodySchemaType,
+    ListingCommentCreateSchemaType,
 } from "../data/schemas/listingSchemas";
 import type {
     ListingCategoryCreateSchemaType,
@@ -72,6 +74,7 @@ const CACHE_KEYS = {
     LISTING_USER_BOOKMARKS: "listing:bookmarks:user",
     LISTING_ADMIN_COMMENTS_LIST: "listing:admin:comments:list",
     LISTING_ADMIN_ACTIVITIES_LIST: "listing:admin:activities:list",
+    LISTING_COMMENTS_BY_LISTING: "listing:comments:byListing",
 };
 
 const LISTING_CACHE_TTL_SEC = 300;
@@ -220,7 +223,7 @@ export class ListingService {
         ownerId: string,
         isPlatformAdmin: boolean
     ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
-        const { listingData, listingTagsData } = body;
+        const { listingData, listingTagsData, stackMembersData = [] } = body;
         const isUserApproved = listingData.is_user_published === true;
         const approveInfo = await this.getApproveConfigInfo();
 
@@ -238,7 +241,8 @@ export class ListingService {
                 listingData,
                 listingTagsData,
                 ownerId,
-                isAdminPublished
+                isAdminPublished,
+                stackMembersData
             );
 
         await this._invalidateListingMutationCaches(savedListingId);
@@ -250,7 +254,7 @@ export class ListingService {
         actorUserId: string,
         isPlatformAdmin: boolean
     ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
-        const { listingData, listingTagsData } = body;
+        const { listingData, listingTagsData, stackMembersData = [] } = body;
         const isUserApproved = listingData.is_user_published === true;
         const approveInfo = await this.getApproveConfigInfo();
 
@@ -283,7 +287,8 @@ export class ListingService {
                 listingData,
                 listingTagsData,
                 ownerId,
-                isAdminPublished
+                isAdminPublished,
+                stackMembersData
             );
 
         await this._invalidateListingMutationCaches(savedListingId);
@@ -500,6 +505,9 @@ export class ListingService {
         const result = await this.listingRepository.approveListingComment(commentId);
         if (this.cacheInvalidator) {
             await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
+            await this.cacheInvalidator.invalidateKey(
+                `${CACHE_KEYS.LISTING_COMMENTS_BY_LISTING}:${result.listing_id}`
+            );
         }
         return { id: result.id };
     }
@@ -509,6 +517,53 @@ export class ListingService {
         if (this.cacheInvalidator) {
             await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
         }
+    }
+
+    async getListingComments(listingId: string): Promise<ListingComment[]> {
+        const cacheKey = `${CACHE_KEYS.LISTING_COMMENTS_BY_LISTING}:${listingId}`;
+        const factory = async () => {
+            const { data } = await this.listingRepository.findListingComments(listingId);
+            return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+    }
+
+    async createListingComment(
+        payload: ListingCommentCreateSchemaType,
+        userId: string,
+        authUserId?: string
+    ): Promise<{ id: string }> {
+        await this._assertCommunityFeatures(authUserId);
+        const result = await this.listingRepository.createListingComment(payload, userId);
+        await this.listingRepository.insertListingActivity(payload.listing_id, "comment", userId);
+        if (this.cacheInvalidator) {
+            await this.cacheInvalidator.invalidateKey(
+                `${CACHE_KEYS.LISTING_COMMENTS_BY_LISTING}:${payload.listing_id}`
+            );
+            await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_COMMENTS_LIST}:*`);
+        }
+        return { id: result.id };
+    }
+
+    async upsertListingRating(
+        listingId: string,
+        rating: number,
+        userId: string,
+        authUserId?: string
+    ): Promise<{ id: string }> {
+        await this._assertCommunityFeatures(authUserId);
+        const result = await this.listingRepository.upsertListingRating(listingId, userId, rating);
+        await this.listingRepository.insertListingActivity(listingId, "rating", userId);
+        await this._invalidateListingStatCaches(listingId);
+        return { id: result.id };
+    }
+
+    async cloneStack(stackId: string, ownerId: string, authUserId?: string): Promise<{ id: string }> {
+        await this._assertCommunityFeatures(authUserId);
+        const result = await this.listingRepository.cloneStack(stackId, ownerId);
+        await this._invalidateListingMutationCaches(result.id);
+        return result;
     }
 
     private async _assertCommunityFeatures(authUserId?: string): Promise<void> {

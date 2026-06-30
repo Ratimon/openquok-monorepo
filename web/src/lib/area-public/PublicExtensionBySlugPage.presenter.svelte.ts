@@ -1,7 +1,8 @@
 import type {
 	ExtensionCardViewModel,
 	ExtensionDetailViewModel,
-	GetListingPresenter
+	GetListingPresenter,
+	ListingCommentViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { ListingRepository, ListingUpsertProgrammerModel } from '$lib/listings/Listing.repository.svelte';
 
@@ -18,6 +19,8 @@ export class PublicExtensionBySlugPagePresenter {
 	public extensionVm: ExtensionDetailViewModel | null = $state(null);
 	public relatedExtensionsVm: ExtensionCardViewModel[] = $state([]);
 	public submittingLike = $state(false);
+	public submittingComment = $state(false);
+	public submittingRating = $state(false);
 
 	constructor(
 		private readonly getListingPresenter: GetListingPresenter,
@@ -88,6 +91,44 @@ export class PublicExtensionBySlugPagePresenter {
 		const resultPm = await this.listingRepository.incrementClicks(listingId);
 		if (resultPm.ok && this.extensionVm?.id === listingId) {
 			this.extensionVm = { ...this.extensionVm, clicks: this.extensionVm.clicks + 1 };
+		}
+	}
+
+	async loadListingCommentsStateless(params: {
+		listingId: string;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<ListingCommentViewModel[]> {
+		return this.getListingPresenter.loadListingCommentsVm(params.listingId, params.fetch);
+	}
+
+	async submitListingComment(params: {
+		listingId: string;
+		content: string;
+		parentId: string | null;
+	}): Promise<PublicExtensionMutationResultViewModel> {
+		this.submittingComment = true;
+		try {
+			const resultPm = await this.listingRepository.createListingComment({
+				listingId: params.listingId,
+				content: params.content,
+				parentId: params.parentId
+			});
+			return mutationPmToVm(resultPm);
+		} finally {
+			this.submittingComment = false;
+		}
+	}
+
+	async submitListingRating(
+		listingId: string,
+		rating: number
+	): Promise<PublicExtensionMutationResultViewModel> {
+		this.submittingRating = true;
+		try {
+			const resultPm = await this.listingRepository.upsertListingRating(listingId, rating);
+			return mutationPmToVm(resultPm);
+		} finally {
+			this.submittingRating = false;
 		}
 	}
 }

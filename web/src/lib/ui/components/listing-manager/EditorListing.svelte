@@ -20,6 +20,7 @@
 	import { arraysEqual } from '$lib/ui/helpers/common';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import EditorListingValidationNotice from '$lib/ui/components/listing-manager/EditorListingValidationNotice.svelte';
+	import StackMembersEditor from '$lib/ui/components/listing-manager/StackMembersEditor.svelte';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 	import * as Field from '$lib/ui/field';
@@ -37,6 +38,12 @@
 		listingKind: 'extension' | 'stack';
 		isPlatformAdmin: boolean;
 		isSubmitting: boolean;
+		stackExtensionChoices?: Array<{
+			id: string;
+			title: string;
+			slug: string;
+			extensionType: string | null;
+		}>;
 		importingGithub?: boolean;
 		syncingGithub?: boolean;
 		slugDisplay?: string;
@@ -60,6 +67,7 @@
 		listingKind,
 		isPlatformAdmin,
 		isSubmitting,
+		stackExtensionChoices = [],
 		importingGithub = false,
 		syncingGithub = false,
 		slugDisplay = '',
@@ -73,6 +81,12 @@
 
 	let githubImportUrl = $state('');
 	let submitAttempted = $state(false);
+	let stackMembers = $derived.by(() =>
+		((initialValues as ListingStackFormSchemaType).stack_members ?? []).map((member, index) => ({
+			...member,
+			sort_order: member.sort_order ?? index
+		}))
+	);
 	const formBaseline = (() => ({
 		tagIds: [...(initialValues.tag_ids ?? [])],
 		isNewListing: !(initialValues.id ?? '').length
@@ -273,7 +287,8 @@
 				is_user_published: value.is_user_published,
 				is_admin_published: value.is_admin_published,
 				schema_type: value.schema_type,
-				faq: value.faq ?? []
+				faq: value.faq ?? [],
+				...(listingKind === 'stack' ? { stack_members: stackMembers } : {})
 			};
 
 			const schema =
@@ -628,6 +643,13 @@
 		</form.Field>
 
 		{#if listingKind === 'stack'}
+			<StackMembersEditor
+				members={stackMembers}
+				extensionChoices={stackExtensionChoices}
+				onChange={(next) => {
+					stackMembers = next;
+				}}
+			/>
 			<form.Field name="click_url">
 				{#snippet children(field)}
 					<div class="flex flex-col gap-2">

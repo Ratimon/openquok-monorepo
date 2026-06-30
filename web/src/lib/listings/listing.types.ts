@@ -98,10 +98,21 @@ export const listingExtensionFormSchema = z.object({
 
 export type ListingExtensionFormSchemaType = z.infer<typeof listingExtensionFormSchema>;
 
+const stackMemberRoleSchema = z.enum(['skills', 'mcp']);
+
+export const stackMemberFormSchema = z.object({
+	member_listing_id: z.string().uuid('Invalid member listing id'),
+	member_role: stackMemberRoleSchema,
+	sort_order: z.number().int().min(0).default(0)
+});
+
+export type StackMemberFormSchemaType = z.infer<typeof stackMemberFormSchema>;
+
 /** Form schema for create/update stack listings (no extension_type). */
 export const listingStackFormSchema = z.object({
 	...listingSharedFields,
-	listing_kind: z.literal('stack').default('stack')
+	listing_kind: z.literal('stack').default('stack'),
+	stack_members: z.array(stackMemberFormSchema).default([])
 });
 
 export type ListingStackFormSchemaType = z.infer<typeof listingStackFormSchema>;
@@ -199,7 +210,6 @@ export interface ExtensionsTagFilterViewModel {
 	totalCount: number;
 }
 
-/** View model for admin comments manager UI (presenter + table); not a wire DTO. */
 export interface AdminListingCommentVm {
 	id: string;
 	content: string;

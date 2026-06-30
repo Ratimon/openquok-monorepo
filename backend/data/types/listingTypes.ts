@@ -1,6 +1,34 @@
 export type ListingKind = "extension" | "stack";
 export type ExtensionType = "skills" | "mcp" | "both";
+export type StackMemberRole = "skills" | "mcp";
 export type ListingActivityType = "view" | "like" | "bookmark" | "rating" | "comment" | "click";
+
+export interface StackMemberRef {
+    member_listing_id: string;
+    member_role: StackMemberRole;
+    sort_order: number;
+}
+
+export interface StackMemberListingSummary {
+    id: string;
+    title: string;
+    slug: string;
+    extension_type: string | null;
+    excerpt: string | null;
+    logo_image_url: string | null;
+    is_official: boolean | null;
+    install_command_skills: string | null;
+    install_command_mcp: string | null;
+}
+
+export interface ListingStackMember {
+    id: string;
+    stack_listing_id: string;
+    member_listing_id: string;
+    member_role: StackMemberRole;
+    sort_order: number;
+    member: StackMemberListingSummary | null;
+}
 
 export interface PublishedListingsFilterOptions {
     limit?: number;

@@ -126,15 +126,26 @@ export const listingUpdateSchema = z
     });
 export type ListingUpdateSchemaType = z.infer<typeof listingUpdateSchema>;
 
+const stackMemberRoleSchema = z.enum(["skills", "mcp"]);
+
+export const stackMemberRefSchema = z.object({
+    member_listing_id: z.string().uuid("Invalid member listing id"),
+    member_role: stackMemberRoleSchema,
+    sort_order: z.number().int().min(0).default(0),
+});
+export type StackMemberRefSchemaType = z.infer<typeof stackMemberRefSchema>;
+
 export const listingCreateBodySchema = z.object({
     listingData: listingCreateSchema,
     listingTagsData: z.array(listingTagRefSchema).default([]),
+    stackMembersData: z.array(stackMemberRefSchema).optional().default([]),
 });
 export type ListingCreateBodySchemaType = z.infer<typeof listingCreateBodySchema>;
 
 export const listingUpdateBodySchema = z.object({
     listingData: listingUpdateSchema,
     listingTagsData: z.array(listingTagRefSchema).default([]),
+    stackMembersData: z.array(stackMemberRefSchema).optional().default([]),
 });
 export type ListingUpdateBodySchemaType = z.infer<typeof listingUpdateBodySchema>;
 
@@ -164,3 +175,24 @@ export const listingGithubImportBodySchema = z.object({
 });
 
 export type ListingGithubImportBodySchemaType = z.infer<typeof listingGithubImportBodySchema>;
+
+const listingCommentContent = z
+    .string()
+    .min(1, "Comment is required")
+    .max(1000, "Comment must be at most 1000 characters");
+
+export const listingCommentCreateSchema = z.object({
+    listing_id: z.string().uuid("Invalid listing id"),
+    parent_id: z.string().uuid("Invalid parent comment id").optional().nullable(),
+    content: listingCommentContent,
+});
+export type ListingCommentCreateSchemaType = z.infer<typeof listingCommentCreateSchema>;
+
+export const listingCommentsParamSchema = z.object({
+    listingId: z.string().uuid("Invalid listing id"),
+});
+
+export const listingRatingBodySchema = z.object({
+    rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
+});
+export type ListingRatingBodySchemaType = z.infer<typeof listingRatingBodySchema>;

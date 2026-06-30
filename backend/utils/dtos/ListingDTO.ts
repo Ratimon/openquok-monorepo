@@ -5,6 +5,7 @@ import type {
     AdminListingComment,
     AdminListingActivity,
     AdminListingCommentsFilterOptions,
+    ListingComment,
 } from "../../data/types/listingTypes";
 import type {
     PartialListingCategory,
@@ -96,6 +97,39 @@ export interface ListingLike {
                   | null;
           }>
         | null;
+    listing_stack_members?:
+        | Array<{
+              id: string;
+              stack_listing_id: string;
+              member_listing_id: string;
+              member_role: string;
+              sort_order: number;
+              member?:
+                  | Array<{
+                        id: string;
+                        title: string;
+                        slug: string;
+                        extension_type?: string | null;
+                        excerpt?: string | null;
+                        logo_image_url?: string | null;
+                        is_official?: boolean | null;
+                        install_command_skills?: string | null;
+                        install_command_mcp?: string | null;
+                    }>
+                  | {
+                        id: string;
+                        title: string;
+                        slug: string;
+                        extension_type?: string | null;
+                        excerpt?: string | null;
+                        logo_image_url?: string | null;
+                        is_official?: boolean | null;
+                        install_command_skills?: string | null;
+                        install_command_mcp?: string | null;
+                    }
+                  | null;
+          }>
+        | null;
 }
 
 export interface ListingDTO {
@@ -157,6 +191,25 @@ export interface ListingDTO {
         avatarUrl: string | null;
         tagLine: string | null;
     } | null;
+    stackMembers: StackMemberDTO[];
+}
+
+export interface StackMemberDTO {
+    id: string;
+    memberListingId: string;
+    memberRole: string;
+    sortOrder: number;
+    member: {
+        id: string;
+        title: string;
+        slug: string;
+        extensionType: string | null;
+        excerpt: string | null;
+        logoImageUrl: string | null;
+        isOfficial: boolean;
+        installCommandSkills: string | null;
+        installCommandMcp: string | null;
+    } | null;
 }
 
 function unwrapOne<T>(value: T | T[] | null | undefined): T | null {
@@ -183,6 +236,32 @@ export class ListingDTOMapper {
               : tagsRaw
                 ? [tagsRaw]
                 : [];
+
+        const stackMembers = (listing.listing_stack_members ?? [])
+            .slice()
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+            .map((row) => {
+                const rawMember = Array.isArray(row.member) ? row.member[0] ?? null : row.member ?? null;
+                return {
+                    id: row.id,
+                    memberListingId: row.member_listing_id,
+                    memberRole: row.member_role,
+                    sortOrder: row.sort_order ?? 0,
+                    member: rawMember
+                        ? {
+                              id: rawMember.id,
+                              title: rawMember.title,
+                              slug: rawMember.slug,
+                              extensionType: rawMember.extension_type ?? null,
+                              excerpt: rawMember.excerpt ?? null,
+                              logoImageUrl: rawMember.logo_image_url ?? null,
+                              isOfficial: rawMember.is_official === true,
+                              installCommandSkills: rawMember.install_command_skills ?? null,
+                              installCommandMcp: rawMember.install_command_mcp ?? null,
+                          }
+                        : null,
+                };
+            });
 
         return {
             id: listing.id,
@@ -252,6 +331,7 @@ export class ListingDTOMapper {
                       tagLine: profiles?.tag_line ?? null,
                   }
                 : null,
+            stackMembers,
         };
     }
 
@@ -349,7 +429,7 @@ export function buildAdminListingCommentsCacheKey(
 }
 
 export const ListingAdminDTOMapper = {
-    toCommentDTO(row: AdminListingComment): ListingCommentDTO {
+    toCommentDTO(row: ListingComment | AdminListingComment): ListingCommentDTO {
         return {
             id: row.id,
             content: row.content,
@@ -381,6 +461,11 @@ export const ListingAdminDTOMapper = {
     toAdminCommentDTOCollection(rows: AdminListingComment[]): AdminListingCommentDTO[] {
         if (!Array.isArray(rows)) return [];
         return rows.map((r) => ListingAdminDTOMapper.toAdminCommentDTO(r));
+    },
+
+    toPublicCommentDTOCollection(rows: ListingComment[]): ListingCommentDTO[] {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toCommentDTO(r));
     },
 
     toAdminActivityDTO(row: AdminListingActivity): AdminListingActivityDTO {

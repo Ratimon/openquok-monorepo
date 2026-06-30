@@ -10,6 +10,7 @@ import type {
 	AdminListingActivityProgrammerModel,
 	AdminListingCommentProgrammerModel,
 	ListingCategoryProgrammerModel,
+	ListingCommentProgrammerModel,
 	ListingProgrammerModel,
 	ListingRepository,
 	ListingTagProgrammerModel,
@@ -126,6 +127,75 @@ export type ExtensionCardViewModel = ListingPublicViewModel;
 
 /** Alias used by extension detail page. */
 export type ExtensionDetailViewModel = ListingDetailPublicViewModel;
+
+export interface StackMemberViewModel {
+	id: string;
+	memberListingId: string;
+	memberRole: string;
+	sortOrder: number;
+	member: {
+		id: string;
+		title: string;
+		slug: string;
+		extensionType: string | null;
+		excerpt: string | null;
+		logoImageUrl: string | null;
+		isOfficial: boolean;
+		installCommandSkills: string | null;
+		installCommandMcp: string | null;
+	} | null;
+}
+
+export interface StackCardViewModel {
+	id: string;
+	title: string;
+	slug: string;
+	excerpt: string | null;
+	description: string | null;
+	logoImageUrl: string | null;
+	likes: number;
+	views: number;
+	memberCount: number;
+	createdAt: string;
+	category: { id: string; name: string; slug: string } | null;
+	tags: Array<{ id: string; name: string; slug: string }>;
+}
+
+export interface StackDetailViewModel {
+	id: string;
+	title: string;
+	slug: string;
+	excerpt: string | null;
+	description: string | null;
+	content: string | null;
+	logoImageUrl: string | null;
+	likes: number;
+	views: number;
+	clicks: number;
+	averageRating: number;
+	ratingsCount: number;
+	createdAt: string;
+	publishedAt: string | null;
+	category: { id: string; name: string; slug: string; parentPath?: string } | null;
+	tags: Array<{ id: string; name: string; slug: string }>;
+	owner: ListingDetailPublicViewModel['owner'];
+	stackMembers: StackMemberViewModel[];
+}
+
+export interface ListingCommentViewModel {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
+}
 
 /** Category row for extensions hub sidebar. */
 export interface ExtensionCategoryViewModel {
@@ -250,6 +320,36 @@ export class GetListingPresenter {
 		fetch?: typeof globalThis.fetch
 	): Promise<ExtensionDetailViewModel | null> {
 		return this.loadPublishedExtensionBySlugVm(slug, fetch);
+	}
+
+	public async loadPublishedStacksVm(params: {
+		limit?: number;
+		skip?: number;
+		searchTerm?: string | null;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<{ stacks: StackCardViewModel[]; count: number }> {
+		const result = await this.listingRepository.getPublishedStacks(params);
+		return {
+			stacks: result.listings.map((listing) => this.toStackCardVm(listing)),
+			count: result.count
+		};
+	}
+
+	public async loadPublishedStackBySlugVm(
+		slug: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<StackDetailViewModel | null> {
+		const pm = await this.listingRepository.getPublishedStackBySlug(slug, fetch);
+		if (!pm) return null;
+		return this.toStackDetailVm(pm);
+	}
+
+	public async loadListingCommentsVm(
+		listingId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingCommentViewModel[]> {
+		const commentsPm = await this.listingRepository.getListingComments(listingId, fetch);
+		return commentsPm.map((comment) => this.toListingCommentVm(comment));
 	}
 
 	public async loadActiveCategoriesVm(fetch?: typeof globalThis.fetch): Promise<CategoryViewModel[]> {
@@ -587,6 +687,65 @@ export class GetListingPresenter {
 			listingId: pm.listingId,
 			author: pm.author ? { ...pm.author } : null,
 			listing: pm.listing ? { ...pm.listing } : null
+		};
+	}
+
+	private toStackCardVm(listing: ListingProgrammerModel): StackCardViewModel {
+		return {
+			id: listing.id,
+			title: listing.title,
+			slug: listing.slug,
+			excerpt: listing.excerpt,
+			description: listing.description,
+			logoImageUrl: listing.logoImageUrl,
+			likes: listing.likes,
+			views: listing.views,
+			memberCount: listing.stackMembers?.length ?? 0,
+			createdAt: listing.createdAt,
+			category: listing.category ? { ...listing.category } : null,
+			tags: listing.tags.map((t) => ({ ...t }))
+		};
+	}
+
+	private toStackDetailVm(listing: ListingProgrammerModel): StackDetailViewModel {
+		return {
+			id: listing.id,
+			title: listing.title,
+			slug: listing.slug,
+			excerpt: listing.excerpt,
+			description: listing.description,
+			content: listing.content,
+			logoImageUrl: listing.logoImageUrl,
+			likes: listing.likes,
+			views: listing.views,
+			clicks: listing.clicks,
+			averageRating: listing.averageRating,
+			ratingsCount: listing.ratingsCount,
+			createdAt: listing.createdAt,
+			publishedAt: listing.publishedAt,
+			category: listing.category ? { ...listing.category } : null,
+			tags: listing.tags.map((t) => ({ ...t })),
+			owner: listing.owner ? { ...listing.owner } : null,
+			stackMembers: (listing.stackMembers ?? []).map((member) => ({
+				id: member.id,
+				memberListingId: member.memberListingId,
+				memberRole: member.memberRole,
+				sortOrder: member.sortOrder,
+				member: member.member ? { ...member.member } : null
+			}))
+		};
+	}
+
+	private toListingCommentVm(comment: ListingCommentProgrammerModel): ListingCommentViewModel {
+		return {
+			id: comment.id,
+			content: comment.content,
+			isApproved: comment.isApproved,
+			createdAt: comment.createdAt,
+			updatedAt: comment.updatedAt,
+			parentId: comment.parentId,
+			userId: comment.userId,
+			author: comment.author ? { ...comment.author } : null
 		};
 	}
 }

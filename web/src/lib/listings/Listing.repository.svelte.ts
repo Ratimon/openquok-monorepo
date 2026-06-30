@@ -68,6 +68,40 @@ export interface ListingDto {
 		avatarUrl: string | null;
 		tagLine: string | null;
 	} | null;
+	stackMembers?: StackMemberDto[];
+}
+
+export interface StackMemberDto {
+	id: string;
+	memberListingId: string;
+	memberRole: string;
+	sortOrder: number;
+	member: {
+		id: string;
+		title: string;
+		slug: string;
+		extensionType: string | null;
+		excerpt: string | null;
+		logoImageUrl: string | null;
+		isOfficial: boolean;
+		installCommandSkills: string | null;
+		installCommandMcp: string | null;
+	} | null;
+}
+
+export interface ListingCommentDto {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
 }
 
 export interface ListingCategoryDto {
@@ -143,6 +177,8 @@ export interface ListingConfig {
 		getListingInformation: string;
 		getPublishedListings: string;
 		getPublishedBySlug: (slug: string) => string;
+		getPublishedStacks: string;
+		getPublishedStackBySlug: (slug: string) => string;
 		getAdminListings: string;
 		getListingById: (id: string) => string;
 		createListing: string;
@@ -166,6 +202,10 @@ export interface ListingConfig {
 		trackClick: (listingId: string) => string;
 		importFromGithub: string;
 		syncFromGithub: (id: string) => string;
+		getListingComments: (listingId: string) => string;
+		createListingComment: string;
+		upsertListingRating: (listingId: string) => string;
+		cloneStack: (stackId: string) => string;
 	};
 }
 
@@ -405,6 +445,40 @@ export interface ListingProgrammerModel {
 		avatarUrl: string | null;
 		tagLine: string | null;
 	} | null;
+	stackMembers: StackMemberProgrammerModel[];
+}
+
+export interface StackMemberProgrammerModel {
+	id: string;
+	memberListingId: string;
+	memberRole: string;
+	sortOrder: number;
+	member: {
+		id: string;
+		title: string;
+		slug: string;
+		extensionType: string | null;
+		excerpt: string | null;
+		logoImageUrl: string | null;
+		isOfficial: boolean;
+		installCommandSkills: string | null;
+		installCommandMcp: string | null;
+	} | null;
+}
+
+export interface ListingCommentProgrammerModel {
+	id: string;
+	content: string;
+	isApproved: boolean;
+	createdAt: string;
+	updatedAt: string | null;
+	parentId: string | null;
+	userId: string;
+	author: {
+		id: string;
+		fullName: string | null;
+		avatarUrl: string | null;
+	} | null;
 }
 
 export interface ListingCategoryProgrammerModel {
@@ -570,6 +644,144 @@ export class ListingRepository {
 			return this.toListingPm(getPublishedBySlugDto.data);
 		}
 		return null;
+	}
+
+	async getPublishedStacks(
+		params: {
+			limit?: number;
+			skip?: number;
+			searchTerm?: string | null;
+			sortByKey?: string | null;
+			sortByOrder?: boolean | null;
+			fetch?: typeof globalThis.fetch;
+		} = {}
+	): Promise<{ listings: ListingProgrammerModel[]; count: number }> {
+		const query: Record<string, string | number | boolean> = {
+			limit: params.limit ?? 50,
+			skip: params.skip ?? 0
+		};
+		const term = params.searchTerm?.trim();
+		if (term) query.searchTerm = term;
+		if (params.sortByKey) query.sortByKey = params.sortByKey;
+		if (params.sortByOrder != null) query.sortByOrder = params.sortByOrder;
+
+		const { data: getPublishedStacksDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+			this.config.endpoints.getPublishedStacks,
+			query,
+			{ withCredentials: false, fetch: params.fetch }
+		);
+
+		if (ok && getPublishedStacksDto?.success && Array.isArray(getPublishedStacksDto.data)) {
+			return {
+				listings: getPublishedStacksDto.data.map((row) => this.toListingPm(row)),
+				count: getPublishedStacksDto.count ?? 0
+			};
+		}
+		return { listings: [], count: 0 };
+	}
+
+	async getPublishedStackBySlug(
+		slug: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingProgrammerModel | null> {
+		const { data: getPublishedStackDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+			this.config.endpoints.getPublishedStackBySlug(slug),
+			undefined,
+			{ withCredentials: false, fetch }
+		);
+		if (ok && getPublishedStackDto?.success && getPublishedStackDto.data) {
+			return this.toListingPm(getPublishedStackDto.data);
+		}
+		return null;
+	}
+
+	async getListingComments(
+		listingId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingCommentProgrammerModel[]> {
+		const { data: getCommentsDto, ok } = await this.httpGateway.get<{
+			success: boolean;
+			data: ListingCommentDto[];
+		}>(this.config.endpoints.getListingComments(listingId), undefined, {
+			withCredentials: false,
+			fetch
+		});
+		if (ok && getCommentsDto?.success && Array.isArray(getCommentsDto.data)) {
+			return getCommentsDto.data.map((row) => this.toListingCommentPm(row));
+		}
+		return [];
+	}
+
+	async createListingComment(params: {
+		listingId: string;
+		content: string;
+		parentId: string | null;
+		fetch?: typeof globalThis.fetch;
+	}): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: createCommentDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { id: string };
+				message?: string;
+			}>(
+				this.config.endpoints.createListingComment,
+				{
+					listing_id: params.listingId,
+					content: params.content,
+					parent_id: params.parentId
+				},
+				{ withCredentials: true, fetch: params.fetch }
+			);
+			if (ok && createCommentDto?.success && createCommentDto.data?.id) {
+				return { ok: true, id: createCommentDto.data.id };
+			}
+			return { ok: false, error: createCommentDto?.message ?? 'Failed to submit comment.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async upsertListingRating(
+		listingId: string,
+		rating: number,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: ratingDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { id: string };
+				message?: string;
+			}>(
+				this.config.endpoints.upsertListingRating(listingId),
+				{ rating },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && ratingDto?.success) {
+				return { ok: true, id: ratingDto.data?.id };
+			}
+			return { ok: false, error: ratingDto?.message ?? 'Failed to save rating.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async cloneStack(stackId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: cloneDto, ok } = await this.httpGateway.post<{
+				success: boolean;
+				data?: { id: string };
+				message?: string;
+			}>(this.config.endpoints.cloneStack(stackId), undefined, {
+				withCredentials: true,
+				fetch
+			});
+			if (ok && cloneDto?.success && cloneDto.data?.id) {
+				return { ok: true, id: cloneDto.data.id };
+			}
+			return { ok: false, error: cloneDto?.message ?? 'Failed to clone stack.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
 	}
 
 	async getAdminListings(
@@ -1045,11 +1257,22 @@ export class ListingRepository {
 	private toListingUpsertBody(
 		payload: ListingFormSchemaType,
 		listingTagsData: Array<{ id: string; slug: string }>
-	): { listingData: Record<string, unknown>; listingTagsData: Array<{ id: string; slug: string }> } {
-		const { tag_ids: _tagIds, ...listingFields } = payload;
+	): {
+		listingData: Record<string, unknown>;
+		listingTagsData: Array<{ id: string; slug: string }>;
+		stackMembersData: Array<{ member_listing_id: string; member_role: string; sort_order: number }>;
+	} {
+		const { tag_ids: _tagIds, stack_members: stackMembers, ...listingFields } = payload as ListingFormSchemaType & {
+			stack_members?: Array<{ member_listing_id: string; member_role: string; sort_order: number }>;
+		};
 		return {
 			listingData: listingFields,
-			listingTagsData
+			listingTagsData,
+			stackMembersData: (stackMembers ?? []).map((member, index) => ({
+				member_listing_id: member.member_listing_id,
+				member_role: member.member_role,
+				sort_order: member.sort_order ?? index
+			}))
 		};
 	}
 
@@ -1113,6 +1336,44 @@ export class ListingRepository {
 						username: row.owner.username ?? null,
 						avatarUrl: row.owner.avatarUrl ?? null,
 						tagLine: row.owner.tagLine ?? null
+					}
+				: null,
+			stackMembers: (row.stackMembers ?? []).map((member) => ({
+				id: member.id,
+				memberListingId: member.memberListingId,
+				memberRole: member.memberRole,
+				sortOrder: member.sortOrder,
+				member: member.member
+					? {
+							id: member.member.id,
+							title: member.member.title,
+							slug: member.member.slug,
+							extensionType: member.member.extensionType ?? null,
+							excerpt: member.member.excerpt ?? null,
+							logoImageUrl: member.member.logoImageUrl ?? null,
+							isOfficial: member.member.isOfficial,
+							installCommandSkills: member.member.installCommandSkills ?? null,
+							installCommandMcp: member.member.installCommandMcp ?? null
+						}
+					: null
+			}))
+		};
+	}
+
+	private toListingCommentPm(row: ListingCommentDto): ListingCommentProgrammerModel {
+		return {
+			id: row.id,
+			content: row.content,
+			isApproved: row.isApproved,
+			createdAt: row.createdAt,
+			updatedAt: row.updatedAt ?? null,
+			parentId: row.parentId ?? null,
+			userId: row.userId,
+			author: row.author
+				? {
+						id: row.author.id,
+						fullName: row.author.fullName ?? null,
+						avatarUrl: row.author.avatarUrl ?? null
 					}
 				: null
 		};

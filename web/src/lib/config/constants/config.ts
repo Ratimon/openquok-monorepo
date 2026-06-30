@@ -5,12 +5,14 @@ import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathP
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicExtensions } from '$lib/area-public/constants/getRootPathPublicExtensions';
+import { getRootPathPublicStacks } from '$lib/area-public/constants/getRootPathPublicStacks';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicExtensionsPath = route(getRootPathPublicExtensions());
+const publicStacksPath = route(getRootPathPublicStacks());
 const publicDocsPath = route(getRootPathPublicDocs());
 
 const appName = 'openquok';
@@ -590,6 +592,7 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
 	{ pathname: publicExtensionsPath, title: 'Extensions', navType: 'tab' },
+	{ pathname: publicStacksPath, title: 'Stacks', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];

@@ -24,6 +24,9 @@ import {
     listingCreatorUsernameParamSchema,
     listingCommentIdParamSchema,
     listingGithubImportBodySchema,
+    listingCommentCreateSchema,
+    listingCommentsParamSchema,
+    listingRatingBodySchema,
 } from "../data/schemas/listingSchemas";
 import {
     listingCategoryCreateSchema,
@@ -78,6 +81,15 @@ const tagUpdateBodySchema = z.object({
     tagData: listingTagUpdateSchema,
     tagGroupIds: z.array(z.string().uuid()).optional(),
 });
+
+const whenParamIsId = (req: Request, _res: Response, next: NextFunction): void => {
+    const id = (req.params as { id?: string }).id;
+    if (id && isValidUUID(id)) {
+        next();
+    } else {
+        next("route");
+    }
+};
 
 // --- Categories (before /:id) ---
 listingRouter.get(
@@ -193,10 +205,31 @@ listingRouter.get(
     listingController.getPublishedStackBySlug
 );
 
+listingRouter.post(
+    "/stacks/:id/clone",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.cloneStack
+);
+
 listingRouter.get(
     "/published/:slug",
     validateRequest({ params: listingSlugParamSchema }),
     listingController.getPublishedListingBySlug
+);
+
+listingRouter.get(
+    "/:listingId/comments",
+    validateRequest({ params: listingCommentsParamSchema }),
+    listingController.getListingComments
+);
+
+listingRouter.post(
+    "/comments",
+    authWithRoles,
+    validateRequest({ body: listingCommentCreateSchema }),
+    listingController.createListingComment
 );
 
 // --- Admin ---
@@ -240,15 +273,6 @@ listingRouter.get(
     listingController.getAdminListings
 );
 
-const whenParamIsId = (req: Request, _res: Response, next: NextFunction): void => {
-    const id = (req.params as { id?: string }).id;
-    if (id && isValidUUID(id)) {
-        next();
-    } else {
-        next("route");
-    }
-};
-
 listingRouter.post(
     "/import/github",
     authWithRoles,
@@ -285,14 +309,24 @@ listingRouter.post(
 
 listingRouter.put(
     "/:id",
+    whenParamIsId,
     authWithRoles,
     requireEditor,
     validateRequest({ params: listingIdParamSchema, body: listingUpdateBodySchema }),
     listingController.updateListing
 );
 
+listingRouter.post(
+    "/:id/ratings",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema, body: listingRatingBodySchema }),
+    listingController.upsertListingRating
+);
+
 listingRouter.delete(
     "/:id",
+    whenParamIsId,
     authWithRoles,
     requireEditor,
     validateRequest({ params: listingIdParamSchema }),

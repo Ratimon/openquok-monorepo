@@ -1,8 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
-	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
 	import { toast } from '$lib/ui/sonner';
@@ -10,9 +8,12 @@
 	import { planLimitsForTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
 
-	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
+	import {
+		publicExtensionBySlugPagePresenter,
+		publicStackBySlugPagePresenter
+	} from '$lib/area-public';
 
-	import ExtensionDetailPage from '$lib/ui/templates/extensions/ExtensionDetailPage.svelte';
+	import StackDetailPage from '$lib/ui/templates/stacks/StackDetailPage.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -20,10 +21,8 @@
 
 	let { data }: Props = $props();
 
-	let extensionVm = $derived(data.extensionVm);
-	let relatedExtensionsVm = $derived(data.relatedExtensionsVm);
-	let commentsVm = $derived((data.commentsVm ?? []) as ListingCommentViewModel[]);
-	let schemaData = $derived(data.schemaData);
+	let stackVm = $derived(data.stackVm);
+	let commentsVm = $derived(data.commentsVm);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
@@ -46,20 +45,41 @@
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
 
-	onMount(() => {
-		if (!browser || !extensionVm?.id) return;
-		void publicExtensionBySlugPagePresenter.trackExtensionView(extensionVm.id);
-	});
+	async function handleClone() {
+		if (!stackVm) return;
+		if (!isLoggedIn) {
+			toast.error('Sign in to clone this stack.');
+			return;
+		}
+		if (!communityEnabled) {
+			showUpgradeModal = true;
+			return;
+		}
+		const result = await publicStackBySlugPagePresenter.cloneStack(stackVm.id);
+		if (result.ok) {
+			toast.success('Stack cloned as a new draft.');
+			return;
+		}
+		toast.error(result.error);
+	}
 </script>
 
-<JsonLdHead schemaData={schemaData} />
+<JsonLdHead
+	schemaData={{
+		'@context': 'https://schema.org',
+		'@type': 'WebPage',
+		name: stackVm.title,
+		description: stackVm.excerpt ?? stackVm.description
+	}}
+/>
 
-<ExtensionDetailPage
-	extension={extensionVm}
-	relatedExtensions={relatedExtensionsVm}
-	{commentsVm}
+<StackDetailPage
+	stack={stackVm}
 	{isLoggedIn}
+	comments={commentsVm}
 	communityCommentsEnabled={communityEnabled}
+	onClone={handleClone}
+	cloning={publicStackBySlugPagePresenter.submittingClone}
 	submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
 	submitListingRating={(listingId, rating) =>
 		publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
@@ -69,7 +89,7 @@
 		showUpgradeModal = true;
 	}}
 	onSignInRequired={() => {
-		toast.error('Sign in to use community features.');
+		toast.error('Sign in to rate this stack.');
 	}}
 />
 

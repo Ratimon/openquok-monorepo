@@ -31,6 +31,11 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		throw error(404, 'Extension not found');
 	}
 
+	const commentsVm = await publicExtensionBySlugPagePresenter.loadListingCommentsStateless({
+		listingId: extensionVm.id,
+		fetch
+	});
+
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
@@ -109,6 +114,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		isLoggedIn,
 		extensionVm,
 		relatedExtensionsVm,
+		commentsVm: commentsVm,
 		schemaData
 	};
 }

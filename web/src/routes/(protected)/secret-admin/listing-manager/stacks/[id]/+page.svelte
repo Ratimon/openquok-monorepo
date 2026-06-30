@@ -33,6 +33,7 @@
 	);
 	const formDefaults = $derived(adminListingStackEditorPagePresenter.getFormDefaults());
 	const slugDisplay = $derived(adminListingStackEditorPagePresenter.listing?.slug ?? '');
+	const stackExtensionChoices = $derived(adminListingStackEditorPagePresenter.extensionChoices);
 
 	onMount(async () => {
 		const id = data.listingId;
@@ -90,6 +91,7 @@
 				initialValues={formDefaults}
 				{categoryChoices}
 				{tagChoices}
+				{stackExtensionChoices}
 				listingKind="stack"
 				{isPlatformAdmin}
 				isSubmitting={adminListingStackEditorPagePresenter.submitting}

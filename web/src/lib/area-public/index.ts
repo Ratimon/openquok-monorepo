@@ -14,6 +14,10 @@ import { PublicChannelByPagePresenter } from '$lib/area-public/PublicChannelByPa
 import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
 import { PublicExtensionBySlugPagePresenter } from '$lib/area-public/PublicExtensionBySlugPage.presenter.svelte';
 import { PublicExtensionsPagePresenter } from '$lib/area-public/PublicExtensionsPage.presenter.svelte';
+import {
+	PublicStackBySlugPagePresenter,
+	PublicStacksPagePresenter
+} from '$lib/area-public/PublicStacksPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
 import { getPublicPricingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';
@@ -36,6 +40,11 @@ const publicExtensionBySlugPagePresenter = new PublicExtensionBySlugPagePresente
 	getListingPresenter,
 	listingRepository
 );
+const publicStacksPagePresenter = new PublicStacksPagePresenter(getListingPresenter);
+const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
 
 export {
 	publicAgentByPagePresenter,
@@ -44,6 +53,8 @@ export {
 	publicChannelsPagePresenter,
 	publicExtensionBySlugPagePresenter,
 	publicExtensionsPagePresenter,
+	publicStacksPagePresenter,
+	publicStackBySlugPagePresenter,
 	publicPricingPagePresenter,
 	publicLayoutPagePresenter,
 	publicBlogPagePresenter,

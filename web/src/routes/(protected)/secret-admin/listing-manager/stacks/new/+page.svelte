@@ -29,6 +29,7 @@
 		}))
 	);
 	const formDefaults = $derived(adminListingNewStackPagePresenter.getFormDefaults());
+	const stackExtensionChoices = $derived(adminListingNewStackPagePresenter.extensionChoices);
 
 	onMount(async () => {
 		await adminListingNewStackPagePresenter.init(undefined, 'stack');
@@ -79,6 +80,7 @@
 				initialValues={formDefaults}
 				{categoryChoices}
 				{tagChoices}
+				{stackExtensionChoices}
 				listingKind="stack"
 				{isPlatformAdmin}
 				isSubmitting={adminListingNewStackPagePresenter.submitting}

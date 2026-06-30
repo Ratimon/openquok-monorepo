@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { ExtensionCardViewModel, ExtensionDetailViewModel } from '$lib/listings/index';
+import type { ListingCommentViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
 import type { PageLoad } from './$types';
 
@@ -20,6 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isLoggedIn: boolean;
 			extensionVm: ExtensionDetailViewModel;
 			relatedExtensionsVm: ExtensionCardViewModel[];
+			commentsVm: ListingCommentViewModel[];
 			schemaData: unknown;
 		};
 
@@ -32,6 +34,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isEditor,
 			extensionVm: serverData.extensionVm,
 			relatedExtensionsVm: serverData.relatedExtensionsVm,
+			commentsVm: serverData.commentsVm,
 			schemaData: serverData.schemaData
 		};
 	}

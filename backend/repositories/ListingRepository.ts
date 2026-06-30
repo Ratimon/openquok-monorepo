@@ -9,11 +9,15 @@ import type {
     AdminListingComment,
     AdminListingActivity,
     ListingActivityType,
+    ListingComment,
+    ListingStackMember,
+    StackMemberRef,
 } from "../data/types/listingTypes";
 import type {
     ListingCreateSchemaType,
     ListingUpdateSchemaType,
     ListingTagRefSchemaType,
+    ListingCommentCreateSchemaType,
 } from "../data/schemas/listingSchemas";
 import type { ListingLike } from "../utils/dtos/ListingDTO";
 import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../errors/InfraError";
@@ -25,6 +29,8 @@ const TABLE_TAG_ASSOC = "listings_listing_tags_association";
 const TABLE_BOOKMARKS = "listing_bookmarks";
 const TABLE_LISTING_COMMENTS = "listing_comments";
 const TABLE_LISTING_ACTIVITIES = "listing_activities";
+const TABLE_STACK_MEMBERS = "listing_stack_members";
+const TABLE_LISTING_RATINGS = "listing_ratings";
 
 const RPC_GET_LISTING_CREATORS = "get_listing_creators";
 
@@ -82,7 +88,25 @@ const SELECT_LISTING = `
   listings_listing_tags_association(
     listing_tags(id, name, slug)
   ),
-  owner:users!owner_id(id, full_name, username, user_profiles(avatar_url, tag_line))
+  owner:users!owner_id(id, full_name, username, user_profiles(avatar_url, tag_line)),
+  listing_stack_members!listing_stack_members_stack_listing_id_fkey(
+    id,
+    stack_listing_id,
+    member_listing_id,
+    member_role,
+    sort_order,
+    member:listings!listing_stack_members_member_listing_id_fkey(
+      id,
+      title,
+      slug,
+      extension_type,
+      excerpt,
+      logo_image_url,
+      is_official,
+      install_command_skills,
+      install_command_mcp
+    )
+  )
 `;
 
 const ALLOWED_PUBLISHED_SORT_KEYS = new Set([
@@ -109,6 +133,17 @@ const ALLOWED_ADMIN_SORT_KEYS = new Set([
 
 const ALLOWED_ADMIN_COMMENT_SORT_KEYS = new Set(["created_at", "updated_at", "content"]);
 const ALLOWED_ADMIN_ACTIVITY_SORT_KEYS = new Set(["created_at", "activity_type"]);
+
+const SELECT_LISTING_COMMENT = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url))
+`;
 
 const SELECT_LISTING_COMMENT_ADMIN = `
   id,
@@ -387,7 +422,8 @@ export class ListingRepository {
         listing: ListingCreateSchemaType,
         tags: ListingTagRefSchemaType[],
         ownerId: string,
-        isAdminPublished: boolean
+        isAdminPublished: boolean,
+        stackMembers: StackMemberRef[] = []
     ): Promise<{ savedListingId: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         const isUserApproved = listing.is_user_published === true;
         const { id: _id, owner_id: _ownerId, is_admin_published: _admin, ...payload } = listing;
@@ -416,6 +452,9 @@ export class ListingRepository {
 
         const savedListingId = data.id as string;
         await this.syncListingTags(savedListingId, tags);
+        if (listing.listing_kind === "stack") {
+            await this.syncStackMembers(savedListingId, stackMembers);
+        }
 
         return {
             savedListingId,
@@ -428,7 +467,8 @@ export class ListingRepository {
         listing: ListingUpdateSchemaType,
         tags: ListingTagRefSchemaType[],
         ownerId: string,
-        isAdminPublished: boolean
+        isAdminPublished: boolean,
+        stackMembers: StackMemberRef[] = []
     ): Promise<{ savedListingId: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         const isUserApproved = listing.is_user_published === true;
         const { id, owner_id: _ownerId, is_admin_published: _admin, ...payload } = listing;
@@ -459,6 +499,9 @@ export class ListingRepository {
         }
 
         await this.syncListingTags(id, tags);
+        if (listing.listing_kind === "stack") {
+            await this.syncStackMembers(id, stackMembers);
+        }
 
         return {
             savedListingId: id,
@@ -849,5 +892,328 @@ export class ListingRepository {
             });
         }
         return { listing_id: data.listing_id as string };
+    }
+
+    async syncStackMembers(stackListingId: string, members: StackMemberRef[]): Promise<void> {
+        const { error: deleteError } = await this.supabase
+            .from(TABLE_STACK_MEMBERS)
+            .delete()
+            .eq("stack_listing_id", stackListingId);
+
+        if (deleteError) {
+            throw new DatabaseError(`Error clearing stack members: ${deleteError.message}`, {
+                cause: deleteError as unknown as Error,
+                operation: "delete",
+                resource: { type: "table", name: TABLE_STACK_MEMBERS },
+            });
+        }
+
+        if (members.length === 0) return;
+
+        const { error: insertError } = await this.supabase.from(TABLE_STACK_MEMBERS).insert(
+            members.map((member, index) => ({
+                stack_listing_id: stackListingId,
+                member_listing_id: member.member_listing_id,
+                member_role: member.member_role,
+                sort_order: member.sort_order ?? index,
+            }))
+        );
+
+        if (insertError) {
+            throw new DatabaseError(`Error syncing stack members: ${insertError.message}`, {
+                cause: insertError as unknown as Error,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_STACK_MEMBERS },
+            });
+        }
+    }
+
+    async findStackMembers(stackListingId: string): Promise<{ data: ListingStackMember[] }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_STACK_MEMBERS)
+            .select(
+                `
+                id,
+                stack_listing_id,
+                member_listing_id,
+                member_role,
+                sort_order,
+                member:member_listing_id(
+                  id,
+                  title,
+                  slug,
+                  extension_type,
+                  excerpt,
+                  logo_image_url,
+                  is_official,
+                  install_command_skills,
+                  install_command_mcp
+                )
+              `
+            )
+            .eq("stack_listing_id", stackListingId)
+            .order("sort_order", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError(`Error fetching stack members: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_STACK_MEMBERS },
+            });
+        }
+
+        return { data: this.mapStackMemberRows(data ?? []) };
+    }
+
+    async cloneStack(sourceStackId: string, ownerId: string): Promise<{ id: string }> {
+        const { data: source } = await this.findListingById(sourceStackId);
+        if (source.listing_kind !== "stack") {
+            throw new ValidationError("Only stacks can be cloned.");
+        }
+        if (source.is_user_published !== true || source.is_admin_published !== true) {
+            throw new ValidationError("Only published stacks can be cloned.");
+        }
+
+        const { data: members } = await this.findStackMembers(sourceStackId);
+        const tagRefs: ListingTagRefSchemaType[] = (source.listings_listing_tags_association ?? [])
+            .flatMap((row) => {
+                const lt = row.listing_tags;
+                if (!lt) return [];
+                const items = Array.isArray(lt) ? lt : [lt];
+                return items.map((t) => ({ id: t.id, slug: t.slug }));
+            });
+
+        const cloneTitle = `${source.title} (Copy)`;
+        const { savedListingId } = await this.createListing(
+            {
+                title: cloneTitle,
+                excerpt: source.excerpt ?? null,
+                click_url: source.click_url ?? null,
+                click_url_skills: source.click_url_skills ?? null,
+                click_url_mcp: source.click_url_mcp ?? null,
+                description: source.description ?? null,
+                description_skills: source.description_skills ?? null,
+                description_mcp: source.description_mcp ?? null,
+                content: source.content ?? null,
+                content_skills: source.content_skills ?? null,
+                content_mcp: source.content_mcp ?? null,
+                listing_kind: "stack",
+                extension_type: null,
+                install_command_skills: source.install_command_skills ?? null,
+                install_command_mcp: source.install_command_mcp ?? null,
+                is_official: false,
+                source_repo_url: source.source_repo_url ?? null,
+                skill_source_url: source.skill_source_url ?? null,
+                skill_name: source.skill_name ?? null,
+                skill_metadata: (source.skill_metadata as Record<string, unknown> | null) ?? null,
+                source_synced_at: source.source_synced_at ?? null,
+                source_content_hash: source.source_content_hash ?? null,
+                license: source.license ?? null,
+                version: source.version ?? null,
+                mcp_tools: source.mcp_tools ?? null,
+                mcp_transport: (source.mcp_transport as "stdio" | "sse" | "http" | null) ?? null,
+                mcp_server_config: (source.mcp_server_config as Record<string, unknown> | null) ?? null,
+                listing_category_id: source.listing_category_id ?? "",
+                listing_image_urls: source.listing_image_urls ?? null,
+                default_image_url: source.default_image_url ?? null,
+                logo_image_url: source.logo_image_url ?? null,
+                is_user_published: false,
+                is_admin_published: false,
+                schema_type: (source.schema_type as ListingCreateSchemaType["schema_type"]) ?? "SoftwareApplication",
+                schema_json: (source.schema_json as Record<string, unknown> | null) ?? null,
+                faq: Array.isArray(source.faq) ? (source.faq as ListingCreateSchemaType["faq"]) : [],
+            },
+            tagRefs,
+            ownerId,
+            false,
+            members.map((member, index) => ({
+                member_listing_id: member.member_listing_id,
+                member_role: member.member_role,
+                sort_order: member.sort_order ?? index,
+            }))
+        );
+
+        const { error: provenanceError } = await this.supabase
+            .from(TABLE_LISTINGS)
+            .update({ cloned_from_listing_id: sourceStackId })
+            .eq("id", savedListingId);
+
+        if (provenanceError) {
+            throw new DatabaseError(`Error setting clone provenance: ${provenanceError.message}`, {
+                cause: provenanceError as unknown as Error,
+                operation: "update",
+            });
+        }
+
+        return { id: savedListingId };
+    }
+
+    async findListingComments(listingId: string): Promise<{ data: ListingComment[] }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_LISTING_COMMENTS)
+            .select(SELECT_LISTING_COMMENT)
+            .eq("listing_id", listingId)
+            .eq("is_approved", true)
+            .order("created_at", { ascending: true });
+
+        if (error) {
+            throw new DatabaseError(`Error fetching listing comments: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_LISTING_COMMENTS },
+            });
+        }
+
+        return { data: this.mapListingCommentRows(data ?? []) };
+    }
+
+    async createListingComment(
+        payload: ListingCommentCreateSchemaType,
+        userId: string
+    ): Promise<{ id: string; listing_id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_LISTING_COMMENTS)
+            .insert({
+                listing_id: payload.listing_id,
+                parent_id: payload.parent_id ?? null,
+                content: payload.content,
+                user_id: userId,
+                is_approved: false,
+            })
+            .select("id, listing_id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError(`Error creating listing comment: ${error?.message ?? "no id returned"}`, {
+                cause: error as unknown as Error,
+                operation: "insert",
+                resource: { type: "table", name: TABLE_LISTING_COMMENTS },
+            });
+        }
+
+        return { id: data.id as string, listing_id: data.listing_id as string };
+    }
+
+    async upsertListingRating(
+        listingId: string,
+        userId: string,
+        rating: number
+    ): Promise<{ id: string }> {
+        const { data, error } = await this.supabase
+            .from(TABLE_LISTING_RATINGS)
+            .upsert(
+                {
+                    listing_id: listingId,
+                    user_id: userId,
+                    rating,
+                    updated_at: new Date().toISOString(),
+                },
+                { onConflict: "user_id,listing_id" }
+            )
+            .select("id")
+            .single();
+
+        if (error || !data?.id) {
+            throw new DatabaseError(`Error upserting listing rating: ${error?.message ?? "no id returned"}`, {
+                cause: error as unknown as Error,
+                operation: "upsert",
+                resource: { type: "table", name: TABLE_LISTING_RATINGS },
+            });
+        }
+
+        return { id: data.id as string };
+    }
+
+    private mapStackMemberRows(rows: unknown[]): ListingStackMember[] {
+        return rows.map((row) => {
+            const r = row as {
+                id: string;
+                stack_listing_id: string;
+                member_listing_id: string;
+                member_role: "skills" | "mcp";
+                sort_order: number;
+                member?:
+                    | Array<{
+                          id: string;
+                          title: string;
+                          slug: string;
+                          extension_type: string | null;
+                          excerpt: string | null;
+                          logo_image_url: string | null;
+                          is_official: boolean | null;
+                          install_command_skills: string | null;
+                          install_command_mcp: string | null;
+                      }>
+                    | {
+                          id: string;
+                          title: string;
+                          slug: string;
+                          extension_type: string | null;
+                          excerpt: string | null;
+                          logo_image_url: string | null;
+                          is_official: boolean | null;
+                          install_command_skills: string | null;
+                          install_command_mcp: string | null;
+                      }
+                    | null;
+            };
+            const rawMember = Array.isArray(r.member) ? r.member[0] ?? null : r.member ?? null;
+            return {
+                id: r.id,
+                stack_listing_id: r.stack_listing_id,
+                member_listing_id: r.member_listing_id,
+                member_role: r.member_role,
+                sort_order: r.sort_order,
+                member: rawMember
+                    ? {
+                          id: rawMember.id,
+                          title: rawMember.title,
+                          slug: rawMember.slug,
+                          extension_type: rawMember.extension_type ?? null,
+                          excerpt: rawMember.excerpt ?? null,
+                          logo_image_url: rawMember.logo_image_url ?? null,
+                          is_official: rawMember.is_official ?? null,
+                          install_command_skills: rawMember.install_command_skills ?? null,
+                          install_command_mcp: rawMember.install_command_mcp ?? null,
+                      }
+                    : null,
+            };
+        });
+    }
+
+    private mapListingCommentRows(rows: unknown[]): ListingComment[] {
+        return rows.map((row) => {
+            const r = row as {
+                id: string;
+                content: string;
+                is_approved: boolean;
+                created_at: string;
+                updated_at: string | null;
+                parent_id: string | null;
+                user_id: string;
+                author?:
+                    | Array<{ id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }>
+                    | { id: string; full_name: string | null; user_profiles?: { avatar_url?: string | null } | null }
+                    | null;
+            };
+            const rawAuthor = Array.isArray(r.author) ? r.author[0] ?? null : r.author ?? null;
+            const profile = rawAuthor?.user_profiles;
+            const avatar_url =
+                profile && typeof profile === "object" && "avatar_url" in profile
+                    ? profile.avatar_url
+                    : null;
+            return {
+                id: r.id,
+                content: r.content,
+                is_approved: r.is_approved,
+                created_at: r.created_at,
+                updated_at: r.updated_at ?? null,
+                parent_id: r.parent_id ?? null,
+                user_id: r.user_id,
+                author: rawAuthor
+                    ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null }
+                    : null,
+            };
+        });
     }
 }
