@@ -278,6 +278,8 @@
 							tabClass="tab tab-lg tab-lifted flex-1 text-lg font-bold account-link"
 							whenSelected="account-link"
 							whenUnselected="account-link"
+							inline
+							onAfterNavigate={setClose}
 						/>
 					</div>
 

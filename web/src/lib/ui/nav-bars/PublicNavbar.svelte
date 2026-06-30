@@ -10,6 +10,9 @@
 		whenSelected?: string;
 		whenUnselected?: string;
 		pages: Link[];
+		/** Inline collapsible sections for mobile menus inside native popovers. */
+		inline?: boolean;
+		onAfterNavigate?: () => void;
 	};
 
 	let {
@@ -17,7 +20,9 @@
 		tabClass = '',
 		whenSelected = '',
 		whenUnselected = '',
-		pages = []
+		pages = [],
+		inline = false,
+		onAfterNavigate
 	}: Props = $props();
 </script>
 
@@ -30,6 +35,8 @@
 				{tabClass}
 				{whenSelected}
 				{whenUnselected}
+				{inline}
+				{onAfterNavigate}
 			/>
 		{:else if link.navType === 'channels'}
 			<PublicChannelsNavDropdown
@@ -38,6 +45,8 @@
 				{tabClass}
 				{whenSelected}
 				{whenUnselected}
+				{inline}
+				{onAfterNavigate}
 			/>
 		{:else if link.navType === 'menu' && link.dropdownItems && link.dropdownItems.length > 0}
 			<div class="dropdown dropdown-hover">
