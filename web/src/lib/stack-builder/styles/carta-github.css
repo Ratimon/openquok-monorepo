@@ -1,0 +1,203 @@
+/* GitHub-style Carta theme (adapted from Carta docs examples). */
+.carta-theme__github.carta-editor {
+	--carta-github-bg: #0d1117;
+	--carta-github-bg-light: #161b22;
+	--carta-github-border: #2b3138;
+	--carta-github-accent: #1f6feb;
+
+	background-color: var(--carta-github-bg);
+	border: 1px solid var(--carta-github-border);
+	border-radius: 0.5rem;
+}
+
+.carta-theme__github.carta-editor:focus-within {
+	outline: 2px solid var(--carta-github-accent);
+}
+
+.carta-theme__github .carta-wrapper {
+	padding: 1rem;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.carta-theme__github .carta-input,
+.carta-theme__github .carta-renderer {
+	min-height: 12rem;
+	max-height: none;
+	overflow: auto;
+}
+
+.carta-theme__github .carta-font-code {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+		'Courier New', monospace;
+	caret-color: white;
+	font-size: 0.95rem;
+	line-height: 1.4rem;
+}
+
+.carta-theme__github .carta-toolbar {
+	height: 2.5rem;
+	background-color: var(--carta-github-bg-light);
+	border-top-left-radius: 0.5rem;
+	border-top-right-radius: 0.5rem;
+}
+
+.carta-theme__github .carta-toolbar .carta-icon {
+	width: 2rem;
+	height: 2rem;
+}
+
+.carta-theme__github .carta-toolbar .carta-icon:hover {
+	color: white;
+	background-color: var(--carta-github-border);
+}
+
+.carta-theme__github .carta-toolbar-left button,
+.carta-theme__github .carta-toolbar-right,
+.carta-theme__github .carta-filler {
+	border-bottom: 1px solid var(--carta-github-border);
+}
+
+.carta-theme__github .carta-toolbar-left > *:first-child {
+	border-top-left-radius: 0.5rem;
+}
+
+.carta-theme__github .carta-toolbar-left > * {
+	padding-left: 1rem;
+	padding-right: 1rem;
+	font-size: 0.95rem;
+}
+
+.carta-theme__github .carta-toolbar-left button {
+	height: 100%;
+}
+
+.carta-theme__github .carta-toolbar-left .carta-active {
+	background-color: var(--carta-github-bg);
+	color: white;
+	border-right: 1px solid var(--carta-github-border);
+	border-bottom: 1px solid var(--carta-github-bg);
+}
+
+.carta-theme__github .carta-toolbar-left .carta-active:not(:first-child) {
+	border-left: 1px solid var(--carta-github-border);
+}
+
+.carta-theme__github .carta-toolbar-right {
+	padding-right: 12px;
+}
+
+.carta-theme__github .carta-icons-menu {
+	padding: 8px;
+	border: 1px solid var(--carta-github-border);
+	border-radius: 6px;
+	min-width: 180px;
+	background: var(--carta-github-bg);
+}
+
+.carta-theme__github .carta-icons-menu .carta-icon-full {
+	padding-left: 6px;
+	padding-right: 6px;
+	margin-top: 2px;
+}
+
+.carta-theme__github .carta-icons-menu .carta-icon-full:first-child {
+	margin-top: 0;
+}
+
+.carta-theme__github .carta-icons-menu .carta-icon-full:hover {
+	color: white;
+	background-color: var(--carta-github-border);
+}
+
+.carta-theme__github .carta-icons-menu .carta-icon-full span {
+	margin-left: 6px;
+	color: white;
+	font-size: 0.85rem;
+}
+
+.carta-theme__github.carta-emoji {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	width: 19rem;
+	max-height: 14rem;
+	overflow-x: auto;
+	overflow-y: auto;
+	border-radius: 4px;
+	font-family: inherit;
+	background-color: var(--carta-github-bg);
+	word-break: break-word;
+	scroll-padding: 6px;
+}
+
+.carta-theme__github.carta-emoji button {
+	background: var(--carta-github-bg-light);
+	cursor: pointer;
+	display: inline-block;
+	border-radius: 4px;
+	border: 0;
+	padding: 0;
+	margin: 0.175rem;
+	min-width: 2rem;
+	height: 2rem;
+	font-size: 1.2rem;
+	line-height: 100%;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.carta-theme__github.carta-emoji button:hover,
+.carta-theme__github.carta-emoji button.carta-active {
+	background: var(--carta-github-border);
+}
+
+.carta-theme__github.carta-slash {
+	width: 18rem;
+	max-height: 14rem;
+	overflow-y: scroll;
+	border-radius: 4px;
+	font-family: inherit;
+	background-color: var(--carta-github-bg);
+	padding: 6px;
+	scroll-padding: 6px;
+}
+
+.carta-theme__github.carta-slash span {
+	width: fit-content;
+}
+
+.carta-theme__github.carta-slash button {
+	background: none;
+	width: 100%;
+	padding: 10px;
+	border: 0;
+	border-radius: 4px;
+}
+
+.carta-theme__github.carta-slash .carta-slash-group {
+	padding: 0 4px;
+	margin-bottom: 4px;
+	font-size: 0.8rem;
+}
+
+.carta-theme__github.carta-slash button.carta-active,
+.carta-theme__github.carta-slash button:hover {
+	background: var(--carta-github-bg-light);
+	cursor: pointer;
+}
+
+.carta-theme__github.carta-slash .carta-snippet-title {
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.carta-theme__github.carta-slash .carta-snippet-description {
+	font-size: 0.8rem;
+	text-overflow: ellipsis;
+}
+
+html.dark .carta-theme__github .shiki,
+html.dark .carta-theme__github .shiki span {
+	color: var(--shiki-dark) !important;
+}

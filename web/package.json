@@ -24,6 +24,9 @@
 		"lint": "eslint ."
 	},
 	"dependencies": {
+		"@cartamd/plugin-code": "^4.2.0",
+		"@cartamd/plugin-emoji": "^4.3.0",
+		"@cartamd/plugin-slash": "^4.2.0",
 		"@friendofsvelte/mermaid": "^0.0.4",
 		"@internationalized/date": "^3.12.0",
 		"@preact/signals": "^2.9.0",
