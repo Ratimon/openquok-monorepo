@@ -5,7 +5,13 @@ export {
 	getRootPathMedia,
 	getRootPathPlugs,
 	getRootPathTemplates,
-	getRootPathExtensions
+	getRootPathExtensions,
+	getRootPathStacks,
+	getRootPathMyExtensions,
+	getRootPathNewStack,
+	getRootPathNewExtension,
+	getAccountStackEditorPath,
+	getAccountExtensionEditorPath
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
@@ -19,6 +25,8 @@ import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTe
 import { ProtectedPayloadWizardPagePresenter } from '$lib/area-protected/ProtectedPayloadWizardPage.presenter.svelte';
 import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBillingPage.presenter.svelte';
 import { ProtectedAccountExtensionsPagePresenter } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+import { UserListingEditorPagePresenter } from '$lib/area-protected/UserListingEditorPage.presenter.svelte';
+import { UserListingsManagerPagePresenter } from '$lib/area-protected/UserListingsManagerPage.presenter.svelte';
 import { billingPresenter, firstBillingGatePresenter, getBillingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
@@ -182,6 +190,25 @@ const protectedAccountExtensionsPagePresenter = new ProtectedAccountExtensionsPa
 	getBillingPresenter
 );
 
+/** Edit stack: `/account/stacks/[id]` */
+const userListingStackEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
+/** New stack: `/account/stacks/new` */
+const userListingNewStackPagePresenter = new UserListingEditorPagePresenter(listingRepository);
+/** Edit extension: `/account/my-extensions/[id]` */
+const userListingExtensionEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
+/** New extension: `/account/my-extensions/new` */
+const userListingNewExtensionPagePresenter = new UserListingEditorPagePresenter(listingRepository);
+
+const userListingStacksManagerPagePresenter = new UserListingsManagerPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
+
+const userListingExtensionsManagerPagePresenter = new UserListingsManagerPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
+
 export type { ProtectedMediaPagePresenterMediaSettingsVmPublic } from './ProtectedMediaPage.presenter.svelte';
 export {
 	ProtectedSettingsPagePresenter,
@@ -202,6 +229,14 @@ export {
 	protectedTemplatesPagePresenter,
 	ProtectedAccountExtensionsPagePresenter,
 	protectedAccountExtensionsPagePresenter,
+	UserListingEditorPagePresenter,
+	userListingStackEditorPagePresenter,
+	userListingNewStackPagePresenter,
+	userListingExtensionEditorPagePresenter,
+	userListingNewExtensionPagePresenter,
+	UserListingsManagerPagePresenter,
+	userListingStacksManagerPagePresenter,
+	userListingExtensionsManagerPagePresenter,
 	ProtectedBillingPagePresenter,
 	protectedBillingPagePresenter,
 	ProtectedMediaPagePresenter,

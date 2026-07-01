@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { ToolsIndexToolCardViewModel } from '$lib/stack-builder/stackBuilder.types';
 
@@ -15,6 +16,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 
 	if (browser && data) {
 		const serverData = data as {
+			pageMetaTags: MetaTagsProps;
 			metaTitle: string;
 			metaDescription: string;
 			toolsVm: ToolsIndexToolCardViewModel[];
@@ -22,6 +24,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		};
 
 		return {
+			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
 			toolsVm: serverData.toolsVm,

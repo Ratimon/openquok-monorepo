@@ -17,6 +17,8 @@
 		getRootPathAnalytics,
 		getRootPathMedia,
 		getRootPathExtensions,
+		getRootPathStacks,
+		getRootPathMyExtensions,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
@@ -71,15 +73,25 @@
 	const rootPathExtensions = getRootPathExtensions();
 	const extensionsPath = route(`${rootPathAccount}/${rootPathExtensions}`);
 
+	// /account/stacks
+	const rootPathStacks = getRootPathStacks();
+	const stacksPath = route(`${rootPathAccount}/${rootPathStacks}`);
+
+	// /account/my-extensions
+	const rootPathMyExtensions = getRootPathMyExtensions();
+	const myExtensionsPath = route(`${rootPathAccount}/${rootPathMyExtensions}`);
+
 	
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Home', href: accountPath, iconName: icons.House.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
 		{ label: 'Templates', href: templatesPath, iconName: icons.LayoutTemplate.name },
+		{ label: 'Viral Format', href: extensionsPath, iconName: icons.Bookmark.name },
 		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
 		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
 		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },
-		{ label: 'Viral Format', href: extensionsPath, iconName: icons.Bookmark.name },
+		{ label: 'My stacks', href: stacksPath, iconName: icons.Braces.name },
+		{ label: 'My extensions', href: myExtensionsPath, iconName: icons.Bot.name },
 	];
 
 	const SETTINGS_NAV: SettingsNavItem<AppSettingsSectionId>[] = [

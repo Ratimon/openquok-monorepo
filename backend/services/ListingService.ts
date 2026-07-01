@@ -48,6 +48,7 @@ import {
 } from "../utils/dtos/ListingDTO";
 import { ListingId } from "../utils/valueObjects/ListingId";
 import { ValidationError } from "../errors/InfraError";
+import { UserAuthorizationError } from "../errors/UserError";
 import { logger } from "../utils/Logger";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
@@ -298,6 +299,60 @@ export class ListingService {
     async deleteListing(id: string): Promise<void> {
         await this.listingRepository.deleteListing(id);
         await this._invalidateListingMutationCaches(id);
+    }
+
+    async getOwnedListings(
+        ownerId: string,
+        listingKind?: ListingKind
+    ): Promise<{ data: ListingLike[]; count: number }> {
+        return this.listingRepository.findOwnedListings(ownerId, { listingKind });
+    }
+
+    async getOwnedListingById(id: string, ownerId: string): Promise<ListingLike> {
+        const listing = await this.getListingById(id);
+        if (listing.owner_id !== ownerId) {
+            throw new UserAuthorizationError("You don't have permission to access this listing");
+        }
+        return listing;
+    }
+
+    async createOwnedListing(
+        body: ListingCreateBodySchemaType,
+        ownerId: string,
+        authUserId?: string
+    ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
+        await this._assertPublicApi(authUserId);
+        const sanitizedBody: ListingCreateBodySchemaType = {
+            ...body,
+            listingData: {
+                ...body.listingData,
+                is_admin_published: false,
+            },
+        };
+        return this.createListing(sanitizedBody, ownerId, false);
+    }
+
+    async updateOwnedListing(
+        body: ListingUpdateBodySchemaType,
+        ownerId: string,
+        authUserId?: string
+    ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
+        await this._assertPublicApi(authUserId);
+        const existing = await this.getOwnedListingById(body.listingData.id, ownerId);
+        const sanitizedBody: ListingUpdateBodySchemaType = {
+            ...body,
+            listingData: {
+                ...body.listingData,
+                is_admin_published: existing.is_admin_published === true,
+            },
+        };
+        return this.updateListing(sanitizedBody, ownerId, false);
+    }
+
+    async deleteOwnedListing(id: string, ownerId: string, authUserId?: string): Promise<void> {
+        await this._assertPublicApi(authUserId);
+        await this.getOwnedListingById(id, ownerId);
+        await this.deleteListing(id);
     }
 
     async getSkillMarkdown(slug: string): Promise<string | null> {
@@ -574,6 +629,15 @@ export class ListingService {
     private async _assertCommunityFeatures(authUserId?: string): Promise<void> {
         if (authUserId?.trim() && this.subscriptionGuard) {
             await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+                scope: "account",
+                authUserId,
+            });
+        }
+    }
+
+    private async _assertPublicApi(authUserId?: string): Promise<void> {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+            await this.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
                 scope: "account",
                 authUserId,
             });

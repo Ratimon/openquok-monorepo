@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { AgentBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
 
@@ -15,11 +16,13 @@ export const load: PageLoad = async ({ parent, data }) => {
 
 	if (browser && data) {
 		const serverData = data as AgentBuilderPageViewModel & {
+			pageMetaTags: MetaTagsProps;
 			isLoggedIn?: boolean;
 			schemaData: unknown;
 		};
 
 		return {
+			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
 			selectedExtensionSlugs: serverData.selectedExtensionSlugs,

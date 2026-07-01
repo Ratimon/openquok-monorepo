@@ -8,9 +8,17 @@
 		markdown?: string;
 		downloadFilename?: string;
 		onMarkdownEdit?: () => void;
+		onSaveAsStack?: () => void;
+		saveAsStackLabel?: string;
 	};
 
-	let { markdown = $bindable(''), downloadFilename = 'SKILL.md', onMarkdownEdit }: Props = $props();
+	let {
+		markdown = $bindable(''),
+		downloadFilename = 'SKILL.md',
+		onMarkdownEdit,
+		onSaveAsStack,
+		saveAsStackLabel = 'Publish as stack'
+	}: Props = $props();
 
 	function handleDownload() {
 		downloadMarkdownFile(markdown, downloadFilename);
@@ -27,7 +35,12 @@
 				Edit SKILL.md with Write / Preview tabs. Stays in sync with workflow until you edit here.
 			</p>
 		</div>
-		<Button variant="primary" size="sm" onclick={handleDownload}>Download</Button>
+		<div class="flex flex-wrap items-center gap-2">
+			{#if onSaveAsStack}
+				<Button variant="outline" size="sm" onclick={onSaveAsStack}>{saveAsStackLabel}</Button>
+			{/if}
+			<Button variant="primary" size="sm" onclick={handleDownload}>Download</Button>
+		</div>
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-hidden p-3">

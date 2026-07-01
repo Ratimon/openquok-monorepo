@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
 	import { deleteListingVerificationPresenter } from '$lib/listings';
+	import type { ActionVerificationModalPresenter } from '$lib/core/ActionVerificationModal.presenter.svelte';
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { CardContent, CardFooter } from '$lib/ui/card';
@@ -32,9 +33,16 @@
 		getEditHref: (listing: ListingTableItem) => string;
 		onListingDeleted: (listing: ListingTableItem) => void | Promise<void>;
 		itemLabel?: string;
+		deleteVerificationPresenter?: ActionVerificationModalPresenter;
 	};
 
-	let { listings, getEditHref, onListingDeleted, itemLabel = 'extensions' }: Props = $props();
+	let {
+		listings,
+		getEditHref,
+		onListingDeleted,
+		itemLabel = 'extensions',
+		deleteVerificationPresenter = deleteListingVerificationPresenter
+	}: Props = $props();
 
 	let pagination = $derived(
 		createPagination({
@@ -168,10 +176,10 @@
 	<ActionVerificationModal
 		data={{ listingId: selectedToDelete.id, listingTitle: selectedToDelete.title }}
 		bind:open={deleteModalOpen}
-		executionFunction={deleteListingVerificationPresenter.execute}
-		status={deleteListingVerificationPresenter.status}
-		showToastMessage={deleteListingVerificationPresenter.showToastMessage}
-		toastMessage={deleteListingVerificationPresenter.toastMessage}
+		executionFunction={deleteVerificationPresenter.execute}
+		status={deleteVerificationPresenter.status}
+		showToastMessage={deleteVerificationPresenter.showToastMessage}
+		toastMessage={deleteVerificationPresenter.toastMessage}
 		buttonIconName={icons.Trash.name}
 		buttonText=""
 		modalTitle="Delete listing"

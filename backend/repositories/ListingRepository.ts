@@ -352,6 +352,36 @@ export class ListingRepository {
         return { data: (data ?? []) as unknown as ListingLike[], count: count ?? 0 };
     }
 
+    async findOwnedListings(
+        ownerId: string,
+        options: { listingKind?: ListingKind; limit?: number } = {}
+    ): Promise<{ data: ListingLike[]; count: number }> {
+        const { listingKind, limit = 200 } = options;
+
+        let query = this.supabase
+            .from(TABLE_LISTINGS)
+            .select(SELECT_LISTING, { count: "exact" })
+            .eq("owner_id", ownerId);
+
+        if (listingKind) {
+            query = query.eq("listing_kind", listingKind);
+        }
+
+        query = query.order("updated_at", { ascending: false }).range(0, Math.max(limit - 1, 0));
+
+        const { data, error, count } = await query;
+
+        if (error) {
+            throw new DatabaseError(`Error fetching owned listings: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_LISTINGS },
+            });
+        }
+
+        return { data: (data ?? []) as unknown as ListingLike[], count: count ?? 0 };
+    }
+
     async getListingCreators(): Promise<{ data: ListingCreator[] }> {
         const { data, error } = await this.supabase.rpc(RPC_GET_LISTING_CREATORS);
 

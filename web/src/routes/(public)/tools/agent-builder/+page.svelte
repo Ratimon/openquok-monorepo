@@ -7,16 +7,24 @@
 	} from '$lib/stack-builder/stackBuilder.types';
 
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathAccount, getRootPathStacks, getRootPathNewStack } from '$lib/area-protected';
+	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
+	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+	import { buildAgentBuilderStackDraft } from '$lib/stack-builder/utils/buildAgentBuilderStackDraft';
 	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
 	import { getListingPresenter } from '$lib/listings';
 	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
 	import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
 	import { serializeExtensionSlugs, ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
-	import { route } from '$lib/utils/path';
+	import { authenticationRepository } from '$lib/user-auth';
+	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route, url, absoluteUrl } from '$lib/utils/path';
+	import { planLimitsForTier } from 'openquok-common';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
@@ -24,6 +32,8 @@
 	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
 	import StackBuilderWorkflowPanel from '$lib/ui/templates/stack-builder/StackBuilderWorkflowPanel.svelte';
 	import StackBuilderPreviewPanel from '$lib/ui/templates/stack-builder/StackBuilderPreviewPanel.svelte';
+	import SignInToSaveListingModal from '$lib/ui/components/stack-builder/SignInToSaveListingModal.svelte';
+	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 
 	type Props = { data: PageData };
 
@@ -42,6 +52,17 @@
 	// /tools/agent-builder
 	const rootPathPublicAgentBuilder = getRootPathPublicAgentBuilder();
 	const agentBuilderPath = route(rootPathPublicAgentBuilder);
+
+	// /sign-in
+	const rootPathSignIn = getRootPathSignin();
+	const signInHref = url(route(rootPathSignIn));
+
+	// /account/stacks/new
+	const rootPathAccount = getRootPathAccount();
+	const rootPathStacks = getRootPathStacks();
+	const rootPathNewStack = getRootPathNewStack();
+	const newStackHref = absoluteUrl(`${rootPathAccount}/${rootPathStacks}/${rootPathNewStack}`);
+	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
 
 	const serverHydrationKey = $derived(
 		`${selectedExtensionSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}`
@@ -90,6 +111,50 @@
 	}
 
 	const downloadFilename = $derived('SKILL.md');
+
+	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
+
+	let viewerPublicApiEnabled = $state<boolean | null>(null);
+	let showSignInModal = $state(false);
+	let showUpgradeModal = $state(false);
+
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			viewerPublicApiEnabled = null;
+			return;
+		}
+		let cancelled = false;
+		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
+			if (cancelled) return;
+			viewerPublicApiEnabled = vm ? planLimitsForTier(vm.tier).public_api : false;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	const listingsPaidEnabled = $derived(viewerPublicApiEnabled ?? true);
+
+	function handleSaveAsStack() {
+		if (!isLoggedIn) {
+			showSignInModal = true;
+			return;
+		}
+		if (!listingsPaidEnabled) {
+			showUpgradeModal = true;
+			return;
+		}
+
+		const draft = buildAgentBuilderStackDraft({
+			title: exportTitle,
+			markdown: exportMarkdown.trim() || generatedMarkdown,
+			extensionSlugs: activeExtensionSlugs,
+			workflowSteps,
+			extensions: extensionDetails
+		});
+		saveAgentBuilderStackDraft(draft);
+		void goto(newStackHref);
+	}
 
 	async function toggleExtensionSlug(slug: string) {
 		if (slug === OPENQUOK_CORE_EXTENSION_SLUG && activeExtensionSlugs.includes(slug)) {
@@ -246,9 +311,18 @@
 						bind:markdown={exportMarkdown}
 						{downloadFilename}
 						onMarkdownEdit={markExportMarkdownEdited}
+						onSaveAsStack={handleSaveAsStack}
 					/>
 				</div>
 			</div>
 		</div>
 	</section>
 </SectionOuterContainer>
+
+<SignInToSaveListingModal bind:open={showSignInModal} {signInHref} />
+
+<CommunityFeaturesLimitUpgradeModal
+	bind:open={showUpgradeModal}
+	upgradeHref={accountBillingHref}
+	feature="listings"
+/>

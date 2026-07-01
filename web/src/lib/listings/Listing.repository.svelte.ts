@@ -213,6 +213,11 @@ export interface ListingConfig {
 		upsertListingRating: (listingId: string) => string;
 		cloneStack: (stackId: string) => string;
 		getMyBookmarks: string;
+		getMyListings: string;
+		getMyListingById: (id: string) => string;
+		createMyListing: string;
+		updateMyListing: (id: string) => string;
+		deleteMyListing: (id: string) => string;
 		addBookmark: (listingId: string) => string;
 		removeBookmark: (listingId: string) => string;
 	};
@@ -932,6 +937,96 @@ export class ListingRepository {
 			);
 			if (ok && deleteListingDto?.success) return { ok: true };
 			return { ok: false, error: deleteListingDto?.message ?? 'Failed to delete listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async getMyListings(
+		params: { listingKind?: 'extension' | 'stack'; limit?: number } = {},
+		fetch?: typeof globalThis.fetch
+	): Promise<{ listings: ListingProgrammerModel[]; count: number }> {
+		const query: Record<string, string> = {};
+		if (params.listingKind) query.listing_kind = params.listingKind;
+		if (params.limit != null) query.limit = String(params.limit);
+
+		const { data: getMyListingsDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+			this.config.endpoints.getMyListings,
+			query,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getMyListingsDto?.success && Array.isArray(getMyListingsDto.data)) {
+			return {
+				listings: getMyListingsDto.data.map((row) => this.toListingPm(row)),
+				count: getMyListingsDto.count ?? 0
+			};
+		}
+		return { listings: [], count: 0 };
+	}
+
+	async getMyListingById(id: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {
+		const { data: getMyListingDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
+			this.config.endpoints.getMyListingById(id),
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getMyListingDto?.success && getMyListingDto.data) {
+			return this.toListingPm(getMyListingDto.data);
+		}
+		return null;
+	}
+
+	async createMyListing(
+		payload: ListingFormSchemaType,
+		listingTagsData: Array<{ id: string; slug: string }>,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const body = this.toListingUpsertBody(payload, listingTagsData);
+			const { data: createMyListingDto, ok } = await this.httpGateway.post<UpsertListingResponseDto>(
+				this.config.endpoints.createMyListing,
+				body,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && createMyListingDto?.success && createMyListingDto.data?.id) {
+				return { ok: true, id: createMyListingDto.data.id };
+			}
+			return { ok: false, error: createMyListingDto?.message ?? 'Failed to create listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async updateMyListing(
+		id: string,
+		payload: ListingFormSchemaType,
+		listingTagsData: Array<{ id: string; slug: string }>,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const body = this.toListingUpsertBody({ ...payload, id }, listingTagsData);
+			const { data: updateMyListingDto, ok } = await this.httpGateway.put<UpsertListingResponseDto>(
+				this.config.endpoints.updateMyListing(id),
+				body,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && updateMyListingDto?.success) {
+				return { ok: true, id: updateMyListingDto.data?.id ?? id };
+			}
+			return { ok: false, error: updateMyListingDto?.message ?? 'Failed to update listing.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async deleteMyListing(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteMyListingDto, ok } = await this.httpGateway.delete<DeleteListingResponseDto>(
+				this.config.endpoints.deleteMyListing(listingId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteMyListingDto?.success) return { ok: true };
+			return { ok: false, error: deleteMyListingDto?.message ?? 'Failed to delete listing.' };
 		} catch (err) {
 			return { ok: false, error: this.extractMessage(err) };
 		}

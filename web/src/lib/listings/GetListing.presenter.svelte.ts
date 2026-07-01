@@ -259,6 +259,14 @@ export class GetListingPresenter {
 		return listingsPm.map((listing: ListingProgrammerModel): ListingViewModel => this.toListingVm(listing));
 	}
 
+	public async loadMyListings(
+		kind: 'extension' | 'stack',
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingViewModel[]> {
+		const { listings } = await this.listingRepository.getMyListings({ listingKind: kind }, fetch);
+		return listings.map((listing: ListingProgrammerModel): ListingViewModel => this.toListingVm(listing));
+	}
+
 	public async loadAdminCommentsVm(
 		params?: { limit?: number; searchTerm?: string | null },
 		fetch?: typeof globalThis.fetch

@@ -221,6 +221,39 @@ listingRouter.get(
 
 listingRouter.get("/me/bookmarks", authWithRoles, listingController.getUserBookmarks);
 
+listingRouter.get("/me/listings", authWithRoles, listingController.getOwnedListings);
+
+listingRouter.get(
+    "/me/listings/:id",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.getOwnedListingById
+);
+
+listingRouter.post(
+    "/me/listings",
+    authWithRoles,
+    validateRequest({ body: listingCreateBodySchema }),
+    listingController.createOwnedListing
+);
+
+listingRouter.put(
+    "/me/listings/:id",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema, body: listingUpdateBodySchema }),
+    listingController.updateOwnedListing
+);
+
+listingRouter.delete(
+    "/me/listings/:id",
+    whenParamIsId,
+    authWithRoles,
+    validateRequest({ params: listingIdParamSchema }),
+    listingController.deleteOwnedListing
+);
+
 listingRouter.get(
     "/:listingId/comments",
     validateRequest({ params: listingCommentsParamSchema }),

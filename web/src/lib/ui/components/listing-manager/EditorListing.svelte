@@ -454,7 +454,14 @@
 			{#snippet children(field)}
 				<div class="flex flex-col gap-2 rounded-lg border border-base-300 p-4">
 					<Field.Label>Publish</Field.Label>
-					<Field.Description>Submit for publication when ready.</Field.Description>
+					<Field.Description>
+						{#if isPlatformAdmin}
+							Submit for publication when ready.
+						{:else}
+							Submit for review when ready. A platform admin must approve before your listing appears on
+							the public catalog.
+						{/if}
+					</Field.Description>
 					<label class="label cursor-pointer justify-start gap-2">
 						<Switch
 							checked={field.state.value}

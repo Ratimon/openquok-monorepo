@@ -649,4 +649,104 @@ export class ListingController {
             next(err);
         }
     };
+
+    getOwnedListings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const listingKind = (req.query.listing_kind as ListingKind | undefined) ?? undefined;
+            const { data, count } = await this.listingService.getOwnedListings(userId, listingKind);
+            res.status(200).json({
+                success: true,
+                data: ListingDTOMapper.toDTOCollection(data),
+                count,
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    getOwnedListingById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            const listing = await this.listingService.getOwnedListingById(id, userId);
+            res.status(200).json({
+                success: true,
+                data: ListingDTOMapper.toDTO(listing),
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    createOwnedListing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const result = await this.listingService.createOwnedListing(
+                req.body as ListingCreateBodySchemaType,
+                userId,
+                authReq.user?.id
+            );
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: "Listing created.",
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    updateOwnedListing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            const body = req.body as ListingUpdateBodySchemaType;
+            body.listingData.id = id;
+            const result = await this.listingService.updateOwnedListing(body, userId, authReq.user?.id);
+            res.status(200).json({
+                success: true,
+                data: result,
+                message: "Listing updated.",
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
+    deleteOwnedListing = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const { id } = req.params as { id: string };
+            await this.listingService.deleteOwnedListing(id, userId, authReq.user?.id);
+            res.status(200).json({ success: true, message: "Listing deleted." });
+        } catch (err) {
+            next(err);
+        }
+    };
 }

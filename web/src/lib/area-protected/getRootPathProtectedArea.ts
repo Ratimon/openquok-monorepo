@@ -49,3 +49,29 @@ export function getRootPathPayloadWizard(): string {
 export function getRootPathExtensions(): string {
 	return 'extensions';
 }
+
+/** User-submitted stacks under the account area. */
+export function getRootPathStacks(): string {
+	return 'stacks';
+}
+
+/** User-submitted extensions under the account area. */
+export function getRootPathMyExtensions(): string {
+	return 'my-extensions';
+}
+
+export function getRootPathNewStack(): string {
+	return 'new';
+}
+
+export function getRootPathNewExtension(): string {
+	return 'new';
+}
+
+export function getAccountStackEditorPath(stackId: string): string {
+	return `${getRootPathStacks()}/${stackId}`;
+}
+
+export function getAccountExtensionEditorPath(extensionId: string): string {
+	return `${getRootPathMyExtensions()}/${extensionId}`;
+}

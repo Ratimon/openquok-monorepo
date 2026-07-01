@@ -40,6 +40,11 @@ const listingConfig = {
 		upsertListingRating: (listingId: string) => `/api/v1/listings/${listingId}/ratings`,
 		cloneStack: (stackId: string) => `/api/v1/listings/stacks/${stackId}/clone`,
 		getMyBookmarks: '/api/v1/listings/me/bookmarks',
+		getMyListings: '/api/v1/listings/me/listings',
+		getMyListingById: (id: string) => `/api/v1/listings/me/listings/${id}`,
+		createMyListing: '/api/v1/listings/me/listings',
+		updateMyListing: (id: string) => `/api/v1/listings/me/listings/${id}`,
+		deleteMyListing: (id: string) => `/api/v1/listings/me/listings/${id}`,
 		addBookmark: (listingId: string) => `/api/v1/listings/${listingId}/bookmark`,
 		removeBookmark: (listingId: string) => `/api/v1/listings/${listingId}/bookmark`
 	}
@@ -53,6 +58,13 @@ const upsertListingTagModalPresenter = new UpsertListingTagModalPresenter(listin
 const deleteListingVerificationPresenter = new ActionVerificationModalPresenter(async (data: unknown) => {
 	const d = data as { listingId: string; listingTitle: string };
 	const resultPm = await listingRepository.deleteListing(d.listingId);
+	if (resultPm.ok) return { success: true, message: 'Listing deleted.' };
+	return { success: false, message: resultPm.error };
+});
+
+const deleteMyListingVerificationPresenter = new ActionVerificationModalPresenter(async (data: unknown) => {
+	const d = data as { listingId: string; listingTitle: string };
+	const resultPm = await listingRepository.deleteMyListing(d.listingId);
 	if (resultPm.ok) return { success: true, message: 'Listing deleted.' };
 	return { success: false, message: resultPm.error };
 });
@@ -83,6 +95,7 @@ export {
 	deleteListingCommentVerificationPresenter,
 	deleteListingTagVerificationPresenter,
 	deleteListingVerificationPresenter,
+	deleteMyListingVerificationPresenter,
 	getListingPresenter,
 	listingConfig,
 	listingRepository,
