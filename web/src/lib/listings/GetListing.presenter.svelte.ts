@@ -629,6 +629,11 @@ export class GetListingPresenter {
 		return this.toListingPublicVm(listing);
 	}
 
+	/** Stateless mapper for account bookmark stack rows. */
+	toStackCardVmStateless(listing: ListingProgrammerModel): StackCardViewModel {
+		return this.toStackCardVm(listing);
+	}
+
 	private toListingDetailPublicVm(listing: ListingProgrammerModel): ListingDetailPublicViewModel {
 		return {
 			id: listing.id,

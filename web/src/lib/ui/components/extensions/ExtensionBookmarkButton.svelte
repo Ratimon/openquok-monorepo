@@ -15,8 +15,11 @@
 
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
+	type ListingKind = 'extension' | 'stack';
+
 	type Props = {
 		listingId: string;
+		listingKind?: ListingKind;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
 		bookmarksPaidEnabled?: boolean | null;
@@ -30,6 +33,7 @@
 
 	let {
 		listingId,
+		listingKind = 'extension',
 		isBookmarked = false,
 		isLoggedIn = false,
 		bookmarksPaidEnabled = null,
@@ -50,7 +54,13 @@
 		bookmarked = isBookmarked;
 	});
 
-	const label = $derived(bookmarked ? 'Remove bookmark' : 'Bookmark extension');
+	const label = $derived(
+		bookmarked
+			? 'Remove bookmark'
+			: listingKind === 'stack'
+				? 'Bookmark stack'
+				: 'Bookmark extension'
+	);
 	const buttonSize = $derived(size === 'sm' ? 'sm' : 'default');
 
 	async function handleClick(event: MouseEvent) {
@@ -101,7 +111,7 @@
 >
 	<AbstractIcon
 		name={icons.Bookmark.name}
-		class="size-4 text-primary"
+		class={cn('size-4 text-primary', bookmarked && 'fill-primary')}
 		width="16"
 		height="16"
 		aria-hidden="true"

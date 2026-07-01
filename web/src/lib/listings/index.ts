@@ -150,6 +150,7 @@ export type {
 	ListingTagViewModel,
 	ListingViewModel,
 	SkillCommandViewModel,
+	StackCardViewModel,
 	StackDetailViewModel,
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';

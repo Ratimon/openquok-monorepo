@@ -159,7 +159,18 @@ export class UserListingEditorPagePresenter {
 		const draft = this.agentBuilderDraft;
 
 		if (!listing && draft && this.listingKind === 'stack') {
-			const stackMembers = buildStackMembersFromSlugs(draft.extensionSlugs, this.extensionChoices);
+			const supplementalCatalog = draft.extensionSlugs
+				.filter((slug) => !this.extensionChoices.some((choice) => choice.slug === slug))
+				.map((slug) => ({
+					id: draft.extensionIdsBySlug[slug] ?? '',
+					slug,
+					extensionType: draft.extensionTypesBySlug?.[slug] ?? null
+				}))
+				.filter((entry) => entry.id);
+			const stackMembers = buildStackMembersFromSlugs(draft.extensionSlugs, [
+				...this.extensionChoices,
+				...supplementalCatalog
+			]);
 			const stackBlueprint = workflowStepsToBlueprint(draft.workflowSteps, draft.markdown);
 
 			return {

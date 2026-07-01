@@ -69,7 +69,7 @@ export class PublicAgentBuilderPagePresenter {
 		return {
 			metaTitle: 'Agent Builder',
 			metaDescription:
-				'Build your own customized agent skills from selected SKILLs,, and MCP tools. Preview and download SKILL.md for your workspace.',
+				'Build your own customized agent skills from selected SKILLs, and MCP tools. Preview and download SKILL.md for your workspace.',
 			selectedExtensionSlugs: resolvedSlugs,
 			extensionsCatalog,
 			selectedExtensions,

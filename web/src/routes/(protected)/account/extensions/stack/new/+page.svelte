@@ -6,7 +6,7 @@
 
 	import {
 		getRootPathAccount,
-		getRootPathStacks,
+		getAccountExtensionsHubPath,
 		userListingNewStackPagePresenter
 	} from '$lib/area-protected';
 	import { createSortedCategoryChoices } from '$lib/listings';
@@ -23,7 +23,7 @@
 
 	let { data }: Props = $props();
 
-	const stacksListHref = url(`${route(getRootPathAccount())}/${getRootPathStacks()}`);
+	const extensionsHubHref = url(`${route(getRootPathAccount())}/${getAccountExtensionsHubPath()}`);
 
 	let initialized = $state(false);
 
@@ -62,7 +62,7 @@
 	$effect(() => {
 		if (userListingNewStackPagePresenter.redirectToList) {
 			userListingNewStackPagePresenter.redirectToList = false;
-			goto(stacksListHref, { replaceState: true });
+			goto(extensionsHubHref, { replaceState: true });
 		}
 	});
 
@@ -71,7 +71,7 @@
 	}
 
 	function handleDiscard() {
-		goto(stacksListHref, { replaceState: true });
+		goto(extensionsHubHref, { replaceState: true });
 	}
 </script>
 

@@ -45,33 +45,47 @@ export function getRootPathPayloadWizard(): string {
 	return 'payload-wizard';
 }
 
-/** Bookmarked extensions segment under the account area. */
+/** Extensions hub segment under the account area (bookmarks, owned listings, editors). */
 export function getRootPathExtensions(): string {
 	return 'extensions';
 }
 
-/** User-submitted stacks under the account area. */
-export function getRootPathStacks(): string {
-	return 'stacks';
+/** Extension editor segment under {@link getRootPathExtensions}. */
+export function getRootPathExtensionEditor(): string {
+	return 'extension';
 }
 
-/** User-submitted extensions under the account area. */
-export function getRootPathMyExtensions(): string {
-	return 'my-extensions';
+/** Stack editor segment under {@link getRootPathExtensions}. */
+export function getRootPathStackEditor(): string {
+	return 'stack';
 }
 
-export function getRootPathNewStack(): string {
+/** New listing editor segment (`…/extension/new`, `…/stack/new`). */
+export function getRootPathNewListing(): string {
 	return 'new';
 }
 
-export function getRootPathNewExtension(): string {
-	return 'new';
+/** Account extensions hub: `/account/extensions`. */
+export function getAccountExtensionsHubPath(): string {
+	return getRootPathExtensions();
 }
 
-export function getAccountStackEditorPath(stackId: string): string {
-	return `${getRootPathStacks()}/${stackId}`;
+/** New extension editor: `/account/extensions/extension/new`. */
+export function getAccountNewExtensionPath(): string {
+	return `${getRootPathExtensions()}/${getRootPathExtensionEditor()}/${getRootPathNewListing()}`;
 }
 
+/** New stack editor: `/account/extensions/stack/new`. */
+export function getAccountNewStackPath(): string {
+	return `${getRootPathExtensions()}/${getRootPathStackEditor()}/${getRootPathNewListing()}`;
+}
+
+/** Edit extension: `/account/extensions/extension/[id]`. */
 export function getAccountExtensionEditorPath(extensionId: string): string {
-	return `${getRootPathMyExtensions()}/${extensionId}`;
+	return `${getRootPathExtensions()}/${getRootPathExtensionEditor()}/${extensionId}`;
+}
+
+/** Edit stack: `/account/extensions/stack/[id]`. */
+export function getAccountStackEditorPath(stackId: string): string {
+	return `${getRootPathExtensions()}/${getRootPathStackEditor()}/${stackId}`;
 }

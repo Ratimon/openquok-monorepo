@@ -11,7 +11,7 @@
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
-	import { getRootPathAccount, getRootPathStacks, getRootPathNewStack } from '$lib/area-protected';
+	import { getRootPathAccount, getAccountNewStackPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
 	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
@@ -57,11 +57,9 @@
 	const rootPathSignIn = getRootPathSignin();
 	const signInHref = url(route(rootPathSignIn));
 
-	// /account/stacks/new
+	// /account/extensions/stack/new
 	const rootPathAccount = getRootPathAccount();
-	const rootPathStacks = getRootPathStacks();
-	const rootPathNewStack = getRootPathNewStack();
-	const newStackHref = absoluteUrl(`${rootPathAccount}/${rootPathStacks}/${rootPathNewStack}`);
+	const newStackHref = absoluteUrl(`${rootPathAccount}/${getAccountNewStackPath()}`);
 	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
 
 	const serverHydrationKey = $derived(

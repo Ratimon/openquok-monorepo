@@ -9,11 +9,13 @@
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
-	import { listingRepository } from '$lib/listings';
+	import {
+		loadBookmarkedIdsMap,
+		toggleListingBookmark
+	} from '$lib/listings/utils/listingBookmarkFeedback';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
-	import { toast } from '$lib/ui/sonner';
 
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
@@ -60,16 +62,30 @@
 		};
 	});
 
-	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
-		const resultPm = nextBookmarked
-			? await listingRepository.addBookmark(listingId)
-			: await listingRepository.removeBookmark(listingId);
-		if (!resultPm.ok) {
-			toast.error(resultPm.error);
-			return { ok: false as const, error: resultPm.error };
+	$effect(() => {
+		if (!browser || !isLoggedIn) {
+			bookmarkedIds = {};
+			return;
 		}
-		bookmarkedIds = { ...bookmarkedIds, [listingId]: nextBookmarked };
-		return { ok: true as const, bookmarked: nextBookmarked };
+		if (bookmarksPaidEnabled !== true) return;
+
+		let cancelled = false;
+		void loadBookmarkedIdsMap().then((map) => {
+			if (!cancelled) bookmarkedIds = map;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
+
+	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
+		const result = await toggleListingBookmark(listingId, nextBookmarked, {
+			listingKind: 'extension'
+		});
+		if (result.ok) {
+			bookmarkedIds = { ...bookmarkedIds, [listingId]: nextBookmarked };
+		}
+		return result;
 	}
 
 	const EXTENSIONS_GRID_PAGE_SIZE = 20;

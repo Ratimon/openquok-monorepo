@@ -6,8 +6,8 @@
 
 	import {
 		getRootPathAccount,
-		getRootPathMyExtensions,
-		userListingExtensionEditorPagePresenter
+		getAccountExtensionsHubPath,
+		userListingStackEditorPagePresenter
 	} from '$lib/area-protected';
 	import { createSortedCategoryChoices } from '$lib/listings';
 	import { route, url } from '$lib/utils/path';
@@ -21,63 +21,62 @@
 
 	let listingId = $derived(data.listingId);
 
-	const extensionsListHref = url(`${route(getRootPathAccount())}/${getRootPathMyExtensions()}`);
+	const extensionsHubHref = url(`${route(getRootPathAccount())}/${getAccountExtensionsHubPath()}`);
 
 	let initialized = $state(false);
 	let listingFound = $state(true);
 
 	const categoryChoices = $derived(
-		createSortedCategoryChoices(userListingExtensionEditorPagePresenter.categoryChoices)
+		createSortedCategoryChoices(userListingStackEditorPagePresenter.categoryChoices)
 	);
 	const tagChoices = $derived(
-		userListingExtensionEditorPagePresenter.tagChoices.map((tag) => ({
+		userListingStackEditorPagePresenter.tagChoices.map((tag) => ({
 			value: tag.id,
 			label: tag.name,
 			slug: tag.slug
 		}))
 	);
-	const formDefaults = $derived(userListingExtensionEditorPagePresenter.getFormDefaults());
+	const formDefaults = $derived(userListingStackEditorPagePresenter.getFormDefaults());
+	const stackExtensionChoices = $derived(userListingStackEditorPagePresenter.extensionChoices);
 
 	onMount(async () => {
-		const result = await userListingExtensionEditorPagePresenter.init(listingId, 'extension');
+		const result = await userListingStackEditorPagePresenter.init(listingId, 'stack');
 		listingFound = result.listingFound;
 		initialized = true;
 	});
 
 	$effect(() => {
-		if (userListingExtensionEditorPagePresenter.showToastMessage) {
-			const msg = userListingExtensionEditorPagePresenter.toastMessage;
+		if (userListingStackEditorPagePresenter.showToastMessage) {
+			const msg = userListingStackEditorPagePresenter.toastMessage;
 			if (msg && (msg.includes('error') || msg.includes('Error') || msg.includes('Failed'))) {
 				toast.error(msg);
 			} else {
 				toast.success(msg || 'Saved.');
 			}
-			userListingExtensionEditorPagePresenter.showToastMessage = false;
+			userListingStackEditorPagePresenter.showToastMessage = false;
 		}
 	});
 
 	$effect(() => {
-		if (userListingExtensionEditorPagePresenter.redirectToList) {
-			userListingExtensionEditorPagePresenter.redirectToList = false;
-			goto(extensionsListHref, { replaceState: true });
+		if (userListingStackEditorPagePresenter.redirectToList) {
+			userListingStackEditorPagePresenter.redirectToList = false;
+			goto(extensionsHubHref, { replaceState: true });
 		}
 	});
 
-	async function handleSave(
-		formData: Parameters<typeof userListingExtensionEditorPagePresenter.submit>[0]
-	) {
-		await userListingExtensionEditorPagePresenter.submit(formData);
+	async function handleSave(formData: Parameters<typeof userListingStackEditorPagePresenter.submit>[0]) {
+		await userListingStackEditorPagePresenter.submit(formData);
 	}
 
 	function handleDiscard() {
-		goto(extensionsListHref, { replaceState: true });
+		goto(extensionsHubHref, { replaceState: true });
 	}
 </script>
 
 <div class="p-4 md:p-6">
 	<div class="mb-6">
-		<h1 class="text-xl font-semibold text-base-content">Edit extension</h1>
-		<p class="text-sm text-base-content/70">Update your extension draft or submission.</p>
+		<h1 class="text-xl font-semibold text-base-content">Edit stack</h1>
+		<p class="text-sm text-base-content/70">Update your stack draft or submission.</p>
 	</div>
 
 	{#if !initialized}
@@ -85,16 +84,17 @@
 			<span class="loading loading-spinner loading-lg text-primary"></span>
 		</div>
 	{:else if !listingFound}
-		<p class="text-sm text-base-content/70">Extension not found or you do not have access.</p>
+		<p class="text-sm text-base-content/70">Stack not found or you do not have access.</p>
 	{:else}
 		{#key listingId}
 			<EditorListing
 				initialValues={formDefaults}
 				{categoryChoices}
 				{tagChoices}
-				listingKind="extension"
+				{stackExtensionChoices}
+				listingKind="stack"
 				isPlatformAdmin={false}
-				isSubmitting={userListingExtensionEditorPagePresenter.submitting}
+				isSubmitting={userListingStackEditorPagePresenter.submitting}
 				listingId={listingId}
 				noListingFound={!listingFound}
 				onSave={handleSave}

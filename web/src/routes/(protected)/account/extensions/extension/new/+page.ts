@@ -26,7 +26,7 @@ export const load: PageLoad = async ({ parent, data, url }) => {
 	const { CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const publicInfo = parentData as ParentLayoutWithPublicInfo;
 	const metaTags = await createMetaData({
-		customTitle: 'Account: Viral Formats',
+		customTitle: 'Account: New extension',
 		companyInformation: publicInfo.companyInformationPm ?? null,
 		marketingInformation: publicInfo.marketingInformationPm ?? null,
 		requestUrl: url

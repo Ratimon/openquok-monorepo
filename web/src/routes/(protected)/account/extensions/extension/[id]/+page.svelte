@@ -6,8 +6,8 @@
 
 	import {
 		getRootPathAccount,
-		getRootPathMyExtensions,
-		userListingNewExtensionPagePresenter
+		getAccountExtensionsHubPath,
+		userListingExtensionEditorPagePresenter
 	} from '$lib/area-protected';
 	import { createSortedCategoryChoices } from '$lib/listings';
 	import { route, url } from '$lib/utils/path';
@@ -19,50 +19,54 @@
 
 	let { data }: Props = $props();
 
-	const extensionsListHref = url(`${route(getRootPathAccount())}/${getRootPathMyExtensions()}`);
+	let listingId = $derived(data.listingId);
+
+	const extensionsListHref = url(`${route(getRootPathAccount())}/${getAccountExtensionsHubPath()}`);
 
 	let initialized = $state(false);
+	let listingFound = $state(true);
 
 	const categoryChoices = $derived(
-		createSortedCategoryChoices(userListingNewExtensionPagePresenter.categoryChoices)
+		createSortedCategoryChoices(userListingExtensionEditorPagePresenter.categoryChoices)
 	);
 	const tagChoices = $derived(
-		userListingNewExtensionPagePresenter.tagChoices.map((tag) => ({
+		userListingExtensionEditorPagePresenter.tagChoices.map((tag) => ({
 			value: tag.id,
 			label: tag.name,
 			slug: tag.slug
 		}))
 	);
-	const formDefaults = $derived(userListingNewExtensionPagePresenter.getFormDefaults());
+	const formDefaults = $derived(userListingExtensionEditorPagePresenter.getFormDefaults());
 
 	onMount(async () => {
-		await userListingNewExtensionPagePresenter.init(undefined, 'extension');
+		const result = await userListingExtensionEditorPagePresenter.init(listingId, 'extension');
+		listingFound = result.listingFound;
 		initialized = true;
 	});
 
 	$effect(() => {
-		if (userListingNewExtensionPagePresenter.showToastMessage) {
-			const msg = userListingNewExtensionPagePresenter.toastMessage;
+		if (userListingExtensionEditorPagePresenter.showToastMessage) {
+			const msg = userListingExtensionEditorPagePresenter.toastMessage;
 			if (msg && (msg.includes('error') || msg.includes('Error') || msg.includes('Failed'))) {
 				toast.error(msg);
 			} else {
 				toast.success(msg || 'Saved.');
 			}
-			userListingNewExtensionPagePresenter.showToastMessage = false;
+			userListingExtensionEditorPagePresenter.showToastMessage = false;
 		}
 	});
 
 	$effect(() => {
-		if (userListingNewExtensionPagePresenter.redirectToList) {
-			userListingNewExtensionPagePresenter.redirectToList = false;
+		if (userListingExtensionEditorPagePresenter.redirectToList) {
+			userListingExtensionEditorPagePresenter.redirectToList = false;
 			goto(extensionsListHref, { replaceState: true });
 		}
 	});
 
 	async function handleSave(
-		formData: Parameters<typeof userListingNewExtensionPagePresenter.submit>[0]
+		formData: Parameters<typeof userListingExtensionEditorPagePresenter.submit>[0]
 	) {
-		await userListingNewExtensionPagePresenter.submit(formData);
+		await userListingExtensionEditorPagePresenter.submit(formData);
 	}
 
 	function handleDiscard() {
@@ -72,26 +76,27 @@
 
 <div class="p-4 md:p-6">
 	<div class="mb-6">
-		<h1 class="text-xl font-semibold text-base-content">New extension</h1>
-		<p class="text-sm text-base-content/70">
-			Create a skills or MCP extension listing. Admin approval is required for the public catalog.
-		</p>
+		<h1 class="text-xl font-semibold text-base-content">Edit extension</h1>
+		<p class="text-sm text-base-content/70">Update your extension draft or submission.</p>
 	</div>
 
 	{#if !initialized}
 		<div class="flex items-center justify-center py-12">
 			<span class="loading loading-spinner loading-lg text-primary"></span>
 		</div>
+	{:else if !listingFound}
+		<p class="text-sm text-base-content/70">Extension not found or you do not have access.</p>
 	{:else}
-		{#key 'new-user-extension'}
+		{#key listingId}
 			<EditorListing
 				initialValues={formDefaults}
 				{categoryChoices}
 				{tagChoices}
 				listingKind="extension"
 				isPlatformAdmin={false}
-				isSubmitting={userListingNewExtensionPagePresenter.submitting}
-				noListingFound={false}
+				isSubmitting={userListingExtensionEditorPagePresenter.submitting}
+				listingId={listingId}
+				noListingFound={!listingFound}
 				onSave={handleSave}
 				onDiscard={handleDiscard}
 			/>

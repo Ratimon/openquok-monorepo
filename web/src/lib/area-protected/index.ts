@@ -6,10 +6,12 @@ export {
 	getRootPathPlugs,
 	getRootPathTemplates,
 	getRootPathExtensions,
-	getRootPathStacks,
-	getRootPathMyExtensions,
-	getRootPathNewStack,
-	getRootPathNewExtension,
+	getRootPathExtensionEditor,
+	getRootPathStackEditor,
+	getRootPathNewListing,
+	getAccountExtensionsHubPath,
+	getAccountNewExtensionPath,
+	getAccountNewStackPath,
 	getAccountStackEditorPath,
 	getAccountExtensionEditorPath
 } from '$lib/area-protected/getRootPathProtectedArea';
@@ -190,13 +192,13 @@ const protectedAccountExtensionsPagePresenter = new ProtectedAccountExtensionsPa
 	getBillingPresenter
 );
 
-/** Edit stack: `/account/stacks/[id]` */
+/** Edit stack: `/account/extensions/stack/[id]` */
 const userListingStackEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New stack: `/account/stacks/new` */
+/** New stack: `/account/extensions/stack/new` */
 const userListingNewStackPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** Edit extension: `/account/my-extensions/[id]` */
+/** Edit extension: `/account/extensions/extension/[id]` */
 const userListingExtensionEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New extension: `/account/my-extensions/new` */
+/** New extension: `/account/extensions/extension/new` */
 const userListingNewExtensionPagePresenter = new UserListingEditorPagePresenter(listingRepository);
 
 const userListingStacksManagerPagePresenter = new UserListingsManagerPagePresenter(

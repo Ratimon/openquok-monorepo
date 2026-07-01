@@ -8,6 +8,7 @@ export type AgentBuilderStackDraft = {
 	extensionSlugs: string[];
 	workflowSteps: StackBuilderWorkflowStepViewModel[];
 	extensionIdsBySlug: Record<string, string>;
+	extensionTypesBySlug?: Record<string, string | null>;
 };
 
 export function saveAgentBuilderStackDraft(draft: AgentBuilderStackDraft): void {
