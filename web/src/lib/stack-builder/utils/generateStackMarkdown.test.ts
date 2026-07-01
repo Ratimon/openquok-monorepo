@@ -3,24 +3,31 @@ import { describe, expect, it } from 'vitest';
 import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
 
 describe('generateStackMarkdown', () => {
-	it('renders SKILL.md starter structure with placeholder instructions when empty', () => {
+	it('renders SKILL.md starter structure with core workflow fallback when empty', () => {
 		const markdown = generateStackMarkdown({
 			extensionSlugs: ['openquok-core'],
 			workflowSteps: [],
 			referenceAssets: []
 		});
 
-		expect(markdown).toContain('---');
-		expect(markdown).toContain('name: my-first-skill');
-		expect(markdown).toContain('version: 1.0.0');
-		expect(markdown).toContain('license: MIT');
-		expect(markdown).toContain('# My First Skill');
-		expect(markdown).toContain('### Step 1: Do the first thing');
-		expect(markdown).toContain('### Step 3: Test it');
-		expect(markdown).toContain('Built with extensions: `openquok-core`.');
+		expect(markdown).toContain('## Core Workflow');
+		expect(markdown).toContain('**Discover**');
+		expect(markdown).toContain('openquok integrations:list');
+		expect(markdown).not.toContain('## Instructions');
 	});
 
-	it('renders workflow commands, text steps, and reference assets in SKILL.md format', () => {
+	it('includes RevenueCat prerequisites when revenuecat-mcp is selected', () => {
+		const markdown = generateStackMarkdown({
+			extensionSlugs: ['openquok-core', 'revenuecat-mcp'],
+			workflowSteps: [],
+			referenceAssets: []
+		});
+
+		expect(markdown).toContain('### Conversion tracking (optional but recommended for mobile apps)');
+		expect(markdown).toContain('**RevenueCat MCP**');
+	});
+
+	it('renders workflow commands, text notes, and reference assets in SKILL.md format', () => {
 		const markdown = generateStackMarkdown({
 			title: 'Test stack',
 			extensionSlugs: ['openquok-core'],
@@ -32,12 +39,14 @@ describe('generateStackMarkdown', () => {
 					listingSlug: 'openquok-core',
 					listingTitle: 'OpenQuok Core',
 					commandName: 'integrations:list',
+					title: 'Discover connected channels',
 					prompt: 'List channels.',
-					commandTemplate: 'openquok integrations:list'
+					commandTemplate: '# List connected social channels\nopenquok integrations:list'
 				},
 				{
 					id: '2',
 					type: 'text',
+					title: 'Review',
 					content: 'Review the output.'
 				}
 			],
@@ -51,15 +60,10 @@ describe('generateStackMarkdown', () => {
 			]
 		});
 
-		expect(markdown).toContain('name: test-stack');
-		expect(markdown).toContain('# Test stack');
-		expect(markdown).toContain('### Step 1: integrations:list');
-		expect(markdown).toContain('List channels.');
-		expect(markdown).toContain('openquok integrations:list');
-		expect(markdown).toContain('### Step 2');
+		expect(markdown).toContain('## Core Workflow');
+		expect(markdown).toContain('### 1. Discover connected channels');
+		expect(markdown).toContain('### 2. Review');
 		expect(markdown).toContain('Review the output.');
 		expect(markdown).toContain('## Reference assets');
-		expect(markdown).toContain('### Brief');
-		expect(markdown).toContain('"persona": "creator"');
 	});
 });

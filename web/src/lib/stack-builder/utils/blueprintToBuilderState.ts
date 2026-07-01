@@ -1,5 +1,12 @@
 import { nanoid } from 'nanoid';
 
+import { OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
+import {
+	OPENQUOK_COMMAND_WORKFLOW_META,
+	resolveCommandWorkflowTitle
+} from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
+import { resolveOpenquokCommandTemplate } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
+
 import type { StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
 import type {
 	StackBuilderReferenceAssetViewModel,
@@ -17,20 +24,31 @@ export function blueprintToWorkflowSteps(
 			return {
 				id: nanoid(),
 				type: 'text' as const,
+				title: step.title ?? '',
 				content: step.content ?? ''
 			};
 		}
 
 		const listingSlug = step.listing_slug ?? 'extension';
+		const commandName = step.command_name ?? 'command';
+		const meta = OPENQUOK_COMMAND_WORKFLOW_META[commandName];
+		const commandTemplate =
+			step.command_template?.trim() ||
+			(listingSlug === OPENQUOK_CORE_EXTENSION_SLUG
+				? resolveOpenquokCommandTemplate(commandName)
+				: undefined);
+
 		return {
 			id: nanoid(),
 			type: 'command' as const,
-			kind: 'cli' as const,
+			kind: listingSlug === 'revenuecat-mcp' ? ('mcp' as const) : ('cli' as const),
 			listingSlug,
 			listingTitle: extensionTitlesBySlug[listingSlug] ?? listingSlug,
-			commandName: step.command_name ?? 'command',
-			prompt: step.prompt ?? '',
-			examplePayload: step.example_payload
+			commandName,
+			title: step.title ?? meta?.title,
+			prompt: step.prompt ?? meta?.prompt ?? '',
+			examplePayload: step.example_payload ?? meta?.examplePayload,
+			commandTemplate
 		};
 	});
 }

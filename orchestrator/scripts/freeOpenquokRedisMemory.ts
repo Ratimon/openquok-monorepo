@@ -7,6 +7,8 @@
  * Usage (from repo root):
  *   pnpm --filter openquok-orchestrator script:free-openquok-redis-memory -- --dry-run
  *   pnpm --filter openquok-orchestrator script:free-openquok-redis-memory -- --targets=bull,digest,flowcraft
+ *   pnpm --filter openquok-orchestrator script:free-openquok-redis-memory -- --targets=history
+ *   pnpm redis:clear-history:prod   # from repo root (uses orchestrator/.env.production.local)
  *   pnpm --filter openquok-orchestrator script:free-openquok-redis-memory -- --targets=cache
  */
 import IORedis, { type RedisOptions } from "ioredis";
@@ -88,9 +90,12 @@ function buildRedisOptions(overrideDb?: number): { options: RedisOptions; tlsEna
     return { options, tlsEnabled: useTls, db };
 }
 
-type Target = "bull" | "digest" | "flowcraft" | "cache";
+type Target = "bull" | "history" | "digest" | "flowcraft" | "cache";
 
-const ALL_TARGETS: readonly Target[] = ["bull", "digest", "flowcraft", "cache"];
+const ALL_TARGETS: readonly Target[] = ["bull", "history", "digest", "flowcraft", "cache"];
+
+/** Completed/failed job zsets only — does not touch wait/active/delayed queues. */
+const BULL_HISTORY_PATTERNS = ["bull:*:completed", "bull:*:failed"] as const;
 
 function parseArgs(argv: string[]): { dryRun: boolean; targets: Set<Target> } {
     let dryRun = false;
@@ -110,6 +115,7 @@ Remove OpenQuok key prefixes to free Redis memory (SCAN + UNLINK; not FLUSHDB).
 
   cache   → keys under REDIS_PREFIX (default app:cache:*) — same logical DB as REDIS_DB
   bull    → bull:<queue>:* (three orchestrator queues)
+  history → bull:*:completed and bull:*:failed only (job history zsets)
   digest  → notificationDigest:* (pending digest lines + set)
   flowcraft → workflow:state:*, flowcraft:blueprint:*, workflow:status:*
 
@@ -185,7 +191,8 @@ async function main(): Promise<void> {
     const dbOrch = parseNumberEnv("REDIS_BULLMQ_DB", parseNumberEnv("REDIS_DB", 0));
     const dbCache = parseNumberEnv("REDIS_DB", 0);
 
-    const needOrch = targets.has("bull") || targets.has("digest") || targets.has("flowcraft");
+    const needOrch =
+        targets.has("bull") || targets.has("history") || targets.has("digest") || targets.has("flowcraft");
     const needCache = targets.has("cache");
 
     const byPattern: { pattern: string; keys: number; db: number }[] = [];
@@ -199,6 +206,15 @@ async function main(): Promise<void> {
                 for (const q of QUEUE_SEGMENTS) {
                     const p = `bull:${q}:*`;
                     byPattern.push({ pattern: p, keys: await scanUnlink(redis, p, dryRun, "bull"), db: dbOrch });
+                }
+            }
+            if (targets.has("history")) {
+                for (const p of BULL_HISTORY_PATTERNS) {
+                    byPattern.push({
+                        pattern: p,
+                        keys: await scanUnlink(redis, p, dryRun, "history"),
+                        db: dbOrch,
+                    });
                 }
             }
             if (targets.has("digest")) {

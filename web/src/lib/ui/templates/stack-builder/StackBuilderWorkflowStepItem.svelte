@@ -3,6 +3,8 @@
 
 	import { icons } from '$data/icons';
 
+	import { resolveCommandWorkflowTitle } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
+
 	import * as Accordion from '$lib/ui/accordion';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import StackBuilderCommandStepCard from '$lib/ui/templates/stack-builder/StackBuilderCommandStepCard.svelte';
@@ -28,7 +30,11 @@
 
 	const stepIcon = $derived(resolveStepIcon(stepVm));
 
-	const stepTitle = $derived(stepVm.type === 'command' ? stepVm.commandName : 'Text step');
+	const stepTitle = $derived(
+		stepVm.type === 'command'
+			? resolveCommandWorkflowTitle(stepVm.commandName, stepVm.title)
+			: stepVm.title?.trim() || 'Workflow note'
+	);
 
 	function resolveStepIcon(step: StackBuilderWorkflowStepViewModel) {
 		if (step.type === 'text') return icons.FileText.name;

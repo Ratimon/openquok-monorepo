@@ -1,11 +1,15 @@
 import {
+	OPENQUOK_CORE_EXTENSION_SLUG,
 	SKILL_DEFAULT_DESCRIPTION,
 	SKILL_DEFAULT_LICENSE,
 	SKILL_DEFAULT_NAME,
 	SKILL_DEFAULT_TITLE,
-	SKILL_DEFAULT_VERSION,
-	SKILL_STARTER_INSTRUCTIONS
+	SKILL_DEFAULT_VERSION
 } from '$lib/stack-builder/constants/defaults';
+import { OPENQUOK_CORE_QUICK_REFERENCE } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
+import { buildCoreWorkflowMarkdown } from '$lib/stack-builder/utils/buildCoreWorkflowMarkdown';
+import { buildSkillPrerequisitesMarkdown } from '$lib/stack-builder/utils/buildSkillPrerequisites';
+import { ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
 import type {
 	StackBuilderReferenceAssetViewModel,
 	StackBuilderWorkflowStepViewModel
@@ -23,54 +27,6 @@ function slugifySkillName(title: string): string {
 	return slug || SKILL_DEFAULT_NAME;
 }
 
-function formatCommandStepTitle(
-	step: Extract<StackBuilderWorkflowStepViewModel, { type: 'command' }>
-): string {
-	return step.commandName;
-}
-
-function formatPayloadBlock(payload: Record<string, unknown>): string {
-	return ['```json', JSON.stringify(payload, null, 2), '```'].join('\n');
-}
-
-function buildInstructionsSection(workflowSteps: StackBuilderWorkflowStepViewModel[]): string {
-	if (workflowSteps.length === 0) {
-		return SKILL_STARTER_INSTRUCTIONS;
-	}
-
-	const lines: string[] = ['Step-by-step instructions for the agent to follow.', ''];
-
-	workflowSteps.forEach((step, index) => {
-		const stepNumber = index + 1;
-		if (step.type === 'text') {
-			lines.push(`### Step ${stepNumber}`);
-			lines.push('');
-			lines.push(step.content.trim() || '_Text step_');
-			lines.push('');
-			return;
-		}
-
-		lines.push(`### Step ${stepNumber}: ${formatCommandStepTitle(step)}`);
-		lines.push('');
-		if (step.prompt.trim()) {
-			lines.push(step.prompt.trim());
-			lines.push('');
-		}
-		if (step.commandTemplate?.trim()) {
-			lines.push('```bash');
-			lines.push(step.commandTemplate.trim());
-			lines.push('```');
-			lines.push('');
-		}
-		if (step.examplePayload && Object.keys(step.examplePayload).length > 0) {
-			lines.push(formatPayloadBlock(step.examplePayload));
-			lines.push('');
-		}
-	});
-
-	return lines.join('\n').trimEnd();
-}
-
 function buildOverviewSection(extensionSlugs: string[]): string {
 	if (extensionSlugs.length === 0) {
 		return 'Describe what this skill helps with.';
@@ -78,6 +34,18 @@ function buildOverviewSection(extensionSlugs: string[]): string {
 
 	const slugList = extensionSlugs.map((slug) => `\`${slug}\``).join(', ');
 	return `Describe what this skill helps with.\n\nBuilt with extensions: ${slugList}.`;
+}
+
+function buildPrerequisitesSection(extensionSlugs: string[]): string {
+	return buildSkillPrerequisitesMarkdown(extensionSlugs);
+}
+
+function buildQuickReferenceSection(extensionSlugs: string[]): string {
+	if (!extensionSlugs.includes(OPENQUOK_CORE_EXTENSION_SLUG)) {
+		return '';
+	}
+
+	return OPENQUOK_CORE_QUICK_REFERENCE;
 }
 
 function buildReferenceAssetsSection(referenceAssets: StackBuilderReferenceAssetViewModel[]): string {
@@ -111,8 +79,11 @@ export function generateStackMarkdown(params: {
 }): string {
 	const title = params.title?.trim() || SKILL_DEFAULT_TITLE;
 	const skillName = slugifySkillName(title);
-	const instructions = buildInstructionsSection(params.workflowSteps);
-	const overview = buildOverviewSection(params.extensionSlugs);
+	const extensionSlugs = ensureOpenquokCoreExtensionSlug(params.extensionSlugs);
+	const coreWorkflow = buildCoreWorkflowMarkdown(params.workflowSteps);
+	const overview = buildOverviewSection(extensionSlugs);
+	const prerequisites = buildPrerequisitesSection(extensionSlugs);
+	const quickReference = buildQuickReferenceSection(extensionSlugs);
 	const referenceAssets = buildReferenceAssetsSection(params.referenceAssets);
 
 	const lines = [
@@ -127,11 +98,22 @@ export function generateStackMarkdown(params: {
 		'',
 		'## Overview',
 		'',
-		overview,
+		overview
+	];
+
+	if (prerequisites) {
+		lines.push('', '## Prerequisites', '', prerequisites);
+	}
+
+	if (quickReference) {
+		lines.push('', '## Quick Reference', '', '```bash', quickReference, '```');
+	}
+
+	lines.push(
 		'',
-		'## Instructions',
+		'## Core Workflow',
 		'',
-		instructions,
+		coreWorkflow,
 		'',
 		'## Examples',
 		'',
@@ -141,7 +123,7 @@ export function generateStackMarkdown(params: {
 		'### Example Output',
 		"Here's what the agent should produce...",
 		referenceAssets
-	];
+	);
 
 	return lines.join('\n').trimEnd() + '\n';
 }

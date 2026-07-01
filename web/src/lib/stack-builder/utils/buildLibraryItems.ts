@@ -1,5 +1,7 @@
 import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
+import { OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
+import { resolveOpenquokCommandTemplate } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
 import type { StackBuilderLibraryItemViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 function libraryItemId(listingSlug: string, kind: 'cli' | 'mcp', name: string): string {
@@ -14,6 +16,11 @@ export function buildLibraryItems(
 
 	for (const extension of extensions) {
 		for (const command of extension.skillCommands) {
+			const commandTemplate =
+				extension.slug === OPENQUOK_CORE_EXTENSION_SLUG
+					? resolveOpenquokCommandTemplate(command.name, command.commandTemplate)
+					: command.commandTemplate?.trim() || undefined;
+
 			items.push({
 				id: libraryItemId(extension.slug, 'cli', command.name),
 				listingSlug: extension.slug,
@@ -22,7 +29,7 @@ export function buildLibraryItems(
 				kind: 'cli',
 				name: command.name,
 				description: command.description,
-				commandTemplate: command.commandTemplate,
+				commandTemplate,
 				examplePrompt: command.examplePrompt,
 				examplePayload: command.examplePayload
 			});

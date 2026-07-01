@@ -18,11 +18,14 @@ export type StackBlueprintWorkflowStep =
           type: "command";
           listing_slug?: string;
           command_name?: string;
+          title?: string;
           prompt?: string;
+          command_template?: string;
           example_payload?: Record<string, unknown>;
       }
     | {
           type: "text";
+          title?: string;
           content?: string;
       };
 

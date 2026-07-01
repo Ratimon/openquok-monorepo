@@ -79,6 +79,34 @@
 	letter-spacing: normal;
 }
 
+.carta-theme__github .carta-input textarea.carta-font-code {
+	padding: 0;
+	margin: 0;
+	font-size: 0.95rem;
+	line-height: 0.95rem;
+}
+
+/* app.postcss styles all `.shiki` blocks for docs; reset inside the write overlay. */
+.carta-theme__github .carta-highlight .shiki,
+.carta-theme__github .carta-highlight pre.shiki,
+.carta-theme__github .carta-highlight code {
+	padding: 0;
+	margin: 0;
+	border: none;
+	border-radius: 0;
+	font-size: inherit;
+	line-height: inherit;
+	overflow: visible;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+	background: transparent !important;
+}
+
+.carta-theme__github .carta-highlight .shiki span {
+	font-size: inherit;
+	line-height: inherit;
+}
+
 .carta-theme__github .carta-toolbar {
 	height: 2.5rem;
 	background-color: var(--carta-github-bg-light);
@@ -241,7 +269,9 @@
 	text-overflow: ellipsis;
 }
 
-html.dark .carta-theme__github .shiki,
-html.dark .carta-theme__github .shiki span {
+html.dark .carta-theme__github .carta-highlight .shiki,
+html.dark .carta-theme__github .carta-highlight .shiki span,
+html[data-theme='forest'] .carta-theme__github .carta-highlight .shiki,
+html[data-theme='forest'] .carta-theme__github .carta-highlight .shiki span {
 	color: var(--shiki-dark) !important;
 }

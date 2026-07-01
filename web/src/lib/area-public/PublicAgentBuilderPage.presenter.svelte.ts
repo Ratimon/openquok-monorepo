@@ -1,12 +1,15 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
-import { createDefaultCharacterBriefAsset } from '$lib/stack-builder/constants/defaults';
+import { createDefaultCharacterBriefAsset, createDefaultStarterWorkflowSteps } from '$lib/stack-builder/constants/defaults';
 import type { AgentBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
 import {
 	blueprintToReferenceAssets,
 	blueprintToWorkflowSteps
 } from '$lib/stack-builder/utils/blueprintToBuilderState';
-import { parseExtensionSlugsFromQuery } from '$lib/stack-builder/utils/parseBuilderQuery';
+import {
+	ensureOpenquokCoreExtensionSlug,
+	parseExtensionSlugsFromQuery
+} from '$lib/stack-builder/utils/parseBuilderQuery';
 
 export class PublicAgentBuilderPagePresenter {
 	constructor(private readonly getListingPresenter: GetListingPresenter) {}
@@ -51,7 +54,7 @@ export class PublicAgentBuilderPagePresenter {
 			}
 		}
 
-		const resolvedSlugs = [...slugSet];
+		const resolvedSlugs = ensureOpenquokCoreExtensionSlug([...slugSet]);
 		const selectedExtensions = (
 			await Promise.all(
 				resolvedSlugs.map((slug) =>
@@ -74,7 +77,8 @@ export class PublicAgentBuilderPagePresenter {
 			selectedExtensionSlugs: resolvedSlugs,
 			extensionsCatalog,
 			selectedExtensions,
-			initialWorkflowSteps: blueprintSteps,
+			initialWorkflowSteps:
+				blueprintSteps.length > 0 ? blueprintSteps : createDefaultStarterWorkflowSteps(),
 			initialReferenceAssets:
 				blueprintAssets.length > 0 ? blueprintAssets : [createDefaultCharacterBriefAsset()],
 			stackTitle,

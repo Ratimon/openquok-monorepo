@@ -1,6 +1,13 @@
 <script lang="ts">
 	import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
+	import { OPENQUOK_COMMAND_WORKFLOW_META } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
+	import { supportsWorkflowJsonPayload } from '$lib/stack-builder/utils/postsCreatePayload';
+	import { url } from '$lib/utils/path';
+
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import StackBuilderPostsCreatePayloadFields from '$lib/ui/templates/stack-builder/StackBuilderPostsCreatePayloadFields.svelte';
+
 	type CommandStepViewModel = Extract<StackBuilderWorkflowStepViewModel, { type: 'command' }>;
 
 	type Props = {
@@ -10,61 +17,57 @@
 
 	let { stepVm, onUpdate }: Props = $props();
 
-	let payloadDraft = $state('');
-
-	$effect(() => {
-		payloadDraft =
-			stepVm.examplePayload && Object.keys(stepVm.examplePayload).length > 0
-				? JSON.stringify(stepVm.examplePayload, null, 2)
-				: '';
-	});
-
-	function commitPayload() {
-		const trimmed = payloadDraft.trim();
-		if (!trimmed) {
-			onUpdate({ examplePayload: undefined });
-			return;
-		}
-		try {
-			const parsed = JSON.parse(trimmed) as Record<string, unknown>;
-			onUpdate({ examplePayload: parsed });
-		} catch {
-			// Keep draft; invalid JSON is ignored until valid.
-		}
-	}
+	const docsPath = $derived(OPENQUOK_COMMAND_WORKFLOW_META[stepVm.commandName]?.docsPath);
+	const docsHref = $derived(docsPath ? url(docsPath) : null);
+	const showPayloadFields = $derived(supportsWorkflowJsonPayload(stepVm.commandName));
 </script>
 
 <div class="space-y-3">
 	<label class="block space-y-1">
-		<span class="text-xs font-medium text-base-content/70">Agent prompt</span>
+		<span class="text-xs font-medium text-base-content/70">Workflow step title</span>
+		<input
+			class="input input-bordered input-sm w-full"
+			type="text"
+			value={stepVm.title ?? ''}
+			oninput={(event) => onUpdate({ title: event.currentTarget.value })}
+			placeholder="e.g. Schedule a post"
+		/>
+	</label>
+
+	<label class="block space-y-1">
+		<span class="text-xs font-medium text-base-content/70">Agent instructions</span>
 		<textarea
 			class="textarea textarea-bordered w-full text-sm"
 			rows="3"
 			value={stepVm.prompt}
 			oninput={(event) => onUpdate({ prompt: event.currentTarget.value })}
-			placeholder="Describe what the agent should do with this command or tool."
+			placeholder="Describe what the agent should do in this workflow step."
 		></textarea>
 	</label>
 
 	{#if stepVm.commandTemplate}
 		<label class="block space-y-1">
-			<span class="text-xs font-medium text-base-content/70">Command template</span>
-			<input
-				class="input input-bordered w-full font-mono text-xs"
+			<span class="text-xs font-medium text-base-content/70">CLI example</span>
+			<textarea
+				class="textarea textarea-bordered w-full font-mono text-xs"
+				rows={Math.min(8, stepVm.commandTemplate.split('\n').length + 1)}
 				value={stepVm.commandTemplate}
 				oninput={(event) => onUpdate({ commandTemplate: event.currentTarget.value })}
-			/>
+			></textarea>
 		</label>
 	{/if}
 
-	<label class="block space-y-1">
-		<span class="text-xs font-medium text-base-content/70">Example JSON payload</span>
-		<textarea
-			class="textarea textarea-bordered w-full font-mono text-xs"
-			rows="6"
-			bind:value={payloadDraft}
-			onblur={commitPayload}
-			placeholder={'{\n  "example": true\n}'}
-		></textarea>
-	</label>
+	{#if showPayloadFields}
+		<StackBuilderPostsCreatePayloadFields
+			payload={stepVm.examplePayload}
+			onChange={(examplePayload) => onUpdate({ examplePayload })}
+		/>
+	{/if}
+
+	{#if docsHref}
+		<p class="text-xs text-base-content/60">
+			API reference:
+			<ExternalLink href={docsHref}>Open playground</ExternalLink>
+		</p>
+	{/if}
 </div>

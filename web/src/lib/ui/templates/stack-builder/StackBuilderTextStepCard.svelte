@@ -11,7 +11,17 @@
 	let { stepVm, onUpdate }: Props = $props();
 </script>
 
-<div>
+<div class="space-y-3">
+	<label class="block space-y-1">
+		<span class="text-xs font-medium text-base-content/70">Step title</span>
+		<input
+			class="input input-bordered input-sm w-full"
+			type="text"
+			value={stepVm.title ?? ''}
+			oninput={(event) => onUpdate({ title: event.currentTarget.value })}
+			placeholder="e.g. Do the first thing"
+		/>
+	</label>
 	<label class="block space-y-1">
 		<span class="text-xs font-medium text-base-content/70">Instructions</span>
 		<textarea

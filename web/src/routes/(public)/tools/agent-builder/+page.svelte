@@ -11,11 +11,12 @@
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
-	import { CREATING_SKILLS_DOC_URL } from '$lib/stack-builder/constants/defaults';
+	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
+	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
 	import { getListingPresenter } from '$lib/listings';
 	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
 	import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
-	import { serializeExtensionSlugs } from '$lib/stack-builder/utils/parseBuilderQuery';
+	import { serializeExtensionSlugs, ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
 	import { route } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -96,6 +97,10 @@
 	const downloadFilename = $derived('SKILL.md');
 
 	async function toggleExtensionSlug(slug: string) {
+		if (slug === OPENQUOK_CORE_EXTENSION_SLUG && activeExtensionSlugs.includes(slug)) {
+			return;
+		}
+
 		const isSelected = activeExtensionSlugs.includes(slug);
 		const nextSlugs = isSelected
 			? activeExtensionSlugs.filter((value) => value !== slug)
@@ -125,12 +130,14 @@
 	function syncUrl(slugs: string[]) {
 		if (!browser) return;
 		const params = new URLSearchParams();
-		params.set('extensions', serializeExtensionSlugs(slugs));
+		params.set('extensions', serializeExtensionSlugs(ensureOpenquokCoreExtensionSlug(slugs)));
 		const nextUrl = `${agentBuilderPath}?${params.toString()}`;
 		window.history.replaceState(window.history.state, '', nextUrl);
 	}
 
 	function addLibraryItem(itemVm: StackBuilderLibraryItemViewModel) {
+		const workflowDefaults = buildCommandWorkflowStepFromLibraryItem(itemVm);
+
 		workflowSteps = [
 			...workflowSteps,
 			{
@@ -140,9 +147,10 @@
 				listingSlug: itemVm.listingSlug,
 				listingTitle: itemVm.listingTitle,
 				commandName: itemVm.name,
-				prompt: itemVm.examplePrompt ?? itemVm.description,
-				examplePayload: itemVm.examplePayload,
-				commandTemplate: itemVm.commandTemplate
+				title: workflowDefaults.title,
+				prompt: workflowDefaults.prompt,
+				examplePayload: workflowDefaults.examplePayload,
+				commandTemplate: workflowDefaults.commandTemplate
 			}
 		];
 	}

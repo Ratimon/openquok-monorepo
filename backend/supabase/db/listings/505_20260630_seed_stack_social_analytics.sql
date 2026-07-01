@@ -52,7 +52,7 @@ SET
     "name": "integrations:list",
     "description": "List connected social channels. Optionally filter by channel group id.",
     "kind": "cli",
-    "command_template": "openquok integrations:list",
+    "command_template": "# List all connected social channels (integration UUIDs)\nopenquok integrations:list",
     "example_prompt": "List connected channels and return the integration UUID for the target platform."
   },
   {
@@ -83,7 +83,7 @@ SET
     "name": "posts:create",
     "description": "Create or schedule social posts. Supports flags, repeated bodies for threads, or a full JSON payload.",
     "kind": "cli",
-    "command_template": "openquok posts:create --json ./post.json",
+    "command_template": "# Create or schedule a post (upload media first — Rule 2 in openquok-core)\nopenquok posts:create --json ./post.json",
     "example_prompt": "Schedule a TikTok photo carousel using the example JSON payload.",
     "example_payload": {
       "scheduledAt": "2026-01-01T12:00:00.000Z",
@@ -137,7 +137,7 @@ SET
     "name": "analytics:platform",
     "description": "Fetch platform-level metrics for a connected channel (7, 30, or 90 days).",
     "kind": "cli",
-    "command_template": "openquok analytics:platform <integration-uuid> --days 7",
+    "command_template": "# Platform-level metrics for a connected channel (7, 30, or 90 days)\nopenquok analytics:platform <integration-uuid> --days 7",
     "example_prompt": "Pull seven-day platform analytics for the integration used to publish the carousel."
   },
   {
@@ -186,11 +186,11 @@ INSERT INTO public.listings (
     NOW(),
     'Social Growth Stack',
     'social-growth-stack',
-    'Publish a TikTok photo carousel with OpenQuok Core, review performance after it goes live, then layer RevenueCat subscription context on top of your channel analytics.',
-    'Schedule viral-style carousels with the openquok CLI, wait for publish, read channel analytics, then ask RevenueCat MCP for subscriber context.',
+    'Publish a TikTok photo carousel with OpenQuok Core, review performance after it goes live, then layer RevenueCat subscription context on top of your channel analytics. Requires openquok-core and RevenueCat MCP — see Prerequisites in the exported SKILL.md.',
+    'Schedule viral-style carousels with the openquok CLI, wait for publish, read channel analytics, then ask RevenueCat MCP for subscriber context. Install openquok-core + RevenueCat MCP first.',
     $stack_content$## Social Growth Stack
 
-Ship a repeatable creator workflow without leaving your agent:
+Ship a repeatable creator workflow without leaving your agent. **Prerequisites:** install and authenticate **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** when you want subscription context alongside social analytics.
 
 1. **Connect channels** — `openquok integrations:list` to grab the integration UUID for TikTok (or another platform).
 2. **Schedule content** — `openquok posts:create --json` with a photo-carousel payload (see workflow example JSON).
@@ -198,7 +198,7 @@ Ship a repeatable creator workflow without leaving your agent:
 4. **Measure reach** — `openquok analytics:platform <uuid> --days 7` for channel-level performance.
 5. **Add revenue context** — prompt RevenueCat MCP for entitlements and subscriber state to interpret what growth means for your app.
 
-Clone this stack or customize the workflow in Agent Builder when it ships publicly.
+Clone this stack in Agent Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.
 $stack_content$,
     'stack',
     NULL,
@@ -213,12 +213,16 @@ $stack_content$,
       "type": "command",
       "listing_slug": "openquok-core",
       "command_name": "integrations:list",
+      "title": "Discover connected channels",
+      "command_template": "# List all connected social channels (integration UUIDs)\nopenquok integrations:list",
       "prompt": "List connected social channels and pick the integration UUID for the platform you are publishing to."
     },
     {
       "type": "command",
       "listing_slug": "openquok-core",
       "command_name": "posts:create",
+      "title": "Schedule a post",
+      "command_template": "# Create or schedule a post (upload media first — Rule 2 in openquok-core)\nopenquok posts:create --json ./post.json",
       "prompt": "Schedule a TikTok photo carousel using the example JSON payload. Upload images first with openquok upload when paths are local files.",
       "example_payload": {
         "scheduledAt": "2026-01-01T12:00:00.000Z",
@@ -246,6 +250,8 @@ $stack_content$,
       "type": "command",
       "listing_slug": "openquok-core",
       "command_name": "analytics:platform",
+      "title": "Measure channel performance",
+      "command_template": "# Platform-level metrics for a connected channel (7, 30, or 90 days)\nopenquok analytics:platform <integration-uuid> --days 7",
       "prompt": "Pull seven-day platform analytics for the same integration UUID used when scheduling the carousel."
     },
     {
@@ -262,7 +268,7 @@ $stack_content$,
       "payload": "{\n  \"scheduledAt\": \"2026-01-01T12:00:00.000Z\",\n  \"status\": \"scheduled\",\n  \"body\": \"Carousel caption — links in bio.\",\n  \"integrationIds\": [\"<integration-id>\"],\n  \"media\": [\n    { \"id\": \"<media-id-1>\", \"path\": \"https://cdn.example.com/a.jpg\" },\n    { \"id\": \"<media-id-2>\", \"path\": \"https://cdn.example.com/b.jpg\" }\n  ],\n  \"providerSettingsByIntegrationId\": {\n    \"<integration-id>\": {\n      \"title\": \"A short photo title\",\n      \"privacy_level\": \"PUBLIC_TO_EVERYONE\",\n      \"content_posting_method\": \"DIRECT_POST\"\n    }\n  }\n}"
     }
   ],
-  "generated_markdown": "## Workflow\n\n1. openquok-core · integrations:list — List connected social channels and pick the integration UUID.\n2. openquok-core · posts:create — Schedule a TikTok photo carousel (see reference JSON).\n3. Wait for publish and review the live post.\n4. openquok-core · analytics:platform — Pull 7-day channel metrics.\n5. revenuecat-mcp · get_customer — Add subscription context to interpret growth."
+  "generated_markdown": "## Prerequisites\n\nInstall **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** for the full publish → analytics → revenue loop.\n\n## Workflow\n\n1. openquok-core · integrations:list — List connected social channels and pick the integration UUID.\n2. openquok-core · posts:create — Schedule a TikTok photo carousel (see reference JSON).\n3. Wait for publish and review the live post.\n4. openquok-core · analytics:platform — Pull 7-day channel metrics.\n5. revenuecat-mcp · get_customer — Add subscription context to interpret growth."
 }$stack_blueprint$::jsonb,
     ARRAY['openquok-core', 'revenuecat-mcp', 'tiktok']::text[]
 )

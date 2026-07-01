@@ -34,12 +34,12 @@
 <div class="flex h-full min-h-0 flex-col">
 	<header class="flex flex-wrap items-center justify-between gap-2 border-b border-base-content/10 px-4 py-3">
 		<div>
-			<h2 class="text-sm font-semibold text-base-content">Workflow</h2>
+			<h2 class="text-sm font-semibold text-base-content">Core workflow</h2>
 			<p class="mt-1 text-xs text-base-content/60">
-				Drag steps to reorder. Expand a step to edit prompts and payloads.
+				Drag steps to reorder. Expand a step to edit titles, CLI examples, and payloads.
 			</p>
 		</div>
-		<button type="button" class="btn btn-outline btn-sm" onclick={onAddTextStep}>Add text step</button>
+		<button type="button" class="btn btn-outline btn-sm" onclick={onAddTextStep}>Add note</button>
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-y-auto p-3">

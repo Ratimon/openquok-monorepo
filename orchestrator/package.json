@@ -20,6 +20,7 @@
     "script:check-env:file": "tsx scripts/checkOrchestratorEnvFile.ts",
     "script:clear-flowcraft-runs": "cross-env NODE_ENV=development tsx scripts/clearFlowcraftRuns.ts",
     "script:free-openquok-redis-memory": "cross-env NODE_ENV=development tsx scripts/freeOpenquokRedisMemory.ts",
+    "script:clear-redis-history": "cross-env NODE_ENV=development tsx scripts/freeOpenquokRedisMemory.ts -- --targets=history",
     "script:railway:env:sync-worker-env": "tsx scripts/railwaySetupWorkerEnv.ts",
     "start:worker:integration-refresh-bullmq": "node dist/worker/runIntegrationRefreshBullMqWorker.js",
     "start:worker:notification-email-bullmq": "node dist/worker/runNotificationEmailBullMqWorker.js",

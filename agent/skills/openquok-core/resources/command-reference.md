@@ -47,10 +47,19 @@ openquok auth:logout
 ## Integrations
 
 ```bash
+# List all connected social channels (integration UUIDs)
 openquok integrations:list
+
+# List integrations belonging to a specific channel group (customer)
 openquok integrations:list --group <customer-group-id>
+
+# List all channel groups (customers) as {id, name}
 openquok integrations:groups
+
+# Get posting rules, character limits, and settings schema for an integration
 openquok integrations:settings <integration-uuid>
+
+# Trigger an allow-listed provider method to fetch dynamic data
 openquok integrations:trigger <integration-uuid> <method-name> [--data '<json>' | -d '<json>']
 ```
 
@@ -62,19 +71,24 @@ openquok integrations:trigger <integration-uuid> <method-name> [--data '<json>' 
 ## Posts
 
 ```bash
+# List posts (default ±30 local calendar days from today)
 openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 
+# Create or schedule posts (-s / scheduledAt is REQUIRED unless using --json)
 openquok posts:create -c "…" -s "2026-01-01T12:00:00Z" -i "<uuid>"
 openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
 openquok posts:create -c "…" -s "…" -i "<uuid>" -m '<[{id,path}]>'
 openquok posts:create -c "main" -c "reply" -s "…" -d 5000 -i "<uuid>"
 openquok posts:create --json ./post.json
 
+# Manage post rows
 openquok posts:status <post-id> --status draft
 openquok posts:status <post-id> -s schedule
 openquok posts:review-todo <post-id> --note "…"
 openquok posts:delete <post-id>
+
+# Resolve missing release_id before per-post analytics
 openquok posts:missing <post-id>
 openquok posts:connect <post-id> --release-id "<provider-release-id>"
 ```
@@ -106,7 +120,10 @@ openquok posts:connect <post-id> --release-id "<provider-release-id>"
 ## Analytics
 
 ```bash
+# Platform-level metrics for a connected channel (7, 30, or 90 days)
 openquok analytics:platform <integration-uuid> [--days 7|30|90]
+
+# Per-post metrics for a published post row
 openquok analytics:post <post-id> [--days 7|30|90]
 ```
 
@@ -116,7 +133,10 @@ openquok analytics:post <post-id> [--days 7|30|90]
 ## Media upload
 
 ```bash
+# Upload a local file; returns media id and path for posts:create
 openquok upload ./image.png
+
+# Upload from a remote URL; returns media id and path
 openquok upload-from-url "https://cdn.example.com/banner.png"
 ```
 

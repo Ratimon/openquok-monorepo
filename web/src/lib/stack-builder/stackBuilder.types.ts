@@ -24,6 +24,7 @@ export type StackBuilderWorkflowStepViewModel =
 			listingSlug: string;
 			listingTitle: string;
 			commandName: string;
+			title?: string;
 			prompt: string;
 			examplePayload?: Record<string, unknown>;
 			commandTemplate?: string;
@@ -31,6 +32,7 @@ export type StackBuilderWorkflowStepViewModel =
 	| {
 			id: string;
 			type: 'text';
+			title?: string;
 			content: string;
 	  };
 

@@ -50,11 +50,14 @@ const stackBlueprintWorkflowStepSchema = z.discriminatedUnion("type", [
         type: z.literal("command"),
         listing_slug: z.string().optional(),
         command_name: z.string().optional(),
+        title: z.string().optional(),
         prompt: z.string().optional(),
+        command_template: z.string().optional(),
         example_payload: z.record(z.unknown()).optional(),
     }),
     z.object({
         type: z.literal("text"),
+        title: z.string().optional(),
         content: z.string().optional(),
     }),
 ]);
