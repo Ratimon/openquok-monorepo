@@ -15,10 +15,7 @@ import {
 import { buildCoreWorkflowMarkdown } from '$lib/stack-builder/utils/buildCoreWorkflowMarkdown';
 import { buildSkillPrerequisitesMarkdown } from '$lib/stack-builder/utils/buildSkillPrerequisites';
 import { ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
-import type {
-	StackBuilderReferenceAssetViewModel,
-	StackBuilderWorkflowStepViewModel
-} from '$lib/stack-builder/stackBuilder.types';
+import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 function slugifySkillName(title: string): string {
 	const slug = title
@@ -62,7 +59,6 @@ export function generateStackMarkdown(params: {
 	extensionSlugs: string[];
 	extensions?: QuickReferenceExtension[];
 	workflowSteps: StackBuilderWorkflowStepViewModel[];
-	referenceAssets: StackBuilderReferenceAssetViewModel[];
 }): string {
 	const title = params.title?.trim() || SKILL_DEFAULT_TITLE;
 	const skillName = slugifySkillName(title);

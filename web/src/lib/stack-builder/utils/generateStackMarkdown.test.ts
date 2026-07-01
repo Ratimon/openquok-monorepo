@@ -20,8 +20,7 @@ describe('generateStackMarkdown', () => {
 	it('renders SKILL.md starter structure with core workflow fallback when empty', () => {
 		const markdown = generateStackMarkdown({
 			extensionSlugs: ['openquok-core'],
-			workflowSteps: [],
-			referenceAssets: []
+			workflowSteps: []
 		});
 
 		expect(markdown).toContain('## Core Workflow');
@@ -33,8 +32,7 @@ describe('generateStackMarkdown', () => {
 	it('includes RevenueCat prerequisites when revenuecat-mcp is selected', () => {
 		const markdown = generateStackMarkdown({
 			extensionSlugs: ['openquok-core', 'revenuecat-mcp'],
-			workflowSteps: [],
-			referenceAssets: []
+			workflowSteps: []
 		});
 
 		expect(markdown).toContain('### Conversion tracking (optional but recommended for mobile apps)');
@@ -63,8 +61,7 @@ describe('generateStackMarkdown', () => {
 					title: 'Review',
 					content: 'Review the output.'
 				}
-			],
-			referenceAssets: []
+			]
 		});
 
 		expect(markdown).toContain('## Core Workflow');
@@ -78,8 +75,7 @@ describe('generateStackMarkdown', () => {
 	it('places Quick Reference after Core Workflow', () => {
 		const markdown = generateStackMarkdown({
 			extensionSlugs: ['openquok-core'],
-			workflowSteps: [],
-			referenceAssets: []
+			workflowSteps: []
 		});
 
 		const coreWorkflowIndex = markdown.indexOf('## Core Workflow');
@@ -104,8 +100,7 @@ describe('generateStackMarkdown', () => {
 					title: 'bloom generate image',
 					prompt: 'Use the bloom_generate_image MCP tool from Bloom MCP.'
 				}
-			],
-			referenceAssets: []
+			]
 		});
 
 		expect(markdown).toContain('mcp_servers:\n  - bloom');

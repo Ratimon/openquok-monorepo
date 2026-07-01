@@ -8,10 +8,7 @@ import {
 import { resolveOpenquokCommandTemplate } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
 
 import type { StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
-import type {
-	StackBuilderReferenceAssetViewModel,
-	StackBuilderWorkflowStepViewModel
-} from '$lib/stack-builder/stackBuilder.types';
+import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 export function blueprintToWorkflowSteps(
 	blueprint: StackBlueprintProgrammerModel | null | undefined,
@@ -51,18 +48,4 @@ export function blueprintToWorkflowSteps(
 			commandTemplate
 		};
 	});
-}
-
-export function blueprintToReferenceAssets(
-	blueprint: StackBlueprintProgrammerModel | null | undefined
-): StackBuilderReferenceAssetViewModel[] {
-	if (!blueprint?.reference_assets?.length) return [];
-
-	return blueprint.reference_assets.map((asset, index) => ({
-		id: `asset-${index}-${nanoid(6)}`,
-		type: asset.type,
-		label: asset.label,
-		payload: asset.payload,
-		dataUrl: asset.data_url
-	}));
 }

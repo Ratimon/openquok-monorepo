@@ -3,7 +3,6 @@ export type {
 	StackBuilderExtensionViewModel,
 	StackBuilderLibraryItemKind,
 	StackBuilderLibraryItemViewModel,
-	StackBuilderReferenceAssetViewModel,
 	StackBuilderWorkflowStepViewModel,
 	ToolsIndexToolCardViewModel
 } from '$lib/stack-builder/stackBuilder.types';
@@ -14,7 +13,6 @@ export {
 	OPENQUOK_CLI_GETTING_STARTED_URL,
 	OPENQUOK_CORE_SKILL_SETUP_URL,
 	OPENQUOK_CLI_NPM_URL,
-	CHARACTER_BRIEF_TEMPLATE_JSON,
 	CREATING_SKILLS_DOC_URL,
 	SKILL_DEFAULT_NAME,
 	SKILL_DEFAULT_TITLE,
@@ -22,7 +20,6 @@ export {
 	SKILL_DEFAULT_LICENSE,
 	SKILL_STARTER_CORE_WORKFLOW,
 	SKILL_STARTER_COMMAND_NAMES,
-	createDefaultCharacterBriefAsset,
 	createDefaultStarterWorkflowSteps
 } from '$lib/stack-builder/constants/defaults';
 
@@ -55,7 +52,4 @@ export {
 	ensureOpenquokCoreExtensionSlug
 } from '$lib/stack-builder/utils/parseBuilderQuery';
 
-export {
-	blueprintToReferenceAssets,
-	blueprintToWorkflowSteps
-} from '$lib/stack-builder/utils/blueprintToBuilderState';
+export { blueprintToWorkflowSteps } from '$lib/stack-builder/utils/blueprintToBuilderState';

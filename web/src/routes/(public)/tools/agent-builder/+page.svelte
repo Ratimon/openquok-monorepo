@@ -3,7 +3,6 @@
 	import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type {
 		StackBuilderLibraryItemViewModel,
-		StackBuilderReferenceAssetViewModel,
 		StackBuilderWorkflowStepViewModel
 	} from '$lib/stack-builder/stackBuilder.types';
 
@@ -25,7 +24,6 @@
 	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
 	import StackBuilderWorkflowPanel from '$lib/ui/templates/stack-builder/StackBuilderWorkflowPanel.svelte';
 	import StackBuilderPreviewPanel from '$lib/ui/templates/stack-builder/StackBuilderPreviewPanel.svelte';
-	import StackBuilderReferenceAssetsPanel from '$lib/ui/templates/stack-builder/StackBuilderReferenceAssetsPanel.svelte';
 
 	type Props = { data: PageData };
 
@@ -38,7 +36,6 @@
 	let extensionsCatalog = $derived(data.extensionsCatalog);
 	let selectedExtensions = $derived(data.selectedExtensions);
 	let initialWorkflowSteps = $derived(data.initialWorkflowSteps);
-	let initialReferenceAssets = $derived(data.initialReferenceAssets);
 	let stackTitle = $derived(data.stackTitle);
 	let stackSlug = $derived(data.stackSlug);
 
@@ -47,7 +44,7 @@
 	const agentBuilderPath = route(rootPathPublicAgentBuilder);
 
 	const serverHydrationKey = $derived(
-		`${selectedExtensionSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}|${initialReferenceAssets.length}`
+		`${selectedExtensionSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}`
 	);
 
 	let hydratedFrom = $state('');
@@ -55,7 +52,6 @@
 	let activeExtensionSlugs = $state<string[]>([]);
 	let extensionDetails = $state<ExtensionDetailViewModel[]>([]);
 	let workflowSteps = $state<StackBuilderWorkflowStepViewModel[]>([]);
-	let referenceAssets = $state<StackBuilderReferenceAssetViewModel[]>([]);
 	let loadingExtensionSlug = $state<string | null>(null);
 
 	const libraryItems = $derived(buildLibraryItems(extensionDetails));
@@ -67,7 +63,6 @@
 			title: exportTitle,
 			extensionSlugs: activeExtensionSlugs,
 			extensions: extensionDetails,
-			referenceAssets,
 			workflowSteps
 		})
 	);
@@ -82,7 +77,6 @@
 		activeExtensionSlugs = [...selectedExtensionSlugs];
 		extensionDetails = selectedExtensions.map((extension) => ({ ...extension }));
 		workflowSteps = initialWorkflowSteps.map((step) => ({ ...step, id: step.id || nanoid() }));
-		referenceAssets = initialReferenceAssets.map((asset) => ({ ...asset }));
 		exportMarkdownEdited = false;
 	});
 
@@ -255,15 +249,6 @@
 					/>
 				</div>
 			</div>
-		</div>
-
-		<div class="mt-6">
-			<StackBuilderReferenceAssetsPanel
-				assetsVm={referenceAssets}
-				onChange={(assetsVm) => {
-					referenceAssets = assetsVm;
-				}}
-			/>
 		</div>
 	</section>
 </SectionOuterContainer>

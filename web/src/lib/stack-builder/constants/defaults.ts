@@ -2,10 +2,7 @@ import { nanoid } from 'nanoid';
 
 import { OPENQUOK_COMMAND_WORKFLOW_META } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
 import { resolveOpenquokCommandTemplate } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
-import type {
-	StackBuilderReferenceAssetViewModel,
-	StackBuilderWorkflowStepViewModel
-} from '$lib/stack-builder/stackBuilder.types';
+import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 import { defaultPostsCreatePayload } from '$lib/stack-builder/utils/postsCreatePayload';
 
 export const OPENQUOK_CORE_EXTENSION_SLUG = 'openquok-core' as const;
@@ -62,20 +59,3 @@ export function createDefaultStarterWorkflowSteps(): StackBuilderWorkflowStepVie
 }
 
 export const CREATING_SKILLS_DOC_URL = 'https://docs.openclaw.ai/tools/creating-skills';
-
-export const CHARACTER_BRIEF_TEMPLATE_JSON = `{
-  "persona": "Y2K nostalgia creator",
-  "voice": "playful, retro-futuristic, lowercase-friendly",
-  "visual_style": "chrome gradients, pixel hearts, butterfly clips",
-  "content_pillars": ["outfit checks", "room tours", "playlist drops"],
-  "cta": "Follow for daily Y2K vibes"
-}`;
-
-export function createDefaultCharacterBriefAsset(): StackBuilderReferenceAssetViewModel {
-	return {
-		id: 'character-brief-template',
-		type: 'json',
-		label: 'Character brief template',
-		payload: CHARACTER_BRIEF_TEMPLATE_JSON
-	};
-}

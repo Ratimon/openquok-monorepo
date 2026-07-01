@@ -36,14 +36,6 @@ export type StackBuilderWorkflowStepViewModel =
 			content: string;
 	  };
 
-export interface StackBuilderReferenceAssetViewModel {
-	id: string;
-	type: 'image' | 'json';
-	label: string;
-	payload?: string;
-	dataUrl?: string;
-}
-
 export interface StackBuilderExtensionViewModel {
 	id: string;
 	title: string;
@@ -60,7 +52,6 @@ export interface AgentBuilderPageViewModel {
 	extensionsCatalog: StackBuilderExtensionViewModel[];
 	selectedExtensions: ExtensionDetailViewModel[];
 	initialWorkflowSteps: StackBuilderWorkflowStepViewModel[];
-	initialReferenceAssets: StackBuilderReferenceAssetViewModel[];
 	stackTitle: string | null;
 	stackSlug: string | null;
 }

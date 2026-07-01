@@ -1,11 +1,8 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
-import { createDefaultCharacterBriefAsset, createDefaultStarterWorkflowSteps } from '$lib/stack-builder/constants/defaults';
+import { createDefaultStarterWorkflowSteps } from '$lib/stack-builder/constants/defaults';
 import type { AgentBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
-import {
-	blueprintToReferenceAssets,
-	blueprintToWorkflowSteps
-} from '$lib/stack-builder/utils/blueprintToBuilderState';
+import { blueprintToWorkflowSteps } from '$lib/stack-builder/utils/blueprintToBuilderState';
 import {
 	ensureOpenquokCoreExtensionSlug,
 	parseExtensionSlugsFromQuery
@@ -68,19 +65,16 @@ export class PublicAgentBuilderPagePresenter {
 		);
 
 		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, extensionTitlesBySlug);
-		const blueprintAssets = blueprintToReferenceAssets(stackBlueprint);
 
 		return {
 			metaTitle: 'Agent Builder',
 			metaDescription:
-				'Compose agent skills from extension CLI commands and MCP tools. Preview and download SKILL.md for your workspace.',
+				'Build your own customized agent skills from selected SKILLs,, and MCP tools. Preview and download SKILL.md for your workspace.',
 			selectedExtensionSlugs: resolvedSlugs,
 			extensionsCatalog,
 			selectedExtensions,
 			initialWorkflowSteps:
 				blueprintSteps.length > 0 ? blueprintSteps : createDefaultStarterWorkflowSteps(),
-			initialReferenceAssets:
-				blueprintAssets.length > 0 ? blueprintAssets : [createDefaultCharacterBriefAsset()],
 			stackTitle,
 			stackSlug
 		};

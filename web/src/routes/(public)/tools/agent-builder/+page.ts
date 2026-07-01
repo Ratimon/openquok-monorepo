@@ -26,7 +26,6 @@ export const load: PageLoad = async ({ parent, data }) => {
 			extensionsCatalog: serverData.extensionsCatalog,
 			selectedExtensions: serverData.selectedExtensions,
 			initialWorkflowSteps: serverData.initialWorkflowSteps,
-			initialReferenceAssets: serverData.initialReferenceAssets,
 			stackTitle: serverData.stackTitle,
 			stackSlug: serverData.stackSlug,
 			schemaData: serverData.schemaData,
