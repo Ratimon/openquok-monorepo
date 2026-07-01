@@ -52,7 +52,7 @@
 		<p class="mt-8 text-center text-sm text-base-content/60">
 			Start with the
 			<a class="link link-primary" href={agentBuilderHref}>Agent Builder</a>
-			to compose CLI and MCP workflows from the Extensions catalog.
+			to compose skills from the Extensions catalog and export SKILL.md.
 		</p>
 	</section>
 </SectionOuterContainer>

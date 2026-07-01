@@ -29,7 +29,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			id: 'agent-builder',
 			title: 'Agent Builder',
 			description:
-				'Drag CLI commands and MCP tools into a workflow, attach reference assets, and export markdown for your agent.',
+				'Drag CLI commands and MCP tools into a workflow, attach reference assets, and export SKILL.md for your agent.',
 			href: url(route(getRootPathPublicAgentBuilder())),
 			badge: 'Stack builder'
 		}

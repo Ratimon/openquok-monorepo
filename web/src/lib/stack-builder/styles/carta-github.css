@@ -27,12 +27,56 @@
 	overflow: auto;
 }
 
+.carta-theme__github .carta-renderer.markdown-body {
+	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial,
+		sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+	font-size: 16px;
+	line-height: 1.5;
+	color: #f0f6fc;
+	background-color: transparent;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table {
+	display: block;
+	width: max-content;
+	max-width: 100%;
+	overflow: auto;
+	margin: 0 0 16px;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table table {
+	margin: 0;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table th,
+.carta-theme__github .carta-renderer.markdown-body table td {
+	border: 1px solid #3d444d;
+	padding: 6px 13px;
+	vertical-align: top;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table th {
+	background-color: #151b23;
+	font-weight: 600;
+	text-align: left;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table td {
+	background-color: #0d1117;
+}
+
+.carta-theme__github .carta-renderer.markdown-body table td table th {
+	background-color: #161b22;
+}
+
 .carta-theme__github .carta-font-code {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
 		'Courier New', monospace;
 	caret-color: white;
 	font-size: 0.95rem;
-	line-height: 1.4rem;
+	/* Must match font-size so the syntax overlay aligns with the textarea caret. */
+	line-height: 0.95rem;
+	letter-spacing: normal;
 }
 
 .carta-theme__github .carta-toolbar {

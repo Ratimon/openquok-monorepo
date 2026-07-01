@@ -1,8 +1,7 @@
 <script lang="ts">
 	import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
-	import StackBuilderCommandStepCard from '$lib/ui/templates/stack-builder/StackBuilderCommandStepCard.svelte';
-	import StackBuilderTextStepCard from '$lib/ui/templates/stack-builder/StackBuilderTextStepCard.svelte';
+	import StackBuilderWorkflowStepItem from '$lib/ui/templates/stack-builder/StackBuilderWorkflowStepItem.svelte';
 
 	type Props = {
 		stepsVm: StackBuilderWorkflowStepViewModel[];
@@ -36,7 +35,9 @@
 	<header class="flex flex-wrap items-center justify-between gap-2 border-b border-base-content/10 px-4 py-3">
 		<div>
 			<h2 class="text-sm font-semibold text-base-content">Workflow</h2>
-			<p class="mt-1 text-xs text-base-content/60">Drag steps to reorder. Edit prompts and payloads inline.</p>
+			<p class="mt-1 text-xs text-base-content/60">
+				Drag steps to reorder. Expand a step to edit prompts and payloads.
+			</p>
 		</div>
 		<button type="button" class="btn btn-outline btn-sm" onclick={onAddTextStep}>Add text step</button>
 	</header>
@@ -47,31 +48,18 @@
 				Add commands from the library or insert a text step for review notes.
 			</p>
 		{:else}
-			<ol class="space-y-3">
+			<ol class="space-y-2">
 				{#each stepsVm as step, index (step.id)}
-					<li
-						class="rounded-xl border border-base-content/10 bg-base-100"
-						draggable="true"
-						ondragstart={() => handleDragStart(index)}
-						ondragover={(event) => handleDragOver(event, index)}
-						ondragend={handleDragEnd}
-					>
-						{#if step.type === 'command'}
-							<StackBuilderCommandStepCard
-								stepVm={step}
-								stepNumber={index + 1}
-								onUpdate={(patch) => onUpdateStep(step.id, patch)}
-								onRemove={() => onRemoveStep(step.id)}
-							/>
-						{:else}
-							<StackBuilderTextStepCard
-								stepVm={step}
-								stepNumber={index + 1}
-								onUpdate={(patch) => onUpdateStep(step.id, patch)}
-								onRemove={() => onRemoveStep(step.id)}
-							/>
-						{/if}
-					</li>
+					<StackBuilderWorkflowStepItem
+						stepVm={step}
+						stepNumber={index + 1}
+						{index}
+						onUpdate={(patch) => onUpdateStep(step.id, patch)}
+						onRemove={() => onRemoveStep(step.id)}
+						onDragStart={handleDragStart}
+						onDragOver={handleDragOver}
+						onDragEnd={handleDragEnd}
+					/>
 				{/each}
 			</ol>
 		{/if}

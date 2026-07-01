@@ -70,7 +70,7 @@ export class PublicAgentBuilderPagePresenter {
 		return {
 			metaTitle: 'Agent Builder',
 			metaDescription:
-				'Compose agent workflows from extension CLI commands and MCP tools. Preview and download your stack markdown.',
+				'Compose agent skills from extension CLI commands and MCP tools. Preview and download SKILL.md for your workspace.',
 			selectedExtensionSlugs: resolvedSlugs,
 			extensionsCatalog,
 			selectedExtensions,

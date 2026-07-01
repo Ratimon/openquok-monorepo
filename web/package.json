@@ -59,6 +59,7 @@
 		"clsx": "^2.1.1",
 		"dayjs": "^1.11.19",
 		"emoji-picker-element": "^1.29.1",
+		"github-markdown-css": "^5.9.0",
 		"konva": "^9.3.22",
 		"mdsvex": "^0.12.7",
 		"nanoid": "^5.1.9",

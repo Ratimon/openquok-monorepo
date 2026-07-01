@@ -11,6 +11,7 @@
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { CREATING_SKILLS_DOC_URL } from '$lib/stack-builder/constants/defaults';
 	import { getListingPresenter } from '$lib/listings';
 	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
 	import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
@@ -18,6 +19,7 @@
 	import { route } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
 	import StackBuilderWorkflowPanel from '$lib/ui/templates/stack-builder/StackBuilderWorkflowPanel.svelte';
@@ -55,6 +57,22 @@
 	let referenceAssets = $state<StackBuilderReferenceAssetViewModel[]>([]);
 	let loadingExtensionSlug = $state<string | null>(null);
 
+	const libraryItems = $derived(buildLibraryItems(extensionDetails));
+
+	const exportTitle = $derived(stackTitle?.trim() || 'My First Skill');
+
+	const generatedMarkdown = $derived(
+		generateStackMarkdown({
+			title: exportTitle,
+			extensionSlugs: activeExtensionSlugs,
+			referenceAssets,
+			workflowSteps
+		})
+	);
+
+	let exportMarkdown = $state('');
+	let exportMarkdownEdited = $state(false);
+
 	$effect(() => {
 		const key = serverHydrationKey;
 		if (hydratedFrom === key) return;
@@ -63,30 +81,19 @@
 		extensionDetails = selectedExtensions.map((extension) => ({ ...extension }));
 		workflowSteps = initialWorkflowSteps.map((step) => ({ ...step, id: step.id || nanoid() }));
 		referenceAssets = initialReferenceAssets.map((asset) => ({ ...asset }));
+		exportMarkdownEdited = false;
 	});
 
-	const libraryItems = $derived(buildLibraryItems(extensionDetails));
-
-	const exportTitle = $derived(stackTitle?.trim() || 'Agent workflow stack');
-
-	const generatedMarkdown = $derived(
-		generateStackMarkdown({
-			title: exportTitle,
-			extensionSlugs: activeExtensionSlugs,
-			workflowSteps,
-			referenceAssets
-		})
-	);
-
-	let exportMarkdown = $state('');
-
 	$effect(() => {
+		if (exportMarkdownEdited) return;
 		exportMarkdown = generatedMarkdown;
 	});
 
-	const downloadFilename = $derived(
-		stackSlug ? `${stackSlug}-workflow.md` : 'agent-stack.md'
-	);
+	function markExportMarkdownEdited() {
+		exportMarkdownEdited = true;
+	}
+
+	const downloadFilename = $derived('SKILL.md');
 
 	async function toggleExtensionSlug(slug: string) {
 		const isSelected = activeExtensionSlugs.includes(slug);
@@ -129,6 +136,7 @@
 			{
 				id: nanoid(),
 				type: 'command',
+				kind: itemVm.kind,
 				listingSlug: itemVm.listingSlug,
 				listingTitle: itemVm.listingTitle,
 				commandName: itemVm.name,
@@ -176,6 +184,11 @@
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">Free tool</p>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{metaTitle}</h1>
 		<p class="max-w-3xl text-base text-base-content/70">{metaDescription}</p>
+		<p class="max-w-3xl text-sm text-base-content/60">
+			Export follows the
+			<ExternalLink href={CREATING_SKILLS_DOC_URL}>SKILL.md format</ExternalLink>
+			— edit frontmatter, instructions, and examples, then download for your agent workspace.
+		</p>
 
 		{#if stackTitle}
 			<p class="text-sm text-base-content/60">
@@ -207,21 +220,31 @@
 	</header>
 
 	<section class="container mx-auto mt-8 max-w-[1600px] px-4">
-		<div class="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-3">
-			<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
-				<StackBuilderLibraryPanel itemsVm={libraryItems} onAddItem={addLibraryItem} />
-			</div>
-			<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
-				<StackBuilderWorkflowPanel
-					stepsVm={workflowSteps}
-					onUpdateStep={updateStep}
-					onRemoveStep={removeStep}
-					onReorder={reorderSteps}
-					onAddTextStep={addTextStep}
+		<div class="flex flex-col gap-4">
+			<div class="overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
+				<StackBuilderLibraryPanel
+					itemsVm={libraryItems}
+					onAddItem={addLibraryItem}
 				/>
 			</div>
-			<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
-				<StackBuilderPreviewPanel bind:markdown={exportMarkdown} {downloadFilename} />
+
+			<div class="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-3">
+				<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 lg:col-span-1">
+					<StackBuilderWorkflowPanel
+						stepsVm={workflowSteps}
+						onUpdateStep={updateStep}
+						onRemoveStep={removeStep}
+						onReorder={reorderSteps}
+						onAddTextStep={addTextStep}
+					/>
+				</div>
+				<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 lg:col-span-2">
+					<StackBuilderPreviewPanel
+						bind:markdown={exportMarkdown}
+						{downloadFilename}
+						onMarkdownEdit={markExportMarkdownEdited}
+					/>
+				</div>
 			</div>
 		</div>
 

@@ -7,9 +7,10 @@
 	type Props = {
 		markdown?: string;
 		downloadFilename?: string;
+		onMarkdownEdit?: () => void;
 	};
 
-	let { markdown = $bindable(''), downloadFilename = 'agent-stack.md' }: Props = $props();
+	let { markdown = $bindable(''), downloadFilename = 'SKILL.md', onMarkdownEdit }: Props = $props();
 
 	function handleDownload() {
 		downloadMarkdownFile(markdown, downloadFilename);
@@ -19,15 +20,17 @@
 <div class="flex h-full min-h-0 flex-col">
 	<header class="flex flex-wrap items-center justify-between gap-2 border-b border-base-content/10 px-4 py-3">
 		<div>
-			<h2 class="text-sm font-semibold text-base-content">Export</h2>
+			<h2 class="text-sm font-semibold text-base-content">
+				Editor
+			</h2>
 			<p class="mt-1 text-xs text-base-content/60">
-				Edit markdown with Write / Preview tabs. Updates when the workflow changes.
+				Edit SKILL.md with Write / Preview tabs. Stays in sync with workflow until you edit here.
 			</p>
 		</div>
 		<Button variant="primary" size="sm" onclick={handleDownload}>Download</Button>
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-hidden p-3">
-		<CartaMarkdownPreview bind:markdown class="h-full max-h-[min(70vh,720px)]" />
+		<CartaMarkdownPreview bind:markdown {onMarkdownEdit} class="h-full max-h-[min(70vh,720px)]" />
 	</div>
 </div>

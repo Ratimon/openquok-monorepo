@@ -20,6 +20,7 @@ export type StackBuilderWorkflowStepViewModel =
 	| {
 			id: string;
 			type: 'command';
+			kind: StackBuilderLibraryItemKind;
 			listingSlug: string;
 			listingTitle: string;
 			commandName: string;

@@ -25,6 +25,7 @@ export function blueprintToWorkflowSteps(
 		return {
 			id: nanoid(),
 			type: 'command' as const,
+			kind: 'cli' as const,
 			listingSlug,
 			listingTitle: extensionTitlesBySlug[listingSlug] ?? listingSlug,
 			commandName: step.command_name ?? 'command',
