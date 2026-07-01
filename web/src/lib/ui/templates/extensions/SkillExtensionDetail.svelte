@@ -143,7 +143,7 @@
 {#if extensionVm.skillCommands.length > 0}
 	<section class="border-b border-base-content/10 py-8">
 		<h2 class="mb-4 text-lg font-semibold">CLI commands</h2>
-		<ExtensionSkillCommandsTable commands={extensionVm.skillCommands} />
+		<ExtensionSkillCommandsTable commandsVm={extensionVm.skillCommands} />
 	</section>
 {/if}
 

@@ -25,7 +25,8 @@ alwaysApply: false
 ## Naming (quick rules)
 
 - Repository results: **`*Pm`** (`resultPm`, `listPm`).
-- Presenter values passed to UI: **`*Vm`** / **`*ViewModel`**.
+- **Exported type / interface names** (rows, mutation results, screen VMs): **`*ViewModel`** only — e.g. **`AccountListingCollectionItemViewModel`**, **`ExtensionCardViewModel`**. **Do not** use **`*Vm`** as a type suffix (avoid **`FooRowVm`**, **`AccountListingCollectionItemVm`**).
+- **Presenter fields, locals, and getters** holding those types: **`*Vm`** suffix — e.g. **`exploreExtensionCardsVm`**, **`bookmarkedExtensionsVm`**, **`resultVm`**. Avoid bare names like **`exploreExtensionCards`** when the value is presenter-owned VM state.
 - DTOs: **`*Dto`**, **`*ResponseDto`**.
 
 ### `Get*Presenter` method naming (project convention)
@@ -89,7 +90,8 @@ No gateway/repository imports from **routes**.
 
 - **DTO** / **`*ResponseDto`** — API boundary only.
 - **`*ProgrammerModel`** — repository domain shape.
-- **`*Vm` / `*ViewModel`** — UI rows and presenter-owned display state.
+- **`*ViewModel`** — exported UI row / screen / mutation-result **types** (props, return types, `$state` element type).
+- **`*Vm`** — **field / variable / getter names** on presenters that hold **`*ViewModel`** values (not a type suffix).
 
 ### Variables
 
@@ -108,12 +110,16 @@ When a presenter returns clean values (`null` / `[]`) instead of unions, prefer 
 
 - Repositories **map DTO → PM** before returning; no raw DTO arrays to presenters.
 - **`Get*Presenter`**: `await repo.get…` → **`listPm`** → map to **`Vm`** in `Get*` methods (e.g. `loadAdminCommentsVm`).
-- **Routes / `$lib/ui`**: consume **`*Vm`** for list props. **Which presenter holds the array** (page vs feature) → **web-page-presenter-conventions**.
+- **Routes / `$lib/ui`**: props and callbacks are typed with **`*ViewModel`**; values come from presenter fields named **`*Vm`**. **Which presenter holds the array** (page vs feature) → **web-page-presenter-conventions**.
 
 ### Reference: Approved Apps (repository PM → feature presenter ViewModel)
 
 - **Repository** (`web/src/lib/settings/ApprovedApps.repository.svelte.ts`): HTTP **`ListApprovedAppsResponseDto`** / wire rows stay **non-exported** `interface` types; map to **`ApprovedAuthorizationProgrammerModel`** / **`ApprovedOauthAppProgrammerModel`** (camelCase). **`list()`** returns **`ListApprovedAppsProgrammerModel`** (`{ ok: true; items: … } | { ok: false; message }`). **`revoke()`** returns **`RevokeApprovedAppMutationProgrammerModel`** (`{ ok: true } | { ok: false; message }`) — still a PM-layer discriminant at the repository boundary even when the success branch carries no payload.
-- **Feature presenter** (`web/src/lib/settings/ApprovedAppsSettings.presenter.svelte.ts`): bind **`await repo.list()`** to **`listPm`**, **`await repo.revoke(…)`** to **`revokePm`**; map each **`ApprovedAuthorizationProgrammerModel`** to **`ApprovedAppRowViewModel`** via **`toApprovedAppRowViewModel`**. Expose **`itemsVm: ApprovedAppRowViewModel[]`** to **`EditorApprovedAppsSettings.svelte`** (type uses the **`ViewModel`** suffix; the field name **`itemsVm`** is the common array shorthand).
+- **Feature presenter** (`web/src/lib/settings/ApprovedAppsSettings.presenter.svelte.ts`): bind **`await repo.list()`** to **`listPm`**, **`await repo.revoke(…)`** to **`revokePm`**; map each **`ApprovedAuthorizationProgrammerModel`** to **`ApprovedAppRowViewModel`** via **`toApprovedAppRowViewModel`**. Expose **`itemsVm: ApprovedAppRowViewModel[]`** to **`EditorApprovedAppsSettings.svelte`**.
+
+### Reference: Account extensions (page presenter ViewModel + `*Vm` fields)
+
+- **Page presenter** (`web/src/lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte.ts`): define screen row type **`AccountListingCollectionItemViewModel`** (not **`AccountListingCollectionItemVm`**). Catalog source arrays: **`exploreExtensionCardsVm: ExtensionCardViewModel[]`**, **`exploreStackCardsVm: StackCardViewModel[]`**. Collection tabs: **`bookmarkedExtensionsVm`**, **`ownStacksVm`**, etc. — each typed as **`AccountListingCollectionItemViewModel[]`**. Filtered getters: **`filteredExploreExtensionsVm`**, **`filteredExploreStacksVm`**. **`$lib/ui`** children import the **`*ViewModel`** type from the page presenter file; parents pass **`pagePresenter.filteredExploreExtensionsVm`**, not raw catalog fields, unless the child needs unfiltered data.
 
 ## Presenter split: `Get*` vs feature presenters vs page presenters
 

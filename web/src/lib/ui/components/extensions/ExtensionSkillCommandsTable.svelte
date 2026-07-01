@@ -10,15 +10,15 @@
 	} from '$lib/ui/components/extensions/extensionCatalogTableClasses';
 
 	type Props = {
-		commands: SkillCommandViewModel[];
+		commandsVm: SkillCommandViewModel[];
 		/** Hub card style: compact rows, name + description only (no command templates). */
 		compact?: boolean;
 	};
 
-	let { commands, compact = false }: Props = $props();
+	let { commandsVm, compact = false }: Props = $props();
 </script>
 
-{#if commands.length > 0}
+{#if commandsVm.length > 0}
 	<div class={extensionCatalogTableShellClass}>
 		<table class="{extensionCatalogTableClass} {compact ? 'table-sm' : ''}">
 			<thead>
@@ -28,7 +28,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each commands as command (command.name)}
+				{#each commandsVm as command (command.name)}
 					<tr class={extensionCatalogTableRowClass}>
 						<td class="px-3 py-2 font-mono text-xs whitespace-nowrap">{command.name}</td>
 						<td class="px-3 py-2 {compact ? 'text-sm align-top' : 'align-top'}">

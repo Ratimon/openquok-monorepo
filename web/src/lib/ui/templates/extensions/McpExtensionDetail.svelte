@@ -143,7 +143,7 @@
 		<h2 class="mb-4 text-lg font-semibold">
 			MCP tools
 		</h2>
-		<ExtensionMcpToolsTable tools={extensionVm.mcpTools} />
+		<ExtensionMcpToolsTable toolsVm={extensionVm.mcpTools} />
 	</section>
 {/if}
 

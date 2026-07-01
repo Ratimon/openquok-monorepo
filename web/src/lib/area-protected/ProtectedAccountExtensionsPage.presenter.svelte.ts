@@ -33,7 +33,7 @@ export type AccountExploreFilters = {
 	bookmarkedOnly: boolean;
 };
 
-export type AccountListingCollectionItemVm = {
+export type AccountListingCollectionItemViewModel = {
 	id: string;
 	slug: string;
 	title: string;
@@ -94,7 +94,7 @@ function ownListingSubtitle(listing: ListingViewModel, memberCount?: number): st
 function toCollectionItemFromExtensionVm(
 	extension: ExtensionCardViewModel,
 	subtitle: string
-): AccountListingCollectionItemVm {
+): AccountListingCollectionItemViewModel {
 	return {
 		id: extension.id,
 		slug: extension.slug,
@@ -110,7 +110,7 @@ function toCollectionItemFromExtensionVm(
 function toCollectionItemFromStackVm(
 	stack: StackCardViewModel,
 	subtitle: string
-): AccountListingCollectionItemVm {
+): AccountListingCollectionItemViewModel {
 	return {
 		id: stack.id,
 		slug: stack.slug,
@@ -146,7 +146,7 @@ function listingPmToViewModel(listing: ListingProgrammerModel): ListingViewModel
 function toCollectionItemFromOwnListing(
 	listing: ListingViewModel,
 	memberCount?: number
-): AccountListingCollectionItemVm {
+): AccountListingCollectionItemViewModel {
 	const subtitle = ownListingSubtitle(listing, memberCount);
 	return {
 		id: listing.id,
@@ -226,8 +226,8 @@ function filterStacksByExploreFilters(
 }
 
 export class ProtectedAccountExtensionsPagePresenter {
-	public exploreExtensionCards: ExtensionCardViewModel[] = $state([]);
-	public exploreStackCards: StackCardViewModel[] = $state([]);
+	public exploreExtensionCardsVm: ExtensionCardViewModel[] = $state([]);
+	public exploreStackCardsVm: StackCardViewModel[] = $state([]);
 	public exploreCategoriesVm: ExtensionCategoryViewModel[] = $state([]);
 	public exploreTagFilterVm: ExtensionsTagFilterViewModel = $state({
 		groups: [],
@@ -237,10 +237,10 @@ export class ProtectedAccountExtensionsPagePresenter {
 	public exploreFilters: AccountExploreFilters = $state({ ...DEFAULT_EXPLORE_FILTERS });
 	public loadingExplore = $state(false);
 
-	public bookmarkedExtensionsVm: AccountListingCollectionItemVm[] = $state([]);
-	public bookmarkedStacksVm: AccountListingCollectionItemVm[] = $state([]);
-	public ownExtensionsVm: AccountListingCollectionItemVm[] = $state([]);
-	public ownStacksVm: AccountListingCollectionItemVm[] = $state([]);
+	public bookmarkedExtensionsVm: AccountListingCollectionItemViewModel[] = $state([]);
+	public bookmarkedStacksVm: AccountListingCollectionItemViewModel[] = $state([]);
+	public ownExtensionsVm: AccountListingCollectionItemViewModel[] = $state([]);
+	public ownStacksVm: AccountListingCollectionItemViewModel[] = $state([]);
 	public loadingBookmarks = $state(false);
 	public loadingOwn = $state(false);
 	public bookmarksPaidEnabled = $state<boolean | null>(null);
@@ -261,11 +261,11 @@ export class ProtectedAccountExtensionsPagePresenter {
 		return this.selectedExtensionIds.length;
 	}
 
-	get filteredExploreExtensionsVm(): AccountListingCollectionItemVm[] {
+	get filteredExploreExtensionsVm(): AccountListingCollectionItemViewModel[] {
 		return this.applyExploreFiltersToExtensions();
 	}
 
-	get filteredExploreStacksVm(): AccountListingCollectionItemVm[] {
+	get filteredExploreStacksVm(): AccountListingCollectionItemViewModel[] {
 		return this.applyExploreFiltersToStacks();
 	}
 
@@ -317,7 +317,7 @@ export class ProtectedAccountExtensionsPagePresenter {
 		this.exploreFilters = { ...DEFAULT_EXPLORE_FILTERS };
 	}
 
-	getSelectedExtensions(): AccountListingCollectionItemVm[] {
+	getSelectedExtensions(): AccountListingCollectionItemViewModel[] {
 		const selected = new Set(this.selectedExtensionIds);
 		const pool = [
 			...this.filteredExploreExtensionsVm,
@@ -365,10 +365,10 @@ export class ProtectedAccountExtensionsPagePresenter {
 				this.listingRepository.getAllTags()
 			]);
 
-			this.exploreExtensionCards = extensionsResult.listings.map((listing) =>
+			this.exploreExtensionCardsVm = extensionsResult.listings.map((listing) =>
 				this.getListingPresenter.toExtensionCardVmStateless(listing)
 			);
-			this.exploreStackCards = stacksResult.listings.map((listing) =>
+			this.exploreStackCardsVm = stacksResult.listings.map((listing) =>
 				this.getListingPresenter.toStackCardVmStateless(listing)
 			);
 			this.exploreCategoriesVm = categories.map((category) => ({
@@ -379,8 +379,8 @@ export class ProtectedAccountExtensionsPagePresenter {
 			this.exploreTagFilterVm = buildExtensionsTagFilterVm({
 				tagsCatalog,
 				extensions: [
-					...this.exploreExtensionCards,
-					...this.exploreStackCards.map(stackToTagFilterExtensionVm)
+					...this.exploreExtensionCardsVm,
+					...this.exploreStackCardsVm.map(stackToTagFilterExtensionVm)
 				]
 			});
 		} finally {
@@ -393,8 +393,8 @@ export class ProtectedAccountExtensionsPagePresenter {
 		this.loadingBookmarks = true;
 		try {
 			const listings = await this.listingRepository.getMyBookmarks();
-			const extensions: AccountListingCollectionItemVm[] = [];
-			const stacks: AccountListingCollectionItemVm[] = [];
+			const extensions: AccountListingCollectionItemViewModel[] = [];
+			const stacks: AccountListingCollectionItemViewModel[] = [];
 
 			for (const listing of listings) {
 				if (listing.listingKind === 'stack') {
@@ -483,7 +483,7 @@ export class ProtectedAccountExtensionsPagePresenter {
 		return rows.filter((row) => bookmarkedIds.has(row.id));
 	}
 
-	private applyExploreFiltersToExtensions(): AccountListingCollectionItemVm[] {
+	private applyExploreFiltersToExtensions(): AccountListingCollectionItemViewModel[] {
 		const hubFilters = {
 			type: 'all' as const,
 			sort: 'newest' as const,
@@ -493,7 +493,7 @@ export class ProtectedAccountExtensionsPagePresenter {
 			tagGroup: this.exploreFilters.tagGroup ?? undefined
 		};
 		const filtered = this.getListingPresenter.filterAndSortExtensions(
-			this.exploreExtensionCards,
+			this.exploreExtensionCardsVm,
 			hubFilters,
 			this.exploreTagFilterVm
 		);
@@ -505,9 +505,9 @@ export class ProtectedAccountExtensionsPagePresenter {
 		);
 	}
 
-	private applyExploreFiltersToStacks(): AccountListingCollectionItemVm[] {
+	private applyExploreFiltersToStacks(): AccountListingCollectionItemViewModel[] {
 		const filtered = filterStacksByExploreFilters(
-			this.exploreStackCards,
+			this.exploreStackCardsVm,
 			this.exploreFilters,
 			this.exploreTagFilterVm
 		);

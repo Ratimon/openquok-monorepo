@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { AccountListingCollectionItemVm } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
 
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -62,7 +62,7 @@
 
 	let activeTab = $state<ViralFormatsTab>('explore');
 	let deleteModalOpen = $state(false);
-	let listingToDelete = $state<AccountListingCollectionItemVm | null>(null);
+	let listingToDelete = $state<AccountListingCollectionItemViewModel | null>(null);
 
 	onMount(() => {
 		if (!browser) return;
@@ -75,7 +75,7 @@
 		})();
 	});
 
-	function getOwnEditHref(item: AccountListingCollectionItemVm): string {
+	function getOwnEditHref(item: AccountListingCollectionItemViewModel): string {
 		const accountRoot = route(getRootPathAccount());
 		if (item.listingKind === 'stack') {
 			return url(`${accountRoot}/${getAccountStackEditorPath(item.id)}`);
@@ -83,14 +83,14 @@
 		return url(`${accountRoot}/${getAccountExtensionEditorPath(item.id)}`);
 	}
 
-	function getPublicHref(item: AccountListingCollectionItemVm): string {
+	function getPublicHref(item: AccountListingCollectionItemViewModel): string {
 		if (item.listingKind === 'stack') {
 			return url(`/${getRootPathPublicStack(item.slug)}`);
 		}
 		return url(`/${getRootPathPublicExtension(item.slug)}`);
 	}
 
-	function ownMenuItems(item: AccountListingCollectionItemVm) {
+	function ownMenuItems(item: AccountListingCollectionItemViewModel) {
 		return [
 			{
 				label: 'Edit',
@@ -109,7 +109,7 @@
 		];
 	}
 
-	function exploreMenuItems(item: AccountListingCollectionItemVm) {
+	function exploreMenuItems(item: AccountListingCollectionItemViewModel) {
 		const bookmarked = pagePresenter.isBookmarked(item.id);
 		return [
 			{

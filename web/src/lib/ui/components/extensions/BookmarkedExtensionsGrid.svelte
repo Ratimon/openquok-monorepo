@@ -13,7 +13,7 @@
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
 
 	type Props = {
-		extensions: ExtensionCardViewModel[];
+		extensionsVm: ExtensionCardViewModel[];
 		loading?: boolean;
 		isLoggedIn?: boolean;
 		bookmarksPaidEnabled?: boolean | null;
@@ -24,7 +24,7 @@
 	};
 
 	let {
-		extensions,
+		extensionsVm,
 		loading = false,
 		isLoggedIn = true,
 		bookmarksPaidEnabled = true,
@@ -46,7 +46,7 @@
 	<p class="rounded-2xl border border-dashed border-base-content/15 p-8 text-center text-base-content/70">
 		Loading bookmarks…
 	</p>
-{:else if extensions.length === 0}
+{:else if extensionsVm.length === 0}
 	<div class="rounded-2xl border border-dashed border-base-content/15 p-10 text-center">
 		<AbstractIcon
 			name={icons.Bookmark.name}
@@ -67,7 +67,7 @@
 	</div>
 {:else}
 	<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-		{#each extensions as extensionVm (extensionVm.id)}
+		{#each extensionsVm as extensionVm (extensionVm.id)}
 			<li class="relative">
 				<div class="absolute top-3 right-3 z-10">
 					<ExtensionBookmarkButton

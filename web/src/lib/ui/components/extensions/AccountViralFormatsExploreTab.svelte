@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemVm } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
 	import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
 	import type { ExtensionCategoryViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { AccountExploreFilters } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
@@ -16,7 +16,7 @@
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import AccountListingsCollectionGroup from '$lib/ui/components/extensions/AccountListingsCollectionGroup.svelte';
 
-	type MenuItemFactory = (item: AccountListingCollectionItemVm) => Array<{
+	type MenuItemFactory = (item: AccountListingCollectionItemViewModel) => Array<{
 		label: string;
 		onSelect: () => void;
 		destructive?: boolean;
@@ -27,8 +27,8 @@
 		filters: AccountExploreFilters;
 		categoriesVm: ExtensionCategoryViewModel[];
 		tagFilterVm: ExtensionsTagFilterViewModel;
-		extensions: AccountListingCollectionItemVm[];
-		stacks: AccountListingCollectionItemVm[];
+		extensions: AccountListingCollectionItemViewModel[];
+		stacks: AccountListingCollectionItemViewModel[];
 		loading?: boolean;
 		showExtensions?: boolean;
 		showStacks?: boolean;
@@ -38,7 +38,7 @@
 		selectableExtensions?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
-		getPublicHref?: (item: AccountListingCollectionItemVm) => string;
+		getPublicHref?: (item: AccountListingCollectionItemViewModel) => string;
 		getMenuItems?: MenuItemFactory;
 		onSearchChange?: (value: string) => void;
 		onCategorySelect?: (slug: string | null) => void;

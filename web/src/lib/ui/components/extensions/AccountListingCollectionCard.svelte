@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemVm } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { cn } from '$lib/ui/helpers/common';
@@ -19,7 +19,7 @@
 	};
 
 	type Props = {
-		item: AccountListingCollectionItemVm;
+		item: AccountListingCollectionItemViewModel;
 		selectable?: boolean;
 		selected?: boolean;
 		onToggleSelect?: () => void;

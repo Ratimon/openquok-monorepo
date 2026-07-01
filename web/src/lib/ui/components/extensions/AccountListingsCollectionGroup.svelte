@@ -1,9 +1,9 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemVm } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
 
 	import AccountListingCollectionCard from '$lib/ui/components/extensions/AccountListingCollectionCard.svelte';
 
-	type MenuItemFactory = (item: AccountListingCollectionItemVm) => Array<{
+	type MenuItemFactory = (item: AccountListingCollectionItemViewModel) => Array<{
 		label: string;
 		onSelect: () => void;
 		destructive?: boolean;
@@ -15,14 +15,14 @@
 	type Props = {
 		label: string;
 		description?: string;
-		items: AccountListingCollectionItemVm[];
+		items: AccountListingCollectionItemViewModel[];
 		loading?: boolean;
 		emptyMessage?: string;
 		layout?: 'row' | 'grid';
 		selectableExtensions?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
-		getEditHref?: (item: AccountListingCollectionItemVm) => string;
+		getEditHref?: (item: AccountListingCollectionItemViewModel) => string;
 		getMenuItems?: MenuItemFactory;
 		showBookmarks?: boolean;
 		isBookmarked?: (listingId: string) => boolean;

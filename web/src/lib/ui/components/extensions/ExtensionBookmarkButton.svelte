@@ -119,7 +119,10 @@
 	<span class="sr-only">{label}</span>
 </Button>
 
-<SignInToBookmarkModal bind:open={showSignInDialog} {signInHref} />
+<SignInToBookmarkModal
+	bind:open={showSignInDialog}
+	{signInHref}
+/>
 
 <CommunityFeaturesLimitUpgradeModal
 	bind:open={showUpgradeDialog}

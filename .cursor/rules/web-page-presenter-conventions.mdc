@@ -37,7 +37,7 @@ A **feature presenter** is a stateful **`*.presenter.svelte.ts`** under a **feat
 
 In **page presenters**, **feature presenters**, and stateless **`Get*Presenter`** classes, bind the value returned from **`await …Repository.someMethod(...)`** to **`resultPm`** (repository / programmer-model layer: discriminated `{ ok: … }` unions, PM payloads, etc.). Avoid opaque names like **`r`**, **`res`**, or **`data`** for that binding. For list reads use **`listPm`** (e.g. **`ApprovedAppsRepository.list()`** → **`ListApprovedAppsProgrammerModel`**); for a single mutation outcome **`revokePm`** / **`createPm`** is fine when **`resultPm`** would be ambiguous.
 
-Row types passed to **`$lib/ui`** should use the **`ViewModel`** suffix when exported (e.g. **`ApprovedAppRowViewModel`**), even if the presenter property is named **`itemsVm`**.
+**Type vs field naming (required):** exported row / screen types use the **`ViewModel`** suffix only (e.g. **`ApprovedAppRowViewModel`**, **`AccountListingCollectionItemViewModel`**). Presenter properties that hold those values use the **`*Vm`** suffix (e.g. **`itemsVm`**, **`exploreExtensionCardsVm`**, **`bookmarkedExtensionsVm`**). Do not name exported types **`…Vm`**; do not name presenter VM state without the **`Vm`** suffix (e.g. avoid **`exploreExtensionCards`**).
 
 After mapping to UI-facing shapes, use **`resultVm`** (or domain-specific names like **`groupVm`**) for the mapped view model. Example:
 
@@ -61,7 +61,7 @@ Repositories stay the **`{ ok: … } | PM`** boundary; presenters expose **`{ ok
 ## Sorting and grouping
 
 - **List ordering, section grouping, and “sort by …” rules** for a screen live in the **page presenter** (`$derived` or private helpers), not in the repository (unless order is a **stable domain rule** shared across clients).
-- **Admin-style lists:** typed list state uses **`*Vm`** (e.g. `…ToManageVm`). Initial **PM → VM** for reads usually goes through a stateless **`Get*Presenter`**; the page presenter holds the **VM array** after load. Do not embed ad-hoc `…PmToVm` helpers in area page presenters when a `Get*` already owns that mapping.
+- **Admin-style lists:** page presenter **fields** use **`*Vm`** (e.g. **`topicsToManageVm: BlogTopicViewModel[]`**); row **types** stay **`*ViewModel`**. Initial **PM → VM** for reads usually goes through a stateless **`Get*Presenter`**; the page presenter holds the **VM array** after load. Do not embed ad-hoc `…PmToVm` helpers in area page presenters when a `Get*` already owns that mapping.
 
 ---
 

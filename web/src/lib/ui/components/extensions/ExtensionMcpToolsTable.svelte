@@ -9,15 +9,15 @@
 	} from '$lib/ui/components/extensions/extensionCatalogTableClasses';
 
 	type Props = {
-		tools: McpToolProgrammerModel[];
+		toolsVm: McpToolProgrammerModel[];
 		/** Hub card style: smaller padding and text. */
 		compact?: boolean;
 	};
 
-	let { tools, compact = false }: Props = $props();
+	let { toolsVm, compact = false }: Props = $props();
 </script>
 
-{#if tools.length > 0}
+{#if toolsVm.length > 0}
 	<div class={extensionCatalogTableShellClass}>
 		<table class="{extensionCatalogTableClass} {compact ? 'table-sm' : ''}">
 			<thead>
@@ -27,7 +27,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each tools as tool (tool.name)}
+				{#each toolsVm as tool (tool.name)}
 					<tr class={extensionCatalogTableRowClass}>
 						<td class="px-3 py-2 font-mono {compact ? 'text-xs' : 'text-sm'} whitespace-nowrap">
 							{tool.name}

@@ -177,7 +177,7 @@
 			{#if extensionVm.skillCommands.length > 0}
 				<div>
 					<h2 class="mb-4 text-lg font-semibold">CLI commands</h2>
-					<ExtensionSkillCommandsTable commands={extensionVm.skillCommands} />
+					<ExtensionSkillCommandsTable commandsVm={extensionVm.skillCommands} />
 				</div>
 			{/if}
 		</Tabs.Content>
@@ -209,7 +209,7 @@
 			{#if extensionVm.mcpTools.length > 0}
 				<div>
 					<h2 class="mb-4 text-lg font-semibold">MCP tools</h2>
-					<ExtensionMcpToolsTable tools={extensionVm.mcpTools} />
+					<ExtensionMcpToolsTable toolsVm={extensionVm.mcpTools} />
 				</div>
 			{/if}
 

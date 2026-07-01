@@ -105,7 +105,7 @@
 					{/if}
 					{#if skillCommands.length > 0}
 						<div class={skillsInstall ? 'mt-3' : ''}>
-							<ExtensionSkillCommandsTable commands={skillCommands} compact />
+							<ExtensionSkillCommandsTable commandsVm={skillCommands} compact />
 						</div>
 					{:else if !skillsInstall}
 						<p class="text-sm text-base-content/70">Skills commands coming soon.</p>
@@ -113,7 +113,7 @@
 				</Tabs.Content>
 				<Tabs.Content value="mcp">
 					{#if mcpTools.length > 0}
-						<ExtensionMcpToolsTable tools={mcpTools} compact />
+						<ExtensionMcpToolsTable toolsVm={mcpTools} compact />
 					{:else}
 						<p class="text-sm text-base-content/70">MCP tools coming soon.</p>
 					{/if}
@@ -123,7 +123,7 @@
 	{:else if showMcpOnlySection}
 		<div>
 			<h4 class="mb-2 text-sm font-semibold text-base-content">MCP tools</h4>
-			<ExtensionMcpToolsTable tools={mcpTools} compact />
+			<ExtensionMcpToolsTable toolsVm={mcpTools} compact />
 		</div>
 	{:else if showSkillsOnlySection}
 		<div>
@@ -135,7 +135,7 @@
 			{/if}
 			{#if skillCommands.length > 0}
 				<div class={skillsInstall ? 'mt-3' : ''}>
-					<ExtensionSkillCommandsTable commands={skillCommands} compact />
+					<ExtensionSkillCommandsTable commandsVm={skillCommands} compact />
 				</div>
 			{/if}
 		</div>
