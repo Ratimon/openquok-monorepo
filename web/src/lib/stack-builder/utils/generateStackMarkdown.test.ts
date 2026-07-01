@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
+import type { QuickReferenceExtension } from '$lib/stack-builder/utils/buildQuickReferenceMarkdown';
 import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
+
+const bloomExtension: QuickReferenceExtension = {
+	slug: 'bloom-mcp',
+	title: 'Bloom MCP',
+	extensionType: 'mcp',
+	mcpServerConfig: { name: 'bloom', url: 'https://www.trybloom.ai/api/mcp' },
+	mcpTools: [
+		{
+			name: 'bloom_generate_image',
+			description: 'Generate on-brand images from a prompt scoped to a brand session.'
+		}
+	]
+};
 
 describe('generateStackMarkdown', () => {
 	it('renders SKILL.md starter structure with core workflow fallback when empty', () => {
@@ -27,7 +41,7 @@ describe('generateStackMarkdown', () => {
 		expect(markdown).toContain('**RevenueCat MCP**');
 	});
 
-	it('renders workflow commands, text notes, and reference assets in SKILL.md format', () => {
+	it('renders workflow commands and text notes in SKILL.md format', () => {
 		const markdown = generateStackMarkdown({
 			title: 'Test stack',
 			extensionSlugs: ['openquok-core'],
@@ -50,20 +64,53 @@ describe('generateStackMarkdown', () => {
 					content: 'Review the output.'
 				}
 			],
-			referenceAssets: [
-				{
-					id: 'json-1',
-					type: 'json',
-					label: 'Brief',
-					payload: '{\n  "persona": "creator"\n}'
-				}
-			]
+			referenceAssets: []
 		});
 
 		expect(markdown).toContain('## Core Workflow');
 		expect(markdown).toContain('### 1. Discover connected channels');
 		expect(markdown).toContain('### 2. Review');
 		expect(markdown).toContain('Review the output.');
-		expect(markdown).toContain('## Reference assets');
+		expect(markdown).not.toContain('## Examples');
+		expect(markdown).not.toContain('## Reference assets');
+	});
+
+	it('places Quick Reference after Core Workflow', () => {
+		const markdown = generateStackMarkdown({
+			extensionSlugs: ['openquok-core'],
+			workflowSteps: [],
+			referenceAssets: []
+		});
+
+		const coreWorkflowIndex = markdown.indexOf('## Core Workflow');
+		const quickReferenceIndex = markdown.indexOf('## Quick Reference');
+
+		expect(coreWorkflowIndex).toBeGreaterThan(-1);
+		expect(quickReferenceIndex).toBeGreaterThan(coreWorkflowIndex);
+	});
+
+	it('adds MCP quick reference and mcp_servers frontmatter for MCP-only extensions', () => {
+		const markdown = generateStackMarkdown({
+			extensionSlugs: ['openquok-core', 'bloom-mcp'],
+			extensions: [bloomExtension],
+			workflowSteps: [
+				{
+					id: '1',
+					type: 'command',
+					kind: 'mcp',
+					listingSlug: 'bloom-mcp',
+					listingTitle: 'Bloom MCP',
+					commandName: 'bloom_generate_image',
+					title: 'bloom generate image',
+					prompt: 'Use the bloom_generate_image MCP tool from Bloom MCP.'
+				}
+			],
+			referenceAssets: []
+		});
+
+		expect(markdown).toContain('mcp_servers:\n  - bloom');
+		expect(markdown).toContain('### Bloom MCP');
+		expect(markdown).toContain('[Generate Image](mcp://bloom/bloom_generate_image)');
+		expect(markdown).toContain('### OpenQuok Core');
 	});
 });

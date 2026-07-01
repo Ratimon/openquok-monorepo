@@ -7,6 +7,11 @@ import {
 	SKILL_DEFAULT_VERSION
 } from '$lib/stack-builder/constants/defaults';
 import { OPENQUOK_CORE_QUICK_REFERENCE } from '$lib/stack-builder/constants/openquokCliCommandSnippets';
+import {
+	buildQuickReferenceMarkdown,
+	collectMcpServerNames,
+	type QuickReferenceExtension
+} from '$lib/stack-builder/utils/buildQuickReferenceMarkdown';
 import { buildCoreWorkflowMarkdown } from '$lib/stack-builder/utils/buildCoreWorkflowMarkdown';
 import { buildSkillPrerequisitesMarkdown } from '$lib/stack-builder/utils/buildSkillPrerequisites';
 import { ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
@@ -14,10 +19,6 @@ import type {
 	StackBuilderReferenceAssetViewModel,
 	StackBuilderWorkflowStepViewModel
 } from '$lib/stack-builder/stackBuilder.types';
-
-function escapeMarkdownInline(value: string): string {
-	return value.replace(/([\\`*_[\]])/g, '\\$1');
-}
 
 function slugifySkillName(title: string): string {
 	const slug = title
@@ -40,40 +41,26 @@ function buildPrerequisitesSection(extensionSlugs: string[]): string {
 	return buildSkillPrerequisitesMarkdown(extensionSlugs);
 }
 
-function buildQuickReferenceSection(extensionSlugs: string[]): string {
+function buildQuickReferenceSection(
+	extensionSlugs: string[],
+	extensions: QuickReferenceExtension[] | undefined
+): string {
+	if (extensions && extensions.length > 0) {
+		return buildQuickReferenceMarkdown(extensions, extensionSlugs);
+	}
+
 	if (!extensionSlugs.includes(OPENQUOK_CORE_EXTENSION_SLUG)) {
 		return '';
 	}
 
-	return OPENQUOK_CORE_QUICK_REFERENCE;
+	return ['### OpenQuok Core', '', '```bash', OPENQUOK_CORE_QUICK_REFERENCE, '```'].join('\n');
 }
 
-function buildReferenceAssetsSection(referenceAssets: StackBuilderReferenceAssetViewModel[]): string {
-	if (referenceAssets.length === 0) return '';
-
-	const lines: string[] = ['', '## Reference assets', ''];
-
-	for (const asset of referenceAssets) {
-		lines.push(`### ${escapeMarkdownInline(asset.label)}`);
-		lines.push('');
-		if (asset.type === 'image' && asset.dataUrl) {
-			lines.push(`![${escapeMarkdownInline(asset.label)}](${asset.dataUrl})`);
-			lines.push('');
-		} else if (asset.type === 'json' && asset.payload?.trim()) {
-			lines.push('```json');
-			lines.push(asset.payload.trim());
-			lines.push('```');
-			lines.push('');
-		}
-	}
-
-	return lines.join('\n').trimEnd();
-}
-
-/** Build SKILL.md export from workflow steps and reference assets. */
+/** Build SKILL.md export from workflow steps. */
 export function generateStackMarkdown(params: {
 	title?: string;
 	extensionSlugs: string[];
+	extensions?: QuickReferenceExtension[];
 	workflowSteps: StackBuilderWorkflowStepViewModel[];
 	referenceAssets: StackBuilderReferenceAssetViewModel[];
 }): string {
@@ -83,15 +70,27 @@ export function generateStackMarkdown(params: {
 	const coreWorkflow = buildCoreWorkflowMarkdown(params.workflowSteps);
 	const overview = buildOverviewSection(extensionSlugs);
 	const prerequisites = buildPrerequisitesSection(extensionSlugs);
-	const quickReference = buildQuickReferenceSection(extensionSlugs);
-	const referenceAssets = buildReferenceAssetsSection(params.referenceAssets);
+	const quickReference = buildQuickReferenceSection(extensionSlugs, params.extensions);
+	const mcpServers = collectMcpServerNames(
+		(params.extensions ?? []).filter((extension) => extensionSlugs.includes(extension.slug))
+	);
 
 	const lines = [
 		'---',
 		`name: ${skillName}`,
 		`description: ${SKILL_DEFAULT_DESCRIPTION}`,
 		`version: ${SKILL_DEFAULT_VERSION}`,
-		`license: ${SKILL_DEFAULT_LICENSE}`,
+		`license: ${SKILL_DEFAULT_LICENSE}`
+	];
+
+	if (mcpServers.length > 0) {
+		lines.push('mcp_servers:');
+		for (const serverName of mcpServers) {
+			lines.push(`  - ${serverName}`);
+		}
+	}
+
+	lines.push(
 		'---',
 		'',
 		`# ${title}`,
@@ -99,31 +98,17 @@ export function generateStackMarkdown(params: {
 		'## Overview',
 		'',
 		overview
-	];
+	);
 
 	if (prerequisites) {
 		lines.push('', '## Prerequisites', '', prerequisites);
 	}
 
-	if (quickReference) {
-		lines.push('', '## Quick Reference', '', '```bash', quickReference, '```');
-	}
+	lines.push('', '## Core Workflow', '', coreWorkflow);
 
-	lines.push(
-		'',
-		'## Core Workflow',
-		'',
-		coreWorkflow,
-		'',
-		'## Examples',
-		'',
-		'### Example Input',
-		'"Help me with X"',
-		'',
-		'### Example Output',
-		"Here's what the agent should produce...",
-		referenceAssets
-	);
+	if (quickReference) {
+		lines.push('', '## Quick Reference', '', quickReference);
+	}
 
 	return lines.join('\n').trimEnd() + '\n';
 }

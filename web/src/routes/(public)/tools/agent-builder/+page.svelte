@@ -66,6 +66,7 @@
 		generateStackMarkdown({
 			title: exportTitle,
 			extensionSlugs: activeExtensionSlugs,
+			extensions: extensionDetails,
 			referenceAssets,
 			workflowSteps
 		})

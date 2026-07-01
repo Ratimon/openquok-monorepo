@@ -140,6 +140,9 @@
 		form.setFieldValue('schema_type', getDefaultSchemaTypeForListingKind('stack'));
 	}
 
+	const initialSkillCommandsJson = $derived(
+		JSON.stringify((initialValues as ListingExtensionFormSchemaType).skill_commands ?? [], null, 2)
+	);
 	const initialMcpToolsJson = $derived(
 		JSON.stringify((initialValues as ListingExtensionFormSchemaType).mcp_tools ?? [], null, 2)
 	);
@@ -147,6 +150,7 @@
 		JSON.stringify((initialValues as ListingExtensionFormSchemaType).mcp_server_config ?? {}, null, 2)
 	);
 
+	let skillCommandsJson = $derived(initialSkillCommandsJson);
 	let mcpToolsJson = $derived(initialMcpToolsJson);
 	let mcpServerConfigJson = $derived(initialMcpServerConfigJson);
 
@@ -200,6 +204,7 @@
 			skill_name: (initialValues as ListingExtensionFormSchemaType).skill_name ?? '',
 			license: initialValues.license ?? '',
 			version: initialValues.version ?? '',
+			skill_commands: (initialValues as ListingExtensionFormSchemaType).skill_commands ?? [],
 			mcp_tools: (initialValues as ListingExtensionFormSchemaType).mcp_tools ?? [],
 			mcp_transport: (initialValues as ListingExtensionFormSchemaType).mcp_transport ?? null,
 			mcp_server_config: (initialValues as ListingExtensionFormSchemaType).mcp_server_config ?? null,
@@ -216,12 +221,32 @@
 				: listingStackFormSchema) as never
 		},
 		onSubmit: async ({ value }) => {
+			let parsedSkillCommands: ListingExtensionFormSchemaType['skill_commands'] =
+				value.skill_commands ?? [];
 			let parsedMcpTools: ListingExtensionFormSchemaType['mcp_tools'] = value.mcp_tools ?? [];
 			let parsedMcpConfig: ListingExtensionFormSchemaType['mcp_server_config'] = value.mcp_server_config ?? null;
+
+			const needsSkillsFields =
+				listingKind === 'extension' &&
+				(value.extension_type === 'skills' || value.extension_type === 'both');
 
 			const needsMcpFields =
 				listingKind === 'extension' &&
 				(value.extension_type === 'mcp' || value.extension_type === 'both');
+
+			if (needsSkillsFields) {
+				try {
+					const commandsParsed = JSON.parse(skillCommandsJson || '[]') as unknown;
+					if (!Array.isArray(commandsParsed)) {
+						toast.error('CLI commands must be a JSON array.');
+						return;
+					}
+					parsedSkillCommands = commandsParsed as ListingExtensionFormSchemaType['skill_commands'];
+				} catch {
+					toast.error('CLI commands JSON is invalid.');
+					return;
+				}
+			}
 
 			if (needsMcpFields) {
 				try {
@@ -274,6 +299,7 @@
 							skill_name: value.skill_name || null,
 							license: value.license || null,
 							version: value.version || null,
+							skill_commands: parsedSkillCommands,
 							mcp_tools: parsedMcpTools,
 							mcp_transport: value.mcp_transport || null,
 							mcp_server_config: parsedMcpConfig
@@ -1101,6 +1127,26 @@
 								</div>
 							{/snippet}
 						</form.Field>
+
+						<div class="flex flex-col gap-2">
+							<Field.Label>CLI commands (JSON array)</Field.Label>
+							<Field.Description>
+								Powers the Extensions Hub CLI table and Agent Builder command library. Each item needs
+								<code class="text-xs">name</code> and
+								<code class="text-xs">description</code>; optional
+								<code class="text-xs">kind</code>,
+								<code class="text-xs">command_template</code>,
+								<code class="text-xs">example_prompt</code>, and
+								<code class="text-xs">example_payload</code>.
+							</Field.Description>
+							<Textarea
+								bind:value={skillCommandsJson}
+								rows={10}
+								class="font-mono text-sm"
+								placeholder={'[\n  {\n    "name": "posts:create",\n    "description": "Create or schedule social posts.",\n    "kind": "cli",\n    "command_template": "openquok posts:create --json ./post.json"\n  }\n]'}
+								disabled={isSubmitting}
+							/>
+						</div>
 					{/if}
 
 					{#if extensionType === 'mcp' || extensionType === 'both'}
@@ -1144,7 +1190,18 @@
 
 						<div class="flex flex-col gap-2">
 							<Field.Label>MCP tools (JSON array)</Field.Label>
-							<Textarea bind:value={mcpToolsJson} rows={6} class="font-mono text-sm" disabled={isSubmitting} />
+							<Field.Description>
+								Powers the Extensions Hub MCP tools table and Agent Builder command library. Each item
+								needs <code class="text-xs">name</code> and
+								<code class="text-xs">description</code>.
+							</Field.Description>
+							<Textarea
+								bind:value={mcpToolsJson}
+								rows={6}
+								class="font-mono text-sm"
+								placeholder={'[\n  {\n    "name": "integrationList",\n    "description": "List connected social channels."\n  }\n]'}
+								disabled={isSubmitting}
+							/>
 						</div>
 
 						<div class="flex flex-col gap-2">

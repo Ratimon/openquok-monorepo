@@ -41,6 +41,12 @@ export {
 export { REVENUECAT_MCP_EXTENSION_SLUG, buildSkillPrerequisitesMarkdown } from '$lib/stack-builder/utils/buildSkillPrerequisites';
 
 export { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
+export {
+	buildQuickReferenceMarkdown,
+	collectMcpServerNames,
+	resolveMcpServerName
+} from '$lib/stack-builder/utils/buildQuickReferenceMarkdown';
+export type { QuickReferenceExtension } from '$lib/stack-builder/utils/buildQuickReferenceMarkdown';
 export { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
 export { downloadMarkdownFile } from '$lib/stack-builder/utils/downloadMarkdown';
 export {
