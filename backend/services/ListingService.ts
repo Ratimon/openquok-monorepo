@@ -326,6 +326,7 @@ export class ListingService {
             ...body,
             listingData: {
                 ...body.listingData,
+                is_official: false,
                 is_admin_published: false,
             },
         };
@@ -343,6 +344,7 @@ export class ListingService {
             ...body,
             listingData: {
                 ...body.listingData,
+                is_official: false,
                 is_admin_published: existing.is_admin_published === true,
             },
         };

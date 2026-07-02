@@ -78,8 +78,12 @@
 
 <div class="p-4 md:p-6">
 	<div class="mb-6">
-		<h1 class="text-xl font-semibold text-base-content">Edit extension</h1>
-		<p class="text-sm text-base-content/70">Update the extension listing below.</p>
+		<h1 class="text-xl font-semibold text-base-content">
+			Edit extension
+		</h1>
+		<p class="text-sm text-base-content/70">
+			Update the extension listing below.
+		</p>
 	</div>
 
 	{#if !initialized}

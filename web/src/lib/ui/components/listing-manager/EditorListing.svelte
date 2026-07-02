@@ -18,11 +18,13 @@
 	} from '$lib/listings/constants/listingSchemaTypes';
 	import { collectFormErrorMessages } from '$lib/listings/utils/listingForm';
 	import { arraysEqual } from '$lib/ui/helpers/common';
+	import { createForm } from '@tanstack/svelte-form';
+	import { toast } from '$lib/ui/sonner';
+
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import EditorListingValidationNotice from '$lib/ui/components/listing-manager/EditorListingValidationNotice.svelte';
 	import StackMembersEditor from '$lib/ui/components/listing-manager/StackMembersEditor.svelte';
-	import { createForm } from '@tanstack/svelte-form';
-	import { toast } from '$lib/ui/sonner';
+
 	import * as Field from '$lib/ui/field';
 	import { Textarea } from '$lib/ui/textarea';
 	import { Switch } from '$lib/ui/switch';
@@ -307,7 +309,7 @@
 					: {}),
 				install_command_skills: value.install_command_skills || null,
 				install_command_mcp: value.install_command_mcp || null,
-				is_official: value.is_official,
+				is_official: isPlatformAdmin ? value.is_official : false,
 				listing_category_id: value.listing_category_id,
 				tag_ids: value.tag_ids ?? [],
 				is_user_published: value.is_user_published,
@@ -562,22 +564,24 @@
 			<p class="text-sm text-base-content/70">Slug: <span class="font-mono">{slugDisplay}</span></p>
 		{/if}
 
-		<form.Field name="is_official">
-			{#snippet children(field)}
-				<div class="flex flex-col gap-2 rounded-lg border border-base-300 p-4">
-					<Field.Label>Official listing</Field.Label>
-					<Field.Description>Mark as an official platform listing.</Field.Description>
-					<label class="label cursor-pointer justify-start gap-2">
-						<Switch
-							checked={field.state.value}
-							onchange={(e) => field.handleChange((e.currentTarget as HTMLInputElement).checked)}
-							disabled={isSubmitting}
-						/>
-						<span class="label-text">{field.state.value ? 'Official' : 'Not official'}</span>
-					</label>
-				</div>
-			{/snippet}
-		</form.Field>
+		{#if isPlatformAdmin}
+			<form.Field name="is_official">
+				{#snippet children(field)}
+					<div class="flex flex-col gap-2 rounded-lg border border-base-300 p-4">
+						<Field.Label>Official listing</Field.Label>
+						<Field.Description>Mark as an official platform listing.</Field.Description>
+						<label class="label cursor-pointer justify-start gap-2">
+							<Switch
+								checked={field.state.value}
+								onchange={(e) => field.handleChange((e.currentTarget as HTMLInputElement).checked)}
+								disabled={isSubmitting}
+							/>
+							<span class="label-text">{field.state.value ? 'Official' : 'Not official'}</span>
+						</label>
+					</div>
+				{/snippet}
+			</form.Field>
+		{/if}
 
 		{#if listingKind === 'extension'}
 			<form.Field name="extension_type">

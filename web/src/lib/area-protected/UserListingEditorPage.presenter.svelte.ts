@@ -97,6 +97,7 @@ export class UserListingEditorPagePresenter {
 			const payload = {
 				...formData,
 				listing_kind: this.listingKind,
+				is_official: false,
 				is_admin_published: false
 			} as ListingFormSchemaType;
 			const schema =
@@ -275,7 +276,7 @@ export class UserListingEditorPagePresenter {
 			extension_type: (listing.extensionType as 'skills' | 'mcp' | 'both' | null) ?? 'skills',
 			install_command_skills: listing.installCommandSkills ?? '',
 			install_command_mcp: listing.installCommandMcp ?? '',
-			is_official: listing.isOfficial,
+			is_official: false,
 			source_repo_url: listing.sourceRepoUrl ?? '',
 			skill_source_url: listing.skillSourceUrl ?? '',
 			skill_name: listing.skillName ?? '',
