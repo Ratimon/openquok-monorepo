@@ -3,7 +3,7 @@
 
 	import { browser } from '$app/environment';
 
-	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
+	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
@@ -58,7 +58,7 @@
 	}
 
 	async function handleShare() {
-		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicExtension(extensionVm.slug)}`);
+		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicBuildingBlock(extensionVm.slug)}`);
 		if (browser && navigator.share) {
 			try {
 				await navigator.share({

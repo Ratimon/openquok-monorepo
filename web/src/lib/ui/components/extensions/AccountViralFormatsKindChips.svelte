@@ -15,8 +15,8 @@
 
 	const chips: Chip[] = [
 		{ id: 'all', label: 'All' },
-		{ id: 'extension', label: 'Extensions' },
-		{ id: 'stack', label: 'Stacks' }
+		{ id: 'extension', label: 'Building blocks' },
+		{ id: 'stack', label: 'Playbooks' }
 	];
 </script>
 

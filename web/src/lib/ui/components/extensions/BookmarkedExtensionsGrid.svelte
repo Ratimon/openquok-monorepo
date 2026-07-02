@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { ExtensionCardViewModel } from '$lib/listings/index';
 
-	import { getRootPathPublicExtensions } from '$lib/area-public/constants/getRootPathPublicExtensions';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 
@@ -34,7 +34,7 @@
 		onToggleBookmark
 	}: Props = $props();
 
-	const extensionsHubHref = url(`/${getRootPathPublicExtensions()}`);
+	const extensionsHubHref = url(`/${getRootPathPublicBuildingBlocks()}`);
 	let expandedId = $state<string | null>(null);
 
 	function toggleExpanded(id: string) {
@@ -55,13 +55,13 @@
 			height="40"
 			aria-hidden="true"
 		/>
-		<h2 class="text-lg font-semibold text-base-content">No skilled & MCP extensions yet</h2>
+		<h2 class="text-lg font-semibold text-base-content">No building blocks bookmarked yet</h2>
 		<p class="mt-2 text-sm text-base-content/70">
-			Save extensions from the public hub to build your personal shortlist.
+			Save building blocks from the public hub to build your personal shortlist.
 		</p>
 		<div class="mt-6">
 			<Button href={extensionsHubHref} variant="primary">
-				Browse extensions
+				Browse building blocks
 			</Button>
 		</div>
 	</div>

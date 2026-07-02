@@ -3,7 +3,7 @@
 
 	import { icons } from '$data/icons';
 
-	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
+	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { url } from '$lib/utils/path';
 
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
@@ -41,7 +41,7 @@
 		onToggleBookmark
 	}: Props = $props();
 
-	const detailHref = $derived(url(`/${getRootPathPublicExtension(extensionVm.slug)}`));
+	const detailHref = $derived(url(`/${getRootPathPublicBuildingBlock(extensionVm.slug)}`));
 
 	const typeBadges = $derived.by((): string[] => {
 		switch (extensionVm.extensionType) {

@@ -48,12 +48,12 @@
 	/>
 
 	<AccountListingsCollectionGroup
-		label="Extensions"
-		description="Check Add on one or more extensions to include them in a new stack."
+		label="Building blocks"
+		description="Check Add on one or more building blocks to include them in a new playbook."
 		items={extensions}
 		{loading}
 		layout="grid"
-		emptyMessage="No extensions yet. Submit a skills or MCP listing for the hub."
+		emptyMessage="No building blocks yet. Submit a skills or MCP listing for the hub."
 		{selectableExtensions}
 		{isSelected}
 		{onToggleSelect}
@@ -62,11 +62,11 @@
 		showPublishStatus={true}
 	/>
 	<AccountListingsCollectionGroup
-		label="Stacks"
+		label="Playbooks"
 		items={stacks}
 		{loading}
 		layout="grid"
-		emptyMessage="No stacks yet. Compose extensions into a stack draft."
+		emptyMessage="No playbooks yet. Compose building blocks into a playbook draft."
 		{getEditHref}
 		{getMenuItems}
 		showPublishStatus={true}

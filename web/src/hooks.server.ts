@@ -1,11 +1,41 @@
 import type { Handle } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 
 /**
  * Forward `/api/*` to the local backend in development so the browser stays on the HTTPS dev origin.
- * Vite `server.proxy` is not always applied before SvelteKit’s dev middleware, which breaks auth
+ * Vite `server.proxy` is not always applied before SvelteKit's dev middleware, which breaks auth
  * cookies and OAuth callbacks when the SPA uses same-origin `/api` URLs.
  */
 const DEFAULT_DEV_BACKEND_ORIGIN = 'http://localhost:3000';
+
+/** 301 redirects from legacy extension/stack routes to playbooks / building-blocks. */
+function resolveLegacyListingRouteRedirect(pathname: string): string | null {
+	if (pathname === '/extensions' || pathname.startsWith('/extensions/')) {
+		return pathname.replace(/^\/extensions(?=\/|$)/, '/building-blocks');
+	}
+	if (pathname === '/stacks' || pathname.startsWith('/stacks/')) {
+		return pathname.replace(/^\/stacks(?=\/|$)/, '/playbooks');
+	}
+	if (pathname === '/account/extensions' || pathname.startsWith('/account/extensions/')) {
+		let next = pathname.replace(/^\/account\/extensions(?=\/|$)/, '/account/playbooks');
+		next = next.replace('/extension/', '/building-block/');
+		next = next.replace('/stack/', '/playbook/');
+		return next;
+	}
+	if (pathname === '/account/stacks' || pathname.startsWith('/account/stacks/')) {
+		if (pathname === '/account/stacks') return '/account/playbooks';
+		if (pathname === '/account/stacks/new') return '/account/playbooks/playbook/new';
+		const editMatch = /^\/account\/stacks\/([^/]+)$/.exec(pathname);
+		if (editMatch) return `/account/playbooks/playbook/${editMatch[1]}`;
+	}
+	if (pathname.startsWith('/secret-admin/listing-manager/listings')) {
+		return pathname.replace('/listing-manager/listings', '/listing-manager/building-blocks');
+	}
+	if (pathname.startsWith('/secret-admin/listing-manager/stacks')) {
+		return pathname.replace('/listing-manager/stacks', '/listing-manager/playbooks');
+	}
+	return null;
+}
 
 /** `Headers` iteration merges `Set-Cookie`; browsers need each cookie appended separately. */
 function forwardUpstreamResponse(upstream: Response): Response {
@@ -31,6 +61,12 @@ function forwardUpstreamResponse(upstream: Response): Response {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const legacyTarget = resolveLegacyListingRouteRedirect(event.url.pathname);
+	if (legacyTarget) {
+		const search = event.url.search;
+		throw redirect(301, `${legacyTarget}${search}`);
+	}
+
 	if (!import.meta.env.DEV || !event.url.pathname.startsWith('/api')) {
 		return resolve(event);
 	}

@@ -8,10 +8,10 @@
 	import { url } from '$lib/utils/path';
 	import {
 		getRootPathSecretAdminListingManager,
-		getRootPathSecretAdminListingManagerListings,
-		getRootPathSecretAdminListingManagerNewExtension,
-		getRootPathSecretAdminListingManagerStacks,
-		getRootPathSecretAdminListingManagerNewStack,
+		getRootPathSecretAdminListingManagerBuildingBlocks,
+		getRootPathSecretAdminListingManagerNewBuildingBlock,
+		getRootPathSecretAdminListingManagerPlaybooks,
+		getRootPathSecretAdminListingManagerNewPlaybook,
 		getRootPathSecretAdminListingManagerCategories,
 		getRootPathSecretAdminListingManagerTags,
 		getRootPathSecretAdminListingManagerComments,
@@ -21,10 +21,10 @@
 	import SidebarSecondary from '$lib/ui/templates/SidebarSecondary.svelte';
 
 	const listingManagerBaseHref = url(getRootPathSecretAdminListingManager());
-	const listingsHref = url(getRootPathSecretAdminListingManagerListings());
-	const newExtensionHref = url(getRootPathSecretAdminListingManagerNewExtension());
-	const stacksHref = url(getRootPathSecretAdminListingManagerStacks());
-	const newStackHref = url(getRootPathSecretAdminListingManagerNewStack());
+	const buildingBlocksHref = url(getRootPathSecretAdminListingManagerBuildingBlocks());
+	const newBuildingBlockHref = url(getRootPathSecretAdminListingManagerNewBuildingBlock());
+	const playbooksHref = url(getRootPathSecretAdminListingManagerPlaybooks());
+	const newPlaybookHref = url(getRootPathSecretAdminListingManagerNewPlaybook());
 	const categoriesHref = url(getRootPathSecretAdminListingManagerCategories());
 	const tagsHref = url(getRootPathSecretAdminListingManagerTags());
 	const commentsHref = url(getRootPathSecretAdminListingManagerComments());
@@ -32,10 +32,10 @@
 
 	type ListingManagerSectionId =
 		| 'dashboard'
-		| 'extensions'
-		| 'new_extension'
-		| 'stacks'
-		| 'new_stack'
+		| 'building_blocks'
+		| 'new_building_block'
+		| 'playbooks'
+		| 'new_playbook'
 		| 'categories'
 		| 'tags'
 		| 'comments'
@@ -49,10 +49,10 @@
 
 	const navItems: SettingsNavItem<ListingManagerSectionId>[] = [
 		{ id: 'dashboard', label: 'Listing dashboard' },
-		{ id: 'extensions', label: 'Extensions' },
-		{ id: 'new_extension', label: 'New extension' },
-		{ id: 'stacks', label: 'Stacks' },
-		{ id: 'new_stack', label: 'New stack' },
+		{ id: 'playbooks', label: 'Playbooks' },
+		{ id: 'new_playbook', label: 'New playbook' },
+		{ id: 'building_blocks', label: 'Building blocks' },
+		{ id: 'new_building_block', label: 'New building block' },
 		{ id: 'categories', label: 'Categories' },
 		{ id: 'tags', label: 'Tags' },
 		{ id: 'comments', label: 'Comments' },
@@ -64,10 +64,10 @@
 		if (pathname.includes('/activities')) return 'activities';
 		if (pathname.includes('/categories')) return 'categories';
 		if (pathname.includes('/tags')) return 'tags';
-		if (pathname.includes('/listings/new')) return 'new_extension';
-		if (pathname.includes('/listings')) return 'extensions';
-		if (pathname.includes('/stacks/new')) return 'new_stack';
-		if (pathname.includes('/stacks')) return 'stacks';
+		if (pathname.includes('/building-blocks/new')) return 'new_building_block';
+		if (pathname.includes('/building-blocks')) return 'building_blocks';
+		if (pathname.includes('/playbooks/new')) return 'new_playbook';
+		if (pathname.includes('/playbooks')) return 'playbooks';
 		return 'dashboard';
 	}
 
@@ -81,10 +81,10 @@
 		getBasePath: () => listingManagerBaseHref,
 		getItemHref: (id) => {
 			if (id === 'dashboard') return listingManagerBaseHref;
-			if (id === 'extensions') return listingsHref;
-			if (id === 'new_extension') return newExtensionHref;
-			if (id === 'stacks') return stacksHref;
-			if (id === 'new_stack') return newStackHref;
+			if (id === 'building_blocks') return buildingBlocksHref;
+			if (id === 'new_building_block') return newBuildingBlockHref;
+			if (id === 'playbooks') return playbooksHref;
+			if (id === 'new_playbook') return newPlaybookHref;
 			if (id === 'categories') return categoriesHref;
 			if (id === 'tags') return tagsHref;
 			if (id === 'comments') return commentsHref;

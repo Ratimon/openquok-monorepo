@@ -46,16 +46,16 @@
 		<div class="min-w-0">
 			{#if hasSelection}
 				<p class="text-sm font-semibold text-base-content">
-					{selectedCount} extension{selectedCount === 1 ? '' : 's'} selected for a new stack
+					{selectedCount} building block{selectedCount === 1 ? '' : 's'} selected for a new playbook
 				</p>
 				<p class="mt-0.5 text-xs text-base-content/65">
-					Review your picks, then create a stack draft to edit members and metadata.
+					Review your picks, then create a playbook draft to edit members and metadata.
 				</p>
 			{:else}
-				<p class="text-sm font-semibold text-base-content">Compose a stack from extensions</p>
+				<p class="text-sm font-semibold text-base-content">Compose a playbook from building blocks</p>
 				<p class="mt-0.5 text-xs text-base-content/65">
-					Use the <span class="font-medium text-base-content/80">Add</span> checkboxes on extension
-					cards below, then create your stack here.
+					Use the <span class="font-medium text-base-content/80">Add</span> checkboxes on building block
+					cards below, then create your playbook here.
 				</p>
 			{/if}
 		</div>
@@ -64,14 +64,14 @@
 	<div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
 		{#if hasSelection}
 			<Button variant="primary" size="sm" onclick={() => onCreateStack?.()}>
-				Create stack ({selectedCount})
+				Create playbook ({selectedCount})
 			</Button>
 			<Button variant="ghost" size="sm" onclick={() => onClearSelection?.()}>
 				Clear selection
 			</Button>
 		{:else}
 			<Button variant="outline" size="sm" disabled class="pointer-events-none opacity-60">
-				Create stack
+				Create playbook
 			</Button>
 		{/if}
 	</div>

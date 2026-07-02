@@ -267,17 +267,17 @@ export function getRootPathListingManagerSegment(): string {
 }
 
 /**
- * Segment for secret-admin listing manager listings.
+ * Segment for secret-admin listing manager building blocks.
  */
-export function getRootPathListingManagerListingsSegment(): string {
-	return 'listings';
+export function getRootPathListingManagerBuildingBlocksSegment(): string {
+	return 'building-blocks';
 }
 
 /**
- * Segment for secret-admin listing manager stacks.
+ * Segment for secret-admin listing manager playbooks.
  */
-export function getRootPathListingManagerStacksSegment(): string {
-	return 'stacks';
+export function getRootPathListingManagerPlaybooksSegment(): string {
+	return 'playbooks';
 }
 
 /**
@@ -323,45 +323,45 @@ export function getRootPathSecretAdminListingManager(): string {
 }
 
 /**
- * Full path for secret-admin listing manager extensions list.
+ * Full path for secret-admin listing manager building blocks list.
  */
-export function getRootPathSecretAdminListingManagerListings(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerListingsSegment()}`;
+export function getRootPathSecretAdminListingManagerBuildingBlocks(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerBuildingBlocksSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager new extension page.
+ * Full path for secret-admin listing manager new building block page.
  */
-export function getRootPathSecretAdminListingManagerNewExtension(): string {
-	return `${getRootPathSecretAdminListingManagerListings()}/${getRootPathListingManagerNewSegment()}`;
+export function getRootPathSecretAdminListingManagerNewBuildingBlock(): string {
+	return `${getRootPathSecretAdminListingManagerBuildingBlocks()}/${getRootPathListingManagerNewSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager extension editor.
+ * Full path for secret-admin listing manager building block editor.
  */
-export function getRootPathSecretAdminListingManagerExtensionEditor(id: string): string {
-	return `${getRootPathSecretAdminListingManagerListings()}/${id}`;
+export function getRootPathSecretAdminListingManagerBuildingBlockEditor(id: string): string {
+	return `${getRootPathSecretAdminListingManagerBuildingBlocks()}/${id}`;
 }
 
 /**
- * Full path for secret-admin listing manager stacks list.
+ * Full path for secret-admin listing manager playbooks list.
  */
-export function getRootPathSecretAdminListingManagerStacks(): string {
-	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerStacksSegment()}`;
+export function getRootPathSecretAdminListingManagerPlaybooks(): string {
+	return `${getRootPathSecretAdminListingManager()}/${getRootPathListingManagerPlaybooksSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager new stack page.
+ * Full path for secret-admin listing manager new playbook page.
  */
-export function getRootPathSecretAdminListingManagerNewStack(): string {
-	return `${getRootPathSecretAdminListingManagerStacks()}/${getRootPathListingManagerNewSegment()}`;
+export function getRootPathSecretAdminListingManagerNewPlaybook(): string {
+	return `${getRootPathSecretAdminListingManagerPlaybooks()}/${getRootPathListingManagerNewSegment()}`;
 }
 
 /**
- * Full path for secret-admin listing manager stack editor.
+ * Full path for secret-admin listing manager playbook editor.
  */
-export function getRootPathSecretAdminListingManagerStackEditor(id: string): string {
-	return `${getRootPathSecretAdminListingManagerStacks()}/${id}`;
+export function getRootPathSecretAdminListingManagerPlaybookEditor(id: string): string {
+	return `${getRootPathSecretAdminListingManagerPlaybooks()}/${id}`;
 }
 
 /**

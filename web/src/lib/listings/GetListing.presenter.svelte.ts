@@ -71,9 +71,9 @@ export function showListingBookmarkToast(
 	bookmarked: boolean,
 	listingKind: ListingBookmarkKind = 'extension'
 ): void {
-	const label = listingKind === 'stack' ? 'Stack' : 'Extension';
+	const label = listingKind === 'stack' ? 'Playbook' : 'Building block';
 	if (bookmarked) {
-		toast.success(`${label} bookmarked. View it under Viral Formats → Explore → Bookmarked.`);
+		toast.success(`${label} bookmarked. View it under Playbooks → Explore → Bookmarked.`);
 	} else {
 		toast.success('Bookmark removed.');
 	}
@@ -523,7 +523,7 @@ export class GetListingPresenter {
 		]);
 
 		return {
-			metaTitle: information.EXTENSIONS_META_TITLE ?? 'Extensions Hub',
+			metaTitle: information.EXTENSIONS_META_TITLE ?? 'Building Blocks Hub',
 			metaDescription:
 				information.EXTENSIONS_META_DESCRIPTION ??
 				'Browse skills and MCP server extensions for your agent stack.',

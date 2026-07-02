@@ -1,17 +1,10 @@
 import { redirect } from '@sveltejs/kit';
 
-import {
-	getRootPathAccount,
-	getAccountExtensionsHubPath,
-	getAccountNewExtensionPath,
-	getAccountExtensionEditorPath,
-	getAccountNewStackPath,
-	getAccountStackEditorPath
-} from '$lib/area-protected';
+import { getRootPathAccount, getAccountPlaybooksHubPath } from '$lib/area-protected';
 import { route } from '$lib/utils/path';
 
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = () => {
-	throw redirect(301, route(`${getRootPathAccount()}/${getAccountExtensionsHubPath()}`));
+	throw redirect(301, route(`${getRootPathAccount()}/${getAccountPlaybooksHubPath()}`));
 };

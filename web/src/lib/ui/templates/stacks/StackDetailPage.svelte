@@ -2,7 +2,7 @@
 	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { StackBlueprintWorkflowStepProgrammerModel } from '$lib/listings/listing.types';
 
-	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
+	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { url } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -75,7 +75,7 @@
 
 	function memberDetailHref(stackMember: StackDetailViewModel['stackMembers'][number]) {
 		if (!stackMember.member) return null;
-		return url(getRootPathPublicExtension(stackMember.member.slug));
+		return url(getRootPathPublicBuildingBlock(stackMember.member.slug));
 	}
 
 	function memberSetupDocButtons(
@@ -154,7 +154,7 @@
 												<h3 class="font-semibold text-base-content">
 													<a
 														class="link link-hover"
-														href={url(getRootPathPublicExtension(member.member.slug))}
+														href={url(getRootPathPublicBuildingBlock(member.member.slug))}
 													>
 														{member.member.title}
 													</a>

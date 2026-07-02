@@ -108,7 +108,7 @@
 	<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
 		<ExtensionsSearchBar
 			bind:value={searchDraft}
-			placeholder="Search extensions and stacks…"
+			placeholder="Search playbooks and building blocks…"
 			class="min-w-0 flex-1"
 			onchange={onSearchChange}
 		/>
@@ -187,14 +187,14 @@
 
 	{#if showExtensions}
 		<AccountListingsCollectionGroup
-			label="Extensions"
-			description="Check Add on one or more extensions to include them in a new stack."
+			label="Building blocks"
+			description="Check Add on one or more building blocks to include them in a new playbook."
 			items={extensions}
 			{loading}
 			layout="grid"
 			emptyMessage={filters.bookmarkedOnly
-				? 'No bookmarked extensions match your filters.'
-				: 'No extensions match your filters.'}
+				? 'No bookmarked building blocks match your filters.'
+				: 'No building blocks match your filters.'}
 			{selectableExtensions}
 			{isSelected}
 			{onToggleSelect}
@@ -212,13 +212,13 @@
 
 	{#if showStacks}
 		<AccountListingsCollectionGroup
-			label="Stacks"
+			label="Playbooks"
 			items={stacks}
 			{loading}
 			layout="grid"
 			emptyMessage={filters.bookmarkedOnly
-				? 'No bookmarked stacks match your filters.'
-				: 'No stacks match your filters.'}
+				? 'No bookmarked playbooks match your filters.'
+				: 'No playbooks match your filters.'}
 			getEditHref={getPublicHref}
 			{getMenuItems}
 			{showBookmarks}

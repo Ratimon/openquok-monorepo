@@ -5,15 +5,15 @@ export {
 	getRootPathMedia,
 	getRootPathPlugs,
 	getRootPathTemplates,
-	getRootPathExtensions,
-	getRootPathExtensionEditor,
-	getRootPathStackEditor,
+	getRootPathPlaybooksHub,
+	getRootPathBuildingBlockEditor,
+	getRootPathPlaybookEditor,
 	getRootPathNewListing,
-	getAccountExtensionsHubPath,
-	getAccountNewExtensionPath,
-	getAccountNewStackPath,
-	getAccountStackEditorPath,
-	getAccountExtensionEditorPath
+	getAccountPlaybooksHubPath,
+	getAccountNewBuildingBlockPath,
+	getAccountNewPlaybookPath,
+	getAccountPlaybookEditorPath,
+	getAccountBuildingBlockEditorPath
 } from '$lib/area-protected/getRootPathProtectedArea';
 import { ProtectedSettingsPagePresenter, UpdateProfileStatus, WorkspaceSettingsStatus } from './ProtectedSettingsPage.presenter.svelte';
 import { ProtectedLayoutPagePresenter } from '$lib/area-protected/ProtectedLayoutPage.presenter.svelte';
@@ -192,13 +192,13 @@ const protectedAccountExtensionsPagePresenter = new ProtectedAccountExtensionsPa
 	getBillingPresenter
 );
 
-/** Edit stack: `/account/extensions/stack/[id]` */
+/** Edit playbook: `/account/playbooks/playbook/[id]` */
 const userListingStackEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New stack: `/account/extensions/stack/new` */
+/** New playbook: `/account/playbooks/playbook/new` */
 const userListingNewStackPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** Edit extension: `/account/extensions/extension/[id]` */
+/** Edit building block: `/account/playbooks/building-block/[id]` */
 const userListingExtensionEditorPagePresenter = new UserListingEditorPagePresenter(listingRepository);
-/** New extension: `/account/extensions/extension/new` */
+/** New building block: `/account/playbooks/building-block/new` */
 const userListingNewExtensionPagePresenter = new UserListingEditorPagePresenter(listingRepository);
 
 const userListingStacksManagerPagePresenter = new UserListingsManagerPagePresenter(

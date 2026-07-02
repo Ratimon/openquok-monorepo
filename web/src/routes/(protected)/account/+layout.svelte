@@ -16,7 +16,7 @@
 		getRootPathPlugs,
 		getRootPathAnalytics,
 		getRootPathMedia,
-		getRootPathExtensions,
+		getRootPathPlaybooksHub,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
@@ -67,15 +67,15 @@
 	const rootPathMedia = getRootPathMedia();
 	const mediaPath = route(`${rootPathAccount}/${rootPathMedia}`);
 
-	// /account/extensions
-	const rootPathExtensions = getRootPathExtensions();
-	const extensionsPath = route(`${rootPathAccount}/${rootPathExtensions}`);
+	// /account/playbooks
+	const rootPathPlaybooksHub = getRootPathPlaybooksHub();
+	const playbooksPath = route(`${rootPathAccount}/${rootPathPlaybooksHub}`);
 
 	const mainLinks: SidebarLinkItem[] = [
 		{ label: 'Home', href: accountPath, iconName: icons.House.name },
 		{ label: 'Calendar', href: calendarPath, iconName: icons.CalendarClock.name },
 		{ label: 'Templates', href: templatesPath, iconName: icons.LayoutTemplate.name },
-		{ label: 'Viral Format', href: extensionsPath, iconName: icons.Bookmark.name },
+		{ label: 'Playbooks', href: playbooksPath, iconName: icons.Bookmark.name },
 		{ label: 'Auto Plugs', href: plugsPath, iconName: icons.Sparkles.name },
 		{ label: 'Analytics', href: analyticsPath, iconName: icons.ChartBar.name },
 		{ label: 'Media', href: mediaPath, iconName: icons.Image.name },

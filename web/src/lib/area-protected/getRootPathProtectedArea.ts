@@ -45,47 +45,47 @@ export function getRootPathPayloadWizard(): string {
 	return 'payload-wizard';
 }
 
-/** Extensions hub segment under the account area (bookmarks, owned listings, editors). */
-export function getRootPathExtensions(): string {
-	return 'extensions';
+/** Playbooks hub segment under the account area (browse, bookmarks, owned playbooks & building blocks). */
+export function getRootPathPlaybooksHub(): string {
+	return 'playbooks';
 }
 
-/** Extension editor segment under {@link getRootPathExtensions}. */
-export function getRootPathExtensionEditor(): string {
-	return 'extension';
+/** Building block editor segment under {@link getRootPathPlaybooksHub}. */
+export function getRootPathBuildingBlockEditor(): string {
+	return 'building-block';
 }
 
-/** Stack editor segment under {@link getRootPathExtensions}. */
-export function getRootPathStackEditor(): string {
-	return 'stack';
+/** Playbook editor segment under {@link getRootPathPlaybooksHub}. */
+export function getRootPathPlaybookEditor(): string {
+	return 'playbook';
 }
 
-/** New listing editor segment (`…/extension/new`, `…/stack/new`). */
+/** New listing editor segment (`…/building-block/new`, `…/playbook/new`). */
 export function getRootPathNewListing(): string {
 	return 'new';
 }
 
-/** Account extensions hub: `/account/extensions`. */
-export function getAccountExtensionsHubPath(): string {
-	return getRootPathExtensions();
+/** Account playbooks hub: `/account/playbooks`. */
+export function getAccountPlaybooksHubPath(): string {
+	return getRootPathPlaybooksHub();
 }
 
-/** New extension editor: `/account/extensions/extension/new`. */
-export function getAccountNewExtensionPath(): string {
-	return `${getRootPathExtensions()}/${getRootPathExtensionEditor()}/${getRootPathNewListing()}`;
+/** New building block editor: `/account/playbooks/building-block/new`. */
+export function getAccountNewBuildingBlockPath(): string {
+	return `${getRootPathPlaybooksHub()}/${getRootPathBuildingBlockEditor()}/${getRootPathNewListing()}`;
 }
 
-/** New stack editor: `/account/extensions/stack/new`. */
-export function getAccountNewStackPath(): string {
-	return `${getRootPathExtensions()}/${getRootPathStackEditor()}/${getRootPathNewListing()}`;
+/** New playbook editor: `/account/playbooks/playbook/new`. */
+export function getAccountNewPlaybookPath(): string {
+	return `${getRootPathPlaybooksHub()}/${getRootPathPlaybookEditor()}/${getRootPathNewListing()}`;
 }
 
-/** Edit extension: `/account/extensions/extension/[id]`. */
-export function getAccountExtensionEditorPath(extensionId: string): string {
-	return `${getRootPathExtensions()}/${getRootPathExtensionEditor()}/${extensionId}`;
+/** Edit building block: `/account/playbooks/building-block/[id]`. */
+export function getAccountBuildingBlockEditorPath(buildingBlockId: string): string {
+	return `${getRootPathPlaybooksHub()}/${getRootPathBuildingBlockEditor()}/${buildingBlockId}`;
 }
 
-/** Edit stack: `/account/extensions/stack/[id]`. */
-export function getAccountStackEditorPath(stackId: string): string {
-	return `${getRootPathExtensions()}/${getRootPathStackEditor()}/${stackId}`;
+/** Edit playbook: `/account/playbooks/playbook/[id]`. */
+export function getAccountPlaybookEditorPath(playbookId: string): string {
+	return `${getRootPathPlaybooksHub()}/${getRootPathPlaybookEditor()}/${playbookId}`;
 }

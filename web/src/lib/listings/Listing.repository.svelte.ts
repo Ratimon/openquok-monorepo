@@ -641,7 +641,7 @@ export class ListingRepository {
 
 	async getListingInformation(fetch?: typeof globalThis.fetch): Promise<ListingInformationProgrammerModel> {
 		const fallback: ListingInformationProgrammerModel = {
-			EXTENSIONS_META_TITLE: String(CONFIG_SCHEMA_LISTINGS.EXTENSIONS_META_TITLE.default ?? 'Extensions Hub'),
+			EXTENSIONS_META_TITLE: String(CONFIG_SCHEMA_LISTINGS.EXTENSIONS_META_TITLE.default ?? 'Building Blocks Hub'),
 			EXTENSIONS_META_DESCRIPTION: String(
 				CONFIG_SCHEMA_LISTINGS.EXTENSIONS_META_DESCRIPTION.default ??
 					'Browse skills and MCP server extensions for your agent stack.'

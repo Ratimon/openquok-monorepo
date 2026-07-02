@@ -58,8 +58,8 @@
 		bookmarked
 			? 'Remove bookmark'
 			: listingKind === 'stack'
-				? 'Bookmark stack'
-				: 'Bookmark extension'
+				? 'Bookmark playbook'
+				: 'Bookmark building block'
 	);
 	const buttonSize = $derived(size === 'sm' ? 'sm' : 'default');
 

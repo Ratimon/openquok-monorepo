@@ -47,14 +47,14 @@ const adminBlogCommentsManagerPagePresenter = new AdminBlogCommentsManagerPagePr
 
 const adminBlogActivitiesManagerPagePresenter = new AdminBlogActivitiesManagerPagePresenter(getBlogPresenter);
 
-/** Edit extension: `/listing-manager/listings/[id]` */
-const adminListingExtensionEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** New extension: `/listing-manager/listings/new` */
-const adminListingNewExtensionPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** Edit stack: `/listing-manager/stacks/[id]` */
+/** Edit playbook: `/listing-manager/playbooks/[id]` */
 const adminListingStackEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
-/** New stack: `/listing-manager/stacks/new` */
+/** New playbook: `/listing-manager/playbooks/new` */
 const adminListingNewStackPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+/** Edit building block: `/listing-manager/building-blocks/[id]` */
+const adminListingExtensionEditorPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
+/** New building block: `/listing-manager/building-blocks/new` */
+const adminListingNewExtensionPagePresenter = new AdminListingEditorPagePresenter(listingRepository);
 
 const adminListingExtensionsManagerPagePresenter = new AdminListingExtensionsManagerPagePresenter(
 	getListingPresenter

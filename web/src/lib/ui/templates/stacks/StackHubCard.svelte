@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { StackCardViewModel } from '$lib/listings/index';
 
-	import { getRootPathPublicStack } from '$lib/area-public/constants/getRootPathPublicStacks';
+	import { getRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -31,7 +31,7 @@
 		onToggleBookmark
 	}: Props = $props();
 
-	const detailHref = $derived(url(`/${getRootPathPublicStack(stackVm.slug)}`));
+	const detailHref = $derived(url(`/${getRootPathPublicPlaybook(stackVm.slug)}`));
 	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
 </script>
 

@@ -4,15 +4,15 @@ import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPub
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-import { getRootPathPublicExtensions } from '$lib/area-public/constants/getRootPathPublicExtensions';
-import { getRootPathPublicStacks } from '$lib/area-public/constants/getRootPathPublicStacks';
+import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
-const publicExtensionsPath = route(getRootPathPublicExtensions());
-const publicStacksPath = route(getRootPathPublicStacks());
+const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
+const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
 const publicDocsPath = route(getRootPathPublicDocs());
 
 const appName = 'openquok';
@@ -493,16 +493,16 @@ export const LISTING_IMAGES_BUCKET = 'listing_images' as const;
 
 export const CONFIG_SCHEMA_LISTINGS: ModuleConfigSchema = {
 	EXTENSIONS_META_TITLE: {
-		description: 'SEO meta title for the public extensions overview page.',
+		description: 'SEO meta title for the public building blocks overview page.',
 		type: 'string',
-		default: 'Skills & MCP Hub',
+		default: 'Building Blocks Hub',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	EXTENSIONS_META_DESCRIPTION: {
-		description: 'SEO meta description for the public extensions overview page.',
+		description: 'SEO meta description for the public building blocks overview page.',
 		type: 'string',
-		default: 'Browse skills and MCP server extensions for your agent stack.',
+		default: 'Browse skills and MCP servers to mix into your agent playbooks.',
 		inputType: 'textarea',
 		maxInputLength: 160
 	},
@@ -591,8 +591,8 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
-	{ pathname: publicExtensionsPath, title: 'Extensions', navType: 'tab' },
-	{ pathname: publicStacksPath, title: 'Stacks', navType: 'tab' },
+	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'tab' },
+	{ pathname: publicBuildingBlocksPath, title: 'Building Blocks', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];

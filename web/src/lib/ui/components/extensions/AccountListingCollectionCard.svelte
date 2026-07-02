@@ -94,7 +94,7 @@
 					: 'border-base-300/60 bg-base-200/50 text-base-content/55 hover:bg-primary/10 hover:text-primary'
 			)}
 			aria-pressed={selected}
-			aria-label={selected ? `Remove ${item.title} from stack` : `Add ${item.title} to stack`}
+			aria-label={selected ? `Remove ${item.title} from playbook` : `Add ${item.title} to playbook`}
 			onclick={handleSelectClick}
 		>
 			<Checkbox checked={checked} class="pointer-events-none size-5" tabindex={-1} aria-hidden="true" />
