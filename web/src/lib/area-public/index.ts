@@ -15,6 +15,10 @@ import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage
 import { PublicExtensionBySlugPagePresenter } from '$lib/area-public/PublicExtensionBySlugPage.presenter.svelte';
 import { PublicExtensionsPagePresenter } from '$lib/area-public/PublicExtensionsPage.presenter.svelte';
 import {
+	PublicCreatorByUsernamePagePresenter,
+	PublicCreatorsPagePresenter
+} from '$lib/area-public/PublicCreatorsPage.presenter.svelte';
+import {
 	PublicStackBySlugPagePresenter,
 	PublicStacksPagePresenter
 } from '$lib/area-public/PublicStacksPage.presenter.svelte';
@@ -50,6 +54,11 @@ const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(
 	getListingPresenter,
 	listingRepository
 );
+const publicCreatorsPagePresenter = new PublicCreatorsPagePresenter(getListingPresenter, listingRepository);
+const publicCreatorByUsernamePagePresenter = new PublicCreatorByUsernamePagePresenter(
+	getListingPresenter,
+	listingRepository
+);
 const publicToolsPagePresenter = new PublicToolsPagePresenter();
 const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
 
@@ -62,6 +71,8 @@ export {
 	publicExtensionsPagePresenter,
 	publicStacksPagePresenter,
 	publicStackBySlugPagePresenter,
+	publicCreatorsPagePresenter,
+	publicCreatorByUsernamePagePresenter,
 	publicToolsPagePresenter,
 	publicSkillBuilderPagePresenter,
 	publicPricingPagePresenter,

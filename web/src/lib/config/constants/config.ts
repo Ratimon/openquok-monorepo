@@ -5,6 +5,7 @@ import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathP
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
 	getRootPathPublicSkillBuilder,
@@ -17,6 +18,7 @@ const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
+const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
@@ -614,6 +616,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Agents', href: publicAgentsPath },
 		{ label: 'Channels', href: publicChannelsPath },
 		{ label: 'Playbooks', href: publicPlaybooksPath },
+		{ label: 'Creators', href: publicCreatorsPath },
 		{ label: 'Building Blocks', href: publicBuildingBlocksPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },

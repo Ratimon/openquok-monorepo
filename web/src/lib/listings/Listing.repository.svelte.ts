@@ -251,6 +251,8 @@ export interface ListingConfig {
 		getPublishedBySlug: (slug: string) => string;
 		getPublishedStacks: string;
 		getPublishedStackBySlug: (slug: string) => string;
+		getListingCreators: string;
+		getCreatorListings: (username: string) => string;
 		getAdminListings: string;
 		getListingById: (id: string) => string;
 		createListing: string;
@@ -315,6 +317,24 @@ export interface GetListingsCollectionResponseDto {
 	success: boolean;
 	data: ListingDto[];
 	count: number;
+	message?: string;
+}
+
+export interface ListingCreatorDto {
+	id: string;
+	username: string | null;
+	full_name: string | null;
+	avatar_url: string | null;
+	tag_line: string | null;
+	extension_count: number;
+	stack_count: number;
+	total_likes: number;
+	total_bookmarks: number;
+}
+
+export interface GetListingCreatorsResponseDto {
+	success: boolean;
+	data: ListingCreatorDto[];
 	message?: string;
 }
 
@@ -618,6 +638,18 @@ export interface ListingTagProgrammerModel {
 	tagGroups: ListingTagGroupProgrammerModel[];
 }
 
+export interface ListingCreatorProgrammerModel {
+	id: string;
+	username: string | null;
+	fullName: string | null;
+	avatarUrl: string | null;
+	tagLine: string | null;
+	extensionCount: number;
+	stackCount: number;
+	totalLikes: number;
+	totalBookmarks: number;
+}
+
 export interface AdminListingCommentProgrammerModel {
 	id: string;
 	content: string;
@@ -795,6 +827,35 @@ export class ListingRepository {
 			return this.toListingPm(getPublishedStackDto.data);
 		}
 		return null;
+	}
+
+	async getListingCreators(fetch?: typeof globalThis.fetch): Promise<ListingCreatorProgrammerModel[]> {
+		const { data: getListingCreatorsDto, ok } = await this.httpGateway.get<GetListingCreatorsResponseDto>(
+			this.config.endpoints.getListingCreators,
+			undefined,
+			{ withCredentials: false, fetch }
+		);
+
+		if (ok && getListingCreatorsDto?.success && Array.isArray(getListingCreatorsDto.data)) {
+			return getListingCreatorsDto.data.map((row) => this.toListingCreatorPm(row));
+		}
+		return [];
+	}
+
+	async getCreatorListings(
+		username: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingProgrammerModel[]> {
+		const { data: getCreatorListingsDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
+			this.config.endpoints.getCreatorListings(username),
+			undefined,
+			{ withCredentials: false, fetch }
+		);
+
+		if (ok && getCreatorListingsDto?.success && Array.isArray(getCreatorListingsDto.data)) {
+			return getCreatorListingsDto.data.map((row) => this.toListingPm(row));
+		}
+		return [];
 	}
 
 	async getListingComments(
@@ -1537,6 +1598,20 @@ export class ListingRepository {
 				member_role: member.member_role,
 				sort_order: member.sort_order ?? index
 			}))
+		};
+	}
+
+	private toListingCreatorPm(row: ListingCreatorDto): ListingCreatorProgrammerModel {
+		return {
+			id: row.id,
+			username: row.username ?? null,
+			fullName: row.full_name ?? null,
+			avatarUrl: row.avatar_url ?? null,
+			tagLine: row.tag_line ?? null,
+			extensionCount: row.extension_count ?? 0,
+			stackCount: row.stack_count ?? 0,
+			totalLikes: row.total_likes ?? 0,
+			totalBookmarks: row.total_bookmarks ?? 0
 		};
 	}
 

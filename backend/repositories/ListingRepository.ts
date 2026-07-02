@@ -422,11 +422,21 @@ export class ListingRepository {
             });
         }
 
-        return this.findPublishedListings({
-            ownerId: userRow.id as string,
-            listingKind: "extension",
-            limit: 100,
-        }).then(({ data }) => ({ data }));
+        const ownerId = userRow.id as string;
+        const [extensions, stacks] = await Promise.all([
+            this.findPublishedListings({
+                ownerId,
+                listingKind: "extension",
+                limit: 100,
+            }),
+            this.findPublishedListings({
+                ownerId,
+                listingKind: "stack",
+                limit: 100,
+            }),
+        ]);
+
+        return { data: [...extensions.data, ...stacks.data] };
     }
 
     async incrementStatCounter(

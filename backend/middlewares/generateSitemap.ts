@@ -240,6 +240,7 @@ function dedupeByUrl(urls: SitemapUrl[]): SitemapUrl[] {
 }
 
 const POST_PAGE_SIZE = 1000;
+const LISTING_PAGE_SIZE = 1000;
 
 async function fetchPublishedPostSlugs(supabase: SupabaseClient): Promise<
     Array<{ slug: string; updated_at: string | null }>
@@ -276,6 +277,70 @@ async function fetchPublishedPostSlugs(supabase: SupabaseClient): Promise<
     }
 
     return rows;
+}
+
+async function fetchPublishedListingSlugs(
+    supabase: SupabaseClient,
+    listingKind: "extension" | "stack"
+): Promise<Array<{ slug: string; updated_at: string | null }>> {
+    const rows: Array<{ slug: string; updated_at: string | null }> = [];
+    let from = 0;
+
+    for (;;) {
+        const { data, error } = await supabase
+            .from("listings")
+            .select("slug, updated_at")
+            .match({
+                is_user_published: true,
+                is_admin_published: true,
+                listing_kind: listingKind,
+            })
+            .order("published_at", { ascending: false })
+            .range(from, from + LISTING_PAGE_SIZE - 1);
+
+        if (error) {
+            logger.error({
+                msg: "Error fetching listings for sitemap",
+                listingKind,
+                error: error.message,
+                code: error.code,
+            });
+            break;
+        }
+
+        const batch = data ?? [];
+        for (const row of batch) {
+            if (row.slug) {
+                rows.push({ slug: row.slug, updated_at: row.updated_at ?? null });
+            }
+        }
+
+        if (batch.length < LISTING_PAGE_SIZE) break;
+        from += LISTING_PAGE_SIZE;
+    }
+
+    return rows;
+}
+
+async function fetchListingCreatorUsernames(supabase: SupabaseClient): Promise<string[]> {
+    const { data, error } = await supabase.rpc("get_listing_creators");
+
+    if (error) {
+        logger.error({
+            msg: "Error fetching listing creators for sitemap",
+            error: error.message,
+            code: error.code,
+        });
+        return [];
+    }
+
+    const usernames: string[] = [];
+    for (const row of (data ?? []) as Array<{ username: string | null }>) {
+        const username = row.username?.trim();
+        if (username) usernames.push(username);
+    }
+
+    return usernames;
 }
 
 async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<SitemapUrl[]> {
@@ -405,6 +470,54 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
     } catch (error) {
         logger.error({
             msg: "Error processing public catalog for sitemap",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
+    try {
+        const [buildingBlocks, playbooks, creatorUsernames] = await Promise.all([
+            fetchPublishedListingSlugs(supabaseClient, "extension"),
+            fetchPublishedListingSlugs(supabaseClient, "stack"),
+            fetchListingCreatorUsernames(supabaseClient),
+        ]);
+
+        for (const listing of buildingBlocks) {
+            urls.push({
+                url: `/building-blocks/${encodeURIComponent(listing.slug)}`,
+                lastMod: listing.updated_at
+                    ? new Date(listing.updated_at).toISOString().slice(0, 10)
+                    : new Date().toISOString().slice(0, 10),
+                changeFreq: "weekly",
+            });
+        }
+
+        for (const listing of playbooks) {
+            urls.push({
+                url: `/playbooks/${encodeURIComponent(listing.slug)}`,
+                lastMod: listing.updated_at
+                    ? new Date(listing.updated_at).toISOString().slice(0, 10)
+                    : new Date().toISOString().slice(0, 10),
+                changeFreq: "weekly",
+            });
+        }
+
+        for (const username of creatorUsernames) {
+            urls.push({
+                url: `/creators/${encodeURIComponent(username)}`,
+                lastMod: new Date().toISOString().slice(0, 10),
+                changeFreq: "monthly",
+            });
+        }
+
+        logger.info({
+            msg: "Added listing catalog URLs to sitemap",
+            buildingBlockCount: buildingBlocks.length,
+            playbookCount: playbooks.length,
+            creatorCount: creatorUsernames.length,
+        });
+    } catch (error) {
+        logger.error({
+            msg: "Error processing listing catalog for sitemap",
             error: error instanceof Error ? error.message : String(error),
         });
     }

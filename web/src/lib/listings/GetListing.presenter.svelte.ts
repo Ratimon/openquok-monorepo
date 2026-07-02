@@ -13,6 +13,7 @@ import type {
 	AdminListingCommentProgrammerModel,
 	ListingCategoryProgrammerModel,
 	ListingCommentProgrammerModel,
+	ListingCreatorProgrammerModel,
 	ListingProgrammerModel,
 	ListingRepository,
 	ListingTagProgrammerModel,
@@ -297,6 +298,18 @@ export interface StackCardViewModel {
 	createdAt: string;
 	category: { id: string; name: string; slug: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
+}
+
+export interface ListingCreatorViewModel {
+	id: string;
+	username: string | null;
+	fullName: string | null;
+	avatarUrl: string | null;
+	tagLine: string | null;
+	extensionCount: number;
+	stackCount: number;
+	totalLikes: number;
+	totalBookmarks: number;
 }
 
 export interface StackDetailViewModel {
@@ -756,6 +769,20 @@ export class GetListingPresenter {
 	/** Stateless mapper for account bookmark stack rows. */
 	toStackCardVmStateless(listing: ListingProgrammerModel): StackCardViewModel {
 		return this.toStackCardVm(listing);
+	}
+
+	toListingCreatorVm(creator: ListingCreatorProgrammerModel): ListingCreatorViewModel {
+		return {
+			id: creator.id,
+			username: creator.username,
+			fullName: creator.fullName,
+			avatarUrl: creator.avatarUrl,
+			tagLine: creator.tagLine,
+			extensionCount: creator.extensionCount,
+			stackCount: creator.stackCount,
+			totalLikes: creator.totalLikes,
+			totalBookmarks: creator.totalBookmarks
+		};
 	}
 
 	private toListingDetailPublicVm(listing: ListingProgrammerModel): ListingDetailPublicViewModel {
