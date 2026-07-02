@@ -13,7 +13,7 @@
 
 	let metaTitle = $derived(data.metaTitle);
 	let metaDescription = $derived(data.metaDescription);
-	let tools = $derived(data.toolsVm);
+	let toolsVm = $derived(data.toolsVm);
 	let schemaData = $derived(data.schemaData);
 
 	// /tools/skill-builder
@@ -32,18 +32,26 @@
 
 	<section class="container mx-auto mt-10 max-w-4xl px-4">
 		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-			{#each tools as tool (tool.id)}
+			{#each toolsVm as toolVm (toolVm.id)}
 				<li>
 					<a
 						class="block h-full rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
-						href={tool.href}
+						href={toolVm.href}
 					>
-						{#if tool.badge}
-							<span class="badge badge-primary badge-outline badge-sm">{tool.badge}</span>
+						{#if toolVm.badge}
+							<span class="badge badge-primary badge-outline badge-sm">
+								{toolVm.badge}
+							</span>
 						{/if}
-						<h2 class="mt-2 text-xl font-semibold text-base-content">{tool.title}</h2>
-						<p class="mt-2 text-sm text-base-content/70">{tool.description}</p>
-						<p class="mt-4 text-sm font-medium text-primary">Open tool →</p>
+						<h2 class="mt-2 text-xl font-semibold text-base-content">
+							{toolVm.title}
+						</h2>
+						<p class="mt-2 text-sm text-base-content/70">
+							{toolVm.description}
+						</p>
+						<p class="mt-4 text-sm font-medium text-primary">
+							Open tool →
+						</p>
 					</a>
 				</li>
 			{/each}

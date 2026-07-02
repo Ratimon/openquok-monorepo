@@ -13,14 +13,10 @@
 
 	let { payload, onChange }: Props = $props();
 
-	let fields = $state<PostsCreateFormFields>(postsCreatePayloadToFields(payload));
+	let fields = $derived(postsCreatePayloadToFields(payload));
 
-	$effect(() => {
-		fields = postsCreatePayloadToFields(payload);
-	});
-
-	function commitFields() {
-		onChange(fieldsToPostsCreatePayload(fields));
+	function updateFields(patch: Partial<PostsCreateFormFields>) {
+		onChange(fieldsToPostsCreatePayload({ ...fields, ...patch }));
 	}
 </script>
 
@@ -35,8 +31,9 @@
 		<input
 			class="input input-bordered input-sm w-full font-mono text-xs"
 			type="text"
-			bind:value={fields.scheduledAt}
-			onchange={commitFields}
+			value={fields.scheduledAt}
+			onchange={(event) =>
+				updateFields({ scheduledAt: (event.currentTarget as HTMLInputElement).value })}
 			placeholder="2026-01-01T12:00:00.000Z"
 		/>
 	</label>
@@ -45,8 +42,9 @@
 		<span class="text-xs font-medium text-base-content/70">Status</span>
 		<select
 			class="select select-bordered select-sm w-full text-xs"
-			bind:value={fields.status}
-			onchange={commitFields}
+			value={fields.status}
+			onchange={(event) =>
+				updateFields({ status: (event.currentTarget as HTMLSelectElement).value })}
 		>
 			<option value="scheduled">scheduled</option>
 			<option value="draft">draft</option>
@@ -58,8 +56,9 @@
 		<textarea
 			class="textarea textarea-bordered w-full text-sm"
 			rows="2"
-			bind:value={fields.body}
-			oninput={commitFields}
+			value={fields.body}
+			oninput={(event) =>
+				updateFields({ body: (event.currentTarget as HTMLTextAreaElement).value })}
 			placeholder="Post caption shown on the channel"
 		></textarea>
 	</label>
@@ -69,8 +68,9 @@
 		<input
 			class="input input-bordered input-sm w-full font-mono text-xs"
 			type="text"
-			bind:value={fields.integrationId}
-			onchange={commitFields}
+			value={fields.integrationId}
+			onchange={(event) =>
+				updateFields({ integrationId: (event.currentTarget as HTMLInputElement).value })}
 			placeholder="<integration-id>"
 		/>
 	</label>

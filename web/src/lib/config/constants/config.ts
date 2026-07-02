@@ -6,6 +6,10 @@ import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPat
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathPublicSkillBuilder,
+	getRootPathPublicTools
+} from '$lib/area-public/constants/getRootPathPublicTools';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
@@ -14,6 +18,8 @@ const publicChannelsPath = route(getRootPathPublicChannels());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
 const publicDocsPath = route(getRootPathPublicDocs());
+const publicToolsPath = route(getRootPathPublicTools());
+const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 
 const appName = 'openquok';
 const appTitle = 'Openquok | Agentic Social Media Scheduler';
@@ -572,7 +578,7 @@ export function getPublicFaqConfigDefaults(): Record<string, string> {
 	);
 }
 
-export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents';
+export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents' | 'playbooks';
 
 export interface DropdownLink {
 	href: string;
@@ -588,11 +594,10 @@ export interface Link {
 }
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
-	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
+	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'playbooks' },
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
-	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'tab' },
-	{ pathname: publicBuildingBlocksPath, title: 'Building Blocks', navType: 'tab' },
+	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];
@@ -600,10 +605,16 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
+	Tools: [
+		{ label: 'All Free tools', href: publicToolsPath },
+		{ label: 'Skill Builder', href: publicSkillBuilderPath },
+	],
 	Resources: [
 		{ label: 'Developer Docs', href: publicDocsPath },
 		{ label: 'Agents', href: publicAgentsPath },
 		{ label: 'Channels', href: publicChannelsPath },
+		{ label: 'Playbooks', href: publicPlaybooksPath },
+		{ label: 'Building Blocks', href: publicBuildingBlocksPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' }
