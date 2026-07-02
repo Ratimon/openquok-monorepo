@@ -18,7 +18,7 @@
 	import { getRootPathPublicBuildingBlock, getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybook, getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
-	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+	import { saveSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 	import { buildStackDraftFromExtensionSelection } from '$lib/stack-builder/utils/buildStackDraftFromExtensionSelection';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
@@ -198,7 +198,7 @@
 				extensionType: item.extensionType
 			}))
 		);
-		saveAgentBuilderStackDraft(draft);
+		saveSkillBuilderStackDraft(draft);
 		pagePresenter.clearExtensionSelection();
 		void goto(newStackHref);
 	}
@@ -353,7 +353,7 @@
 		buttonIconName={icons.Eye.name}
 		buttonText=""
 		modalTitle="Remove from hub"
-		modalDescription={`Unpublish "${listingToUnpublish.title}"? It will no longer appear on the public catalog. Bookmarks and stack memberships are kept; you can republish from the editor.`}
+		modalDescription={`Unpublish "${listingToUnpublish.title}"? It will no longer appear on the public catalog. Bookmarks and included building blocks are kept; you can republish from the editor.`}
 		modalVerficationWithAnswer={false}
 		onSuccess={handleUnpublishSuccess}
 	/>

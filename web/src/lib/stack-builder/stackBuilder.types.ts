@@ -45,7 +45,7 @@ export interface StackBuilderExtensionViewModel {
 	isOfficial: boolean;
 }
 
-export interface AgentBuilderPageViewModel {
+export interface SkillBuilderPageViewModel {
 	metaTitle: string;
 	metaDescription: string;
 	selectedExtensionSlugs: string[];

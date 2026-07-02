@@ -1,21 +1,21 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
 import { createDefaultStarterWorkflowSteps } from '$lib/stack-builder/constants/defaults';
-import type { AgentBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
+import type { SkillBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
 import { blueprintToWorkflowSteps } from '$lib/stack-builder/utils/blueprintToBuilderState';
 import {
 	ensureOpenquokCoreExtensionSlug,
 	parseExtensionSlugsFromQuery
 } from '$lib/stack-builder/utils/parseBuilderQuery';
 
-export class PublicAgentBuilderPagePresenter {
+export class PublicSkillBuilderPagePresenter {
 	constructor(private readonly getListingPresenter: GetListingPresenter) {}
 
-	async loadAgentBuilderStateless(params: {
+	async loadSkillBuilderStateless(params: {
 		fetch?: typeof globalThis.fetch;
 		extensionSlugsParam?: string | null;
 		stackSlug?: string | null;
-	}): Promise<AgentBuilderPageViewModel> {
+	}): Promise<SkillBuilderPageViewModel> {
 		const selectedExtensionSlugs = parseExtensionSlugsFromQuery(params.extensionSlugsParam);
 		const stackSlug = params.stackSlug?.trim() || null;
 
@@ -67,9 +67,9 @@ export class PublicAgentBuilderPagePresenter {
 		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, extensionTitlesBySlug);
 
 		return {
-			metaTitle: 'Agent Builder',
+			metaTitle: 'Skill Builder',
 			metaDescription:
-				'Build your own customized agent skills from selected SKILLs, and MCP tools. Preview and download SKILL.md for your workspace.',
+				'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.',
 			selectedExtensionSlugs: resolvedSlugs,
 			extensionsCatalog,
 			selectedExtensions,

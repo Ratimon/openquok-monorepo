@@ -15,7 +15,7 @@
 		<Dialog.Header>
 			<Dialog.Title>Sign in to save your stack</Dialog.Title>
 			<Dialog.Description>
-				Sign in to save Agent Builder output as a stack draft in your account and finish publishing
+				Sign in to save Skill Builder output as a stack draft in your account and finish publishing
 				from the stacks manager.
 			</Dialog.Description>
 		</Dialog.Header>

@@ -33,7 +33,7 @@
 		feature === 'bookmarks'
 			? 'Bookmark extensions and access your saved list from a paid plan. Upgrade to get started.'
 			: feature === 'listings'
-				? 'Saving stacks and submitting extensions from Agent Builder requires Solo or higher. Upgrade to publish your work to the catalog.'
+				? 'Saving stacks and submitting extensions from Skill Builder requires Solo or higher. Upgrade to publish your work to the catalog.'
 				: 'Blog comments and other community features are not included on your current plan. Upgrade to Creator or higher to join the conversation on blog posts.'
 	);
 </script>

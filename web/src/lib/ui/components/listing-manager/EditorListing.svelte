@@ -1142,7 +1142,7 @@
 						<div class="flex flex-col gap-2">
 							<Field.Label>CLI commands (JSON array)</Field.Label>
 							<Field.Description>
-								Powers the building blocks hub CLI table and Agent Builder command library. Each item needs
+								Powers the building blocks hub CLI table and Skill Builder command library. Each item needs
 								<code class="text-xs">name</code> and
 								<code class="text-xs">description</code>; optional
 								<code class="text-xs">kind</code>,
@@ -1202,7 +1202,7 @@
 						<div class="flex flex-col gap-2">
 							<Field.Label>MCP tools (JSON array)</Field.Label>
 							<Field.Description>
-								Powers the building blocks hub MCP tools table and Agent Builder command library. Each item
+								Powers the building blocks hub MCP tools table and Skill Builder command library. Each item
 								needs <code class="text-xs">name</code> and
 								<code class="text-xs">description</code>.
 							</Field.Description>

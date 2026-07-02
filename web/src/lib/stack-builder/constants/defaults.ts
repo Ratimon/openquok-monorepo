@@ -7,7 +7,7 @@ import { defaultPostsCreatePayload } from '$lib/stack-builder/utils/postsCreateP
 
 export const OPENQUOK_CORE_EXTENSION_SLUG = 'openquok-core' as const;
 
-export const DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS = [OPENQUOK_CORE_EXTENSION_SLUG] as const;
+export const DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS = [OPENQUOK_CORE_EXTENSION_SLUG] as const;
 
 export const OPENQUOK_CLI_GETTING_STARTED_URL = 'https://www.openquok.com/docs/getting-started-for-cli';
 

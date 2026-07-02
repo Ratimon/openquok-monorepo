@@ -10,12 +10,12 @@
 	import { goto } from '$app/navigation';
 	import { nanoid } from 'nanoid';
 
-	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
-	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
-	import { buildAgentBuilderStackDraft } from '$lib/stack-builder/utils/buildAgentBuilderStackDraft';
+	import { saveSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
+	import { buildSkillBuilderStackDraft } from '$lib/stack-builder/utils/buildSkillBuilderStackDraft';
 	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
 	import { getListingPresenter } from '$lib/listings';
 	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
@@ -49,9 +49,9 @@
 	let stackTitle = $derived(data.stackTitle);
 	let stackSlug = $derived(data.stackSlug);
 
-	// /tools/agent-builder
-	const rootPathPublicAgentBuilder = getRootPathPublicAgentBuilder();
-	const agentBuilderPath = route(rootPathPublicAgentBuilder);
+	// /tools/skill-builder
+	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
+	const skillBuilderPath = route(rootPathPublicSkillBuilder);
 
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
@@ -143,14 +143,14 @@
 			return;
 		}
 
-		const draft = buildAgentBuilderStackDraft({
+		const draft = buildSkillBuilderStackDraft({
 			title: exportTitle,
 			markdown: exportMarkdown.trim() || generatedMarkdown,
 			extensionSlugs: activeExtensionSlugs,
 			workflowSteps,
 			extensions: extensionDetails
 		});
-		saveAgentBuilderStackDraft(draft);
+		saveSkillBuilderStackDraft(draft);
 		void goto(newStackHref);
 	}
 
@@ -189,7 +189,7 @@
 		if (!browser) return;
 		const params = new URLSearchParams();
 		params.set('extensions', serializeExtensionSlugs(ensureOpenquokCoreExtensionSlug(slugs)));
-		const nextUrl = `${agentBuilderPath}?${params.toString()}`;
+		const nextUrl = `${skillBuilderPath}?${params.toString()}`;
 		window.history.replaceState(window.history.state, '', nextUrl);
 	}
 

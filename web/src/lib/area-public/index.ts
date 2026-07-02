@@ -18,7 +18,7 @@ import {
 	PublicStackBySlugPagePresenter,
 	PublicStacksPagePresenter
 } from '$lib/area-public/PublicStacksPage.presenter.svelte';
-import { PublicAgentBuilderPagePresenter } from '$lib/area-public/PublicAgentBuilderPage.presenter.svelte';
+import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
 import { getPublicPricingPresenter } from '$lib/billing';
@@ -51,7 +51,7 @@ const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(
 	listingRepository
 );
 const publicToolsPagePresenter = new PublicToolsPagePresenter();
-const publicAgentBuilderPagePresenter = new PublicAgentBuilderPagePresenter(getListingPresenter);
+const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
 
 export {
 	publicAgentByPagePresenter,
@@ -63,7 +63,7 @@ export {
 	publicStacksPagePresenter,
 	publicStackBySlugPagePresenter,
 	publicToolsPagePresenter,
-	publicAgentBuilderPagePresenter,
+	publicSkillBuilderPagePresenter,
 	publicPricingPagePresenter,
 	publicLayoutPagePresenter,
 	publicBlogPagePresenter,

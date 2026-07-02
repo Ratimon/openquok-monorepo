@@ -61,7 +61,7 @@
 			case 'both':
 				return ['MCP', 'Skills'];
 			default:
-				return ['Extension'];
+				return ['Building block'];
 		}
 	}
 
@@ -106,13 +106,15 @@
 <SectionOuterContainer class="py-10 md:py-14">
 	<article class="container mx-auto max-w-4xl px-4">
 		<header class="space-y-4 border-b border-base-content/10 pb-8">
-			<p class="text-xs font-bold tracking-wider text-primary uppercase">Extension stack</p>
+			<p class="text-xs font-bold tracking-wider text-primary uppercase">Playbook</p>
 			<h1 class="text-3xl font-black tracking-tight text-base-content">{stack.title}</h1>
 			{#if stack.excerpt}
 				<p class="text-lg text-base-content/70">{stack.excerpt}</p>
 			{/if}
 			<div class="flex flex-wrap items-center gap-4 text-sm text-base-content/60">
-				<span>{stack.stackMembers.length} members</span>
+				<span
+					>{stack.stackMembers.length} building block{stack.stackMembers.length === 1 ? '' : 's'}</span
+				>
 				<span>{stack.views} views</span>
 				<span>{stack.likes} likes</span>
 			</div>
@@ -129,7 +131,7 @@
 			/>
 			{#if onClone}
 				<Button variant="primary" onclick={() => void onClone?.()} disabled={cloning}>
-					{cloning ? 'Cloning…' : 'Clone stack'}
+					{cloning ? 'Cloning…' : 'Clone playbook'}
 				</Button>
 			{/if}
 		</header>
@@ -138,7 +140,7 @@
 			<StackListingContentTabs content={descriptionMarkdown}>
 				{#snippet members()}
 					{#if stack.stackMembers.length === 0}
-						<p class="text-base-content/70">This stack has no members yet.</p>
+						<p class="text-base-content/70">This playbook does not include any building blocks yet.</p>
 					{:else}
 						<ul class="space-y-3">
 							{#each stack.stackMembers as member (member.id)}
@@ -191,7 +193,7 @@
 													</div>
 												{/if}
 											{:else}
-												<p class="text-sm text-base-content/60">Member unavailable</p>
+												<p class="text-sm text-base-content/60">Building block unavailable</p>
 											{/if}
 										</div>
 									</div>

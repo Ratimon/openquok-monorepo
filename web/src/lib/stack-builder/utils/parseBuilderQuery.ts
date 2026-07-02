@@ -1,5 +1,5 @@
 import {
-	DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS,
+	DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS,
 	OPENQUOK_CORE_EXTENSION_SLUG
 } from '$lib/stack-builder/constants/defaults';
 
@@ -19,7 +19,7 @@ export function ensureOpenquokCoreExtensionSlug(slugs: string[]): string[] {
 /** Parse `?extensions=openquok-core,revenuecat-mcp` (always includes openquok-core). */
 export function parseExtensionSlugsFromQuery(raw: string | null | undefined): string[] {
 	if (!raw?.trim()) {
-		return [...DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS];
+		return [...DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS];
 	}
 
 	const slugs = raw
@@ -27,7 +27,7 @@ export function parseExtensionSlugsFromQuery(raw: string | null | undefined): st
 		.map((slug) => slug.trim())
 		.filter(Boolean);
 
-	return ensureOpenquokCoreExtensionSlug(slugs.length > 0 ? slugs : [...DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS]);
+	return ensureOpenquokCoreExtensionSlug(slugs.length > 0 ? slugs : [...DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS]);
 }
 
 export function serializeExtensionSlugs(slugs: string[]): string {

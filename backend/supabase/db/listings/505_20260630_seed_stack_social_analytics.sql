@@ -198,7 +198,7 @@ Ship a repeatable creator workflow without leaving your agent. **Prerequisites:*
 4. **Measure reach** — `openquok analytics:platform <uuid> --days 7` for channel-level performance.
 5. **Add revenue context** — prompt RevenueCat MCP for entitlements and subscriber state to interpret what growth means for your app.
 
-Clone this stack in Agent Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.
+Clone this stack in Skill Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.
 $stack_content$,
     'stack',
     NULL,

@@ -1,7 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { publicAgentBuilderPagePresenter } from '$lib/area-public';
-import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+import { publicSkillBuilderPagePresenter } from '$lib/area-public';
+import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 
@@ -15,7 +15,7 @@ export async function load({ url, cookies, fetch, parent }) {
 	const extensionSlugsParam = url.searchParams.get('extensions');
 	const stackSlug = url.searchParams.get('stack');
 
-	const builderVm = await publicAgentBuilderPagePresenter.loadAgentBuilderStateless({
+	const builderVm = await publicSkillBuilderPagePresenter.loadSkillBuilderStateless({
 		fetch,
 		extensionSlugsParam,
 		stackSlug
@@ -26,7 +26,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${builderVm.metaTitle} | ${companyName}`,
 		customDescription: builderVm.metaDescription,
-		customSlug: getRootPathPublicAgentBuilder(),
+		customSlug: getRootPathPublicSkillBuilder(),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 

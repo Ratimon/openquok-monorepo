@@ -1,5 +1,5 @@
 export type {
-	AgentBuilderPageViewModel,
+	SkillBuilderPageViewModel,
 	StackBuilderExtensionViewModel,
 	StackBuilderLibraryItemKind,
 	StackBuilderLibraryItemViewModel,
@@ -8,7 +8,7 @@ export type {
 } from '$lib/stack-builder/stackBuilder.types';
 
 export {
-	DEFAULT_AGENT_BUILDER_EXTENSION_SLUGS,
+	DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS,
 	OPENQUOK_CORE_EXTENSION_SLUG,
 	OPENQUOK_CLI_GETTING_STARTED_URL,
 	OPENQUOK_CORE_SKILL_SETUP_URL,

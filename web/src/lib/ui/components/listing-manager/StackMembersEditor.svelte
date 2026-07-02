@@ -61,24 +61,28 @@
 <div class="space-y-4 rounded-xl border border-base-content/10 p-4">
 	<div class="flex items-center justify-between gap-3">
 		<div>
-			<h3 class="text-sm font-semibold text-base-content">Stack members</h3>
-			<p class="text-xs text-base-content/60">Add skills and MCP extensions in display order.</p>
+			<h3 class="text-sm font-semibold text-base-content">Building blocks in this playbook</h3>
+			<p class="text-xs text-base-content/60">
+				Choose skills and MCP building blocks and set the order they appear.
+			</p>
 		</div>
 		<Button type="button" variant="outline" size="sm" onclick={addMember} disabled={!extensionChoices.length}>
-			Add member
+			Add building block
 		</Button>
 	</div>
 
 	{#if !extensionChoices.length}
-		<p class="text-sm text-base-content/60">Publish at least one extension before adding stack members.</p>
+		<p class="text-sm text-base-content/60">
+			Publish at least one building block before you can compose a playbook.
+		</p>
 	{:else if members.length === 0}
-		<p class="text-sm text-base-content/60">No members yet.</p>
+		<p class="text-sm text-base-content/60">No building blocks added yet.</p>
 	{:else}
 		<ul class="space-y-3">
 			{#each members as member, index (member.member_listing_id + '-' + index)}
 				<li class="flex flex-wrap items-end gap-3 rounded-lg bg-base-200/40 p-3">
 					<label class="form-control min-w-[220px] flex-1">
-						<span class="label-text text-xs">Extension</span>
+						<span class="label-text text-xs">Building block</span>
 						<select
 							class="select select-bordered select-sm w-full"
 							value={member.member_listing_id}

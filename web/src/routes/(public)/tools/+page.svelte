@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getRootPathPublicAgentBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { route, url } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -16,9 +16,9 @@
 	let tools = $derived(data.toolsVm);
 	let schemaData = $derived(data.schemaData);
 
-	// /tools/agent-builder
-	const rootPathPublicAgentBuilder = getRootPathPublicAgentBuilder();
-	const agentBuilderHref = url(route(rootPathPublicAgentBuilder));
+	// /tools/skill-builder
+	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
+	const skillBuilderHref = url(route(rootPathPublicSkillBuilder));
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -51,7 +51,7 @@
 
 		<p class="mt-8 text-center text-sm text-base-content/60">
 			Start with the
-			<a class="link link-primary" href={agentBuilderHref}>Agent Builder</a>
+			<a class="link link-primary" href={skillBuilderHref}>Skill Builder</a>
 			to compose skills from the Extensions catalog and export SKILL.md.
 		</p>
 	</section>

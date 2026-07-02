@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { AgentBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
+import type { SkillBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
 
 import type { PageLoad } from './$types';
 
@@ -15,7 +15,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as AgentBuilderPageViewModel & {
+		const serverData = data as SkillBuilderPageViewModel & {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn?: boolean;
 			schemaData: unknown;

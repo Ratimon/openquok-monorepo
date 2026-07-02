@@ -1,14 +1,14 @@
 import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
-import type { AgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 import type { StackBuilderWorkflowStepViewModel } from '$lib/stack-builder/stackBuilder.types';
 
-export function buildAgentBuilderStackDraft(params: {
+export function buildSkillBuilderStackDraft(params: {
 	title: string;
 	markdown: string;
 	extensionSlugs: string[];
 	workflowSteps: StackBuilderWorkflowStepViewModel[];
 	extensions: ExtensionDetailViewModel[];
-}): AgentBuilderStackDraft {
+}): SkillBuilderStackDraft {
 	const extensionIdsBySlug = Object.fromEntries(
 		params.extensions.map((extension) => [extension.slug, extension.id])
 	);

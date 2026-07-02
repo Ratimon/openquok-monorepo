@@ -62,7 +62,7 @@
 			<p class="mt-2 line-clamp-3 text-sm text-base-content/70">{stackVm.excerpt}</p>
 		{/if}
 		<p class="mt-4 text-xs text-base-content/50">
-			{stackVm.memberCount} members · {stackVm.likes} likes
+			{stackVm.memberCount} building block{stackVm.memberCount === 1 ? '' : 's'} · {stackVm.likes} likes
 		</p>
 	</a>
 </div>

@@ -30,7 +30,9 @@
 
 <Tabs.Root bind:value={activeTab} class="w-full space-y-4">
 	<Tabs.List class={extensionDetailTabsListClass}>
-		<Tabs.Trigger value="members" class={extensionDetailTabTriggerClass}>Stack members</Tabs.Trigger>
+		<Tabs.Trigger value="members" class={extensionDetailTabTriggerClass}>
+			Building blocks
+		</Tabs.Trigger>
 		{#if hasReadme}
 			<Tabs.Trigger value="readme" class={extensionDetailTabTriggerClass}>README</Tabs.Trigger>
 		{/if}

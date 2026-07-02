@@ -49,7 +49,8 @@
 					{selectedCount} building block{selectedCount === 1 ? '' : 's'} selected for a new playbook
 				</p>
 				<p class="mt-0.5 text-xs text-base-content/65">
-					Review your picks, then create a playbook draft to edit members and metadata.
+					Review your picks, then open the playbook editor to name it and choose which building blocks
+					to include.
 				</p>
 			{:else}
 				<p class="text-sm font-semibold text-base-content">Compose a playbook from building blocks</p>

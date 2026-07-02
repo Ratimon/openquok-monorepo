@@ -529,7 +529,7 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 
 ```svelte
 <!-- ✅ GOOD — route owns the page; lib holds reusable panels -->
-<!-- web/src/routes/(public)/tools/agent-builder/+page.svelte -->
+<!-- web/src/routes/(public)/tools/skill-builder/+page.svelte -->
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
@@ -549,9 +549,9 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 ```svelte
 <!-- ❌ BAD — pointless indirection for a single route -->
 <!-- +page.svelte -->
-<AgentBuilderPage metaTitle={data.metaTitle} selectedExtensions={data.selectedExtensions} … />
+<SkillBuilderPage metaTitle={data.metaTitle} selectedExtensions={data.selectedExtensions} … />
 
-<!-- $lib/ui/templates/stack-builder/AgentBuilderPage.svelte -->
+<!-- $lib/ui/templates/stack-builder/SkillBuilderPage.svelte -->
 <!-- entire page markup lives here, used only by one route -->
 ```
 

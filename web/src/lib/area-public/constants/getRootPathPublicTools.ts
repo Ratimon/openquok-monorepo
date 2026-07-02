@@ -3,7 +3,7 @@ export function getRootPathPublicTools(): string {
 	return 'tools';
 }
 
-/** Agent stack builder: `tools/agent-builder` (no leading slash). */
-export function getRootPathPublicAgentBuilder(): string {
-	return `${getRootPathPublicTools()}/agent-builder`;
+/** Skill file builder: `tools/skill-builder` (no leading slash). */
+export function getRootPathPublicSkillBuilder(): string {
+	return `${getRootPathPublicTools()}/skill-builder`;
 }

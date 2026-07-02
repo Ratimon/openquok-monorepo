@@ -1,7 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicToolsPagePresenter } from '$lib/area-public';
-import { getRootPathPublicAgentBuilder, getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
+import { getRootPathPublicSkillBuilder, getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { route, url } from '$lib/utils/path';
@@ -26,12 +26,12 @@ export async function load({ url: requestUrl, cookies, parent }) {
 
 	const tools = [
 		{
-			id: 'agent-builder',
-			title: 'Agent Builder',
+			id: 'skill-builder',
+			title: 'Skill Builder',
 			description:
 				'Drag CLI commands and MCP tools into a workflow and export SKILL.md for your agent.',
-			href: url(route(getRootPathPublicAgentBuilder())),
-			badge: 'Stack builder'
+			href: url(route(getRootPathPublicSkillBuilder())),
+			badge: 'Skill editor'
 		}
 	];
 

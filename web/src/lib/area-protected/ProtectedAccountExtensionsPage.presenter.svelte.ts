@@ -72,14 +72,14 @@ function mutationPmToVm(
 }
 
 function extensionSubtitle(extensionType: string | null): string {
-	if (extensionType === 'mcp') return 'MCP extension';
-	if (extensionType === 'skills') return 'Skills extension';
+	if (extensionType === 'mcp') return 'MCP building block';
+	if (extensionType === 'skills') return 'Skills building block';
 	if (extensionType === 'both') return 'Skills & MCP';
-	return 'Extension';
+	return 'Building block';
 }
 
 function stackSubtitle(memberCount: number): string {
-	const label = memberCount === 1 ? 'extension' : 'extensions';
+	const label = memberCount === 1 ? 'building block' : 'building blocks';
 	return `${memberCount} ${label}`;
 }
 
@@ -90,7 +90,7 @@ function ownExtensionSubtitle(listing: ListingViewModel): string {
 function ownListingSubtitle(listing: ListingViewModel, memberCount?: number): string {
 	if (listing.listingKind === 'stack') {
 		if (memberCount != null) return stackSubtitle(memberCount);
-		return 'Stack';
+		return 'Playbook';
 	}
 	return ownExtensionSubtitle(listing);
 }

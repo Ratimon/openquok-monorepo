@@ -1,4 +1,4 @@
-import type { AgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 
 type ExtensionSelectionEntry = {
 	id: string;
@@ -9,7 +9,7 @@ type ExtensionSelectionEntry = {
 /** Build a stack editor draft from extensions selected on the account hub. */
 export function buildStackDraftFromExtensionSelection(
 	extensions: ExtensionSelectionEntry[]
-): AgentBuilderStackDraft {
+): SkillBuilderStackDraft {
 	return {
 		title: '',
 		markdown: '',

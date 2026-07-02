@@ -11,9 +11,9 @@
 	} from '$lib/area-protected';
 	import { createSortedCategoryChoices } from '$lib/listings';
 	import {
-		clearAgentBuilderStackDraft,
-		readAgentBuilderStackDraft
-	} from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+		clearSkillBuilderStackDraft,
+		readSkillBuilderStackDraft
+	} from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 	import { route, url } from '$lib/utils/path';
 
 	import { toast } from '$lib/ui/sonner';
@@ -41,9 +41,9 @@
 	const stackExtensionChoices = $derived(userListingNewStackPagePresenter.extensionChoices);
 
 	onMount(async () => {
-		const draft = readAgentBuilderStackDraft();
-		await userListingNewStackPagePresenter.init(undefined, 'stack', { agentBuilderDraft: draft });
-		if (draft) clearAgentBuilderStackDraft();
+		const draft = readSkillBuilderStackDraft();
+		await userListingNewStackPagePresenter.init(undefined, 'stack', { skillBuilderDraft: draft });
+		if (draft) clearSkillBuilderStackDraft();
 		initialized = true;
 	});
 

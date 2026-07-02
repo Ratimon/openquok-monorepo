@@ -11,7 +11,7 @@ import {
 	getDefaultSchemaTypeForListingKind,
 	getSchemaTypeForExtensionCategory
 } from '$lib/listings/constants/listingSchemaTypes';
-import type { AgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
+import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 import { buildStackMembersFromSlugs } from '$lib/stack-builder/utils/buildStackMembersFromSlugs';
 import { workflowStepsToBlueprint } from '$lib/stack-builder/utils/workflowStepsToBlueprint';
 
@@ -32,7 +32,7 @@ export class UserListingEditorPagePresenter {
 		slug: string;
 		extensionType: string | null;
 	}> = $state([]);
-	public agentBuilderDraft: AgentBuilderStackDraft | null = $state(null);
+	public skillBuilderDraft: SkillBuilderStackDraft | null = $state(null);
 
 	constructor(private readonly listingRepository: ListingRepository) {}
 
@@ -67,11 +67,11 @@ export class UserListingEditorPagePresenter {
 	async init(
 		listingId: string | undefined,
 		listingKind: 'extension' | 'stack',
-		options?: { agentBuilderDraft?: AgentBuilderStackDraft | null },
+		options?: { skillBuilderDraft?: SkillBuilderStackDraft | null },
 		fetch?: typeof globalThis.fetch
 	): Promise<{ listingFound: boolean }> {
 		this.listingKind = listingKind;
-		this.agentBuilderDraft = options?.agentBuilderDraft ?? null;
+		this.skillBuilderDraft = options?.skillBuilderDraft ?? null;
 		if (!listingId) {
 			this.listing = null;
 		}
@@ -110,13 +110,13 @@ export class UserListingEditorPagePresenter {
 			}
 
 			let listingPayload = parsed.data;
-			if (this.listingKind === 'stack' && this.agentBuilderDraft && !isUpdate) {
+			if (this.listingKind === 'stack' && this.skillBuilderDraft && !isUpdate) {
 				listingPayload = {
 					...listingPayload,
 					stack_blueprint: workflowStepsToBlueprint(
-						this.agentBuilderDraft.workflowSteps,
+						this.skillBuilderDraft.workflowSteps,
 						(listingPayload as ListingStackFormSchemaType).content ??
-							this.agentBuilderDraft.markdown
+							this.skillBuilderDraft.markdown
 					)
 				} as ListingFormSchemaType;
 			}
@@ -157,7 +157,7 @@ export class UserListingEditorPagePresenter {
 
 	getFormDefaults(): Partial<ListingFormSchemaType> {
 		const listing = this.listing;
-		const draft = this.agentBuilderDraft;
+		const draft = this.skillBuilderDraft;
 
 		if (!listing && draft && this.listingKind === 'stack') {
 			const supplementalCatalog = draft.extensionSlugs
