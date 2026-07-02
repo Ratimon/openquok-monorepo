@@ -62,7 +62,51 @@
 
 	let activeTab = $state<ViralFormatsTab>('explore');
 	let deleteModalOpen = $state(false);
+	let unpublishModalOpen = $state(false);
 	let listingToDelete = $state<AccountListingCollectionItemViewModel | null>(null);
+	let listingToUnpublish = $state<AccountListingCollectionItemViewModel | null>(null);
+
+	function isOwnListingDraft(item: AccountListingCollectionItemViewModel): boolean {
+		return item.isUserPublished !== true;
+	}
+
+	type OwnMenuItem = {
+		label: string;
+		onSelect: () => void;
+		destructive?: boolean;
+	};
+
+	function ownMenuItems(item: AccountListingCollectionItemViewModel): OwnMenuItem[] {
+		const items: OwnMenuItem[] = [
+			{
+				label: 'Edit',
+				onSelect: () => {
+					void goto(getOwnEditHref(item));
+				}
+			}
+		];
+
+		if (isOwnListingDraft(item)) {
+			items.push({
+				label: 'Delete',
+				destructive: true,
+				onSelect: () => {
+					listingToDelete = item;
+					deleteModalOpen = true;
+				}
+			});
+		} else {
+			items.push({
+				label: 'Unpublish',
+				onSelect: () => {
+					listingToUnpublish = item;
+					unpublishModalOpen = true;
+				}
+			});
+		}
+
+		return items;
+	}
 
 	onMount(() => {
 		if (!browser) return;
@@ -88,25 +132,6 @@
 			return url(`/${getRootPathPublicStack(item.slug)}`);
 		}
 		return url(`/${getRootPathPublicExtension(item.slug)}`);
-	}
-
-	function ownMenuItems(item: AccountListingCollectionItemViewModel) {
-		return [
-			{
-				label: 'Edit',
-				onSelect: () => {
-					void goto(getOwnEditHref(item));
-				}
-			},
-			{
-				label: 'Delete',
-				destructive: true,
-				onSelect: () => {
-					listingToDelete = item;
-					deleteModalOpen = true;
-				}
-			}
-		];
 	}
 
 	function exploreMenuItems(item: AccountListingCollectionItemViewModel) {
@@ -179,14 +204,23 @@
 
 	async function handleDeleteSuccess() {
 		if (!listingToDelete) return;
-		const result = await pagePresenter.deleteOwnListing(listingToDelete.id);
-		if (!result.ok) {
-			toast.error(result.error ?? 'Failed to delete listing.');
-			return;
-		}
-		toast.success('Listing deleted.');
+		pagePresenter.removeOwnListing(listingToDelete.id);
 		listingToDelete = null;
 		deleteModalOpen = false;
+	}
+
+	function handleUnpublishSuccess() {
+		listingToUnpublish = null;
+		unpublishModalOpen = false;
+	}
+
+	async function executeUnpublish(data: unknown) {
+		const { listingId } = data as { listingId: string };
+		const result = await pagePresenter.unpublishOwnListing(listingId);
+		if (result.ok) {
+			return { success: true, message: 'Removed from hub. You can republish from the editor.' };
+		}
+		return { success: false, message: result.error ?? 'Failed to unpublish listing.' };
 	}
 </script>
 
@@ -286,10 +320,24 @@
 		toastMessage={deleteMyListingVerificationPresenter.toastMessage}
 		buttonIconName={icons.Trash.name}
 		buttonText=""
-		modalTitle="Delete listing"
-		modalDescription={`Are you sure you want to delete "${listingToDelete.title}"? This cannot be undone.`}
+		modalTitle="Delete draft"
+		modalDescription={`Permanently delete "${listingToDelete.title}"? This cannot be undone.`}
 		modalVerficationWithAnswer={true}
 		modalVerificationAnswer="YES"
 		onSuccess={handleDeleteSuccess}
+	/>
+{/if}
+
+{#if listingToUnpublish}
+	<ActionVerificationModal
+		data={{ listingId: listingToUnpublish.id }}
+		bind:open={unpublishModalOpen}
+		executionFunction={executeUnpublish}
+		buttonIconName={icons.Eye.name}
+		buttonText=""
+		modalTitle="Remove from hub"
+		modalDescription={`Unpublish "${listingToUnpublish.title}"? It will no longer appear on the public catalog. Bookmarks and stack memberships are kept; you can republish from the editor.`}
+		modalVerficationWithAnswer={false}
+		onSuccess={handleUnpublishSuccess}
 	/>
 {/if}

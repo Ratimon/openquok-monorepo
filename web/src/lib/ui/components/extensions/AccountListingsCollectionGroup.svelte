@@ -31,6 +31,7 @@
 		upgradeHref?: string;
 		togglingBookmarkId?: string | null;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
+		showPublishStatus?: boolean;
 	};
 
 	let {
@@ -51,7 +52,8 @@
 		bookmarksPaidEnabled = null,
 		upgradeHref,
 		togglingBookmarkId = null,
-		onToggleBookmark
+		onToggleBookmark,
+		showPublishStatus = false
 	}: Props = $props();
 
 	const listClass = $derived(
@@ -99,6 +101,7 @@
 						{upgradeHref}
 						bookmarkDisabled={togglingBookmarkId === item.id}
 						{onToggleBookmark}
+						{showPublishStatus}
 					/>
 				</li>
 			{/each}

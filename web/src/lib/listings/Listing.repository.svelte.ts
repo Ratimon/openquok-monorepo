@@ -9,6 +9,7 @@ import type {
 	SkillCommandProgrammerModel,
 	StackBlueprintProgrammerModel
 } from '$lib/listings/listing.types';
+import { listingPmToFormPayload } from '$lib/listings/utils/listingPmToFormPayload';
 
 /** API response shape for a single listing (camelCase from backend ListingDTOMapper). */
 export interface ListingDto {
@@ -1017,6 +1018,25 @@ export class ListingRepository {
 		} catch (err) {
 			return { ok: false, error: this.extractMessage(err) };
 		}
+	}
+
+	async unpublishMyListing(
+		listingId: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		const listing = await this.getMyListingById(listingId, fetch);
+		if (!listing) {
+			return { ok: false, error: 'Listing not found.' };
+		}
+		if (!listing.isUserPublished) {
+			return { ok: false, error: 'Listing is already a draft.' };
+		}
+
+		const payload = listingPmToFormPayload(listing, {
+			is_user_published: false,
+			is_admin_published: false
+		});
+		return this.updateMyListing(listingId, payload, listing.tags, fetch);
 	}
 
 	async deleteMyListing(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {

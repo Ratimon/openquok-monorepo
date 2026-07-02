@@ -7,6 +7,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Checkbox from '$lib/ui/checkbox/checkbox.svelte';
 	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+	import { getListingPublishStatusBadge } from '$lib/listings/utils/listingPublishStatusBadge';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };
@@ -33,6 +34,7 @@
 		upgradeHref?: string;
 		bookmarkDisabled?: boolean;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
+		showPublishStatus?: boolean;
 	};
 
 	let {
@@ -49,11 +51,17 @@
 		bookmarksPaidEnabled = null,
 		upgradeHref,
 		bookmarkDisabled = false,
-		onToggleBookmark
+		onToggleBookmark,
+		showPublishStatus = false
 	}: Props = $props();
 
 	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
 	const hasMenu = $derived(menuItems.length > 0);
+	const publishStatusBadge = $derived(
+		showPublishStatus
+			? getListingPublishStatusBadge(item.isUserPublished, item.isAdminPublished)
+			: null
+	);
 
 	let checked = $state(false);
 
@@ -176,8 +184,13 @@
 				{item.initials}
 			</div>
 		{/if}
-		<div class="flex min-w-0 flex-1 flex-col justify-center px-3 py-3">
-			<h3 class="truncate text-sm font-semibold text-base-content">{item.title}</h3>
+		<div class="flex min-w-0 flex-1 flex-col justify-center gap-1 px-3 py-3">
+			<div class="flex min-w-0 items-center gap-2">
+				<h3 class="min-w-0 truncate text-sm font-semibold text-base-content">{item.title}</h3>
+				{#if publishStatusBadge}
+					<span class={cn('shrink-0', publishStatusBadge.className)}>{publishStatusBadge.label}</span>
+				{/if}
+			</div>
 			<p class="truncate text-xs text-base-content/60">{item.subtitle}</p>
 		</div>
 	</div>

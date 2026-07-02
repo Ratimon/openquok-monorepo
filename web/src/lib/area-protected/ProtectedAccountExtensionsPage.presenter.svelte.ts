@@ -76,16 +76,12 @@ function stackSubtitle(memberCount: number): string {
 }
 
 function ownExtensionSubtitle(listing: ListingViewModel): string {
-	if (!listing.isUserPublished) return 'Draft';
-	if (!listing.isAdminPublished) return 'Awaiting approval';
 	return extensionSubtitle(listing.extensionType);
 }
 
 function ownListingSubtitle(listing: ListingViewModel, memberCount?: number): string {
 	if (listing.listingKind === 'stack') {
 		if (memberCount != null) return stackSubtitle(memberCount);
-		if (!listing.isUserPublished) return 'Draft stack';
-		if (!listing.isAdminPublished) return 'Awaiting approval';
 		return 'Stack';
 	}
 	return ownExtensionSubtitle(listing);
@@ -469,6 +465,26 @@ export class ProtectedAccountExtensionsPagePresenter {
 			return { ok: true };
 		}
 		return { ok: false, error: result.error };
+	}
+
+	async unpublishOwnListing(listingId: string): Promise<{ ok: boolean; error?: string }> {
+		const result = await this.listingRepository.unpublishMyListing(listingId);
+		if (result.ok) {
+			this.markOwnListingUnpublished(listingId);
+			return { ok: true };
+		}
+		return { ok: false, error: result.error };
+	}
+
+	markOwnListingUnpublished(listingId: string): void {
+		const patchItems = (items: AccountListingCollectionItemViewModel[]) =>
+			items.map((item) =>
+				item.id === listingId
+					? { ...item, isUserPublished: false, isAdminPublished: false }
+					: item
+			);
+		this.ownExtensionsVm = patchItems(this.ownExtensionsVm);
+		this.ownStacksVm = patchItems(this.ownStacksVm);
 	}
 
 	private bookmarkedIdSet(): Set<string> {

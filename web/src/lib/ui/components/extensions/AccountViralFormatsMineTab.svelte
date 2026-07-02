@@ -59,6 +59,7 @@
 		{onToggleSelect}
 		{getEditHref}
 		{getMenuItems}
+		showPublishStatus={true}
 	/>
 	<AccountListingsCollectionGroup
 		label="Stacks"
@@ -68,5 +69,6 @@
 		emptyMessage="No stacks yet. Compose extensions into a stack draft."
 		{getEditHref}
 		{getMenuItems}
+		showPublishStatus={true}
 	/>
 </div>
