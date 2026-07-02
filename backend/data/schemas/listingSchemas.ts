@@ -69,10 +69,17 @@ const stackBlueprintReferenceAssetSchema = z.object({
     data_url: z.string().optional(),
 });
 
+const stackModelBindingSchema = z.object({
+    use_case: z.string().min(1),
+    provider: z.string().min(1),
+    model: z.string().min(1),
+});
+
 const stackBlueprintSchema = z.object({
     workflow_steps: z.array(stackBlueprintWorkflowStepSchema).default([]),
     reference_assets: z.array(stackBlueprintReferenceAssetSchema).default([]),
     generated_markdown: z.string().optional(),
+    model_bindings: z.array(stackModelBindingSchema).default([]),
 });
 
 const mcpTransportSchema = z.enum(["stdio", "sse", "http"]);

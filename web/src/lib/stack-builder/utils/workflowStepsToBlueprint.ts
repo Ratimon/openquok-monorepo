@@ -28,6 +28,7 @@ export function workflowStepsToBlueprint(
 	return {
 		workflow_steps,
 		reference_assets: [],
+		model_bindings: [],
 		...(generatedMarkdown?.trim() ? { generated_markdown: generatedMarkdown.trim() } : {})
 	};
 }

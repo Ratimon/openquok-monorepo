@@ -42,10 +42,17 @@ const stackBlueprintReferenceAssetSchema = z.object({
 	payload: z.string().optional(),
 	data_url: z.string().optional()
 });
+export const stackModelBindingSchema = z.object({
+	use_case: z.string().min(1, 'Use case is required'),
+	provider: z.string().min(1, 'Provider is required'),
+	model: z.string().min(1, 'Model is required')
+});
+export type StackModelBindingViewModel = z.infer<typeof stackModelBindingSchema>;
 const stackBlueprintSchema = z.object({
 	workflow_steps: z.array(stackBlueprintWorkflowStepSchema).default([]),
 	reference_assets: z.array(stackBlueprintReferenceAssetSchema).default([]),
-	generated_markdown: z.string().optional()
+	generated_markdown: z.string().optional(),
+	model_bindings: z.array(stackModelBindingSchema).default([])
 });
 export type SkillCommandProgrammerModel = z.infer<typeof skillCommandSchema>;
 export type StackBlueprintProgrammerModel = z.infer<typeof stackBlueprintSchema>;

@@ -4,7 +4,9 @@
 		CategoryChoice,
 		TagChoice,
 		ListingExtensionFormSchemaType,
-		ListingStackFormSchemaType
+		ListingStackFormSchemaType,
+		StackMemberFormSchemaType,
+		StackModelBindingViewModel
 	} from '$lib/listings/listing.types';
 	import type { ListingGithubImportPreviewProgrammerModel } from '$lib/listings/Listing.repository.svelte';
 
@@ -25,6 +27,7 @@
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import EditorListingValidationNotice from '$lib/ui/components/listing-manager/EditorListingValidationNotice.svelte';
 	import StackMembersEditor from '$lib/ui/components/listing-manager/StackMembersEditor.svelte';
+	import StackModelBindingsEditor from '$lib/ui/components/listing-manager/StackModelBindingsEditor.svelte';
 
 	import * as Field from '$lib/ui/field';
 	import { Textarea } from '$lib/ui/textarea';
@@ -84,20 +87,55 @@
 
 	let githubImportUrl = $state('');
 	let submitAttempted = $state(false);
-	let stackMembers = $derived.by(() =>
-		((initialValues as ListingStackFormSchemaType).stack_members ?? []).map((member, index) => ({
+
+	function normalizeStackMembers(values: Partial<ListingFormSchemaType>): StackMemberFormSchemaType[] {
+		return ((values as ListingStackFormSchemaType).stack_members ?? []).map((member, index) => ({
 			...member,
 			sort_order: member.sort_order ?? index
-		}))
+		}));
+	}
+
+	function normalizeStackModelBindings(
+		values: Partial<ListingFormSchemaType>
+	): StackModelBindingViewModel[] {
+		return [...((values as ListingStackFormSchemaType).stack_blueprint?.model_bindings ?? [])];
+	}
+
+	let stackMembers = $state(normalizeStackMembers(initialValues));
+	let stackModelBindings = $state(normalizeStackModelBindings(initialValues));
+	const stackBlueprintBaseline = $derived(
+		(initialValues as ListingStackFormSchemaType).stack_blueprint ?? null
 	);
 	const formBaseline = (() => ({
 		tagIds: [...(initialValues.tag_ids ?? [])],
-		isNewListing: !(initialValues.id ?? '').length
+		isNewListing: !(initialValues.id ?? '').length,
+		stackMembersJson: JSON.stringify(normalizeStackMembers(initialValues)),
+		stackModelBindingsJson: JSON.stringify(normalizeStackModelBindings(initialValues))
 	}))();
 
 	function tagsChangedFromInitial(tagIds: string[] | undefined): boolean {
 		return !arraysEqual([...(tagIds ?? [])].sort(), [...formBaseline.tagIds].sort());
 	}
+
+	function stackMembersChangedFromInitial(members: StackMemberFormSchemaType[]): boolean {
+		return JSON.stringify(members) !== formBaseline.stackMembersJson;
+	}
+
+	function stackModelBindingsChangedFromInitial(
+		bindings: StackModelBindingViewModel[]
+	): boolean {
+		return JSON.stringify(bindings) !== formBaseline.stackModelBindingsJson;
+	}
+
+	function stackExtrasChangedFromInitial(): boolean {
+		if (listingKind !== 'stack') return false;
+		return (
+			stackMembersChangedFromInitial(stackMembers) ||
+			stackModelBindingsChangedFromInitial(stackModelBindings)
+		);
+	}
+
+	const stackExtrasDirty = $derived(stackExtrasChangedFromInitial());
 
 	function anyFieldDirty(
 		fieldMeta?: Partial<Record<string, { isDirty?: boolean } | undefined>>
@@ -115,6 +153,7 @@
 		if (formBaseline.isNewListing) return true;
 		if (formState.isDirty || anyFieldDirty(formState.fieldMeta)) return true;
 		if (tagsChangedFromInitial(formState.values?.tag_ids)) return true;
+		if (stackExtrasChangedFromInitial()) return true;
 		return false;
 	}
 
@@ -126,7 +165,8 @@
 		return (
 			formState.isDirty ||
 			anyFieldDirty(formState.fieldMeta) ||
-			tagsChangedFromInitial(formState.values?.tag_ids)
+			tagsChangedFromInitial(formState.values?.tag_ids) ||
+			stackExtrasChangedFromInitial()
 		);
 	}
 
@@ -319,7 +359,19 @@
 				is_admin_published: value.is_admin_published,
 				schema_type: isPlatformAdmin ? value.schema_type : DEFAULT_LISTING_SCHEMA_TYPE,
 				faq: value.faq ?? [],
-				...(listingKind === 'stack' ? { stack_members: stackMembers } : {})
+				...(listingKind === 'stack'
+					? {
+							stack_members: stackMembers,
+							stack_blueprint: {
+								workflow_steps: stackBlueprintBaseline?.workflow_steps ?? [],
+								reference_assets: stackBlueprintBaseline?.reference_assets ?? [],
+								...(stackBlueprintBaseline?.generated_markdown?.trim()
+									? { generated_markdown: stackBlueprintBaseline.generated_markdown.trim() }
+									: {}),
+								model_bindings: stackModelBindings
+							}
+						}
+					: {})
 			};
 
 			const schema =
@@ -433,7 +485,7 @@
 						<EditorListingValidationNotice messages={errorMessages} />
 					{/if}
 					<div class="flex flex-col items-end gap-2">
-						{#if hasUnsavedChanges(formState)}
+						{#if hasUnsavedChanges(formState) || stackExtrasDirty}
 							<p class="text-base font-semibold text-base-content">
 								You have unsaved changes.
 							</p>
@@ -445,7 +497,7 @@
 							<Button
 								type="submit"
 								variant="outline"
-								disabled={!canSaveForm(formState)}
+								disabled={isSubmitting || (!canSaveForm(formState) && !stackExtrasDirty)}
 							>
 								{formState.values?.id ? 'Update' : 'Create'}
 							</Button>
@@ -717,6 +769,12 @@
 				extensionChoices={stackExtensionChoices}
 				onChange={(next) => {
 					stackMembers = next;
+				}}
+			/>
+			<StackModelBindingsEditor
+				bindingsVm={stackModelBindings}
+				onChange={(next) => {
+					stackModelBindings = next;
 				}}
 			/>
 			<form.Field name="click_url">

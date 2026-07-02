@@ -108,13 +108,18 @@ export class UserListingEditorPagePresenter {
 
 			let listingPayload = parsed.data;
 			if (this.listingKind === 'stack' && this.skillBuilderDraft && !isUpdate) {
+				const fromDraft = workflowStepsToBlueprint(
+					this.skillBuilderDraft.workflowSteps,
+					(listingPayload as ListingStackFormSchemaType).content ??
+						this.skillBuilderDraft.markdown
+				);
+				const formBlueprint = (listingPayload as ListingStackFormSchemaType).stack_blueprint;
 				listingPayload = {
 					...listingPayload,
-					stack_blueprint: workflowStepsToBlueprint(
-						this.skillBuilderDraft.workflowSteps,
-						(listingPayload as ListingStackFormSchemaType).content ??
-							this.skillBuilderDraft.markdown
-					)
+					stack_blueprint: {
+						...fromDraft,
+						model_bindings: formBlueprint?.model_bindings ?? []
+					}
 				} as ListingFormSchemaType;
 			}
 

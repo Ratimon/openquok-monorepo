@@ -11,6 +11,7 @@
 	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import StackListingContentTabs from '$lib/ui/templates/stacks/StackListingContentTabs.svelte';
+	import StackModelBindingsSection from '$lib/ui/templates/stacks/StackModelBindingsSection.svelte';
 
 	type MutationResult = { ok: true } | { ok: false; error: string };
 
@@ -53,6 +54,7 @@
 	const descriptionMarkdown = $derived(stack.content?.trim() ? stack.content : null);
 	const workflowSteps = $derived(stack.stackBlueprint?.workflow_steps ?? []);
 	const referenceAssets = $derived(stack.stackBlueprint?.reference_assets ?? []);
+	const modelBindings = $derived(stack.stackBlueprint?.model_bindings ?? []);
 
 	function memberTypeBadges(extensionType: string | null | undefined): string[] {
 		switch (extensionType) {
@@ -146,11 +148,17 @@
 		<section class="border-t border-base-content/10 py-8">
 			<StackListingContentTabs content={descriptionMarkdown}>
 				{#snippet members()}
-					{#if stack.stackMembers.length === 0}
-						<p class="text-base-content/70">This playbook does not include any building blocks yet.</p>
-					{:else}
-						<ul class="space-y-3">
-							{#each stack.stackMembers as member (member.id)}
+					<StackModelBindingsSection bindings={modelBindings} />
+					<div>
+						<h2 class="mb-2 text-xl font-bold text-base-content">Building blocks</h2>
+						<p class="mb-4 text-sm text-base-content/70">
+							Skills and MCP extensions to install before you run this playbook.
+						</p>
+						{#if stack.stackMembers.length === 0}
+							<p class="text-base-content/70">This playbook does not include any building blocks yet.</p>
+						{:else}
+							<ul class="space-y-3">
+								{#each stack.stackMembers as member (member.id)}
 								<li class="rounded-xl border border-base-content/10 p-4">
 									<div class="flex flex-wrap items-start justify-between gap-3">
 										<div class="min-w-0 flex-1">
@@ -206,8 +214,9 @@
 									</div>
 								</li>
 							{/each}
-						</ul>
-					{/if}
+							</ul>
+						{/if}
+					</div>
 				{/snippet}
 
 				{#snippet readmeExtras()}

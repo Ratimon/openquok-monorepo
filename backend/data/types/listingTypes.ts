@@ -36,10 +36,17 @@ export interface StackBlueprintReferenceAsset {
     data_url?: string;
 }
 
+export interface StackModelBinding {
+    use_case: string;
+    provider: string;
+    model: string;
+}
+
 export interface StackBlueprint {
     workflow_steps: StackBlueprintWorkflowStep[];
     reference_assets: StackBlueprintReferenceAsset[];
     generated_markdown?: string;
+    model_bindings?: StackModelBinding[];
 }
 
 export interface StackMemberRef {

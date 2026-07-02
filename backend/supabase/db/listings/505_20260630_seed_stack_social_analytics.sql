@@ -1,7 +1,7 @@
 -- ---------------------------
 -- MODULE NAME: Listings
 -- MODULE DATE: 20260630
--- MODULE SCOPE: Seed (openquok-core skill_commands + social-growth-stack)
+-- MODULE SCOPE: Seed (openquok-core skill_commands + viral-tiktok-carousel)
 -- ---------------------------
 -- Populates skill_commands on openquok-core from the CLI command reference.
 -- Seeds official stack: openquok-core + revenuecat-mcp with Larry-style workflow.
@@ -162,6 +162,14 @@ SET
     updated_at = NOW()
 WHERE slug = 'openquok-core';
 
+UPDATE public.listings
+SET
+    slug = 'viral-tiktok-carousel',
+    title = 'Viral TikTok Carousel',
+    updated_at = NOW()
+WHERE id = 'd5f7b000-0000-4000-a000-000000000104'
+   OR slug = 'social-growth-stack';
+
 INSERT INTO public.listings (
     id,
     owner_id,
@@ -184,19 +192,20 @@ INSERT INTO public.listings (
     'd5f7b000-0000-4000-a000-000000000104',
     NULL,
     NOW(),
-    'Social Growth Stack',
-    'social-growth-stack',
-    'Publish a TikTok photo carousel with OpenQuok Core, review performance after it goes live, then layer RevenueCat subscription context on top of your channel analytics. Requires openquok-core and RevenueCat MCP — see Prerequisites in the exported SKILL.md.',
-    'Schedule viral-style carousels with the openquok CLI, wait for publish, read channel analytics, then ask RevenueCat MCP for subscriber context. Install openquok-core + RevenueCat MCP first.',
-    $stack_content$## Social Growth Stack
+    'Viral TikTok Carousel',
+    'viral-tiktok-carousel',
+    'Publish a TikTok photo carousel with OpenQuok Core, review performance after it goes live, then layer RevenueCat subscription context on top of your channel analytics. Generate portrait slideshow images with OpenAI GPT Image 1.5 before scheduling — the model proven TikTok marketing playbooks use for photorealistic slides. Requires openquok-core and RevenueCat MCP — see Prerequisites in the exported SKILL.md.',
+    'Schedule viral-style carousels with GPT Image 1.5 slides, the openquok CLI, channel analytics, and RevenueCat subscriber context. Install openquok-core + RevenueCat MCP first.',
+    $stack_content$## Viral TikTok Carousel
 
 Ship a repeatable creator workflow without leaving your agent. **Prerequisites:** install and authenticate **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** when you want subscription context alongside social analytics.
 
-1. **Connect channels** — `openquok integrations:list` to grab the integration UUID for TikTok (or another platform).
-2. **Schedule content** — `openquok posts:create --json` with a photo-carousel payload (see workflow example JSON).
-3. **Review** — wait for the scheduled publish window and sanity-check the live post.
-4. **Measure reach** — `openquok analytics:platform <uuid> --days 7` for channel-level performance.
-5. **Add revenue context** — prompt RevenueCat MCP for entitlements and subscriber state to interpret what growth means for your app.
+1. **Generate slides** — use **OpenAI GPT Image 1.5** (`gpt-image-1.5`) for portrait (1024×1536) slideshow images. Prefer 1.5 over earlier image models for photorealistic, phone-camera-style frames that hold attention in the feed.
+2. **Connect channels** — `openquok integrations:list` to grab the integration UUID for TikTok (or another platform).
+3. **Schedule content** — upload slide images with `openquok upload`, then `openquok posts:create --json` with a photo-carousel payload (see workflow example JSON).
+4. **Review** — wait for the scheduled publish window and sanity-check the live post.
+5. **Measure reach** — `openquok analytics:platform <uuid> --days 7` for channel-level performance.
+6. **Add revenue context** — prompt RevenueCat MCP for entitlements and subscriber state to interpret what growth means for your app.
 
 Clone this stack in Skill Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.
 $stack_content$,
@@ -209,6 +218,11 @@ $stack_content$,
     'd5f7b000-0000-4000-a000-000000000006',
     $stack_blueprint${
   "workflow_steps": [
+    {
+      "type": "text",
+      "title": "Generate portrait slideshow images",
+      "content": "Generate six portrait (1024×1536) slideshow images with OpenAI GPT Image 1.5 (gpt-image-1.5). Use consistent scene anchors across slides, iPhone-photo-style prompts, and realistic lighting before adding text overlays and uploading to OpenQuok."
+    },
     {
       "type": "command",
       "listing_slug": "openquok-core",
@@ -268,7 +282,24 @@ $stack_content$,
       "payload": "{\n  \"scheduledAt\": \"2026-01-01T12:00:00.000Z\",\n  \"status\": \"scheduled\",\n  \"body\": \"Carousel caption — links in bio.\",\n  \"integrationIds\": [\"<integration-id>\"],\n  \"media\": [\n    { \"id\": \"<media-id-1>\", \"path\": \"https://cdn.example.com/a.jpg\" },\n    { \"id\": \"<media-id-2>\", \"path\": \"https://cdn.example.com/b.jpg\" }\n  ],\n  \"providerSettingsByIntegrationId\": {\n    \"<integration-id>\": {\n      \"title\": \"A short photo title\",\n      \"privacy_level\": \"PUBLIC_TO_EVERYONE\",\n      \"content_posting_method\": \"DIRECT_POST\"\n    }\n  }\n}"
     }
   ],
-  "generated_markdown": "## Prerequisites\n\nInstall **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** for the full publish → analytics → revenue loop.\n\n## Workflow\n\n1. openquok-core · integrations:list — List connected social channels and pick the integration UUID.\n2. openquok-core · posts:create — Schedule a TikTok photo carousel (see reference JSON).\n3. Wait for publish and review the live post.\n4. openquok-core · analytics:platform — Pull 7-day channel metrics.\n5. revenuecat-mcp · get_customer — Add subscription context to interpret growth."
+  "model_bindings": [
+    {
+      "use_case": "image_generation",
+      "provider": "openai",
+      "model": "gpt-image-1.5"
+    },
+    {
+      "use_case": "image_editing",
+      "provider": "openai",
+      "model": "gpt-image-1.5"
+    },
+    {
+      "use_case": "chat",
+      "provider": "openai",
+      "model": "gpt-5.5"
+    }
+  ],
+  "generated_markdown": "## Prerequisites\n\nInstall **openquok-core** (OpenQuok CLI + skill) and connect **RevenueCat MCP** for the full publish → analytics → revenue loop.\n\n## AI models\n\n- **Image generation & editing:** OpenAI GPT Image 1.5 (`gpt-image-1.5`) — portrait slideshow frames before upload.\n- **Chat & agents:** OpenAI GPT-5.5 — orchestrate research, hooks, and the daily feedback loop.\n\n## Workflow\n\n1. Generate portrait slideshow images with GPT Image 1.5.\n2. openquok-core · integrations:list — List connected social channels and pick the integration UUID.\n3. openquok-core · posts:create — Schedule a TikTok photo carousel (see reference JSON).\n4. Wait for publish and review the live post.\n5. openquok-core · analytics:platform — Pull 7-day channel metrics.\n6. revenuecat-mcp · get_customer — Add subscription context to interpret growth."
 }$stack_blueprint$::jsonb,
     ARRAY['openquok-core', 'revenuecat-mcp', 'tiktok']::text[]
 )
@@ -291,7 +322,7 @@ ON CONFLICT (slug) DO UPDATE SET
 DELETE FROM public.listing_stack_members lsm
 USING public.listings l
 WHERE lsm.stack_listing_id = l.id
-  AND l.slug = 'social-growth-stack';
+  AND l.slug = 'viral-tiktok-carousel';
 
 INSERT INTO public.listing_stack_members (stack_listing_id, member_listing_id, member_role, sort_order)
 SELECT
@@ -306,7 +337,7 @@ JOIN (
         ('revenuecat-mcp', 'mcp', 1)
 ) AS roles(member_slug, member_role, sort_order) ON TRUE
 JOIN public.listings member ON member.slug = roles.member_slug
-WHERE stack.slug = 'social-growth-stack'
+WHERE stack.slug = 'viral-tiktok-carousel'
 ON CONFLICT (stack_listing_id, member_listing_id) DO UPDATE SET
     member_role = EXCLUDED.member_role,
     sort_order = EXCLUDED.sort_order;
@@ -314,13 +345,13 @@ ON CONFLICT (stack_listing_id, member_listing_id) DO UPDATE SET
 DELETE FROM public.listings_listing_tags_association lta
 USING public.listings l
 WHERE lta.listing_id = l.id
-  AND l.slug = 'social-growth-stack';
+  AND l.slug = 'viral-tiktok-carousel';
 
 INSERT INTO public.listings_listing_tags_association (listing_id, listing_tag_id)
 SELECT l.id, t.id
 FROM public.listings l
 JOIN public.listing_tags t ON t.slug = ANY (l.listing_tag_slugs)
-WHERE l.slug = 'social-growth-stack'
+WHERE l.slug = 'viral-tiktok-carousel'
 ON CONFLICT DO NOTHING;
 
 -- ---------------------------
