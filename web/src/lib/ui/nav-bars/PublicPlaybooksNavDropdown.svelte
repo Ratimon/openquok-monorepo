@@ -233,7 +233,7 @@
 			<p class="px-1 text-xs font-medium text-base-content/60">
 				{selectedTabId === 'playbook'
 					? 'Browse playbooks or jump into the builder.'
-					: 'Explore OpenQuok Core, Skills, MCP, and combo listings.'}
+					: 'Explore building blocks to build your own playbooks e.g. OpenQuok Core, Skills, MCP, and combo listings.'}
 			</p>
 			{@render navEntryList(sectionEntries(selectedTabId))}
 			{#if selectedTabId === 'building-blocks'}

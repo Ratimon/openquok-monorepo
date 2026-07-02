@@ -7,19 +7,32 @@
 
 	type Props = {
 		selectedCount?: number;
+		primaryActionLabel?: string;
+		idleTitle?: string;
+		idleDescription?: string;
+		selectedTitle?: string;
+		selectedDescription?: string;
 		onCreateStack?: () => void;
+		onPrimaryAction?: () => void;
 		onClearSelection?: () => void;
 		class?: string;
 	};
 
 	let {
 		selectedCount = 0,
+		primaryActionLabel = 'Create playbook',
+		idleTitle = 'Compose a playbook from building blocks',
+		idleDescription = 'Use the Add checkboxes on building block cards below, then create your playbook here.',
+		selectedTitle = 'building blocks selected for a new playbook',
+		selectedDescription = 'Review your picks, then open the skill builder to edit your playbook markdown before saving the draft.',
 		onCreateStack,
+		onPrimaryAction,
 		onClearSelection,
 		class: className = ''
 	}: Props = $props();
 
 	const hasSelection = $derived(selectedCount > 0);
+	const runPrimaryAction = $derived(onPrimaryAction ?? onCreateStack);
 </script>
 
 <div
@@ -46,17 +59,15 @@
 		<div class="min-w-0">
 			{#if hasSelection}
 				<p class="text-sm font-semibold text-base-content">
-					{selectedCount} building block{selectedCount === 1 ? '' : 's'} selected for a new playbook
+					{selectedCount} {selectedTitle}
 				</p>
 				<p class="mt-0.5 text-xs text-base-content/65">
-					Review your picks, then open the skill builder to edit your playbook markdown before saving
-					the draft.
+					{selectedDescription}
 				</p>
 			{:else}
-				<p class="text-sm font-semibold text-base-content">Compose a playbook from building blocks</p>
+				<p class="text-sm font-semibold text-base-content">{idleTitle}</p>
 				<p class="mt-0.5 text-xs text-base-content/65">
-					Use the <span class="font-medium text-base-content/80">Add</span> checkboxes on building block
-					cards below, then create your playbook here.
+					{idleDescription}
 				</p>
 			{/if}
 		</div>
@@ -64,15 +75,15 @@
 
 	<div class="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
 		{#if hasSelection}
-			<Button variant="primary" size="sm" onclick={() => onCreateStack?.()}>
-				Create playbook ({selectedCount})
+			<Button variant="primary" size="sm" onclick={() => runPrimaryAction?.()}>
+				{primaryActionLabel} ({selectedCount})
 			</Button>
 			<Button variant="ghost" size="sm" onclick={() => onClearSelection?.()}>
 				Clear selection
 			</Button>
 		{:else}
 			<Button variant="outline" size="sm" disabled class="pointer-events-none opacity-60">
-				Create playbook
+				{primaryActionLabel}
 			</Button>
 		{/if}
 	</div>

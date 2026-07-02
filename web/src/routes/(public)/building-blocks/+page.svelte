@@ -5,16 +5,20 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { showListingBookmarkToast } from '$lib/listings';
 	import { isPaidSubscriptionTier } from 'openquok-common';
+	import { serializeExtensionSlugs } from '$lib/stack-builder/utils/parseBuilderQuery';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
@@ -41,36 +45,32 @@
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
+	const skillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
 
 	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let bookmarkedIds = $state<Record<string, boolean>>({});
+	let selectedExtensionIds = $state<string[]>([]);
 
-	$effect(() => {
+	onMount(() => {
 		if (!browser || !isLoggedIn) {
 			bookmarksPaidEnabled = null;
-			return;
-		}
-		let cancelled = false;
-		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
-			if (cancelled) return;
-			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
-		});
-		return () => {
-			cancelled = true;
-		};
-	});
-
-	$effect(() => {
-		if (!browser || !isLoggedIn) {
 			bookmarkedIds = {};
 			return;
 		}
-		if (bookmarksPaidEnabled !== true) return;
 
 		let cancelled = false;
-		void pagePresenter.loadBookmarkedIdsMap().then((map) => {
+		void (async () => {
+			const vm = await getBillingPresenter.loadOwnedAccountBillingVmStateless();
+			if (cancelled) return;
+			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
+			if (!bookmarksPaidEnabled) {
+				bookmarkedIds = {};
+				return;
+			}
+			const map = await pagePresenter.loadBookmarkedIdsMap();
 			if (!cancelled) bookmarkedIds = map;
-		});
+		})();
+
 		return () => {
 			cancelled = true;
 		};
@@ -90,27 +90,16 @@
 	const EXTENSIONS_GRID_PAGE_SIZE = 20;
 
 	let expandedId = $state<string | null>(null);
-	let searchDraft = $state('');
+	let searchDraft = $derived(filtersVm.search ?? '');
 	let visibleCount = $state(EXTENSIONS_GRID_PAGE_SIZE);
 
 	let visibleExtensions = $derived(extensionsVm.slice(0, visibleCount));
 	let remainingCount = $derived(Math.max(0, extensionsVm.length - visibleCount));
 	let hasMoreExtensions = $derived(remainingCount > 0);
-
-	$effect(() => {
-		searchDraft = filtersVm.search ?? '';
-	});
-
-	$effect(() => {
-		void filtersVm.type;
-		void filtersVm.sort;
-		void filtersVm.search;
-		void filtersVm.category;
-		void filtersVm.tagGroup;
-		void filtersVm.tags?.join(',');
-		visibleCount = EXTENSIONS_GRID_PAGE_SIZE;
-		expandedId = null;
-	});
+	let selectedExtensions = $derived(
+		extensionsVm.filter((extensionVm) => selectedExtensionIds.includes(extensionVm.id))
+	);
+	let selectedCount = $derived(selectedExtensions.length);
 
 	const sortOptions: { id: ExtensionSort; label: string }[] = [
 		{ id: 'newest', label: 'Newest' },
@@ -120,6 +109,8 @@
 	];
 
 	function navigateFilters(overrides: Partial<ExtensionsHubFilters>) {
+		visibleCount = EXTENSIONS_GRID_PAGE_SIZE;
+		expandedId = null;
 		const href = pagePresenter.buildFilterUrl(page.url.pathname, filtersVm, overrides);
 		void goto(href, { keepFocus: true, noScroll: true });
 	}
@@ -138,10 +129,10 @@
 	}
 
 	function handleTagToggle(tagSlug: string) {
-		const current = new Set(filtersVm.tags ?? []);
-		if (current.has(tagSlug)) current.delete(tagSlug);
-		else current.add(tagSlug);
-		const tags = [...current];
+		const current = filtersVm.tags ?? [];
+		const tags = current.includes(tagSlug)
+			? current.filter((slug) => slug !== tagSlug)
+			: [...current, tagSlug];
 		navigateFilters({
 			tags: tags.length ? tags : undefined,
 			tagGroup: tags.length ? undefined : filtersVm.tagGroup
@@ -167,6 +158,37 @@
 
 	function showMoreExtensions() {
 		visibleCount = Math.min(visibleCount + EXTENSIONS_GRID_PAGE_SIZE, extensionsVm.length);
+	}
+
+	function isSelected(listingId: string) {
+		return selectedExtensionIds.includes(listingId);
+	}
+
+	function handleToggleSelect(listingId: string) {
+		const availableIds = extensionsVm.map((extensionVm) => extensionVm.id);
+		selectedExtensionIds = selectedExtensionIds.filter((id) => availableIds.includes(id));
+		if (selectedExtensionIds.includes(listingId)) {
+			selectedExtensionIds = selectedExtensionIds.filter((id) => id !== listingId);
+			return;
+		}
+		selectedExtensionIds = [...selectedExtensionIds, listingId];
+	}
+
+	function handleClearSelection() {
+		selectedExtensionIds = [];
+	}
+
+	function handleOpenSkillBuilderFromSelection() {
+		if (selectedExtensions.length === 0) {
+			toast.error('Select at least one building block.');
+			return;
+		}
+		const params = new URLSearchParams();
+		params.set(
+			'extensions',
+			serializeExtensionSlugs(selectedExtensions.map((extensionVm) => extensionVm.slug))
+		);
+		void goto(`${skillBuilderHref}?${params.toString()}`);
 	}
 </script>
 
@@ -217,6 +239,17 @@
 			onClear={handleTagClear}
 		/>
 
+		<AccountViralFormatsStackSelectionBar
+			{selectedCount}
+			primaryActionLabel="Open Skill Builder"
+			idleTitle="Build a skill from multiple building blocks"
+			idleDescription="Use the Add to skill builder controls on building block cards below, then open the builder here."
+			selectedTitle="building blocks selected for your skill"
+			selectedDescription="Open the skill builder with your selected building blocks preloaded so you can refine the generated output."
+			onPrimaryAction={handleOpenSkillBuilderFromSelection}
+			onClearSelection={handleClearSelection}
+		/>
+
 		<div class="grid gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
 			<aside class="lg:sticky lg:top-24 lg:self-start">
 				<h2 class="mb-3 text-sm font-semibold text-base-content/70">Categories</h2>
@@ -246,6 +279,9 @@
 									{bookmarksPaidEnabled}
 									upgradeHref={accountBillingHref}
 									onToggleBookmark={handleToggleBookmark}
+									selectable={true}
+									selected={isSelected(extensionVm.id)}
+									onToggleSelect={handleToggleSelect}
 								/>
 							</li>
 						{/each}

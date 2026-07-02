@@ -594,9 +594,9 @@ export interface Link {
 }
 
 export const PUBLIC_NAVBAR_LINKS: Link[] = [
-	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'playbooks' },
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
+	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'playbooks' },
 	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }

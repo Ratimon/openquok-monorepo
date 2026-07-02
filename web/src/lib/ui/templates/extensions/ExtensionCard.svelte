@@ -6,6 +6,7 @@
 	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { url } from '$lib/utils/path';
 
+	import Checkbox from '$lib/ui/checkbox/checkbox.svelte';
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -26,6 +27,9 @@
 		bookmarksPaidEnabled?: boolean | null;
 		upgradeHref?: string;
 		onToggleBookmark?: (listingId: string, nextBookmarked: boolean) => Promise<ToggleResult>;
+		selectable?: boolean;
+		selected?: boolean;
+		onToggleSelect?: (id: string) => void;
 	};
 
 	let {
@@ -38,10 +42,14 @@
 		isLoggedIn = false,
 		bookmarksPaidEnabled = null,
 		upgradeHref,
-		onToggleBookmark
+		onToggleBookmark,
+		selectable = false,
+		selected = false,
+		onToggleSelect
 	}: Props = $props();
 
 	const detailHref = $derived(url(`/${getRootPathPublicBuildingBlock(extensionVm.slug)}`));
+	let checked = $derived(selected);
 
 	const typeBadges = $derived.by((): string[] => {
 		switch (extensionVm.extensionType) {
@@ -55,9 +63,21 @@
 				return ['Extension'];
 		}
 	});
+
+	function handleSelectClick(event: MouseEvent) {
+		event.preventDefault();
+		event.stopPropagation();
+		onToggleSelect?.(extensionVm.id);
+	}
 </script>
 
-<div class={cn(showBookmark && onToggleBookmark && 'relative', className)}>
+<div
+	class={cn(
+		showBookmark && onToggleBookmark && 'relative',
+		selectable && selected && 'rounded-2xl ring-2 ring-primary/45',
+		className
+	)}
+>
 	{#if showBookmark && onToggleBookmark}
 		<div class="absolute top-3 right-3 z-10">
 			<ExtensionBookmarkButton
@@ -76,8 +96,44 @@
 	onOpenChange={(open) => {
 		if (open !== expanded) onToggle?.(extensionVm.id);
 	}}
-	class="rounded-2xl border border-base-content/10 bg-base-100/80"
+	class={cn(
+		'rounded-2xl border bg-base-100/80',
+		selectable && selected
+			? 'border-primary/55 bg-primary/5'
+			: 'border-base-content/10'
+	)}
 >
+	{#if selectable}
+		<div class="border-b border-base-content/10 px-4 pt-4">
+			<button
+				type="button"
+				class={cn(
+					'flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+					selected
+						? 'border-primary/35 bg-primary/12 text-primary'
+						: 'border-dashed border-primary/30 bg-base-200/50 text-base-content/70 hover:border-primary/50 hover:bg-primary/8'
+				)}
+				aria-pressed={selected}
+				aria-label={selected
+					? `Remove ${extensionVm.title} from skill builder selection`
+					: `Add ${extensionVm.title} to skill builder selection`}
+				onclick={handleSelectClick}
+			>
+				<span class="flex items-center gap-3">
+					<Checkbox
+						checked={checked}
+						class="pointer-events-none size-5 border-primary/50 bg-base-content/12 shadow-none data-[state=unchecked]:border-primary/55 data-[state=unchecked]:bg-base-content/15"
+						tabindex={-1}
+						aria-hidden="true"
+					/>
+					<span class="font-medium text-base-content">
+						{selected ? 'Added to skill builder' : 'Add to skill builder'}
+					</span>
+				</span>
+				<span class="text-xs font-semibold uppercase">{selected ? 'Selected' : 'Select'}</span>
+			</button>
+		</div>
+	{/if}
 	<Collapsible.Trigger
 		class={cn(
 			'flex w-full items-start gap-4 p-4 text-left transition hover:bg-base-200/40',

@@ -16,6 +16,7 @@
 
 	type Props = {
 		stack: StackDetailViewModel;
+		skillBuilderHref?: string;
 		isLoggedIn?: boolean;
 		commentsVm: import('$lib/listings/GetListing.presenter.svelte').ListingCommentViewModel[];
 		communityCommentsEnabled?: boolean;
@@ -35,6 +36,7 @@
 
 	let {
 		stack,
+		skillBuilderHref,
 		isLoggedIn = false,
 		commentsVm,
 		communityCommentsEnabled = true,
@@ -129,11 +131,16 @@
 				{onSignInRequired}
 				{onUpgradeRequired}
 			/>
-			{#if onClone}
-				<Button variant="primary" onclick={() => void onClone?.()} disabled={cloning}>
-					{cloning ? 'Cloning…' : 'Clone playbook'}
-				</Button>
-			{/if}
+			<div class="flex flex-wrap gap-3">
+				{#if onClone}
+					<Button variant="primary" onclick={() => void onClone?.()} disabled={cloning}>
+						{cloning ? 'Cloning…' : 'Clone playbook'}
+					</Button>
+				{/if}
+				{#if skillBuilderHref}
+					<Button href={skillBuilderHref} variant="outline">Open in Skill Builder</Button>
+				{/if}
+			</div>
 		</header>
 
 		<section class="border-t border-base-content/10 py-8">
