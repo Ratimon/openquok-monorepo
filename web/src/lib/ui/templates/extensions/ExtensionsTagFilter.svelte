@@ -13,6 +13,31 @@
 
 	const COLLAPSED_TAG_LIMIT = 12;
 
+	function compareTagFilterChips(
+		a: ExtensionTagFilterChip,
+		b: ExtensionTagFilterChip,
+		selected: Set<string>
+	): number {
+		const aSelected = selected.has(a.slug);
+		const bSelected = selected.has(b.slug);
+		if (aSelected !== bSelected) return aSelected ? -1 : 1;
+
+		const aHasMatches = a.count > 0;
+		const bHasMatches = b.count > 0;
+		if (aHasMatches !== bHasMatches) return aHasMatches ? -1 : 1;
+
+		if (b.count !== a.count) return b.count - a.count;
+
+		return a.label.localeCompare(b.label);
+	}
+
+	function sortTagsForDisplay(
+		tags: ExtensionTagFilterChip[],
+		selected: Set<string>
+	): ExtensionTagFilterChip[] {
+		return [...tags].sort((a, b) => compareTagFilterChips(a, b, selected));
+	}
+
 	type Props = {
 		tagFilterVm: ExtensionsTagFilterViewModel;
 		activeTagGroup?: string | null;
@@ -45,15 +70,19 @@
 		return tagFilterVm.tags.filter((tag) => tag.groupSlugs.includes(activeTagGroup));
 	});
 
-	const visibleTags = $derived.by(() => {
+	const displayTags = $derived.by(() => {
 		const rows = activeTagGroup ? scopedTags : tagFilterVm.tags;
-		if (expanded || rows.length <= COLLAPSED_TAG_LIMIT) return rows;
-		return rows.slice(0, COLLAPSED_TAG_LIMIT);
+		return sortTagsForDisplay(rows, selectedTagSet);
+	});
+
+	const visibleTags = $derived.by(() => {
+		if (expanded || displayTags.length <= COLLAPSED_TAG_LIMIT) return displayTags;
+		return displayTags.slice(0, COLLAPSED_TAG_LIMIT);
 	});
 
 	const hiddenTagCount = $derived.by(() => {
-		const rows = activeTagGroup ? scopedTags : tagFilterVm.tags;
-		return Math.max(0, rows.length - COLLAPSED_TAG_LIMIT);
+		if (expanded) return 0;
+		return Math.max(0, displayTags.length - COLLAPSED_TAG_LIMIT);
 	});
 
 	const groupBadgeVariant = (group: ExtensionTagGroupFilterChip) =>

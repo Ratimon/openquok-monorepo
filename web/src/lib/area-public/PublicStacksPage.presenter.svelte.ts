@@ -1,16 +1,21 @@
 import type {
 	ExtensionDetailViewModel,
+	ExtensionsTagFilterViewModel,
 	GetListingPresenter,
 	ListingBookmarkKind,
 	ListingBookmarkToggleResultViewModel,
 	StackCardViewModel,
-	StackDetailViewModel
+	StackDetailViewModel,
+	StacksHubViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
+import type { StacksHubFilters } from '$lib/listings/listing.types';
 import type { ListingRepository, ListingUpsertProgrammerModel } from '$lib/listings/Listing.repository.svelte';
 
 export type PublicStackMutationResultViewModel =
 	| { ok: true; id?: string }
 	| { ok: false; error: string };
+
+export type { StackCardViewModel, StacksHubViewModel };
 
 function mutationPmToVm(pm: ListingUpsertProgrammerModel): PublicStackMutationResultViewModel {
 	if (!pm.ok) return { ok: false, error: pm.error };
@@ -23,7 +28,34 @@ export class PublicStacksPagePresenter {
 		private readonly listingRepository: ListingRepository
 	) {}
 
+	parseFiltersFromUrl(searchParams: URLSearchParams): StacksHubFilters {
+		return this.getListingPresenter.parseStacksHubFiltersFromUrl(searchParams);
+	}
+
+	buildFilterUrl(
+		pathname: string,
+		current: StacksHubFilters,
+		overrides: Partial<StacksHubFilters>
+	): string {
+		return this.getListingPresenter.buildStacksHubFilterUrl(pathname, current, overrides);
+	}
+
+	applyClientFilters(
+		stacks: StackCardViewModel[],
+		filters: StacksHubFilters,
+		tagFilterVm?: ExtensionsTagFilterViewModel
+	): StackCardViewModel[] {
+		return this.getListingPresenter.filterAndSortStacks(stacks, filters, tagFilterVm);
+	}
+
 	async loadStacksHubStateless(params: {
+		fetch?: typeof globalThis.fetch;
+		limit?: number;
+	}): Promise<StacksHubViewModel> {
+		return this.getListingPresenter.loadStacksHubStateless(params);
+	}
+
+	async loadPublishedStacksStateless(params: {
 		fetch?: typeof globalThis.fetch;
 		limit?: number;
 		searchTerm?: string | null;

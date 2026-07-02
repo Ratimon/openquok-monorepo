@@ -61,6 +61,14 @@ INSERT INTO public.listing_categories (
         'social-publishing',
         'Schedule, draft, and publish posts across connected social channels with OpenQuok.',
         '📣'
+    ),
+    (
+        'd5f7b000-0000-4000-a000-000000000007',
+        '/',
+        'Social growth',
+        'social-growth',
+        'Repeatable creator workflows that publish to social channels, review performance, and connect reach to business outcomes.',
+        '📈'
     )
 ON CONFLICT (id) DO NOTHING;
 

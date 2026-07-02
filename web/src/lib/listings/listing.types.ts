@@ -234,6 +234,15 @@ export interface ExtensionsHubFilters {
 	tagGroup?: string;
 }
 
+/** Client-side filters for the public playbooks hub (no extension-type chips). */
+export interface StacksHubFilters {
+	sort: ExtensionSort;
+	search?: string;
+	category?: string;
+	tags?: string[];
+	tagGroup?: string;
+}
+
 /** Chip for a single tag on the extensions hub filter bar. */
 export interface ExtensionTagFilterChip {
 	slug: string;

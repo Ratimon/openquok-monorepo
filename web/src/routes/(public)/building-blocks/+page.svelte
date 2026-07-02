@@ -22,6 +22,7 @@
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
+	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
 	import ExtensionsSearchBar from '$lib/ui/templates/extensions/ExtensionsSearchBar.svelte';
 	import ExtensionsTypeChips from '$lib/ui/templates/extensions/ExtensionsTypeChips.svelte';
 	import ExtensionsTagFilter from '$lib/ui/templates/extensions/ExtensionsTagFilter.svelte';
@@ -203,6 +204,7 @@
 		<p class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{metaDescription}
 		</p>
+		<ListingsPublicHubNav active="building-blocks" class="pt-1" />
 		<div class="flex justify-center pt-2">
 			<ExtensionsHubStats statsVm={statsVm} />
 		</div>

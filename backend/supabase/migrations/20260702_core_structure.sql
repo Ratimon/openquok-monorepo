@@ -6730,6 +6730,14 @@ INSERT INTO public.listing_categories (
         'social-publishing',
         'Schedule, draft, and publish posts across connected social channels with OpenQuok.',
         '📣'
+    ),
+    (
+        'd5f7b000-0000-4000-a000-000000000007',
+        '/',
+        'Social growth',
+        'social-growth',
+        'Repeatable creator workflows that publish to social channels, review performance, and connect reach to business outcomes.',
+        '📈'
     )
 ON CONFLICT (id) DO NOTHING;
 
@@ -8153,7 +8161,7 @@ ON CONFLICT DO NOTHING;
 -- MODULE SCOPE: Seed (openquok-core skill_commands + viral-tiktok-carousel)
 -- ---------------------------
 -- Populates skill_commands on openquok-core from the CLI command reference.
--- Seeds official stack: openquok-core + revenuecat-mcp with Larry-style workflow.
+-- Seeds official skills playbook: openquok-core stack member (RevenueCat MCP stays in blueprint prerequisites).
 
 BEGIN;
 
@@ -8364,7 +8372,7 @@ $stack_content$,
     TRUE,
     TRUE,
     'CreativeWork',
-    'd5f7b000-0000-4000-a000-000000000006',
+    'd5f7b000-0000-4000-a000-000000000007',
     $stack_blueprint${
   "workflow_steps": [
     {
@@ -8482,8 +8490,7 @@ SELECT
 FROM public.listings stack
 JOIN (
     VALUES
-        ('openquok-core', 'skills', 0),
-        ('revenuecat-mcp', 'mcp', 1)
+        ('openquok-core', 'skills', 0)
 ) AS roles(member_slug, member_role, sort_order) ON TRUE
 JOIN public.listings member ON member.slug = roles.member_slug
 WHERE stack.slug = 'viral-tiktok-carousel'

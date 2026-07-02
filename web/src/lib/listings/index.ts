@@ -114,6 +114,7 @@ export type {
 	ExtensionTagGroupFilterChip,
 	ExtensionsHubFilters,
 	ExtensionsTagFilterViewModel,
+	StacksHubFilters,
 	ListingCategoryFormSchemaType,
 	ListingExtensionFormSchemaType,
 	ListingFaqItemProgrammerModel,
@@ -157,6 +158,7 @@ export type {
 	SkillCommandViewModel,
 	StackCardViewModel,
 	StackDetailViewModel,
+	StacksHubViewModel,
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';

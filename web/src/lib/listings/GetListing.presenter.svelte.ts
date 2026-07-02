@@ -5,6 +5,7 @@ import type {
 	ExtensionTypeFilter,
 	ExtensionsHubFilters,
 	ExtensionsTagFilterViewModel,
+	StacksHubFilters,
 	ExtensionTagFilterChip,
 	ExtensionTagGroupFilterChip
 } from '$lib/listings/listing.types';
@@ -295,6 +296,7 @@ export interface StackCardViewModel {
 	likes: number;
 	views: number;
 	memberCount: number;
+	isOfficial: boolean;
 	createdAt: string;
 	category: { id: string; name: string; slug: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
@@ -372,6 +374,15 @@ export interface ExtensionsHubViewModel {
 	totalCount: number;
 }
 
+/** Full playbooks hub load payload. */
+export interface StacksHubViewModel {
+	metaTitle: string;
+	metaDescription: string;
+	stacks: StackCardViewModel[];
+	categories: ExtensionCategoryViewModel[];
+	totalCount: number;
+}
+
 /** View model for listing category options in editor and filters. */
 export type CategoryViewModel = ListingCategoryProgrammerModel;
 export type ListingCategoryViewModel = CategoryViewModel;
@@ -380,7 +391,13 @@ export type ListingCategoryViewModel = CategoryViewModel;
 export type TagViewModel = ListingTagProgrammerModel;
 export type ListingTagViewModel = TagViewModel;
 
-export type { ExtensionSort, ExtensionTypeFilter, ExtensionsHubFilters, ExtensionsTagFilterViewModel };
+export type {
+	ExtensionSort,
+	ExtensionTypeFilter,
+	ExtensionsHubFilters,
+	ExtensionsTagFilterViewModel,
+	StacksHubFilters
+};
 
 export class GetListingPresenter {
 	constructor(private readonly listingRepository: ListingRepository) {}
@@ -493,6 +510,62 @@ export class GetListingPresenter {
 			stacks: result.listings.map((listing) => this.toStackCardVm(listing)),
 			count: result.count
 		};
+	}
+
+	public async loadStacksHubStateless(params: {
+		fetch?: typeof globalThis.fetch;
+		limit?: number;
+	}): Promise<StacksHubViewModel> {
+		const limit = params.limit ?? 50;
+		const [published, categories] = await Promise.all([
+			this.listingRepository.getPublishedStacks({ limit, skip: 0, fetch: params.fetch }),
+			this.listingRepository.getActiveCategories(params.fetch)
+		]);
+
+		return {
+			metaTitle: 'Playbook Hub',
+			metaDescription:
+				'Browse ready-made playbooks that combine skills and MCP building blocks into step-by-step workflows your agents can run again and again.',
+			stacks: published.listings.map((listing) => this.toStackCardVm(listing)),
+			categories: categories.map((category) => this.toExtensionCategoryVm(category)),
+			totalCount: published.count
+		};
+	}
+
+	public stackToTagFilterExtensionVm(stack: StackCardViewModel): ExtensionCardViewModel {
+		return {
+			id: stack.id,
+			title: stack.title,
+			slug: stack.slug,
+			excerpt: stack.excerpt,
+			description: stack.description,
+			logoImageUrl: stack.logoImageUrl,
+			defaultImageUrl: null,
+			extensionType: null,
+			installCommandSkills: null,
+			installCommandMcp: null,
+			clickUrlSkills: null,
+			clickUrlMcp: null,
+			mcpTools: [],
+			skillCommands: [],
+			mcpServerConfig: null,
+			isOfficial: stack.isOfficial,
+			likes: stack.likes,
+			views: stack.views,
+			createdAt: stack.createdAt,
+			category: stack.category,
+			tags: stack.tags
+		};
+	}
+
+	public buildStacksTagFilterVm(params: {
+		tagsCatalog: TagViewModel[];
+		stacks: StackCardViewModel[];
+	}): ExtensionsTagFilterViewModel {
+		return this.buildExtensionsTagFilterVm({
+			tagsCatalog: params.tagsCatalog,
+			extensions: params.stacks.map((stack) => this.stackToTagFilterExtensionVm(stack))
+		});
 	}
 
 	public async loadPublishedStackBySlugVm(
@@ -628,6 +701,47 @@ export class GetListingPresenter {
 		return query ? `${pathname}?${query}` : pathname;
 	}
 
+	public parseStacksHubFiltersFromUrl(searchParams: URLSearchParams): StacksHubFilters {
+		const sort = searchParams.get('sort');
+		const search = searchParams.get('search')?.trim();
+		const category = searchParams.get('category')?.trim();
+		const tagGroup = searchParams.get('tagGroup')?.trim();
+		const tagsParam = searchParams.get('tags')?.trim();
+		const tags = tagsParam
+			? tagsParam
+					.split(',')
+					.map((slug) => slug.trim())
+					.filter(Boolean)
+			: undefined;
+
+		const sortFilter: ExtensionSort =
+			sort === 'oldest' || sort === 'popular' || sort === 'views' ? sort : 'newest';
+
+		return {
+			sort: sortFilter,
+			...(search ? { search } : {}),
+			...(category ? { category } : {}),
+			...(tags?.length ? { tags } : {}),
+			...(tagGroup ? { tagGroup } : {})
+		};
+	}
+
+	public buildStacksHubFilterUrl(
+		pathname: string,
+		current: StacksHubFilters,
+		overrides: Partial<StacksHubFilters>
+	): string {
+		const next: StacksHubFilters = { ...current, ...overrides };
+		const params = new URLSearchParams();
+		if (next.sort !== 'newest') params.set('sort', next.sort);
+		if (next.search?.trim()) params.set('search', next.search.trim());
+		if (next.category?.trim()) params.set('category', next.category.trim());
+		if (next.tags?.length) params.set('tags', next.tags.join(','));
+		if (next.tagGroup?.trim()) params.set('tagGroup', next.tagGroup.trim());
+		const query = params.toString();
+		return query ? `${pathname}?${query}` : pathname;
+	}
+
 	public filterAndSortExtensions(
 		extensions: ExtensionCardViewModel[],
 		filters: ExtensionsHubFilters,
@@ -706,6 +820,69 @@ export class GetListingPresenter {
 			community: extensions.filter((row) => !row.isOfficial).length,
 			categories: categories.length
 		};
+	}
+
+	public computeStacksHubStats(
+		stacks: StackCardViewModel[],
+		categories: ExtensionCategoryViewModel[]
+	): ExtensionsHubStatsViewModel {
+		return {
+			official: stacks.filter((row) => row.isOfficial).length,
+			community: stacks.filter((row) => !row.isOfficial).length,
+			categories: categories.length
+		};
+	}
+
+	public filterAndSortStacks(
+		stacks: StackCardViewModel[],
+		filters: StacksHubFilters,
+		tagFilterVm?: ExtensionsTagFilterViewModel
+	): StackCardViewModel[] {
+		let rows = [...stacks];
+
+		if (filters.search?.trim()) {
+			const q = filters.search.trim().toLowerCase();
+			rows = rows.filter(
+				(row) =>
+					row.title.toLowerCase().includes(q) ||
+					(row.excerpt ?? '').toLowerCase().includes(q) ||
+					(row.description ?? '').toLowerCase().includes(q)
+			);
+		}
+
+		if (filters.category) {
+			rows = rows.filter((row) => row.category?.slug === filters.category);
+		}
+
+		const selectedTagSlugs = new Set(filters.tags ?? []);
+		if (selectedTagSlugs.size > 0) {
+			rows = rows.filter((row) => row.tags.some((tag) => selectedTagSlugs.has(tag.slug)));
+		} else if (filters.tagGroup && tagFilterVm) {
+			const groupTagSlugs = new Set(
+				tagFilterVm.groups.find((group) => group.slug === filters.tagGroup)?.tagSlugs ?? []
+			);
+			if (groupTagSlugs.size > 0) {
+				rows = rows.filter((row) => row.tags.some((tag) => groupTagSlugs.has(tag.slug)));
+			}
+		}
+
+		switch (filters.sort) {
+			case 'oldest':
+				rows.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+				break;
+			case 'popular':
+				rows.sort((a, b) => b.likes - a.likes || b.views - a.views);
+				break;
+			case 'views':
+				rows.sort((a, b) => b.views - a.views || b.likes - a.likes);
+				break;
+			case 'newest':
+			default:
+				rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+				break;
+		}
+
+		return rows;
 	}
 
 	private toListingVm(listing: ListingProgrammerModel): ListingViewModel {
@@ -901,6 +1078,7 @@ export class GetListingPresenter {
 			likes: listing.likes,
 			views: listing.views,
 			memberCount: listing.stackMembers?.length ?? 0,
+			isOfficial: listing.isOfficial === true,
 			createdAt: listing.createdAt,
 			category: listing.category ? { ...listing.category } : null,
 			tags: listing.tags.map((t) => ({ ...t }))
