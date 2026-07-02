@@ -332,6 +332,7 @@ export class ListingService {
                 ...body.listingData,
                 is_official: false,
                 is_admin_published: false,
+                schema_type: "SoftwareApplication",
             },
         };
         return this.createListing(sanitizedBody, ownerId, false);
@@ -350,6 +351,9 @@ export class ListingService {
                 ...body.listingData,
                 is_official: false,
                 is_admin_published: existing.is_admin_published === true,
+                schema_type:
+                    (existing.schema_type as ListingUpdateBodySchemaType["listingData"]["schema_type"]) ??
+                    "SoftwareApplication",
             },
         };
         return this.updateListing(sanitizedBody, ownerId, false);

@@ -10,6 +10,7 @@
 
 	import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
 	import {
+		DEFAULT_LISTING_SCHEMA_TYPE,
 		LISTING_SCHEMA_TYPES,
 		LISTING_SCHEMA_TYPE_LABELS,
 		getDefaultSchemaTypeForListingKind,
@@ -134,6 +135,7 @@
 	}
 
 	function applySchemaTypeForCategory(categoryId: string) {
+		if (!isPlatformAdmin) return;
 		const slug = categoryChoices.find((choice) => choice.value === categoryId)?.slug;
 		if (listingKind === 'extension') {
 			form.setFieldValue('schema_type', getSchemaTypeForExtensionCategory(slug));
@@ -166,9 +168,10 @@
 		const extInitial = initialValues as ListingExtensionFormSchemaType;
 		const extType =
 			listingKind === 'extension' ? (extInitial.extension_type ?? 'skills') : null;
-		const defaultSchemaType =
-			(initialValues.schema_type as ListingSchemaType | undefined) ??
-			getDefaultSchemaTypeForListingKind(listingKind);
+		const defaultSchemaType = isPlatformAdmin
+			? ((initialValues.schema_type as ListingSchemaType | undefined) ??
+				getDefaultSchemaTypeForListingKind(listingKind))
+			: DEFAULT_LISTING_SCHEMA_TYPE;
 		const initialFaq = Array.isArray(initialValues.faq)
 			? initialValues.faq.map((item) => ({
 					question: item.question ?? '',
@@ -314,7 +317,7 @@
 				tag_ids: value.tag_ids ?? [],
 				is_user_published: value.is_user_published,
 				is_admin_published: value.is_admin_published,
-				schema_type: value.schema_type,
+				schema_type: isPlatformAdmin ? value.schema_type : DEFAULT_LISTING_SCHEMA_TYPE,
 				faq: value.faq ?? [],
 				...(listingKind === 'stack' ? { stack_members: stackMembers } : {})
 			};
@@ -528,37 +531,40 @@
 			{/snippet}
 		</form.Field>
 
-		<form.Field name="schema_type">
-			{#snippet children(field)}
-				<div class="flex flex-col gap-2">
-					<Field.Label>Schema type (SEO)</Field.Label>
-					<Field.Description>
-						schema.org type for JSON-LD on the public detail page. Defaults from category for extensions.
-					</Field.Description>
-					<Select.Root
-						type="single"
-						value={field.state.value ?? ''}
-						onValueChange={(value) => field.handleChange((value as ListingSchemaType) || field.state.value)}
-					>
-						<Select.Trigger class="w-full max-w-md">
-							<span class="truncate">
-								{LISTING_SCHEMA_TYPE_LABELS[field.state.value as ListingSchemaType] ??
-									'Select schema type'}
-							</span>
-						</Select.Trigger>
-						<Select.Content>
-							{#each LISTING_SCHEMA_TYPES as schemaType (schemaType)}
-								<Select.Item
-									value={schemaType}
-									label={LISTING_SCHEMA_TYPE_LABELS[schemaType]}
-								/>
-							{/each}
-						</Select.Content>
-					</Select.Root>
-					<Field.Error errors={fieldErrors(field)} />
-				</div>
-			{/snippet}
-		</form.Field>
+		{#if isPlatformAdmin}
+			<form.Field name="schema_type">
+				{#snippet children(field)}
+					<div class="flex flex-col gap-2">
+						<Field.Label>Schema type (SEO)</Field.Label>
+						<Field.Description>
+							schema.org type for JSON-LD on the public detail page. Defaults from category for extensions.
+						</Field.Description>
+						<Select.Root
+							type="single"
+							value={field.state.value ?? ''}
+							onValueChange={(value) =>
+								field.handleChange((value as ListingSchemaType) || field.state.value)}
+						>
+							<Select.Trigger class="w-full max-w-md">
+								<span class="truncate">
+									{LISTING_SCHEMA_TYPE_LABELS[field.state.value as ListingSchemaType] ??
+										'Select schema type'}
+								</span>
+							</Select.Trigger>
+							<Select.Content>
+								{#each LISTING_SCHEMA_TYPES as schemaType (schemaType)}
+									<Select.Item
+										value={schemaType}
+										label={LISTING_SCHEMA_TYPE_LABELS[schemaType]}
+									/>
+								{/each}
+							</Select.Content>
+						</Select.Root>
+						<Field.Error errors={fieldErrors(field)} />
+					</div>
+				{/snippet}
+			</form.Field>
+		{/if}
 
 		{#if slugDisplay}
 			<p class="text-sm text-base-content/70">Slug: <span class="font-mono">{slugDisplay}</span></p>

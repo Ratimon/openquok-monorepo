@@ -7,10 +7,7 @@ import type {
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { ListingFormSchemaType, ListingStackFormSchemaType } from '$lib/listings/listing.types';
 import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
-import {
-	getDefaultSchemaTypeForListingKind,
-	getSchemaTypeForExtensionCategory
-} from '$lib/listings/constants/listingSchemaTypes';
+import { DEFAULT_LISTING_SCHEMA_TYPE } from '$lib/listings/constants/listingSchemaTypes';
 import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 import { buildStackMembersFromSlugs } from '$lib/stack-builder/utils/buildStackMembersFromSlugs';
 import { workflowStepsToBlueprint } from '$lib/stack-builder/utils/workflowStepsToBlueprint';
@@ -204,7 +201,7 @@ export class UserListingEditorPagePresenter {
 				tag_ids: [],
 				is_user_published: false,
 				is_admin_published: false,
-				schema_type: getDefaultSchemaTypeForListingKind('stack'),
+				schema_type: DEFAULT_LISTING_SCHEMA_TYPE,
 				faq: [],
 				stack_members: stackMembers
 			} satisfies Partial<ListingStackFormSchemaType>;
@@ -241,18 +238,14 @@ export class UserListingEditorPagePresenter {
 				tag_ids: [],
 				is_user_published: false,
 				is_admin_published: false,
-				schema_type: getDefaultSchemaTypeForListingKind(this.listingKind),
+				schema_type: DEFAULT_LISTING_SCHEMA_TYPE,
 				faq: [],
 				stack_members: []
 			};
 		}
 
-		const categorySlug = listing.category?.slug;
 		const schemaType =
-			(listing.schemaType as ListingFormSchemaType['schema_type']) ??
-			(this.listingKind === 'extension'
-				? getSchemaTypeForExtensionCategory(categorySlug)
-				: getDefaultSchemaTypeForListingKind('stack'));
+			(listing.schemaType as ListingFormSchemaType['schema_type']) ?? DEFAULT_LISTING_SCHEMA_TYPE;
 		const faq =
 			listing.faq?.map((item) => ({
 				question: item.question ?? '',
