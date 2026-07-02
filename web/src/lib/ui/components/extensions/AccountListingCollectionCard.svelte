@@ -77,9 +77,9 @@
 
 <article
 	class={cn(
-		'relative flex min-w-[15rem] max-w-full flex-1 items-stretch overflow-hidden rounded-xl border bg-base-100 transition-colors',
-		selectable && !selected && 'border-dashed border-primary/35 hover:border-primary/55 hover:bg-primary/5',
-		selectable && selected && 'border-primary bg-primary/5 ring-2 ring-primary/45',
+		'relative flex min-w-[15rem] max-w-full flex-1 items-stretch overflow-hidden rounded-xl border bg-base-200 transition-colors',
+		selectable && !selected && 'border-dashed border-primary/35 hover:border-primary/55 hover:bg-base-300/45',
+		selectable && selected && 'border-primary bg-base-200 ring-2 ring-primary/45',
 		!selectable && 'border-base-300/80',
 		className
 	)}
@@ -90,14 +90,19 @@
 			class={cn(
 				'flex min-w-[3.25rem] shrink-0 flex-col items-center justify-center gap-1.5 border-r px-2 py-3 transition-colors',
 				selected
-					? 'border-primary/30 bg-primary/15 text-primary'
-					: 'border-base-300/60 bg-base-200/50 text-base-content/55 hover:bg-primary/10 hover:text-primary'
+					? 'border-primary/30 bg-primary/20 text-primary'
+					: 'border-base-300/60 bg-base-300/55 text-base-content/55 hover:bg-primary/15 hover:text-primary'
 			)}
 			aria-pressed={selected}
 			aria-label={selected ? `Remove ${item.title} from playbook` : `Add ${item.title} to playbook`}
 			onclick={handleSelectClick}
 		>
-			<Checkbox checked={checked} class="pointer-events-none size-5" tabindex={-1} aria-hidden="true" />
+			<Checkbox
+				checked={checked}
+				class="pointer-events-none size-5 border-primary/50 bg-base-content/12 shadow-none data-[state=unchecked]:border-primary/55 data-[state=unchecked]:bg-base-content/15"
+				tabindex={-1}
+				aria-hidden="true"
+			/>
 			<span class="text-[0.625rem] font-semibold tracking-wide uppercase">
 				{selected ? 'Added' : 'Add'}
 			</span>
