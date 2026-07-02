@@ -1,6 +1,6 @@
 import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 import type { ListingCategoryViewModel } from '$lib/listings/GetListing.presenter.svelte';
-import { sortCategories } from '$lib/listings/utils/parentPathCreator';
+import { sortCategories } from '$lib/listings/utils/listingCategories';
 
 export class AdminListingCategoriesManagerPagePresenter {
 	public allCategoriesToManageVm: ListingCategoryViewModel[] = $state([]);

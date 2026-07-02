@@ -13,7 +13,7 @@
 	import { route, url } from '$lib/utils/path';
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
-	import { showListingBookmarkToast } from '$lib/listings/utils/listingBookmarkFeedback';
+	import { showListingBookmarkToast } from '$lib/listings';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';

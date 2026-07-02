@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseListingMarkdown } from '$lib/listings/utils/parseListingMarkdown';
+	import { parseListingMarkdown } from '$lib/listings/utils/listingMarkdown';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import {

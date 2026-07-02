@@ -7,7 +7,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Checkbox from '$lib/ui/checkbox/checkbox.svelte';
 	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
-	import { getListingPublishStatusBadge } from '$lib/listings/utils/listingPublishStatusBadge';
+	import { getListingPublishStatusBadge } from '$lib/listings/GetListing.presenter.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 
 	type ToggleResult = { ok: true; bookmarked: boolean } | { ok: false; error: string };

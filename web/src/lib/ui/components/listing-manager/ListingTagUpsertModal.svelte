@@ -2,7 +2,7 @@
 	import type { ListingTagViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import { listingTagFormSchema } from '$lib/listings/listing.types';
 	import { upsertListingTagModalPresenter } from '$lib/listings';
-	import { buildListingTagViewModelFromUpsert } from '$lib/listings/utils';
+	import { buildListingTagViewModelFromUpsert } from '$lib/listings/UpsertListingTagModal.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';

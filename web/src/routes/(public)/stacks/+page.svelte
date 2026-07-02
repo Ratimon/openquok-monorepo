@@ -5,14 +5,13 @@
 	import { browser } from '$app/environment';
 
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { publicStacksPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
-	import {
-		loadBookmarkedIdsMap,
-		toggleListingBookmark
-	} from '$lib/listings/utils/listingBookmarkFeedback';
+	import { showListingBookmarkToast } from '$lib/listings';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
+	import { toast } from '$lib/ui/sonner';
 
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StackHubCard from '$lib/ui/templates/stacks/StackHubCard.svelte';
@@ -28,6 +27,8 @@
 	let schemaData = $derived(data.schemaData);
 	let searchTerm = $derived(data.searchTerm ?? '');
 	let searchDraft = $state('');
+
+	const pagePresenter = publicStacksPagePresenter;
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
@@ -62,7 +63,7 @@
 		if (bookmarksPaidEnabled !== true) return;
 
 		let cancelled = false;
-		void loadBookmarkedIdsMap().then((map) => {
+		void pagePresenter.loadBookmarkedIdsMap().then((map) => {
 			if (!cancelled) bookmarkedIds = map;
 		});
 		return () => {
@@ -71,9 +72,12 @@
 	});
 
 	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
-		const result = await toggleListingBookmark(listingId, nextBookmarked, { listingKind: 'stack' });
+		const result = await pagePresenter.toggleBookmark(listingId, nextBookmarked, 'stack');
 		if (result.ok) {
 			bookmarkedIds = { ...bookmarkedIds, [listingId]: nextBookmarked };
+			showListingBookmarkToast(nextBookmarked, 'stack');
+		} else {
+			toast.error(result.error);
 		}
 		return result;
 	}

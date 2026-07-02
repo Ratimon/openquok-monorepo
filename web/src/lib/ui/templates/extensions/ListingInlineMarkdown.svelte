@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { parseInlineMarkdown } from '$lib/listings/utils/inlineMarkdown';
+	import { parseInlineMarkdown } from '$lib/listings/utils/listingMarkdown';
 	import { externalLinkRelForHref } from '$lib/utils/externalLinkRel';
 
 	import { Badge } from '$lib/ui/badge';

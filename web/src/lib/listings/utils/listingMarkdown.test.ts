@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { inlineCodeShouldRenderAsBadge, parseInlineMarkdown } from '$lib/listings/utils/inlineMarkdown';
-import { parseListingMarkdown } from '$lib/listings/utils/parseListingMarkdown';
-import { markdownToHtml } from '$lib/listings/utils/markdownToHtml';
+import {
+	inlineCodeShouldRenderAsBadge,
+	markdownToHtml,
+	parseInlineMarkdown,
+	parseListingMarkdown
+} from '$lib/listings/utils/listingMarkdown';
 
 describe('inlineCodeShouldRenderAsBadge', () => {
 	it('flags CLI commands and API keys', () => {

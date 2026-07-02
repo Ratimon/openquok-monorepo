@@ -15,9 +15,6 @@ import type { GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svel
 
 import { isPaidSubscriptionTier } from 'openquok-common';
 
-import { buildExtensionsTagFilterVm } from '$lib/listings/utils/buildExtensionsTagFilterVm';
-import { listingInitials } from '$lib/listings/utils/listingInitials';
-
 export type AccountExtensionsBookmarkMutationViewModel =
 	| { ok: true; bookmarked: boolean }
 	| { ok: false; error: string };
@@ -54,6 +51,16 @@ const DEFAULT_EXPLORE_FILTERS: AccountExploreFilters = {
 	listingKind: 'all',
 	bookmarkedOnly: false
 };
+
+function listingInitials(title: string): string {
+	const trimmed = title.trim();
+	if (!trimmed) return '?';
+	const parts = trimmed.split(/\s+/).filter(Boolean);
+	if (parts.length >= 2) {
+		return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
+	}
+	return trimmed.slice(0, 2).toUpperCase();
+}
 
 function mutationPmToVm(
 	pm: ListingUpsertProgrammerModel,
@@ -372,7 +379,7 @@ export class ProtectedAccountExtensionsPagePresenter {
 				name: category.name,
 				slug: category.slug
 			}));
-			this.exploreTagFilterVm = buildExtensionsTagFilterVm({
+			this.exploreTagFilterVm = this.getListingPresenter.buildExtensionsTagFilterVm({
 				tagsCatalog,
 				extensions: [
 					...this.exploreExtensionCardsVm,

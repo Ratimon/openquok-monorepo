@@ -1,5 +1,3 @@
-type FieldErrorLike = { message?: string };
-
 export function getFieldErrorMessages(errors: unknown): string[] {
 	if (!errors || !Array.isArray(errors)) return [];
 	return errors

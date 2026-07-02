@@ -4,7 +4,9 @@ import type {
 	ExtensionSort,
 	ExtensionTypeFilter,
 	ExtensionsHubFilters,
-	ExtensionsTagFilterViewModel
+	ExtensionsTagFilterViewModel,
+	ExtensionTagFilterChip,
+	ExtensionTagGroupFilterChip
 } from '$lib/listings/listing.types';
 import type {
 	AdminListingActivityProgrammerModel,
@@ -18,7 +20,129 @@ import type {
 	McpTransport
 } from '$lib/listings/Listing.repository.svelte';
 import type { ListingFaqItemProgrammerModel, StackBlueprintProgrammerModel } from '$lib/listings/listing.types';
-import { buildExtensionsTagFilterVm } from '$lib/listings/utils/buildExtensionsTagFilterVm';
+
+import { stringToSlug } from '$lib/ui/helpers/common';
+import { toast } from '$lib/ui/sonner';
+
+export type ListingBookmarkKind = 'extension' | 'stack';
+
+export type ListingPublishStatus = 'draft' | 'awaiting_approval' | 'published';
+
+export type ListingPublishStatusBadge = {
+	status: ListingPublishStatus;
+	label: string;
+	className: string;
+};
+
+export function getListingPublishStatusBadge(
+	isUserPublished?: boolean,
+	isAdminPublished?: boolean
+): ListingPublishStatusBadge | null {
+	if (isUserPublished == null && isAdminPublished == null) return null;
+
+	if (!isUserPublished) {
+		return {
+			status: 'draft',
+			label: 'Draft',
+			className: 'badge badge-info badge-sm'
+		};
+	}
+
+	if (!isAdminPublished) {
+		return {
+			status: 'awaiting_approval',
+			label: 'Awaiting approval',
+			className: 'badge badge-warning badge-sm'
+		};
+	}
+
+	return {
+		status: 'published',
+		label: 'Published',
+		className: 'badge badge-success badge-sm'
+	};
+}
+
+export type ListingBookmarkToggleResultViewModel =
+	| { ok: true; bookmarked: boolean }
+	| { ok: false; error: string };
+
+export function showListingBookmarkToast(
+	bookmarked: boolean,
+	listingKind: ListingBookmarkKind = 'extension'
+): void {
+	const label = listingKind === 'stack' ? 'Stack' : 'Extension';
+	if (bookmarked) {
+		toast.success(`${label} bookmarked. View it under Viral Formats → Explore → Bookmarked.`);
+	} else {
+		toast.success('Bookmark removed.');
+	}
+}
+
+function countExtensionsWithTag(extensions: ExtensionCardViewModel[], tagSlug: string): number {
+	return extensions.filter((row) => row.tags.some((tag) => tag.slug === tagSlug)).length;
+}
+
+function countExtensionsWithAnyTag(
+	extensions: ExtensionCardViewModel[],
+	tagSlugs: readonly string[]
+): number {
+	if (tagSlugs.length === 0) return 0;
+	const slugSet = new Set(tagSlugs);
+	return extensions.filter((row) => row.tags.some((tag) => slugSet.has(tag.slug))).length;
+}
+
+function buildExtensionsTagFilterVm(params: {
+	tagsCatalog: ListingTagProgrammerModel[];
+	extensions: ExtensionCardViewModel[];
+}): ExtensionsTagFilterViewModel {
+	const { tagsCatalog, extensions } = params;
+
+	const groupMap = new Map<string, ExtensionTagGroupFilterChip>();
+
+	for (const tag of tagsCatalog) {
+		for (const group of tag.tagGroups) {
+			const slug = stringToSlug(group.name);
+			const existing = groupMap.get(slug);
+			if (existing) {
+				if (!existing.tagSlugs.includes(tag.slug)) {
+					existing.tagSlugs.push(tag.slug);
+				}
+				continue;
+			}
+			groupMap.set(slug, {
+				slug,
+				label: group.name,
+				count: 0,
+				tagSlugs: [tag.slug]
+			});
+		}
+	}
+
+	const groups = [...groupMap.values()]
+		.map((group) => ({
+			...group,
+			count: countExtensionsWithAnyTag(extensions, group.tagSlugs),
+			tagSlugs: [...group.tagSlugs].sort((a, b) => a.localeCompare(b))
+		}))
+		.sort((a, b) => a.label.localeCompare(b.label));
+
+	const tags: ExtensionTagFilterChip[] = tagsCatalog
+		.map((tag) => ({
+			slug: tag.slug,
+			label: tag.name,
+			count: countExtensionsWithTag(extensions, tag.slug),
+			color: tag.color,
+			groupSlugs: tag.tagGroups.map((group) => stringToSlug(group.name))
+		}))
+		.sort((a, b) => a.label.localeCompare(b.label));
+
+	return {
+		groups,
+		tags,
+		totalCount: extensions.length
+	};
+}
 
 /** View model for admin listings list (e.g. extensions manager page). */
 export interface ListingViewModel {

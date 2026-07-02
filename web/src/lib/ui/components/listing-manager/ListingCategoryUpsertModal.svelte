@@ -2,8 +2,8 @@
 	import type { ListingCategoryViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import { listingCategoryFormSchema } from '$lib/listings/listing.types';
 	import { upsertListingCategoryModalPresenter } from '$lib/listings';
-	import { buildListingCategoryViewModelFromUpsert } from '$lib/listings/utils';
-	import { createSortedCategoryChoices } from '$lib/listings/utils/parentPathCreator';
+	import { buildListingCategoryViewModelFromUpsert } from '$lib/listings/UpsertListingCategoryModal.presenter.svelte';
+	import { createSortedCategoryChoices } from '$lib/listings/utils/listingCategories';
 
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';

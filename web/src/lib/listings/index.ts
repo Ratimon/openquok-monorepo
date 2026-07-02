@@ -155,6 +155,11 @@ export type {
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';
-export { markdownToHtml } from '$lib/listings/utils/markdownToHtml';
-export { mergeListingSchemaIntoGraph } from '$lib/listings/utils/mergeListingSchemaJson';
-export { createSortedCategoryChoices } from '$lib/listings/utils/parentPathCreator';
+export { markdownToHtml } from '$lib/listings/utils/listingMarkdown';
+export { mergeListingSchemaIntoGraph } from '$lib/listings/utils/listingSchema';
+export { createSortedCategoryChoices } from '$lib/listings/utils/listingCategories';
+export {
+	showListingBookmarkToast,
+	type ListingBookmarkKind,
+	type ListingBookmarkToggleResultViewModel
+} from '$lib/listings/GetListing.presenter.svelte';

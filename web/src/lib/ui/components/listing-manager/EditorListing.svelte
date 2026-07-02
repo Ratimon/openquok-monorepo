@@ -16,7 +16,7 @@
 		getSchemaTypeForExtensionCategory,
 		type ListingSchemaType
 	} from '$lib/listings/constants/listingSchemaTypes';
-	import { collectFormErrorMessages } from '$lib/listings/utils/collectFormErrors';
+	import { collectFormErrorMessages } from '$lib/listings/utils/listingForm';
 	import { arraysEqual } from '$lib/ui/helpers/common';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import EditorListingValidationNotice from '$lib/ui/components/listing-manager/EditorListingValidationNotice.svelte';

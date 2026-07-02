@@ -37,12 +37,15 @@ const publicAgentsPagePresenter = new PublicAgentsPagePresenter();
 const publicAgentByPagePresenter = new PublicAgentByPagePresenter();
 const publicChannelsPagePresenter = new PublicChannelsPagePresenter();
 const publicChannelByPagePresenter = new PublicChannelByPagePresenter();
-const publicExtensionsPagePresenter = new PublicExtensionsPagePresenter(getListingPresenter);
+const publicExtensionsPagePresenter = new PublicExtensionsPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
 const publicExtensionBySlugPagePresenter = new PublicExtensionBySlugPagePresenter(
 	getListingPresenter,
 	listingRepository
 );
-const publicStacksPagePresenter = new PublicStacksPagePresenter(getListingPresenter);
+const publicStacksPagePresenter = new PublicStacksPagePresenter(getListingPresenter, listingRepository);
 const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(
 	getListingPresenter,
 	listingRepository

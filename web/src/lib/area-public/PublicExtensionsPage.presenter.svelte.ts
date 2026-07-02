@@ -4,9 +4,12 @@ import type {
 	ExtensionsHubStatsViewModel,
 	ExtensionsHubViewModel,
 	ExtensionsTagFilterViewModel,
-	GetListingPresenter
+	GetListingPresenter,
+	ListingBookmarkKind,
+	ListingBookmarkToggleResultViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
+import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 
 export type {
 	ExtensionCardViewModel,
@@ -26,7 +29,10 @@ export class PublicExtensionsPagePresenter {
 		categories: 0
 	});
 
-	constructor(private readonly getListingPresenter: GetListingPresenter) {}
+	constructor(
+		private readonly getListingPresenter: GetListingPresenter,
+		private readonly listingRepository: ListingRepository
+	) {}
 
 	parseFiltersFromUrl(searchParams: URLSearchParams): ExtensionsHubFilters {
 		return this.getListingPresenter.parseHubFiltersFromUrl(searchParams);
@@ -78,5 +84,22 @@ export class PublicExtensionsPagePresenter {
 			this.filteredExtensionsVm = this.applyClientFilters(this.hubVm.extensions, nextFilters);
 		}
 		return this.buildFilterUrl(pathname, nextFilters, {});
+	}
+
+	async loadBookmarkedIdsMap(fetch?: typeof globalThis.fetch): Promise<Record<string, boolean>> {
+		const listings = await this.listingRepository.getMyBookmarks(fetch);
+		return Object.fromEntries(listings.map((listing) => [listing.id, true]));
+	}
+
+	async toggleBookmark(
+		listingId: string,
+		nextBookmarked: boolean,
+		_listingKind: ListingBookmarkKind = 'extension'
+	): Promise<ListingBookmarkToggleResultViewModel> {
+		const resultPm = nextBookmarked
+			? await this.listingRepository.addBookmark(listingId)
+			: await this.listingRepository.removeBookmark(listingId);
+		if (!resultPm.ok) return { ok: false, error: resultPm.error };
+		return { ok: true, bookmarked: nextBookmarked };
 	}
 }

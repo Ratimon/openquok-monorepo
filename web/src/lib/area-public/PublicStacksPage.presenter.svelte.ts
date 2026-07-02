@@ -1,6 +1,8 @@
 import type {
 	ExtensionDetailViewModel,
 	GetListingPresenter,
+	ListingBookmarkKind,
+	ListingBookmarkToggleResultViewModel,
 	StackCardViewModel,
 	StackDetailViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
@@ -16,7 +18,10 @@ function mutationPmToVm(pm: ListingUpsertProgrammerModel): PublicStackMutationRe
 }
 
 export class PublicStacksPagePresenter {
-	constructor(private readonly getListingPresenter: GetListingPresenter) {}
+	constructor(
+		private readonly getListingPresenter: GetListingPresenter,
+		private readonly listingRepository: ListingRepository
+	) {}
 
 	async loadStacksHubStateless(params: {
 		fetch?: typeof globalThis.fetch;
@@ -28,6 +33,23 @@ export class PublicStacksPagePresenter {
 			fetch: params.fetch,
 			searchTerm: params.searchTerm
 		});
+	}
+
+	async loadBookmarkedIdsMap(fetch?: typeof globalThis.fetch): Promise<Record<string, boolean>> {
+		const listings = await this.listingRepository.getMyBookmarks(fetch);
+		return Object.fromEntries(listings.map((listing) => [listing.id, true]));
+	}
+
+	async toggleBookmark(
+		listingId: string,
+		nextBookmarked: boolean,
+		_listingKind: ListingBookmarkKind = 'stack'
+	): Promise<ListingBookmarkToggleResultViewModel> {
+		const resultPm = nextBookmarked
+			? await this.listingRepository.addBookmark(listingId)
+			: await this.listingRepository.removeBookmark(listingId);
+		if (!resultPm.ok) return { ok: false, error: resultPm.error };
+		return { ok: true, bookmarked: nextBookmarked };
 	}
 }
 

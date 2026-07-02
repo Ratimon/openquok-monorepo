@@ -17,8 +17,7 @@
 	} from '$lib/area-protected';
 	import { getRootPathPublicExtension } from '$lib/area-public/constants/getRootPathPublicExtensions';
 	import { getRootPathPublicStack } from '$lib/area-public/constants/getRootPathPublicStacks';
-	import { deleteMyListingVerificationPresenter } from '$lib/listings';
-	import { showListingBookmarkToast } from '$lib/listings/utils/listingBookmarkFeedback';
+	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
 	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
 	import { buildStackDraftFromExtensionSelection } from '$lib/stack-builder/utils/buildStackDraftFromExtensionSelection';
 	import { route, url } from '$lib/utils/path';

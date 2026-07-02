@@ -16,7 +16,7 @@
 		Row as TableRow
 	} from '$lib/ui/table';
 	import ListingCategoryUpsertModal from '$lib/ui/components/listing-manager/ListingCategoryUpsertModal.svelte';
-	import { createSortedCategoryChoices } from '$lib/listings/utils/parentPathCreator';
+	import { createSortedCategoryChoices } from '$lib/listings/utils/listingCategories';
 
 	type Props = {
 		categoriesVm: ListingCategoryViewModel[];
