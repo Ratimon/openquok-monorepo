@@ -8,13 +8,14 @@
 
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
-	import { saveSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
+	import { saveSkillBuilderStackDraft, readSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 	import { buildSkillBuilderStackDraft } from '$lib/stack-builder/utils/buildSkillBuilderStackDraft';
 	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
 	import { getListingPresenter } from '$lib/listings';
@@ -88,6 +89,8 @@
 
 	let exportMarkdown = $state('');
 	let exportMarkdownEdited = $state(false);
+	let pendingDraftExtensionIdsBySlug = $state<Record<string, string>>({});
+	let pendingDraftExtensionTypesBySlug = $state<Record<string, string | null>>({});
 
 	$effect(() => {
 		const key = serverHydrationKey;
@@ -102,6 +105,26 @@
 	$effect(() => {
 		if (exportMarkdownEdited) return;
 		exportMarkdown = generatedMarkdown;
+	});
+
+	onMount(() => {
+		const pendingDraft = readSkillBuilderStackDraft();
+		if (!pendingDraft || stackSlug) return;
+
+		pendingDraftExtensionIdsBySlug = { ...pendingDraft.extensionIdsBySlug };
+		pendingDraftExtensionTypesBySlug = { ...(pendingDraft.extensionTypesBySlug ?? {}) };
+
+		if (pendingDraft.workflowSteps.length > 0) {
+			workflowSteps = pendingDraft.workflowSteps.map((step) => ({
+				...step,
+				id: step.id || nanoid()
+			}));
+		}
+
+		if (pendingDraft.markdown.trim()) {
+			exportMarkdown = pendingDraft.markdown;
+			exportMarkdownEdited = true;
+		}
 	});
 
 	function markExportMarkdownEdited() {
@@ -148,7 +171,9 @@
 			markdown: exportMarkdown.trim() || generatedMarkdown,
 			extensionSlugs: activeExtensionSlugs,
 			workflowSteps,
-			extensions: extensionDetails
+			extensions: extensionDetails,
+			extensionIdsBySlugOverride: pendingDraftExtensionIdsBySlug,
+			extensionTypesBySlugOverride: pendingDraftExtensionTypesBySlug
 		});
 		saveSkillBuilderStackDraft(draft);
 		void goto(newStackHref);

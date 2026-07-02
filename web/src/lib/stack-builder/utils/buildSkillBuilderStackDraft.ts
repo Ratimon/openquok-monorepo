@@ -8,16 +8,20 @@ export function buildSkillBuilderStackDraft(params: {
 	extensionSlugs: string[];
 	workflowSteps: StackBuilderWorkflowStepViewModel[];
 	extensions: ExtensionDetailViewModel[];
+	extensionIdsBySlugOverride?: Record<string, string>;
+	extensionTypesBySlugOverride?: Record<string, string | null>;
 }): SkillBuilderStackDraft {
-	const extensionIdsBySlug = Object.fromEntries(
-		params.extensions.map((extension) => [extension.slug, extension.id])
-	);
+	const extensionIdsBySlug = {
+		...params.extensionIdsBySlugOverride,
+		...Object.fromEntries(params.extensions.map((extension) => [extension.slug, extension.id]))
+	};
 
 	return {
 		title: params.title,
 		markdown: params.markdown,
 		extensionSlugs: params.extensionSlugs,
 		workflowSteps: params.workflowSteps,
-		extensionIdsBySlug
+		extensionIdsBySlug,
+		extensionTypesBySlug: params.extensionTypesBySlugOverride
 	};
 }

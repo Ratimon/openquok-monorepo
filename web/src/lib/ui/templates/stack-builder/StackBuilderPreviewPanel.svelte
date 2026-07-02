@@ -17,7 +17,7 @@
 		downloadFilename = 'SKILL.md',
 		onMarkdownEdit,
 		onSaveAsStack,
-		saveAsStackLabel = 'Publish as stack'
+		saveAsStackLabel = 'Save as playbook'
 	}: Props = $props();
 
 	function handleDownload() {

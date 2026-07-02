@@ -10,16 +10,20 @@
 	import {
 		getRootPathAccount,
 		getAccountNewBuildingBlockPath,
-		getAccountNewPlaybookPath,
 		getAccountBuildingBlockEditorPath,
 		getAccountPlaybookEditorPath,
 		protectedAccountExtensionsPagePresenter
 	} from '$lib/area-protected';
 	import { getRootPathPublicBuildingBlock, getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybook, getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
-	import { saveSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
+	import {
+		clearSkillBuilderStackDraft,
+		saveSkillBuilderStackDraft
+	} from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 	import { buildStackDraftFromExtensionSelection } from '$lib/stack-builder/utils/buildStackDraftFromExtensionSelection';
+	import { serializeExtensionSlugs } from '$lib/stack-builder/utils/parseBuilderQuery';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
@@ -42,7 +46,9 @@
 	const publicPlaybooksHref = url(`/${getRootPathPublicPlaybooks()}`);
 	const publicBuildingBlocksHref = url(`/${getRootPathPublicBuildingBlocks()}`);
 	const newExtensionHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
-	const newStackHref = url(`${route(getRootPathAccount())}/${getAccountNewPlaybookPath()}`);
+	// /tools/skill-builder
+	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
+	const newStackHref = url(route(rootPathPublicSkillBuilder));
 
 	const exploreFilters = $derived(pagePresenter.exploreFilters);
 	const exploreCategories = $derived(pagePresenter.exploreCategoriesVm);
@@ -185,6 +191,11 @@
 		pagePresenter.toggleExtensionSelection(listingId);
 	}
 
+	function handleNewPlaybook() {
+		clearSkillBuilderStackDraft();
+		void goto(newStackHref);
+	}
+
 	function handleCreateStackFromSelection() {
 		const selected = pagePresenter.getSelectedExtensions();
 		if (selected.length === 0) {
@@ -200,7 +211,9 @@
 		);
 		saveSkillBuilderStackDraft(draft);
 		pagePresenter.clearExtensionSelection();
-		void goto(newStackHref);
+		const params = new URLSearchParams();
+		params.set('extensions', serializeExtensionSlugs(draft.extensionSlugs));
+		void goto(`${newStackHref}?${params.toString()}`);
 	}
 
 	function handleBookmarkedFilterToggle() {
@@ -245,7 +258,7 @@
 		<div class="flex flex-wrap items-center gap-2">
 			{#if activeTab === 'mine'}
 				<Button href={newExtensionHref} variant="outline" size="sm">New building block</Button>
-				<Button href={newStackHref} variant="primary" size="sm">New playbook</Button>
+				<Button variant="primary" size="sm" onclick={handleNewPlaybook}>New playbook</Button>
 			{/if}
 		</div>
 	</div>
