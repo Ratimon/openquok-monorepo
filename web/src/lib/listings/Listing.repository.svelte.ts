@@ -279,6 +279,7 @@ export interface ListingConfig {
 		upsertListingRating: (listingId: string) => string;
 		cloneStack: (stackId: string) => string;
 		getMyBookmarks: string;
+		getMyListingStats: string;
 		getMyListings: string;
 		getMyListingById: (id: string) => string;
 		createMyListing: string;
@@ -293,6 +294,21 @@ export interface GetListingResponseDto {
 	success: boolean;
 	data: ListingDto;
 	message?: string;
+}
+
+export interface GetOwnedListingStatsResponseDto {
+	success: boolean;
+	data: OwnedListingStatsProgrammerModel;
+	message?: string;
+}
+
+export interface OwnedListingStatsProgrammerModel {
+	totalListings: number;
+	totalLikes: number;
+	totalViews: number;
+	totalClicks: number;
+	totalRatings: number;
+	totalBookmarks: number;
 }
 
 export interface GetListingsCollectionResponseDto {
@@ -1028,6 +1044,20 @@ export class ListingRepository {
 			};
 		}
 		return { listings: [], count: 0 };
+	}
+
+	async getOwnedListingStats(
+		fetch?: typeof globalThis.fetch
+	): Promise<OwnedListingStatsProgrammerModel | null> {
+		const { data: ownedListingStatsDto, ok } = await this.httpGateway.get<GetOwnedListingStatsResponseDto>(
+			this.config.endpoints.getMyListingStats,
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && ownedListingStatsDto?.success && ownedListingStatsDto.data) {
+			return ownedListingStatsDto.data;
+		}
+		return null;
 	}
 
 	async getMyListingById(id: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {

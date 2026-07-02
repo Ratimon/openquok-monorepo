@@ -33,6 +33,16 @@ const TABLE_STACK_MEMBERS = "listing_stack_members";
 const TABLE_LISTING_RATINGS = "listing_ratings";
 
 const RPC_GET_LISTING_CREATORS = "get_listing_creators";
+const RPC_GET_LISTING_STATISTICS = "get_listing_statistics";
+
+export type ListingStatisticsProgrammerModel = {
+    totalListings: number;
+    totalLikes: number;
+    totalViews: number;
+    totalClicks: number;
+    totalRatings: number;
+    totalBookmarks: number;
+};
 
 const SELECT_LISTING = `
   id,
@@ -1215,6 +1225,38 @@ export class ListingRepository {
                     : null,
             };
         });
+    }
+
+    async findListingStatsByOwnerId(ownerId: string): Promise<ListingStatisticsProgrammerModel> {
+        const { data, error } = await this.supabase.rpc(RPC_GET_LISTING_STATISTICS, {
+            logged_user_id: ownerId,
+        });
+
+        if (error) {
+            throw new DatabaseError(`Error fetching listing statistics: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "rpc",
+                resource: { type: "function", name: RPC_GET_LISTING_STATISTICS },
+            });
+        }
+
+        const stats = (data ?? {}) as {
+            total_listings?: number;
+            total_likes?: number;
+            total_views?: number;
+            total_clicks?: number;
+            total_ratings?: number;
+            total_bookmarks?: number;
+        };
+
+        return {
+            totalListings: stats.total_listings ?? 0,
+            totalLikes: stats.total_likes ?? 0,
+            totalViews: stats.total_views ?? 0,
+            totalClicks: stats.total_clicks ?? 0,
+            totalRatings: stats.total_ratings ?? 0,
+            totalBookmarks: stats.total_bookmarks ?? 0,
+        };
     }
 
     private mapListingCommentRows(rows: unknown[]): ListingComment[] {

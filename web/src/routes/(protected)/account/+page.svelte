@@ -55,6 +55,7 @@
 	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import AccountGettingStartedSection from '$lib/ui/components/home/AccountGettingStartedSection.svelte';
+	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
@@ -213,6 +214,12 @@
 	);
 	const allowedPostsPerMonthVm = $derived(
 		firstBillingGatePresenter.pricingVm?.currentVm?.posts?.limit ?? null
+	);
+	const storageUsedBytesVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.drive?.used ?? 0
+	);
+	const storageTotalBytesVm = $derived(
+		firstBillingGatePresenter.pricingVm?.currentVm?.drive?.total ?? 0
 	);
 	const isSoloPlanVm = $derived(
 		(ownedAccountTierVm ?? subscriptionTierVm) === 'SOLO'
@@ -965,7 +972,7 @@
 	</div>
 	{#if listStatus === 'ready' && connectedChannelCountVm === 0}
 		<p class="mt-2 text-base-content/80">
-			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! You are at the
+			Welcome{currentUser?.fullName ? `, ${currentUser.fullName}` : ''}! You are currently on the
 			<a class="link link-primary font-medium" href={accountBillingHref}>{currentPlanLabel}</a>
 			plan — <a class="link link-primary font-medium" href={accountBillingHref}>view available plans</a>.
 		</p>
@@ -985,6 +992,20 @@
 			channels.
 		</p>
 	{/if}
+
+	<AccountPlanOverviewSection
+		planLabel={currentPlanLabel}
+		billingHref={accountBillingHref}
+		ownedWorkspaceCount={myWorkspacesOwnedCount}
+		allowedWorkspaceCount={allowedWorkspaceCountVm}
+		connectedChannelCount={connectedChannelCountVm}
+		allowedChannelCount={allowedChannelCountVm}
+		teamMemberCount={currentWorkspaceMemberCountVm}
+		allowedTeamMemberCount={allowedMemberCountPerWorkspaceVm}
+		storageUsedBytes={storageUsedBytesVm}
+		storageTotalBytes={storageTotalBytesVm}
+	/>
+
 	<MyWorkspacesSection
 		cardsVm={myWorkspacesCardsVm}
 		status={myWorkspacesStatus}

@@ -79,9 +79,22 @@
 </script>
 
 <section class="mt-6" aria-labelledby="my-workspaces-heading">
-	<h2 id="my-workspaces-heading" class="text-xl font-bold text-base-content">
-		My workspaces
-	</h2>
+	<div class="flex flex-wrap items-center justify-between gap-2">
+		<h2 id="my-workspaces-heading" class="text-xl font-bold text-base-content">
+			My workspaces
+			{#if workspaceCountLabel}
+				<span class={isWorkspaceLimitFull ? 'text-warning' : 'text-base-content/70'}>
+					({workspaceCountLabel})
+				</span>
+			{/if}
+		</h2>
+		{#if showUpgradeCta && billingHref && showWorkspaceGrid}
+			<Button href={billingHref} variant="outline" size="sm" class="gap-1.5">
+				<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
+				Upgrade plan
+			</Button>
+		{/if}
+	</div>
 
 	<div class="mt-4">
 		{#if status === 'loading' || status === 'idle'}
@@ -102,24 +115,7 @@
 				</p>
 			{/if}
 
-			<section class="space-y-4" aria-labelledby="owned-workspaces-heading">
-				<div class="flex flex-wrap items-center justify-between gap-2">
-					<h3 id="owned-workspaces-heading" class="text-base font-semibold text-base-content">
-						Your workspaces
-						{#if workspaceCountLabel}
-							<span class={isWorkspaceLimitFull ? 'text-warning' : 'text-base-content/70'}>
-								({workspaceCountLabel})
-							</span>
-						{/if}
-					</h3>
-					{#if showUpgradeCta && billingHref}
-						<Button href={billingHref} variant="outline" size="sm" class="gap-1.5">
-							<AbstractIcon name={icons.ArrowUp.name} class="size-4" width="16" height="16" />
-							Upgrade plan
-						</Button>
-					{/if}
-				</div>
-
+			<section class="space-y-4">
 				<HomeAccountNoticeBanner
 					iconName={icons.Info.name}
 					tone="neutral"

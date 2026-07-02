@@ -1,4 +1,4 @@
-import type { ListingRepository } from "../repositories/ListingRepository";
+import type { ListingRepository, ListingStatisticsProgrammerModel } from "../repositories/ListingRepository";
 import type { ListingCategoryRepository } from "../repositories/ListingCategoryRepository";
 import type { ListingTagRepository } from "../repositories/ListingTagRepository";
 import type { ConfigRepository } from "../repositories/ConfigRepository";
@@ -207,6 +207,10 @@ export class ListingService {
     async getCreatorListings(username: string): Promise<ListingLike[]> {
         const { data } = await this.listingRepository.findListingsByOwnerUsername(username);
         return data;
+    }
+
+    async getOwnedListingStats(ownerId: string): Promise<ListingStatisticsProgrammerModel> {
+        return this.listingRepository.findListingStatsByOwnerId(ownerId);
     }
 
     async incrementStatCounter(

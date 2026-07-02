@@ -15,8 +15,8 @@
 		getAccountPlaybookEditorPath,
 		protectedAccountExtensionsPagePresenter
 	} from '$lib/area-protected';
-	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-	import { getRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicBuildingBlock, getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicPlaybook, getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
 	import { saveAgentBuilderStackDraft } from '$lib/stack-builder/constants/agentBuilderDraftStorage';
 	import { buildStackDraftFromExtensionSelection } from '$lib/stack-builder/utils/buildStackDraftFromExtensionSelection';
@@ -28,6 +28,7 @@
 	import * as Tabs from '$lib/ui/tabs';
 	import AccountViralFormatsExploreTab from '$lib/ui/components/extensions/AccountViralFormatsExploreTab.svelte';
 	import AccountViralFormatsMineTab from '$lib/ui/components/extensions/AccountViralFormatsMineTab.svelte';
+	import AccountPlaybooksStatsSection from '$lib/ui/components/home/AccountPlaybooksStatsSection.svelte';
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 
 	type Props = { data: PageData };
@@ -38,6 +39,8 @@
 	const pagePresenter = protectedAccountExtensionsPagePresenter;
 
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
+	const publicPlaybooksHref = url(`/${getRootPathPublicPlaybooks()}`);
+	const publicBuildingBlocksHref = url(`/${getRootPathPublicBuildingBlocks()}`);
 	const newExtensionHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
 	const newStackHref = url(`${route(getRootPathAccount())}/${getAccountNewPlaybookPath()}`);
 
@@ -55,6 +58,9 @@
 	const loadingOwn = $derived(pagePresenter.loadingOwn);
 	const bookmarksPaidEnabled = $derived(pagePresenter.bookmarksPaidEnabled);
 	const bookmarkCount = $derived(pagePresenter.bookmarkCount);
+	const listingHubStatsVm = $derived(pagePresenter.listingHubStatsVm);
+	const ownPublishedExtensionCount = $derived(pagePresenter.ownPublishedExtensionCount);
+	const ownPublishedStackCount = $derived(pagePresenter.ownPublishedStackCount);
 	const selectedCount = $derived(pagePresenter.selectedExtensionCount);
 	const togglingBookmarkId = $derived(pagePresenter.togglingBookmarkId);
 	const isLoggedIn = $derived(data.isLoggedIn === true);
@@ -111,7 +117,11 @@
 		if (!browser) return;
 		void (async () => {
 			const paid = await pagePresenter.loadBillingGateStateless();
-			await Promise.all([pagePresenter.loadExploreCatalog(), pagePresenter.loadOwnListings()]);
+			await Promise.all([
+				pagePresenter.loadExploreCatalog(),
+				pagePresenter.loadOwnListings(),
+				pagePresenter.loadListingHubStats()
+			]);
 			if (paid) {
 				await pagePresenter.loadBookmarks();
 			}
@@ -290,7 +300,16 @@
 			/>
 		</Tabs.Content>
 
-		<Tabs.Content value="mine" class="mt-0">
+		<Tabs.Content value="mine" class="mt-0 space-y-5">
+			<AccountPlaybooksStatsSection
+				buildingBlockCount={ownExtensions.length}
+				publishedBuildingBlockCount={ownPublishedExtensionCount}
+				playbookCount={ownStacks.length}
+				publishedPlaybookCount={ownPublishedStackCount}
+				hubStats={listingHubStatsVm}
+				{publicPlaybooksHref}
+				{publicBuildingBlocksHref}
+			/>
 			<AccountViralFormatsMineTab
 				extensions={ownExtensions}
 				stacks={ownStacks}

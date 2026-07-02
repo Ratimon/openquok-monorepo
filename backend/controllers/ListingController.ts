@@ -650,6 +650,24 @@ export class ListingController {
         }
     };
 
+    getOwnedListingStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const userId = authReq.user?.publicId;
+            if (!userId) {
+                res.status(401).json({ error: "Authentication required" });
+                return;
+            }
+            const stats = await this.listingService.getOwnedListingStats(userId);
+            res.status(200).json({
+                success: true,
+                data: stats,
+            });
+        } catch (err) {
+            next(err);
+        }
+    };
+
     getOwnedListings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authReq = req as AuthenticatedRequest;

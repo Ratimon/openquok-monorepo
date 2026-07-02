@@ -221,6 +221,8 @@ listingRouter.get(
 
 listingRouter.get("/me/bookmarks", authWithRoles, listingController.getUserBookmarks);
 
+listingRouter.get("/me/stats", authWithRoles, listingController.getOwnedListingStats);
+
 listingRouter.get("/me/listings", authWithRoles, listingController.getOwnedListings);
 
 listingRouter.get(

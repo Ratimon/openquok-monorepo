@@ -8,7 +8,8 @@ import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.sve
 import type {
 	ListingProgrammerModel,
 	ListingRepository,
-	ListingUpsertProgrammerModel
+	ListingUpsertProgrammerModel,
+	OwnedListingStatsProgrammerModel
 } from '$lib/listings/Listing.repository.svelte';
 import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
 import type { GetBillingPresenter } from '$lib/billing/GetBilling.presenter.svelte';
@@ -246,6 +247,8 @@ export class ProtectedAccountExtensionsPagePresenter {
 	public ownStacksVm: AccountListingCollectionItemViewModel[] = $state([]);
 	public loadingBookmarks = $state(false);
 	public loadingOwn = $state(false);
+	public listingHubStatsVm: OwnedListingStatsProgrammerModel | null = $state(null);
+	public loadingListingHubStats = $state(false);
 	public bookmarksPaidEnabled = $state<boolean | null>(null);
 	public togglingBookmarkId = $state<string | null>(null);
 	public selectedExtensionIds = $state<string[]>([]);
@@ -262,6 +265,18 @@ export class ProtectedAccountExtensionsPagePresenter {
 
 	get selectedExtensionCount(): number {
 		return this.selectedExtensionIds.length;
+	}
+
+	get ownPublishedExtensionCount(): number {
+		return this.ownExtensionsVm.filter(
+			(row) => row.isUserPublished === true && row.isAdminPublished === true
+		).length;
+	}
+
+	get ownPublishedStackCount(): number {
+		return this.ownStacksVm.filter(
+			(row) => row.isUserPublished === true && row.isAdminPublished === true
+		).length;
 	}
 
 	get filteredExploreExtensionsVm(): AccountListingCollectionItemViewModel[] {
@@ -441,6 +456,15 @@ export class ProtectedAccountExtensionsPagePresenter {
 			);
 		} finally {
 			this.loadingOwn = false;
+		}
+	}
+
+	async loadListingHubStats(): Promise<void> {
+		this.loadingListingHubStats = true;
+		try {
+			this.listingHubStatsVm = await this.listingRepository.getOwnedListingStats();
+		} finally {
+			this.loadingListingHubStats = false;
 		}
 	}
 
