@@ -41,11 +41,17 @@
 	const showReadme = $derived(hasContent);
 
 	$effect(() => {
-		if (activeTab === 'about' && !showAbout) {
-			activeTab = showReadme ? 'readme' : hasFaq ? 'faq' : 'readme';
-		}
-		if (activeTab === 'readme' && !showReadme) {
-			activeTab = showAbout ? 'about' : hasFaq ? 'faq' : 'about';
+		const fallback =
+			(showAbout && 'about') || (showReadme && 'readme') || (hasFaq && 'faq') || null;
+		if (!fallback) return;
+
+		const isCurrentValid =
+			(activeTab === 'about' && showAbout) ||
+			(activeTab === 'readme' && showReadme) ||
+			(activeTab === 'faq' && hasFaq);
+
+		if (!isCurrentValid) {
+			activeTab = fallback;
 		}
 	});
 </script>

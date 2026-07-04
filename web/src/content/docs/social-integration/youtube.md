@@ -189,7 +189,7 @@ In the web app, start **Connect YouTube**, sign in with Google, grant permission
 <li><Badge text="yt-analytics.readonly" variant="default" /></li>
 </ul>
 
-<p>On the OAuth consent screen, <Badge text="userinfo.profile" variant="default" /> and <Badge text="userinfo.email" variant="default" /> appear as non-sensitive Google sign-in scopes. Your verification submission should list the five YouTube scopes above — keep the Cloud Console <strong>Data access</strong> page in sync with this list before resubmitting.
+<p>On the OAuth consent screen, <Badge text="userinfo.profile" variant="default" /> and <Badge text="userinfo.email" variant="default" /> appear as non-sensitive Google sign-in scopes. Your verification submission should list the five YouTube scopes above — keep the Cloud Console <strong>Data access</strong> page in sync with this list before resubmitting.</p>
 
 While the app is in **Testing** publishing status, only accounts you list as test users can finish OAuth.
 

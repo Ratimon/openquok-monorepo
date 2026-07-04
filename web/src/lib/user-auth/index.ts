@@ -55,7 +55,6 @@ export {
 export { OAUTH_GOOGLE_PATH, getGoogleOAuthStartUrl } from '$lib/user-auth/constants/googleOAuth';
 
 export { getPostSigninRedirectTarget } from '$lib/user-auth/utils/getPostSigninRedirectTarget';
-export { syncEmailVerificationState } from '$lib/user-auth/utils/syncEmailVerificationState';
 
 export { authStatusModel, authenticationRepository, signinPresenter, signupPresenter, signoutPresenter, verifyEmailPresenter, resetPasswordPresenter };
 export { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';

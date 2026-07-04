@@ -19,9 +19,6 @@
 
 	let { suggestedUsername = '', submitLabel = 'Continue', onSuccess }: Props = $props();
 
-	/** Captured once at mount — parent only renders this form after the suggestion is loaded. */
-	const initialUsername = suggestedUsername;
-
 	let checkingAvailability = $state(false);
 	let availabilityHint = $state<string | null>(null);
 	let availabilityOk = $state<boolean | null>(null);
@@ -29,7 +26,7 @@
 
 	const form = createForm(() => ({
 		defaultValues: {
-			username: initialUsername
+			username: suggestedUsername
 		} satisfies AccountUsernameFormSchemaType,
 		validators: {
 			onChange: accountUsernameFormSchema
@@ -81,6 +78,7 @@
 	}
 
 	onMount(() => {
+		const initialUsername = suggestedUsername;
 		if (initialUsername.trim()) {
 			scheduleAvailabilityCheck(initialUsername);
 		}

@@ -145,7 +145,7 @@ Use <Badge text="openquok config:show" variant="default" /> to print the **resol
 4. If you still use **OAuth stored credentials** from a local stack, run <Badge text="openquok auth:logout" variant="default" /> and <Badge text="openquok auth:login" variant="default" /> again **without** <Badge text="--authServer" variant="default" /> and without <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> set, so the token and stored <Badge text="apiUrl" variant="default" /> match production.
 
 <Callout type="note">
-<p><Badge text="openquok auth:logout" variant="default" /> deletes <Badge text="~/.openquok/credentials.json" variant="path" /> only. It does <strong>not</strong> unset <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <Badge text="OPENQUOK_API_URL" variant="envBackend" />.
+<p><Badge text="openquok auth:logout" variant="default" /> deletes <Badge text="~/.openquok/credentials.json" variant="path" /> only. It does <strong>not</strong> unset <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <Badge text="OPENQUOK_API_URL" variant="envBackend" />.</p>
 </Callout>
 
 ### Point the CLI at local or self-hosted again

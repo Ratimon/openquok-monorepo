@@ -4,7 +4,8 @@
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
-	import { authenticationRepository, verifyEmailPresenter, signupPresenter, syncEmailVerificationState } from '$lib/user-auth/index';
+	import { authenticationRepository, verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
+	import { syncEmailVerificationState } from '$lib/user-auth/utils/syncEmailVerificationState';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { getProfilePresenter } from '$lib/account';
 	import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';

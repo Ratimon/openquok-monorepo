@@ -14,6 +14,7 @@
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
 	import { showListingBookmarkToast } from '$lib/listings';
+	import { loadExtensionDetailComponent } from '$lib/listings/utils/loadExtensionDetailComponent';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
@@ -22,9 +23,6 @@
 	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
-	import SkillExtensionDetail from '$lib/ui/templates/extensions/SkillExtensionDetail.svelte';
-	import McpExtensionDetail from '$lib/ui/templates/extensions/McpExtensionDetail.svelte';
-	import BothExtensionDetail from '$lib/ui/templates/extensions/BothExtensionDetail.svelte';
 
 	type Props = { data: PageData };
 
@@ -118,31 +116,15 @@
 				onToggle={handleToggleBookmark}
 			/>
 		</div>
-		{#if extensionVm.extensionType === 'mcp'}
-			<McpExtensionDetail
+		{#await loadExtensionDetailComponent(extensionVm.extensionType) then { default: ExtensionDetail }}
+			<ExtensionDetail
 				{extensionVm}
 				{displayLikes}
 				onLike={handleLike}
 				onExternalClick={handleExternalClick}
 				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
 			/>
-		{:else if extensionVm.extensionType === 'both'}
-			<BothExtensionDetail
-				{extensionVm}
-				{displayLikes}
-				onLike={handleLike}
-				onExternalClick={handleExternalClick}
-				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
-			/>
-		{:else}
-			<SkillExtensionDetail
-				{extensionVm}
-				{displayLikes}
-				onLike={handleLike}
-				onExternalClick={handleExternalClick}
-				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
-			/>
-		{/if}
+		{/await}
 
 		{#if relatedExtensionsVm.length > 0}
 			<section class="border-t border-base-content/10 py-10">

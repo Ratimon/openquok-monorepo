@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 
-	import { highlightCode } from '$lib/docs/utils/shiki-highlight';
 	import { cn } from '$lib/ui/helpers/common';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 
@@ -30,9 +29,11 @@
 			return;
 		}
 		let cancelled = false;
-		void highlightCode(trimmedCode, language).then((h) => {
-			if (!cancelled) html = h;
-		});
+		void import('$lib/docs/utils/shiki-highlight')
+			.then(({ highlightCode }) => highlightCode(trimmedCode, language))
+			.then((h) => {
+				if (!cancelled) html = h;
+			});
 		return () => {
 			cancelled = true;
 		};

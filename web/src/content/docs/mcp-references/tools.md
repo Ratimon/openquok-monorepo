@@ -1,7 +1,7 @@
 ---
 title: Tools Reference
 description: OpenQuok MCP v1 tools — groupList, integrationList, integrationSchema, triggerTool, and schedulePostTool.
-order: 0
+order: 1
 lastUpdated: 2026-06-26
 ---
 

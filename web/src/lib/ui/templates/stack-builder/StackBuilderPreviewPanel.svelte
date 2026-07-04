@@ -2,7 +2,27 @@
 	import { downloadMarkdownFile } from '$lib/stack-builder/utils/downloadMarkdown';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import CartaMarkdownPreview from '$lib/ui/templates/stack-builder/CartaMarkdownPreview.svelte';
+
+	type CartaMarkdownPreviewComponent = typeof import('$lib/ui/templates/stack-builder/CartaMarkdownPreview.svelte').default;
+
+	let cartaPreviewPromise: Promise<{ default: CartaMarkdownPreviewComponent }> | null = null;
+
+	function loadCartaPreview() {
+		cartaPreviewPromise ??= import('$lib/ui/templates/stack-builder/CartaMarkdownPreview.svelte');
+		return cartaPreviewPromise;
+	}
+
+	let CartaMarkdownPreview = $state<CartaMarkdownPreviewComponent | null>(null);
+
+	$effect(() => {
+		let cancelled = false;
+		void loadCartaPreview().then((mod) => {
+			if (!cancelled) CartaMarkdownPreview = mod.default;
+		});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	type Props = {
 		markdown?: string;
@@ -44,6 +64,10 @@
 	</header>
 
 	<div class="min-h-0 flex-1 overflow-hidden p-3">
-		<CartaMarkdownPreview bind:markdown {onMarkdownEdit} class="h-full max-h-[min(70vh,720px)]" />
+		{#if CartaMarkdownPreview}
+			<CartaMarkdownPreview bind:markdown {onMarkdownEdit} class="h-full max-h-[min(70vh,720px)]" />
+		{:else}
+			<p class="text-base-content/60 px-1 py-10 text-sm">Loading editor…</p>
+		{/if}
 	</div>
 </div>

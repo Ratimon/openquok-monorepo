@@ -1,7 +1,8 @@
 import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
-import { authenticationRepository, syncEmailVerificationState } from '$lib/user-auth/index';
+import { authenticationRepository } from '$lib/user-auth/index';
+import { syncEmailVerificationState } from '$lib/user-auth/utils/syncEmailVerificationState';
 import { getRootPathSignin, getRootPathVerifySignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 import { url } from '$lib/utils/path';
 

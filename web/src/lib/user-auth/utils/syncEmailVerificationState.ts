@@ -1,5 +1,5 @@
 import { profileRepository } from '$lib/account';
-import { authenticationRepository } from '$lib/user-auth';
+import { authenticationRepository } from '$lib/user-auth/index';
 
 /**
  * Reconcile `isEmailVerified` from GET /users/me (auth store can lag after verify-signup).
