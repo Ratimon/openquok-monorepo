@@ -7,6 +7,7 @@
 	import { url } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
 	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
@@ -18,6 +19,8 @@
 
 	type Props = {
 		stack: StackDetailViewModel;
+		hubBreadcrumbHref?: string;
+		hubBreadcrumbLabel?: string;
 		skillBuilderHref?: string;
 		isLoggedIn?: boolean;
 		commentsVm: import('$lib/listings/GetListing.presenter.svelte').ListingCommentViewModel[];
@@ -36,6 +39,8 @@
 
 	let {
 		stack,
+		hubBreadcrumbHref,
+		hubBreadcrumbLabel,
 		skillBuilderHref,
 		isLoggedIn = false,
 		commentsVm,
@@ -107,6 +112,15 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<article class="container mx-auto max-w-4xl px-4">
+		{#if hubBreadcrumbHref && hubBreadcrumbLabel}
+			<ListingHubBreadcrumb
+				hubHref={hubBreadcrumbHref}
+				hubLabel={hubBreadcrumbLabel}
+				owner={stack.owner}
+				pageTitle={stack.title}
+				class="mb-4"
+			/>
+		{/if}
 		<header class="space-y-4 border-b border-base-content/10 pb-8">
 			<p class="text-xs font-bold tracking-wider text-primary uppercase">Playbook</p>
 			<h1 class="text-3xl font-black tracking-tight text-base-content">{stack.title}</h1>

@@ -13,10 +13,12 @@
 	import { route, url } from '$lib/utils/path';
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { showListingBookmarkToast } from '$lib/listings';
 	import { loadExtensionDetailComponent } from '$lib/listings/utils/loadExtensionDetailComponent';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
 	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
@@ -37,6 +39,10 @@
 	// /account/billing
 	const rootPathAccount = getRootPathAccount();
 	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
+
+	// /building-blocks
+	const rootPathPublicBuildingBlocks = getRootPathPublicBuildingBlocks();
+	const buildingBlocksHubHref = url(route(rootPathPublicBuildingBlocks));
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
 	let bookmarksPaidEnabled = $state<boolean | null>(null);
@@ -106,6 +112,13 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<article class="container mx-auto max-w-4xl px-4">
+		<ListingHubBreadcrumb
+			hubHref={buildingBlocksHubHref}
+			hubLabel="Building Blocks"
+			owner={extensionVm.owner}
+			pageTitle={extensionVm.title}
+			class="mb-4"
+		/>
 		<div class="mb-4 flex justify-end">
 			<ExtensionBookmarkButton
 				listingId={extensionVm.id}

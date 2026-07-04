@@ -5,6 +5,7 @@
 	import { url } from '$lib/utils/path';
 
 	import * as Avatar from '$lib/ui/components/avatar';
+	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -40,6 +41,12 @@
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">
 		<SubSectionInnerContainer class="max-w-7xl py-8">
+			<ListingHubBreadcrumb
+				hubHref={creatorsIndexHref}
+				hubLabel="Creators"
+				pageTitle={displayName}
+				class="mb-6"
+			/>
 			<div class="mb-8 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
 				<div class="flex flex-col gap-6 sm:flex-row sm:items-start">
 					<Avatar.Root class="size-24 shrink-0 rounded-full">

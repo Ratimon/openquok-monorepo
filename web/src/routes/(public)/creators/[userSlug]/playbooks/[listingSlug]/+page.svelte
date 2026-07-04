@@ -5,6 +5,7 @@
 	import { onMount } from 'svelte';
 
 	import { toast } from '$lib/ui/sonner';
+	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getBillingPresenter } from '$lib/billing';
 	import { planLimitsForTier } from 'openquok-common';
@@ -26,6 +27,10 @@
 	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	let skillBuilderHref = $derived(url(`${route(getRootPathPublicSkillBuilder())}?stack=${stackVm.slug}`));
+
+	// /playbooks
+	const rootPathPublicPlaybooks = getRootPathPublicPlaybooks();
+	const playbooksHubHref = url(route(rootPathPublicPlaybooks));
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
 	let showUpgradeModal = $state(false);
@@ -52,6 +57,8 @@
 
 <StackDetailPage
 	stack={stackVm}
+	hubBreadcrumbHref={playbooksHubHref}
+	hubBreadcrumbLabel="Playbooks"
 	{skillBuilderHref}
 	{isLoggedIn}
 	commentsVm={commentsVm}
