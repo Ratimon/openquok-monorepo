@@ -1,22 +1,33 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
+	import type { StackBlueprintWorkflowStepProgrammerModel } from '$lib/listings/listing.types';
 
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 
-	import { toast } from '$lib/ui/sonner';
-	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
-	import { getBillingPresenter } from '$lib/billing';
 	import { planLimitsForTier } from 'openquok-common';
-	import { authenticationRepository } from '$lib/user-auth';
-	import { route, url } from '$lib/utils/path';
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
+	import { getBillingPresenter } from '$lib/billing';
+	import { authenticationRepository } from '$lib/user-auth';
+	import { route, url } from '$lib/utils/path';
+	import { toast } from '$lib/ui/sonner';
 
-	import StackDetailPage from '$lib/ui/templates/stacks/StackDetailPage.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
+	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
+	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
+	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
+	import StackListingContentTabs from '$lib/ui/templates/stacks/StackListingContentTabs.svelte';
+	import StackModelBindingsSection from '$lib/ui/templates/stacks/StackModelBindingsSection.svelte';
 
 	type Props = { data: PageData };
 
@@ -27,6 +38,11 @@
 	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	let skillBuilderHref = $derived(url(`${route(getRootPathPublicSkillBuilder())}?stack=${stackVm.slug}`));
+
+	const descriptionMarkdown = $derived(stackVm.content?.trim() ? stackVm.content : null);
+	const workflowSteps = $derived(stackVm.stackBlueprint?.workflow_steps ?? []);
+	const referenceAssets = $derived(stackVm.stackBlueprint?.reference_assets ?? []);
+	const modelBindings = $derived(stackVm.stackBlueprint?.model_bindings ?? []);
 
 	// /playbooks
 	const rootPathPublicPlaybooks = getRootPathPublicPlaybooks();
@@ -51,29 +67,245 @@
 	});
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
+
+	function memberTypeBadges(extensionType: string | null | undefined): string[] {
+		switch (extensionType) {
+			case 'skills':
+				return ['Skills'];
+			case 'mcp':
+				return ['MCP'];
+			case 'both':
+				return ['MCP', 'Skills'];
+			default:
+				return ['Building block'];
+		}
+	}
+
+	function memberInstallCommand(stackMember: StackDetailViewModel['stackMembers'][number]) {
+		if (!stackMember.member) return null;
+		if (stackMember.memberRole === 'mcp' || stackMember.member.extensionType === 'mcp') {
+			return stackMember.member.installCommandMcp;
+		}
+		return stackMember.member.installCommandSkills;
+	}
+
+	function memberDetailHref(stackMember: StackDetailViewModel['stackMembers'][number]) {
+		if (!stackMember.member) return null;
+		const path = resolvePublicBuildingBlockPath(stackVm.owner, stackMember.member.slug);
+		return path ? url(`/${path}`) : url(`/${getRootPathPublicBuildingBlocks()}`);
+	}
+
+	function memberSetupDocButtons(
+		stackMember: StackDetailViewModel['stackMembers'][number]
+	): Array<{ label: string; href: string }> {
+		if (!stackMember.member) return [];
+		const { extensionType, clickUrlSkills, clickUrlMcp } = stackMember.member;
+		const buttons: Array<{ label: string; href: string }> = [];
+		if (extensionType === 'skills' || extensionType === 'both') {
+			const href = clickUrlSkills?.trim();
+			if (href) buttons.push({ label: 'Skill Setup Doc', href });
+		}
+		if (extensionType === 'mcp' || extensionType === 'both') {
+			const href = clickUrlMcp?.trim();
+			if (href) buttons.push({ label: 'MCP Setup Doc', href });
+		}
+		return buttons;
+	}
+
+	function stepTitle(step: StackBlueprintWorkflowStepProgrammerModel, index: number) {
+		if (step.type === 'text') return `Step ${index + 1}`;
+		const slug = step.listing_slug ?? 'extension';
+		const command = step.command_name ?? 'command';
+		return `${slug} · ${command}`;
+	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
 
-<StackDetailPage
-	stack={stackVm}
-	hubBreadcrumbHref={playbooksHubHref}
-	hubBreadcrumbLabel="Playbooks"
-	{skillBuilderHref}
-	{isLoggedIn}
-	commentsVm={commentsVm}
-	communityCommentsEnabled={communityEnabled}
-	submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
-	submitListingRating={(listingId, rating) =>
-		publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-	submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
-	submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
-	onUpgradeRequired={() => {
-		showUpgradeModal = true;
-	}}
-	onSignInRequired={() => {
-		toast.error('Sign in to rate this stack.');
-	}}
-/>
+<SectionOuterContainer class="py-10 md:py-14">
+	<article class="container mx-auto max-w-4xl px-4">
+		<ListingHubBreadcrumb
+			hubHref={playbooksHubHref}
+			hubLabel="Playbooks"
+			owner={stackVm.owner}
+			pageTitle={stackVm.title}
+			class="mb-4"
+		/>
+		<header class="space-y-4 border-b border-base-content/10 pb-8">
+			<p class="text-xs font-bold tracking-wider text-primary uppercase">Playbook</p>
+			<h1 class="text-3xl font-black tracking-tight text-base-content">{stackVm.title}</h1>
+			{#if stackVm.excerpt}
+				<p class="text-lg text-base-content/70">{stackVm.excerpt}</p>
+			{/if}
+			<div class="flex flex-wrap items-center gap-4 text-sm text-base-content/60">
+				<span
+					>{stackVm.stackMembers.length} building block{stackVm.stackMembers.length === 1
+						? ''
+						: 's'}</span
+				>
+				<span>{stackVm.views} views</span>
+				<span>{stackVm.likes} likes</span>
+			</div>
+			<ListingRating
+				listingId={stackVm.id}
+				averageRating={stackVm.averageRating}
+				ratingsCount={stackVm.ratingsCount}
+				{isLoggedIn}
+				communityEnabled={communityEnabled}
+				submitRating={(listingId, rating) =>
+					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
+				submitting={publicExtensionBySlugPagePresenter.submittingRating}
+				onSignInRequired={() => {
+					toast.error('Sign in to rate this stack.');
+				}}
+				onUpgradeRequired={() => {
+					showUpgradeModal = true;
+				}}
+			/>
+			<div class="flex flex-wrap gap-3">
+				<Button href={skillBuilderHref} variant="primary">Customize this playbook</Button>
+			</div>
+		</header>
+
+		<section class="border-t border-base-content/10 py-8">
+			<StackListingContentTabs content={descriptionMarkdown}>
+				{#snippet members()}
+					<StackModelBindingsSection bindings={modelBindings} />
+					<div>
+						<h2 class="mb-2 text-xl font-bold text-base-content">Building blocks</h2>
+						<p class="mb-4 text-sm text-base-content/70">
+							Skills and MCP extensions to install before you run this playbook.
+						</p>
+						{#if stackVm.stackMembers.length === 0}
+							<p class="text-base-content/70">This playbook does not include any building blocks yet.</p>
+						{:else}
+							<ul class="space-y-3">
+								{#each stackVm.stackMembers as member (member.id)}
+									<li class="rounded-xl border border-base-content/10 p-4">
+										<div class="flex flex-wrap items-start justify-between gap-3">
+											<div class="min-w-0 flex-1">
+												{#if member.member}
+													<div class="mb-2 flex flex-wrap gap-2">
+														{#each memberTypeBadges(member.member.extensionType) as badge (badge)}
+															<span class="badge badge-outline badge-sm">{badge}</span>
+														{/each}
+													</div>
+													<h3 class="font-semibold text-base-content">
+														{#if memberDetailHref(member)}
+															<a class="link link-hover" href={memberDetailHref(member)}>
+																{member.member.title}
+															</a>
+														{:else}
+															{member.member.title}
+														{/if}
+													</h3>
+													{#if member.member.excerpt}
+														<p class="mt-1 text-sm text-base-content/70">{member.member.excerpt}</p>
+													{/if}
+													{@const installCommand = memberInstallCommand(member)}
+													{@const detailHref = memberDetailHref(member)}
+													{@const setupDocButtons = memberSetupDocButtons(member)}
+													{#if installCommand}
+														<div class="mt-4 space-y-2">
+															<p class="text-sm font-medium text-base-content">Install</p>
+															<TerminalCommandMock
+																code={installCommand}
+																ariaLabel={`Install command for ${member.member.title}`}
+															/>
+														</div>
+													{/if}
+													{#if detailHref}
+														<div class="mt-4 flex flex-wrap gap-2">
+															<Button href={detailHref} variant="primary" size="sm">View details</Button>
+															{#each setupDocButtons as docButton (docButton.label)}
+																<Button
+																	href={docButton.href}
+																	variant="outline"
+																	size="sm"
+																	target="_blank"
+																	rel="noopener noreferrer"
+																>
+																	{docButton.label}
+																</Button>
+															{/each}
+														</div>
+													{/if}
+												{:else}
+													<p class="text-sm text-base-content/60">Building block unavailable</p>
+												{/if}
+											</div>
+										</div>
+									</li>
+								{/each}
+							</ul>
+						{/if}
+					</div>
+				{/snippet}
+
+				{#snippet readmeExtras()}
+					{#if workflowSteps.length > 0}
+						<div>
+							<h2 class="mb-4 text-xl font-bold">Workflow</h2>
+							<ol class="space-y-4">
+								{#each workflowSteps as step, index (index)}
+									<li class="rounded-xl border border-base-content/10 p-4">
+										<p class="text-xs font-semibold tracking-wide text-primary uppercase">
+											{stepTitle(step, index)}
+										</p>
+										{#if step.type === 'text'}
+											<p class="mt-2 text-base-content/80">{step.content}</p>
+										{:else}
+											{#if step.prompt}
+												<p class="mt-2 text-base-content/80">{step.prompt}</p>
+											{/if}
+											{#if step.example_payload}
+												<pre
+													class="mt-3 overflow-x-auto rounded-lg bg-base-200/80 p-3 font-mono text-xs text-base-content/80"
+												>{JSON.stringify(step.example_payload, null, 2)}</pre>
+											{/if}
+										{/if}
+									</li>
+								{/each}
+							</ol>
+						</div>
+					{/if}
+
+					{#if referenceAssets.length > 0}
+						<div>
+							<h2 class="mb-4 text-xl font-bold">Reference assets</h2>
+							<ul class="space-y-3">
+								{#each referenceAssets as asset, index (index)}
+									<li class="rounded-xl border border-base-content/10 p-4">
+										<p class="font-semibold text-base-content">{asset.label}</p>
+										<p class="mt-1 text-sm text-base-content/60 uppercase">{asset.type}</p>
+										{#if asset.payload}
+											<pre
+												class="mt-3 overflow-x-auto rounded-lg bg-base-200/80 p-3 font-mono text-xs text-base-content/80"
+											>{asset.payload}</pre>
+										{/if}
+									</li>
+								{/each}
+							</ul>
+						</div>
+					{/if}
+				{/snippet}
+			</StackListingContentTabs>
+		</section>
+
+		<section class="border-t border-base-content/10 py-10">
+			<ListingComments
+				{commentsVm}
+				listingId={stackVm.id}
+				{isLoggedIn}
+				submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
+				submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
+				communityCommentsEnabled={communityEnabled}
+				onUpgradeRequired={() => {
+					showUpgradeModal = true;
+				}}
+			/>
+		</section>
+	</article>
+</SectionOuterContainer>
 
 <CommunityFeaturesLimitUpgradeModal bind:open={showUpgradeModal} upgradeHref="/account/billing" />
