@@ -3,10 +3,10 @@
 
 	import { icons } from '$data/icons';
 
-	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { url } from '$lib/utils/path';
 
-	import Checkbox from '$lib/ui/checkbox/checkbox.svelte';
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -48,9 +48,14 @@
 		onToggleSelect
 	}: Props = $props();
 
-	const detailHref = $derived(url(`/${getRootPathPublicBuildingBlock(extensionVm.slug)}`));
-	let checked = $derived(selected);
-
+	const detailHref = $derived.by(() => {
+		const path =
+			resolvePublicBuildingBlockPath(
+				extensionVm.ownerUsername ? { username: extensionVm.ownerUsername } : null,
+				extensionVm.slug
+			) ?? getLegacyRootPathPublicBuildingBlock(extensionVm.slug);
+		return url(`/${path}`);
+	});
 	const typeBadges = $derived.by((): string[] => {
 		switch (extensionVm.extensionType) {
 			case 'skills':
@@ -120,12 +125,25 @@
 				onclick={handleSelectClick}
 			>
 				<span class="flex items-center gap-3">
-					<Checkbox
-						checked={checked}
-						class="pointer-events-none size-5 border-primary/50 bg-base-content/12 shadow-none data-[state=unchecked]:border-primary/55 data-[state=unchecked]:bg-base-content/15"
-						tabindex={-1}
+					<span
+						class={cn(
+							'pointer-events-none grid size-5 shrink-0 place-items-center rounded-sm border shadow-none',
+							selected
+								? 'border-primary bg-primary text-primary-content'
+								: 'border-primary/55 bg-base-content/15'
+						)}
 						aria-hidden="true"
-					/>
+					>
+						{#if selected}
+							<AbstractIcon
+								name={icons.Check.name}
+								class="size-3"
+								width="12"
+								height="12"
+								aria-hidden="true"
+							/>
+						{/if}
+					</span>
 					<span class="font-medium text-base-content">
 						{selected ? 'Added to skill builder' : 'Add to skill builder'}
 					</span>

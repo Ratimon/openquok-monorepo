@@ -190,7 +190,7 @@ INSERT INTO public.listings (
     listing_tag_slugs
 ) VALUES (
     'd5f7b000-0000-4000-a000-000000000104',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'Viral TikTok Carousel',
     'viral-tiktok-carousel',
@@ -310,6 +310,7 @@ ON CONFLICT (slug) DO UPDATE SET
     content = EXCLUDED.content,
     listing_kind = EXCLUDED.listing_kind,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     is_user_published = EXCLUDED.is_user_published,
     is_admin_published = EXCLUDED.is_admin_published,
     schema_type = EXCLUDED.schema_type,

@@ -6379,6 +6379,69 @@ ON CONFLICT (id) DO NOTHING;
 -- ---------------------------
 
 
+-- Module: user-management, File: 502_20260703_seed_catalog_creators.sql
+-- ---------------------------
+-- MODULE NAME: User Management
+-- MODULE DATE: 20260703
+-- MODULE SCOPE: Seed
+-- ---------------------------
+-- Public catalog publisher for seeded listings (official hub entries).
+-- Not a login account: auth_id is NULL and is_super_admin is FALSE.
+-- Platform super admin is exactly one real user — set manually after signup (see docs/admin/super-admin).
+
+BEGIN;
+
+INSERT INTO public.users (
+    id,
+    auth_id,
+    email,
+    full_name,
+    username,
+    is_super_admin,
+    is_email_verified,
+    created_at,
+    updated_at
+) VALUES (
+    'd5f7a100-0000-4000-a000-000000000001',
+    NULL,
+    'catalog@openquok.local',
+    'OpenQuok',
+    'openquok',
+    FALSE,
+    TRUE,
+    NOW(),
+    NOW()
+)
+ON CONFLICT (id) DO UPDATE SET
+    full_name = EXCLUDED.full_name,
+    username = EXCLUDED.username,
+    is_super_admin = FALSE,
+    is_email_verified = EXCLUDED.is_email_verified,
+    updated_at = NOW();
+
+INSERT INTO public.user_profiles (owner_id, tag_line, created_at, updated_at)
+VALUES (
+    'd5f7a100-0000-4000-a000-000000000001',
+    'Official OpenQuok building blocks and playbooks.',
+    NOW(),
+    NOW()
+)
+ON CONFLICT (owner_id) DO UPDATE SET
+    tag_line = EXCLUDED.tag_line,
+    updated_at = NOW();
+
+-- Remove legacy duplicate catalog user if present from an earlier seed revision.
+DELETE FROM public.user_profiles
+WHERE owner_id = 'd5f7a100-0000-4000-a000-000000000002';
+
+DELETE FROM public.users
+WHERE id = 'd5f7a100-0000-4000-a000-000000000002';
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-auth, File: 501_20260227_seed.sql
 -- ---------------------------
 -- MODULE NAME: User Auth
@@ -7070,7 +7133,7 @@ INSERT INTO public.listings (
     listing_tag_slugs
 ) VALUES (
     'd5f7b000-0000-4000-a000-000000000101',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'OpenQuok Core',
     'openquok-core',
@@ -7499,6 +7562,7 @@ ON CONFLICT (slug) DO UPDATE SET
     install_command_skills = EXCLUDED.install_command_skills,
     install_command_mcp = EXCLUDED.install_command_mcp,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     source_repo_url = EXCLUDED.source_repo_url,
     skill_source_url = EXCLUDED.skill_source_url,
     skill_name = EXCLUDED.skill_name,
@@ -7639,7 +7703,7 @@ INSERT INTO public.listings (
 ) VALUES
 (
     'd5f7b000-0000-4000-a000-000000000102',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'Bloom MCP',
     'bloom-mcp',
@@ -7803,6 +7867,7 @@ ON CONFLICT (slug) DO UPDATE SET
     install_command_skills = EXCLUDED.install_command_skills,
     install_command_mcp = EXCLUDED.install_command_mcp,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     source_repo_url = EXCLUDED.source_repo_url,
     skill_source_url = EXCLUDED.skill_source_url,
     skill_name = EXCLUDED.skill_name,
@@ -7892,7 +7957,7 @@ INSERT INTO public.listings (
 ) VALUES
 (
     'd5f7b000-0000-4000-a000-000000000103',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'RevenueCat MCP',
     'revenuecat-mcp',
@@ -8118,6 +8183,7 @@ ON CONFLICT (slug) DO UPDATE SET
     install_command_skills = EXCLUDED.install_command_skills,
     install_command_mcp = EXCLUDED.install_command_mcp,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     source_repo_url = EXCLUDED.source_repo_url,
     skill_source_url = EXCLUDED.skill_source_url,
     skill_name = EXCLUDED.skill_name,
@@ -8347,7 +8413,7 @@ INSERT INTO public.listings (
     listing_tag_slugs
 ) VALUES (
     'd5f7b000-0000-4000-a000-000000000104',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'Viral TikTok Carousel',
     'viral-tiktok-carousel',
@@ -8467,6 +8533,7 @@ ON CONFLICT (slug) DO UPDATE SET
     content = EXCLUDED.content,
     listing_kind = EXCLUDED.listing_kind,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     is_user_published = EXCLUDED.is_user_published,
     is_admin_published = EXCLUDED.is_admin_published,
     schema_type = EXCLUDED.schema_type,

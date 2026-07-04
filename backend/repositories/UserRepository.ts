@@ -7,7 +7,7 @@ const TABLE_NAME = "users";
 
 /** Columns that exist on public.users in all environments (no OAuth columns). Use for backward compatibility when provider/provider_id may not exist. */
 const CORE_USER_SELECT =
-    "id, auth_id, email, full_name, is_email_verified, email_verification_token, email_verification_token_expires, created_at, updated_at";
+    "id, auth_id, email, full_name, username, is_email_verified, email_verification_token, email_verification_token_expires, created_at, updated_at";
 
 /** Same as CORE_USER_SELECT plus one-to-one user_profiles (avatar, website). */
 const USER_WITH_PROFILE_SELECT = `${CORE_USER_SELECT}, user_profiles(avatar_url, website_url)`;
@@ -228,6 +228,61 @@ export class UserRepository {
             })
             .eq("auth_id", authId);
         return { updateError };
+    }
+
+    /** Update public username for the user with the given auth_id. */
+    async updateUsernameByAuthId(authId: string, username: string): Promise<{ updateError: unknown }> {
+        const { error: updateError } = await this.supabase
+            .from(TABLE_NAME)
+            .update({
+                username,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("auth_id", authId);
+        return { updateError };
+    }
+
+    async findPublicUserIdByAuthId(authId: string): Promise<{ userId: string | null; error: unknown }> {
+        const { data, error } = await this.supabase.from(TABLE_NAME).select("id").eq("auth_id", authId).single();
+        if (error) {
+            return { userId: null, error };
+        }
+        return { userId: (data?.id as string) ?? null, error: null };
+    }
+
+    async isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean> {
+        let query = this.supabase.from(TABLE_NAME).select("id").eq("username", username);
+        if (excludeUserId) {
+            query = query.neq("id", excludeUserId);
+        }
+        const { data, error } = await query.maybeSingle();
+        if (error) {
+            throw new DatabaseError("Database error during username check", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+        return data != null;
+    }
+
+    async findUsernameByPublicUserId(userId: string): Promise<string | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE_NAME)
+            .select("username")
+            .eq("id", userId)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Database error while loading username", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+
+        const username = (data?.username as string | undefined)?.trim();
+        return username || null;
     }
 
     /** Link an existing user (by id) to an OAuth provider. */

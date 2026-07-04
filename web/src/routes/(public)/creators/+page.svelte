@@ -55,7 +55,8 @@
 	<section class="container mx-auto max-w-6xl px-4 pb-14">
 		{#if creators.length === 0}
 			<p class="rounded-2xl border border-dashed border-base-content/15 p-8 text-center text-base-content/70">
-				No creators have published building blocks or playbooks yet.
+				No creators with a public username have published building blocks or playbooks yet.
+				Publishers can set a username in account settings to appear here.
 			</p>
 		{:else}
 			<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

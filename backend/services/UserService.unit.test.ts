@@ -16,6 +16,7 @@ const mockUserLike: UserLike = {
     auth_id: authUserId,
     email,
     full_name: fullName,
+    username: null,
     is_email_verified: true,
     created_at: createdAt,
     updated_at: new Date().toISOString(),

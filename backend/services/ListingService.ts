@@ -1,4 +1,6 @@
 import type { ListingRepository, ListingStatisticsProgrammerModel } from "../repositories/ListingRepository";
+import { LISTING_CATALOG_PUBLISHER_USERNAME } from "../repositories/ListingRepository";
+import type { UserRepository } from "../repositories/UserRepository";
 import type { ListingCategoryRepository } from "../repositories/ListingCategoryRepository";
 import type { ListingTagRepository } from "../repositories/ListingTagRepository";
 import type { ConfigRepository } from "../repositories/ConfigRepository";
@@ -48,7 +50,7 @@ import {
 } from "../utils/dtos/ListingDTO";
 import { ListingId } from "../utils/valueObjects/ListingId";
 import { ValidationError } from "../errors/InfraError";
-import { UserAuthorizationError } from "../errors/UserError";
+import { UserAuthorizationError, UserValidationError } from "../errors/UserError";
 import { logger } from "../utils/Logger";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { SubscriptionSection } from "openquok-common";
@@ -88,7 +90,8 @@ export class ListingService {
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly configRepository?: ConfigRepository,
-        private readonly subscriptionGuard?: SubscriptionGuardService
+        private readonly subscriptionGuard?: SubscriptionGuardService,
+        private readonly userRepository?: UserRepository
     ) {}
 
     async getListingInformation(): Promise<Record<string, string>> {
@@ -225,12 +228,17 @@ export class ListingService {
 
     async createListing(
         body: ListingCreateBodySchemaType,
-        ownerId: string,
+        actorUserId: string,
         isPlatformAdmin: boolean
     ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         const { listingData, listingTagsData, stackMembersData = [] } = body;
         const isUserApproved = listingData.is_user_published === true;
         const approveInfo = await this.getApproveConfigInfo();
+        const ownerId = await this._resolveCreateOwnerId(
+            actorUserId,
+            listingData.owner_id,
+            isPlatformAdmin
+        );
 
         let isAdminPublished = false;
         if (isUserApproved) {
@@ -326,6 +334,7 @@ export class ListingService {
         authUserId?: string
     ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         await this._assertPublicApi(authUserId);
+        await this._assertOwnerUsernameForPublish(ownerId, body.listingData.is_user_published === true);
         const sanitizedBody: ListingCreateBodySchemaType = {
             ...body,
             listingData: {
@@ -345,6 +354,10 @@ export class ListingService {
     ): Promise<{ id: string; isAdminApproved: boolean; isUserApproved: boolean }> {
         await this._assertPublicApi(authUserId);
         const existing = await this.getOwnedListingById(body.listingData.id, ownerId);
+        const willPublish =
+            body.listingData.is_user_published === true ||
+            (existing.is_user_published === true && body.listingData.is_user_published !== false);
+        await this._assertOwnerUsernameForPublish(ownerId, willPublish);
         const sanitizedBody: ListingUpdateBodySchemaType = {
             ...body,
             listingData: {
@@ -634,6 +647,35 @@ export class ListingService {
         const result = await this.listingRepository.cloneStack(stackId, ownerId);
         await this._invalidateListingMutationCaches(result.id);
         return result;
+    }
+
+    private async _assertOwnerUsernameForPublish(ownerId: string, requiresUsername: boolean): Promise<void> {
+        if (!requiresUsername || !this.userRepository) {
+            return;
+        }
+        const username = await this.userRepository.findUsernameByPublicUserId(ownerId);
+        if (!username) {
+            throw new UserValidationError(
+                "Choose a public username before publishing. Your listing URL uses /creators/{username}/."
+            );
+        }
+    }
+
+    private async _resolveCreateOwnerId(
+        actorUserId: string,
+        explicitOwnerId: string | undefined,
+        isPlatformAdmin: boolean
+    ): Promise<string> {
+        if (!isPlatformAdmin) {
+            return actorUserId;
+        }
+        if (explicitOwnerId) {
+            return explicitOwnerId;
+        }
+        const catalogOwnerId = await this.listingRepository.findUserIdByUsername(
+            LISTING_CATALOG_PUBLISHER_USERNAME
+        );
+        return catalogOwnerId ?? actorUserId;
     }
 
     private async _assertCommunityFeatures(authUserId?: string): Promise<void> {

@@ -13,6 +13,8 @@
 		preload?: 'hover' | 'tap' | 'off' | 'intent';
 		/** When true, navigate via goto() on click so navigation works reliably (e.g. from auth pages). */
 		useGoto?: boolean;
+		/** When true with useGoto, use a full page load (breaks client redirect loops). */
+		hardNavigate?: boolean;
 		/** Called after programmatic navigation when useGoto is true (e.g. close mobile menu). */
 		onAfterNavigate?: () => void;
 	};
@@ -25,6 +27,7 @@
 		whenUnselected = '',
 		preload,
 		useGoto = false,
+		hardNavigate = false,
 		onAfterNavigate
 	}: Props = $props();
 
@@ -32,6 +35,11 @@
 		if (!useGoto || !href) return;
 		e.preventDefault();
 		const path = href.startsWith('http://') || href.startsWith('https://') ? href : route(href);
+		if (hardNavigate && typeof window !== 'undefined') {
+			window.location.assign(path);
+			onAfterNavigate?.();
+			return;
+		}
 		goto(path, { replaceState: false });
 		onAfterNavigate?.();
 	}

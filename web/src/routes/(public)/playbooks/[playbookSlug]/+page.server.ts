@@ -1,17 +1,19 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 import {
 	publicExtensionBySlugPagePresenter,
 	publicStackBySlugPagePresenter
 } from '$lib/area-public';
-import { getRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import { getRootPathPublicCreatorPlaybook } from '$lib/area-public/constants/getRootPathPublicCreators';
+import { getLegacyRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
+/** Legacy `/playbooks/{slug}` — redirects when owner username is set; otherwise renders. */
 export async function load({ url, params, cookies, fetch, parent }) {
 	const playbookSlug = params.playbookSlug;
 	if (typeof playbookSlug !== 'string' || !playbookSlug.trim()) {
@@ -24,6 +26,11 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	});
 	if (!stackVm) {
 		throw error(404, 'Playbook not found');
+	}
+
+	const ownerUsername = stackVm.owner?.username?.trim();
+	if (ownerUsername) {
+		redirect(301, `/${getRootPathPublicCreatorPlaybook(ownerUsername, stackVm.slug)}`);
 	}
 
 	const comments = await publicExtensionBySlugPagePresenter.loadListingCommentsStateless({
@@ -41,7 +48,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customSlug: getRootPathPublicPlaybook(stackVm.slug),
+		customSlug: getLegacyRootPathPublicPlaybook(stackVm.slug),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 

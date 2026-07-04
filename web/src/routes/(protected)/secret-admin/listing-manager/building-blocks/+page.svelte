@@ -45,6 +45,24 @@
 </script>
 
 <div class="p-4 md:p-6">
+	<div class="alert alert-info mb-6">
+		<div class="min-w-0 text-sm">
+			<p class="font-medium">Platform catalog publisher</p>
+			<p class="mt-1 opacity-90">
+				Listings created here are owned by
+				<span class="font-mono">@openquok</span> and publish under
+				<span class="font-mono">/creators/openquok/…</span>. This area does not set your personal
+				username.
+			</p>
+			<p class="mt-2 opacity-90">
+				For listings under your own creator profile, use
+				<a href={url('/account/playbooks')} class="link link-primary">Account → Playbooks</a>
+				and set your username in
+				<a href={url('/account/settings')} class="link link-primary">Account → Settings</a>.
+			</p>
+		</div>
+	</div>
+
 	<div class="flex items-start justify-between gap-4 flex-wrap">
 		<div class="min-w-0">
 			<h1 class="text-xl font-semibold text-base-content">Building blocks</h1>

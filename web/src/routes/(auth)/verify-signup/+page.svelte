@@ -4,12 +4,16 @@
 	import { onMount } from 'svelte';
 	import { goto, invalidateAll } from '$app/navigation';
 	import { toast } from '$lib/ui/sonner';
-	import { AuthStatus, authenticationRepository, verifyEmailPresenter, signupPresenter } from '$lib/user-auth/index';
+	import { authenticationRepository, verifyEmailPresenter, signupPresenter, syncEmailVerificationState } from '$lib/user-auth/index';
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+	import { getProfilePresenter } from '$lib/account';
+	import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';
+	import { suggestUsernameFromEmail } from '$lib/account/utils/suggestUsernameFromEmail';
 	import { url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import ClaimUsernameForm from '$lib/ui/components/user/ClaimUsernameForm.svelte';
 	import {
 		Card,
 		CardHeader,
@@ -18,9 +22,7 @@
 		CardFooter
 	} from '$lib/ui/card';
 
-	// /account
-	const rootPathAccount = getRootPathAccount();
-	const accountPath = url(rootPathAccount);
+	const accountPath = url(getRootPathAccount());
 
 	let verificationStatus = $derived(verifyEmailPresenter.status);
 	let isVerifying = $derived(verificationStatus === VerifyEmailStatus.VERIFY_PENDING);
@@ -34,8 +36,28 @@
 	let tempEmail = $state('');
 	let subscribeToNewsletter = $state(true);
 	let message = $state<{ type: 'success' | 'error'; text: string } | null>(null);
+	let suggestedUsername = $state('');
+	let profileUsername = $state<string | null>(null);
+	let loadingProfile = $state(false);
 
 	let hasVerificationToken = $derived(tempToken.length > 0);
+	let needsUsername = $derived(isConfirmed && !hasPublicUsername(profileUsername));
+	let canEnterAccount = $derived(
+		isConfirmed || authenticationRepository.currentUser?.isEmailVerified === true
+	);
+
+	async function refreshProfileUsername(): Promise<void> {
+		loadingProfile = true;
+		try {
+			const profile = await getProfilePresenter.loadProfileVm();
+			profileUsername = profile?.username ?? null;
+			if (!hasPublicUsername(profileUsername)) {
+				suggestedUsername = suggestUsernameFromEmail(tempEmail);
+			}
+		} finally {
+			loadingProfile = false;
+		}
+	}
 
 	onMount(async () => {
 		if (typeof window === 'undefined') return;
@@ -53,19 +75,21 @@
 			}
 			return;
 		}
-		await authenticationRepository.checkAuth();
+		try {
+			await authenticationRepository.checkAuth();
+		} catch {
+			// Continue — may still resolve verification from /users/me.
+		}
+		const verified = await syncEmailVerificationState();
 		const cu = authenticationRepository.currentUser;
 		const emailsMatch =
 			cu?.email?.trim().toLowerCase() === tempEmail.trim().toLowerCase();
-		// Inline session check: `.svelte.ts` class instance types omit some methods (e.g. `isAuthenticated`) in TS.
-		const sessionOk =
-			authenticationRepository.currentAuthStatus.status === AuthStatus.AUTHENTICATED &&
-			authenticationRepository.currentUser !== null;
-		if (sessionOk && emailsMatch && cu?.isEmailVerified === true) {
-			goto(accountPath, { replaceState: true });
+		if (verified && emailsMatch) {
+			verifyEmailPresenter.status = VerifyEmailStatus.CONFIRMED;
+			await refreshProfileUsername();
 			return;
 		}
-		if (!sessionOk || !emailsMatch) {
+		if (!authenticationRepository.isAuthenticated() || !emailsMatch) {
 			goto('/', { replaceState: true });
 		}
 	});
@@ -90,12 +114,13 @@
 				signupPresenter.status = SignupStatus.SUCCESS;
 				authenticationRepository.updateStoredProfile({ isEmailVerified: true });
 				try {
-					await authenticationRepository.checkAuth(undefined, { forceProfile: true });
+					await syncEmailVerificationState();
 				} catch {
-					// Best-effort; goToAccount / protected layout also refresh
+					// Best-effort; goToAccount also syncs before navigation.
 				}
 				await invalidateAll();
-				// Stay on this route so user sees Verified status
+				await refreshProfileUsername();
+				// Stay on this route for username claim when needed
 			} else if (verifyEmailPresenter.showToastMessage) {
 				message = { type: 'error', text: verifyEmailPresenter.toastMessage };
 			}
@@ -144,18 +169,43 @@
 		}
 	}
 
-	async function goToAccount() {
+	async function handleUsernameClaimed(username: string): Promise<void> {
+		authenticationRepository.updateStoredProfile({ username });
+		profileUsername = username;
 		try {
 			await authenticationRepository.checkAuth(undefined, { forceProfile: true });
 		} catch {
-			toast.error('Could not refresh your profile. Please wait a moment and try again.');
-			return;
+			// Continue to account
 		}
-		if (authenticationRepository.currentUser?.isEmailVerified !== true) {
+		await goToAccount();
+	}
+
+	async function goToAccount() {
+		if (canEnterAccount) {
+			authenticationRepository.updateStoredProfile({ isEmailVerified: true });
+		}
+
+		let verified = false;
+		try {
+			verified = await syncEmailVerificationState();
+		} catch {
+			verified = canEnterAccount;
+		}
+
+		if (!verified && canEnterAccount) {
+			authenticationRepository.updateStoredProfile({ isEmailVerified: true });
+			verified = true;
+		}
+
+		if (!verified) {
 			toast.error('Your email is not marked verified yet. Try refreshing the page.');
 			return;
 		}
-		await goto(accountPath, { replaceState: true });
+
+		// Full navigation avoids client-side redirect loops back to verify-signup.
+		if (typeof window !== 'undefined') {
+			window.location.assign(accountPath);
+		}
 	}
 </script>
 
@@ -209,6 +259,27 @@
 				{message.text}
 			</div>
 		{/if}
+		{#if needsUsername}
+			<div class="space-y-3 px-6 pb-2">
+				<p class="text-sm font-medium text-base-content">Choose a username (optional now)</p>
+				{#if loadingProfile}
+					<div class="flex justify-center py-6">
+						<span class="loading loading-spinner loading-md text-primary"></span>
+					</div>
+				{:else}
+					{#key suggestedUsername}
+						<ClaimUsernameForm
+							{suggestedUsername}
+							submitLabel="Save and continue"
+							onSuccess={handleUsernameClaimed}
+						/>
+					{/key}
+					<Button type="button" variant="ghost" class="w-full" onclick={goToAccount}>
+						Skip for now — go to dashboard
+					</Button>
+				{/if}
+			</div>
+		{/if}
 		<CardFooter class="flex flex-wrap gap-3">
 			<Button
 				variant="outline"
@@ -230,14 +301,14 @@
 			<Button
 				type="button"
 				class="flex-1 min-w-0"
-				disabled={isConfirming || (!isConfirmed && !hasVerificationToken)}
-				onclick={isConfirmed ? goToAccount : onSubmit}
+				disabled={isConfirming || (!canEnterAccount && !hasVerificationToken)}
+				onclick={canEnterAccount ? goToAccount : onSubmit}
 			>
 				{#if isConfirming}
 					<span class={isConfirming ? 'animate-spin' : ''}>
 						<AbstractIcon name={icons.LoaderCircle.name} width="24" height="24" focusable="false" />
 					</span>
-				{:else if isConfirmed}
+				{:else if canEnterAccount}
 					Go to Home
 				{:else}
 					Complete your registration

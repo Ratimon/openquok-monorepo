@@ -1,18 +1,17 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
-import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { getRootPathPublicCreatorBuildingBlock } from '$lib/area-public/constants/getRootPathPublicCreators';
+import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
 import { createMetaData, type MetaDataImage } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
+/** Legacy `/building-blocks/{slug}` — redirects when owner username is set; otherwise renders. */
 export async function load({ url, params, cookies, fetch, parent }) {
 	const listingSlug = params.listingSlug;
 
@@ -31,14 +30,17 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		throw error(404, 'Building block not found');
 	}
 
+	const ownerUsername = extensionVm.owner?.username?.trim();
+	if (ownerUsername) {
+		redirect(301, `/${getRootPathPublicCreatorBuildingBlock(ownerUsername, extensionVm.slug)}`);
+	}
+
 	const commentsVm = await publicExtensionBySlugPagePresenter.loadListingCommentsStateless({
 		listingId: extensionVm.id,
 		fetch
 	});
 
-	const accessToken = cookies.get('access_token');
-	const isLoggedIn = !!accessToken;
-
+	const isLoggedIn = !!cookies.get('access_token');
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
@@ -63,7 +65,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customSlug: getRootPathPublicBuildingBlock(extensionVm.slug),
+		customSlug: getLegacyRootPathPublicBuildingBlock(extensionVm.slug),
 		customImages,
 		customTags: [
 			extensionVm.title,
@@ -114,7 +116,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		isLoggedIn,
 		extensionVm,
 		relatedExtensionsVm,
-		commentsVm: commentsVm,
+		commentsVm,
 		schemaData
 	};
 }

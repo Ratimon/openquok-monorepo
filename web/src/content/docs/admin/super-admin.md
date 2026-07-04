@@ -1,5 +1,5 @@
 ---
-title: First setup
+title: First setup as super admin
 description: After deployment — sign up, verify email, then set platform admin access in Supabase.
 order: 1
 lastUpdated: 2026-03-31
@@ -31,9 +31,19 @@ In the navbar, choose **Sign up** and complete registration with your email and 
 
 The admin entry points may appear in the UI, but **secret-admin routes** require <code>is_super_admin</code> on your user.
 
-Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for your account and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
+Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for **your** account (the email you signed up with) and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
+
+<Callout type="note" title="One super admin only">
+Use your real signup email as the only platform super admin. The seeded catalog row <Badge text="openquok" variant="param" /> (<Badge text="catalog@openquok.local" variant="default" />) is a <strong>display-only publisher</strong> for hub listings — it has no <Badge text="auth_id" variant="param" /> and must <strong>not</strong> be promoted to super admin.
+</Callout>
 
 After that, sign out and sign in again if the app caches roles, or refresh the session as your app expects.
+
+### Set your public username (optional but recommended)
+
+In the app, open <Badge text="Account → Settings → Profile" variant="path" /> and set a <strong>username</strong> (e.g. <Badge text="ratixoxo" variant="param" />). That powers your creator profile at <Badge text="/creators/&#123;username&#125;" variant="path" /> when you publish listings under your own account.
+
+Seeded catalog listings (OpenQuok Core, Bloom MCP, etc.) are owned by <Badge text="@openquok" variant="param" /> until you reassign them in <Badge text="Secret Admin → Listing Manager" variant="path" />.
 
 </Steps>
 

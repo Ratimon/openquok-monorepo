@@ -24,6 +24,9 @@ import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../
 import { logger } from "../utils/Logger";
 import { stringToSlug } from "../utils/blog/slug";
 
+/** Username of the seeded catalog publisher (`user-management` seed). */
+export const LISTING_CATALOG_PUBLISHER_USERNAME = "openquok";
+
 const TABLE_LISTINGS = "listings";
 const TABLE_TAG_ASSOC = "listings_listing_tags_association";
 const TABLE_BOOKMARKS = "listing_bookmarks";
@@ -437,6 +440,23 @@ export class ListingRepository {
         ]);
 
         return { data: [...extensions.data, ...stacks.data] };
+    }
+
+    async findUserIdByUsername(username: string): Promise<string | null> {
+        const { data, error } = await this.supabase
+            .from("users")
+            .select("id")
+            .eq("username", username)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Error resolving username: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "select",
+            });
+        }
+
+        return (data?.id as string | undefined) ?? null;
     }
 
     async incrementStatCounter(

@@ -142,7 +142,8 @@ export const listingService = new ListingService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     configRepository,
-    subscriptionGuard
+    subscriptionGuard,
+    userRepository
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,

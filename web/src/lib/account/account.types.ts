@@ -38,6 +38,20 @@ export const accountWebsiteFormSchema = z.object({
 
 export type AccountWebsiteFormSchemaType = z.infer<typeof accountWebsiteFormSchema>;
 
+/** Public creator username for `/creators/{username}` and listing URLs. */
+export const accountUsernameFormSchema = z.object({
+	username: z
+		.string()
+		.min(3, 'Username must be at least 3 characters.')
+		.max(30, 'Username must be at most 30 characters.')
+		.regex(/^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/, {
+			message: 'Username must use lowercase letters, numbers, and hyphens only.'
+		})
+		.trim()
+});
+
+export type AccountUsernameFormSchemaType = z.infer<typeof accountUsernameFormSchema>;
+
 /** Combined avatar + website (legacy / tooling). Prefer accountAvatarDetailsFormSchema + accountWebsiteFormSchema. */
 export const accountProfileDetailsFormSchema = accountAvatarDetailsFormSchema.merge(accountWebsiteFormSchema);
 

@@ -191,6 +191,7 @@ export interface ListingPublicViewModel {
 	createdAt: string;
 	category: { id: string; name: string; slug: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
+	ownerUsername: string | null;
 }
 
 /** CLI command row for skills extension detail pages. */
@@ -300,6 +301,7 @@ export interface StackCardViewModel {
 	createdAt: string;
 	category: { id: string; name: string; slug: string } | null;
 	tags: Array<{ id: string; name: string; slug: string }>;
+	ownerUsername: string | null;
 }
 
 export interface ListingCreatorViewModel {
@@ -554,7 +556,8 @@ export class GetListingPresenter {
 			views: stack.views,
 			createdAt: stack.createdAt,
 			category: stack.category,
-			tags: stack.tags
+			tags: stack.tags,
+			ownerUsername: stack.ownerUsername
 		};
 	}
 
@@ -934,7 +937,8 @@ export class GetListingPresenter {
 			views: listing.views,
 			createdAt: listing.createdAt,
 			category: listing.category ? { ...listing.category } : null,
-			tags: listing.tags.map((t) => ({ ...t }))
+			tags: listing.tags.map((t) => ({ ...t })),
+			ownerUsername: listing.owner?.username ?? null
 		};
 	}
 
@@ -1081,7 +1085,8 @@ export class GetListingPresenter {
 			isOfficial: listing.isOfficial === true,
 			createdAt: listing.createdAt,
 			category: listing.category ? { ...listing.category } : null,
-			tags: listing.tags.map((t) => ({ ...t }))
+			tags: listing.tags.map((t) => ({ ...t })),
+			ownerUsername: listing.owner?.username ?? null
 		};
 	}
 

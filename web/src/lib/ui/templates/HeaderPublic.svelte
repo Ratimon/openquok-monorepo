@@ -35,6 +35,8 @@
 		isLoggedIn: boolean;
 		/** When false, Account is shown disabled (e.g. email not verified yet). */
 		accountNavEnabled?: boolean;
+		/** Full page load for Account (post-verify-signup). */
+		accountHardNavigate?: boolean;
 		class?: string;
 	}
 
@@ -44,6 +46,7 @@
 		companyNameVm,
 		isLoggedIn,
 		accountNavEnabled = true,
+		accountHardNavigate = false,
 		class: className = 'bg-base-100'
 	}: Props = $props();
 
@@ -162,6 +165,7 @@
 							<PageLink
 								href={accountPath}
 								useGoto
+								hardNavigate={accountHardNavigate}
 								onAfterNavigate={setClose}
 								class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
 								whenSelected="account-link tab-active"
@@ -291,6 +295,7 @@
 								<PageLink
 									href={accountPath}
 									useGoto
+									hardNavigate={accountHardNavigate}
 									onAfterNavigate={setClose}
 									class="flex flex-col items-center gap-1 tab tab-lg tab-lifted account-link"
 									whenSelected="account-link tab-active"

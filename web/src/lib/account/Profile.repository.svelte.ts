@@ -5,6 +5,7 @@ import type { UserMeWorkspaceSession } from 'openquok-common';
 export interface AccountConfig {
 	endpoints: {
 		me: string;
+		meUsernameAvailable: string;
 		mePassword: string;
 		meRequestChangePassword: string;
 		organizations: string;
@@ -21,6 +22,7 @@ export interface UserProfileDto {
 	id: string;
 	email: string | null;
 	fullName: string | null;
+	username: string | null;
 	isEmailVerified: boolean;
 	avatarUrl: string | null;
 	websiteUrl: string | null;
@@ -44,6 +46,17 @@ export interface UpdateProfileResponseDto {
 	message: string;
 }
 
+export interface UsernameAvailabilityDto {
+	available: boolean;
+	reason?: 'invalid' | 'reserved' | 'taken';
+	message?: string;
+}
+
+export interface UsernameAvailabilityResponseDto {
+	success: boolean;
+	data: UsernameAvailabilityDto;
+}
+
 export interface UpdatePasswordResponseDto {
 	success: boolean;
 	message: string;
@@ -61,6 +74,7 @@ export interface UserProfileProgrammerModel {
 	id: string;
 	email: string | null;
 	fullName: string | null;
+	username: string | null;
 	isEmailVerified: boolean;
 	avatarUrl: string | null;
 	websiteUrl: string | null;
@@ -86,6 +100,7 @@ export function toUserProfilePm(dto: UserProfileDto): UserProfileProgrammerModel
 		id: dto.id,
 		email: dto.email ?? null,
 		fullName: dto.fullName ?? null,
+		username: dto.username ?? null,
 		isEmailVerified: dto.isEmailVerified === true,
 		avatarUrl: dto.avatarUrl ?? null,
 		websiteUrl: dto.websiteUrl ?? null
@@ -179,8 +194,29 @@ export class ProfileRepository {
 		}
 	}
 
+	public async checkUsernameAvailable(
+		username: string,
+		fetchFn?: typeof globalThis.fetch
+	): Promise<UsernameAvailabilityDto | null> {
+		try {
+			const query = new URLSearchParams({ username });
+			const { ok, data: responseDto } = await this.httpGateway.get<UsernameAvailabilityResponseDto>(
+				`${this.config.endpoints.meUsernameAvailable}?${query.toString()}`,
+				undefined,
+				{ withCredentials: true, ...(fetchFn && { fetch: fetchFn }) }
+			);
+			if (ok && responseDto?.success && responseDto.data) {
+				return responseDto.data;
+			}
+			return null;
+		} catch {
+			return null;
+		}
+	}
+
 	public async updateProfile(updates: {
 		fullName?: string;
+		username?: string;
 		avatarUrl?: string | null;
 		websiteUrl?: string | null;
 	}): Promise<UpdateProfileProgrammerModel> {
@@ -197,6 +233,7 @@ export class ProfileRepository {
 					this.profilePm = {
 						...this.profilePm,
 						...(updates.fullName !== undefined && { fullName: updates.fullName }),
+						...(updates.username !== undefined && { username: updates.username }),
 						...(updates.avatarUrl !== undefined && { avatarUrl: updates.avatarUrl }),
 						...(updates.websiteUrl !== undefined && { websiteUrl: updates.websiteUrl })
 					};

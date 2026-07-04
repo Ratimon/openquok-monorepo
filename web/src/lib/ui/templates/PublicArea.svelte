@@ -14,6 +14,8 @@
 		isLoggedIn: boolean;
 		/** When false and user is logged in, header Account control is disabled until email is verified. */
 		accountNavEnabled?: boolean;
+		/** Full page load for header Account link (e.g. after verify-signup). */
+		accountHardNavigate?: boolean;
 		navbarDesktopLinks?: Link[];
 		navbarMobileLinks?: Link[];
 		footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
@@ -26,6 +28,7 @@
 		children,
 		isLoggedIn,
 		accountNavEnabled = true,
+		accountHardNavigate = false,
 		navbarDesktopLinks: propNavbarDesktopLinks,
 		navbarMobileLinks: propNavbarMobileLinks,
 		footerNavigationLinks: propFooterNavigationLinks,
@@ -46,6 +49,7 @@
 		{companyNameVm}
 		{isLoggedIn}
 		{accountNavEnabled}
+		{accountHardNavigate}
 	/>
 	<main class="flex-1">
 		{@render children?.()}

@@ -9,6 +9,10 @@
 		PUBLIC_FOOTER_LINKS
 	} from '$lib/config/constants/config';
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
+	import { authenticationRepository, verifyEmailPresenter } from '$lib/user-auth/index';
+	import { VerifyEmailStatus } from '$lib/user-auth/VerifyEmail.presenter.svelte';
+	import { getRootPathVerifySignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { url } from '$lib/utils/path';
 
 	type Props = {
 		children: Snippet;
@@ -18,8 +22,18 @@
 	let { children, data }: Props = $props();
 	let isLoggedIn = $derived((data as App.LayoutData)?.isLoggedIn ?? false);
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
-	/** Header Account link only when verified (or logged out — link hidden). */
-	let accountNavEnabled = $derived(!isLoggedIn || currentUser?.isEmailVerified === true);
+	const verifySignupPath = url(getRootPathVerifySignup());
+	const onVerifySignupPage = $derived(page.url.pathname === verifySignupPath);
+	/** Header Account link when verified, or after successful verify on this page. */
+	let accountNavEnabled = $derived(
+		!isLoggedIn ||
+			authenticationRepository.currentUser?.isEmailVerified === true ||
+			currentUser?.isEmailVerified === true ||
+			(onVerifySignupPage && verifyEmailPresenter.status === VerifyEmailStatus.CONFIRMED)
+	);
+	let accountHardNavigate = $derived(
+		onVerifySignupPage && verifyEmailPresenter.status === VerifyEmailStatus.CONFIRMED
+	);
 	// Use server-rendered data from layout, fallback to presenter for client-side resilience
 	let companyNameVm = $derived(
 		(data as App.LayoutData)?.companyNameVm ??
@@ -50,6 +64,7 @@
 <PublicArea
 	{isLoggedIn}
 	accountNavEnabled={accountNavEnabled}
+	accountHardNavigate={accountHardNavigate}
 	companyNameVm={companyNameVm}
 	companyYearVm={companyYearVm}
 	marketingInformationVm={marketingInformationVm}

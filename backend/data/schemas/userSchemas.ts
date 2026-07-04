@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { RequestHandler } from "express";
 import { validateRequest } from "../../middlewares/validateRequest";
+import { usernameSchema } from "./usernameSchema";
 
 const passwordRequirements = z
     .string()
@@ -32,13 +33,17 @@ export const updateProfileBodySchema = z
             .max(256, { message: "Full name must be at most 256 characters." })
             .trim()
             .optional(),
+        username: usernameSchema.optional(),
         avatarUrl: z.union([z.string(), z.null()]).optional(),
         websiteUrl: optionalWebsiteUrl,
     })
     .refine(
         (data) =>
-            data.fullName !== undefined || data.avatarUrl !== undefined || data.websiteUrl !== undefined,
-        { message: "At least one of fullName, avatarUrl, or websiteUrl is required." }
+            data.fullName !== undefined ||
+            data.username !== undefined ||
+            data.avatarUrl !== undefined ||
+            data.websiteUrl !== undefined,
+        { message: "At least one of fullName, username, avatarUrl, or websiteUrl is required." }
     );
 
 /** Optional active workspace for GET /users/me session fields. */
@@ -46,8 +51,16 @@ export const getMeQuerySchema = z.object({
     organizationId: z.string().uuid("organizationId must be a valid UUID").optional(),
 });
 
+export const getUsernameAvailabilityQuerySchema = z.object({
+    username: usernameSchema,
+});
+
 export const validateGetMeRequest: RequestHandler = validateRequest({
     query: getMeQuerySchema,
+});
+
+export const validateGetUsernameAvailabilityRequest: RequestHandler = validateRequest({
+    query: getUsernameAvailabilityQuerySchema,
 });
 
 export const validateUpdateProfileRequest: RequestHandler = validateRequest({
@@ -60,6 +73,7 @@ export const validateUpdatePasswordMeRequest: RequestHandler = validateRequest({
 });
 
 export type ValidateGetMeRequestHandler = typeof validateGetMeRequest;
+export type ValidateGetUsernameAvailabilityRequestHandler = typeof validateGetUsernameAvailabilityRequest;
 export type ValidateUpdateProfileRequestHandler = typeof validateUpdateProfileRequest;
 export type ValidateUpdatePasswordMeRequestHandler = typeof validateUpdatePasswordMeRequest;
 

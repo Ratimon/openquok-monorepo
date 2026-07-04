@@ -5,7 +5,13 @@ import type { AppRole } from "../data/types/rbacTypes";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import { config } from "../config/GlobalConfig";
+import { UserValidationError } from "../errors/UserError";
 import { logger } from "../utils/Logger";
+import {
+    evaluateUsernameAvailability,
+    validateUsernameFormat,
+    type UsernameAvailabilityResult,
+} from "../utils/usernameAvailability";
 
 export type FullUserWithRolesItem = {
     id: string;
@@ -105,6 +111,38 @@ export class UserService {
         return factory();
     }
 
+    async checkUsernameAvailability(
+        username: string,
+        excludePublicUserId?: string
+    ): Promise<UsernameAvailabilityResult> {
+        const format = validateUsernameFormat(username);
+        if (!format.ok) {
+            return { available: false, reason: "invalid", message: format.message };
+        }
+        const isTaken = await this.userRepository.isUsernameTaken(username, excludePublicUserId);
+        return evaluateUsernameAvailability({ username, isTaken });
+    }
+
+    async checkUsernameAvailabilityForAuthUser(
+        authUserId: string,
+        username: string
+    ): Promise<UsernameAvailabilityResult> {
+        const { userId, error: resolveError } = await this.userRepository.findPublicUserIdByAuthId(authUserId);
+        if (resolveError || !userId) {
+            throw (resolveError as Error) ?? new Error("User not found");
+        }
+        return this.checkUsernameAvailability(username, userId);
+    }
+
+    async requireUsernameForPublish(publicUserId: string): Promise<void> {
+        const username = await this.userRepository.findUsernameByPublicUserId(publicUserId);
+        if (!username) {
+            throw new UserValidationError(
+                "Choose a public username before publishing. Your listing URL uses /creators/{username}/."
+            );
+        }
+    }
+
     /**
      * Update profile fields for the authenticated user (users.full_name and/or user_profiles).
      * Invalidates related caches.
@@ -113,10 +151,39 @@ export class UserService {
         authUserId: string,
         updates: {
             fullName?: string;
+            username?: string;
             avatarUrl?: string | null;
             websiteUrl?: string | null | "";
         }
     ): Promise<void> {
+        if (updates.username !== undefined) {
+            const { userId, error: resolveError } = await this.userRepository.findPublicUserIdByAuthId(authUserId);
+            if (resolveError || !userId) {
+                throw (resolveError as Error) ?? new Error("User not found");
+            }
+            const availability = await this.checkUsernameAvailability(updates.username, userId);
+            if (!availability.available) {
+                throw new UserValidationError(
+                    availability.message ?? "Username is already taken. Try a different username."
+                );
+            }
+            const { updateError } = await this.userRepository.updateUsernameByAuthId(authUserId, updates.username);
+            if (updateError) {
+                const message =
+                    typeof updateError === "object" &&
+                    updateError !== null &&
+                    "message" in updateError &&
+                    typeof (updateError as { message?: string }).message === "string" &&
+                    (updateError as { message: string }).message.includes("duplicate key")
+                        ? "Username is already taken. Try a different username."
+                        : undefined;
+                if (message) {
+                    throw new UserValidationError(message);
+                }
+                throw updateError as Error;
+            }
+        }
+
         if (updates.fullName !== undefined) {
             const { updateError } = await this.userRepository.updateFullNameByAuthId(authUserId, updates.fullName);
             if (updateError) {

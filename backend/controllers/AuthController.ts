@@ -861,8 +861,9 @@ export class AuthController {
             }
             await this.userRepository.updateEmailVerification(user.id, true);
             await this.userRepository.updateVerificationToken(user.id, null, null);
-            if (user.auth_id) {
-                await this.userService.invalidateCachesAfterEmailVerification(user.auth_id, user.email);
+            const cacheAuthId = user.auth_id ?? user.id;
+            if (cacheAuthId) {
+                await this.userService.invalidateCachesAfterEmailVerification(cacheAuthId, user.email);
             }
             if (this.emailService.isEnabled && user.email) {
                 try {

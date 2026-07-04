@@ -207,6 +207,7 @@
 
 	async function handleUpdateProfileDetails(updates: {
 		fullName?: string;
+		username?: string;
 		avatarUrl?: string | null;
 		websiteUrl?: string | null;
 	}) {

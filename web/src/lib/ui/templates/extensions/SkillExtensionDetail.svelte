@@ -3,7 +3,8 @@
 
 	import { browser } from '$app/environment';
 
-	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
 
@@ -13,6 +14,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { toast } from '$lib/ui/sonner';
 
+	import ListingCreatorAttribution from '$lib/ui/templates/extensions/ListingCreatorAttribution.svelte';
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
 	import ExtensionSkillCommandsTable from '$lib/ui/components/extensions/ExtensionSkillCommandsTable.svelte';
 	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
@@ -45,7 +47,10 @@
 	}
 
 	async function handleShare() {
-		const shareUrl = browser ? window.location.href : url(`/${getRootPathPublicBuildingBlock(extensionVm.slug)}`);
+		const fallbackPath =
+			resolvePublicBuildingBlockPath(extensionVm.owner, extensionVm.slug) ??
+			getLegacyRootPathPublicBuildingBlock(extensionVm.slug);
+		const shareUrl = browser ? window.location.href : url(`/${fallbackPath}`);
 		if (browser && navigator.share) {
 			try {
 				await navigator.share({
@@ -94,9 +99,7 @@
 			<p class="text-lg text-base-content/75">{extensionVm.excerpt}</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
-			{#if extensionVm.owner?.fullName || extensionVm.owner?.username}
-				<span>By {extensionVm.owner.fullName ?? extensionVm.owner.username}</span>
-			{/if}
+			<ListingCreatorAttribution owner={extensionVm.owner} />
 			{#if extensionVm.version}
 				<span>v{extensionVm.version}</span>
 			{/if}

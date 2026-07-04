@@ -5,7 +5,6 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Checkbox from '$lib/ui/checkbox/checkbox.svelte';
 	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
 	import { getListingPublishStatusBadge } from '$lib/listings/GetListing.presenter.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -63,12 +62,6 @@
 			: null
 	);
 
-	let checked = $state(false);
-
-	$effect(() => {
-		checked = selected;
-	});
-
 	function handleSelectClick(event: MouseEvent) {
 		event.preventDefault();
 		onToggleSelect?.();
@@ -97,12 +90,25 @@
 			aria-label={selected ? `Remove ${item.title} from playbook` : `Add ${item.title} to playbook`}
 			onclick={handleSelectClick}
 		>
-			<Checkbox
-				checked={checked}
-				class="pointer-events-none size-5 border-primary/50 bg-base-content/12 shadow-none data-[state=unchecked]:border-primary/55 data-[state=unchecked]:bg-base-content/15"
-				tabindex={-1}
+			<span
+				class={cn(
+					'pointer-events-none grid size-5 shrink-0 place-items-center rounded-sm border shadow-none',
+					selected
+						? 'border-primary bg-primary text-primary-content'
+						: 'border-primary/55 bg-base-content/15'
+				)}
 				aria-hidden="true"
-			/>
+			>
+				{#if selected}
+					<AbstractIcon
+						name={icons.Check.name}
+						class="size-3"
+						width="12"
+						height="12"
+						aria-hidden="true"
+					/>
+				{/if}
+			</span>
 			<span class="text-[0.625rem] font-semibold tracking-wide uppercase">
 				{selected ? 'Added' : 'Add'}
 			</span>

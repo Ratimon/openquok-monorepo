@@ -3,6 +3,7 @@ import { userController, rbacController, approvedAppsController, trackController
 import { validateTrackEventRequest } from "../data/schemas/trackSchemas";
 import {
     validateGetMeRequest,
+    validateGetUsernameAvailabilityRequest,
     validateUpdateProfileRequest,
     validateUpdatePasswordMeRequest,
     validateChangeOrganizationRequest,
@@ -29,6 +30,12 @@ const requireManageRoles = requirePermission("users.manage_roles");
 
 // --- Current user (must be before /:userId to avoid "me" being captured)
 userRouter.get("/me", authWithRoles, validateGetMeRequest, userController.getProfile);
+userRouter.get(
+    "/me/username-available",
+    authWithRoles,
+    validateGetUsernameAvailabilityRequest,
+    userController.getUsernameAvailability
+);
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);

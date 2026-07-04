@@ -308,7 +308,7 @@ export class AuthenticationRepository {
 					id: user.id ?? null,
 					email: user.email,
 					fullName: user.fullName ?? user.email,
-					username: user.username ?? user.email,
+					username: user.username ?? undefined,
 					isEmailVerified: user.isEmailVerified,
 					roles: user.roles ?? [],
 					isPlatformAdmin: user.isPlatformAdmin
@@ -355,7 +355,7 @@ export class AuthenticationRepository {
 						id: user.id ?? null,
 						email: user.email,
 						fullName: user.fullName ?? user.email,
-						username: user.username ?? user.email,
+						username: user.username ?? undefined,
 						isEmailVerified: user.isEmailVerified,
 						roles: user.roles
 					};
@@ -495,7 +495,7 @@ export class AuthenticationRepository {
 					id: user.id ?? null,
 					email: user.email,
 					fullName: user.fullName ?? user.email,
-					username: user.username ?? user.email,
+					username: user.username ?? undefined,
 					isEmailVerified: user.isEmailVerified,
 					roles: user.roles
 				};
@@ -551,7 +551,7 @@ export class AuthenticationRepository {
 						id: user.id ?? null,
 						email: user.email ?? '',
 						fullName: user.fullName ?? user.email ?? '',
-						username: user.username ?? user.email ?? undefined,
+						username: user.username ?? undefined,
 						isEmailVerified: user.isEmailVerified,
 						roles: user.roles ?? [],
 						isPlatformAdmin: user.isPlatformAdmin ?? false
@@ -598,8 +598,8 @@ export class AuthenticationRepository {
 			id: d.id ?? null,
 			email: d.email ?? '',
 			fullName: d.fullName ?? d.email ?? '',
-			username: d.username ?? d.email ?? undefined,
-			isEmailVerified: d.isEmailVerified,
+			username: d.username ?? undefined,
+			isEmailVerified: d.isEmailVerified === true || this.currentUser?.isEmailVerified === true,
 			roles: d.roles ?? [],
 			isPlatformAdmin: d.isPlatformAdmin ?? false
 		};
@@ -615,7 +615,11 @@ export class AuthenticationRepository {
 	}
 
 	/** Update the in-memory and stored user profile (e.g. after PATCH /users/me or email verification). */
-	public updateStoredProfile(updates: { fullName?: string; isEmailVerified?: boolean }): void {
+	public updateStoredProfile(updates: {
+		fullName?: string;
+		username?: string;
+		isEmailVerified?: boolean;
+	}): void {
 		if (!this.currentUser) return;
 		const next = { ...this.currentUser, ...updates };
 		this.currentUser = next;

@@ -4,6 +4,7 @@ import type { GetProfilePresenter } from '$lib/account/GetProfile.presenter.svel
 export interface AccountProfileViewModel {
 	id: string | null;
 	fullName: string | null;
+	username: string | null;
 	email: string | null;
 	avatarUrl: string | null;
 	websiteUrl: string | null;
@@ -12,6 +13,7 @@ export interface AccountProfileViewModel {
 /** Patch for profile fields that can be updated via PATCH /users/me (no API call in setters). */
 export type ProfileFieldsPatch = {
 	fullName?: string;
+	username?: string;
 	avatarUrl?: string | null;
 	websiteUrl?: string | null;
 };
@@ -77,6 +79,7 @@ export class EditorAccountSettingsPresenter {
 				id: null,
 				email: null,
 				fullName: updates.fullName ?? null,
+				username: updates.username ?? null,
 				avatarUrl: updates.avatarUrl ?? null,
 				websiteUrl: updates.websiteUrl ?? null
 			};
@@ -85,6 +88,7 @@ export class EditorAccountSettingsPresenter {
 		this.profileVm = {
 			...this.profileVm,
 			...(updates.fullName !== undefined && { fullName: updates.fullName }),
+			...(updates.username !== undefined && { username: updates.username }),
 			...(updates.avatarUrl !== undefined && { avatarUrl: updates.avatarUrl }),
 			...(updates.websiteUrl !== undefined && { websiteUrl: updates.websiteUrl })
 		};

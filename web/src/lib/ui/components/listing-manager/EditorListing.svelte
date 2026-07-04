@@ -101,17 +101,26 @@
 		return [...((values as ListingStackFormSchemaType).stack_blueprint?.model_bindings ?? [])];
 	}
 
-	let stackMembers = $state(normalizeStackMembers(initialValues));
-	let stackModelBindings = $state(normalizeStackModelBindings(initialValues));
+	const initialStackMembers = $derived(normalizeStackMembers(initialValues));
+	const initialStackModelBindings = $derived(normalizeStackModelBindings(initialValues));
+
+	let stackMembers = $state<StackMemberFormSchemaType[]>([]);
+	let stackModelBindings = $state<StackModelBindingViewModel[]>([]);
+
+	$effect.pre(() => {
+		stackMembers = initialStackMembers;
+		stackModelBindings = initialStackModelBindings;
+	});
+
 	const stackBlueprintBaseline = $derived(
 		(initialValues as ListingStackFormSchemaType).stack_blueprint ?? null
 	);
-	const formBaseline = (() => ({
+	const formBaseline = $derived({
 		tagIds: [...(initialValues.tag_ids ?? [])],
 		isNewListing: !(initialValues.id ?? '').length,
-		stackMembersJson: JSON.stringify(normalizeStackMembers(initialValues)),
-		stackModelBindingsJson: JSON.stringify(normalizeStackModelBindings(initialValues))
-	}))();
+		stackMembersJson: JSON.stringify(initialStackMembers),
+		stackModelBindingsJson: JSON.stringify(initialStackModelBindings)
+	});
 
 	function tagsChangedFromInitial(tagIds: string[] | undefined): boolean {
 		return !arraysEqual([...(tagIds ?? [])].sort(), [...formBaseline.tagIds].sort());

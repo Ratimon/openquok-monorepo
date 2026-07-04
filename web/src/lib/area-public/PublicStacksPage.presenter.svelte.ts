@@ -95,9 +95,21 @@ export class PublicStackBySlugPagePresenter {
 
 	async loadStackBySlugStateless(params: {
 		slug: string;
+		userSlug?: string;
 		fetch?: typeof globalThis.fetch;
 	}): Promise<StackDetailViewModel | null> {
-		return this.getListingPresenter.loadPublishedStackBySlugVm(params.slug, params.fetch);
+		const stackVm = await this.getListingPresenter.loadPublishedStackBySlugVm(params.slug, params.fetch);
+		if (!stackVm) return null;
+
+		const ownerUsername = stackVm.owner?.username?.trim() ?? '';
+		const requestedUserSlug = params.userSlug?.trim() ?? '';
+		if (requestedUserSlug) {
+			if (!ownerUsername || ownerUsername !== requestedUserSlug) {
+				return null;
+			}
+		}
+
+		return stackVm;
 	}
 
 	async cloneStack(stackId: string): Promise<PublicStackMutationResultViewModel> {

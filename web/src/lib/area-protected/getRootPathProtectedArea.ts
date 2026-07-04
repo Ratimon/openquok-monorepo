@@ -65,6 +65,11 @@ export function getRootPathNewListing(): string {
 	return 'new';
 }
 
+/** Choose a public creator username (onboarding). */
+export function getRootPathChooseUsername(): string {
+	return 'choose-username';
+}
+
 /** Account playbooks hub: `/account/playbooks`. */
 export function getAccountPlaybooksHubPath(): string {
 	return getRootPathPlaybooksHub();

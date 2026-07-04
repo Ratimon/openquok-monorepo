@@ -1,4 +1,6 @@
 import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
+import { getProfilePresenter } from '$lib/account';
+import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';
 
 import type {
 	ListingEditorViewModel,
@@ -104,6 +106,16 @@ export class UserListingEditorPagePresenter {
 				this.toastMessage = parsed.error.issues.map((i) => i.message).join(' ');
 				this.showToastMessage = true;
 				return;
+			}
+
+			if (parsed.data.is_user_published === true) {
+				const profile = await getProfilePresenter.loadProfileVm();
+				if (!hasPublicUsername(profile?.username)) {
+					this.toastMessage =
+						'Choose a public username before publishing. Go to Account → Profile or complete username setup.';
+					this.showToastMessage = true;
+					return;
+				}
 			}
 
 			let listingPayload = parsed.data;

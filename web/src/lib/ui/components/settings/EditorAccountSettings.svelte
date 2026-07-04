@@ -4,6 +4,7 @@
 	import {
 		accountAvatarDetailsFormSchema,
 		accountFullNameFormSchema,
+		accountUsernameFormSchema,
 		accountWebsiteFormSchema
 	} from '$lib/account/account.types';
 	import { avatarDeletePresenter, avatarUploadPresenter } from '$lib/core/index';
@@ -15,6 +16,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AvatarUploadForm from '$lib/ui/components/AvatarUploadForm.svelte';
 	import UpdateFullnameModal from '$lib/ui/components/user/UpdateFullnameModal.svelte';
+	import UpdateUsernameModal from '$lib/ui/components/user/UpdateUsernameModal.svelte';
 	import UpdateWebsiteModal from '$lib/ui/components/user/UpdateWebsiteModal.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import { untrack } from 'svelte';
@@ -25,6 +27,7 @@
 		onRequestChangePasswordEmail: () => Promise<{ success: boolean; message: string }>;
 		onUpdateProfileDetails: (updates: {
 			fullName?: string;
+			username?: string;
 			avatarUrl?: string | null;
 			websiteUrl?: string | null;
 		}) => Promise<{ success: boolean; message: string }>;
@@ -34,11 +37,13 @@
 		$props();
 
 	const displayFullName = $derived(profileVm?.fullName ?? null);
+	const displayUsername = $derived(profileVm?.username ?? null);
 	const displayEmail = $derived(profileVm?.email ?? null);
 	const displayWebsite = $derived(profileVm?.websiteUrl ?? null);
 
 	let pictureModalOpen = $state(false);
 	let nameModalOpen = $state(false);
+	let usernameModalOpen = $state(false);
 	let websiteModalOpen = $state(false);
 	let sendingChangePasswordEmail = $state(false);
 
@@ -55,6 +60,23 @@
 			const result = await onUpdateProfileDetails({ fullName: value.fullName });
 			if (result.success) {
 				nameModalOpen = false;
+			} else {
+				toast.error(result.message);
+			}
+		}
+	}));
+
+	const usernameForm = createForm(() => ({
+		defaultValues: {
+			username: ''
+		},
+		validators: {
+			onChange: accountUsernameFormSchema
+		},
+		onSubmit: async ({ value }) => {
+			const result = await onUpdateProfileDetails({ username: value.username });
+			if (result.success) {
+				usernameModalOpen = false;
 			} else {
 				toast.error(result.message);
 			}
@@ -126,6 +148,11 @@
 		nameModalOpen = true;
 	}
 
+	function openUsernameModal() {
+		usernameForm.setFieldValue('username', displayUsername ?? '');
+		usernameModalOpen = true;
+	}
+
 	function openPictureModal() {
 		const path = profileVm?.avatarUrl?.trim() ?? '';
 		if (!path) {
@@ -166,6 +193,20 @@
 			return;
 		}
 		nameForm.handleSubmit();
+	}
+
+	function handleUsernameFormSubmit(e: Event) {
+		e.preventDefault();
+		e.stopPropagation();
+		if (usernameForm.state.errors && usernameForm.state.errors.length > 0 && usernameForm.state.errors[0]) {
+			Object.entries(usernameForm.state.errors[0] as Record<string, Array<{ message?: string }>>).forEach(
+				([, errors]) => {
+					errors.forEach((err) => toast.error(err?.message ?? 'Invalid field'));
+				}
+			);
+			return;
+		}
+		usernameForm.handleSubmit();
 	}
 
 	function handleProfileDetailsSubmit(e: Event) {
@@ -233,6 +274,31 @@
 					disabled={loadingProfile}
 				>
 					Update full name
+				</Button>
+			</div>
+		</div>
+		<!-- Username row -->
+		<div
+			class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-6"
+		>
+			<div class="min-w-0">
+				<h3 class="text-sm font-semibold text-base-content">Username</h3>
+				<p class="mt-1 text-sm text-base-content/70">
+					{loadingProfile ? 'Loading…' : (displayUsername ? `@${displayUsername}` : '—')}
+				</p>
+				<p class="mt-1 text-xs text-base-content/60">
+					Used in your creator profile and public listing URLs.
+				</p>
+			</div>
+			<div class="shrink-0">
+				<Button
+					type="button"
+					variant="ghost"
+					class="!rounded-full"
+					onclick={openUsernameModal}
+					disabled={loadingProfile}
+				>
+					{displayUsername ? 'Update username' : 'Set username'}
 				</Button>
 			</div>
 		</div>
@@ -440,6 +506,11 @@
 </Dialog.Root>
 
 <UpdateFullnameModal bind:open={nameModalOpen} form={nameForm} onSubmit={handleNameFormSubmit} />
+<UpdateUsernameModal
+	bind:open={usernameModalOpen}
+	form={usernameForm}
+	onSubmit={handleUsernameFormSubmit}
+/>
 <UpdateWebsiteModal
 	bind:open={websiteModalOpen}
 	form={websiteForm}

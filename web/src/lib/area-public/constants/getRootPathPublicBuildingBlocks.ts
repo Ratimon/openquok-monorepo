@@ -3,7 +3,7 @@ export function getRootPathPublicBuildingBlocks(): string {
 	return 'building-blocks';
 }
 
-/** Public building block detail page: `building-blocks/{slug}` (no leading slash). */
-export function getRootPathPublicBuildingBlock(slug: string): string {
-	return `${getRootPathPublicBuildingBlocks()}/${slug}`;
+/** Legacy single-segment hub path kept for redirects: `building-blocks/{slug}`. */
+export function getLegacyRootPathPublicBuildingBlock(listingSlug: string): string {
+	return `${getRootPathPublicBuildingBlocks()}/${encodeURIComponent(listingSlug)}`;
 }

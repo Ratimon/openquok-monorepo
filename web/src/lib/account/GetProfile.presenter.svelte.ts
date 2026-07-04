@@ -13,6 +13,7 @@ export class GetProfilePresenter {
 		return {
 			id: profilePm.id ?? null,
 			fullName: profilePm.fullName ?? null,
+			username: profilePm.username ?? null,
 			email: profilePm.email ?? null,
 			avatarUrl: profilePm.avatarUrl ?? null,
 			websiteUrl: profilePm.websiteUrl ?? null

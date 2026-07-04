@@ -7,6 +7,7 @@ import { EditorAccountSettingsPresenter } from './EditorAccountSettings.presente
 const accountConfig: AccountConfig = {
 	endpoints: {
 		me: '/api/v1/users/me',
+		meUsernameAvailable: '/api/v1/users/me/username-available',
 		mePassword: '/api/v1/users/me/password',
 		meRequestChangePassword: '/api/v1/users/me/request-change-password',
 		organizations: '/api/v1/users/organizations',
@@ -45,9 +46,11 @@ export {
 	accountAvatarDetailsFormSchema,
 	accountWebsiteFormSchema,
 	accountProfileDetailsFormSchema,
+	accountUsernameFormSchema,
 	type AccountChangePasswordFormSchemaType,
 	type AccountFullNameFormSchemaType,
 	type AccountAvatarDetailsFormSchemaType,
 	type AccountWebsiteFormSchemaType,
-	type AccountProfileDetailsFormSchemaType
+	type AccountProfileDetailsFormSchemaType,
+	type AccountUsernameFormSchemaType
 } from '$lib/account/account.types';

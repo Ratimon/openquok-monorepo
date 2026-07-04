@@ -47,7 +47,7 @@ INSERT INTO public.listings (
 ) VALUES
 (
     'd5f7b000-0000-4000-a000-000000000103',
-    NULL,
+    (SELECT id FROM public.users WHERE username = 'openquok' LIMIT 1),
     NOW(),
     'RevenueCat MCP',
     'revenuecat-mcp',
@@ -273,6 +273,7 @@ ON CONFLICT (slug) DO UPDATE SET
     install_command_skills = EXCLUDED.install_command_skills,
     install_command_mcp = EXCLUDED.install_command_mcp,
     is_official = EXCLUDED.is_official,
+    owner_id = EXCLUDED.owner_id,
     source_repo_url = EXCLUDED.source_repo_url,
     skill_source_url = EXCLUDED.skill_source_url,
     skill_name = EXCLUDED.skill_name,

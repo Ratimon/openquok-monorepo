@@ -31,6 +31,7 @@ export class PublicExtensionBySlugPagePresenter {
 	/** Stateless — safe for SSR loads. */
 	async loadExtensionBySlugStateless(params: {
 		slug: string;
+		userSlug?: string;
 		fetch?: typeof globalThis.fetch;
 		relatedLimit?: number;
 	}): Promise<{
@@ -44,6 +45,14 @@ export class PublicExtensionBySlugPagePresenter {
 
 		if (!extensionVm) {
 			return { extensionVm: null, relatedExtensionsVm: [] };
+		}
+
+		const ownerUsername = extensionVm.owner?.username?.trim() ?? '';
+		const requestedUserSlug = params.userSlug?.trim() ?? '';
+		if (requestedUserSlug) {
+			if (!ownerUsername || ownerUsername !== requestedUserSlug) {
+				return { extensionVm: null, relatedExtensionsVm: [] };
+			}
 		}
 
 		const relatedExtensionsVm = await this.getListingPresenter.loadRelatedExtensionsStateless({

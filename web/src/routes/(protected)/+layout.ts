@@ -1,7 +1,7 @@
 import type { LayoutLoad } from './$types';
 import { browser } from '$app/environment';
 import { redirect } from '@sveltejs/kit';
-import { authenticationRepository } from '$lib/user-auth/index';
+import { authenticationRepository, syncEmailVerificationState } from '$lib/user-auth/index';
 import { getRootPathSignin, getRootPathVerifySignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 import { url } from '$lib/utils/path';
 
@@ -9,8 +9,6 @@ export const ssr = false;
 
 export const load: LayoutLoad = async ({ url: loadUrl, parent, fetch }) => {
 	await parent();
-	// Root layout may SSR as signed-out before the client runs `checkAuth`, or hydration can race.
-	// One client-side auth sync avoids bouncing to sign-in right after OAuth when cookies are valid.
 	if (browser && !authenticationRepository.isAuthenticated()) {
 		try {
 			await authenticationRepository.checkAuth(fetch);
@@ -29,18 +27,13 @@ export const load: LayoutLoad = async ({ url: loadUrl, parent, fetch }) => {
 		throw redirect(302, signinUrl);
 	}
 
-	let user = authenticationRepository.currentUser;
-	if (user && user.isEmailVerified !== true) {
-		try {
-			await authenticationRepository.checkAuth(fetch, { forceProfile: true });
-			user = authenticationRepository.currentUser;
-		} catch {
-			// Keep prior user; redirect below if still unverified
-		}
-	}
-	if (user && user.isEmailVerified !== true) {
+	const emailVerified = await syncEmailVerificationState(fetch);
+	if (!emailVerified) {
+		const email = authenticationRepository.currentUser?.email?.trim();
 		const verifyPath = url(getRootPathVerifySignup());
-		const verifyUrl = `${verifyPath}?email=${encodeURIComponent(user.email)}`;
+		const verifyUrl = email
+			? `${verifyPath}?email=${encodeURIComponent(email)}`
+			: verifyPath;
 		throw redirect(302, verifyUrl);
 	}
 

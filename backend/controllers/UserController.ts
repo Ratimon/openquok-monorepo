@@ -5,6 +5,7 @@ import type { EmailService } from "../services/EmailService";
 import type { AuthenticatedRequest } from "../guards";
 import type {
     ValidateGetMeRequestHandler,
+    ValidateGetUsernameAvailabilityRequestHandler,
     ValidateUpdateProfileRequestHandler,
     ValidateUpdatePasswordMeRequestHandler,
 } from "../data/schemas/userSchemas";
@@ -107,6 +108,29 @@ export class UserController {
     };
 
     /**
+     * GET /users/me/username-available — check whether a username can be claimed by the current user.
+     */
+    getUsernameAvailability: ValidateGetUsernameAvailabilityRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+
+            const { username } = req.query as { username: string };
+            const result = await this.userService.checkUsernameAvailabilityForAuthUser(authUserId, username);
+            res.status(200).json({ success: true, data: result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
      * PATCH /users/me - update the authenticated user's profile (e.g. fullName).
      */
     updateProfile: ValidateUpdateProfileRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -117,12 +141,13 @@ export class UserController {
                 return next(new UserAuthorizationError("Not authenticated"));
             }
 
-            const { fullName, avatarUrl, websiteUrl } = req.body as {
+            const { fullName, username, avatarUrl, websiteUrl } = req.body as {
                 fullName?: string;
+                username?: string;
                 avatarUrl?: string | null;
                 websiteUrl?: string | null | "";
             };
-            await this.userService.updateProfile(authUserId, { fullName, avatarUrl, websiteUrl });
+            await this.userService.updateProfile(authUserId, { fullName, username, avatarUrl, websiteUrl });
 
             logger.info({ msg: "Profile updated successfully", userId: authUserId });
             res.status(200).json({ success: true, message: "Profile updated successfully" });

@@ -66,6 +66,14 @@
 </script>
 
 <div class="p-4 md:p-6">
+	<div class="alert alert-info mb-6 text-sm">
+		<p>
+			This listing will publish under
+			<span class="font-mono">/creators/openquok/…</span>. To publish under your own username, use
+			<a href={url('/account/playbooks')} class="link link-primary">Account → Playbooks</a>.
+		</p>
+	</div>
+
 	<div class="mb-6">
 		<h1 class="text-xl font-semibold text-base-content">New building block</h1>
 		<p class="text-sm text-base-content/70">Create a new extension listing.</p>

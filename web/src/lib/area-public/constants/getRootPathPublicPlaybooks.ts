@@ -3,7 +3,7 @@ export function getRootPathPublicPlaybooks(): string {
 	return 'playbooks';
 }
 
-/** Public playbook detail page: `playbooks/{slug}` (no leading slash). */
-export function getRootPathPublicPlaybook(slug: string): string {
-	return `${getRootPathPublicPlaybooks()}/${slug}`;
+/** Legacy single-segment hub path kept for redirects: `playbooks/{slug}`. */
+export function getLegacyRootPathPublicPlaybook(playbookSlug: string): string {
+	return `${getRootPathPublicPlaybooks()}/${encodeURIComponent(playbookSlug)}`;
 }

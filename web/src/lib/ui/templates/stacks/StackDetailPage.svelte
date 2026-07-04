@@ -2,7 +2,10 @@
 	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { StackBlueprintWorkflowStepProgrammerModel } from '$lib/listings/listing.types';
 
-	import { getRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import {
+		getLegacyRootPathPublicBuildingBlock
+	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { url } from '$lib/utils/path';
 
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -79,7 +82,10 @@
 
 	function memberDetailHref(stackMember: StackDetailViewModel['stackMembers'][number]) {
 		if (!stackMember.member) return null;
-		return url(getRootPathPublicBuildingBlock(stackMember.member.slug));
+		const path =
+			resolvePublicBuildingBlockPath(stack.owner, stackMember.member.slug) ??
+			getLegacyRootPathPublicBuildingBlock(stackMember.member.slug);
+		return url(`/${path}`);
 	}
 
 	function memberSetupDocButtons(
@@ -169,12 +175,13 @@
 													{/each}
 												</div>
 												<h3 class="font-semibold text-base-content">
-													<a
-														class="link link-hover"
-														href={url(getRootPathPublicBuildingBlock(member.member.slug))}
-													>
+													{#if memberDetailHref(member)}
+														<a class="link link-hover" href={memberDetailHref(member)}>
+															{member.member.title}
+														</a>
+													{:else}
 														{member.member.title}
-													</a>
+													{/if}
 												</h3>
 												{#if member.member.excerpt}
 													<p class="mt-1 text-sm text-base-content/70">{member.member.excerpt}</p>

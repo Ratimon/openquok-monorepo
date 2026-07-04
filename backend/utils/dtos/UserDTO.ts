@@ -13,6 +13,7 @@ export type UserLike = {
     auth_id: string | null;
     email: string | null;
     full_name: string | null;
+    username: string | null;
     is_email_verified: boolean | null;
     email_verification_token?: string | null;
     email_verification_token_expires?: string | null;
@@ -35,10 +36,7 @@ export interface UserDTO {
     id: string;
     email: string | null;
     fullName: string | null;
-    /**
-     * Human-facing identifier used by the frontend as "username".
-     * We currently treat this as the user's email (no dedicated username field in DB yet).
-     */
+    /** Public creator slug (`public.users.username`). */
     username: string | null;
     isEmailVerified: boolean;
     /** Storage path in avatars bucket, or null. */
@@ -58,6 +56,7 @@ export interface UserRowLike {
     auth_id?: string | null;
     email: string | null;
     full_name: string | null;
+    username?: string | null;
     is_email_verified?: boolean | null;
     user_profiles?: UserProfilesJoinLike;
 }
@@ -84,7 +83,7 @@ export function toUserDTO(row: UserRowLike | null): UserDTO | null {
         id: row.id,
         email: row.email ?? null,
         fullName: row.full_name ?? null,
-        username: row.email ?? null,
+        username: row.username ?? null,
         isEmailVerified: row.is_email_verified === true,
         avatarUrl,
         websiteUrl,

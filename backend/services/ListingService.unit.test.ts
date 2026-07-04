@@ -96,6 +96,7 @@ function createMockListingRepo(): jest.Mocked<ListingRepository> {
         findAdminListings: jest.fn(),
         getListingCreators: jest.fn(),
         findListingsByOwnerUsername: jest.fn(),
+        findUserIdByUsername: jest.fn(),
         incrementStatCounter: jest.fn(),
         insertListingActivity: jest.fn(),
         createListing: jest.fn(),
@@ -293,6 +294,12 @@ describe("ListingService", () => {
     });
 
     describe("createListing", () => {
+        const catalogOwnerId = "d5f7a100-0000-4000-a000-000000000001";
+
+        beforeEach(() => {
+            listingRepo.findUserIdByUsername.mockResolvedValue(catalogOwnerId);
+        });
+
         it("creates listing with isAdminApproved false when editor and config disallows auto-approve", async () => {
             listingRepo.createListing.mockResolvedValue({
                 savedListingId: listingId,
@@ -329,7 +336,33 @@ describe("ListingService", () => {
             expect(listingRepo.createListing).toHaveBeenCalledWith(
                 expect.objectContaining({ is_admin_published: true }),
                 body.listingTagsData,
-                ownerId,
+                catalogOwnerId,
+                true,
+                []
+            );
+        });
+
+        it("uses explicit owner_id when platform admin sets it on create", async () => {
+            listingRepo.createListing.mockResolvedValue({
+                savedListingId: listingId,
+                isAdminApproved: true,
+                isUserApproved: true,
+            });
+            const explicitOwnerId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const body: ListingCreateBodySchemaType = {
+                ...validCreateBody,
+                listingData: {
+                    ...validCreateBody.listingData,
+                    is_admin_published: true,
+                    owner_id: explicitOwnerId,
+                },
+            };
+            await service.createListing(body, ownerId, true);
+            expect(listingRepo.createListing).toHaveBeenCalledWith(
+                expect.objectContaining({ owner_id: explicitOwnerId }),
+                body.listingTagsData,
+                explicitOwnerId,
                 true,
                 []
             );

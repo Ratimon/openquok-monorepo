@@ -7,6 +7,8 @@
 	import { goto } from '$app/navigation';
 
 	import { icons } from '$data/icons';
+	import { getProfilePresenter } from '$lib/account';
+	import { hasPublicUsername } from '$lib/account/utils/hasPublicUsername';
 	import {
 		getRootPathAccount,
 		getAccountNewBuildingBlockPath,
@@ -14,8 +16,11 @@
 		getAccountPlaybookEditorPath,
 		protectedAccountExtensionsPagePresenter
 	} from '$lib/area-protected';
-	import { getRootPathPublicBuildingBlock, getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-	import { getRootPathPublicPlaybook, getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathChooseUsername } from '$lib/area-protected/getRootPathProtectedArea';
+	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getLegacyRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
 	import {
@@ -46,6 +51,8 @@
 	const publicPlaybooksHref = url(`/${getRootPathPublicPlaybooks()}`);
 	const publicBuildingBlocksHref = url(`/${getRootPathPublicBuildingBlocks()}`);
 	const newExtensionHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
+	const chooseUsernameHref = url(route(`/${getRootPathAccount()}/${getRootPathChooseUsername()}`));
+	const accountSettingsHref = url(route(`/${getRootPathAccount()}/settings`));
 	// /tools/skill-builder
 	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
 	const newStackHref = url(route(rootPathPublicSkillBuilder));
@@ -70,6 +77,8 @@
 	const selectedCount = $derived(pagePresenter.selectedExtensionCount);
 	const togglingBookmarkId = $derived(pagePresenter.togglingBookmarkId);
 	const isLoggedIn = $derived(data.isLoggedIn === true);
+
+	let needsCreatorUsername = $state(false);
 
 	let activeTab = $state<ViralFormatsTab>('explore');
 	let deleteModalOpen = $state(false);
@@ -122,7 +131,11 @@
 	onMount(() => {
 		if (!browser) return;
 		void (async () => {
-			const paid = await pagePresenter.loadBillingGateStateless();
+			const [paid, profile] = await Promise.all([
+				pagePresenter.loadBillingGateStateless(),
+				getProfilePresenter.loadProfileVm()
+			]);
+			needsCreatorUsername = !hasPublicUsername(profile?.username);
 			await Promise.all([
 				pagePresenter.loadExploreCatalog(),
 				pagePresenter.loadOwnListings(),
@@ -144,9 +157,9 @@
 
 	function getPublicHref(item: AccountListingCollectionItemViewModel): string {
 		if (item.listingKind === 'stack') {
-			return url(`/${getRootPathPublicPlaybook(item.slug)}`);
+			return url(`/${getLegacyRootPathPublicPlaybook(item.slug)}`);
 		}
-		return url(`/${getRootPathPublicBuildingBlock(item.slug)}`);
+		return url(`/${getLegacyRootPathPublicBuildingBlock(item.slug)}`);
 	}
 
 	function exploreMenuItems(item: AccountListingCollectionItemViewModel) {
@@ -247,6 +260,23 @@
 </script>
 
 <div class="flex flex-col gap-5">
+	{#if needsCreatorUsername}
+		<div class="alert alert-info">
+			<div class="min-w-0">
+				<p class="font-medium">Choose a public username</p>
+				<p class="text-sm opacity-90">
+					Your building blocks and playbooks publish under
+					<span class="font-mono">/creators/your-username/…</span>. Set a username before creating
+					or publishing your own listings.
+				</p>
+				<div class="mt-2 flex flex-wrap gap-2">
+					<Button href={chooseUsernameHref} variant="primary" size="sm">Choose username</Button>
+					<Button href={accountSettingsHref} variant="ghost" size="sm">Account settings</Button>
+				</div>
+			</div>
+		</div>
+	{/if}
+
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div>
 			<h1 class="text-2xl font-semibold text-base-content">Playbooks</h1>

@@ -282,14 +282,14 @@ async function fetchPublishedPostSlugs(supabase: SupabaseClient): Promise<
 async function fetchPublishedListingSlugs(
     supabase: SupabaseClient,
     listingKind: "extension" | "stack"
-): Promise<Array<{ slug: string; updated_at: string | null }>> {
-    const rows: Array<{ slug: string; updated_at: string | null }> = [];
+): Promise<Array<{ slug: string; owner_username: string | null; updated_at: string | null }>> {
+    const rows: Array<{ slug: string; owner_username: string | null; updated_at: string | null }> = [];
     let from = 0;
 
     for (;;) {
         const { data, error } = await supabase
             .from("listings")
-            .select("slug, updated_at")
+            .select("slug, updated_at, owner:users!owner_id(username)")
             .match({
                 is_user_published: true,
                 is_admin_published: true,
@@ -311,7 +311,13 @@ async function fetchPublishedListingSlugs(
         const batch = data ?? [];
         for (const row of batch) {
             if (row.slug) {
-                rows.push({ slug: row.slug, updated_at: row.updated_at ?? null });
+                const ownerRaw = row.owner as { username?: string | null } | { username?: string | null }[] | null;
+                const owner = Array.isArray(ownerRaw) ? ownerRaw[0] : ownerRaw;
+                rows.push({
+                    slug: row.slug,
+                    owner_username: owner?.username?.trim() || null,
+                    updated_at: row.updated_at ?? null,
+                });
             }
         }
 
@@ -482,8 +488,11 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         ]);
 
         for (const listing of buildingBlocks) {
+            const listingPath = listing.owner_username
+                ? `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`
+                : `/building-blocks/${encodeURIComponent(listing.slug)}`;
             urls.push({
-                url: `/building-blocks/${encodeURIComponent(listing.slug)}`,
+                url: listingPath,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
                     : new Date().toISOString().slice(0, 10),
@@ -492,8 +501,11 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         }
 
         for (const listing of playbooks) {
+            const listingPath = listing.owner_username
+                ? `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`
+                : `/playbooks/${encodeURIComponent(listing.slug)}`;
             urls.push({
-                url: `/playbooks/${encodeURIComponent(listing.slug)}`,
+                url: listingPath,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
                     : new Date().toISOString().slice(0, 10),
