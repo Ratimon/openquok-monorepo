@@ -14,17 +14,17 @@ export const ssr = true;
 
 export async function load({ url, params, cookies, fetch, parent }) {
 	const userSlug = params.userSlug;
-	const playbookSlug = params.playbookSlug;
+	const listingSlug = params.listingSlug;
 	if (typeof userSlug !== 'string' || !userSlug.trim()) {
 		throw error(404, 'Playbook not found');
 	}
-	if (typeof playbookSlug !== 'string' || !playbookSlug.trim()) {
+	if (typeof listingSlug !== 'string' || !listingSlug.trim()) {
 		throw error(404, 'Playbook not found');
 	}
 
 	const stackVm = await publicStackBySlugPagePresenter.loadStackBySlugStateless({
 		userSlug,
-		slug: playbookSlug,
+		slug: listingSlug,
 		fetch
 	});
 	if (!stackVm) {

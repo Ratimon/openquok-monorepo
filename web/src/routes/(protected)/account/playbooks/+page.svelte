@@ -17,10 +17,12 @@
 		protectedAccountExtensionsPagePresenter
 	} from '$lib/area-protected';
 	import { getRootPathChooseUsername } from '$lib/area-protected/getRootPathProtectedArea';
-	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-	import { getLegacyRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import {
+		resolvePublicBuildingBlockPath,
+		resolvePublicPlaybookPath
+	} from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { deleteMyListingVerificationPresenter, showListingBookmarkToast } from '$lib/listings';
 	import {
@@ -156,10 +158,15 @@
 	}
 
 	function getPublicHref(item: AccountListingCollectionItemViewModel): string {
-		if (item.listingKind === 'stack') {
-			return url(`/${getLegacyRootPathPublicPlaybook(item.slug)}`);
-		}
-		return url(`/${getLegacyRootPathPublicBuildingBlock(item.slug)}`);
+		const owner = item.ownerUsername ? { username: item.ownerUsername } : null;
+		const path =
+			item.listingKind === 'stack'
+				? resolvePublicPlaybookPath(owner, item.slug)
+				: resolvePublicBuildingBlockPath(owner, item.slug);
+		if (path) return url(`/${path}`);
+		return url(
+			`/${item.listingKind === 'stack' ? getRootPathPublicPlaybooks() : getRootPathPublicBuildingBlocks()}`
+		);
 	}
 
 	function exploreMenuItems(item: AccountListingCollectionItemViewModel) {

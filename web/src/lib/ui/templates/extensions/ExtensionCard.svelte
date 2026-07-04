@@ -3,7 +3,7 @@
 
 	import { icons } from '$data/icons';
 
-	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { url } from '$lib/utils/path';
 
@@ -49,12 +49,11 @@
 	}: Props = $props();
 
 	const detailHref = $derived.by(() => {
-		const path =
-			resolvePublicBuildingBlockPath(
-				extensionVm.ownerUsername ? { username: extensionVm.ownerUsername } : null,
-				extensionVm.slug
-			) ?? getLegacyRootPathPublicBuildingBlock(extensionVm.slug);
-		return url(`/${path}`);
+		const path = resolvePublicBuildingBlockPath(
+			extensionVm.ownerUsername ? { username: extensionVm.ownerUsername } : null,
+			extensionVm.slug
+		);
+		return path ? url(`/${path}`) : url(`/${getRootPathPublicBuildingBlocks()}`);
 	});
 	const typeBadges = $derived.by((): string[] => {
 		switch (extensionVm.extensionType) {

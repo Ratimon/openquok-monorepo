@@ -4,7 +4,7 @@
 	import { onMount } from 'svelte';
 
 	import { adminListingActivitiesManagerPagePresenter } from '$lib/area-admin';
-	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathSecretAdminListingManagerBuildingBlockEditor } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { url } from '$lib/utils/path';
 
 	import ListingActivitiesTable from '$lib/ui/components/listing-manager/ListingActivitiesTable.svelte';
@@ -18,7 +18,8 @@
 	});
 
 	function getListingHref(activity: AdminListingActivityVm) {
-		return url(`/${getLegacyRootPathPublicBuildingBlock(activity.listing?.slug ?? activity.listingId)}`);
+		const id = activity.listing?.id ?? activity.listingId;
+		return url(getRootPathSecretAdminListingManagerBuildingBlockEditor(id));
 	}
 </script>
 

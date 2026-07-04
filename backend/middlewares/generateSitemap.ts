@@ -488,11 +488,9 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         ]);
 
         for (const listing of buildingBlocks) {
-            const listingPath = listing.owner_username
-                ? `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`
-                : `/building-blocks/${encodeURIComponent(listing.slug)}`;
+            if (!listing.owner_username) continue;
             urls.push({
-                url: listingPath,
+                url: `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
                     : new Date().toISOString().slice(0, 10),
@@ -501,11 +499,9 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         }
 
         for (const listing of playbooks) {
-            const listingPath = listing.owner_username
-                ? `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`
-                : `/playbooks/${encodeURIComponent(listing.slug)}`;
+            if (!listing.owner_username) continue;
             urls.push({
-                url: listingPath,
+                url: `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
                     : new Date().toISOString().slice(0, 10),

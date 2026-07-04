@@ -40,6 +40,7 @@ export type AccountListingCollectionItemViewModel = {
 	logoImageUrl: string | null;
 	listingKind: 'extension' | 'stack';
 	extensionType: string | null;
+	ownerUsername?: string | null;
 	isUserPublished?: boolean;
 	isAdminPublished?: boolean;
 };
@@ -107,7 +108,8 @@ function toCollectionItemFromExtensionVm(
 		initials: listingInitials(extension.title),
 		logoImageUrl: extension.logoImageUrl,
 		listingKind: 'extension',
-		extensionType: extension.extensionType
+		extensionType: extension.extensionType,
+		ownerUsername: extension.ownerUsername
 	};
 }
 
@@ -123,7 +125,8 @@ function toCollectionItemFromStackVm(
 		initials: listingInitials(stack.title),
 		logoImageUrl: stack.logoImageUrl,
 		listingKind: 'stack',
-		extensionType: null
+		extensionType: null,
+		ownerUsername: stack.ownerUsername
 	};
 }
 
@@ -188,7 +191,8 @@ function stackToTagFilterExtensionVm(stack: StackCardViewModel): ExtensionCardVi
 		views: stack.views,
 		createdAt: stack.createdAt,
 		category: stack.category,
-		tags: stack.tags
+		tags: stack.tags,
+		ownerUsername: stack.ownerUsername
 	};
 }
 

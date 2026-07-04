@@ -25,9 +25,12 @@
 
 	const creatorsIndexHref = url(`/${getRootPathPublicCreators()}`);
 
-	let activeTab = $state<'building-blocks' | 'playbooks'>(
-		data.buildingBlocks.length === 0 && data.playbooks.length > 0 ? 'playbooks' : 'building-blocks'
-	);
+	let activeTab = $state<'building-blocks' | 'playbooks'>('building-blocks');
+
+	$effect.pre(() => {
+		activeTab =
+			buildingBlocks.length === 0 && playbooks.length > 0 ? 'playbooks' : 'building-blocks';
+	});
 
 	function statLabel(count: number, singular: string, plural: string): string {
 		return count === 1 ? `1 ${singular}` : `${count} ${plural}`;

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { StackCardViewModel } from '$lib/listings/index';
 
-	import { getLegacyRootPathPublicPlaybook } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { resolvePublicPlaybookPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
@@ -33,12 +33,11 @@
 	}: Props = $props();
 
 	const detailHref = $derived.by(() => {
-		const path =
-			resolvePublicPlaybookPath(
-				stackVm.ownerUsername ? { username: stackVm.ownerUsername } : null,
-				stackVm.slug
-			) ?? getLegacyRootPathPublicPlaybook(stackVm.slug);
-		return url(`/${path}`);
+		const path = resolvePublicPlaybookPath(
+			stackVm.ownerUsername ? { username: stackVm.ownerUsername } : null,
+			stackVm.slug
+		);
+		return path ? url(`/${path}`) : url(`/${getRootPathPublicPlaybooks()}`);
 	});
 	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
 </script>

@@ -2,9 +2,7 @@
 	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { StackBlueprintWorkflowStepProgrammerModel } from '$lib/listings/listing.types';
 
-	import {
-		getLegacyRootPathPublicBuildingBlock
-	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { url } from '$lib/utils/path';
 
@@ -82,10 +80,8 @@
 
 	function memberDetailHref(stackMember: StackDetailViewModel['stackMembers'][number]) {
 		if (!stackMember.member) return null;
-		const path =
-			resolvePublicBuildingBlockPath(stack.owner, stackMember.member.slug) ??
-			getLegacyRootPathPublicBuildingBlock(stackMember.member.slug);
-		return url(`/${path}`);
+		const path = resolvePublicBuildingBlockPath(stack.owner, stackMember.member.slug);
+		return path ? url(`/${path}`) : url(`/${getRootPathPublicBuildingBlocks()}`);
 	}
 
 	function memberSetupDocButtons(

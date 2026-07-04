@@ -5,7 +5,7 @@
 	import { toast } from '$lib/ui/sonner';
 
 	import { adminListingCommentsManagerPagePresenter } from '$lib/area-admin';
-	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import { getRootPathSecretAdminListingManagerBuildingBlockEditor } from '$lib/area-admin/constants/getRootPathSecretAdminArea';
 	import { url } from '$lib/utils/path';
 
 	import ListingCommentsTable from '$lib/ui/components/listing-manager/ListingCommentsTable.svelte';
@@ -34,7 +34,8 @@
 	});
 
 	function getListingHref(comment: AdminListingCommentVm) {
-		return url(`/${getLegacyRootPathPublicBuildingBlock(comment.listing?.slug ?? comment.listingId)}`);
+		const id = comment.listing?.id ?? comment.listingId;
+		return url(getRootPathSecretAdminListingManagerBuildingBlockEditor(id));
 	}
 
 	async function handleApprove(commentId: string) {

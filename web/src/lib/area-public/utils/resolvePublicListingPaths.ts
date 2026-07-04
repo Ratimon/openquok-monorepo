@@ -19,11 +19,11 @@ export function resolvePublicBuildingBlockPath(
 
 export function resolvePublicPlaybookPath(
 	owner: ListingOwnerLike,
-	playbookSlug: string
+	listingSlug: string
 ): string | null {
 	const userSlug = owner?.username?.trim();
 	if (!userSlug) return null;
-	return getRootPathPublicCreatorPlaybook(userSlug, playbookSlug);
+	return getRootPathPublicCreatorPlaybook(userSlug, listingSlug);
 }
 
 export function listingOwnerDisplayName(owner: ListingOwnerLike): string | null {

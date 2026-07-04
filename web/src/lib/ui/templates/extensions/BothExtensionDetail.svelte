@@ -3,7 +3,6 @@
 
 	import { browser } from '$app/environment';
 
-	import { getLegacyRootPathPublicBuildingBlock } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
@@ -65,10 +64,12 @@
 	}
 
 	async function handleShare() {
-		const fallbackPath =
-			resolvePublicBuildingBlockPath(extensionVm.owner, extensionVm.slug) ??
-			getLegacyRootPathPublicBuildingBlock(extensionVm.slug);
-		const shareUrl = browser ? window.location.href : url(`/${fallbackPath}`);
+		const canonicalPath = resolvePublicBuildingBlockPath(extensionVm.owner, extensionVm.slug);
+		const shareUrl = browser
+			? window.location.href
+			: canonicalPath
+				? url(`/${canonicalPath}`)
+				: url('/');
 		if (browser && navigator.share) {
 			try {
 				await navigator.share({
