@@ -205,14 +205,6 @@ listingRouter.get(
     listingController.getPublishedStackBySlug
 );
 
-listingRouter.post(
-    "/stacks/:id/clone",
-    whenParamIsId,
-    authWithRoles,
-    validateRequest({ params: listingIdParamSchema }),
-    listingController.cloneStack
-);
-
 listingRouter.get(
     "/published/:slug",
     validateRequest({ params: listingSlugParamSchema }),

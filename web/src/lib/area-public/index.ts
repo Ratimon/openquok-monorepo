@@ -50,10 +50,7 @@ const publicExtensionBySlugPagePresenter = new PublicExtensionBySlugPagePresente
 	listingRepository
 );
 const publicStacksPagePresenter = new PublicStacksPagePresenter(getListingPresenter, listingRepository);
-const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(
-	getListingPresenter,
-	listingRepository
-);
+const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(getListingPresenter);
 const publicCreatorsPagePresenter = new PublicCreatorsPagePresenter(getListingPresenter, listingRepository);
 const publicCreatorByUsernamePagePresenter = new PublicCreatorByUsernamePagePresenter(
 	getListingPresenter,

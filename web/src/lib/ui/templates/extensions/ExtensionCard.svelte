@@ -68,6 +68,9 @@
 		}
 	});
 
+	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
+	const bookmarkInSelectRow = $derived(hasBookmark && selectable);
+
 	function handleSelectClick(event: MouseEvent) {
 		event.preventDefault();
 		event.stopPropagation();
@@ -77,12 +80,12 @@
 
 <div
 	class={cn(
-		showBookmark && onToggleBookmark && 'relative',
+		hasBookmark && !bookmarkInSelectRow && 'relative',
 		selectable && selected && 'rounded-2xl ring-2 ring-primary/45',
 		className
 	)}
 >
-	{#if showBookmark && onToggleBookmark}
+	{#if hasBookmark && !bookmarkInSelectRow}
 		<div class="absolute top-3 right-3 z-10">
 			<ExtensionBookmarkButton
 				listingId={extensionVm.id}
@@ -90,7 +93,7 @@
 				{isLoggedIn}
 				{bookmarksPaidEnabled}
 				{upgradeHref}
-				onToggle={onToggleBookmark}
+				onToggle={onToggleBookmark!}
 			/>
 		</div>
 	{/if}
@@ -109,21 +112,78 @@
 >
 	{#if selectable}
 		<div class="border-b border-base-content/10 px-4 pt-4">
-			<button
-				type="button"
-				class={cn(
-					'flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-					selected
-						? 'border-primary/35 bg-primary/12 text-primary'
-						: 'border-dashed border-primary/30 bg-base-200/50 text-base-content/70 hover:border-primary/50 hover:bg-primary/8'
-				)}
-				aria-pressed={selected}
-				aria-label={selected
-					? `Remove ${extensionVm.title} from skill builder selection`
-					: `Add ${extensionVm.title} to skill builder selection`}
-				onclick={handleSelectClick}
-			>
-				<span class="flex items-center gap-3">
+			{#if bookmarkInSelectRow}
+				<div
+					class={cn(
+						'flex items-stretch overflow-hidden rounded-xl border text-sm transition focus-within:ring-2 focus-within:ring-primary',
+						selected
+							? 'border-primary/35 bg-primary/12'
+							: 'border-dashed border-primary/30 bg-base-200/50'
+					)}
+				>
+					<button
+						type="button"
+						class={cn(
+							'flex min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left transition focus-visible:outline-none',
+							selected
+								? 'text-primary'
+								: 'text-base-content/70 hover:bg-primary/8'
+						)}
+						aria-pressed={selected}
+						aria-label={selected
+							? `Remove ${extensionVm.title} from skill builder selection`
+							: `Add ${extensionVm.title} to skill builder selection`}
+						onclick={handleSelectClick}
+					>
+						<span
+							class={cn(
+								'pointer-events-none grid size-5 shrink-0 place-items-center rounded-sm border shadow-none',
+								selected
+									? 'border-primary bg-primary text-primary-content'
+									: 'border-primary/55 bg-base-content/15'
+							)}
+							aria-hidden="true"
+						>
+							{#if selected}
+								<AbstractIcon
+									name={icons.Check.name}
+									class="size-3"
+									width="12"
+									height="12"
+									aria-hidden="true"
+								/>
+							{/if}
+						</span>
+						<span class="min-w-0 font-medium text-base-content">
+							{selected ? 'Added to skill builder' : 'Add to skill builder'}
+						</span>
+					</button>
+					<div class="flex shrink-0 items-center border-l border-base-content/10 px-2">
+						<ExtensionBookmarkButton
+							listingId={extensionVm.id}
+							{isBookmarked}
+							{isLoggedIn}
+							{bookmarksPaidEnabled}
+							{upgradeHref}
+							onToggle={onToggleBookmark!}
+						/>
+					</div>
+				</div>
+			{:else}
+				<button
+					type="button"
+					class={cn(
+						'flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+						selected
+							? 'border-primary/35 bg-primary/12 text-primary'
+							: 'border-dashed border-primary/30 bg-base-200/50 text-base-content/70 hover:border-primary/50 hover:bg-primary/8'
+					)}
+					aria-pressed={selected}
+					aria-label={selected
+						? `Remove ${extensionVm.title} from skill builder selection`
+						: `Add ${extensionVm.title} to skill builder selection`}
+					onclick={handleSelectClick}
+				>
 					<span
 						class={cn(
 							'pointer-events-none grid size-5 shrink-0 place-items-center rounded-sm border shadow-none',
@@ -146,15 +206,14 @@
 					<span class="font-medium text-base-content">
 						{selected ? 'Added to skill builder' : 'Add to skill builder'}
 					</span>
-				</span>
-				<span class="text-xs font-semibold uppercase">{selected ? 'Selected' : 'Select'}</span>
-			</button>
+				</button>
+			{/if}
 		</div>
 	{/if}
 	<Collapsible.Trigger
 		class={cn(
 			'flex w-full items-start gap-4 p-4 text-left transition hover:bg-base-200/40',
-			showBookmark && onToggleBookmark && 'pr-12'
+			hasBookmark && !bookmarkInSelectRow && 'pr-12'
 		)}
 	>
 		{#if extensionVm.logoImageUrl}

@@ -279,7 +279,6 @@ export interface ListingConfig {
 		getListingComments: (listingId: string) => string;
 		createListingComment: string;
 		upsertListingRating: (listingId: string) => string;
-		cloneStack: (stackId: string) => string;
 		getMyBookmarks: string;
 		getMyListingStats: string;
 		getMyListings: string;
@@ -923,25 +922,6 @@ export class ListingRepository {
 				return { ok: true, id: ratingDto.data?.id };
 			}
 			return { ok: false, error: ratingDto?.message ?? 'Failed to save rating.' };
-		} catch (err) {
-			return { ok: false, error: this.extractMessage(err) };
-		}
-	}
-
-	async cloneStack(stackId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
-		try {
-			const { data: cloneDto, ok } = await this.httpGateway.post<{
-				success: boolean;
-				data?: { id: string };
-				message?: string;
-			}>(this.config.endpoints.cloneStack(stackId), undefined, {
-				withCredentials: true,
-				fetch
-			});
-			if (ok && cloneDto?.success && cloneDto.data?.id) {
-				return { ok: true, id: cloneDto.data.id };
-			}
-			return { ok: false, error: cloneDto?.message ?? 'Failed to clone stack.' };
 		} catch (err) {
 			return { ok: false, error: this.extractMessage(err) };
 		}

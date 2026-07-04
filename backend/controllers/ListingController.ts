@@ -546,26 +546,6 @@ export class ListingController {
         }
     };
 
-    cloneStack = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const authReq = req as AuthenticatedRequest;
-            const userId = authReq.user?.publicId;
-            if (!userId) {
-                res.status(401).json({ error: "Authentication required" });
-                return;
-            }
-            const { id } = req.params as { id: string };
-            const result = await this.listingService.cloneStack(id, userId, authReq.user?.id);
-            res.status(201).json({
-                success: true,
-                data: result,
-                message: "Stack cloned as a new draft.",
-            });
-        } catch (err) {
-            next(err);
-        }
-    };
-
     getUserBookmarks = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const authReq = req as AuthenticatedRequest;

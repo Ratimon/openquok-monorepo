@@ -11,10 +11,7 @@
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
 
-	import {
-		publicExtensionBySlugPagePresenter,
-		publicStackBySlugPagePresenter
-	} from '$lib/area-public';
+	import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
 
 	import StackDetailPage from '$lib/ui/templates/stacks/StackDetailPage.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
@@ -49,24 +46,6 @@
 	});
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
-
-	async function handleClone() {
-		if (!stackVm) return;
-		if (!isLoggedIn) {
-			toast.error('Sign in to clone this stack.');
-			return;
-		}
-		if (!communityEnabled) {
-			showUpgradeModal = true;
-			return;
-		}
-		const result = await publicStackBySlugPagePresenter.cloneStack(stackVm.id);
-		if (result.ok) {
-			toast.success('Stack cloned as a new draft.');
-			return;
-		}
-		toast.error(result.error);
-	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -77,8 +56,6 @@
 	{isLoggedIn}
 	commentsVm={commentsVm}
 	communityCommentsEnabled={communityEnabled}
-	onClone={handleClone}
-	cloning={publicStackBySlugPagePresenter.submittingClone}
 	submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
 	submitListingRating={(listingId, rating) =>
 		publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}

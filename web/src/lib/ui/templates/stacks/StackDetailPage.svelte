@@ -22,8 +22,6 @@
 		isLoggedIn?: boolean;
 		commentsVm: import('$lib/listings/GetListing.presenter.svelte').ListingCommentViewModel[];
 		communityCommentsEnabled?: boolean;
-		onClone?: () => void | Promise<void>;
-		cloning?: boolean;
 		submitListingComment: (params: {
 			listingId: string;
 			content: string;
@@ -42,8 +40,6 @@
 		isLoggedIn = false,
 		commentsVm,
 		communityCommentsEnabled = true,
-		onClone,
-		cloning = false,
 		submitListingComment,
 		submitListingRating,
 		submittingComment = false,
@@ -135,16 +131,11 @@
 				{onSignInRequired}
 				{onUpgradeRequired}
 			/>
-			<div class="flex flex-wrap gap-3">
-				{#if onClone}
-					<Button variant="primary" onclick={() => void onClone?.()} disabled={cloning}>
-						{cloning ? 'Cloning…' : 'Clone playbook'}
-					</Button>
-				{/if}
-				{#if skillBuilderHref}
-					<Button href={skillBuilderHref} variant="outline">Open in Skill Builder</Button>
-				{/if}
-			</div>
+			{#if skillBuilderHref}
+				<div class="flex flex-wrap gap-3">
+					<Button href={skillBuilderHref} variant="primary">Customize this playbook</Button>
+				</div>
+			{/if}
 		</header>
 
 		<section class="border-t border-base-content/10 py-8">

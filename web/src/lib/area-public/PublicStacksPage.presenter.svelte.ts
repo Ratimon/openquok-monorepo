@@ -9,18 +9,9 @@ import type {
 	StacksHubViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { StacksHubFilters } from '$lib/listings/listing.types';
-import type { ListingRepository, ListingUpsertProgrammerModel } from '$lib/listings/Listing.repository.svelte';
-
-export type PublicStackMutationResultViewModel =
-	| { ok: true; id?: string }
-	| { ok: false; error: string };
+import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 
 export type { StackCardViewModel, StacksHubViewModel };
-
-function mutationPmToVm(pm: ListingUpsertProgrammerModel): PublicStackMutationResultViewModel {
-	if (!pm.ok) return { ok: false, error: pm.error };
-	return pm.id !== undefined ? { ok: true, id: pm.id } : { ok: true };
-}
 
 export class PublicStacksPagePresenter {
 	constructor(
@@ -86,12 +77,7 @@ export class PublicStacksPagePresenter {
 }
 
 export class PublicStackBySlugPagePresenter {
-	public submittingClone = $state(false);
-
-	constructor(
-		private readonly getListingPresenter: GetListingPresenter,
-		private readonly listingRepository: ListingRepository
-	) {}
+	constructor(private readonly getListingPresenter: GetListingPresenter) {}
 
 	async loadStackBySlugStateless(params: {
 		slug: string;
@@ -110,16 +96,6 @@ export class PublicStackBySlugPagePresenter {
 		}
 
 		return stackVm;
-	}
-
-	async cloneStack(stackId: string): Promise<PublicStackMutationResultViewModel> {
-		this.submittingClone = true;
-		try {
-			const resultPm = await this.listingRepository.cloneStack(stackId);
-			return mutationPmToVm(resultPm);
-		} finally {
-			this.submittingClone = false;
-		}
 	}
 }
 

@@ -642,13 +642,6 @@ export class ListingService {
         return { id: result.id };
     }
 
-    async cloneStack(stackId: string, ownerId: string, authUserId?: string): Promise<{ id: string }> {
-        await this._assertCommunityFeatures(authUserId);
-        const result = await this.listingRepository.cloneStack(stackId, ownerId);
-        await this._invalidateListingMutationCaches(result.id);
-        return result;
-    }
-
     private async _assertOwnerUsernameForPublish(ownerId: string, requiresUsername: boolean): Promise<void> {
         if (!requiresUsername || !this.userRepository) {
             return;
