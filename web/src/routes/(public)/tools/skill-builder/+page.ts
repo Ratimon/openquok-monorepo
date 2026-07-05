@@ -26,7 +26,6 @@ export const load: PageLoad = async ({ parent, data }) => {
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
 			selectedBuildingBlockSlugs: serverData.selectedBuildingBlockSlugs,
-			buildingBlocksCatalog: serverData.buildingBlocksCatalog,
 			selectedBuildingBlocks: serverData.selectedBuildingBlocks,
 			initialWorkflowSteps: serverData.initialWorkflowSteps,
 			stackTitle: serverData.stackTitle,

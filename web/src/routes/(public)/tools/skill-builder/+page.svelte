@@ -12,6 +12,7 @@
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
@@ -30,14 +31,17 @@
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url, absoluteUrl } from '$lib/utils/path';
 	import { planLimitsForTier } from 'openquok-common';
+	import { icons } from '$data/icons';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SkillBuilderLibraryPanel from '$lib/ui/templates/skill-builder/SkillBuilderLibraryPanel.svelte';
 	import SkillBuilderWorkflowPanel from '$lib/ui/templates/skill-builder/SkillBuilderWorkflowPanel.svelte';
 	import SkillBuilderPreviewPanel from '$lib/ui/templates/skill-builder/SkillBuilderPreviewPanel.svelte';
 	import SignInToSaveListingModal from '$lib/ui/components/skill-builder/SignInToSaveListingModal.svelte';
+	import SkillBuilderBuildingBlocksPickerModal from '$lib/ui/components/skill-builder/SkillBuilderBuildingBlocksPickerModal.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 
 	type Props = { data: PageData };
@@ -48,7 +52,6 @@
 	let metaDescription = $derived(data.metaDescription);
 	let schemaData = $derived(data.schemaData);
 	let selectedBuildingBlockSlugs = $derived(data.selectedBuildingBlockSlugs);
-	let buildingBlocksCatalog = $derived(data.buildingBlocksCatalog);
 	let selectedBuildingBlocks = $derived(data.selectedBuildingBlocks);
 	let initialWorkflowSteps = $derived(data.initialWorkflowSteps);
 	let stackTitle = $derived(data.stackTitle);
@@ -57,6 +60,10 @@
 	// /tools/skill-builder
 	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
 	const skillBuilderPath = route(rootPathPublicSkillBuilder);
+
+	// /building-blocks
+	const rootPathPublicBuildingBlocks = getRootPathPublicBuildingBlocks();
+	const buildingBlocksHref = url(route(rootPathPublicBuildingBlocks));
 
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
@@ -77,6 +84,10 @@
 	let buildingBlockDetails = $state<ExtensionDetailViewModel[]>([]);
 	let workflowSteps = $state<SkillBuilderWorkflowStepViewModel[]>([]);
 	let loadingBuildingBlockSlug = $state<string | null>(null);
+	let buildingBlocksPickerOpen = $state(false);
+
+	const addBuildingBlockIconBtn =
+		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
 	const libraryItems = $derived(buildLibraryItems(buildingBlockDetails));
 
@@ -298,22 +309,58 @@
 			<p class="mb-2 text-xs font-semibold tracking-wide text-base-content/60 uppercase">
 				Selected building blocks
 			</p>
-			<div class="flex flex-wrap gap-2">
-				{#each buildingBlocksCatalog as buildingBlock (buildingBlock.id)}
-					{@const selected = activeBuildingBlockSlugs.includes(buildingBlock.slug)}
-					<button
-						type="button"
-						class="btn btn-sm {selected ? 'btn-primary' : 'btn-outline'}"
-						disabled={loadingBuildingBlockSlug === buildingBlock.slug}
-						onclick={() => void toggleBuildingBlockSlug(buildingBlock.slug)}
+			<div class="flex flex-wrap items-center gap-2">
+				{#each buildingBlockDetails as buildingBlock (buildingBlock.slug)}
+					<span
+						class="badge badge-lg border-base-300/80 h-auto max-w-full gap-2 border bg-base-100 py-2 pr-2 pl-2 text-base-content"
 					>
-						{#if selected}
-							<span aria-hidden="true">✓</span>
+						{#if buildingBlock.logoImageUrl}
+							<img
+								src={buildingBlock.logoImageUrl}
+								alt=""
+								class="size-6 shrink-0 rounded-md object-cover"
+								loading="lazy"
+							/>
 						{/if}
-						{buildingBlock.title}
-					</button>
+						<span class="truncate">{buildingBlock.title}</span>
+						{#if buildingBlock.slug !== OPENQUOK_CORE_EXTENSION_SLUG}
+							<button
+								type="button"
+								class="btn btn-ghost btn-xs btn-circle shrink-0"
+								disabled={loadingBuildingBlockSlug === buildingBlock.slug}
+								aria-label={`Remove ${buildingBlock.title}`}
+								onclick={() => void toggleBuildingBlockSlug(buildingBlock.slug)}
+							>
+								<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
+							</button>
+						{/if}
+					</span>
 				{/each}
+
+				<button
+					type="button"
+					class={addBuildingBlockIconBtn}
+					disabled={loadingBuildingBlockSlug != null}
+					aria-label="Add building block"
+					title="Add building block"
+					onclick={() => (buildingBlocksPickerOpen = true)}
+				>
+					<span class="relative inline-flex size-5 items-center justify-center">
+						<AbstractIcon name={icons.Grid3x3.name} class="size-5" width="20" height="20" />
+						<span
+							class="bg-primary text-primary-content ring-base-100 absolute -right-1.5 -bottom-1.5 flex size-3.5 items-center justify-center rounded-full ring-2"
+							aria-hidden="true"
+						>
+							<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
+						</span>
+					</span>
+				</button>
 			</div>
+			<p class="mt-2 text-sm text-base-content/60">
+				Browse the full catalog on
+				<ExternalLink href={buildingBlocksHref}>Building blocks</ExternalLink>
+				, select cards there, then use Open Skill Builder — or add blocks with the button above.
+			</p>
 		</div>
 	</header>
 
@@ -350,6 +397,13 @@
 </SectionOuterContainer>
 
 <SignInToSaveListingModal bind:open={showSignInModal} {signInHref} />
+
+<SkillBuilderBuildingBlocksPickerModal
+	bind:open={buildingBlocksPickerOpen}
+	selectedSlugs={activeBuildingBlockSlugs}
+	loadingSlug={loadingBuildingBlockSlug}
+	onSelectSlug={toggleBuildingBlockSlug}
+/>
 
 <CommunityFeaturesLimitUpgradeModal
 	bind:open={showUpgradeModal}

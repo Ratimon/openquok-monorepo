@@ -1,6 +1,5 @@
 export type {
 	SkillBuilderPageViewModel,
-	SkillBuilderBuildingBlockViewModel,
 	SkillBuilderLibraryItemKind,
 	SkillBuilderLibraryItemViewModel,
 	SkillBuilderWorkflowStepViewModel,

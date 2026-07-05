@@ -36,20 +36,10 @@ export type SkillBuilderWorkflowStepViewModel =
 			content: string;
 	  };
 
-export interface SkillBuilderBuildingBlockViewModel {
-	id: string;
-	title: string;
-	slug: string;
-	extensionType: string | null;
-	logoImageUrl: string | null;
-	isOfficial: boolean;
-}
-
 export interface SkillBuilderPageViewModel {
 	metaTitle: string;
 	metaDescription: string;
 	selectedBuildingBlockSlugs: string[];
-	buildingBlocksCatalog: SkillBuilderBuildingBlockViewModel[];
 	selectedBuildingBlocks: ExtensionDetailViewModel[];
 	initialWorkflowSteps: SkillBuilderWorkflowStepViewModel[];
 	stackTitle: string | null;

@@ -15,7 +15,7 @@ function createThenableQueryBuilder(
             return builder;
         };
 
-    for (const method of ["select", "match", "eq", "not", "contains", "textSearch", "order", "range", "insert", "update", "delete"]) {
+    for (const method of ["select", "match", "eq", "not", "contains", "textSearch", "or", "order", "range", "insert", "update", "delete"]) {
         builder[method] = jest.fn(chain(method));
     }
 
@@ -113,18 +113,23 @@ describe("ListingRepository", () => {
             );
         });
 
-        it("applies FTS query with spaces replaced by plus signs", async () => {
+        it("applies substring ilike search across listing text fields", async () => {
             const { supabase, calls } = createMockSupabase({ data: [], count: 0 });
             const repo = new ListingRepository(supabase);
 
             await repo.findPublishedListings({
                 limit: 10,
-                searchTerm: "apple notes skill",
+                searchTerm: "Bloo",
             });
 
             expect(calls).toEqual(
                 expect.arrayContaining([
-                    { method: "textSearch", args: ["fts", "apple+notes+skill"] },
+                    {
+                        method: "or",
+                        args: [
+                            "title.ilike.%Bloo%,slug.ilike.%Bloo%,excerpt.ilike.%Bloo%,description.ilike.%Bloo%,description_mcp.ilike.%Bloo%,description_skills.ilike.%Bloo%",
+                        ],
+                    },
                 ])
             );
         });

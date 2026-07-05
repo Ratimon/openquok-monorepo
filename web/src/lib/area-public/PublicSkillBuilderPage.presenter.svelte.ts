@@ -19,20 +19,6 @@ export class PublicSkillBuilderPagePresenter {
 		const selectedBuildingBlockSlugs = parseExtensionSlugsFromQuery(params.buildingBlockSlugsParam);
 		const stackSlug = params.stackSlug?.trim() || null;
 
-		const hub = await this.getListingPresenter.loadExtensionsHubStateless({
-			fetch: params.fetch,
-			limit: 100
-		});
-
-		const buildingBlocksCatalog = hub.extensions.map((buildingBlock) => ({
-			id: buildingBlock.id,
-			title: buildingBlock.title,
-			slug: buildingBlock.slug,
-			extensionType: buildingBlock.extensionType,
-			logoImageUrl: buildingBlock.logoImageUrl,
-			isOfficial: buildingBlock.isOfficial
-		}));
-
 		let stackTitle: string | null = null;
 		let stackBlueprint = null;
 		const slugSet = new Set(selectedBuildingBlockSlugs);
@@ -71,7 +57,6 @@ export class PublicSkillBuilderPagePresenter {
 			metaDescription:
 				'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.',
 			selectedBuildingBlockSlugs: resolvedSlugs,
-			buildingBlocksCatalog,
 			selectedBuildingBlocks,
 			initialWorkflowSteps:
 				blueprintSteps.length > 0 ? blueprintSteps : createDefaultStarterWorkflowSteps(),

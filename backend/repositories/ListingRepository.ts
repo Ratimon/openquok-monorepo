@@ -23,6 +23,7 @@ import type { ListingLike } from "../utils/dtos/ListingDTO";
 import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
 import { stringToSlug } from "../utils/blog/slug";
+import { buildListingSearchOrFilter } from "../utils/listings/listingSearchFilter";
 
 /** Username of the seeded catalog publisher (`user-management` seed). */
 export const LISTING_CATALOG_PUBLISHER_USERNAME = "openquok";
@@ -284,7 +285,14 @@ export class ListingRepository {
             query = query.contains("listing_tag_slugs", tagSlugs);
         }
         if (searchTerm) {
-            query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
+            const listingSearchOr = buildListingSearchOrFilter(searchTerm);
+            if (listingSearchOr) {
+                query = query.or(listingSearchOr);
+            }
+
+            // to do: may be switch to textSearch if it's faster
+            // query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));`
+
         }
         if (skipId) {
             query = query.not("id", "eq", skipId);
@@ -335,7 +343,13 @@ export class ListingRepository {
             query = query.eq("listing_kind", listingKind);
         }
         if (searchTerm) {
-            query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
+            const listingSearchOr = buildListingSearchOrFilter(searchTerm);
+            if (listingSearchOr) {
+                query = query.or(listingSearchOr);
+            }
+
+            // to do: may be switch to textSearch if it's faster
+            // query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));`
         }
 
         const orderKey = resolveOrderKey(sortByKey ?? undefined, "created_at", ALLOWED_ADMIN_SORT_KEYS);
