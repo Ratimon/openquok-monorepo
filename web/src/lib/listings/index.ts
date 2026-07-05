@@ -110,6 +110,7 @@ export type {
 	ExtensionTypeFilter,
 	ExtensionTagFilterChip,
 	ExtensionTagGroupFilterChip,
+	ExtensionCategoryOverviewItemViewModel,
 	ExtensionsHubFilters,
 	ExtensionsTagFilterViewModel,
 	StacksHubFilters,

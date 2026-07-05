@@ -2,14 +2,25 @@
 	import type { PageData } from './$types';
 
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 
+	import type { ExtensionCategoryViewModel } from '$lib/listings/index';
+	import type {
+		ExtensionTagFilterChip,
+		ExtensionTagGroupFilterChip
+	} from '$lib/listings/listing.types';
+	import {
+		getRootPathPublicBuildingBlocksCategories,
+		getRootPathPublicBuildingBlocksCategory
+	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -19,17 +30,14 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
-
 	import BuildingBlocksHubCatalog from '$lib/ui/templates/extensions/BuildingBlocksHubCatalog.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 
 	type Props = { data: PageData };
 
@@ -44,19 +52,36 @@
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
 	let heroSubtitle = $derived(data.heroSubtitle);
+	let categorySlug = $derived(data.filtersVm.category ?? null);
+	let tagPathSlug = $derived(page.params.tagSlug ?? '');
 
 	const pagePresenter = publicExtensionsPagePresenter;
-
-	// /sign-up
+	const categoriesOverviewHref = url(route(getRootPathPublicBuildingBlocksCategories()));
+	const categoryOnlyHref = $derived(
+		categorySlug ? url(route(getRootPathPublicBuildingBlocksCategory(categorySlug))) : categoriesOverviewHref
+	);
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
-
 	const buildingBlocksHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.buildingBlocks;
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let bookmarkedIds = $state<Record<string, boolean>>({});
+
+	onMount(() => {
+		if (!browser) return;
+		const categoryMissing =
+			categorySlug &&
+			!categoriesVm.some((category: ExtensionCategoryViewModel) => category.slug === categorySlug);
+		const tagMissing =
+			tagPathSlug &&
+			!tagFilterVm.tags.some((tag: ExtensionTagFilterChip) => tag.slug === tagPathSlug) &&
+			!tagFilterVm.groups.some((group: ExtensionTagGroupFilterChip) => group.slug === tagPathSlug);
+		if (categoryMissing || tagMissing) {
+			void goto(url('/not-found'), { replaceState: true });
+		}
+	});
 
 	onMount(() => {
 		if (!browser || !isLoggedIn) {
@@ -92,6 +117,10 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
+		<div class="flex flex-wrap justify-center gap-2">
+			<Button variant="outline" href={categoriesOverviewHref}>View all categories</Button>
+			<Button variant="outline" href={categoryOnlyHref}>View category only</Button>
+		</div>
 		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
 			{heroSubtitle}
 		</p>
@@ -121,15 +150,6 @@
 	</div>
 
 	<div class="container mx-auto px-4">
-		<PublicFaq
-			heroTheme={landingHeroTheme}
-			faqSubtitle={PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqSubtitle}
-			faqTitle={PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqTitle}
-			faqDescription={PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqDescription}
-			faqItems={[...PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems]}
-			sectionClass="py-12 sm:py-16"
-		/>
-
 		<AccentSplitCtaBanner
 			title={buildingBlocksHubDocsBanner.title}
 			description={buildingBlocksHubDocsBanner.description}

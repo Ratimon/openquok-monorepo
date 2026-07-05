@@ -267,6 +267,15 @@ export interface ExtensionsTagFilterViewModel {
 	totalCount: number;
 }
 
+/** Category row on the building blocks categories directory page. */
+export interface ExtensionCategoryOverviewItemViewModel {
+	id: string;
+	name: string;
+	slug: string;
+	description: string | null;
+	count: number;
+}
+
 export interface AdminListingCommentVm {
 	id: string;
 	content: string;

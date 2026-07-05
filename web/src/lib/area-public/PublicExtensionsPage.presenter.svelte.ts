@@ -11,6 +11,8 @@ import type {
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 
+import { buildExtensionsHubNavigationUrl } from '$lib/listings/utils/buildExtensionsHubNavigationUrl';
+
 export type {
 	ExtensionCardViewModel,
 	ExtensionCategoryViewModel,
@@ -43,7 +45,7 @@ export class PublicExtensionsPagePresenter {
 		current: ExtensionsHubFilters,
 		overrides: Partial<ExtensionsHubFilters>
 	): string {
-		return this.getListingPresenter.buildHubFilterUrl(pathname, current, overrides);
+		return buildExtensionsHubNavigationUrl(pathname, current, overrides);
 	}
 
 	applyClientFilters(

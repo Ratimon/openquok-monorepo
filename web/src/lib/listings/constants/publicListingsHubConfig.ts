@@ -12,6 +12,8 @@ export type PublicListingsHubConfig = {
 	subtitle: string;
 	/** H1 and `<title>` tag headline before the company suffix. */
 	title: string;
+	/** Long-tail H1 / meta title suffix for category and tag filter pages. */
+	filterPageTitleSuffix: string;
 	/** Short lead copy for the hero and meta description. */
 	description: string;
 	/** Meta keywords passed to `createMetaData`. */
@@ -22,6 +24,7 @@ export type PublicListingsHubConfig = {
 export const PUBLIC_BUILDING_BLOCKS_HUB = {
 	subtitle: 'Building Blocks',
 	title: 'All Skills & MCP Servers',
+	filterPageTitleSuffix: 'Skills & MCP Servers',
 	description: 'Browse installable skills and MCP servers for Claude, Cursor, OpenClaw, and other AI agents.',
 	seoKeywords: [
 		'AI agent skills directory',
@@ -68,6 +71,7 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 export const PUBLIC_PLAYBOOKS_HUB = {
 	subtitle: 'Playbooks',
 	title: 'All Agent Playbooks',
+	filterPageTitleSuffix: 'Agent Playbooks',
 	description:
 		'Ready-made workflows that combine skills and MCP building blocks into steps your agents can run again and again.',
 	seoKeywords: [

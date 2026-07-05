@@ -1,13 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type {
-	ExtensionCardViewModel,
-	ExtensionCategoryViewModel,
-	ExtensionsHubFilters,
-	ExtensionsHubStatsViewModel,
-	ExtensionsTagFilterViewModel
-} from '$lib/listings/index';
+import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
 
 import type { PageLoad } from './$types';
 
@@ -24,17 +18,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			extensionsVm: ExtensionCardViewModel[];
-			allExtensionsVm: ExtensionCardViewModel[];
-			categoriesVm: ExtensionCategoryViewModel[];
-			statsVm: ExtensionsHubStatsViewModel;
-			filtersVm: ExtensionsHubFilters;
 			tagFilterVm: ExtensionsTagFilterViewModel;
-			totalCount: number;
-			schemaData: unknown;
-			heroTitle: string;
-			heroDescription: string;
-			heroSubtitle: string;
 		};
 
 		return {
@@ -44,17 +28,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			extensionsVm: serverData.extensionsVm,
-			allExtensionsVm: serverData.allExtensionsVm,
-			categoriesVm: serverData.categoriesVm,
-			statsVm: serverData.statsVm,
-			filtersVm: serverData.filtersVm,
-			tagFilterVm: serverData.tagFilterVm,
-			totalCount: serverData.totalCount,
-			schemaData: serverData.schemaData,
-			heroTitle: serverData.heroTitle,
-			heroDescription: serverData.heroDescription,
-			heroSubtitle: serverData.heroSubtitle
+			tagFilterVm: serverData.tagFilterVm
 		};
 	}
 

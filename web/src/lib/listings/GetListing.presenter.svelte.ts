@@ -5,6 +5,7 @@ import type {
 	ExtensionTypeFilter,
 	ExtensionsHubFilters,
 	ExtensionsTagFilterViewModel,
+	ExtensionCategoryOverviewItemViewModel,
 	StacksHubFilters,
 	ExtensionTagFilterChip,
 	ExtensionTagGroupFilterChip
@@ -398,6 +399,7 @@ export type {
 	ExtensionTypeFilter,
 	ExtensionsHubFilters,
 	ExtensionsTagFilterViewModel,
+	ExtensionCategoryOverviewItemViewModel,
 	StacksHubFilters
 };
 
@@ -648,6 +650,25 @@ export class GetListingPresenter {
 		extensions: ExtensionCardViewModel[];
 	}): ExtensionsTagFilterViewModel {
 		return buildExtensionsTagFilterVm(params);
+	}
+
+	public buildExtensionCategoriesOverviewVm(
+		extensions: ExtensionCardViewModel[],
+		categories: ExtensionCategoryViewModel[],
+		details?: ListingCategoryProgrammerModel[]
+	): ExtensionCategoryOverviewItemViewModel[] {
+		return categories
+			.map((category) => {
+				const detail = details?.find((row) => row.slug === category.slug);
+				return {
+					id: category.id,
+					name: category.name,
+					slug: category.slug,
+					description: detail?.description ?? null,
+					count: extensions.filter((row) => row.category?.slug === category.slug).length
+				};
+			})
+			.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 	}
 
 	public parseHubFiltersFromUrl(searchParams: URLSearchParams): ExtensionsHubFilters {
