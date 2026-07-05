@@ -671,52 +671,6 @@ export class GetListingPresenter {
 			.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 	}
 
-	public parseHubFiltersFromUrl(searchParams: URLSearchParams): ExtensionsHubFilters {
-		const type = searchParams.get('type');
-		const sort = searchParams.get('sort');
-		const search = searchParams.get('search')?.trim();
-		const category = searchParams.get('category')?.trim();
-		const tagGroup = searchParams.get('tagGroup')?.trim();
-		const tagsParam = searchParams.get('tags')?.trim();
-		const tags = tagsParam
-			? tagsParam
-					.split(',')
-					.map((slug) => slug.trim())
-					.filter(Boolean)
-			: undefined;
-
-		const typeFilter: ExtensionTypeFilter =
-			type === 'skills' || type === 'mcp' || type === 'both' || type === 'official' ? type : 'all';
-		const sortFilter: ExtensionSort =
-			sort === 'oldest' || sort === 'popular' || sort === 'views' ? sort : 'newest';
-
-		return {
-			type: typeFilter,
-			sort: sortFilter,
-			...(search ? { search } : {}),
-			...(category ? { category } : {}),
-			...(tags?.length ? { tags } : {}),
-			...(tagGroup ? { tagGroup } : {})
-		};
-	}
-
-	public buildHubFilterUrl(
-		pathname: string,
-		current: ExtensionsHubFilters,
-		overrides: Partial<ExtensionsHubFilters>
-	): string {
-		const next: ExtensionsHubFilters = { ...current, ...overrides };
-		const params = new URLSearchParams();
-		if (next.type !== 'all') params.set('type', next.type);
-		if (next.sort !== 'newest') params.set('sort', next.sort);
-		if (next.search?.trim()) params.set('search', next.search.trim());
-		if (next.category?.trim()) params.set('category', next.category.trim());
-		if (next.tags?.length) params.set('tags', next.tags.join(','));
-		if (next.tagGroup?.trim()) params.set('tagGroup', next.tagGroup.trim());
-		const query = params.toString();
-		return query ? `${pathname}?${query}` : pathname;
-	}
-
 	public parseStacksHubFiltersFromUrl(searchParams: URLSearchParams): StacksHubFilters {
 		const sort = searchParams.get('sort');
 		const search = searchParams.get('search')?.trim();

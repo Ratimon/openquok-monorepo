@@ -8,6 +8,7 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
+import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
@@ -37,10 +38,9 @@ export async function loadBuildingBlocksHubPage(
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const filters = publicExtensionsPagePresenter.parseFiltersFromUrl(url.searchParams);
-	filters.category = undefined;
-	filters.tags = undefined;
-	filters.tagGroup = undefined;
+	const filters: ExtensionsHubFilters = {
+		...publicExtensionsPagePresenter.parseFiltersFromUrl(url.searchParams)
+	};
 	if (fixedCategorySlug) {
 		filters.category = fixedCategorySlug;
 	}

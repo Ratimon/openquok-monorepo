@@ -11,7 +11,7 @@ import type {
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 
-import { buildExtensionsHubNavigationUrl } from '$lib/listings/utils/buildExtensionsHubNavigationUrl';
+import { buildExtensionsHubNavigationUrl, parseExtensionsHubQueryFiltersFromUrl } from '$lib/listings/utils/buildExtensionsHubNavigationUrl';
 
 export type {
 	ExtensionCardViewModel,
@@ -37,15 +37,14 @@ export class PublicExtensionsPagePresenter {
 	) {}
 
 	parseFiltersFromUrl(searchParams: URLSearchParams): ExtensionsHubFilters {
-		return this.getListingPresenter.parseHubFiltersFromUrl(searchParams);
+		return parseExtensionsHubQueryFiltersFromUrl(searchParams);
 	}
 
 	buildFilterUrl(
-		pathname: string,
 		current: ExtensionsHubFilters,
 		overrides: Partial<ExtensionsHubFilters>
 	): string {
-		return buildExtensionsHubNavigationUrl(pathname, current, overrides);
+		return buildExtensionsHubNavigationUrl(current, overrides);
 	}
 
 	applyClientFilters(
@@ -79,13 +78,13 @@ export class PublicExtensionsPagePresenter {
 	}
 
 	/** Update filters and recompute filtered extensions (client-side). */
-	updateFilters(pathname: string, overrides: Partial<ExtensionsHubFilters>): string {
+	updateFilters(overrides: Partial<ExtensionsHubFilters>): string {
 		const nextFilters: ExtensionsHubFilters = { ...this.filtersVm, ...overrides };
 		this.filtersVm = nextFilters;
 		if (this.hubVm) {
 			this.filteredExtensionsVm = this.applyClientFilters(this.hubVm.extensions, nextFilters);
 		}
-		return this.buildFilterUrl(pathname, nextFilters, {});
+		return this.buildFilterUrl(nextFilters, {});
 	}
 
 	async loadBookmarkedIdsMap(fetch?: typeof globalThis.fetch): Promise<Record<string, boolean>> {

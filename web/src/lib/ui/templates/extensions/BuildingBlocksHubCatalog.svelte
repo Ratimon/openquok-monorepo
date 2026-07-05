@@ -91,7 +91,7 @@
 	function navigateFilters(overrides: Partial<ExtensionsHubFilters>) {
 		visibleCount = EXTENSIONS_GRID_PAGE_SIZE;
 		expandedId = null;
-		const href = pagePresenter.buildFilterUrl(page.url.pathname, filtersVm, overrides);
+		const href = pagePresenter.buildFilterUrl(filtersVm, overrides);
 		void goto(href, { keepFocus: true, noScroll: true });
 	}
 
