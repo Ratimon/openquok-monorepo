@@ -8,11 +8,14 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
-		PUBLIC_BANNER_CTA_TEXT
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicChannelsHubGrid from '$lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -26,6 +29,8 @@
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
+
+	const channelsHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.channels;
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -35,10 +40,20 @@
 		channelsVm={channelsVm}
 	/>
 
-	<CenteredDarkCtaBanner
-		title={CENTERED_DARK_CTA_BANNER_TITLE}
-		description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
-		ctaText={PUBLIC_BANNER_CTA_TEXT}
-		ctaHref={signUpPath}
-	/>
+	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={channelsHubDocsBanner.title}
+			description={channelsHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={channelsHubDocsBanner.docsPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
+	</div>
 </SectionOuterContainer>

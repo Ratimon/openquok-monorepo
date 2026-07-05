@@ -2,9 +2,20 @@
 	import type { PageData } from './$types';
 
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url } from '$lib/utils/path';
 
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
+	} from '$lib/config/constants/config';
+
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = { data: PageData };
@@ -19,6 +30,12 @@
 	// /tools/skill-builder
 	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
 	const skillBuilderHref = url(route(rootPathPublicSkillBuilder));
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const toolsHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.tools;
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -63,4 +80,21 @@
 			to compose skills from the Extensions catalog and export SKILL.md.
 		</p>
 	</section>
+
+	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={toolsHubDocsBanner.title}
+			description={toolsHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={toolsHubDocsBanner.docsPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
+	</div>
 </SectionOuterContainer>

@@ -535,6 +535,57 @@ export function accentSplitCtaBannerDescription(agentLabel: string): string {
 	return `Install openquok-core on ${agentLabel}, draft from chat, and move every post through your OpenQuok calendar or kanban before it publishes.`;
 }
 
+/** Top accent banner on hub detail pages — links to the page setup guide. */
+export const PUBLIC_DOCS_BANNER_CTA_TEXT = 'View setup guide';
+
+export function accentSplitDocsCtaBannerTitle(label: string): string {
+	return `Read the ${label} setup guide`;
+}
+
+export function accentSplitDocsCtaBannerDescription(label: string): string {
+	return `Step-by-step instructions for connecting OpenQuok to ${label} — install commands, auth patterns, and configuration snippets.`;
+}
+
+/** Top accent banner on public hub index pages — links to the section overview doc. */
+export const PUBLIC_HUB_DOCS_BANNERS = {
+	agents: {
+		docsPath: '/docs/agent-setup-guides',
+		title: 'Browse agent setup guides',
+		description:
+			'Platform-specific guides for OpenClaw, Hermes, Cursor, Claude Code, and other agent hosts and MCP clients.'
+	},
+	channels: {
+		docsPath: '/docs/social-integration',
+		title: 'Browse channel setup guides',
+		description:
+			'OAuth, env vars, and dashboard settings for Threads, Facebook, Instagram, and other social channels.'
+	},
+	buildingBlocks: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Install the openquok-core skill',
+		description:
+			'Add agent skills, wire the CLI, and let your assistants draft and schedule posts from chat.'
+	},
+	playbooks: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Install skills from playbooks',
+		description:
+			'Curated skill stacks for your agent — start with the CLI quick start for install and auth.'
+	},
+	creators: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Publish skills for agents',
+		description:
+			'Creators ship building blocks and playbooks — learn how to install openquok-core and connect your workspace.'
+	},
+	tools: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Compose agent skills',
+		description:
+			'Use Skill Builder to export SKILL.md — start with the CLI introduction for install and auth.'
+	}
+} as const;
+
 /** Compact CTA banner on documentation article pages. */
 export const DOCS_PAGE_CTA_BANNER_TITLE = 'Connect your agent today';
 

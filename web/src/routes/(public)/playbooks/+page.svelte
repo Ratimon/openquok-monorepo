@@ -8,6 +8,7 @@
 	import { onMount } from 'svelte';
 
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { publicStacksPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { showListingBookmarkToast } from '$lib/listings';
@@ -16,12 +17,22 @@
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
+	} from '$lib/config/constants/config';
+
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
 	import ExtensionsSearchBar from '$lib/ui/templates/extensions/ExtensionsSearchBar.svelte';
 	import ExtensionsTagFilter from '$lib/ui/templates/extensions/ExtensionsTagFilter.svelte';
 	import StackHubCard from '$lib/ui/templates/stacks/StackHubCard.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -39,6 +50,12 @@
 	let schemaData = $derived(data.schemaData);
 
 	const pagePresenter = publicStacksPagePresenter;
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const playbooksHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.playbooks;
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
@@ -234,5 +251,22 @@
 				{/if}
 			</section>
 		</div>
+	</div>
+
+	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={playbooksHubDocsBanner.title}
+			description={playbooksHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={playbooksHubDocsBanner.docsPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
 	</div>
 </SectionOuterContainer>

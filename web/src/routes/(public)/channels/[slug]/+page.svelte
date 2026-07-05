@@ -15,9 +15,13 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
-		PUBLIC_BANNER_CTA_TEXT
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		accentSplitDocsCtaBannerDescription,
+		accentSplitDocsCtaBannerTitle
 	} from '$lib/config/constants/config';
 	import PublicChannelHero from '$lib/ui/templates/landing-page/PublicChannelHero.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -36,6 +40,9 @@
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
+
+	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(channelVm.platformLabel));
+	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(channelVm.platformLabel));
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -100,6 +107,13 @@
 			faqDescription={channelVm.faqDescription}
 			faqItems={channelVm.faqItems}
 			sectionClass="py-16 sm:py-20"
+		/>
+
+		<AccentSplitCtaBanner
+			title={accentBannerTitle}
+			description={accentBannerDescription}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={channelVm.docsPath}
 		/>
 
 		<CenteredDarkCtaBanner

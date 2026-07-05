@@ -7,11 +7,11 @@
 	import { route } from '$lib/utils/path';
 
 	import {
-		ACCENT_SPLIT_CTA_BANNER_TITLE,
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT,
-		accentSplitCtaBannerDescription
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -38,7 +38,7 @@
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
-	let accentBannerDescription = $derived(accentSplitCtaBannerDescription('your agent'));
+	const agentsHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.agents;
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -78,10 +78,10 @@
 	</div>
 
 	<AccentSplitCtaBanner
-		title={ACCENT_SPLIT_CTA_BANNER_TITLE}
-		description={accentBannerDescription}
-		ctaText={PUBLIC_BANNER_CTA_TEXT}
-		ctaHref={signUpPath}
+		title={agentsHubDocsBanner.title}
+		description={agentsHubDocsBanner.description}
+		ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+		ctaHref={agentsHubDocsBanner.docsPath}
 	/>
 
 	<CenteredDarkCtaBanner

@@ -10,11 +10,12 @@
 	import { route } from '$lib/utils/path';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
-		ACCENT_SPLIT_CTA_BANNER_TITLE,
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT,
-		accentSplitCtaBannerDescription
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		accentSplitDocsCtaBannerDescription,
+		accentSplitDocsCtaBannerTitle
 	} from '$lib/config/constants/config';
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
@@ -60,7 +61,8 @@
 			: mcpVm.setupStepsSubtitle
 	);
 
-	let accentBannerDescription = $derived(accentSplitCtaBannerDescription(mcpVm.agentLabel));
+	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(mcpVm.agentLabel));
+	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(mcpVm.agentLabel));
 </script>
 
 <PublicMcpHero
@@ -138,10 +140,10 @@
 	/>
 
 	<AccentSplitCtaBanner
-		title={ACCENT_SPLIT_CTA_BANNER_TITLE}
+		title={accentBannerTitle}
 		description={accentBannerDescription}
-		ctaText={PUBLIC_BANNER_CTA_TEXT}
-		ctaHref={signUpPath}
+		ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+		ctaHref={mcpVm.docsPath}
 	/>
 
 	<CenteredDarkCtaBanner

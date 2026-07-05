@@ -2,11 +2,22 @@
 	import type { PageData } from './$types';
 
 	import { getRootPathPublicCreator } from '$lib/area-public/constants/getRootPathPublicCreators';
-	import { url } from '$lib/utils/path';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route, url } from '$lib/utils/path';
+
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
+	} from '$lib/config/constants/config';
 
 	import * as Avatar from '$lib/ui/components/avatar';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import { Card, CardContent, CardHeader } from '$lib/ui/card';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -18,6 +29,12 @@
 	let metaTitle = $derived(data.metaTitle);
 	let metaDescription = $derived(data.metaDescription);
 	let schemaData = $derived(data.schemaData);
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const creatorsHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.creators;
 
 	function creatorHref(username: string): string {
 		return url(`/${getRootPathPublicCreator(username)}`);
@@ -93,4 +110,21 @@
 			</div>
 		{/if}
 	</section>
+
+	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={creatorsHubDocsBanner.title}
+			description={creatorsHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={creatorsHubDocsBanner.docsPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
+	</div>
 </SectionOuterContainer>

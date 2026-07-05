@@ -9,6 +9,7 @@
 
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { showListingBookmarkToast } from '$lib/listings';
@@ -18,6 +19,14 @@
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
+	} from '$lib/config/constants/config';
+
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
@@ -26,6 +35,8 @@
 	import ExtensionsSearchBar from '$lib/ui/templates/extensions/ExtensionsSearchBar.svelte';
 	import ExtensionsTypeChips from '$lib/ui/templates/extensions/ExtensionsTypeChips.svelte';
 	import ExtensionsTagFilter from '$lib/ui/templates/extensions/ExtensionsTagFilter.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -43,6 +54,12 @@
 	let schemaData = $derived(data.schemaData);
 
 	const pagePresenter = publicExtensionsPagePresenter;
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const buildingBlocksHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.buildingBlocks;
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
@@ -302,5 +319,22 @@
 				{/if}
 			</section>
 		</div>
+	</div>
+
+	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={buildingBlocksHubDocsBanner.title}
+			description={buildingBlocksHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={buildingBlocksHubDocsBanner.docsPath}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
 	</div>
 </SectionOuterContainer>
