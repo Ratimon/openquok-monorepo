@@ -8487,6 +8487,7 @@ $stack_content$,
     },
     {
       "type": "text",
+      "title": "Review the live post",
       "content": "Wait for the scheduled publish time, then review the live post before pulling metrics."
     },
     {
@@ -8501,6 +8502,7 @@ $stack_content$,
       "type": "command",
       "listing_slug": "revenuecat-mcp",
       "command_name": "get_customer",
+      "title": "Add revenue context",
       "prompt": "Summarize active subscriptions and entitlements for a customer id to contextualize how social reach maps to revenue."
     }
   ],

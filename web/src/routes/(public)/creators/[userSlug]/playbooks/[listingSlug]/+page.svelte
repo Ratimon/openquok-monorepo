@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
-	import type { StackBlueprintWorkflowStepProgrammerModel } from '$lib/listings/listing.types';
 
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
@@ -13,6 +12,7 @@
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
+	import { resolveBlueprintWorkflowStepTitle } from '$lib/stack-builder/utils/resolveBlueprintWorkflowStepTitle';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { showListingBookmarkToast } from '$lib/listings';
@@ -151,13 +151,6 @@
 		}
 		return buttons;
 	}
-
-	function stepTitle(step: StackBlueprintWorkflowStepProgrammerModel, index: number) {
-		if (step.type === 'text') return `Step ${index + 1}`;
-		const slug = step.listing_slug ?? 'extension';
-		const command = step.command_name ?? 'command';
-		return `${slug} · ${command}`;
-	}
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -277,7 +270,7 @@
 								{#each workflowSteps as step, index (index)}
 									<li class="rounded-xl border border-base-content/10 p-4">
 										<p class="text-xs font-semibold tracking-wide text-primary uppercase">
-											{stepTitle(step, index)}
+											{resolveBlueprintWorkflowStepTitle(step)}
 										</p>
 										{#if step.type === 'text'}
 											<p class="mt-2 text-base-content/80">{step.content}</p>
