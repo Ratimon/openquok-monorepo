@@ -1,5 +1,6 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 
+
 export type PublicListingsHubFaqSection = {
 	faqSubtitle: string;
 	faqTitle: string;

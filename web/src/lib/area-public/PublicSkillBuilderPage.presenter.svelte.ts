@@ -1,8 +1,10 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
+import { getSkillBuilderChannelBySlug } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createDefaultStarterWorkflowSteps } from '$lib/skill-builder/constants/defaults';
 import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { blueprintToWorkflowSteps } from '$lib/skill-builder/utils/blueprintToBuilderState';
+import { buildChannelSkillBuilderWorkflowSteps } from '$lib/skill-builder/utils/buildChannelSkillBuilderWorkflowSteps';
 import {
 	ensureOpenquokCoreExtensionSlug,
 	parseExtensionSlugsFromQuery
@@ -15,9 +17,12 @@ export class PublicSkillBuilderPagePresenter {
 		fetch?: typeof globalThis.fetch;
 		buildingBlockSlugsParam?: string | null;
 		stackSlug?: string | null;
+		channelSlug?: string | null;
 	}): Promise<SkillBuilderPageViewModel> {
 		const selectedBuildingBlockSlugs = parseExtensionSlugsFromQuery(params.buildingBlockSlugsParam);
 		const stackSlug = params.stackSlug?.trim() || null;
+		const channelSlug = params.channelSlug?.trim().toLowerCase() || null;
+		const channelConfig = channelSlug ? getSkillBuilderChannelBySlug(channelSlug) : undefined;
 
 		let stackTitle: string | null = null;
 		let stackBlueprint = null;
@@ -52,16 +57,26 @@ export class PublicSkillBuilderPagePresenter {
 
 		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, buildingBlockTitlesBySlug);
 
+		const defaultMetaTitle = 'Skill Builder';
+		const defaultMetaDescription =
+			'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.';
+
 		return {
-			metaTitle: 'Skill Builder',
-			metaDescription:
-				'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.',
+			metaTitle: channelConfig?.metaTitle ?? defaultMetaTitle,
+			metaDescription: channelConfig?.metaDescription ?? defaultMetaDescription,
 			selectedBuildingBlockSlugs: resolvedSlugs,
 			selectedBuildingBlocks,
 			initialWorkflowSteps:
-				blueprintSteps.length > 0 ? blueprintSteps : createDefaultStarterWorkflowSteps(),
+				blueprintSteps.length > 0
+					? blueprintSteps
+					: channelConfig
+						? buildChannelSkillBuilderWorkflowSteps(channelConfig)
+						: createDefaultStarterWorkflowSteps(),
 			stackTitle,
-			stackSlug
+			stackSlug,
+			channelSlug: channelConfig?.channelSlug ?? null,
+			channelLabel: channelConfig?.platformLabel ?? null,
+			cliExamplesPath: channelConfig?.cliExamplesPath ?? null
 		};
 	}
 }

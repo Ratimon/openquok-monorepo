@@ -1,3 +1,4 @@
+import type { IconName } from '$data/icons';
 import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 
 export type SkillBuilderLibraryItemKind = 'cli' | 'mcp';
@@ -44,6 +45,10 @@ export interface SkillBuilderPageViewModel {
 	initialWorkflowSteps: SkillBuilderWorkflowStepViewModel[];
 	stackTitle: string | null;
 	stackSlug: string | null;
+	/** Set on `/tools/skill-builder/{channelSlug}` programmatic SEO routes. */
+	channelSlug?: string | null;
+	channelLabel?: string | null;
+	cliExamplesPath?: string | null;
 }
 
 export interface ToolsIndexToolCardViewModel {
@@ -53,3 +58,10 @@ export interface ToolsIndexToolCardViewModel {
 	href: string;
 	badge?: string;
 }
+
+export type SkillBuilderChannelHubLinkViewModel = {
+	slug: string;
+	platformLabel: string;
+	icon: IconName;
+	href: string;
+};

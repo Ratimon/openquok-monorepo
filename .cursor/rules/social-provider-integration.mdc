@@ -224,6 +224,32 @@ Required sections (see **agent-skill** rule): **Supported features**, **Agent ta
 
 Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** (no third-party repo names in code or docs).
 
+## Programmatic Skill Builder SEO (channel routes)
+
+Ship channel-specific Skill Builder pages alongside the generic tool when a social provider is live (`available: true` on `publicChannelConfig`).
+
+| Artifact | Path / URL |
+| --- | --- |
+| Generic builder (all channels) | `/tools/skill-builder` — no channel slug; default starter workflow |
+| Channel builder | `/tools/skill-builder/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` where they align (e.g. `facebook`, `threads`) |
+| Channel catalog | `web/src/lib/skill-builder/constants/publicSkillBuilderChannelConfig.ts` — recipes, SEO meta, CLI example payloads (aligned with `agent/skills/openquok-core/resources/examples/*.json`) |
+| Example payloads | `web/src/lib/skill-builder/constants/skillBuilderChannelExamplePayloads.ts` |
+| Workflow builder | `web/src/lib/skill-builder/utils/buildChannelSkillBuilderWorkflowSteps.ts` |
+| Shared page UI | `web/src/lib/ui/templates/skill-builder/SkillBuilderToolPage.svelte` |
+| Route helper | `getRootPathPublicSkillBuilderChannel(slug)` in `getRootPathPublicTools.ts` |
+| Tools hub entry | `SkillBuilderHubToolCard.svelte` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs |
+
+### Catalog entry (`publicSkillBuilderChannelConfig`)
+
+When adding or go-live-ing a provider that already has CLI examples:
+
+1. Add `CHANNEL_PROVIDER_IDENTIFIERS` jq filter ids (match `integrations:list` identifiers).
+2. Add `CHANNEL_RECIPES` rows with `posts:create` example payloads copied from agent JSON examples (or inline when no JSON file exists).
+3. Hub links are derived from `listAvailablePublicChannels()` — new live channels appear automatically after recipes exist.
+4. Set `cliExamplesPath` to `/docs/cli-examples/{slug}` (must match shipped human docs).
+
+Channel pages 404 when the slug is missing from `publicChannelConfig` or `available: false`.
+
 ## PR self-check
 
 - Provider registered in `integrationManager.ts` and `getLaunchProviderConfig` (if composer support).
@@ -235,4 +261,5 @@ Follow **docs-conventions**, **agent-skill**, and **source-project-neutrality** 
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
+- **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

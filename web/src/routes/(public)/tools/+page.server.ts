@@ -3,6 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicToolsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicSkillBuilder, getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { route, url } from '$lib/utils/path';
 
@@ -60,6 +61,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		metaTitle,
 		metaDescription,
 		toolsVm: tools,
+		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
 		schemaData
 	};
 }

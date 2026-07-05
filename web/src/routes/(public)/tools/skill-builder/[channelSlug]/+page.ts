@@ -1,10 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type {
-	SkillBuilderChannelHubLinkViewModel,
-	ToolsIndexToolCardViewModel
-} from '$lib/skill-builder/skillBuilder.types';
+import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
 
 import type { PageLoad } from './$types';
 
@@ -18,12 +15,9 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as {
+		const serverData = data as SkillBuilderPageViewModel & {
 			pageMetaTags: MetaTagsProps;
-			metaTitle: string;
-			metaDescription: string;
-			toolsVm: ToolsIndexToolCardViewModel[];
-			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
+			isLoggedIn?: boolean;
 			schemaData: unknown;
 		};
 
@@ -31,8 +25,14 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			toolsVm: serverData.toolsVm,
-			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
+			selectedBuildingBlockSlugs: serverData.selectedBuildingBlockSlugs,
+			selectedBuildingBlocks: serverData.selectedBuildingBlocks,
+			initialWorkflowSteps: serverData.initialWorkflowSteps,
+			stackTitle: serverData.stackTitle,
+			stackSlug: serverData.stackSlug,
+			channelSlug: serverData.channelSlug,
+			channelLabel: serverData.channelLabel,
+			cliExamplesPath: serverData.cliExamplesPath,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

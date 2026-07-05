@@ -650,7 +650,7 @@ export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
-		{ label: 'Skill Builder', href: publicSkillBuilderPath },
+		{ label: 'Skill Builders', href: publicSkillBuilderPath },
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },

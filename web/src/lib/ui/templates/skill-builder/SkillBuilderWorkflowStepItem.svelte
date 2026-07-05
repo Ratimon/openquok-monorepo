@@ -122,19 +122,19 @@
 	<Accordion.Root class="w-full">
 		<Accordion.Item bind:open={expanded} class="border-none">
 			<Accordion.Trigger
-				class="flex w-full items-center justify-between px-3 py-2 text-xs text-base-content/70 transition hover:bg-base-200/40"
+				class="flex w-full items-center justify-between border-t border-primary/20 bg-primary/8 px-3 py-2.5 text-xs font-medium text-primary transition hover:bg-primary/12 data-[state=open]:bg-primary/12"
 			>
 				<span>Customize step</span>
 				<AbstractIcon
 					name={expanded ? icons.ChevronUp.name : icons.ChevronDown.name}
-					class="size-3.5 shrink-0 text-base-content/55"
+					class="size-3.5 shrink-0 text-primary/70"
 					width="14"
 					height="14"
 					aria-hidden="true"
 				/>
 			</Accordion.Trigger>
 
-			<Accordion.Content class="overflow-hidden px-3 pb-3">
+			<Accordion.Content class="overflow-hidden border-t border-primary/15 bg-primary/5 px-3 pb-3 pt-2">
 				{#if stepVm.type === 'command'}
 					<SkillBuilderCommandStepCard stepVm={stepVm} onUpdate={onUpdate} />
 				{:else}

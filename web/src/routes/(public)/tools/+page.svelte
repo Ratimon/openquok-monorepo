@@ -14,6 +14,7 @@
 	} from '$lib/config/constants/config';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import SkillBuilderHubToolCard from '$lib/ui/components/tools/SkillBuilderHubToolCard.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -25,6 +26,7 @@
 	let metaTitle = $derived(data.metaTitle);
 	let metaDescription = $derived(data.metaDescription);
 	let toolsVm = $derived(data.toolsVm);
+	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
 	// /tools/skill-builder
@@ -50,34 +52,45 @@
 	<section class="container mx-auto mt-10 max-w-4xl px-4">
 		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			{#each toolsVm as toolVm (toolVm.id)}
-				<li>
-					<a
-						class="block h-full rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
-						href={toolVm.href}
-					>
-						{#if toolVm.badge}
-							<span class="badge badge-primary badge-outline badge-sm">
-								{toolVm.badge}
-							</span>
-						{/if}
-						<h2 class="mt-2 text-xl font-semibold text-base-content">
-							{toolVm.title}
-						</h2>
-						<p class="mt-2 text-sm text-base-content/70">
-							{toolVm.description}
-						</p>
-						<p class="mt-4 text-sm font-medium text-primary">
-							Open tool →
-						</p>
-					</a>
-				</li>
+				{#if toolVm.id === 'skill-builder'}
+					<SkillBuilderHubToolCard
+						title={toolVm.title}
+						description={toolVm.description}
+						badge={toolVm.badge}
+						genericHref={toolVm.href}
+						channelLinks={skillBuilderChannelsVm}
+					/>
+				{:else}
+					<li>
+						<a
+							class="block h-full rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
+							href={toolVm.href}
+						>
+							{#if toolVm.badge}
+								<span class="badge badge-primary badge-outline badge-sm">
+									{toolVm.badge}
+								</span>
+							{/if}
+							<h2 class="mt-2 text-xl font-semibold text-base-content">
+								{toolVm.title}
+							</h2>
+							<p class="mt-2 text-sm text-base-content/70">
+								{toolVm.description}
+							</p>
+							<p class="mt-4 text-sm font-medium text-primary">
+								Open tool →
+							</p>
+						</a>
+					</li>
+				{/if}
 			{/each}
 		</ul>
 
 		<p class="mt-8 text-center text-sm text-base-content/60">
 			Start with the
 			<a class="link link-primary" href={skillBuilderHref}>Skill Builder</a>
-			to compose skills from the Extensions catalog and export SKILL.md.
+			to compose skills from the Extensions catalog and export SKILL.md — or pick a channel from the
+			card above for pre-loaded CLI examples.
 		</p>
 	</section>
 

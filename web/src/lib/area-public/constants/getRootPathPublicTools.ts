@@ -7,3 +7,8 @@ export function getRootPathPublicTools(): string {
 export function getRootPathPublicSkillBuilder(): string {
 	return `${getRootPathPublicTools()}/skill-builder`;
 }
+
+/** Channel-specific Skill Builder: `tools/skill-builder/{channelSlug}` (no leading slash). */
+export function getRootPathPublicSkillBuilderChannel(channelSlug: string): string {
+	return `${getRootPathPublicSkillBuilder()}/${channelSlug.trim()}`;
+}

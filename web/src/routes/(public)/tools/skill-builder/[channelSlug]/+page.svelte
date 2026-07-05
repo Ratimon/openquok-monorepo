@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
+	import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { route } from '$lib/utils/path';
+
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import SkillBuilderToolPage from '$lib/ui/templates/skill-builder/SkillBuilderToolPage.svelte';
 
@@ -16,7 +19,14 @@
 	let initialWorkflowSteps = $derived(data.initialWorkflowSteps);
 	let stackTitle = $derived(data.stackTitle);
 	let stackSlug = $derived(data.stackSlug);
+	let channelSlug = $derived(data.channelSlug);
+	let channelLabel = $derived(data.channelLabel);
+	let cliExamplesPath = $derived(data.cliExamplesPath);
 	let isLoggedIn = $derived(data.isLoggedIn);
+
+	const skillBuilderBasePath = $derived(
+		channelSlug ? route(getRootPathPublicSkillBuilderChannel(channelSlug)) : route('tools/skill-builder')
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -30,4 +40,8 @@
 	{stackTitle}
 	{stackSlug}
 	{isLoggedIn}
+	{skillBuilderBasePath}
+	{channelSlug}
+	{channelLabel}
+	{cliExamplesPath}
 />

@@ -3,7 +3,8 @@ export type {
 	SkillBuilderLibraryItemKind,
 	SkillBuilderLibraryItemViewModel,
 	SkillBuilderWorkflowStepViewModel,
-	ToolsIndexToolCardViewModel
+	ToolsIndexToolCardViewModel,
+	SkillBuilderChannelHubLinkViewModel
 } from '$lib/skill-builder/skillBuilder.types';
 
 export {
