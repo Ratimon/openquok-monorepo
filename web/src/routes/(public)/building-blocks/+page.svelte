@@ -292,6 +292,7 @@
 									extensionVm={extensionVm}
 									expanded={expandedId === extensionVm.id}
 									onToggle={toggleExpanded}
+									showOwnerSubtitle={true}
 									showBookmark={true}
 									isBookmarked={bookmarkedIds[extensionVm.id] === true}
 									{isLoggedIn}

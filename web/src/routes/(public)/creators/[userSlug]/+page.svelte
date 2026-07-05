@@ -8,10 +8,10 @@
 	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
-	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
 	import StackHubCard from '$lib/ui/templates/stacks/StackHubCard.svelte';
 	import * as Tabs from '$lib/ui/tabs';
 
@@ -117,7 +117,10 @@
 						<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 							{#each playbooks as stackVm (stackVm.id)}
 								<li>
-									<StackHubCard stackVm={stackVm} />
+									<StackHubCard
+										stackVm={stackVm}
+										showOwnerSubtitle={false}
+									/>
 								</li>
 							{/each}
 						</ul>

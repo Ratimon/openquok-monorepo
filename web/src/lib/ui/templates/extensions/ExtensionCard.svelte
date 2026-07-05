@@ -21,6 +21,9 @@
 		expanded: boolean;
 		onToggle?: (id: string) => void;
 		class?: string;
+		/** Show `By @{username}` below the title (e.g. global building blocks hub). */
+		showOwnerSubtitle?: boolean;
+		ownerUsernameFallback?: string | null;
 		showBookmark?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
@@ -37,6 +40,8 @@
 		expanded = false,
 		onToggle,
 		class: className = '',
+		showOwnerSubtitle = false,
+		ownerUsernameFallback = null,
 		showBookmark = false,
 		isBookmarked = false,
 		isLoggedIn = false,
@@ -70,6 +75,9 @@
 
 	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
 	const bookmarkInSelectRow = $derived(hasBookmark && selectable);
+	const ownerUsername = $derived(
+		extensionVm.ownerUsername?.trim() || ownerUsernameFallback?.trim() || null
+	);
 
 	function handleSelectClick(event: MouseEvent) {
 		event.preventDefault();
@@ -246,6 +254,9 @@
 					<span class="badge badge-outline badge-sm">Community</span>
 				{/if}
 			</div>
+			{#if showOwnerSubtitle && ownerUsername}
+				<p class="text-sm text-base-content/60">By @{ownerUsername}</p>
+			{/if}
 			{#if extensionVm.excerpt || extensionVm.description}
 				<p class="line-clamp-2 text-sm text-base-content/70">
 					{extensionVm.excerpt ?? extensionVm.description}

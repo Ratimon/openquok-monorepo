@@ -13,6 +13,9 @@
 	type Props = {
 		stackVm: StackCardViewModel;
 		class?: string;
+		/** Show `By @{username}` below the title (e.g. global playbooks hub). */
+		showOwnerSubtitle?: boolean;
+		ownerUsernameFallback?: string | null;
 		showBookmark?: boolean;
 		isBookmarked?: boolean;
 		isLoggedIn?: boolean;
@@ -24,6 +27,8 @@
 	let {
 		stackVm,
 		class: className = '',
+		showOwnerSubtitle = true,
+		ownerUsernameFallback = null,
 		showBookmark = false,
 		isBookmarked = false,
 		isLoggedIn = false,
@@ -40,6 +45,9 @@
 		return path ? url(`/${path}`) : url(`/${getRootPathPublicPlaybooks()}`);
 	});
 	const hasBookmark = $derived(showBookmark && !!onToggleBookmark);
+	const ownerUsername = $derived(
+		stackVm.ownerUsername?.trim() || ownerUsernameFallback?.trim() || null
+	);
 </script>
 
 <div class={cn('relative', className)}>
@@ -65,6 +73,9 @@
 		href={detailHref}
 	>
 		<h2 class="text-lg font-semibold text-base-content">{stackVm.title}</h2>
+		{#if showOwnerSubtitle && ownerUsername}
+			<p class="mt-1 text-sm text-base-content/60">By @{ownerUsername}</p>
+		{/if}
 		{#if stackVm.excerpt}
 			<p class="mt-2 line-clamp-3 text-sm text-base-content/70">{stackVm.excerpt}</p>
 		{/if}
