@@ -118,7 +118,7 @@ http://localhost:3111/device/callback
 
 <CardGrid>
 <LinkCard title="Public API authentication" description="Workspace programmatic tokens (opo_) vs third-party OAuth apps" href="/docs/getting-started-for-public-api#authentication" />
-<LinkCard title="OAuth2 for third-party apps" description="Authorization code flow for apps you build for other users" href="/docs/developer-guidelines/oauth2-authentication" />
+<LinkCard title="OAuth2 for third-party apps" description="Authorization code flow for apps you build for other users" href="/docs/oauth2-for-apps" />
 <LinkCard title="Configuration - Agent" description="CLI auth server env vars and callback URL" href="/docs/configuration-agent" />
 <LinkCard title="Security secrets" description="SECURITY_SECRET and what it invalidates" href="/docs/admin/security-secrets" />
 </CardGrid>

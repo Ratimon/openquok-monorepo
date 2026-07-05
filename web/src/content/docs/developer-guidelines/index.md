@@ -17,9 +17,9 @@ This section collects **engineering guidelines** that are easy to forget during 
 <LinkCard title="Security guidelines" description="Service key rules, RLS guidance, and SSR state management safety" href="/docs/developer-guidelines/security" />
 <LinkCard title="RBAC (roles & permissions)" description="How app-level roles/permissions work and how to secure routes correctly" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="DaisyUI theming" description="Semantic color classes, theme-safe UI tokens, and shadcn-to-DaisyUI mapping" href="/docs/developer-guidelines/daisyui-theme" />
-<LinkCard title="OAuth2 authentication" description="Create OAuth apps and implement Authorization Code flow" href="/docs/developer-guidelines/oauth2-authentication" />
 <LinkCard title="Notifications" description="In-app notifications + notification email (immediate vs digest), workers, and troubleshooting" href="/docs/developer-guidelines/notifications" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft integration refresh, notification email, scheduled posts—in-process or BullMQ" href="/docs/developer-guidelines/orchestrator-workflows" />
+<LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/developer-guidelines/add-provider" />
 </CardGrid>
 
 ## Related Section(s)

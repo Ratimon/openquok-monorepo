@@ -141,5 +141,5 @@ Standard accounts use a **280 weighted** character limit; enable **Verified** on
 
 <CardGrid>
 <LinkCard title="CLI examples" description="Copy-paste X recipes for openquok posts:create" href="/docs/cli-examples/x" />
-<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/social-integration/add-provider" />
+<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/developer-guidelines/add-provider" />
 </CardGrid>

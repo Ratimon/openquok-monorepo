@@ -1,7 +1,7 @@
 ---
 title: Adding a social provider
 description: Contributor guide for implementing a new social integration in Openquok
-order: 1
+order: 7
 lastUpdated: 2026-06-07
 ---
 

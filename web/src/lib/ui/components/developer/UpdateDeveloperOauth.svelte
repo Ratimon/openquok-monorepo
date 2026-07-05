@@ -137,7 +137,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					href="/docs/developer-guidelines/oauth2-authentication"
+					href="/docs/oauth2-for-apps"
 				>
 					Read more ..
 				</Button>
@@ -246,7 +246,7 @@
 					<Button
 						variant="ghost"
 						size="sm"
-						href="/docs/developer-guidelines/oauth2-authentication"
+						href="/docs/oauth2-for-apps"
 					>
 						Docs
 					</Button>

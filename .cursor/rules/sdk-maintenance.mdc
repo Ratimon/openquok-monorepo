@@ -1,6 +1,6 @@
 ---
 description: Keep @openquok/node-sdk (sdk/) aligned with the public API, CLI, docs, and runnable examples.
-globs: ["sdk/**/*.ts", "sdk/**/*.md", "sdk/examples/**/*", "web/src/content/docs/getting-started-for-public-api/**/*.md", "web/src/content/docs/developer-guidelines/oauth2-authentication.md"]
+globs: ["sdk/**/*.ts", "sdk/**/*.md", "sdk/examples/**/*", "web/src/content/docs/getting-started-for-public-api/**/*.md", "web/src/content/docs/oauth2-for-apps/**/*.md"]
 alwaysApply: false
 ---
 
@@ -26,7 +26,7 @@ The SDK should stay in parity with `agent/src/api.ts` for shared routes, plus SD
 
 ## Runnable examples (`sdk/examples/`)
 
-- **`oauth2-express.mjs`** mirrors the Node.js section in `web/src/content/docs/developer-guidelines/oauth2-authentication.md`.
+- **`oauth2-express.mjs`** mirrors the Node.js section in `web/src/content/docs/oauth2-for-apps/nodejs-example.md`.
 - OAuth token exchange: `POST /api/v1/oauth/token` body is **`grant_type`, `code`, `client_id`, `client_secret` only** — redirect URL is configured on the app, not resent at exchange.
 - Public API calls use **`Authorization: Bearer opo_…`** (or construct `new Openquok(accessToken)`).
 - When editing the OAuth doc example or SDK OAuth example, update **both** in the same change.

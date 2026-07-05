@@ -32,7 +32,7 @@ export type DocsSidebarSection = {
 	items?: { label: string; href: string }[];
 };
 
-/** CLI & programmatic usage — default `/docs` landing. Order: CLI → Public API → MCP → Learn more in the header. */
+/** CLI & programmatic usage — default `/docs` landing. Order: CLI → Public API → MCP → Learn more → Contributing in the header. */
 export const docsSidebarCli: DocsSidebarSection[] = [
 	{
 		label: 'Get Started',
@@ -113,7 +113,7 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	}
 ];
 
-/** Self-hosting, contributing, and deeper product setup. */
+/** Self-hosting, OAuth app development, and deeper product setup. */
 export const docsSidebarLearnMore: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
@@ -156,14 +156,23 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 		autogenerate: { directory: 'social-integration' }
 	},
 	{
-		label: 'Developer Guidelines',
-		icon: icons.FolderCode.name,
-		autogenerate: { directory: 'developer-guidelines' }
-	},
+		label: 'OAuth2 for apps',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'oauth2-for-apps' }
+	}
+];
+
+/** Repository conventions, provider implementation, and documentation authoring. */
+export const docsSidebarContributing: DocsSidebarSection[] = [
 	{
 		label: 'How to write docs',
 		icon: icons.BookOpen.name,
 		autogenerate: { directory: 'how-to-write-docs' }
+	},
+	{
+		label: 'Developer Guidelines',
+		icon: icons.FolderCode.name,
+		autogenerate: { directory: 'developer-guidelines' }
 	}
 ];
 
@@ -171,7 +180,8 @@ export const docsTabs: DocsTabDefinition[] = [
 	{ id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
 	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
 	{ id: 'mcp', label: 'MCP', sidebar: docsSidebarMcp },
-	{ id: 'learn-more', label: 'Learn more', sidebar: docsSidebarLearnMore }
+	{ id: 'learn-more', label: 'Learn more', sidebar: docsSidebarLearnMore },
+	{ id: 'contributing', label: 'Contributing', sidebar: docsSidebarContributing }
 ];
 
 /** Flattened sidebar order for ordering pages (prev/next fallbacks, llms.txt, etc.). */

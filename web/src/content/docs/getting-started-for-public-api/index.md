@@ -38,7 +38,7 @@ Tokens belong to the **workspace (organization)** you selected and act with that
 
 ### OAuth2 access token (third-party apps)
 
-If you are building an app **for other Openquok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/developer-guidelines/oauth2-authentication">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
+If you are building an app **for other Openquok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/oauth2-for-apps">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
 
 ```bash
 curl -H "Authorization: Bearer opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations

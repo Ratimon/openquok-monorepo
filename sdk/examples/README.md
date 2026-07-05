@@ -15,4 +15,4 @@ node oauth2-express.mjs
 # open http://localhost:3000/connect
 ```
 
-Keep this file aligned with [`web/src/content/docs/developer-guidelines/oauth2-authentication.md`](../../web/src/content/docs/developer-guidelines/oauth2-authentication.md) (see `.cursor/rules/sdk-maintenance.mdc`).
+Keep this file aligned with [`web/src/content/docs/oauth2-for-apps/nodejs-example.md`](../../web/src/content/docs/oauth2-for-apps/nodejs-example.md) (see `.cursor/rules/sdk-maintenance.mdc`).

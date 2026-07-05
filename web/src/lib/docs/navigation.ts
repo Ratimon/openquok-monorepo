@@ -75,6 +75,15 @@ function isMcpDocsPath(segmentOrSlug: string): boolean {
 	);
 }
 
+function isContributingDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'how-to-write-docs' ||
+		segmentOrSlug.startsWith('how-to-write-docs/') ||
+		segmentOrSlug === 'developer-guidelines' ||
+		segmentOrSlug.startsWith('developer-guidelines/')
+	);
+}
+
 export function stripDocsLocaleFromPathname(pathname: string): string {
 	const parts = pathname.split('/').filter(Boolean);
 	if (parts[0] !== 'docs') return pathname;
@@ -107,6 +116,7 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 	)
 		return 'public-api';
 	if (typeof rest[0] === 'string' && isCliDocsPath(rest[0])) return 'cli';
+	if (typeof rest[0] === 'string' && isContributingDocsPath(rest[0])) return 'contributing';
 	return 'learn-more';
 }
 
@@ -119,6 +129,7 @@ export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
 		slug.startsWith('apis-')
 	)
 		return 'public-api';
+	if (isContributingDocsPath(slug)) return 'contributing';
 	return 'learn-more';
 }
 
@@ -141,6 +152,8 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 			return `${base}/getting-started-for-mcp`;
 		case 'learn-more':
 			return `${base}/getting-started-for-dev`;
+		case 'contributing':
+			return `${base}/how-to-write-docs`;
 	}
 }
 
