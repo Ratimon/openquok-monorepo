@@ -1,22 +1,22 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
-import { createDefaultStarterWorkflowSteps } from '$lib/stack-builder/constants/defaults';
-import type { SkillBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
-import { blueprintToWorkflowSteps } from '$lib/stack-builder/utils/blueprintToBuilderState';
+import { createDefaultStarterWorkflowSteps } from '$lib/skill-builder/constants/defaults';
+import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
+import { blueprintToWorkflowSteps } from '$lib/skill-builder/utils/blueprintToBuilderState';
 import {
 	ensureOpenquokCoreExtensionSlug,
 	parseExtensionSlugsFromQuery
-} from '$lib/stack-builder/utils/parseBuilderQuery';
+} from '$lib/skill-builder/utils/parseBuilderQuery';
 
 export class PublicSkillBuilderPagePresenter {
 	constructor(private readonly getListingPresenter: GetListingPresenter) {}
 
 	async loadSkillBuilderStateless(params: {
 		fetch?: typeof globalThis.fetch;
-		extensionSlugsParam?: string | null;
+		buildingBlockSlugsParam?: string | null;
 		stackSlug?: string | null;
 	}): Promise<SkillBuilderPageViewModel> {
-		const selectedExtensionSlugs = parseExtensionSlugsFromQuery(params.extensionSlugsParam);
+		const selectedBuildingBlockSlugs = parseExtensionSlugsFromQuery(params.buildingBlockSlugsParam);
 		const stackSlug = params.stackSlug?.trim() || null;
 
 		const hub = await this.getListingPresenter.loadExtensionsHubStateless({
@@ -24,18 +24,18 @@ export class PublicSkillBuilderPagePresenter {
 			limit: 100
 		});
 
-		const extensionsCatalog = hub.extensions.map((extension) => ({
-			id: extension.id,
-			title: extension.title,
-			slug: extension.slug,
-			extensionType: extension.extensionType,
-			logoImageUrl: extension.logoImageUrl,
-			isOfficial: extension.isOfficial
+		const buildingBlocksCatalog = hub.extensions.map((buildingBlock) => ({
+			id: buildingBlock.id,
+			title: buildingBlock.title,
+			slug: buildingBlock.slug,
+			extensionType: buildingBlock.extensionType,
+			logoImageUrl: buildingBlock.logoImageUrl,
+			isOfficial: buildingBlock.isOfficial
 		}));
 
 		let stackTitle: string | null = null;
 		let stackBlueprint = null;
-		const slugSet = new Set(selectedExtensionSlugs);
+		const slugSet = new Set(selectedBuildingBlockSlugs);
 
 		if (stackSlug) {
 			const stackVm = await this.getListingPresenter.loadPublishedStackBySlugVm(
@@ -52,27 +52,27 @@ export class PublicSkillBuilderPagePresenter {
 		}
 
 		const resolvedSlugs = ensureOpenquokCoreExtensionSlug([...slugSet]);
-		const selectedExtensions = (
+		const selectedBuildingBlocks = (
 			await Promise.all(
 				resolvedSlugs.map((slug) =>
 					this.getListingPresenter.loadPublishedExtensionBySlugStateless(slug, params.fetch)
 				)
 			)
-		).filter((extension): extension is NonNullable<typeof extension> => extension != null);
+		).filter((buildingBlock): buildingBlock is NonNullable<typeof buildingBlock> => buildingBlock != null);
 
-		const extensionTitlesBySlug = Object.fromEntries(
-			selectedExtensions.map((extension) => [extension.slug, extension.title])
+		const buildingBlockTitlesBySlug = Object.fromEntries(
+			selectedBuildingBlocks.map((buildingBlock) => [buildingBlock.slug, buildingBlock.title])
 		);
 
-		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, extensionTitlesBySlug);
+		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, buildingBlockTitlesBySlug);
 
 		return {
 			metaTitle: 'Skill Builder',
 			metaDescription:
 				'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.',
-			selectedExtensionSlugs: resolvedSlugs,
-			extensionsCatalog,
-			selectedExtensions,
+			selectedBuildingBlockSlugs: resolvedSlugs,
+			buildingBlocksCatalog,
+			selectedBuildingBlocks,
 			initialWorkflowSteps:
 				blueprintSteps.length > 0 ? blueprintSteps : createDefaultStarterWorkflowSteps(),
 			stackTitle,

@@ -10,9 +10,9 @@ import type {
 import type { ListingFormSchemaType, ListingStackFormSchemaType } from '$lib/listings/listing.types';
 import { listingExtensionFormSchema, listingStackFormSchema } from '$lib/listings/listing.types';
 import { DEFAULT_LISTING_SCHEMA_TYPE } from '$lib/listings/constants/listingSchemaTypes';
-import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
-import { buildStackMembersFromSlugs } from '$lib/stack-builder/utils/buildStackMembersFromSlugs';
-import { workflowStepsToBlueprint } from '$lib/stack-builder/utils/workflowStepsToBlueprint';
+import type { SkillBuilderStackDraft } from '$lib/skill-builder/constants/skillBuilderDraftStorage';
+import { buildStackMembersFromSlugs } from '$lib/skill-builder/utils/buildStackMembersFromSlugs';
+import { workflowStepsToBlueprint } from '$lib/skill-builder/utils/workflowStepsToBlueprint';
 import {
 	resolveStackLicense,
 	resolveStackListingHeaderSummary,

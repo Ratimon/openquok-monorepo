@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
@@ -14,7 +14,7 @@
 		getAccountNewBuildingBlockPath,
 		getAccountBuildingBlockEditorPath,
 		getAccountPlaybookEditorPath,
-		protectedAccountExtensionsPagePresenter
+		protectedAccountBuildingBlocksPagePresenter
 	} from '$lib/area-protected';
 	import { getRootPathChooseUsername } from '$lib/area-protected/getRootPathProtectedArea';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
@@ -28,9 +28,12 @@
 	import {
 		clearSkillBuilderStackDraft,
 		saveSkillBuilderStackDraft
-	} from '$lib/stack-builder/constants/skillBuilderDraftStorage';
-	import { buildStackDraftFromExtensionSelection } from '$lib/stack-builder/utils/buildStackDraftFromExtensionSelection';
-	import { serializeExtensionSlugs } from '$lib/stack-builder/utils/parseBuilderQuery';
+	} from '$lib/skill-builder/constants/skillBuilderDraftStorage';
+	import { buildStackDraftFromBuildingBlockSelection } from '$lib/skill-builder/utils/buildStackDraftFromBuildingBlockSelection';
+	import {
+		SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM,
+		serializeExtensionSlugs
+	} from '$lib/skill-builder/utils/parseBuilderQuery';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
@@ -47,12 +50,12 @@
 
 	let { data }: Props = $props();
 
-	const pagePresenter = protectedAccountExtensionsPagePresenter;
+	const pagePresenter = protectedAccountBuildingBlocksPagePresenter;
 
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
 	const publicPlaybooksHref = url(`/${getRootPathPublicPlaybooks()}`);
 	const publicBuildingBlocksHref = url(`/${getRootPathPublicBuildingBlocks()}`);
-	const newExtensionHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
+	const newBuildingBlockHref = url(`${route(getRootPathAccount())}/${getAccountNewBuildingBlockPath()}`);
 	const chooseUsernameHref = url(route(`/${getRootPathAccount()}/${getRootPathChooseUsername()}`));
 	const accountSettingsHref = url(route(`/${getRootPathAccount()}/settings`));
 	// /tools/skill-builder
@@ -62,21 +65,21 @@
 	const exploreFilters = $derived(pagePresenter.exploreFilters);
 	const exploreCategories = $derived(pagePresenter.exploreCategoriesVm);
 	const exploreTagFilterVm = $derived(pagePresenter.exploreTagFilterVm);
-	const exploreExtensions = $derived(pagePresenter.filteredExploreExtensionsVm);
+	const exploreBuildingBlocks = $derived(pagePresenter.filteredExploreBuildingBlocksVm);
 	const exploreStacks = $derived(pagePresenter.filteredExploreStacksVm);
-	const showExploreExtensions = $derived(pagePresenter.showExploreExtensions);
+	const showExploreBuildingBlocks = $derived(pagePresenter.showExploreBuildingBlocks);
 	const showExploreStacks = $derived(pagePresenter.showExploreStacks);
 	const loadingExplore = $derived(pagePresenter.loadingExplore);
 
-	const ownExtensions = $derived(pagePresenter.ownExtensionsVm);
+	const ownBuildingBlocks = $derived(pagePresenter.ownBuildingBlocksVm);
 	const ownStacks = $derived(pagePresenter.ownStacksVm);
 	const loadingOwn = $derived(pagePresenter.loadingOwn);
 	const bookmarksPaidEnabled = $derived(pagePresenter.bookmarksPaidEnabled);
 	const bookmarkCount = $derived(pagePresenter.bookmarkCount);
 	const listingHubStatsVm = $derived(pagePresenter.listingHubStatsVm);
-	const ownPublishedExtensionCount = $derived(pagePresenter.ownPublishedExtensionCount);
+	const ownPublishedBuildingBlockCount = $derived(pagePresenter.ownPublishedBuildingBlockCount);
 	const ownPublishedStackCount = $derived(pagePresenter.ownPublishedStackCount);
-	const selectedCount = $derived(pagePresenter.selectedExtensionCount);
+	const selectedCount = $derived(pagePresenter.selectedBuildingBlockCount);
 	const togglingBookmarkId = $derived(pagePresenter.togglingBookmarkId);
 	const isLoggedIn = $derived(data.isLoggedIn === true);
 
@@ -194,7 +197,7 @@
 
 	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
 		const item =
-			exploreExtensions.find((entry) => entry.id === listingId) ??
+			exploreBuildingBlocks.find((entry) => entry.id === listingId) ??
 			exploreStacks.find((entry) => entry.id === listingId);
 		const listingKind = item?.listingKind ?? 'extension';
 
@@ -208,7 +211,7 @@
 	}
 
 	function handleToggleSelect(listingId: string) {
-		pagePresenter.toggleExtensionSelection(listingId);
+		pagePresenter.toggleBuildingBlockSelection(listingId);
 	}
 
 	function handleNewPlaybook() {
@@ -217,12 +220,12 @@
 	}
 
 	function handleCreateStackFromSelection() {
-		const selected = pagePresenter.getSelectedExtensions();
+		const selected = pagePresenter.getSelectedBuildingBlocks();
 		if (selected.length === 0) {
 			toast.error('Select at least one building block.');
 			return;
 		}
-		const draft = buildStackDraftFromExtensionSelection(
+		const draft = buildStackDraftFromBuildingBlockSelection(
 			selected.map((item) => ({
 				id: item.id,
 				slug: item.slug,
@@ -230,9 +233,9 @@
 			}))
 		);
 		saveSkillBuilderStackDraft(draft);
-		pagePresenter.clearExtensionSelection();
+		pagePresenter.clearBuildingBlockSelection();
 		const params = new URLSearchParams();
-		params.set('extensions', serializeExtensionSlugs(draft.extensionSlugs));
+		params.set(SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM, serializeExtensionSlugs(draft.extensionSlugs));
 		void goto(`${newStackHref}?${params.toString()}`);
 	}
 
@@ -294,7 +297,7 @@
 
 		<div class="flex flex-wrap items-center gap-2">
 			{#if activeTab === 'mine'}
-				<Button href={newExtensionHref} variant="outline" size="sm">New building block</Button>
+				<Button href={newBuildingBlockHref} variant="outline" size="sm">New building block</Button>
 				<Button variant="primary" size="sm" onclick={handleNewPlaybook}>New playbook</Button>
 			{/if}
 		</div>
@@ -317,16 +320,16 @@
 				filters={exploreFilters}
 				categoriesVm={exploreCategories}
 				tagFilterVm={exploreTagFilterVm}
-				extensions={exploreExtensions}
+				buildingBlocks={exploreBuildingBlocks}
 				stacks={exploreStacks}
 				loading={loadingExplore}
-				showExtensions={showExploreExtensions}
+				showBuildingBlocks={showExploreBuildingBlocks}
 				showStacks={showExploreStacks}
 				{bookmarksPaidEnabled}
 				{bookmarkCount}
 				{accountBillingHref}
-				selectableExtensions={true}
-				isSelected={(id) => pagePresenter.isExtensionSelected(id)}
+				selectableBuildingBlocks={true}
+				isSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
 				onToggleSelect={handleToggleSelect}
 				getPublicHref={getPublicHref}
 				getMenuItems={exploreMenuItems}
@@ -341,7 +344,7 @@
 				onBookmarkedToggle={handleBookmarkedFilterToggle}
 				{selectedCount}
 				onCreateStack={handleCreateStackFromSelection}
-				onClearSelection={() => pagePresenter.clearExtensionSelection()}
+				onClearSelection={() => pagePresenter.clearBuildingBlockSelection()}
 				showBookmarks={true}
 				isBookmarked={(id) => pagePresenter.isBookmarked(id)}
 				{isLoggedIn}
@@ -352,8 +355,8 @@
 
 		<Tabs.Content value="mine" class="mt-0 space-y-5">
 			<AccountPlaybooksStatsSection
-				buildingBlockCount={ownExtensions.length}
-				publishedBuildingBlockCount={ownPublishedExtensionCount}
+				buildingBlockCount={ownBuildingBlocks.length}
+				publishedBuildingBlockCount={ownPublishedBuildingBlockCount}
 				playbookCount={ownStacks.length}
 				publishedPlaybookCount={ownPublishedStackCount}
 				hubStats={listingHubStatsVm}
@@ -361,17 +364,17 @@
 				{publicBuildingBlocksHref}
 			/>
 			<AccountViralFormatsMineTab
-				extensions={ownExtensions}
+				buildingBlocks={ownBuildingBlocks}
 				stacks={ownStacks}
 				loading={loadingOwn}
-				selectableExtensions={true}
-				isSelected={(id) => pagePresenter.isExtensionSelected(id)}
+				selectableBuildingBlocks={true}
+				isSelected={(id) => pagePresenter.isBuildingBlockSelected(id)}
 				onToggleSelect={handleToggleSelect}
 				getEditHref={getOwnEditHref}
 				getMenuItems={ownMenuItems}
 				{selectedCount}
 				onCreateStack={handleCreateStackFromSelection}
-				onClearSelection={() => pagePresenter.clearExtensionSelection()}
+				onClearSelection={() => pagePresenter.clearBuildingBlockSelection()}
 			/>
 		</Tabs.Content>
 	</Tabs.Root>

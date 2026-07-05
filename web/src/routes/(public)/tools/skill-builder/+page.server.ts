@@ -3,6 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -12,12 +13,12 @@ export async function load({ url, cookies, fetch, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const extensionSlugsParam = url.searchParams.get('extensions');
+	const buildingBlockSlugsParam = getBuildingBlockSlugsQueryParam(url.searchParams);
 	const stackSlug = url.searchParams.get('stack');
 
 	const builderVm = await publicSkillBuilderPagePresenter.loadSkillBuilderStateless({
 		fetch,
-		extensionSlugsParam,
+		buildingBlockSlugsParam,
 		stackSlug
 	});
 

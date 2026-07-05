@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { error } from '@sveltejs/kit';
 
-import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
+import { publicBuildingBlockBySlugPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreatorBuildingBlock } from '$lib/area-public/constants/getRootPathPublicCreators';
 import {
 	CONFIG_SCHEMA_COMPANY,
@@ -25,20 +25,20 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		throw error(404, 'Building block not found');
 	}
 
-	const { extensionVm, relatedExtensionsVm } =
-		await publicExtensionBySlugPagePresenter.loadExtensionBySlugStateless({
+	const { buildingBlockVm, relatedBuildingBlocksVm } =
+		await publicBuildingBlockBySlugPagePresenter.loadBuildingBlockBySlugStateless({
 			userSlug,
 			slug: listingSlug,
 			fetch,
 			relatedLimit: 4
 		});
 
-	if (!extensionVm) {
+	if (!buildingBlockVm) {
 		throw error(404, 'Building block not found');
 	}
 
-	const commentsVm = await publicExtensionBySlugPagePresenter.loadListingCommentsStateless({
-		listingId: extensionVm.id,
+	const commentsVm = await publicBuildingBlockBySlugPagePresenter.loadListingCommentsStateless({
+		listingId: buildingBlockVm.id,
 		fetch
 	});
 
@@ -48,34 +48,34 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${extensionVm.title} | ${companyName}`;
+	const customTitle = `${buildingBlockVm.title} | ${companyName}`;
 	const customDescription =
-		resolveListingHeaderSummary(extensionVm) ?? `Extension details for ${extensionVm.title}.`;
+		resolveListingHeaderSummary(buildingBlockVm) ?? `Building block details for ${buildingBlockVm.title}.`;
 
-	const customImages: MetaDataImage[] | undefined = extensionVm.logoImageUrl
+	const customImages: MetaDataImage[] | undefined = buildingBlockVm.logoImageUrl
 		? [
 				{
-					url: extensionVm.logoImageUrl,
+					url: buildingBlockVm.logoImageUrl,
 					type: 'image/png',
-					alt: `${extensionVm.title} logo`,
+					alt: `${buildingBlockVm.title} logo`,
 					width: 512,
 					height: 512
 				}
 			]
 		: undefined;
 
-	const ownerUsername = extensionVm.owner?.username?.trim() ?? userSlug;
+	const ownerUsername = buildingBlockVm.owner?.username?.trim() ?? userSlug;
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customSlug: getRootPathPublicCreatorBuildingBlock(ownerUsername, extensionVm.slug),
+		customSlug: getRootPathPublicCreatorBuildingBlock(ownerUsername, buildingBlockVm.slug),
 		customImages,
 		customTags: [
-			extensionVm.title,
-			extensionVm.category?.name ?? 'extensions',
-			extensionVm.extensionType ?? 'extension'
+			buildingBlockVm.title,
+			buildingBlockVm.category?.name ?? 'building blocks',
+			buildingBlockVm.extensionType ?? 'building block'
 		].filter(Boolean),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
@@ -86,7 +86,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		openGraph: {
 			title: customTitle,
 			description: customDescription,
-			...(extensionVm.logoImageUrl ? { images: [{ url: extensionVm.logoImageUrl }] } : {})
+			...(buildingBlockVm.logoImageUrl ? { images: [{ url: buildingBlockVm.logoImageUrl }] } : {})
 		},
 		twitter: {
 			title: customTitle,
@@ -102,7 +102,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 				{
 					'@type': 'WebPage',
 					'@id': `${canonical}#webpage`,
-					name: extensionVm.title,
+					name: buildingBlockVm.title,
 					description: customDescription,
 					url: canonical,
 					isPartOf: {
@@ -112,15 +112,15 @@ export async function load({ url, params, cookies, fetch, parent }) {
 					}
 				}
 			],
-			extensionVm.schemaJson
+			buildingBlockVm.schemaJson
 		)
 	};
 
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		extensionVm,
-		relatedExtensionsVm,
+		buildingBlockVm,
+		relatedBuildingBlocksVm,
 		commentsVm: commentsVm,
 		schemaData
 	};

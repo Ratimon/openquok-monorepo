@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { ToolsIndexToolCardViewModel } from '$lib/stack-builder/stackBuilder.types';
+import type { ToolsIndexToolCardViewModel } from '$lib/skill-builder/skillBuilder.types';
 
 import type { PageLoad } from './$types';
 

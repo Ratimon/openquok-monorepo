@@ -12,16 +12,16 @@ import { PublicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLa
 import { PublicAgentsPagePresenter } from '$lib/area-public/PublicAgentsPage.presenter.svelte';
 import { PublicChannelByPagePresenter } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 import { PublicChannelsPagePresenter } from '$lib/area-public/PublicChannelsPage.presenter.svelte';
-import { PublicExtensionBySlugPagePresenter } from '$lib/area-public/PublicExtensionBySlugPage.presenter.svelte';
-import { PublicExtensionsPagePresenter } from '$lib/area-public/PublicExtensionsPage.presenter.svelte';
+import { PublicBuildingBlockBySlugPagePresenter } from '$lib/area-public/PublicBuildingBlockBySlugPage.presenter.svelte';
+import { PublicBuildingBlocksPagePresenter } from '$lib/area-public/PublicBuildingBlocksPage.presenter.svelte';
 import {
 	PublicCreatorByUsernamePagePresenter,
 	PublicCreatorsPagePresenter
 } from '$lib/area-public/PublicCreatorsPage.presenter.svelte';
 import {
-	PublicStackBySlugPagePresenter,
-	PublicStacksPagePresenter
-} from '$lib/area-public/PublicStacksPage.presenter.svelte';
+	PublicPlaybookBySlugPagePresenter,
+	PublicPlaybooksPagePresenter
+} from '$lib/area-public/PublicPlaybooksPage.presenter.svelte';
 import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
@@ -41,16 +41,19 @@ const publicAgentsPagePresenter = new PublicAgentsPagePresenter();
 const publicAgentByPagePresenter = new PublicAgentByPagePresenter();
 const publicChannelsPagePresenter = new PublicChannelsPagePresenter();
 const publicChannelByPagePresenter = new PublicChannelByPagePresenter();
-const publicExtensionsPagePresenter = new PublicExtensionsPagePresenter(
+const publicBuildingBlocksPagePresenter = new PublicBuildingBlocksPagePresenter(
 	getListingPresenter,
 	listingRepository
 );
-const publicExtensionBySlugPagePresenter = new PublicExtensionBySlugPagePresenter(
+const publicBuildingBlockBySlugPagePresenter = new PublicBuildingBlockBySlugPagePresenter(
 	getListingPresenter,
 	listingRepository
 );
-const publicStacksPagePresenter = new PublicStacksPagePresenter(getListingPresenter, listingRepository);
-const publicStackBySlugPagePresenter = new PublicStackBySlugPagePresenter(getListingPresenter);
+const publicPlaybooksPagePresenter = new PublicPlaybooksPagePresenter(getListingPresenter, listingRepository);
+const publicPlaybookBySlugPagePresenter = new PublicPlaybookBySlugPagePresenter(
+	getListingPresenter,
+	listingRepository
+);
 const publicCreatorsPagePresenter = new PublicCreatorsPagePresenter(getListingPresenter, listingRepository);
 const publicCreatorByUsernamePagePresenter = new PublicCreatorByUsernamePagePresenter(
 	getListingPresenter,
@@ -64,10 +67,10 @@ export {
 	publicAgentsPagePresenter,
 	publicChannelByPagePresenter,
 	publicChannelsPagePresenter,
-	publicExtensionBySlugPagePresenter,
-	publicExtensionsPagePresenter,
-	publicStacksPagePresenter,
-	publicStackBySlugPagePresenter,
+	publicBuildingBlockBySlugPagePresenter,
+	publicBuildingBlocksPagePresenter,
+	publicPlaybooksPagePresenter,
+	publicPlaybookBySlugPagePresenter,
 	publicCreatorsPagePresenter,
 	publicCreatorByUsernamePagePresenter,
 	publicToolsPagePresenter,

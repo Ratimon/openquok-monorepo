@@ -1,5 +1,5 @@
 import { getRootPathPublicPlaybooksTags } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicStacksPagePresenter } from '$lib/area-public/index';
+import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter } from '$lib/listings/index';
 import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
 import { resolvePlaybooksTagPathFilter } from '$lib/listings/utils/resolvePlaybooksTagPathFilter';
@@ -9,7 +9,7 @@ export const ssr = true;
 export async function load(event) {
 	const pathSlug = typeof event.params.slug === 'string' ? event.params.slug : '';
 
-	const hub = await publicStacksPagePresenter.loadStacksHubStateless({
+	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({
 		fetch: event.fetch,
 		limit: 50
 	});

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import AccountListingsCollectionGroup from '$lib/ui/components/extensions/AccountListingsCollectionGroup.svelte';
@@ -12,10 +12,10 @@
 	}>;
 
 	type Props = {
-		extensions: AccountListingCollectionItemViewModel[];
+		buildingBlocks: AccountListingCollectionItemViewModel[];
 		stacks: AccountListingCollectionItemViewModel[];
 		loading?: boolean;
-		selectableExtensions?: boolean;
+		selectableBuildingBlocks?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
 		getEditHref?: (item: AccountListingCollectionItemViewModel) => string;
@@ -26,10 +26,10 @@
 	};
 
 	let {
-		extensions,
+		buildingBlocks,
 		stacks,
 		loading = false,
-		selectableExtensions = false,
+		selectableBuildingBlocks = false,
 		isSelected = () => false,
 		onToggleSelect,
 		getEditHref,
@@ -50,11 +50,11 @@
 	<AccountListingsCollectionGroup
 		label="Building blocks"
 		description="Check Add on one or more building blocks to include them in a new playbook."
-		items={extensions}
+		items={buildingBlocks}
 		{loading}
 		layout="grid"
 		emptyMessage="No building blocks yet. Submit a skills or MCP listing for the hub."
-		{selectableExtensions}
+		{selectableBuildingBlocks}
 		{isSelected}
 		{onToggleSelect}
 		{getEditHref}

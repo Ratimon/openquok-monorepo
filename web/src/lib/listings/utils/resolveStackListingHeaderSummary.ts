@@ -1,6 +1,6 @@
 import { truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
-import { SKILL_DEFAULT_VERSION } from '$lib/stack-builder/constants/defaults';
+import { SKILL_DEFAULT_VERSION } from '$lib/skill-builder/constants/defaults';
 import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 
 type StackSummarySource = {

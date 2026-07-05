@@ -12,7 +12,7 @@
 		ExtensionTagGroupFilterChip
 	} from '$lib/listings/listing.types';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { publicStacksPagePresenter } from '$lib/area-public/index';
+	import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -26,9 +26,9 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
-	import PlaybooksHubCatalog from '$lib/ui/templates/stacks/PlaybooksHubCatalog.svelte';
-	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
+	import PlaybooksHubCatalog from '$lib/ui/templates/playbooks/PlaybooksHubCatalog.svelte';
+	import ListingsHubStats from '$lib/ui/templates/listings/ListingsHubStats.svelte';
+	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -39,7 +39,7 @@
 
 	let { data }: Props = $props();
 
-	let stacksVm = $derived(data.stacksVm);
+	let playbooksVm = $derived(data.playbooksVm);
 	let categoriesVm = $derived(data.categoriesVm);
 	let statsVm = $derived(data.statsVm);
 	let filtersVm = $derived(data.filtersVm);
@@ -50,7 +50,7 @@
 	let heroSubtitle = $derived(data.heroSubtitle);
 	let pathSlug = $derived(page.params.slug ?? '');
 
-	const pagePresenter = publicStacksPagePresenter;
+	const pagePresenter = publicPlaybooksPagePresenter;
 	const tagsOverviewHref = url(route(getRootPathPublicPlaybooksTags()));
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -122,13 +122,13 @@
 		</p>
 		<ListingsPublicHubNav active="playbooks" class="pt-1" />
 		<div class="flex justify-center pt-2">
-			<ExtensionsHubStats statsVm={statsVm} />
+			<ListingsHubStats statsVm={statsVm} />
 		</div>
 	</header>
 
 	<div class="container mx-auto mt-10 max-w-6xl space-y-6 px-4">
 		<PlaybooksHubCatalog
-			{stacksVm}
+			{playbooksVm}
 			{categoriesVm}
 			{filtersVm}
 			{tagFilterVm}

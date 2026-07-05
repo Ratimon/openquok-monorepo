@@ -2,10 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { error } from '@sveltejs/kit';
 
-import {
-	publicExtensionBySlugPagePresenter,
-	publicStackBySlugPagePresenter
-} from '$lib/area-public';
+import { publicPlaybookBySlugPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreatorPlaybook } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
@@ -23,33 +20,33 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		throw error(404, 'Playbook not found');
 	}
 
-	const stackVm = await publicStackBySlugPagePresenter.loadStackBySlugStateless({
+	const playbookVm = await publicPlaybookBySlugPagePresenter.loadPlaybookBySlugStateless({
 		userSlug,
 		slug: listingSlug,
 		fetch
 	});
-	if (!stackVm) {
+	if (!playbookVm) {
 		throw error(404, 'Playbook not found');
 	}
 
-	const comments = await publicExtensionBySlugPagePresenter.loadListingCommentsStateless({
-		listingId: stackVm.id,
+	const comments = await publicPlaybookBySlugPagePresenter.loadListingCommentsStateless({
+		listingId: playbookVm.id,
 		fetch
 	});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
-	const customTitle = `${stackVm.title} | ${companyName}`;
+	const customTitle = `${playbookVm.title} | ${companyName}`;
 	const customDescription =
-		resolveStackListingHeaderSummary(stackVm) ?? `Playbook details for ${stackVm.title}.`;
+		resolveStackListingHeaderSummary(playbookVm) ?? `Playbook details for ${playbookVm.title}.`;
 
-	const ownerUsername = stackVm.owner?.username?.trim() ?? userSlug;
+	const ownerUsername = playbookVm.owner?.username?.trim() ?? userSlug;
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
-		customSlug: getRootPathPublicCreatorPlaybook(ownerUsername, stackVm.slug),
+		customSlug: getRootPathPublicCreatorPlaybook(ownerUsername, playbookVm.slug),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
@@ -60,7 +57,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
-				name: stackVm.title,
+				name: playbookVm.title,
 				description: customDescription,
 				url: canonical,
 				isPartOf: {
@@ -75,7 +72,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn: !!cookies.get('access_token'),
-		stackVm,
+		playbookVm,
 		commentsVm: comments,
 		schemaData
 	};

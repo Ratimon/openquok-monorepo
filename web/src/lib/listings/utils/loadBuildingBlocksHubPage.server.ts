@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import { publicExtensionsPagePresenter } from '$lib/area-public';
+import { publicBuildingBlocksPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -39,7 +39,7 @@ export async function loadBuildingBlocksHubPage(
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
 	const filters: ExtensionsHubFilters = {
-		...publicExtensionsPagePresenter.parseFiltersFromUrl(url.searchParams)
+		...publicBuildingBlocksPagePresenter.parseFiltersFromUrl(url.searchParams)
 	};
 	if (fixedCategorySlug) {
 		filters.category = fixedCategorySlug;
@@ -52,13 +52,13 @@ export async function loadBuildingBlocksHubPage(
 		filters.tags = undefined;
 	}
 
-	const hub = await publicExtensionsPagePresenter.loadExtensionsHubStateless({ fetch, limit: 50 });
+	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({ fetch, limit: 50 });
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildExtensionsTagFilterVm({
 		tagsCatalog,
 		extensions: hub.extensions
 	});
-	const filteredExtensions = publicExtensionsPagePresenter.applyClientFilters(
+	const filteredBuildingBlocks = publicBuildingBlocksPagePresenter.applyClientFilters(
 		hub.extensions,
 		filters,
 		tagFilterVm
@@ -123,8 +123,8 @@ export async function loadBuildingBlocksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		extensionsVm: filteredExtensions,
-		allExtensionsVm: hub.extensions,
+		buildingBlocksVm: filteredBuildingBlocks,
+		allBuildingBlocksVm: hub.extensions,
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,

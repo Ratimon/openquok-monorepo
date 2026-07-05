@@ -5,7 +5,7 @@
 	import { onMount } from 'svelte';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { publicExtensionsPagePresenter } from '$lib/area-public/index';
+	import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
@@ -21,9 +21,9 @@
 
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
-	import BuildingBlocksHubCatalog from '$lib/ui/templates/extensions/BuildingBlocksHubCatalog.svelte';
-	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
+	import BuildingBlocksHubCatalog from '$lib/ui/templates/building-blocks/BuildingBlocksHubCatalog.svelte';
+	import ListingsHubStats from '$lib/ui/templates/listings/ListingsHubStats.svelte';
+	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -35,7 +35,7 @@
 
 	let { data }: Props = $props();
 
-	let extensionsVm = $derived(data.extensionsVm);
+	let buildingBlocksVm = $derived(data.buildingBlocksVm);
 	let categoriesVm = $derived(data.categoriesVm);
 	let statsVm = $derived(data.statsVm);
 	let filtersVm = $derived(data.filtersVm);
@@ -45,7 +45,7 @@
 	let heroDescription = $derived(data.heroDescription);
 	let heroSubtitle = $derived(data.heroSubtitle);
 
-	const pagePresenter = publicExtensionsPagePresenter;
+	const pagePresenter = publicBuildingBlocksPagePresenter;
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -103,13 +103,13 @@
 		</p>
 		<ListingsPublicHubNav active="building-blocks" class="pt-1" />
 		<div class="flex justify-center pt-2">
-			<ExtensionsHubStats statsVm={statsVm} />
+			<ListingsHubStats statsVm={statsVm} />
 		</div>
 	</header>
 
 	<div class="container mx-auto mt-10 max-w-6xl space-y-6 px-4">
 		<BuildingBlocksHubCatalog
-			{extensionsVm}
+			{buildingBlocksVm}
 			{categoriesVm}
 			{filtersVm}
 			{tagFilterVm}

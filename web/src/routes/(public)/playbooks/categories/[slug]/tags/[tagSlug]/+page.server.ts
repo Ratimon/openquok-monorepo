@@ -1,7 +1,7 @@
 import {
 	getRootPathPublicPlaybooksCategoryTag
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicStacksPagePresenter } from '$lib/area-public/index';
+import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';
 import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
 import { resolvePlaybooksTagPathFilter } from '$lib/listings/utils/resolvePlaybooksTagPathFilter';
@@ -14,7 +14,7 @@ export async function load(event) {
 	const tagPathSlug = typeof event.params.tagSlug === 'string' ? event.params.tagSlug : '';
 
 	const [hub, categoryDetails, tagsCatalog] = await Promise.all([
-		publicStacksPagePresenter.loadStacksHubStateless({
+		publicPlaybooksPagePresenter.loadPlaybooksHubStateless({
 			fetch: event.fetch,
 			limit: 50
 		}),

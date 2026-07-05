@@ -24,8 +24,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			stacksVm: StackCardViewModel[];
-			allStacksVm: StackCardViewModel[];
+			playbooksVm: StackCardViewModel[];
+			allPlaybooksVm: StackCardViewModel[];
 			categoriesVm: ExtensionCategoryViewModel[];
 			statsVm: ExtensionsHubStatsViewModel;
 			filtersVm: StacksHubFilters;
@@ -44,8 +44,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			stacksVm: serverData.stacksVm,
-			allStacksVm: serverData.allStacksVm,
+			playbooksVm: serverData.playbooksVm,
+			allPlaybooksVm: serverData.allPlaybooksVm,
 			categoriesVm: serverData.categoriesVm,
 			statsVm: serverData.statsVm,
 			filtersVm: serverData.filtersVm,

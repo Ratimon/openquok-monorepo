@@ -2,9 +2,9 @@
 	import type { PageData } from './$types';
 	import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type {
-		StackBuilderLibraryItemViewModel,
-		StackBuilderWorkflowStepViewModel
-	} from '$lib/stack-builder/stackBuilder.types';
+		SkillBuilderLibraryItemViewModel,
+		SkillBuilderWorkflowStepViewModel
+	} from '$lib/skill-builder/skillBuilder.types';
 
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
@@ -14,14 +14,18 @@
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
-	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/stack-builder/constants/defaults';
-	import { saveSkillBuilderStackDraft, readSkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
-	import { buildSkillBuilderStackDraft } from '$lib/stack-builder/utils/buildSkillBuilderStackDraft';
-	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/stack-builder/constants/openquokCommandWorkflowMeta';
+	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
+	import { saveSkillBuilderStackDraft, readSkillBuilderStackDraft } from '$lib/skill-builder/constants/skillBuilderDraftStorage';
+	import { buildSkillBuilderStackDraft } from '$lib/skill-builder/utils/buildSkillBuilderStackDraft';
+	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/skill-builder/constants/openquokCommandWorkflowMeta';
 	import { getListingPresenter } from '$lib/listings';
-	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
-	import { generateStackMarkdown } from '$lib/stack-builder/utils/generateStackMarkdown';
-	import { serializeExtensionSlugs, ensureOpenquokCoreExtensionSlug } from '$lib/stack-builder/utils/parseBuilderQuery';
+	import { buildLibraryItems } from '$lib/skill-builder/utils/buildLibraryItems';
+	import { generateSkillMarkdown } from '$lib/skill-builder/utils/generateSkillMarkdown';
+	import {
+		SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM,
+		serializeExtensionSlugs,
+		ensureOpenquokCoreExtensionSlug
+	} from '$lib/skill-builder/utils/parseBuilderQuery';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url, absoluteUrl } from '$lib/utils/path';
@@ -30,10 +34,10 @@
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
-	import StackBuilderWorkflowPanel from '$lib/ui/templates/stack-builder/StackBuilderWorkflowPanel.svelte';
-	import StackBuilderPreviewPanel from '$lib/ui/templates/stack-builder/StackBuilderPreviewPanel.svelte';
-	import SignInToSaveListingModal from '$lib/ui/components/stack-builder/SignInToSaveListingModal.svelte';
+	import SkillBuilderLibraryPanel from '$lib/ui/templates/skill-builder/SkillBuilderLibraryPanel.svelte';
+	import SkillBuilderWorkflowPanel from '$lib/ui/templates/skill-builder/SkillBuilderWorkflowPanel.svelte';
+	import SkillBuilderPreviewPanel from '$lib/ui/templates/skill-builder/SkillBuilderPreviewPanel.svelte';
+	import SignInToSaveListingModal from '$lib/ui/components/skill-builder/SignInToSaveListingModal.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 
 	type Props = { data: PageData };
@@ -43,9 +47,9 @@
 	let metaTitle = $derived(data.metaTitle);
 	let metaDescription = $derived(data.metaDescription);
 	let schemaData = $derived(data.schemaData);
-	let selectedExtensionSlugs = $derived(data.selectedExtensionSlugs);
-	let extensionsCatalog = $derived(data.extensionsCatalog);
-	let selectedExtensions = $derived(data.selectedExtensions);
+	let selectedBuildingBlockSlugs = $derived(data.selectedBuildingBlockSlugs);
+	let buildingBlocksCatalog = $derived(data.buildingBlocksCatalog);
+	let selectedBuildingBlocks = $derived(data.selectedBuildingBlocks);
 	let initialWorkflowSteps = $derived(data.initialWorkflowSteps);
 	let stackTitle = $derived(data.stackTitle);
 	let stackSlug = $derived(data.stackSlug);
@@ -64,40 +68,40 @@
 	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
 
 	const serverHydrationKey = $derived(
-		`${selectedExtensionSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}`
+		`${selectedBuildingBlockSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}`
 	);
 
 	let hydratedFrom = $state('');
 
-	let activeExtensionSlugs = $state<string[]>([]);
-	let extensionDetails = $state<ExtensionDetailViewModel[]>([]);
-	let workflowSteps = $state<StackBuilderWorkflowStepViewModel[]>([]);
-	let loadingExtensionSlug = $state<string | null>(null);
+	let activeBuildingBlockSlugs = $state<string[]>([]);
+	let buildingBlockDetails = $state<ExtensionDetailViewModel[]>([]);
+	let workflowSteps = $state<SkillBuilderWorkflowStepViewModel[]>([]);
+	let loadingBuildingBlockSlug = $state<string | null>(null);
 
-	const libraryItems = $derived(buildLibraryItems(extensionDetails));
+	const libraryItems = $derived(buildLibraryItems(buildingBlockDetails));
 
 	const exportTitle = $derived(stackTitle?.trim() || 'My First Skill');
 
 	const generatedMarkdown = $derived(
-		generateStackMarkdown({
+		generateSkillMarkdown({
 			title: exportTitle,
-			extensionSlugs: activeExtensionSlugs,
-			extensions: extensionDetails,
+			extensionSlugs: activeBuildingBlockSlugs,
+			extensions: buildingBlockDetails,
 			workflowSteps
 		})
 	);
 
 	let exportMarkdown = $state('');
 	let exportMarkdownEdited = $state(false);
-	let pendingDraftExtensionIdsBySlug = $state<Record<string, string>>({});
-	let pendingDraftExtensionTypesBySlug = $state<Record<string, string | null>>({});
+	let pendingDraftBuildingBlockIdsBySlug = $state<Record<string, string>>({});
+	let pendingDraftBuildingBlockTypesBySlug = $state<Record<string, string | null>>({});
 
 	$effect(() => {
 		const key = serverHydrationKey;
 		if (hydratedFrom === key) return;
 		hydratedFrom = key;
-		activeExtensionSlugs = [...selectedExtensionSlugs];
-		extensionDetails = selectedExtensions.map((extension) => ({ ...extension }));
+		activeBuildingBlockSlugs = [...selectedBuildingBlockSlugs];
+		buildingBlockDetails = selectedBuildingBlocks.map((buildingBlock) => ({ ...buildingBlock }));
 		workflowSteps = initialWorkflowSteps.map((step) => ({ ...step, id: step.id || nanoid() }));
 		exportMarkdownEdited = false;
 	});
@@ -111,8 +115,8 @@
 		const pendingDraft = readSkillBuilderStackDraft();
 		if (!pendingDraft || stackSlug) return;
 
-		pendingDraftExtensionIdsBySlug = { ...pendingDraft.extensionIdsBySlug };
-		pendingDraftExtensionTypesBySlug = { ...(pendingDraft.extensionTypesBySlug ?? {}) };
+		pendingDraftBuildingBlockIdsBySlug = { ...pendingDraft.extensionIdsBySlug };
+		pendingDraftBuildingBlockTypesBySlug = { ...(pendingDraft.extensionTypesBySlug ?? {}) };
 
 		if (pendingDraft.workflowSteps.length > 0) {
 			workflowSteps = pendingDraft.workflowSteps.map((step) => ({
@@ -169,56 +173,59 @@
 		const draft = buildSkillBuilderStackDraft({
 			title: exportTitle,
 			markdown: exportMarkdown.trim() || generatedMarkdown,
-			extensionSlugs: activeExtensionSlugs,
+			extensionSlugs: activeBuildingBlockSlugs,
 			workflowSteps,
-			extensions: extensionDetails,
-			extensionIdsBySlugOverride: pendingDraftExtensionIdsBySlug,
-			extensionTypesBySlugOverride: pendingDraftExtensionTypesBySlug
+			extensions: buildingBlockDetails,
+			extensionIdsBySlugOverride: pendingDraftBuildingBlockIdsBySlug,
+			extensionTypesBySlugOverride: pendingDraftBuildingBlockTypesBySlug
 		});
 		saveSkillBuilderStackDraft(draft);
 		void goto(newStackHref);
 	}
 
-	async function toggleExtensionSlug(slug: string) {
-		if (slug === OPENQUOK_CORE_EXTENSION_SLUG && activeExtensionSlugs.includes(slug)) {
+	async function toggleBuildingBlockSlug(slug: string) {
+		if (slug === OPENQUOK_CORE_EXTENSION_SLUG && activeBuildingBlockSlugs.includes(slug)) {
 			return;
 		}
 
-		const isSelected = activeExtensionSlugs.includes(slug);
+		const isSelected = activeBuildingBlockSlugs.includes(slug);
 		const nextSlugs = isSelected
-			? activeExtensionSlugs.filter((value) => value !== slug)
-			: [...activeExtensionSlugs, slug];
+			? activeBuildingBlockSlugs.filter((value) => value !== slug)
+			: [...activeBuildingBlockSlugs, slug];
 
 		if (nextSlugs.length === 0) return;
 
 		if (isSelected) {
-			activeExtensionSlugs = nextSlugs;
-			extensionDetails = extensionDetails.filter((extension) => extension.slug !== slug);
+			activeBuildingBlockSlugs = nextSlugs;
+			buildingBlockDetails = buildingBlockDetails.filter((buildingBlock) => buildingBlock.slug !== slug);
 			syncUrl(nextSlugs);
 			return;
 		}
 
-		loadingExtensionSlug = slug;
+		loadingBuildingBlockSlug = slug;
 		try {
-			const extension = await getListingPresenter.loadPublishedExtensionBySlugStateless(slug);
-			if (!extension) return;
-			activeExtensionSlugs = nextSlugs;
-			extensionDetails = [...extensionDetails, extension];
+			const buildingBlock = await getListingPresenter.loadPublishedExtensionBySlugStateless(slug);
+			if (!buildingBlock) return;
+			activeBuildingBlockSlugs = nextSlugs;
+			buildingBlockDetails = [...buildingBlockDetails, buildingBlock];
 			syncUrl(nextSlugs);
 		} finally {
-			loadingExtensionSlug = null;
+			loadingBuildingBlockSlug = null;
 		}
 	}
 
 	function syncUrl(slugs: string[]) {
 		if (!browser) return;
 		const params = new URLSearchParams();
-		params.set('extensions', serializeExtensionSlugs(ensureOpenquokCoreExtensionSlug(slugs)));
+		params.set(
+			SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM,
+			serializeExtensionSlugs(ensureOpenquokCoreExtensionSlug(slugs))
+		);
 		const nextUrl = `${skillBuilderPath}?${params.toString()}`;
 		window.history.replaceState(window.history.state, '', nextUrl);
 	}
 
-	function addLibraryItem(itemVm: StackBuilderLibraryItemViewModel) {
+	function addLibraryItem(itemVm: SkillBuilderLibraryItemViewModel) {
 		const workflowDefaults = buildCommandWorkflowStepFromLibraryItem(itemVm);
 
 		workflowSteps = [
@@ -249,9 +256,9 @@
 		];
 	}
 
-	function updateStep(stepId: string, patch: Partial<StackBuilderWorkflowStepViewModel>) {
+	function updateStep(stepId: string, patch: Partial<SkillBuilderWorkflowStepViewModel>) {
 		workflowSteps = workflowSteps.map((step) =>
-			step.id === stepId ? ({ ...step, ...patch } as StackBuilderWorkflowStepViewModel) : step
+			step.id === stepId ? ({ ...step, ...patch } as SkillBuilderWorkflowStepViewModel) : step
 		);
 	}
 
@@ -289,21 +296,21 @@
 
 		<div class="pt-2">
 			<p class="mb-2 text-xs font-semibold tracking-wide text-base-content/60 uppercase">
-				Selected extensions
+				Selected building blocks
 			</p>
 			<div class="flex flex-wrap gap-2">
-				{#each extensionsCatalog as extension (extension.id)}
-					{@const selected = activeExtensionSlugs.includes(extension.slug)}
+				{#each buildingBlocksCatalog as buildingBlock (buildingBlock.id)}
+					{@const selected = activeBuildingBlockSlugs.includes(buildingBlock.slug)}
 					<button
 						type="button"
 						class="btn btn-sm {selected ? 'btn-primary' : 'btn-outline'}"
-						disabled={loadingExtensionSlug === extension.slug}
-						onclick={() => void toggleExtensionSlug(extension.slug)}
+						disabled={loadingBuildingBlockSlug === buildingBlock.slug}
+						onclick={() => void toggleBuildingBlockSlug(buildingBlock.slug)}
 					>
 						{#if selected}
 							<span aria-hidden="true">✓</span>
 						{/if}
-						{extension.title}
+						{buildingBlock.title}
 					</button>
 				{/each}
 			</div>
@@ -313,7 +320,7 @@
 	<section class="container mx-auto mt-8 max-w-[1600px] px-4">
 		<div class="flex flex-col gap-4">
 			<div class="overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
-				<StackBuilderLibraryPanel
+				<SkillBuilderLibraryPanel
 					itemsVm={libraryItems}
 					onAddItem={addLibraryItem}
 				/>
@@ -321,7 +328,7 @@
 
 			<div class="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-3">
 				<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 lg:col-span-1">
-					<StackBuilderWorkflowPanel
+					<SkillBuilderWorkflowPanel
 						stepsVm={workflowSteps}
 						onUpdateStep={updateStep}
 						onRemoveStep={removeStep}
@@ -330,7 +337,7 @@
 					/>
 				</div>
 				<div class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 lg:col-span-2">
-					<StackBuilderPreviewPanel
+					<SkillBuilderPreviewPanel
 						bind:markdown={exportMarkdown}
 						{downloadFilename}
 						onMarkdownEdit={markExportMarkdownEdited}

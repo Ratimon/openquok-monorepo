@@ -1,8 +1,8 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 	import type { ExtensionsTagFilterViewModel } from '$lib/listings/listing.types';
 	import type { ExtensionCategoryViewModel } from '$lib/listings/GetListing.presenter.svelte';
-	import type { AccountExploreFilters } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountExploreFilters } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 
@@ -10,8 +10,8 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { Badge } from '$lib/ui/badge';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
-	import ExtensionsSearchBar from '$lib/ui/templates/extensions/ExtensionsSearchBar.svelte';
-	import ExtensionsTagFilter from '$lib/ui/templates/extensions/ExtensionsTagFilter.svelte';
+	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
+	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
 	import AccountViralFormatsKindChips from '$lib/ui/components/extensions/AccountViralFormatsKindChips.svelte';
 	import AccountViralFormatsStackSelectionBar from '$lib/ui/components/extensions/AccountViralFormatsStackSelectionBar.svelte';
 	import AccountListingsCollectionGroup from '$lib/ui/components/extensions/AccountListingsCollectionGroup.svelte';
@@ -27,15 +27,15 @@
 		filters: AccountExploreFilters;
 		categoriesVm: ExtensionCategoryViewModel[];
 		tagFilterVm: ExtensionsTagFilterViewModel;
-		extensions: AccountListingCollectionItemViewModel[];
+		buildingBlocks: AccountListingCollectionItemViewModel[];
 		stacks: AccountListingCollectionItemViewModel[];
 		loading?: boolean;
-		showExtensions?: boolean;
+		showBuildingBlocks?: boolean;
 		showStacks?: boolean;
 		bookmarksPaidEnabled?: boolean | null;
 		bookmarkCount?: number;
 		accountBillingHref?: string;
-		selectableExtensions?: boolean;
+		selectableBuildingBlocks?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
 		getPublicHref?: (item: AccountListingCollectionItemViewModel) => string;
@@ -64,15 +64,15 @@
 		filters,
 		categoriesVm,
 		tagFilterVm,
-		extensions,
+		buildingBlocks,
 		stacks,
 		loading = false,
-		showExtensions = true,
+		showBuildingBlocks = true,
 		showStacks = true,
 		bookmarksPaidEnabled = null,
 		bookmarkCount = 0,
 		accountBillingHref = '',
-		selectableExtensions = false,
+		selectableBuildingBlocks = false,
 		isSelected = () => false,
 		onToggleSelect,
 		getPublicHref,
@@ -106,7 +106,7 @@
 
 <div class="space-y-5">
 	<div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-		<ExtensionsSearchBar
+		<ListingsSearchBar
 			bind:value={searchDraft}
 			placeholder="Search playbooks and building blocks…"
 			class="min-w-0 flex-1"
@@ -152,7 +152,7 @@
 			</div>
 		</div>
 
-		<ExtensionsTagFilter
+		<ListingsTagFilter
 			{tagFilterVm}
 			activeTagGroup={filters.tagGroup}
 			activeTags={filters.tags}
@@ -165,7 +165,7 @@
 	{#if filters.bookmarkedOnly && bookmarksPaidEnabled === false}
 		<HomeAccountNoticeBanner iconName={icons.Sparkles.name} tone="upgrade" dismissible={false}>
 			<p class="text-base-content/90">
-				Extension bookmarks are available on paid plans. Upgrade to save listings from the hub and
+				Building block bookmarks are available on paid plans. Upgrade to save listings from the hub and
 				filter by bookmarked items.
 			</p>
 			{#snippet actions()}
@@ -177,7 +177,7 @@
 		</HomeAccountNoticeBanner>
 	{/if}
 
-	{#if selectedCount > 0 || showExtensions}
+	{#if selectedCount > 0 || showBuildingBlocks}
 		<AccountViralFormatsStackSelectionBar
 			{selectedCount}
 			onCreateStack={onCreateStack}
@@ -185,17 +185,17 @@
 		/>
 	{/if}
 
-	{#if showExtensions}
+	{#if showBuildingBlocks}
 		<AccountListingsCollectionGroup
 			label="Building blocks"
 			description="Check Add on one or more building blocks to include them in a new playbook."
-			items={extensions}
+			items={buildingBlocks}
 			{loading}
 			layout="grid"
 			emptyMessage={filters.bookmarkedOnly
 				? 'No bookmarked building blocks match your filters.'
 				: 'No building blocks match your filters.'}
-			{selectableExtensions}
+			{selectableBuildingBlocks}
 			{isSelected}
 			{onToggleSelect}
 			getEditHref={getPublicHref}

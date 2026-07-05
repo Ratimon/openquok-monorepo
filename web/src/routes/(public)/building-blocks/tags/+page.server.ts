@@ -1,7 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBuildingBlocksTags } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import { publicExtensionsPagePresenter } from '$lib/area-public/index';
+import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -42,7 +42,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const hub = await publicExtensionsPagePresenter.loadExtensionsHubStateless({ fetch, limit: 50 });
+	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({ fetch, limit: 50 });
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildExtensionsTagFilterVm({
 		tagsCatalog,

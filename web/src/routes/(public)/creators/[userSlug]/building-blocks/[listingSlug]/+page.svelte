@@ -12,24 +12,24 @@
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
 
-	import { publicExtensionBySlugPagePresenter } from '$lib/area-public/index';
+	import { publicBuildingBlockBySlugPagePresenter } from '$lib/area-public/index';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { showListingBookmarkToast } from '$lib/listings';
-	import { loadExtensionDetailComponent } from '$lib/listings/utils/loadExtensionDetailComponent';
+	import { loadBuildingBlockDetailComponent } from '$lib/listings/utils/loadBuildingBlockDetailComponent';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
+	import ListingHubBreadcrumb from '$lib/ui/components/listings/ListingHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
+	import ListingComments from '$lib/ui/components/listings/ListingComments.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
+	import BuildingBlockCard from '$lib/ui/templates/building-blocks/BuildingBlockCard.svelte';
 
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 
-	let extensionVm = $derived(data.extensionVm);
-	let relatedExtensionsVm = $derived(data.relatedExtensionsVm);
+	let buildingBlockVm = $derived(data.buildingBlockVm);
+	let relatedBuildingBlocksVm = $derived(data.relatedBuildingBlocksVm);
 	let commentsVm = $derived((data.commentsVm ?? []) as ListingCommentViewModel[]);
 	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
@@ -50,7 +50,7 @@
 	let expandedRelatedId = $state<string | null>(null);
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
-	let displayLikes = $derived(extensionVm.likes + extraLikes);
+	let displayLikes = $derived(buildingBlockVm.likes + extraLikes);
 
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
@@ -70,17 +70,17 @@
 	});
 
 	onMount(() => {
-		if (!browser || !extensionVm?.id) return;
-		void publicExtensionBySlugPagePresenter.trackExtensionView(extensionVm.id);
+		if (!browser || !buildingBlockVm?.id) return;
+		void publicBuildingBlockBySlugPagePresenter.trackBuildingBlockView(buildingBlockVm.id);
 	});
 
 	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
-		const result = await publicExtensionBySlugPagePresenter.toggleBookmark(listingId, nextBookmarked);
+		const result = await publicBuildingBlockBySlugPagePresenter.toggleBookmark(listingId, nextBookmarked);
 		if (!result.ok) {
 			toast.error(result.error);
 			return result;
 		}
-		if (listingId === extensionVm?.id) {
+		if (listingId === buildingBlockVm?.id) {
 			isBookmarked = nextBookmarked;
 		}
 		showListingBookmarkToast(nextBookmarked, 'extension');
@@ -88,7 +88,7 @@
 	}
 
 	async function handleLike() {
-		const result = await publicExtensionBySlugPagePresenter.trackExtensionLike(extensionVm.id);
+		const result = await publicBuildingBlockBySlugPagePresenter.trackBuildingBlockLike(buildingBlockVm.id);
 		if (result.ok) {
 			extraLikes += 1;
 			toast.success('Thanks for the like!');
@@ -98,7 +98,7 @@
 	}
 
 	function handleExternalClick() {
-		void publicExtensionBySlugPagePresenter.trackExtensionClick(extensionVm.id);
+		void publicBuildingBlockBySlugPagePresenter.trackBuildingBlockClick(buildingBlockVm.id);
 	}
 
 	function toggleRelatedExpanded(id: string) {
@@ -113,17 +113,17 @@
 		<ListingHubBreadcrumb
 			hubHref={buildingBlocksHubHref}
 			hubLabel="Building Blocks"
-			owner={extensionVm.owner}
-			pageTitle={extensionVm.title}
+			owner={buildingBlockVm.owner}
+			pageTitle={buildingBlockVm.title}
 			class="mb-4"
 		/>
-		{#await loadExtensionDetailComponent(extensionVm.extensionType) then { default: ExtensionDetail }}
-			<ExtensionDetail
-				{extensionVm}
+		{#await loadBuildingBlockDetailComponent(buildingBlockVm.extensionType) then { default: BuildingBlockDetail }}
+			<BuildingBlockDetail
+				extensionVm={buildingBlockVm}
 				{displayLikes}
 				onLike={handleLike}
 				onExternalClick={handleExternalClick}
-				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+				likeDisabled={publicBuildingBlockBySlugPagePresenter.submittingLike}
 				{isBookmarked}
 				{isLoggedIn}
 				{bookmarksPaidEnabled}
@@ -131,8 +131,8 @@
 				onToggleBookmark={handleToggleBookmark}
 				communityEnabled={communityEnabled}
 				submitRating={(listingId, rating) =>
-					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-				submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
+					publicBuildingBlockBySlugPagePresenter.submitListingRating(listingId, rating)}
+				submittingRating={publicBuildingBlockBySlugPagePresenter.submittingRating}
 				onRatingSignInRequired={() => {
 					toast.error('Sign in to use community features.');
 				}}
@@ -142,15 +142,15 @@
 			/>
 		{/await}
 
-		{#if relatedExtensionsVm.length > 0}
+		{#if relatedBuildingBlocksVm.length > 0}
 			<section class="border-t border-base-content/10 py-10">
 				<h2 class="mb-4 text-xl font-bold">
 					Related extensions
 				</h2>
 				<ul class="space-y-4">
-					{#each relatedExtensionsVm as relatedVm (relatedVm.id)}
+					{#each relatedBuildingBlocksVm as relatedVm (relatedVm.id)}
 						<li>
-							<ExtensionCard
+							<BuildingBlockCard
 								extensionVm={relatedVm}
 								expanded={expandedRelatedId === relatedVm.id}
 								onToggle={toggleRelatedExpanded}
@@ -170,11 +170,11 @@
 		<section class="border-t border-base-content/10 py-10">
 			<ListingComments
 				{commentsVm}
-				listingId={extensionVm.id}
+				listingId={buildingBlockVm.id}
 				{isLoggedIn}
 				submitListingComment={(params) =>
-					publicExtensionBySlugPagePresenter.submitListingComment(params)}
-				submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
+					publicBuildingBlockBySlugPagePresenter.submitListingComment(params)}
+				submittingComment={publicBuildingBlockBySlugPagePresenter.submittingComment}
 				communityCommentsEnabled={communityEnabled}
 				onUpgradeRequired={() => {
 					showUpgradeModal = true;

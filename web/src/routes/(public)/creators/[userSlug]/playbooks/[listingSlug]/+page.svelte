@@ -7,12 +7,12 @@
 
 	import { isPaidSubscriptionTier, planLimitsForTier } from 'openquok-common';
 
-	import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
+	import { publicPlaybookBySlugPagePresenter } from '$lib/area-public';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
-	import { resolveBlueprintWorkflowStepTitle } from '$lib/stack-builder/utils/resolveBlueprintWorkflowStepTitle';
+	import { resolveBlueprintWorkflowStepTitle } from '$lib/skill-builder/utils/resolveBlueprintWorkflowStepTitle';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { showListingBookmarkToast } from '$lib/listings';
@@ -22,29 +22,29 @@
 
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
-	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
+	import ListingComments from '$lib/ui/components/listings/ListingComments.svelte';
+	import ListingHubBreadcrumb from '$lib/ui/components/listings/ListingHubBreadcrumb.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
-	import StackListingContentTabs from '$lib/ui/templates/stacks/StackListingContentTabs.svelte';
-	import StackListingDetailHeader from '$lib/ui/templates/stacks/StackListingDetailHeader.svelte';
-	import StackModelBindingsSection from '$lib/ui/templates/stacks/StackModelBindingsSection.svelte';
+	import PlaybookContentTabs from '$lib/ui/templates/playbooks/PlaybookContentTabs.svelte';
+	import PlaybookDetailHeader from '$lib/ui/templates/playbooks/PlaybookDetailHeader.svelte';
+	import PlaybookModelBindingsSection from '$lib/ui/templates/playbooks/PlaybookModelBindingsSection.svelte';
 
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 
-	let stackVm = $derived(data.stackVm);
+	let playbookVm = $derived(data.playbookVm);
 	let commentsVm = $derived(data.commentsVm);
 	let schemaData = $derived(data.schemaData);
 	let isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
-	let skillBuilderHref = $derived(url(`${route(getRootPathPublicSkillBuilder())}?stack=${stackVm.slug}`));
+	let skillBuilderHref = $derived(url(`${route(getRootPathPublicSkillBuilder())}?stack=${playbookVm.slug}`));
 
-	const descriptionMarkdown = $derived(stackVm.content?.trim() ? stackVm.content : null);
-	const workflowSteps = $derived(stackVm.stackBlueprint?.workflow_steps ?? []);
-	const referenceAssets = $derived(stackVm.stackBlueprint?.reference_assets ?? []);
-	const modelBindings = $derived(stackVm.stackBlueprint?.model_bindings ?? []);
+	const descriptionMarkdown = $derived(playbookVm.content?.trim() ? playbookVm.content : null);
+	const workflowSteps = $derived(playbookVm.stackBlueprint?.workflow_steps ?? []);
+	const referenceAssets = $derived(playbookVm.stackBlueprint?.reference_assets ?? []);
+	const modelBindings = $derived(playbookVm.stackBlueprint?.model_bindings ?? []);
 
 	// /account/billing
 	const rootPathAccount = getRootPathAccount();
@@ -61,7 +61,7 @@
 	let extraLikes = $state(0);
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
-	let displayLikes = $derived(stackVm.likes + extraLikes);
+	let displayLikes = $derived(playbookVm.likes + extraLikes);
 
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
@@ -81,17 +81,17 @@
 	});
 
 	onMount(() => {
-		if (!browser || !stackVm?.id) return;
-		void publicExtensionBySlugPagePresenter.trackExtensionView(stackVm.id);
+		if (!browser || !playbookVm?.id) return;
+		void publicPlaybookBySlugPagePresenter.trackPlaybookView(playbookVm.id);
 	});
 
 	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
-		const result = await publicExtensionBySlugPagePresenter.toggleBookmark(listingId, nextBookmarked);
+		const result = await publicPlaybookBySlugPagePresenter.toggleBookmark(listingId, nextBookmarked);
 		if (!result.ok) {
 			toast.error(result.error);
 			return result;
 		}
-		if (listingId === stackVm?.id) {
+		if (listingId === playbookVm?.id) {
 			isBookmarked = nextBookmarked;
 		}
 		showListingBookmarkToast(nextBookmarked, 'stack');
@@ -99,7 +99,7 @@
 	}
 
 	async function handleLike() {
-		const result = await publicExtensionBySlugPagePresenter.trackExtensionLike(stackVm.id);
+		const result = await publicPlaybookBySlugPagePresenter.trackPlaybookLike(playbookVm.id);
 		if (result.ok) {
 			extraLikes += 1;
 			toast.success('Thanks for the like!');
@@ -131,7 +131,7 @@
 
 	function memberDetailHref(stackMember: StackDetailViewModel['stackMembers'][number]) {
 		if (!stackMember.member) return null;
-		const path = resolvePublicBuildingBlockPath(stackVm.owner, stackMember.member.slug);
+		const path = resolvePublicBuildingBlockPath(playbookVm.owner, stackMember.member.slug);
 		return path ? url(`/${path}`) : url(`/${getRootPathPublicBuildingBlocks()}`);
 	}
 
@@ -160,16 +160,16 @@
 		<ListingHubBreadcrumb
 			hubHref={playbooksHubHref}
 			hubLabel="Playbooks"
-			owner={stackVm.owner}
-			pageTitle={stackVm.title}
+			owner={playbookVm.owner}
+			pageTitle={playbookVm.title}
 			class="mb-4"
 		/>
-		<StackListingDetailHeader
-			{stackVm}
+		<PlaybookDetailHeader
+			playbookVm={playbookVm}
 			{displayLikes}
 			{skillBuilderHref}
 			onLike={handleLike}
-			likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+			likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
 			{isBookmarked}
 			{isLoggedIn}
 			{bookmarksPaidEnabled}
@@ -177,8 +177,8 @@
 			onToggleBookmark={handleToggleBookmark}
 			communityEnabled={communityEnabled}
 			submitRating={(listingId, rating) =>
-				publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-			submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
+				publicPlaybookBySlugPagePresenter.submitListingRating(listingId, rating)}
+			submittingRating={publicPlaybookBySlugPagePresenter.submittingRating}
 			onRatingSignInRequired={() => {
 				toast.error('Sign in to use community features.');
 			}}
@@ -188,19 +188,19 @@
 		/>
 
 		<section class="py-8">
-			<StackListingContentTabs content={descriptionMarkdown}>
+			<PlaybookContentTabs content={descriptionMarkdown}>
 				{#snippet members()}
-					<StackModelBindingsSection bindings={modelBindings} />
+					<PlaybookModelBindingsSection bindings={modelBindings} />
 					<div>
 						<h2 class="mb-2 text-xl font-bold text-base-content">Building blocks</h2>
 						<p class="mb-4 text-sm text-base-content/70">
 							Skills and MCP extensions to install before you run this playbook.
 						</p>
-						{#if stackVm.stackMembers.length === 0}
+						{#if playbookVm.stackMembers.length === 0}
 							<p class="text-base-content/70">This playbook does not include any building blocks yet.</p>
 						{:else}
 							<ul class="space-y-3">
-								{#each stackVm.stackMembers as member (member.id)}
+								{#each playbookVm.stackMembers as member (member.id)}
 									<li class="rounded-xl border border-base-content/10 p-4">
 										<div class="flex flex-wrap items-start justify-between gap-3">
 											<div class="min-w-0 flex-1">
@@ -309,16 +309,16 @@
 						</div>
 					{/if}
 				{/snippet}
-			</StackListingContentTabs>
+			</PlaybookContentTabs>
 		</section>
 
 		<section class="border-t border-base-content/10 py-10">
 			<ListingComments
 				{commentsVm}
-				listingId={stackVm.id}
+				listingId={playbookVm.id}
 				{isLoggedIn}
-				submitListingComment={(params) => publicExtensionBySlugPagePresenter.submitListingComment(params)}
-				submittingComment={publicExtensionBySlugPagePresenter.submittingComment}
+				submitListingComment={(params) => publicPlaybookBySlugPagePresenter.submitListingComment(params)}
+				submittingComment={publicPlaybookBySlugPagePresenter.submittingComment}
 				communityCommentsEnabled={communityEnabled}
 				onUpgradeRequired={() => {
 					showUpgradeModal = true;

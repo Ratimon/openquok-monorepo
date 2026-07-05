@@ -13,7 +13,7 @@
 	import {
 		clearSkillBuilderStackDraft,
 		readSkillBuilderStackDraft
-	} from '$lib/stack-builder/constants/skillBuilderDraftStorage';
+	} from '$lib/skill-builder/constants/skillBuilderDraftStorage';
 	import { route, url } from '$lib/utils/path';
 
 	import { toast } from '$lib/ui/sonner';

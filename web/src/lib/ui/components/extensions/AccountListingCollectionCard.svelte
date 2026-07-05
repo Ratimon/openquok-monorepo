@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import { getListingPublishStatusBadge } from '$lib/listings/GetListing.presenter.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 
@@ -132,7 +132,7 @@
 				hasMenu ? 'right-10' : 'right-2'
 			)}
 		>
-			<ExtensionBookmarkButton
+			<BuildingBlockBookmarkButton
 				listingId={item.id}
 				listingKind={item.listingKind}
 				{isBookmarked}

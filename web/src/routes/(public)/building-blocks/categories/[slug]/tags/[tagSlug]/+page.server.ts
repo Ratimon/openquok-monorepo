@@ -1,7 +1,7 @@
 import {
 	getRootPathPublicBuildingBlocksCategoryTag
 } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import { publicExtensionsPagePresenter } from '$lib/area-public/index';
+import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';
 import { loadBuildingBlocksHubPage } from '$lib/listings/utils/loadBuildingBlocksHubPage.server';
 import { resolveBuildingBlocksTagPathFilter } from '$lib/listings/utils/resolveBuildingBlocksTagPathFilter';
@@ -14,7 +14,7 @@ export async function load(event) {
 	const tagPathSlug = typeof event.params.tagSlug === 'string' ? event.params.tagSlug : '';
 
 	const [hub, categoryDetails, tagsCatalog] = await Promise.all([
-		publicExtensionsPagePresenter.loadExtensionsHubStateless({
+		publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({
 			fetch: event.fetch,
 			limit: 50
 		}),

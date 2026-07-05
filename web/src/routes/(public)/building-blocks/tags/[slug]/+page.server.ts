@@ -1,5 +1,5 @@
 import { getRootPathPublicBuildingBlocksTags } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import { publicExtensionsPagePresenter } from '$lib/area-public/index';
+import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter } from '$lib/listings/index';
 import { loadBuildingBlocksHubPage } from '$lib/listings/utils/loadBuildingBlocksHubPage.server';
 import { resolveBuildingBlocksTagPathFilter } from '$lib/listings/utils/resolveBuildingBlocksTagPathFilter';
@@ -9,7 +9,7 @@ export const ssr = true;
 export async function load(event) {
 	const pathSlug = typeof event.params.slug === 'string' ? event.params.slug : '';
 
-	const hub = await publicExtensionsPagePresenter.loadExtensionsHubStateless({
+	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({
 		fetch: event.fetch,
 		limit: 50
 	});

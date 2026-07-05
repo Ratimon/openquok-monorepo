@@ -26,7 +26,7 @@ import { ProtectedPlugsPagePresenter } from '$lib/area-protected/ProtectedPlugsP
 import { ProtectedTemplatesPagePresenter } from '$lib/area-protected/ProtectedTemplatesPage.presenter.svelte';
 import { ProtectedPayloadWizardPagePresenter } from '$lib/area-protected/ProtectedPayloadWizardPage.presenter.svelte';
 import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBillingPage.presenter.svelte';
-import { ProtectedAccountExtensionsPagePresenter } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+import { ProtectedAccountBuildingBlocksPagePresenter } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 import { UserListingEditorPagePresenter } from '$lib/area-protected/UserListingEditorPage.presenter.svelte';
 import { UserListingsManagerPagePresenter } from '$lib/area-protected/UserListingsManagerPage.presenter.svelte';
 import { billingPresenter, firstBillingGatePresenter, getBillingPresenter } from '$lib/billing';
@@ -186,7 +186,7 @@ const protectedTemplatesPagePresenter = new ProtectedTemplatesPagePresenter(
 	setGridFilterBuilder
 );
 
-const protectedAccountExtensionsPagePresenter = new ProtectedAccountExtensionsPagePresenter(
+const protectedAccountBuildingBlocksPagePresenter = new ProtectedAccountBuildingBlocksPagePresenter(
 	getListingPresenter,
 	listingRepository,
 	getBillingPresenter
@@ -229,8 +229,8 @@ export {
 	protectedPlugsPagePresenter,
 	ProtectedTemplatesPagePresenter,
 	protectedTemplatesPagePresenter,
-	ProtectedAccountExtensionsPagePresenter,
-	protectedAccountExtensionsPagePresenter,
+	ProtectedAccountBuildingBlocksPagePresenter,
+	protectedAccountBuildingBlocksPagePresenter,
 	UserListingEditorPagePresenter,
 	userListingStackEditorPagePresenter,
 	userListingNewStackPagePresenter,

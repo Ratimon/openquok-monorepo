@@ -1,5 +1,5 @@
 import { getRootPathPublicPlaybooksCategory } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicStacksPagePresenter } from '$lib/area-public/index';
+import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import { listingRepository } from '$lib/listings/index';
 import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
 import { formatPlaybooksFilterHeroTitle } from '$lib/listings/utils/formatPlaybooksFilterHeroTitle';
@@ -9,7 +9,7 @@ export const ssr = true;
 export async function load(event) {
 	const categorySlug = typeof event.params.slug === 'string' ? event.params.slug : '';
 	const [hub, categoryDetails] = await Promise.all([
-		publicStacksPagePresenter.loadStacksHubStateless({
+		publicPlaybooksPagePresenter.loadPlaybooksHubStateless({
 			fetch: event.fetch,
 			limit: 50
 		}),

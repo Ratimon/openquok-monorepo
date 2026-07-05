@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountListingCollectionItemViewModel } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import AccountListingCollectionCard from '$lib/ui/components/extensions/AccountListingCollectionCard.svelte';
 
@@ -19,7 +19,7 @@
 		loading?: boolean;
 		emptyMessage?: string;
 		layout?: 'row' | 'grid';
-		selectableExtensions?: boolean;
+		selectableBuildingBlocks?: boolean;
 		isSelected?: (listingId: string) => boolean;
 		onToggleSelect?: (listingId: string) => void;
 		getEditHref?: (item: AccountListingCollectionItemViewModel) => string;
@@ -41,7 +41,7 @@
 		loading = false,
 		emptyMessage = 'Nothing here yet.',
 		layout = 'row',
-		selectableExtensions = false,
+		selectableBuildingBlocks = false,
 		isSelected = () => false,
 		onToggleSelect,
 		getEditHref,
@@ -89,7 +89,7 @@
 				<li class={itemClass}>
 					<AccountListingCollectionCard
 						{item}
-						selectable={selectableExtensions && item.listingKind === 'extension'}
+						selectable={selectableBuildingBlocks && item.listingKind === 'extension'}
 						selected={isSelected(item.id)}
 						onToggleSelect={() => onToggleSelect?.(item.id)}
 						href={getEditHref?.(item)}

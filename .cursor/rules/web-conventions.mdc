@@ -532,9 +532,9 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 <!-- web/src/routes/(public)/tools/skill-builder/+page.svelte -->
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { buildLibraryItems } from '$lib/stack-builder/utils/buildLibraryItems';
+	import { buildLibraryItems } from '$lib/skill-builder/utils/buildLibraryItems';
 
-	import StackBuilderLibraryPanel from '$lib/ui/templates/stack-builder/StackBuilderLibraryPanel.svelte';
+	import SkillBuilderLibraryPanel from '$lib/ui/templates/skill-builder/SkillBuilderLibraryPanel.svelte';
 
 	type Props = { data: PageData };
 	let { data }: Props = $props();
@@ -543,7 +543,7 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 </script>
 
 <header>…</header>
-<StackBuilderLibraryPanel items={libraryItems} onAddItem={addLibraryItem} />
+<SkillBuilderLibraryPanel items={libraryItems} onAddItem={addLibraryItem} />
 ```
 
 ```svelte
@@ -551,7 +551,7 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 <!-- +page.svelte -->
 <SkillBuilderPage metaTitle={data.metaTitle} selectedExtensions={data.selectedExtensions} … />
 
-<!-- $lib/ui/templates/stack-builder/SkillBuilderPage.svelte -->
+<!-- $lib/ui/templates/skill-builder/SkillBuilderPage.svelte -->
 <!-- entire page markup lives here, used only by one route -->
 ```
 

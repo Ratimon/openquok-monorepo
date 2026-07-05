@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ServerLoadEvent } from '@sveltejs/kit';
 
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicStacksPagePresenter } from '$lib/area-public';
+import { publicPlaybooksPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -39,7 +39,7 @@ export async function loadPlaybooksHubPage(
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
 	const filters: StacksHubFilters = {
-		...publicStacksPagePresenter.parseFiltersFromUrl(url.searchParams)
+		...publicPlaybooksPagePresenter.parseFiltersFromUrl(url.searchParams)
 	};
 	if (fixedCategorySlug) {
 		filters.category = fixedCategorySlug;
@@ -52,13 +52,13 @@ export async function loadPlaybooksHubPage(
 		filters.tags = undefined;
 	}
 
-	const hub = await publicStacksPagePresenter.loadStacksHubStateless({ fetch, limit: 50 });
+	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch, limit: 50 });
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildStacksTagFilterVm({
 		tagsCatalog,
 		stacks: hub.stacks
 	});
-	const filteredStacks = publicStacksPagePresenter.applyClientFilters(hub.stacks, filters, tagFilterVm);
+	const filteredPlaybooks = publicPlaybooksPagePresenter.applyClientFilters(hub.stacks, filters, tagFilterVm);
 
 	const statsVm = getListingPresenter.computeStacksHubStats(hub.stacks, hub.categories);
 
@@ -119,8 +119,8 @@ export async function loadPlaybooksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		stacksVm: filteredStacks,
-		allStacksVm: hub.stacks,
+		playbooksVm: filteredPlaybooks,
+		allPlaybooksVm: hub.stacks,
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,

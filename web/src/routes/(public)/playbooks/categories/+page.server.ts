@@ -1,7 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicPlaybooksCategories } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
-import { publicStacksPagePresenter } from '$lib/area-public/index';
+import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -42,7 +42,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const hub = await publicStacksPagePresenter.loadStacksHubStateless({ fetch, limit: 50 });
+	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch, limit: 50 });
 	const categoryDetails = await listingRepository.getActiveCategories(fetch);
 	const categories = getListingPresenter.buildStackCategoriesOverviewVm(
 		hub.stacks,

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AccountExploreListingKindFilter } from '$lib/area-protected/ProtectedAccountExtensionsPage.presenter.svelte';
+	import type { AccountExploreListingKindFilter } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 
 	import { cn } from '$lib/ui/helpers/common';
 

@@ -24,8 +24,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			extensionsVm: ExtensionCardViewModel[];
-			allExtensionsVm: ExtensionCardViewModel[];
+			buildingBlocksVm: ExtensionCardViewModel[];
+			allBuildingBlocksVm: ExtensionCardViewModel[];
 			categoriesVm: ExtensionCategoryViewModel[];
 			statsVm: ExtensionsHubStatsViewModel;
 			filtersVm: ExtensionsHubFilters;
@@ -44,8 +44,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			extensionsVm: serverData.extensionsVm,
-			allExtensionsVm: serverData.allExtensionsVm,
+			buildingBlocksVm: serverData.buildingBlocksVm,
+			allBuildingBlocksVm: serverData.allBuildingBlocksVm,
 			categoriesVm: serverData.categoriesVm,
 			statsVm: serverData.statsVm,
 			filtersVm: serverData.filtersVm,

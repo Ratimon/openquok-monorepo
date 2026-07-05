@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { SkillBuilderPageViewModel } from '$lib/stack-builder/stackBuilder.types';
+import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
 
 import type { PageLoad } from './$types';
 
@@ -25,9 +25,9 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			selectedExtensionSlugs: serverData.selectedExtensionSlugs,
-			extensionsCatalog: serverData.extensionsCatalog,
-			selectedExtensions: serverData.selectedExtensions,
+			selectedBuildingBlockSlugs: serverData.selectedBuildingBlockSlugs,
+			buildingBlocksCatalog: serverData.buildingBlocksCatalog,
+			selectedBuildingBlocks: serverData.selectedBuildingBlocks,
 			initialWorkflowSteps: serverData.initialWorkflowSteps,
 			stackTitle: serverData.stackTitle,
 			stackSlug: serverData.stackSlug,

@@ -9,7 +9,7 @@
 
 	import { Card, CardContent, CardHeader } from '$lib/ui/card';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
+	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
