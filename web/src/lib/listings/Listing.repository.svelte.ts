@@ -1,6 +1,5 @@
 import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 
-import { CONFIG_SCHEMA_LISTINGS } from '$lib/config/constants/config';
 import {
 	getDefaultSchemaTypeForListingKind,
 	getSchemaTypeForExtensionCategory
@@ -246,7 +245,6 @@ export interface AdminListingActivityDto {
 
 export interface ListingConfig {
 	endpoints: {
-		getListingInformation: string;
 		getPublishedListings: string;
 		getPublishedBySlug: (slug: string) => string;
 		getPublishedStacks: string;
@@ -428,12 +426,6 @@ export interface TrackListingStatResponseDto {
 	message?: string;
 }
 
-export interface GetListingInformationResponseDto {
-	success: boolean;
-	data: ListingInformationProgrammerModel;
-	message?: string;
-}
-
 export type ListingUpsertProgrammerModel =
 	| { ok: true; id?: string }
 	| { ok: false; error: string };
@@ -497,10 +489,6 @@ export interface ListingGithubSyncResultProgrammerModel {
 	contentChanged: boolean;
 	sourceSyncedAt: string;
 	sourceContentHash: string;
-}
-
-export interface ListingInformationProgrammerModel {
-	[key: string]: string;
 }
 
 export interface ListingProgrammerModel {
@@ -685,28 +673,6 @@ export class ListingRepository {
 		private readonly httpGateway: HttpGateway,
 		private readonly config: ListingConfig
 	) {}
-
-	async getListingInformation(fetch?: typeof globalThis.fetch): Promise<ListingInformationProgrammerModel> {
-		const fallback: ListingInformationProgrammerModel = {
-			LISTING_SCHEMA_TYPE: String(CONFIG_SCHEMA_LISTINGS.LISTING_SCHEMA_TYPE.default ?? 'SoftwareApplication')
-		};
-
-		try {
-			const { data: getListingInformationDto, ok } =
-				await this.httpGateway.get<GetListingInformationResponseDto>(
-					this.config.endpoints.getListingInformation,
-					undefined,
-					{ withCredentials: false, fetch }
-				);
-
-			if (ok && getListingInformationDto?.success && getListingInformationDto.data) {
-				return getListingInformationDto.data;
-			}
-			return fallback;
-		} catch {
-			return fallback;
-		}
-	}
 
 	async getPublishedListings(
 		{

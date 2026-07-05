@@ -27,7 +27,6 @@ INSERT INTO public.module_configs (module_name, config) VALUES
 (
     'listings',
     '{
-  "LISTING_SCHEMA_TYPE": "SoftwareApplication",
   "PRE_ADMIN_APPROVE_NEW_LISTINGS": false,
   "PRE_ADMIN_APPROVE_UPDATED_LISTINGS": true
 }'::jsonb

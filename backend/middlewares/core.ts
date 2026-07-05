@@ -155,7 +155,6 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
             "/blog-system/topics/active",
             "/listings/published",
             "/listings/stacks/published",
-            "/listings/information",
             "/listings/categories/active-partial",
             "/listings/categories/active-full",
             "/listings/categories/all-partial",

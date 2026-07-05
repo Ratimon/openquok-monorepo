@@ -65,7 +65,6 @@ const CACHE_KEYS = {
     LISTING_STACK_BY_SLUG: "listing:stack:bySlug",
     LISTING_ADMIN_LIST: "listing:admin:list",
     LISTING_CREATORS: "listing:creators",
-    LISTING_INFORMATION: "config:module:listings:information",
     LISTING_APPROVE_INFO: "config:listings:approveinfo",
     LISTING_CATEGORIES_ACTIVE_PARTIAL: "listing:categories:active:partial",
     LISTING_CATEGORIES_ACTIVE_FULL: "listing:categories:active:full",
@@ -93,20 +92,6 @@ export class ListingService {
         private readonly subscriptionGuard?: SubscriptionGuardService,
         private readonly userRepository?: UserRepository
     ) {}
-
-    async getListingInformation(): Promise<Record<string, string>> {
-        const cacheKey = CACHE_KEYS.LISTING_INFORMATION;
-        const factory = async (): Promise<Record<string, string>> => {
-            if (!this.configRepository) return {};
-            const { result } = await this.configRepository.getConfigByModuleNameAndProperties({
-                moduleName: "listings",
-                properties: ["LISTING_SCHEMA_TYPE"],
-            });
-            return result;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-    }
 
     private async getApproveConfigInfo(): Promise<Record<string, string>> {
         const cacheKey = CACHE_KEYS.LISTING_APPROVE_INFO;

@@ -482,24 +482,6 @@ describe("ListingService", () => {
         });
     });
 
-    describe("getListingInformation", () => {
-        it("loads module config from config repository", async () => {
-            configRepo.getConfigByModuleNameAndProperties.mockResolvedValue({
-                result: {
-                    LISTING_SCHEMA_TYPE: "SoftwareApplication",
-                },
-                error: null,
-            });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
-            const result = await service.getListingInformation();
-            expect(result.LISTING_SCHEMA_TYPE).toBe("SoftwareApplication");
-            expect(configRepo.getConfigByModuleNameAndProperties).toHaveBeenCalledWith({
-                moduleName: "listings",
-                properties: ["LISTING_SCHEMA_TYPE"],
-            });
-        });
-    });
-
     describe("bookmarks", () => {
         const secondListing: ListingLike = {
             ...mockListing,

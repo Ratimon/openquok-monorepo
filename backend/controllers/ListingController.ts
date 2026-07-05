@@ -27,15 +27,6 @@ import type { ExtensionType, ListingKind, ListingComment } from "../data/types/l
 export class ListingController {
     constructor(private readonly listingService: ListingService) {}
 
-    getListingInformation = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const data = await this.listingService.getListingInformation();
-            res.status(200).json({ success: true, data });
-        } catch (err) {
-            next(err);
-        }
-    };
-
     getPublishedListings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const q = (req as Request & { parsedQuery?: ParsedPublishedListingsQuery }).parsedQuery ?? {};

@@ -185,7 +185,6 @@ listingRouter.put(
 );
 
 // --- Published listings ---
-listingRouter.get("/information", listingController.getListingInformation);
 listingRouter.get("/published", parsePublishedListingsQuery, listingController.getPublishedListings);
 listingRouter.get(
     "/stacks/published",

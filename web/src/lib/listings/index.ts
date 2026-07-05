@@ -7,7 +7,6 @@ import { UpsertListingTagModalPresenter } from '$lib/listings/UpsertListingTagMo
 
 const listingConfig = {
 	endpoints: {
-		getListingInformation: '/api/v1/listings/information',
 		getPublishedListings: '/api/v1/listings/published',
 		getPublishedBySlug: (slug: string) => `/api/v1/listings/published/${slug}`,
 		getPublishedStacks: '/api/v1/listings/stacks/published',
@@ -160,7 +159,7 @@ export type {
 	StacksHubViewModel,
 	TagViewModel
 } from '$lib/listings/GetListing.presenter.svelte';
-export { CONFIG_SCHEMA_LISTINGS, LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';
+export { LISTING_IMAGES_BUCKET } from '$lib/config/constants/config';
 export { markdownToHtml } from '$lib/listings/utils/listingMarkdown';
 export { mergeListingSchemaIntoGraph } from '$lib/listings/utils/listingSchema';
 export { createSortedCategoryChoices } from '$lib/listings/utils/listingCategories';
