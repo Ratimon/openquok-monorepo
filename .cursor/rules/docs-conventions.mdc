@@ -128,7 +128,7 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 - For **ordered multi-step instructions** (deploy guides, setup flows), prefer **`Steps`** from `$lib/ui/components/docs/mdx/index.js` over Markdown `1.` / `2.` lists so the UI shows **circled step numbers** and consistent vertical rhythm.
 - **Pattern**: wrap the section in `<Steps>…</Steps>`. Each step is **`###` or `####`** (Markdown heading) plus body content (paragraphs, tables, `<Callout>`, etc.). Do **not** put numbers in the heading text — the component numbers steps automatically.
-- **Example** (see `web/src/content/docs/how-to-write-docs/components.md` and `web/src/content/docs/installation/vercel.md`):
+- **Example** (see `web/src/content/docs/documentation-contribution/components.md` and `web/src/content/docs/installation/vercel.md`):
 
 ```html
 <script>

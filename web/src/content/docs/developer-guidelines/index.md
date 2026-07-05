@@ -1,8 +1,8 @@
 ---
 title: Overview - Developer Guidelines
-description: OpenQuok's developer guidelines — security, RBAC, SSR safety, and theming conventions.
+description: OpenQuok's developer guidelines — fork the repo, submit code PRs, security, RBAC, and theming conventions.
 order: 0
-lastUpdated: 2026-04-25
+lastUpdated: 2026-07-05
 ---
 
 <script>
@@ -11,9 +11,12 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 ## Developer Guidelines
 
-This section collects **engineering guidelines** that are easy to forget during day-to-day work (RBAC conventions, SSR security constraints, and secret-handling rules).
+This section collects **engineering guidelines** for contributing code to OpenQuok — from opening a pull request to conventions that are easy to forget during day-to-day work (RBAC, SSR security constraints, and secret-handling rules).
+
+Use the sidebar or jump to a guide below.
 
 <CardGrid>
+<LinkCard title="Submit a pull request" description="Fork the repo, run checks locally, and open a code PR on GitHub" href="/docs/developer-guidelines/submit-a-pr" />
 <LinkCard title="Security guidelines" description="Service key rules, RLS guidance, and SSR state management safety" href="/docs/developer-guidelines/security" />
 <LinkCard title="RBAC (roles & permissions)" description="How app-level roles/permissions work and how to secure routes correctly" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="DaisyUI theming" description="Semantic color classes, theme-safe UI tokens, and shadcn-to-DaisyUI mapping" href="/docs/developer-guidelines/daisyui-theme" />

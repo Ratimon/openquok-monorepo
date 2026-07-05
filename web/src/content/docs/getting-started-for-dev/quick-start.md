@@ -62,5 +62,5 @@ Explore the architecture, installation, contributor guidelines, and how to autho
 <LinkCard title="Project architecture" description="Monorepo layout, key directories, and how the stack fits together" href="/docs/getting-started-for-dev/architecture" />
 <LinkCard title="Installation" description="Development environment, deployment on Vercel, and related setup guides" href="/docs/installation" />
 <LinkCard title="Developer guidelines" description="Conventions and practices for working in this repository" href="/docs/developer-guidelines" />
-<LinkCard title="How to write docs" description="Configure, write, and extend the documentation area in web/" href="/docs/how-to-write-docs" />
+<LinkCard title="Documentation contribution" description="Configure, write, and extend the documentation area in web/" href="/docs/documentation-contribution" />
 </CardGrid>

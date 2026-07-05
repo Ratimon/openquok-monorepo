@@ -105,7 +105,7 @@ Usa link cards para navegación:
 
 <CardGrid>
 <LinkCard title="Instalación" description="Comienza con la plantilla" href="/docs/es/getting-started-for-dev/installation" />
-<LinkCard title="Configuración" description="Personaliza tu sitio de docs" href="/docs/es/how-to-write-docs/configuration" />
+<LinkCard title="Configuración" description="Personaliza tu sitio de docs" href="/docs/es/documentation-contribution/configuration" />
 </CardGrid>
 
 ## Badges
@@ -124,7 +124,7 @@ Muestra estructuras de directorios:
       - index.md
       - getting-started-for-dev/
         - quick-start.md
-      - how-to-write-docs/
+      - documentation-contribution/
         - configuration.md
   - lib/
     - components/

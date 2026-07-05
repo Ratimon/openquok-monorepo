@@ -142,7 +142,7 @@ When shipping a user-facing provider, add:
 | Agent recipes | <Badge text="agent/skills/openquok-core/resources/[id]-examples.md" variant="path" /> |
 | Identifier list | <Badge text="agent/skills/openquok-core/resources/patterns.md" variant="path" /> |
 
-Follow <a href="/docs/how-to-write-docs">How to write docs</a> for MDX components, env badges, and redirect URI placeholders.
+Follow <a href="/docs/documentation-contribution">Documentation contribution</a> for MDX components, env badges, and redirect URI placeholders.
 
 ## Reference providers
 

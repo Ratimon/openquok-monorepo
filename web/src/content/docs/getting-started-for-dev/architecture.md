@@ -183,7 +183,7 @@ This is where in-app documentation markdown lives. Each `.md` file becomes a pag
     - index.md
     - architecture.md
     - quick-start.md
-  - how-to-write-docs/
+  - documentation-contribution/
     - index.md
     - configuration.md
     - writing-content.md

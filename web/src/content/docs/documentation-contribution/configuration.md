@@ -1,7 +1,7 @@
 ---
-title: Configuration
-description: How to configure your documentation site.
-order: 1
+title: Documantation Configuration
+description: How to configure the documentation site.
+order: 2
 ---
 
 ## Site Configuration
@@ -26,8 +26,8 @@ export const docsConfig: DocsConfig = {
       autogenerate: { directory: 'getting-started-for-dev' }
     },
     {
-      label: 'How to write docs',
-      autogenerate: { directory: 'how-to-write-docs' }
+      label: 'Documentation contribution',
+      autogenerate: { directory: 'documentation-contribution' }
     }
   ],
   toc: {

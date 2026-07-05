@@ -1,7 +1,7 @@
 ---
 title: Writing Content
 description: How to write and organize documentation content.
-order: 2
+order: 3
 lastUpdated: 2026-07-05
 ---
 
@@ -13,7 +13,7 @@ Create a new `.md` file in `src/content/docs/` to add a page. The file path dete
 |-----------|-----|
 | `docs/index.md` | `/docs` |
 | `docs/installation/index.md` | `/docs/installation` |
-| `docs/how-to-write-docs/configuration.md` | `/docs/how-to-write-docs/configuration` |
+| `docs/documentation-contribution/configuration.md` | `/docs/documentation-contribution/configuration` |
 
 ## Markdown Features
 
@@ -45,7 +45,7 @@ function greet(name) {
 
 ### Svelte components in Markdown
 
-Docs pages use **MDsveX**: import built-in components from **`$lib/ui/components/docs/mdx/index.js`** in a page-level `<script>` block, then use them in the Markdown body. See **[Built-in Components](/docs/how-to-write-docs/components)** for live examples of callouts, tabs, cards, badges, and OpenAPI panels.
+Docs pages use **MDsveX**: import built-in components from **`$lib/ui/components/docs/mdx/index.js`** in a page-level `<script>` block, then use them in the Markdown body. See **[Built-in Components](/docs/documentation-contribution/components)** for live examples of callouts, tabs, cards, badges, and OpenAPI panels.
 
 **Pattern**:
 
@@ -130,7 +130,7 @@ Each top-level `- item/` becomes a row; indent with two spaces per level. Traili
 | **`ParamField`** / **`ResponseField`** | Extra API field docs beyond OpenAPI auto-injection |
 | **`OpenApiOperationExamples`** | Request/response panels when `openapi:` frontmatter is set |
 
-Live demos and OpenAPI layout notes: **[Built-in Components](/docs/how-to-write-docs/components)**.
+Live demos and OpenAPI layout notes: **[Built-in Components](/docs/documentation-contribution/components)**.
 
 ## Organizing Content
 

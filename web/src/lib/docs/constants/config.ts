@@ -162,18 +162,23 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 	}
 ];
 
-/** Repository conventions, provider implementation, and documentation authoring. */
+/** Repository conventions, catalog publishing, and documentation authoring. */
 export const docsSidebarContributing: DocsSidebarSection[] = [
-	{
-		label: 'How to write docs',
-		icon: icons.BookOpen.name,
-		autogenerate: { directory: 'how-to-write-docs' }
-	},
 	{
 		label: 'Developer Guidelines',
 		icon: icons.FolderCode.name,
 		autogenerate: { directory: 'developer-guidelines' }
-	}
+	},
+	{
+		label: 'Publish listings',
+		icon: icons.Sparkles.name,
+		autogenerate: { directory: 'publish-listings' }
+	},
+	{
+		label: 'Documentation contribution',
+		icon: icons.BookOpen.name,
+		autogenerate: { directory: 'documentation-contribution' }
+	},
 ];
 
 export const docsTabs: DocsTabDefinition[] = [

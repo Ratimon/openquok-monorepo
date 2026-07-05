@@ -77,8 +77,10 @@ function isMcpDocsPath(segmentOrSlug: string): boolean {
 
 function isContributingDocsPath(segmentOrSlug: string): boolean {
 	return (
-		segmentOrSlug === 'how-to-write-docs' ||
-		segmentOrSlug.startsWith('how-to-write-docs/') ||
+		segmentOrSlug === 'publish-listings' ||
+		segmentOrSlug.startsWith('publish-listings/') ||
+		segmentOrSlug === 'documentation-contribution' ||
+		segmentOrSlug.startsWith('documentation-contribution/') ||
 		segmentOrSlug === 'developer-guidelines' ||
 		segmentOrSlug.startsWith('developer-guidelines/')
 	);
@@ -153,7 +155,7 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 		case 'learn-more':
 			return `${base}/getting-started-for-dev`;
 		case 'contributing':
-			return `${base}/how-to-write-docs`;
+			return `${base}/publish-listings`;
 	}
 }
 

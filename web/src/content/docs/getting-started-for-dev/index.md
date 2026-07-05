@@ -9,7 +9,7 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 </script>
 
 <Callout type="note">
-Looking to edit or extend this documentation? Check out the <a href="/docs/how-to-write-docs">How to write docs</a> documentation.
+Looking to edit or extend this documentation? See <a href="/docs/documentation-contribution">Documentation contribution</a>.
 </Callout>
 
 ## Start here !!

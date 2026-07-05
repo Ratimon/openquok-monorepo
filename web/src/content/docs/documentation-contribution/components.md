@@ -1,7 +1,7 @@
 ---
 title: Built-in Components
-description: Documentation components you can use directly in your markdown files.
-order: 3
+description: how to use documentation components in the markdown files.
+order: 4
 lastUpdated: 2026-07-05
 ---
 
@@ -118,7 +118,7 @@ Use link cards for navigation:
 
 <CardGrid>
 <LinkCard title="Installation" description="Set up your environment and deploy OpenQuok" href="/docs/installation" />
-<LinkCard title="Configuration" description="Customize your docs site" href="/docs/how-to-write-docs/configuration" />
+<LinkCard title="Configuration" description="Customize your docs site" href="/docs/documentation-contribution/configuration" />
 </CardGrid>
 
 ## External links
@@ -177,7 +177,7 @@ Display directory structures with nested Markdown lists inside **`<FileTree>`** 
       - index.md
       - getting-started-for-dev/
         - quick-start.md
-      - how-to-write-docs/
+      - documentation-contribution/
         - configuration.md
   - lib/
     - components/

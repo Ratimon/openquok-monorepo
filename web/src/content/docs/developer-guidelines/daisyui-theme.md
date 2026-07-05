@@ -81,6 +81,6 @@ Hardcoded colors and `dark:*` variants bypass DaisyUI themes and create inconsis
 
 <CardGrid>
 <LinkCard title="Developer Guidelines" description="Back to the developer guidelines hub" href="/docs/developer-guidelines" />
-<LinkCard title="How to write docs" description="Docs components and authoring conventions" href="/docs/how-to-write-docs" />
+<LinkCard title="Documentation contribution" description="Docs components and authoring conventions" href="/docs/documentation-contribution" />
 </CardGrid>
 

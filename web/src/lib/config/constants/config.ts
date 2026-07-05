@@ -561,28 +561,28 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 			'OAuth, env vars, and dashboard settings for Threads, Facebook, Instagram, and other social channels.'
 	},
 	buildingBlocks: {
-		docsPath: '/docs/getting-started-for-cli',
-		title: 'Install the openquok-core skill',
+		docsPath: '/docs/publish-listings/publish-your-listing',
+		title: 'Publish your own building block',
 		description:
-			'Add agent skills, wire the CLI, and let your assistants draft and schedule posts from chat.'
+			'Share a skill or MCP server on the catalog — sign in, set a username, and submit from your account.'
 	},
 	playbooks: {
-		docsPath: '/docs/getting-started-for-cli',
-		title: 'Install skills from playbooks',
+		docsPath: '/docs/publish-listings/publish-your-listing',
+		title: 'Publish your own playbook',
 		description:
-			'Curated skill stacks for your agent — start with the CLI quick start for install and auth.'
+			'Bundle building blocks into a workflow others can install — submit from your account or Skill Builder.'
 	},
 	creators: {
-		docsPath: '/docs/getting-started-for-cli',
-		title: 'Publish skills for agents',
+		docsPath: '/docs/publish-listings/publish-your-listing',
+		title: 'Publish your own listing',
 		description:
-			'Creators ship building blocks and playbooks — learn how to install openquok-core and connect your workspace.'
+			'Sign in, choose a public username, and submit building blocks or playbooks from your account.'
 	},
 	tools: {
-		docsPath: '/docs/getting-started-for-cli',
-		title: 'Compose agent skills',
+		docsPath: '/docs/getting-started-for-dev',
+		title: 'Self-host OpenQuok for free',
 		description:
-			'Use Skill Builder to export SKILL.md — start with the CLI introduction for install and auth.'
+			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
 	}
 } as const;
 

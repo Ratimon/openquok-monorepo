@@ -20,7 +20,7 @@ src/content/docs/
 ├── getting-started-for-dev/
 │   ├── installation.md         # /docs/getting-started-for-dev/installation
 │   └── project-structure.md    # /docs/getting-started-for-dev/project-structure
-└── how-to-write-docs/
+└── documentation-contribution/
     ├── configuration.md
     └── writing-content.md
 
@@ -28,9 +28,9 @@ src/content/docs-es/
 ├── getting-started-for-dev/    # /docs/es/getting-started-for-dev/...
 │   ├── installation.md
 │   └── project-structure.md
-└── how-to-write-docs/
-    ├── configuration.md        # /docs/es/how-to-write-docs/configuration
-    └── writing-content.md      # /docs/es/how-to-write-docs/writing-content
+└── documentation-contribution/
+    ├── configuration.md        # /docs/es/documentation-contribution/configuration
+    └── writing-content.md      # /docs/es/documentation-contribution/writing-content
 ```
 
 ### `src/lib/docs/`

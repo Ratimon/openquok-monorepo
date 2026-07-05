@@ -19,7 +19,7 @@ Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give t
 - [Installation](https://www.openquok.com/docs/installation)
 - [Developer Guidelines](https://www.openquok.com/docs/developer-guidelines)
 - [Security Guidelines](https://www.openquok.com/docs/developer-guidelines/security)
-- [Documentation Contribution Guidelines](how-to-write-docs)
+- [Documentation Contribution Guidelines](https://www.openquok.com/docs/documentation-contribution)
 
 ---
 

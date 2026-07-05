@@ -1,7 +1,7 @@
 ---
 title: Versioning
 description: How to add a version selector to your documentation site.
-order: 4
+order: 5
 ---
 
 <script>
