@@ -21,31 +21,6 @@ The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is th
 
 **Convention reference:** Cursor agents and contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/social-provider-integration.mdc"><Badge text=".cursor/rules/social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.
 
-## Architecture
-
-```mermaid
-flowchart LR
-  subgraph web [Web app]
-    OAuthRoute["/integration/oauth/[provider]"]
-    Composer["Launch provider config + preview"]
-  end
-  subgraph api [Backend API]
-    Manager["IntegrationManager"]
-    Provider["SocialProvider class"]
-    Conn["IntegrationConnectionService"]
-  end
-  subgraph data [Storage]
-    Integrations["public.integrations"]
-    Posts["public.posts"]
-  end
-  OAuthRoute --> Conn
-  Conn --> Provider
-  Manager --> Provider
-  Composer --> Posts
-  Conn --> Integrations
-  Orchestrator["Orchestrator publish"] --> Provider
-```
-
 **OAuth (typical):**
 
 1. Web calls <Badge text="GET /api/v1/integrations/social/:provider" variant="path" /> → `generateAuthUrl()`.

@@ -9,15 +9,15 @@ lastUpdated: 2026-05-29
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+<Callout type="note">
+<p><strong>This page</strong> is for apps you register under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> (client ID <Badge text="oqc_" variant="default" />). For automation in <strong>your own</strong> workspace — scripts and CI - rotate a programmatic token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> instead. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> and <a href="/docs/getting-started-for-cli/authentication#programmatic-token">CLI programmatic token</a>.</p>
+</Callout>
+
 ## Overview
 
 Openquok supports OAuth2 **Authorization Code** flow, allowing you to build **third-party applications** that act on behalf of Openquok users.
 
 Your app redirects users to Openquok where they approve access, and you receive an <Badge text="opo_" variant="default" /> access token to call the public API on their behalf.
-
-<Callout type="note">
-<p><strong>This page</strong> is for apps you register under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> (client ID <Badge text="oqc_" variant="default" />). For automation in <strong>your own</strong> workspace — scripts, CI, or the CLI without device login — rotate a programmatic token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> instead. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> and <a href="/docs/getting-started-for-cli/authentication#programmatic-token">CLI programmatic token</a>.</p>
-</Callout>
 
 
 ## Implementation
