@@ -25,6 +25,9 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
+	import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
 	import ExtensionsCategorySidebar from '$lib/ui/templates/extensions/ExtensionsCategorySidebar.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
@@ -33,6 +36,7 @@
 	import StackHubCard from '$lib/ui/templates/stacks/StackHubCard.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -40,8 +44,6 @@
 
 	let { data }: Props = $props();
 
-	let metaTitle = $derived(data.metaTitle);
-	let metaDescription = $derived(data.metaDescription);
 	let stacksVm = $derived(data.stacksVm);
 	let categoriesVm = $derived(data.categoriesVm);
 	let statsVm = $derived(data.statsVm);
@@ -162,12 +164,14 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">Playbooks</p>
+		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
+			{PUBLIC_PLAYBOOKS_HUB.subtitle}
+		</p>
 		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
-			{metaTitle}
+			{PUBLIC_PLAYBOOKS_HUB.title}
 		</h1>
 		<p class="mx-auto max-w-3xl text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
-			{metaDescription}
+			{PUBLIC_PLAYBOOKS_HUB.description}
 		</p>
 		<ListingsPublicHubNav active="playbooks" class="pt-1" />
 		<div class="flex justify-center pt-2">
@@ -254,6 +258,15 @@
 	</div>
 
 	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_PLAYBOOKS_HUB.faqSection.faqSubtitle}
+			faqTitle={PUBLIC_PLAYBOOKS_HUB.faqSection.faqTitle}
+			faqDescription={PUBLIC_PLAYBOOKS_HUB.faqSection.faqDescription}
+			faqItems={[...PUBLIC_PLAYBOOKS_HUB.faqSection.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+
 		<AccentSplitCtaBanner
 			title={playbooksHubDocsBanner.title}
 			description={playbooksHubDocsBanner.description}

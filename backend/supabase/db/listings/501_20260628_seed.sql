@@ -27,8 +27,6 @@ INSERT INTO public.module_configs (module_name, config) VALUES
 (
     'listings',
     '{
-  "EXTENSIONS_META_TITLE": "Skills & MCP Hub",
-  "EXTENSIONS_META_DESCRIPTION": "Browse skills and MCP server extensions for your agent stack.",
   "LISTING_SCHEMA_TYPE": "SoftwareApplication",
   "PRE_ADMIN_APPROVE_NEW_LISTINGS": false,
   "PRE_ADMIN_APPROVE_UPDATED_LISTINGS": true

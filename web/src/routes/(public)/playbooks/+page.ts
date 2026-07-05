@@ -24,8 +24,6 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
-			metaTitle: string;
-			metaDescription: string;
 			stacksVm: StackCardViewModel[];
 			allStacksVm: StackCardViewModel[];
 			categoriesVm: ExtensionCategoryViewModel[];
@@ -43,8 +41,6 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			metaTitle: serverData.metaTitle,
-			metaDescription: serverData.metaDescription,
 			stacksVm: serverData.stacksVm,
 			allStacksVm: serverData.allStacksVm,
 			categoriesVm: serverData.categoriesVm,

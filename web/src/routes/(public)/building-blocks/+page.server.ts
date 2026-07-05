@@ -6,7 +6,9 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
+import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import { getListingPresenter } from '$lib/listings/index';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -33,8 +35,11 @@ export async function load({ url, cookies, fetch, parent }) {
 
 	const statsVm = getListingPresenter.computeHubStats(hub.extensions, hub.categories);
 
-	const customTitle = hub.metaTitle;
-	const customDescription = hub.metaDescription;
+	const customTitle = PUBLIC_BUILDING_BLOCKS_HUB.title;
+	const customDescription = PUBLIC_BUILDING_BLOCKS_HUB.description;
+	const seoKeywords = PUBLIC_BUILDING_BLOCKS_HUB.seoKeywords.filter(
+		(keyword) => typeof keyword === 'string' && keyword.trim().length > 0
+	);
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -42,13 +47,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
 		customSlug: getRootPathPublicBuildingBlocks(),
-		customTags: [
-			'agent extensions',
-			'MCP servers',
-			'agent skills',
-			'OpenQuok extensions',
-			'AI agent tools'
-		],
+		customTags: seoKeywords,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
@@ -76,15 +75,19 @@ export async function load({ url, cookies, fetch, parent }) {
 					name: companyName,
 					url: url.origin
 				}
-			}
-		]
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqTitle,
+				description: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqDescription,
+				items: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems
+			})
+		].filter((node) => Object.keys(node).length > 0)
 	};
 
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		metaTitle: hub.metaTitle,
-		metaDescription: hub.metaDescription,
 		extensionsVm: filteredExtensions,
 		allExtensionsVm: hub.extensions,
 		categoriesVm: hub.categories,

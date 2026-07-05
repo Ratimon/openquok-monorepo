@@ -100,7 +100,7 @@ export class ListingService {
             if (!this.configRepository) return {};
             const { result } = await this.configRepository.getConfigByModuleNameAndProperties({
                 moduleName: "listings",
-                properties: ["EXTENSIONS_META_TITLE", "EXTENSIONS_META_DESCRIPTION", "LISTING_SCHEMA_TYPE"],
+                properties: ["LISTING_SCHEMA_TYPE"],
             });
             return result;
         };

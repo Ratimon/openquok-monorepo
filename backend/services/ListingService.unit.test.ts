@@ -486,17 +486,16 @@ describe("ListingService", () => {
         it("loads module config from config repository", async () => {
             configRepo.getConfigByModuleNameAndProperties.mockResolvedValue({
                 result: {
-                    EXTENSIONS_META_TITLE: "Extensions Hub",
-                    EXTENSIONS_META_DESCRIPTION: "Browse extensions",
+                    LISTING_SCHEMA_TYPE: "SoftwareApplication",
                 },
                 error: null,
             });
             const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
             const result = await service.getListingInformation();
-            expect(result.EXTENSIONS_META_TITLE).toBe("Extensions Hub");
+            expect(result.LISTING_SCHEMA_TYPE).toBe("SoftwareApplication");
             expect(configRepo.getConfigByModuleNameAndProperties).toHaveBeenCalledWith({
                 moduleName: "listings",
-                properties: ["EXTENSIONS_META_TITLE", "EXTENSIONS_META_DESCRIPTION", "LISTING_SCHEMA_TYPE"],
+                properties: ["LISTING_SCHEMA_TYPE"],
             });
         });
     });

@@ -373,8 +373,6 @@ export interface ExtensionsHubStatsViewModel {
 
 /** Full extensions hub load payload. */
 export interface ExtensionsHubViewModel {
-	metaTitle: string;
-	metaDescription: string;
 	extensions: ExtensionCardViewModel[];
 	categories: ExtensionCategoryViewModel[];
 	totalCount: number;
@@ -382,8 +380,6 @@ export interface ExtensionsHubViewModel {
 
 /** Full playbooks hub load payload. */
 export interface StacksHubViewModel {
-	metaTitle: string;
-	metaDescription: string;
 	stacks: StackCardViewModel[];
 	categories: ExtensionCategoryViewModel[];
 	totalCount: number;
@@ -529,9 +525,6 @@ export class GetListingPresenter {
 		]);
 
 		return {
-			metaTitle: 'Playbook Hub',
-			metaDescription:
-				'Browse ready-made playbooks that combine skills and MCP building blocks into step-by-step workflows your agents can run again and again.',
 			stacks: published.listings.map((listing) => this.toStackCardVm(listing)),
 			categories: categories.map((category) => this.toExtensionCategoryVm(category)),
 			totalCount: published.count
@@ -604,8 +597,7 @@ export class GetListingPresenter {
 		limit?: number;
 	}): Promise<ExtensionsHubViewModel> {
 		const limit = params.limit ?? 50;
-		const [information, published, categories] = await Promise.all([
-			this.listingRepository.getListingInformation(params.fetch),
+		const [published, categories] = await Promise.all([
 			this.listingRepository.getPublishedListings({
 				limit,
 				skip: 0,
@@ -616,10 +608,6 @@ export class GetListingPresenter {
 		]);
 
 		return {
-			metaTitle: information.EXTENSIONS_META_TITLE ?? 'Building Blocks Hub',
-			metaDescription:
-				information.EXTENSIONS_META_DESCRIPTION ??
-				'Browse skills and MCP server extensions for your agent stack.',
 			extensions: published.listings.map((listing) => this.toListingPublicVm(listing)),
 			categories: categories.map((category) => this.toExtensionCategoryVm(category)),
 			totalCount: published.count

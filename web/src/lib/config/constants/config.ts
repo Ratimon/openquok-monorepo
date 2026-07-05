@@ -500,20 +500,6 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 export const LISTING_IMAGES_BUCKET = 'listing_images' as const;
 
 export const CONFIG_SCHEMA_LISTINGS: ModuleConfigSchema = {
-	EXTENSIONS_META_TITLE: {
-		description: 'SEO meta title for the public building blocks overview page.',
-		type: 'string',
-		default: 'Building Blocks Hub',
-		inputType: 'input',
-		maxInputLength: 60
-	},
-	EXTENSIONS_META_DESCRIPTION: {
-		description: 'SEO meta description for the public building blocks overview page.',
-		type: 'string',
-		default: 'Browse skills and MCP servers to mix into your agent playbooks.',
-		inputType: 'textarea',
-		maxInputLength: 160
-	},
 	LISTING_SCHEMA_TYPE: {
 		description: 'Schema.org type used for structured data on listing detail pages.',
 		type: 'string',
