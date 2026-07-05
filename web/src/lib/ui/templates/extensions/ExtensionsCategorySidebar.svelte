@@ -8,9 +8,18 @@
 		getRootPathPublicBuildingBlocksCategoryTag,
 		getRootPathPublicBuildingBlocksTag
 	} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+	import {
+		getRootPathPublicPlaybooks,
+		getRootPathPublicPlaybooksCategories,
+		getRootPathPublicPlaybooksCategory,
+		getRootPathPublicPlaybooksCategoryTag,
+		getRootPathPublicPlaybooksTag
+	} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { route, url } from '$lib/utils/path';
 
 	import { cn } from '$lib/ui/helpers/common';
+
+	type HubKind = 'building-blocks' | 'playbooks';
 
 	type Props = {
 		categoriesVm: ExtensionCategoryViewModel[];
@@ -18,6 +27,7 @@
 		activeTagPathSlug?: string | null;
 		onSelect?: (slug: string | null) => void;
 		linkMode?: boolean;
+		hubKind?: HubKind;
 		class?: string;
 	};
 
@@ -27,15 +37,37 @@
 		activeTagPathSlug = null,
 		onSelect,
 		linkMode = false,
+		hubKind = 'building-blocks',
 		class: className = ''
 	}: Props = $props();
 
-	// /building-blocks
-	const rootPathPublicBuildingBlocks = getRootPathPublicBuildingBlocks();
-	const buildingBlocksHubHref = url(route(rootPathPublicBuildingBlocks));
-	const categoriesOverviewHref = url(route(getRootPathPublicBuildingBlocksCategories()));
+	const hubHref = $derived(
+		url(
+			route(
+				hubKind === 'playbooks'
+					? getRootPathPublicPlaybooks()
+					: getRootPathPublicBuildingBlocks()
+			)
+		)
+	);
+
+	const categoriesOverviewHref = $derived(
+		url(
+			route(
+				hubKind === 'playbooks'
+					? getRootPathPublicPlaybooksCategories()
+					: getRootPathPublicBuildingBlocksCategories()
+			)
+		)
+	);
 
 	function categoryHref(slug: string): string {
+		if (hubKind === 'playbooks') {
+			if (activeTagPathSlug) {
+				return url(route(getRootPathPublicPlaybooksCategoryTag(slug, activeTagPathSlug)));
+			}
+			return url(route(getRootPathPublicPlaybooksCategory(slug)));
+		}
 		if (activeTagPathSlug) {
 			return url(route(getRootPathPublicBuildingBlocksCategoryTag(slug, activeTagPathSlug)));
 		}
@@ -44,8 +76,14 @@
 
 	const allCategoriesHref = $derived(
 		activeTagPathSlug
-			? url(route(getRootPathPublicBuildingBlocksTag(activeTagPathSlug)))
-			: buildingBlocksHubHref
+			? url(
+					route(
+						hubKind === 'playbooks'
+							? getRootPathPublicPlaybooksTag(activeTagPathSlug)
+							: getRootPathPublicBuildingBlocksTag(activeTagPathSlug)
+					)
+				)
+			: hubHref
 	);
 
 	const allCategoriesClass = $derived(

@@ -2,14 +2,17 @@
 	import type { PageData } from './$types';
 
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
+	import type { ExtensionCategoryViewModel } from '$lib/listings/index';
+	import { getRootPathPublicPlaybooksCategories } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { publicStacksPagePresenter } from '$lib/area-public/index';
 	import { getBillingPresenter } from '$lib/billing';
 	import { isPaidSubscriptionTier } from 'openquok-common';
 	import { authenticationRepository } from '$lib/user-auth';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -19,15 +22,12 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
-	import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
-	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
-
 	import PlaybooksHubCatalog from '$lib/ui/templates/stacks/PlaybooksHubCatalog.svelte';
 	import ExtensionsHubStats from '$lib/ui/templates/extensions/ExtensionsHubStats.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/extensions/ListingsPublicHubNav.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -44,18 +44,28 @@
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
 	let heroSubtitle = $derived(data.heroSubtitle);
+	let categorySlug = $derived(data.filtersVm.category ?? null);
 
 	const pagePresenter = publicStacksPagePresenter;
-
+	const categoriesOverviewHref = url(route(getRootPathPublicPlaybooksCategories()));
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
-
 	const playbooksHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.playbooks;
 
 	const isLoggedIn = $derived(authenticationRepository.isAuthenticated() || data.isLoggedIn === true);
 
 	let bookmarksPaidEnabled = $state<boolean | null>(null);
 	let bookmarkedIds = $state<Record<string, boolean>>({});
+
+	onMount(() => {
+		if (!browser) return;
+		if (
+			categorySlug &&
+			!categoriesVm.some((category: ExtensionCategoryViewModel) => category.slug === categorySlug)
+		) {
+			void goto(url('/not-found'), { replaceState: true });
+		}
+	});
 
 	onMount(() => {
 		if (!browser || !isLoggedIn) {
@@ -91,6 +101,9 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-6xl space-y-4 px-4 text-center">
+		<div class="flex justify-center">
+			<Button variant="outline" href={categoriesOverviewHref} class="mb-2">View all categories</Button>
+		</div>
 		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">
 			{heroSubtitle}
 		</p>
@@ -120,15 +133,6 @@
 	</div>
 
 	<div class="container mx-auto px-4">
-		<PublicFaq
-			heroTheme={landingHeroTheme}
-			faqSubtitle={PUBLIC_PLAYBOOKS_HUB.faqSection.faqSubtitle}
-			faqTitle={PUBLIC_PLAYBOOKS_HUB.faqSection.faqTitle}
-			faqDescription={PUBLIC_PLAYBOOKS_HUB.faqSection.faqDescription}
-			faqItems={[...PUBLIC_PLAYBOOKS_HUB.faqSection.faqItems]}
-			sectionClass="py-12 sm:py-16"
-		/>
-
 		<AccentSplitCtaBanner
 			title={playbooksHubDocsBanner.title}
 			description={playbooksHubDocsBanner.description}

@@ -3,7 +3,7 @@ import { getDefaultPublicFaqConfigItems } from '$lib/content/utils/parsePublicFa
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
-import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+import { getRootPathPublicDocs, getRootPathPublicDocsGettingStartedForDev } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
 	getRootPathPublicBuildingBlocksCategories,
@@ -11,6 +11,10 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathPublicPlaybooksCategories,
+	getRootPathPublicPlaybooksTags
+} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
@@ -21,11 +25,14 @@ const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
+const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
+const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
 const publicBuildingBlocksPath = route(getRootPathPublicBuildingBlocks());
 const publicBuildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocksCategories());
 const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
 const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
+const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingStartedForDev());
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 
@@ -562,7 +569,7 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 			'Sign in, choose a public username, and submit building blocks or playbooks from your account.'
 	},
 	tools: {
-		docsPath: '/docs/getting-started-for-dev',
+		docsPath: publicDocsGettingStartedForDevPath,
 		title: 'Self-host OpenQuok for free',
 		description:
 			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
@@ -649,11 +656,14 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
 		{ label: 'All Building Blocks', href: publicBuildingBlocksPath },
 		{ label: 'All Creators', href: publicCreatorsPath },
+		{ label: 'Playbook Categories', href: publicPlaybooksCategoriesPath },
+		{ label: 'Playbook Tags', href: publicPlaybooksTagsPath },
 		{ label: 'Building Block Categories', href: publicBuildingBlocksCategoriesPath },
 		{ label: 'Building Block Tags', href: publicBuildingBlocksTagsPath },
 	],
 	Resources: [
 		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'Self-hosted', href: publicDocsGettingStartedForDevPath },
 		{ label: 'Agents', href: publicAgentsPath },
 		{ label: 'Channels', href: publicChannelsPath },
 		{ label: 'Blog', href: publicBlogPath },

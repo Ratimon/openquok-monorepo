@@ -11,6 +11,11 @@ import type {
 import type { StacksHubFilters } from '$lib/listings/listing.types';
 import type { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 
+import {
+	buildPlaybooksHubNavigationUrl,
+	parsePlaybooksHubQueryFiltersFromUrl
+} from '$lib/listings/utils/buildPlaybooksHubNavigationUrl';
+
 export type { StackCardViewModel, StacksHubViewModel };
 
 export class PublicStacksPagePresenter {
@@ -20,15 +25,11 @@ export class PublicStacksPagePresenter {
 	) {}
 
 	parseFiltersFromUrl(searchParams: URLSearchParams): StacksHubFilters {
-		return this.getListingPresenter.parseStacksHubFiltersFromUrl(searchParams);
+		return parsePlaybooksHubQueryFiltersFromUrl(searchParams);
 	}
 
-	buildFilterUrl(
-		pathname: string,
-		current: StacksHubFilters,
-		overrides: Partial<StacksHubFilters>
-	): string {
-		return this.getListingPresenter.buildStacksHubFilterUrl(pathname, current, overrides);
+	buildFilterUrl(current: StacksHubFilters, overrides: Partial<StacksHubFilters>): string {
+		return buildPlaybooksHubNavigationUrl(current, overrides);
 	}
 
 	applyClientFilters(

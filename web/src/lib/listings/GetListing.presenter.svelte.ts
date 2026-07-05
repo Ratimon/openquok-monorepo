@@ -671,45 +671,23 @@ export class GetListingPresenter {
 			.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 	}
 
-	public parseStacksHubFiltersFromUrl(searchParams: URLSearchParams): StacksHubFilters {
-		const sort = searchParams.get('sort');
-		const search = searchParams.get('search')?.trim();
-		const category = searchParams.get('category')?.trim();
-		const tagGroup = searchParams.get('tagGroup')?.trim();
-		const tagsParam = searchParams.get('tags')?.trim();
-		const tags = tagsParam
-			? tagsParam
-					.split(',')
-					.map((slug) => slug.trim())
-					.filter(Boolean)
-			: undefined;
-
-		const sortFilter: ExtensionSort =
-			sort === 'oldest' || sort === 'popular' || sort === 'views' ? sort : 'newest';
-
-		return {
-			sort: sortFilter,
-			...(search ? { search } : {}),
-			...(category ? { category } : {}),
-			...(tags?.length ? { tags } : {}),
-			...(tagGroup ? { tagGroup } : {})
-		};
-	}
-
-	public buildStacksHubFilterUrl(
-		pathname: string,
-		current: StacksHubFilters,
-		overrides: Partial<StacksHubFilters>
-	): string {
-		const next: StacksHubFilters = { ...current, ...overrides };
-		const params = new URLSearchParams();
-		if (next.sort !== 'newest') params.set('sort', next.sort);
-		if (next.search?.trim()) params.set('search', next.search.trim());
-		if (next.category?.trim()) params.set('category', next.category.trim());
-		if (next.tags?.length) params.set('tags', next.tags.join(','));
-		if (next.tagGroup?.trim()) params.set('tagGroup', next.tagGroup.trim());
-		const query = params.toString();
-		return query ? `${pathname}?${query}` : pathname;
+	public buildStackCategoriesOverviewVm(
+		stacks: StackCardViewModel[],
+		categories: ExtensionCategoryViewModel[],
+		details?: ListingCategoryProgrammerModel[]
+	): ExtensionCategoryOverviewItemViewModel[] {
+		return categories
+			.map((category) => {
+				const detail = details?.find((row) => row.slug === category.slug);
+				return {
+					id: category.id,
+					name: category.name,
+					slug: category.slug,
+					description: detail?.description ?? null,
+					count: stacks.filter((row) => row.category?.slug === category.slug).length
+				};
+			})
+			.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 	}
 
 	public filterAndSortExtensions(
