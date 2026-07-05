@@ -64,4 +64,5 @@ export type SkillBuilderChannelHubLinkViewModel = {
 	platformLabel: string;
 	icon: IconName;
 	href: string;
+	description: string;
 };

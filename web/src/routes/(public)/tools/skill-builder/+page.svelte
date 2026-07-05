@@ -12,11 +12,12 @@
 	let metaDescription = $derived(data.metaDescription);
 	let schemaData = $derived(data.schemaData);
 	let selectedBuildingBlockSlugs = $derived(data.selectedBuildingBlockSlugs);
-	let selectedBuildingBlocks = $derived(data.selectedBuildingBlocks);
-	let initialWorkflowSteps = $derived(data.initialWorkflowSteps);
+	let selectedBuildingBlocksVm = $derived(data.selectedBuildingBlocks);
+	let initialWorkflowStepsVm = $derived(data.initialWorkflowSteps);
 	let stackTitle = $derived(data.stackTitle);
 	let stackSlug = $derived(data.stackSlug);
 	let isLoggedIn = $derived(data.isLoggedIn);
+	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -25,9 +26,10 @@
 	{metaTitle}
 	{metaDescription}
 	{selectedBuildingBlockSlugs}
-	{selectedBuildingBlocks}
-	{initialWorkflowSteps}
+	{selectedBuildingBlocksVm}
+	{initialWorkflowStepsVm}
 	{stackTitle}
 	{stackSlug}
 	{isLoggedIn}
+	channelLinksVm={skillBuilderChannelsVm}
 />

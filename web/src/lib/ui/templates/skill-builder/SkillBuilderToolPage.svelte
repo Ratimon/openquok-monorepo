@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ExtensionDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type {
+		SkillBuilderChannelHubLinkViewModel,
 		SkillBuilderLibraryItemViewModel,
 		SkillBuilderWorkflowStepViewModel
 	} from '$lib/skill-builder/skillBuilder.types';
@@ -40,14 +41,15 @@
 	import SkillBuilderPreviewPanel from '$lib/ui/templates/skill-builder/SkillBuilderPreviewPanel.svelte';
 	import SignInToSaveListingModal from '$lib/ui/components/skill-builder/SignInToSaveListingModal.svelte';
 	import SkillBuilderBuildingBlocksPickerModal from '$lib/ui/components/skill-builder/SkillBuilderBuildingBlocksPickerModal.svelte';
+	import SkillBuilderChannelHubGrid from '$lib/ui/components/skill-builder/SkillBuilderChannelHubGrid.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 
 	type Props = {
 		metaTitle: string;
 		metaDescription: string;
 		selectedBuildingBlockSlugs: string[];
-		selectedBuildingBlocks: ExtensionDetailViewModel[];
-		initialWorkflowSteps: SkillBuilderWorkflowStepViewModel[];
+		selectedBuildingBlocksVm: ExtensionDetailViewModel[];
+		initialWorkflowStepsVm: SkillBuilderWorkflowStepViewModel[];
 		stackTitle: string | null;
 		stackSlug: string | null;
 		isLoggedIn?: boolean;
@@ -55,21 +57,23 @@
 		channelSlug?: string | null;
 		channelLabel?: string | null;
 		cliExamplesPath?: string | null;
+		channelLinksVm?: SkillBuilderChannelHubLinkViewModel[];
 	};
 
 	let {
 		metaTitle,
 		metaDescription,
 		selectedBuildingBlockSlugs,
-		selectedBuildingBlocks,
-		initialWorkflowSteps,
+		selectedBuildingBlocksVm,
+		initialWorkflowStepsVm,
 		stackTitle,
 		stackSlug,
 		isLoggedIn: isLoggedInFromLoad = false,
 		skillBuilderBasePath = route(getRootPathPublicSkillBuilder()),
 		channelSlug = null,
 		channelLabel = null,
-		cliExamplesPath = null
+		cliExamplesPath = null,
+		channelLinksVm = []
 	}: Props = $props();
 
 	// /building-blocks
@@ -88,21 +92,21 @@
 	const genericSkillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
 
 	const serverHydrationKey = $derived(
-		`${channelSlug ?? ''}|${selectedBuildingBlockSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowSteps.length}`
+		`${channelSlug ?? ''}|${selectedBuildingBlockSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowStepsVm.length}`
 	);
 
 	let hydratedFrom = $state('');
 
 	let activeBuildingBlockSlugs = $state<string[]>([]);
-	let buildingBlockDetails = $state<ExtensionDetailViewModel[]>([]);
-	let workflowSteps = $state<SkillBuilderWorkflowStepViewModel[]>([]);
+	let buildingBlockDetailsVm = $state<ExtensionDetailViewModel[]>([]);
+	let workflowStepsVm = $state<SkillBuilderWorkflowStepViewModel[]>([]);
 	let loadingBuildingBlockSlug = $state<string | null>(null);
 	let buildingBlocksPickerOpen = $state(false);
 
 	const addBuildingBlockIconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
 
-	const libraryItems = $derived(buildLibraryItems(buildingBlockDetails));
+	const libraryItemsVm = $derived(buildLibraryItems(buildingBlockDetailsVm));
 
 	const exportTitle = $derived(
 		stackTitle?.trim() || (channelLabel ? `${channelLabel} Skill` : 'My First Skill')
@@ -112,8 +116,8 @@
 		generateSkillMarkdown({
 			title: exportTitle,
 			extensionSlugs: activeBuildingBlockSlugs,
-			extensions: buildingBlockDetails,
-			workflowSteps
+			extensions: buildingBlockDetailsVm,
+			workflowSteps: workflowStepsVm
 		})
 	);
 
@@ -127,8 +131,8 @@
 		if (hydratedFrom === key) return;
 		hydratedFrom = key;
 		activeBuildingBlockSlugs = [...selectedBuildingBlockSlugs];
-		buildingBlockDetails = selectedBuildingBlocks.map((buildingBlock) => ({ ...buildingBlock }));
-		workflowSteps = initialWorkflowSteps.map((step) => ({ ...step, id: step.id || nanoid() }));
+		buildingBlockDetailsVm = selectedBuildingBlocksVm.map((buildingBlock) => ({ ...buildingBlock }));
+		workflowStepsVm = initialWorkflowStepsVm.map((step) => ({ ...step, id: step.id || nanoid() }));
 		exportMarkdownEdited = false;
 	});
 
@@ -147,7 +151,7 @@
 		pendingDraftBuildingBlockTypesBySlug = { ...(pendingDraft.extensionTypesBySlug ?? {}) };
 
 		if (pendingDraft.workflowSteps.length > 0) {
-			workflowSteps = pendingDraft.workflowSteps.map((step) => ({
+			workflowStepsVm = pendingDraft.workflowSteps.map((step) => ({
 				...step,
 				id: step.id || nanoid()
 			}));
@@ -202,8 +206,8 @@
 			title: exportTitle,
 			markdown: exportMarkdown.trim() || generatedMarkdown,
 			extensionSlugs: activeBuildingBlockSlugs,
-			workflowSteps,
-			extensions: buildingBlockDetails,
+			workflowSteps: workflowStepsVm,
+			extensions: buildingBlockDetailsVm,
 			extensionIdsBySlugOverride: pendingDraftBuildingBlockIdsBySlug,
 			extensionTypesBySlugOverride: pendingDraftBuildingBlockTypesBySlug
 		});
@@ -225,7 +229,7 @@
 
 		if (isSelected) {
 			activeBuildingBlockSlugs = nextSlugs;
-			buildingBlockDetails = buildingBlockDetails.filter((buildingBlock) => buildingBlock.slug !== slug);
+			buildingBlockDetailsVm = buildingBlockDetailsVm.filter((buildingBlock) => buildingBlock.slug !== slug);
 			syncUrl(nextSlugs);
 			return;
 		}
@@ -235,7 +239,7 @@
 			const buildingBlock = await getListingPresenter.loadPublishedExtensionBySlugStateless(slug);
 			if (!buildingBlock) return;
 			activeBuildingBlockSlugs = nextSlugs;
-			buildingBlockDetails = [...buildingBlockDetails, buildingBlock];
+			buildingBlockDetailsVm = [...buildingBlockDetailsVm, buildingBlock];
 			syncUrl(nextSlugs);
 		} finally {
 			loadingBuildingBlockSlug = null;
@@ -256,8 +260,8 @@
 	function addLibraryItem(itemVm: SkillBuilderLibraryItemViewModel) {
 		const workflowDefaults = buildCommandWorkflowStepFromLibraryItem(itemVm);
 
-		workflowSteps = [
-			...workflowSteps,
+		workflowStepsVm = [
+			...workflowStepsVm,
 			{
 				id: nanoid(),
 				type: 'command',
@@ -274,8 +278,8 @@
 	}
 
 	function addTextStep() {
-		workflowSteps = [
-			...workflowSteps,
+		workflowStepsVm = [
+			...workflowStepsVm,
 			{
 				id: nanoid(),
 				type: 'text',
@@ -285,21 +289,21 @@
 	}
 
 	function updateStep(stepId: string, patch: Partial<SkillBuilderWorkflowStepViewModel>) {
-		workflowSteps = workflowSteps.map((step) =>
+		workflowStepsVm = workflowStepsVm.map((step) =>
 			step.id === stepId ? ({ ...step, ...patch } as SkillBuilderWorkflowStepViewModel) : step
 		);
 	}
 
 	function removeStep(stepId: string) {
-		workflowSteps = workflowSteps.filter((step) => step.id !== stepId);
+		workflowStepsVm = workflowStepsVm.filter((step) => step.id !== stepId);
 	}
 
 	function reorderSteps(fromIndex: number, toIndex: number) {
 		if (fromIndex === toIndex) return;
-		const next = [...workflowSteps];
+		const next = [...workflowStepsVm];
 		const [moved] = next.splice(fromIndex, 1);
 		next.splice(toIndex, 0, moved);
-		workflowSteps = next;
+		workflowStepsVm = next;
 	}
 </script>
 
@@ -334,26 +338,28 @@
 				Selected building blocks
 			</p>
 			<div class="flex flex-wrap items-center gap-2">
-				{#each buildingBlockDetails as buildingBlock (buildingBlock.slug)}
+				{#each buildingBlockDetailsVm as buildingBlockVm (buildingBlockVm.slug)}
 					<span
 						class="badge badge-lg border-base-300/80 h-auto max-w-full gap-2 border bg-base-100 py-2 pr-2 pl-2 text-base-content"
 					>
-						{#if buildingBlock.logoImageUrl}
+						{#if buildingBlockVm.logoImageUrl}
 							<img
-								src={buildingBlock.logoImageUrl}
+								src={buildingBlockVm.logoImageUrl}
 								alt=""
 								class="size-6 shrink-0 rounded-md object-cover"
 								loading="lazy"
 							/>
 						{/if}
-						<span class="truncate">{buildingBlock.title}</span>
-						{#if buildingBlock.slug !== OPENQUOK_CORE_EXTENSION_SLUG}
+						<span class="truncate">
+							{buildingBlockVm.title}
+						</span>
+						{#if buildingBlockVm.slug !== OPENQUOK_CORE_EXTENSION_SLUG}
 							<button
 								type="button"
 								class="btn btn-ghost btn-xs btn-circle shrink-0"
-								disabled={loadingBuildingBlockSlug === buildingBlock.slug}
-								aria-label={`Remove ${buildingBlock.title}`}
-								onclick={() => void toggleBuildingBlockSlug(buildingBlock.slug)}
+								disabled={loadingBuildingBlockSlug === buildingBlockVm.slug}
+								aria-label={`Remove ${buildingBlockVm.title}`}
+								onclick={() => void toggleBuildingBlockSlug(buildingBlockVm.slug)}
 							>
 								<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
 							</button>
@@ -391,7 +397,10 @@
 	<section class="container mx-auto mt-8 max-w-[1600px] px-4">
 		<div class="flex flex-col gap-4">
 			<div class="overflow-hidden rounded-2xl border border-base-content/10 bg-base-100">
-				<SkillBuilderLibraryPanel itemsVm={libraryItems} onAddItem={addLibraryItem} />
+				<SkillBuilderLibraryPanel
+					itemsVm={libraryItemsVm}
+					onAddItem={addLibraryItem}
+					/>
 			</div>
 
 			<div class="grid min-h-[520px] grid-cols-1 gap-4 lg:grid-cols-3">
@@ -399,7 +408,7 @@
 					class="min-h-[420px] overflow-hidden rounded-2xl border border-base-content/10 bg-base-100 lg:col-span-1"
 				>
 					<SkillBuilderWorkflowPanel
-						stepsVm={workflowSteps}
+						stepsVm={workflowStepsVm}
 						onUpdateStep={updateStep}
 						onRemoveStep={removeStep}
 						onReorder={reorderSteps}
@@ -419,6 +428,14 @@
 			</div>
 		</div>
 	</section>
+
+	{#if channelLinksVm.length > 0}
+		<SkillBuilderChannelHubGrid
+			{channelLinksVm}
+			activeChannelSlug={channelSlug}
+			genericHref={genericSkillBuilderHref}
+		/>
+	{/if}
 </SectionOuterContainer>
 
 <SignInToSaveListingModal bind:open={showSignInModal} {signInHref} />

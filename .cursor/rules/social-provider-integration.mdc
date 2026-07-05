@@ -236,6 +236,7 @@ Ship channel-specific Skill Builder pages alongside the generic tool when a soci
 | Example payloads | `web/src/lib/skill-builder/constants/skillBuilderChannelExamplePayloads.ts` |
 | Workflow builder | `web/src/lib/skill-builder/utils/buildChannelSkillBuilderWorkflowSteps.ts` |
 | Shared page UI | `web/src/lib/ui/templates/skill-builder/SkillBuilderToolPage.svelte` |
+| Channel hub grid | `web/src/lib/ui/components/skill-builder/SkillBuilderChannelHubGrid.svelte` — grid on generic and channel builder pages |
 | Route helper | `getRootPathPublicSkillBuilderChannel(slug)` in `getRootPathPublicTools.ts` |
 | Tools hub entry | `SkillBuilderHubToolCard.svelte` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs |
 

@@ -7,7 +7,10 @@ import {
 	getRootPathPublicSkillBuilderChannel
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { getSkillBuilderChannelBySlug } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import {
+	getSkillBuilderChannelBySlug,
+	listSkillBuilderChannelsForHub
+} from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { createMetaData } from '$lib/utils/createMetaData';
 
@@ -70,6 +73,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		pageMetaTags: metaTags,
 		isLoggedIn,
 		schemaData,
+		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
 		...builderVm
 	};
 }

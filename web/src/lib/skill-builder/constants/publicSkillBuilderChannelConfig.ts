@@ -187,6 +187,7 @@ export function listSkillBuilderChannelsForHub(): SkillBuilderChannelHubLinkView
 		slug: config.channelSlug,
 		platformLabel: config.platformLabel,
 		icon: config.icon,
-		href: route(getRootPathPublicSkillBuilderChannel(config.channelSlug))
+		href: route(getRootPathPublicSkillBuilderChannel(config.channelSlug)),
+		description: config.metaDescription
 	}));
 }

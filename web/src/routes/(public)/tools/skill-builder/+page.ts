@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
+import type { SkillBuilderPageViewModel, SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 
 import type { PageLoad } from './$types';
 
@@ -19,6 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn?: boolean;
 			schemaData: unknown;
+			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
 		};
 
 		return {
@@ -30,6 +31,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			initialWorkflowSteps: serverData.initialWorkflowSteps,
 			stackTitle: serverData.stackTitle,
 			stackSlug: serverData.stackSlug,
+			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,
