@@ -20,9 +20,7 @@
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
-	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
 	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
-	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import ExtensionCard from '$lib/ui/templates/extensions/ExtensionCard.svelte';
 
@@ -119,16 +117,6 @@
 			pageTitle={extensionVm.title}
 			class="mb-4"
 		/>
-		<div class="mb-4 flex justify-end">
-			<ExtensionBookmarkButton
-				listingId={extensionVm.id}
-				{isBookmarked}
-				{isLoggedIn}
-				{bookmarksPaidEnabled}
-				upgradeHref={accountBillingHref}
-				onToggle={handleToggleBookmark}
-			/>
-		</div>
 		{#await loadExtensionDetailComponent(extensionVm.extensionType) then { default: ExtensionDetail }}
 			<ExtensionDetail
 				{extensionVm}
@@ -136,12 +124,29 @@
 				onLike={handleLike}
 				onExternalClick={handleExternalClick}
 				likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+				{isBookmarked}
+				{isLoggedIn}
+				{bookmarksPaidEnabled}
+				upgradeHref={accountBillingHref}
+				onToggleBookmark={handleToggleBookmark}
+				communityEnabled={communityEnabled}
+				submitRating={(listingId, rating) =>
+					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
+				submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
+				onRatingSignInRequired={() => {
+					toast.error('Sign in to use community features.');
+				}}
+				onRatingUpgradeRequired={() => {
+					showUpgradeModal = true;
+				}}
 			/>
 		{/await}
 
 		{#if relatedExtensionsVm.length > 0}
 			<section class="border-t border-base-content/10 py-10">
-				<h2 class="mb-4 text-xl font-bold">Related extensions</h2>
+				<h2 class="mb-4 text-xl font-bold">
+					Related extensions
+				</h2>
 				<ul class="space-y-4">
 					{#each relatedExtensionsVm as relatedVm (relatedVm.id)}
 						<li>
@@ -161,25 +166,6 @@
 				</ul>
 			</section>
 		{/if}
-
-		<section class="border-t border-base-content/10 py-10">
-			<ListingRating
-				listingId={extensionVm.id}
-				averageRating={extensionVm.averageRating}
-				ratingsCount={extensionVm.ratingsCount}
-				{isLoggedIn}
-				communityEnabled={communityEnabled}
-				submitRating={(listingId, rating) =>
-					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-				submitting={publicExtensionBySlugPagePresenter.submittingRating}
-				onSignInRequired={() => {
-					toast.error('Sign in to use community features.');
-				}}
-				onUpgradeRequired={() => {
-					showUpgradeModal = true;
-				}}
-			/>
-		</section>
 
 		<section class="border-t border-base-content/10 py-10">
 			<ListingComments

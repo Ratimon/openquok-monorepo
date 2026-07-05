@@ -13,6 +13,13 @@ import { DEFAULT_LISTING_SCHEMA_TYPE } from '$lib/listings/constants/listingSche
 import type { SkillBuilderStackDraft } from '$lib/stack-builder/constants/skillBuilderDraftStorage';
 import { buildStackMembersFromSlugs } from '$lib/stack-builder/utils/buildStackMembersFromSlugs';
 import { workflowStepsToBlueprint } from '$lib/stack-builder/utils/workflowStepsToBlueprint';
+import {
+	resolveStackLicense,
+	resolveStackListingHeaderSummary,
+	resolveStackSkillName,
+	resolveStackVersion,
+	stackListingExcerptFromSummary
+} from '$lib/listings/utils/resolveStackListingHeaderSummary';
 
 export class UserListingEditorPagePresenter {
 	public listing: ListingEditorViewModel | null = $state(null);
@@ -187,14 +194,25 @@ export class UserListingEditorPagePresenter {
 				...supplementalCatalog
 			]);
 			const stackBlueprint = workflowStepsToBlueprint(draft.workflowSteps, draft.markdown);
+			const summary = resolveStackListingHeaderSummary({
+				excerpt: '',
+				description: '',
+				content: draft.markdown
+			});
+			const skillMetadata = {
+				content: draft.markdown,
+				skillName: '',
+				version: '',
+				license: ''
+			};
 
 			return {
 				title: draft.title,
-				excerpt: '',
+				excerpt: stackListingExcerptFromSummary(summary),
 				click_url: '',
 				click_url_skills: '',
 				click_url_mcp: '',
-				description: '',
+				description: summary ?? '',
 				description_skills: '',
 				description_mcp: '',
 				content: draft.markdown,
@@ -206,9 +224,9 @@ export class UserListingEditorPagePresenter {
 				is_official: false,
 				source_repo_url: '',
 				skill_source_url: '',
-				skill_name: '',
-				license: '',
-				version: '',
+				skill_name: resolveStackSkillName(skillMetadata) ?? '',
+				license: resolveStackLicense(skillMetadata) ?? '',
+				version: resolveStackVersion(skillMetadata) ?? '',
 				skill_commands: [],
 				mcp_tools: [],
 				mcp_transport: null,

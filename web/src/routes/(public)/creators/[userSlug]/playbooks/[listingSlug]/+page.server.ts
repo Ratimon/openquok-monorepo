@@ -9,6 +9,7 @@ import {
 import { getRootPathPublicCreatorPlaybook } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { resolveStackListingHeaderSummary } from '$lib/listings/utils/resolveStackListingHeaderSummary';
 
 export const ssr = true;
 
@@ -39,7 +40,8 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const customTitle = `${stackVm.title} | ${companyName}`;
-	const customDescription = stackVm.excerpt ?? stackVm.description ?? `Playbook details for ${stackVm.title}.`;
+	const customDescription =
+		resolveStackListingHeaderSummary(stackVm) ?? `Playbook details for ${stackVm.title}.`;
 
 	const ownerUsername = stackVm.owner?.username?.trim() ?? userSlug;
 	const metaTags = (await createMetaData({

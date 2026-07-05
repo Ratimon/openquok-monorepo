@@ -8402,6 +8402,9 @@ INSERT INTO public.listings (
     description,
     excerpt,
     content,
+    source_repo_url,
+    version,
+    license,
     listing_kind,
     extension_type,
     is_official,
@@ -8432,6 +8435,9 @@ Ship a repeatable creator workflow without leaving your agent. **Prerequisites:*
 
 Clone this stack in Skill Builder to export a SKILL.md with Prerequisites, Quick Reference, and workflow steps.
 $stack_content$,
+    'https://github.com/Ratimon/openquok-monorepo',
+    '1.0.0',
+    'MIT',
     'stack',
     NULL,
     TRUE,
@@ -8531,6 +8537,9 @@ ON CONFLICT (slug) DO UPDATE SET
     description = EXCLUDED.description,
     excerpt = EXCLUDED.excerpt,
     content = EXCLUDED.content,
+    source_repo_url = EXCLUDED.source_repo_url,
+    version = EXCLUDED.version,
+    license = EXCLUDED.license,
     listing_kind = EXCLUDED.listing_kind,
     is_official = EXCLUDED.is_official,
     owner_id = EXCLUDED.owner_id,
@@ -8542,6 +8551,18 @@ ON CONFLICT (slug) DO UPDATE SET
     listing_tag_slugs = EXCLUDED.listing_tag_slugs,
     updated_at = NOW(),
     published_at = COALESCE(public.listings.published_at, EXCLUDED.published_at);
+
+UPDATE public.listings
+SET
+    source_repo_url = 'https://github.com/Ratimon/openquok-monorepo',
+    version = '1.0.0',
+    license = 'MIT'
+WHERE slug = 'viral-tiktok-carousel'
+  AND (
+      source_repo_url IS NULL OR btrim(source_repo_url) = ''
+      OR version IS NULL OR btrim(version) = ''
+      OR license IS NULL OR btrim(license) = ''
+  );
 
 DELETE FROM public.listing_stack_members lsm
 USING public.listings l

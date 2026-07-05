@@ -4,6 +4,7 @@
 	import { browser } from '$app/environment';
 
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
+	import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
@@ -21,6 +22,10 @@
 	import * as Tabs from '$lib/ui/tabs';
 	import ListingCreatorAttribution from '$lib/ui/templates/extensions/ListingCreatorAttribution.svelte';
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
+	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+	import ListingDetailTagBadges from '$lib/ui/components/extensions/ListingDetailTagBadges.svelte';
+	import ListingDetailTypeBadges from '$lib/ui/components/extensions/ListingDetailTypeBadges.svelte';
+	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import ExtensionSkillCommandsTable from '$lib/ui/components/extensions/ExtensionSkillCommandsTable.svelte';
 	import ExtensionMcpToolsTable from '$lib/ui/components/extensions/ExtensionMcpToolsTable.svelte';
 	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
@@ -32,9 +37,41 @@
 		onLike: () => void | Promise<void>;
 		onExternalClick?: () => void | Promise<void>;
 		likeDisabled?: boolean;
+		isBookmarked?: boolean;
+		isLoggedIn?: boolean;
+		bookmarksPaidEnabled?: boolean | null;
+		upgradeHref?: string;
+		onToggleBookmark?: (
+			listingId: string,
+			nextBookmarked: boolean
+		) => Promise<{ ok: true; bookmarked: boolean } | { ok: false; error: string }>;
+		communityEnabled?: boolean;
+		submitRating?: (
+			listingId: string,
+			rating: number
+		) => Promise<{ ok: true } | { ok: false; error: string }>;
+		submittingRating?: boolean;
+		onRatingSignInRequired?: () => void;
+		onRatingUpgradeRequired?: () => void;
 	};
 
-	let { extensionVm, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
+	let {
+		extensionVm,
+		displayLikes,
+		onLike,
+		onExternalClick,
+		likeDisabled = false,
+		isBookmarked = false,
+		isLoggedIn = false,
+		bookmarksPaidEnabled = null,
+		upgradeHref,
+		onToggleBookmark,
+		communityEnabled = true,
+		submitRating,
+		submittingRating = false,
+		onRatingSignInRequired,
+		onRatingUpgradeRequired
+	}: Props = $props();
 
 	let activeModality = $state<'skills' | 'mcp'>('skills');
 
@@ -55,6 +92,7 @@
 		if (!config || Object.keys(config).length === 0) return null;
 		return JSON.stringify(config, null, 2);
 	});
+	const headerSummary = $derived(resolveListingHeaderSummary(extensionVm));
 
 	async function copyText(value: string | null | undefined, successMessage: string) {
 		if (!value?.trim()) return;
@@ -74,7 +112,7 @@
 			try {
 				await navigator.share({
 					title: extensionVm.title,
-					text: extensionVm.excerpt ?? extensionVm.title,
+					text: headerSummary ?? extensionVm.title,
 					url: shareUrl
 				});
 				return;
@@ -99,30 +137,63 @@
 
 <header class="space-y-6 border-b border-base-content/10 pb-8">
 	<div class="flex flex-wrap items-center gap-2">
-		<span class="badge badge-outline">Skills + MCP</span>
 		{#if extensionVm.category}
-			<span class="badge badge-ghost">{extensionVm.category.name}</span>
+			<span class="badge badge-outline">{extensionVm.category.name}</span>
 		{/if}
+		<ListingDetailTypeBadges extensionType={extensionVm.extensionType} />
 		{#if githubRepo}
 			<Stargazers owner={githubRepo.owner} name={githubRepo.name} />
 		{/if}
 	</div>
 
 	<div class="space-y-3">
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extensionVm.title}</h1>
-		{#if extensionVm.skillName}
-			<p class="font-mono text-sm text-base-content/60">{extensionVm.skillName}</p>
+		<div class="flex flex-wrap items-center gap-3">
+			<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
+				{extensionVm.title}
+			</h1>
+			{#if onToggleBookmark}
+				<ExtensionBookmarkButton
+					listingId={extensionVm.id}
+					{isBookmarked}
+					{isLoggedIn}
+					{bookmarksPaidEnabled}
+					{upgradeHref}
+					onToggle={onToggleBookmark}
+				/>
+			{/if}
+		</div>
+		{#if extensionVm.slug}
+			<p class="font-mono text-sm text-base-content/60">{extensionVm.slug}</p>
 		{/if}
-		{#if extensionVm.excerpt}
-			<p class="text-lg text-base-content/75">{extensionVm.excerpt}</p>
+		{#if headerSummary}
+			<p class="text-lg text-base-content/75">
+				{headerSummary}
+			</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
 			<ListingCreatorAttribution owner={extensionVm.owner} />
 			{#if extensionVm.version}
 				<span>v{extensionVm.version}</span>
 			{/if}
+			{#if extensionVm.license}
+				<span>{extensionVm.license}</span>
+			{/if}
 		</div>
 	</div>
+
+	{#if submitRating}
+		<ListingRating
+			listingId={extensionVm.id}
+			averageRating={extensionVm.averageRating}
+			ratingsCount={extensionVm.ratingsCount}
+			{isLoggedIn}
+			{communityEnabled}
+			{submitRating}
+			submitting={submittingRating}
+			onSignInRequired={onRatingSignInRequired}
+			onUpgradeRequired={onRatingUpgradeRequired}
+		/>
+	{/if}
 
 	<div class="flex flex-wrap gap-2">
 		<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
@@ -140,6 +211,8 @@
 			</Button>
 		{/if}
 	</div>
+
+	<ListingDetailTagBadges tags={extensionVm.tags} />
 </header>
 
 <section class="py-8">
@@ -195,12 +268,6 @@
 		</Tabs.Content>
 
 		<Tabs.Content value="mcp" class="space-y-8">
-			<div class="flex flex-wrap items-center gap-2">
-				{#if extensionVm.mcpTransport}
-					<span class="badge badge-ghost uppercase">{extensionVm.mcpTransport}</span>
-				{/if}
-			</div>
-
 			{#if mcpClickUrl}
 				<ExtensionExternalLinkButton
 					href={mcpClickUrl}

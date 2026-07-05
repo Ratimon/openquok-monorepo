@@ -323,8 +323,12 @@ export interface StackDetailViewModel {
 	excerpt: string | null;
 	description: string | null;
 	content: string | null;
+	skillName: string | null;
+	version: string | null;
+	license: string | null;
 	stackBlueprint: StackBlueprintProgrammerModel | null;
 	logoImageUrl: string | null;
+	sourceRepoUrl: string | null;
 	likes: number;
 	views: number;
 	clicks: number;
@@ -1098,8 +1102,12 @@ export class GetListingPresenter {
 			excerpt: listing.excerpt,
 			description: listing.description,
 			content: listing.content,
+			skillName: listing.skillName,
+			version: listing.version,
+			license: listing.license,
 			stackBlueprint: listing.stackBlueprint ? { ...listing.stackBlueprint } : null,
 			logoImageUrl: listing.logoImageUrl,
+			sourceRepoUrl: listing.sourceRepoUrl,
 			likes: listing.likes,
 			views: listing.views,
 			clicks: listing.clicks,

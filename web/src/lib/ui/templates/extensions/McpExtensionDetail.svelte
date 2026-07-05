@@ -4,6 +4,7 @@
 	import { browser } from '$app/environment';
 
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
+	import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { url } from '$lib/utils/path';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
@@ -16,6 +17,10 @@
 
 	import ListingCreatorAttribution from '$lib/ui/templates/extensions/ListingCreatorAttribution.svelte';
 	import ExtensionExternalLinkButton from '$lib/ui/templates/extensions/ExtensionExternalLinkButton.svelte';
+	import ExtensionBookmarkButton from '$lib/ui/components/extensions/ExtensionBookmarkButton.svelte';
+	import ListingDetailTagBadges from '$lib/ui/components/extensions/ListingDetailTagBadges.svelte';
+	import ListingDetailTypeBadges from '$lib/ui/components/extensions/ListingDetailTypeBadges.svelte';
+	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import ExtensionMcpToolsTable from '$lib/ui/components/extensions/ExtensionMcpToolsTable.svelte';
 	import ExtensionListingContentTabs from '$lib/ui/templates/extensions/ExtensionListingContentTabs.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
@@ -26,11 +31,41 @@
 		onLike: () => void | Promise<void>;
 		onExternalClick?: () => void | Promise<void>;
 		likeDisabled?: boolean;
+		isBookmarked?: boolean;
+		isLoggedIn?: boolean;
+		bookmarksPaidEnabled?: boolean | null;
+		upgradeHref?: string;
+		onToggleBookmark?: (
+			listingId: string,
+			nextBookmarked: boolean
+		) => Promise<{ ok: true; bookmarked: boolean } | { ok: false; error: string }>;
+		communityEnabled?: boolean;
+		submitRating?: (
+			listingId: string,
+			rating: number
+		) => Promise<{ ok: true } | { ok: false; error: string }>;
+		submittingRating?: boolean;
+		onRatingSignInRequired?: () => void;
+		onRatingUpgradeRequired?: () => void;
 	};
 
-	let { extensionVm, displayLikes, onLike, onExternalClick, likeDisabled = false }: Props = $props();
-
-	let configClient = $state<'cursor' | 'claude' | 'vscode'>('cursor');
+	let {
+		extensionVm,
+		displayLikes,
+		onLike,
+		onExternalClick,
+		likeDisabled = false,
+		isBookmarked = false,
+		isLoggedIn = false,
+		bookmarksPaidEnabled = null,
+		upgradeHref,
+		onToggleBookmark,
+		communityEnabled = true,
+		submitRating,
+		submittingRating = false,
+		onRatingSignInRequired,
+		onRatingUpgradeRequired
+	}: Props = $props();
 
 	const faqItems = $derived(extensionVm.faq ?? []);
 	const mcpDescription = $derived(extensionVm.descriptionMcp);
@@ -42,6 +77,7 @@
 		return JSON.stringify(config, null, 2);
 	});
 	const githubRepo = $derived(parseGithubRepoFromUrl(extensionVm.sourceRepoUrl));
+	const headerSummary = $derived(resolveListingHeaderSummary(extensionVm));
 
 	async function handleCopyInstall() {
 		const command = extensionVm.installCommandMcp?.trim();
@@ -69,7 +105,7 @@
 			try {
 				await navigator.share({
 					title: extensionVm.title,
-					text: extensionVm.excerpt ?? extensionVm.title,
+					text: headerSummary ?? extensionVm.title,
 					url: shareUrl
 				});
 				return;
@@ -88,18 +124,31 @@
 		{#if extensionVm.category}
 			<span class="badge badge-outline">{extensionVm.category.name}</span>
 		{/if}
-		{#if extensionVm.mcpTransport}
-			<span class="badge badge-ghost uppercase">{extensionVm.mcpTransport}</span>
-		{/if}
+		<ListingDetailTypeBadges extensionType={extensionVm.extensionType} />
 		{#if githubRepo}
 			<Stargazers owner={githubRepo.owner} name={githubRepo.name} />
 		{/if}
 	</div>
 
 	<div class="space-y-3">
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extensionVm.title}</h1>
-		{#if extensionVm.excerpt}
-			<p class="text-lg text-base-content/75">{extensionVm.excerpt}</p>
+		<div class="flex flex-wrap items-center gap-3">
+			<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{extensionVm.title}</h1>
+			{#if onToggleBookmark}
+				<ExtensionBookmarkButton
+					listingId={extensionVm.id}
+					{isBookmarked}
+					{isLoggedIn}
+					{bookmarksPaidEnabled}
+					{upgradeHref}
+					onToggle={onToggleBookmark}
+				/>
+			{/if}
+		</div>
+		{#if extensionVm.slug}
+			<p class="font-mono text-sm text-base-content/60">{extensionVm.slug}</p>
+		{/if}
+		{#if headerSummary}
+			<p class="text-lg text-base-content/75">{headerSummary}</p>
 		{/if}
 		<div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-base-content/60">
 			<ListingCreatorAttribution owner={extensionVm.owner} />
@@ -111,6 +160,20 @@
 			{/if}
 		</div>
 	</div>
+
+	{#if submitRating}
+		<ListingRating
+			listingId={extensionVm.id}
+			averageRating={extensionVm.averageRating}
+			ratingsCount={extensionVm.ratingsCount}
+			{isLoggedIn}
+			{communityEnabled}
+			{submitRating}
+			submitting={submittingRating}
+			onSignInRequired={onRatingSignInRequired}
+			onUpgradeRequired={onRatingUpgradeRequired}
+		/>
+	{/if}
 
 	<div class="flex flex-wrap gap-2">
 		<Button variant="outline" size="sm" onclick={() => void onLike()} disabled={likeDisabled}>
@@ -130,6 +193,8 @@
 			</Button>
 		{/if}
 	</div>
+
+	<ListingDetailTagBadges tags={extensionVm.tags} />
 </header>
 
 <section class="border-b border-base-content/10 py-8">
@@ -153,30 +218,38 @@
 
 <section class="py-8">
 	<h2 class="mb-3 text-lg font-semibold">Install</h2>
-	{#if configJson}
-		<div class="mb-4 flex flex-wrap gap-2">
-			<button type="button" class:tab-active={configClient === 'cursor'} class="btn btn-sm btn-ghost" onclick={() => (configClient = 'cursor')}>Cursor</button>
-			<button type="button" class:tab-active={configClient === 'claude'} class="btn btn-sm btn-ghost" onclick={() => (configClient = 'claude')}>Claude</button>
-			<button type="button" class:tab-active={configClient === 'vscode'} class="btn btn-sm btn-ghost" onclick={() => (configClient = 'vscode')}>VS Code</button>
-		</div>
-		<TerminalCommandMock code={configJson} language="bash" ariaLabel={`MCP config for ${extensionVm.title}`} />
-		<div class="mt-3">
-			<Button variant="outline" size="sm" onclick={() => void handleCopyConfig()}>Copy config</Button>
-		</div>
-	{:else if extensionVm.installCommandMcp}
+	{#if extensionVm.installCommandMcp}
 		<TerminalCommandMock code={extensionVm.installCommandMcp} ariaLabel={`Install command for ${extensionVm.title}`} />
 		<div class="mt-3">
 			<Button variant="outline" size="sm" onclick={() => void handleCopyInstall()}>Copy command</Button>
 		</div>
-	{:else if mcpClickUrl}
-		<p class="mb-3 text-base-content/75">Follow the official setup guide to connect this MCP server in your client.</p>
-		<ExtensionExternalLinkButton
-			href={mcpClickUrl}
-			label="View setup guide"
-			size="default"
-			onClick={onExternalClick}
-		/>
 	{:else}
-		<p class="text-base-content/70">Install instructions coming soon.</p>
+		{#if mcpClickUrl}
+			<p class="mb-3 text-base-content/75">
+				Follow the official setup guide for your MCP client — steps differ for Cursor, Claude, ChatGPT, VS
+				Code, and other hosts.
+			</p>
+			<ExtensionExternalLinkButton
+				href={mcpClickUrl}
+				label="View setup guide"
+				size="default"
+				onClick={onExternalClick}
+			/>
+		{/if}
+		{#if configJson}
+			<div class:mt-6={Boolean(mcpClickUrl)}>
+				<p class="mb-2 text-sm font-medium text-base-content/70">Remote MCP connector</p>
+				<p class="mb-3 text-sm text-base-content/60">
+					Same HTTP endpoint for every client; paste into your host’s remote MCP settings or use the setup
+					guide for OAuth and client-specific UI.
+				</p>
+				<TerminalCommandMock code={configJson} language="bash" ariaLabel={`MCP config for ${extensionVm.title}`} />
+				<div class="mt-3">
+					<Button variant="outline" size="sm" onclick={() => void handleCopyConfig()}>Copy config</Button>
+				</div>
+			</div>
+		{:else if !mcpClickUrl}
+			<p class="text-base-content/70">Install instructions coming soon.</p>
+		{/if}
 	{/if}
 </section>

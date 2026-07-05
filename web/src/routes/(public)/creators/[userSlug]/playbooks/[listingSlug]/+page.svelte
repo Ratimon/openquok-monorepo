@@ -6,14 +6,16 @@
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 
-	import { planLimitsForTier } from 'openquok-common';
+	import { isPaidSubscriptionTier, planLimitsForTier } from 'openquok-common';
 
 	import { publicExtensionBySlugPagePresenter } from '$lib/area-public';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { resolvePublicBuildingBlockPath } from '$lib/area-public/utils/resolvePublicListingPaths';
+	import { getRootPathAccount } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
+	import { showListingBookmarkToast } from '$lib/listings';
 	import { authenticationRepository } from '$lib/user-auth';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
@@ -22,11 +24,11 @@
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import ListingComments from '$lib/ui/components/extensions/ListingComments.svelte';
 	import ListingHubBreadcrumb from '$lib/ui/components/extensions/ListingHubBreadcrumb.svelte';
-	import ListingRating from '$lib/ui/components/extensions/ListingRating.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import StackListingContentTabs from '$lib/ui/templates/stacks/StackListingContentTabs.svelte';
+	import StackListingDetailHeader from '$lib/ui/templates/stacks/StackListingDetailHeader.svelte';
 	import StackModelBindingsSection from '$lib/ui/templates/stacks/StackModelBindingsSection.svelte';
 
 	type Props = { data: PageData };
@@ -44,29 +46,67 @@
 	const referenceAssets = $derived(stackVm.stackBlueprint?.reference_assets ?? []);
 	const modelBindings = $derived(stackVm.stackBlueprint?.model_bindings ?? []);
 
+	// /account/billing
+	const rootPathAccount = getRootPathAccount();
+	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
+
 	// /playbooks
 	const rootPathPublicPlaybooks = getRootPathPublicPlaybooks();
 	const playbooksHubHref = url(route(rootPathPublicPlaybooks));
 
 	let viewerCommunityFeaturesEnabled = $state<boolean | null>(null);
+	let bookmarksPaidEnabled = $state<boolean | null>(null);
+	let isBookmarked = $state(false);
 	let showUpgradeModal = $state(false);
+	let extraLikes = $state(0);
 
-	onMount(() => {
+	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
+	let displayLikes = $derived(stackVm.likes + extraLikes);
+
+	$effect(() => {
 		if (!browser || !isLoggedIn) {
 			viewerCommunityFeaturesEnabled = null;
+			bookmarksPaidEnabled = null;
 			return;
 		}
 		let cancelled = false;
 		void getBillingPresenter.loadOwnedAccountBillingVmStateless().then((vm) => {
 			if (cancelled) return;
 			viewerCommunityFeaturesEnabled = vm ? planLimitsForTier(vm.tier).community_features : false;
+			bookmarksPaidEnabled = vm ? isPaidSubscriptionTier(vm.tier) : false;
 		});
 		return () => {
 			cancelled = true;
 		};
 	});
 
-	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
+	onMount(() => {
+		if (!browser || !stackVm?.id) return;
+		void publicExtensionBySlugPagePresenter.trackExtensionView(stackVm.id);
+	});
+
+	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
+		const result = await publicExtensionBySlugPagePresenter.toggleBookmark(listingId, nextBookmarked);
+		if (!result.ok) {
+			toast.error(result.error);
+			return result;
+		}
+		if (listingId === stackVm?.id) {
+			isBookmarked = nextBookmarked;
+		}
+		showListingBookmarkToast(nextBookmarked, 'stack');
+		return { ok: true as const, bookmarked: nextBookmarked };
+	}
+
+	async function handleLike() {
+		const result = await publicExtensionBySlugPagePresenter.trackExtensionLike(stackVm.id);
+		if (result.ok) {
+			extraLikes += 1;
+			toast.success('Thanks for the like!');
+			return;
+		}
+		toast.error(result.error);
+	}
 
 	function memberTypeBadges(extensionType: string | null | undefined): string[] {
 		switch (extensionType) {
@@ -131,43 +171,30 @@
 			pageTitle={stackVm.title}
 			class="mb-4"
 		/>
-		<header class="space-y-4 border-b border-base-content/10 pb-8">
-			<p class="text-xs font-bold tracking-wider text-primary uppercase">Playbook</p>
-			<h1 class="text-3xl font-black tracking-tight text-base-content">{stackVm.title}</h1>
-			{#if stackVm.excerpt}
-				<p class="text-lg text-base-content/70">{stackVm.excerpt}</p>
-			{/if}
-			<div class="flex flex-wrap items-center gap-4 text-sm text-base-content/60">
-				<span
-					>{stackVm.stackMembers.length} building block{stackVm.stackMembers.length === 1
-						? ''
-						: 's'}</span
-				>
-				<span>{stackVm.views} views</span>
-				<span>{stackVm.likes} likes</span>
-			</div>
-			<ListingRating
-				listingId={stackVm.id}
-				averageRating={stackVm.averageRating}
-				ratingsCount={stackVm.ratingsCount}
-				{isLoggedIn}
-				communityEnabled={communityEnabled}
-				submitRating={(listingId, rating) =>
-					publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
-				submitting={publicExtensionBySlugPagePresenter.submittingRating}
-				onSignInRequired={() => {
-					toast.error('Sign in to rate this stack.');
-				}}
-				onUpgradeRequired={() => {
-					showUpgradeModal = true;
-				}}
-			/>
-			<div class="flex flex-wrap gap-3">
-				<Button href={skillBuilderHref} variant="primary">Customize this playbook</Button>
-			</div>
-		</header>
+		<StackListingDetailHeader
+			{stackVm}
+			{displayLikes}
+			{skillBuilderHref}
+			onLike={handleLike}
+			likeDisabled={publicExtensionBySlugPagePresenter.submittingLike}
+			{isBookmarked}
+			{isLoggedIn}
+			{bookmarksPaidEnabled}
+			upgradeHref={accountBillingHref}
+			onToggleBookmark={handleToggleBookmark}
+			communityEnabled={communityEnabled}
+			submitRating={(listingId, rating) =>
+				publicExtensionBySlugPagePresenter.submitListingRating(listingId, rating)}
+			submittingRating={publicExtensionBySlugPagePresenter.submittingRating}
+			onRatingSignInRequired={() => {
+				toast.error('Sign in to use community features.');
+			}}
+			onRatingUpgradeRequired={() => {
+				showUpgradeModal = true;
+			}}
+		/>
 
-		<section class="border-t border-base-content/10 py-8">
+		<section class="py-8">
 			<StackListingContentTabs content={descriptionMarkdown}>
 				{#snippet members()}
 					<StackModelBindingsSection bindings={modelBindings} />
@@ -308,4 +335,7 @@
 	</article>
 </SectionOuterContainer>
 
-<CommunityFeaturesLimitUpgradeModal bind:open={showUpgradeModal} upgradeHref="/account/billing" />
+<CommunityFeaturesLimitUpgradeModal
+	bind:open={showUpgradeModal}
+	upgradeHref={accountBillingHref}
+/>

@@ -14,12 +14,20 @@
 	type Props = {
 		hubHref: string;
 		hubLabel: string;
+		hubLabelClass?: string;
 		owner?: Owner;
 		pageTitle: string;
 		class?: string;
 	};
 
-	let { hubHref, hubLabel, owner = null, pageTitle, class: className = '' }: Props = $props();
+	let {
+		hubHref,
+		hubLabel,
+		hubLabelClass = 'text-sm',
+		owner = null,
+		pageTitle,
+		class: className = ''
+	}: Props = $props();
 
 	const creatorLabel = $derived(listingOwnerDisplayName(owner));
 	const creatorHref = $derived(
@@ -32,7 +40,9 @@
 <Breadcrumb.Root class={cn('max-w-full', className)}>
 	<Breadcrumb.List>
 		<Breadcrumb.Item>
-			<Breadcrumb.Link href={hubHref} class="text-sm">{hubLabel}</Breadcrumb.Link>
+			<Breadcrumb.Link href={hubHref} class={cn(hubLabelClass)}>
+				{hubLabel}
+			</Breadcrumb.Link>
 		</Breadcrumb.Item>
 		{#if creatorHref && creatorLabel}
 			<Breadcrumb.Separator />

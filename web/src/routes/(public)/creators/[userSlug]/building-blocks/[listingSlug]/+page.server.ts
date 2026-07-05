@@ -9,6 +9,7 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
+import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 import { createMetaData, type MetaDataImage } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -49,7 +50,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 
 	const customTitle = `${extensionVm.title} | ${companyName}`;
 	const customDescription =
-		extensionVm.excerpt ?? extensionVm.description ?? `Extension details for ${extensionVm.title}.`;
+		resolveListingHeaderSummary(extensionVm) ?? `Extension details for ${extensionVm.title}.`;
 
 	const customImages: MetaDataImage[] | undefined = extensionVm.logoImageUrl
 		? [
