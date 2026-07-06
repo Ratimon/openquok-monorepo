@@ -224,6 +224,9 @@ export type PublicAgentFeatureSection = {
 	mediaOnRight?: boolean;
 };
 
+/** Listing cards per preview grid block (playbooks or building blocks); see-all card is extra. */
+export const DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK = 6;
+
 /** Playbooks + building blocks preview grid (static copy; listing cards loaded at runtime). */
 export type PublicAgentListingsPreviewSection = {
 	headingId: string;
@@ -234,6 +237,8 @@ export type PublicAgentListingsPreviewSection = {
 	buildingBlocksGridLabel: string;
 	playbooksSeeAllDescription: string;
 	buildingBlocksSeeAllDescription: string;
+	/** Max listing cards per grid block; see-all card is rendered in addition. */
+	itemsPerBlockLimit: number;
 };
 
 export type PublicAgentHostLandingPageViewModel = {
@@ -286,7 +291,8 @@ export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
 	playbooksGridLabel: 'Playbooks',
 	buildingBlocksGridLabel: 'Building Blocks',
 	playbooksSeeAllDescription: 'Browse every published playbook.',
-	buildingBlocksSeeAllDescription: 'Browse every published building block.'
+	buildingBlocksSeeAllDescription: 'Browse every published building block.',
+	itemsPerBlockLimit: DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK
 } satisfies PublicAgentListingsPreviewSection;
 
 /** Main marketing landing page — same copy as agent previews, distinct section id. */

@@ -4,11 +4,13 @@ import {
 	publicBuildingBlocksPagePresenter,
 	publicPlaybooksPagePresenter
 } from '$lib/area-public/index';
-import type { PublicAgentListingsPreviewSection } from '$lib/content/constants/publicAgentConfig';
+import {
+	DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK,
+	type PublicAgentListingsPreviewSection
+} from '$lib/content/constants/publicAgentConfig';
 import {
 	buildSeeAllPreviewCardItem,
 	buildingBlockToPreviewCardItem,
-	LISTINGS_PREVIEW_GRID_SLOT_COUNT,
 	playbookToPreviewCardItem
 } from '$lib/listings/utils/buildListingsPreviewCardItems';
 import { route } from '$lib/utils/path';
@@ -35,7 +37,8 @@ export async function loadAgentListingsPreviewStateless(params: {
 	limit?: number;
 	previewSection: PublicAgentListingsPreviewSection;
 }): Promise<PublicListingsPreviewVm> {
-	const limit = params.limit ?? LISTINGS_PREVIEW_GRID_SLOT_COUNT;
+	const limit =
+		params.limit ?? params.previewSection.itemsPerBlockLimit ?? DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK;
 
 	const [playbooksHub, buildingBlocksHub] = await Promise.all([
 		publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch: params.fetch, limit }),

@@ -7,8 +7,6 @@ import type {
 } from '$lib/listings/GetListing.presenter.svelte';
 import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 
-export const LISTINGS_PREVIEW_GRID_SLOT_COUNT = 8;
-
 function listingDescription(excerpt: string | null, description: string | null): string {
 	const text = excerpt?.trim() || description?.trim() || '';
 	return text.length > 120 ? `${text.slice(0, 117)}…` : text;
