@@ -6,7 +6,6 @@
 
 	type LandingHeroTheme = {
 		subtitleClass?: string;
-		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => { text: string; highlight: boolean }[];
 	};
 

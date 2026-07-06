@@ -13,6 +13,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	type Props = {
 		heroTitle?: string;
@@ -33,9 +34,6 @@
 		githubOwner = '',
 		githubRepo = ''
 	}: Props = $props();
-
-	const HIGHLIGHT_PILL_CLASS =
-		'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
 
 	const HERO_SOCIAL_ICON_BOX_CLASS = 'rounded-md';
 
@@ -194,7 +192,7 @@
 							<span class="block">
 								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight}
-										<span class="{HIGHLIGHT_PILL_CLASS} mr-3">{seg.text}</span>
+										<LandingHeroHighlightedText class="mr-3">{seg.text}</LandingHeroHighlightedText>
 									{:else}
 										<span
 											class="{getTitleSegmentGradientClass(
@@ -221,7 +219,7 @@
 					{#if sloganSegments.length > 0}
 						{#each sloganSegments as seg, segmentIndex (segmentIndex)}
 							{#if seg.highlight}
-								<span class={HIGHLIGHT_PILL_CLASS}>{seg.text}</span>
+								<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 							{:else}
 								{seg.text}
 							{/if}

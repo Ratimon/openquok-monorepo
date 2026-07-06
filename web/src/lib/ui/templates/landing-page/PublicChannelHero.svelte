@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
@@ -8,7 +9,6 @@
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 	type LandingHeroTheme = {
-		titleHighlightPillClass: string;
 		titleSegmentClass: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 	};
@@ -47,7 +47,7 @@
 			>
 				{#each titleSegments as seg, segmentIndex (segmentIndex)}
 					{#if seg.highlight}
-						<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+						<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 					{:else}
 						<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
 					{/if}

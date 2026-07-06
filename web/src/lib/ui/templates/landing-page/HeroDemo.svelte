@@ -1,6 +1,7 @@
 <script lang="ts">
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -10,7 +11,6 @@
 		ctaButtonClass: string;
 		imageClass: string;
 		titlePartClass: (index: number, total: number) => string;
-		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
 	};
@@ -79,7 +79,7 @@
 							<span class={layoutClass}>
 								{#each segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight}
-										<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+										<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 									{:else}
 										<span class={partClass}>{seg.text}</span>
 									{/if}

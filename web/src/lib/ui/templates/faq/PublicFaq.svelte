@@ -3,6 +3,7 @@
 	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -10,7 +11,6 @@
 		subtitleClass: string;
 		descriptionClass: string;
 		titlePartClass: (index: number, total: number) => string;
-		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
 	};
@@ -86,7 +86,7 @@
 							<span class={layoutClass}>
 								{#each segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight}
-										<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+										<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 									{:else}
 										<span class={partClass}>{seg.text}</span>
 									{/if}

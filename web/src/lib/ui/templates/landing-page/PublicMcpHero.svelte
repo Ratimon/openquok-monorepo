@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
@@ -45,7 +46,7 @@
 			>
 				{#each titleSegments as seg, segmentIndex (segmentIndex)}
 					{#if seg.highlight}
-						<span class={landingHeroTheme.titleHighlightPillClass}>{seg.text}</span>
+						<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 					{:else}
 						<span class={landingHeroTheme.titleSegmentClass(segmentIndex, titleSegments)}
 							>{seg.text}</span

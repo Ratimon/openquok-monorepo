@@ -21,6 +21,7 @@
 	import SettingsPanelMockContent from '$lib/ui/templates/device-mocks/settings-panel/SettingsPanelMockContent.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 	import TerminalCommandMockContent from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMockContent.svelte';
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
 	export type { FeaturesOrderedDeviceMock, FeaturesOrderedStep } from '$lib/content/constants/publicAgentConfig';
@@ -30,7 +31,6 @@
 	type LandingHeroTheme = {
 		subtitleClass: string;
 		titlePartClass: (index: number, total: number) => string;
-		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
 	};
@@ -175,7 +175,7 @@
 									<span class={layoutClass}>
 										{#each segments as seg, segmentIndex (segmentIndex)}
 											{#if seg.highlight}
-												<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+												<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 											{:else}
 												<span class={partClass}>{seg.text}</span>
 											{/if}

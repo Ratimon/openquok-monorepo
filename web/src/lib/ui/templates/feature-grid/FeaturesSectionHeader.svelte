@@ -1,9 +1,10 @@
 <script lang="ts">
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 	type LandingHeroTheme = {
 		subtitleClass?: string;
-		titleHighlightPillClass: string;
 		titleSegmentClass?: (segmentIndex: number, segments: LandingHeroTitleSegment[]) => string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 	};
@@ -44,7 +45,7 @@
 	>
 		{#each titleSegments as seg, segmentIndex (segmentIndex)}
 			{#if seg.highlight}
-				<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+				<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 			{:else if heroTheme.titleSegmentClass}
 				<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
 			{:else}

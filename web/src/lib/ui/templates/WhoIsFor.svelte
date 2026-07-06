@@ -3,6 +3,7 @@
 
 	import AuroraWobbleCard from '$lib/ui/card-wobble/AuroraWobbleCard.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	export type AudienceCard = {
 		iconName: IconName;
@@ -20,7 +21,6 @@
 		ctaButtonClass: string;
 		imageClass: string;
 		titlePartClass: (index: number, total: number) => string;
-		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
 		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
 	};
@@ -73,7 +73,7 @@
 							<span class={layoutClass}>
 								{#each segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight}
-										<span class={heroTheme.titleHighlightPillClass}>{seg.text}</span>
+										<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
 									{:else}
 										<span class={partClass}>{seg.text}</span>
 									{/if}

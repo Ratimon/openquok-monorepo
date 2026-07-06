@@ -1,6 +1,3 @@
-const LANDING_HERO_TITLE_HIGHLIGHT_PILL_CLASS =
-	'bg-white text-black px-3 py-1 rounded-md -rotate-1 inline-block';
-
 const LANDING_HERO_TITLE_GRADIENT_PRIMARY =
 	'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
 
@@ -113,7 +110,6 @@ export const landingHeroTheme = {
 		return LANDING_HERO_TITLE_GRADIENT_PRIMARY;
 	},
 	titleSegmentClass,
-	titleHighlightPillClass: LANDING_HERO_TITLE_HIGHLIGHT_PILL_CLASS,
 	parseLandingHeroTitlePartSegments,
 	landingHeroTitlePartHasHighlight
 };
