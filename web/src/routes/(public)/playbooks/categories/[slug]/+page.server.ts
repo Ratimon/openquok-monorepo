@@ -1,7 +1,7 @@
 import { getRootPathPublicPlaybooksCategory } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import { listingRepository } from '$lib/listings/index';
-import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
+import { loadPlaybooksHubPage } from '$lib/listings/server/loadPlaybooksHubPage.server';
 import { formatPlaybooksFilterHeroTitle } from '$lib/listings/utils/formatPlaybooksFilterHeroTitle';
 
 export const ssr = true;

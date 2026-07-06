@@ -8,7 +8,7 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { loadAgentListingsPreviewStateless } from '$lib/listings/utils/loadAgentListingsPreview.server';
+import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 

@@ -3,7 +3,8 @@
 
 	import { cn } from '$lib/ui/helpers/common';
 
-	import FeatureSimpleCardBackground from '$lib/ui/templates/feature-grid/FeatureSimpleCardBackground.svelte';
+	import { GridCardBackground, HexagonCardBackground } from '$lib/ui/patterns/index.js';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	export type FeatureSimpleCardItem = {
@@ -17,14 +18,19 @@
 		containerClass?: string;
 	};
 
+	type CardBackgroundVariant = 'grid' | 'hexagon';
+
+	type PatternCell = [col: number, row: number];
+
 	type Props = {
 		item: FeatureSimpleCardItem;
-		pattern?: number[][];
+		pattern?: PatternCell[];
+		backgroundVariant?: CardBackgroundVariant;
 		compact?: boolean;
 		href?: string;
 	};
 
-	let { item, pattern, compact = false, href }: Props = $props();
+	let { item, pattern, backgroundVariant = 'grid', compact = false, href }: Props = $props();
 
 	const cardClass = $derived(
 		cn(
@@ -36,7 +42,11 @@
 </script>
 
 {#snippet cardBody()}
-	<FeatureSimpleCardBackground {pattern} />
+	{#if backgroundVariant === 'hexagon'}
+		<HexagonCardBackground hexagons={pattern} />
+	{:else}
+		<GridCardBackground {pattern} />
+	{/if}
 	<div class="relative z-20 flex flex-col gap-3">
 		<span
 			class={cn(

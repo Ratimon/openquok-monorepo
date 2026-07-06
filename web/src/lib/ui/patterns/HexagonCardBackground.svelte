@@ -1,20 +1,20 @@
 <script lang="ts">
-	import SimpleGridPattern from '$lib/ui/templates/feature-grid/SimpleGridPattern.svelte';
+	import HexagonPattern from '$lib/ui/patterns/HexagonPattern.svelte';
 
 	type Props = {
-		pattern?: number[][];
-		size?: number;
+		hexagons?: Array<[col: number, row: number]>;
+		radius?: number;
 	};
 
 	let {
-		pattern = [
+		hexagons = [
 			[7, 1],
 			[8, 3],
 			[9, 5],
 			[10, 2],
 			[11, 4]
 		],
-		size = 20
+		radius = 16
 	}: Props = $props();
 </script>
 
@@ -25,13 +25,13 @@
 	<div
 		class="absolute inset-0 bg-gradient-to-r from-base-200/30 to-base-300/20 opacity-100 [mask-image:radial-gradient(farthest-side_at_top,white,transparent)]"
 	>
-		<SimpleGridPattern
-			width={size}
-			height={size}
-			x="-12"
-			y="4"
-			squares={pattern}
-			class="absolute inset-0 h-full w-full fill-base-content/10 stroke-base-content/10 mix-blend-overlay"
+		<HexagonPattern
+			{radius}
+			gap={0}
+			x={-1}
+			y={-1}
+			{hexagons}
+			class="absolute inset-0 h-full w-full mix-blend-overlay"
 		/>
 	</div>
 </div>

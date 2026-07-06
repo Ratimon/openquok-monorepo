@@ -1,7 +1,7 @@
 import { getRootPathPublicPlaybooksTags } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter } from '$lib/listings/index';
-import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
+import { loadPlaybooksHubPage } from '$lib/listings/server/loadPlaybooksHubPage.server';
 import { resolvePlaybooksTagPathFilter } from '$lib/listings/utils/resolvePlaybooksTagPathFilter';
 
 export const ssr = true;

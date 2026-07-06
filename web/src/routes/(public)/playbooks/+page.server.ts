@@ -1,4 +1,4 @@
-import { loadPlaybooksHubPage } from '$lib/listings/utils/loadPlaybooksHubPage.server';
+import { loadPlaybooksHubPage } from '$lib/listings/server/loadPlaybooksHubPage.server';
 
 export const ssr = true;
 

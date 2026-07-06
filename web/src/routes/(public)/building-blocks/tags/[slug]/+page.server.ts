@@ -1,7 +1,7 @@
 import { getRootPathPublicBuildingBlocksTags } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 import { getListingPresenter } from '$lib/listings/index';
-import { loadBuildingBlocksHubPage } from '$lib/listings/utils/loadBuildingBlocksHubPage.server';
+import { loadBuildingBlocksHubPage } from '$lib/listings/server/loadBuildingBlocksHubPage.server';
 import { resolveBuildingBlocksTagPathFilter } from '$lib/listings/utils/resolveBuildingBlocksTagPathFilter';
 
 export const ssr = true;

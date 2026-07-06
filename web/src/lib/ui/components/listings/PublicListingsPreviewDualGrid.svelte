@@ -4,13 +4,15 @@
 
 	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
-	import { UnderlineToBackgroundText } from '$lib/ui/text/index.js';
+	import { UnderlineToBackgroundText } from '$lib/ui/texts/index.js';
 
 	type LandingHeroTheme = {
 		subtitleClass?: string;
 		titleHighlightPillClass: string;
 		parseLandingHeroTitlePartSegments: (text: string) => { text: string; highlight: boolean }[];
 	};
+
+	type PatternCell = [col: number, row: number];
 
 	type PreviewGridBlock = PublicListingsPreviewVm['playbooksBlock'];
 
@@ -22,7 +24,7 @@
 
 	let { heroTheme, previewVm, sectionClass = 'py-16 sm:py-20' }: Props = $props();
 
-	const CARD_PATTERNS: number[][][] = [
+	const CARD_HEXAGONS: PatternCell[][] = [
 		[
 			[7, 1],
 			[8, 3],
@@ -55,8 +57,8 @@
 		]
 	];
 
-	function patternForIndex(index: number): number[][] {
-		return CARD_PATTERNS[index % CARD_PATTERNS.length];
+	function hexagonsForIndex(index: number): PatternCell[] {
+		return CARD_HEXAGONS[index % CARD_HEXAGONS.length];
 	}
 
 	function gridCells(block: PreviewGridBlock): Array<
@@ -86,9 +88,18 @@
 	>
 		{#each gridCells(block) as cell (cell.item.id)}
 			{#if cell.kind === 'see-all'}
-				<FeatureSimpleCard item={cell.item} href={cell.item.href} pattern={patternForIndex(cell.index)} />
+				<FeatureSimpleCard
+					item={cell.item}
+					href={cell.item.href}
+					backgroundVariant="hexagon"
+					pattern={hexagonsForIndex(cell.index)}
+				/>
 			{:else}
-				<FeatureSimpleCard item={cell.item} pattern={patternForIndex(cell.index)} />
+				<FeatureSimpleCard
+					item={cell.item}
+					backgroundVariant="hexagon"
+					pattern={hexagonsForIndex(cell.index)}
+				/>
 			{/if}
 		{/each}
 	</div>

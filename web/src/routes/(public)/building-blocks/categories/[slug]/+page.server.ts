@@ -3,7 +3,7 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 import { listingRepository } from '$lib/listings/index';
-import { loadBuildingBlocksHubPage } from '$lib/listings/utils/loadBuildingBlocksHubPage.server';
+import { loadBuildingBlocksHubPage } from '$lib/listings/server/loadBuildingBlocksHubPage.server';
 import { formatBuildingBlocksFilterHeroTitle } from '$lib/listings/utils/formatBuildingBlocksFilterHeroTitle';
 
 export const ssr = true;
