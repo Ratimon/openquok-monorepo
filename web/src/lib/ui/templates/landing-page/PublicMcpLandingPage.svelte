@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PublicMcpLandingPageViewModel, PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
-	import type { PublicListingsPreviewVm } from '$lib/listings/utils/loadAgentListingsPreview.server';
+	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 	import {
 		resolvePublicMcpSkillSetupSteps,
 		resolvePublicMcpSkillSetupStepsSubtitle,
@@ -23,7 +23,7 @@
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
-	import PublicListingsPreviewDualGrid from '$lib/ui/templates/feature-grid/PublicListingsPreviewDualGrid.svelte';
+	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';

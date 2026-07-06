@@ -3,8 +3,7 @@
 	import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 	import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
-
-	import type { PublicListingsPreviewVm } from '$lib/listings/utils/loadAgentListingsPreview.server';
+	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import { publicAgentByPagePresenter, isPublicAgentHostLandingPage, isPublicMcpLandingPage } from '$lib/area-public';
 
