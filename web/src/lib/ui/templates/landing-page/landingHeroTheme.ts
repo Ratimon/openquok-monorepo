@@ -1,3 +1,20 @@
+/** Rotating accent words for the main landing hero title ("Save ___"). */
+export const LANDING_HERO_HOURS_ROTATE_TEXTS = [
+	'hours',
+	'money',
+	'man-days',
+	'busywork',
+	'headaches'
+] as const;
+
+/** Rotating phrases for the main landing hero slogan ("___" highlight). */
+export const LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS = [
+	'not hours',
+	'not money',
+	'not man-days',
+	'not busywork'
+] as const;
+
 const LANDING_HERO_TITLE_GRADIENT_PRIMARY =
 	'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
 
@@ -36,6 +53,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'questions',
 	'winners',
 	'viral format',
+	'viral formats',
 	'thumbnail',
 	'setup',
 	'batch',
@@ -98,6 +116,8 @@ function titleSegmentClass(
 }
 
 export const landingHeroTheme = {
+	hoursRotateTexts: LANDING_HERO_HOURS_ROTATE_TEXTS,
+	sloganNotRotateTexts: LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS,
 	subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase sm:text-sm',
 	descriptionClass:
 		'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg',

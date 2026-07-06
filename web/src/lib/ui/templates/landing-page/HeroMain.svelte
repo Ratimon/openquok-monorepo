@@ -14,6 +14,11 @@
 	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
+	import TextRotate from '$lib/ui/texts/TextRotate.svelte';
+	import {
+		LANDING_HERO_HOURS_ROTATE_TEXTS,
+		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS
+	} from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		heroTitle?: string;
@@ -40,9 +45,9 @@
 	const HERO_SOCIAL_TOOLTIP_CLASS =
 		'border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white shadow-lg';
 
-	type TextSegment = { text: string; highlight: boolean };
+	type TextSegment = { text: string; highlight: boolean; rotate?: boolean };
 
-	const TITLE_HIGHLIGHT_WORD = /^(?:control|hours)$/i;
+	const TITLE_ROTATE_HIGHLIGHT_WORD = /^hours$/i;
 
 	function parseTitleLineSegments(text: string): TextSegment[] {
 		if (!text) return [];
@@ -50,7 +55,11 @@
 		const out: TextSegment[] = [];
 		for (const p of parts) {
 			if (p === '') continue;
-			out.push({ text: p, highlight: TITLE_HIGHLIGHT_WORD.test(p) });
+			out.push({
+				text: p,
+				highlight: /^(?:control|hours)$/i.test(p),
+				rotate: TITLE_ROTATE_HIGHLIGHT_WORD.test(p)
+			});
 		}
 		return out;
 	}
@@ -71,7 +80,8 @@
 			if (p === '') continue;
 			out.push({
 				text: p,
-				highlight: /^\s*not\s+(?:hours|hrs|hr)\s*$/i.test(p)
+				highlight: /^\s*not\s+(?:hours|hrs|hr)\s*$/i.test(p),
+				rotate: /^\s*not\s+(?:hours|hrs|hr)\s*$/i.test(p)
 			});
 		}
 		return out;
@@ -192,7 +202,19 @@
 							<span class="block">
 								{#each lineModel.segments as seg, segmentIndex (segmentIndex)}
 									{#if seg.highlight}
-										<LandingHeroHighlightedText class="mr-3">{seg.text}</LandingHeroHighlightedText>
+										{#if seg.rotate}
+											<LandingHeroHighlightedText class="mr-3" triggerOnView={false}>
+												<TextRotate
+													texts={[...LANDING_HERO_HOURS_ROTATE_TEXTS]}
+													splitBy="words"
+													rotationInterval={2800}
+													staggerDuration={0.02}
+													elementLevelClassName="inline-block"
+												/>
+											</LandingHeroHighlightedText>
+										{:else}
+											<LandingHeroHighlightedText class="mr-3">{seg.text}</LandingHeroHighlightedText>
+										{/if}
 									{:else}
 										<span
 											class="{getTitleSegmentGradientClass(
@@ -219,7 +241,19 @@
 					{#if sloganSegments.length > 0}
 						{#each sloganSegments as seg, segmentIndex (segmentIndex)}
 							{#if seg.highlight}
-								<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
+								{#if seg.rotate}
+									<LandingHeroHighlightedText triggerOnView={false}>
+										<TextRotate
+											texts={[...LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS]}
+											splitBy="words"
+											rotationInterval={3200}
+											staggerDuration={0.015}
+											elementLevelClassName="inline-block"
+										/>
+									</LandingHeroHighlightedText>
+								{:else}
+									<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
+								{/if}
 							{:else}
 								{seg.text}
 							{/if}
