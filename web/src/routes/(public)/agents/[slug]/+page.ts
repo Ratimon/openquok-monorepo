@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+import type { PublicListingsPreviewVm } from '$lib/listings/utils/loadAgentListingsPreview.server';
 
 import type { PageLoad } from './$types';
 
@@ -19,6 +20,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			agentVm: PublicAgentViewModel;
+			listingsPreviewVm: PublicListingsPreviewVm;
 			schemaData: unknown;
 		};
 
@@ -30,6 +32,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isAdmin,
 			isEditor,
 			agentVm: serverData.agentVm,
+			listingsPreviewVm: serverData.listingsPreviewVm,
 			schemaData: serverData.schemaData
 		};
 	}

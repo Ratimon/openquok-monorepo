@@ -21,18 +21,21 @@
 		item: FeatureSimpleCardItem;
 		pattern?: number[][];
 		compact?: boolean;
+		href?: string;
 	};
 
-	let { item, pattern, compact = false }: Props = $props();
+	let { item, pattern, compact = false, href }: Props = $props();
+
+	const cardClass = $derived(
+		cn(
+			'relative block overflow-hidden rounded-3xl bg-gradient-to-b from-base-200/80 to-base-100 p-6',
+			'border border-base-content/5 shadow-sm transition duration-300 hover:border-primary/20 hover:shadow-md',
+			compact && 'p-5'
+		)
+	);
 </script>
 
-<article
-	class={cn(
-		'relative overflow-hidden rounded-3xl bg-gradient-to-b from-base-200/80 to-base-100 p-6',
-		'border border-base-content/5 shadow-sm transition duration-300 hover:border-primary/20 hover:shadow-md',
-		compact && 'p-5'
-	)}
->
+{#snippet cardBody()}
 	<FeatureSimpleCardBackground {pattern} />
 	<div class="relative z-20 flex flex-col gap-3">
 		<span
@@ -54,4 +57,14 @@
 			{item.description}
 		</p>
 	</div>
-</article>
+{/snippet}
+
+{#if href}
+	<a {href} class={cardClass}>
+		{@render cardBody()}
+	</a>
+{:else}
+	<article class={cardClass}>
+		{@render cardBody()}
+	</article>
+{/if}

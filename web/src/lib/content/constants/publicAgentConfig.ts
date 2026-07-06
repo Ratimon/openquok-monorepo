@@ -224,6 +224,18 @@ export type PublicAgentFeatureSection = {
 	mediaOnRight?: boolean;
 };
 
+/** Playbooks + building blocks preview grid (static copy; listing cards loaded at runtime). */
+export type PublicAgentListingsPreviewSection = {
+	headingId: string;
+	subtitle: string;
+	title: string;
+	description: string;
+	playbooksGridLabel: string;
+	buildingBlocksGridLabel: string;
+	playbooksSeeAllDescription: string;
+	buildingBlocksSeeAllDescription: string;
+};
+
 export type PublicAgentHostLandingPageViewModel = {
 	pageType: 'agent-host';
 	slug: string;
@@ -233,35 +245,49 @@ export type PublicAgentHostLandingPageViewModel = {
 	/** Telegram device-mock header; defaults to `agentLabel` when omitted. */
 	telegramBotLabel?: string;
 	icon: IconName;
-	heroTitle: string;
-	heroDescription: string;
+	/** When false, hub shows a coming-soon badge and detail route 404s. */
+	available: boolean;
 	metaTitle: string;
 	metaDescription: string;
 	/** Hub card blurb on `/agents`; falls back to `metaDescription` when omitted. */
 	hubDescription?: string;
 	keywords: string[];
-	featureSections: PublicAgentFeatureSection[];
+	heroTitle: string;
+	heroDescription: string;
+	/** Setup guide under `/docs/`. */
+	docsPath: string;
+	/** Copy-paste commands for installing openquok-core on this agent host (hero). */
+	skillInstallOptions: readonly SkillInstallOption[];
+	workflowSection?: PublicLandingWorkflowSection;
 	audienceSubtitle: string;
 	audienceTitle: string;
 	audienceCards: AudienceCard[];
+	setupStepsSubtitle: string;
+	setupStepsTitle: string;
+	setupSteps: FeaturesOrderedStep[];
+	featureSections: PublicAgentFeatureSection[];
+	listingsPreviewSection: PublicAgentListingsPreviewSection;
+	comparisonSection?: PublicAgentComparisonSection;
+	commandReferenceSection?: PublicAgentCommandReferenceSection;
+	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
 	faqSubtitle: string;
 	faqTitle: string;
 	faqDescription: string;
 	faqItems: PublicFaqItem[];
-	setupStepsSubtitle: string;
-	setupStepsTitle: string;
-	setupSteps: FeaturesOrderedStep[];
-	workflowSection?: PublicLandingWorkflowSection;
-	supportedChannelsSection?: PublicAgentSupportedChannelsSection;
-	comparisonSection?: PublicAgentComparisonSection;
-	commandReferenceSection?: PublicAgentCommandReferenceSection;
-	/** Setup guide under `/docs/`. */
-	docsPath: string;
-	/** Copy-paste commands for installing openquok-core on this agent host. */
-	skillInstallOptions: readonly SkillInstallOption[];
-	/** When false, hub shows a coming-soon badge and detail route 404s. */
-	available: boolean;
 };
+
+/** Default listings preview copy shared by agent host landing pages. */
+export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
+	headingId: 'agent-listings-preview-heading',
+	subtitle: 'Playbooks & Building Blocks Directories',
+	title: 'Explore Viral Formats',
+	description:
+		'Mix playbooks, skills, and MCP servers—then tailor them to your use case.',
+	playbooksGridLabel: 'Playbooks',
+	buildingBlocksGridLabel: 'Building Blocks',
+	playbooksSeeAllDescription: 'Browse every published playbook.',
+	buildingBlocksSeeAllDescription: 'Browse every published building block.'
+} satisfies PublicAgentListingsPreviewSection;
 
 /** Agent host catalog entries (OpenClaw, Hermes, …). */
 export type PublicAgentLandingPageViewModel = PublicAgentHostLandingPageViewModel;
@@ -272,14 +298,10 @@ const OPENCLAW_AGENT: PublicAgentHostLandingPageViewModel = {
 	agentId: 'openclaw',
 	agentLabel: 'OpenClaw',
 	icon: icons.OpenClaw.name,
-	heroTitle: 'Schedule social media from OpenClaw then you approve',
-	heroDescription:
-		'OpenClaw is a personal AI assistant on your own devices — message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	available: true,
 	metaTitle: 'OpenClaw Social Media Skill for OpenQuok',
-	metaDescription:
-		'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
-	hubDescription:
-		'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use — with voice on macOS, iOS, and Android, and a live Canvas you control.',
+	metaDescription: 'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
+	hubDescription: 'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use — with voice on macOS, iOS, and Android, and a live Canvas you control.',
 	keywords: [
 		'OpenClaw social media',
 		'OpenClaw skill',
@@ -288,6 +310,96 @@ const OPENCLAW_AGENT: PublicAgentHostLandingPageViewModel = {
 		'OpenClaw CLI posting',
 		'agentic social media',
 		'OpenQuok OpenClaw integration'
+	],
+	heroTitle: 'Schedule social media from OpenClaw then you approve',
+	heroDescription: 'OpenClaw is a personal AI assistant on your own devices — message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	docsPath: '/docs/agent-setup-guides/openclaw',
+	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
+	workflowSection: {
+		subtitle: 'Your messaging apps',
+		title: 'Text from Telegram, WhatsApp, or Slack',
+		description:
+			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
+		deviceMock: 'iphone-15-pro',
+		deviceMockContent: 'agent-chat-schedule',
+		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'
+	},
+	audienceSubtitle: 'Built for OpenClaw hosts',
+	audienceTitle: 'Who connects OpenClaw to OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-emerald-400',
+			title: 'Personal AI users',
+			description:
+				'Run OpenClaw on your machine or in a container and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-lime-400',
+			title: 'Developers & builders',
+			description:
+				'Fully open source — add openquok-core plus any other skills you want, and let OpenClaw schedule posts with structured JSON.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-rose-400',
+			title: 'Startup founders',
+			description:
+				'Our model-agnostic approach keeps your stack lean and flexible — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
+	setupStepsSubtitle: 'How it works',
+	setupStepsTitle: 'Five steps,to OpenClaw + OpenQuok',
+	setupSteps: [
+		{
+			id: 1,
+			title: '1. Install OpenClaw',
+			content: 'Go to official site and install locally, in a container, or on a host with a persistent workspace.',
+			mediaAlt: 'OpenClaw documentation overview at docs.openclaw.ai',
+			deviceMock: 'safari',
+			deviceMockContent: 'openclaw-docs-overview',
+			mockUrl: 'docs.openclaw.ai',
+			iconName: icons.Terminal.name
+		},
+		{
+			id: 2,
+			title: '2. Select model',
+			content: 'Choose the LLM provider and model OpenClaw should use.',
+			animatedContent: 'llm-models',
+			mediaAlt: 'Model selection in OpenClaw',
+			iconName: icons.Bot.name
+		},
+		{
+			id: 3,
+			title: '3. Configure chat channel',
+			content: 'Connect WhatsApp, Telegram, Slack, or another chat app you already use.',
+			mediaAlt: 'Telegram chat channel configuration for OpenClaw',
+			deviceMock: 'iphone-15-pro',
+			deviceMockContent: 'telegram-connect',
+			iconName: icons.MessageCircle.name
+		},
+		{
+			id: 4,
+			title: '4. Install openquok-core skill',
+			content: 'Add openquok-core skill and authenticate the CLI once.',
+			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
+			deviceMock: 'terminal',
+			deviceMockContent: 'openquok-skill-install',
+			iconName: icons.OpenQuok.name
+		},
+		{
+			id: 5,
+			title: '5. Integrate & customize other skills or MCPs',
+			content:
+				'Add Bloom, RevenueCat, or any OpenClaw skill beside openquok-core — find your own viral formats and scale!',
+			animatedContent: 'agent-integrations',
+			mediaAlt: 'Agent skills and integrations with OpenQuok',
+			iconName: icons.Sparkles.name
+		}
 	],
 	featureSections: [
 		{
@@ -371,98 +483,7 @@ openquok analytics:platform <integration-uuid> -d 7
 openquok analytics:post <post-id> -d 30`
 		}
 	],
-	workflowSection: {
-		subtitle: 'Your messaging apps',
-		title: 'Text from Telegram, WhatsApp, or Slack',
-		description:
-			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
-		deviceMock: 'iphone-15-pro',
-		deviceMockContent: 'agent-chat-schedule',
-		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'
-	},
-	setupStepsSubtitle: 'How it works',
-	setupStepsTitle: 'Five steps,to OpenClaw + OpenQuok',
-	setupSteps: [
-		{
-			id: 1,
-			title: '1. Install OpenClaw',
-			content: 'Go to official site and install locally, in a container, or on a host with a persistent workspace.',
-			mediaAlt: 'OpenClaw documentation overview at docs.openclaw.ai',
-			deviceMock: 'safari',
-			deviceMockContent: 'openclaw-docs-overview',
-			mockUrl: 'docs.openclaw.ai',
-			iconName: icons.Terminal.name
-		},
-		{
-			id: 2,
-			title: '2. Select model',
-			content: 'Choose the LLM provider and model OpenClaw should use.',
-			animatedContent: 'llm-models',
-			mediaAlt: 'Model selection in OpenClaw',
-			iconName: icons.Bot.name
-		},
-		{
-			id: 3,
-			title: '3. Configure chat channel',
-			content: 'Connect WhatsApp, Telegram, Slack, or another chat app you already use.',
-			mediaAlt: 'Telegram chat channel configuration for OpenClaw',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-connect',
-			iconName: icons.MessageCircle.name
-		},
-		{
-			id: 4,
-			title: '4. Install openquok-core skill',
-			content: 'Add openquok-core skill and authenticate the CLI once.',
-			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
-			deviceMock: 'terminal',
-			deviceMockContent: 'openquok-skill-install',
-			iconName: icons.OpenQuok.name
-		},
-		{
-			id: 5,
-			title: '5. Integrate & customize other skills or MCPs',
-			content:
-				'Add Bloom, RevenueCat, or any OpenClaw skill beside openquok-core — find your own viral formats and scale!',
-			animatedContent: 'agent-integrations',
-			mediaAlt: 'Agent skills and integrations with OpenQuok',
-			iconName: icons.Sparkles.name
-		}
-	],
-	audienceSubtitle: 'Built for OpenClaw hosts',
-	audienceTitle: 'Who connects OpenClaw to OpenQuok?',
-	audienceCards: [
-		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-emerald-400',
-			title: 'Personal AI users',
-			description:
-				'Run OpenClaw on your machine or in a container and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-lime-400',
-			title: 'Developers & builders',
-			description:
-				'Fully open source — add openquok-core plus any other skills you want, and let OpenClaw schedule posts with structured JSON.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-rose-400',
-			title: 'Startup founders',
-			description:
-				'Our model-agnostic approach keeps your stack lean and flexible — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
-			containerClass: 'h-full min-h-[18rem]'
-		}
-	],
-	supportedChannelsSection: {
-		subtitle: 'Chat adapters',
-		title: 'Supported channels',
-		description: 'OpenClaw supports multiple messaging platforms out of the box:',
-		extensionLabel: 'Extension Channels'
-	},
+	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'agent-native scheduling, not another dashboard',
@@ -508,10 +529,15 @@ openquok analytics:post <post-id> -d 30`
 			'Commands from the openquok-core skill — structured JSON on stdout, human-in-the-loop drafts, and workspace media uploads.',
 		commands: OPENQUOK_CLI_COMMAND_REFERENCE
 	},
+	supportedChannelsSection: {
+		subtitle: 'Chat adapters',
+		title: 'Supported channels',
+		description: 'OpenClaw supports multiple messaging platforms out of the box:',
+		extensionLabel: 'Extension Channels'
+	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'OpenClaw + OpenQuok, answered',
-	faqDescription:
-		'What OpenClaw is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
+	faqDescription: 'What OpenClaw is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
 	faqItems: [
 		{
 			title: 'What is OpenClaw?',
@@ -559,9 +585,6 @@ openquok analytics:post <post-id> -d 30`
 				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.'
 		}
 	],
-	docsPath: '/docs/agent-setup-guides/openclaw',
-	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
-	available: true
 };
 
 const HERMES_AGENT: PublicAgentHostLandingPageViewModel = {
@@ -571,14 +594,10 @@ const HERMES_AGENT: PublicAgentHostLandingPageViewModel = {
 	agentLabel: 'Hermes Agent',
 	telegramBotLabel: 'Hermes',
 	icon: icons.HermesAgent.name,
-	heroTitle: 'Schedule social media from Hermes then you approve',
-	heroDescription:
-		'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM — message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	available: true,
 	metaTitle: 'Hermes Agent Social Media Skill for OpenQuok',
-	metaDescription:
-		'Hermes Agent is an autonomous AI assistant with a built-in learning loop, 20+ messaging gateways, and MCP support. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
-	hubDescription:
-		'Hermes Agent runs wherever you put it — a laptop, a $5 VPS, or serverless infrastructure. Talk to it from Telegram while it works on a host you never SSH into, with skills that load on demand.',
+	metaDescription: 'Hermes Agent is an autonomous AI assistant with a built-in learning loop, 20+ messaging gateways, and MCP support. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
+	hubDescription: 'Hermes Agent runs wherever you put it — a laptop, a $5 VPS, or serverless infrastructure. Talk to it from Telegram while it works on a host you never SSH into, with skills that load on demand.',
 	keywords: [
 		'Hermes Agent social media',
 		'Hermes Agent skill',
@@ -587,6 +606,99 @@ const HERMES_AGENT: PublicAgentHostLandingPageViewModel = {
 		'Hermes CLI posting',
 		'agentic social media',
 		'OpenQuok Hermes integration'
+	],
+	heroTitle: 'Schedule social media from Hermes then you approve',
+	heroDescription: 'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM — message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	docsPath: '/docs/agent-setup-guides/hermes',
+	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
+	workflowSection: {
+		subtitle: 'Your messaging gateways',
+		title: 'Message Hermes from Telegram, Discord, or Slack',
+		description:
+			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar — you sign off before publish.',
+		deviceMock: 'iphone-15-pro',
+		deviceMockContent: 'agent-chat-schedule',
+		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'
+	},
+	audienceSubtitle: 'Built for Hermes hosts',
+	audienceTitle: 'Who connects Hermes Agent to OpenQuok?',
+	audienceCards: [
+		{
+			iconName: icons.CustomizedDrawnRobot.name,
+			iconClass: 'text-violet-400',
+			title: 'Always-on operators',
+			description:
+				'Run Hermes on a VPS, Docker, SSH, Daytona, or Modal and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnLaptop.name,
+			iconClass: 'text-indigo-400',
+			title: 'Developers & builders',
+			description:
+				'Open standard skills, MCP servers, and a terminal toolset — add openquok-core and let Hermes schedule posts with structured JSON.',
+			containerClass: 'h-full min-h-[18rem]'
+		},
+		{
+			iconName: icons.CustomizedDrawnHouse.name,
+			iconClass: 'text-fuchsia-400',
+			title: 'Startup founders',
+			description:
+				'Model-agnostic routing across 30+ providers keeps your stack lean — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
+			containerClass: 'h-full min-h-[18rem]'
+		}
+	],
+	setupStepsSubtitle: 'How it works',
+	setupStepsTitle: 'Five steps,to Hermes + OpenQuok',
+	setupSteps: [
+		{
+			id: 1,
+			title: '1. Install Hermes Agent',
+			content:
+				'Run the one-line installer on Linux, macOS, WSL2, or Windows — or use the Desktop app on macOS and Windows.',
+			mediaAlt: 'Hermes Agent documentation at hermes-agent.nousresearch.com',
+			deviceMock: 'safari',
+			deviceMockContent: 'hermes-docs-overview',
+			mockUrl: 'hermes-agent.nousresearch.com',
+			iconName: icons.Terminal.name
+		},
+		{
+			id: 2,
+			title: '2. Select model',
+			content:
+				'Run hermes setup --portal for the fastest path, or hermes model to pick Claude, GPT, Gemini, OpenRouter, or a self-hosted endpoint.',
+			animatedContent: 'llm-models',
+			mediaAlt: 'Model and provider selection in Hermes Agent',
+			iconName: icons.Bot.name
+		},
+		{
+			id: 3,
+			title: '3. Configure chat channel',
+			content:
+				'Run hermes gateway setup to connect Telegram, Discord, Slack, WhatsApp, Signal, or another platform you already use.',
+			mediaAlt: 'Telegram chat channel configuration for Hermes Agent',
+			deviceMock: 'iphone-15-pro',
+			deviceMockContent: 'telegram-connect',
+			iconName: icons.MessageCircle.name
+		},
+		{
+			id: 4,
+			title: '4. Install openquok-core skill',
+			content: 'Add openquok-core under ~/.hermes/skills/ and authenticate the global CLI once.',
+			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
+			deviceMock: 'terminal',
+			deviceMockContent: 'openquok-skill-install-hermes',
+			iconName: icons.OpenQuok.name
+		},
+		{
+			id: 5,
+			title: '5. Integrate & customize other skills or MCPs',
+			content:
+				'Add Bloom, RevenueCat, or any Hermes skill beside openquok-core — find your own viral formats and scale!',
+			animatedContent: 'agent-integrations',
+			mediaAlt: 'Agent skills and integrations with OpenQuok',
+			iconName: icons.Sparkles.name
+		}
 	],
 	featureSections: [
 		{
@@ -670,102 +782,7 @@ openquok analytics:platform <integration-uuid> -d 7
 openquok analytics:post <post-id> -d 30`
 		}
 	],
-	workflowSection: {
-		subtitle: 'Your messaging gateways',
-		title: 'Message Hermes from Telegram, Discord, or Slack',
-		description:
-			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar — you sign off before publish.',
-		deviceMock: 'iphone-15-pro',
-		deviceMockContent: 'agent-chat-schedule',
-		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'
-	},
-	setupStepsSubtitle: 'How it works',
-	setupStepsTitle: 'Five steps,to Hermes + OpenQuok',
-	setupSteps: [
-		{
-			id: 1,
-			title: '1. Install Hermes Agent',
-			content:
-				'Run the one-line installer on Linux, macOS, WSL2, or Windows — or use the Desktop app on macOS and Windows.',
-			mediaAlt: 'Hermes Agent documentation at hermes-agent.nousresearch.com',
-			deviceMock: 'safari',
-			deviceMockContent: 'hermes-docs-overview',
-			mockUrl: 'hermes-agent.nousresearch.com',
-			iconName: icons.Terminal.name
-		},
-		{
-			id: 2,
-			title: '2. Select model',
-			content:
-				'Run hermes setup --portal for the fastest path, or hermes model to pick Claude, GPT, Gemini, OpenRouter, or a self-hosted endpoint.',
-			animatedContent: 'llm-models',
-			mediaAlt: 'Model and provider selection in Hermes Agent',
-			iconName: icons.Bot.name
-		},
-		{
-			id: 3,
-			title: '3. Configure chat channel',
-			content:
-				'Run hermes gateway setup to connect Telegram, Discord, Slack, WhatsApp, Signal, or another platform you already use.',
-			mediaAlt: 'Telegram chat channel configuration for Hermes Agent',
-			deviceMock: 'iphone-15-pro',
-			deviceMockContent: 'telegram-connect',
-			iconName: icons.MessageCircle.name
-		},
-		{
-			id: 4,
-			title: '4. Install openquok-core skill',
-			content: 'Add openquok-core under ~/.hermes/skills/ and authenticate the global CLI once.',
-			mediaAlt: 'Install openquok-core skill and authenticate the OpenQuok CLI',
-			deviceMock: 'terminal',
-			deviceMockContent: 'openquok-skill-install-hermes',
-			iconName: icons.OpenQuok.name
-		},
-		{
-			id: 5,
-			title: '5. Integrate & customize other skills or MCPs',
-			content:
-				'Add Bloom, RevenueCat, or any Hermes skill beside openquok-core — find your own viral formats and scale!',
-			animatedContent: 'agent-integrations',
-			mediaAlt: 'Agent skills and integrations with OpenQuok',
-			iconName: icons.Sparkles.name
-		}
-	],
-	audienceSubtitle: 'Built for Hermes hosts',
-	audienceTitle: 'Who connects Hermes Agent to OpenQuok?',
-	audienceCards: [
-		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-violet-400',
-			title: 'Always-on operators',
-			description:
-				'Run Hermes on a VPS, Docker, SSH, Daytona, or Modal and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-indigo-400',
-			title: 'Developers & builders',
-			description:
-				'Open standard skills, MCP servers, and a terminal toolset — add openquok-core and let Hermes schedule posts with structured JSON.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-fuchsia-400',
-			title: 'Startup founders',
-			description:
-				'Model-agnostic routing across 30+ providers keeps your stack lean — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
-			containerClass: 'h-full min-h-[18rem]'
-		}
-	],
-	supportedChannelsSection: {
-		subtitle: 'Messaging gateway',
-		title: 'Supported channels',
-		description:
-			'Hermes Agent connects Telegram, Discord, Slack, WhatsApp, and 20+ more platforms from one gateway:',
-		extensionLabel: 'Microsoft 365, Chinese platforms & more'
-	},
+	listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
 	comparisonSection: {
 		subtitle: 'comparisons',
 		title: 'agent-native scheduling, not another dashboard',
@@ -812,10 +829,16 @@ openquok analytics:post <post-id> -d 30`
 			'Commands from the openquok-core skill — structured JSON on stdout, human-in-the-loop drafts, and workspace media uploads.',
 		commands: OPENQUOK_CLI_COMMAND_REFERENCE
 	},
+	supportedChannelsSection: {
+		subtitle: 'Messaging gateway',
+		title: 'Supported channels',
+		description:
+			'Hermes Agent connects Telegram, Discord, Slack, WhatsApp, and 20+ more platforms from one gateway:',
+		extensionLabel: 'Microsoft 365, Chinese platforms & more'
+	},
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Hermes Agent + OpenQuok, answered',
-	faqDescription:
-		'What Hermes Agent is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
+	faqDescription: 'What Hermes Agent is, how to install openquok-core, supported platforms, human approval, and how agents draft and schedule posts from chat.',
 	faqItems: [
 		{
 			title: 'What is Hermes Agent?',
@@ -863,9 +886,6 @@ openquok analytics:post <post-id> -d 30`
 				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on Hermes, and begin scheduling from chat.'
 		}
 	],
-	docsPath: '/docs/agent-setup-guides/hermes',
-	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
-	available: true
 };
 
 export const PUBLIC_AGENTS_HUB = {

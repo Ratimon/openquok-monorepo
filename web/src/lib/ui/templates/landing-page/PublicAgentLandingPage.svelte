@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicListingsPreviewVm } from '$lib/listings/utils/loadAgentListingsPreview.server';
 
 	import {
 		HERMES_CORE_MESSAGING_CHANNELS,
@@ -24,6 +25,7 @@
 
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
+	import PublicListingsPreviewDualGrid from '$lib/ui/templates/feature-grid/PublicListingsPreviewDualGrid.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -36,11 +38,12 @@
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
+		listingsPreviewVm: PublicListingsPreviewVm;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
 	};
 
-	let { agentVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
+	let { agentVm, listingsPreviewVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -109,6 +112,11 @@
 		{telegramAgentBranding}
 	/>
 {/each}
+
+<PublicListingsPreviewDualGrid
+	heroTheme={landingHeroTheme}
+	previewVm={listingsPreviewVm}
+	/>
 
 {#if agentVm.comparisonSection}
 	<WithWithout

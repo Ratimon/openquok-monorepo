@@ -8,12 +8,13 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { loadAgentListingsPreviewStateless } from '$lib/listings/utils/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 
 export const ssr = true;
 
-export async function load({ url, params, cookies, parent }) {
+export async function load({ url, params, cookies, parent, fetch }) {
 	const { slug } = params;
 
 	if (typeof slug !== 'string' || slug.trim().length === 0) {
@@ -27,6 +28,11 @@ export async function load({ url, params, cookies, parent }) {
 
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
+
+	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
+		fetch,
+		previewSection: agentVm.listingsPreviewSection
+	});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
 
@@ -87,6 +93,7 @@ export async function load({ url, params, cookies, parent }) {
 		pageMetaTags,
 		isLoggedIn,
 		agentVm,
+		listingsPreviewVm,
 		schemaData
 	};
 }

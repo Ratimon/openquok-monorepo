@@ -6,8 +6,10 @@ import type {
 	FeaturesOrderedStep,
 	PublicAgentComparisonSection,
 	PublicAgentFeatureSection,
+	PublicAgentListingsPreviewSection,
 	PublicLandingWorkflowSection
 } from '$lib/content/constants/publicAgentConfig';
+import { PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
 import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import {
 	getMcpClientConfig,
@@ -41,13 +43,18 @@ export type PublicMcpLandingPageViewModel = {
 	agentLabel: string;
 	mcpClient: McpClient;
 	icon: IconName;
-	heroTitle: string;
-	heroDescription: string;
+	available: boolean;
 	metaTitle: string;
 	metaDescription: string;
 	hubDescription: string;
 	keywords: string[];
+	heroTitle: string;
+	heroDescription: string;
 	docsPath: string;
+	workflowSection: PublicLandingWorkflowSection;
+	audienceSubtitle: string;
+	audienceTitle: string;
+	audienceCards: AudienceCard[];
 	setupStepsSubtitle: string;
 	setupStepsTitle: string;
 	setupSteps: FeaturesOrderedStep[];
@@ -55,16 +62,12 @@ export type PublicMcpLandingPageViewModel = {
 	skillSetupStepsTitle: string;
 	skillSetupSteps: FeaturesOrderedStep[];
 	featureSections: PublicAgentFeatureSection[];
-	workflowSection: PublicLandingWorkflowSection;
+	listingsPreviewSection: PublicAgentListingsPreviewSection;
+	comparisonSection?: PublicAgentComparisonSection;
 	faqSubtitle: string;
 	faqTitle: string;
 	faqDescription: string;
 	faqItems: PublicFaqItem[];
-	audienceSubtitle: string;
-	audienceTitle: string;
-	audienceCards: AudienceCard[];
-	comparisonSection?: PublicAgentComparisonSection;
-	available: boolean;
 };
 
 type McpLandingSeed = PublicMcpIntegrationViewModel & {
@@ -479,8 +482,7 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewMode
 		agentLabel: label,
 		mcpClient,
 		icon,
-		heroTitle: `Schedule social media from ${label} then you approve`,
-		heroDescription,
+		available: true,
 		metaTitle: `${label} MCP Social Media for OpenQuok`,
 		metaDescription,
 		hubDescription,
@@ -491,7 +493,13 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewMode
 			'agentic social media',
 			'programmatic token MCP'
 		],
+		heroTitle: `Schedule social media from ${label} then you approve`,
+		heroDescription,
 		docsPath: `/docs/mcp-setup-guides/${slug}`,
+		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
+		audienceSubtitle: audience.audienceSubtitle,
+		audienceTitle: audience.audienceTitle,
+		audienceCards: audience.audienceCards,
 		setupStepsSubtitle: 'How it works',
 		setupStepsTitle: `Five steps,to ${label} + OpenQuok`,
 		setupSteps: toSetupSteps(label, setupSteps, mcpClient),
@@ -499,14 +507,12 @@ function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageViewMode
 		skillSetupStepsTitle: `Four steps,to ${label} + openquok-core`,
 		skillSetupSteps: toSkillSetupSteps(label, setupSteps[0], mcpClient),
 		featureSections: buildMcpFeatureSections(label, mcpClient),
-		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
+		listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+		comparisonSection: buildMcpComparisonSection(label, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over MCP — authentication, verification, and scheduling posts from chat.`,
-		faqItems: buildMcpFaqItems(label),
-		...audience,
-		comparisonSection: buildMcpComparisonSection(label, workflowPhrase),
-		available: true
+		faqItems: buildMcpFaqItems(label)
 	};
 }
 
