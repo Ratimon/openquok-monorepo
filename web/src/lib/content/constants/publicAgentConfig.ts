@@ -289,6 +289,12 @@ export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
 	buildingBlocksSeeAllDescription: 'Browse every published building block.'
 } satisfies PublicAgentListingsPreviewSection;
 
+/** Main marketing landing page — same copy as agent previews, distinct section id. */
+export const LANDING_PAGE_LISTINGS_PREVIEW_SECTION = {
+	...PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
+	headingId: 'landing-listings-preview-heading'
+} satisfies PublicAgentListingsPreviewSection;
+
 /** Agent host catalog entries (OpenClaw, Hermes, …). */
 export type PublicAgentLandingPageViewModel = PublicAgentHostLandingPageViewModel;
 

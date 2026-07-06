@@ -1,9 +1,15 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import {
+		OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT,
+		PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID,
+		type PublicPlaybooksNavTab
+	} from '$lib/config/constants/config';
 	import { ShiftingTabDropdown } from '$lib/ui/dropdown-shifting';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PublicNavCollapsibleSection from '$lib/ui/nav-bars/PublicNavCollapsibleSection.svelte';
@@ -115,6 +121,20 @@
 	function sectionEntries(tabId: (typeof tabs)[number]['id']): NavEntry[] {
 		return tabId === 'playbook' ? playbookEntries : buildingBlockEntries;
 	}
+
+	$effect(() => {
+		if (!browser) return;
+
+		const handler = (event: Event) => {
+			const tab = (event as CustomEvent<{ tab?: PublicPlaybooksNavTab }>).detail?.tab;
+			if (tab !== 'playbook' && tab !== 'building-blocks') return;
+			selectedTabId = tab;
+			open = true;
+		};
+
+		window.addEventListener(OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT, handler);
+		return () => window.removeEventListener(OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT, handler);
+	});
 </script>
 
 {#snippet navEntryList(entries: NavEntry[])}
@@ -209,7 +229,8 @@
 		{#snippet trigger({ toggle, expanded })}
 			<button
 				type="button"
-				class="{tabClass} inline-flex cursor-pointer items-center gap-1 border-none bg-transparent {isActive
+				id={PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID}
+				class="{tabClass} inline-flex scroll-mt-4 cursor-pointer items-center gap-1 border-none bg-transparent {isActive
 					? whenSelected
 					: whenUnselected}"
 				aria-expanded={expanded}

@@ -28,9 +28,11 @@
 		backgroundVariant?: CardBackgroundVariant;
 		compact?: boolean;
 		href?: string;
+		onActivate?: () => void;
 	};
 
-	let { item, pattern, backgroundVariant = 'grid', compact = false, href }: Props = $props();
+	let { item, pattern, backgroundVariant = 'grid', compact = false, href, onActivate }: Props =
+		$props();
 
 	const cardClass = $derived(
 		cn(
@@ -69,7 +71,15 @@
 	</div>
 {/snippet}
 
-{#if href}
+{#if onActivate}
+	<button
+		type="button"
+		class={cn(cardClass, 'w-full cursor-pointer text-left')}
+		onclick={onActivate}
+	>
+		{@render cardBody()}
+	</button>
+{:else if href}
 	<a {href} class={cardClass}>
 		{@render cardBody()}
 	</a>

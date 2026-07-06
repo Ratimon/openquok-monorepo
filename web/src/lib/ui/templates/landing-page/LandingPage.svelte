@@ -2,6 +2,7 @@
 	import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 	import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import { icons } from '$data/icons';
 	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
@@ -17,6 +18,7 @@
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
+	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -25,6 +27,7 @@
 		landingPageConfigVm?: Record<string, string>;
 		publicFaqConfigVm?: Record<string, string>;
 		publicFaqItemsVm?: PublicFaqItem[];
+		listingsPreviewVm: PublicListingsPreviewVm;
 		isLoggedIn?: boolean;
 	};
 
@@ -32,6 +35,7 @@
 		landingPageConfigVm = {},
 		publicFaqConfigVm = {},
 		publicFaqItemsVm = [],
+		listingsPreviewVm,
 		isLoggedIn = false
 	}: Props = $props();
 
@@ -377,6 +381,12 @@ openquok analytics:post <post-id> -d 30`
 	index={6}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
+/>
+
+<PublicListingsPreviewDualGrid
+	heroTheme={landingHeroTheme}
+	previewVm={listingsPreviewVm}
+	seeAllScrollsToNavbar={true}
 />
 
 <IconTileGrid

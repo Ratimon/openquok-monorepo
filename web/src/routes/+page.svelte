@@ -47,6 +47,7 @@
 			: getPublicFaqConfigDefaults()
 	);
 	let publicFaqItemsVm = $derived(data.publicFaqItemsVm ?? []);
+	let listingsPreviewVm = $derived(data.listingsPreviewVm);
 	let schemaData = $derived(data.schemaData);
 </script>
 
@@ -65,6 +66,7 @@
 		{landingPageConfigVm}
 		{publicFaqConfigVm}
 		{publicFaqItemsVm}
+		{listingsPreviewVm}
 		{isLoggedIn}
 	/>
 </PublicArea>

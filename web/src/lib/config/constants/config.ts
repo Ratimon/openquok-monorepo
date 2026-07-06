@@ -623,6 +623,13 @@ export function getPublicFaqConfigDefaults(): Record<string, string> {
 
 export type NavOptions = 'tab' | 'scroll' | 'menu' | 'channels' | 'agents' | 'playbooks';
 
+/** Anchor id on the desktop Playbooks navbar trigger (landing See All scroll target). */
+export const PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID = 'public-navbar-playbooks';
+
+export const OPEN_PUBLIC_PLAYBOOKS_NAV_EVENT = 'open-public-playbooks-nav';
+
+export type PublicPlaybooksNavTab = 'playbook' | 'building-blocks';
+
 export interface DropdownLink {
 	href: string;
 	title: string;

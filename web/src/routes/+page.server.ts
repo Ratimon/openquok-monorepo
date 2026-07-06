@@ -16,10 +16,12 @@ import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemo
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
+import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
+import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 export const ssr = true;
 
-export const load: PageServerLoad = async ({ parent, url }) => {
+export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 	const { baseMetaTags, companyInformationPm, marketingInformationPm } = await parent();
 
 	const navbarDesktopLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
@@ -41,6 +43,11 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 	const { configVm: publicFaqConfigVm, itemsVm: publicFaqItemsVm } =
 		parsePublicFaqConfigModule(publicFaqRaw);
 	const publicFaqDefaults = getPublicFaqConfigDefaults();
+
+	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
+		fetch,
+		previewSection: LANDING_PAGE_LISTINGS_PREVIEW_SECTION
+	});
 
 	const companyName =
 		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
@@ -129,6 +136,7 @@ export const load: PageServerLoad = async ({ parent, url }) => {
 		landingPageConfigVm,
 		publicFaqConfigVm,
 		publicFaqItemsVm,
+		listingsPreviewVm,
 		schemaData
 	};
 };

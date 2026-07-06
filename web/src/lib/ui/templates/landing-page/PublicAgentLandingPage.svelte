@@ -116,7 +116,7 @@
 <PublicListingsPreviewDualGrid
 	heroTheme={landingHeroTheme}
 	previewVm={listingsPreviewVm}
-	/>
+/>
 
 {#if agentVm.comparisonSection}
 	<WithWithout

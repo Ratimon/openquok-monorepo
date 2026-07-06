@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicPlaybooksNavTab } from '$lib/config/constants/config';
+
+	import { focusPublicPlaybooksNav } from '$lib/ui/nav-bars/focusPublicPlaybooksNav';
 
 	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
@@ -19,9 +22,16 @@
 		heroTheme: LandingHeroTheme;
 		previewVm: PublicListingsPreviewVm;
 		sectionClass?: string;
+		/** When true, See All scrolls to the Playbooks navbar and opens the matching tab. */
+		seeAllScrollsToNavbar?: boolean;
 	};
 
-	let { heroTheme, previewVm, sectionClass = 'py-16 sm:py-20' }: Props = $props();
+	let {
+		heroTheme,
+		previewVm,
+		sectionClass = 'py-16 sm:py-20',
+		seeAllScrollsToNavbar = false
+	}: Props = $props();
 
 	const CARD_HEXAGONS: PatternCell[][] = [
 		[
@@ -60,6 +70,10 @@
 		return CARD_HEXAGONS[index % CARD_HEXAGONS.length];
 	}
 
+	function seeAllNavTab(blockKind: 'playbooks' | 'building-blocks'): PublicPlaybooksNavTab {
+		return blockKind === 'playbooks' ? 'playbook' : 'building-blocks';
+	}
+
 	function gridCells(block: PreviewGridBlock): Array<
 		| { kind: 'listing'; item: FeatureSimpleCardItem; index: number }
 		| { kind: 'see-all'; item: FeatureSimpleCardItem & { href: string }; index: number }
@@ -80,7 +94,7 @@
 	}
 </script>
 
-{#snippet previewGrid(block: PreviewGridBlock)}
+{#snippet previewGrid(block: PreviewGridBlock, blockKind: 'playbooks' | 'building-blocks')}
 	<div
 		class="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
 		aria-label={block.gridLabel}
@@ -89,7 +103,10 @@
 			{#if cell.kind === 'see-all'}
 				<FeatureSimpleCard
 					item={cell.item}
-					href={cell.item.href}
+					href={seeAllScrollsToNavbar ? undefined : cell.item.href}
+					onActivate={seeAllScrollsToNavbar
+						? () => focusPublicPlaybooksNav(seeAllNavTab(blockKind))
+						: undefined}
 					backgroundVariant="hexagon"
 					pattern={hexagonsForIndex(cell.index)}
 				/>
@@ -124,7 +141,7 @@
 						{previewVm.playbooksBlock.gridLabel}
 					</UnderlineToBackgroundText>
 				</h3>
-				{@render previewGrid(previewVm.playbooksBlock)}
+				{@render previewGrid(previewVm.playbooksBlock, 'playbooks')}
 			</div>
 
 			<div class="space-y-6">
@@ -133,7 +150,7 @@
 						{previewVm.buildingBlocksBlock.gridLabel}
 					</UnderlineToBackgroundText>
 				</h3>
-				{@render previewGrid(previewVm.buildingBlocksBlock)}
+				{@render previewGrid(previewVm.buildingBlocksBlock, 'building-blocks')}
 			</div>
 		</div>
 	</div>
