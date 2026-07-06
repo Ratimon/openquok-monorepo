@@ -10,6 +10,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
 
 	// --- Area & integrations ---
 	import {
@@ -120,12 +121,18 @@
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
 	$effect(() => {
-		void postKanbanBoard.load(workspaceId);
+		const orgId = workspaceId;
+		if (!orgId || !browser) return;
+		scheduleDeferredWork(() => {
+			void postKanbanBoard.load(orgId);
+		}, 'soon');
 	});
 
 	$effect(() => {
 		if (!browser) return;
-		void ownedAccountBillingPresenter.load();
+		scheduleDeferredWork(() => {
+			void ownedAccountBillingPresenter.load();
+		});
 	});
 
 
@@ -144,8 +151,10 @@
 
 	$effect(() => {
 		const orgId = workspaceId;
-		if (!orgId) return;
-		void createSocialPostModalPresenter.loadWorkspaceTagsIfNeeded(orgId);
+		if (!orgId || !browser) return;
+		scheduleDeferredWork(() => {
+			void createSocialPostModalPresenter.loadWorkspaceTagsIfNeeded(orgId);
+		});
 	});
 
 	const postKanbanColumnsVm = $derived(postKanbanBoard.columnsVm);
@@ -797,19 +806,25 @@
 	 */
 	$effect(() => {
 		const orgId = workspaceId;
-		if (!orgId) return;
-		void protectedHomePagePresenter.loadHomeLists();
+		if (!orgId || !browser) return;
+		scheduleDeferredWork(() => {
+			void protectedHomePagePresenter.loadHomeLists();
+		}, 'soon');
 	});
 
 	$effect(() => {
 		const workspaceIdsKey = workspacesVm.map((w) => w.id).join(',');
-		void workspaceIdsKey;
-		void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		if (!workspaceIdsKey || !browser) return;
+		scheduleDeferredWork(() => {
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		}, 'soon');
 	});
 
 	$effect(() => {
-		if (!currentUser) return;
-		void workspaceSettingsPresenter.loadPendingInvites();
+		if (!currentUser || !browser) return;
+		scheduleDeferredWork(() => {
+			void workspaceSettingsPresenter.loadPendingInvites();
+		});
 	});
 
 	$effect(() => {
@@ -859,8 +874,10 @@
 	}
 
 	$effect(() => {
-		if (listStatus !== 'ready' || !workspaceId) return;
-		void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		if (listStatus !== 'ready' || !workspaceId || !browser) return;
+		scheduleDeferredWork(() => {
+			void pagePresenter.loadMyWorkspacesOverview(currentUser);
+		}, 'soon');
 	});
 </script>
 

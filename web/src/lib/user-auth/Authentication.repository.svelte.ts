@@ -313,18 +313,17 @@ export class AuthenticationRepository {
 					roles: user.roles ?? [],
 					isPlatformAdmin: user.isPlatformAdmin
 				};
-				this.storeToken(accessToken);
-				this.storeUser(userModel);
-				this.currentUser = userModel;
-				this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
-				this.setupTokenRefresh();
-				// Fetch full profile (e.g. isPlatformAdmin, roles) so header buttons show without refresh
-				try {
-					await this.fetchCurrentUser();
-				} catch {
-					// Keep user from sign-in response if /me fails
-				}
-				return { success: true, message: signinDto.message };
+			this.storeToken(accessToken);
+			this.storeUser(userModel);
+			this.currentUser = userModel;
+			this.currentAuthStatus.status = AuthStatus.AUTHENTICATED;
+			this.setupTokenRefresh();
+			// Enrich profile (isPlatformAdmin, roles) in the background so navigation is not delayed.
+			// The sign-in response already has enough info for the user session to start.
+			void this.fetchCurrentUser().catch(() => {
+				// Keep user from sign-in response if /me fails
+			});
+			return { success: true, message: signinDto.message };
 			}
 			return { success: false, message: signinDto?.message ?? 'Sign in failed' };
 		} catch (error) {

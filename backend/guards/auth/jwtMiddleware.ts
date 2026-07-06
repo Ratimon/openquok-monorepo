@@ -10,6 +10,12 @@ import { type AuthenticatedRequest, parseBearerToken } from "./types";
 export function requireFullAuth(supabase: SupabaseClient) {
     return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
         try {
+            const authenticatedReq = req as AuthenticatedRequest;
+            if (authenticatedReq.user?.id) {
+                next();
+                return;
+            }
+
             const accessToken = parseBearerToken(req);
             if (!supabase) {
                 logger.error({ msg: "Supabase client was not provided to requireFullAuth" });
@@ -51,25 +57,45 @@ export function requireFullAuthWithRoles(
 ) {
     return async (req: Request, _res: Response, next: NextFunction): Promise<void> => {
         try {
-            const accessToken = parseBearerToken(req);
-            if (!supabase) {
-                logger.error({ msg: "Supabase client was not provided to requireFullAuthWithRoles" });
-                throw new AuthError("Authentication configuration error", 500);
+            const authenticatedReq = req as AuthenticatedRequest;
+            if (
+                authenticatedReq.user?.id &&
+                authenticatedReq.user.publicId &&
+                authenticatedReq.user.roles !== undefined
+            ) {
+                next();
+                return;
             }
 
-            const { data, error } = await supabase.auth.getUser(accessToken);
-            if (error) {
-                logger.debug({ msg: "Token verification failed", error: error.message });
-                if (error.message?.includes("expired") || (error as { code?: string }).code === "PGRST301") {
-                    throw new TokenError("Token expired", true);
+            let authId: string;
+            let email: string | undefined;
+
+            if (authenticatedReq.user?.id) {
+                authId = authenticatedReq.user.id;
+                email = authenticatedReq.user.email;
+            } else {
+                const accessToken = parseBearerToken(req);
+                if (!supabase) {
+                    logger.error({ msg: "Supabase client was not provided to requireFullAuthWithRoles" });
+                    throw new AuthError("Authentication configuration error", 500);
                 }
-                throw new TokenError(`Invalid token: ${error.message}`);
-            }
-            if (!data?.user) {
-                throw new TokenError("Invalid token: no user data returned");
+
+                const { data, error } = await supabase.auth.getUser(accessToken);
+                if (error) {
+                    logger.debug({ msg: "Token verification failed", error: error.message });
+                    if (error.message?.includes("expired") || (error as { code?: string }).code === "PGRST301") {
+                        throw new TokenError("Token expired", true);
+                    }
+                    throw new TokenError(`Invalid token: ${error.message}`);
+                }
+                if (!data?.user) {
+                    throw new TokenError("Invalid token: no user data returned");
+                }
+
+                authId = data.user.id;
+                email = data.user.email ?? undefined;
             }
 
-            const authId = data.user.id;
             const { userId: publicId, error: resolveError } = await userRepository.findUserIdByAuthId(authId);
             if (resolveError || !publicId) {
                 throw new TokenError("User profile not found");
@@ -84,7 +110,7 @@ export function requireFullAuthWithRoles(
             (req as AuthenticatedRequest).user = {
                 id: authId,
                 publicId,
-                email: data.user.email ?? undefined,
+                email,
                 roles: rolesResult.roles,
                 permissions: permissionsResult.permissions,
                 isPlatformAdmin,

@@ -20,6 +20,7 @@
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
+	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
 	
 	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
@@ -118,7 +119,9 @@
 
 	function refreshDockBadge() {
 		if (!browser) return;
-		void protectedLayoutPagePresenter.refreshEditorDockNotifications();
+		scheduleDeferredWork(() => {
+			void protectedLayoutPagePresenter.refreshEditorDockNotifications();
+		});
 	}
 
 	afterNavigate(refreshDockBadge);

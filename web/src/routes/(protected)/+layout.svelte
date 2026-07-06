@@ -34,9 +34,6 @@
 			firstBillingGatePresenter.checkoutReturnInFlightFor === checkoutId
 	);
 
-	const gateLoading = $derived(
-		firstBillingGatePresenter.loading && !checkoutBypass && !checkoutReturnInFlight
-	);
 	const showFirstBilling = $derived(
 		!isPlatformAdmin &&
 			firstBillingGatePresenter.restrictFreeUser &&
@@ -46,7 +43,8 @@
 
 	$effect(() => {
 		workspaceSettingsPresenter.currentWorkspaceId;
-		void firstBillingGatePresenter.evaluate();
+		// Non-blocking: show the app shell immediately; overlay FirstBilling only when needed.
+		void firstBillingGatePresenter.evaluate({ blocking: false });
 	});
 
 	$effect(() => {
@@ -72,11 +70,7 @@
 
 <SetPostingScheduleTimezone />
 
-{#if gateLoading}
-	<div class="flex min-h-screen items-center justify-center bg-base-200">
-		<span class="loading loading-spinner loading-lg text-primary"></span>
-	</div>
-{:else if showFirstBilling}
+{#if showFirstBilling}
 	<FirstBilling {companyName} />
 {:else}
 	<PostsLimitProvider>

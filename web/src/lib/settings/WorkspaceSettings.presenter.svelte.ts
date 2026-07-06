@@ -141,7 +141,11 @@ export class WorkspaceSettingsPresenter {
 		this.loadInflight = (async () => {
 			this.status = WorkspaceSettingsStatus.LOADING;
 			try {
-				const { workspacesVm, userId } = await this.getWorkspacePresenter.getWorkspaceSettingsData();
+				// Fetch workspace list and active session org in parallel to avoid a sequential waterfall.
+				const [{ workspacesVm, userId }, sessionOrgId] = await Promise.all([
+					this.getWorkspacePresenter.getWorkspaceSettingsData(),
+					this.currentWorkspaceId ? Promise.resolve(null) : this.profileRepository.getActiveWorkspaceIdFromSession()
+				]);
 				this.userId = userId;
 				this.workspacesVm = workspacesVm;
 				if (!includeTeam) {
@@ -151,7 +155,6 @@ export class WorkspaceSettingsPresenter {
 					this.teamMembersVm = [];
 				}
 				if (this.workspacesVm.length > 0 && !this.currentWorkspaceId) {
-					const sessionOrgId = await this.profileRepository.getActiveWorkspaceIdFromSession();
 					const preferred =
 						sessionOrgId && this.workspacesVm.some((w) => w.id === sessionOrgId) ?
 							sessionOrgId
