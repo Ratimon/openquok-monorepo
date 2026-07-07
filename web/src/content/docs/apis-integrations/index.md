@@ -17,10 +17,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="Delete Channel" description="Soft-delete a connected channel so it stops publishing and disappears from List Integrations" href="/docs/apis-integrations/delete" />
 <LinkCard title="Check Connection" description="Lightweight healthcheck — confirm the supplied programmatic or OAuth app token is accepted" href="/docs/apis-integrations/is-connected" />
 <LinkCard title="Channel settings & tools" description="Fetch rules, max post length, settings schema, and the allow-listed tools for a connected channel" href="/docs/apis-integrations/integration-settings" />
-<LinkCard title="Trigger a channel tool" description="Invoke an allow-listed provider method on a connected channel (e.g. list subreddits, fetch playlists)" href="/docs/apis-integrations/integration-trigger" />
+<LinkCard title="Trigger a channel tool" description="Invoke an allow-listed provider method on a connected channel" href="/docs/apis-integrations/integration-trigger" />
 </CardGrid>
 
-<Callout type="note" title="Scope of this section">
+<Callout type="note">
 <p>OAuth <strong>callback</strong> exchange (the redirect that finalizes a connection) is handled internally by the web app and is intentionally <strong>not</strong> part of the public API surface — see <a href="/docs/apis-integrations/connect#after-the-redirect">Connect Channel → After the redirect</a>.</p>
 </Callout>
 
@@ -36,6 +36,6 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="Public API" description="Entry point for the programmatic API surface and OpenAPI playground" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Posts APIs" description="Schedule, update, and delete post groups against the connected channels you list here" href="/docs/apis-posts" />
 <LinkCard title="Uploads APIs" description="Upload media to attach to scheduled posts" href="/docs/apis-uploads" />
-<LinkCard title="CLI" description="Same endpoints, surfaced as openquok integrations:list/settings/trigger commands" href="/docs/getting-started-for-cli" />
+<LinkCard title="CLI" description="Same endpoints, surfaced as openquok CLI commands" href="/docs/getting-started-for-cli" />
 <LinkCard title="Self-host: Social integration" description="Backend env vars and provider dashboards (e.g. Meta, Threads, Instagram)" href="/docs/social-integration" />
 </CardGrid>

@@ -1,6 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicToolsPagePresenter } from '$lib/area-public';
+import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import {
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicSkillBuilder,
@@ -46,6 +47,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 				'Design and resize visuals for social channels in your browser. Download PNG free, or save to your cloud when signed in.',
 			href: url(route(getRootPathPublicPhotoEditor())),
 			badge: 'Design editor'
+		},
+		{
+			id: 'apis-integrations',
+			title: 'Integrations APIs',
+			description:
+				'Programmatic endpoints for connecting social channels and invoking provider-specific tools with a workspace programmatic token.',
+			href: url(route(`${getRootPathPublicDocs()}/apis-integrations`)),
+			badge: 'API reference'
 		}
 	];
 
