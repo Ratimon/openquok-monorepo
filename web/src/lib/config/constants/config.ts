@@ -573,6 +573,18 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		title: 'Self-host OpenQuok for free',
 		description:
 			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
+	},
+	landing: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Get started with the OpenQuok CLI',
+		description:
+			'Install openquok-core, authenticate, and schedule your first post from any agent workspace.'
+	},
+	skillBuilder: {
+		docsPath: '/docs/getting-started-for-cli',
+		title: 'Read the OpenQuok CLI guide',
+		description:
+			'Install commands, auth patterns, and workflow recipes to export from Skill Builder into your agent.'
 	}
 } as const;
 

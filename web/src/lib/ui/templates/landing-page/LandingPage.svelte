@@ -5,7 +5,16 @@
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import { icons } from '$data/icons';
-	import { CONFIG_SCHEMA_LANDING_PAGE } from '$lib/config/constants/config';
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		CONFIG_SCHEMA_LANDING_PAGE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
+	} from '$lib/config/constants/config';
+	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { route } from '$lib/utils/path';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
 	import Iphone15ProMock from '$lib/ui/templates/device-mocks/iphone-15-pro/Iphone15ProMock.svelte';
@@ -17,6 +26,8 @@
 	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
 	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
@@ -235,6 +246,12 @@ openquok analytics:post <post-id> -d 30`
 	const pricingCtaHref = $derived(isLoggedIn ? '/account/billing' : '/sign-up');
 	const pricingCtaLabel = $derived(isLoggedIn ? 'Manage billing' : 'Start for $0');
 
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const landingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.landing;
+
 	const whoIsForCards: AudienceCard[] = [
 		{
 			iconName: icons.CustomizedDrawnRobot.name,
@@ -415,6 +432,21 @@ openquok analytics:post <post-id> -d 30`
 		faqConfigVm={publicFaqConfigVm}
 		faqItems={publicFaqItemsVm}
 		sectionClass="py-16 sm:py-20"
+	/>
+
+	<AccentSplitCtaBanner
+		title={landingDocsBanner.title}
+		description={landingDocsBanner.description}
+		ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+		ctaHref={landingDocsBanner.docsPath}
+	/>
+
+	<CenteredDarkCtaBanner
+		title={CENTERED_DARK_CTA_BANNER_TITLE}
+		description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+		ctaText={PUBLIC_BANNER_CTA_TEXT}
+		ctaHref={signUpPath}
+		sectionClass="pb-16 sm:pb-20"
 	/>
 </div>
 

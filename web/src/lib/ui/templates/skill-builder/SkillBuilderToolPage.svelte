@@ -16,6 +16,7 @@
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
+	import { buildSkillBuilderFaqSection } from '$lib/skill-builder/constants/publicSkillBuilderFaqConfig';
 	import { saveSkillBuilderStackDraft, readSkillBuilderStackDraft } from '$lib/skill-builder/constants/skillBuilderDraftStorage';
 	import { buildSkillBuilderStackDraft } from '$lib/skill-builder/utils/buildSkillBuilderStackDraft';
 	import { buildCommandWorkflowStepFromLibraryItem } from '$lib/skill-builder/constants/openquokCommandWorkflowMeta';
@@ -28,7 +29,7 @@
 		ensureOpenquokCoreExtensionSlug
 	} from '$lib/skill-builder/utils/parseBuilderQuery';
 	import { authenticationRepository } from '$lib/user-auth';
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url, absoluteUrl } from '$lib/utils/path';
 	import { planLimitsForTier } from 'openquok-common';
 	import { icons } from '$data/icons';
@@ -43,6 +44,21 @@
 	import SkillBuilderBuildingBlocksPickerModal from '$lib/ui/components/skill-builder/SkillBuilderBuildingBlocksPickerModal.svelte';
 	import SkillBuilderChannelHubGrid from '$lib/ui/components/skill-builder/SkillBuilderChannelHubGrid.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT
+	} from '$lib/ui/templates/banners/centeredDarkCtaBannerCopy';
+	import {
+		SKILL_BUILDER_DOCS_BANNER,
+		accentSplitSkillBuilderCliCtaBannerDescription,
+		accentSplitSkillBuilderCliCtaBannerTitle
+	} from '$lib/ui/templates/banners/skillBuilderBannerCopy';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		metaTitle: string;
@@ -84,12 +100,32 @@
 	const rootPathSignIn = getRootPathSignin();
 	const signInHref = url(route(rootPathSignIn));
 
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	const skillBuilderDocsBanner = SKILL_BUILDER_DOCS_BANNER;
+
 	// /account/playbooks/playbook/new
 	const rootPathAccount = getRootPathAccount();
 	const newStackHref = absoluteUrl(`${rootPathAccount}/${getAccountNewPlaybookPath()}`);
 	const accountBillingHref = url(`${route(rootPathAccount)}/billing`);
 
 	const genericSkillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
+
+	let accentBannerTitle = $derived(
+		channelSlug && channelLabel
+			? accentSplitSkillBuilderCliCtaBannerTitle(channelLabel)
+			: skillBuilderDocsBanner.title
+	);
+	let accentBannerDescription = $derived(
+		channelSlug && channelLabel
+			? accentSplitSkillBuilderCliCtaBannerDescription(channelLabel)
+			: skillBuilderDocsBanner.description
+	);
+	let accentBannerHref = $derived(cliExamplesPath ?? skillBuilderDocsBanner.docsPath);
+
+	let faqSection = $derived(buildSkillBuilderFaqSection(channelSlug, channelLabel));
 
 	const serverHydrationKey = $derived(
 		`${channelSlug ?? ''}|${selectedBuildingBlockSlugs.join(',')}|${stackSlug ?? ''}|${initialWorkflowStepsVm.length}`
@@ -436,6 +472,32 @@
 			genericHref={genericSkillBuilderHref}
 		/>
 	{/if}
+
+	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={faqSection.faqSubtitle}
+			faqTitle={faqSection.faqTitle}
+			faqDescription={faqSection.faqDescription}
+			faqItems={faqSection.faqItems}
+			sectionClass="py-16 sm:py-20"
+		/>
+
+		<AccentSplitCtaBanner
+			title={accentBannerTitle}
+			description={accentBannerDescription}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={accentBannerHref}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
+		/>
+	</div>
 </SectionOuterContainer>
 
 <SignInToSaveListingModal bind:open={showSignInModal} {signInHref} />
