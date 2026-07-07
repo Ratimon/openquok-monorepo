@@ -7,10 +7,15 @@
 	import { publicPhotoEditorCanvasPresenter } from '$lib/area-public';
 	import { getRootPathMedia } from '$lib/area-protected';
 	import {
+		getRootPathPublicChannel,
+		getRootPathPublicChannels
+	} from '$lib/area-public/constants/getRootPathPublicChannels';
+	import {
 		getRootPathPublicPhotoEditor,
 		getRootPathPublicTools
 	} from '$lib/area-public/constants/getRootPathPublicTools';
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { buildPhotoEditorFaqSection } from '$lib/canvas/constants/publicPhotoEditorFaqConfig';
+	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { icons } from '$data/icons';
 
@@ -22,6 +27,21 @@
 	import PhotoEditorHubBreadcrumb from '$lib/ui/components/photo-editor/PhotoEditorHubBreadcrumb.svelte';
 	import PhotoEditorChannelHubGrid from '$lib/ui/components/photo-editor/PhotoEditorChannelHubGrid.svelte';
 	import SignInToSaveEditorModal from '$lib/ui/components/photo-editor/SignInToSaveEditorModal.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import {
+		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
+		CENTERED_DARK_CTA_BANNER_TITLE,
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT
+	} from '$lib/ui/templates/banners/centeredDarkCtaBannerCopy';
+	import {
+		PHOTO_EDITOR_DOCS_BANNER,
+		accentSplitPhotoEditorChannelCtaBannerDescription,
+		accentSplitPhotoEditorChannelCtaBannerTitle
+	} from '$lib/ui/templates/banners/photoEditorBannerCopy';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = {
@@ -54,9 +74,18 @@
 	const rootPathPublicPhotoEditor = getRootPathPublicPhotoEditor();
 	const photoEditorHref = url(route(rootPathPublicPhotoEditor));
 
-	// /signin
+	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
 	const signInHrefBase = url(route(rootPathSignIn));
+
+	// /sign-up
+	const rootPathSignUp = getRootPathSignup();
+	const signUpPath = route(rootPathSignUp);
+
+	// /channels
+	const channelsHubHref = route(getRootPathPublicChannels());
+
+	const photoEditorDocsBanner = PHOTO_EDITOR_DOCS_BANNER;
 
 	let busy = $state(false);
 	let canvasApi = $state<KonvaCanvasApi | null>(null);
@@ -72,6 +101,23 @@
 
 	const pageHeading = $derived(channelLabel?.trim() ? `${channelLabel.trim()} Photo Editor` : metaTitle);
 	const mediaLibraryHref = absoluteUrl(getRootPathMedia());
+
+	let accentBannerTitle = $derived(
+		channelSlug && channelLabel
+			? accentSplitPhotoEditorChannelCtaBannerTitle(channelLabel)
+			: photoEditorDocsBanner.title
+	);
+	let accentBannerDescription = $derived(
+		channelSlug && channelLabel
+			? accentSplitPhotoEditorChannelCtaBannerDescription(channelLabel)
+			: photoEditorDocsBanner.description
+	);
+	let accentBannerHref = $derived(
+		channelSlug
+			? route(getRootPathPublicChannel(channelSlug))
+			: channelsHubHref
+	);
+	let faqSection = $derived(buildPhotoEditorFaqSection(channelSlug, channelLabel));
 
 	async function downloadToDevice() {
 		if (!canvasApi || busy) {
@@ -150,10 +196,38 @@
 			/>
 		</div>
 
-		<PhotoEditorChannelHubGrid
-			{channelLinksVm}
-			activeChannelSlug={channelSlug}
-			genericHref={photoEditorHref}
+		{#if channelLinksVm.length > 0}
+			<PhotoEditorChannelHubGrid
+				{channelLinksVm}
+				activeChannelSlug={channelSlug}
+				genericHref={photoEditorHref}
+			/>
+		{/if}
+	</div>
+
+	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={faqSection.faqSubtitle}
+			faqTitle={faqSection.faqTitle}
+			faqDescription={faqSection.faqDescription}
+			faqItems={faqSection.faqItems}
+			sectionClass="py-16 sm:py-20"
+		/>
+
+		<AccentSplitCtaBanner
+			title={accentBannerTitle}
+			description={accentBannerDescription}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={accentBannerHref}
+		/>
+
+		<CenteredDarkCtaBanner
+			title={CENTERED_DARK_CTA_BANNER_TITLE}
+			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
+			ctaText={PUBLIC_BANNER_CTA_TEXT}
+			ctaHref={signUpPath}
+			sectionClass="pb-16 sm:pb-20"
 		/>
 	</div>
 </SectionOuterContainer>
