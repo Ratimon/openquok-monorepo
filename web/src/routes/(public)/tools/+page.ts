@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PhotoEditorChannelHubLinkViewModel } from '$lib/photo-editor/photoEditor.types';
+import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
 import type {
 	SkillBuilderChannelHubLinkViewModel,
 	ToolsIndexToolCardViewModel
@@ -25,7 +25,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			metaDescription: string;
 			toolsVm: ToolsIndexToolCardViewModel[];
 			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
-			photoEditorChannelsVm: PhotoEditorChannelHubLinkViewModel[];
+			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
 			schemaData: unknown;
 		};
 

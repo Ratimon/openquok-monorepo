@@ -1,6 +1,6 @@
 import type { IconName } from '$data/icons';
 
-export type PhotoEditorChannelHubLinkViewModel = {
+export type CanvasChannelHubLinkViewModel = {
 	slug: string;
 	platformLabel: string;
 	icon: IconName;
@@ -8,7 +8,7 @@ export type PhotoEditorChannelHubLinkViewModel = {
 	description: string;
 };
 
-export interface PhotoEditorPageViewModel {
+export interface CanvasToolPageViewModel {
 	metaTitle: string;
 	metaDescription: string;
 	/** Set on `/tools/photo-editor/{channelSlug}` programmatic SEO routes. */

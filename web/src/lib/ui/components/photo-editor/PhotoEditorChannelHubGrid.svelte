@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { PhotoEditorChannelHubLinkViewModel } from '$lib/photo-editor/photoEditor.types';
+	import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
 
 	import { icons } from '$data/icons';
 	import { getRootPathPublicPhotoEditor } from '$lib/area-public/constants/getRootPathPublicTools';
@@ -8,7 +8,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		channelLinksVm: PhotoEditorChannelHubLinkViewModel[];
+		channelLinksVm: CanvasChannelHubLinkViewModel[];
 		/** When set, that channel card is highlighted; omit or null on the generic editor. */
 		activeChannelSlug?: string | null;
 		genericHref?: string;

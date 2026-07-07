@@ -28,7 +28,8 @@ globs:
   - web/src/routes/(public)/channels/**
   - web/src/routes/(public)/agents/[slug]/[channelSlug]/**
   - web/src/routes/(public)/extensions/**
-  - web/src/lib/photo-editor/**
+  - web/src/lib/canvas/constants/publicCanvasChannelConfig.ts
+  - web/src/lib/canvas/canvas.types.ts
   - web/src/lib/ui/canvas-editor/utils/aspectRatioPresets.ts
   - web/src/routes/(public)/tools/photo-editor/**
   - web/src/lib/ui/templates/photo-editor/**
@@ -277,17 +278,17 @@ Ship channel-specific Photo Editor pages alongside the generic tool when a socia
 | --- | --- |
 | Generic editor (all channels) | `/tools/photo-editor` — neutral default aspect (`DEFAULT_ASPECT_RATIO_ID`, General tab) |
 | Channel editor | `/tools/photo-editor/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` (e.g. `facebook`, `threads`) |
-| Channel catalog | `web/src/lib/photo-editor/constants/publicPhotoEditorChannelConfig.ts` — built from `listAvailablePublicChannels()` + aspect helpers |
+| Channel catalog | `web/src/lib/canvas/constants/publicCanvasChannelConfig.ts` — built from `listAvailablePublicChannels()` + aspect helpers |
 | Page presenter | `web/src/lib/area-public/PublicPhotoEditorPage.presenter.svelte.ts` — generic vs channel view model |
 | Shared page UI | `web/src/lib/ui/templates/photo-editor/PhotoEditorToolPage.svelte` |
 | Channel hub grid | `web/src/lib/ui/components/photo-editor/PhotoEditorChannelHubGrid.svelte` — grid on generic and channel editor pages |
 | Route helpers | `getRootPathPublicPhotoEditor()` and `getRootPathPublicPhotoEditorChannel(slug)` in `getRootPathPublicTools.ts` |
-| Tools hub entry | `ChannelHubToolCard` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs (`listPhotoEditorChannelsForHub()`) |
+| Tools hub entry | `ChannelHubToolCard` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs (`listCanvasChannelsForHub()`) |
 
 ### Auto-derived (no per-provider route files)
 
-- Channel pages at `/tools/photo-editor/{channelSlug}` via generic route + `publicPhotoEditorChannelConfig.ts` (built from `listAvailablePublicChannels()`).
-- Tools hub channel picker via `listPhotoEditorChannelsForHub()`.
+- Channel pages at `/tools/photo-editor/{channelSlug}` via generic route + `publicCanvasChannelConfig.ts` (built from `listAvailablePublicChannels()`).
+- Tools hub channel picker via `listCanvasChannelsForHub()`.
 - SEO meta defaults from channel `platformLabel` + merged `keywords` from `publicChannelConfig`.
 
 Channel pages 404 when the slug is missing from `publicChannelConfig` or `available: false`.

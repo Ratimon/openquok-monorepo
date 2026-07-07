@@ -6,16 +6,16 @@ import { publicPhotoEditorPagePresenter } from '$lib/area-public';
 import { getRootPathPublicPhotoEditorChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import {
-	getPhotoEditorChannelBySlug,
-	listPhotoEditorChannelsForHub
-} from '$lib/photo-editor/constants/publicPhotoEditorChannelConfig';
+	getCanvasChannelBySlug,
+	listCanvasChannelsForHub
+} from '$lib/canvas';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
 
 export async function load({ url, params, cookies, parent }) {
 	const channelSlug = params.channelSlug?.trim().toLowerCase() ?? '';
-	const channelConfig = getPhotoEditorChannelBySlug(channelSlug);
+	const channelConfig = getCanvasChannelBySlug(channelSlug);
 
 	if (!channelConfig) {
 		throw error(404, 'Photo Editor channel page not found');
@@ -62,7 +62,7 @@ export async function load({ url, params, cookies, parent }) {
 		pageMetaTags: metaTags,
 		isLoggedIn,
 		schemaData,
-		photoEditorChannelsVm: listPhotoEditorChannelsForHub(),
+		photoEditorChannelsVm: listCanvasChannelsForHub(),
 		...editorVm
 	};
 }

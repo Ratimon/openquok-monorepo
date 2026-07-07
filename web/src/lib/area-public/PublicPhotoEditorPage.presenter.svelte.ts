@@ -1,14 +1,14 @@
 import {
-	getPhotoEditorChannelBySlug,
-	PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG
-} from '$lib/photo-editor/constants/publicPhotoEditorChannelConfig';
-import type { PhotoEditorPageViewModel } from '$lib/photo-editor/photoEditor.types';
+	getCanvasChannelBySlug,
+	PUBLIC_CANVAS_GENERIC_CONFIG,
+	type CanvasToolPageViewModel
+} from '$lib/canvas';
 
 export class PublicPhotoEditorPagePresenter {
-	loadPhotoEditorVm(params: { channelSlug?: string | null }): PhotoEditorPageViewModel {
+	loadPhotoEditorVm(params: { channelSlug?: string | null }): CanvasToolPageViewModel {
 		const channelSlug = params.channelSlug?.trim().toLowerCase() || null;
-		const channelConfig = channelSlug ? getPhotoEditorChannelBySlug(channelSlug) : undefined;
-		const generic = PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG;
+		const channelConfig = channelSlug ? getCanvasChannelBySlug(channelSlug) : undefined;
+		const generic = PUBLIC_CANVAS_GENERIC_CONFIG;
 
 		return {
 			metaTitle: channelConfig?.metaTitle ?? generic.metaTitle,

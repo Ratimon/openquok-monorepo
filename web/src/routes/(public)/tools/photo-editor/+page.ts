@@ -1,10 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type {
-	PhotoEditorChannelHubLinkViewModel,
-	PhotoEditorPageViewModel
-} from '$lib/photo-editor/photoEditor.types';
+import type { CanvasChannelHubLinkViewModel, CanvasToolPageViewModel } from '$lib/canvas';
 
 import type { PageLoad } from './$types';
 
@@ -18,11 +15,11 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as PhotoEditorPageViewModel & {
+		const serverData = data as CanvasToolPageViewModel & {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn?: boolean;
 			schemaData: unknown;
-			photoEditorChannelsVm: PhotoEditorChannelHubLinkViewModel[];
+			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
 		};
 
 		return {

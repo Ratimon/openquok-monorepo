@@ -7,7 +7,7 @@ import {
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { listPhotoEditorChannelsForHub } from '$lib/photo-editor/constants/publicPhotoEditorChannelConfig';
+import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { route, url } from '$lib/utils/path';
@@ -75,7 +75,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		metaDescription,
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
-		photoEditorChannelsVm: listPhotoEditorChannelsForHub(),
+		photoEditorChannelsVm: listCanvasChannelsForHub(),
 		schemaData
 	};
 }

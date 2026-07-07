@@ -44,3 +44,10 @@ export {
 	type ExportDesignToMediaResult,
 	type StockPhotoViewModel
 } from '$lib/canvas/GenerateMediaModal.presenter.svelte';
+export type { CanvasChannelHubLinkViewModel, CanvasToolPageViewModel } from '$lib/canvas/canvas.types';
+export {
+	PUBLIC_CANVAS_GENERIC_CONFIG,
+	getCanvasChannelBySlug,
+	listCanvasChannelsForHub,
+	type CanvasChannelPageConfig
+} from '$lib/canvas/constants/publicCanvasChannelConfig';

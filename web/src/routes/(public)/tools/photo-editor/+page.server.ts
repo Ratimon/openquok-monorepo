@@ -4,9 +4,10 @@ import { publicPhotoEditorPagePresenter } from '$lib/area-public';
 import { getRootPathPublicPhotoEditor } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import {
-	listPhotoEditorChannelsForHub,
-	PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG
-} from '$lib/photo-editor/constants/publicPhotoEditorChannelConfig';
+	getCanvasChannelBySlug,
+	listCanvasChannelsForHub,
+	PUBLIC_CANVAS_GENERIC_CONFIG
+} from '$lib/canvas';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -24,7 +25,7 @@ export async function load({ url, cookies, parent }) {
 		customTitle: `${editorVm.metaTitle} | ${companyName}`,
 		customDescription: editorVm.metaDescription,
 		customSlug: getRootPathPublicPhotoEditor(),
-		customTags: [...PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG.keywords],
+		customTags: [...PUBLIC_CANVAS_GENERIC_CONFIG.keywords],
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
@@ -53,7 +54,7 @@ export async function load({ url, cookies, parent }) {
 		pageMetaTags: metaTags,
 		isLoggedIn,
 		schemaData,
-		photoEditorChannelsVm: listPhotoEditorChannelsForHub(),
+		photoEditorChannelsVm: listCanvasChannelsForHub(),
 		...editorVm
 	};
 }

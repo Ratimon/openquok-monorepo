@@ -5,7 +5,7 @@ import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/publicChannelConfig';
-import type { PhotoEditorChannelHubLinkViewModel } from '$lib/photo-editor/photoEditor.types';
+import type { CanvasChannelHubLinkViewModel } from '$lib/canvas/canvas.types';
 import {
 	aspectPlatformGroupIdForProviderIdentifier,
 	DEFAULT_ASPECT_RATIO_ID,
@@ -13,7 +13,7 @@ import {
 } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 import { route } from '$lib/utils/path';
 
-export type PhotoEditorChannelPageConfig = {
+export type CanvasChannelPageConfig = {
 	/** URL segment under `/tools/photo-editor/` — matches `publicChannelConfig.slug`. */
 	channelSlug: string;
 	platformLabel: string;
@@ -26,7 +26,7 @@ export type PhotoEditorChannelPageConfig = {
 	keywords: readonly string[];
 };
 
-export const PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG = {
+export const PUBLIC_CANVAS_GENERIC_CONFIG = {
 	metaTitle: 'Photo Editor',
 	metaDescription:
 		'Free design and canvas editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
@@ -43,7 +43,7 @@ export const PUBLIC_PHOTO_EDITOR_GENERIC_CONFIG = {
 	] as const
 };
 
-function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): PhotoEditorChannelPageConfig {
+function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): CanvasChannelPageConfig {
 	const focusedProviderIdentifier = channel.platformId;
 	const aspectPlatformGroupId = aspectPlatformGroupIdForProviderIdentifier(focusedProviderIdentifier);
 	const defaultAspectRatioId = defaultAspectRatioIdForComposer('custom', focusedProviderIdentifier);
@@ -72,12 +72,12 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Pho
 const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);
 const channelConfigBySlug = new Map(channelConfigs.map((config) => [config.channelSlug, config]));
 
-export function getPhotoEditorChannelBySlug(slug: string): PhotoEditorChannelPageConfig | undefined {
+export function getCanvasChannelBySlug(slug: string): CanvasChannelPageConfig | undefined {
 	const key = slug.trim().toLowerCase();
 	return channelConfigBySlug.get(key);
 }
 
-export function listPhotoEditorChannelsForHub(): PhotoEditorChannelHubLinkViewModel[] {
+export function listCanvasChannelsForHub(): CanvasChannelHubLinkViewModel[] {
 	return channelConfigs.map((config) => ({
 		slug: config.channelSlug,
 		platformLabel: config.platformLabel,

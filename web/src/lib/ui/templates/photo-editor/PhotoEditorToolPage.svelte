@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-	import type { PhotoEditorChannelHubLinkViewModel } from '$lib/photo-editor/photoEditor.types';
+	import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
 
 	import { page } from '$app/state';
 
@@ -33,7 +33,7 @@
 		composerMode?: 'global' | 'custom';
 		isLoggedIn?: boolean;
 		photoEditorBasePath?: string;
-		channelLinksVm?: PhotoEditorChannelHubLinkViewModel[];
+		channelLinksVm?: CanvasChannelHubLinkViewModel[];
 	};
 
 	let {
