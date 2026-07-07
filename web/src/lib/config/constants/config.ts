@@ -17,6 +17,7 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
 	getRootPathPublicSkillBuilder,
+	getRootPathPublicPhotoEditor,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
@@ -35,6 +36,7 @@ const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingStartedForDev());
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
+const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
 
 const appName = 'openquok';
 const appTitle = 'Openquok | Agentic Social Media Scheduler';
@@ -670,6 +672,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builders', href: publicSkillBuilderPath },
+		{ label: 'Photo Editors', href: publicPhotoEditorPath },
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },

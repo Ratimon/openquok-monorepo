@@ -1,9 +1,9 @@
 export class PublicToolsPagePresenter {
 	getToolsIndexVm() {
 		return {
-			metaTitle: 'Tools',
+			metaTitle: 'OpenQuok Free tools',
 			metaDescription:
-				'Free utilities for composing agent workflows, designing channel visuals, and building your own viral format.'
+				'Free utilities for building agent workflows, designing channel visuals, and building your own viral format.'
 		};
 	}
 }

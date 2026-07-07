@@ -41,7 +41,7 @@
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">
-			OpenQuok Free tools
+			Free tools
 		</p>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
 			{metaTitle}

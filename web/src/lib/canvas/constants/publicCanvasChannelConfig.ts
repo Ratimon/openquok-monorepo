@@ -23,13 +23,15 @@ export type CanvasChannelPageConfig = {
 	aspectPlatformGroupId: string;
 	metaTitle: string;
 	metaDescription: string;
+	/** Short blurb for hub cards on `/tools/photo-editor`. */
+	hubDescription: string;
 	keywords: readonly string[];
 };
 
 export const PUBLIC_CANVAS_GENERIC_CONFIG = {
 	metaTitle: 'Photo Editor',
 	metaDescription:
-		'Free design and canvas editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
+		'Free design editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
 	defaultAspectRatioId: DEFAULT_ASPECT_RATIO_ID,
 	aspectPlatformGroupId: 'general',
 	keywords: [
@@ -41,6 +43,16 @@ export const PUBLIC_CANVAS_GENERIC_CONFIG = {
 		'resize image for Instagram',
 		'download PNG'
 	] as const
+};
+
+const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
+	facebook: 'Feed, Reel, and story canvas sizes.',
+	threads: 'Post and portrait image sizes.',
+	instagram: 'Feed, Story, Reel, and carousel sizes.',
+	youtube: 'Thumbnails and Shorts canvas sizes.',
+	tiktok: 'Vertical video and cover image sizes.',
+	linkedin: 'Feed and link preview image sizes.',
+	x: 'Post and header image sizes.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): CanvasChannelPageConfig {
@@ -57,6 +69,9 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Can
 		aspectPlatformGroupId,
 		metaTitle: `${channel.platformLabel} Photo Editor`,
 		metaDescription: `Design and resize visuals for ${channel.platformLabel} — feed posts, stories, and channel formats. Edit in the browser, download PNG, or save to your cloud when signed in.`,
+		hubDescription:
+			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
+			`${channel.platformLabel} canvas sizes and formats.`,
 		keywords: [
 			`${channel.platformLabel} photo editor`,
 			`${channel.platformLabel} image sizes`,
@@ -83,6 +98,6 @@ export function listCanvasChannelsForHub(): CanvasChannelHubLinkViewModel[] {
 		platformLabel: config.platformLabel,
 		icon: config.icon,
 		href: route(getRootPathPublicPhotoEditorChannel(config.channelSlug)),
-		description: config.metaDescription
+		description: config.hubDescription
 	}));
 }

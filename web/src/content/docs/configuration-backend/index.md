@@ -57,7 +57,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 <LinkCard title="Google OAuth" description="Supabase Auth, Google Cloud, and backend callback URLs" href="/docs/configuration-backend/google-oauth" />
 <LinkCard title="Database & migrations" description="Supabase CLI, migrations, cron extension, and type generation" href="/docs/configuration-backend/database" />
 <LinkCard title="Email (Resend / local)" description="Supabase email confirmations, local inbox, and Resend production setup" href="/docs/configuration-backend/resend" />
-<LinkCard title="Cloudflare R2" description="S3-compatible storage for social composer and canvas exports (social_media)" href="/docs/configuration-backend/cloudflare-r2" />
+<LinkCard title="Cloudflare R2" description="S3-compatible storage for social composer and canvas exports" href="/docs/configuration-backend/cloudflare-r2" />
 <LinkCard title="Stripe billing" description="Workspace subscriptions, webhooks, and media storage quotas" href="/docs/configuration-backend/stripe" />
 </CardGrid>
 

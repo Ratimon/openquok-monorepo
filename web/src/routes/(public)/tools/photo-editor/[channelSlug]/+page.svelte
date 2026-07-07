@@ -1,9 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getRootPathPublicPhotoEditorChannel } from '$lib/area-public/constants/getRootPathPublicTools';
-	import { route } from '$lib/utils/path';
-
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PhotoEditorToolPage from '$lib/ui/templates/photo-editor/PhotoEditorToolPage.svelte';
 
@@ -21,9 +18,6 @@
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
 
-	const photoEditorBasePath = $derived(
-		channelSlug ? route(getRootPathPublicPhotoEditorChannel(channelSlug)) : route('tools/photo-editor')
-	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -36,6 +30,5 @@
 	{focusedProviderIdentifier}
 	{composerMode}
 	{isLoggedIn}
-	{photoEditorBasePath}
 	channelLinksVm={photoEditorChannelsVm}
 />

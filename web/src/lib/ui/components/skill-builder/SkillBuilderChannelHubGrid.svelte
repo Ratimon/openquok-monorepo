@@ -66,7 +66,7 @@
 						For all channels
 					</span>
 					<span class="block text-xs leading-relaxed text-base-content/65">
-						Generic builder — any building blocks, no pre-loaded CLI recipes.
+						Mix any building blocks — no channel presets.
 					</span>
 				</span>
 				<span class="mt-auto text-xs font-semibold text-primary">

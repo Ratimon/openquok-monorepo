@@ -66,7 +66,7 @@
 						For all channels
 					</span>
 					<span class="block text-xs leading-relaxed text-base-content/65">
-						Generic editor — general aspect ratios without a platform default.
+						Any aspect ratio — no platform preset.
 					</span>
 				</span>
 				<span class="mt-auto text-xs font-semibold text-primary">

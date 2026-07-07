@@ -39,6 +39,8 @@ export type SkillBuilderChannelPageConfig = {
 	icon: IconName;
 	metaTitle: string;
 	metaDescription: string;
+	/** Short blurb for hub cards on `/tools/skill-builder`. */
+	hubDescription: string;
 	keywords: readonly string[];
 	cliExamplesPath: string;
 	recipes: readonly SkillBuilderChannelRecipe[];
@@ -149,6 +151,16 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 	]
 };
 
+const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
+	facebook: 'Page posts, Reels, photos, and link previews.',
+	threads: 'Text posts and follow-up reply chains.',
+	instagram: 'Feed image posts and scheduling settings.',
+	youtube: 'Video uploads — title, privacy, and tags.',
+	tiktok: 'Direct video posts with privacy controls.',
+	linkedin: 'Profile and company Page text posts.',
+	x: 'Text posts and scheduled reply threads.'
+};
+
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {
 	const providerIdentifiers =
 		CHANNEL_PROVIDER_IDENTIFIERS[channel.slug] ?? [channel.platformId || channel.slug];
@@ -161,6 +173,9 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 		icon: channel.icon,
 		metaTitle: `${channel.platformLabel} Skill Builder`,
 		metaDescription: `Build a ${channel.platformLabel} scheduling skill with pre-loaded openquok CLI examples. Compose posts:create recipes, preview SKILL.md, and export for your agent workspace.`,
+		hubDescription:
+			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
+			`Pre-loaded ${channel.platformLabel} scheduling recipes.`,
 		keywords: [
 			`${channel.platformLabel} skill builder`,
 			`${channel.platformLabel} CLI examples`,
@@ -188,6 +203,6 @@ export function listSkillBuilderChannelsForHub(): SkillBuilderChannelHubLinkView
 		platformLabel: config.platformLabel,
 		icon: config.icon,
 		href: route(getRootPathPublicSkillBuilderChannel(config.channelSlug)),
-		description: config.metaDescription
+		description: config.hubDescription
 	}));
 }

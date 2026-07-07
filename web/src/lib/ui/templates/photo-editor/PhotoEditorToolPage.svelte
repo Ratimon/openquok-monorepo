@@ -32,7 +32,6 @@
 		focusedProviderIdentifier?: string | null;
 		composerMode?: 'global' | 'custom';
 		isLoggedIn?: boolean;
-		photoEditorBasePath?: string;
 		channelLinksVm?: CanvasChannelHubLinkViewModel[];
 	};
 
@@ -44,7 +43,6 @@
 		focusedProviderIdentifier = null,
 		composerMode = 'global',
 		isLoggedIn = false,
-		photoEditorBasePath = route(getRootPathPublicPhotoEditor()),
 		channelLinksVm = []
 	}: Props = $props();
 
