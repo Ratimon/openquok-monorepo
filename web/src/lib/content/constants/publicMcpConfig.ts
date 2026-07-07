@@ -43,6 +43,8 @@ export type PublicMcpLandingPageViewModel = {
 	agentLabel: string;
 	mcpClient: McpClient;
 	icon: IconName;
+	/** Optional second hero icon (e.g. platform icon on `/agents/{mcp}/{channel}`). */
+	heroSecondaryIcon?: IconName;
 	available: boolean;
 	metaTitle: string;
 	metaDescription: string;
@@ -374,7 +376,7 @@ function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAge
 			title: 'Review every AI draft, sign off confidently, before it goes live',
 			description:
 				'Move agent-generated posts from draft to review to scheduled on a kanban board — with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
-			bentoId: 'facebook-bulk-scheduling',
+			bentoId: 'agent-multi-platform-bulk-scheduling',
 			mediaOnRight: false,
 			cliCommandsTitle: 'Example prompts',
 			cliCommands: `Move post <id> to review and add a note to check the CTA before schedule`

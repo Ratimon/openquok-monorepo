@@ -31,16 +31,30 @@
 	const installHeadingId = 'public-agent-hero-install-heading';
 
 	const titleSegments = $derived(heroTheme.parseLandingHeroTitlePartSegments(agentVm.heroTitle));
+
+	const heroIconBoxClass =
+		'flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm';
 </script>
 
 <AuroraBackground class="relative isolate overflow-hidden">
 	<div class="relative z-10 mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
 		<div class="mx-auto flex max-w-3xl flex-col items-center text-center">
-			<div
-				class="mb-6 flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-base-100/10 shadow-lg backdrop-blur-sm"
-				aria-hidden="true"
-			>
-				<AbstractIcon name={agentVm.icon} width="36" height="36" class="size-9" focusable="false" />
+			<div class="mb-6 flex items-center justify-center gap-3" aria-hidden="true">
+				<div class={heroIconBoxClass}>
+					<AbstractIcon name={agentVm.icon} width="36" height="36" class="size-9" focusable="false" />
+				</div>
+				{#if agentVm.heroSecondaryIcon}
+					<span class="text-lg font-medium text-base-content/40" aria-hidden="true">+</span>
+					<div class={heroIconBoxClass}>
+						<AbstractIcon
+							name={agentVm.heroSecondaryIcon}
+							width="36"
+							height="36"
+							class="size-9"
+							focusable="false"
+						/>
+					</div>
+				{/if}
 			</div>
 
 			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">

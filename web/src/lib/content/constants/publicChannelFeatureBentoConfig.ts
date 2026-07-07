@@ -1,5 +1,6 @@
 /** Identifiers for interactive bento showcases on public channel feature sections. */
 export type PublicChannelFeatureBentoId =
+	| 'agent-multi-platform-bulk-scheduling'
 	| 'facebook-bulk-scheduling'
 	| 'facebook-video-links'
 	| 'facebook-insights'

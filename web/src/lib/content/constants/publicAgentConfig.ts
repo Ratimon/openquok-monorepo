@@ -250,6 +250,8 @@ export type PublicAgentHostLandingPageViewModel = {
 	/** Telegram device-mock header; defaults to `agentLabel` when omitted. */
 	telegramBotLabel?: string;
 	icon: IconName;
+	/** Optional second hero icon (e.g. platform icon on `/agents/{agent}/{channel}`). */
+	heroSecondaryIcon?: IconName;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
 	available: boolean;
 	metaTitle: string;
@@ -433,7 +435,7 @@ openquok auth:status`
 			title: 'Review every AI draft, sign off confidently, before it goes live',
 			description:
 				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
-			bentoId: 'facebook-bulk-scheduling',
+			bentoId: 'agent-multi-platform-bulk-scheduling',
 			mediaOnRight: false,
 			cliCommandsTitle: 'CLI command options',
 			cliCommands: `# Draft + human checklist
@@ -447,7 +449,7 @@ openquok posts:status <post-id> -s schedule`
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
 			description:
-				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance  and schedule more of what already resonates — without opening the dashboard.',
+				'Message OpenClaw on Telegram to pull impressions, likes, comments, and shares for any connected channel. Compare performance and schedule more of what already resonates — without opening the dashboard.',
 			deviceMock: 'iphone-15-pro',
 			deviceMockContent: 'telegram-analytics',
 			imageAlt: 'OpenClaw Telegram chat showing OpenQuok platform and post analytics',
@@ -732,7 +734,7 @@ openquok auth:status`
 			title: 'Review every AI draft, sign off confidently, before it goes live',
 			description:
 				'Chat, move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
-			bentoId: 'facebook-bulk-scheduling',
+			bentoId: 'agent-multi-platform-bulk-scheduling',
 			mediaOnRight: false,
 			cliCommandsTitle: 'CLI command options',
 			cliCommands: `# Draft + human checklist

@@ -1,6 +1,8 @@
 export type OpenquokCliCommandReferenceItem = {
 	command: string;
 	description: string;
+	/** Pretty-printed post payload for `posts:create --json` rows (from openquok-core examples). */
+	exampleJson?: string;
 };
 
 export type SkillInstallOption = {

@@ -51,17 +51,28 @@
 			</div>
 
 			<ul class="divide-base-content/10 divide-y">
-				{#each commands as item (item.command)}
-					<li
-						class="grid gap-3 px-4 py-4 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-center sm:gap-6 sm:px-6"
-					>
-						<TerminalCommandRow
-							code={item.command}
-							ariaLabel={`Copy ${item.command} to clipboard`}
-						/>
-						<p class="text-base-content/75 text-sm leading-relaxed sm:text-[15px]">
-							{item.description}
-						</p>
+				{#each commands as item, index (`${item.command}-${index}`)}
+					<li class="px-4 py-4 sm:px-6">
+						<div
+							class="grid gap-3 sm:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] sm:items-start sm:gap-6"
+						>
+							<div class="space-y-3">
+								<TerminalCommandRow
+									code={item.command}
+									ariaLabel={`Copy ${item.command} to clipboard`}
+								/>
+								{#if item.exampleJson}
+									<TerminalCommandRow
+										code={item.exampleJson}
+										ariaLabel="Copy post JSON payload to clipboard"
+										class="items-start [&_code]:whitespace-pre-wrap"
+									/>
+								{/if}
+							</div>
+							<p class="text-base-content/75 text-sm leading-relaxed sm:pt-2.5 sm:text-[15px]">
+								{item.description}
+							</p>
+						</div>
 					</li>
 				{/each}
 			</ul>

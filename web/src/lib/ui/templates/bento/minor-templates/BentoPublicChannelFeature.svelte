@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 
+	import BentoAgentMultiPlatformBulkScheduling from '$lib/ui/templates/bento/minor-templates/agent/BentoAgentMultiPlatformBulkScheduling.svelte';
 	import BentoFacebookBulkScheduling from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookBulkScheduling.svelte';
 	import BentoFacebookInsights from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookInsights.svelte';
 	import BentoFacebookVideoLinks from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookVideoLinks.svelte';
@@ -31,7 +32,9 @@
 </script>
 
 
-{#if bentoId === 'facebook-bulk-scheduling'}
+{#if bentoId === 'agent-multi-platform-bulk-scheduling'}
+	<BentoAgentMultiPlatformBulkScheduling />
+{:else if bentoId === 'facebook-bulk-scheduling'}
 	<BentoFacebookBulkScheduling />
 {:else if bentoId === 'facebook-video-links'}
 	<BentoFacebookVideoLinks />

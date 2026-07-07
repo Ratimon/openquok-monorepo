@@ -1,9 +1,12 @@
-import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import {
-	publicBuildingBlocksPagePresenter,
-	publicPlaybooksPagePresenter
-} from '$lib/area-public/index';
+	getRootPathPublicBuildingBlocks,
+	getRootPathPublicBuildingBlocksTag
+} from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
+import {
+	getRootPathPublicPlaybooks,
+	getRootPathPublicPlaybooksTag
+} from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import { getListingPresenter } from '$lib/listings/index';
 import {
 	DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK,
 	type PublicAgentListingsPreviewSection
@@ -36,17 +39,34 @@ export async function loadAgentListingsPreviewStateless(params: {
 	fetch?: typeof globalThis.fetch;
 	limit?: number;
 	previewSection: PublicAgentListingsPreviewSection;
+	/** When set, only listings tagged with this slug appear in both grids. */
+	listingTagSlug?: string | null;
 }): Promise<PublicListingsPreviewVm> {
 	const limit =
 		params.limit ?? params.previewSection.itemsPerBlockLimit ?? DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK;
+	const tagSlug = params.listingTagSlug?.trim() || null;
+	const tagSlugs = tagSlug ? [tagSlug] : null;
 
-	const [playbooksHub, buildingBlocksHub] = await Promise.all([
-		publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch: params.fetch, limit }),
-		publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({ fetch: params.fetch, limit })
+	const [playbooksResult, buildingBlocksResult] = await Promise.all([
+		getListingPresenter.loadPublishedStacksVm({
+			fetch: params.fetch,
+			limit,
+			tagSlugs
+		}),
+		getListingPresenter.loadPublishedExtensionsVm({
+			fetch: params.fetch,
+			limit,
+			skip: 0,
+			tagSlugs
+		})
 	]);
 
-	const playbooksPath = route(getRootPathPublicPlaybooks());
-	const buildingBlocksPath = route(getRootPathPublicBuildingBlocks());
+	const playbooksPath = tagSlug
+		? route(getRootPathPublicPlaybooksTag(tagSlug))
+		: route(getRootPathPublicPlaybooks());
+	const buildingBlocksPath = tagSlug
+		? route(getRootPathPublicBuildingBlocksTag(tagSlug))
+		: route(getRootPathPublicBuildingBlocks());
 	const previewCopy = params.previewSection;
 
 	return {
@@ -56,7 +76,7 @@ export async function loadAgentListingsPreviewStateless(params: {
 		description: previewCopy.description,
 		playbooksBlock: {
 			gridLabel: previewCopy.playbooksGridLabel,
-			items: playbooksHub.stacks.slice(0, limit).map(playbookToPreviewCardItem),
+			items: playbooksResult.stacks.slice(0, limit).map(playbookToPreviewCardItem),
 			seeAll: buildSeeAllPreviewCardItem({
 				id: 'see-all-playbooks',
 				href: playbooksPath,
@@ -65,7 +85,7 @@ export async function loadAgentListingsPreviewStateless(params: {
 		},
 		buildingBlocksBlock: {
 			gridLabel: previewCopy.buildingBlocksGridLabel,
-			items: buildingBlocksHub.extensions.slice(0, limit).map(buildingBlockToPreviewCardItem),
+			items: buildingBlocksResult.listings.slice(0, limit).map(buildingBlockToPreviewCardItem),
 			seeAll: buildSeeAllPreviewCardItem({
 				id: 'see-all-building-blocks',
 				href: buildingBlocksPath,

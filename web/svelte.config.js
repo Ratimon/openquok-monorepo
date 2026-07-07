@@ -59,7 +59,8 @@ const config = {
 		alias: {
 			'web-config': './src/web-config.json',
 			'$data': './src/data',
-			'$tests': './src/tests'
+			'$tests': './src/tests',
+			'$openquok-core-examples': '../agent/skills/openquok-core/resources/examples'
 		}
 	}
 };

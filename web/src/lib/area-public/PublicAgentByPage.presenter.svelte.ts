@@ -3,6 +3,12 @@ import {
 	getAvailablePublicAgentHostBySlug,
 	getPublicAgentHostBySlug
 } from '$lib/content/constants/publicAgentConfig';
+import { getAvailablePublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
+import {
+	getPublicAgentChannelBySlug
+} from '$lib/content/constants/publicAgentChannelConfig';
+import { buildAgentChannelLandingVm } from '$lib/content/utils/buildAgentChannelLandingVm';
+import { buildMcpChannelLandingVm } from '$lib/content/utils/buildMcpChannelLandingVm';
 import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
 import {
 	getAvailablePublicMcpLandingBySlug,
@@ -41,6 +47,13 @@ export function listAllPublicAgentsLandingPages(): PublicAgentsLandingPage[] {
 	return [...listPublicMcpLandingPages()];
 }
 
+export type PublicAgentsChannelPageViewModel = {
+	landingVm: PublicAgentsLandingPage;
+	channelSlug: string;
+	channelLabel: string;
+	cliExamplesPath: string;
+};
+
 export class PublicAgentByPagePresenter {
 	public agentVm: PublicAgentViewModel | null = $state(null);
 
@@ -61,5 +74,43 @@ export class PublicAgentByPagePresenter {
 		const agentVm = this.loadAgentBySlugStateless(slug);
 		this.agentVm = agentVm;
 		return agentVm;
+	}
+
+	/**
+	 * Stateless — resolve agent host or MCP client + social channel slug into a channel-specific landing VM.
+	 * Returns `null` when the agent slug, channel, or availability check fails.
+	 */
+	loadAgentChannelStateless(
+		agentSlug: string,
+		channelSlug: string
+	): PublicAgentsChannelPageViewModel | null {
+		const normalizedAgentSlug = agentSlug.trim().toLowerCase();
+		const normalizedChannelSlug = channelSlug.trim().toLowerCase();
+
+		const channel = getAvailablePublicChannelBySlug(normalizedChannelSlug);
+		const channelConfig = getPublicAgentChannelBySlug(normalizedChannelSlug);
+		if (!channel || !channelConfig) return null;
+
+		const baseAgent = getAvailablePublicAgentHostBySlug(normalizedAgentSlug);
+		if (baseAgent) {
+			return {
+				landingVm: buildAgentChannelLandingVm({ baseAgent, channel, channelConfig }),
+				channelSlug: channelConfig.channelSlug,
+				channelLabel: channelConfig.platformLabel,
+				cliExamplesPath: channelConfig.cliExamplesPath
+			};
+		}
+
+		const baseMcp = getAvailablePublicMcpLandingBySlug(normalizedAgentSlug);
+		if (baseMcp) {
+			return {
+				landingVm: buildMcpChannelLandingVm({ baseMcp, channel, channelConfig }),
+				channelSlug: channelConfig.channelSlug,
+				channelLabel: channelConfig.platformLabel,
+				cliExamplesPath: channelConfig.cliExamplesPath
+			};
+		}
+
+		return null;
 	}
 }

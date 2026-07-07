@@ -110,7 +110,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPageViewModel = {
 			iconClass: 'text-rose-400',
 			title: 'Page owners',
 			description:
-				'Schedule feed posts, photos, and MP4 Reels on your Facebook Page without living in Meta Business Suite. Queue content on the calendar and publish through the official Graph API.',
+				'Schedule feed posts, photos, and MP4 Reels on your Facebook Page without living in Meta Business Suite. Publish content through the official Graph API.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -118,7 +118,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPageViewModel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch weeks of Page content, keep link previews and Reels on one schedule, and review everything before it goes live — from the dashboard or your existing workflows.',
+				'Batch weeks of Page content, and review everything before it goes live — from the dashboard or your existing workflows.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -126,7 +126,7 @@ const FACEBOOK_CHANNEL: PublicChannelLandingPageViewModel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies',
 			description:
-				'Manage multiple client Facebook Pages in separate workspaces. Connect each Page once, schedule at scale, and track Page insights without mixing brands.',
+				'Manage multiple Facebook Pages. Connect each Page once, schedule at scale, and track Page insights without mixing brands.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -207,7 +207,7 @@ const THREADS_CHANNEL: PublicChannelLandingPageViewModel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue Threads posts, batch drafts on the calendar, weeks ahead',
 			description:
-				'Schedule text and media posts onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule text and media posts onto the calendar for weeks ahead. Review agent and human drafts on the kanban board, then scheduled when you are ready to publish.',
 			bentoId: 'threads-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -215,7 +215,7 @@ const THREADS_CHANNEL: PublicChannelLandingPageViewModel = {
 			subtitle: 'Media & replies',
 			title: 'Attach image or video, schedule follow-up replies, in one place',
 			description:
-				'Create post within Threads\'s 500-character limit, attach a single image or video (or a multi-media carousel), and queue follow-up replies with per-reply delays before the thread goes live.',
+				'Create post within Threads\'s 500-character limit, attach a single image, carousel or video, and queue replies with delays before the thread goes live.',
 			bentoId: 'threads-media-replies',
 			mediaOnRight: false
 		},

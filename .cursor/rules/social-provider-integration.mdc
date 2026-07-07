@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + agent channel SEO routes + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -16,11 +16,20 @@ globs:
   - web/src/content/docs/cli-examples/**
   - web/src/content/constants/publicChannelConfig.ts
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
+  - web/src/content/constants/publicAgentChannelConfig.ts
+  - web/src/content/utils/buildAgentChannelLandingVm.ts
+  - web/src/content/utils/buildMcpChannelLandingVm.ts
+  - web/src/content/utils/buildAgentsChannelAudienceSection.ts
   - web/src/lib/ui/templates/bento/**
   - web/src/lib/area-public/constants/getRootPathPublicChannels.ts
+  - web/src/lib/area-public/constants/getRootPathPublicAgents.ts
+  - web/src/lib/area-public/PublicAgentByPage.presenter.svelte.ts
+  - web/src/lib/listings/server/loadAgentListingsPreview.server.ts
   - web/src/routes/(public)/channels/**
+  - web/src/routes/(public)/agents/[slug]/[channelSlug]/**
   - web/src/routes/(public)/extensions/**
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
+  - web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte
   - agent/skills/openquok-core/SKILL.md
@@ -30,11 +39,11 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + public channel landing page + agent channel SEO routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, and `/channels/{slug}`. Do not fork slugs between layers.
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, `/channels/{slug}`, and **`/agents/{agentSlug}/{slug}`** (agent channel SEO). Do not fork slugs between layers.
 
 ## Backend (required)
 
@@ -251,6 +260,54 @@ When adding or go-live-ing a provider that already has CLI examples:
 
 Channel pages 404 when the slug is missing from `publicChannelConfig` or `available: false`.
 
+## Programmatic Agent channel SEO (agent host routes)
+
+Ship platform-specific agent landing pages alongside the generic agent host page when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — adding a channel is a **catalog + bento + CLI recipe update** (no new `+page` files per slug).
+
+| Artifact | Path / URL |
+| --- | --- |
+| Generic agent host (all platforms) | `/agents/openclaw`, `/agents/hermes` — multi-platform kanban bento (`agent-multi-platform-bulk-scheduling`) |
+| Agent channel page | `/agents/{agentSlug}/{channelSlug}` — e.g. `/agents/openclaw/facebook`; `{channelSlug}` matches `publicChannelConfig.slug` |
+| Supported agent slugs | Agent hosts (`openclaw`, `hermes`) and **all live MCP clients** (`claude-cowork`, `cursor`, `codex`, …) from `publicMcpConfig.ts` |
+| Channel catalog | `web/src/lib/content/constants/publicAgentChannelConfig.ts` — bento IDs, listing tag, SEO meta, CLI command reference |
+| Landing VM builder | `buildAgentChannelLandingVm.ts` (agent hosts) and `buildMcpChannelLandingVm.ts` (MCP clients) — merge base VM with platform copy and showcases |
+| Feature section overrides | `buildAgentsChannelFeatureSections.ts` — shared kanban/analytics bento + CLI or MCP prompt snippets |
+| CLI command reference | `web/src/lib/content/utils/buildAgentChannelCliCommandReference.ts` — per-platform commands aligned with `agent/skills/openquok-core/resources/{id}-examples.md` and `examples/*.json` |
+| Listings preview filter | `loadAgentListingsPreviewStateless({ listingTagSlug })` — playbooks + building blocks filtered by `listing_tags.slug` |
+| Presenter | `PublicAgentByPagePresenter.loadAgentChannelStateless(agentSlug, channelSlug)` |
+| Shared page UI | `web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte` (same template as `/agents/{agentSlug}`) |
+| Route helper | `getRootPathPublicAgentChannel(agentSlug, channelSlug)` in `getRootPathPublicAgents.ts` |
+| Route files | `web/src/routes/(public)/agents/[slug]/[channelSlug]/+page.server.ts` (+ `+page.ts`, `+page.svelte`) |
+
+MCP channel pages use **example prompts** (not CLI commands) in kanban/analytics feature rows. Generic MCP pages (`/agents/{mcpSlug}`) use the **multi-platform** kanban bento (`agent-multi-platform-bulk-scheduling`), same as generic agent host pages.
+
+Agent channel pages 404 when the agent slug is missing from `publicAgentConfig` / `publicMcpConfig`, the channel slug is missing from `publicChannelConfig`, or `available: false` on either catalog entry.
+
+Derived from the base agent host VM (`publicAgentConfig.ts`) plus `buildAgentChannelLandingVm`:
+
+| Section | Channel-specific behavior |
+| --- | --- |
+| Hero | `Schedule {Platform} from {AgentLabel} then you approve` |
+| Kanban feature row | Copy + bento from `publicChannelConfig.featureSections[1]` (compose/settings — same as `/channels/{slug}` section 2, e.g. Facebook **Video & links**) |
+| Analytics feature row | Copy + bento from `publicChannelConfig.featureSections[2]` (insights — same as `/channels/{slug}` section 3) |
+| Playbooks & Building Blocks | Filtered by `listingTagSlug` (= channel slug); see-all links → `/playbooks/tags/{slug}` and `/building-blocks/tags/{slug}` |
+| Command reference | Platform CLI table (agent hosts only) from `buildAgentChannelCliCommandReference` |
+| WhoIsFor | `audienceSubtitle`, `audienceTitle`, and `audienceCards` from `publicChannelConfig` (same as `/channels/{slug}`); subtitle/title include `{agentLabel}`; each card keeps platform copy and adds an agent/MCP hook via `buildAgentsChannelAudienceSection.ts` |
+| FAQ | Platform-focused titles and answers |
+
+Generic `/agents/openclaw` and generic MCP pages (e.g. `/agents/claude-cowork`) keep **social media** hero copy and the **multi-platform** kanban mock (`agentMultiPlatformKanbanMock.ts`). When go-live-ing a new provider, add a representative card there so generic agent and MCP pages reflect the expanded catalog.
+
+### Catalog entry (`publicAgentChannelConfig`)
+
+Configs are built from `listAvailablePublicChannels()` — a new live channel appears on agent channel routes automatically **after** bento showcases and CLI examples exist. When adding or go-live-ing a provider, also update:
+
+1. **`CHANNEL_PROVIDER_IDENTIFIERS`** in `publicAgentChannelConfig.ts` — jq filter ids (match `integrations:list` identifiers; mirror Skill Builder).
+2. **`KANBAN_BENTO_BY_CHANNEL`** and **`ANALYTICS_BENTO_BY_CHANNEL`** — map slug → `{slug}-bulk-scheduling` and `{slug}-insights` (requires bento IDs in `publicChannelFeatureBentoConfig.ts` and branches in `BentoPublicChannelFeature.svelte`; same bar as `/channels/{slug}`).
+3. **`CHANNEL_CLI_RECIPES`**, **`KANBAN_EXAMPLE_BY_CHANNEL`**, and **`kanbanMcpPrompts` / `analyticsMcpPrompts`** in `publicAgentChannelConfig.ts` / `buildAgentChannelCliCommandReference.ts` — CLI commands (agent hosts) and example prompts (MCP clients), aligned with `resources/{id}-examples.md` and `examples/*.json`.
+4. **`agentMultiPlatformKanbanMock.ts`** (optional but recommended) — one mock kanban card for the new platform on generic agent host pages.
+
+Agent channel pages 404 when the slug is missing from `publicChannelConfig`, `available: false`, or the parent agent/MCP slug is unavailable.
+
 ## PR self-check
 
 - Provider registered in `integrationManager.ts` and `getLaunchProviderConfig` (if composer support).
@@ -263,4 +320,5 @@ Channel pages 404 when the slug is missing from `publicChannelConfig` or `availa
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
+- **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for live channels on **agent hosts and MCP clients**; generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

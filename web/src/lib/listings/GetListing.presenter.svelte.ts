@@ -507,9 +507,17 @@ export class GetListingPresenter {
 		limit?: number;
 		skip?: number;
 		searchTerm?: string | null;
+		tagSlugs?: string[] | null;
 		fetch?: typeof globalThis.fetch;
 	}): Promise<{ stacks: StackCardViewModel[]; count: number }> {
-		const result = await this.listingRepository.getPublishedStacks(params);
+		const result = await this.listingRepository.getPublishedListings({
+			limit: params.limit ?? 50,
+			skip: params.skip ?? 0,
+			searchTerm: params.searchTerm,
+			tagSlugs: params.tagSlugs,
+			listingKind: 'stack',
+			fetch: params.fetch
+		});
 		return {
 			stacks: result.listings.map((listing) => this.toStackCardVm(listing)),
 			count: result.count
