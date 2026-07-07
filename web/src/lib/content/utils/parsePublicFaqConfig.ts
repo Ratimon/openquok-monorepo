@@ -1,21 +1,14 @@
 import {
 	PUBLIC_FAQ_ITEMS,
+	getDefaultPublicFaqConfigItems,
+	type PublicFaqConfigItem,
 	type PublicFaqItem
 } from '$lib/content/constants/publicFaqConfig';
 import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
-export type PublicFaqConfigItem = {
-	question: string;
-	answer: string;
-};
+export type { PublicFaqConfigItem, PublicFaqItem };
 
-
-export function getDefaultPublicFaqConfigItems(): PublicFaqConfigItem[] {
-	return PUBLIC_FAQ_ITEMS.map(({ title, description }) => ({
-		question: title,
-		answer: description
-	}));
-}
+export { getDefaultPublicFaqConfigItems };
 
 /** Normalize admin/API FAQ entries to public accordion view models. */
 export function parsePublicFaqItems(raw: unknown): PublicFaqItem[] {

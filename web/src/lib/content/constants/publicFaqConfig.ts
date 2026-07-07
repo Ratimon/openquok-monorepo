@@ -122,3 +122,15 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 			'The Group management feature let you organize connected channels by client, brand, or any structure you like—making it simple to manage multiple clients or keep personal and business accounts separate. This can be selected to create post later or used by smart filters.'
 	}
 ];
+
+export type PublicFaqConfigItem = {
+	question: string;
+	answer: string;
+};
+
+export function getDefaultPublicFaqConfigItems(): PublicFaqConfigItem[] {
+	return PUBLIC_FAQ_ITEMS.map(({ title, description }) => ({
+		question: title,
+		answer: description
+	}));
+}

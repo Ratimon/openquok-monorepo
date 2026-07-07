@@ -1,5 +1,5 @@
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
-import { getDefaultPublicFaqConfigItems } from '$lib/content/utils/parsePublicFaqConfig';
+import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/publicFaqConfig';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -515,9 +515,9 @@ export const LISTING_IMAGES_BUCKET = 'listing_images' as const;
 /** Public CTA banner copy (agents, channels, blog). */
 export const PUBLIC_BANNER_CTA_TEXT = 'Start for $0';
 
-export const CENTERED_DARK_CTA_BANNER_TITLE = 'Your workspace, your approval gate';
+export const CENTERED_DARK_CTA_BANNER_TITLE = 'Start free. Publish with confidence.';
 export const CENTERED_DARK_CTA_BANNER_DESCRIPTION =
-	'OpenQuok is where agent drafts land for review — schedule across channels, track what performs, and publish only what you sign off on.';
+	'Connect your agent, review every draft, and schedule posts across channels before anything goes live.';
 
 export const ACCENT_SPLIT_CTA_BANNER_TITLE = 'Connect your agent today';
 
