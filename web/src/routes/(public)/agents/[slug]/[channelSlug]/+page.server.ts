@@ -40,7 +40,8 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
 		fetch,
 		previewSection: landingVm.listingsPreviewSection,
-		listingTagSlug: channelConfig.listingTagSlug
+		listingTagSlug: channelConfig.listingTagSlug,
+		skillBuilderChannelSlug: channelSlug
 	});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();

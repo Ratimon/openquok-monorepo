@@ -52,3 +52,17 @@ export function buildSeeAllPreviewCardItem(params: {
 		href: params.href
 	};
 }
+
+export function buildSkillBuilderPreviewCardItem(params: {
+	id: string;
+	href: string;
+	description: string;
+}): FeatureSimpleCardItem & { href: string } {
+	return {
+		id: params.id,
+		title: 'Skill Builder',
+		description: params.description,
+		icon: icons.LayoutTemplate.name,
+		href: params.href
+	};
+}

@@ -56,6 +56,7 @@ export function buildMcpChannelLandingVm(params: {
 			title: `${platformLabel} viral formats`,
 			description: `Mix ${platformLabel}-focused playbooks, skills, and MCP servers—then tailor them to your ${clientLabel} workflow.`,
 			playbooksSeeAllDescription: `Browse every ${platformLabel} playbook.`,
+			playbooksSkillBuilderDescription: `Build and export a ${platformLabel} SKILL.md from building blocks.`,
 			buildingBlocksSeeAllDescription: `Browse every ${platformLabel} building block.`
 		},
 		comparisonSection: baseMcp.comparisonSection

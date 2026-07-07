@@ -236,6 +236,7 @@ export type PublicAgentListingsPreviewSection = {
 	playbooksGridLabel: string;
 	buildingBlocksGridLabel: string;
 	playbooksSeeAllDescription: string;
+	playbooksSkillBuilderDescription: string;
 	buildingBlocksSeeAllDescription: string;
 	/** Max listing cards per grid block; see-all card is rendered in addition. */
 	itemsPerBlockLimit: number;
@@ -293,6 +294,7 @@ export const PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION = {
 	playbooksGridLabel: 'Playbooks',
 	buildingBlocksGridLabel: 'Building Blocks',
 	playbooksSeeAllDescription: 'Browse every published playbook.',
+	playbooksSkillBuilderDescription: 'Build and export a SKILL.md from building blocks.',
 	buildingBlocksSeeAllDescription: 'Browse every published building block.',
 	itemsPerBlockLimit: DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK
 } satisfies PublicAgentListingsPreviewSection;

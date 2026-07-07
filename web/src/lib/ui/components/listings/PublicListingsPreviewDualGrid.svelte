@@ -74,23 +74,42 @@
 		return blockKind === 'playbooks' ? 'playbook' : 'building-blocks';
 	}
 
-	function gridCells(block: PreviewGridBlock): Array<
+	function gridCells(
+		block: PreviewGridBlock,
+		blockKind: 'playbooks' | 'building-blocks'
+	): Array<
 		| { kind: 'listing'; item: FeatureSimpleCardItem; index: number }
-		| { kind: 'see-all'; item: FeatureSimpleCardItem & { href: string }; index: number }
+		| { kind: 'link'; item: FeatureSimpleCardItem & { href: string }; index: number; linkKind: 'skill-builder' | 'see-all' }
 	> {
 		const listingCells = block.items.map((item, index) => ({
 			kind: 'listing' as const,
 			item,
 			index
 		}));
-		return [
-			...listingCells,
-			{
-				kind: 'see-all' as const,
-				item: block.seeAll,
-				index: listingCells.length
-			}
-		];
+		const linkCells: Array<{
+			kind: 'link';
+			item: FeatureSimpleCardItem & { href: string };
+			index: number;
+			linkKind: 'skill-builder' | 'see-all';
+		}> = [];
+
+		if (blockKind === 'playbooks' && block.skillBuilder) {
+			linkCells.push({
+				kind: 'link',
+				item: block.skillBuilder,
+				index: listingCells.length + linkCells.length,
+				linkKind: 'skill-builder'
+			});
+		}
+
+		linkCells.push({
+			kind: 'link',
+			item: block.seeAll,
+			index: listingCells.length + linkCells.length,
+			linkKind: 'see-all'
+		});
+
+		return [...listingCells, ...linkCells];
 	}
 </script>
 
@@ -99,12 +118,12 @@
 		class="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
 		aria-label={block.gridLabel}
 	>
-		{#each gridCells(block) as cell (cell.item.id)}
-			{#if cell.kind === 'see-all'}
+		{#each gridCells(block, blockKind) as cell (cell.item.id)}
+			{#if cell.kind === 'link'}
 				<FeatureSimpleCard
 					item={cell.item}
-					href={seeAllScrollsToNavbar ? undefined : cell.item.href}
-					onActivate={seeAllScrollsToNavbar
+					href={cell.linkKind === 'see-all' && seeAllScrollsToNavbar ? undefined : cell.item.href}
+					onActivate={cell.linkKind === 'see-all' && seeAllScrollsToNavbar
 						? () => focusPublicPlaybooksNav(seeAllNavTab(blockKind))
 						: undefined}
 					backgroundVariant="hexagon"

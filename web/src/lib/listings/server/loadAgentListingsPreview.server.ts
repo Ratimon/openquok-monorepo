@@ -6,6 +6,10 @@ import {
 	getRootPathPublicPlaybooks,
 	getRootPathPublicPlaybooksTag
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathPublicSkillBuilder,
+	getRootPathPublicSkillBuilderChannel
+} from '$lib/area-public/constants/getRootPathPublicTools';
 import { getListingPresenter } from '$lib/listings/index';
 import {
 	DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK,
@@ -13,6 +17,7 @@ import {
 } from '$lib/content/constants/publicAgentConfig';
 import {
 	buildSeeAllPreviewCardItem,
+	buildSkillBuilderPreviewCardItem,
 	buildingBlockToPreviewCardItem,
 	playbookToPreviewCardItem
 } from '$lib/listings/utils/buildListingsPreviewCardItems';
@@ -23,6 +28,7 @@ import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/Featu
 export type PublicListingsPreviewGridBlockVm = {
 	gridLabel: string;
 	items: FeatureSimpleCardItem[];
+	skillBuilder?: FeatureSimpleCardItem & { href: string };
 	seeAll: FeatureSimpleCardItem & { href: string };
 };
 
@@ -41,6 +47,8 @@ export async function loadAgentListingsPreviewStateless(params: {
 	previewSection: PublicAgentListingsPreviewSection;
 	/** When set, only listings tagged with this slug appear in both grids. */
 	listingTagSlug?: string | null;
+	/** When set, playbooks grid links to `/tools/skill-builder/{slug}`; otherwise `/tools/skill-builder`. */
+	skillBuilderChannelSlug?: string | null;
 }): Promise<PublicListingsPreviewVm> {
 	const limit =
 		params.limit ?? params.previewSection.itemsPerBlockLimit ?? DEFAULT_LISTINGS_PREVIEW_ITEMS_PER_BLOCK;
@@ -67,6 +75,10 @@ export async function loadAgentListingsPreviewStateless(params: {
 	const buildingBlocksPath = tagSlug
 		? route(getRootPathPublicBuildingBlocksTag(tagSlug))
 		: route(getRootPathPublicBuildingBlocks());
+	const skillBuilderChannelSlug = params.skillBuilderChannelSlug?.trim() || null;
+	const skillBuilderPath = skillBuilderChannelSlug
+		? route(getRootPathPublicSkillBuilderChannel(skillBuilderChannelSlug))
+		: route(getRootPathPublicSkillBuilder());
 	const previewCopy = params.previewSection;
 
 	return {
@@ -77,6 +89,11 @@ export async function loadAgentListingsPreviewStateless(params: {
 		playbooksBlock: {
 			gridLabel: previewCopy.playbooksGridLabel,
 			items: playbooksResult.stacks.slice(0, limit).map(playbookToPreviewCardItem),
+			skillBuilder: buildSkillBuilderPreviewCardItem({
+				id: 'skill-builder-playbooks',
+				href: skillBuilderPath,
+				description: previewCopy.playbooksSkillBuilderDescription
+			}),
 			seeAll: buildSeeAllPreviewCardItem({
 				id: 'see-all-playbooks',
 				href: playbooksPath,
