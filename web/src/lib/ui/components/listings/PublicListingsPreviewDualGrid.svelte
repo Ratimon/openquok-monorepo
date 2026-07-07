@@ -126,8 +126,9 @@
 					onActivate={cell.linkKind === 'see-all' && seeAllScrollsToNavbar
 						? () => focusPublicPlaybooksNav(seeAllNavTab(blockKind))
 						: undefined}
-					backgroundVariant="hexagon"
-					pattern={hexagonsForIndex(cell.index)}
+					backgroundVariant="striped"
+					stripedDirection={cell.linkKind === 'skill-builder' ? 'left' : 'right'}
+					stripedTone={blockKind === 'building-blocks' ? 'amber' : 'emerald'}
 				/>
 			{:else}
 				<FeatureSimpleCard
