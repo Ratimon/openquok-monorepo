@@ -14,18 +14,9 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import DesignMediaCanvasShell from '$lib/ui/components/media/DesignMediaCanvasShell.svelte';
+	import DesignMediaExportFooter from '$lib/ui/components/media/DesignMediaExportFooter.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-
-	type DesignWorkspaceModule = typeof import('$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte');
-
-	/** Set on first open so Konva + side panel stay in a separate chunk until the dialog is used. */
-	let designWorkspaceCache: Promise<DesignWorkspaceModule> | null = null;
-
-	function loadDesignWorkspaceChunk(): Promise<DesignWorkspaceModule> {
-		designWorkspaceCache ??= import('$lib/ui/canvas-editor/side-panel/DesignMediaWorkspace.svelte');
-		return designWorkspaceCache;
-	}
 
 	interface Props {
 		stockPhotosVm: readonly StockPhotoViewModel[];
@@ -72,12 +63,6 @@
 		open = false;
 		canvasApi = null;
 	}
-
-	$effect(() => {
-		if (!open) {
-			canvasApi = null;
-		}
-	});
 
 	$effect.pre(() => {
 		if (open && !prevOpen) {
@@ -127,52 +112,28 @@
 		</Dialog.Header>
 
 		<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-2 pb-2 sm:px-4 sm:pb-4">
-			{#key designSeed}
-				{#if open}
-					{#await loadDesignWorkspaceChunk()}
-						<div
-							class="flex min-h-[180px] flex-1 flex-col items-center justify-center gap-3 text-base-content/60"
-						>
-							<span class="loading loading-spinner loading-md"></span>
-							<span class="text-sm">Loading editor…</span>
-						</div>
-					{:then { default: DesignMediaWorkspace }}
-						<DesignMediaWorkspace
-							disabled={disabled || busy}
-							designSeed={designSeed}
-							{composerMode}
-							{focusedProviderIdentifier}
-							stockPhotosVm={stockPhotosVm}
-							{designTemplatesVm}
-							{fetchPolotnoTemplateListPage}
-							{backgroundPanelVm}
-							onCanvasReady={(api) => (canvasApi = api)}
-						/>
-					{:catch}
-						<p class="text-error px-2 py-8 text-center text-sm">
-							Could not load the design workspace.</p>
-					{/await}
-				{/if}
-			{/key}
+			<DesignMediaCanvasShell
+				active={open}
+				bind:canvasApi
+				{designSeed}
+				disabled={disabled || busy}
+				{composerMode}
+				{focusedProviderIdentifier}
+				{stockPhotosVm}
+				{designTemplatesVm}
+				{fetchPolotnoTemplateListPage}
+				{backgroundPanelVm}
+			/>
 		</div>
 
-		<div class="border-base-300 flex shrink-0 flex-wrap justify-end gap-2 border-t px-4 py-3 sm:px-6">
-			<Button type="button" variant="ghost" disabled={busy} onclick={close}>
-				Close</Button>
-			<Button
-				type="button"
-				variant="primary"
-				class="gap-1.5"
-				disabled={disabled || busy || !canvasApi}
-				onclick={() => void exportCanvasToPost()}
-			>
-				{#if busy}
-					<span class="loading loading-spinner loading-sm"></span>
-				{:else}
-					<AbstractIcon name={icons.Save.name} class="size-4" width="16" height="16" />
-				{/if}
-				{useMediaLabel}
-			</Button>
-		</div>
+		<DesignMediaExportFooter
+			variant="modal"
+			{busy}
+			{disabled}
+			{canvasApi}
+			{useMediaLabel}
+			onClose={close}
+			onUpload={exportCanvasToPost}
+		/>
 	</Dialog.Content>
 </Dialog.Root>

@@ -2,6 +2,7 @@ export {
 	polotnoJsonToKonvaDoc,
 	polotnoTextTemplateJsonToKonvaDoc
 } from '$lib/canvas/utils/polotnoToKonvaDoc';
+export { downloadCanvasPng, type DownloadCanvasPngResult } from '$lib/canvas/utils/downloadCanvasPng';
 export { localFileToDataUrl } from '$lib/canvas/utils/file';
 export { getVideoPreview } from '$lib/canvas/utils/video';
 export { createInfiniteApi, fetcherJson } from '$lib/canvas/utils/useInfiniteApi.svelte';

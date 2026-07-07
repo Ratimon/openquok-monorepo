@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathPublicPhotoEditor, getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url } from '$lib/utils/path';
 
@@ -14,7 +14,7 @@
 	} from '$lib/config/constants/config';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-	import SkillBuilderHubToolCard from '$lib/ui/components/tools/SkillBuilderHubToolCard.svelte';
+	import ChannelHubToolCard from '$lib/ui/components/tools/ChannelHubToolCard.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -27,11 +27,16 @@
 	let metaDescription = $derived(data.metaDescription);
 	let toolsVm = $derived(data.toolsVm);
 	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
+	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
 	// /tools/skill-builder
 	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
 	const skillBuilderHref = url(route(rootPathPublicSkillBuilder));
+
+	// /tools/photo-editor
+	const rootPathPublicPhotoEditor = getRootPathPublicPhotoEditor();
+	const photoEditorHref = url(route(rootPathPublicPhotoEditor));
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -53,12 +58,22 @@
 		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			{#each toolsVm as toolVm (toolVm.id)}
 				{#if toolVm.id === 'skill-builder'}
-					<SkillBuilderHubToolCard
+					<ChannelHubToolCard
 						title={toolVm.title}
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
 						channelLinks={skillBuilderChannelsVm}
+						toolLabel="Skill Builder"
+					/>
+				{:else if toolVm.id === 'photo-editor'}
+					<ChannelHubToolCard
+						title={toolVm.title}
+						description={toolVm.description}
+						badge={toolVm.badge}
+						genericHref={toolVm.href}
+						channelLinks={photoEditorChannelsVm}
+						toolLabel="Photo Editor"
 					/>
 				{:else}
 					<li>
@@ -89,8 +104,9 @@
 		<p class="mt-8 text-center text-sm text-base-content/60">
 			Start with the
 			<a class="link link-primary" href={skillBuilderHref}>Skill Builder</a>
-			to compose skills from the Extensions catalog and export SKILL.md — or pick a channel from the
-			card above for pre-loaded CLI examples.
+			to compose skills from the Extensions catalog and export SKILL.md — or use the
+			<a class="link link-primary" href={photoEditorHref}>Photo Editor</a>
+			to design channel visuals and download PNG. Pick a channel from either card for platform-specific defaults.
 		</p>
 	</section>
 

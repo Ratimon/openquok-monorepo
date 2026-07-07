@@ -130,19 +130,19 @@
 		<p class="text-base-content/70 mb-2 text-xs font-medium sm:text-sm">
 			Choose a platform, then a format</p>
 		<div
-			class="grid max-h-[min(65vh,26rem)] grid-cols-1 gap-2.5 overflow-y-auto pr-0.5 sm:grid-cols-2 lg:grid-cols-3"
+			class="grid max-h-[min(72vh,28rem)] grid-cols-1 gap-2.5 overflow-y-auto overscroll-y-contain scroll-pb-2 pr-0.5 sm:grid-cols-2"
 		>
 			{#each presetsForPlatform(selectedPlatformId) as preset (preset.id)}
 				<button
 					type="button"
 					class={cn(
-						'border-base-300 bg-base-100/80 hover:border-primary/50 flex min-h-[7.5rem] flex-col gap-2 rounded-xl border p-3 text-left transition-colors',
+						'border-base-300 bg-base-100/80 hover:border-primary/50 flex min-h-[6.5rem] flex-col gap-2 rounded-xl border p-3 text-left transition-colors',
 						aspectRatioId === preset.id && 'border-primary ring-primary/25 ring-2'
 					)}
 					onclick={() => pick(preset.id)}
 				>
 					<div
-						class="mx-auto w-full max-w-[5rem] rounded-md border border-secondary/45 bg-gradient-to-br from-secondary/35 to-primary/15 shadow-sm ring-1 ring-secondary/25"
+						class="mx-auto max-h-[4.25rem] w-full max-w-[4.25rem] rounded-md border border-secondary/45 bg-gradient-to-br from-secondary/35 to-primary/15 shadow-sm ring-1 ring-secondary/25"
 						style:aspect-ratio="{preset.ratioW} / {preset.ratioH}"
 						aria-hidden="true"
 					></div>

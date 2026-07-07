@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
+	import type { IconName } from '$data/icons';
 
 	import { icons } from '$data/icons';
 	import { url } from '$lib/utils/path';
@@ -7,15 +7,24 @@
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
+	export type ChannelHubLinkViewModel = {
+		slug: string;
+		platformLabel: string;
+		icon: IconName;
+		href: string;
+	};
+
 	type Props = {
 		title: string;
 		description: string;
 		badge?: string;
 		genericHref: string;
-		channelLinks: SkillBuilderChannelHubLinkViewModel[];
+		channelLinks: ChannelHubLinkViewModel[];
+		/** Used in aria labels for the channel dropdown (e.g. "Skill Builder", "Photo Editor"). */
+		toolLabel: string;
 	};
 
-	let { title, description, badge, genericHref, channelLinks }: Props = $props();
+	let { title, description, badge, genericHref, channelLinks, toolLabel }: Props = $props();
 
 	let open = $state(false);
 	let cardEl = $state<HTMLDivElement | undefined>();
@@ -62,7 +71,7 @@
 					type="button"
 					class="btn btn-ghost btn-sm group inline-flex items-center gap-1 px-2"
 					aria-haspopup="menu"
-					aria-label="Choose a channel-specific Skill Builder"
+					aria-label="Choose a channel-specific {toolLabel}"
 				>
 					<span class="text-xs font-medium text-base-content/70">By channel</span>
 					<AbstractIcon
@@ -81,7 +90,7 @@
 				>
 					<div
 						class="flex max-h-[min(60vh,16rem)] flex-col gap-0.5 overflow-y-auto"
-						aria-label="Skill Builder channels"
+						aria-label="{toolLabel} channels"
 					>
 						{#each channelLinks as channel (channel.slug)}
 							<a

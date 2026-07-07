@@ -1,11 +1,10 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PhotoEditorChannelHubLinkViewModel } from '$lib/photo-editor/photoEditor.types';
 import type {
-	SkillBuilderChannelHubLinkViewModel,
-	ToolsIndexToolCardViewModel
-} from '$lib/skill-builder/skillBuilder.types';
+	PhotoEditorChannelHubLinkViewModel,
+	PhotoEditorPageViewModel
+} from '$lib/photo-editor/photoEditor.types';
 
 import type { PageLoad } from './$types';
 
@@ -19,22 +18,23 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as {
+		const serverData = data as PhotoEditorPageViewModel & {
 			pageMetaTags: MetaTagsProps;
-			metaTitle: string;
-			metaDescription: string;
-			toolsVm: ToolsIndexToolCardViewModel[];
-			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
-			photoEditorChannelsVm: PhotoEditorChannelHubLinkViewModel[];
+			isLoggedIn?: boolean;
 			schemaData: unknown;
+			photoEditorChannelsVm: PhotoEditorChannelHubLinkViewModel[];
 		};
 
 		return {
 			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			toolsVm: serverData.toolsVm,
-			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
+			channelSlug: serverData.channelSlug,
+			channelLabel: serverData.channelLabel,
+			focusedProviderIdentifier: serverData.focusedProviderIdentifier,
+			defaultAspectRatioId: serverData.defaultAspectRatioId,
+			aspectPlatformGroupId: serverData.aspectPlatformGroupId,
+			composerMode: serverData.composerMode,
 			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

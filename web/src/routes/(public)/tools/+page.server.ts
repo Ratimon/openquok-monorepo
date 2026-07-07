@@ -1,8 +1,13 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicToolsPagePresenter } from '$lib/area-public';
-import { getRootPathPublicSkillBuilder, getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
+import {
+	getRootPathPublicPhotoEditor,
+	getRootPathPublicSkillBuilder,
+	getRootPathPublicTools
+} from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { listPhotoEditorChannelsForHub } from '$lib/photo-editor/constants/publicPhotoEditorChannelConfig';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { route, url } from '$lib/utils/path';
@@ -33,6 +38,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 				'Drag CLI commands and MCP tools into a workflow and export SKILL.md for your agent.',
 			href: url(route(getRootPathPublicSkillBuilder())),
 			badge: 'Markdown editor'
+		},
+		{
+			id: 'photo-editor',
+			title: 'Photo Editor',
+			description:
+				'Design and resize visuals for social channels in your browser. Download PNG free, or save to your cloud when signed in.',
+			href: url(route(getRootPathPublicPhotoEditor())),
+			badge: 'Design editor'
 		}
 	];
 
@@ -62,6 +75,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		metaDescription,
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
+		photoEditorChannelsVm: listPhotoEditorChannelsForHub(),
 		schemaData
 	};
 }

@@ -169,4 +169,7 @@
 	</div>
 </div>
 
-<SignInToCommentModal bind:open={showSignInDialog} signInHref={signInHref} />
+<SignInToCommentModal
+	bind:open={showSignInDialog}
+	signInHref={signInHref}
+/>

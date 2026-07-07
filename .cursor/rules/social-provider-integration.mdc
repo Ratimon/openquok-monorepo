@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + agent channel SEO routes + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -28,6 +28,15 @@ globs:
   - web/src/routes/(public)/channels/**
   - web/src/routes/(public)/agents/[slug]/[channelSlug]/**
   - web/src/routes/(public)/extensions/**
+  - web/src/lib/photo-editor/**
+  - web/src/lib/ui/canvas-editor/utils/aspectRatioPresets.ts
+  - web/src/routes/(public)/tools/photo-editor/**
+  - web/src/lib/ui/templates/photo-editor/**
+  - web/src/lib/ui/components/photo-editor/**
+  - web/src/lib/area-public/PublicPhotoEditorPage.presenter.svelte.ts
+  - web/src/lib/area-public/constants/getRootPathPublicTools.ts
+  - web/src/routes/(public)/tools/+page.server.ts
+  - web/src/routes/(public)/tools/+page.svelte
   - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte
@@ -39,7 +48,7 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page + agent channel SEO routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
@@ -260,6 +269,42 @@ When adding or go-live-ing a provider that already has CLI examples:
 
 Channel pages 404 when the slug is missing from `publicChannelConfig` or `available: false`.
 
+## Programmatic Photo Editor SEO (channel routes)
+
+Ship channel-specific Photo Editor pages alongside the generic tool when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — channel pages are **auto-derived** from the live channel catalog (no new `+page` files per slug).
+
+| Artifact | Path / URL |
+| --- | --- |
+| Generic editor (all channels) | `/tools/photo-editor` — neutral default aspect (`DEFAULT_ASPECT_RATIO_ID`, General tab) |
+| Channel editor | `/tools/photo-editor/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` (e.g. `facebook`, `threads`) |
+| Channel catalog | `web/src/lib/photo-editor/constants/publicPhotoEditorChannelConfig.ts` — built from `listAvailablePublicChannels()` + aspect helpers |
+| Page presenter | `web/src/lib/area-public/PublicPhotoEditorPage.presenter.svelte.ts` — generic vs channel view model |
+| Shared page UI | `web/src/lib/ui/templates/photo-editor/PhotoEditorToolPage.svelte` |
+| Channel hub grid | `web/src/lib/ui/components/photo-editor/PhotoEditorChannelHubGrid.svelte` — grid on generic and channel editor pages |
+| Route helpers | `getRootPathPublicPhotoEditor()` and `getRootPathPublicPhotoEditorChannel(slug)` in `getRootPathPublicTools.ts` |
+| Tools hub entry | `ChannelHubToolCard` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs (`listPhotoEditorChannelsForHub()`) |
+
+### Auto-derived (no per-provider route files)
+
+- Channel pages at `/tools/photo-editor/{channelSlug}` via generic route + `publicPhotoEditorChannelConfig.ts` (built from `listAvailablePublicChannels()`).
+- Tools hub channel picker via `listPhotoEditorChannelsForHub()`.
+- SEO meta defaults from channel `platformLabel` + merged `keywords` from `publicChannelConfig`.
+
+Channel pages 404 when the slug is missing from `publicChannelConfig` or `available: false`.
+
+### Manual updates when shipping a new provider
+
+When go-live-ing a provider, update aspect-ratio presets **before or with** the integration so channel pages open on platform-specific formats (not General fallbacks).
+
+| Artifact | Path / action |
+| --- | --- |
+| Platform presets | `web/src/lib/ui/canvas-editor/utils/aspectRatioPresets.ts` — add `{platform}-*` preset rows with `exportWidth` / `exportHeight` / hints |
+| Platform group tab | `ASPECT_RATIO_PLATFORM_GROUPS` — add or extend a group with ordered `presetIds` for the picker tab |
+| Provider → group map | `aspectPlatformGroupIdForProviderIdentifier(...)` — map `provider.identifier` (and aliases like `instagram-business` → `instagram`) to the group id |
+| Channel catalog | `publicChannelConfig.ts` — `available: true` (already required); slug must match `provider.identifier` |
+
+**Note:** If a provider has no dedicated aspect group yet, the channel page still appears but falls back to General presets — ship platform-specific presets before or with go-live for a good UX. Channel pages default to the platform’s **first preset** in the group (via `defaultAspectRatioIdForComposer`), not General.
+
 ## Programmatic Agent channel SEO (agent host routes)
 
 Ship platform-specific agent landing pages alongside the generic agent host page when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — adding a channel is a **catalog + bento + CLI recipe update** (no new `+page` files per slug).
@@ -320,5 +365,6 @@ Agent channel pages 404 when the slug is missing from `publicChannelConfig`, `av
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
+- **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for live channels on **agent hosts and MCP clients**; generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

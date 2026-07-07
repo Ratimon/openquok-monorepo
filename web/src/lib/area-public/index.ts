@@ -23,10 +23,13 @@ import {
 	PublicPlaybooksPagePresenter
 } from '$lib/area-public/PublicPlaybooksPage.presenter.svelte';
 import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
+import { PublicPhotoEditorPagePresenter } from '$lib/area-public/PublicPhotoEditorPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
+import { GenerateMediaModalPresenter } from '$lib/canvas';
 import { getPublicPricingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';
+import { mediaRepository } from '$lib/medias';
 
 const publicLayoutPagePresenter = new PublicLayoutPagePresenter();
 const publicBlogPagePresenter = new PublicBlogPagePresenter(getBlogPresenter);
@@ -61,6 +64,8 @@ const publicCreatorByUsernamePagePresenter = new PublicCreatorByUsernamePagePres
 );
 const publicToolsPagePresenter = new PublicToolsPagePresenter();
 const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
+const publicPhotoEditorPagePresenter = new PublicPhotoEditorPagePresenter();
+const publicPhotoEditorCanvasPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
 export {
 	publicAgentByPagePresenter,
@@ -75,6 +80,8 @@ export {
 	publicCreatorByUsernamePagePresenter,
 	publicToolsPagePresenter,
 	publicSkillBuilderPagePresenter,
+	publicPhotoEditorPagePresenter,
+	publicPhotoEditorCanvasPresenter,
 	publicPricingPagePresenter,
 	publicLayoutPagePresenter,
 	publicBlogPagePresenter,

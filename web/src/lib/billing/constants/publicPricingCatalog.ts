@@ -79,7 +79,7 @@ export type PublicPricingCompareRowId =
 	| 'multi_channel_publishing'
 	| 'agent_integrations'
 	| 'analytics'
-	| 'canva_editor'
+	| 'photo_editor'
 	| 'calendar_views'
 	| 'kanban_views'
 	| 'file_manager'
@@ -171,9 +171,10 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		tooltip: 'Track post performance (eg. likes, comments, shares) across channels.'
 	},
 	{
-		id: 'canva_editor',
-		label: 'Canva editor',
-		tooltip: 'Interactive canvas style editor to resize and tailor your content to the platform.'
+		id: 'photo_editor',
+		label: 'Design editor',
+		tooltip:
+			'Browser-based canvas editor to resize visuals, add text and elements, and tailor content for channel-specific formats — feed posts, stories, thumbnails, and more.'
 	},
 	{
 		id: 'calendar_views',

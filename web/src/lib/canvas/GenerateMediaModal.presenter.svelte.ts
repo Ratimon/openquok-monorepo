@@ -2,6 +2,8 @@ import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi
 import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
 import type { MediaRepository } from '$lib/medias';
 
+import { downloadCanvasPng, type DownloadCanvasPngResult } from '$lib/canvas/utils/downloadCanvasPng';
+
 import type {
 	DesignTemplateViewModel,
 	PolotnoTemplateListPageProgrammerModel,
@@ -41,6 +43,14 @@ export type ExportCanvasToMediaArgs = {
 };
 
 export type ExportCanvasToMediaFn = (args: ExportCanvasToMediaArgs) => Promise<ExportDesignToMediaResult>;
+
+export type DownloadCanvasToDeviceArgs = {
+	canvasApi: KonvaCanvasApi | null;
+	disabled?: boolean;
+	filename?: string;
+};
+
+export type DownloadCanvasToDeviceResult = DownloadCanvasPngResult;
 
 export class GenerateMediaModalPresenter {
 	readonly stockPhotosVm: readonly StockPhotoViewModel[];
@@ -93,6 +103,16 @@ export class GenerateMediaModalPresenter {
 
 	triggerPolotnoUnsplashDownloadPm(id: string): void {
 		this.designRepository.triggerPolotnoUnsplashDownloadPm(id, this.polotnoApiKey());
+	}
+
+	async downloadCanvasToDevice(
+		args: DownloadCanvasToDeviceArgs
+	): Promise<DownloadCanvasToDeviceResult> {
+		const { canvasApi, disabled = false, filename = 'design.png' } = args;
+		if (disabled) {
+			return { ok: false, error: 'Wait for the canvas to finish loading.' };
+		}
+		return downloadCanvasPng(canvasApi, filename);
 	}
 
 	async exportCanvasToMedia(args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> {

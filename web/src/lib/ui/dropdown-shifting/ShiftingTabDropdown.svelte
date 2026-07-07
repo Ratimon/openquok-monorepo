@@ -2,7 +2,19 @@
 	import type { Snippet } from 'svelte';
 	import { onMount, tick } from 'svelte';
 	import { cubicOut } from 'svelte/easing';
-	import { fade, fly } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
+
+	const PANEL_GAP_PX = 12;
+	const VIEWPORT_MARGIN_PX = 8;
+
+	function portalToBody(node: HTMLElement) {
+		document.body.appendChild(node);
+		return {
+			destroy() {
+				node.remove();
+			}
+		};
+	}
 
 	type Tab = { id: string; label: string };
 
@@ -39,6 +51,9 @@
 	let rootEl = $state.raw<HTMLDivElement | undefined>(undefined);
 	let panelEl = $state.raw<HTMLDivElement | undefined>(undefined);
 	let nubLeft = $state(0);
+	let panelTop = $state(0);
+	let panelLeft = $state(0);
+	let panelReady = $state(false);
 
 	let prevTabIndex = $state(0);
 	let slideDir = $state(0);
@@ -77,20 +92,59 @@
 		const tabEl = document.getElementById(`shift-tab-${selectedTabId}`);
 		if (!tabEl) return;
 		const tabRect = tabEl.getBoundingClientRect();
-		const panelRect = panelEl.getBoundingClientRect();
-		const center = tabRect.left + tabRect.width / 2 - panelRect.left;
-		nubLeft = Math.max(12, Math.min(center, panelRect.width - 12));
+		const center = tabRect.left + tabRect.width / 2 - panelLeft;
+		nubLeft = Math.max(12, Math.min(center, panelEl.offsetWidth - 12));
 	}
+
+	async function updatePanelPosition() {
+		if (!open || !rootEl || !panelEl || typeof window === 'undefined') return;
+		await tick();
+		const triggerRect = rootEl.getBoundingClientRect();
+		const panelWidth = panelEl.offsetWidth;
+		const panelHeight = panelEl.offsetHeight;
+
+		let top = triggerRect.bottom + PANEL_GAP_PX;
+		let left =
+			panelAlign === 'start' ? triggerRect.left : triggerRect.right - panelWidth;
+
+		const maxBottom = window.innerHeight - VIEWPORT_MARGIN_PX;
+		if (top + panelHeight > maxBottom) {
+			const aboveTop = triggerRect.top - panelHeight - PANEL_GAP_PX;
+			if (aboveTop >= VIEWPORT_MARGIN_PX) {
+				top = aboveTop;
+			} else {
+				top = Math.max(VIEWPORT_MARGIN_PX, maxBottom - panelHeight);
+			}
+		}
+
+		const maxLeft = window.innerWidth - panelWidth - VIEWPORT_MARGIN_PX;
+		left = Math.max(VIEWPORT_MARGIN_PX, Math.min(left, maxLeft));
+
+		panelTop = top;
+		panelLeft = left;
+		panelReady = true;
+		updateNubPosition();
+	}
+
+	$effect(() => {
+		if (!open) {
+			panelReady = false;
+		}
+	});
 
 	$effect(() => {
 		open;
 		selectedTabId;
 		tabs;
+		panelClass;
 		if (!open) return;
 		let cancelled = false;
 		void tick().then(() => {
 			if (cancelled) return;
-			requestAnimationFrame(() => updateNubPosition());
+			requestAnimationFrame(() => {
+				if (cancelled) return;
+				void updatePanelPosition();
+			});
 		});
 		return () => {
 			cancelled = true;
@@ -101,18 +155,27 @@
 		const onDoc = (e: MouseEvent) => {
 			if (!open) return;
 			const t = e.target;
-			if (t instanceof Node && rootEl && !rootEl.contains(t)) {
-				open = false;
-			}
+			if (!(t instanceof Node)) return;
+			if (rootEl?.contains(t)) return;
+			if (panelEl?.contains(t)) return;
+			open = false;
 		};
 		const onKey = (e: KeyboardEvent) => {
 			if (e.key === 'Escape') open = false;
 		};
+		const onLayout = () => {
+			if (!open) return;
+			void updatePanelPosition();
+		};
 		document.addEventListener('click', onDoc);
 		document.addEventListener('keydown', onKey);
+		window.addEventListener('resize', onLayout);
+		window.addEventListener('scroll', onLayout, true);
 		return () => {
 			document.removeEventListener('click', onDoc);
 			document.removeEventListener('keydown', onKey);
+			window.removeEventListener('resize', onLayout);
+			window.removeEventListener('scroll', onLayout, true);
 		};
 	});
 </script>
@@ -123,13 +186,15 @@
 	{#if open}
 		<div
 			bind:this={panelEl}
+			use:portalToBody
 			id="shift-dropdown-panel"
-			class="border-base-300 bg-gradient-to-b from-base-200 via-base-200 to-base-300/90 absolute top-[calc(100%+12px)] z-50 min-w-[min(100vw-1rem,22rem)] max-w-[min(100vw-1rem,28rem)] rounded-xl border p-3 shadow-lg {panelAlign === 'start'
-				? 'left-0'
-				: 'right-0'} {panelClass}"
+			class="border-base-300 bg-gradient-to-b from-base-200 via-base-200 to-base-300/90 fixed z-[200] min-w-[min(100vw-1rem,22rem)] max-w-[min(100vw-1rem,28rem)] rounded-xl border p-3 shadow-lg transition-opacity {panelReady
+				? 'opacity-100'
+				: 'pointer-events-none opacity-0'} {panelClass}"
+			style:top="{panelTop}px"
+			style:left="{panelLeft}px"
 			role="dialog"
 			aria-modal="true"
-			transition:fade={{ duration: 160, easing: cubicOut }}
 		>
 			<div
 				class="pointer-events-none absolute -top-3 right-0 left-0 h-10"
@@ -156,7 +221,7 @@
 				{/each}
 			</div>
 
-			<div class="relative mt-3 min-h-[4rem] overflow-hidden">
+			<div class="relative mt-3 min-h-[4rem] overflow-x-clip">
 				{#key selectedTabId}
 					<div
 						class="will-change-transform"

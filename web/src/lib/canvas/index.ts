@@ -37,6 +37,8 @@ export {
 	GenerateMediaModalPresenter,
 	type BackgroundPanelViewModel,
 	type DesignTemplatesPanelVm,
+	type DownloadCanvasToDeviceArgs,
+	type DownloadCanvasToDeviceResult,
 	type ExportCanvasToMediaArgs,
 	type ExportCanvasToMediaFn,
 	type ExportDesignToMediaResult,
