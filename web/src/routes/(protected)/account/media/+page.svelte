@@ -325,7 +325,12 @@
 	});
 </script>
 
-<MediaLibraryUploadOverlay {uploadBusy} {uploadPhase} {barPercent} {uploadDetailLine} />
+<MediaLibraryUploadOverlay
+	{uploadBusy}
+	{uploadPhase}
+	{barPercent}
+	{uploadDetailLine}
+/>
 
 <div class="flex flex-col gap-5">
 	<div class="rounded-[28px] border border-base-300/70 bg-base-100/70 p-5 shadow-sm backdrop-blur-sm sm:p-6">

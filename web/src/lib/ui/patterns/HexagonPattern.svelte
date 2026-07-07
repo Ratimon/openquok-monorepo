@@ -1,4 +1,5 @@
 <script lang="ts">
+	// https://github.com/SikandarJODD/animations/tree/d747728b82bded21a65ea656da5953732390ca49/src/routes/magic/docs/components/hexagon-pattern
 	import type { SVGAttributes } from 'svelte/elements';
 
 	import { cn } from '$lib/ui/helpers/common';

@@ -32,7 +32,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			description:
 				'Drag CLI commands and MCP tools into a workflow and export SKILL.md for your agent.',
 			href: url(route(getRootPathPublicSkillBuilder())),
-			badge: 'Skill editor'
+			badge: 'Markdown editor'
 		}
 	];
 

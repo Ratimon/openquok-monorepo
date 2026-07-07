@@ -12,7 +12,10 @@
 	import { nanoid } from 'nanoid';
 
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
-	import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
+	import {
+		getRootPathPublicSkillBuilder,
+		getRootPathPublicTools
+	} from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathAccount, getAccountNewPlaybookPath } from '$lib/area-protected';
 	import { getBillingPresenter } from '$lib/billing';
 	import { CREATING_SKILLS_DOC_URL, OPENQUOK_CORE_EXTENSION_SLUG } from '$lib/skill-builder/constants/defaults';
@@ -35,6 +38,7 @@
 	import { icons } from '$data/icons';
 
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import SkillBuilderHubBreadcrumb from '$lib/ui/components/skill-builder/SkillBuilderHubBreadcrumb.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SkillBuilderLibraryPanel from '$lib/ui/templates/skill-builder/SkillBuilderLibraryPanel.svelte';
@@ -91,6 +95,10 @@
 		cliExamplesPath = null,
 		channelLinksVm = []
 	}: Props = $props();
+
+	// /tools
+	const rootPathPublicTools = getRootPathPublicTools();
+	const toolsHubHref = url(route(rootPathPublicTools));
 
 	// /building-blocks
 	const rootPathPublicBuildingBlocks = getRootPathPublicBuildingBlocks();
@@ -345,9 +353,17 @@
 
 <SectionOuterContainer class="py-8 md:py-12">
 	<header class="container mx-auto max-w-[1600px] space-y-4 px-4">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">Free tool</p>
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{metaTitle}</h1>
-		<p class="max-w-3xl text-base text-base-content/70">{metaDescription}</p>
+		<SkillBuilderHubBreadcrumb
+			{toolsHubHref}
+			skillBuilderHref={genericSkillBuilderHref}
+			{channelLabel}
+		/>
+		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
+			{metaTitle}
+		</h1>
+		<p class="max-w-3xl text-base text-base-content/70">
+			{metaDescription}
+		</p>
 		<p class="max-w-3xl text-sm text-base-content/60">
 			Export follows the
 			<ExternalLink href={CREATING_SKILLS_DOC_URL}>SKILL.md format</ExternalLink>

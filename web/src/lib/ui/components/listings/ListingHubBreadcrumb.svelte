@@ -40,19 +40,27 @@
 <Breadcrumb.Root class={cn('max-w-full', className)}>
 	<Breadcrumb.List>
 		<Breadcrumb.Item>
-			<Breadcrumb.Link href={hubHref} class={cn(hubLabelClass)}>
+			<Breadcrumb.Link
+				href={hubHref}
+				class={cn('text-primary hover:text-primary/80 no-underline font-bold tracking-wider text-primary uppercase', hubLabelClass)}
+			>
 				{hubLabel}
 			</Breadcrumb.Link>
 		</Breadcrumb.Item>
 		{#if creatorHref && creatorLabel}
-			<Breadcrumb.Separator />
+			<Breadcrumb.Separator class="text-primary/60" />
 			<Breadcrumb.Item>
-				<Breadcrumb.Link href={creatorHref} class="line-clamp-1 text-sm">{creatorLabel}</Breadcrumb.Link>
+				<Breadcrumb.Link
+					href={creatorHref}
+					class="text-primary hover:text-primary/80 line-clamp-1 text-sm no-underline"
+				>
+					{creatorLabel}
+				</Breadcrumb.Link>
 			</Breadcrumb.Item>
 		{/if}
-		<Breadcrumb.Separator />
+		<Breadcrumb.Separator class="text-primary/60" />
 		<Breadcrumb.Item>
-			<Breadcrumb.Page class="line-clamp-1 text-sm">{pageTitle}</Breadcrumb.Page>
+			<Breadcrumb.Page class="text-primary line-clamp-1 text-sm">{pageTitle}</Breadcrumb.Page>
 		</Breadcrumb.Item>
 	</Breadcrumb.List>
 </Breadcrumb.Root>

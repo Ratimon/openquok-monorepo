@@ -100,6 +100,7 @@
 		</span>
 		Design
 	</Button>
+	
 	<ThirdPartyMediaLibrary
 		{organizationId}
 		storageLimitFull={storageLimitFull}

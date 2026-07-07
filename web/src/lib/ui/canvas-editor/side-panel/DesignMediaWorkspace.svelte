@@ -261,7 +261,9 @@
 		/>
 		<div class="border-base-300 text-base-content/65 border-b px-2 py-2 sm:px-3">
 			<p class="text-[11px] leading-snug sm:text-xs">
-				<span class="text-base-content/80 font-medium">Export size:</span>
+				<span class="text-base-content/80 font-medium">
+					Export size:
+				</span>
 				{selectedAspect.exportWidth}×{selectedAspect.exportHeight}px
 				{#if selectedAspect.hint}
 					<span class="text-base-content/60 block pt-0.5">{selectedAspect.hint}</span>

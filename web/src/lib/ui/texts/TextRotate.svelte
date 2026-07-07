@@ -1,4 +1,5 @@
 <script lang="ts">
+	// https://github.com/SikandarJODD/animations/blob/d747728b82bded21a65ea656da5953732390ca49/src/routes/fancy/text-rotate/docs.md?plain=1#L3
 	import { tick } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { AnimatePresence, Motion } from 'svelte-motion';
