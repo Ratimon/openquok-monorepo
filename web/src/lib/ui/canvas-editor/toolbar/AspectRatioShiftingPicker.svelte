@@ -17,6 +17,11 @@
 		selectedAspect: AspectRatioPreset;
 		onAspectChange?: (id: string) => void;
 		/**
+		 * When set (e.g. `/tools/photo-editor/facebook`), only this platform tab and General stay selectable.
+		 * Omit on the generic photo editor so every platform tab remains enabled.
+		 */
+		lockedAspectPlatformGroupId?: string | null;
+		/**
 		 * `canvasHeader` — large “Resize” control in the left resource column; wide, left-aligned panel.
 		 * `toolbar` — compact control (e.g. icon nav when the resource column is collapsed).
 		 */
@@ -28,14 +33,25 @@
 		aspectRatioId,
 		selectedAspect,
 		onAspectChange,
+		lockedAspectPlatformGroupId = null,
 		layout = 'canvasHeader'
 	}: Props = $props();
 
 	let open = $state(false);
 	let selectedPlatformId = $state('general');
 
+	function isPlatformTabEnabled(platformId: string): boolean {
+		const lockId = lockedAspectPlatformGroupId?.trim();
+		if (!lockId || lockId === 'general') return true;
+		return platformId === 'general' || platformId === lockId;
+	}
+
 	const tabs = $derived(
-		ASPECT_RATIO_PLATFORM_GROUPS.map((g) => ({ id: g.id, label: g.title }))
+		ASPECT_RATIO_PLATFORM_GROUPS.map((g) => ({
+			id: g.id,
+			label: g.title,
+			disabled: !isPlatformTabEnabled(g.id)
+		}))
 	);
 
 	function groupIdForPreset(presetId: string): string {
@@ -50,8 +66,18 @@
 	$effect(() => {
 		open;
 		aspectRatioId;
+		lockedAspectPlatformGroupId;
 		if (!open) {
 			selectedPlatformId = groupIdForPreset(aspectRatioId);
+		}
+	});
+
+	$effect(() => {
+		open;
+		lockedAspectPlatformGroupId;
+		if (!open || !lockedAspectPlatformGroupId || lockedAspectPlatformGroupId === 'general') return;
+		if (!isPlatformTabEnabled(selectedPlatformId)) {
+			selectedPlatformId = lockedAspectPlatformGroupId;
 		}
 	});
 
@@ -75,6 +101,7 @@
 	bind:open
 	bind:selectedTabId={selectedPlatformId}
 	{tabs}
+	onClose={() => (open = false)}
 	panelAlign={layout === 'canvasHeader' ? 'start' : 'end'}
 	rootClass={layout === 'canvasHeader' ? 'w-full' : ''}
 	panelClass={layout === 'canvasHeader'

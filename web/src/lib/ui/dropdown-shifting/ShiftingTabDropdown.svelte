@@ -4,6 +4,10 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
 
+	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+
 	const PANEL_GAP_PX = 12;
 	const VIEWPORT_MARGIN_PX = 8;
 
@@ -16,7 +20,7 @@
 		};
 	}
 
-	type Tab = { id: string; label: string };
+	type Tab = { id: string; label: string; disabled?: boolean };
 
 	type TriggerProps = { toggle: () => void; expanded: boolean };
 
@@ -35,6 +39,8 @@
 		panelAlign?: 'start' | 'end';
 		/** Extra classes on the outer wrapper (e.g. `w-full max-w-md` for a wide trigger). */
 		rootClass?: string;
+		/** When set, renders a dismiss control with the close icon in the panel header. */
+		onClose?: () => void;
 	};
 
 	let {
@@ -45,7 +51,8 @@
 		children,
 		panelClass = '',
 		panelAlign = 'end',
-		rootClass = ''
+		rootClass = '',
+		onClose
 	}: Props = $props();
 
 	let rootEl = $state.raw<HTMLDivElement | undefined>(undefined);
@@ -58,10 +65,16 @@
 	let prevTabIndex = $state(0);
 	let slideDir = $state(0);
 
+	function firstSelectableTabId(): string | undefined {
+		return tabs.find((t) => !t.disabled)?.id ?? tabs[0]?.id;
+	}
+
 	function syncSelectedFromTabs() {
 		if (!tabs.length) return;
-		if (!tabs.some((t) => t.id === selectedTabId)) {
-			selectedTabId = tabs[0].id;
+		const current = tabs.find((t) => t.id === selectedTabId);
+		if (!current || current.disabled) {
+			const nextId = firstSelectableTabId();
+			if (nextId) selectedTabId = nextId;
 		}
 	}
 
@@ -76,6 +89,8 @@
 	});
 
 	function setTab(id: string) {
+		const tab = tabs.find((t) => t.id === id);
+		if (!tab || tab.disabled) return;
 		const next = tabs.findIndex((t) => t.id === id);
 		if (next < 0) return;
 		slideDir = next > prevTabIndex ? 1 : next < prevTabIndex ? -1 : 0;
@@ -206,19 +221,36 @@
 				style:left="{nubLeft}px"
 			></span>
 
-			<div class="relative flex flex-nowrap gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-				{#each tabs as tab (tab.id)}
+			<div class="relative mb-1 flex items-start gap-2">
+				<div
+					class="flex min-w-0 flex-1 flex-nowrap gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden {onClose
+						? 'pr-8'
+						: ''}"
+				>
+					{#each tabs as tab (tab.id)}
+						<button
+							id="shift-tab-{tab.id}"
+							type="button"
+							disabled={tab.disabled}
+							class="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40 sm:px-3.5 sm:text-sm {selectedTabId === tab.id
+								? 'bg-secondary text-secondary-content shadow-sm ring-1 ring-secondary/30'
+								: 'text-base-content/65 hover:bg-secondary/12 hover:text-base-content'}"
+							onclick={() => setTab(tab.id)}
+						>
+							{tab.label}
+						</button>
+					{/each}
+				</div>
+				{#if onClose}
 					<button
-						id="shift-tab-{tab.id}"
 						type="button"
-						class="shrink-0 rounded-full px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors sm:px-3.5 sm:text-sm {selectedTabId === tab.id
-							? 'bg-secondary text-secondary-content shadow-sm ring-1 ring-secondary/30'
-							: 'text-base-content/65 hover:bg-secondary/12 hover:text-base-content'}"
-						onclick={() => setTab(tab.id)}
+						class="text-base-content/60 hover:text-base-content hover:bg-base-300/60 absolute top-0 right-0 shrink-0 rounded-md p-1 transition-colors"
+						aria-label="Close"
+						onclick={onClose}
 					>
-						{tab.label}
+						<AbstractIcon name={icons.X2.name} class="size-4" width="16" height="16" />
 					</button>
-				{/each}
+				{/if}
 			</div>
 
 			<div class="relative mt-3 min-h-[4rem] overflow-x-clip">

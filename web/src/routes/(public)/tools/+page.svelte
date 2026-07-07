@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getRootPathPublicPhotoEditor, getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url } from '$lib/utils/path';
 
@@ -30,14 +29,6 @@
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
-	// /tools/skill-builder
-	const rootPathPublicSkillBuilder = getRootPathPublicSkillBuilder();
-	const skillBuilderHref = url(route(rootPathPublicSkillBuilder));
-
-	// /tools/photo-editor
-	const rootPathPublicPhotoEditor = getRootPathPublicPhotoEditor();
-	const photoEditorHref = url(route(rootPathPublicPhotoEditor));
-
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -49,9 +40,15 @@
 
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase">Free tools</p>
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">{metaTitle}</h1>
-		<p class="mx-auto max-w-2xl text-base text-base-content/70">{metaDescription}</p>
+		<p class="text-xs font-bold tracking-wider text-primary uppercase">
+			OpenQuok Free tools
+		</p>
+		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
+			{metaTitle}
+		</h1>
+		<p class="mx-auto max-w-2xl text-base text-base-content/70">
+			{metaDescription}
+		</p>
 	</header>
 
 	<section class="container mx-auto mt-10 max-w-4xl px-4">
@@ -101,13 +98,6 @@
 			{/each}
 		</ul>
 
-		<p class="mt-8 text-center text-sm text-base-content/60">
-			Start with the
-			<a class="link link-primary" href={skillBuilderHref}>Skill Builder</a>
-			to compose skills from the Extensions catalog and export SKILL.md — or use the
-			<a class="link link-primary" href={photoEditorHref}>Photo Editor</a>
-			to design channel visuals and download PNG. Pick a channel from either card for platform-specific defaults.
-		</p>
 	</section>
 
 	<div class="container mx-auto px-4">

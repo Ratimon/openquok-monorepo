@@ -3,7 +3,7 @@ export class PublicToolsPagePresenter {
 		return {
 			metaTitle: 'Tools',
 			metaDescription:
-				'Free utilities for composing agent workflows, designing channel visuals, and building extension stacks.'
+				'Free utilities for composing agent workflows, designing channel visuals, and building your own viral format.'
 		};
 	}
 }

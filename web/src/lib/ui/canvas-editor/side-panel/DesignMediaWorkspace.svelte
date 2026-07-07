@@ -52,6 +52,7 @@
 	import { AspectRatioShiftingPicker, CanvasToolbar } from '$lib/ui/canvas-editor/toolbar';
 	import {
 		DEFAULT_ASPECT_RATIO_ID,
+		aspectPlatformGroupIdForProviderIdentifier,
 		defaultAspectRatioIdForComposer,
 		getAspectPresetById
 	} from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
@@ -94,6 +95,12 @@
 	let canvasMutationTick = $state(0);
 
 	const selectedAspect = $derived(getAspectPresetById(aspectRatioId));
+
+	const lockedAspectPlatformGroupId = $derived.by(() => {
+		if (composerMode !== 'custom') return null;
+		const groupId = aspectPlatformGroupIdForProviderIdentifier(focusedProviderIdentifier);
+		return groupId !== 'general' ? groupId : null;
+	});
 
 	const navItems: { id: SectionId; label: string; icon: (typeof icons)[keyof typeof icons] }[] = [
 		{ id: 'templates', label: 'Templates', icon: icons.LayoutTemplate },
@@ -154,6 +161,7 @@
 					{disabled}
 					{aspectRatioId}
 					{selectedAspect}
+					lockedAspectPlatformGroupId={lockedAspectPlatformGroupId}
 					layout="toolbar"
 					onAspectChange={(id) => (aspectRatioId = id)}
 				/>
@@ -188,6 +196,7 @@
 					{disabled}
 					{aspectRatioId}
 					{selectedAspect}
+					lockedAspectPlatformGroupId={lockedAspectPlatformGroupId}
 					layout="canvasHeader"
 					onAspectChange={(id) => (aspectRatioId = id)}
 				/>
