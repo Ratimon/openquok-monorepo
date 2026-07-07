@@ -3,6 +3,7 @@ import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/publicFaq
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
+import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { getRootPathPublicDocs, getRootPathPublicDocsGettingStartedForDev } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
@@ -25,6 +26,7 @@ import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
+const publicComparePath = route(getRootPathPublicCompare());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
@@ -699,6 +701,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	],
 	Company: [
 		{ label: 'About Us', href: '/about' },
+		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Pricing', href: '/pricing' },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	]
