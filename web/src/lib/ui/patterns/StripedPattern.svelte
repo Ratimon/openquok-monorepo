@@ -1,11 +1,13 @@
 <script lang="ts">
-	import type { SVGAttributes } from 'svelte/elements';
+	import type { ClassValue, SVGAttributes } from 'svelte/elements';
+	import type { CardPatternCell } from '$lib/ui/patterns/types';
 
 	import { cn } from '$lib/ui/helpers/common';
 
 	interface Props extends SVGAttributes<SVGSVGElement> {
 		direction?: 'left' | 'right';
-		class?: string;
+		pattern?: CardPatternCell[];
+		class?: ClassValue;
 	}
 
 	let {

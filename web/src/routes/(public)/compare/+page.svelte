@@ -17,8 +17,11 @@
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
+	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 
 	type Props = { data: PageData };
 
@@ -83,24 +86,34 @@
 		</p>
 	</header>
 
-	
-	<section class="container mx-auto mt-10 max-w-4xl px-4">
-		<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-			{#each hubVm.pairs as pair (pair.slug)}
-				<li>
-					<a
-						class="flex h-full items-center justify-between rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
-						href={pair.href}
-					>
-						<h2 class="text-xl font-semibold text-base-content">
-							vs. {pair.name}
-						</h2>
-						<span class="text-sm font-medium text-primary" aria-hidden="true">→</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
-	</section>
+	<SimpleCardGrid
+		heroTheme={{
+			subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase',
+			parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
+		}}
+		headingId="public-compare-grid-heading"
+		title=""
+		items={hubVm.pairs.map((pair) => ({
+			id: pair.slug,
+			title: `vs. ${pair.name}`,
+			href: pair.href,
+			description: `Compare ${hubVm.baseProductName} and ${pair.name} across pricing, features, and supported channels.`,
+			ctaLabel: 'Open'
+		}))}
+		getItemKey={(item) => item.id}
+		sectionClass="pt-10 pb-0"
+		patternComponent={StripedPattern}
+		patternClass="text-primary/12 stroke-[0.75]"
+	>
+		{#snippet card(item, context)}
+			<SimpleLinkCard
+				{item}
+				pattern={context.pattern}
+				patternComponent={context.patternComponent}
+				patternClass={context.patternClass}
+			/>
+		{/snippet}
+	</SimpleCardGrid>
 
 	<div class="container mx-auto px-4">
 		<CenteredDarkCtaBanner

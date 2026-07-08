@@ -1,12 +1,14 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
+	import type { CardPatternCell, CardPatternComponent } from '$lib/ui/patterns';
 
 	import { cn } from '$lib/ui/helpers/common';
 
-	import { GridCardBackground, HexagonCardBackground, StripedCardBackground } from '$lib/ui/patterns/index.js';
+	import { CardPatternLayer } from '$lib/ui/patterns/index.js';
 	import type { StripedCardTone } from '$lib/ui/patterns/StripedCardBackground.svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PatternedCardShell from '$lib/ui/templates/feature-grid/PatternedCardShell.svelte';
 
 	export type FeatureSimpleCardItem = {
 		id: string;
@@ -21,11 +23,11 @@
 
 	type CardBackgroundVariant = 'grid' | 'hexagon' | 'striped';
 
-	type PatternCell = [col: number, row: number];
-
 	type Props = {
 		item: FeatureSimpleCardItem;
-		pattern?: PatternCell[];
+		pattern?: CardPatternCell[];
+		patternComponent?: CardPatternComponent;
+		patternClass?: string;
 		backgroundVariant?: CardBackgroundVariant;
 		stripedDirection?: 'left' | 'right';
 		stripedTone?: StripedCardTone;
@@ -37,6 +39,8 @@
 	let {
 		item,
 		pattern,
+		patternComponent: PatternComponent,
+		patternClass,
 		backgroundVariant = 'grid',
 		stripedDirection = 'left',
 		stripedTone = 'emerald',
@@ -68,13 +72,14 @@
 </script>
 
 {#snippet cardBody()}
-	{#if backgroundVariant === 'hexagon'}
-		<HexagonCardBackground hexagons={pattern} />
-	{:else if backgroundVariant === 'striped'}
-		<StripedCardBackground direction={stripedDirection} tone={stripedTone} />
-	{:else}
-		<GridCardBackground {pattern} />
-	{/if}
+	<CardPatternLayer
+		{pattern}
+		patternComponent={PatternComponent}
+		{patternClass}
+		{backgroundVariant}
+		{stripedDirection}
+		{stripedTone}
+	/>
 	<div class="relative z-20 flex flex-col gap-3">
 		<span
 			class={cn(
@@ -97,20 +102,6 @@
 	</div>
 {/snippet}
 
-{#if onActivate}
-	<button
-		type="button"
-		class={cn(cardClass, 'w-full cursor-pointer text-left')}
-		onclick={onActivate}
-	>
-		{@render cardBody()}
-	</button>
-{:else if href}
-	<a {href} class={cardClass}>
-		{@render cardBody()}
-	</a>
-{:else}
-	<article class={cardClass}>
-		{@render cardBody()}
-	</article>
-{/if}
+<PatternedCardShell class={cardClass} {href} {onActivate}>
+	{@render cardBody()}
+</PatternedCardShell>

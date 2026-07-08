@@ -26,6 +26,7 @@
 	import FeaturesOrdered from '$lib/ui/templates/FeaturesOrdered.svelte';
 	import PublicLandingWorkflowSection from '$lib/ui/templates/landing-page/PublicLandingWorkflowSection.svelte';
 	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
+	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -150,7 +151,18 @@
 		extensionLabel={agentVm.supportedChannelsSection.extensionLabel}
 		items={coreMessagingChannels}
 		extensionItems={extensionMessagingChannels}
-	/>
+		getItemKey={(item) => item.id}
+	>
+		{#snippet card(item, context)}
+			<FeatureSimpleCard
+				{item}
+				pattern={context.pattern}
+				patternComponent={context.patternComponent}
+				patternClass={context.patternClass}
+				compact={context.index >= coreMessagingChannels.length}
+			/>
+		{/snippet}
+	</SimpleCardGrid>
 {/if}
 
 <div class="container mx-auto px-4">

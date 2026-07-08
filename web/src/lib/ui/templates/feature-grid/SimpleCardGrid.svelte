@@ -1,7 +1,8 @@
-<script lang="ts">
-	import type { FeatureSimpleCardItem } from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
+<script lang="ts" generics="Item">
+	import type { Snippet } from 'svelte';
+	import type { CardPatternCell, CardPatternComponent } from '$lib/ui/patterns';
+	import { cardPatternAtIndex } from '$lib/ui/patterns';
 
-	import FeatureSimpleCard from '$lib/ui/templates/feature-grid/FeatureSimpleCard.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 
 	type LandingHeroTheme = {
@@ -15,10 +16,24 @@
 		title: string;
 		description?: string;
 		subtitle?: string;
-		items: FeatureSimpleCardItem[];
+		items: Item[];
+		getItemKey: (item: Item, index: number) => string;
+		card: Snippet<
+			[
+				item: Item,
+				context: {
+					index: number;
+					pattern: CardPatternCell[];
+					patternComponent?: CardPatternComponent;
+					patternClass?: string;
+				}
+			]
+		>;
 		extensionLabel?: string;
-		extensionItems?: FeatureSimpleCardItem[];
+		extensionItems?: Item[];
 		sectionClass?: string;
+		patternComponent?: CardPatternComponent;
+		patternClass?: string;
 	};
 
 	let {
@@ -28,59 +43,35 @@
 		description = '',
 		subtitle = '',
 		items,
+		getItemKey,
+		card,
 		extensionLabel = '',
 		extensionItems = [],
-		sectionClass = 'py-16 sm:py-20'
+		sectionClass = 'py-16 sm:py-20',
+		patternComponent,
+		patternClass
 	}: Props = $props();
-
-	const CARD_PATTERNS: number[][][] = [
-		[
-			[7, 1],
-			[8, 3],
-			[9, 5]
-		],
-		[
-			[6, 2],
-			[8, 4],
-			[10, 1]
-		],
-		[
-			[7, 4],
-			[9, 2],
-			[11, 5]
-		],
-		[
-			[8, 1],
-			[10, 3],
-			[12, 2]
-		],
-		[
-			[6, 5],
-			[9, 1],
-			[11, 4]
-		],
-		[
-			[7, 2],
-			[8, 5],
-			[10, 3]
-		]
-	];
-
-	function patternForIndex(index: number): number[][] {
-		return CARD_PATTERNS[index % CARD_PATTERNS.length];
-	}
 </script>
 
 <section class="relative isolate overflow-hidden bg-base-100 {sectionClass}" aria-labelledby={headingId}>
 	<div class="container mx-auto px-4">
-		<FeaturesSectionHeader {heroTheme} {headingId} {title} {description} {subtitle} />
+		{#if title || description || subtitle}
+			<FeaturesSectionHeader {heroTheme} {headingId} {title} {description} {subtitle} />
+		{/if}
 
 		<div
-			class="mx-auto mt-12 grid max-w-7xl grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3"
-			aria-label={title}
+			class={title || description || subtitle
+				? 'mx-auto mt-12 grid max-w-7xl grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3'
+				: 'mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'}
+			aria-label={title || headingId}
 		>
-			{#each items as item, index (item.id)}
-				<FeatureSimpleCard {item} pattern={patternForIndex(index)} />
+			{#each items as item, index (getItemKey(item, index))}
+				{@render card(item, {
+					index,
+					pattern: cardPatternAtIndex(index),
+					patternComponent,
+					patternClass
+				})}
 			{/each}
 		</div>
 
@@ -95,12 +86,13 @@
 					class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
 					aria-label={extensionLabel || 'Extension channels'}
 				>
-					{#each extensionItems as item, index (item.id)}
-						<FeatureSimpleCard
-							{item}
-							compact
-							pattern={patternForIndex(items.length + index)}
-						/>
+					{#each extensionItems as item, index (getItemKey(item, items.length + index))}
+						{@render card(item, {
+							index: items.length + index,
+							pattern: cardPatternAtIndex(items.length + index),
+							patternComponent,
+							patternClass
+						})}
 					{/each}
 				</div>
 			</div>
