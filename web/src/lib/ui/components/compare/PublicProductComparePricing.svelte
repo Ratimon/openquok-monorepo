@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { ComparePricingPlanViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 
 	type Props = {
+		heroTheme: LandingHeroTheme;
+		headingId: string;
+		subtitle: string;
+		title: string;
+		description: string;
 		leftProductName: string;
 		rightProductName: string;
 		leftPlansVm: ComparePricingPlanViewModel[];
@@ -9,6 +17,11 @@
 	};
 
 	let {
+		heroTheme,
+		headingId,
+		subtitle,
+		title,
+		description,
 		leftProductName,
 		rightProductName,
 		leftPlansVm,
@@ -22,9 +35,7 @@
 </script>
 
 <section class="scroll-mt-24">
-	<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">
-		Pricing &amp; plans
-	</h2>
+	<FeaturesSectionHeader {heroTheme} {headingId} {subtitle} {title} {description} />
 
 	<div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
 		<div class="rounded-2xl border border-primary/20 bg-primary/5 p-6">

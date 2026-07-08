@@ -3,19 +3,31 @@
 		CompareFeatureCellViewModel,
 		CompareFeatureRowViewModel
 	} from '$lib/area-public/PublicComparePage.presenter.svelte';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Table from '$lib/ui/table';
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
+		heroTheme: LandingHeroTheme;
+		headingId: string;
+		subtitle: string;
+		title: string;
+		description: string;
 		leftProductName: string;
 		rightProductName: string;
 		rowsVm: CompareFeatureRowViewModel[];
 	};
 
 	let {
+		heroTheme,
+		headingId,
+		subtitle,
+		title,
+		description,
 		leftProductName,
 		rightProductName,
 		rowsVm
@@ -23,9 +35,7 @@
 </script>
 
 <section class="scroll-mt-24">
-	<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">
-		Feature comparison
-	</h2>
+	<FeaturesSectionHeader {heroTheme} {headingId} {subtitle} {title} {description} />
 
 	<div class="mt-10 overflow-x-auto">
 		<Table.Root class="min-w-[40rem] border-separate border-spacing-x-2 border-spacing-y-2">

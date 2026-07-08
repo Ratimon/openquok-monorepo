@@ -20,6 +20,10 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
+	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
+	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
+	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import {
 		landingHeroTheme,
@@ -49,14 +53,64 @@
 	const rootPathCompare = getRootPathPublicCompare();
 	const compareHubPath = route(rootPathCompare);
 
+	let moreComparisonItems = $derived([
+		{
+			id: 'all-comparisons',
+			title: 'All comparisons',
+			href: compareHubPath,
+			description: 'Browse the full comparison hub to explore every head-to-head scheduling matchup.',
+			ctaLabel: 'Open'
+		},
+		...relatedPairs.map((pair) => ({
+			id: pair.slug,
+			title: `vs. ${pair.name}`,
+			href: pair.href,
+			description: `Compare OpenQuok and ${pair.name} across pricing, features, and supported channels.`,
+			ctaLabel: 'Open'
+		}))
+	]);
+
 	// /pricing
 	const pricingPath = route('pricing');
+	const compareHeroCtaText = 'Or Start Using OpenQuok For Free';
 
 	const faqHeroTheme: LandingHeroTheme = {
 		...landingHeroTheme,
 		subtitleClass: 'text-xs font-bold tracking-wider text-primary uppercase sm:text-sm',
 		descriptionClass:
 			'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg'
+	};
+
+	const compareNamePrimaryClass =
+		'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
+	const compareNameAccentClass =
+		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
+
+	const compareSectionHeroTheme: LandingHeroTheme = {
+		...landingHeroTheme,
+		parseLandingHeroTitlePartSegments: (text: string) => {
+			const trimmedText = text.trim();
+			const highlightByTitle: Record<string, string> = {
+				'Platform overview': 'overview',
+				'Pricing & plans': 'plans',
+				'Feature comparison': 'comparison',
+				'More comparisons': 'comparisons'
+			};
+			const highlightText = highlightByTitle[trimmedText];
+			if (!highlightText) return [{ text, highlight: false }];
+
+			const highlightStart = text.lastIndexOf(highlightText);
+			if (highlightStart < 0) return [{ text, highlight: false }];
+
+			const before = text.slice(0, highlightStart);
+			const after = text.slice(highlightStart + highlightText.length);
+
+			return [
+				before ? { text: before, highlight: false } : null,
+				{ text: highlightText, highlight: true },
+				after ? { text: after, highlight: false } : null
+			].filter((segment): segment is { text: string; highlight: boolean } => segment !== null);
+		}
 	};
 </script>
 
@@ -66,30 +120,41 @@
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">Compare</p>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			{detailVm.heroTitle}
+			<span class={compareNamePrimaryClass}>{leftProductVm.name}</span>
+			<span class="px-2 text-base-content/80">vs</span>
+			<span class={compareNameAccentClass}>{rightProductVm.name}</span>
+			<span class="pl-2 text-base-content">comparison</span>
 		</h1>
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{detailVm.heroDescription}
 		</p>
 		<div class="flex justify-center pt-2">
 			<ButtonGlitchBrightness
-				class="my-2 w-full max-w-xs justify-center rounded-full px-10 text-sm sm:w-auto sm:text-base"
+				class="my-2 w-full max-w-sm justify-center rounded-full px-8 text-sm sm:w-auto sm:max-w-none sm:px-10 sm:text-base"
 				variant="primary"
 				size="lg"
 				href={signUpPath}
 				preload="off"
 			>
-				{PUBLIC_BANNER_CTA_TEXT}
+				{compareHeroCtaText}
 			</ButtonGlitchBrightness>
 		</div>
 	</header>
 
 	<section class="container mx-auto mt-16 max-w-5xl scroll-mt-24 px-4">
-		<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">Platform overview</h2>
+		<FeaturesSectionHeader
+			heroTheme={compareSectionHeroTheme}
+			headingId="compare-platform-overview"
+			subtitle="overview"
+			title="Platform overview"
+			description={`See how ${leftProductVm.name} and ${rightProductVm.name} position themselves before diving into pricing, channels, and feature tradeoffs.`}
+		/>
 		<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-				<h3 class="text-xl font-semibold text-base-content">
+				<h3 class="text-xl font-semibold">
+					<span class={compareNamePrimaryClass}>
 					{leftProductVm.name}
+					</span>
 				</h3>
 				<p class="mt-2 text-sm font-medium text-primary">
 					{leftProductVm.tagline}
@@ -99,8 +164,10 @@
 				</p>
 			</article>
 			<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-				<h3 class="text-xl font-semibold text-base-content">
+				<h3 class="text-xl font-semibold">
+					<span class={compareNameAccentClass}>
 					{rightProductVm.name}
+					</span>
 				</h3>
 				<p class="mt-2 text-sm font-medium text-base-content/70">
 					{rightProductVm.tagline}
@@ -114,6 +181,11 @@
 
 	<div class="container mx-auto mt-20 max-w-5xl px-4">
 		<PublicProductComparePricing
+			heroTheme={compareSectionHeroTheme}
+			headingId="compare-pricing-plans"
+			subtitle="pricing"
+			title="Pricing & plans"
+			description={`Review how ${leftProductVm.name} and ${rightProductVm.name} package their plans, price points, and upgrade paths side by side.`}
 			leftProductName={leftProductVm.name}
 			rightProductName={rightProductVm.name}
 			leftPlansVm={leftProductVm.pricingPlans}
@@ -136,6 +208,11 @@
 
 	<div class="container mx-auto mt-20 max-w-5xl px-4">
 		<PublicProductCompareSection
+			heroTheme={compareSectionHeroTheme}
+			headingId="compare-feature-comparison"
+			subtitle="features"
+			title="Feature comparison"
+			description="Scan the feature matrix to spot where each product includes, limits, or leaves out the capabilities your workflow depends on."
 			leftProductName={leftProductVm.name}
 			rightProductName={rightProductVm.name}
 			rowsVm={compareRows}
@@ -161,36 +238,27 @@
 		</div>
 	{/if}
 
-	<section class="container mx-auto mt-20 max-w-4xl px-4">
-		<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">More comparisons</h2>
-		<p class="mx-auto mt-4 max-w-2xl text-center text-base text-base-content/70">
-			Explore how OpenQuok compares to other social media schedulers.
-		</p>
-		<ul class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-			<li>
-				<a
-					class="flex h-full items-center justify-between rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
-					href={compareHubPath}
-				>
-					<span class="text-lg font-semibold text-base-content">All comparisons</span>
-					<span class="text-sm font-medium text-primary" aria-hidden="true">→</span>
-				</a>
-			</li>
-			{#each relatedPairs as pair (pair.slug)}
-				<li>
-					<a
-						class="flex h-full items-center justify-between rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
-						href={pair.href}
-					>
-						<span class="text-lg font-semibold text-base-content">
-							vs {pair.name}
-						</span>
-						<span class="text-sm font-medium text-primary" aria-hidden="true">→</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
-	</section>
+	<SimpleCardGrid
+		heroTheme={compareSectionHeroTheme}
+		headingId="compare-more-comparisons"
+		subtitle="next steps"
+		title="More comparisons"
+		description="Explore the full comparison hub or jump into related head-to-head matchups if you want to benchmark more options before choosing a workflow."
+		items={moreComparisonItems}
+		getItemKey={(item) => item.id}
+		sectionClass="pt-20 pb-0"
+		patternComponent={StripedPattern}
+		patternClass="text-primary/12 stroke-[0.75]"
+	>
+		{#snippet card(item, context)}
+			<SimpleLinkCard
+				{item}
+				pattern={context.pattern}
+				patternComponent={context.patternComponent}
+				patternClass={context.patternClass}
+			/>
+		{/snippet}
+	</SimpleCardGrid>
 
 	<div class="container mx-auto px-4">
 		<AccentSplitCtaBanner
