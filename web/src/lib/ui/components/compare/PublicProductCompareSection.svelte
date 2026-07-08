@@ -1,26 +1,25 @@
 <script lang="ts">
-	import type { CompareFeatureCellViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
+	import type {
+		CompareFeatureCellViewModel,
+		CompareFeatureRowViewModel
+	} from '$lib/area-public/PublicComparePage.presenter.svelte';
 
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Table from '$lib/ui/table';
 	import * as Tooltip from '$lib/ui/tooltip';
 
-	type CompareRow = {
-		id: string;
-		label: string;
-		tooltip?: string;
-		left: CompareFeatureCellViewModel;
-		right: CompareFeatureCellViewModel;
-	};
-
 	type Props = {
 		leftProductName: string;
 		rightProductName: string;
-		rows: CompareRow[];
+		rowsVm: CompareFeatureRowViewModel[];
 	};
 
-	let { leftProductName, rightProductName, rows }: Props = $props();
+	let {
+		leftProductName,
+		rightProductName,
+		rowsVm
+	}: Props = $props();
 </script>
 
 <section class="scroll-mt-24">
@@ -45,12 +44,12 @@
 			</Table.Header>
 			<Table.Body>
 				<Tooltip.Provider delayDuration={200}>
-					{#each rows as row (row.id)}
+					{#each rowsVm as rowVm (rowVm.id)}
 						<Table.Row class="border-0 hover:bg-transparent">
 							<Table.Cell class="rounded-xl border-0 bg-base-200/80 p-4 align-middle font-medium">
 								<div class="flex items-center gap-1.5">
-									<span>{row.label}</span>
-									{#if row.tooltip}
+									<span>{rowVm.label}</span>
+									{#if rowVm.tooltip}
 										<Tooltip.Root>
 											<Tooltip.Trigger>
 												{#snippet child({ props: triggerProps })}
@@ -74,17 +73,17 @@
 												sideOffset={8}
 												class="max-w-sm whitespace-pre-line"
 											>
-												{row.tooltip}
+												{rowVm.tooltip}
 											</Tooltip.Content>
 										</Tooltip.Root>
 									{/if}
 								</div>
 							</Table.Cell>
 							<Table.Cell class="rounded-xl border-0 bg-primary/10 p-4 text-center align-middle">
-								{@render featureCell(row.left)}
+								{@render featureCell(rowVm.left)}
 							</Table.Cell>
 							<Table.Cell class="rounded-xl border-0 bg-base-200/60 p-4 text-center align-middle">
-								{@render featureCell(row.right)}
+								{@render featureCell(rowVm.right)}
 							</Table.Cell>
 						</Table.Row>
 					{/each}

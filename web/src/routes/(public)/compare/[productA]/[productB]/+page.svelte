@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { CompareProductSummaryViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
 
 	import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -31,8 +32,8 @@
 	let detailVm = $derived(data.detailVm);
 	let schemaData = $derived(data.schemaData);
 
-	let leftProduct = $derived(detailVm.leftProduct);
-	let rightProduct = $derived(detailVm.rightProduct);
+	let leftProductVm: CompareProductSummaryViewModel = $derived(detailVm.leftProduct);
+	let rightProductVm: CompareProductSummaryViewModel = $derived(detailVm.rightProduct);
 	let compareRows = $derived(detailVm.compareRows);
 	let withWithoutSection = $derived(detailVm.withWithoutSection);
 	let faqItems = $derived(detailVm.faqItems);
@@ -82,24 +83,36 @@
 		<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">Platform overview</h2>
 		<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-				<h3 class="text-xl font-semibold text-base-content">{leftProduct.name}</h3>
-				<p class="mt-2 text-sm font-medium text-primary">{leftProduct.tagline}</p>
-				<p class="mt-4 text-base leading-relaxed text-base-content/80">{leftProduct.overview}</p>
+				<h3 class="text-xl font-semibold text-base-content">
+					{leftProductVm.name}
+				</h3>
+				<p class="mt-2 text-sm font-medium text-primary">
+					{leftProductVm.tagline}
+				</p>
+				<p class="mt-4 text-base leading-relaxed text-base-content/80">
+					{leftProductVm.overview}
+				</p>
 			</article>
 			<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-				<h3 class="text-xl font-semibold text-base-content">{rightProduct.name}</h3>
-				<p class="mt-2 text-sm font-medium text-base-content/70">{rightProduct.tagline}</p>
-				<p class="mt-4 text-base leading-relaxed text-base-content/80">{rightProduct.overview}</p>
+				<h3 class="text-xl font-semibold text-base-content">
+					{rightProductVm.name}
+				</h3>
+				<p class="mt-2 text-sm font-medium text-base-content/70">
+					{rightProductVm.tagline}
+				</p>
+				<p class="mt-4 text-base leading-relaxed text-base-content/80">
+					{rightProductVm.overview}
+				</p>
 			</article>
 		</div>
 	</section>
 
 	<div class="container mx-auto mt-20 max-w-5xl px-4">
 		<PublicProductComparePricing
-			leftProductName={leftProduct.name}
-			rightProductName={rightProduct.name}
-			leftPlans={leftProduct.pricingPlans}
-			rightPlans={rightProduct.pricingPlans}
+			leftProductName={leftProductVm.name}
+			rightProductName={rightProductVm.name}
+			leftPlansVm={leftProductVm.pricingPlans}
+			rightPlansVm={rightProductVm.pricingPlans}
 		/>
 	</div>
 
@@ -107,9 +120,11 @@
 		<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">Supported channels</h2>
 		<div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
 			<div class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-				<h3 class="text-lg font-semibold text-base-content">{leftProduct.name}</h3>
+				<h3 class="text-lg font-semibold text-base-content">
+					{leftProductVm.name}
+				</h3>
 				<ul class="mt-4 flex flex-wrap gap-2">
-					{#each leftProduct.channels as channel (channel)}
+					{#each leftProductVm.channels as channel (channel)}
 						<li>
 							<span class="badge badge-primary badge-outline badge-sm">{channel}</span>
 						</li>
@@ -117,9 +132,11 @@
 				</ul>
 			</div>
 			<div class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-				<h3 class="text-lg font-semibold text-base-content">{rightProduct.name}</h3>
+				<h3 class="text-lg font-semibold text-base-content">
+					{rightProductVm.name}
+				</h3>
 				<ul class="mt-4 flex flex-wrap gap-2">
-					{#each rightProduct.channels as channel (channel)}
+					{#each rightProductVm.channels as channel (channel)}
 						<li>
 							<span class="badge badge-outline badge-sm">{channel}</span>
 						</li>
@@ -131,9 +148,9 @@
 
 	<div class="container mx-auto mt-20 max-w-5xl px-4">
 		<PublicProductCompareSection
-			leftProductName={leftProduct.name}
-			rightProductName={rightProduct.name}
-			rows={compareRows}
+			leftProductName={leftProductVm.name}
+			rightProductName={rightProductVm.name}
+			rowsVm={compareRows}
 		/>
 	</div>
 
