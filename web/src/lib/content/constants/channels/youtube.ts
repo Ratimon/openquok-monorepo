@@ -7,6 +7,7 @@ export const youtubeChannel = {
 	slug: 'youtube',
 	platformId: 'youtube',
 	platformLabel: 'YouTube',
+	comparePlatformLabels: ['YouTube Shorts'],
 	icon: icons.YouTubeGlyph.name,
 	heroTitle: 'Schedule YouTube videos and Shorts you approve',
 	heroDescription:

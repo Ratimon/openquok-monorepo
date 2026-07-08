@@ -131,6 +131,10 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 		labels: ['YouTube']
 	},
 	{
+		icon: icons.YouTubeShorts.name,
+		labels: ['YouTube Shorts']
+	},
+	{
 		identifiers: ['tiktok'],
 		icon: icons.TikTok.name,
 		labels: ['TikTok']
@@ -155,6 +159,10 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 	{
 		icon: icons.Bluesky.name,
 		labels: ['Bluesky']
+	},
+	{
+		icon: icons.Mastodon.name,
+		labels: ['Mastodon']
 	},
 	{
 		icon: icons.Pinterest.name,

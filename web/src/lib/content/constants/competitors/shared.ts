@@ -1,6 +1,7 @@
 import { socialPlatformIconForLabel } from '$data/social-providers';
 
 import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
+import type { CompareTalkingPointId } from '$lib/content/constants/competitors/types';
 
 export const COMPARE_CHANNELS_SECTION = {
 	subtitle: 'platform coverage',
@@ -8,6 +9,19 @@ export const COMPARE_CHANNELS_SECTION = {
 	description:
 		'Compare which social networks each scheduler supports today. Platforms on our roadmap are marked with an hourglass.'
 };
+
+/** Display order for topic-keyed comparison rows. */
+export const COMPARE_TALKING_POINT_ORDER: readonly CompareTalkingPointId[] = [
+	'agent_workflow',
+	'pricing_model',
+	'workspace_isolation',
+	'product_focus',
+	'programmatic_access',
+	'publishing_control'
+];
+
+/** Default left-side product slug for the public compare hub and related-pair links. */
+export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 
 export function buildCompareChannelPoints(
 	openquokChannels: readonly string[],

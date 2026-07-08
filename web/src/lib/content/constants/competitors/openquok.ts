@@ -12,11 +12,11 @@ import {
 	PUBLIC_PRICING_PLAN_META,
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
-import { listAvailablePublicChannels } from '$lib/content/constants/channels';
+import { listAvailablePublicChannelCompareLabels } from '$lib/content/constants/channels';
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import { formatBytes } from '$lib/medias';
 
-const OPENQUOK_CHANNELS = listAvailablePublicChannels().map((channel) => channel.platformLabel);
+const OPENQUOK_CHANNELS = listAvailablePublicChannelCompareLabels();
 
 const OPENQUOK_PRICING_PLANS: ComparePricingPlan[] = PUBLIC_PRICING_TIER_ORDER.map((tier) => {
 	const limits = planLimitsForTier(tier);
@@ -156,14 +156,30 @@ export const openquokCompareProduct: CompareProduct = {
 		builtFor: 'humans and AI agents who need multi-workspace scheduling',
 		positioningWhenLeft:
 			'covers the same scheduling basics — and adds workspaces, agents, and API access when automation does the work',
-		advantages: [
-			'Agents draft and schedule via skills, MCP, or the Public API — you approve on the calendar',
-			'Flat workspace pricing from $29/mo — predictable plans instead of per-seat or per-channel fees',
-			'Agent workspaces isolate channels, OAuth apps, tokens, and MCP endpoints per brand or client',
-			'Focused scheduling, analytics, and agent integrations — pay for what you publish, not unused suites',
-			'MCP server and CLI per workspace — connect agents without copy-pasting between tools',
-			'Every agent draft lands as draft or scheduled — you approve before anything goes live'
-		],
-		disadvantages: []
+		talkingPoints: {
+			agent_workflow: {
+				strength:
+					'Agents draft and schedule via skills, MCP, or the Public API — you approve on the calendar'
+			},
+			pricing_model: {
+				strength:
+					'Flat workspace pricing from $29/mo — predictable plans instead of per-seat or per-channel fees'
+			},
+			workspace_isolation: {
+				strength:
+					'Agent workspaces isolate channels, OAuth apps, tokens, and MCP endpoints per brand or client'
+			},
+			product_focus: {
+				strength:
+					'Focused scheduling, analytics, and agent integrations — pay for what you publish, not unused suites'
+			},
+			programmatic_access: {
+				strength: 'MCP server and CLI per workspace — connect agents without copy-pasting between tools'
+			},
+			publishing_control: {
+				strength:
+					'Every agent draft lands as draft or scheduled — you approve before anything goes live'
+			}
+		}
 	}
 };

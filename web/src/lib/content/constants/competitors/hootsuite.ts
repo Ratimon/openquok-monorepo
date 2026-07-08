@@ -4,20 +4,26 @@ import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPri
 const HOOTSUITE_PRICING_PLANS: ComparePricingPlan[] = [
 	{
 		name: 'Standard',
+		monthlyPrice: 99,
+		tagline: 'Best for individuals managing up to 10 social accounts from one calendar',
+		footnote: 'Per user / month (annual billing) · 14-day free trial'
+	},
+	{
+		name: 'Professional',
 		monthlyPrice: 199,
-		tagline: 'Best for small teams that need publishing and engagement basics',
-		footnote: 'Per user / month (annual billing)'
+		tagline: 'Best for teams that need unlimited accounts and automated inbox workflows',
+		footnote: 'Per user / month (annual billing) · 14-day free trial'
 	},
 	{
 		name: 'Advanced',
 		monthlyPrice: 399,
-		tagline: 'Best for growing teams that need analytics, inbox, and approvals',
-		footnote: 'Per user / month (annual billing)'
+		tagline: 'Best for teams that need approvals, routing, and cross-team coordination',
+		footnote: 'Per user / month (annual billing) · 14-day free trial'
 	},
 	{
 		name: 'Enterprise',
 		monthlyPrice: null,
-		tagline: 'Best for large organizations with custom security and governance needs',
+		tagline: 'Best for large organizations with SSO, listening, and governance needs',
 		footnote: 'Custom pricing — contact sales'
 	}
 ];
@@ -32,19 +38,19 @@ const HOOTSUITE_CHANNELS = [
 	'Pinterest',
 	'Threads',
 	'Bluesky',
-	'Google Business Profile',
-	'WhatsApp'
+	'WhatsApp',
+	'Google Business Profile'
 ];
 
 const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>> = {
 	workspaces: { kind: 'excluded' },
-	channels: { kind: 'text', text: 'Varies by plan' },
+	channels: { kind: 'text', text: '10 on Standard · unlimited on Professional+' },
 	posts_per_month: { kind: 'text', text: 'Unlimited scheduling' },
 	team_members: { kind: 'text', text: 'Per-seat licensing' },
 	share_post_preview: { kind: 'included' },
 	public_api: { kind: 'excluded' },
 	oauth_apps: { kind: 'excluded' },
-	mcp_server: { kind: 'excluded' },
+	mcp_server: { kind: 'text', text: 'MCP connectors (in-product)' },
 	cloud_storage: { kind: 'text', text: 'Media library (plan limits apply)' },
 	multi_channel_publishing: { kind: 'included' },
 	agent_integrations: { kind: 'excluded' },
@@ -70,9 +76,9 @@ const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 export const hootsuiteCompareProduct: CompareProduct = {
 	slug: 'hootsuite',
 	name: 'Hootsuite',
-	tagline: 'Enterprise social marketing suite since 2008',
+	tagline: 'Social marketing suite with Wisdom AI since 2008',
 	overview:
-		'Hootsuite is an established social media management platform for marketing teams. It covers publishing, content calendar, social inbox, listening, analytics, and team workflows — with broad network support and per-user pricing aimed at mid-market and enterprise organizations.',
+		'Hootsuite is an established social media management platform for marketing teams. Standard through Advanced plans cover publishing, a unified inbox, analytics, and Wisdom AI — with per-user pricing, up to 10 social accounts on Standard, and unlimited accounts on Professional and above.',
 	pricingPlans: HOOTSUITE_PRICING_PLANS,
 	channels: HOOTSUITE_CHANNELS,
 	featureSupport: HOOTSUITE_FEATURE_SUPPORT,
@@ -82,21 +88,29 @@ export const hootsuiteCompareProduct: CompareProduct = {
 		builtFor: 'marketing teams in a browser',
 		positioningWhenLeft:
 			'covers publishing, inbox, listening, and analytics for teams that live in the dashboard',
-		advantages: [
-			'Broad network coverage including WhatsApp and Google Business Profile',
-			'Social listening and ads tooling in higher tiers for full-funnel teams',
-			'Per-seat roles and approvals for established marketing departments',
-			'Mature analytics and reporting for enterprise stakeholders',
-			'Deep inbox and engagement workflows across major networks',
-			'Trusted brand with long-standing enterprise integrations'
-		],
-		disadvantages: [
-			'Copy drafts between your AI assistant and a separate scheduling tab',
-			'Per-seat pricing that climbs as you add collaborators',
-			'One account pile for every brand, client, and channel',
-			'Enterprise bundles with listening and ads you may never use',
-			'No first-class path for Cursor, Claude Code, or terminal workflows',
-			'Autopilot publishing with limited human checkpoints'
-		]
+		talkingPoints: {
+			agent_workflow: {
+				strength: 'Wisdom AI drafts posts and images inside the dashboard on every plan',
+				weakness:
+					'Wisdom AI lives inside the dashboard — no skills, workspace MCP, or Public API for external agents'
+			},
+			pricing_model: {
+				strength: 'Per-seat plans with roles and approvals for established marketing departments',
+				weakness: 'Per-seat pricing that climbs as you add collaborators'
+			},
+			workspace_isolation: {
+				weakness: 'One account pile for every brand, client, and channel'
+			},
+			product_focus: {
+				strength: 'Social listening and ads tooling in higher tiers for full-funnel teams',
+				weakness: 'Enterprise bundles with listening and ads you may never use'
+			},
+			programmatic_access: {
+				weakness: 'In-product MCP connectors — not workspace-scoped endpoints for editor or terminal agents'
+			},
+			publishing_control: {
+				weakness: 'Autopilot publishing with limited human checkpoints'
+			}
+		}
 	}
 };

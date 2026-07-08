@@ -43,5 +43,10 @@ export type PublicChannelLandingPageViewModel = {
 	docsPath: string;
 	/** When false, hub shows a coming-soon badge and detail route 404s. */
 	available: boolean;
+	/**
+	 * Extra platform names for competitor compare tables (e.g. Shorts under the YouTube integration).
+	 * `platformLabel` is always included; these are appended in catalog order.
+	 */
+	comparePlatformLabels?: readonly string[];
 };
 

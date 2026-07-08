@@ -1,5 +1,7 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 
+import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
+import { COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
 import type { ComparePair, CompareProduct, PublicFaqItemId } from '$lib/content/constants/competitors/types';
 
 const DEFAULT_COMPARE_FAQ_ITEM_IDS: PublicFaqItemId[] = [
@@ -37,7 +39,7 @@ function buildCompareKeywords(left: CompareProduct, right: CompareProduct): stri
 
 function buildHeroDescription(left: CompareProduct, right: CompareProduct): string {
 	const base = `See how ${left.name} stacks up against ${right.name} on pricing, channels, team workflows, and scheduling features.`;
-	if (left.slug === 'openquok' || right.slug === 'openquok') {
+	if (left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG) {
 		return `${base} Start with a 7-day free trial — no credit card required.`;
 	}
 	return base;
@@ -49,18 +51,27 @@ function buildWithWithoutSection(
 ): PublicAgentComparisonSection {
 	return {
 		subtitle: 'comparisons',
-		title: `${left.comparison.headline}, not another ${right.comparison.notAnother}`,
+		title: buildWithWithoutTitle(left, right),
 		description: `${right.name} is built for ${right.comparison.builtFor}. ${left.name} ${left.comparison.positioningWhenLeft}.`,
 		withoutTitle: right.comparison.withoutTitle ?? `Typical ${right.name} workflow`,
 		withTitle: left.name,
-		points: zipComparisonPoints(left, right)
+		points: buildTopicComparisonPoints(left, right)
 	};
 }
 
-function zipComparisonPoints(left: CompareProduct, right: CompareProduct) {
-	const count = Math.min(left.comparison.advantages.length, right.comparison.disadvantages.length);
-	return Array.from({ length: count }, (_, index) => ({
-		pain: right.comparison.disadvantages[index]!,
-		feature: left.comparison.advantages[index]!
-	}));
+function buildWithWithoutTitle(left: CompareProduct, right: CompareProduct): string {
+	if (left.slug === COMPARE_HUB_BASE_SLUG) {
+		return `${left.comparison.headline}, not another ${right.comparison.notAnother}`;
+	}
+	return `${left.comparison.headline} vs ${right.comparison.headline}`;
+}
+
+function buildTopicComparisonPoints(left: CompareProduct, right: CompareProduct) {
+	return COMPARE_TALKING_POINT_ORDER.flatMap((topic) => {
+		const strength = left.comparison.talkingPoints[topic]?.strength;
+		const weakness = right.comparison.talkingPoints[topic]?.weakness;
+		if (!strength || !weakness) return [];
+
+		return [{ feature: strength, pain: weakness }];
+	});
 }

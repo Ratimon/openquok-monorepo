@@ -4,6 +4,25 @@ import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPri
 
 export type CompareProductSlug = 'openquok' | 'hootsuite' | 'buffer';
 
+/**
+ * Comparison angles shared across products. When building a pair, a row is included only
+ * when the left product has `strength` and the right product has `weakness` for the same id.
+ */
+export type CompareTalkingPointId =
+	| 'agent_workflow'
+	| 'pricing_model'
+	| 'workspace_isolation'
+	| 'product_focus'
+	| 'programmatic_access'
+	| 'publishing_control';
+
+export type CompareTalkingPointCopy = {
+	/** Green (with / left) column when this product is on the left. */
+	strength?: string;
+	/** Red (without / right) column when this product is on the right. */
+	weakness?: string;
+};
+
 export type CompareFeatureCell =
 	| { kind: 'included' }
 	| { kind: 'excluded' }
@@ -23,7 +42,7 @@ export type ComparePricingPlan = {
 export type CompareProductComparison = {
 	/** Headline fragment for the left product (e.g. "agent-native scheduling"). */
 	headline: string;
-	/** Right-column headline fragment: "not another {notAnother}". */
+	/** Right-column headline fragment for OpenQuok-led pairs: "not another {notAnother}". */
 	notAnother: string;
 	/** Audience/context fragment: "{name} is built for {builtFor}." */
 	builtFor: string;
@@ -31,10 +50,8 @@ export type CompareProductComparison = {
 	positioningWhenLeft: string;
 	/** Override for the without column title; defaults to "Typical {name} workflow". */
 	withoutTitle?: string;
-	/** Benefits when this product is the left (with) column. */
-	advantages: string[];
-	/** Pain points when this product is the right (without) column. */
-	disadvantages: string[];
+	/** Strengths and weaknesses keyed by comparison angle. */
+	talkingPoints: Partial<Record<CompareTalkingPointId, CompareTalkingPointCopy>>;
 };
 
 export type CompareProduct = {

@@ -12,6 +12,7 @@ import { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
+import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 
 export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
@@ -19,9 +20,6 @@ export { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
-
-/** Default left-side product slug for the public compare hub and related-pair links. */
-export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,

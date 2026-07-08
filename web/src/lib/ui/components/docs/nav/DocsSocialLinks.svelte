@@ -9,11 +9,11 @@
 		github: icons.Github.name,
 		twitter: icons.X.name,
 		linkedin: icons.Link.name,
-		// to do: add discord, slack, twitch, mastodon, rss, mail, email, website icons
+		// to do: add discord, slack, twitch, rss, mail, email, website icons
 		discord: icons.MessageCircle.name,
 		slack: icons.MessageCircle.name,
 		twitch: icons.Megaphone.name,
-		mastodon: icons.Mail.name,
+		mastodon: icons.Mastodon.name,
 		rss: icons.List.name,
 		mail: icons.Mail.name,
 		email: icons.Mail.name,

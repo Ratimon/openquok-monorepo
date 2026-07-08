@@ -52,3 +52,17 @@ export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] 
 export function listAvailablePublicChannels(): PublicChannelLandingPageViewModel[] {
 	return PUBLIC_CHANNEL_LANDING_PAGES.filter((page) => page.available);
 }
+
+/** Platform labels for competitor compare tables — includes `comparePlatformLabels` extras. */
+export function listAvailablePublicChannelCompareLabels(): string[] {
+	const labels: string[] = [];
+
+	for (const channel of listAvailablePublicChannels()) {
+		labels.push(channel.platformLabel);
+		if (channel.comparePlatformLabels) {
+			labels.push(...channel.comparePlatformLabels);
+		}
+	}
+
+	return labels;
+}
