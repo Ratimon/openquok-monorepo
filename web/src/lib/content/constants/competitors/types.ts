@@ -1,6 +1,7 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
+import type { IconName } from '$data/icons';
 
 export type CompareProductSlug = 'openquok' | 'hootsuite' | 'buffer';
 
@@ -57,6 +58,7 @@ export type CompareProductComparison = {
 export type CompareProduct = {
 	slug: CompareProductSlug;
 	name: string;
+	icon: IconName;
 	tagline: string;
 	overview: string;
 	pricingPlans: ComparePricingPlan[];

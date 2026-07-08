@@ -692,13 +692,13 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Building Block Tags', href: publicBuildingBlocksTagsPath },
 	],
 	Resources: [
-		{ label: 'Developer Docs', href: publicDocsPath },
-		{ label: 'Self-hosted', href: publicDocsGettingStartedForDevPath },
-		{ label: 'Agents', href: publicAgentsPath },
-		{ label: 'Channels', href: publicChannelsPath },
+		{ label: 'All Agent Integrations', href: publicAgentsPath },
+		{ label: 'All Supported Channels', href: publicChannelsPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },
-		{ label: 'Blog Authors', href: '/blog/author' }
+		{ label: 'Blog Authors', href: '/blog/author' },
+		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'Self-hosted', href: publicDocsGettingStartedForDevPath },
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },

@@ -1,5 +1,6 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
+import { icons } from '$data/icons';
 
 const HOOTSUITE_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -76,6 +77,7 @@ const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 export const hootsuiteCompareProduct: CompareProduct = {
 	slug: 'hootsuite',
 	name: 'Hootsuite',
+	icon: icons.Hootsuite.name,
 	tagline: 'Social marketing suite with Wisdom AI since 2008',
 	overview:
 		'Hootsuite is an established social media management platform for marketing teams. Standard through Advanced plans cover publishing, a unified inbox, analytics, and Wisdom AI — with per-user pricing, up to 10 social accounts on Standard, and unlimited accounts on Professional and above.',

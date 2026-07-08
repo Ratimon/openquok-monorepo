@@ -18,8 +18,8 @@
 
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
-	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import Compare from '$lib/ui/templates/Compare.svelte';
+	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentsHubGrid from '$lib/ui/templates/landing-page/PublicAgentsHubGrid.svelte';
 	import PublicMcpHubGrid from '$lib/ui/templates/landing-page/PublicMcpHubGrid.svelte';

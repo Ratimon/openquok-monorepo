@@ -13,6 +13,8 @@ import {
 	type CompareProductSlug
 } from '$lib/content/constants/publicCompareConfig';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { IconName } from '$data/icons';
+
 import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';
 import { route, url } from '$lib/utils/path';
 
@@ -25,6 +27,7 @@ export type ComparePricingPlanViewModel = ComparePricingPlan;
 export type CompareProductSummaryViewModel = {
 	slug: string;
 	name: string;
+	icon: IconName;
 	tagline: string;
 	overview: string;
 	pricingPlans: ComparePricingPlanViewModel[];
@@ -41,6 +44,7 @@ export type CompareFeatureRowViewModel = {
 
 export type CompareHubPairCardViewModel = {
 	name: string;
+	icon: IconName;
 	slug: string;
 	href: string;
 };
@@ -48,6 +52,7 @@ export type CompareHubPairCardViewModel = {
 export type CompareHubProductOptionViewModel = {
 	slug: CompareProductSlug;
 	name: string;
+	icon: IconName;
 };
 
 export type CompareHubViewModel = {
@@ -106,10 +111,12 @@ export class PublicComparePagePresenter {
 			baseProductName: baseProduct.name,
 			products: PUBLIC_COMPARE_PRODUCTS.map((product) => ({
 				slug: product.slug,
-				name: product.name
+				name: product.name,
+				icon: product.icon
 			})),
 			pairs: pairs.map((pair) => ({
 				name: pair.productBName,
+				icon: getCompareProduct(pair.productBSlug)?.icon ?? baseProduct.icon,
 				slug: pair.productBSlug,
 				href: url(route(getRootPathPublicComparePair(pair.productASlug, pair.productBSlug)))
 			}))
@@ -137,6 +144,7 @@ export class PublicComparePagePresenter {
 			.filter((hubPair) => hubPair.productBSlug !== pair.productBSlug)
 			.map((hubPair) => ({
 				name: hubPair.productBName,
+				icon: getCompareProduct(hubPair.productBSlug)?.icon ?? leftProduct.icon,
 				slug: hubPair.productBSlug,
 				href: url(route(getRootPathPublicComparePair(hubPair.productASlug, hubPair.productBSlug)))
 			}));
@@ -167,6 +175,7 @@ function toProductSummary(product: NonNullable<ReturnType<typeof getCompareProdu
 	return {
 		slug: product.slug,
 		name: product.name,
+		icon: product.icon,
 		tagline: product.tagline,
 		overview: product.overview,
 		pricingPlans: product.pricingPlans,

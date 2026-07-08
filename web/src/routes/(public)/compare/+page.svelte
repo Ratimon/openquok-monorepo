@@ -17,12 +17,12 @@
 	import { icons } from '$data/icons';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
-	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
 
@@ -36,6 +36,27 @@
 	let selectedBaseSlug = $state<CompareProductSlug>(COMPARE_HUB_BASE_SLUG);
 	let hubVm = $derived(publicComparePagePresenter.buildHubVm(selectedBaseSlug));
 	let productOptions = $derived(defaultHubVm.products);
+	let selectedBaseProduct = $derived(
+		productOptions.find((product) => product.slug === selectedBaseSlug) ?? productOptions[0]!
+	);
+
+	const PRODUCT_ICON_STYLES: Record<
+		CompareProductSlug,
+		{ containerClass: string; iconClass?: string }
+	> = {
+		openquok: {
+			containerClass:
+				'bg-linear-to-br from-emerald-400/30 via-lime-300/20 to-amber-300/25 text-white ring-emerald-300/35'
+		},
+		hootsuite: {
+			containerClass:
+				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35'
+		},
+		buffer: {
+			containerClass:
+				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
+		}
+	};
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -45,6 +66,10 @@
 
 	function selectBaseProduct(slug: CompareProductSlug) {
 		selectedBaseSlug = slug;
+	}
+
+	function iconStyleForProduct(slug: CompareProductSlug) {
+		return PRODUCT_ICON_STYLES[slug];
 	}
 </script>
 
@@ -61,9 +86,20 @@
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger
 					type="button"
-					class="btn btn-primary inline-flex max-w-full items-center gap-2 rounded-full px-4 py-2 text-3xl font-black tracking-tight sm:px-5 sm:text-4xl"
+					class="btn btn-primary inline-flex max-w-full items-center gap-3 rounded-full px-4 py-2 text-3xl font-black tracking-tight sm:px-5 sm:text-4xl"
 					aria-label="Choose the main product to compare"
 				>
+					<div
+						class={`flex size-10 shrink-0 items-center justify-center rounded-full ring-1 ${iconStyleForProduct(selectedBaseProduct.slug).containerClass}`}
+					>
+						<AbstractIcon
+							name={selectedBaseProduct.icon}
+							width="22"
+							height="22"
+							class={iconStyleForProduct(selectedBaseProduct.slug).iconClass ?? 'size-5.5'}
+							focusable="false"
+						/>
+					</div>
 					<span class="truncate">{hubVm.baseProductName}</span>
 					<AbstractIcon
 						name={icons.ChevronDown.name}
@@ -76,10 +112,25 @@
 				<DropdownMenu.Content align="center" class="min-w-[12rem]">
 					{#each productOptions as product (product.slug)}
 						<DropdownMenu.Item
-							class={product.slug === selectedBaseSlug ? 'font-semibold text-primary' : undefined}
+							class={product.slug === selectedBaseSlug
+								? 'font-semibold text-primary'
+								: undefined}
 							onclick={() => selectBaseProduct(product.slug)}
 						>
-							{product.name}
+							<div class="flex items-center gap-2">
+								<div
+									class={`flex size-6 shrink-0 items-center justify-center rounded-full ring-1 ${iconStyleForProduct(product.slug).containerClass}`}
+								>
+									<AbstractIcon
+										name={product.icon}
+										width="14"
+										height="14"
+										class={iconStyleForProduct(product.slug).iconClass ?? 'size-3.5'}
+										focusable="false"
+									/>
+								</div>
+								<span>{product.name}</span>
+							</div>
 						</DropdownMenu.Item>
 					{/each}
 				</DropdownMenu.Content>
@@ -101,6 +152,9 @@
 		items={hubVm.pairs.map((pair) => ({
 			id: pair.slug,
 			title: `vs. ${pair.name}`,
+			iconName: pair.icon,
+			iconContainerClass: iconStyleForProduct(pair.slug as CompareProductSlug).containerClass,
+			iconClass: iconStyleForProduct(pair.slug as CompareProductSlug).iconClass,
 			href: pair.href,
 			description: `Compare ${hubVm.baseProductName} and ${pair.name} across pricing, features, and supported channels.`,
 			ctaLabel: 'Open'

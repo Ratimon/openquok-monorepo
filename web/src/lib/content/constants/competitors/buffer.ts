@@ -1,5 +1,6 @@
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
+import { icons } from '$data/icons';
 
 const BUFFER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
@@ -70,6 +71,7 @@ const BUFFER_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 export const bufferCompareProduct: CompareProduct = {
 	slug: 'buffer',
 	name: 'Buffer',
+	icon: icons.Buffer.name,
 	tagline: 'Social media toolkit for creators and teams since 2010',
 	overview:
 		'Buffer is a social media management suite for individuals, creators, and small teams. It offers queue-based scheduling, an AI assistant, a community inbox, analytics, and a REST API — with per-channel pricing, volume discounts, and a free plan for up to three channels.',

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import type { CompareProductSummaryViewModel } from '$lib/area-public/PublicComparePage.presenter.svelte';
+	import type { CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
 
 	import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -11,13 +12,15 @@
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT
 	} from '$lib/config/constants/config';
+	import { icons } from '$data/icons';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
+	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicProductComparePricing from '$lib/ui/components/compare/PublicProductComparePricing.svelte';
 	import PublicProductCompareSection from '$lib/ui/components/compare/PublicProductCompareSection.svelte';
-	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
-	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
-	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
@@ -45,6 +48,30 @@
 	let faqItems = $derived(detailVm.faqItems);
 	let relatedPairs = $derived(detailVm.relatedPairs);
 
+	const PRODUCT_ICON_STYLES: Record<
+		CompareProductSlug,
+		{ heroContainerClass: string; cardContainerClass: string; iconClass?: string }
+	> = {
+		openquok: {
+			heroContainerClass:
+				'bg-linear-to-br from-emerald-400/30 via-lime-300/20 to-amber-300/25 text-white ring-emerald-300/35',
+			cardContainerClass:
+				'bg-linear-to-br from-emerald-400/22 via-lime-300/16 to-amber-300/20 text-white ring-emerald-300/28'
+		},
+		hootsuite: {
+			heroContainerClass:
+				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35',
+			cardContainerClass:
+				'bg-linear-to-br from-orange-400/20 via-amber-300/16 to-yellow-300/16 text-orange-100 ring-orange-300/28'
+		},
+		buffer: {
+			heroContainerClass:
+				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35',
+			cardContainerClass:
+				'bg-linear-to-br from-sky-400/20 via-cyan-300/16 to-blue-300/16 text-sky-100 ring-sky-300/28'
+		}
+	};
+
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -57,6 +84,9 @@
 		{
 			id: 'all-comparisons',
 			title: 'All comparisons',
+			iconName: icons.Grid3x3.name,
+			iconContainerClass:
+				'bg-linear-to-br from-violet-400/25 via-fuchsia-300/18 to-indigo-300/20 text-violet-100 ring-violet-300/30',
 			href: compareHubPath,
 			description: 'Browse the full comparison hub to explore every head-to-head scheduling matchup.',
 			ctaLabel: 'Open'
@@ -64,6 +94,9 @@
 		...relatedPairs.map((pair) => ({
 			id: pair.slug,
 			title: `vs. ${pair.name}`,
+			iconName: pair.icon,
+			iconContainerClass: iconStyleForProduct(pair.slug as CompareProductSlug).cardContainerClass,
+			iconClass: iconStyleForProduct(pair.slug as CompareProductSlug).iconClass,
 			href: pair.href,
 			description: `Compare OpenQuok and ${pair.name} across pricing, features, and supported channels.`,
 			ctaLabel: 'Open'
@@ -85,6 +118,10 @@
 		'bg-gradient-to-r from-emerald-300 via-lime-300 to-amber-300 bg-clip-text text-transparent';
 	const compareNameAccentClass =
 		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
+
+	function iconStyleForProduct(slug: CompareProductSlug) {
+		return PRODUCT_ICON_STYLES[slug];
+	}
 
 	const compareSectionHeroTheme: LandingHeroTheme = {
 		...landingHeroTheme,
@@ -119,6 +156,39 @@
 <SectionOuterContainer class="py-10 md:py-14">
 	<header class="container mx-auto max-w-4xl space-y-4 px-4 text-center">
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">Compare</p>
+		<div class="flex items-center justify-center gap-3 sm:gap-4">
+			<div
+				class={`flex size-14 items-center justify-center rounded-2xl shadow-sm ring-1 sm:size-16 ${iconStyleForProduct(leftProductVm.slug as CompareProductSlug).heroContainerClass}`}
+			>
+				<AbstractIcon
+					name={leftProductVm.icon}
+					width="30"
+					height="30"
+					class={iconStyleForProduct(leftProductVm.slug as CompareProductSlug).iconClass ??
+						'size-7 sm:size-8'}
+					focusable="false"
+				/>
+			</div>
+			<AbstractIcon
+				name={icons.ArrowRight.name}
+				width="20"
+				height="20"
+				class="size-5 text-base-content/45"
+				focusable="false"
+			/>
+			<div
+				class={`flex size-14 items-center justify-center rounded-2xl shadow-sm ring-1 sm:size-16 ${iconStyleForProduct(rightProductVm.slug as CompareProductSlug).heroContainerClass}`}
+			>
+				<AbstractIcon
+					name={rightProductVm.icon}
+					width="30"
+					height="30"
+					class={iconStyleForProduct(rightProductVm.slug as CompareProductSlug).iconClass ??
+						'size-7 sm:size-8'}
+					focusable="false"
+				/>
+			</div>
+		</div>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
 			<span class={compareNamePrimaryClass}>{leftProductVm.name}</span>
 			<span class="px-2 text-base-content/80">vs</span>
@@ -151,11 +221,23 @@
 		/>
 		<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-				<h3 class="text-xl font-semibold">
-					<span class={compareNamePrimaryClass}>
-					{leftProductVm.name}
-					</span>
-				</h3>
+				<div class="flex items-center gap-3">
+					<div
+						class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(leftProductVm.slug as CompareProductSlug).cardContainerClass}`}
+					>
+						<AbstractIcon
+							name={leftProductVm.icon}
+							width="22"
+							height="22"
+							class={iconStyleForProduct(leftProductVm.slug as CompareProductSlug).iconClass ??
+								'size-5.5'}
+							focusable="false"
+						/>
+					</div>
+					<h3 class="text-xl font-semibold">
+						<span class={compareNamePrimaryClass}>{leftProductVm.name}</span>
+					</h3>
+				</div>
 				<p class="mt-2 text-sm font-medium text-primary">
 					{leftProductVm.tagline}
 				</p>
@@ -164,11 +246,23 @@
 				</p>
 			</article>
 			<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-				<h3 class="text-xl font-semibold">
-					<span class={compareNameAccentClass}>
-					{rightProductVm.name}
-					</span>
-				</h3>
+				<div class="flex items-center gap-3">
+					<div
+						class={`flex size-11 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${iconStyleForProduct(rightProductVm.slug as CompareProductSlug).cardContainerClass}`}
+					>
+						<AbstractIcon
+							name={rightProductVm.icon}
+							width="22"
+							height="22"
+							class={iconStyleForProduct(rightProductVm.slug as CompareProductSlug).iconClass ??
+								'size-5.5'}
+							focusable="false"
+						/>
+					</div>
+					<h3 class="text-xl font-semibold">
+						<span class={compareNameAccentClass}>{rightProductVm.name}</span>
+					</h3>
+				</div>
 				<p class="mt-2 text-sm font-medium text-base-content/70">
 					{rightProductVm.tagline}
 				</p>
