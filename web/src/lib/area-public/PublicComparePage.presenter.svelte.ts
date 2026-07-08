@@ -5,10 +5,12 @@ import {
 	COMPARE_HUB_BASE_SLUG,
 	getCompareProduct,
 	listComparePairsForHub,
+	PUBLIC_COMPARE_PRODUCTS,
 	resolvePublicFaqItemsByIds,
 	type CompareFeatureCell,
 	type ComparePair,
-	type ComparePricingPlan
+	type ComparePricingPlan,
+	type CompareProductSlug
 } from '$lib/content/constants/publicCompareConfig';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';
@@ -43,12 +45,20 @@ export type CompareHubPairCardViewModel = {
 	href: string;
 };
 
+export type CompareHubProductOptionViewModel = {
+	slug: CompareProductSlug;
+	name: string;
+};
+
 export type CompareHubViewModel = {
 	metaTitle: string;
 	metaDescription: string;
 	eyebrow: string;
 	title: string;
 	description: string;
+	baseSlug: CompareProductSlug;
+	baseProductName: string;
+	products: CompareHubProductOptionViewModel[];
 	pairs: CompareHubPairCardViewModel[];
 };
 
@@ -69,22 +79,35 @@ export type CompareDetailViewModel = {
 
 export class PublicComparePagePresenter {
 
-	buildHubVm(): CompareHubViewModel {
-		const pairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG);
+	buildHubVm(baseSlug: CompareProductSlug = COMPARE_HUB_BASE_SLUG): CompareHubViewModel {
+		const baseProduct = getCompareProduct(baseSlug);
+		if (!baseProduct) {
+			return this.buildHubVm(COMPARE_HUB_BASE_SLUG);
+		}
+
+		const pairs = listComparePairsForHub(baseSlug);
 		const pairCount = pairs.length;
+		const otherCountLabel =
+			pairCount === 1 ? '1 other tool' : `${pairCount} other tools`;
 
 		return {
-			metaTitle: 'OpenQuok vs the rest',
+			metaTitle: `${baseProduct.name} vs the rest`,
 			metaDescription:
 				pairCount === 1
-					? 'See how OpenQuok stacks up against Hootsuite on pricing, channels, agent workspaces, and scheduling features.'
-					: `See how OpenQuok stacks up against ${pairCount} alternatives on pricing, channels, agent workspaces, and scheduling features.`,
+					? `See how ${baseProduct.name} stacks up against another social media scheduler on pricing, channels, workspaces, and scheduling features.`
+					: `See how ${baseProduct.name} stacks up against ${otherCountLabel} on pricing, channels, workspaces, and scheduling features.`,
 			eyebrow: 'Compare',
-			title: 'OpenQuok vs the rest',
+			title: `${baseProduct.name} vs the rest`,
 			description:
 				pairCount === 1
-					? 'See how OpenQuok stacks up against the leading enterprise scheduler.'
-					: `See how OpenQuok stacks up against ${pairCount} social media schedulers.`,
+					? `See how ${baseProduct.name} stacks up against 1 other tool.`
+					: `See how ${baseProduct.name} stacks up against ${otherCountLabel}.`,
+			baseSlug: baseProduct.slug,
+			baseProductName: baseProduct.name,
+			products: PUBLIC_COMPARE_PRODUCTS.map((product) => ({
+				slug: product.slug,
+				name: product.name
+			})),
 			pairs: pairs.map((pair) => ({
 				name: pair.productBName,
 				slug: pair.productBSlug,

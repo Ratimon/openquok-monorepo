@@ -146,7 +146,7 @@ export const openquokCompareProduct: CompareProduct = {
 	name: 'OpenQuok',
 	tagline: 'Social media scheduler built for humans and AI agents',
 	overview:
-		'OpenQuok is an agent-native social media scheduler. Connect channels, plan content on calendar and kanban views, and publish across every platform from the dashboard — or pipe drafts in from AI agents via skills, MCP, and the Public API. Multi-workspace isolation keeps brands, clients, and automation contexts separate.',
+		'OpenQuok is a 100% open-source agent-native social media scheduler. Connect channels, plan content on calendar and kanban views, and publish across every platform from the dashboard — or pipe drafts in from AI agents via skills, MCP, and the Public API. Multi-workspace isolation keeps brands, clients, and automation contexts separate.',
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
 	featureSupport: buildOpenQuokFeatureSupport(),
