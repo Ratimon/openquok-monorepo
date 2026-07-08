@@ -19,6 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			tagFilterVm: ExtensionsTagFilterViewModel;
+			schemaData: unknown;
 		};
 
 		return {
@@ -28,7 +29,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			tagFilterVm: serverData.tagFilterVm
+			tagFilterVm: serverData.tagFilterVm,
+			schemaData: serverData.schemaData
 		};
 	}
 

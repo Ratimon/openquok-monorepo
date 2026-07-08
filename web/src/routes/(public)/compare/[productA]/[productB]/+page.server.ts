@@ -3,6 +3,10 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { error } from '@sveltejs/kit';
 
 import { publicComparePagePresenter } from '$lib/area-public';
+import type {
+	ComparePricingPlanViewModel,
+	CompareProductSummaryViewModel
+} from '$lib/area-public/PublicComparePage.presenter.svelte';
 import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import {
 	CONFIG_SCHEMA_COMPANY,
@@ -75,12 +79,47 @@ export async function load({ url, params, cookies, parent }) {
 				name: detailVm.metaTitle,
 				description: customDescription,
 				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#comparison`
+				},
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
+			{
+				'@type': 'ItemList',
+				'@id': `${canonical}#comparison`,
+				name: `${detailVm.leftProduct.name} vs ${detailVm.rightProduct.name}`,
+				description: customDescription,
+				url: canonical,
+				numberOfItems: 2,
+				itemListElement: [
+					{
+						'@type': 'ListItem',
+						position: 1,
+						item: {
+							'@id': `${canonical}#${detailVm.leftProduct.slug}`
+						}
+					},
+					{
+						'@type': 'ListItem',
+						position: 2,
+						item: {
+							'@id': `${canonical}#${detailVm.rightProduct.slug}`
+						}
+					}
+				]
+			},
+			createCompareSoftwareApplicationSEOSchema({
+				canonical,
+				product: detailVm.leftProduct
+			}),
+			createCompareSoftwareApplicationSEOSchema({
+				canonical,
+				product: detailVm.rightProduct
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: faqDefaults.TITLE,
@@ -96,4 +135,68 @@ export async function load({ url, params, cookies, parent }) {
 		detailVm,
 		schemaData
 	};
+}
+
+type CreateCompareSoftwareApplicationSEOSchemaParams = {
+	canonical: string;
+	product: CompareProductSummaryViewModel;
+};
+
+function createCompareSoftwareApplicationSEOSchema(
+	params: CreateCompareSoftwareApplicationSEOSchemaParams
+): Record<string, unknown> {
+	const { canonical, product } = params;
+
+	return {
+		'@type': 'SoftwareApplication',
+		'@id': `${canonical}#${product.slug}`,
+		name: product.name,
+		abstract: product.tagline,
+		description: product.overview,
+		applicationCategory: 'Social media scheduling application',
+		operatingSystem: 'Web',
+		mainEntityOfPage: {
+			'@id': `${canonical}#webpage`
+		},
+		isPartOf: {
+			'@id': `${canonical}#comparison`
+		},
+		...(product.pricingPlans.some((plan) => plan.monthlyPrice === 0)
+			? { isAccessibleForFree: true }
+			: {}),
+		...(product.channels.length > 0
+			? {
+					featureList: [`Supported channels: ${product.channels.join(', ')}`]
+				}
+			: {}),
+		...createPricingOffers(product.pricingPlans, canonical)
+	};
+}
+
+function createPricingOffers(
+	pricingPlans: ComparePricingPlanViewModel[],
+	canonical: string
+): Record<string, unknown> {
+	const offers = pricingPlans.flatMap((plan) => {
+		if (plan.monthlyPrice === null) {
+			return [];
+		}
+
+		return [
+			{
+				'@type': 'Offer',
+				name: plan.name,
+				description: [plan.tagline, plan.footnote].filter(Boolean).join(' · '),
+				priceCurrency: 'USD',
+				price: plan.monthlyPrice,
+				url: canonical
+			}
+		];
+	});
+
+	if (offers.length === 0) {
+		return {};
+	}
+
+	return { offers };
 }

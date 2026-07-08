@@ -10,6 +10,7 @@
 
 	import { Card, CardHeader } from '$lib/ui/card';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
@@ -20,6 +21,7 @@
 	let { data }: Props = $props();
 
 	let tagFilterVm = $derived(data.tagFilterVm);
+	let schemaData = $derived(data.schemaData);
 
 	const playbooksHubHref = url(route(getRootPathPublicPlaybooks()));
 
@@ -32,18 +34,18 @@
 	}
 
 	const groupedTags = $derived.by(() => {
-		const groups = new Map<string, typeof tagFilterVm.tags>();
+		const groups: Record<string, typeof tagFilterVm.tags> = {};
 		for (const tag of tagFilterVm.tags) {
 			const groupName = tag.groupSlugs[0] ?? 'Other';
 			const label =
 				tagFilterVm.groups.find((group) => group.slug === groupName)?.label ?? 'Other';
-			const existing = groups.get(label) ?? [];
-			existing.push(tag);
-			groups.set(label, existing);
+			(groups[label] ??= []).push(tag);
 		}
-		return [...groups.entries()].sort(([a], [b]) => a.localeCompare(b));
+		return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
 	});
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

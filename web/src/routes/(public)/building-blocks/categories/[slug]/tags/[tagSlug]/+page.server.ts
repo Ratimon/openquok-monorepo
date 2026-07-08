@@ -48,7 +48,11 @@ export async function load(event) {
 		fixedCategorySlug: categorySlug,
 		heroTitle,
 		heroDescription,
-		customSlug: getRootPathPublicBuildingBlocksCategoryTag(categorySlug, tagPathSlug)
+		customSlug: getRootPathPublicBuildingBlocksCategoryTag(categorySlug, tagPathSlug),
+		categoryTermName: categoryTitle,
+		categoryTermDescription: detail?.description?.trim() || null,
+		tagTermName: tagTitle,
+		tagTermDescription: heroDescription
 	};
 
 	if (tagResolution.kind === 'tag') {

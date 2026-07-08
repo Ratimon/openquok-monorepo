@@ -9,6 +9,10 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { getListingPresenter, listingRepository } from '$lib/listings/index';
+import {
+	createCategoryTermSetSchema,
+	createCollectionPageSchema
+} from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -51,10 +55,32 @@ export async function load({ url, fetch, cookies, parent }) {
 		hub.categories,
 		categoryDetails
 	);
+	const canonical = new URL(url.pathname, url.origin).href;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			createCollectionPageSchema({
+				canonical,
+				origin: url.origin,
+				companyName,
+				name: customTitle,
+				description: customDescription,
+				mainEntityId: `${canonical}#categories-set`
+			}),
+			createCategoryTermSetSchema({
+				canonical,
+				origin: url.origin,
+				name: 'Building block categories',
+				description: customDescription,
+				categories
+			})
+		].filter((node) => Object.keys(node).length > 0)
+	};
 
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		categories
+		categories,
+		schemaData
 	};
 }

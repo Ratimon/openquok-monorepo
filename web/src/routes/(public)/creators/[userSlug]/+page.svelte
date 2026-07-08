@@ -6,6 +6,7 @@
 
 	import * as Avatar from '$lib/ui/components/avatar';
 	import ListingHubBreadcrumb from '$lib/ui/components/listings/ListingHubBreadcrumb.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import BuildingBlockCard from '$lib/ui/templates/building-blocks/BuildingBlockCard.svelte';
@@ -23,20 +24,18 @@
 	let buildingBlocks = $derived(data.buildingBlocks);
 	let playbooks = $derived(data.playbooks);
 	let displayName = $derived(data.displayName);
+	let schemaData = $derived(data.schemaData);
 
 	const creatorsIndexHref = url(`/${getRootPathPublicCreators()}`);
 
-	let activeTab = $state<'building-blocks' | 'playbooks'>('building-blocks');
-
-	$effect.pre(() => {
-		activeTab =
-			buildingBlocks.length === 0 && playbooks.length > 0 ? 'playbooks' : 'building-blocks';
-	});
+	let activeTab = $state<'building-blocks' | 'playbooks'>('playbooks');
 
 	function statLabel(count: number, singular: string, plural: string): string {
 		return count === 1 ? `1 ${singular}` : `${count} ${plural}`;
 	}
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

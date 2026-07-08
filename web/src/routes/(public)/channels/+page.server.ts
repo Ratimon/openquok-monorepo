@@ -6,9 +6,37 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
-import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
+import {
+	getRootPathPublicChannel,
+	getRootPathPublicChannels
+} from '$lib/area-public/constants/getRootPathPublicChannels';
 
 export const ssr = true;
+
+function buildChannelsItemListSchema(params: {
+	canonical: string;
+	origin: string;
+	channels: Array<{ slug: string; platformLabel: string; description: string }>;
+}) {
+	const { canonical, origin, channels } = params;
+
+	return {
+		'@type': 'ItemList',
+		'@id': `${canonical}#channels-list`,
+		name: 'Social media scheduler channels',
+		description:
+			'Available social media channels and integrations you can connect and schedule from one workspace.',
+		url: canonical,
+		numberOfItems: channels.length,
+		itemListElement: channels.map((channel, index) => ({
+			'@type': 'ListItem',
+			position: index + 1,
+			name: channel.platformLabel,
+			description: channel.description,
+			url: new URL(getRootPathPublicChannel(channel.slug), origin).href
+		}))
+	};
+}
 
 export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
@@ -60,12 +88,24 @@ export async function load({ url, cookies, parent }) {
 				name: customTitle,
 				description: customDescription,
 				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#channels-list`
+				},
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
-			}
+			},
+			buildChannelsItemListSchema({
+				canonical,
+				origin: url.origin,
+				channels: channelsVm.map((channel) => ({
+					slug: channel.slug,
+					platformLabel: channel.platformLabel,
+					description: channel.hubDescription ?? channel.metaDescription
+				}))
+			})
 		]
 	};
 

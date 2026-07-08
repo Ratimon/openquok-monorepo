@@ -30,6 +30,8 @@ export async function load(event) {
 		fixedCategorySlug: categorySlug,
 		heroTitle,
 		heroDescription,
-		customSlug: getRootPathPublicBuildingBlocksCategory(categorySlug)
+		customSlug: getRootPathPublicBuildingBlocksCategory(categorySlug),
+		categoryTermName: categoryName,
+		categoryTermDescription: detail?.description?.trim() || undefined
 	});
 }

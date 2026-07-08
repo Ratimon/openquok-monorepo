@@ -44,6 +44,42 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
+	const canonical = new URL(url.pathname, url.origin).href;
+	const creatorImage = creator.avatarUrl?.trim() || undefined;
+	const creatorHandle = creator.username?.trim() ? `@${creator.username.trim()}` : undefined;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'ProfilePage',
+				'@id': `${canonical}#webpage`,
+				name: displayName,
+				description: customDescription,
+				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#person`
+				},
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				}
+			},
+			{
+				'@type': 'Person',
+				'@id': `${canonical}#person`,
+				name: displayName,
+				description: customDescription,
+				url: canonical,
+				image: creatorImage,
+				alternateName: creatorHandle,
+				mainEntityOfPage: {
+					'@id': `${canonical}#webpage`
+				}
+			}
+		]
+	};
+
 	return {
 		pageMetaTags: metaTags,
 		isLoggedIn,
@@ -51,6 +87,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		creator,
 		buildingBlocks,
 		playbooks,
-		displayName
+		displayName,
+		schemaData
 	};
 }

@@ -19,6 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			categories: ExtensionCategoryOverviewItemViewModel[];
+			schemaData: unknown;
 		};
 
 		return {
@@ -28,7 +29,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isPlatformAdmin,
 			isAdmin,
 			isEditor,
-			categories: serverData.categories
+			categories: serverData.categories,
+			schemaData: serverData.schemaData
 		};
 	}
 

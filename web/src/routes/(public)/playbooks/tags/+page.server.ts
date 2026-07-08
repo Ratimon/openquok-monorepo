@@ -7,6 +7,11 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { getListingPresenter } from '$lib/listings/index';
+import {
+	createCollectionPageSchema,
+	createTagGroupTermSetSchema,
+	createTagTermSetSchema
+} from '$lib/listings/utils/createPlaybooksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -48,10 +53,39 @@ export async function load({ url, fetch, cookies, parent }) {
 		tagsCatalog,
 		stacks: hub.stacks
 	});
+	const canonical = new URL(url.pathname, url.origin).href;
+	const schemaData = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			createCollectionPageSchema({
+				canonical,
+				origin: url.origin,
+				companyName,
+				name: customTitle,
+				description: customDescription,
+				mainEntityId: [`${canonical}#tag-groups-set`, `${canonical}#tags-set`]
+			}),
+			createTagGroupTermSetSchema({
+				canonical,
+				origin: url.origin,
+				name: 'Playbook tag groups',
+				description: 'Groups used to organize playbook tags by topic.',
+				groups: tagFilterVm.groups
+			}),
+			createTagTermSetSchema({
+				canonical,
+				origin: url.origin,
+				name: 'Playbook tags',
+				description: customDescription,
+				tags: tagFilterVm.tags
+			})
+		].filter((node) => Object.keys(node).length > 0)
+	};
 
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		tagFilterVm
+		tagFilterVm,
+		schemaData
 	};
 }

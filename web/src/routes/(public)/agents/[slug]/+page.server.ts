@@ -14,6 +14,34 @@ import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPu
 
 export const ssr = true;
 
+function buildSoftwareApplicationSchema(params: {
+	canonical: string;
+	origin: string;
+	docsPath: string;
+	name: string;
+	description: string;
+	keywords: string[];
+	featureList: string[];
+}) {
+	const { canonical, origin, docsPath, name, description, keywords, featureList } = params;
+
+	return {
+		'@type': 'SoftwareApplication',
+		'@id': `${canonical}#software`,
+		name,
+		description,
+		url: canonical,
+		applicationCategory: 'AI assistant',
+		operatingSystem: 'Web, Desktop, CLI',
+		softwareHelp: new URL(docsPath, origin).href,
+		featureList,
+		keywords: keywords.join(', '),
+		mainEntityOfPage: {
+			'@id': `${canonical}#webpage`
+		}
+	};
+}
+
 export async function load({ url, params, cookies, parent, fetch }) {
 	const { slug } = params;
 
@@ -52,6 +80,10 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = new URL(url.pathname, url.origin).href;
+	const featureList = [
+		...agentVm.setupSteps.map((step) => step.title),
+		...agentVm.featureSections.map((section) => section.title)
+	].filter((value, index, values) => value.trim().length > 0 && values.indexOf(value) === index);
 	const pageMetaTags = Object.freeze({
 		canonical,
 		openGraph: {
@@ -74,12 +106,24 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				name: agentVm.metaTitle,
 				description: customDescription,
 				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#software`
+				},
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
+			buildSoftwareApplicationSchema({
+				canonical,
+				origin: url.origin,
+				docsPath: agentVm.docsPath,
+				name: agentVm.agentLabel,
+				description: customDescription,
+				keywords: agentVm.keywords,
+				featureList
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: agentVm.faqTitle,

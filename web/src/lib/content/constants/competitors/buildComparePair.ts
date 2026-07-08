@@ -1,8 +1,8 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
+import type { ComparePair, CompareProduct, PublicFaqItemId } from '$lib/content/constants/competitors/types';
 
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 import { COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
-import type { ComparePair, CompareProduct, PublicFaqItemId } from '$lib/content/constants/competitors/types';
 
 const DEFAULT_COMPARE_FAQ_ITEM_IDS: PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',

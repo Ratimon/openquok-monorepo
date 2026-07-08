@@ -48,7 +48,11 @@ export async function load(event) {
 		fixedCategorySlug: categorySlug,
 		heroTitle,
 		heroDescription,
-		customSlug: getRootPathPublicPlaybooksCategoryTag(categorySlug, tagPathSlug)
+		customSlug: getRootPathPublicPlaybooksCategoryTag(categorySlug, tagPathSlug),
+		categoryTermName: categoryTitle,
+		categoryTermDescription: detail?.description?.trim() || `Agent playbooks in the ${categoryTitle} category.`,
+		tagTermName: tagTitle,
+		tagTermDescription: tagResolution.heroDescription
 	};
 
 	if (tagResolution.kind === 'tag') {

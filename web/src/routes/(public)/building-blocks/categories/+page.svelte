@@ -9,6 +9,7 @@
 
 	import { Card, CardContent, CardHeader } from '$lib/ui/card';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ListingsPublicHubNav from '$lib/ui/templates/listings/ListingsPublicHubNav.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
@@ -19,6 +20,7 @@
 	let { data }: Props = $props();
 
 	let categories = $derived(data.categories);
+	let schemaData = $derived(data.schemaData);
 
 	// /building-blocks
 	const buildingBlocksHubHref = url(route(getRootPathPublicBuildingBlocks()));
@@ -31,6 +33,8 @@
 		return count === 1 ? '1 building block' : `${count} building blocks`;
 	}
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

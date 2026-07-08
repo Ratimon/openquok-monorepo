@@ -13,6 +13,34 @@ import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPath
 
 export const ssr = true;
 
+function buildChannelSoftwareApplicationSchema(params: {
+	canonical: string;
+	origin: string;
+	name: string;
+	description: string;
+	docsPath: string;
+	keywords: string[];
+	featureList: string[];
+}) {
+	const { canonical, origin, name, description, docsPath, keywords, featureList } = params;
+
+	return {
+		'@type': 'SoftwareApplication',
+		'@id': `${canonical}#software`,
+		name,
+		description,
+		url: canonical,
+		applicationCategory: 'BusinessApplication',
+		operatingSystem: 'Web',
+		softwareHelp: new URL(docsPath, origin).href,
+		featureList,
+		keywords: keywords.join(', '),
+		mainEntityOfPage: {
+			'@id': `${canonical}#webpage`
+		}
+	};
+}
+
 export async function load({ url, params, cookies, parent }) {
 	const { slug } = params;
 
@@ -34,6 +62,12 @@ export async function load({ url, params, cookies, parent }) {
 
 	const customTitle = `${channelVm.metaTitle} | ${companyName}`;
 	const customDescription = channelVm.metaDescription;
+	const featureList = [
+		channelVm.heroTitle,
+		...channelVm.featureSections.flatMap((section) => [section.subtitle, section.title]),
+		...channelVm.audienceCards.flatMap((card) => [card.title, card.description]),
+		...channelVm.faqItems.map((item) => item.title)
+	].filter((value, index, values) => value.trim().length > 0 && values.indexOf(value) === index);
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -68,12 +102,24 @@ export async function load({ url, params, cookies, parent }) {
 				name: channelVm.metaTitle,
 				description: customDescription,
 				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#software`
+				},
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
+			buildChannelSoftwareApplicationSchema({
+				canonical,
+				origin: url.origin,
+				name: `${channelVm.platformLabel} scheduling in OpenQuok`,
+				description: customDescription,
+				docsPath: channelVm.docsPath,
+				keywords: channelVm.keywords,
+				featureList
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: channelVm.faqTitle,

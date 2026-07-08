@@ -8,9 +8,45 @@ import {
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
-import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
+import {
+	getRootPathPublicAgent,
+	getRootPathPublicAgents
+} from '$lib/area-public/constants/getRootPathPublicAgents';
 
 export const ssr = true;
+
+function buildAgentsItemListSchema(params: {
+	canonical: string;
+	origin: string;
+	agents: Array<{ slug: string; agentLabel: string }>;
+	mcpIntegrations: Array<{ slug: string; label: string }>;
+}) {
+	const { canonical, origin, agents, mcpIntegrations } = params;
+
+	const allItems = [
+		...agents.map((agent) => ({
+			slug: agent.slug,
+			name: agent.agentLabel
+		})),
+		...mcpIntegrations.map((integration) => ({
+			slug: integration.slug,
+			name: integration.label
+		}))
+	];
+
+	return {
+		'@type': 'ItemList',
+		'@id': `${canonical}#agents-list`,
+		url: canonical,
+		numberOfItems: allItems.length,
+		itemListElement: allItems.map((item, index) => ({
+			'@type': 'ListItem',
+			position: index + 1,
+			name: item.name,
+			url: new URL(getRootPathPublicAgent(item.slug), origin).href
+		}))
+	};
+}
 
 export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
@@ -65,12 +101,24 @@ export async function load({ url, cookies, parent }) {
 				name: customTitle,
 				description: customDescription,
 				url: canonical,
+				mainEntity: {
+					'@id': `${canonical}#agents-list`
+				},
 				isPartOf: {
 					'@type': 'WebSite',
 					name: companyName,
 					url: url.origin
 				}
 			},
+			buildAgentsItemListSchema({
+				canonical,
+				origin: url.origin,
+				agents: agentsVm.map((agent) => ({ slug: agent.slug, agentLabel: agent.agentLabel })),
+				mcpIntegrations: mcpIntegrationsVm.map((integration) => ({
+					slug: integration.slug,
+					label: integration.label
+				}))
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: PUBLIC_AGENTS_HUB.faqSection.faqTitle,

@@ -11,6 +11,12 @@ import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListin
 import type { ExtensionsHubFilters } from '$lib/listings/listing.types';
 import { getListingPresenter } from '$lib/listings/index';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import {
+	createBuildingBlocksItemListSchema,
+	createCategoryAboutSchema,
+	createCollectionPageSchema,
+	createTagAboutSchema
+} from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -22,6 +28,10 @@ type BuildingBlocksHubLoadOverrides = {
 	heroTitle?: string;
 	heroDescription?: string;
 	customSlug?: string;
+	categoryTermName?: string;
+	categoryTermDescription?: string;
+	tagTermName?: string;
+	tagTermDescription?: string;
 };
 
 export async function loadBuildingBlocksHubPage(
@@ -29,8 +39,18 @@ export async function loadBuildingBlocksHubPage(
 	overrides: BuildingBlocksHubLoadOverrides = {}
 ) {
 	const { url, fetch, cookies, parent } = event;
-	const { fixedCategorySlug, fixedTagSlug, fixedTagGroupSlug, heroTitle, heroDescription, customSlug } =
-		overrides;
+	const {
+		fixedCategorySlug,
+		fixedTagSlug,
+		fixedTagGroupSlug,
+		heroTitle,
+		heroDescription,
+		customSlug,
+		categoryTermName,
+		categoryTermDescription,
+		tagTermName,
+		tagTermDescription
+	} = overrides;
 
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
@@ -92,21 +112,53 @@ export async function loadBuildingBlocksHubPage(
 		...metaTags
 	}) satisfies MetaTagsProps;
 
+	const aboutNodes = [
+		fixedCategorySlug
+			? createCategoryAboutSchema({
+					origin: url.origin,
+					slug: fixedCategorySlug,
+					name: categoryTermName ?? customTitle,
+					description: categoryTermDescription ?? customDescription
+				})
+			: null,
+		fixedTagSlug
+			? createTagAboutSchema({
+					origin: url.origin,
+					slug: fixedTagSlug,
+					name: tagTermName ?? customTitle,
+					description: tagTermDescription ?? customDescription
+				})
+			: null,
+		fixedTagGroupSlug
+			? createTagAboutSchema({
+					origin: url.origin,
+					slug: fixedTagGroupSlug,
+					name: tagTermName ?? customTitle,
+					description: tagTermDescription ?? customDescription
+				})
+			: null
+	].filter((node): node is Record<string, unknown> => node !== null);
+
 	const schemaData = {
 		'@context': 'https://schema.org',
 		'@graph': [
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
+			createCollectionPageSchema({
+				canonical,
+				origin: url.origin,
+				companyName,
 				name: customTitle,
 				description: customDescription,
-				url: canonical,
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				mainEntityId: `${canonical}#building-blocks-list`,
+				about: aboutNodes.length > 0 ? aboutNodes : undefined
+			}),
+			createBuildingBlocksItemListSchema({
+				canonical,
+				origin: url.origin,
+				name: customTitle,
+				description: customDescription,
+				buildingBlocks: filteredBuildingBlocks
+			}),
+			...aboutNodes,
 			...(fixedCategorySlug || fixedTagSlug || fixedTagGroupSlug
 				? []
 				: [

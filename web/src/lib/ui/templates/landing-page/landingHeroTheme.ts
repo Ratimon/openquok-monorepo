@@ -52,6 +52,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'perfect plan',
 	'questions',
 	'winners',
+	'vs',
 	'viral format',
 	'viral formats',
 	'thumbnail',

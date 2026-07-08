@@ -6,14 +6,14 @@
 
 	import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
 
-	type Props = {
-		data: PageData;
-	} & PageData;
+	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 	let { isLoggedIn } = $derived(data);
+	let schemaData = $derived(data.schemaData);
 
 	let feedbackStatus = $derived(generalFeedbackPresenter.status);
 	let feedbackToastMessage = $derived(generalFeedbackPresenter.toastMessage);
@@ -33,6 +33,8 @@
 		generalFeedbackPresenter.reset();
 	}
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <section class="py-2 px-4 text-center">
 	<div class="max-w-auto md:max-w-lg mx-auto">

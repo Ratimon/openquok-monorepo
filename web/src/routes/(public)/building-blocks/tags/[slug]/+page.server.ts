@@ -26,7 +26,9 @@ export async function load(event) {
 			fixedTagSlug: resolution.fixedTagSlug,
 			heroTitle: resolution.heroTitle,
 			heroDescription: resolution.heroDescription,
-			customSlug: `${getRootPathPublicBuildingBlocksTags()}/${pathSlug}`
+			customSlug: `${getRootPathPublicBuildingBlocksTags()}/${pathSlug}`,
+			tagTermName: resolution.subjectLabel,
+			tagTermDescription: resolution.heroDescription
 		});
 	}
 
@@ -35,7 +37,9 @@ export async function load(event) {
 			fixedTagGroupSlug: resolution.fixedTagGroupSlug,
 			heroTitle: resolution.heroTitle,
 			heroDescription: resolution.heroDescription,
-			customSlug: `${getRootPathPublicBuildingBlocksTags()}/${pathSlug}`
+			customSlug: `${getRootPathPublicBuildingBlocksTags()}/${pathSlug}`,
+			tagTermName: resolution.subjectLabel,
+			tagTermDescription: resolution.heroDescription
 		});
 	}
 

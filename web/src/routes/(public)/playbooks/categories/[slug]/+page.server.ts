@@ -27,6 +27,8 @@ export async function load(event) {
 		fixedCategorySlug: categorySlug,
 		heroTitle,
 		heroDescription,
-		customSlug: getRootPathPublicPlaybooksCategory(categorySlug)
+		customSlug: getRootPathPublicPlaybooksCategory(categorySlug),
+		categoryTermName: categoryName,
+		categoryTermDescription: heroDescription
 	});
 }

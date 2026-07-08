@@ -22,6 +22,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			buildingBlocks: ExtensionCardViewModel[];
 			playbooks: StackCardViewModel[];
 			displayName: string;
+			schemaData: unknown;
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
@@ -40,7 +41,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			creator: serverData.creator,
 			buildingBlocks: serverData.buildingBlocks,
 			playbooks: serverData.playbooks,
-			displayName: serverData.displayName
+			displayName: serverData.displayName,
+			schemaData: serverData.schemaData
 		};
 	}
 

@@ -3,7 +3,10 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { error } from '@sveltejs/kit';
 
 import { publicBuildingBlockBySlugPagePresenter } from '$lib/area-public';
-import { getRootPathPublicCreatorBuildingBlock } from '$lib/area-public/constants/getRootPathPublicCreators';
+import {
+	getRootPathPublicCreator,
+	getRootPathPublicCreatorBuildingBlock
+} from '$lib/area-public/constants/getRootPathPublicCreators';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
@@ -81,6 +84,10 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = new URL(url.pathname, url.origin).href;
+	const ownerName =
+		buildingBlockVm.owner?.fullName?.trim() || buildingBlockVm.owner?.username?.trim() || 'Creator';
+	const ownerImage = buildingBlockVm.owner?.avatarUrl?.trim() || undefined;
+	const ownerProfileUrl = new URL(`/${getRootPathPublicCreator(ownerUsername)}`, url.origin).href;
 	const pageMetaTags = Object.freeze({
 		canonical,
 		openGraph: {
@@ -105,11 +112,22 @@ export async function load({ url, params, cookies, fetch, parent }) {
 					name: buildingBlockVm.title,
 					description: customDescription,
 					url: canonical,
+					author: {
+						'@id': `${canonical}#author`
+					},
 					isPartOf: {
 						'@type': 'WebSite',
 						name: companyName,
 						url: url.origin
 					}
+				},
+				{
+					'@type': 'Person',
+					'@id': `${canonical}#author`,
+					name: ownerName,
+					url: ownerProfileUrl,
+					image: ownerImage,
+					alternateName: ownerUsername ? `@${ownerUsername}` : undefined
 				}
 			],
 			buildingBlockVm.schemaJson
