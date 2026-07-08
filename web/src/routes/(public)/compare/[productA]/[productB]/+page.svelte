@@ -35,6 +35,7 @@
 	let leftProductVm: CompareProductSummaryViewModel = $derived(detailVm.leftProduct);
 	let rightProductVm: CompareProductSummaryViewModel = $derived(detailVm.rightProduct);
 	let compareRows = $derived(detailVm.compareRows);
+	let channelsSection = $derived(detailVm.channelsSection);
 	let withWithoutSection = $derived(detailVm.withWithoutSection);
 	let faqItems = $derived(detailVm.faqItems);
 	let relatedPairs = $derived(detailVm.relatedPairs);
@@ -116,35 +117,18 @@
 		/>
 	</div>
 
-	<section class="container mx-auto mt-20 max-w-5xl scroll-mt-24 px-4">
-		<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">Supported channels</h2>
-		<div class="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
-			<div class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
-				<h3 class="text-lg font-semibold text-base-content">
-					{leftProductVm.name}
-				</h3>
-				<ul class="mt-4 flex flex-wrap gap-2">
-					{#each leftProductVm.channels as channel (channel)}
-						<li>
-							<span class="badge badge-primary badge-outline badge-sm">{channel}</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
-			<div class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-				<h3 class="text-lg font-semibold text-base-content">
-					{rightProductVm.name}
-				</h3>
-				<ul class="mt-4 flex flex-wrap gap-2">
-					{#each rightProductVm.channels as channel (channel)}
-						<li>
-							<span class="badge badge-outline badge-sm">{channel}</span>
-						</li>
-					{/each}
-				</ul>
-			</div>
-		</div>
-	</section>
+	<WithWithout
+		heroTheme={landingHeroTheme}
+		headingId="compare-channels"
+		withOnLeft
+		landingSubtitle={channelsSection.subtitle}
+		landingTitle={channelsSection.title}
+		landingDescription={channelsSection.description}
+		withoutTitle={channelsSection.withoutTitle}
+		withTitle={channelsSection.withTitle}
+		points={channelsSection.points}
+		sectionClass="mt-20 scroll-mt-24"
+	/>
 
 	<div class="container mx-auto mt-20 max-w-5xl px-4">
 		<PublicProductCompareSection
@@ -156,6 +140,8 @@
 
 	<WithWithout
 		heroTheme={landingHeroTheme}
+		headingId="compare-benefits"
+		withOnLeft
 		landingSubtitle={withWithoutSection.subtitle}
 		landingTitle={withWithoutSection.title}
 		landingDescription={withWithoutSection.description}
@@ -192,7 +178,9 @@
 						class="flex h-full items-center justify-between rounded-2xl border border-base-content/10 p-6 transition hover:border-primary/40 hover:shadow-md"
 						href={pair.href}
 					>
-						<span class="text-lg font-semibold text-base-content">vs. {pair.name}</span>
+						<span class="text-lg font-semibold text-base-content">
+							vs {pair.name}
+						</span>
 						<span class="text-sm font-medium text-primary" aria-hidden="true">→</span>
 					</a>
 				</li>

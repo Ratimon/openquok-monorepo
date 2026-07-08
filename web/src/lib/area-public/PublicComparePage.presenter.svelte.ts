@@ -1,5 +1,7 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/publicAgentConfig';
 import {
+	buildCompareChannelPoints,
+	COMPARE_CHANNELS_SECTION,
 	getCompareProduct,
 	listComparePairsForHub,
 	resolvePublicFaqItemsByIds,
@@ -58,25 +60,26 @@ export type CompareDetailViewModel = {
 	leftProduct: CompareProductSummaryViewModel;
 	rightProduct: CompareProductSummaryViewModel;
 	compareRows: CompareFeatureRowViewModel[];
+	channelsSection: PublicAgentComparisonSection;
 	withWithoutSection: PublicAgentComparisonSection;
 	faqItems: PublicFaqItem[];
 	relatedPairs: CompareHubPairCardViewModel[];
 };
 
 export class PublicComparePagePresenter {
-	
+
 	buildHubVm(): CompareHubViewModel {
 		const pairs = listComparePairsForHub('openquok');
 		const pairCount = pairs.length;
 
 		return {
-			metaTitle: 'OpenQuok vs. the rest',
+			metaTitle: 'OpenQuok vs the rest',
 			metaDescription:
 				pairCount === 1
 					? 'See how OpenQuok stacks up against Hootsuite on pricing, channels, agent workspaces, and scheduling features.'
 					: `See how OpenQuok stacks up against ${pairCount} alternatives on pricing, channels, agent workspaces, and scheduling features.`,
 			eyebrow: 'Compare',
-			title: 'OpenQuok vs. the rest',
+			title: 'OpenQuok vs the rest',
 			description:
 				pairCount === 1
 					? 'See how OpenQuok stacks up against the leading enterprise scheduler.'
@@ -123,6 +126,12 @@ export class PublicComparePagePresenter {
 			leftProduct: toProductSummary(leftProduct),
 			rightProduct: toProductSummary(rightProduct),
 			compareRows,
+			channelsSection: {
+				...COMPARE_CHANNELS_SECTION,
+				withoutTitle: rightProduct.name,
+				withTitle: leftProduct.name,
+				points: buildCompareChannelPoints(leftProduct.channels, rightProduct.channels)
+			},
 			withWithoutSection: pair.withWithoutSection,
 			faqItems,
 			relatedPairs

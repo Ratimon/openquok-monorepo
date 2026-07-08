@@ -113,3 +113,22 @@ export function socialProviderIcon(identifier: string | null | undefined): IconN
 	const id = String(identifier);
 	return socialProviderIconByIdentifier[id] ?? icons.Link.name;
 }
+
+/** Human-readable platform labels (compare pages, competitor channel lists) → AbstractIcon name. */
+export const socialPlatformIconByLabel: Record<string, IconName> = {
+	Bluesky: icons.Bluesky.name,
+	Facebook: icons.FacebookGlyph.name,
+	'Google Business Profile': icons.Google.name,
+	Instagram: icons.InstagramGlyph.name,
+	LinkedIn: icons.LinkedIn.name,
+	Pinterest: icons.Pinterest.name,
+	Threads: icons.ThreadsGlyph.name,
+	TikTok: icons.TikTok.name,
+	WhatsApp: icons.WhatsApp.name,
+	X: icons.XGlyph.name,
+	YouTube: icons.YouTubeGlyph.name
+};
+
+export function socialPlatformIconForLabel(label: string): IconName | undefined {
+	return socialPlatformIconByLabel[label.trim()];
+}

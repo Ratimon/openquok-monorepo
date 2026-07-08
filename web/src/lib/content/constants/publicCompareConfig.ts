@@ -1,4 +1,9 @@
 import type { PaidSubscriptionTier } from 'openquok-common';
+import type { PublicAgentComparisonSection } from '$lib/content/constants/publicAgentConfig';
+import type { ComparisonPoint } from '$lib/ui/templates/WithWithout.svelte';
+
+import { socialPlatformIconForLabel } from '$data/social-providers';
+
 import {
 	accountTeamMemberSeatTotal,
 	isUnlimitedTeamMembersPerWorkspace,
@@ -13,7 +18,6 @@ import {
 	PUBLIC_PRICING_TIER_ORDER,
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
-import type { PublicAgentComparisonSection } from '$lib/content/constants/publicAgentConfig';
 import { listAvailablePublicChannels } from '$lib/content/constants/publicChannelConfig';
 import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import { formatBytes } from '$lib/medias';
@@ -152,6 +156,45 @@ const OPENQUOK_WITH_HOOTSUITE_COMPARISON: PublicAgentComparisonSection = {
 		}
 	]
 };
+
+export const COMPARE_CHANNELS_SECTION = {
+	subtitle: 'platform coverage',
+	title: 'Supported channels',
+	description:
+		'Compare which social networks each scheduler supports today. Platforms on our roadmap are marked with an hourglass.'
+};
+
+export function buildCompareChannelPoints(
+	openquokChannels: readonly string[],
+	competitorChannels: readonly string[]
+): ComparisonPoint[] {
+	const openquokSet = new Set(openquokChannels);
+	const competitorSet = new Set(competitorChannels);
+	const seen = new Set<string>();
+	const ordered: string[] = [];
+
+	for (const channel of competitorChannels) {
+		if (!seen.has(channel)) {
+			ordered.push(channel);
+			seen.add(channel);
+		}
+	}
+
+	for (const channel of openquokChannels) {
+		if (!seen.has(channel)) {
+			ordered.push(channel);
+			seen.add(channel);
+		}
+	}
+
+	return ordered.map((channel) => ({
+		pain: channel,
+		feature: channel,
+		platformIcon: socialPlatformIconForLabel(channel),
+		painIcon: competitorSet.has(channel) ? 'check' : 'x',
+		featureIcon: openquokSet.has(channel) ? 'check' : 'hourglass'
+	}));
+}
 
 function tierDisplayNameForCompare(tier: PaidSubscriptionTier): string {
 	if (tier === 'SOLO') return 'Solo';
@@ -336,7 +379,7 @@ export const PUBLIC_COMPARE_PAIRS: readonly ComparePair[] = [
 			'AI agent social media',
 			'multi-workspace scheduler'
 		],
-		heroTitle: 'OpenQuok vs. Hootsuite comparison',
+		heroTitle: 'OpenQuok vs Hootsuite comparison',
 		heroDescription:
 			'See how OpenQuok stacks up against Hootsuite on pricing, channels, team workflows, and agent-native features. Start with a 7-day free trial — no credit card required.',
 		withWithoutSection: OPENQUOK_WITH_HOOTSUITE_COMPARISON,

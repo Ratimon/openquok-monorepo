@@ -50,7 +50,7 @@
 						href={pair.href}
 					>
 						<h2 class="text-xl font-semibold text-base-content">
-							vs. {pair.name}
+							vs {pair.name}
 						</h2>
 						<span class="text-sm font-medium text-primary" aria-hidden="true">→</span>
 					</a>

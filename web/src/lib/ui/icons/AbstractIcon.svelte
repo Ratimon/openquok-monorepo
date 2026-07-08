@@ -1,6 +1,15 @@
+<script module lang="ts">
+	let abstractIconInstance = 0;
+</script>
+
 <script lang="ts">
 	import type { IconEntry, IconName } from '$data/icons';
 	import { icons } from '$data/icons';
+
+	function scopeSvgFragmentIds(svg: string, prefix: string): string {
+		const scoped = svg.replace(/\bid="([^"]+)"/g, `id="${prefix}$1"`);
+		return scoped.replace(/url\(#([^)]+)\)/g, `url(#${prefix}$1)`);
+	}
 
 	type Props = {
 		name: string;
@@ -22,11 +31,16 @@
 		'aria-hidden': ariaHidden
 	}: Props = $props();
 
+	const instanceScope = `_${++abstractIconInstance}`;
+
 	let meta = $derived(icons[name as IconName] as IconEntry | undefined);
 	let viewBox = $derived(
 		meta ? `0 0 ${meta.box} ${meta.boxHeight ?? meta.box}` : '0 0 24 24'
 	);
 	let isFill = $derived(meta?.fill === true);
+	let scopedSvg = $derived(
+		meta ? scopeSvgFragmentIds(meta.svg, `${meta.name}${instanceScope}_`) : ''
+	);
 </script>
 
 {#if meta}
@@ -45,6 +59,6 @@
 		aria-hidden={ariaHidden}
 		viewBox={viewBox}
 	>
-		{@html meta.svg}
+		{@html scopedSvg}
 	</svg>
 {/if}
