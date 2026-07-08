@@ -572,6 +572,12 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		description:
 			'Sign in, choose a public username, and submit building blocks or playbooks from your account.'
 	},
+	compare: {
+		docsPath: publicDocsPath,
+		title: 'Read the OpenQuok docs',
+		description:
+			'Review setup guides, self-hosting steps, and workflow docs when you are ready to move from comparison to your first workspace.'
+	},
 	tools: {
 		docsPath: publicDocsGettingStartedForDevPath,
 		title: 'Self-host OpenQuok for free',

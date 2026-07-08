@@ -97,7 +97,6 @@
 				{/if}
 			{/each}
 		</ul>
-
 	</section>
 
 	<div class="container mx-auto px-4">

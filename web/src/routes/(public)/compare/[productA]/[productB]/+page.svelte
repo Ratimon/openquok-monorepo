@@ -16,6 +16,7 @@
 	import PublicProductComparePricing from '$lib/ui/components/compare/PublicProductComparePricing.svelte';
 	import PublicProductCompareSection from '$lib/ui/components/compare/PublicProductCompareSection.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
@@ -47,6 +48,9 @@
 	// /compare
 	const rootPathCompare = getRootPathPublicCompare();
 	const compareHubPath = route(rootPathCompare);
+
+	// /pricing
+	const pricingPath = route('pricing');
 
 	const faqHeroTheme: LandingHeroTheme = {
 		...landingHeroTheme,
@@ -189,6 +193,13 @@
 	</section>
 
 	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title="See plans and pricing"
+			description="Compare the feature differences above, then review OpenQuok pricing to pick the right plan for your team."
+			ctaText="View pricing"
+			ctaHref={pricingPath}
+		/>
+
 		<CenteredDarkCtaBanner
 			title={CENTERED_DARK_CTA_BANNER_TITLE}
 			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}

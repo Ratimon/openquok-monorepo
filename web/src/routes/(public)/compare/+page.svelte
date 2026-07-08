@@ -9,12 +9,15 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
-		PUBLIC_BANNER_CTA_TEXT
+		PUBLIC_BANNER_CTA_TEXT,
+		PUBLIC_DOCS_BANNER_CTA_TEXT,
+		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
 	import { icons } from '$data/icons';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
@@ -37,6 +40,8 @@
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
+
+	const compareHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.compare;
 
 	function selectBaseProduct(slug: CompareProductSlug) {
 		selectedBaseSlug = slug;
@@ -116,6 +121,13 @@
 	</SimpleCardGrid>
 
 	<div class="container mx-auto px-4">
+		<AccentSplitCtaBanner
+			title={compareHubDocsBanner.title}
+			description={compareHubDocsBanner.description}
+			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaHref={compareHubDocsBanner.docsPath}
+		/>
+
 		<CenteredDarkCtaBanner
 			title={CENTERED_DARK_CTA_BANNER_TITLE}
 			description={CENTERED_DARK_CTA_BANNER_DESCRIPTION}
