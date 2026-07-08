@@ -88,7 +88,7 @@ export class PublicAgentByPagePresenter {
 		const normalizedChannelSlug = channelSlug.trim().toLowerCase();
 
 		const channel = getAvailablePublicChannelBySlug(normalizedChannelSlug);
-		const channelConfig = getPublicAgentChannelBySlug(normalizedChannelSlug);
+		const channelConfig = getPublicAgentChannelBySlug(normalizedAgentSlug, normalizedChannelSlug);
 		if (!channel || !channelConfig) return null;
 
 		const baseAgent = getAvailablePublicAgentHostBySlug(normalizedAgentSlug);

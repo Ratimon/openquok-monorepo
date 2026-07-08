@@ -28,7 +28,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		throw error(404, 'Agent channel page not found');
 	}
 
-	const channelConfig = getPublicAgentChannelBySlug(channelSlug);
+	const channelConfig = getPublicAgentChannelBySlug(agentSlug, channelSlug);
 	if (!channelConfig) {
 		throw error(404, 'Agent channel page not found');
 	}

@@ -53,18 +53,22 @@ interface PublicCatalogSlugs {
     channels: string[];
 }
 
+function readCatalogDirFiles(dirPath: string): string[] {
+    if (!fs.existsSync(dirPath)) return [];
+
+    const skip = new Set(["index.ts", "types.ts", "shared.ts", "hub.ts", "builders.ts"]);
+
+    return fs
+        .readdirSync(dirPath, { withFileTypes: true })
+        .filter((entry) => entry.isFile() && entry.name.endsWith(".ts") && !skip.has(entry.name))
+        .map((entry) => fs.readFileSync(path.join(dirPath, entry.name), "utf-8"));
+}
+
 function extractMcpSeedSlugs(content: string): string[] {
-    const seedsStart = content.indexOf("MCP_LANDING_SEEDS");
-    if (seedsStart === -1) return [];
-
-    const seedsEnd = content.indexOf("];", seedsStart);
-    if (seedsEnd === -1) return [];
-
-    const seedsSection = content.slice(seedsStart, seedsEnd);
     const slugs: string[] = [];
     const slugRegex = /slug:\s*['"]([^'"]+)['"]/g;
 
-    for (const match of seedsSection.matchAll(slugRegex)) {
+    for (const match of content.matchAll(slugRegex)) {
         if (match[1]) slugs.push(match[1]);
     }
 
@@ -85,23 +89,32 @@ function extractAvailableSlugs(content: string, regex: RegExp): string[] {
     return slugs;
 }
 
-function extractPublicCatalogSlugsFromFiles(options: {
-    agentConfigPath: string;
-    mcpConfigPath: string;
-    channelConfigPath: string;
-}): PublicCatalogSlugs {
-    const agentContent = fs.readFileSync(options.agentConfigPath, "utf-8");
-    const mcpContent = fs.readFileSync(options.mcpConfigPath, "utf-8");
-    const channelContent = fs.readFileSync(options.channelConfigPath, "utf-8");
+function extractPublicCatalogSlugsFromDir(constantsDir: string): PublicCatalogSlugs {
+    const agentFiles = readCatalogDirFiles(path.join(constantsDir, "agents"));
+    const channelFiles = readCatalogDirFiles(path.join(constantsDir, "channels"));
+    const mcpFiles = readCatalogDirFiles(path.join(constantsDir, "mcps"));
 
-    const agentHosts = extractAvailableSlugs(agentContent, AGENT_HOST_PAGE_REGEX);
-    const mcpClients = extractMcpSeedSlugs(mcpContent);
-    const channels = extractAvailableSlugs(channelContent, CHANNEL_PAGE_REGEX);
+    const agentHosts = agentFiles.flatMap((content) =>
+        extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX),
+    );
+    const mcpClients = mcpFiles.flatMap((content) => extractMcpSeedSlugs(content));
+    const channels = channelFiles.flatMap((content) =>
+        extractAvailableSlugs(content, CHANNEL_PAGE_REGEX),
+    );
 
     return {
         agents: [...new Set([...agentHosts, ...mcpClients])],
         channels: [...new Set(channels)],
     };
+}
+
+function extractPublicCatalogSlugsFromFiles(options: {
+    agentConfigPath: string;
+    mcpConfigPath: string;
+    channelConfigPath: string;
+}): PublicCatalogSlugs {
+    const constantsDir = path.dirname(options.channelConfigPath);
+    return extractPublicCatalogSlugsFromDir(constantsDir);
 }
 
 function resolveWebConstantsDir(routesPath?: string): string | undefined {
