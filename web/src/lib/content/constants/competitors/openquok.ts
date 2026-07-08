@@ -149,5 +149,21 @@ export const openquokCompareProduct: CompareProduct = {
 		'OpenQuok is an agent-native social media scheduler. Connect channels, plan content on calendar and kanban views, and publish across every platform from the dashboard — or pipe drafts in from AI agents via skills, MCP, and the Public API. Multi-workspace isolation keeps brands, clients, and automation contexts separate.',
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
-	featureSupport: buildOpenQuokFeatureSupport()
+	featureSupport: buildOpenQuokFeatureSupport(),
+	comparison: {
+		headline: 'agent-native scheduling',
+		notAnother: 'browser-only scheduler',
+		builtFor: 'humans and AI agents who need multi-workspace scheduling',
+		positioningWhenLeft:
+			'covers the same scheduling basics — and adds workspaces, agents, and API access when automation does the work',
+		advantages: [
+			'Agents draft and schedule via skills, MCP, or the Public API — you approve on the calendar',
+			'Flat workspace pricing from $29/mo — predictable plans instead of per-seat or per-channel fees',
+			'Agent workspaces isolate channels, OAuth apps, tokens, and MCP endpoints per brand or client',
+			'Focused scheduling, analytics, and agent integrations — pay for what you publish, not unused suites',
+			'MCP server and CLI per workspace — connect agents without copy-pasting between tools',
+			'Every agent draft lands as draft or scheduled — you approve before anything goes live'
+		],
+		disadvantages: []
+	}
 };

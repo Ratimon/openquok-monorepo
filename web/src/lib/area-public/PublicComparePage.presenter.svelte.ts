@@ -2,6 +2,7 @@ import type { PublicAgentComparisonSection } from '$lib/content/constants/public
 import {
 	buildCompareChannelPoints,
 	COMPARE_CHANNELS_SECTION,
+	COMPARE_HUB_BASE_SLUG,
 	getCompareProduct,
 	listComparePairsForHub,
 	resolvePublicFaqItemsByIds,
@@ -69,7 +70,7 @@ export type CompareDetailViewModel = {
 export class PublicComparePagePresenter {
 
 	buildHubVm(): CompareHubViewModel {
-		const pairs = listComparePairsForHub('openquok');
+		const pairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG);
 		const pairCount = pairs.length;
 
 		return {
@@ -85,9 +86,9 @@ export class PublicComparePagePresenter {
 					? 'See how OpenQuok stacks up against the leading enterprise scheduler.'
 					: `See how OpenQuok stacks up against ${pairCount} social media schedulers.`,
 			pairs: pairs.map((pair) => ({
-				name: pair.competitorName,
-				slug: pair.competitorSlug,
-				href: url(route(getRootPathPublicComparePair(pair.productASlug, pair.competitorSlug)))
+				name: pair.productBName,
+				slug: pair.productBSlug,
+				href: url(route(getRootPathPublicComparePair(pair.productASlug, pair.productBSlug)))
 			}))
 		};
 	}
@@ -109,12 +110,12 @@ export class PublicComparePagePresenter {
 			? resolvePublicFaqItemsByIds(pair.faqItemIds)
 			: [];
 
-		const relatedPairs = listComparePairsForHub('openquok')
-			.filter((hubPair) => hubPair.competitorSlug !== pair.productBSlug)
+		const relatedPairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG)
+			.filter((hubPair) => hubPair.productBSlug !== pair.productBSlug)
 			.map((hubPair) => ({
-				name: hubPair.competitorName,
-				slug: hubPair.competitorSlug,
-				href: url(route(getRootPathPublicComparePair(hubPair.productASlug, hubPair.competitorSlug)))
+				name: hubPair.productBName,
+				slug: hubPair.productBSlug,
+				href: url(route(getRootPathPublicComparePair(hubPair.productASlug, hubPair.productBSlug)))
 			}));
 
 		return {

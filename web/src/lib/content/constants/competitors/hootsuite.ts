@@ -1,4 +1,3 @@
-import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 
@@ -37,43 +36,6 @@ const HOOTSUITE_CHANNELS = [
 	'WhatsApp'
 ];
 
-const OPENQUOK_WITH_HOOTSUITE_COMPARISON: PublicAgentComparisonSection = {
-	subtitle: 'comparisons',
-	title: 'agent-native scheduling, not another enterprise dashboard',
-	description:
-		'Hootsuite is built for marketing teams in a browser. OpenQuok covers the same scheduling basics — and adds workspaces, agents, and API access when automation does the work.',
-	withoutTitle: 'Typical Hootsuite workflow',
-	withTitle: 'OpenQuok',
-	points: [
-		{
-			pain: 'Copy drafts between your AI assistant and a separate scheduling tab',
-			feature: 'Agents draft and schedule via skills, MCP, or the Public API — you approve on the calendar'
-		},
-		{
-			pain: 'Per-seat pricing that climbs as you add collaborators',
-			feature: 'Flat workspace pricing from $29/mo — team seats scale with your plan, not per user'
-		},
-		{
-			pain: 'One account pile for every brand, client, and channel',
-			feature:
-				'Agent workspaces isolate channels, OAuth apps, tokens, and MCP endpoints per brand or client'
-		},
-		{
-			pain: 'Enterprise bundles with listening and ads you may never use',
-			feature:
-				'Focused scheduling, analytics, and agent integrations — pay for what you publish, not unused suites'
-		},
-		{
-			pain: 'No first-class path for Cursor, Claude Code, or terminal workflows',
-			feature: 'MCP server and CLI per workspace — connect agents without copy-pasting between tools'
-		},
-		{
-			pain: 'Autopilot publishing with limited human checkpoints',
-			feature: 'Every agent draft lands as draft or scheduled — you approve before anything goes live'
-		}
-	]
-};
-
 const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>> = {
 	workspaces: { kind: 'excluded' },
 	channels: { kind: 'text', text: 'Varies by plan' },
@@ -105,9 +67,6 @@ const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	community: { kind: 'excluded' }
 };
 
-export const openquokWithHootsuiteComparison: PublicAgentComparisonSection =
-	OPENQUOK_WITH_HOOTSUITE_COMPARISON;
-
 export const hootsuiteCompareProduct: CompareProduct = {
 	slug: 'hootsuite',
 	name: 'Hootsuite',
@@ -116,5 +75,28 @@ export const hootsuiteCompareProduct: CompareProduct = {
 		'Hootsuite is an established social media management platform for marketing teams. It covers publishing, content calendar, social inbox, listening, analytics, and team workflows — with broad network support and per-user pricing aimed at mid-market and enterprise organizations.',
 	pricingPlans: HOOTSUITE_PRICING_PLANS,
 	channels: HOOTSUITE_CHANNELS,
-	featureSupport: HOOTSUITE_FEATURE_SUPPORT
+	featureSupport: HOOTSUITE_FEATURE_SUPPORT,
+	comparison: {
+		headline: 'enterprise social marketing',
+		notAnother: 'enterprise dashboard',
+		builtFor: 'marketing teams in a browser',
+		positioningWhenLeft:
+			'covers publishing, inbox, listening, and analytics for teams that live in the dashboard',
+		advantages: [
+			'Broad network coverage including WhatsApp and Google Business Profile',
+			'Social listening and ads tooling in higher tiers for full-funnel teams',
+			'Per-seat roles and approvals for established marketing departments',
+			'Mature analytics and reporting for enterprise stakeholders',
+			'Deep inbox and engagement workflows across major networks',
+			'Trusted brand with long-standing enterprise integrations'
+		],
+		disadvantages: [
+			'Copy drafts between your AI assistant and a separate scheduling tab',
+			'Per-seat pricing that climbs as you add collaborators',
+			'One account pile for every brand, client, and channel',
+			'Enterprise bundles with listening and ads you may never use',
+			'No first-class path for Cursor, Claude Code, or terminal workflows',
+			'Autopilot publishing with limited human checkpoints'
+		]
+	}
 };

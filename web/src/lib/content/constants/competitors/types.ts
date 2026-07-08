@@ -2,7 +2,7 @@ import type { PublicAgentComparisonSection } from '$lib/content/constants/agents
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 
-export type CompareProductSlug = 'openquok' | 'hootsuite';
+export type CompareProductSlug = 'openquok' | 'hootsuite' | 'buffer';
 
 export type CompareFeatureCell =
 	| { kind: 'included' }
@@ -19,6 +19,24 @@ export type ComparePricingPlan = {
 	footnote?: string;
 };
 
+/** Copy used to build with/without sections and pair descriptions at runtime. */
+export type CompareProductComparison = {
+	/** Headline fragment for the left product (e.g. "agent-native scheduling"). */
+	headline: string;
+	/** Right-column headline fragment: "not another {notAnother}". */
+	notAnother: string;
+	/** Audience/context fragment: "{name} is built for {builtFor}." */
+	builtFor: string;
+	/** Second sentence when this product is on the left: "{name} {positioningWhenLeft}." */
+	positioningWhenLeft: string;
+	/** Override for the without column title; defaults to "Typical {name} workflow". */
+	withoutTitle?: string;
+	/** Benefits when this product is the left (with) column. */
+	advantages: string[];
+	/** Pain points when this product is the right (without) column. */
+	disadvantages: string[];
+};
+
 export type CompareProduct = {
 	slug: CompareProductSlug;
 	name: string;
@@ -27,6 +45,7 @@ export type CompareProduct = {
 	pricingPlans: ComparePricingPlan[];
 	channels: string[];
 	featureSupport: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>;
+	comparison: CompareProductComparison;
 };
 
 export type PublicFaqItemId =
@@ -35,7 +54,7 @@ export type PublicFaqItemId =
 	| 'multi-workspace';
 
 export type ComparePair = {
-	productASlug: 'openquok';
+	productASlug: CompareProductSlug;
 	productBSlug: CompareProductSlug;
 	metaTitle: string;
 	metaDescription: string;
@@ -47,8 +66,7 @@ export type ComparePair = {
 };
 
 export type CompareHubPairViewModel = {
-	productASlug: 'openquok';
-	competitorSlug: CompareProductSlug;
-	competitorName: string;
+	productASlug: CompareProductSlug;
+	productBSlug: CompareProductSlug;
+	productBName: string;
 };
-

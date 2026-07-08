@@ -8,42 +8,25 @@ import type {
 	CompareProductSlug,
 	PublicFaqItemId
 } from '$lib/content/constants/competitors/types';
-import { hootsuiteCompareProduct, openquokWithHootsuiteComparison } from '$lib/content/constants/competitors/hootsuite';
+import { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
+import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 
 export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
+export { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
-export { hootsuiteCompareProduct, openquokWithHootsuiteComparison } from '$lib/content/constants/competitors/hootsuite';
+export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+
+/** Default left-side product slug for the public compare hub and related-pair links. */
+export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
-	hootsuiteCompareProduct
-];
-
-export const PUBLIC_COMPARE_PAIRS: readonly ComparePair[] = [
-	{
-		productASlug: 'openquok',
-		productBSlug: 'hootsuite',
-		metaTitle: 'OpenQuok vs Hootsuite — Social Media Scheduler Comparison',
-		metaDescription:
-			'Compare OpenQuok and Hootsuite on pricing, channels, agent workspaces, MCP access, and scheduling features. See which social media scheduler fits your team.',
-		keywords: [
-			'OpenQuok vs Hootsuite',
-			'Hootsuite alternative',
-			'social media scheduler comparison',
-			'agent social media scheduling',
-			'Hootsuite pricing',
-			'OpenQuok pricing',
-			'AI agent social media',
-			'multi-workspace scheduler'
-		],
-		heroTitle: 'OpenQuok vs Hootsuite comparison',
-		heroDescription:
-			'See how OpenQuok stacks up against Hootsuite on pricing, channels, team workflows, and agent-native features. Start with a 7-day free trial — no credit card required.',
-		withWithoutSection: openquokWithHootsuiteComparison,
-		faqItemIds: ['switch-from-buffer-hootsuite', 'try-free', 'multi-workspace']
-	}
+	hootsuiteCompareProduct,
+	bufferCompareProduct
 ];
 
 const FAQ_ITEM_INDEX_BY_ID: Record<PublicFaqItemId, number> = {
@@ -60,26 +43,24 @@ export function getCompareProduct(slug: string): CompareProduct | undefined {
 }
 
 export function getComparePair(productA: string, productB: string): ComparePair | null {
-	const a = productA.trim().toLowerCase();
-	const b = productB.trim().toLowerCase();
-	if (a !== 'openquok') return null;
+	const left = getCompareProduct(productA);
+	const right = getCompareProduct(productB);
+	if (!left || !right || left.slug === right.slug) return null;
 
-	return (
-		PUBLIC_COMPARE_PAIRS.find(
-			(pair) => pair.productASlug === a && pair.productBSlug === (b as CompareProductSlug)
-		) ?? null
-	);
+	return buildComparePair(left, right);
 }
 
-export function listComparePairsForHub(baseSlug: CompareProductSlug = 'openquok'): CompareHubPairViewModel[] {
-	return PUBLIC_COMPARE_PAIRS.filter((pair) => pair.productASlug === baseSlug).map((pair) => {
-		const competitor = getCompareProduct(pair.productBSlug);
-		return {
-			productASlug: pair.productASlug,
-			competitorSlug: pair.productBSlug,
-			competitorName: competitor?.name ?? pair.productBSlug
-		};
-	});
+export function listComparePairsForHub(
+	baseSlug: CompareProductSlug = COMPARE_HUB_BASE_SLUG
+): CompareHubPairViewModel[] {
+	const baseProduct = getCompareProduct(baseSlug);
+	if (!baseProduct) return [];
+
+	return PUBLIC_COMPARE_PRODUCTS.filter((product) => product.slug !== baseSlug).map((rightProduct) => ({
+		productASlug: baseProduct.slug,
+		productBSlug: rightProduct.slug,
+		productBName: rightProduct.name
+	}));
 }
 
 export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): PublicFaqItem[] {
