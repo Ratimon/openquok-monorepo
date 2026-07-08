@@ -30,8 +30,8 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	youtube: 'YouTube',
 	tiktok: 'TikTok',
 	x: 'X',
-	'linkedin': 'LinkedIn',
-	'linkedin-page': 'LinkedIn Page',
+	linkedin: 'LinkedIn',
+	'linkedin-page': 'LinkedIn Page'
 };
 
 export function socialProviderDisplayLabel(identifier: string): string {
@@ -86,25 +86,122 @@ export function socialProviderEmoji(identifier: string): string {
 		youtube: '▶️',
 		tiktok: '🎵',
 		x: '𝕏',
-	'linkedin': '[in]',
-	'linkedin-page': '[in]',
-};
+		linkedin: '[in]',
+		'linkedin-page': '[in]'
+	};
 	return byId[key] ?? '🔗';
 }
 
-/** Integration catalog / channel `identifier` → AbstractIcon name. Single source for calendar, account, composer, docs overlap. */
-export const socialProviderIconByIdentifier: Record<string, IconName> = {
-	facebook: icons.FacebookGlyph.name,
-	instagram: icons.InstagramGlyph.name,
-	'instagram-business': icons.Instagram.name,
-	'instagram-standalone': icons.InstagramGlyph.name,
-	youtube: icons.YouTubeGlyph.name,
-	tiktok: icons.TikTok.name,
-	x: icons.X.name,
-	threads: icons.Threads.name,
-	linkedin: icons.LinkedIn.name,
-	'linkedin-page': icons.LinkedIn.name
+type SocialProviderIconSpec = {
+	/** Integration catalog identifiers that share this icon set. */
+	identifiers?: readonly string[];
+	/** Default icon for in-app surfaces (composer, calendar, channels). */
+	icon: IconName;
+	/** Fixed-color mark for human-facing lists on tinted panels (compare rows). */
+	listIcon?: IconName;
+	/** Human-readable labels that resolve to this platform. */
+	labels: readonly string[];
 };
+
+/** Canonical social platform icon catalog — drives identifier and label lookups. */
+const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
+	{
+		identifiers: ['facebook'],
+		icon: icons.FacebookGlyph.name,
+		labels: ['Facebook', 'Facebook Page']
+	},
+	{
+		identifiers: ['instagram'],
+		icon: icons.InstagramGlyph.name,
+		labels: ['Instagram']
+	},
+	{
+		identifiers: ['instagram-business'],
+		icon: icons.Instagram.name,
+		labels: ['Instagram (Business)']
+	},
+	{
+		identifiers: ['instagram-standalone'],
+		icon: icons.InstagramGlyph.name,
+		labels: ['Instagram (Standalone)']
+	},
+	{
+		identifiers: ['youtube'],
+		icon: icons.YouTubeGlyph.name,
+		labels: ['YouTube']
+	},
+	{
+		identifiers: ['tiktok'],
+		icon: icons.TikTok.name,
+		labels: ['TikTok']
+	},
+	{
+		identifiers: ['x'],
+		icon: icons.X.name,
+		listIcon: icons.XGlyph.name,
+		labels: ['X']
+	},
+	{
+		identifiers: ['threads'],
+		icon: icons.Threads.name,
+		listIcon: icons.ThreadsGlyph.name,
+		labels: ['Threads']
+	},
+	{
+		identifiers: ['linkedin', 'linkedin-page'],
+		icon: icons.LinkedIn.name,
+		labels: ['LinkedIn', 'LinkedIn Page']
+	},
+	{
+		icon: icons.Bluesky.name,
+		labels: ['Bluesky']
+	},
+	{
+		icon: icons.Pinterest.name,
+		labels: ['Pinterest']
+	},
+	{
+		icon: icons.Google.name,
+		labels: ['Google Business Profile', 'Google Business']
+	},
+	{
+		icon: icons.WhatsApp.name,
+		labels: ['WhatsApp']
+	}
+];
+
+function buildSocialProviderIconByIdentifier(
+	specs: readonly SocialProviderIconSpec[]
+): Record<string, IconName> {
+	const out: Record<string, IconName> = {};
+	for (const spec of specs) {
+		if (!spec.identifiers) continue;
+		for (const identifier of spec.identifiers) {
+			out[identifier] = spec.icon;
+		}
+	}
+	return out;
+}
+
+function buildSocialProviderIconByLabel(
+	specs: readonly SocialProviderIconSpec[]
+): Record<string, IconName> {
+	const out: Record<string, IconName> = {};
+	for (const spec of specs) {
+		const listIcon = spec.listIcon ?? spec.icon;
+		for (const label of spec.labels) {
+			out[label] = listIcon;
+		}
+	}
+	return out;
+}
+
+const socialProviderIconByLabel = buildSocialProviderIconByLabel(SOCIAL_PROVIDER_ICON_SPECS);
+
+/** Integration catalog / channel `identifier` → AbstractIcon name. */
+export const socialProviderIconByIdentifier = buildSocialProviderIconByIdentifier(
+	SOCIAL_PROVIDER_ICON_SPECS
+);
 
 export function socialProviderIcon(identifier: string | null | undefined): IconName {
 	if (identifier == null || String(identifier).trim() === '') {
@@ -114,21 +211,7 @@ export function socialProviderIcon(identifier: string | null | undefined): IconN
 	return socialProviderIconByIdentifier[id] ?? icons.Link.name;
 }
 
-/** Human-readable platform labels (compare pages, competitor channel lists) → AbstractIcon name. */
-export const socialPlatformIconByLabel: Record<string, IconName> = {
-	Bluesky: icons.Bluesky.name,
-	Facebook: icons.FacebookGlyph.name,
-	'Google Business Profile': icons.Google.name,
-	Instagram: icons.InstagramGlyph.name,
-	LinkedIn: icons.LinkedIn.name,
-	Pinterest: icons.Pinterest.name,
-	Threads: icons.ThreadsGlyph.name,
-	TikTok: icons.TikTok.name,
-	WhatsApp: icons.WhatsApp.name,
-	X: icons.XGlyph.name,
-	YouTube: icons.YouTubeGlyph.name
-};
-
+/** Human-readable platform label → fixed-color list icon (compare pages, competitor channel lists). */
 export function socialPlatformIconForLabel(label: string): IconName | undefined {
-	return socialPlatformIconByLabel[label.trim()];
+	return socialProviderIconByLabel[label.trim()];
 }
