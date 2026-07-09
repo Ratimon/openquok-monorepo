@@ -20,6 +20,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds` |
 | Thread finisher | Yes | `threads.enabled` + `threads.message` |
 | Delayed engagement reply | Yes | `threads.internalEngagementPlug` (same account) |
+| Cross-account comments | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`) |
 | Missing `release_id` recovery | Yes | `posts:missing` → `posts:connect` |
 | Channel / post analytics | Yes | `analytics:platform`, `analytics:post` |
 | Cross-post to other channels | Yes | Separate `-i` UUIDs and per-channel settings |
@@ -34,6 +35,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Schedule a reply chain / thread | [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json) |
 | End with a “thanks for reading” reply | [threads-thread-finisher.json](./examples/threads-thread-finisher.json) |
 | Schedule a delayed engagement comment | [threads-engagement-plug.json](./examples/threads-engagement-plug.json) |
+| Comment from other Threads channels after publish | [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json) |
 | Fix analytics on a “missing” post | [Reconnect missing post](#reconnect-missing-post) |
 | Debug vague Meta/media errors | [threads-publish.md](./threads-publish.md) |
 | Check channel limits / tools | `openquok integrations:settings "$TH_ID"` |
@@ -48,6 +50,9 @@ Use nested keys under `threads` in `--providerSettingsByIntegrationId` (matches 
 | `threads.enabled` | `true` \| `false` | Enable thread finisher (default off) |
 | `threads.message` | string | Finisher text when `enabled` is true |
 | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` | Same-account engagement reply after replies + finisher |
+| `threads.crossAccountPlugs` | `[{ "plugName": "threads-cross-account-comment", "enabled": true, "delayMs": 0, "integrationIds": ["<other-integration-id>"], "fields": { "comment": "…" } }]` | Comments from other Threads channels in the workspace |
+
+Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#cross-account-plugs-crossaccountplugs).
 
 ## Run an example
 

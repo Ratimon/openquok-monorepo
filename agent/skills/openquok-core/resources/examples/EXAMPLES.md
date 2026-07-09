@@ -22,6 +22,7 @@ openquok posts:create --json ./examples/threads-text-only.json
 | [threads-follow-up-replies.json](./threads-follow-up-replies.json) | `threads.replies` chain |
 | [threads-thread-finisher.json](./threads-thread-finisher.json) | Finisher + follow-ups |
 | [threads-engagement-plug.json](./threads-engagement-plug.json) | `threads.internalEngagementPlug` |
+| [threads-cross-account-plug.json](./threads-cross-account-plug.json) | `threads.crossAccountPlugs` (comment from other Threads channels) |
 
 ## Facebook Page
 
@@ -74,6 +75,12 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | [linkedin-with-video.json](./linkedin-with-video.json) | Single MP4 video |
 | [linkedin-follow-up-comment.json](./linkedin-follow-up-comment.json) | Text follow-up comments |
 | [linkedin-page-document-carousel.json](./linkedin-page-document-carousel.json) | Page document carousel (`linkedin.postAsImagesCarousel`) |
+
+## X
+
+| File | Scenario |
+| --- | --- |
+| [x-cross-account-repost.json](./x-cross-account-repost.json) | `x.crossAccountPlugs` (repost from other X channels) |
 
 ## Multi-channel
 

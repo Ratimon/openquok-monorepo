@@ -16,9 +16,11 @@ import {
 	INSTAGRAM_FEED_POST_PAYLOAD,
 	LINKEDIN_TEXT_POST_PAYLOAD,
 	THREADS_FOLLOW_UP_REPLIES_PAYLOAD,
+	THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD,
 	THREADS_TEXT_ONLY_PAYLOAD,
 	TIKTOK_VIDEO_DIRECT_POST_PAYLOAD,
 	X_REPLY_CHAIN_PAYLOAD,
+	X_CROSS_ACCOUNT_REPOST_PAYLOAD,
 	X_TEXT_ONLY_PAYLOAD,
 	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
@@ -101,6 +103,13 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			label: 'Reply chain',
 			prompt: 'Schedule a root post and follow-up replies under threads.replies.',
 			examplePayload: { ...THREADS_FOLLOW_UP_REPLIES_PAYLOAD }
+		},
+		{
+			id: 'threads-cross-account-comment',
+			label: 'Cross-account comment',
+			prompt:
+				'After publish on channel A, comment from another Threads channel using threads.crossAccountPlugs.',
+			examplePayload: { ...THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD }
 		}
 	],
 	instagram: [
@@ -147,18 +156,25 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			label: 'Reply chain',
 			prompt: 'Schedule a root post and follow-up replies under x.replies.',
 			examplePayload: { ...X_REPLY_CHAIN_PAYLOAD }
+		},
+		{
+			id: 'x-cross-account-repost',
+			label: 'Cross-account repost',
+			prompt:
+				'After publish on channel A, repost from another X channel using x.crossAccountPlugs.',
+			examplePayload: { ...X_CROSS_ACCOUNT_REPOST_PAYLOAD }
 		}
 	]
 };
 
 const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	facebook: 'Page posts, Reels, photos, and link previews.',
-	threads: 'Text posts and follow-up reply chains.',
+	threads: 'Text posts, reply chains, and cross-account comments.',
 	instagram: 'Feed image posts and scheduling settings.',
 	youtube: 'Video uploads — title, privacy, and tags.',
 	tiktok: 'Direct video posts with privacy controls.',
 	linkedin: 'Profile and company Page text posts.',
-	x: 'Text posts and scheduled reply threads.'
+	x: 'Text posts, reply threads, and cross-account reposts.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

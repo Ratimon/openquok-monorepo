@@ -9,7 +9,12 @@
 	} from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
+
+	import { integrationsRepository } from '$lib/integrations';
+	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
+	import * as Dialog from '$lib/ui/dialog';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
@@ -19,9 +24,7 @@
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
-	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
-	import * as Dialog from '$lib/ui/dialog';
-	import MultiAccountEngagementPlug from '$lib/ui/components/posts/thread/MultiAccountEngagementPlug.svelte';
+	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 
 	type Mode = 'global' | 'custom';
 
@@ -62,7 +65,12 @@
 		onAddPost: () => void;
 		settingsOpen?: boolean;
 		providerSettings?: Record<string, unknown>;
+		providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 		onProviderSettingsChange: (value: Record<string, unknown>) => void;
+		onUpdateProviderSettingsForIntegration?: (
+			integrationId: string,
+			patch: Record<string, unknown>
+		) => void;
 		threadReplies?: { id: string; message: string; delaySeconds: number }[];
 		onChangeThreadReplies?: (next: { id: string; message: string; delaySeconds: number }[]) => void;
 		/** Main post `datetime-local` (ManageModal); used for thread reply delay hints. */
@@ -115,7 +123,9 @@
 		onAddPost,
 		settingsOpen = $bindable(false),
 		providerSettings = {},
+		providerSettingsByIntegrationId = {},
 		onProviderSettingsChange,
+		onUpdateProviderSettingsForIntegration = undefined,
 		threadReplies = [],
 		onChangeThreadReplies = undefined,
 		scheduledPostDatetimeLocal = null,
@@ -241,7 +251,105 @@
 	const canShowPlugSettings = $derived.by(() => {
 		if (!plugSettingsIntegrationId) return false;
 		const ch = socialChannels.find((c) => c.id === plugSettingsIntegrationId);
-		return (ch?.identifier ?? '').toLowerCase() === 'threads';
+		const id = (ch?.identifier ?? '').toLowerCase();
+		return id === 'threads' || id === 'x' || id === 'linkedin' || id === 'linkedin-page';
+	});
+
+	type CrossAccountPlugDefinition = {
+		identifier: string;
+		title: string;
+		description: string;
+		pickIntegration?: string[];
+		fields?: Array<{
+			name: string;
+			description: string;
+			type: string;
+			placeholder: string;
+		}>;
+	};
+
+	function crossAccountSettingsBucket(identifier: string): 'threads' | 'x' | 'linkedin' | null {
+		const id = (identifier ?? '').toLowerCase();
+		if (id === 'threads') return 'threads';
+		if (id === 'x') return 'x';
+		if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
+		return null;
+	}
+
+	function crossAccountDefsProviderKey(identifier: string): string | null {
+		const id = (identifier ?? '').toLowerCase();
+		if (id === 'threads') return 'threads';
+		if (id === 'x') return 'x';
+		if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
+		return null;
+	}
+
+	const plugSettingsProviderSettings = $derived.by(() => {
+		if (!plugSettingsIntegrationId) return {};
+		return providerSettingsByIntegrationId[plugSettingsIntegrationId] ?? {};
+	});
+
+	let plugDialogCrossAccountPlugs = $state<CrossAccountPlugState[]>([]);
+	let plugDialogDefs = $state<CrossAccountPlugDefinition[]>([]);
+	let plugDialogLastLoadedSig = $state('');
+	let plugDialogLastEmittedSig = $state('');
+
+	$effect(() => {
+		const integrationId = plugSettingsIntegrationId;
+		const ch = integrationId ? socialChannels.find((c) => c.id === integrationId) : null;
+		const bucket = ch ? crossAccountSettingsBucket(ch.identifier ?? '') : null;
+		const settings = plugSettingsProviderSettings;
+		if (!integrationId || !bucket) {
+			plugDialogCrossAccountPlugs = [];
+			plugDialogLastLoadedSig = '';
+			return;
+		}
+		const bucketSettings = settings[bucket];
+		const plugs = Array.isArray(
+			(bucketSettings as { crossAccountPlugs?: unknown } | undefined)?.crossAccountPlugs
+		)
+			? ((bucketSettings as { crossAccountPlugs: CrossAccountPlugState[] }).crossAccountPlugs ?? [])
+			: [];
+		const sig = JSON.stringify(plugs);
+		if (sig === plugDialogLastLoadedSig) return;
+		plugDialogLastLoadedSig = sig;
+		plugDialogLastEmittedSig = sig;
+		plugDialogCrossAccountPlugs = plugs;
+	});
+
+	$effect(() => {
+		const orgId = organizationId;
+		const integrationId = plugSettingsIntegrationId;
+		const open = plugSettingsOpen;
+		if (!open || !orgId || !integrationId) {
+			plugDialogDefs = [];
+			return;
+		}
+		const ch = socialChannels.find((c) => c.id === integrationId);
+		const providerKey = ch ? crossAccountDefsProviderKey(ch.identifier ?? '') : null;
+		if (!providerKey) {
+			plugDialogDefs = [];
+			return;
+		}
+		void integrationsRepository.getInternalPlugDefinitions(orgId, providerKey).then((defs) => {
+			plugDialogDefs = defs.filter((d) => (d.pickIntegration?.length ?? 0) > 0);
+		});
+	});
+
+	$effect(() => {
+		const integrationId = plugSettingsIntegrationId;
+		const open = plugSettingsOpen;
+		if (!open || !integrationId || !onUpdateProviderSettingsForIntegration) return;
+		const ch = socialChannels.find((c) => c.id === integrationId);
+		const bucket = ch ? crossAccountSettingsBucket(ch.identifier ?? '') : null;
+		if (!bucket) return;
+		const active = plugDialogCrossAccountPlugs.filter((p) => p.enabled && p.integrationIds.length > 0);
+		const sig = JSON.stringify(active);
+		if (sig === plugDialogLastEmittedSig) return;
+		plugDialogLastEmittedSig = sig;
+		onUpdateProviderSettingsForIntegration(integrationId, {
+			[bucket]: active.length ? { crossAccountPlugs: active } : {}
+		});
 	});
 </script>
 
@@ -385,34 +493,15 @@
 
 		{#if plugSettingsIntegrationId}
 			{@const focused = socialChannels.find((c) => c.id === plugSettingsIntegrationId)}
-			{#if focused && (focused.identifier ?? '').toLowerCase() === 'threads'}
-				{@const threads = (providerSettings?.threads && typeof providerSettings.threads === 'object'
-					? (providerSettings.threads as Record<string, unknown>)
-					: {})}
-				{@const multi = (threads.multiAccountEngagementPlug && typeof threads.multiAccountEngagementPlug === 'object'
-					? (threads.multiAccountEngagementPlug as Record<string, unknown>)
-					: {})}
-
-				<div class="mt-4 space-y-4">
-					<MultiAccountEngagementPlug
-						channels={socialChannels}
-						currentIntegrationId={plugSettingsIntegrationId}
-						identifier="threads"
-						value={{
-							enabled: multi.enabled === true,
-							integrationIds: Array.isArray(multi.integrationIds)
-								? (multi.integrationIds as unknown[]).filter((x): x is string => typeof x === 'string')
-								: []
-						}}
+			{#if focused && canShowPlugSettings}
+				<div class="mt-4">
+					<CrossAccountPlugs
+						currentChannel={focused}
+						allChannels={socialChannels}
+						plugs={plugDialogDefs}
+						bind:value={plugDialogCrossAccountPlugs}
 						disabled={busy}
-						onChange={(next) => {
-							onProviderSettingsChange({
-								threads: {
-									...(threads as any),
-									multiAccountEngagementPlug: next
-								}
-							});
-						}}
+						compact
 					/>
 				</div>
 			{:else}

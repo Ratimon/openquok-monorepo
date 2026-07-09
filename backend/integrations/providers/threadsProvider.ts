@@ -88,14 +88,28 @@ const THREADS_GLOBAL_PLUG_CATALOG: GlobalPlugCatalogEntryDto[] = [
     },
 ];
 
-/** Post-publish Threads plugs (same-account internal engagement). */
+/** Post-publish Threads plugs (same-account and cross-account internal engagement). */
 const THREADS_INTERNAL_PLUG_CATALOG: InternalPlugCatalogEntryDto[] = [
     {
         identifier: "threads-internal-follow-up",
         methodName: "threadsInternalFollowUp",
         title: "Delayed follow-up reply (same account)",
-        description:
-            "Schedule an extra reply from this channel after your thread goes live. Cross-account boosting can be added later.",
+        description: "Schedule an extra reply from this channel after your thread goes live.",
+    },
+    {
+        identifier: "threads-cross-account-comment",
+        methodName: "threadsCrossAccountComment",
+        title: "Add comments by other accounts",
+        description: "Choose other Threads channels in this workspace to comment after publish.",
+        pickIntegration: ["threads"],
+        fields: [
+            {
+                name: "comment",
+                description: "The comment to add to the thread",
+                type: "textarea",
+                placeholder: "Enter your comment here",
+            },
+        ],
     },
 ];
 
@@ -238,6 +252,29 @@ export class ThreadsProvider implements SocialProvider {
             parent,
             acting.token,
             [{ id: "threads-internal-plug", message: msg, settings: {} }],
+            acting
+        );
+    }
+
+    /**
+     * Internal plug: comment from another Threads channel in the workspace.
+     */
+    async threadsCrossAccountComment(
+        acting: IntegrationRecord,
+        _original: IntegrationRecord,
+        threadId: string,
+        information: { comment?: string }
+    ): Promise<void> {
+        const raw = typeof information?.comment === "string" ? information.comment : "";
+        const msg = htmlToPlainText(raw).trim();
+        if (!msg.length || !threadId.trim()) return;
+
+        await this.comment(
+            acting.internal_id,
+            threadId.trim(),
+            undefined,
+            acting.token,
+            [{ id: "threads-cross-account-plug", message: msg, settings: {} }],
             acting
         );
     }

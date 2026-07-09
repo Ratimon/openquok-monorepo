@@ -192,7 +192,11 @@
 					onAddPost={() => presenter.handleAddThreadItemClick()}
 					bind:settingsOpen={presenter.settingsOpen}
 					providerSettings={presenter.providerSettingsByIntegrationId[presenter.focusedIntegrationId ?? ''] ?? {}}
+					providerSettingsByIntegrationId={presenter.providerSettingsByIntegrationId}
 					onProviderSettingsChange={presenter.updateFocusedProviderSettings.bind(presenter)}
+					onUpdateProviderSettingsForIntegration={presenter.updateProviderSettingsForIntegration.bind(
+						presenter
+					)}
 					settingsDisabled={presenter.busy}
 					threadReplies={presenter.contentSetAuthoringActive
 						? presenter.sharedFollowUpRepliesVm

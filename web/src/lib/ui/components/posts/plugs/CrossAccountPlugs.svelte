@@ -1,13 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
-
-	export type LinkedInCrossAccountPlugState = {
-		plugName: string;
-		enabled: boolean;
-		delayMs: number;
-		integrationIds: string[];
-		fields: Record<string, string>;
-	};
+	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 
 	type PlugDefinition = {
 		identifier: string;
@@ -26,7 +19,7 @@
 		currentChannel: CreateSocialPostChannelViewModel;
 		allChannels: CreateSocialPostChannelViewModel[];
 		plugs: PlugDefinition[];
-		value?: LinkedInCrossAccountPlugState[];
+		value?: CrossAccountPlugState[];
 		disabled?: boolean;
 		compact?: boolean;
 	};
@@ -50,7 +43,7 @@
 		{ label: '24 hours', ms: 86400000 }
 	] as const;
 
-	function plugState(identifier: string): LinkedInCrossAccountPlugState {
+	function plugState(identifier: string): CrossAccountPlugState {
 		return (
 			value.find((p) => p.plugName === identifier) ?? {
 				plugName: identifier,
@@ -62,7 +55,7 @@
 		);
 	}
 
-	function updatePlug(identifier: string, patch: Partial<LinkedInCrossAccountPlugState>) {
+	function updatePlug(identifier: string, patch: Partial<CrossAccountPlugState>) {
 		const current = plugState(identifier);
 		const next = { ...current, ...patch, plugName: identifier };
 		const rest = value.filter((p) => p.plugName !== identifier);
@@ -70,18 +63,11 @@
 	}
 
 	function eligibleChannels(def: PlugDefinition) {
-		const allowed = def.pickIntegration ?? ['linkedin', 'linkedin-page'];
+		const allowed = def.pickIntegration ?? [];
+		if (!allowed.length) return [];
 		return allChannels.filter(
 			(ch) => allowed.includes(ch.identifier) && ch.id !== currentChannel.id
 		);
-	}
-
-	function toggleIntegration(identifier: string, integrationId: string, checked: boolean) {
-		const state = plugState(identifier);
-		const set = new Set(state.integrationIds);
-		if (checked) set.add(integrationId);
-		else set.delete(integrationId);
-		updatePlug(identifier, { integrationIds: [...set] });
 	}
 </script>
 
@@ -112,7 +98,7 @@
 
 				<div class="mt-3 space-y-3 {state.enabled ? '' : 'pointer-events-none opacity-40'}">
 					{#if !accounts.length}
-						<p class="text-xs text-base-content/55">Connect another LinkedIn channel to use this.</p>
+						<p class="text-xs text-base-content/55">Connect another channel to use this.</p>
 					{:else}
 						<label class="block">
 							<span class="mb-1 block text-xs font-medium text-base-content/70">Delay</span>
@@ -178,12 +164,13 @@
 											class="checkbox checkbox-primary checkbox-sm"
 											checked={state.integrationIds.includes(ch.id)}
 											disabled={disabled}
-											onchange={(e) =>
-												toggleIntegration(
-													def.identifier,
-													ch.id,
-													(e.currentTarget as HTMLInputElement).checked
-												)}
+											onchange={(e) => {
+												const checked = (e.currentTarget as HTMLInputElement).checked;
+												const ids = new Set(state.integrationIds);
+												if (checked) ids.add(ch.id);
+												else ids.delete(ch.id);
+												updatePlug(def.identifier, { integrationIds: [...ids] });
+											}}
 										/>
 										<span>{ch.name}</span>
 									</label>

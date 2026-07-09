@@ -33,6 +33,7 @@ import {
 	serializeComposerSnapshot,
 	unschedulableReason
 } from '$lib/posts/utils/createSocialPostComposer';
+import { migrateProviderSettingsByIntegrationIdOnLoad } from '$lib/posts/utils/createSocialPostProviderSettings';
 import {
 	applyThreadFollowUpRepliesToSettings,
 	channelSupportsFollowUpComments,
@@ -389,9 +390,18 @@ export class CreateSocialPostPresenter {
 
 	updateFocusedProviderSettings(next: Record<string, unknown>): void {
 		if (this.mode !== 'custom' || !this.focusedIntegrationId) return;
-		const id = this.focusedIntegrationId;
+		this.updateProviderSettingsForIntegration(this.focusedIntegrationId, next);
+	}
+
+	/** Patch provider settings for a specific integration (global or custom mode). */
+	updateProviderSettingsForIntegration(
+		integrationId: string,
+		patch: Record<string, unknown>
+	): void {
+		const id = (integrationId ?? '').trim();
+		if (!id) return;
 		const current = this.providerSettingsByIntegrationId[id] ?? {};
-		const merged = mergeProviderSettingsPatch(current, next);
+		const merged = mergeProviderSettingsPatch(current, patch);
 		this.providerSettingsByIntegrationId = {
 			...this.providerSettingsByIntegrationId,
 			[id]: merged
@@ -994,8 +1004,8 @@ export class CreateSocialPostPresenter {
 
 		this.globalBody = snapshot.globalBody ?? '';
 		this.bodiesByIntegrationId = { ...snapshot.bodiesByIntegrationId };
-		this.providerSettingsByIntegrationId = cloneProviderSettingsByIntegrationId(
-			snapshot.providerSettingsByIntegrationId
+		this.providerSettingsByIntegrationId = migrateProviderSettingsByIntegrationIdOnLoad(
+			cloneProviderSettingsByIntegrationId(snapshot.providerSettingsByIntegrationId)
 		);
 
 		if (this.contentSetAuthoringActive) {
@@ -1106,10 +1116,11 @@ export class CreateSocialPostPresenter {
 
 			this.globalBody = g.body ?? '';
 			this.bodiesByIntegrationId = g.bodiesByIntegrationId ?? {};
-			this.providerSettingsByIntegrationId =
+			this.providerSettingsByIntegrationId = migrateProviderSettingsByIntegrationIdOnLoad(
 				g.providerSettingsByIntegrationId && typeof g.providerSettingsByIntegrationId === 'object'
 					? { ...g.providerSettingsByIntegrationId }
-					: {};
+					: {}
+			);
 
 			if (g.isGlobal) {
 				this.mode = 'global';

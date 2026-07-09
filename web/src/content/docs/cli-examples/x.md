@@ -2,7 +2,7 @@
 title: X
 description: OpenQuok CLI examples for X — tweets, media, thread replies, and analytics.
 order: 8
-lastUpdated: 2026-06-21
+lastUpdated: 2026-07-09
 ---
 
 <script>
@@ -115,6 +115,43 @@ openquok posts:create \
 ```
 
 Flat CLI keys are also accepted (e.g. <Badge text="who_can_reply_post" variant="param" />, <Badge text="made_with_ai" variant="param" />).
+
+## Cross-account repost
+
+<Badge text="providerSettings.x.crossAccountPlugs" variant="param" /> reposts the published tweet from <strong>other X channels</strong> in the same workspace. Use plug name <Badge text="x-repost-post-users" variant="default" /> with acting channel UUIDs in <Badge text="integrationIds" variant="param" />.
+
+```bash
+X_PUBLISH_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="x") | .id' | head -n1)
+X_OTHER_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="x") | .id' | sed -n '2p')
+
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Main tweet from our brand account" \
+  -i "$X_PUBLISH_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc \
+    --arg publish "$X_PUBLISH_ID" \
+    --arg other "$X_OTHER_ID" '
+    {
+      ($publish): {
+        x: {
+          crossAccountPlugs: [
+            {
+              plugName: "x-repost-post-users",
+              enabled: true,
+              delayMs: 0,
+              integrationIds: [$other],
+              fields: {}
+            }
+          ]
+        }
+      }
+    }
+  ')"
+```
+
+<Callout type="note" title="delayMs">
+<p><Badge text="delayMs" variant="param" /> is milliseconds after publish (<code>0</code> = immediately). The web composer also offers 1h–24h presets.</p>
+</Callout>
 
 ## Analytics
 

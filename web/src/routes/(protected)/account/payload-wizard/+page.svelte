@@ -230,7 +230,11 @@
 							onAddPost={() => composerPresenter.handleAddThreadItemClick()}
 							bind:settingsOpen={composerPresenter.settingsOpen}
 							providerSettings={composerPresenter.providerSettingsByIntegrationId[composerPresenter.focusedIntegrationId ?? ''] ?? {}}
+							providerSettingsByIntegrationId={composerPresenter.providerSettingsByIntegrationId}
 							onProviderSettingsChange={composerPresenter.updateFocusedProviderSettings.bind(composerPresenter)}
+							onUpdateProviderSettingsForIntegration={composerPresenter.updateProviderSettingsForIntegration.bind(
+								composerPresenter
+							)}
 							settingsDisabled={composerPresenter.busy}
 							threadReplies={composerPresenter.getThreadFollowUpRepliesForEditor()}
 							onChangeThreadReplies={(next) => {

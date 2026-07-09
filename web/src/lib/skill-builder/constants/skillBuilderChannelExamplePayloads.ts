@@ -70,6 +70,30 @@ export const THREADS_FOLLOW_UP_REPLIES_PAYLOAD = {
 	}
 } as const;
 
+export const THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Main thread from channel A',
+	integrationIds: ['<integration-id-1>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id-1>': {
+			threads: {
+				crossAccountPlugs: [
+					{
+						plugName: 'threads-cross-account-comment',
+						enabled: true,
+						delayMs: 3600000,
+						integrationIds: ['<integration-id-2>'],
+						fields: {
+							comment: 'Great thread — sharing from our other account.'
+						}
+					}
+				]
+			}
+		}
+	}
+} as const;
+
 export const INSTAGRAM_FEED_POST_PAYLOAD = {
 	scheduledAt: '2026-01-01T12:00:00.000Z',
 	status: 'scheduled',
@@ -138,6 +162,28 @@ export const X_REPLY_CHAIN_PAYLOAD = {
 		'<integration-id>': {
 			x: {
 				replies: [{ id: 'reply-1', message: 'Details in the thread below.', delaySeconds: 60 }]
+			}
+		}
+	}
+} as const;
+
+export const X_CROSS_ACCOUNT_REPOST_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Main tweet from channel A',
+	integrationIds: ['<integration-id-1>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id-1>': {
+			x: {
+				crossAccountPlugs: [
+					{
+						plugName: 'x-repost-post-users',
+						enabled: true,
+						delayMs: 0,
+						integrationIds: ['<integration-id-2>'],
+						fields: {}
+					}
+				]
 			}
 		}
 	}

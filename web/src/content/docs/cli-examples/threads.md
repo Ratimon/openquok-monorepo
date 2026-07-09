@@ -2,7 +2,7 @@
 title: Meta Threads
 description: Openquok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
 order: 3
-lastUpdated: 2026-05-12
+lastUpdated: 2026-07-09
 ---
 
 <script>
@@ -116,6 +116,45 @@ openquok posts:create \
     }
   ')"
 ```
+
+### Cross-account comments
+
+<Badge text="providerSettings.threads.crossAccountPlugs" variant="param" /> schedules comments from <strong>other Threads channels</strong> in the same workspace after the publishing channel’s post goes live. Use plug name <Badge text="threads-cross-account-comment" variant="default" /> and list acting channel UUIDs in <Badge text="integrationIds" variant="param" /> (not the publishing channel).
+
+Connect two or more Threads integrations, then pass settings on the <strong>publishing</strong> integration id:
+
+```bash
+THREADS_PUBLISH_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="threads") | .id' | head -n1)
+THREADS_OTHER_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="threads") | .id' | sed -n '2p')
+
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Main thread from our brand account" \
+  -i "$THREADS_PUBLISH_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc \
+    --arg publish "$THREADS_PUBLISH_ID" \
+    --arg other "$THREADS_OTHER_ID" '
+    {
+      ($publish): {
+        threads: {
+          crossAccountPlugs: [
+            {
+              plugName: "threads-cross-account-comment",
+              enabled: true,
+              delayMs: 3600000,
+              integrationIds: [$other],
+              fields: { comment: "Great thread — sharing from our other account." }
+            }
+          ]
+        }
+      }
+    }
+  ')"
+```
+
+<Callout type="note" title="Same account vs cross-account">
+<p><Badge text="threads.internalEngagementPlug" variant="param" /> (above) runs a delayed reply from the <strong>publishing</strong> channel. <Badge text="threads.crossAccountPlugs" variant="param" /> runs actions from <strong>other</strong> connected channels. <Badge text="delayMs" variant="param" /> is in milliseconds (<code>0</code> = immediately; <code>3600000</code> = one hour).</p>
+</Callout>
 
 ## Reconnect a "missing" Threads post
 

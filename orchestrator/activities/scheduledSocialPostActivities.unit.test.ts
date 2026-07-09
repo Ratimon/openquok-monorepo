@@ -160,14 +160,14 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         expect(threadsInternalFollowUp).not.toHaveBeenCalled();
     });
 
-    it("does not list activated plugs after publish when provider is not Threads", async () => {
+    it("does not list activated plugs after publish when provider does not support plugs", async () => {
         const integrationRepo = createIntegrationRepoMock();
         const plugRepo = createPlugRepoMock();
-        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "linkedin" }));
+        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "instagram-business" }));
 
         const manager = createPlugAwareIntegrationManager({
-            linkedin: {
-                post: jest.fn().mockResolvedValue([{ postId: "release-li" }]),
+            "instagram-business": {
+                post: jest.fn().mockResolvedValue([{ postId: "release-ig" }]),
             },
         });
 
@@ -283,5 +283,294 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
                 replyToParentId: "release-main",
             })
         );
+    });
+
+    it("runs Threads cross-account comment plug for other channel integrations", async () => {
+        const otherIntegrationId = faker.string.uuid();
+        const integrationRepo = createIntegrationRepoMock();
+        const plugRepo = createPlugRepoMock();
+        integrationRepo.getById.mockImplementation(async (_org, id) => {
+            if (id === integrationId) return minimalIntegration();
+            if (id === otherIntegrationId) {
+                return minimalIntegration({ id: otherIntegrationId, name: "Other Threads" });
+            }
+            return null;
+        });
+
+        const threadsCrossAccountComment = jest.fn().mockResolvedValue(undefined);
+        const manager = createPlugAwareIntegrationManager({
+            threads: {
+                post: jest.fn().mockResolvedValue([{ postId: "release-main" }]),
+                threadsCrossAccountComment,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const plugPipeline: ScheduledSocialPostPlugPipelineDeps = {
+            plugRepository: plugRepo,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                threads: {
+                    crossAccountPlugs: [
+                        {
+                            plugName: "threads-cross-account-comment",
+                            enabled: true,
+                            delayMs: 0,
+                            integrationIds: [otherIntegrationId, integrationId],
+                            fields: { comment: "Nice thread!" },
+                        },
+                    ],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(minimalPost({ settings: settingsJson })) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+            plugPipeline,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(threadsCrossAccountComment).toHaveBeenCalledTimes(1);
+        const call = threadsCrossAccountComment.mock.calls[0]!;
+        expect(call[0]?.id).toBe(otherIntegrationId);
+        expect(call[1]?.id).toBe(integrationId);
+        expect(call[2]).toBe("release-main");
+        expect(call[3]).toEqual(
+            expect.objectContaining({
+                comment: "Nice thread!",
+                replyToParentId: "release-main",
+            })
+        );
+    });
+
+    it("runs X cross-account repost plug for other channel integrations", async () => {
+        const otherIntegrationId = faker.string.uuid();
+        const integrationRepo = createIntegrationRepoMock();
+        const plugRepo = createPlugRepoMock();
+        integrationRepo.getById.mockImplementation(async (_org, id) => {
+            if (id === integrationId) {
+                return minimalIntegration({ provider_identifier: "x" });
+            }
+            if (id === otherIntegrationId) {
+                return minimalIntegration({ id: otherIntegrationId, provider_identifier: "x", name: "Other X" });
+            }
+            return null;
+        });
+
+        const repostPostUsers = jest.fn().mockResolvedValue(undefined);
+        const manager = createPlugAwareIntegrationManager({
+            x: {
+                post: jest.fn().mockResolvedValue([{ postId: "tweet-main" }]),
+                repostPostUsers,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const plugPipeline: ScheduledSocialPostPlugPipelineDeps = {
+            plugRepository: plugRepo,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                x: {
+                    crossAccountPlugs: [
+                        {
+                            plugName: "x-repost-post-users",
+                            enabled: true,
+                            delayMs: 0,
+                            integrationIds: [otherIntegrationId],
+                            fields: {},
+                        },
+                    ],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+            plugPipeline,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(repostPostUsers).toHaveBeenCalledTimes(1);
+        const call = repostPostUsers.mock.calls[0]!;
+        expect(call[0]?.id).toBe(otherIntegrationId);
+        expect(call[1]?.id).toBe(integrationId);
+        expect(call[2]).toBe("tweet-main");
+    });
+
+    it("skips disabled or invalid cross-account plug configs", async () => {
+        const otherIntegrationId = faker.string.uuid();
+        const integrationRepo = createIntegrationRepoMock();
+        const plugRepo = createPlugRepoMock();
+        integrationRepo.getById.mockImplementation(async (_org, id) => {
+            if (id === integrationId) {
+                return minimalIntegration({ provider_identifier: "x" });
+            }
+            if (id === otherIntegrationId) {
+                return minimalIntegration({ id: otherIntegrationId, provider_identifier: "x" });
+            }
+            return null;
+        });
+
+        const repostPostUsers = jest.fn().mockResolvedValue(undefined);
+        const manager = createPlugAwareIntegrationManager({
+            x: {
+                post: jest.fn().mockResolvedValue([{ postId: "tweet-main" }]),
+                repostPostUsers,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const plugPipeline: ScheduledSocialPostPlugPipelineDeps = {
+            plugRepository: plugRepo,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                x: {
+                    crossAccountPlugs: [
+                        {
+                            plugName: "x-repost-post-users",
+                            enabled: false,
+                            integrationIds: [otherIntegrationId],
+                        },
+                        {
+                            plugName: "",
+                            enabled: true,
+                            integrationIds: [otherIntegrationId],
+                        },
+                        {
+                            plugName: "x-repost-post-users",
+                            enabled: true,
+                            integrationIds: [],
+                        },
+                        {
+                            plugName: "unknown-plug",
+                            enabled: true,
+                            integrationIds: [otherIntegrationId],
+                        },
+                    ],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+            plugPipeline,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(repostPostUsers).not.toHaveBeenCalled();
+    });
+
+    it("runs LinkedIn cross-account comment plug (regression)", async () => {
+        const otherIntegrationId = faker.string.uuid();
+        const integrationRepo = createIntegrationRepoMock();
+        const plugRepo = createPlugRepoMock();
+        integrationRepo.getById.mockImplementation(async (_org, id) => {
+            if (id === integrationId) {
+                return minimalIntegration({ provider_identifier: "linkedin" });
+            }
+            if (id === otherIntegrationId) {
+                return minimalIntegration({
+                    id: otherIntegrationId,
+                    provider_identifier: "linkedin",
+                    name: "Other LinkedIn",
+                });
+            }
+            return null;
+        });
+
+        const addComment = jest.fn().mockResolvedValue(undefined);
+        const manager = createPlugAwareIntegrationManager({
+            linkedin: {
+                post: jest.fn().mockResolvedValue([{ postId: "li-main" }]),
+                addComment,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const plugPipeline: ScheduledSocialPostPlugPipelineDeps = {
+            plugRepository: plugRepo,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                linkedin: {
+                    crossAccountPlugs: [
+                        {
+                            plugName: "linkedin-add-comment",
+                            enabled: true,
+                            delayMs: 0,
+                            integrationIds: [otherIntegrationId],
+                            fields: { comment: "Great post!" },
+                        },
+                    ],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+            plugPipeline,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(addComment).toHaveBeenCalledTimes(1);
+        const call = addComment.mock.calls[0]!;
+        expect(call[0]?.id).toBe(otherIntegrationId);
+        expect(call[1]?.id).toBe(integrationId);
+        expect(call[2]).toBe("li-main");
+        expect(call[3]).toEqual(expect.objectContaining({ comment: "Great post!" }));
     });
 });

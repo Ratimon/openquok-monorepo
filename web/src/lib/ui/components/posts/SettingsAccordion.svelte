@@ -1,12 +1,15 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 	import type {
 		TiktokContentPostingMethod,
 		TiktokPrivacyLevel,
+		XReplySetting,
 		YoutubeTagOption
 	} from '$lib/ui/components/posts/providers/provider.types';
 
 	import { icons } from '$data/icons';
+	import { integrationsRepository } from '$lib/integrations';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Accordion from '$lib/ui/accordion';
 
@@ -15,14 +18,10 @@
 	import InstagramCollaborators from '$lib/ui/components/posts/providers/instagram/InstagramCollaborators.svelte';
 	import FacebookSettings from '$lib/ui/components/posts/providers/facebook/FacebookSettings.svelte';
 	import LinkedInSettings from '$lib/ui/components/posts/providers/linkedin/LinkedInSettings.svelte';
-	import LinkedInCrossAccountPlugs, {
-		type LinkedInCrossAccountPlugState
-	} from '$lib/ui/components/posts/providers/linkedin/LinkedInCrossAccountPlugs.svelte';
-	import { integrationsRepository } from '$lib/integrations';
+	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
-	import type { XReplySetting } from '$lib/ui/components/posts/providers/provider.types';
 
 	type ProviderSettings = {
 		threads: {
@@ -35,6 +34,7 @@
 				plugName: string;
 				integrationId: string;
 			};
+			crossAccountPlugs?: CrossAccountPlugState[];
 		};
 		instagram: {
 			postType: 'post' | 'story';
@@ -67,7 +67,7 @@
 		linkedin: {
 			postAsImagesCarousel: boolean;
 			carouselName?: string;
-			crossAccountPlugs?: LinkedInCrossAccountPlugState[];
+			crossAccountPlugs?: CrossAccountPlugState[];
 		};
 		x: {
 			whoCanReplyPost?: XReplySetting;
@@ -76,6 +76,7 @@
 			paidPartnership?: boolean;
 			enabled?: boolean;
 			message?: string;
+			crossAccountPlugs?: CrossAccountPlugState[];
 		};
 	};
 
@@ -142,7 +143,9 @@
 
 	let liCarousel = $state(false);
 	let liCarouselName = $state('');
-	let liCrossAccountPlugs = $state<LinkedInCrossAccountPlugState[]>([]);
+	let threadsCrossAccountPlugs = $state<CrossAccountPlugState[]>([]);
+	let liCrossAccountPlugs = $state<CrossAccountPlugState[]>([]);
+	let xCrossAccountPlugs = $state<CrossAccountPlugState[]>([]);
 
 	let xWhoCanReply = $state<XReplySetting | ''>('');
 	let xCommunityUrl = $state('');
@@ -151,30 +154,37 @@
 	let xFinisherEnabled = $state(false);
 	let xFinisherMessage = $state("That's a wrap!");
 
-	let linkedInPlugDefs = $state<
-		Array<{
-			identifier: string;
-			title: string;
+	type CrossAccountPlugDefinition = {
+		identifier: string;
+		title: string;
+		description: string;
+		pickIntegration?: string[];
+		fields?: Array<{
+			name: string;
 			description: string;
-			pickIntegration?: string[];
-			fields?: Array<{
-				name: string;
-				description: string;
-				type: string;
-				placeholder: string;
-			}>;
-		}>
-	>([]);
+			type: string;
+			placeholder: string;
+		}>;
+	};
+
+	let crossAccountPlugDefs = $state<CrossAccountPlugDefinition[]>([]);
+
+	const crossAccountDefsProviderKey = $derived.by(() => {
+		if (identifier === 'threads') return 'threads';
+		if (identifier === 'x') return 'x';
+		if (identifier === 'linkedin' || identifier === 'linkedin-page') return 'linkedin';
+		return null;
+	});
 
 	$effect(() => {
-		const id = identifier;
+		const providerKey = crossAccountDefsProviderKey;
 		const orgId = organizationId;
-		if ((id !== 'linkedin' && id !== 'linkedin-page') || !orgId) {
-			linkedInPlugDefs = [];
+		if (!providerKey || !orgId) {
+			crossAccountPlugDefs = [];
 			return;
 		}
-		void integrationsRepository.getInternalPlugDefinitions(orgId, 'linkedin').then((defs) => {
-			linkedInPlugDefs = defs.filter((d) => (d.pickIntegration?.length ?? 0) > 0);
+		void integrationsRepository.getInternalPlugDefinitions(orgId, providerKey).then((defs) => {
+			crossAccountPlugDefs = defs.filter((d) => (d.pickIntegration?.length ?? 0) > 0);
 		});
 	});
 
@@ -195,6 +205,9 @@
 				igPlugDelaySeconds = 120;
 				igPlugMessage = '';
 			}
+			threadsCrossAccountPlugs = Array.isArray(s.threads.crossAccountPlugs)
+				? (s.threads.crossAccountPlugs as CrossAccountPlugState[])
+				: [];
 		}
 		if (s.instagram) {
 			const pt = (s.instagram as any).postType;
@@ -282,7 +295,7 @@
 			liCarousel = s.linkedin.postAsImagesCarousel === true;
 			liCarouselName = typeof s.linkedin.carouselName === 'string' ? s.linkedin.carouselName : '';
 			liCrossAccountPlugs = Array.isArray(s.linkedin.crossAccountPlugs)
-				? (s.linkedin.crossAccountPlugs as LinkedInCrossAccountPlugState[])
+				? (s.linkedin.crossAccountPlugs as CrossAccountPlugState[])
 				: [];
 		} else {
 			const flat = s as Record<string, unknown>;
@@ -318,6 +331,9 @@
 				typeof (s.x as { message?: unknown }).message === 'string'
 					? (s.x as { message: string }).message
 					: "That's a wrap!";
+			xCrossAccountPlugs = Array.isArray((s.x as { crossAccountPlugs?: unknown }).crossAccountPlugs)
+				? ((s.x as { crossAccountPlugs: CrossAccountPlugState[] }).crossAccountPlugs ?? [])
+				: [];
 		} else {
 			const flat = s as Record<string, unknown>;
 			const flatWho = flat.who_can_reply_post ?? flat.whoCanReplyPost;
@@ -338,6 +354,7 @@
 			xPaidPartnership = flat.paid_partnership === true || flat.paidPartnership === true;
 			xFinisherEnabled = false;
 			xFinisherMessage = "That's a wrap!";
+			xCrossAccountPlugs = [];
 		}
 	});
 
@@ -345,6 +362,9 @@
 	$effect(() => {
 		let next: Partial<ProviderSettings> = {};
 		if (identifier === 'threads') {
+			const activeThreadsCrossPlugs = threadsCrossAccountPlugs.filter(
+				(p) => p.enabled && p.integrationIds.length > 0
+			);
 			next = {
 				threads: {
 					enabled: threadsEnabled,
@@ -355,7 +375,8 @@
 						message: igPlugMessage,
 						plugName: 'threads-internal-follow-up',
 						integrationId: channel.id
-					}
+					},
+					...(activeThreadsCrossPlugs.length ? { crossAccountPlugs: activeThreadsCrossPlugs } : {})
 				}
 			};
 		} else if (identifier.startsWith('instagram')) {
@@ -406,6 +427,9 @@
 				}
 			};
 		} else if (identifier === 'x') {
+			const activeXCrossPlugs = xCrossAccountPlugs.filter(
+				(p) => p.enabled && p.integrationIds.length > 0
+			);
 			next = {
 				x: {
 					...(xWhoCanReply ? { whoCanReplyPost: xWhoCanReply } : {}),
@@ -413,7 +437,8 @@
 					...(xMadeWithAi ? { madeWithAi: true } : {}),
 					...(xPaidPartnership ? { paidPartnership: true } : {}),
 					enabled: xFinisherEnabled,
-					message: xFinisherMessage
+					message: xFinisherMessage,
+					...(activeXCrossPlugs.length ? { crossAccountPlugs: activeXCrossPlugs } : {})
 				}
 			};
 		} else {
@@ -458,6 +483,14 @@
 			{disabled}
 			compact={compactEditors}
 		/>
+		<CrossAccountPlugs
+			currentChannel={channel}
+			allChannels={allChannels}
+			plugs={crossAccountPlugDefs}
+			bind:value={threadsCrossAccountPlugs}
+			{disabled}
+			compact={compactEditors}
+		/>
 	{:else if identifier.startsWith('instagram')}
 		<InstagramCollaborators
 			bind:postType={igPostType}
@@ -498,10 +531,10 @@
 			bind:carouselName={liCarouselName}
 			showCarousel={true}
 		/>
-		<LinkedInCrossAccountPlugs
+		<CrossAccountPlugs
 			currentChannel={channel}
 			allChannels={allChannels}
-			plugs={linkedInPlugDefs}
+			plugs={crossAccountPlugDefs}
 			bind:value={liCrossAccountPlugs}
 			{disabled}
 			compact={compactEditors}
@@ -519,6 +552,14 @@
 			{disabled}
 			compact={compactEditors}
 			softCharLimit={280}
+		/>
+		<CrossAccountPlugs
+			currentChannel={channel}
+			allChannels={allChannels}
+			plugs={crossAccountPlugDefs}
+			bind:value={xCrossAccountPlugs}
+			{disabled}
+			compact={compactEditors}
 		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>

@@ -263,7 +263,7 @@ function collectInternalTodosFromThreadsSettings(
     ];
 }
 
-type LinkedInCrossAccountPlugConfig = {
+type CrossAccountPlugConfig = {
     plugName?: string;
     enabled?: boolean;
     delayMs?: number;
@@ -271,25 +271,30 @@ type LinkedInCrossAccountPlugConfig = {
     fields?: Record<string, string>;
 };
 
-function collectInternalTodosFromLinkedInSettings(
+function collectInternalTodosFromCrossAccountPlugs(
     integrationManager: IntegrationManager,
     params: {
         postIntegrationId: string;
         providerSettings: Record<string, unknown> | null;
+        settingsBucket: "threads" | "x" | "linkedin";
+        defsProviderIdentifier: "threads" | "x" | "linkedin";
     }
 ): PlugTodo[] {
-    const root = params.providerSettings as { linkedin?: unknown } | null;
-    const linkedin =
-        root?.linkedin && typeof root.linkedin === "object" ? (root.linkedin as Record<string, unknown>) : null;
-    if (!linkedin) return [];
+    const root = params.providerSettings as Record<string, unknown> | null;
+    const bucket =
+        root?.[params.settingsBucket] && typeof root[params.settingsBucket] === "object"
+            ? (root[params.settingsBucket] as Record<string, unknown>)
+            : null;
+    if (!bucket) return [];
 
-    const rawPlugs = linkedin.crossAccountPlugs;
+    const rawPlugs = bucket.crossAccountPlugs;
     if (!Array.isArray(rawPlugs) || rawPlugs.length === 0) return [];
 
+    const defs = integrationManager.getInternalPlugDefinitionsForProvider(params.defsProviderIdentifier);
     const out: PlugTodo[] = [];
     for (const item of rawPlugs) {
         if (!item || typeof item !== "object") continue;
-        const plug = item as LinkedInCrossAccountPlugConfig;
+        const plug = item as CrossAccountPlugConfig;
         if (plug.enabled !== true) continue;
 
         const plugName = typeof plug.plugName === "string" ? plug.plugName.trim() : "";
@@ -300,14 +305,13 @@ function collectInternalTodosFromLinkedInSettings(
             : [];
         if (!integrationIds.length) continue;
 
+        if (!defs.some((d) => d.identifier === plugName)) continue;
+
         const delayMs = Number.isFinite(Number(plug.delayMs)) ? Math.max(0, Number(plug.delayMs)) : 0;
         const fields =
             plug.fields && typeof plug.fields === "object"
                 ? (plug.fields as Record<string, string>)
                 : {};
-
-        const defs = integrationManager.getInternalPlugDefinitionsForProvider("linkedin");
-        if (!defs.some((d) => d.identifier === plugName)) continue;
 
         for (const integrationId of integrationIds) {
             if (integrationId === params.postIntegrationId) continue;
@@ -489,14 +493,31 @@ async function runPostPublishPlugPipeline(
 
     let internal: PlugTodo[] = [];
     if (provider === "threads") {
-        internal = collectInternalTodosFromThreadsSettings(deps.integrationManager, {
+        internal = [
+            ...collectInternalTodosFromThreadsSettings(deps.integrationManager, {
+                postIntegrationId: params.postIntegrationId,
+                providerSettings: params.providerSettings,
+            }),
+            ...collectInternalTodosFromCrossAccountPlugs(deps.integrationManager, {
+                postIntegrationId: params.postIntegrationId,
+                providerSettings: params.providerSettings,
+                settingsBucket: "threads",
+                defsProviderIdentifier: "threads",
+            }),
+        ];
+    } else if (provider === "x") {
+        internal = collectInternalTodosFromCrossAccountPlugs(deps.integrationManager, {
             postIntegrationId: params.postIntegrationId,
             providerSettings: params.providerSettings,
+            settingsBucket: "x",
+            defsProviderIdentifier: "x",
         });
-    } else {
-        internal = collectInternalTodosFromLinkedInSettings(deps.integrationManager, {
+    } else if (provider === "linkedin" || provider === "linkedin-page") {
+        internal = collectInternalTodosFromCrossAccountPlugs(deps.integrationManager, {
             postIntegrationId: params.postIntegrationId,
             providerSettings: params.providerSettings,
+            settingsBucket: "linkedin",
+            defsProviderIdentifier: "linkedin",
         });
     }
 

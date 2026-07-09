@@ -1,0 +1,21 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Main tweet from channel A",
+  "integrationIds": ["<integration-id-1>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id-1>": {
+      "x": {
+        "crossAccountPlugs": [
+          {
+            "plugName": "x-repost-post-users",
+            "enabled": true,
+            "delayMs": 0,
+            "integrationIds": ["<integration-id-2>"],
+            "fields": {}
+          }
+        ]
+      }
+    }
+  }
+}

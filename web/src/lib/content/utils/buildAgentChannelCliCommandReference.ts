@@ -90,6 +90,10 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok posts:create --json ./examples/threads-follow-up-replies.json',
 			description: 'Schedule a root post and follow-up replies'
 		},
+		postsCreateJsonCommand(
+			'threads-cross-account-plug.json',
+			'Comment from another Threads channel after publish (crossAccountPlugs)'
+		),
 		{
 			command: 'openquok analytics:platform "$THREADS_ID" -d 30',
 			description: 'Pull 30-day Threads analytics'
@@ -196,10 +200,11 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok integrations:settings "$X_ID"',
 			description: 'Get X posting rules and character limits'
 		},
-		{
-			command: 'openquok posts:create --json ./examples/x-text-only.json',
-			description: 'Schedule a text-only post on X'
-		},
+		postsCreateJsonCommand('x-text-only.json', 'Schedule a text-only post on X'),
+		postsCreateJsonCommand(
+			'x-cross-account-repost.json',
+			'Repost from another X channel after publish (crossAccountPlugs)'
+		),
 		{
 			command: 'openquok analytics:platform "$X_ID" -d 30',
 			description: 'Pull 30-day X analytics'

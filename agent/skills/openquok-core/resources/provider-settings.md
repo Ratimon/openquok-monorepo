@@ -28,16 +28,47 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | --- | --- | --- |
 | Facebook Page | `url` | `facebook.url` |
 | Instagram | `post_type`, `is_trial_reel`, `graduation_strategy`, `collaborators` | `instagram.*` (camelCase in web UI) |
-| Threads follow-ups / finisher / plug | — | `threads.replies`, `threads.enabled`, `threads.message`, `threads.internalEngagementPlug` |
+| Threads follow-ups / finisher / plug | — | `threads.replies`, `threads.enabled`, `threads.message`, `threads.internalEngagementPlug`, `threads.crossAccountPlugs` |
 | Instagram follow-up comments | — | `instagram.replies` |
-| X follow-ups / finisher / compose | `who_can_reply_post`, `made_with_ai`, `paid_partnership`, `community` | `x.replies`, `x.enabled`, `x.message`, `x.whoCanReplyPost`, `x.communityUrl`, … |
+| X follow-ups / finisher / compose / cross-account repost | `who_can_reply_post`, `made_with_ai`, `paid_partnership`, `community` | `x.replies`, `x.enabled`, `x.message`, `x.whoCanReplyPost`, `x.communityUrl`, `x.crossAccountPlugs`, … |
 | YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
-| LinkedIn / LinkedIn Page | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName` |
+| LinkedIn / LinkedIn Page | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName`, `linkedin.crossAccountPlugs` |
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For Threads and Instagram **scheduled follow-ups**, use the nested bucket (`threads` / `instagram`) in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time.
 
 Copy-paste JSON payloads: [examples/EXAMPLES.md](./examples/EXAMPLES.md).
+
+## Cross-account plugs (`crossAccountPlugs`)
+
+After the publishing channel’s post goes live, **other connected channels in the same workspace** can run an internal plug (comment, repost, etc.). Configure on the **publishing** integration’s provider bucket:
+
+| Provider bucket | Plug identifier | Action |
+| --- | --- | --- |
+| `threads` | `threads-cross-account-comment` | Comment from other Threads channels (`fields.comment`) |
+| `x` | `x-repost-post-users` | Repost from other X channels (no fields) |
+| `linkedin` / `linkedin-page` | `linkedin-add-comment` | Comment from other LinkedIn channels (`fields.comment`) |
+| `linkedin` / `linkedin-page` | `linkedin-repost-post-users` | Reshare from other LinkedIn channels |
+
+Each entry in `crossAccountPlugs` is an object:
+
+```json
+{
+  "plugName": "threads-cross-account-comment",
+  "enabled": true,
+  "delayMs": 0,
+  "integrationIds": ["<other-integration-id>"],
+  "fields": { "comment": "Nice post!" }
+}
+```
+
+- `delayMs` — milliseconds after publish (0 = immediately; composer also offers 1h–24h presets).
+- `integrationIds` — UUIDs of **acting** channels (must not include the publishing integration id; orchestrator skips the publisher).
+- `fields` — plug-specific strings from the catalog (`comment` for Threads/LinkedIn comment plugs; `{}` for repost plugs).
+
+Same-account Threads delayed reply stays on `threads.internalEngagementPlug` (not `crossAccountPlugs`). Legacy `threads.multiAccountEngagementPlug` is migrated to `threads.crossAccountPlugs` on load.
+
+Examples: [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json), [x-cross-account-repost.json](./examples/x-cross-account-repost.json).
 
 ## Multi `-c` segments
 
@@ -57,7 +88,7 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 
 | Channel | Examples | Primary settings |
 | --- | --- | --- |
-| Threads | [threads-examples.md](./threads-examples.md) | `threads.replies`, finisher, `internalEngagementPlug` |
+| Threads | [threads-examples.md](./threads-examples.md) | `threads.replies`, finisher, `internalEngagementPlug`, `crossAccountPlugs` |
 | Facebook Page | [facebook-examples.md](./facebook-examples.md) | `url` (link preview) |
 | Instagram Login | [instagram-standalone-examples.md](./instagram-standalone-examples.md) | `post_type`, trial reel, collaborators |
 | Instagram Page | [instagram-business-examples.md](./instagram-business-examples.md) | Same as standalone |
@@ -65,4 +96,4 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | LinkedIn | [linkedin-examples.md](./linkedin-examples.md) | `post_as_images_carousel`, `carousel_name` (≥2 images, no video) |
 | LinkedIn Page | [linkedin-page-examples.md](./linkedin-page-examples.md) | Same carousel keys + Page analytics |
 | TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |
-| X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels |
+| X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels, `crossAccountPlugs` |
