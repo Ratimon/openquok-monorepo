@@ -198,6 +198,16 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		hint: 'Photo carousel portrait; supported alternative to 9:16.'
 	},
 	{
+		id: 'tt-carousel-23',
+		label: 'TikTok',
+		menuTitle: 'Carousel (2:3)',
+		ratioW: 2,
+		ratioH: 3,
+		exportWidth: 1024,
+		exportHeight: 1536,
+		hint: '1024×1536 — photo carousel portrait (2:3).'
+	},
+	{
 		id: 'tt-horizontal',
 		label: 'TikTok',
 		menuTitle: 'Horizontal (16:9)',
@@ -548,7 +558,7 @@ export const ASPECT_RATIO_PLATFORM_GROUPS: readonly AspectPlatformGroup[] = [
 	{
 		id: 'tiktok',
 		title: 'TikTok',
-		presetIds: ['tt-video', 'tt-carousel-square', 'tt-carousel-45', 'tt-horizontal']
+		presetIds: ['tt-video', 'tt-carousel-square', 'tt-carousel-45', 'tt-carousel-23', 'tt-horizontal']
 	},
 	{
 		id: 'facebook',
