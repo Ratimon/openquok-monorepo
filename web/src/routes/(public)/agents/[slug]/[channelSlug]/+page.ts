@@ -1,8 +1,9 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
-import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
+	import type { PublicAgentViewModel } from '$lib/area-public/PublicAgentByPage.presenter.svelte';
+	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/publicAgentChannelConfig';
+	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 import type { PageLoad } from './$types';
 
@@ -26,6 +27,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelLabel: string;
 			cliExamplesPath: string;
 			agentSlug: string;
+			agentChannelLinksVm: PublicAgentChannelHubLinkViewModel[];
 		};
 
 		return {
@@ -41,7 +43,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelSlug: serverData.channelSlug,
 			channelLabel: serverData.channelLabel,
 			cliExamplesPath: serverData.cliExamplesPath,
-			agentSlug: serverData.agentSlug
+			agentSlug: serverData.agentSlug,
+			agentChannelLinksVm: serverData.agentChannelLinksVm
 		};
 	}
 

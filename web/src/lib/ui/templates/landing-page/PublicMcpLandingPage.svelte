@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicMcpLandingPageViewModel, PublicMcpIntegrationTab } from '$lib/content/constants/publicMcpConfig';
+	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/publicAgentChannelConfig';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 	import {
 		resolvePublicMcpSkillSetupSteps,
@@ -30,15 +31,25 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
+	import AgentChannelHubGrid from '$lib/ui/templates/landing-page/AgentChannelHubGrid.svelte';
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
 		listingsPreviewVm: PublicListingsPreviewVm;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
+		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
+		activeChannelSlug?: string | null;
 	};
 
-	let { mcpVm, listingsPreviewVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
+	let {
+		mcpVm,
+		listingsPreviewVm,
+		secondaryCtaText,
+		secondaryCtaHref,
+		channelLinksVm = [],
+		activeChannelSlug = null
+	}: Props = $props();
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -120,7 +131,10 @@
 	/>
 {/each}
 
-<PublicListingsPreviewDualGrid heroTheme={landingHeroTheme} previewVm={listingsPreviewVm} />
+<PublicListingsPreviewDualGrid
+	heroTheme={landingHeroTheme}
+	previewVm={listingsPreviewVm}
+/>
 
 {#if mcpVm.comparisonSection}
 	<WithWithout
@@ -131,6 +145,14 @@
 		withoutTitle={mcpVm.comparisonSection.withoutTitle}
 		withTitle={mcpVm.comparisonSection.withTitle}
 		points={mcpVm.comparisonSection.points}
+	/>
+{/if}
+
+{#if channelLinksVm.length > 0}
+	<AgentChannelHubGrid
+		agentLabel={mcpVm.agentLabel}
+		{channelLinksVm}
+		{activeChannelSlug}
 	/>
 {/if}
 

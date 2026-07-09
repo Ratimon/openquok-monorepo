@@ -1,4 +1,6 @@
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
+import { listAvailablePublicChannels } from '$lib/content/constants/channels';
+import { getAvailablePublicMcpLandingBySlug } from '$lib/content/constants/publicMcpConfig';
 import { route } from '$lib/utils/path';
 
 import type {
@@ -54,20 +56,50 @@ export function isPublicAgentChannelHostSlug(slug: string): slug is PublicAgentC
 	return (PUBLIC_AGENT_CHANNEL_HOST_SLUGS as readonly string[]).includes(slug.trim().toLowerCase());
 }
 
-export function listPublicAgentChannelsForHub(
-	agentSlug: string
-): PublicAgentChannelHubLinkViewModel[] {
-	const normalizedSlug = agentSlug.trim().toLowerCase();
-	if (!isPublicAgentChannelHostSlug(normalizedSlug)) return [];
+const channelBySlug = new Map(
+	listAvailablePublicChannels().map((channel) => [channel.slug, channel])
+);
 
-	const configs = channelConfigsByHostSlug[normalizedSlug];
+function hubDescriptionForChannel(slug: string, platformLabel: string): string {
+	const channel = channelBySlug.get(slug);
+	if (channel?.hubDescription?.trim()) return channel.hubDescription.trim();
+	return `Workflows and examples for ${platformLabel}.`;
+}
+
+function mapChannelConfigsToHubLinks(
+	agentSlug: string,
+	configs: readonly PublicAgentChannelPageConfig[]
+): PublicAgentChannelHubLinkViewModel[] {
 	return configs.map((config) => ({
 		slug: config.channelSlug,
 		platformLabel: config.platformLabel,
 		icon: config.icon,
-		href: route(getRootPathPublicAgentChannel(normalizedSlug, config.channelSlug)),
-		description: config.metaDescription
+		href: route(getRootPathPublicAgentChannel(agentSlug, config.channelSlug)),
+		description: hubDescriptionForChannel(config.channelSlug, config.platformLabel)
 	}));
+}
+
+export function listPublicAgentChannelsForHub(
+	agentSlug: string
+): PublicAgentChannelHubLinkViewModel[] {
+	const normalizedSlug = agentSlug.trim().toLowerCase();
+	if (!normalizedSlug) return [];
+
+	if (isPublicAgentChannelHostSlug(normalizedSlug)) {
+		return mapChannelConfigsToHubLinks(normalizedSlug, channelConfigsByHostSlug[normalizedSlug]);
+	}
+
+	if (getAvailablePublicMcpLandingBySlug(normalizedSlug)) {
+		return listAvailablePublicChannels().map((channel) => ({
+			slug: channel.slug,
+			platformLabel: channel.platformLabel,
+			icon: channel.icon,
+			href: route(getRootPathPublicAgentChannel(normalizedSlug, channel.slug)),
+			description: hubDescriptionForChannel(channel.slug, channel.platformLabel)
+		}));
+	}
+
+	return [];
 }
 
 export const AGENT_CHANNEL_HOSTS = [openclawAgentChannelHost, hermesAgentChannelHost] as const;

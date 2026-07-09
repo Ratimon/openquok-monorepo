@@ -21,6 +21,7 @@
 
 	let agentVm: PublicAgentViewModel | null = $derived(data.agentVm);
 	let listingsPreviewVm: PublicListingsPreviewVm = $derived(data.listingsPreviewVm);
+	let agentChannelLinksVm = $derived(data.agentChannelLinksVm);
 	let agentHostVm: PublicAgentHostLandingPageViewModel | null = $derived(agentVm && isPublicAgentHostLandingPage(agentVm) ? agentVm : null);
 	let mcpVm: PublicMcpLandingPageViewModel | null = $derived(agentVm && isPublicMcpLandingPage(agentVm) ? agentVm : null);
 
@@ -36,6 +37,7 @@
 		{listingsPreviewVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
+		channelLinksVm={agentChannelLinksVm}
 	/>
 {:else if agentHostVm}
 	<PublicAgentLandingPage
@@ -43,5 +45,6 @@
 		{listingsPreviewVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
+		channelLinksVm={agentChannelLinksVm}
 	/>
 {/if}

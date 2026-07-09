@@ -8,7 +8,10 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { getPublicAgentChannelBySlug } from '$lib/content/constants/publicAgentChannelConfig';
+import {
+	getPublicAgentChannelBySlug,
+	listPublicAgentChannelsForHub
+} from '$lib/content/constants/publicAgentChannelConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
@@ -152,6 +155,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		channelSlug: channelPage.channelSlug,
 		channelLabel: channelPage.channelLabel,
 		cliExamplesPath: channelPage.cliExamplesPath,
-		agentSlug
+		agentSlug,
+		agentChannelLinksVm: listPublicAgentChannelsForHub(agentSlug)
 	};
 }

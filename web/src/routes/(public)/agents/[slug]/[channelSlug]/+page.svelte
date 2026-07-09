@@ -20,6 +20,8 @@
 	let schemaData = $derived(data.schemaData);
 	let landingVm = $derived(data.landingVm);
 	let listingsPreviewVm = $derived(data.listingsPreviewVm);
+	let agentChannelLinksVm = $derived(data.agentChannelLinksVm);
+	let channelSlug = $derived(data.channelSlug);
 
 	let agentHostVm = $derived(
 		landingVm && isPublicAgentHostLandingPage(landingVm) ? landingVm : null
@@ -38,6 +40,8 @@
 		{listingsPreviewVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
+		channelLinksVm={agentChannelLinksVm}
+		activeChannelSlug={channelSlug}
 	/>
 {:else if agentHostVm}
 	<PublicAgentLandingPage
@@ -45,5 +49,7 @@
 		{listingsPreviewVm}
 		secondaryCtaText={secondaryCtaText}
 		secondaryCtaHref={secondaryCtaHref}
+		channelLinksVm={agentChannelLinksVm}
+		activeChannelSlug={channelSlug}
 	/>
 {/if}

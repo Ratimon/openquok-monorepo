@@ -7,6 +7,7 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
+import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
@@ -138,6 +139,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		isLoggedIn,
 		agentVm,
 		listingsPreviewVm,
-		schemaData
+		schemaData,
+		agentChannelLinksVm: listPublicAgentChannelsForHub(agentVm.slug)
 	};
 }

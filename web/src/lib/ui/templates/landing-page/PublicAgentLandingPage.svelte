@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
+	import type { PublicAgentChannelHubLinkViewModel } from '$lib/content/constants/publicAgentChannelConfig';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import {
@@ -36,15 +37,25 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
+	import AgentChannelHubGrid from '$lib/ui/templates/landing-page/AgentChannelHubGrid.svelte';
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
 		listingsPreviewVm: PublicListingsPreviewVm;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
+		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
+		activeChannelSlug?: string | null;
 	};
 
-	let { agentVm, listingsPreviewVm, secondaryCtaText, secondaryCtaHref }: Props = $props();
+	let {
+		agentVm,
+		listingsPreviewVm,
+		secondaryCtaText,
+		secondaryCtaHref,
+		channelLinksVm = [],
+		activeChannelSlug = null
+	}: Props = $props();
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -163,6 +174,14 @@
 			/>
 		{/snippet}
 	</SimpleCardGrid>
+{/if}
+
+{#if channelLinksVm.length > 0}
+	<AgentChannelHubGrid
+		agentLabel={agentVm.agentLabel}
+		{channelLinksVm}
+		{activeChannelSlug}
+	/>
 {/if}
 
 <div class="container mx-auto px-4">
