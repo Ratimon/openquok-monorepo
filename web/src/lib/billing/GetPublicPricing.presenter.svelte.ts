@@ -139,7 +139,8 @@ function compareCellForRow(
 		case 'multi_channel_publishing':
 		case 'agent_integrations':
 		case 'analytics':
-		case 'canva_editor':
+		case 'photo_editor':
+		case 'skill_builder':
 		case 'calendar_views':
 		case 'kanban_views':
 		case 'file_manager':

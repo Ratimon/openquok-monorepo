@@ -80,6 +80,7 @@ export type PublicPricingCompareRowId =
 	| 'agent_integrations'
 	| 'analytics'
 	| 'photo_editor'
+	| 'skill_builder'
 	| 'calendar_views'
 	| 'kanban_views'
 	| 'file_manager'
@@ -172,9 +173,15 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	},
 	{
 		id: 'photo_editor',
-		label: 'Design editor',
+		label: 'Photo editor',
 		tooltip:
 			'Browser-based canvas editor to resize visuals, add text and elements, and tailor content for channel-specific formats — feed posts, stories, thumbnails, and more.'
+	},
+	{
+		id: 'skill_builder',
+		label: 'Skill builder',
+		tooltip:
+			'Visual workflow builder for composing agent-ready setup guides and exporting `SKILL.md` content from reusable building blocks.'
 	},
 	{
 		id: 'calendar_views',

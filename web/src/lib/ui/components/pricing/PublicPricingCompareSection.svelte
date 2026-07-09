@@ -6,13 +6,16 @@
 	import type { PaidSubscriptionTier, SubscriptionPeriod } from 'openquok-common';
 
 	import { icons } from '$data/icons';
+	import { url } from '$lib/utils/path';
+	import { cn } from '$lib/ui/helpers/common';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import BillingPeriodToggle from '$lib/ui/components/billing/BillingPeriodToggle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import * as Table from '$lib/ui/table';
 	import * as Tooltip from '$lib/ui/tooltip';
-	import { cn } from '$lib/ui/helpers/common';
-	import { url } from '$lib/utils/path';
 
 	type Props = {
 		plans: PublicPricingPlanCardViewModel[];
@@ -25,15 +28,21 @@
 
 	let { plans, compareRows, featuredTier, period, onPeriodChange, ctaHref }: Props = $props();
 
+	const headingId = 'pricing-compare-heading';
+
 	function isFeaturedColumn(tier: PaidSubscriptionTier): boolean {
 		return tier === featuredTier;
 	}
 </script>
 
-<section id="pricing-compare" class="mt-24 scroll-mt-24">
-	<h2 class="text-center text-2xl font-bold text-base-content sm:text-3xl">
-		Compare plans and find the best fit
-	</h2>
+<section id="pricing-compare" class="mt-24 scroll-mt-24" aria-labelledby={headingId}>
+	<FeaturesSectionHeader
+		heroTheme={landingHeroTheme}
+		{headingId}
+		subtitle="Compare"
+		title="Compare plans and find the best fit"
+		description="Line up limits and features side by side, then pick the tier that matches how you and your team work."
+	/>
 
 	<div class="mt-10 overflow-x-auto">
 		<Table.Root class="min-w-[56rem] border-separate border-spacing-x-2 border-spacing-y-2">
