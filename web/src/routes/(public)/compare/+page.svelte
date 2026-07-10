@@ -156,7 +156,7 @@
 			iconContainerClass: iconStyleForProduct(pair.slug as CompareProductSlug).containerClass,
 			iconClass: iconStyleForProduct(pair.slug as CompareProductSlug).iconClass,
 			href: pair.href,
-			description: `Compare ${hubVm.baseProductName} and ${pair.name} across pricing, features, and supported channels.`,
+			description: pair.description,
 			ctaLabel: 'Open'
 		}))}
 		getItemKey={(item) => item.id}

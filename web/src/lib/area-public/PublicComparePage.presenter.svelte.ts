@@ -47,6 +47,7 @@ export type CompareHubPairCardViewModel = {
 	icon: IconName;
 	slug: string;
 	href: string;
+	description: string;
 };
 
 export type CompareHubProductOptionViewModel = {
@@ -91,22 +92,15 @@ export class PublicComparePagePresenter {
 		}
 
 		const pairs = listComparePairsForHub(baseSlug);
-		const pairCount = pairs.length;
-		const otherCountLabel =
-			pairCount === 1 ? '1 other tool' : `${pairCount} other tools`;
+		const isOpenQuokHub = baseSlug === COMPARE_HUB_BASE_SLUG;
+		const hubSeo = buildCompareHubSeoCopy(baseProduct, pairs.length, isOpenQuokHub);
 
 		return {
-			metaTitle: `${baseProduct.name} vs the rest`,
-			metaDescription:
-				pairCount === 1
-					? `See how ${baseProduct.name} stacks up against another social media scheduler on pricing, channels, workspaces, and scheduling features.`
-					: `See how ${baseProduct.name} stacks up against ${otherCountLabel} on pricing, channels, workspaces, and scheduling features.`,
-			eyebrow: 'Compare',
-			title: `${baseProduct.name} vs the rest`,
-			description:
-				pairCount === 1
-					? `See how ${baseProduct.name} stacks up against 1 other tool.`
-					: `See how ${baseProduct.name} stacks up against ${otherCountLabel}.`,
+			metaTitle: hubSeo.metaTitle,
+			metaDescription: hubSeo.metaDescription,
+			eyebrow: hubSeo.eyebrow,
+			title: hubSeo.title,
+			description: hubSeo.description,
 			baseSlug: baseProduct.slug,
 			baseProductName: baseProduct.name,
 			products: PUBLIC_COMPARE_PRODUCTS.map((product) => ({
@@ -114,12 +108,19 @@ export class PublicComparePagePresenter {
 				name: product.name,
 				icon: product.icon
 			})),
-			pairs: pairs.map((pair) => ({
-				name: pair.productBName,
-				icon: getCompareProduct(pair.productBSlug)?.icon ?? baseProduct.icon,
-				slug: pair.productBSlug,
-				href: url(route(getRootPathPublicComparePair(pair.productASlug, pair.productBSlug)))
-			}))
+			pairs: pairs.map((pair) => {
+				const pairProduct = getCompareProduct(pair.productBSlug);
+				return {
+					name: pair.productBName,
+					icon: pairProduct?.icon ?? baseProduct.icon,
+					slug: pair.productBSlug,
+					href: url(route(getRootPathPublicComparePair(pair.productASlug, pair.productBSlug))),
+					description: buildCompareHubPairCardDescription(
+						baseProduct,
+						pairProduct ?? baseProduct
+					)
+				};
+			})
 		};
 	}
 
@@ -142,12 +143,16 @@ export class PublicComparePagePresenter {
 
 		const relatedPairs = listComparePairsForHub(COMPARE_HUB_BASE_SLUG)
 			.filter((hubPair) => hubPair.productBSlug !== pair.productBSlug)
-			.map((hubPair) => ({
-				name: hubPair.productBName,
-				icon: getCompareProduct(hubPair.productBSlug)?.icon ?? leftProduct.icon,
-				slug: hubPair.productBSlug,
-				href: url(route(getRootPathPublicComparePair(hubPair.productASlug, hubPair.productBSlug)))
-			}));
+			.map((hubPair) => {
+				const pairProduct = getCompareProduct(hubPair.productBSlug);
+				return {
+					name: hubPair.productBName,
+					icon: pairProduct?.icon ?? leftProduct.icon,
+					slug: hubPair.productBSlug,
+					href: url(route(getRootPathPublicComparePair(hubPair.productASlug, hubPair.productBSlug))),
+					description: buildCompareHubPairCardDescription(leftProduct, pairProduct ?? leftProduct)
+				};
+			});
 
 		return {
 			metaTitle: pair.metaTitle,
@@ -169,6 +174,60 @@ export class PublicComparePagePresenter {
 			relatedPairs
 		};
 	}
+}
+
+type CompareHubSeoCopy = {
+	metaTitle: string;
+	metaDescription: string;
+	eyebrow: string;
+	title: string;
+	description: string;
+};
+
+function buildCompareHubSeoCopy(
+	baseProduct: NonNullable<ReturnType<typeof getCompareProduct>>,
+	pairCount: number,
+	isOpenQuokHub: boolean
+): CompareHubSeoCopy {
+	const otherCountLabel = pairCount === 1 ? '1 other tool' : `${pairCount} other tools`;
+
+	if (isOpenQuokHub) {
+		return {
+			metaTitle: `${baseProduct.name} vs. the rest`,
+			metaDescription:
+				'Compare the top social media scheduling tools side by side — pricing, channels, workspaces, and agent integrations. See why teams are switching to OpenQuok.',
+			eyebrow: 'Compare',
+			title: `${baseProduct.name} vs. the rest`,
+			description:
+				'See how the most popular social media scheduling platforms compare — and why teams are switching to OpenQuok for agent workflows, multi-workspace publishing, and programmatic scheduling.'
+		};
+	}
+
+	return {
+		metaTitle: `Best ${baseProduct.name} Alternatives`,
+		metaDescription: `Discover the best alternatives to ${baseProduct.name} for social media scheduling, agent workflows, and multi-workspace publishing. Compare top tools side by side on pricing, channels, and features.`,
+		eyebrow: 'Alternatives',
+		title: `Best ${baseProduct.name} alternatives`,
+		description:
+			pairCount === 1
+				? `Compare the best ${baseProduct.name} alternative for social media management, scheduling, and agent-driven publishing.`
+				: `Compare the top ${baseProduct.name} alternatives for social media management, scheduling, and agent-driven publishing — ${otherCountLabel} to explore.`
+	};
+}
+
+function buildCompareHubPairCardDescription(
+	baseProduct: NonNullable<ReturnType<typeof getCompareProduct>>,
+	pairProduct: NonNullable<ReturnType<typeof getCompareProduct>>
+): string {
+	if (baseProduct.slug === COMPARE_HUB_BASE_SLUG) {
+		return `Compare ${baseProduct.name} and ${pairProduct.name} on pricing, channels, workspaces, and agent integrations.`;
+	}
+
+	if (pairProduct.slug === COMPARE_HUB_BASE_SLUG) {
+		return `Discover why teams choose ${pairProduct.name} as a ${baseProduct.name} alternative for agent workflows and multi-workspace scheduling.`;
+	}
+
+	return `Compare ${baseProduct.name} and ${pairProduct.name} on pricing, channels, and scheduling features.`;
 }
 
 function toProductSummary(product: NonNullable<ReturnType<typeof getCompareProduct>>): CompareProductSummaryViewModel {

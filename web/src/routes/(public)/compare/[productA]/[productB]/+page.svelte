@@ -88,7 +88,7 @@
 			iconContainerClass:
 				'bg-linear-to-br from-violet-400/25 via-fuchsia-300/18 to-indigo-300/20 text-violet-100 ring-violet-300/30',
 			href: compareHubPath,
-			description: 'Browse the full comparison hub to explore every head-to-head scheduling matchup.',
+			description: 'Browse every head-to-head social media scheduler comparison and find the best alternative for your workflow.',
 			ctaLabel: 'Open'
 		},
 		...relatedPairs.map((pair) => ({
@@ -98,7 +98,7 @@
 			iconContainerClass: iconStyleForProduct(pair.slug as CompareProductSlug).cardContainerClass,
 			iconClass: iconStyleForProduct(pair.slug as CompareProductSlug).iconClass,
 			href: pair.href,
-			description: `Compare OpenQuok and ${pair.name} across pricing, features, and supported channels.`,
+			description: pair.description,
 			ctaLabel: 'Open'
 		}))
 	]);
@@ -337,7 +337,7 @@
 		headingId="compare-more-comparisons"
 		subtitle="next steps"
 		title="More comparisons"
-		description="Explore the full comparison hub or jump into related head-to-head matchups if you want to benchmark more options before choosing a workflow."
+		description="Explore the full comparison hub or jump into related matchups to find the best social media scheduler alternative for your team."
 		items={moreComparisonItems}
 		getItemKey={(item) => item.id}
 		sectionClass="pt-20 pb-0"

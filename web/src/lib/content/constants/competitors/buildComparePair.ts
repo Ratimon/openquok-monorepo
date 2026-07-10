@@ -14,20 +14,46 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 	return {
 		productASlug: left.slug,
 		productBSlug: right.slug,
-		metaTitle: `${left.name} vs ${right.name} — Social Media Scheduler Comparison`,
-		metaDescription: `Compare ${left.name} and ${right.name} on pricing, channels, workspaces, agent integrations, and scheduling features. See which social media scheduler fits your workflow.`,
+		metaTitle: buildCompareMetaTitle(left, right),
+		metaDescription: buildCompareMetaDescription(left, right),
 		keywords: buildCompareKeywords(left, right),
-		heroTitle: `${left.name} vs ${right.name} comparison`,
+		heroTitle: `${left.name} vs ${right.name}: Compare Side by Side`,
 		heroDescription: buildHeroDescription(left, right),
 		withWithoutSection: buildWithWithoutSection(left, right),
 		faqItemIds: DEFAULT_COMPARE_FAQ_ITEM_IDS
 	};
 }
 
+function buildCompareMetaTitle(left: CompareProduct, right: CompareProduct): string {
+	if (left.slug === COMPARE_HUB_BASE_SLUG) {
+		return `${left.name} vs ${right.name} — Social Media Scheduler Comparison`;
+	}
+	if (right.slug === COMPARE_HUB_BASE_SLUG) {
+		return `Best ${left.name} Alternative: ${right.name} vs ${left.name} Comparison`;
+	}
+	return `${left.name} vs ${right.name} — Social Media Scheduler Comparison`;
+}
+
+function buildCompareMetaDescription(left: CompareProduct, right: CompareProduct): string {
+	const comparisonCore = `Compare ${left.name} and ${right.name} side by side on pricing, channels, workspaces, agent integrations, and scheduling features.`;
+	return `${comparisonCore} ${buildCompareAlternativeClosing(left, right)}`;
+}
+
+function buildCompareAlternativeClosing(left: CompareProduct, right: CompareProduct): string {
+	if (left.slug === COMPARE_HUB_BASE_SLUG) {
+		return `Discover why teams choose ${left.name} as a ${right.name} alternative for agent workflows and multi-workspace publishing.`;
+	}
+	if (right.slug === COMPARE_HUB_BASE_SLUG) {
+		return `See how ${right.name} compares as a ${left.name} alternative for social media scheduling and programmatic publishing.`;
+	}
+	return 'See which social media scheduler fits your workflow.';
+}
+
 function buildCompareKeywords(left: CompareProduct, right: CompareProduct): string[] {
-	return [
+	const keywords = [
 		`${left.name} vs ${right.name}`,
 		`${right.name} alternative`,
+		'best social media scheduler',
 		'social media scheduler comparison',
 		'agent social media scheduling',
 		`${right.name} pricing`,
@@ -35,15 +61,28 @@ function buildCompareKeywords(left: CompareProduct, right: CompareProduct): stri
 		'AI agent social media',
 		'multi-workspace scheduler'
 	];
+
+	if (left.slug === COMPARE_HUB_BASE_SLUG) {
+		keywords.push(`best ${right.name} alternative`);
+	} else if (right.slug === COMPARE_HUB_BASE_SLUG) {
+		keywords.push(`best ${left.name} alternative`);
+	}
+
+	return keywords;
 }
 
-
 function buildHeroDescription(left: CompareProduct, right: CompareProduct): string {
-	const base = `See how ${left.name} stacks up against ${right.name} on pricing, channels, team workflows, and scheduling features.`;
-	if (left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG) {
-		return `${base} Start with a 7-day free trial — no credit card required.`;
-	}
-	return base;
+	const base = `Compare ${left.name} and ${right.name} side by side on pricing, channels, and features.`;
+	const openQuokPitch =
+		left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG
+			? ` ${buildCompareAlternativeClosing(left, right)}`
+			: '';
+	const trialNote =
+		left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG
+			? ' Start with a 7-day free trial — no credit card required.'
+			: '';
+
+	return `${base}${openQuokPitch}${trialNote}`;
 }
 
 function buildWithWithoutSection(
