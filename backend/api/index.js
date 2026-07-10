@@ -9,11 +9,13 @@ var clientS3 = require('@aws-sdk/client-s3');
 var s3RequestPresigner = require('@aws-sdk/s3-request-presigner');
 var uuid = require('uuid');
 var crypto = require('crypto');
+var zod = require('zod');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
+var YAML = require('yaml');
 var dayjs5 = require('dayjs');
 var fs = require('fs/promises');
-var path = require('path');
+var path3 = require('path');
 var stream = require('stream');
 var googleapis = require('googleapis');
 var twitterApiV2 = require('twitter-api-v2');
@@ -23,10 +25,12 @@ var groupBy = require('lodash/groupBy.js');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
 var http = require('http');
 var https = require('https');
+var async_hooks = require('async_hooks');
+var mcp_js = require('@modelcontextprotocol/sdk/server/mcp.js');
+var streamableHttp_js = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
 var express = require('express');
 var helmet = require('helmet');
 var cors = require('cors');
-var zod = require('zod');
 var fs2 = require('fs');
 var multer = require('multer');
 var bullmq = require('bullmq');
@@ -61,9 +65,10 @@ var Sentry__namespace = /*#__PURE__*/_interopNamespace(Sentry);
 var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
+var YAML__default = /*#__PURE__*/_interopDefault(YAML);
 var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
-var path__default = /*#__PURE__*/_interopDefault(path);
+var path3__default = /*#__PURE__*/_interopDefault(path3);
 var twitterText__default = /*#__PURE__*/_interopDefault(twitterText);
 var Stripe2__default = /*#__PURE__*/_interopDefault(Stripe2);
 var groupBy__default = /*#__PURE__*/_interopDefault(groupBy);
@@ -953,6 +958,10 @@ var init_GlobalConfig = __esm({
         priceIds: loadStripePriceIds()
       },
       /** Social integration OAuth (per-provider secrets). */
+      /** Hosted HTTP MCP server (`GET/POST /mcp`). */
+      mcp: {
+        enabled: getEnvBoolean("MCP_ENABLED", true)
+      },
       integrations: {
         threads: {
           appId: getEnvTrimmed("THREADS_APP_ID"),
@@ -3289,8 +3298,9 @@ var init_AuthController = __esm({
           }
           await this.userRepository.updateEmailVerification(user.id, true);
           await this.userRepository.updateVerificationToken(user.id, null, null);
-          if (user.auth_id) {
-            await this.userService.invalidateCachesAfterEmailVerification(user.auth_id, user.email);
+          const cacheAuthId = user.auth_id ?? user.id;
+          if (cacheAuthId) {
+            await this.userService.invalidateCachesAfterEmailVerification(cacheAuthId, user.email);
           }
           if (this.emailService.isEnabled && user.email) {
             try {
@@ -3488,7 +3498,7 @@ function toUserDTO(row) {
     id: row.id,
     email: row.email ?? null,
     fullName: row.full_name ?? null,
-    username: row.email ?? null,
+    username: row.username ?? null,
     isEmailVerified: row.is_email_verified === true,
     avatarUrl,
     websiteUrl
@@ -3649,6 +3659,23 @@ var init_UserController = __esm({
         }
       };
       /**
+       * GET /users/me/username-available — check whether a username can be claimed by the current user.
+       */
+      getUsernameAvailability = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const { username } = req.query;
+          const result = await this.userService.checkUsernameAvailabilityForAuthUser(authUserId, username);
+          res.status(200).json({ success: true, data: result });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
        * PATCH /users/me - update the authenticated user's profile (e.g. fullName).
        */
       updateProfile = async (req, res, next) => {
@@ -3658,8 +3685,8 @@ var init_UserController = __esm({
           if (!authUserId) {
             return next(new UserAuthorizationError("Not authenticated"));
           }
-          const { fullName, avatarUrl, websiteUrl } = req.body;
-          await this.userService.updateProfile(authUserId, { fullName, avatarUrl, websiteUrl });
+          const { fullName, username, avatarUrl, websiteUrl } = req.body;
+          await this.userService.updateProfile(authUserId, { fullName, username, avatarUrl, websiteUrl });
           logger.info({ msg: "Profile updated successfully", userId: authUserId });
           res.status(200).json({ success: true, message: "Profile updated successfully" });
         } catch (error) {
@@ -5002,7 +5029,7 @@ var init_UserRepository = __esm({
     init_InfraError();
     init_Logger();
     TABLE_NAME2 = "users";
-    CORE_USER_SELECT = "id, auth_id, email, full_name, is_email_verified, email_verification_token, email_verification_token_expires, created_at, updated_at";
+    CORE_USER_SELECT = "id, auth_id, email, full_name, username, is_email_verified, email_verification_token, email_verification_token_expires, created_at, updated_at";
     USER_WITH_PROFILE_SELECT = `${CORE_USER_SELECT}, user_profiles(avatar_url, website_url)`;
     ADMIN_USER_SELECT = "id, email, created_at, is_super_admin";
     UserRepository = class {
@@ -5157,6 +5184,48 @@ var init_UserRepository = __esm({
           updated_at: (/* @__PURE__ */ new Date()).toISOString()
         }).eq("auth_id", authId);
         return { updateError };
+      }
+      /** Update public username for the user with the given auth_id. */
+      async updateUsernameByAuthId(authId, username) {
+        const { error: updateError } = await this.supabase.from(TABLE_NAME2).update({
+          username,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("auth_id", authId);
+        return { updateError };
+      }
+      async findPublicUserIdByAuthId(authId) {
+        const { data, error } = await this.supabase.from(TABLE_NAME2).select("id").eq("auth_id", authId).single();
+        if (error) {
+          return { userId: null, error };
+        }
+        return { userId: data?.id ?? null, error: null };
+      }
+      async isUsernameTaken(username, excludeUserId) {
+        let query = this.supabase.from(TABLE_NAME2).select("id").eq("username", username);
+        if (excludeUserId) {
+          query = query.neq("id", excludeUserId);
+        }
+        const { data, error } = await query.maybeSingle();
+        if (error) {
+          throw new DatabaseError("Database error during username check", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_NAME2 }
+          });
+        }
+        return data != null;
+      }
+      async findUsernameByPublicUserId(userId) {
+        const { data, error } = await this.supabase.from(TABLE_NAME2).select("username").eq("id", userId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Database error while loading username", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_NAME2 }
+          });
+        }
+        const username = data?.username?.trim();
+        return username || null;
       }
       /** Link an existing user (by id) to an OAuth provider. */
       async updateUserProvider(userId, provider, providerId) {
@@ -6680,6 +6749,1168 @@ var init_BlogRepository = __esm({
   }
 });
 
+// utils/listings/listingSearchFilter.ts
+function escapeIlikePattern(term) {
+  return term.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
+}
+function buildListingSearchOrFilter(searchTerm) {
+  const trimmed = searchTerm.trim();
+  if (!trimmed) return null;
+  const pattern = `%${escapeIlikePattern(trimmed)}%`;
+  return LISTING_SEARCH_COLUMNS.map((column) => `${column}.ilike.${pattern}`).join(",");
+}
+var LISTING_SEARCH_COLUMNS;
+var init_listingSearchFilter = __esm({
+  "utils/listings/listingSearchFilter.ts"() {
+    LISTING_SEARCH_COLUMNS = [
+      "title",
+      "slug",
+      "excerpt",
+      "description",
+      "description_mcp",
+      "description_skills"
+    ];
+  }
+});
+
+// repositories/ListingRepository.ts
+function resolveOrderKey2(candidate, fallback, allowlist) {
+  const key = candidate?.toString().trim();
+  if (!key) return fallback;
+  return allowlist.has(key) ? key : fallback;
+}
+var LISTING_CATALOG_PUBLISHER_USERNAME, TABLE_LISTINGS, TABLE_TAG_ASSOC, TABLE_BOOKMARKS, TABLE_LISTING_COMMENTS, TABLE_LISTING_ACTIVITIES, TABLE_STACK_MEMBERS, TABLE_LISTING_RATINGS, RPC_GET_LISTING_CREATORS, RPC_GET_LISTING_STATISTICS, SELECT_LISTING, ALLOWED_PUBLISHED_SORT_KEYS, ALLOWED_ADMIN_SORT_KEYS, ALLOWED_ADMIN_COMMENT_SORT_KEYS2, ALLOWED_ADMIN_ACTIVITY_SORT_KEYS2, SELECT_LISTING_COMMENT, SELECT_LISTING_COMMENT_ADMIN, SELECT_LISTING_ACTIVITY_ADMIN, ListingRepository;
+var init_ListingRepository = __esm({
+  "repositories/ListingRepository.ts"() {
+    init_InfraError();
+    init_Logger();
+    init_slug();
+    init_listingSearchFilter();
+    LISTING_CATALOG_PUBLISHER_USERNAME = "openquok";
+    TABLE_LISTINGS = "listings";
+    TABLE_TAG_ASSOC = "listings_listing_tags_association";
+    TABLE_BOOKMARKS = "listing_bookmarks";
+    TABLE_LISTING_COMMENTS = "listing_comments";
+    TABLE_LISTING_ACTIVITIES = "listing_activities";
+    TABLE_STACK_MEMBERS = "listing_stack_members";
+    TABLE_LISTING_RATINGS = "listing_ratings";
+    RPC_GET_LISTING_CREATORS = "get_listing_creators";
+    RPC_GET_LISTING_STATISTICS = "get_listing_statistics";
+    SELECT_LISTING = `
+  id,
+  owner_id,
+  title,
+  slug,
+  description,
+  description_skills,
+  description_mcp,
+  excerpt,
+  click_url,
+  click_url_skills,
+  click_url_mcp,
+  content,
+  content_skills,
+  content_mcp,
+  listing_kind,
+  extension_type,
+  install_command_skills,
+  install_command_mcp,
+  is_official,
+  source_repo_url,
+  skill_source_url,
+  skill_name,
+  skill_metadata,
+  source_synced_at,
+  source_content_hash,
+  license,
+  version,
+  mcp_tools,
+  skill_commands,
+  stack_blueprint,
+  mcp_transport,
+  mcp_server_config,
+  likes,
+  views,
+  clicks,
+  bookmark_count,
+  average_rating,
+  ratings_count,
+  is_user_published,
+  is_admin_published,
+  schema_type,
+  schema_json,
+  listing_category_id,
+  default_image_url,
+  listing_image_urls,
+  logo_image_url,
+  faq,
+  listing_tag_slugs,
+  created_at,
+  updated_at,
+  published_at,
+  category:listing_categories(id, name, slug, parent_path),
+  listings_listing_tags_association(
+    listing_tags(id, name, slug)
+  ),
+  owner:users!owner_id(id, full_name, username, user_profiles(avatar_url, tag_line)),
+  listing_stack_members!listing_stack_members_stack_listing_id_fkey(
+    id,
+    stack_listing_id,
+    member_listing_id,
+    member_role,
+    sort_order,
+    member:listings!listing_stack_members_member_listing_id_fkey(
+      id,
+      title,
+      slug,
+      extension_type,
+      excerpt,
+      logo_image_url,
+      is_official,
+      install_command_skills,
+      install_command_mcp,
+      click_url_skills,
+      click_url_mcp
+    )
+  )
+`;
+    ALLOWED_PUBLISHED_SORT_KEYS = /* @__PURE__ */ new Set([
+      "likes",
+      "views",
+      "clicks",
+      "average_rating",
+      "bookmark_count",
+      "created_at",
+      "published_at",
+      "title"
+    ]);
+    ALLOWED_ADMIN_SORT_KEYS = /* @__PURE__ */ new Set([
+      "created_at",
+      "updated_at",
+      "published_at",
+      "title",
+      "likes",
+      "views",
+      "is_admin_published",
+      "is_user_published"
+    ]);
+    ALLOWED_ADMIN_COMMENT_SORT_KEYS2 = /* @__PURE__ */ new Set(["created_at", "updated_at", "content"]);
+    ALLOWED_ADMIN_ACTIVITY_SORT_KEYS2 = /* @__PURE__ */ new Set(["created_at", "activity_type"]);
+    SELECT_LISTING_COMMENT = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url))
+`;
+    SELECT_LISTING_COMMENT_ADMIN = `
+  id,
+  content,
+  is_approved,
+  created_at,
+  updated_at,
+  parent_id,
+  user_id,
+  listing_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  listing:listing_id(id, title, slug)
+`;
+    SELECT_LISTING_ACTIVITY_ADMIN = `
+  id,
+  activity_type,
+  created_at,
+  user_id,
+  listing_id,
+  author:users!user_id(id, full_name, user_profiles(avatar_url)),
+  listing:listing_id(id, title, slug)
+`;
+    ListingRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findListingById(id) {
+        const { data, error } = await this.supabase.from(TABLE_LISTINGS).select(SELECT_LISTING).eq("id", id).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching listing by id: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTINGS }
+          });
+        }
+        return { data };
+      }
+      async findPublishedListingBySlug(slug, listingKind) {
+        let query = this.supabase.from(TABLE_LISTINGS).select(SELECT_LISTING).match({
+          slug,
+          is_user_published: true,
+          is_admin_published: true
+        });
+        if (listingKind) {
+          query = query.eq("listing_kind", listingKind);
+        }
+        const { data, error } = await query.single();
+        if (error) {
+          if (error.code === "PGRST116") {
+            return { data: null };
+          }
+          throw new DatabaseError(`Error fetching published listing: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTINGS }
+          });
+        }
+        return { data };
+      }
+      async findPublishedListings(options2) {
+        const {
+          limit = 10,
+          skipId,
+          skip = 0,
+          searchTerm,
+          tagSlugs,
+          categorySlug,
+          extensionType,
+          listingKind = "extension",
+          sortByKey,
+          sortByOrder,
+          range,
+          ownerId
+        } = options2;
+        let query = this.supabase.from(TABLE_LISTINGS).select(SELECT_LISTING, { count: "exact" }).match({
+          is_user_published: true,
+          is_admin_published: true,
+          listing_kind: listingKind
+        });
+        if (categorySlug) {
+          query = query.eq("category.slug", categorySlug);
+        }
+        if (extensionType && listingKind === "extension") {
+          query = query.eq("extension_type", extensionType);
+        }
+        if (tagSlugs && tagSlugs.length > 0) {
+          query = query.contains("listing_tag_slugs", tagSlugs);
+        }
+        if (searchTerm) {
+          const listingSearchOr = buildListingSearchOrFilter(searchTerm);
+          if (listingSearchOr) {
+            query = query.or(listingSearchOr);
+          }
+        }
+        if (skipId) {
+          query = query.not("id", "eq", skipId);
+        }
+        if (ownerId) {
+          query = query.eq("owner_id", ownerId);
+        }
+        const orderKey = resolveOrderKey2(sortByKey ?? void 0, "created_at", ALLOWED_PUBLISHED_SORT_KEYS);
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(skip, skip + limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching published listings: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTINGS }
+          });
+        }
+        return { data: data ?? [], count: count ?? 0 };
+      }
+      async findAdminListings(options2) {
+        const {
+          limit = 10,
+          searchTerm,
+          listingKind,
+          sortByKey,
+          sortByOrder,
+          range
+        } = options2;
+        let query = this.supabase.from(TABLE_LISTINGS).select(SELECT_LISTING, { count: "exact" });
+        if (listingKind) {
+          query = query.eq("listing_kind", listingKind);
+        }
+        if (searchTerm) {
+          const listingSearchOr = buildListingSearchOrFilter(searchTerm);
+          if (listingSearchOr) {
+            query = query.or(listingSearchOr);
+          }
+        }
+        const orderKey = resolveOrderKey2(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_SORT_KEYS);
+        if (orderKey === "is_admin_published") {
+          query = query.order("is_admin_published", { ascending: true });
+          query = query.order("is_user_published", { ascending: false });
+        } else {
+          query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        }
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(0, limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching admin listings: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTINGS }
+          });
+        }
+        return { data: data ?? [], count: count ?? 0 };
+      }
+      async findOwnedListings(ownerId, options2 = {}) {
+        const { listingKind, limit = 200 } = options2;
+        let query = this.supabase.from(TABLE_LISTINGS).select(SELECT_LISTING, { count: "exact" }).eq("owner_id", ownerId);
+        if (listingKind) {
+          query = query.eq("listing_kind", listingKind);
+        }
+        query = query.order("updated_at", { ascending: false }).range(0, Math.max(limit - 1, 0));
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching owned listings: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTINGS }
+          });
+        }
+        return { data: data ?? [], count: count ?? 0 };
+      }
+      async getListingCreators() {
+        const { data, error } = await this.supabase.rpc(RPC_GET_LISTING_CREATORS);
+        if (error) {
+          throw new DatabaseError(`Error fetching listing creators: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findListingsByOwnerUsername(username) {
+        const { data: userRow, error: userError } = await this.supabase.from("users").select("id").eq("username", username).single();
+        if (userError) {
+          if (userError.code === "PGRST116") {
+            return { data: [] };
+          }
+          throw new DatabaseError(`Error resolving creator username: ${userError.message}`, {
+            cause: userError,
+            operation: "select"
+          });
+        }
+        const ownerId = userRow.id;
+        const [extensions, stacks] = await Promise.all([
+          this.findPublishedListings({
+            ownerId,
+            listingKind: "extension",
+            limit: 100
+          }),
+          this.findPublishedListings({
+            ownerId,
+            listingKind: "stack",
+            limit: 100
+          })
+        ]);
+        return { data: [...extensions.data, ...stacks.data] };
+      }
+      async findUserIdByUsername(username) {
+        const { data, error } = await this.supabase.from("users").select("id").eq("username", username).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Error resolving username: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return data?.id ?? null;
+      }
+      async incrementStatCounter(listingId, fieldName) {
+        const { error } = await this.supabase.rpc("increment_field", {
+          p_listing_id: listingId,
+          field_name: fieldName
+        });
+        if (error) {
+          throw new DatabaseError(`Error incrementing ${fieldName}: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+      }
+      async insertListingActivity(listingId, activityType, userId) {
+        const { error } = await this.supabase.from("listing_activities").insert({
+          listing_id: listingId,
+          activity_type: activityType,
+          user_id: userId
+        });
+        if (error) {
+          logger.warn({ msg: "Failed to insert listing activity", error: error.message, listingId, activityType });
+        }
+      }
+      async createListing(listing, tags, ownerId, isAdminPublished, stackMembers = []) {
+        const isUserApproved = listing.is_user_published === true;
+        const { id: _id, owner_id: _ownerId, is_admin_published: _admin, ...payload } = listing;
+        const { data, error } = await this.supabase.from(TABLE_LISTINGS).insert({
+          ...payload,
+          slug: stringToSlug(listing.title),
+          owner_id: ownerId,
+          is_admin_published: isAdminPublished,
+          listing_tag_slugs: tags.map((t) => t.slug)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A listing with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating listing: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        const savedListingId = data.id;
+        await this.syncListingTags(savedListingId, tags);
+        if (listing.listing_kind === "stack") {
+          await this.syncStackMembers(savedListingId, stackMembers);
+        }
+        return {
+          savedListingId,
+          isAdminApproved: isAdminPublished,
+          isUserApproved
+        };
+      }
+      async updateListing(listing, tags, ownerId, isAdminPublished, stackMembers = []) {
+        const isUserApproved = listing.is_user_published === true;
+        const { id, owner_id: _ownerId, is_admin_published: _admin, ...payload } = listing;
+        const { data, error } = await this.supabase.from(TABLE_LISTINGS).update({
+          ...payload,
+          slug: stringToSlug(listing.title),
+          owner_id: ownerId,
+          is_admin_published: isAdminPublished,
+          listing_tag_slugs: tags.map((t) => t.slug),
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", id).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error updating listing: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        if (!data?.id) {
+          throw new DatabaseEntityNotFoundError("Listing not found", { id });
+        }
+        await this.syncListingTags(id, tags);
+        if (listing.listing_kind === "stack") {
+          await this.syncStackMembers(id, stackMembers);
+        }
+        return {
+          savedListingId: id,
+          isAdminApproved: isAdminPublished,
+          isUserApproved
+        };
+      }
+      async deleteListing(id) {
+        const { error } = await this.supabase.from(TABLE_LISTINGS).delete().eq("id", id);
+        if (error) {
+          throw new DatabaseError(`Error deleting listing: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async addBookmark(userId, listingId) {
+        const { error: insertError } = await this.supabase.from(TABLE_BOOKMARKS).insert({
+          user_id: userId,
+          listing_id: listingId
+        });
+        if (insertError) {
+          if (insertError.message.includes("duplicate key value")) {
+            return;
+          }
+          throw new DatabaseError(`Error adding bookmark: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert",
+            resource: { type: "table", name: TABLE_BOOKMARKS }
+          });
+        }
+        const { error: incrementError } = await this.supabase.rpc("increment_field", {
+          p_listing_id: listingId,
+          field_name: "bookmark_count"
+        });
+        if (incrementError) {
+          throw new DatabaseError(`Error incrementing bookmark count: ${incrementError.message}`, {
+            cause: incrementError,
+            operation: "rpc"
+          });
+        }
+      }
+      async removeBookmark(userId, listingId) {
+        const { data: deletedRows, error: deleteError } = await this.supabase.from(TABLE_BOOKMARKS).delete().eq("user_id", userId).eq("listing_id", listingId).select("listing_id");
+        if (deleteError) {
+          throw new DatabaseError(`Error removing bookmark: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete",
+            resource: { type: "table", name: TABLE_BOOKMARKS }
+          });
+        }
+        if (!deletedRows?.length) {
+          return;
+        }
+        const { data: listingRow, error: fetchError } = await this.supabase.from(TABLE_LISTINGS).select("bookmark_count").eq("id", listingId).single();
+        if (fetchError) {
+          throw new DatabaseError(`Error fetching listing bookmark count: ${fetchError.message}`, {
+            cause: fetchError,
+            operation: "select"
+          });
+        }
+        const nextCount = Math.max(listingRow?.bookmark_count ?? 1, 1) - 1;
+        const { error: updateError } = await this.supabase.from(TABLE_LISTINGS).update({ bookmark_count: nextCount }).eq("id", listingId);
+        if (updateError) {
+          throw new DatabaseError(`Error decrementing bookmark count: ${updateError.message}`, {
+            cause: updateError,
+            operation: "update"
+          });
+        }
+      }
+      async findBookmarkedListingsByUserId(userId) {
+        const { data, error } = await this.supabase.from(TABLE_BOOKMARKS).select(`created_at, listings(${SELECT_LISTING})`).eq("user_id", userId).order("created_at", { ascending: false });
+        if (error) {
+          throw new DatabaseError(`Error fetching user bookmarks: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_BOOKMARKS }
+          });
+        }
+        const listings = (data ?? []).map((row) => {
+          const listing = row.listings;
+          return Array.isArray(listing) ? listing[0] : listing;
+        }).filter((listing) => listing != null);
+        return { data: listings };
+      }
+      async getSkillMarkdownContent(slug) {
+        const { data, error } = await this.supabase.from(TABLE_LISTINGS).select("content").match({
+          slug,
+          is_user_published: true,
+          is_admin_published: true,
+          listing_kind: "extension"
+        }).single();
+        if (error) {
+          if (error.code === "PGRST116") return null;
+          throw new DatabaseError(`Error fetching skill markdown: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return data?.content ?? null;
+      }
+      async updateListingGithubSync(listingId, fields) {
+        const { error } = await this.supabase.from(TABLE_LISTINGS).update({
+          content: fields.content,
+          source_content_hash: fields.sourceContentHash,
+          source_synced_at: fields.sourceSyncedAt,
+          ...fields.description !== void 0 ? { description: fields.description } : {},
+          ...fields.excerpt !== void 0 ? { excerpt: fields.excerpt } : {},
+          ...fields.skillMetadata !== void 0 ? { skill_metadata: fields.skillMetadata } : {},
+          ...fields.license !== void 0 ? { license: fields.license } : {},
+          ...fields.version !== void 0 ? { version: fields.version } : {},
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", listingId);
+        if (error) {
+          throw new DatabaseError(`Error syncing listing from GitHub: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+      }
+      async syncListingTags(listingId, tags) {
+        const { error: deleteError } = await this.supabase.from(TABLE_TAG_ASSOC).delete().eq("listing_id", listingId);
+        if (deleteError) {
+          throw new DatabaseError(`Error clearing listing tags: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete"
+          });
+        }
+        if (tags.length === 0) return;
+        const { error: insertError } = await this.supabase.from(TABLE_TAG_ASSOC).insert(
+          tags.map((tag) => ({
+            listing_id: listingId,
+            listing_tag_id: tag.id
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(`Error syncing listing tags: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert"
+          });
+        }
+      }
+      async findAdminListingComments(options2) {
+        const { limit = 10, searchTerm, sortByKey, sortByOrder, range } = options2;
+        let query = this.supabase.from(TABLE_LISTING_COMMENTS).select(SELECT_LISTING_COMMENT_ADMIN, { count: "exact" });
+        if (searchTerm) {
+          query = query.ilike("content", `%${searchTerm}%`);
+        }
+        const orderKey = resolveOrderKey2(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_COMMENT_SORT_KEYS2);
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(0, limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching admin listing comments: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTING_COMMENTS }
+          });
+        }
+        const rows = data ?? [];
+        const comments = rows.map((row) => {
+          const rawAuthor = Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null;
+          const profile = rawAuthor?.user_profiles;
+          const avatar_url = profile && typeof profile === "object" && "avatar_url" in profile ? profile.avatar_url : null;
+          const rawListing = Array.isArray(row.listing) ? row.listing[0] ?? null : row.listing ?? null;
+          return {
+            id: row.id,
+            content: row.content,
+            is_approved: row.is_approved,
+            created_at: row.created_at,
+            updated_at: row.updated_at ?? null,
+            parent_id: row.parent_id ?? null,
+            user_id: row.user_id,
+            listing_id: row.listing_id,
+            author: rawAuthor ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null } : null,
+            listing: rawListing ? { id: rawListing.id, title: rawListing.title, slug: rawListing.slug } : null
+          };
+        });
+        return { data: comments, count: count ?? 0 };
+      }
+      async findAdminListingActivities(options2) {
+        const { limit = 10, sortByKey, sortByOrder, range, listing_id, activity_type } = options2;
+        let query = this.supabase.from(TABLE_LISTING_ACTIVITIES).select(SELECT_LISTING_ACTIVITY_ADMIN, { count: "exact" });
+        if (listing_id) {
+          query = query.eq("listing_id", listing_id);
+        }
+        if (activity_type) {
+          query = query.eq("activity_type", activity_type);
+        }
+        const orderKey = resolveOrderKey2(sortByKey ?? void 0, "created_at", ALLOWED_ADMIN_ACTIVITY_SORT_KEYS2);
+        query = query.order(orderKey, { ascending: sortByOrder ?? false });
+        if (range) {
+          query = query.range(range.start, range.end);
+        } else {
+          query = query.range(0, limit - 1);
+        }
+        const { data, error, count } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching admin listing activities: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTING_ACTIVITIES }
+          });
+        }
+        const rows = data ?? [];
+        const activities = rows.map((row) => {
+          const rawAuthor = Array.isArray(row.author) ? row.author[0] ?? null : row.author ?? null;
+          const profile = rawAuthor?.user_profiles;
+          const avatar_url = profile && typeof profile === "object" && "avatar_url" in profile ? profile.avatar_url : null;
+          const rawListing = Array.isArray(row.listing) ? row.listing[0] ?? null : row.listing ?? null;
+          return {
+            id: row.id,
+            activity_type: row.activity_type,
+            created_at: row.created_at,
+            user_id: row.user_id,
+            listing_id: row.listing_id,
+            author: rawAuthor ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null } : null,
+            listing: rawListing ? { id: rawListing.id, title: rawListing.title, slug: rawListing.slug } : null
+          };
+        });
+        return { data: activities, count: count ?? 0 };
+      }
+      async approveListingComment(commentId) {
+        const { data, error } = await this.supabase.from(TABLE_LISTING_COMMENTS).update({ is_approved: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", commentId).select("id, listing_id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError("Error approving listing comment", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE_LISTING_COMMENTS }
+          });
+        }
+        return { id: data.id, listing_id: data.listing_id };
+      }
+      async deleteListingComment(commentId) {
+        const { data, error } = await this.supabase.from(TABLE_LISTING_COMMENTS).delete().eq("id", commentId).select("listing_id").single();
+        if (error || !data?.listing_id) {
+          throw new DatabaseError("Error deleting listing comment", {
+            cause: error,
+            operation: "delete",
+            resource: { type: "table", name: TABLE_LISTING_COMMENTS }
+          });
+        }
+        return { listing_id: data.listing_id };
+      }
+      async syncStackMembers(stackListingId, members) {
+        const { error: deleteError } = await this.supabase.from(TABLE_STACK_MEMBERS).delete().eq("stack_listing_id", stackListingId);
+        if (deleteError) {
+          throw new DatabaseError(`Error clearing stack members: ${deleteError.message}`, {
+            cause: deleteError,
+            operation: "delete",
+            resource: { type: "table", name: TABLE_STACK_MEMBERS }
+          });
+        }
+        if (members.length === 0) return;
+        const { error: insertError } = await this.supabase.from(TABLE_STACK_MEMBERS).insert(
+          members.map((member, index) => ({
+            stack_listing_id: stackListingId,
+            member_listing_id: member.member_listing_id,
+            member_role: member.member_role,
+            sort_order: member.sort_order ?? index
+          }))
+        );
+        if (insertError) {
+          throw new DatabaseError(`Error syncing stack members: ${insertError.message}`, {
+            cause: insertError,
+            operation: "insert",
+            resource: { type: "table", name: TABLE_STACK_MEMBERS }
+          });
+        }
+      }
+      async findStackMembers(stackListingId) {
+        const { data, error } = await this.supabase.from(TABLE_STACK_MEMBERS).select(
+          `
+                id,
+                stack_listing_id,
+                member_listing_id,
+                member_role,
+                sort_order,
+                member:member_listing_id(
+                  id,
+                  title,
+                  slug,
+                  extension_type,
+                  excerpt,
+                  logo_image_url,
+                  is_official,
+                  install_command_skills,
+                  install_command_mcp
+                )
+              `
+        ).eq("stack_listing_id", stackListingId).order("sort_order", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching stack members: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_STACK_MEMBERS }
+          });
+        }
+        return { data: this.mapStackMemberRows(data ?? []) };
+      }
+      async findListingComments(listingId) {
+        const { data, error } = await this.supabase.from(TABLE_LISTING_COMMENTS).select(SELECT_LISTING_COMMENT).eq("listing_id", listingId).eq("is_approved", true).order("created_at", { ascending: true });
+        if (error) {
+          throw new DatabaseError(`Error fetching listing comments: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_LISTING_COMMENTS }
+          });
+        }
+        return { data: this.mapListingCommentRows(data ?? []) };
+      }
+      async createListingComment(payload, userId) {
+        const { data, error } = await this.supabase.from(TABLE_LISTING_COMMENTS).insert({
+          listing_id: payload.listing_id,
+          parent_id: payload.parent_id ?? null,
+          content: payload.content,
+          user_id: userId,
+          is_approved: false
+        }).select("id, listing_id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError(`Error creating listing comment: ${error?.message ?? "no id returned"}`, {
+            cause: error,
+            operation: "insert",
+            resource: { type: "table", name: TABLE_LISTING_COMMENTS }
+          });
+        }
+        return { id: data.id, listing_id: data.listing_id };
+      }
+      async upsertListingRating(listingId, userId, rating) {
+        const { data, error } = await this.supabase.from(TABLE_LISTING_RATINGS).upsert(
+          {
+            listing_id: listingId,
+            user_id: userId,
+            rating,
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          },
+          { onConflict: "user_id,listing_id" }
+        ).select("id").single();
+        if (error || !data?.id) {
+          throw new DatabaseError(`Error upserting listing rating: ${error?.message ?? "no id returned"}`, {
+            cause: error,
+            operation: "upsert",
+            resource: { type: "table", name: TABLE_LISTING_RATINGS }
+          });
+        }
+        return { id: data.id };
+      }
+      mapStackMemberRows(rows) {
+        return rows.map((row) => {
+          const r = row;
+          const rawMember = Array.isArray(r.member) ? r.member[0] ?? null : r.member ?? null;
+          return {
+            id: r.id,
+            stack_listing_id: r.stack_listing_id,
+            member_listing_id: r.member_listing_id,
+            member_role: r.member_role,
+            sort_order: r.sort_order,
+            member: rawMember ? {
+              id: rawMember.id,
+              title: rawMember.title,
+              slug: rawMember.slug,
+              extension_type: rawMember.extension_type ?? null,
+              excerpt: rawMember.excerpt ?? null,
+              logo_image_url: rawMember.logo_image_url ?? null,
+              is_official: rawMember.is_official ?? null,
+              install_command_skills: rawMember.install_command_skills ?? null,
+              install_command_mcp: rawMember.install_command_mcp ?? null
+            } : null
+          };
+        });
+      }
+      async findListingStatsByOwnerId(ownerId) {
+        const { data, error } = await this.supabase.rpc(RPC_GET_LISTING_STATISTICS, {
+          logged_user_id: ownerId
+        });
+        if (error) {
+          throw new DatabaseError(`Error fetching listing statistics: ${error.message}`, {
+            cause: error,
+            operation: "rpc",
+            resource: { type: "function", name: RPC_GET_LISTING_STATISTICS }
+          });
+        }
+        const stats = data ?? {};
+        return {
+          totalListings: stats.total_listings ?? 0,
+          totalLikes: stats.total_likes ?? 0,
+          totalViews: stats.total_views ?? 0,
+          totalClicks: stats.total_clicks ?? 0,
+          totalRatings: stats.total_ratings ?? 0,
+          totalBookmarks: stats.total_bookmarks ?? 0
+        };
+      }
+      mapListingCommentRows(rows) {
+        return rows.map((row) => {
+          const r = row;
+          const rawAuthor = Array.isArray(r.author) ? r.author[0] ?? null : r.author ?? null;
+          const profile = rawAuthor?.user_profiles;
+          const avatar_url = profile && typeof profile === "object" && "avatar_url" in profile ? profile.avatar_url : null;
+          return {
+            id: r.id,
+            content: r.content,
+            is_approved: r.is_approved,
+            created_at: r.created_at,
+            updated_at: r.updated_at ?? null,
+            parent_id: r.parent_id ?? null,
+            user_id: r.user_id,
+            author: rawAuthor ? { id: rawAuthor.id, full_name: rawAuthor.full_name ?? null, avatar_url: avatar_url ?? null } : null
+          };
+        });
+      }
+    };
+  }
+});
+
+// repositories/ListingCategoryRepository.ts
+var TABLE_CATEGORIES, TABLE_GROUPS, TABLE_GROUP_ASSOC, PARTIAL_SELECT, FULL_SELECT, ListingCategoryRepository;
+var init_ListingCategoryRepository = __esm({
+  "repositories/ListingCategoryRepository.ts"() {
+    init_InfraError();
+    init_slug();
+    TABLE_CATEGORIES = "listing_categories";
+    TABLE_GROUPS = "listing_category_groups";
+    TABLE_GROUP_ASSOC = "listing_category_groups_listing_categories_association";
+    PARTIAL_SELECT = `
+  id, name, slug, parent_path,
+  listing_category_groups:listing_category_groups_listing_categories_association(
+    listing_category_groups(id, name)
+  )
+`;
+    FULL_SELECT = `
+  id, name, slug, headline, description, image_url_hero, image_url_small,
+  href, color, emoji, parent_id, parent_path,
+  listing_category_groups:listing_category_groups_listing_categories_association(
+    listing_category_groups(id, name)
+  )
+`;
+    ListingCategoryRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findActivePartialCategories(options2 = {}) {
+        const { limit, offset } = options2;
+        let query = this.supabase.rpc("get_active_listing_categories");
+        if (limit !== void 0 && offset !== void 0) {
+          query = query.range(offset, offset + limit - 1);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching active categories: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findActiveFullCategories(options2 = {}) {
+        const { limit, offset } = options2;
+        let query = this.supabase.rpc("get_full_active_listing_categories");
+        if (limit !== void 0 && offset !== void 0) {
+          query = query.range(offset, offset + limit - 1);
+        }
+        const { data, error } = await query;
+        if (error) {
+          throw new DatabaseError(`Error fetching active full categories: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findAllPartialCategories() {
+        const { data, error } = await this.supabase.from(TABLE_CATEGORIES).select(PARTIAL_SELECT);
+        if (error) {
+          throw new DatabaseError(`Error fetching categories: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findAllFullCategories() {
+        const { data, error } = await this.supabase.from(TABLE_CATEGORIES).select(FULL_SELECT);
+        if (error) {
+          throw new DatabaseError(`Error fetching full categories: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findCategoryById(categoryId) {
+        const { data, error } = await this.supabase.from(TABLE_CATEGORIES).select(FULL_SELECT).eq("id", categoryId).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching category: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data };
+      }
+      async createCategory(payload, groupIds) {
+        const { id: _id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_CATEGORIES).insert({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A category with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating category: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        await this.syncCategoryGroups(data.id, groupIds);
+        return data.id;
+      }
+      async updateCategory(payload, groupIds) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_CATEGORIES).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name),
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", id).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error updating category: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        await this.syncCategoryGroups(id, groupIds);
+        return data.id;
+      }
+      async deleteCategory(categoryId) {
+        const { error } = await this.supabase.from(TABLE_CATEGORIES).delete().eq("id", categoryId);
+        if (error) {
+          throw new DatabaseError(`Error deleting category: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async findAllCategoryGroups() {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS).select("id, name");
+        if (error) {
+          throw new DatabaseError(`Error fetching category groups: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async syncCategoryGroups(categoryId, groupIds) {
+        await this.supabase.from(TABLE_GROUP_ASSOC).delete().eq("listing_category_id", categoryId);
+        if (groupIds.length === 0) return;
+        const { error } = await this.supabase.from(TABLE_GROUP_ASSOC).insert(
+          groupIds.map((groupId) => ({
+            listing_category_id: categoryId,
+            listing_category_group_id: groupId
+          }))
+        );
+        if (error) {
+          throw new DatabaseError(`Error syncing category groups: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+      }
+    };
+  }
+});
+
+// repositories/ListingTagRepository.ts
+var TABLE_TAGS, TABLE_GROUPS2, TABLE_GROUP_ASSOC2, FULL_SELECT2, ListingTagRepository;
+var init_ListingTagRepository = __esm({
+  "repositories/ListingTagRepository.ts"() {
+    init_InfraError();
+    init_slug();
+    TABLE_TAGS = "listing_tags";
+    TABLE_GROUPS2 = "listing_tag_groups";
+    TABLE_GROUP_ASSOC2 = "listing_tag_groups_listing_tags_association";
+    FULL_SELECT2 = `
+  id, name, slug, headline, description, image_url_hero, image_url_small,
+  href, color, emoji,
+  listing_tag_groups:listing_tag_groups_listing_tags_association(
+    listing_tag_groups(id, name)
+  )
+`;
+    ListingTagRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findActivePartialTags() {
+        const { data, error } = await this.supabase.rpc("get_active_listing_tags");
+        if (error) {
+          throw new DatabaseError(`Error fetching active tags: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findActiveFullTags() {
+        const { data, error } = await this.supabase.rpc("get_full_active_listing_tags");
+        if (error) {
+          throw new DatabaseError(`Error fetching active full tags: ${error.message}`, {
+            cause: error,
+            operation: "rpc"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findAllFullTags() {
+        const { data, error } = await this.supabase.from(TABLE_TAGS).select(FULL_SELECT2);
+        if (error) {
+          throw new DatabaseError(`Error fetching tags: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async findTagById(tagId) {
+        const { data, error } = await this.supabase.from(TABLE_TAGS).select(FULL_SELECT2).eq("id", tagId).single();
+        if (error) {
+          throw new DatabaseError(`Error fetching tag: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data };
+      }
+      async createTag(payload, groupIds) {
+        const { id: _id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_TAGS).insert({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name)
+        }).select("id").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A tag with this slug already exists.");
+          }
+          throw new DatabaseError(`Error creating tag: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        await this.syncTagGroups(data.id, groupIds);
+        return data.id;
+      }
+      async updateTag(payload, groupIds) {
+        const { id, ...fields } = payload;
+        const { data, error } = await this.supabase.from(TABLE_TAGS).update({
+          ...fields,
+          slug: fields.slug ?? stringToSlug(payload.name),
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", id).select("id").single();
+        if (error) {
+          throw new DatabaseError(`Error updating tag: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        await this.syncTagGroups(id, groupIds);
+        return data.id;
+      }
+      async deleteTag(tagId) {
+        const { error } = await this.supabase.from(TABLE_TAGS).delete().eq("id", tagId);
+        if (error) {
+          throw new DatabaseError(`Error deleting tag: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
+      async findAllTagGroups() {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS2).select("id, name");
+        if (error) {
+          throw new DatabaseError(`Error fetching tag groups: ${error.message}`, {
+            cause: error,
+            operation: "select"
+          });
+        }
+        return { data: data ?? [] };
+      }
+      async syncTagGroups(tagId, groupIds) {
+        await this.supabase.from(TABLE_GROUP_ASSOC2).delete().eq("listing_tag_id", tagId);
+        if (groupIds.length === 0) return;
+        const { error } = await this.supabase.from(TABLE_GROUP_ASSOC2).insert(
+          groupIds.map((groupId) => ({
+            listing_tag_id: tagId,
+            listing_tag_group_id: groupId
+          }))
+        );
+        if (error) {
+          throw new DatabaseError(`Error syncing tag groups: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+      }
+    };
+  }
+});
+
 // repositories/StorageR2Repository.ts
 var COMPOSER_MEDIA_BUCKET_NAME, StorageR2Repository;
 var init_StorageR2Repository = __esm({
@@ -7812,13 +9043,13 @@ var init_PostDTO = __esm({
     };
   }
 });
-var TABLE_POSTS, TABLE_TAGS, TABLE_POSTS_TAGS, TABLE_POST_INTERNAL_COMMENTS, TABLE_THREAD_REPLIES, PostsRepository;
+var TABLE_POSTS, TABLE_TAGS2, TABLE_POSTS_TAGS, TABLE_POST_INTERNAL_COMMENTS, TABLE_THREAD_REPLIES, PostsRepository;
 var init_PostsRepository = __esm({
   "repositories/PostsRepository.ts"() {
     init_PostDTO();
     init_InfraError();
     TABLE_POSTS = "posts";
-    TABLE_TAGS = "post_tags";
+    TABLE_TAGS2 = "post_tags";
     TABLE_POSTS_TAGS = "post_tag_assignments";
     TABLE_POST_INTERNAL_COMMENTS = "post_internal_comments";
     TABLE_THREAD_REPLIES = "post_thread_replies";
@@ -7908,19 +9139,19 @@ var init_PostsRepository = __esm({
         return count ?? 0;
       }
       async listTagsByOrganization(organizationId) {
-        const { data, error } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).is("deleted_at", null).order("name", { ascending: true });
         if (error) {
           throw new DatabaseError(`Failed to list tags: ${error.message}`, {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         return data ?? [];
       }
       async insertTag(organizationId, nameTrimmed, color) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE_TAGS).insert({
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).insert({
           org_id: organizationId,
           name: nameTrimmed,
           color,
@@ -7931,18 +9162,18 @@ var init_PostsRepository = __esm({
           throw new DatabaseError(`Failed to insert tag: ${error?.message ?? "no row"}`, {
             cause: error,
             operation: "insert",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         return data;
       }
       async findTagByOrgAndName(organizationId, name) {
-        const { data, error } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).eq("name", name).is("deleted_at", null).maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").eq("org_id", organizationId).eq("name", name).is("deleted_at", null).maybeSingle();
         if (error) {
           throw new DatabaseError(`Failed to find tag: ${error.message}`, {
             cause: error,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         return data;
@@ -7950,12 +9181,12 @@ var init_PostsRepository = __esm({
       /** Soft-delete a workspace tag. Returns true when a row was updated. */
       async softDeleteTagForOrganization(organizationId, tagId) {
         const now = (/* @__PURE__ */ new Date()).toISOString();
-        const { data, error } = await this.supabase.from(TABLE_TAGS).update({ deleted_at: now, updated_at: now }).eq("id", tagId).eq("org_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
+        const { data, error } = await this.supabase.from(TABLE_TAGS2).update({ deleted_at: now, updated_at: now }).eq("id", tagId).eq("org_id", organizationId).is("deleted_at", null).select("id").maybeSingle();
         if (error) {
           throw new DatabaseError(`Failed to delete tag: ${error.message}`, {
             cause: error,
             operation: "update",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         return data != null;
@@ -8336,12 +9567,12 @@ var init_PostsRepository = __esm({
         }
         const tagIds = [...new Set((links ?? []).map((r) => String(r.tag_id)).filter(Boolean))];
         if (tagIds.length === 0) return [];
-        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS).select("id, name, color, org_id, deleted_at, created_at, updated_at").in("id", tagIds).is("deleted_at", null).order("name", { ascending: true });
+        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS2).select("id, name, color, org_id, deleted_at, created_at, updated_at").in("id", tagIds).is("deleted_at", null).order("name", { ascending: true });
         if (tagsErr) {
           throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
             cause: tagsErr,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         return tags ?? [];
@@ -8361,12 +9592,12 @@ var init_PostsRepository = __esm({
         const linkRows = links ?? [];
         const tagIds = [...new Set(linkRows.map((r) => String(r.tag_id ?? "")).filter(Boolean))];
         if (tagIds.length === 0) return out;
-        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS).select("id, name").in("id", tagIds).is("deleted_at", null);
+        const { data: tags, error: tagsErr } = await this.supabase.from(TABLE_TAGS2).select("id, name").in("id", tagIds).is("deleted_at", null);
         if (tagsErr) {
           throw new DatabaseError(`Failed to load tags: ${tagsErr.message}`, {
             cause: tagsErr,
             operation: "select",
-            resource: { type: "table", name: TABLE_TAGS }
+            resource: { type: "table", name: TABLE_TAGS2 }
           });
         }
         const nameById = /* @__PURE__ */ new Map();
@@ -9039,7 +10270,7 @@ var init_SubscriptionRepository = __esm({
 });
 
 // repositories/index.ts
-var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository;
+var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository;
 var init_repositories = __esm({
   "repositories/index.ts"() {
     init_GlobalConfig();
@@ -9051,6 +10282,9 @@ var init_repositories = __esm({
     init_RbacRepository();
     init_FeedbackRepository();
     init_BlogRepository();
+    init_ListingRepository();
+    init_ListingCategoryRepository();
+    init_ListingTagRepository();
     init_R2StorageClient();
     init_StorageR2Repository();
     init_MediaRepository();
@@ -9070,6 +10304,9 @@ var init_repositories = __esm({
     init_RbacRepository();
     init_FeedbackRepository();
     init_BlogRepository();
+    init_ListingRepository();
+    init_ListingCategoryRepository();
+    init_ListingTagRepository();
     init_StorageSupabaseRepository();
     init_StorageR2Repository();
     init_MediaRepository();
@@ -9089,6 +10326,9 @@ var init_repositories = __esm({
     rbacRepository = new RbacRepository(supabaseServiceClientConnection);
     feedbackRepository = new FeedbackRepository(supabaseServiceClientConnection);
     blogRepository = new BlogRepository(supabaseServiceClientConnection);
+    listingRepository = new ListingRepository(supabaseServiceClientConnection);
+    listingCategoryRepository = new ListingCategoryRepository(supabaseServiceClientConnection);
+    listingTagRepository = new ListingTagRepository(supabaseServiceClientConnection);
     r2Slice = config.storage?.r2;
     r2Connection = r2Slice && isR2ConnectionReady(r2Slice) ? {
       accountId: r2Slice.accountId,
@@ -9387,12 +10627,72 @@ var init_AuthenticationService = __esm({
   }
 });
 
+// data/constants/reservedUsernames.ts
+var RESERVED_USERNAMES;
+var init_reservedUsernames = __esm({
+  "data/constants/reservedUsernames.ts"() {
+    RESERVED_USERNAMES = /* @__PURE__ */ new Set(["openquok"]);
+  }
+});
+var usernameSchema;
+var init_usernameSchema = __esm({
+  "data/schemas/usernameSchema.ts"() {
+    usernameSchema = zod.z.string().min(3, { message: "Username must be at least 3 characters." }).max(30, { message: "Username must be at most 30 characters." }).regex(/^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/, {
+      message: "Username must use lowercase letters, numbers, and hyphens only."
+    }).trim();
+    zod.z.union([usernameSchema, zod.z.literal(""), zod.z.null()]).optional().transform((val) => val === "" || val === null || val === void 0 ? void 0 : val);
+  }
+});
+
+// utils/usernameAvailability.ts
+function validateUsernameFormat(username) {
+  const parsed = usernameSchema.safeParse(username);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message ?? "Invalid username.";
+    return { ok: false, message };
+  }
+  return { ok: true };
+}
+function isReservedUsername(username) {
+  return RESERVED_USERNAMES.has(username.trim().toLowerCase());
+}
+function evaluateUsernameAvailability(params) {
+  const trimmed = params.username.trim();
+  const format = validateUsernameFormat(trimmed);
+  if (!format.ok) {
+    return { available: false, reason: "invalid", message: format.message };
+  }
+  if (isReservedUsername(trimmed)) {
+    return {
+      available: false,
+      reason: "reserved",
+      message: "This username is reserved."
+    };
+  }
+  if (params.isTaken) {
+    return {
+      available: false,
+      reason: "taken",
+      message: "Username is already taken. Try a different username."
+    };
+  }
+  return { available: true };
+}
+var init_usernameAvailability = __esm({
+  "utils/usernameAvailability.ts"() {
+    init_reservedUsernames();
+    init_usernameSchema();
+  }
+});
+
 // services/UserService.ts
 var CACHE_KEYS2, BLOG_PUBLISHED_AUTHORS_KEY, USER_CACHE_TTL_SEC, UserService;
 var init_UserService = __esm({
   "services/UserService.ts"() {
     init_GlobalConfig();
+    init_UserError();
     init_Logger();
+    init_usernameAvailability();
     CACHE_KEYS2 = {
       USER: "user",
       USER_PROFILE: "user:profile",
@@ -9474,11 +10774,54 @@ var init_UserService = __esm({
         }
         return factory();
       }
+      async checkUsernameAvailability(username, excludePublicUserId) {
+        const format = validateUsernameFormat(username);
+        if (!format.ok) {
+          return { available: false, reason: "invalid", message: format.message };
+        }
+        const isTaken = await this.userRepository.isUsernameTaken(username, excludePublicUserId);
+        return evaluateUsernameAvailability({ username, isTaken });
+      }
+      async checkUsernameAvailabilityForAuthUser(authUserId, username) {
+        const { userId, error: resolveError } = await this.userRepository.findPublicUserIdByAuthId(authUserId);
+        if (resolveError || !userId) {
+          throw resolveError ?? new Error("User not found");
+        }
+        return this.checkUsernameAvailability(username, userId);
+      }
+      async requireUsernameForPublish(publicUserId) {
+        const username = await this.userRepository.findUsernameByPublicUserId(publicUserId);
+        if (!username) {
+          throw new UserValidationError(
+            "Choose a public username before publishing. Your listing URL uses /creators/{username}/."
+          );
+        }
+      }
       /**
        * Update profile fields for the authenticated user (users.full_name and/or user_profiles).
        * Invalidates related caches.
        */
       async updateProfile(authUserId, updates) {
+        if (updates.username !== void 0) {
+          const { userId, error: resolveError } = await this.userRepository.findPublicUserIdByAuthId(authUserId);
+          if (resolveError || !userId) {
+            throw resolveError ?? new Error("User not found");
+          }
+          const availability = await this.checkUsernameAvailability(updates.username, userId);
+          if (!availability.available) {
+            throw new UserValidationError(
+              availability.message ?? "Username is already taken. Try a different username."
+            );
+          }
+          const { updateError } = await this.userRepository.updateUsernameByAuthId(authUserId, updates.username);
+          if (updateError) {
+            const message = typeof updateError === "object" && updateError !== null && "message" in updateError && typeof updateError.message === "string" && updateError.message.includes("duplicate key") ? "Username is already taken. Try a different username." : void 0;
+            if (message) {
+              throw new UserValidationError(message);
+            }
+            throw updateError;
+          }
+        }
         if (updates.fullName !== void 0) {
           const { updateError } = await this.userRepository.updateFullNameByAuthId(authUserId, updates.fullName);
           if (updateError) {
@@ -11039,11 +12382,1027 @@ var init_BlogService = __esm({
   }
 });
 
+// utils/dtos/ListingDTO.ts
+function unwrapOne(value) {
+  if (value == null) return null;
+  return Array.isArray(value) ? value[0] ?? null : value;
+}
+function buildPublishedListingCacheKey(options2, prefix) {
+  const tagSlugs = options2.tagSlugs?.slice().sort().join(",") ?? "none";
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  return [
+    prefix,
+    `kind:${options2.listingKind ?? "extension"}`,
+    `limit:${options2.limit ?? 10}`,
+    `skipId:${options2.skipId ?? "none"}`,
+    `skip:${options2.skip ?? 0}`,
+    `search:${options2.searchTerm ?? "none"}`,
+    `tags:${tagSlugs}`,
+    `category:${options2.categorySlug ?? "none"}`,
+    `extType:${options2.extensionType ?? "none"}`,
+    `sort:${options2.sortByKey ?? "created_at"}`,
+    `order:${options2.sortByOrder ? "asc" : "desc"}`,
+    `range:${range}`,
+    `owner:${options2.ownerId ?? "none"}`
+  ].join(":");
+}
+function buildAdminListingCacheKey(options2, prefix) {
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  return [
+    prefix,
+    `limit:${options2.limit ?? 10}`,
+    `search:${options2.searchTerm ?? "none"}`,
+    `kind:${options2.listingKind ?? "all"}`,
+    `sort:${options2.sortByKey ?? "created_at"}`,
+    `order:${options2.sortByOrder ? "asc" : "desc"}`,
+    `range:${range}`
+  ].join(":");
+}
+function buildAdminListingCommentsCacheKey(options2, prefix) {
+  const range = options2.range ? `start:${options2.range.start}:end:${options2.range.end}` : "none";
+  return [
+    prefix,
+    `limit:${options2.limit ?? 10}`,
+    `search:${options2.searchTerm ?? "none"}`,
+    `sort:${options2.sortByKey ?? "created_at"}`,
+    `order:${options2.sortByOrder ? "asc" : "desc"}`,
+    `range:${range}`
+  ].join(":");
+}
+var ListingDTOMapper, ListingAdminDTOMapper;
+var init_ListingDTO = __esm({
+  "utils/dtos/ListingDTO.ts"() {
+    ListingDTOMapper = class _ListingDTOMapper {
+      static toDTO(listing) {
+        const category = unwrapOne(listing.category);
+        const owner = unwrapOne(listing.owner);
+        const profiles = unwrapOne(owner?.user_profiles ?? null);
+        const tagsRaw = listing.listing_tags;
+        const fromAssoc = (listing.listings_listing_tags_association ?? []).flatMap((row) => {
+          const lt = row.listing_tags;
+          if (!lt) return [];
+          return Array.isArray(lt) ? lt : [lt];
+        });
+        const tags = fromAssoc.length > 0 ? fromAssoc : Array.isArray(tagsRaw) ? tagsRaw : tagsRaw ? [tagsRaw] : [];
+        const stackMembers = (listing.listing_stack_members ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((row) => {
+          const rawMember = Array.isArray(row.member) ? row.member[0] ?? null : row.member ?? null;
+          return {
+            id: row.id,
+            memberListingId: row.member_listing_id,
+            memberRole: row.member_role,
+            sortOrder: row.sort_order ?? 0,
+            member: rawMember ? {
+              id: rawMember.id,
+              title: rawMember.title,
+              slug: rawMember.slug,
+              extensionType: rawMember.extension_type ?? null,
+              excerpt: rawMember.excerpt ?? null,
+              logoImageUrl: rawMember.logo_image_url ?? null,
+              isOfficial: rawMember.is_official === true,
+              installCommandSkills: rawMember.install_command_skills ?? null,
+              installCommandMcp: rawMember.install_command_mcp ?? null,
+              clickUrlSkills: rawMember.click_url_skills ?? null,
+              clickUrlMcp: rawMember.click_url_mcp ?? null
+            } : null
+          };
+        });
+        return {
+          id: listing.id,
+          ownerId: listing.owner_id ?? null,
+          title: listing.title,
+          slug: listing.slug,
+          description: listing.description ?? null,
+          descriptionSkills: listing.description_skills ?? null,
+          descriptionMcp: listing.description_mcp ?? null,
+          excerpt: listing.excerpt ?? null,
+          clickUrl: listing.click_url ?? null,
+          clickUrlSkills: listing.click_url_skills ?? null,
+          clickUrlMcp: listing.click_url_mcp ?? null,
+          content: listing.content ?? null,
+          contentSkills: listing.content_skills ?? null,
+          contentMcp: listing.content_mcp ?? null,
+          listingKind: listing.listing_kind,
+          extensionType: listing.extension_type ?? null,
+          installCommandSkills: listing.install_command_skills ?? null,
+          installCommandMcp: listing.install_command_mcp ?? null,
+          isOfficial: listing.is_official === true,
+          sourceRepoUrl: listing.source_repo_url ?? null,
+          skillSourceUrl: listing.skill_source_url ?? null,
+          skillName: listing.skill_name ?? null,
+          skillMetadata: listing.skill_metadata ?? null,
+          sourceSyncedAt: listing.source_synced_at ?? null,
+          sourceContentHash: listing.source_content_hash ?? null,
+          license: listing.license ?? null,
+          version: listing.version ?? null,
+          mcpTools: listing.mcp_tools ?? [],
+          skillCommands: listing.skill_commands ?? [],
+          stackBlueprint: listing.stack_blueprint ?? null,
+          mcpTransport: listing.mcp_transport ?? null,
+          mcpServerConfig: listing.mcp_server_config ?? null,
+          likes: listing.likes ?? 0,
+          views: listing.views ?? 0,
+          clicks: listing.clicks ?? 0,
+          bookmarkCount: listing.bookmark_count ?? 0,
+          averageRating: listing.average_rating ?? 0,
+          ratingsCount: listing.ratings_count ?? 0,
+          isUserPublished: listing.is_user_published === true,
+          isAdminPublished: listing.is_admin_published === true,
+          schemaType: listing.schema_type ?? null,
+          schemaJson: listing.schema_json ?? null,
+          listingCategoryId: listing.listing_category_id ?? null,
+          defaultImageUrl: listing.default_image_url ?? null,
+          listingImageUrls: listing.listing_image_urls ?? [],
+          logoImageUrl: listing.logo_image_url ?? null,
+          faq: listing.faq ?? null,
+          listingTagSlugs: listing.listing_tag_slugs ?? [],
+          createdAt: listing.created_at,
+          updatedAt: listing.updated_at ?? null,
+          publishedAt: listing.published_at ?? null,
+          category: category ? {
+            id: category.id,
+            name: category.name,
+            slug: category.slug,
+            parentPath: category.parent_path
+          } : null,
+          tags: tags.map((t) => ({ id: t.id, name: t.name, slug: t.slug })),
+          owner: owner ? {
+            id: owner.id,
+            fullName: owner.full_name ?? null,
+            username: owner.username ?? null,
+            avatarUrl: profiles?.avatar_url ?? null,
+            tagLine: profiles?.tag_line ?? null
+          } : null,
+          stackMembers
+        };
+      }
+      static toDTOCollection(listings) {
+        return listings.map((l) => _ListingDTOMapper.toDTO(l));
+      }
+    };
+    ListingAdminDTOMapper = {
+      toCommentDTO(row) {
+        return {
+          id: row.id,
+          content: row.content,
+          isApproved: row.is_approved,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at ?? null,
+          parentId: row.parent_id ?? null,
+          userId: row.user_id,
+          author: row.author ? {
+            id: row.author.id,
+            fullName: row.author.full_name ?? null,
+            avatarUrl: row.author.avatar_url ?? null
+          } : null
+        };
+      },
+      toAdminCommentDTO(row) {
+        return {
+          ...ListingAdminDTOMapper.toCommentDTO(row),
+          listingId: row.listing_id,
+          listing: row.listing ? { id: row.listing.id, title: row.listing.title, slug: row.listing.slug } : null
+        };
+      },
+      toAdminCommentDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toAdminCommentDTO(r));
+      },
+      toPublicCommentDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toCommentDTO(r));
+      },
+      toAdminActivityDTO(row) {
+        return {
+          id: row.id,
+          activityType: row.activity_type,
+          createdAt: row.created_at,
+          userId: row.user_id ?? null,
+          listingId: row.listing_id,
+          author: row.author ? {
+            id: row.author.id,
+            fullName: row.author.full_name ?? null,
+            avatarUrl: row.author.avatar_url ?? null
+          } : null,
+          listing: row.listing ? { id: row.listing.id, title: row.listing.title, slug: row.listing.slug } : null
+        };
+      },
+      toAdminActivityDTOCollection(rows) {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((r) => ListingAdminDTOMapper.toAdminActivityDTO(r));
+      }
+    };
+  }
+});
+
+// utils/valueObjects/ListingId.ts
+var ListingId;
+var init_ListingId = __esm({
+  "utils/valueObjects/ListingId.ts"() {
+    init_uuid();
+    ListingId = class _ListingId {
+      _value;
+      constructor(value) {
+        const trimmed = value.trim();
+        if (!trimmed || !_ListingId.isValid(trimmed)) {
+          throw new Error(`Invalid listing ID: ${value}`);
+        }
+        this._value = trimmed;
+      }
+      get value() {
+        return this._value;
+      }
+      static isValid(id) {
+        return isValidUUID(id);
+      }
+      static create(id) {
+        try {
+          return new _ListingId(id);
+        } catch {
+          return null;
+        }
+      }
+      toString() {
+        return this._value;
+      }
+    };
+  }
+});
+function parseGithubUrl(url) {
+  const trimmed = url.trim();
+  const rawMatch = trimmed.match(/raw\.githubusercontent\.com\/([^/]+)\/([^/]+)\/([^/]+)\/(.+)/i);
+  if (rawMatch) {
+    const [, owner2, repo2, ref, path7] = rawMatch;
+    return { owner: owner2, repo: repo2, ref, skillPath: path7 };
+  }
+  const githubMatch = trimmed.match(/github\.com\/([^/]+)\/([^/?#]+)/i);
+  if (!githubMatch) return null;
+  const owner = githubMatch[1];
+  const repo = githubMatch[2].replace(/\.git$/i, "");
+  const blobMatch = trimmed.match(/github\.com\/[^/]+\/[^/]+\/blob\/([^/]+)\/(.+)/i);
+  if (blobMatch) {
+    const [, ref, path7] = blobMatch;
+    return { owner, repo, ref, skillPath: path7.replace(/\/$/, "") };
+  }
+  const treeMatch = trimmed.match(/github\.com\/[^/]+\/[^/]+\/tree\/([^/]+)\/?(.*)?$/i);
+  if (treeMatch) {
+    const [, ref, folderPath = ""] = treeMatch;
+    const base = folderPath.replace(/\/$/, "");
+    const skillPath = base ? `${base}/SKILL.md` : "SKILL.md";
+    return { owner, repo, ref, skillPath };
+  }
+  return { owner, repo, ref: DEFAULT_REF, skillPath: "SKILL.md" };
+}
+function toRawContentUrl(parsed) {
+  return `https://raw.githubusercontent.com/${parsed.owner}/${parsed.repo}/${parsed.ref}/${parsed.skillPath}`;
+}
+function toSourceRepoUrl(parsed) {
+  return `https://github.com/${parsed.owner}/${parsed.repo}`;
+}
+function parseExtensionType(value) {
+  if (value === "skills" || value === "mcp" || value === "both") return value;
+  return null;
+}
+function parseSkillMarkdown(raw) {
+  const normalized = raw.replace(/^\uFEFF/, "");
+  const match = normalized.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!match) {
+    return {
+      skillName: null,
+      description: null,
+      metadata: null,
+      license: null,
+      version: null,
+      extensionType: null,
+      body: normalized.trim()
+    };
+  }
+  const [, frontmatterRaw, body] = match;
+  let frontmatter = {};
+  try {
+    const parsed = YAML__default.default.parse(frontmatterRaw);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      frontmatter = parsed;
+    }
+  } catch {
+    throw new ValidationError("Could not parse SKILL.md YAML frontmatter.");
+  }
+  const skillName = typeof frontmatter.name === "string" ? frontmatter.name.trim() : null;
+  const description = typeof frontmatter.description === "string" ? frontmatter.description.trim() : null;
+  const license = typeof frontmatter.license === "string" ? frontmatter.license.trim() : null;
+  const version = typeof frontmatter.version === "string" ? frontmatter.version.trim() : null;
+  const extensionType = parseExtensionType(frontmatter.extension_type);
+  const metadata = frontmatter.metadata != null && typeof frontmatter.metadata === "object" ? frontmatter.metadata : typeof frontmatter.metadata === "string" ? tryParseMetadataJson(frontmatter.metadata) : null;
+  return {
+    skillName,
+    description,
+    metadata,
+    license,
+    version,
+    extensionType,
+    body: body.trim()
+  };
+}
+function tryParseMetadataJson(value) {
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function extractInstallCommandFromBody(body) {
+  const installationSection = body.match(/###\s+Installation[\s\S]*?(?=###\s|\n##\s|$)/i);
+  if (!installationSection) return null;
+  const bashBlock = installationSection[0].match(/```(?:bash|sh|shell)\r?\n([\s\S]*?)```/i);
+  if (!bashBlock) return null;
+  const command = bashBlock[1].split("\n").map((line) => line.trim()).filter((line) => line.length > 0 && !line.startsWith("#")).join("\n").trim();
+  return command || null;
+}
+function suggestInstallCommand(skillName, sourceRepoUrl) {
+  const skillFlag = skillName ? ` --skill ${skillName}` : "";
+  return `npx skills add ${sourceRepoUrl}${skillFlag} -y`;
+}
+function titleCaseSkillName(skillName) {
+  return skillName.split(/[-_\s]+/).filter(Boolean).map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+}
+function hashContent(raw) {
+  return crypto.createHash("sha256").update(raw).digest("hex");
+}
+function buildGithubImportPreview(raw, parsedUrl, extensionTypeOverride) {
+  const skill = parseSkillMarkdown(raw);
+  const sourceRepoUrl = toSourceRepoUrl(parsedUrl);
+  const skillSourceUrl = toRawContentUrl(parsedUrl);
+  const slugBase = skill.skillName ?? parsedUrl.repo;
+  const title = skill.skillName ? titleCaseSkillName(skill.skillName) : titleCaseSkillName(parsedUrl.repo);
+  const description = skill.description;
+  const excerpt = description ? description.slice(0, 160) : null;
+  const body = skill.body || null;
+  const installFromBody = extractInstallCommandFromBody(skill.body);
+  const installCommandSkills = installFromBody ?? (skill.skillName ? suggestInstallCommand(skill.skillName, sourceRepoUrl) : null);
+  const base = {
+    title,
+    slug: stringToSlug(slugBase),
+    description,
+    excerpt,
+    content: body,
+    skillName: skill.skillName,
+    skillMetadata: skill.metadata,
+    sourceRepoUrl,
+    skillSourceUrl,
+    installCommandSkills,
+    license: skill.license,
+    version: skill.version,
+    sourceContentHash: hashContent(raw)
+  };
+  const extensionType = extensionTypeOverride ?? skill.extensionType ?? "skills";
+  if (extensionType === "mcp") {
+    throw new ValidationError(
+      "GitHub import reads SKILL.md and supports Skills or Both extension types only."
+    );
+  }
+  const resolvedType = extensionType === "both" ? "both" : "skills";
+  return {
+    ...base,
+    extensionType: resolvedType,
+    descriptionSkills: description,
+    contentSkills: body,
+    ...resolvedType === "both" ? { descriptionMcp: null, contentMcp: null } : {}
+  };
+}
+var DEFAULT_REF, ListingImportService, listingImportService;
+var init_ListingImportService = __esm({
+  "services/ListingImportService.ts"() {
+    init_slug();
+    init_InfraError();
+    DEFAULT_REF = "main";
+    ListingImportService = class {
+      async fetchRawMarkdown(url) {
+        const parsed = parseGithubUrl(url);
+        if (!parsed) {
+          throw new ValidationError("Could not parse GitHub URL. Paste a github.com or raw.githubusercontent.com link.");
+        }
+        const rawUrl = toRawContentUrl(parsed);
+        const response = await fetch(rawUrl, {
+          headers: {
+            Accept: "text/plain, text/markdown, */*",
+            "User-Agent": "OpenQuok-ListingImport/1.0"
+          }
+        });
+        if (!response.ok) {
+          throw new ValidationError(
+            `Could not fetch SKILL.md (${response.status}). Check the URL, branch, and file path.`
+          );
+        }
+        const text = await response.text();
+        if (!text.trim()) {
+          throw new ValidationError("Fetched SKILL.md is empty.");
+        }
+        return text;
+      }
+      async previewGithubImport(githubUrl, extensionTypeOverride) {
+        const parsed = parseGithubUrl(githubUrl);
+        if (!parsed) {
+          throw new ValidationError("Could not parse GitHub URL. Paste a github.com or raw.githubusercontent.com link.");
+        }
+        const raw = await this.fetchRawMarkdown(githubUrl);
+        return buildGithubImportPreview(raw, parsed, extensionTypeOverride);
+      }
+    };
+    listingImportService = new ListingImportService();
+  }
+});
+
+// services/ListingService.ts
+var CACHE_KEYS8, LISTING_CACHE_TTL_SEC, ListingService;
+var init_ListingService = __esm({
+  "services/ListingService.ts"() {
+    init_ListingRepository();
+    init_ListingDTO();
+    init_ListingId();
+    init_InfraError();
+    init_UserError();
+    init_Logger();
+    init_dist();
+    init_ListingImportService();
+    init_ListingImportService();
+    CACHE_KEYS8 = {
+      LISTING_BY_ID: "listing:byId",
+      LISTING_PUBLISHED: "listing:published:list",
+      LISTING_PUBLISHED_BY_SLUG: "listing:published:bySlug",
+      LISTING_STACK_BY_SLUG: "listing:stack:bySlug",
+      LISTING_ADMIN_LIST: "listing:admin:list",
+      LISTING_CREATORS: "listing:creators",
+      LISTING_APPROVE_INFO: "config:listings:approveinfo",
+      LISTING_CATEGORIES_ACTIVE_PARTIAL: "listing:categories:active:partial",
+      LISTING_CATEGORIES_ACTIVE_FULL: "listing:categories:active:full",
+      LISTING_CATEGORIES_ALL_PARTIAL: "listing:categories:all:partial",
+      LISTING_CATEGORIES_ALL_FULL: "listing:categories:all:full",
+      LISTING_TAGS_ACTIVE_PARTIAL: "listing:tags:active:partial",
+      LISTING_TAGS_ACTIVE_FULL: "listing:tags:active:full",
+      LISTING_TAGS_ALL_FULL: "listing:tags:all:full",
+      LISTING_USER_BOOKMARKS: "listing:bookmarks:user",
+      LISTING_ADMIN_COMMENTS_LIST: "listing:admin:comments:list",
+      LISTING_ADMIN_ACTIVITIES_LIST: "listing:admin:activities:list",
+      LISTING_COMMENTS_BY_LISTING: "listing:comments:byListing"
+    };
+    LISTING_CACHE_TTL_SEC = 300;
+    ListingService = class {
+      constructor(listingRepository2, listingCategoryRepository2, listingTagRepository2, cache, cacheInvalidator, configRepository2, subscriptionGuard2, userRepository2) {
+        this.listingRepository = listingRepository2;
+        this.listingCategoryRepository = listingCategoryRepository2;
+        this.listingTagRepository = listingTagRepository2;
+        this.cache = cache;
+        this.cacheInvalidator = cacheInvalidator;
+        this.configRepository = configRepository2;
+        this.subscriptionGuard = subscriptionGuard2;
+        this.userRepository = userRepository2;
+      }
+      async getApproveConfigInfo() {
+        const cacheKey = CACHE_KEYS8.LISTING_APPROVE_INFO;
+        const factory = async () => {
+          if (!this.configRepository) return {};
+          const { result } = await this.configRepository.getConfigByModuleNameAndProperties({
+            moduleName: "listings",
+            properties: ["PRE_ADMIN_APPROVE_NEW_LISTINGS", "PRE_ADMIN_APPROVE_UPDATED_LISTINGS"]
+          });
+          return result;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getListingById(id) {
+        const idVO = id instanceof ListingId ? id : ListingId.create(id);
+        if (!idVO) throw new ValidationError(`Invalid listing ID: ${id}`);
+        const cacheKey = `${CACHE_KEYS8.LISTING_BY_ID}:${idVO.value}`;
+        const factory = async () => {
+          const { data } = await this.listingRepository.findListingById(idVO.value);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getPublishedListingBySlug(slug, listingKind = "extension") {
+        const prefix = listingKind === "stack" ? CACHE_KEYS8.LISTING_STACK_BY_SLUG : CACHE_KEYS8.LISTING_PUBLISHED_BY_SLUG;
+        const cacheKey = `${prefix}:${slug}`;
+        const factory = async () => {
+          const { data } = await this.listingRepository.findPublishedListingBySlug(slug, listingKind);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getPublishedListings(options2) {
+        const normalized = {
+          limit: options2.limit ?? 10,
+          skipId: options2.skipId ?? null,
+          skip: options2.skip ?? 0,
+          searchTerm: options2.searchTerm ?? null,
+          tagSlugs: options2.tagSlugs ?? null,
+          categorySlug: options2.categorySlug ?? null,
+          extensionType: options2.extensionType ?? null,
+          listingKind: options2.listingKind ?? "extension",
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null,
+          ownerId: options2.ownerId ?? null
+        };
+        const cacheKey = buildPublishedListingCacheKey(normalized, CACHE_KEYS8.LISTING_PUBLISHED);
+        const factory = async () => {
+          const { data, count } = await this.listingRepository.findPublishedListings(normalized);
+          return { listingsResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAdminListings(options2) {
+        const normalized = {
+          limit: options2.limit ?? 10,
+          searchTerm: options2.searchTerm ?? null,
+          listingKind: options2.listingKind ?? null,
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null
+        };
+        const cacheKey = buildAdminListingCacheKey(normalized, CACHE_KEYS8.LISTING_ADMIN_LIST);
+        const factory = async () => {
+          const { data, count } = await this.listingRepository.findAdminListings(normalized);
+          return { listingsResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getListingCreators() {
+        const cacheKey = CACHE_KEYS8.LISTING_CREATORS;
+        const factory = async () => {
+          const { data } = await this.listingRepository.getListingCreators();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getCreatorListings(username) {
+        const { data } = await this.listingRepository.findListingsByOwnerUsername(username);
+        return data;
+      }
+      async getOwnedListingStats(ownerId) {
+        return this.listingRepository.findListingStatsByOwnerId(ownerId);
+      }
+      async incrementStatCounter(listingId, type, userId) {
+        await this.listingRepository.incrementStatCounter(listingId, type);
+        await this.listingRepository.insertListingActivity(listingId, type, userId);
+        await this._invalidateListingStatCaches(listingId);
+      }
+      async createListing(body, actorUserId, isPlatformAdmin) {
+        const { listingData, listingTagsData, stackMembersData = [] } = body;
+        const isUserApproved = listingData.is_user_published === true;
+        const approveInfo = await this.getApproveConfigInfo();
+        const ownerId = await this._resolveCreateOwnerId(
+          actorUserId,
+          listingData.owner_id,
+          isPlatformAdmin
+        );
+        let isAdminPublished = false;
+        if (isUserApproved) {
+          if (isPlatformAdmin && listingData.is_admin_published === true) {
+            isAdminPublished = true;
+          } else if (approveInfo.PRE_ADMIN_APPROVE_NEW_LISTINGS === "true") {
+            isAdminPublished = true;
+          }
+        }
+        const { savedListingId, isAdminApproved, isUserApproved: userApproved } = await this.listingRepository.createListing(
+          listingData,
+          listingTagsData,
+          ownerId,
+          isAdminPublished,
+          stackMembersData
+        );
+        await this._invalidateListingMutationCaches(savedListingId);
+        return { id: savedListingId, isAdminApproved, isUserApproved: userApproved };
+      }
+      async updateListing(body, actorUserId, isPlatformAdmin) {
+        const { listingData, listingTagsData, stackMembersData = [] } = body;
+        const isUserApproved = listingData.is_user_published === true;
+        const approveInfo = await this.getApproveConfigInfo();
+        const { data: existing } = await this.listingRepository.findListingById(listingData.id);
+        const ownerId = isPlatformAdmin && listingData.owner_id ? listingData.owner_id : existing.owner_id ?? actorUserId;
+        let isAdminPublished = existing.is_admin_published === true;
+        if (isUserApproved) {
+          const explicitlyApproving = existing.is_admin_published !== true && listingData.is_admin_published === true && isPlatformAdmin;
+          if (explicitlyApproving) {
+            isAdminPublished = true;
+          } else if (existing.is_admin_published !== true) {
+            isAdminPublished = approveInfo.PRE_ADMIN_APPROVE_NEW_LISTINGS === "true";
+          } else if (listingData.is_admin_published === false && isPlatformAdmin) {
+            isAdminPublished = false;
+          } else {
+            isAdminPublished = approveInfo.PRE_ADMIN_APPROVE_UPDATED_LISTINGS === "true" ? true : existing.is_admin_published === true;
+          }
+        } else {
+          isAdminPublished = false;
+        }
+        const { savedListingId, isAdminApproved, isUserApproved: userApproved } = await this.listingRepository.updateListing(
+          listingData,
+          listingTagsData,
+          ownerId,
+          isAdminPublished,
+          stackMembersData
+        );
+        await this._invalidateListingMutationCaches(savedListingId);
+        return { id: savedListingId, isAdminApproved, isUserApproved: userApproved };
+      }
+      async deleteListing(id) {
+        await this.listingRepository.deleteListing(id);
+        await this._invalidateListingMutationCaches(id);
+      }
+      async getOwnedListings(ownerId, listingKind) {
+        return this.listingRepository.findOwnedListings(ownerId, { listingKind });
+      }
+      async getOwnedListingById(id, ownerId) {
+        const listing = await this.getListingById(id);
+        if (listing.owner_id !== ownerId) {
+          throw new UserAuthorizationError("You don't have permission to access this listing");
+        }
+        return listing;
+      }
+      async createOwnedListing(body, ownerId, authUserId) {
+        await this._assertPublicApi(authUserId);
+        await this._assertOwnerUsernameForPublish(ownerId, body.listingData.is_user_published === true);
+        const sanitizedBody = {
+          ...body,
+          listingData: {
+            ...body.listingData,
+            is_official: false,
+            is_admin_published: false,
+            schema_type: "SoftwareApplication"
+          }
+        };
+        return this.createListing(sanitizedBody, ownerId, false);
+      }
+      async updateOwnedListing(body, ownerId, authUserId) {
+        await this._assertPublicApi(authUserId);
+        const existing = await this.getOwnedListingById(body.listingData.id, ownerId);
+        const willPublish = body.listingData.is_user_published === true || existing.is_user_published === true && body.listingData.is_user_published !== false;
+        await this._assertOwnerUsernameForPublish(ownerId, willPublish);
+        const sanitizedBody = {
+          ...body,
+          listingData: {
+            ...body.listingData,
+            is_official: false,
+            is_admin_published: existing.is_admin_published === true,
+            schema_type: existing.schema_type ?? "SoftwareApplication"
+          }
+        };
+        return this.updateListing(sanitizedBody, ownerId, false);
+      }
+      async deleteOwnedListing(id, ownerId, authUserId) {
+        await this._assertPublicApi(authUserId);
+        await this.getOwnedListingById(id, ownerId);
+        await this.deleteListing(id);
+      }
+      async getSkillMarkdown(slug) {
+        return this.listingRepository.getSkillMarkdownContent(slug);
+      }
+      // --- Categories ---
+      async getActivePartialCategories(options2 = {}) {
+        const cacheKey = `${CACHE_KEYS8.LISTING_CATEGORIES_ACTIVE_PARTIAL}:${options2.limit ?? "all"}:${options2.offset ?? 0}`;
+        const factory = async () => {
+          const { data } = await this.listingCategoryRepository.findActivePartialCategories(options2);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getActiveFullCategories(options2 = {}) {
+        const cacheKey = `${CACHE_KEYS8.LISTING_CATEGORIES_ACTIVE_FULL}:${options2.limit ?? "all"}:${options2.offset ?? 0}`;
+        const factory = async () => {
+          const { data } = await this.listingCategoryRepository.findActiveFullCategories(options2);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAllPartialCategories() {
+        const cacheKey = CACHE_KEYS8.LISTING_CATEGORIES_ALL_PARTIAL;
+        const factory = async () => {
+          const { data } = await this.listingCategoryRepository.findAllPartialCategories();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAllFullCategories() {
+        const cacheKey = CACHE_KEYS8.LISTING_CATEGORIES_ALL_FULL;
+        const factory = async () => {
+          const { data } = await this.listingCategoryRepository.findAllFullCategories();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async createCategory(payload, groupIds = []) {
+        const id = await this.listingCategoryRepository.createCategory(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async updateCategory(payload, groupIds = []) {
+        const id = await this.listingCategoryRepository.updateCategory(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async deleteCategory(categoryId) {
+        await this.listingCategoryRepository.deleteCategory(categoryId);
+        await this._invalidateTaxonomyCaches();
+      }
+      async getAllCategoryGroups() {
+        const { data } = await this.listingCategoryRepository.findAllCategoryGroups();
+        return data;
+      }
+      // --- Tags ---
+      async getActivePartialTags() {
+        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ACTIVE_PARTIAL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findActivePartialTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getActiveFullTags() {
+        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ACTIVE_FULL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findActiveFullTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAllFullTags() {
+        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ALL_FULL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findAllFullTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async createTag(payload, groupIds = []) {
+        const id = await this.listingTagRepository.createTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async updateTag(payload, groupIds = []) {
+        const id = await this.listingTagRepository.updateTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async deleteTag(tagId) {
+        await this.listingTagRepository.deleteTag(tagId);
+        await this._invalidateTaxonomyCaches();
+      }
+      async getAllTagGroups() {
+        const { data } = await this.listingTagRepository.findAllTagGroups();
+        return data;
+      }
+      async addBookmark(listingId, userId, authUserId) {
+        await this._assertPaidAccountForBookmarks(authUserId);
+        await this.listingRepository.addBookmark(userId, listingId);
+        await this.listingRepository.insertListingActivity(listingId, "bookmark", userId);
+        await this._invalidateUserBookmarkCaches(userId, listingId);
+      }
+      async removeBookmark(listingId, userId, authUserId) {
+        await this._assertPaidAccountForBookmarks(authUserId);
+        await this.listingRepository.removeBookmark(userId, listingId);
+        await this._invalidateUserBookmarkCaches(userId, listingId);
+      }
+      async getUserBookmarks(userId, authUserId) {
+        await this._assertPaidAccountForBookmarks(authUserId);
+        const cacheKey = `${CACHE_KEYS8.LISTING_USER_BOOKMARKS}:${userId}`;
+        const factory = async () => {
+          const { data } = await this.listingRepository.findBookmarkedListingsByUserId(userId);
+          return data.filter(
+            (listing) => listing.is_user_published === true && listing.is_admin_published === true && listing.listing_kind === "extension"
+          );
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAdminListingComments(options2) {
+        const normalized = {
+          limit: options2.limit ?? 100,
+          searchTerm: options2.searchTerm ?? null,
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null
+        };
+        const cacheKey = buildAdminListingCommentsCacheKey(
+          normalized,
+          CACHE_KEYS8.LISTING_ADMIN_COMMENTS_LIST
+        );
+        const factory = async () => {
+          const { data, count } = await this.listingRepository.findAdminListingComments(normalized);
+          return { commentsResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async getAdminListingActivities(options2) {
+        const normalized = {
+          limit: options2.limit ?? 100,
+          sortByKey: options2.sortByKey ?? "created_at",
+          sortByOrder: options2.sortByOrder ?? false,
+          range: options2.range ?? null,
+          listing_id: options2.listing_id ?? null,
+          activity_type: options2.activity_type ?? null
+        };
+        const cacheKey = [
+          CACHE_KEYS8.LISTING_ADMIN_ACTIVITIES_LIST,
+          `limit:${normalized.limit}`,
+          `listing:${normalized.listing_id ?? "all"}`,
+          `type:${normalized.activity_type ?? "all"}`,
+          `sort:${normalized.sortByKey}`,
+          `order:${normalized.sortByOrder ? "asc" : "desc"}`
+        ].join(":");
+        const factory = async () => {
+          const { data, count } = await this.listingRepository.findAdminListingActivities(normalized);
+          return { activitiesResult: data, countResult: count };
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async approveListingComment(commentId) {
+        const result = await this.listingRepository.approveListingComment(commentId);
+        if (this.cacheInvalidator) {
+          await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_COMMENTS_LIST}:*`);
+          await this.cacheInvalidator.invalidateKey(
+            `${CACHE_KEYS8.LISTING_COMMENTS_BY_LISTING}:${result.listing_id}`
+          );
+        }
+        return { id: result.id };
+      }
+      async deleteListingComment(commentId) {
+        await this.listingRepository.deleteListingComment(commentId);
+        if (this.cacheInvalidator) {
+          await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_COMMENTS_LIST}:*`);
+        }
+      }
+      async getListingComments(listingId) {
+        const cacheKey = `${CACHE_KEYS8.LISTING_COMMENTS_BY_LISTING}:${listingId}`;
+        const factory = async () => {
+          const { data } = await this.listingRepository.findListingComments(listingId);
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
+        return factory();
+      }
+      async createListingComment(payload, userId, authUserId) {
+        await this._assertCommunityFeatures(authUserId);
+        const result = await this.listingRepository.createListingComment(payload, userId);
+        await this.listingRepository.insertListingActivity(payload.listing_id, "comment", userId);
+        if (this.cacheInvalidator) {
+          await this.cacheInvalidator.invalidateKey(
+            `${CACHE_KEYS8.LISTING_COMMENTS_BY_LISTING}:${payload.listing_id}`
+          );
+          await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_COMMENTS_LIST}:*`);
+        }
+        return { id: result.id };
+      }
+      async upsertListingRating(listingId, rating, userId, authUserId) {
+        await this._assertCommunityFeatures(authUserId);
+        const result = await this.listingRepository.upsertListingRating(listingId, userId, rating);
+        await this.listingRepository.insertListingActivity(listingId, "rating", userId);
+        await this._invalidateListingStatCaches(listingId);
+        return { id: result.id };
+      }
+      async _assertOwnerUsernameForPublish(ownerId, requiresUsername) {
+        if (!requiresUsername || !this.userRepository) {
+          return;
+        }
+        const username = await this.userRepository.findUsernameByPublicUserId(ownerId);
+        if (!username) {
+          throw new UserValidationError(
+            "Choose a public username before publishing. Your listing URL uses /creators/{username}/."
+          );
+        }
+      }
+      async _resolveCreateOwnerId(actorUserId, explicitOwnerId, isPlatformAdmin) {
+        if (!isPlatformAdmin) {
+          return actorUserId;
+        }
+        if (explicitOwnerId) {
+          return explicitOwnerId;
+        }
+        const catalogOwnerId = await this.listingRepository.findUserIdByUsername(
+          LISTING_CATALOG_PUBLISHER_USERNAME
+        );
+        return catalogOwnerId ?? actorUserId;
+      }
+      async _assertCommunityFeatures(authUserId) {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+          await this.subscriptionGuard.assert(SubscriptionSection.COMMUNITY_FEATURES, {
+            scope: "account",
+            authUserId
+          });
+        }
+      }
+      async _assertPublicApi(authUserId) {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+          await this.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
+            scope: "account",
+            authUserId
+          });
+        }
+      }
+      async _assertPaidAccountForBookmarks(authUserId) {
+        if (authUserId?.trim() && this.subscriptionGuard) {
+          await this.subscriptionGuard.assertPaidOwnedAccountForBookmarks(authUserId);
+        }
+      }
+      async _invalidateUserBookmarkCaches(userId, listingId) {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS8.LISTING_USER_BOOKMARKS}:${userId}`);
+        await this._invalidateListingStatCaches(listingId);
+      }
+      async _invalidateListingMutationCaches(listingId) {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS8.LISTING_BY_ID}:${listingId}`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED_BY_SLUG}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_STACK_BY_SLUG}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_LIST}:*`);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS8.LISTING_CREATORS);
+        logger.debug({ msg: "Invalidated listing caches", listingId });
+      }
+      async _invalidateListingStatCaches(listingId) {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS8.LISTING_BY_ID}:${listingId}`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED_BY_SLUG}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_STACK_BY_SLUG}:*`);
+      }
+      async _invalidateTaxonomyCaches() {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidatePattern("listing:categories:*");
+        await this.cacheInvalidator.invalidatePattern("listing:tags:*");
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_LIST}:*`);
+      }
+      async previewGithubImport(githubUrl, extensionType) {
+        return listingImportService.previewGithubImport(githubUrl, extensionType);
+      }
+      async syncListingFromGithub(listingId) {
+        const idVO = ListingId.create(listingId);
+        if (!idVO) throw new ValidationError(`Invalid listing ID: ${listingId}`);
+        const listing = await this.getListingById(idVO.value);
+        const skillSourceUrl = listing.skill_source_url;
+        if (!skillSourceUrl) {
+          throw new ValidationError("This listing has no skill_source_url to sync.");
+        }
+        const raw = await listingImportService.fetchRawMarkdown(skillSourceUrl);
+        const parsedUrl = parseGithubUrl(skillSourceUrl);
+        if (!parsedUrl) {
+          throw new ValidationError("Stored skill_source_url is not a valid GitHub URL.");
+        }
+        const parsed = parseSkillMarkdown(raw);
+        const nextHash = hashContent(raw);
+        const previousHash = listing.source_content_hash ?? null;
+        const contentChanged = previousHash !== nextHash;
+        const syncedAt = (/* @__PURE__ */ new Date()).toISOString();
+        if (contentChanged) {
+          const excerpt = parsed.description ? parsed.description.slice(0, 160) : null;
+          await this.listingRepository.updateListingGithubSync(listingId, {
+            content: parsed.body,
+            sourceContentHash: nextHash,
+            sourceSyncedAt: syncedAt,
+            description: parsed.description,
+            excerpt,
+            skillMetadata: parsed.metadata,
+            license: parsed.license,
+            version: parsed.version
+          });
+          await this._invalidateListingMutationCaches(listingId);
+        } else {
+          await this.listingRepository.updateListingGithubSync(listingId, {
+            content: listing.content ?? parsed.body,
+            sourceContentHash: nextHash,
+            sourceSyncedAt: syncedAt
+          });
+        }
+        return {
+          updated: true,
+          contentChanged,
+          sourceSyncedAt: syncedAt,
+          sourceContentHash: nextHash
+        };
+      }
+    };
+  }
+});
+
 // services/ConfigService.ts
-var CACHE_KEYS8, CONFIG_CACHE_TTL_SEC, ConfigService;
+var CACHE_KEYS9, CONFIG_CACHE_TTL_SEC, ConfigService;
 var init_ConfigService = __esm({
   "services/ConfigService.ts"() {
-    CACHE_KEYS8 = {
+    CACHE_KEYS9 = {
       CONFIG: "config",
       BLOG_INFORMATION: "config:module:blog:information"
     };
@@ -11055,7 +13414,7 @@ var init_ConfigService = __esm({
         this.cacheInvalidator = cacheInvalidator;
       }
       async getModuleConfig(moduleName) {
-        const cacheKey = `${CACHE_KEYS8.CONFIG}:${moduleName}`;
+        const cacheKey = `${CACHE_KEYS9.CONFIG}:${moduleName}`;
         const factory = async () => {
           const { data } = await this.configRepository.getConfigByModuleName(moduleName);
           return data.config ?? {};
@@ -11075,8 +13434,8 @@ var init_ConfigService = __esm({
       }
       async invalidateConfigRelatedCaches() {
         if (!this.cacheInvalidator) return;
-        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.CONFIG}:*`);
-        await this.cacheInvalidator.invalidateKey(CACHE_KEYS8.BLOG_INFORMATION);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.CONFIG}:*`);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS9.BLOG_INFORMATION);
       }
     };
   }
@@ -12725,7 +15084,22 @@ var init_threadsProvider = __esm({
         identifier: "threads-internal-follow-up",
         methodName: "threadsInternalFollowUp",
         title: "Delayed follow-up reply (same account)",
-        description: "Schedule an extra reply from this channel after your thread goes live. Cross-account boosting can be added later."
+        description: "Schedule an extra reply from this channel after your thread goes live."
+      },
+      {
+        identifier: "threads-cross-account-comment",
+        methodName: "threadsCrossAccountComment",
+        title: "Add comments by other accounts",
+        description: "Choose other Threads channels in this workspace to comment after publish.",
+        pickIntegration: ["threads"],
+        fields: [
+          {
+            name: "comment",
+            description: "The comment to add to the thread",
+            type: "textarea",
+            placeholder: "Enter your comment here"
+          }
+        ]
       }
     ];
     ThreadsProvider = class {
@@ -12821,6 +15195,22 @@ var init_threadsProvider = __esm({
           parent,
           acting.token,
           [{ id: "threads-internal-plug", message: msg, settings: {} }],
+          acting
+        );
+      }
+      /**
+       * Internal plug: comment from another Threads channel in the workspace.
+       */
+      async threadsCrossAccountComment(acting, _original, threadId, information) {
+        const raw = typeof information?.comment === "string" ? information.comment : "";
+        const msg = htmlToPlainText(raw).trim();
+        if (!msg.length || !threadId.trim()) return;
+        await this.comment(
+          acting.internal_id,
+          threadId.trim(),
+          void 0,
+          acting.token,
+          [{ id: "threads-cross-account-plug", message: msg, settings: {} }],
           acting
         );
       }
@@ -13353,9 +15743,9 @@ var init_linkedinAnalytics = __esm({
   }
 });
 function safeJoin(base, p) {
-  const out = path__default.default.join(base, p);
-  const rel = path__default.default.relative(base, out);
-  if (rel.startsWith("..") || path__default.default.isAbsolute(rel)) {
+  const out = path3__default.default.join(base, p);
+  const rel = path3__default.default.relative(base, out);
+  if (rel.startsWith("..") || path3__default.default.isAbsolute(rel)) {
     throw new Error("Invalid upload path");
   }
   return out;
@@ -13388,11 +15778,11 @@ var init_local_storage = __esm({
       }
       async uploadFile(params) {
         this.assertConfigured();
-        const ext = path__default.default.extname(params.originalName) || "";
+        const ext = path3__default.default.extname(params.originalName) || "";
         const fileName = `${makeId(20)}${ext}`;
         const relative = fileName;
         const onDisk = safeJoin(this.uploadDirectory, relative);
-        await fs__default.default.mkdir(path__default.default.dirname(onDisk), { recursive: true });
+        await fs__default.default.mkdir(path3__default.default.dirname(onDisk), { recursive: true });
         await fs__default.default.writeFile(onDisk, params.buffer);
         return { path: relative, publicUrl: buildPublicUrl(relative) };
       }
@@ -13421,7 +15811,7 @@ var init_r2_storage = __esm({
       }
       supportsMultipart = true;
       async uploadFile(params) {
-        const ext = path__default.default.extname(params.originalName) || "";
+        const ext = path3__default.default.extname(params.originalName) || "";
         const key = `${makeId(20)}${ext || ".bin"}`;
         await this.storageR2Repository.putObject(key, params.buffer, params.contentType);
         return { path: key, publicUrl: publicUrlForObjectKey(key) };
@@ -16906,16 +19296,16 @@ var init_RefreshIntegrationService = __esm({
 
 // services/IntegrationService.ts
 function buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment) {
-  return `${CACHE_KEYS9.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
+  return `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
 }
 function integrationCustomersListCacheKey(organizationId) {
-  return `${CACHE_KEYS9.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS10.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
 }
-var CACHE_KEYS9, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
+var CACHE_KEYS10, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
 var init_IntegrationService = __esm({
   "services/IntegrationService.ts"() {
     init_Logger();
-    CACHE_KEYS9 = {
+    CACHE_KEYS10 = {
       INTEGRATION: "integration",
       /** Per-org list cache key is `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}`. */
       INTEGRATION_CUSTOMERS_LIST: "integration:customers:list"
@@ -17000,7 +19390,7 @@ var init_IntegrationService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS9.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache",
@@ -17050,20 +19440,20 @@ var init_IntegrationService = __esm({
 
 // services/PlugService.ts
 function plugsListCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS10.PLUG_LIST}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS11.PLUG_LIST}:${organizationId}:${integrationId}`;
 }
 function plugsActivatedCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS10.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS11.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
 }
 function plugRowCacheKey(plugId) {
-  return `${CACHE_KEYS10.PLUG_ROW}:${plugId}`;
+  return `${CACHE_KEYS11.PLUG_ROW}:${plugId}`;
 }
-var CACHE_KEYS10, PLUG_CACHE_TTL_SEC, PlugService;
+var CACHE_KEYS11, PLUG_CACHE_TTL_SEC, PlugService;
 var init_PlugService = __esm({
   "services/PlugService.ts"() {
     init_InfraError();
     init_Logger();
-    CACHE_KEYS10 = {
+    CACHE_KEYS11 = {
       INTEGRATION: "integration",
       PLUG_LIST: "plug:list",
       PLUG_ACTIVATED: "plug:activated",
@@ -17170,7 +19560,7 @@ var init_PlugService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache (plug mutation)",
@@ -17229,7 +19619,7 @@ function integrationLikeToRecord(row) {
     additional_settings: row.additional_settings
   };
 }
-var CACHE_KEYS11, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
+var CACHE_KEYS12, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
 var init_IntegrationConnectionService = __esm({
   "services/IntegrationConnectionService.ts"() {
     init_dist();
@@ -17239,7 +19629,7 @@ var init_IntegrationConnectionService = __esm({
     init_ProviderIntegrationErrors();
     init_mirrorIntegrationProfilePicture();
     init_Logger();
-    CACHE_KEYS11 = {
+    CACHE_KEYS12 = {
       oauth: {
         login: (state) => `login:${state}`,
         organization: (state) => `organization:${state}`,
@@ -17367,15 +19757,15 @@ var init_IntegrationConnectionService = __esm({
         const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
         const cache = this.requireCache();
         if (opts.refresh) {
-          await cache.set(CACHE_KEYS11.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS12.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
         }
         if (opts.onboarding === "true") {
-          await cache.set(CACHE_KEYS11.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS12.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
         }
-        await cache.set(CACHE_KEYS11.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
-        await cache.set(CACHE_KEYS11.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS12.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS12.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
         if (clientInformation) {
-          await cache.set(CACHE_KEYS11.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS12.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
         }
         return { url };
       }
@@ -17388,8 +19778,12 @@ var init_IntegrationConnectionService = __esm({
           return { err: true };
         }
       }
-      async publicListIntegrations(organizationId) {
-        const rows = await this.integrations.listByOrganization(organizationId);
+      async publicListIntegrations(organizationId, customerGroupId) {
+        let rows = await this.integrations.listByOrganization(organizationId);
+        const groupId = customerGroupId?.trim();
+        if (groupId) {
+          rows = rows.filter((row) => row.customer_id === groupId);
+        }
         return rows.map((p) => ({
           id: p.id,
           name: p.name,
@@ -17399,6 +19793,10 @@ var init_IntegrationConnectionService = __esm({
           profile: p.profile,
           customer: p.customer_id && p.customer_name ? { id: p.customer_id, name: p.customer_name } : null
         }));
+      }
+      /** Channel groups (`integration_customers`) for programmatic / MCP clients. */
+      async publicListCustomerGroups(organizationId) {
+        return this.integrations.customers(organizationId);
       }
       async getIntegrationUrlPublicApi(organizationId, integration, opts) {
         try {
@@ -17529,7 +19927,7 @@ var init_IntegrationConnectionService = __esm({
           throw new AppError("Integration not found", 404);
         }
         const cache = this.requireCache();
-        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS11.oauth.login(body.state));
+        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS12.oauth.login(body.state));
         if (!getCodeVerifier && !integrationProvider.customFields) {
           throw new AppError(
             "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
@@ -17538,9 +19936,9 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         if (!integrationProvider.customFields) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.login(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.login(body.state));
         }
-        const organizationKey = CACHE_KEYS11.oauth.organization(body.state);
+        const organizationKey = CACHE_KEYS12.oauth.organization(body.state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError("Organization not found", 400);
@@ -17548,14 +19946,14 @@ var init_IntegrationConnectionService = __esm({
         if (authUserId) {
           await this.assertOrganizationMember(authUserId, organizationId);
         }
-        const detailsRaw = await cache.get(CACHE_KEYS11.oauth.external(body.state));
+        const detailsRaw = await cache.get(CACHE_KEYS12.oauth.external(body.state));
         if (detailsRaw) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.external(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.external(body.state));
         }
-        const refreshState = await cache.get(CACHE_KEYS11.oauth.refresh(body.state));
-        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.refresh(body.state));
-        const onboarding = await cache.get(CACHE_KEYS11.oauth.onboarding(body.state));
-        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS11.oauth.onboarding(body.state));
+        const refreshState = await cache.get(CACHE_KEYS12.oauth.refresh(body.state));
+        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.refresh(body.state));
+        const onboarding = await cache.get(CACHE_KEYS12.oauth.onboarding(body.state));
+        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.onboarding(body.state));
         let clientInformation;
         if (detailsRaw && typeof detailsRaw === "string") {
           clientInformation = JSON.parse(detailsRaw);
@@ -17740,7 +20138,7 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         const cache = this.requireCache();
-        const organizationKey = CACHE_KEYS11.oauth.organization(state);
+        const organizationKey = CACHE_KEYS12.oauth.organization(state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError(
@@ -18126,11 +20524,11 @@ function sleepMs6(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
-  return `${CACHE_KEYS12.POSTS_TAGS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS13.POSTS_TAGS_LIST}:${organizationId}`;
 }
 function calendarPostsCacheKey(params) {
   const integrationKey = params.integrationIds != null && params.integrationIds.length > 0 ? [...params.integrationIds].sort().join(",") : "all";
-  return `${CACHE_KEYS12.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+  return `${CACHE_KEYS13.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
 }
 async function invalidatePostsCalendarListCachesForOrganization(organizationId, cacheInvalidator, cache) {
   const pattern = `${POSTS_CALENDAR_LIST_CACHE_PREFIX}:${organizationId}:*`;
@@ -18195,7 +20593,7 @@ function socialPlatformLabelFromProviderIdentifier(integrationManager2, provider
   if (registered?.name) return registered.name;
   return id.split("-").map((w) => w.length > 0 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "").join(" ");
 }
-var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS12, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
+var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS13, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
 var init_PostsService = __esm({
   "services/PostsService.ts"() {
     init_PostDTO();
@@ -18207,7 +20605,7 @@ var init_PostsService = __esm({
     init_dist();
     DEFAULT_TAG_COLOR = "#6366f1";
     POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
-    CACHE_KEYS12 = {
+    CACHE_KEYS13 = {
       POSTS: "posts",
       /** Full key = `${POSTS_GROUP}:${postGroup}` */
       POSTS_GROUP: "posts:group",
@@ -18613,7 +21011,7 @@ var init_PostsService = __esm({
         }
         const organizationId = rows[0].organization_id;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-        const cacheKey = `${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -18632,7 +21030,7 @@ var init_PostsService = __esm({
         if (rows[0].organization_id !== organizationId) {
           throw new AppError("Post group does not belong to that workspace", 400);
         }
-        const cacheKey = `${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -18818,7 +21216,7 @@ var init_PostsService = __esm({
         if (share !== "true") {
           throw new AppError("Forbidden", 403);
         }
-        const cacheKey = `${CACHE_KEYS12.POSTS_PREVIEW}:${postId}`;
+        const cacheKey = `${CACHE_KEYS13.POSTS_PREVIEW}:${postId}`;
         const factory = async () => {
           const row = await this.postsRepository.getPostById(postId);
           if (!row) {
@@ -19495,7 +21893,7 @@ var init_PostsService = __esm({
         if (postIds.length === 0) return;
         const invalidateWithInvalidator = async () => {
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
           }
         };
         if (this.cacheInvalidator) {
@@ -19513,7 +21911,7 @@ var init_PostsService = __esm({
         if (this.cache) {
           try {
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
             }
           } catch (error) {
             logger.error({
@@ -19530,9 +21928,9 @@ var init_PostsService = __esm({
       async _invalidatePostMutationCaches(params) {
         const { organizationId, postGroup, postIds } = params;
         const invalidateWithInvalidator = async () => {
-          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`);
+          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`);
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
           }
           await invalidatePostsCalendarListCachesForOrganization(
             organizationId,
@@ -19540,7 +21938,7 @@ var init_PostsService = __esm({
             void 0
           );
           await this.cacheInvalidator.invalidateKey(tagsListCacheKey(organizationId));
-          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS12.POSTS, postGroup);
+          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS13.POSTS, postGroup);
           logger.debug({
             msg: "Invalidated post mutation caches",
             organizationId,
@@ -19563,9 +21961,9 @@ var init_PostsService = __esm({
         }
         if (this.cache) {
           try {
-            await this.cache.del(`${CACHE_KEYS12.POSTS_GROUP}:${postGroup}`);
+            await this.cache.del(`${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`);
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS12.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
             }
             await invalidatePostsCalendarListCachesForOrganization(organizationId, void 0, this.cache);
             await this.cache.del(tagsListCacheKey(organizationId));
@@ -19756,14 +22154,14 @@ var init_SignatureError = __esm({
 
 // services/SignatureService.ts
 function signaturesListCacheKey(organizationId) {
-  return `${CACHE_KEYS13.SIGNATURE_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS14.SIGNATURE_LIST_BYORGID}:${organizationId}`;
 }
-var CACHE_KEYS13, SIGNATURE_CACHE_TTL_SEC, SignatureService;
+var CACHE_KEYS14, SIGNATURE_CACHE_TTL_SEC, SignatureService;
 var init_SignatureService = __esm({
   "services/SignatureService.ts"() {
     init_SignatureError();
     init_Logger();
-    CACHE_KEYS13 = {
+    CACHE_KEYS14 = {
       SIGNATURE: "signature",
       /** Full key = `${SIGNATURE_LIST_BYORGID}:${organizationId}` */
       SIGNATURE_LIST_BYORGID: "signature:list:byOrgId"
@@ -19886,17 +22284,17 @@ var init_SetError = __esm({
 
 // services/SetsService.ts
 function setsListCacheKey(organizationId) {
-  return `${CACHE_KEYS14.SET_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS15.SET_LIST_BYORGID}:${organizationId}`;
 }
 function setByIdCacheKey(setId) {
-  return `${CACHE_KEYS14.SET_BY_SETID}:${setId}`;
+  return `${CACHE_KEYS15.SET_BY_SETID}:${setId}`;
 }
-var CACHE_KEYS14, SETS_CACHE_TTL_SEC, SetsService;
+var CACHE_KEYS15, SETS_CACHE_TTL_SEC, SetsService;
 var init_SetsService = __esm({
   "services/SetsService.ts"() {
     init_SetError();
     init_Logger();
-    CACHE_KEYS14 = {
+    CACHE_KEYS15 = {
       /** Full key = `${SET_LIST_BYORGID}:${organizationId}` */
       SET_LIST_BYORGID: "sets:list:byOrgId",
       /** Full key = `${SET_BY_SETID}:${setId}` */
@@ -21154,6 +23552,21 @@ var init_SubscriptionGuardService = __esm({
         const viewerTier = owned?.subscription_tier ?? "FREE";
         return planLimitsForTier(viewerTier).community_features;
       }
+      /** Extension hub bookmarks require a paid owned-account tier (SOLO+), not community_features alone. */
+      async assertPaidOwnedAccountForBookmarks(authUserId) {
+        if (!authUserId?.trim()) return;
+        if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+        const owned = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const tier = this.subscriptionService.resolveTier(owned);
+        if (!isPaidSubscriptionTier(tier)) {
+          throw new SubscriptionError(
+            "Extension bookmarks require a paid plan. Upgrade to save extensions from the hub.",
+            SubscriptionSection.COMMUNITY_FEATURES,
+            this.billingUrl()
+          );
+        }
+      }
       async assertTeamInviteCapacity(organizationId, authUserId) {
         if (!this.subscriptionService.billingEnabled()) return;
         if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
@@ -22250,7 +24663,7 @@ var init_TrackService = __esm({
 });
 
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -22264,6 +24677,7 @@ var init_services = __esm({
     init_RbacService();
     init_FeedbackService();
     init_BlogService();
+    init_ListingService();
     init_ConfigService();
     init_integrationManager();
     init_RefreshIntegrationService();
@@ -22294,6 +24708,7 @@ var init_services = __esm({
     init_RbacService();
     init_FeedbackService();
     init_BlogService();
+    init_ListingService();
     init_ConfigService();
     init_IntegrationService();
     init_PlugService();
@@ -22389,6 +24804,16 @@ var init_services = __esm({
       cacheInvalidationServiceConnection,
       configRepository,
       subscriptionGuard
+    );
+    listingService = new ListingService(
+      listingRepository,
+      listingCategoryRepository,
+      listingTagRepository,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection,
+      configRepository,
+      subscriptionGuard,
+      userRepository
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -23009,6 +25434,675 @@ var init_BlogController = __esm({
           res.setHeader("Content-Type", contentType);
           res.setHeader("Cache-Control", "public, max-age=86400");
           res.status(200).send(content);
+        } catch (err) {
+          next(err);
+        }
+      };
+    };
+  }
+});
+
+// controllers/ListingController.ts
+var ListingController;
+var init_ListingController = __esm({
+  "controllers/ListingController.ts"() {
+    init_ListingDTO();
+    init_InfraError();
+    ListingController = class {
+      constructor(listingService2) {
+        this.listingService = listingService2;
+      }
+      getPublishedListings = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const { listingsResult, countResult } = await this.listingService.getPublishedListings({
+            limit: q.limit,
+            skipId: q.skipId,
+            skip: q.skip,
+            searchTerm: q.searchTerm,
+            tagSlugs: q.tagSlugs,
+            categorySlug: q.categorySlug,
+            extensionType: q.extensionType,
+            listingKind: q.listingKind ?? "extension",
+            sortByKey: q.sortByKey,
+            sortByOrder: q.sortByOrder,
+            range: q.range
+          });
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(listingsResult),
+            count: countResult
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getPublishedStacks = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const { listingsResult, countResult } = await this.listingService.getPublishedListings({
+            ...q,
+            listingKind: "stack",
+            extensionType: null
+          });
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(listingsResult),
+            count: countResult
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getPublishedListingBySlug = async (req, res, next) => {
+        try {
+          const { slug } = req.params;
+          const listing = await this.listingService.getPublishedListingBySlug(slug, "extension");
+          if (!listing) {
+            throw new DatabaseEntityNotFoundError("Extension not found", { slug });
+          }
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTO(listing)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getPublishedStackBySlug = async (req, res, next) => {
+        try {
+          const { slug } = req.params;
+          const listing = await this.listingService.getPublishedListingBySlug(slug, "stack");
+          if (!listing) {
+            throw new DatabaseEntityNotFoundError("Stack not found", { slug });
+          }
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTO(listing)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getSkillMarkdown = async (req, res, next) => {
+        try {
+          const { slug } = req.params;
+          const content = await this.listingService.getSkillMarkdown(slug);
+          if (content == null) {
+            throw new DatabaseEntityNotFoundError("Skill markdown not found", { slug });
+          }
+          res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+          res.status(200).send(content);
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminListings = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const { listingsResult, countResult } = await this.listingService.getAdminListings({
+            limit: q.limit,
+            searchTerm: q.searchTerm,
+            listingKind: q.listingKind,
+            sortByKey: q.sortByKey,
+            sortByOrder: q.sortByOrder,
+            range: q.range
+          });
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(listingsResult),
+            count: countResult
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getListingById = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          const listing = await this.listingService.getListingById(id);
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTO(listing)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getListingCreators = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getListingCreators();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getCreatorListings = async (req, res, next) => {
+        try {
+          const { username } = req.params;
+          const listings = await this.listingService.getCreatorListings(username);
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(listings)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      incrementViews = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const { listingId } = req.params;
+          await this.listingService.incrementStatCounter(listingId, "views", authReq.user?.publicId ?? null);
+          res.status(200).json({ success: true, message: "View recorded" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      incrementLikes = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const { listingId } = req.params;
+          await this.listingService.incrementStatCounter(listingId, "likes", authReq.user?.publicId ?? null);
+          res.status(200).json({ success: true, message: "Like recorded" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      incrementClicks = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const { listingId } = req.params;
+          await this.listingService.incrementStatCounter(listingId, "clicks", authReq.user?.publicId ?? null);
+          res.status(200).json({ success: true, message: "Click recorded" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createListing = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
+          const result = await this.listingService.createListing(
+            req.body,
+            userId,
+            isPlatformAdmin
+          );
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Listing created successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateListing = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const actorUserId = authReq.user?.publicId;
+          if (!actorUserId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const isPlatformAdmin = authReq.user?.isPlatformAdmin === true;
+          const id = req.params.id;
+          const body = req.body;
+          body.listingData.id = id;
+          const result = await this.listingService.updateListing(body, actorUserId, isPlatformAdmin);
+          res.status(200).json({
+            success: true,
+            data: result,
+            message: "Listing updated successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteListing = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          await this.listingService.deleteListing(id);
+          res.status(200).json({ success: true, message: "Listing deleted successfully" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      // Categories
+      getActivePartialCategories = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const data = await this.listingService.getActivePartialCategories(q);
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getActiveFullCategories = async (req, res, next) => {
+        try {
+          const q = req.parsedQuery ?? {};
+          const data = await this.listingService.getActiveFullCategories(q);
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllPartialCategories = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getAllPartialCategories();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllFullCategories = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getAllFullCategories();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createCategory = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const result = await this.listingService.createCategory(
+            body.categoryData,
+            body.categoryGroupIds ?? []
+          );
+          res.status(201).json({ success: true, data: result });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateCategory = async (req, res, next) => {
+        try {
+          const { categoryId } = req.params;
+          const body = req.body;
+          body.categoryData.id = categoryId;
+          const result = await this.listingService.updateCategory(
+            body.categoryData,
+            body.categoryGroupIds ?? []
+          );
+          res.status(200).json({ success: true, data: result });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteCategory = async (req, res, next) => {
+        try {
+          const { categoryId } = req.params;
+          await this.listingService.deleteCategory(categoryId);
+          res.status(200).json({ success: true, message: "Category deleted" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllCategoryGroups = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getAllCategoryGroups();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      // Tags
+      getActivePartialTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getActivePartialTags();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getActiveFullTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getActiveFullTags();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllFullTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getAllFullTags();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createTag = async (req, res, next) => {
+        try {
+          const body = req.body;
+          const result = await this.listingService.createTag(body.tagData, body.tagGroupIds ?? []);
+          res.status(201).json({ success: true, data: result });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          const body = req.body;
+          body.tagData.id = tagId;
+          const result = await this.listingService.updateTag(body.tagData, body.tagGroupIds ?? []);
+          res.status(200).json({ success: true, data: result });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          await this.listingService.deleteTag(tagId);
+          res.status(200).json({ success: true, message: "Tag deleted" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllTagGroups = async (_req, res, next) => {
+        try {
+          const data = await this.listingService.getAllTagGroups();
+          res.status(200).json({ success: true, data });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminListingComments = async (req, res, next) => {
+        try {
+          const parsedQuery = req.parsedQuery ?? {};
+          const { commentsResult, countResult } = await this.listingService.getAdminListingComments({
+            limit: parsedQuery.limit,
+            searchTerm: parsedQuery.searchTerm,
+            sortByKey: parsedQuery.sortByKey,
+            sortByOrder: parsedQuery.sortByOrder,
+            range: parsedQuery.range
+          });
+          res.status(200).json({
+            success: true,
+            data: {
+              commentsResult: ListingAdminDTOMapper.toAdminCommentDTOCollection(commentsResult),
+              countResult
+            }
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAdminListingActivities = async (req, res, next) => {
+        try {
+          const parsedQuery = req.parsedQuery ?? {};
+          const { activitiesResult, countResult } = await this.listingService.getAdminListingActivities({
+            limit: parsedQuery.limit,
+            sortByKey: parsedQuery.sortByKey,
+            sortByOrder: parsedQuery.sortByOrder,
+            range: parsedQuery.range,
+            listing_id: parsedQuery.listing_id,
+            activity_type: parsedQuery.activity_type
+          });
+          res.status(200).json({
+            success: true,
+            data: {
+              activitiesResult: ListingAdminDTOMapper.toAdminActivityDTOCollection(activitiesResult),
+              countResult
+            }
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      approveListingComment = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          const result = await this.listingService.approveListingComment(id);
+          res.status(200).json({ success: true, data: result, message: "Comment approved." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getListingComments = async (req, res, next) => {
+        try {
+          const { listingId } = req.params;
+          const comments = await this.listingService.getListingComments(listingId);
+          res.status(200).json({
+            success: true,
+            data: ListingAdminDTOMapper.toPublicCommentDTOCollection(comments)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createListingComment = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const result = await this.listingService.createListingComment(
+            req.body,
+            userId,
+            authReq.user?.id
+          );
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Comment submitted. It may appear after moderation."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      upsertListingRating = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          const { rating } = req.body;
+          const result = await this.listingService.upsertListingRating(
+            id,
+            rating,
+            userId,
+            authReq.user?.id
+          );
+          res.status(200).json({ success: true, data: result, message: "Rating saved." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getUserBookmarks = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const listings = await this.listingService.getUserBookmarks(userId, authReq.user?.id);
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(listings),
+            count: listings.length
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      addBookmark = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          await this.listingService.addBookmark(id, userId, authReq.user?.id);
+          res.status(200).json({ success: true, message: "Extension bookmarked." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      removeBookmark = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          await this.listingService.removeBookmark(id, userId, authReq.user?.id);
+          res.status(200).json({ success: true, message: "Bookmark removed." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteListingComment = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          await this.listingService.deleteListingComment(id);
+          res.status(200).json({ success: true, message: "Comment deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      importFromGithub = async (req, res, next) => {
+        try {
+          const { githubUrl, extensionType } = req.body;
+          const preview = await this.listingService.previewGithubImport(githubUrl, extensionType ?? null);
+          res.status(200).json({ success: true, data: preview });
+        } catch (err) {
+          next(err);
+        }
+      };
+      syncListingFromGithub = async (req, res, next) => {
+        try {
+          const { id } = req.params;
+          const result = await this.listingService.syncListingFromGithub(id);
+          res.status(200).json({ success: true, data: result, message: result.contentChanged ? "Content updated from GitHub." : "Already up to date." });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getOwnedListingStats = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const stats = await this.listingService.getOwnedListingStats(userId);
+          res.status(200).json({
+            success: true,
+            data: stats
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getOwnedListings = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const listingKind = req.query.listing_kind ?? void 0;
+          const { data, count } = await this.listingService.getOwnedListings(userId, listingKind);
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTOCollection(data),
+            count
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getOwnedListingById = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          const listing = await this.listingService.getOwnedListingById(id, userId);
+          res.status(200).json({
+            success: true,
+            data: ListingDTOMapper.toDTO(listing)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createOwnedListing = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const result = await this.listingService.createOwnedListing(
+            req.body,
+            userId,
+            authReq.user?.id
+          );
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Listing created."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateOwnedListing = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          const body = req.body;
+          body.listingData.id = id;
+          const result = await this.listingService.updateOwnedListing(body, userId, authReq.user?.id);
+          res.status(200).json({
+            success: true,
+            data: result,
+            message: "Listing updated."
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteOwnedListing = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const userId = authReq.user?.publicId;
+          if (!userId) {
+            res.status(401).json({ error: "Authentication required" });
+            return;
+          }
+          const { id } = req.params;
+          await this.listingService.deleteOwnedListing(id, userId, authReq.user?.id);
+          res.status(200).json({ success: true, message: "Listing deleted." });
         } catch (err) {
           next(err);
         }
@@ -25082,12 +28176,24 @@ var init_PublicIntegrationController = __esm({
           next(error);
         }
       };
-      /** GET /public/integrations */
+      /** GET /public/integrations?group= */
       listIntegrations = async (req, res, next) => {
         try {
           countPublicApiRequest("integrations");
           const organizationId = req.organization.id;
-          const data = await this.integrationConnectionService.publicListIntegrations(organizationId);
+          const group = typeof req.query.group === "string" && req.query.group.trim().length > 0 ? req.query.group.trim() : void 0;
+          const data = await this.integrationConnectionService.publicListIntegrations(organizationId, group);
+          res.status(200).json(data);
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/groups — channel groups (`integration_customers`) for the workspace */
+      listGroups = async (req, res, next) => {
+        try {
+          countPublicApiRequest("groups");
+          const organizationId = req.organization.id;
+          const data = await this.integrationConnectionService.publicListCustomerGroups(organizationId);
           res.status(200).json(data);
         } catch (error) {
           next(error);
@@ -26446,6 +29552,7 @@ __export(controllers_exports, {
   feedbackController: () => feedbackController,
   imageController: () => imageController,
   integrationController: () => integrationController,
+  listingController: () => listingController,
   mediaController: () => mediaController,
   notificationController: () => notificationController,
   oauthAppController: () => oauthAppController,
@@ -26464,7 +29571,7 @@ __export(controllers_exports, {
   trackController: () => trackController,
   userController: () => userController
 });
-var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
+var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
 var init_controllers = __esm({
   "controllers/index.ts"() {
     init_AuthController();
@@ -26474,6 +29581,7 @@ var init_controllers = __esm({
     init_RbacController();
     init_FeedbackController();
     init_BlogController();
+    init_ListingController();
     init_ImageController();
     init_MediaController();
     init_BillingController();
@@ -26522,6 +29630,7 @@ var init_controllers = __esm({
     rbacController = new RbacController(rbacService, userRepository);
     feedbackController = new FeedbackController(feedbackService);
     blogController = new BlogController(blogService);
+    listingController = new ListingController(listingService);
     imageController = new ImageController(storageSupabaseRepository);
     mediaController = new MediaController(
       mediaService,
@@ -26553,6 +29662,646 @@ var init_controllers = __esm({
     signatureController = new SignatureController(signatureService);
     setsController = new SetsController(setsService);
     analyticsController = new AnalyticsController(analyticsService, integrationConnectionService, postsService);
+  }
+});
+
+// guards/programmatic/resolveProgrammaticAuth.ts
+async function resolveProgrammaticAuth(token, deps) {
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+  const verified = await deps.oauthAppService.verifyProgrammaticToken(trimmed);
+  if (!verified) return null;
+  const { organization } = await deps.organizationRepository.findOrganizationById(verified.organizationId);
+  if (!organization) return null;
+  await deps.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
+    scope: "workspace",
+    organizationId: organization.id,
+    publicUserId: verified.userId
+  });
+  return {
+    organization,
+    oauthApp: { id: verified.oauthAppId, tokenId: verified.tokenId }
+  };
+}
+var init_resolveProgrammaticAuth = __esm({
+  "guards/programmatic/resolveProgrammaticAuth.ts"() {
+    init_dist();
+  }
+});
+
+// mcp/auth.ts
+async function resolveMcpAuth(token, deps) {
+  const resolved = await resolveProgrammaticAuth(token, deps);
+  if (!resolved) return null;
+  return {
+    organizationId: resolved.organization.id,
+    tokenId: resolved.oauthApp.tokenId
+  };
+}
+var init_auth = __esm({
+  "mcp/auth.ts"() {
+    init_resolveProgrammaticAuth();
+  }
+});
+function runWithMcpContext(context, fn) {
+  return mcpContextStorage.run(context, fn);
+}
+function getMcpContext() {
+  const ctx = mcpContextStorage.getStore();
+  if (!ctx) {
+    throw new Error("MCP context is not available for this request");
+  }
+  return ctx;
+}
+var mcpContextStorage;
+var init_context = __esm({
+  "mcp/context.ts"() {
+    mcpContextStorage = new async_hooks.AsyncLocalStorage();
+  }
+});
+
+// mcp/tools/groupList.ts
+function registerGroupListTool(server2, deps) {
+  server2.registerTool(
+    "groupList",
+    {
+      description: "List channel groups (customers) for the authenticated workspace. Use a group id with integrationList to filter channels."
+    },
+    async () => {
+      const { organizationId } = getMcpContext();
+      const groups = await deps.integrationConnectionService.publicListCustomerGroups(organizationId);
+      const output = { groups };
+      return {
+        content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
+        structuredContent: output
+      };
+    }
+  );
+}
+var init_groupList = __esm({
+  "mcp/tools/groupList.ts"() {
+    init_context();
+  }
+});
+function registerIntegrationListTool(server2, deps) {
+  server2.registerTool(
+    "integrationList",
+    {
+      description: "List connected social media channels for the authenticated workspace. Optionally filter by channel group id from groupList.",
+      inputSchema: {
+        group: zod.z.string().optional().describe("Channel group id from groupList; when set, only channels in that group are returned")
+      }
+    },
+    async ({ group }) => {
+      const { organizationId } = getMcpContext();
+      const groupId = group?.trim() || void 0;
+      const channels = await deps.integrationConnectionService.publicListIntegrations(
+        organizationId,
+        groupId
+      );
+      const integrations = channels.map((channel) => ({
+        ...channel,
+        platform: channel.identifier
+      }));
+      const output = { integrations };
+      return {
+        content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
+        structuredContent: output
+      };
+    }
+  );
+}
+var init_integrationList = __esm({
+  "mcp/tools/integrationList.ts"() {
+    init_context();
+  }
+});
+function registerIntegrationSchemaTool(server2, deps) {
+  server2.registerTool(
+    "integrationSchema",
+    {
+      description: "Return posting rules, character limits, compose settings schema, and allow-listed tools for a platform (provider identifier, e.g. threads, facebook).",
+      inputSchema: {
+        platform: zod.z.string().describe("Social provider identifier (e.g. threads, facebook, x)"),
+        isPremium: zod.z.boolean().optional().describe("Whether the workspace has premium; affects maxLength when the provider tiers limits")
+      }
+    },
+    async ({ platform, isPremium }) => {
+      const identifier = platform.trim().toLowerCase();
+      const provider = deps.integrationManager.getSocialIntegration(identifier);
+      if (!provider) {
+        throw new Error(`Unknown platform: ${platform}`);
+      }
+      const output = {
+        rules: deps.integrationManager.getAllRulesDescription()[identifier] ?? "",
+        maxLength: provider.maxLength(isPremium ?? false),
+        settings: provider.settingsSchema ? provider.settingsSchema() : "No additional settings required",
+        tools: deps.integrationManager.getAllTools()[identifier] ?? []
+      };
+      return {
+        content: [{ type: "text", text: JSON.stringify({ output }, null, 2) }],
+        structuredContent: { output }
+      };
+    }
+  );
+}
+var init_integrationSchema = __esm({
+  "mcp/tools/integrationSchema.ts"() {
+  }
+});
+function registerTriggerTool(server2, deps) {
+  server2.registerTool(
+    "triggerTool",
+    {
+      description: "Invoke an allow-listed provider method on a connected channel (same as POST /public/integration-trigger/:id).",
+      inputSchema: {
+        integration: zod.z.string().optional().describe("Connected channel id (alias: integrationId)"),
+        integrationId: zod.z.string().optional().describe("Connected channel id from integrationList"),
+        methodName: zod.z.string().describe("Provider tool method name from integrationSchema"),
+        data: zod.z.record(zod.z.unknown()).optional().describe("Payload passed to the provider method"),
+        dataSchema: zod.z.array(
+          zod.z.object({
+            key: zod.z.string().describe("Parameter name"),
+            value: zod.z.string().describe("Parameter value")
+          })
+        ).optional().describe("Key-value parameters (alternative to data)")
+      }
+    },
+    async ({ integration, integrationId, methodName, data, dataSchema }) => {
+      const channelId = (integration ?? integrationId)?.trim();
+      if (!channelId) {
+        throw new Error("integration or integrationId is required");
+      }
+      let payload = data ?? {};
+      if (dataSchema?.length) {
+        payload = dataSchema.reduce((acc, entry) => {
+          acc[entry.key] = entry.value;
+          return acc;
+        }, {});
+      }
+      const { organizationId } = getMcpContext();
+      const result = await deps.integrationConnectionService.triggerIntegrationTool(
+        organizationId,
+        channelId,
+        methodName,
+        payload
+      );
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        structuredContent: result
+      };
+    }
+  );
+}
+var init_triggerTool = __esm({
+  "mcp/tools/triggerTool.ts"() {
+    init_context();
+  }
+});
+
+// mcp/media/uploadProgrammaticMediaFromUrl.ts
+function isAllowedMediaMime2(mimetype) {
+  const m = mimetype.toLowerCase();
+  return m.startsWith("image/") || m.startsWith("video/") || m === "application/pdf" || m.startsWith("audio/");
+}
+async function uploadProgrammaticMediaFromUrl(organizationId, url, deps) {
+  const trimmed = url.trim();
+  if (!trimmed) {
+    throw new UserValidationError("url is required");
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new UserValidationError("Only http(s) URLs are supported");
+    }
+  } catch (err) {
+    if (err instanceof UserValidationError) throw err;
+    throw new UserValidationError("Invalid URL");
+  }
+  const response = await fetch(trimmed);
+  if (!response.ok) {
+    throw new UserValidationError(`Failed to fetch URL (${response.status})`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const headerType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+  const pathPart = trimmed.split("?")[0] ?? "";
+  const ext = pathPart.includes(".") ? pathPart.split(".").pop().toLowerCase() : "";
+  const extToMime = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    webp: "image/webp",
+    mp4: "video/mp4",
+    mov: "video/quicktime",
+    webm: "video/webm",
+    pdf: "application/pdf"
+  };
+  const rawMime = (headerType || extToMime[ext] || "image/jpeg").toLowerCase();
+  const finalExt = ext || (rawMime === "image/jpeg" ? "jpg" : rawMime.startsWith("image/") || rawMime.startsWith("video/") ? rawMime.split("/")[1] : "bin");
+  const originalname = `upload.${finalExt}`;
+  const mimetype = inferMediaMimeType(originalname, rawMime);
+  if (!isAllowedMediaMime2(mimetype)) {
+    throw new UserValidationError("Unsupported media type");
+  }
+  const uploadSizeError = validateMediaFileUploadSize(buffer.length, mimetype);
+  if (uploadSizeError) {
+    throw new UserValidationError(uploadSizeError);
+  }
+  await deps.subscriptionService.assertMediaStorageAvailable(organizationId, buffer.length, void 0);
+  const out = await deps.uploadProvider.uploadFile({
+    organizationId,
+    buffer,
+    originalName: originalname,
+    contentType: mimetype
+  });
+  const saved = await deps.mediaService.saveFile({
+    organizationId,
+    name: out.path.split("/").pop() ?? out.path,
+    path: out.path,
+    originalName: originalname,
+    fileSize: buffer.length,
+    type: mimetype.startsWith("video/") ? "video" : "image"
+  });
+  void publicUrlForObjectKey(out.path);
+  return { id: saved.id, path: saved.path };
+}
+var init_uploadProgrammaticMediaFromUrl = __esm({
+  "mcp/media/uploadProgrammaticMediaFromUrl.ts"() {
+    init_MediaRepository();
+    init_UserError();
+    init_dist();
+  }
+});
+
+// mcp/tools/schedulePostTool.adapter.ts
+function isThreadStyleProvider(providerIdentifier) {
+  return THREAD_STYLE_PROVIDERS.has(providerIdentifier.trim().toLowerCase());
+}
+function mapSchedulePostType(type, date) {
+  if (type === "draft") {
+    return { status: "draft", scheduledAtIso: (/* @__PURE__ */ new Date()).toISOString() };
+  }
+  if (type === "now") {
+    return { status: "scheduled", scheduledAtIso: (/* @__PURE__ */ new Date()).toISOString() };
+  }
+  const scheduledAtIso = (date ?? "").trim();
+  if (!scheduledAtIso) {
+    throw new Error("`date` is required when type is `schedule`");
+  }
+  const parsed = new Date(scheduledAtIso);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("Invalid `date` for scheduled post");
+  }
+  return { status: "scheduled", scheduledAtIso: parsed.toISOString() };
+}
+function mapPostsAndCommentsForIntegration(params) {
+  const texts = params.postsAndComments.map((s) => String(s ?? "").trim()).filter(Boolean);
+  if (texts.length === 0) {
+    return { body: "", providerSettings: {} };
+  }
+  const providerId = params.providerIdentifier.trim().toLowerCase();
+  const [first, ...rest] = texts;
+  const body = first ?? "";
+  if (rest.length === 0) {
+    return { body, providerSettings: {} };
+  }
+  const bucket = replyChainBucketForProvider(providerId);
+  const replies = rest.map((message) => ({
+    id: makeId(12),
+    message,
+    delaySeconds: 0
+  }));
+  if (isThreadStyleProvider(providerId)) {
+    return {
+      body,
+      providerSettings: {
+        [bucket]: { replies }
+      }
+    };
+  }
+  return {
+    body,
+    providerSettings: {
+      [bucket]: { replies }
+    }
+  };
+}
+function mergeProviderSettings(base, fromComments) {
+  const out = { ...base ?? {} };
+  for (const [key, value] of Object.entries(fromComments)) {
+    const existing = out[key];
+    if (existing && typeof existing === "object" && !Array.isArray(existing) && typeof value === "object" && value) {
+      out[key] = { ...existing, ...value };
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+function mapSchedulePostToolInput(params) {
+  const { type, date, socialPost } = params.input;
+  if (!Array.isArray(socialPost) || socialPost.length === 0) {
+    throw new Error("At least one socialPost entry is required");
+  }
+  const { status, scheduledAtIso } = mapSchedulePostType(type, date);
+  const integrationIds = [];
+  const bodiesByIntegrationId = {};
+  const providerSettingsByIntegrationId = {};
+  const integrationIdentifiers = {};
+  const media = [];
+  for (const entry of socialPost) {
+    const integrationId = String(entry.integration ?? "").trim();
+    if (!integrationId) {
+      throw new Error("Each socialPost entry requires `integration` (channel id)");
+    }
+    const providerIdentifier = params.integrationProviderById[integrationId];
+    if (!providerIdentifier) {
+      throw new Error(`Unknown integration id: ${integrationId}`);
+    }
+    integrationIds.push(integrationId);
+    integrationIdentifiers[integrationId] = providerIdentifier;
+    const mapped = mapPostsAndCommentsForIntegration({
+      postsAndComments: entry.postsAndComments ?? [],
+      providerIdentifier
+    });
+    bodiesByIntegrationId[integrationId] = mapped.body;
+    providerSettingsByIntegrationId[integrationId] = mergeProviderSettings(entry.settings, mapped.providerSettings);
+    const attachments = params.mediaByIntegrationId[integrationId] ?? [];
+    for (const item of attachments) {
+      media.push(item);
+    }
+    if (entry.attachments?.length && attachments.length === 0) {
+      throw new Error(`Attachments for integration ${integrationId} were not uploaded`);
+    }
+  }
+  const uniqueIntegrationIds = [...new Set(integrationIds)];
+  const primaryBody = bodiesByIntegrationId[uniqueIntegrationIds[0]] ?? "";
+  return {
+    integrationIdentifiers,
+    createInput: {
+      body: primaryBody,
+      bodiesByIntegrationId,
+      providerSettingsByIntegrationId,
+      media: media.length > 0 ? media : null,
+      integrationIds: uniqueIntegrationIds,
+      isGlobal: uniqueIntegrationIds.length > 1,
+      scheduledAtIso,
+      repeatInterval: null,
+      tagNames: [],
+      status,
+      isAgent: true
+    }
+  };
+}
+function formatSchedulePostToolOutput(posts, integrationIdentifiers) {
+  return {
+    output: posts.map((post) => ({
+      postId: post.id,
+      integration: post.integration_id ? integrationIdentifiers[post.integration_id] ?? post.integration_id : ""
+    }))
+  };
+}
+var THREAD_STYLE_PROVIDERS;
+var init_schedulePostTool_adapter = __esm({
+  "mcp/tools/schedulePostTool.adapter.ts"() {
+    init_PostDTO();
+    init_makeId();
+    THREAD_STYLE_PROVIDERS = /* @__PURE__ */ new Set(["threads", "x"]);
+  }
+});
+function registerSchedulePostTool(server2, deps) {
+  server2.registerTool(
+    "schedulePostTool",
+    {
+      description: "Create or schedule social posts across connected channels. Supports draft, schedule, and publish-now modes.",
+      inputSchema: {
+        type: zod.z.enum(["draft", "schedule", "now"]).describe("draft | schedule | now"),
+        date: zod.z.string().optional().describe("ISO-8601 time when type is schedule"),
+        socialPost: zod.z.array(socialPostSchema).min(1).describe("Per-channel post payloads")
+      }
+    },
+    async (input) => {
+      const { organizationId } = getMcpContext();
+      const scheduleInput = input;
+      const integrations = await deps.integrationConnectionService.publicListIntegrations(organizationId);
+      const integrationProviderById = {};
+      for (const row of integrations) {
+        integrationProviderById[row.id] = row.identifier;
+      }
+      const mediaByIntegrationId = {};
+      for (const entry of scheduleInput.socialPost) {
+        const integrationId = String(entry.integration ?? "").trim();
+        const urls = entry.attachments ?? [];
+        if (urls.length === 0) continue;
+        const uploaded = [];
+        for (const url of urls) {
+          const saved = await uploadProgrammaticMediaFromUrl(organizationId, url, deps.mediaUploadDeps);
+          uploaded.push(saved);
+        }
+        mediaByIntegrationId[integrationId] = uploaded;
+      }
+      const mapped = mapSchedulePostToolInput({
+        input: scheduleInput,
+        integrationProviderById,
+        mediaByIntegrationId
+      });
+      const result = await deps.postsService.createPostProgrammatic({
+        organizationId,
+        ...mapped.createInput
+      });
+      const output = formatSchedulePostToolOutput(result.posts, mapped.integrationIdentifiers);
+      return {
+        content: [{ type: "text", text: JSON.stringify(output, null, 2) }],
+        structuredContent: output
+      };
+    }
+  );
+}
+var socialPostSchema;
+var init_schedulePostTool = __esm({
+  "mcp/tools/schedulePostTool.ts"() {
+    init_uploadProgrammaticMediaFromUrl();
+    init_context();
+    init_schedulePostTool_adapter();
+    socialPostSchema = zod.z.object({
+      integration: zod.z.string(),
+      postsAndComments: zod.z.array(zod.z.string()).optional(),
+      settings: zod.z.record(zod.z.unknown()).optional(),
+      attachments: zod.z.array(zod.z.string()).optional()
+    });
+  }
+});
+function createMcpServer(deps) {
+  const server2 = new mcp_js.McpServer(
+    { name: "openquok", version: "1.0.0" },
+    {
+      instructions: "OpenQuok MCP tools schedule and manage social posts for the authenticated workspace. Call groupList when channels are grouped, integrationList to discover connected channels, integrationSchema for platform rules, then schedulePostTool to draft or schedule content."
+    }
+  );
+  registerGroupListTool(server2, deps);
+  registerIntegrationListTool(server2, deps);
+  registerIntegrationSchemaTool(server2, deps);
+  registerTriggerTool(server2, deps);
+  registerSchedulePostTool(server2, deps);
+  return server2;
+}
+var init_createMcpServer = __esm({
+  "mcp/createMcpServer.ts"() {
+    init_groupList();
+    init_integrationList();
+    init_integrationSchema();
+    init_triggerTool();
+    init_schedulePostTool();
+  }
+});
+
+// mcp/startMcp.ts
+var startMcp_exports = {};
+__export(startMcp_exports, {
+  mountMcpRoutes: () => mountMcpRoutes
+});
+function parseBearerToken2(req) {
+  const raw = req.headers.authorization ?? req.headers.Authorization;
+  if (!raw?.trim()) return null;
+  return raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
+}
+function mcpAuthFromHeader(req, res, next) {
+  const token = parseBearerToken2(req);
+  if (!token) {
+    res.status(401).json({ msg: "No API key provided" });
+    return;
+  }
+  void resolveMcpAuth(token, mcpAuthDeps).then((ctx) => {
+    if (!ctx) {
+      res.status(401).json({ msg: "Invalid API key" });
+      return;
+    }
+    req.mcpAuth = ctx;
+    next();
+  }).catch(next);
+}
+function mcpAuthFromPath(req, res, next) {
+  const token = typeof req.params.token === "string" ? req.params.token.trim() : "";
+  if (!token) {
+    res.status(401).json({ msg: "No API key provided" });
+    return;
+  }
+  void resolveMcpAuth(token, mcpAuthDeps).then((ctx) => {
+    if (!ctx) {
+      res.status(401).json({ msg: "Invalid API key" });
+      return;
+    }
+    req.mcpAuth = ctx;
+    next();
+  }).catch(next);
+}
+async function handleMcpRequest(req, res) {
+  const auth10 = req.mcpAuth;
+  if (!auth10) {
+    res.status(401).json({ msg: "Unauthorized" });
+    return;
+  }
+  const server2 = createMcpServer(mcpServerDeps);
+  const transport = new streamableHttp_js.StreamableHTTPServerTransport({
+    sessionIdGenerator: void 0
+  });
+  await server2.connect(transport);
+  res.on("close", () => {
+    void transport.close();
+    void server2.close();
+  });
+  await runWithMcpContext(
+    { organizationId: auth10.organizationId, tokenId: auth10.tokenId },
+    () => transport.handleRequest(req, res, req.body)
+  );
+}
+async function mcpHandler(req, res, next) {
+  try {
+    await handleMcpRequest(req, res);
+  } catch (error) {
+    logger.error({
+      msg: "[MCP] Request failed",
+      error: error instanceof Error ? error.message : String(error)
+    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Internal server error" },
+        id: null
+      });
+    } else {
+      next(error);
+    }
+  }
+}
+function mountMcpRoutes(app2) {
+  const mcpCfg = config.mcp;
+  if (mcpCfg?.enabled === false) {
+    logger.info({ msg: "[MCP] Disabled via MCP_ENABLED=false" });
+    return;
+  }
+  const stack = [mcpCors, fixAcceptHeader];
+  app2.options("/mcp", ...stack);
+  app2.options("/mcp/:token", ...stack);
+  app2.get("/mcp", ...stack, mcpAuthFromHeader, mcpHandler);
+  app2.post("/mcp", ...stack, mcpAuthFromHeader, mcpHandler);
+  app2.get("/mcp/:token", ...stack, mcpAuthFromPath, mcpHandler);
+  app2.post("/mcp/:token", ...stack, mcpAuthFromPath, mcpHandler);
+  logger.info({ msg: "[MCP] Mounted at /mcp and /mcp/:token" });
+}
+var mcpAuthDeps, mcpServerDeps, fixAcceptHeader, mcpCors;
+var init_startMcp = __esm({
+  "mcp/startMcp.ts"() {
+    init_GlobalConfig();
+    init_repositories();
+    init_services();
+    init_upload_factory();
+    init_repositories();
+    init_auth();
+    init_createMcpServer();
+    init_context();
+    init_Logger();
+    mcpAuthDeps = {
+      oauthAppService,
+      organizationRepository,
+      subscriptionGuard
+    };
+    mcpServerDeps = {
+      integrationConnectionService,
+      integrationManager,
+      postsService,
+      mediaUploadDeps: {
+        mediaService,
+        subscriptionService,
+        uploadProvider: UploadFactory.createStorage(storageR2Repository)
+      }
+    };
+    fixAcceptHeader = (req, _res, next) => {
+      const accept = req.headers.accept;
+      if (!accept || !accept.includes("text/event-stream") && !accept.includes("application/json")) {
+        req.headers.accept = accept ? `${accept}, application/json, text/event-stream` : "application/json, text/event-stream";
+      } else if (!accept.includes("text/event-stream")) {
+        req.headers.accept = `${accept}, text/event-stream`;
+      } else if (!accept.includes("application/json")) {
+        req.headers.accept = `${accept}, application/json`;
+      }
+      next();
+    };
+    mcpCors = (req, res, next) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, Accept, mcp-session-id, Mcp-Session-Id"
+      );
+      if (req.method === "OPTIONS") {
+        res.status(204).end();
+        return;
+      }
+      next();
+    };
   }
 });
 
@@ -26706,6 +30455,7 @@ var trackEventBodySchema = zod.z.object({
 var validateTrackEventRequest = validateRequest({
   body: trackEventBodySchema
 });
+init_usernameSchema();
 var passwordRequirements2 = zod.z.string().min(8, { message: "Password must be at least 8 characters long." }).max(72, { message: "Password must be at most 72 characters long." }).trim();
 var updatePasswordBodySchema = zod.z.object({
   password: passwordRequirements2
@@ -26716,17 +30466,24 @@ var optionalWebsiteUrl = zod.z.union([zod.z.string().max(2048).trim(), zod.z.nul
 );
 var updateProfileBodySchema = zod.z.object({
   fullName: zod.z.string().min(1, { message: "Full name is required." }).max(256, { message: "Full name must be at most 256 characters." }).trim().optional(),
+  username: usernameSchema.optional(),
   avatarUrl: zod.z.union([zod.z.string(), zod.z.null()]).optional(),
   websiteUrl: optionalWebsiteUrl
 }).refine(
-  (data) => data.fullName !== void 0 || data.avatarUrl !== void 0 || data.websiteUrl !== void 0,
-  { message: "At least one of fullName, avatarUrl, or websiteUrl is required." }
+  (data) => data.fullName !== void 0 || data.username !== void 0 || data.avatarUrl !== void 0 || data.websiteUrl !== void 0,
+  { message: "At least one of fullName, username, avatarUrl, or websiteUrl is required." }
 );
 var getMeQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional()
 });
+var getUsernameAvailabilityQuerySchema = zod.z.object({
+  username: usernameSchema
+});
 var validateGetMeRequest = validateRequest({
   query: getMeQuerySchema
+});
+var validateGetUsernameAvailabilityRequest = validateRequest({
+  query: getUsernameAvailabilityQuerySchema
 });
 var validateUpdateProfileRequest = validateRequest({
   body: updateProfileBodySchema
@@ -26998,6 +30755,11 @@ init_Logger();
 function requireFullAuth(supabase2) {
   return async (req, _res, next) => {
     try {
+      const authenticatedReq = req;
+      if (authenticatedReq.user?.id) {
+        next();
+        return;
+      }
       const accessToken2 = parseBearerToken(req);
       if (!supabase2) {
         logger.error({ msg: "Supabase client was not provided to requireFullAuth" });
@@ -27027,23 +30789,36 @@ function requireFullAuth(supabase2) {
 function requireFullAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
   return async (req, _res, next) => {
     try {
-      const accessToken2 = parseBearerToken(req);
-      if (!supabase2) {
-        logger.error({ msg: "Supabase client was not provided to requireFullAuthWithRoles" });
-        throw new AuthError("Authentication configuration error", 500);
+      const authenticatedReq = req;
+      if (authenticatedReq.user?.id && authenticatedReq.user.publicId && authenticatedReq.user.roles !== void 0) {
+        next();
+        return;
       }
-      const { data, error } = await supabase2.auth.getUser(accessToken2);
-      if (error) {
-        logger.debug({ msg: "Token verification failed", error: error.message });
-        if (error.message?.includes("expired") || error.code === "PGRST301") {
-          throw new TokenError("Token expired", true);
+      let authId;
+      let email;
+      if (authenticatedReq.user?.id) {
+        authId = authenticatedReq.user.id;
+        email = authenticatedReq.user.email;
+      } else {
+        const accessToken2 = parseBearerToken(req);
+        if (!supabase2) {
+          logger.error({ msg: "Supabase client was not provided to requireFullAuthWithRoles" });
+          throw new AuthError("Authentication configuration error", 500);
         }
-        throw new TokenError(`Invalid token: ${error.message}`);
+        const { data, error } = await supabase2.auth.getUser(accessToken2);
+        if (error) {
+          logger.debug({ msg: "Token verification failed", error: error.message });
+          if (error.message?.includes("expired") || error.code === "PGRST301") {
+            throw new TokenError("Token expired", true);
+          }
+          throw new TokenError(`Invalid token: ${error.message}`);
+        }
+        if (!data?.user) {
+          throw new TokenError("Invalid token: no user data returned");
+        }
+        authId = data.user.id;
+        email = data.user.email ?? void 0;
       }
-      if (!data?.user) {
-        throw new TokenError("Invalid token: no user data returned");
-      }
-      const authId = data.user.id;
       const { userId: publicId, error: resolveError } = await userRepository2.findUserIdByAuthId(authId);
       if (resolveError || !publicId) {
         throw new TokenError("User profile not found");
@@ -27056,7 +30831,7 @@ function requireFullAuthWithRoles(supabase2, userRepository2, rbacRepository2) {
       req.user = {
         id: authId,
         publicId,
-        email: data.user.email ?? void 0,
+        email,
         roles: rolesResult.roles,
         permissions: permissionsResult.permissions,
         isPlatformAdmin
@@ -27189,7 +30964,7 @@ function authorizeResource(options2) {
 }
 
 // guards/programmatic/programmaticAuth.ts
-init_dist();
+init_resolveProgrammaticAuth();
 function parseRawToken(req) {
   const raw = req.headers.authorization ?? req.headers.Authorization;
   if (!raw?.trim()) return null;
@@ -27204,25 +30979,13 @@ function requireProgrammaticAuth(params) {
       return;
     }
     try {
-      const verified = await params.oauthAppService.verifyProgrammaticToken(token);
-      if (!verified) {
+      const resolved = await resolveProgrammaticAuth(token, params);
+      if (!resolved) {
         res.status(401).json({ msg: "Invalid API key" });
         return;
       }
-      const { organization } = await params.organizationRepository.findOrganizationById(
-        verified.organizationId
-      );
-      if (!organization) {
-        res.status(401).json({ msg: "Invalid API key" });
-        return;
-      }
-      await params.subscriptionGuard.assert(SubscriptionSection.PUBLIC_API, {
-        scope: "workspace",
-        organizationId: organization.id,
-        publicUserId: verified.userId
-      });
-      req.organization = organization;
-      req.oauthApp = { id: verified.oauthAppId, tokenId: verified.tokenId };
+      req.organization = resolved.organization;
+      req.oauthApp = resolved.oauthApp;
       next();
     } catch (err) {
       next(err);
@@ -27241,6 +31004,12 @@ var authWithRoles = requireFullAuthWithRoles(
 );
 var requireManageRoles = requirePermission("users.manage_roles");
 userRouter.get("/me", authWithRoles, validateGetMeRequest, userController.getProfile);
+userRouter.get(
+  "/me/username-available",
+  authWithRoles,
+  validateGetUsernameAvailabilityRequest,
+  userController.getUsernameAvailability
+);
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
@@ -27423,6 +31192,56 @@ function createNotificationPaginatedQueryParser() {
     page: notificationPageParser
   });
 }
+var publishedListingsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.skip,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range,
+  {
+    tagSlugs: stringArray,
+    categorySlug: QueryParsers.string,
+    extensionType: QueryParsers.string,
+    listingKind: QueryParsers.string
+  }
+);
+function createPublishedListingsParser() {
+  return createQueryParser(publishedListingsRules);
+}
+var adminListingsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range,
+  { listingKind: QueryParsers.string }
+);
+function createAdminListingsParser() {
+  return createQueryParser(adminListingsRules);
+}
+function createCategoriesPaginationParser() {
+  return createQueryParser({
+    limit: QueryParsers.number,
+    offset: QueryParsers.number
+  });
+}
+var adminListingCommentsRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.search,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range
+);
+function createAdminListingCommentsParser() {
+  return createQueryParser(adminListingCommentsRules);
+}
+var adminListingActivitiesRules = combineParsers(
+  CommonQueryParsers.pagination,
+  CommonQueryParsers.sorting,
+  CommonQueryParsers.range,
+  { listing_id: QueryParsers.string, activity_type: QueryParsers.string }
+);
+function createAdminListingActivitiesParser() {
+  return createQueryParser(adminListingActivitiesRules);
+}
 
 // routes/AdminRoute.ts
 init_connections();
@@ -27549,6 +31368,84 @@ var CUSTOM_CHANGEFREQ = {
   "/blog": "daily"
 };
 var MANIFEST_EXCLUDED = /* @__PURE__ */ new Set(["sitemap.xml", "robots.txt", "api", "favicon.ico"]);
+var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
+var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+function readCatalogDirFiles(dirPath) {
+  if (!fs2__default.default.existsSync(dirPath)) return [];
+  const skip = /* @__PURE__ */ new Set(["index.ts", "types.ts", "shared.ts", "hub.ts", "builders.ts"]);
+  return fs2__default.default.readdirSync(dirPath, { withFileTypes: true }).filter((entry) => entry.isFile() && entry.name.endsWith(".ts") && !skip.has(entry.name)).map((entry) => fs2__default.default.readFileSync(path3__default.default.join(dirPath, entry.name), "utf-8"));
+}
+function extractMcpSeedSlugs(content) {
+  const slugs = [];
+  const slugRegex = /slug:\s*['"]([^'"]+)['"]/g;
+  for (const match of content.matchAll(slugRegex)) {
+    if (match[1]) slugs.push(match[1]);
+  }
+  return slugs;
+}
+function extractAvailableSlugs(content, regex) {
+  const slugs = [];
+  for (const match of content.matchAll(regex)) {
+    const slug = match[1];
+    const available = match[2];
+    if (slug && available === "true") {
+      slugs.push(slug);
+    }
+  }
+  return slugs;
+}
+function extractPublicCatalogSlugsFromDir(constantsDir) {
+  const agentFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "agents"));
+  const channelFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "channels"));
+  const mcpFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "mcps"));
+  const agentHosts = agentFiles.flatMap(
+    (content) => extractAvailableSlugs(content, AGENT_HOST_PAGE_REGEX)
+  );
+  const mcpClients = mcpFiles.flatMap((content) => extractMcpSeedSlugs(content));
+  const channels = channelFiles.flatMap(
+    (content) => extractAvailableSlugs(content, CHANNEL_PAGE_REGEX)
+  );
+  return {
+    agents: [.../* @__PURE__ */ new Set([...agentHosts, ...mcpClients])],
+    channels: [...new Set(channels)]
+  };
+}
+function extractPublicCatalogSlugsFromFiles(options2) {
+  const constantsDir = path3__default.default.dirname(options2.channelConfigPath);
+  return extractPublicCatalogSlugsFromDir(constantsDir);
+}
+function resolveWebConstantsDir(routesPath) {
+  const candidates = [
+    routesPath ? path3__default.default.join(routesPath, "../lib/content/constants") : null,
+    path3__default.default.join(process.cwd(), "../web/src/lib/content/constants"),
+    path3__default.default.join(process.cwd(), "web/src/lib/content/constants")
+  ].filter((candidate) => Boolean(candidate));
+  for (const dir of candidates) {
+    if (fs2__default.default.existsSync(path3__default.default.join(dir, "publicChannelConfig.ts"))) {
+      return dir;
+    }
+  }
+  return void 0;
+}
+function loadPublicCatalogSlugs(routesPath) {
+  const constantsDir = resolveWebConstantsDir(routesPath);
+  if (!constantsDir) return null;
+  try {
+    return extractPublicCatalogSlugsFromFiles({
+      agentConfigPath: path3__default.default.join(constantsDir, "publicAgentConfig.ts"),
+      mcpConfigPath: path3__default.default.join(constantsDir, "publicMcpConfig.ts"),
+      channelConfigPath: path3__default.default.join(constantsDir, "publicChannelConfig.ts")
+    });
+  } catch {
+    return null;
+  }
+}
+function publicCatalogSlugsToSitemapPaths(catalog) {
+  return {
+    agents: catalog.agents.map((slug) => `/agents/${encodeURIComponent(slug)}`),
+    channels: catalog.channels.map((slug) => `/channels/${encodeURIComponent(slug)}`)
+  };
+}
 function readFolderStructure(dirPath, previousFolder = "") {
   const urls = [];
   const disabledIncludes = ["(protected)", "(auth)", "not-found"];
@@ -27561,7 +31458,7 @@ function readFolderStructure(dirPath, previousFolder = "") {
       if (disabledIncludes.some((d) => dirName.includes(d)) || disabledStartsWith.some((d) => dirName.startsWith(d)) || MANIFEST_EXCLUDED.has(dirName)) {
         continue;
       }
-      const fullPath = path__default.default.join(dirPath, dirName);
+      const fullPath = path3__default.default.join(dirPath, dirName);
       const isRouteGroup = dirName.match(/^\(.*\)$/);
       if (!isRouteGroup) {
         const urlPath = previousFolder === "" ? `/${dirName}` : `/${previousFolder}/${dirName}`;
@@ -27619,6 +31516,7 @@ function dedupeByUrl(urls) {
   return [...seen.values()];
 }
 var POST_PAGE_SIZE = 1e3;
+var LISTING_PAGE_SIZE = 1e3;
 async function fetchPublishedPostSlugs(supabase2) {
   const rows = [];
   let from = 0;
@@ -27642,6 +31540,58 @@ async function fetchPublishedPostSlugs(supabase2) {
     from += POST_PAGE_SIZE;
   }
   return rows;
+}
+async function fetchPublishedListingSlugs(supabase2, listingKind) {
+  const rows = [];
+  let from = 0;
+  for (; ; ) {
+    const { data, error } = await supabase2.from("listings").select("slug, updated_at, owner:users!owner_id(username)").match({
+      is_user_published: true,
+      is_admin_published: true,
+      listing_kind: listingKind
+    }).order("published_at", { ascending: false }).range(from, from + LISTING_PAGE_SIZE - 1);
+    if (error) {
+      logger.error({
+        msg: "Error fetching listings for sitemap",
+        listingKind,
+        error: error.message,
+        code: error.code
+      });
+      break;
+    }
+    const batch = data ?? [];
+    for (const row of batch) {
+      if (row.slug) {
+        const ownerRaw = row.owner;
+        const owner = Array.isArray(ownerRaw) ? ownerRaw[0] : ownerRaw;
+        rows.push({
+          slug: row.slug,
+          owner_username: owner?.username?.trim() || null,
+          updated_at: row.updated_at ?? null
+        });
+      }
+    }
+    if (batch.length < LISTING_PAGE_SIZE) break;
+    from += LISTING_PAGE_SIZE;
+  }
+  return rows;
+}
+async function fetchListingCreatorUsernames(supabase2) {
+  const { data, error } = await supabase2.rpc("get_listing_creators");
+  if (error) {
+    logger.error({
+      msg: "Error fetching listing creators for sitemap",
+      error: error.message,
+      code: error.code
+    });
+    return [];
+  }
+  const usernames = [];
+  for (const row of data ?? []) {
+    const username = row.username?.trim();
+    if (username) usernames.push(username);
+  }
+  return usernames;
 }
 async function generateSitemapUrls(options2) {
   const { supabaseClient, routesPath, routesManifestPath } = options2;
@@ -27732,6 +31682,72 @@ async function generateSitemapUrls(options2) {
   } catch (error) {
     logger.error({
       msg: "Error processing blog authors for sitemap",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+  try {
+    const catalog = loadPublicCatalogSlugs(routesPath);
+    if (catalog) {
+      const { agents, channels } = publicCatalogSlugsToSitemapPaths(catalog);
+      const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+      for (const agentUrl of agents) {
+        urls.push({ url: agentUrl, lastMod: today, changeFreq: "monthly" });
+      }
+      for (const channelUrl of channels) {
+        urls.push({ url: channelUrl, lastMod: today, changeFreq: "monthly" });
+      }
+      logger.info({
+        msg: "Added public catalog URLs to sitemap",
+        agentCount: agents.length,
+        channelCount: channels.length
+      });
+    } else {
+      logger.warn({ msg: "Public catalog config not found for sitemap", routesPath });
+    }
+  } catch (error) {
+    logger.error({
+      msg: "Error processing public catalog for sitemap",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+  try {
+    const [buildingBlocks, playbooks, creatorUsernames] = await Promise.all([
+      fetchPublishedListingSlugs(supabaseClient, "extension"),
+      fetchPublishedListingSlugs(supabaseClient, "stack"),
+      fetchListingCreatorUsernames(supabaseClient)
+    ]);
+    for (const listing of buildingBlocks) {
+      if (!listing.owner_username) continue;
+      urls.push({
+        url: `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`,
+        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        changeFreq: "weekly"
+      });
+    }
+    for (const listing of playbooks) {
+      if (!listing.owner_username) continue;
+      urls.push({
+        url: `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`,
+        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        changeFreq: "weekly"
+      });
+    }
+    for (const username of creatorUsernames) {
+      urls.push({
+        url: `/creators/${encodeURIComponent(username)}`,
+        lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        changeFreq: "monthly"
+      });
+    }
+    logger.info({
+      msg: "Added listing catalog URLs to sitemap",
+      buildingBlockCount: buildingBlocks.length,
+      playbookCount: playbooks.length,
+      creatorCount: creatorUsernames.length
+    });
+  } catch (error) {
+    logger.error({
+      msg: "Error processing listing catalog for sitemap",
       error: error instanceof Error ? error.message : String(error)
     });
   }
@@ -28035,9 +32051,6 @@ var blogPostUpdateSchema = zod.z.object(blogPostFields);
 var blogPostIdParamSchema = zod.z.object({
   id: zod.z.string().uuid("Invalid post id")
 });
-zod.z.object({
-  slug: zod.z.string().min(1, "Slug is required")
-});
 var blogPostIdentifierParamSchema = zod.z.object({
   identifier: zod.z.string().min(1, "Identifier is required")
 });
@@ -28229,6 +32242,559 @@ blogRouter.delete(
   blogController.deleteBlogComment
 );
 
+// routes/ListingRoute.ts
+init_controllers();
+init_connections();
+init_repositories();
+var extensionTypeSchema = zod.z.enum(["skills", "mcp", "both"], {
+  message: "Extension type is required."
+});
+var listingKindSchema = zod.z.enum(["extension", "stack"]);
+var listingSchemaTypeSchema = zod.z.enum(
+  ["SoftwareApplication", "CreativeWork", "Organization", "Person", "Thing"],
+  { message: "Schema type is required." }
+);
+var clickUrlFieldSchema = zod.z.string().optional().nullable().refine(
+  (value) => {
+    if (value === "" || value == null) return true;
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: "Click URL must be a valid URL" }
+);
+var faqItemSchema = zod.z.object({
+  question: zod.z.string().min(1, "Question is required"),
+  answer: zod.z.string().min(1, "Answer is required")
+});
+var mcpToolSchema = zod.z.object({
+  name: zod.z.string().min(1),
+  description: zod.z.string()
+});
+var skillCommandSchema = zod.z.object({
+  name: zod.z.string().min(1),
+  description: zod.z.string(),
+  kind: zod.z.enum(["cli", "mcp"]).optional(),
+  command_template: zod.z.string().optional(),
+  example_prompt: zod.z.string().optional(),
+  example_payload: zod.z.record(zod.z.unknown()).optional()
+});
+var stackBlueprintWorkflowStepSchema = zod.z.discriminatedUnion("type", [
+  zod.z.object({
+    type: zod.z.literal("command"),
+    listing_slug: zod.z.string().optional(),
+    command_name: zod.z.string().optional(),
+    title: zod.z.string().optional(),
+    prompt: zod.z.string().optional(),
+    command_template: zod.z.string().optional(),
+    example_payload: zod.z.record(zod.z.unknown()).optional()
+  }),
+  zod.z.object({
+    type: zod.z.literal("text"),
+    title: zod.z.string().optional(),
+    content: zod.z.string().optional()
+  })
+]);
+var stackBlueprintReferenceAssetSchema = zod.z.object({
+  type: zod.z.enum(["image", "json"]),
+  label: zod.z.string().min(1),
+  payload: zod.z.string().optional(),
+  data_url: zod.z.string().optional()
+});
+var stackModelBindingSchema = zod.z.object({
+  use_case: zod.z.string().min(1),
+  provider: zod.z.string().min(1),
+  model: zod.z.string().min(1)
+});
+var stackBlueprintSchema = zod.z.object({
+  workflow_steps: zod.z.array(stackBlueprintWorkflowStepSchema).default([]),
+  reference_assets: zod.z.array(stackBlueprintReferenceAssetSchema).default([]),
+  generated_markdown: zod.z.string().optional(),
+  model_bindings: zod.z.array(stackModelBindingSchema).default([])
+});
+var mcpTransportSchema = zod.z.enum(["stdio", "sse", "http"]);
+var listingIdFieldSchema = zod.z.union([zod.z.string().uuid("Invalid listing id"), zod.z.literal("")]).optional();
+var listingCategoryIdFieldSchema = zod.z.string().superRefine((value, ctx) => {
+  if (!value.trim()) {
+    ctx.addIssue({ code: "custom", message: "Category is missing." });
+    return;
+  }
+  if (!zod.z.string().uuid().safeParse(value).success) {
+    ctx.addIssue({ code: "custom", message: "Invalid category id" });
+  }
+});
+var listingFields = {
+  id: listingIdFieldSchema,
+  title: zod.z.string().min(2, "Title must be at least 2 characters"),
+  excerpt: zod.z.string().max(160, "Excerpt must be at most 160 characters").optional().nullable(),
+  click_url: clickUrlFieldSchema,
+  click_url_skills: clickUrlFieldSchema,
+  click_url_mcp: clickUrlFieldSchema,
+  description: zod.z.string().max(1e4).optional().nullable(),
+  description_skills: zod.z.string().max(1e4).optional().nullable(),
+  description_mcp: zod.z.string().max(1e4).optional().nullable(),
+  content: zod.z.string().optional().nullable(),
+  content_skills: zod.z.string().optional().nullable(),
+  content_mcp: zod.z.string().optional().nullable(),
+  listing_kind: listingKindSchema.default("extension"),
+  extension_type: extensionTypeSchema.optional().nullable(),
+  install_command_skills: zod.z.string().optional().nullable(),
+  install_command_mcp: zod.z.string().optional().nullable(),
+  is_official: zod.z.boolean().default(false),
+  source_repo_url: zod.z.string().url().optional().nullable().or(zod.z.literal("")),
+  skill_source_url: zod.z.string().url().optional().nullable().or(zod.z.literal("")),
+  skill_name: zod.z.string().optional().nullable(),
+  skill_metadata: zod.z.record(zod.z.unknown()).optional().nullable(),
+  source_synced_at: zod.z.string().datetime().optional().nullable(),
+  source_content_hash: zod.z.string().optional().nullable(),
+  license: zod.z.string().optional().nullable(),
+  version: zod.z.string().optional().nullable(),
+  mcp_tools: zod.z.array(mcpToolSchema).optional().nullable(),
+  skill_commands: zod.z.array(skillCommandSchema).optional().nullable(),
+  stack_blueprint: stackBlueprintSchema.optional().nullable(),
+  mcp_transport: mcpTransportSchema.optional().nullable(),
+  mcp_server_config: zod.z.record(zod.z.unknown()).optional().nullable(),
+  listing_category_id: listingCategoryIdFieldSchema,
+  listing_image_urls: zod.z.array(zod.z.string()).optional().nullable(),
+  default_image_url: zod.z.string().optional().nullable(),
+  logo_image_url: zod.z.string().optional().nullable(),
+  is_user_published: zod.z.boolean().default(false),
+  is_admin_published: zod.z.boolean().optional().nullable(),
+  schema_type: listingSchemaTypeSchema,
+  schema_json: zod.z.record(zod.z.unknown()).optional().nullable(),
+  faq: zod.z.array(faqItemSchema).default([]),
+  owner_id: zod.z.string().uuid("Invalid owner id").optional()
+};
+var listingTagRefSchema = zod.z.object({
+  id: zod.z.string().uuid(),
+  slug: zod.z.string()
+});
+var listingCreateSchema = zod.z.object(listingFields).superRefine((data, ctx) => {
+  if (data.listing_kind === "extension" && !data.extension_type) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Extension type is required.",
+      path: ["extension_type"]
+    });
+  }
+});
+var listingUpdateSchema = zod.z.object({
+  ...listingFields,
+  id: zod.z.string().uuid("Invalid listing id")
+}).superRefine((data, ctx) => {
+  if (data.listing_kind === "extension" && !data.extension_type) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Extension type is required.",
+      path: ["extension_type"]
+    });
+  }
+});
+var stackMemberRoleSchema = zod.z.enum(["skills", "mcp"]);
+var stackMemberRefSchema = zod.z.object({
+  member_listing_id: zod.z.string().uuid("Invalid member listing id"),
+  member_role: stackMemberRoleSchema,
+  sort_order: zod.z.number().int().min(0).default(0)
+});
+var listingCreateBodySchema = zod.z.object({
+  listingData: listingCreateSchema,
+  listingTagsData: zod.z.array(listingTagRefSchema).default([]),
+  stackMembersData: zod.z.array(stackMemberRefSchema).optional().default([])
+});
+var listingUpdateBodySchema = zod.z.object({
+  listingData: listingUpdateSchema,
+  listingTagsData: zod.z.array(listingTagRefSchema).default([]),
+  stackMembersData: zod.z.array(stackMemberRefSchema).optional().default([])
+});
+var listingIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid listing id")
+});
+var listingSlugParamSchema = zod.z.object({
+  slug: zod.z.string().min(1, "Slug is required")
+});
+var listingStatParamSchema = zod.z.object({
+  listingId: zod.z.string().uuid("Invalid listing id")
+});
+var listingCreatorUsernameParamSchema = zod.z.object({
+  username: zod.z.string().min(1, "Username is required")
+});
+var listingCommentIdParamSchema = zod.z.object({
+  id: zod.z.string().uuid("Invalid comment id")
+});
+var listingGithubImportBodySchema = zod.z.object({
+  githubUrl: zod.z.string().url("A valid GitHub URL is required"),
+  extensionType: extensionTypeSchema.optional().nullable()
+});
+var listingCommentContent = zod.z.string().min(1, "Comment is required").max(1e3, "Comment must be at most 1000 characters");
+var listingCommentCreateSchema = zod.z.object({
+  listing_id: zod.z.string().uuid("Invalid listing id"),
+  parent_id: zod.z.string().uuid("Invalid parent comment id").optional().nullable(),
+  content: listingCommentContent
+});
+var listingCommentsParamSchema = zod.z.object({
+  listingId: zod.z.string().uuid("Invalid listing id")
+});
+var listingRatingBodySchema = zod.z.object({
+  rating: zod.z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5")
+});
+var categoryFields = {
+  id: zod.z.string().uuid().optional(),
+  name: zod.z.string().min(1, "Name is required"),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable(),
+  image_url_hero: zod.z.string().optional().nullable(),
+  image_url_small: zod.z.string().optional().nullable(),
+  href: zod.z.string().optional().nullable(),
+  color: zod.z.string().optional().nullable(),
+  emoji: zod.z.string().optional().nullable(),
+  parent_id: zod.z.string().uuid().optional().nullable(),
+  parent_path: zod.z.string().default("/")
+};
+var listingCategoryCreateSchema = zod.z.object(categoryFields);
+var listingCategoryUpdateSchema = zod.z.object({
+  ...categoryFields,
+  id: zod.z.string().uuid()
+});
+var listingCategoryIdParamSchema = zod.z.object({
+  categoryId: zod.z.string().uuid()
+});
+zod.z.object({
+  name: zod.z.string().min(1)
+});
+zod.z.object({
+  id: zod.z.string().uuid(),
+  name: zod.z.string().min(1)
+});
+zod.z.object({
+  categoryGroupId: zod.z.string().uuid()
+});
+zod.z.array(zod.z.string().uuid()).default([]);
+var tagFields = {
+  id: zod.z.string().uuid().optional(),
+  name: zod.z.string().min(1, "Name is required"),
+  slug: zod.z.string().optional(),
+  headline: zod.z.string().optional().nullable(),
+  description: zod.z.string().optional().nullable(),
+  image_url_hero: zod.z.string().optional().nullable(),
+  image_url_small: zod.z.string().optional().nullable(),
+  href: zod.z.string().optional().nullable(),
+  color: zod.z.string().optional().nullable(),
+  emoji: zod.z.string().optional().nullable()
+};
+var listingTagCreateSchema = zod.z.object(tagFields);
+var listingTagUpdateSchema = zod.z.object({
+  ...tagFields,
+  id: zod.z.string().uuid()
+});
+var listingTagIdParamSchema = zod.z.object({
+  tagId: zod.z.string().uuid()
+});
+zod.z.object({
+  name: zod.z.string().min(1)
+});
+zod.z.object({
+  id: zod.z.string().uuid(),
+  name: zod.z.string().min(1)
+});
+zod.z.object({
+  tagGroupId: zod.z.string().uuid()
+});
+zod.z.array(zod.z.string().uuid()).default([]);
+
+// routes/ListingRoute.ts
+init_uuid();
+var listingRouter = express.Router();
+var authWithRoles6 = requireFullAuthWithRoles(
+  supabase,
+  userRepository,
+  rbacRepository
+);
+var optionalAuth3 = optionalAuthWithRoles(
+  supabase,
+  userRepository,
+  rbacRepository
+);
+var parsePublishedListingsQuery = createPublishedListingsParser();
+var parseAdminListingsQuery = createAdminListingsParser();
+var parseCategoriesPaginationQuery = createCategoriesPaginationParser();
+var parseAdminListingCommentsQuery = createAdminListingCommentsParser();
+var parseAdminListingActivitiesQuery = createAdminListingActivitiesParser();
+var categoryBodySchema = zod.z.object({
+  categoryData: listingCategoryCreateSchema,
+  categoryGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var categoryUpdateBodySchema = zod.z.object({
+  categoryData: listingCategoryUpdateSchema,
+  categoryGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var tagBodySchema = zod.z.object({
+  tagData: listingTagCreateSchema,
+  tagGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var tagUpdateBodySchema = zod.z.object({
+  tagData: listingTagUpdateSchema,
+  tagGroupIds: zod.z.array(zod.z.string().uuid()).optional()
+});
+var whenParamIsId = (req, _res, next) => {
+  const id = req.params.id;
+  if (id && isValidUUID(id)) {
+    next();
+  } else {
+    next("route");
+  }
+};
+listingRouter.get(
+  "/categories/active-partial",
+  parseCategoriesPaginationQuery,
+  listingController.getActivePartialCategories
+);
+listingRouter.get(
+  "/categories/active-full",
+  parseCategoriesPaginationQuery,
+  listingController.getActiveFullCategories
+);
+listingRouter.get("/categories/all-partial", listingController.getAllPartialCategories);
+listingRouter.get("/categories/all-full", listingController.getAllFullCategories);
+listingRouter.get("/categories/groups", listingController.getAllCategoryGroups);
+listingRouter.post(
+  "/categories",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ body: categoryBodySchema }),
+  listingController.createCategory
+);
+listingRouter.put(
+  "/categories/:categoryId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingCategoryIdParamSchema, body: categoryUpdateBodySchema }),
+  listingController.updateCategory
+);
+listingRouter.delete(
+  "/categories/:categoryId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingCategoryIdParamSchema }),
+  listingController.deleteCategory
+);
+listingRouter.get("/tags/active-partial", listingController.getActivePartialTags);
+listingRouter.get("/tags/active-full", listingController.getActiveFullTags);
+listingRouter.get("/tags/all-full", listingController.getAllFullTags);
+listingRouter.get("/tags/groups", listingController.getAllTagGroups);
+listingRouter.post(
+  "/tags",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ body: tagBodySchema }),
+  listingController.createTag
+);
+listingRouter.put(
+  "/tags/:tagId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingTagIdParamSchema, body: tagUpdateBodySchema }),
+  listingController.updateTag
+);
+listingRouter.delete(
+  "/tags/:tagId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingTagIdParamSchema }),
+  listingController.deleteTag
+);
+listingRouter.get("/creators", listingController.getListingCreators);
+listingRouter.get(
+  "/creators/:username",
+  validateRequest({ params: listingCreatorUsernameParamSchema }),
+  listingController.getCreatorListings
+);
+listingRouter.put(
+  "/stats/views/:listingId",
+  optionalAuth3,
+  validateRequest({ params: listingStatParamSchema }),
+  listingController.incrementViews
+);
+listingRouter.put(
+  "/stats/likes/:listingId",
+  optionalAuth3,
+  validateRequest({ params: listingStatParamSchema }),
+  listingController.incrementLikes
+);
+listingRouter.put(
+  "/stats/clicks/:listingId",
+  optionalAuth3,
+  validateRequest({ params: listingStatParamSchema }),
+  listingController.incrementClicks
+);
+listingRouter.get("/published", parsePublishedListingsQuery, listingController.getPublishedListings);
+listingRouter.get(
+  "/stacks/published",
+  parsePublishedListingsQuery,
+  listingController.getPublishedStacks
+);
+listingRouter.get(
+  "/published/:slug/skill-markdown",
+  validateRequest({ params: listingSlugParamSchema }),
+  listingController.getSkillMarkdown
+);
+listingRouter.get(
+  "/stacks/published/:slug",
+  validateRequest({ params: listingSlugParamSchema }),
+  listingController.getPublishedStackBySlug
+);
+listingRouter.get(
+  "/published/:slug",
+  validateRequest({ params: listingSlugParamSchema }),
+  listingController.getPublishedListingBySlug
+);
+listingRouter.get("/me/bookmarks", authWithRoles6, listingController.getUserBookmarks);
+listingRouter.get("/me/stats", authWithRoles6, listingController.getOwnedListingStats);
+listingRouter.get("/me/listings", authWithRoles6, listingController.getOwnedListings);
+listingRouter.get(
+  "/me/listings/:id",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.getOwnedListingById
+);
+listingRouter.post(
+  "/me/listings",
+  authWithRoles6,
+  validateRequest({ body: listingCreateBodySchema }),
+  listingController.createOwnedListing
+);
+listingRouter.put(
+  "/me/listings/:id",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema, body: listingUpdateBodySchema }),
+  listingController.updateOwnedListing
+);
+listingRouter.delete(
+  "/me/listings/:id",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.deleteOwnedListing
+);
+listingRouter.get(
+  "/:listingId/comments",
+  validateRequest({ params: listingCommentsParamSchema }),
+  listingController.getListingComments
+);
+listingRouter.post(
+  "/comments",
+  authWithRoles6,
+  validateRequest({ body: listingCommentCreateSchema }),
+  listingController.createListingComment
+);
+listingRouter.get(
+  "/admin/comments",
+  authWithRoles6,
+  requireEditor,
+  parseAdminListingCommentsQuery,
+  listingController.getAdminListingComments
+);
+listingRouter.get(
+  "/admin/activities",
+  authWithRoles6,
+  requireEditor,
+  parseAdminListingActivitiesQuery,
+  listingController.getAdminListingActivities
+);
+listingRouter.patch(
+  "/comments/:id/approve",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingCommentIdParamSchema }),
+  listingController.approveListingComment
+);
+listingRouter.delete(
+  "/comments/:id",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingCommentIdParamSchema }),
+  listingController.deleteListingComment
+);
+listingRouter.get(
+  "/all-full",
+  authWithRoles6,
+  requireEditor,
+  parseAdminListingsQuery,
+  listingController.getAdminListings
+);
+listingRouter.post(
+  "/import/github",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ body: listingGithubImportBodySchema }),
+  listingController.importFromGithub
+);
+listingRouter.post(
+  "/:id/sync-github",
+  whenParamIsId,
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.syncListingFromGithub
+);
+listingRouter.get(
+  "/:id",
+  whenParamIsId,
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.getListingById
+);
+listingRouter.post(
+  "/",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ body: listingCreateBodySchema }),
+  listingController.createListing
+);
+listingRouter.put(
+  "/:id",
+  whenParamIsId,
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingIdParamSchema, body: listingUpdateBodySchema }),
+  listingController.updateListing
+);
+listingRouter.post(
+  "/:id/ratings",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema, body: listingRatingBodySchema }),
+  listingController.upsertListingRating
+);
+listingRouter.post(
+  "/:id/bookmark",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.addBookmark
+);
+listingRouter.delete(
+  "/:id/bookmark",
+  whenParamIsId,
+  authWithRoles6,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.removeBookmark
+);
+listingRouter.delete(
+  "/:id",
+  whenParamIsId,
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingIdParamSchema }),
+  listingController.deleteListing
+);
+
 // routes/ImageRoute.ts
 init_controllers();
 init_connections();
@@ -28238,7 +32804,7 @@ var upload = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_IMAGE_UPLOAD_BYTES }
 });
-var authWithRoles6 = requireFullAuthWithRoles(
+var authWithRoles7 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
@@ -28248,13 +32814,13 @@ imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post(
   "/upload",
-  authWithRoles6,
+  authWithRoles7,
   requireEditor,
   upload.single("imageFile"),
   imageController.upload
 );
-imageRouter.delete("/delete", authWithRoles6, requireEditor, imageController.delete);
-imageRouter.get("/proxy", authWithRoles6, requireEditor, imageController.proxyImage);
+imageRouter.delete("/delete", authWithRoles7, requireEditor, imageController.delete);
+imageRouter.get("/proxy", authWithRoles7, requireEditor, imageController.proxyImage);
 
 // routes/MediaRoute.ts
 init_controllers();
@@ -28341,27 +32907,27 @@ var upload2 = multer__default.default({
   storage: multer__default.default.memoryStorage(),
   limits: { fileSize: MAX_MEDIA_UPLOAD_BYTES }
 });
-var authWithRoles7 = requireFullAuthWithRoles(
+var authWithRoles8 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var mediaRouter = express.Router();
-mediaRouter.get("/", authWithRoles7, validateMediaOrganizationQuery, mediaController.list);
-mediaRouter.get("/tree", authWithRoles7, validateMediaOrganizationQuery, mediaController.tree);
-mediaRouter.post("/move", authWithRoles7, validateMediaMoveBody, mediaController.move);
-mediaRouter.post("/copy", authWithRoles7, validateMediaCopyBody, mediaController.copy);
-mediaRouter.post("/rename", authWithRoles7, validateMediaRenameBody, mediaController.rename);
-mediaRouter.post("/folder", authWithRoles7, validateMediaCreateFolderBody, mediaController.createFolder);
-mediaRouter.delete("/folder", authWithRoles7, validateMediaDeleteFolderBody, mediaController.deleteFolder);
-mediaRouter.post("/upload", authWithRoles7, upload2.single("mediaFile"), mediaController.upload);
-mediaRouter.post("/upload-server", authWithRoles7, upload2.single("file"), mediaController.uploadServer);
-mediaRouter.post("/upload-simple", authWithRoles7, upload2.single("file"), mediaController.uploadSimple);
-mediaRouter.delete("/delete", authWithRoles7, mediaController.delete);
-mediaRouter.post("/save", authWithRoles7, mediaController.saveMedia);
-mediaRouter.post("/save-media", authWithRoles7, mediaController.saveMedia);
-mediaRouter.post("/information", authWithRoles7, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
-mediaRouter.post("/:endpoint", authWithRoles7, validateMultipartEndpoint, mediaController.multipart);
+mediaRouter.get("/", authWithRoles8, validateMediaOrganizationQuery, mediaController.list);
+mediaRouter.get("/tree", authWithRoles8, validateMediaOrganizationQuery, mediaController.tree);
+mediaRouter.post("/move", authWithRoles8, validateMediaMoveBody, mediaController.move);
+mediaRouter.post("/copy", authWithRoles8, validateMediaCopyBody, mediaController.copy);
+mediaRouter.post("/rename", authWithRoles8, validateMediaRenameBody, mediaController.rename);
+mediaRouter.post("/folder", authWithRoles8, validateMediaCreateFolderBody, mediaController.createFolder);
+mediaRouter.delete("/folder", authWithRoles8, validateMediaDeleteFolderBody, mediaController.deleteFolder);
+mediaRouter.post("/upload", authWithRoles8, upload2.single("mediaFile"), mediaController.upload);
+mediaRouter.post("/upload-server", authWithRoles8, upload2.single("file"), mediaController.uploadServer);
+mediaRouter.post("/upload-simple", authWithRoles8, upload2.single("file"), mediaController.uploadSimple);
+mediaRouter.delete("/delete", authWithRoles8, mediaController.delete);
+mediaRouter.post("/save", authWithRoles8, mediaController.saveMedia);
+mediaRouter.post("/save-media", authWithRoles8, mediaController.saveMedia);
+mediaRouter.post("/information", authWithRoles8, validateSaveMediaInformationBody, mediaController.saveMediaInformation);
+mediaRouter.post("/:endpoint", authWithRoles8, validateMultipartEndpoint, mediaController.multipart);
 
 // routes/integrationApi/NoAuthRoutes.ts
 init_controllers();
@@ -28443,11 +33009,11 @@ var validateIntegrationMentionsRequest = validateRequest({
 
 // routes/integrationApi/NoAuthRoutes.ts
 var integrationNoAuthRouter = express.Router();
-var optionalAuth3 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
+var optionalAuth4 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 integrationNoAuthRouter.get("/", integrationController.getAllIntegrations);
 integrationNoAuthRouter.post(
   "/social-connect/:integration",
-  optionalAuth3,
+  optionalAuth4,
   validateSocialConnectBody,
   integrationController.connectSocialMediaNoAuth
 );
@@ -28665,6 +33231,12 @@ publicAnalyticsRouter.get(
 init_controllers();
 init_repositories();
 init_dist();
+var publicIntegrationsListQuerySchema = zod.z.object({
+  group: zod.z.string().uuid("Invalid channel group id").optional()
+});
+var validatePublicIntegrationsListQuery = validateRequest({
+  query: publicIntegrationsListQuerySchema
+});
 var publicSocialOAuthQuerySchema = zod.z.object({
   refresh: zod.z.string().uuid().optional()
 });
@@ -28692,7 +33264,17 @@ var publicIntegrationRouter = express.Router();
 var apiKeyAuth2 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
 publicIntegrationRouter.get("/is-connected", apiKeyAuth2, publicIntegrationController.isConnected);
 publicIntegrationRouter.get("/workspace", apiKeyAuth2, publicIntegrationController.getWorkspace);
-publicIntegrationRouter.get("/integrations", apiKeyAuth2, publicIntegrationController.listIntegrations);
+publicIntegrationRouter.get(
+  "/groups",
+  apiKeyAuth2,
+  publicIntegrationController.listGroups
+);
+publicIntegrationRouter.get(
+  "/integrations",
+  apiKeyAuth2,
+  validatePublicIntegrationsListQuery,
+  publicIntegrationController.listIntegrations
+);
 publicIntegrationRouter.get(
   "/social/:integration",
   apiKeyAuth2,
@@ -29088,7 +33670,7 @@ init_repositories();
 init_controllers();
 var postRouter = express.Router();
 var auth4 = requireFullAuth(supabase);
-var optionalAuth4 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
+var optionalAuth5 = optionalAuthWithRoles(supabase, userRepository, rbacRepository);
 postRouter.get("/find-slot", auth4, validatePostOrganizationQuery, postsController.findSlot);
 postRouter.get("/tags", auth4, validatePostOrganizationQuery, postsController.listTags);
 postRouter.post("/tags", auth4, validateCreatePostTagBody, postsController.createTag);
@@ -29098,7 +33680,7 @@ postRouter.post("/", auth4, validateCreatePostBody, postsController.createPost);
 postRouter.post("/:postId/comments", auth4, validateCreateComposerComment, postsController.createComposerComment);
 postRouter.get(
   "/preview/:postId",
-  optionalAuth4,
+  optionalAuth5,
   validatePostPreviewParams,
   postsController.getPostPreview
 );
@@ -29121,9 +33703,9 @@ postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController
 init_controllers();
 init_connections();
 init_repositories();
-var authWithRoles8 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+var authWithRoles9 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
 var thirdPartyRouter = express.Router();
-thirdPartyRouter.get("/for-media", authWithRoles8, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
+thirdPartyRouter.get("/for-media", authWithRoles9, validateMediaOrganizationQuery, thirdPartyController.listForMedia);
 
 // routes/SignatureRoute.ts
 init_controllers();
@@ -29312,96 +33894,96 @@ var validateBillingAdminAddSubscriptionBody = (req, res, next) => validateBody(b
 var validateBillingRefundChargesBody = (req, res, next) => validateBody(billingRefundChargesBodySchema, req, res, next);
 
 // routes/BillingRoute.ts
-var authWithRoles9 = requireFullAuthWithRoles(
+var authWithRoles10 = requireFullAuthWithRoles(
   supabase,
   userRepository,
   rbacRepository
 );
 var billingRouter = express.Router();
 billingRouter.get("/plans", billingController.getPlans);
-billingRouter.get("/account-owned", authWithRoles9, billingController.getOwnedAccount);
-billingRouter.get("/", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/subscription", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
-billingRouter.get("/current", authWithRoles9, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/account-owned", authWithRoles10, billingController.getOwnedAccount);
+billingRouter.get("/", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/subscription", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
+billingRouter.get("/current", authWithRoles10, validateBillingOrganizationQuery, billingController.getCurrent);
 billingRouter.post(
   "/subscribe",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingSubscribeBody,
   billingController.subscribe
 );
 billingRouter.post(
   "/embedded",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingSubscribeBody,
   billingController.embedded
 );
-billingRouter.get("/portal", authWithRoles9, validateBillingOrganizationQuery, billingController.portal);
+billingRouter.get("/portal", authWithRoles10, validateBillingOrganizationQuery, billingController.portal);
 billingRouter.get(
   "/check/:id",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingOrganizationQuery,
   billingController.checkCheckout
 );
 billingRouter.get(
   "/check-discount",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingOrganizationQuery,
   billingController.checkDiscount
 );
 billingRouter.post(
   "/apply-discount",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingOrganizationQuery,
   billingController.applyDiscount
 );
 billingRouter.post(
   "/finish-trial",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingOrganizationQuery,
   billingController.finishTrial
 );
 billingRouter.get(
   "/is-trial-finished",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingOrganizationQuery,
   billingController.isTrialFinished
 );
 billingRouter.post(
   "/prorate",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingPlanChangeBody,
   billingController.prorate
 );
 billingRouter.post(
   "/cancel",
-  authWithRoles9,
+  authWithRoles10,
   validateBillingCancelBody,
   billingController.cancel
 );
 billingRouter.get(
   "/charges",
-  authWithRoles9,
+  authWithRoles10,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.getCharges
 );
 billingRouter.post(
   "/refund-charges",
-  authWithRoles9,
+  authWithRoles10,
   requirePlatformAdmin,
   validateBillingRefundChargesBody,
   billingController.refundCharges
 );
 billingRouter.post(
   "/cancel-subscription",
-  authWithRoles9,
+  authWithRoles10,
   requirePlatformAdmin,
   validateBillingOrganizationQuery,
   billingController.cancelSubscriptionAdmin
 );
 billingRouter.post(
   "/add-subscription",
-  authWithRoles9,
+  authWithRoles10,
   requirePlatformAdmin,
   validateBillingAdminAddSubscriptionBody,
   billingController.addSubscriptionAdmin
@@ -29558,7 +34140,7 @@ function resolveBullBoardUiBasePath() {
     if (!metaUrl) return null;
     const localRequire = module$1.createRequire(metaUrl);
     const uiPackageJsonPath = localRequire.resolve("@bull-board/ui/package.json");
-    return path__default.default.dirname(uiPackageJsonPath);
+    return path3__default.default.dirname(uiPackageJsonPath);
   } catch (error) {
     logger.error({
       msg: "[BullBoard] Failed to resolve @bull-board/ui package; dashboard will not mount",
@@ -29624,7 +34206,7 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
   if (!layout) {
     return;
   }
-  const authWithRoles10 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+  const authWithRoles11 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
   const maxAge = getBullBoardSessionMaxAgeMs();
   const cookiePath = layout.fullPath;
   const setSession = (req, res) => {
@@ -29643,8 +34225,8 @@ function registerBullBoardSessionRoutes(apiRouter, config2) {
     res.status(200).json({ ok: true });
   };
   const session = express__default.default.Router();
-  session.post("/", authWithRoles10, requirePlatformAdmin, setSession);
-  session.post("/clear", authWithRoles10, requirePlatformAdmin, clearSession);
+  session.post("/", authWithRoles11, requirePlatformAdmin, setSession);
+  session.post("/clear", authWithRoles11, requirePlatformAdmin, clearSession);
   apiRouter.use("/admin/bull-board/session", session);
   logger.info({ msg: "[BullBoard] Session cookie routes mounted", cookiePath, sessionBase: "/admin/bull-board/session" });
 }
@@ -29689,8 +34271,8 @@ async function registerBullBoardRoutes(apiRouter, config2) {
       options: { uiBasePath, uiConfig: {} }
     });
     const boardRouter = express__default.default.Router();
-    const authWithRoles10 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
-    boardRouter.use(authWithRoles10, requirePlatformAdmin, serverAdapter.getRouter());
+    const authWithRoles11 = requireFullAuthWithRoles(supabase, userRepository, rbacRepository);
+    boardRouter.use(authWithRoles11, requirePlatformAdmin, serverAdapter.getRouter());
     apiRouter.use(mountPath, boardRouter);
     logger.info({
       msg: "[BullBoard] Mounted (super admin only)",
@@ -29714,7 +34296,7 @@ function readImportMetaUrl2() {
   }
 }
 var moduleUrl = readImportMetaUrl2();
-var swaggerDir = moduleUrl ? path__default.default.dirname(url.fileURLToPath(moduleUrl)) : path__default.default.join(process.cwd(), "swagger");
+var swaggerDir = moduleUrl ? path3__default.default.dirname(url.fileURLToPath(moduleUrl)) : path3__default.default.join(process.cwd(), "swagger");
 var swaggerDefinition = {
   openapi: "3.0.3",
   info: {
@@ -29747,7 +34329,7 @@ function resolveJsdocExt() {
   const fromUrl = (moduleUrl ?? "").toLowerCase();
   if (fromUrl.endsWith(".ts")) return "ts";
   if (fromUrl.endsWith(".js") || fromUrl.endsWith(".mjs") || fromUrl.endsWith(".cjs")) return "js";
-  const jsdocDir = path__default.default.join(swaggerDir, "jsdoc");
+  const jsdocDir = path3__default.default.join(swaggerDir, "jsdoc");
   try {
     const entries = fs2__default.default.readdirSync(jsdocDir);
     const hasTs = entries.some((e) => e.endsWith(".ts") && !e.endsWith(".d.ts"));
@@ -29761,7 +34343,7 @@ function resolveJsdocExt() {
 }
 var jsdocExt = resolveJsdocExt();
 var jsdocGlobs = (Array.isArray(jsdocExt) ? jsdocExt : [jsdocExt]).map(
-  (ext) => path__default.default.join(swaggerDir, "jsdoc", `*.${ext}`)
+  (ext) => path3__default.default.join(swaggerDir, "jsdoc", `*.${ext}`)
 );
 var options = {
   definition: swaggerDefinition,
@@ -29811,6 +34393,7 @@ async function mountAllRoutes(app2, config2) {
   apiRouter.use("/roles", rbacRouter);
   apiRouter.use("/feedback", feedbackRouter);
   apiRouter.use("/blog-system", blogRouter);
+  apiRouter.use("/listings", listingRouter);
   apiRouter.use("/image", imageRouter);
   apiRouter.use("/media", mediaRouter);
   apiRouter.use("/integrations", integrationsRouter);
@@ -29836,6 +34419,7 @@ async function mountAllRoutes(app2, config2) {
     roles: `${prefix}/roles`,
     feedback: `${prefix}/feedback`,
     blog: `${prefix}/blog-system`,
+    listings: `${prefix}/listings`,
     image: `${prefix}/image`,
     media: `${prefix}/media`,
     integrationsSession: `${prefix}/integrations`,
@@ -30110,6 +34694,10 @@ var applyRateLimiting = (app2) => {
 init_Logger();
 var BLOG_POSTS_PREFIX = "/blog-system/posts/";
 var BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
+var LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
+var LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
+var LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
+var LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
 function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
   if (publicPathsExact.some((p) => routePath === p)) {
     return true;
@@ -30123,10 +34711,25 @@ function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
   if (req.method === "PUT" && BLOG_POST_ACTIVITY_PATH.test(routePath)) {
     return true;
   }
+  if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+    return true;
+  }
+  if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
+    return true;
+  }
+  if (req.method === "GET" && routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX)) {
+    return true;
+  }
+  if (req.method === "GET" && LISTING_COMMENTS_PATH.test(routePath)) {
+    return true;
+  }
+  if (req.method === "GET" && routePath.startsWith("/listings/creators/")) {
+    return true;
+  }
   if (req.method === "GET" && routePath === "/image/download") {
     const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
     const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-    if (dbName === "blog_images" && imageUrlParam.length > 0) {
+    if ((dbName === "blog_images" || dbName === "listing_images") && imageUrlParam.length > 0) {
       return true;
     }
   }
@@ -30183,6 +34786,18 @@ function configureCoreMiddleware(app2, config2, supabase2) {
       "/blog-system/authors",
       "/blog-system/topics",
       "/blog-system/topics/active",
+      "/listings/published",
+      "/listings/stacks/published",
+      "/listings/categories/active-partial",
+      "/listings/categories/active-full",
+      "/listings/categories/all-partial",
+      "/listings/categories/all-full",
+      "/listings/categories/groups",
+      "/listings/tags/active-partial",
+      "/listings/tags/active-full",
+      "/listings/tags/all-full",
+      "/listings/tags/groups",
+      "/listings/creators",
       "/openapi.json",
       /** Join-org page: invitees validate the link before sign-in. */
       "/settings/invite/validate"
@@ -30360,6 +34975,8 @@ async function createApp() {
     }
   );
   configureCoreMiddleware(app, config2, supabase);
+  const { mountMcpRoutes: mountMcpRoutes2 } = await Promise.resolve().then(() => (init_startMcp(), startMcp_exports));
+  mountMcpRoutes2(app);
   const storageCfg = config2.storage;
   if (storageCfg?.provider === "local" && storageCfg.local?.uploadDirectory) {
     app.use("/uploads", express__default.default.static(storageCfg.local.uploadDirectory));
@@ -30371,11 +34988,11 @@ async function createApp() {
   try {
     const isProduction = config2.server.nodeEnv === "production";
     const currentDir = process.cwd();
-    const manifestPath = path__default.default.join(currentDir, "static", "routes-manifest.json");
+    const manifestPath = path3__default.default.join(currentDir, "static", "routes-manifest.json");
     const sitemapMiddleware = generateSitemapMiddleware({
       supabaseClient: supabaseServiceClientConnection,
       baseURL: config2.server.frontendDomainUrl ?? "http://localhost:5173",
-      routesPath: isProduction ? void 0 : path__default.default.join(currentDir, "../web/src/routes"),
+      routesPath: isProduction ? void 0 : path3__default.default.join(currentDir, "../web/src/routes"),
       routesManifestPath: isProduction ? manifestPath : void 0
     });
     app.get("/sitemap.xml", sitemapMiddleware);

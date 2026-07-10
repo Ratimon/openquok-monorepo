@@ -37,6 +37,7 @@ function buildCompareKeywords(left: CompareProduct, right: CompareProduct): stri
 	];
 }
 
+
 function buildHeroDescription(left: CompareProduct, right: CompareProduct): string {
 	const base = `See how ${left.name} stacks up against ${right.name} on pricing, channels, team workflows, and scheduling features.`;
 	if (left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG) {
