@@ -532,6 +532,9 @@ export function accentSplitCtaBannerDescription(agentLabel: string): string {
 /** Top accent banner on hub detail pages — links to the page setup guide. */
 export const PUBLIC_DOCS_BANNER_CTA_TEXT = 'View setup guide';
 
+/** Accent banner CTA when linking to the public compare hub. */
+export const PUBLIC_COMPARE_BANNER_CTA_TEXT = 'Browse comparisons';
+
 export function accentSplitDocsCtaBannerTitle(label: string): string {
 	return `Read the ${label} setup guide`;
 }
@@ -577,6 +580,12 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		title: 'Read the OpenQuok docs',
 		description:
 			'Review setup guides, self-hosting steps, and workflow docs when you are ready to move from comparison to your first workspace.'
+	},
+	pricing: {
+		docsPath: publicComparePath,
+		title: 'Compare OpenQuok to the rest',
+		description:
+			'See how OpenQuok stacks up against Hootsuite, Buffer, and other scheduling tools on pricing, channels, workspaces, and agent integrations.'
 	},
 	tools: {
 		docsPath: publicDocsGettingStartedForDevPath,
