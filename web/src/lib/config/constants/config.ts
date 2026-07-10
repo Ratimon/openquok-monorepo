@@ -532,9 +532,6 @@ export function accentSplitCtaBannerDescription(agentLabel: string): string {
 /** Top accent banner on hub detail pages — links to the page setup guide. */
 export const PUBLIC_DOCS_BANNER_CTA_TEXT = 'View setup guide';
 
-/** Accent banner CTA when linking to the public compare hub. */
-export const PUBLIC_COMPARE_BANNER_CTA_TEXT = 'Browse comparisons';
-
 export function accentSplitDocsCtaBannerTitle(label: string): string {
 	return `Read the ${label} setup guide`;
 }
@@ -582,10 +579,13 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 			'Review setup guides, self-hosting steps, and workflow docs when you are ready to move from comparison to your first workspace.'
 	},
 	pricing: {
-		docsPath: publicComparePath,
-		title: 'Compare OpenQuok to the rest',
+		// docsPath: publicComparePath,
+		docsPath: publicDocsGettingStartedForDevPath,
+		// title: 'Compare OpenQuok to the rest',
+		title: 'Self-host OpenQuok for free',
 		description:
-			'See how OpenQuok stacks up against Hootsuite, Buffer, and other scheduling tools on pricing, channels, workspaces, and agent integrations.'
+		// 'See how OpenQuok stacks up against Hootsuite, Buffer, and other scheduling tools on pricing, channels, workspaces, and agent integrations.'
+			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
 	},
 	tools: {
 		docsPath: publicDocsGettingStartedForDevPath,
@@ -688,8 +688,8 @@ export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
-		{ label: 'Skill Builders', href: publicSkillBuilderPath },
-		{ label: 'Photo Editors', href: publicPhotoEditorPath },
+		{ label: 'Skill Builder', href: publicSkillBuilderPath },
+		{ label: 'Photo Editor', href: publicPhotoEditorPath },
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
