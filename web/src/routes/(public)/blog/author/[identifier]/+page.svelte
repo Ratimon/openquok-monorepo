@@ -12,6 +12,7 @@
 		getRootPathPublicBlogPost
 	} from '$lib/area-public/constants/getRootPathPublicBlog';
 	
+	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import BlogPostCardHighlightedPublic from '$lib/ui/components/blog-public/BlogPostCardHighlightedPublic.svelte';
 	import BlogPostCardPublic from '$lib/ui/components/blog-public/BlogPostCardPublic.svelte';
 	import Pagination from '$lib/ui/templates/Pagination.svelte';
@@ -106,6 +107,7 @@
 					<Button variant="outline" href={blogIndexHref}>
 						{BACK_TO_ALL}</Button>
 				{:else}
+					<BlogHubBreadcrumb pageTitle={displayName(author)} class="mb-4" />
 					<div class="mb-8 flex flex-col gap-6 sm:flex-row sm:items-start">
 						<Avatar.Root class="size-24 shrink-0 rounded-full">
 							<SupabaseUserAvatar

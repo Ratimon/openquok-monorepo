@@ -7,6 +7,7 @@
 	import { page } from '$app/state';
 
 	import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
+	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import BlogTopicsNavigation from '$lib/ui/components/blog-topics/BlogTopicsNavigation.svelte';
 	import BlogPostCardHighlightedPublic from '$lib/ui/components/blog-public/BlogPostCardHighlightedPublic.svelte';
 	import BlogPostCardPublic from '$lib/ui/components/blog-public/BlogPostCardPublic.svelte';
@@ -86,6 +87,7 @@
 						{TOPIC_NOT_FOUND}
 					</h1>
 				{:else}
+					<BlogHubBreadcrumb pageTitle={topic.name} class="mb-4" />
 					<div class="flex w-full flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 						<div>
 							<h1 class="mb-4 text-3xl font-bold">

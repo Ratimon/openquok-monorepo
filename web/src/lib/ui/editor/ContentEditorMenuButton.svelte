@@ -10,11 +10,12 @@
 		editor: TiptapEditor;
 		onClick: () => void;
 		name: string;
+		title?: string;
 		disabled?: boolean;
 		attributes?: object;
 	};
 
-	let { children, editor, onClick, name, disabled, attributes }: Props = $props();
+	let { children, editor, onClick, name, title, disabled, attributes }: Props = $props();
 
 	function preventDefault(fn: any) {
 		return function (event: any) {
@@ -33,7 +34,7 @@
 			: 'bg-base-100 text-base-content hover:bg-base-content hover:text-base-100'
 	)}
 	disabled={disabled}
-	title={name}
+	title={title ?? name}
 	onclick={preventDefault(() => onClick())}
 >
 	{@render children?.()}

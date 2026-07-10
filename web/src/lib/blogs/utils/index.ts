@@ -9,6 +9,11 @@ export { extractBlogImageStoragePathFromImageSrc } from '$lib/blogs/utils/extrac
 export { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils/extractBlogImageStoragePathsFromHtml';
 export { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils/normalizeBlogInlineImagesInHtml';
 export {
+	plainTextToBlogHtml,
+	prepareBlogContentForDisplay,
+	repairDoubleEncodedBlogHtml
+} from '$lib/blogs/utils/prepareBlogContentForDisplay';
+export {
 	parseHeadersFromHTMLString,
 	type ParsedHtmlHeader
 } from '$lib/blogs/utils/parseHeadersFromHTMLString';

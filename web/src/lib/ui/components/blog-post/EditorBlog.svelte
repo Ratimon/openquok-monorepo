@@ -54,11 +54,14 @@
 		},
 		onSubmit: async ({ value }) => {
 			// Inline content image files are uploaded only on Create/Update click.
-			if (contentEditorRef?.hasPendingInlineImages?.()) {
+			if (contentEditorMode === 'visual' && contentEditorRef?.hasPendingInlineImages?.()) {
 				const committed = await contentEditorRef.commitPendingInlineImages();
 				if (!committed) return;
 			}
-			const latestContent = contentEditorRef?.getCurrentContent?.() ?? value.content;
+			const latestContent =
+				contentEditorMode === 'html'
+					? value.content
+					: (contentEditorRef?.getCurrentContent?.() ?? value.content);
 			form.setFieldValue('content', latestContent);
 
 			// TanStack submit `value` can be a stale snapshot; merge hero path explicitly after upload.
@@ -98,6 +101,64 @@
 	let heroImageUploadRef: SupabaseImageUploadArea | undefined = $state();
 	let contentEditorRef: ContentEditor | undefined = $state();
 	let hasPendingHeroImageChanges = $derived(() => heroImageUploadRef?.hasSelectedFile?.());
+	let contentEditorMode = $state<'visual' | 'html'>('visual');
+	let htmlSourceContent = $state('');
+
+	function prettyFormatHtml(html: string): string {
+		const trimmed = html.trim();
+		if (!trimmed) return '';
+
+		return trimmed
+			.replace(/></g, '>\n<')
+			.replace(/^\s*<(\/?)([^>\s/]+)([^>]*)>$/gm, (match, slash: string, tagName: string) => {
+				const normalizedTag = tagName.toLowerCase();
+				if (slash) return `__CLOSE__${normalizedTag}__${match}`;
+				return `__OPEN__${normalizedTag}__${match}`;
+			})
+			.split('\n')
+			.filter((line) => line.trim().length > 0)
+			.reduce(
+				(state, rawLine) => {
+					let line = rawLine.trim();
+					const closeMatch = line.match(/^__CLOSE__([a-z0-9-]+)__(.*)$/i);
+					if (closeMatch) {
+						state.indent = Math.max(0, state.indent - 1);
+						line = closeMatch[2];
+					}
+
+					state.lines.push(`${'  '.repeat(state.indent)}${line}`);
+
+					const openMatch = line.match(/^__OPEN__([a-z0-9-]+)__(.*)$/i);
+					if (openMatch) {
+						line = openMatch[2];
+						const selfClosing =
+							/\/>$/.test(line) ||
+							/^<(br|hr|img|input|meta|link)\b/i.test(line) ||
+							/^<[^/]+>.*<\/[^>]+>$/.test(line);
+						if (!selfClosing) state.indent += 1;
+					}
+
+					return state;
+				},
+				{ indent: 0, lines: [] as string[] }
+			)
+			.lines.join('\n')
+			.replace(/__OPEN__[a-z0-9-]+__/gi, '')
+			.replace(/__CLOSE__[a-z0-9-]+__/gi, '');
+	}
+
+	function switchContentEditorMode(mode: 'visual' | 'html', currentContent: string): void {
+		if (mode === contentEditorMode) return;
+		if (mode === 'html') {
+			htmlSourceContent = prettyFormatHtml(contentEditorRef?.getCurrentContent?.() ?? currentContent ?? '');
+		}
+		contentEditorMode = mode;
+	}
+
+	$effect(() => {
+		if (contentEditorMode !== 'html') return;
+		htmlSourceContent = prettyFormatHtml(form.state.values.content ?? '');
+	});
 
 	function handleFormSubmit(e: Event) {
 		e.preventDefault();
@@ -319,17 +380,52 @@
 					{#snippet children(field)}
 						<div class="flex flex-col gap-2">
 							<Field.Label>Content</Field.Label>
-							<Field.Description>Main post body. You can use simple HTML for formatting.</Field.Description>
-							<ContentEditor
-								bind:this={contentEditorRef}
-								content={field.state.value}
-								onChange={(v) => field.handleChange(v)}
-								outputType="html"
-								showMenu={true}
-								userId={userId}
-								placeholder="Enter content (HTML allowed)"
-								class="prose-sm min-h-48 font-mono text-sm"
-							/>
+							<Field.Description>
+								Main post body. Type here and use the toolbar for headings, lists, and links — do not
+								paste raw HTML.
+							</Field.Description>
+							<div class="flex items-center gap-2">
+								<Button
+									type="button"
+									variant={contentEditorMode === 'visual' ? 'primary' : 'outline'}
+									size="sm"
+									onclick={() => switchContentEditorMode('visual', field.state.value)}
+								>
+									Visual
+								</Button>
+								<Button
+									type="button"
+									variant={contentEditorMode === 'html' ? 'primary' : 'outline'}
+									size="sm"
+									onclick={() => switchContentEditorMode('html', field.state.value)}
+								>
+									HTML source
+								</Button>
+							</div>
+							{#if contentEditorMode === 'visual'}
+								<ContentEditor
+									bind:this={contentEditorRef}
+									content={field.state.value}
+									onChange={(v) => field.handleChange(v)}
+									outputType="html"
+									showMenu={true}
+									userId={userId}
+									placeholder="Enter content"
+									class="prose-sm min-h-48 font-mono text-sm"
+								/>
+							{:else}
+								<Textarea
+									id="blog-content-html"
+									class="min-h-[24rem] font-mono text-sm"
+									placeholder="Edit raw HTML source"
+									value={htmlSourceContent}
+									onblur={field.handleBlur}
+									oninput={(e) => {
+										htmlSourceContent = e.currentTarget.value;
+										field.handleChange(e.currentTarget.value);
+									}}
+								/>
+							{/if}
 							<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 						</div>
 					{/snippet}

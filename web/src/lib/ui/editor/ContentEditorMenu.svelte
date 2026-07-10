@@ -38,6 +38,7 @@
 		editor={editor}
 		onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
 		name="heading"
+		title="Heading 2"
 		attributes={{ level: 2 }}
 	>
 		<AbstractIcon name={icons.Heading2.name} width="18" height="18" />
@@ -47,9 +48,19 @@
 		editor={editor}
 		onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
 		name="heading"
+		title="Heading 3"
 		attributes={{ level: 3 }}
 	>
 		<AbstractIcon name={icons.Heading3.name} width="18" height="18" />
+	</ContentEditorMenuButton>
+
+	<ContentEditorMenuButton
+		editor={editor}
+		onClick={() => editor.chain().focus().toggleBlockquote().run()}
+		name="blockquote"
+		title="Blockquote"
+	>
+		<AbstractIcon name={icons.TextQuote.name} width="18" height="18" />
 	</ContentEditorMenuButton>
 
 	<ContentEditorMenuButton editor={editor} onClick={() => editor.chain().focus().toggleBold().run()} name="bold">
@@ -79,14 +90,6 @@
 		name="image"
 	>
 		<AbstractIcon name={icons.Trash.name} width="18" height="18" />
-	</ContentEditorMenuButton>
-
-	<ContentEditorMenuButton
-		editor={editor}
-		onClick={() => editor.chain().focus().toggleBlockquote().run()}
-		name="blockquote"
-	>
-		<AbstractIcon name={icons.TextQuote.name} width="18" height="18" />
 	</ContentEditorMenuButton>
 
 	<ContentEditorMenuButton

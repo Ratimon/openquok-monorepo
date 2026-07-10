@@ -21,8 +21,17 @@
 
 	let totalPosts = $derived(topics.reduce((acc, topic) => acc + Number(topic.postCount), 0));
 
-	const chipClass =
-		'cursor-pointer hover:bg-primary/90 hover:text-primary-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary';
+	const baseChipClass =
+		'cursor-pointer border-amber-200/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-200/50';
+
+	function topicChipClass(isActive: boolean): string {
+		return cn(
+			baseChipClass,
+			isActive
+				? 'bg-amber-200/15 text-amber-200 hover:bg-amber-200/20 hover:text-amber-100'
+				: 'bg-transparent text-amber-200/85 hover:bg-amber-200/10 hover:text-amber-100'
+		);
+	}
 </script>
 
 {#if topics.length}
@@ -34,7 +43,7 @@
 			href={blogIndexHref}
 			variant={!activeTopicSlug ? 'default' : 'outline'}
 			ariaCurrent={!activeTopicSlug ? 'page' : undefined}
-			class={chipClass}
+			class={topicChipClass(!activeTopicSlug)}
 		>
 			<span class="sr-only">All topics with </span>
 			All ({totalPosts})<span class="sr-only"> blog posts</span>
@@ -44,7 +53,7 @@
 				href={url(`/${rootPathPublicBlog}/topic/${topic.slug}`)}
 				variant={activeTopicSlug === topic.slug ? 'default' : 'outline'}
 				ariaCurrent={activeTopicSlug === topic.slug ? 'page' : undefined}
-				class={chipClass}
+				class={topicChipClass(activeTopicSlug === topic.slug)}
 			>
 				<span class="sr-only">Topic </span>
 				{topic.name} ({topic.postCount})

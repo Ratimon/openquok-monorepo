@@ -46,7 +46,7 @@
 					<time class="text-base-content/60 text-xs" datetime="PT{minutes}M">{readingLabel}</time>
 					<FormattedISODate date={post.createdAt} class="text-base-content/60 text-xs" />
 				</div>
-				<CardTitle id={`blog-post-${post.id}-title`} class="line-clamp-2 min-h-12 leading-6">
+				<CardTitle id={`blog-post-${post.id}-title`} class="line-clamp-2 min-h-12 leading-6 text-primary">
 					{post.title}
 					{#if post.isSponsored}
 						<span class="badge badge-secondary ml-1 align-middle text-xs" aria-label="Sponsored content"

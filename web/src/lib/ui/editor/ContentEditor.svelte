@@ -8,7 +8,8 @@
 	import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 	import {
 		buildBlogInlineImageSrc,
-		normalizeBlogInlineImagesInHtml
+		normalizeBlogInlineImagesInHtml,
+		prepareBlogContentForDisplay
 	} from '$lib/blogs/utils';
 	import { imageRepository } from '$lib/core/index';
 	import { cn } from '$lib/ui/helpers/common';
@@ -73,13 +74,29 @@
 					}
 				})
 			],
-			content: outputType === 'html' ? normalizeBlogInlineImagesInHtml(content || '') : (content || ''),
+			content:
+				outputType === 'html'
+					? normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(content || ''))
+					: (content || ''),
 			editorProps: {
 				attributes: {
 					class: cn(
 						'text-sm bg-base-100 border border-base-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/30 min-h-[100px]',
 						className
 					)
+				},
+				handlePaste: (_view, event) => {
+					if (outputType !== 'html' || !editor) return false;
+
+					const richHtml = event.clipboardData?.getData('text/html')?.trim();
+					if (richHtml) return false;
+
+					const plain = event.clipboardData?.getData('text/plain')?.trim();
+					if (!plain || !/<\/?[a-z][\s\S]*>/i.test(plain)) return false;
+
+					event.preventDefault();
+					editor.commands.insertContent(prepareBlogContentForDisplay(plain));
+					return true;
 				}
 			},
 			onUpdate: ({ editor }) => {
@@ -277,7 +294,9 @@
 			// Only update if content actually changed to avoid unnecessary updates
 			if (normalizedContent !== normalizedEditorContent) {
 				const effective =
-					outputType === 'html' ? normalizeBlogInlineImagesInHtml(content || '') : (content || '');
+					outputType === 'html'
+						? normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(content || ''))
+						: (content || '');
 				editor.commands.setContent(effective);
 				currentContent = content || '';
 				currentLength = editor.getText().length;
@@ -415,6 +434,23 @@
 	:global(.content-editor .ProseMirror a:hover),
 	:global(.content-editor a:hover) {
 		text-decoration-thickness: 2px;
+	}
+
+	/* Blockquotes */
+	:global(.content-editor .ProseMirror blockquote),
+	:global(.content-editor blockquote) {
+		margin: 1rem 0;
+		padding: 0.875rem 1rem;
+		border-left: 0.25rem solid oklch(var(--p));
+		border-radius: 0.5rem;
+		background: oklch(var(--b2));
+		color: oklch(var(--bc) / 0.88);
+		font-style: italic;
+	}
+
+	:global(.content-editor .ProseMirror blockquote p),
+	:global(.content-editor blockquote p) {
+		margin: 0;
 	}
 
 	/* Nested lists */

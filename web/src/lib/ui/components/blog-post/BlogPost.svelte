@@ -111,10 +111,7 @@
 	let proseEl: HTMLDivElement | undefined = $state();
 
 	onMount(() => {
-		if (!browser || !proseEl) return;
-		const raw = post.content ?? '';
-		if (!raw) return;
-		syncBlogHeadingIds(proseEl, raw);
+		if (!browser) return;
 		const hash = window.location.hash;
 		if (hash.length > 1) {
 			const id = hash.slice(1);
@@ -122,6 +119,13 @@
 				document.getElementById(id)?.scrollIntoView({ behavior: 'auto', block: 'start' });
 			});
 		}
+	});
+
+	$effect(() => {
+		if (!browser || !proseEl) return;
+		const raw = contentHtml ?? '';
+		if (!raw) return;
+		syncBlogHeadingIds(proseEl, raw);
 	});
 </script>
 
@@ -146,16 +150,16 @@
 							variant="outline"
 							dataTestid="blog-topic-badge"
 							ariaLabelledby="blog-topic-badge-label"
-							class="inline-flex [&_a]:text-inherit"
+							class="inline-flex border-amber-200/30 bg-amber-200/15 px-3 py-1 text-sm font-semibold text-amber-200 shadow-sm hover:bg-amber-200/20 hover:text-amber-100 [&_a]:text-inherit"
 						>
-							<a href={topicPageHref} class="font-semibold">
+							<a href={topicPageHref}>
 								{post.topic.name}
 							</a>
 						</Badge>
 					</div>
 				{/if}
 
-				<h1 class="mb-2 mt-4 max-w-5xl text-center text-4xl font-black md:text-7xl">
+				<h1 class="mb-2 mt-4 max-w-5xl text-center text-4xl font-black text-primary md:text-7xl">
 					{post.title}
 				</h1>
 
@@ -188,7 +192,7 @@
 	<OneColSection class="mt-2 w-full pb-8">
 		<div class="relative flex w-full flex-row gap-x-4 md:gap-x-6 lg:gap-x-8">
 			<div class="mt-4 shrink-0 md:mt-0 md:w-44 lg:w-48">
-				<TableOfContents title="Table of contents" content={post.content ?? ''} />
+				<TableOfContents title="Table of contents" content={contentHtml} />
 			</div>
 
 			<div class="flex min-w-0 flex-1 flex-col">
@@ -217,7 +221,7 @@
 
 					<div
 						bind:this={proseEl}
-						class="prose prose-lg max-w-none text-base-content prose-headings:text-base-content prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-base-content/20 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60"
+						class="blog-post-prose prose prose-lg max-w-none text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60"
 					>
 						{@html contentHtml}
 					</div>

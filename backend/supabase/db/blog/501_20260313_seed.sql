@@ -61,40 +61,8 @@ ON CONFLICT (id) DO NOTHING;
 -- Competitive Evaluation & Buyer Guidance Subtopics
 INSERT INTO public.blog_topics (id, name, description, parent_id) VALUES
     ('d5f7a000-0000-4000-a000-000000000401', 'Versus Comparison Posts', 'Head-to-head comparisons that clarify key differences and fit', 'd5f7a000-0000-4000-a000-000000000004'),
-    ('d5f7a000-0000-4000-a000-000000000402', 'Buyer Decision Frameworks', 'Decision criteria and scoring approaches for selecting a solution', 'd5f7a000-0000-4000-a000-000000000004'),
     ('d5f7a000-0000-4000-a000-000000000403', 'When to Choose X vs Y Scenarios', 'Scenario-based guidance to choose the right option for constraints and goals', 'd5f7a000-0000-4000-a000-000000000004')
 ON CONFLICT (id) DO NOTHING;
-
--- ---------------------------
--- Seed Sample Blog Post
--- ---------------------------
-INSERT INTO public.blog_posts (
-    title,
-    description,
-    content,
-    topic_id,
-    is_admin_approved,
-    is_user_published
-) VALUES (
-    'Welcome to Our Blog',
-    'Learn about our blog system and how to use it effectively',
-    '# Welcome to Our Blog
-
-This is a sample blog post that demonstrates the capabilities of our blog system.
-
-## Features
-
-- Rich text editing
-- Beautiful and responsive design
-- SEO optimization
-- And much more!
-
-Get started by creating your first blog post today!',
-    'd5f7a000-0000-4000-a000-000000000202', -- How-to Tutorials subtopic
-    true,
-    true
-)
-ON CONFLICT DO NOTHING;
 
 -- ---------------------------
 -- Module Configs

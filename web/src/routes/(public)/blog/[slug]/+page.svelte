@@ -20,7 +20,7 @@
 	import { url, route } from '$lib/utils/path';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils';
+	import { normalizeBlogInlineImagesInHtml, prepareBlogContentForDisplay } from '$lib/blogs/utils';
 
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -29,6 +29,7 @@
 	} from '$lib/config/constants/config';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
+	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
@@ -108,12 +109,18 @@
 
 	let normalizedContent = $state<string>('');
 
+	const preparedContent = $derived(
+		prepareBlogContentForDisplay(currentPostVm.content ?? '')
+	);
+
 	$effect(() => {
 		if (!browser) return;
-		normalizedContent = normalizeBlogInlineImagesInHtml(data.currentPostVm.content ?? '');
+		normalizedContent = normalizeBlogInlineImagesInHtml(preparedContent);
 	});
 
-	let contentHtml = $derived(normalizedContent || (currentPostVm.content ?? ''));
+	let contentHtml = $derived(
+		browser && normalizedContent ? normalizedContent : preparedContent
+	);
 
 	function postHref(slug: string): string {
 		return url(`/${getRootPathPublicBlogPost(slug)}`);
@@ -202,6 +209,7 @@
 
 <LayoutOuterContainer class="bg-base-100 pt-6 pb-6 md:pt-8 md:pb-10">
 	<LayoutInnerContainer class="mx-auto w-full pb-4">
+		<BlogHubBreadcrumb pageTitle={currentPostVm.title} class="mb-4" />
 		<BlogPost
 			post={currentPostVm}
 			{contentHtml}

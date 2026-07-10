@@ -2,7 +2,6 @@
 	import type { Snippet } from 'svelte';
 
 	import { browser } from '$app/environment';
-	import { pushState } from '$app/navigation';
 
 	/**
 	 * Same-page anchor link: smooth scroll, update URL hash without full navigation.
@@ -28,11 +27,9 @@
 		const anchor = document.getElementById(id);
 		if (!anchor) return;
 
-		anchor.scrollIntoView({ behavior: 'smooth' });
-		const next = new URL(window.location.href);
-		next.hash = href;
-		pushState(next, {});
-		window.dispatchEvent(new HashChangeEvent('hashchange'));
+		anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		const nextUrl = `${window.location.pathname}${window.location.search}${href}`;
+		window.history.replaceState(window.history.state, '', nextUrl);
 	}
 </script>
 

@@ -45,7 +45,10 @@
 <div
 	data-testid="table-of-contents"
 	id="table-of-contents"
-	class={cn('sticky flex w-full flex-col md:top-[180px] md:w-48', className)}
+	class={cn(
+		'sticky flex w-full flex-col md:top-[180px] md:max-h-[calc(100vh-200px)] md:w-48 md:overflow-y-auto md:overscroll-contain',
+		className
+	)}
 >
 	{#if showBreadcrumb}
 		<Breadcrumb.Root class="mb-3 max-w-full">
@@ -64,7 +67,7 @@
 			{#each headers as header, index (header.slug + index)}
 				<li class={indentClass(header.level)}>
 					<ScrollLink
-						href="#{header.slug}"
+						href={`#${header.slug}`}
 						class={cn(
 							'block text-sm leading-6 transition-colors duration-200 ease-in-out hover:text-primary',
 							header.level < 2 ? 'mt-2 font-medium text-base-content' : 'text-base-content/70'
