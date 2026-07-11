@@ -1,6 +1,6 @@
-import type { ContactPoint, Organization, WithContext } from 'schema-dts';
+import type { ContactPoint, Organization } from 'schema-dts';
 
-import { resolveSocialSameAsUrls } from '$lib/ui/social/socialLinks';
+import { resolveSocialSameAsUrls } from '$lib/config/constants/config';
 
 export type CreateOrganizationSEOSchemaParams = {
 	/** Organization display name. */
@@ -9,9 +9,7 @@ export type CreateOrganizationSEOSchemaParams = {
 	url: string;
 	/** Site origin used for a stable `@id` (`{origin}/#organization`). */
 	origin: string;
-	/** Marketing config map used to resolve social profile URLs for `sameAs`. */
-	marketingInformationVm?: Record<string, string>;
-	/** Optional explicit `sameAs` URLs (skips marketing resolution when provided). */
+	/** Optional explicit `sameAs` URLs (defaults to marketing `SOCIAL_LINKS_*`). */
 	sameAs?: string[];
 	/** Support / contact email (plain address, not mailto). */
 	email?: string;
@@ -28,8 +26,7 @@ export function organizationSchemaId(origin: string): string {
 
 /**
  * JSON-LD `Organization` with social profiles via `sameAs` (Knowledge Panel / brand entity).
- * @see https://schema.org/Organization
- * @see https://schema.org/sameAs
+ * Prefer emitting this on the homepage and About page — not sitewide on every layout.
  */
 export function createOrganizationSEOSchema(
 	params: CreateOrganizationSEOSchemaParams
@@ -38,14 +35,13 @@ export function createOrganizationSEOSchema(
 		name,
 		url,
 		origin,
-		marketingInformationVm = {},
 		sameAs: sameAsOverride,
 		email,
 		logo,
 		contactPoint
 	} = params;
 
-	const sameAs = sameAsOverride ?? resolveSocialSameAsUrls(marketingInformationVm);
+	const sameAs = sameAsOverride ?? resolveSocialSameAsUrls();
 
 	const organization = {
 		'@type': 'Organization' as const,
@@ -59,16 +55,4 @@ export function createOrganizationSEOSchema(
 	};
 
 	return organization as Organization;
-}
-
-/**
- * Full JSON-LD document for sitewide Organization markup (e.g. root layout).
- */
-export function createOrganizationSchemaData(
-	params: CreateOrganizationSEOSchemaParams
-): WithContext<Organization> {
-	return {
-		'@context': 'https://schema.org',
-		...(createOrganizationSEOSchema(params) as object)
-	} as WithContext<Organization>;
 }

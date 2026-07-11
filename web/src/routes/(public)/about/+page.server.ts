@@ -1,7 +1,10 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { createOrganizationSEOSchema, organizationSchemaId } from '$lib/content/utils/createOrganizationSEOSchema';
+import {
+	createOrganizationSEOSchema,
+	organizationSchemaId
+} from '$lib/content/utils/createOrganizationSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -10,7 +13,7 @@ export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformationPm, marketingInformationPm, marketingInformationVm } = await parent();
+	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const companyUrl = companyInformationPm?.config?.URL ?? CONFIG_SCHEMA_COMPANY.URL.default;
@@ -44,7 +47,6 @@ export async function load({ url, cookies, parent }) {
 		name: companyName,
 		url: companyUrl,
 		origin: url.origin,
-		marketingInformationVm: marketingInformationVm ?? {},
 		email: supportEmail,
 		logo: new URL('/pwa/favicon.svg', url.origin).href,
 		contactPoint: [
@@ -93,4 +95,3 @@ export async function load({ url, cookies, parent }) {
 		responsiblePerson
 	};
 }
-

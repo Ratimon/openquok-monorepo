@@ -28,14 +28,6 @@
 	let companyYearVm = $derived(
 		data.companyYearVm ?? page.data.companyYearVm ?? publicLayoutPagePresenter.companyYearVm
 	);
-	let marketingInformationVm = $derived(
-		(data.marketingInformationVm && Object.keys(data.marketingInformationVm).length > 0)
-			? data.marketingInformationVm
-			: page.data.marketingInformationVm &&
-				  Object.keys(page.data.marketingInformationVm).length > 0
-				? page.data.marketingInformationVm
-				: publicLayoutPagePresenter.marketingInformationVm
-	);
 	let landingPageConfigVm = $derived(
 		data.landingPageConfigVm && Object.keys(data.landingPageConfigVm).length > 0
 			? data.landingPageConfigVm
@@ -57,7 +49,6 @@
 	{isLoggedIn}
 	{companyNameVm}
 	{companyYearVm}
-	{marketingInformationVm}
 	{navbarDesktopLinks}
 	{navbarMobileLinks}
 	{footerNavigationLinks}

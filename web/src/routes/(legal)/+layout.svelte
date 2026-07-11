@@ -1,8 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { LayoutData } from './$types';
+
 	import { page } from '$app/state';
+
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
+
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 
 	type Props = {
@@ -23,13 +26,6 @@
 	let companyYearVm = $derived(
 		data?.companyYearVm ?? page.data?.companyYearVm ?? publicLayoutPagePresenter.companyYearVm ?? new Date().getFullYear().toString()
 	);
-	let marketingInformationVm = $derived(
-		(data?.marketingInformationVm && Object.keys(data.marketingInformationVm ?? {}).length > 0)
-			? data.marketingInformationVm
-			: (page.data?.marketingInformationVm && Object.keys(page.data?.marketingInformationVm ?? {}).length > 0)
-				? page.data.marketingInformationVm
-				: publicLayoutPagePresenter.marketingInformationVm
-	);
 </script>
 
 <PublicArea
@@ -39,7 +35,6 @@
 	{footerNavigationLinks}
 	companyNameVm={companyNameVm}
 	companyYearVm={companyYearVm}
-	marketingInformationVm={marketingInformationVm}
 >
 	<div class="min-h-full bg-base-200/50 py-8 md:py-10">
 		{@render children?.()}

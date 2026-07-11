@@ -7,10 +7,9 @@
 		footerNavigationLinks: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
 		companyYearVm: string;
-		marketingInformationVm?: Record<string, string> | null;
 	};
 
-	let { footerNavigationLinks, companyNameVm, companyYearVm, marketingInformationVm }: Props = $props();
+	let { footerNavigationLinks, companyNameVm, companyYearVm }: Props = $props();
 
 	let copyrightDuration = $derived(
 		companyYearVm === new Date().getFullYear().toString()
@@ -40,7 +39,6 @@
 
 				<div class="w-full md:w-fit">
 					<SocialFollowBar
-						marketingInformationVm={marketingInformationVm ?? {}}
 						direction="horizontal"
 						size="sm"
 						class="mx-auto text-sm text-base-content/80 hover:text-base-content"

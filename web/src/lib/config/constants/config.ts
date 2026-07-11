@@ -1,4 +1,7 @@
+import type { IconName } from '$data/icons';
 import type { ModuleConfigSchema } from '$lib/config/constants/types';
+
+import { icons } from '$data/icons';
 import { getDefaultPublicFaqConfigItems } from '$lib/content/constants/publicFaqConfig';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
@@ -194,6 +197,74 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	}
 };
 
+/** Marketing config keys for public social profile URLs (`CONFIG_SCHEMA_MARKETING`). */
+export type SocialLinkChannelId =
+	| 'SOCIAL_LINKS_FACEBOOK'
+	| 'SOCIAL_LINKS_X'
+	| 'SOCIAL_LINKS_INSTAGRAM'
+	| 'SOCIAL_LINKS_LINKEDIN'
+	| 'SOCIAL_LINKS_YOUTUBE';
+
+export type SocialProfileLink = {
+	CHANNEL_ID: SocialLinkChannelId;
+	CHANNEL_NAME: string;
+	Icon: IconName;
+	/** When false, omitted from footer follow bar (still eligible for schema `sameAs` if configured). */
+	showInFollowBar?: boolean;
+};
+
+/**
+ * Social profile channel metadata (icons / labels). Profile URLs live only in
+ * {@link CONFIG_SCHEMA_MARKETING} `SOCIAL_LINKS_*` defaults — use {@link getSocialProfileHref}.
+ */
+export const SOCIAL_PROFILE_LINKS: readonly SocialProfileLink[] = [
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_FACEBOOK',
+		CHANNEL_NAME: 'Facebook',
+		Icon: icons.Facebook.name
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_X',
+		CHANNEL_NAME: 'X',
+		Icon: icons.X.name
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_INSTAGRAM',
+		CHANNEL_NAME: 'Instagram',
+		Icon: icons.Instagram.name
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_LINKEDIN',
+		CHANNEL_NAME: 'LinkedIn',
+		Icon: icons.LinkedIn.name
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_YOUTUBE',
+		CHANNEL_NAME: 'YouTube',
+		Icon: icons.YouTube.name,
+		showInFollowBar: false
+	}
+];
+
+export const SOCIAL_FOLLOW_BAR_LINKS = SOCIAL_PROFILE_LINKS.filter(
+	(link) => link.showInFollowBar !== false
+);
+
+/** Resolve a social profile URL from marketing schema defaults. */
+export function getSocialProfileHref(channelId: SocialLinkChannelId): string {
+	const raw = CONFIG_SCHEMA_MARKETING[channelId]?.default;
+	return typeof raw === 'string' ? raw.trim() : '';
+}
+
+/** Non-empty profile URLs for schema.org Organization `sameAs`. */
+export function resolveSocialSameAsUrls(): string[] {
+	const urls: string[] = [];
+	for (const link of SOCIAL_PROFILE_LINKS) {
+		const href = getSocialProfileHref(link.CHANNEL_ID);
+		if (href) urls.push(href);
+	}
+	return urls;
+}
 
 // Landing page (public home) content defaults
 export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {

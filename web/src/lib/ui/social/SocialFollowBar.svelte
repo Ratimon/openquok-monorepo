@@ -1,28 +1,24 @@
 <script lang="ts">
+	import {
+		SOCIAL_FOLLOW_BAR_LINKS,
+		getSocialProfileHref
+	} from '$lib/config/constants/config';
 	import { cn } from '$lib/ui/helpers/common';
-	import { SOCIAL_FOLLOW_BAR_LINKS } from '$lib/ui/social/socialLinks';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 
 	type Props = {
-		marketingInformationVm?: Record<string, string>;
 		direction?: 'horizontal' | 'vertical';
 		size?: 'sm' | 'lg';
 		class?: string;
 	};
 
 	let {
-		marketingInformationVm = {},
 		direction = 'horizontal',
 		size = 'sm',
 		class: className = ''
 	}: Props = $props();
-
-	function resolveSocialHref(channelId: string, fallback: string): string {
-		const raw = marketingInformationVm[channelId];
-		return typeof raw === 'string' && raw.trim() !== '' ? raw.trim() : fallback;
-	}
 </script>
 
 <div
@@ -30,7 +26,7 @@
 	aria-label="Social links"
 >
 	{#each SOCIAL_FOLLOW_BAR_LINKS as link (link.CHANNEL_ID)}
-		{@const href = resolveSocialHref(link.CHANNEL_ID, link.CHANNEL_HREF)}
+		{@const href = getSocialProfileHref(link.CHANNEL_ID)}
 		{#if href}
 			<ExternalLink
 				{href}

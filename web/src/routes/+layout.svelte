@@ -16,7 +16,6 @@
 	import { identifyPostHogUser } from '$lib/product-analytics/posthog.client';
 	import PostHogPageview from '$lib/product-analytics/PostHogPageview.svelte';
 	import UtmAttribution from '$lib/product-analytics/UtmAttribution.svelte';
-	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	type Props = {
 		data: PageData & App.LayoutData;
@@ -24,8 +23,6 @@
 	};
 
 	let { data, children }: Props = $props();
-
-	let baseSchemaData = $derived(data.baseSchemaData);
 
 	/** Landing uses Aurora/forest; sync DOM + localStorage so returning from /docs does not stay on light. */
 	afterNavigate(({ to }) => {
@@ -85,7 +82,6 @@
 <UtmAttribution />
 <FacebookPixel />
 <MetaTags {...metaTags} />
-<JsonLdHead schemaData={baseSchemaData} />
 <svelte:head>
 	<link rel="icon" href="/pwa/favicon.svg" type="image/svg+xml" />
 </svelte:head>

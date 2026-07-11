@@ -13,6 +13,10 @@ import {
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
+import {
+	createOrganizationSEOSchema,
+	organizationSchemaId
+} from '$lib/content/utils/createOrganizationSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
@@ -50,7 +54,11 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 	});
 
 	const companyName =
-		companyInformationPm?.config?.NAME ?? String(CONFIG_SCHEMA_COMPANY.NAME.default);
+		(typeof companyInformationPm?.config?.NAME === 'string' && companyInformationPm.config.NAME) ||
+		String(CONFIG_SCHEMA_COMPANY.NAME.default);
+	const companyUrl =
+		(typeof companyInformationPm?.config?.URL === 'string' && companyInformationPm.config.URL) ||
+		String(CONFIG_SCHEMA_COMPANY.URL.default);
 	const heroTitleRaw =
 		landingPageConfigVm.HERO_TITLE ?? String(CONFIG_SCHEMA_MARKETING.META_TITLE.default);
 	const heroDescription =
@@ -92,6 +100,14 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 		}
 	}) satisfies MetaTagsProps;
 
+	const organizationId = organizationSchemaId(url.origin);
+	const organization = createOrganizationSEOSchema({
+		name: companyName,
+		url: companyUrl,
+		origin: url.origin,
+		logo: new URL('/pwa/favicon.svg', url.origin).href
+	});
+
 	const schemaData = {
 		'@context': 'https://schema.org',
 		'@graph': [
@@ -101,12 +117,14 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 				name: companyName,
 				url: url.origin,
 				description: heroDescription,
+				publisher: { '@id': organizationId },
 				potentialAction: {
 					'@type': 'SearchAction',
 					target: `${url.origin}/blog?q={search_term_string}`,
 					'query-input': 'required name=search_term_string'
 				}
 			},
+			organization,
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name:
