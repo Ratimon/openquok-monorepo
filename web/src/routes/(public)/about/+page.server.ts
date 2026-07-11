@@ -1,11 +1,11 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import {
-	createOrganizationSEOSchema,
+import { createOrganizationSEOSchema,
 	organizationSchemaId
 } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -59,30 +59,27 @@ export async function load({ url, cookies, parent }) {
 		]
 	});
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'AboutPage',
-				'@id': `${canonical}#webpage`,
-				name: customTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': organizationId
-				},
-				about: {
-					'@id': organizationId
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'AboutPage',
+			'@id': `${canonical}#webpage`,
+			name: customTitle,
+			description: customDescription,
+			url: canonical,
+			mainEntity: {
+				'@id': organizationId
 			},
-			organization
-		]
-	};
+			about: {
+				'@id': organizationId
+			},
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
+			}
+		},
+		organization
+	]);
 
 	return {
 		pageMetaTags,

@@ -10,13 +10,13 @@ import type {
 	Person,
 	Question,
 	SoftwareApplication,
-	Thing,
-	WithContext
+	Thing
 } from 'schema-dts';
 
 
 import type { ListingSchemaType } from '$lib/listings/constants/listingSchemaTypes';
 import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
 
 type ListingSeoInput = {
 	title: string;
@@ -152,7 +152,7 @@ export function createListingSEOSchema(
 	listing: ListingSeoInput,
 	listingUrl: string,
 	imageBaseUrl?: string
-): WithContext<any> {
+): JsonLdGraphSchema {
 	const imageUrl = listing.defaultImageUrl
 		? imageBaseUrl
 			? `${imageBaseUrl}${listing.defaultImageUrl}`
@@ -189,17 +189,14 @@ export function createListingSEOSchema(
 		schemas.push(faqSchema);
 	}
 
-	return {
-		'@context': 'https://schema.org',
-		'@graph': schemas
-	} as WithContext<any>;
+	return createJsonLdGraph(schemas as Thing[]);
 }
 
 /** Merge listing `schemaJson` nodes into a JSON-LD `@graph` array. */
 export function mergeListingSchemaIntoGraph(
-	baseGraph: Record<string, unknown>[],
+	baseGraph: Thing[],
 	schemaJson: Record<string, unknown> | null | undefined
-): Record<string, unknown>[] {
+): Thing[] {
 	if (!schemaJson || Object.keys(schemaJson).length === 0) {
 		return baseGraph;
 	}
@@ -210,7 +207,7 @@ export function mergeListingSchemaIntoGraph(
 	}
 
 	if (typeof schemaJson['@type'] === 'string') {
-		return [...baseGraph, schemaJson];
+		return [...baseGraph, schemaJson as Thing];
 	}
 
 	return baseGraph;

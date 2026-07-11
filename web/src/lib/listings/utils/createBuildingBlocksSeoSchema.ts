@@ -1,4 +1,12 @@
 import type {
+	CollectionPage,
+	DefinedTerm,
+	DefinedTermSet,
+	ItemList,
+	WebSite
+} from 'schema-dts';
+
+import type {
 	ExtensionCardViewModel,
 	ExtensionCategoryOverviewItemViewModel,
 	ExtensionTagFilterChip,
@@ -13,8 +21,6 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicCreatorBuildingBlock } from '$lib/area-public/constants/getRootPathPublicCreators';
 
-type JsonLdNode = Record<string, unknown>;
-
 type DefinedTermInput = {
 	slug: string;
 	name: string;
@@ -23,7 +29,7 @@ type DefinedTermInput = {
 	inDefinedTermSet: string;
 };
 
-function toDefinedTerm(params: DefinedTermInput): JsonLdNode {
+function toDefinedTerm(params: DefinedTermInput): DefinedTerm {
 	const { slug, name, description, url, inDefinedTermSet } = params;
 
 	return {
@@ -44,8 +50,8 @@ export function createCollectionPageSchema(params: {
 	name: string;
 	description: string;
 	mainEntityId?: string | string[];
-	about?: JsonLdNode | JsonLdNode[];
-}): JsonLdNode {
+	about?: DefinedTerm | DefinedTerm[];
+}): CollectionPage {
 	const { canonical, origin, companyName, name, description, mainEntityId, about } = params;
 
 	return {
@@ -64,7 +70,7 @@ export function createCollectionPageSchema(params: {
 			'@type': 'WebSite',
 			name: companyName,
 			url: origin
-		}
+		} as WebSite
 	};
 }
 
@@ -74,7 +80,7 @@ export function createBuildingBlocksItemListSchema(params: {
 	name: string;
 	description: string;
 	buildingBlocks: ExtensionCardViewModel[];
-}): JsonLdNode {
+}): ItemList {
 	const { canonical, origin, name, description, buildingBlocks } = params;
 
 	return {
@@ -116,7 +122,7 @@ export function createCategoryTermSetSchema(params: {
 	name: string;
 	description: string;
 	categories: ExtensionCategoryOverviewItemViewModel[];
-}): JsonLdNode {
+}): DefinedTermSet {
 	const { canonical, origin, name, description, categories } = params;
 	const setUrl = new URL(getRootPathPublicBuildingBlocksCategories(), origin).href;
 
@@ -150,7 +156,7 @@ export function createTagTermSetSchema(params: {
 	name: string;
 	description: string;
 	tags: ExtensionTagFilterChip[];
-}): JsonLdNode {
+}): DefinedTermSet {
 	const { canonical, origin, name, description, tags } = params;
 	const setUrl = new URL(getRootPathPublicBuildingBlocksTags(), origin).href;
 
@@ -182,7 +188,7 @@ export function createTagGroupTermSetSchema(params: {
 	name: string;
 	description: string;
 	groups: ExtensionTagGroupFilterChip[];
-}): JsonLdNode {
+}): DefinedTermSet {
 	const { canonical, origin, name, description, groups } = params;
 	const setUrl = new URL(getRootPathPublicBuildingBlocksTags(), origin).href;
 
@@ -213,7 +219,7 @@ export function createCategoryAboutSchema(params: {
 	slug: string;
 	name: string;
 	description?: string | null;
-}): JsonLdNode {
+}): DefinedTerm {
 	const { origin, slug, name, description } = params;
 
 	return toDefinedTerm({
@@ -230,7 +236,7 @@ export function createTagAboutSchema(params: {
 	slug: string;
 	name: string;
 	description?: string | null;
-}): JsonLdNode {
+}): DefinedTerm {
 	const { origin, slug, name, description } = params;
 
 	return toDefinedTerm({

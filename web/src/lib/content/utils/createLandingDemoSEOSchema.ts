@@ -1,3 +1,5 @@
+import type { VideoObject } from 'schema-dts';
+
 export type CreateLandingDemoSEOSchemaParams = {
 	/** YouTube video ID (not the full URL). */
 	youtubeVideoId: string;
@@ -15,7 +17,7 @@ export type CreateLandingDemoSEOSchemaParams = {
  */
 export function createLandingDemoSEOSchema(
 	params: CreateLandingDemoSEOSchemaParams
-): Record<string, unknown> {
+): VideoObject | Record<string, never> {
 	const { youtubeVideoId, name, description, pageUrl } = params;
 	const videoId = youtubeVideoId.trim();
 	if (!videoId) {

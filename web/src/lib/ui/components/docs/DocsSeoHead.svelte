@@ -1,6 +1,9 @@
 <script lang="ts">
+	import type { BreadcrumbList, ListItem, TechArticle, WebSite, WithContext } from 'schema-dts';
+
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import { createJsonLdWithContext, SCHEMA_ORG_CONTEXT } from '$lib/utils/jsonLdSchema';
 	import { jsonLdScriptHtml } from '$lib/utils/jsonLdScriptHtml';
 
 	let {
@@ -19,7 +22,7 @@
 		return baseUrl ? `${baseUrl}${page.url.pathname}` : page.url.pathname;
 	});
 
-	let breadcrumbItems = $derived.by(() => {
+	let breadcrumbItems = $derived.by((): ListItem[] => {
 		const parts = page.url.pathname.split('/').filter(Boolean);
 		const baseUrl = docsConfig.site.url ?? '';
 		return parts.map((part, i) => ({
@@ -31,8 +34,7 @@
 	});
 
 	let schemaData = $derived([
-		{
-			'@context': 'https://schema.org',
+		createJsonLdWithContext({
 			'@type': 'TechArticle',
 			headline: title,
 			description: description ?? '',
@@ -41,13 +43,13 @@
 				'@type': 'WebSite',
 				name: siteTitle,
 				url: docsConfig.site.url ?? ''
-			}
-		},
+			} satisfies WebSite
+		} satisfies TechArticle),
 		{
-			'@context': 'https://schema.org',
+			'@context': SCHEMA_ORG_CONTEXT,
 			'@type': 'BreadcrumbList',
 			itemListElement: breadcrumbItems
-		}
+		} satisfies WithContext<BreadcrumbList>
 	]);
 </script>
 

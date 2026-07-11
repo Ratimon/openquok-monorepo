@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { SoftwareApplication } from 'schema-dts';
+
 import { error } from '@sveltejs/kit';
 
 import { publicPhotoEditorPagePresenter } from '$lib/area-public';
@@ -10,6 +12,7 @@ import {
 	listCanvasChannelsForHub
 } from '$lib/canvas';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -38,25 +41,22 @@ export async function load({ url, params, cookies, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = new URL(url.pathname, url.origin).href;
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'WebApplication',
-				'@id': `${canonical}#webapp`,
-				name: editorVm.metaTitle,
-				description: editorVm.metaDescription,
-				applicationCategory: 'DesignApplication',
-				url: canonical,
-				offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'WebApplication',
+			'@id': `${canonical}#webapp`,
+			name: editorVm.metaTitle,
+			description: editorVm.metaDescription,
+			applicationCategory: 'DesignApplication',
+			url: canonical,
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
 			}
-		]
-	};
+		} satisfies SoftwareApplication
+	]);
 
 	return {
 		pageMetaTags: metaTags,

@@ -14,6 +14,7 @@ import {
 	createCollectionPageSchema
 } from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -56,9 +57,8 @@ export async function load({ url, fetch, cookies, parent }) {
 		categoryDetails
 	);
 	const canonical = new URL(url.pathname, url.origin).href;
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			createCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -74,8 +74,8 @@ export async function load({ url, fetch, cookies, parent }) {
 				description: customDescription,
 				categories
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

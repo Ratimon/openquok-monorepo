@@ -1,11 +1,14 @@
 import { base } from '$app/paths';
 
+import type { Thing } from 'schema-dts';
+
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import type {
 	BlogPostBySlugPublicViewModel,
 	BlogPostCommentViewModel
 } from '$lib/blogs/GetBlog.presenter.svelte';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
 export function guessImageMimeFromFilename(filename: string): string {
@@ -52,7 +55,7 @@ export type CreateBlogPostSEOSchemaParams = {
  * JSON-LD for a public blog post: `BlogPosting` + `BreadcrumbList` in a single `@graph`
  * (ported from `blog-system` `generateBlogPostSEOSchema`, adapted to `BlogPostBySlugPublicViewModel`).
  */
-export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): Record<string, unknown> {
+export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): JsonLdGraphSchema {
 	const { post, comments = [], canonicalUrl, companyName, companySiteUrl, companyLogoUrl, requestUrl } = params;
 
 	const origin = requestUrl.origin;
@@ -225,8 +228,5 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		itemListElement: breadcrumbItems
 	};
 
-	return {
-		'@context': 'https://schema.org',
-		'@graph': [blogPosting, breadcrumbList, ...commentNodes]
-	};
+	return createJsonLdGraph([blogPosting, breadcrumbList, ...commentNodes] as Thing[]);
 }

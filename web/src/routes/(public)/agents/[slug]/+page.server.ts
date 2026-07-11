@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { JsonLdGraphNode } from '$lib/utils/jsonLdSchema';
+
 import { error } from '@sveltejs/kit';
 
 import { publicAgentByPagePresenter } from '$lib/area-public';
@@ -10,6 +12,7 @@ import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgen
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 
 export const ssr = true;
@@ -22,7 +25,7 @@ function buildSoftwareApplicationSchema(params: {
 	description: string;
 	keywords: string[];
 	featureList: string[];
-}) {
+}): JsonLdGraphNode {
 	const { canonical, origin, docsPath, name, description, keywords, featureList } = params;
 
 	return {
@@ -33,7 +36,10 @@ function buildSoftwareApplicationSchema(params: {
 		url: canonical,
 		applicationCategory: 'AI assistant',
 		operatingSystem: 'Web, Desktop, CLI',
-		softwareHelp: new URL(docsPath, origin).href,
+		softwareHelp: {
+			'@type': 'CreativeWork',
+			url: new URL(docsPath, origin).href
+		},
 		featureList,
 		keywords: keywords.join(', '),
 		mainEntityOfPage: {
@@ -97,9 +103,8 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
@@ -130,8 +135,8 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				description: agentVm.faqDescription,
 				items: agentVm.faqItems
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

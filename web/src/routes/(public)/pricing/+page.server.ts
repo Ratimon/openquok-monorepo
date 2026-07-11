@@ -10,6 +10,7 @@ import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -71,9 +72,8 @@ export async function load({ url, cookies, parent }) {
 	const pageVmMonthly = presenter.buildPageVm(monthlyPeriod);
 	const pageVmYearly = presenter.buildPageVm(yearlyPeriod);
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
@@ -100,8 +100,8 @@ export async function load({ url, cookies, parent }) {
 				description: publicFaqConfigPm.DESCRIPTION,
 				items: publicFaqItemsVm
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

@@ -1,3 +1,5 @@
+import type { Answer, FAQPage, Question } from 'schema-dts';
+
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
@@ -20,26 +22,31 @@ export type CreatePublicFaqSEOSchemaParams = {
  */
 export function createPublicFaqSEOSchema(
 	params: CreatePublicFaqSEOSchemaParams
-): Record<string, unknown> {
+): FAQPage | Record<string, never> {
 	const { pageUrl, name, description, items = PUBLIC_FAQ_ITEMS } = params;
 
 	if (items.length === 0) {
 		return {};
 	}
 
+	const pageBase = pageUrl.replace(/#.*$/, '');
+
 	return {
 		'@type': 'FAQPage',
-		'@id': `${pageUrl.replace(/#.*$/, '')}#faq`,
+		'@id': `${pageBase}#faq`,
 		...(name ? { name } : {}),
 		...(description ? { description } : {}),
-		url: pageUrl.replace(/#.*$/, ''),
-		mainEntity: items.map((item) => ({
-			'@type': 'Question',
-			name: item.title,
-			acceptedAnswer: {
-				'@type': 'Answer',
-				text: item.description
-			}
-		}))
+		url: pageBase,
+		mainEntity: items.map(
+			(item) =>
+				({
+					'@type': 'Question',
+					name: item.title,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: item.description
+					} as Answer
+				}) as Question
+		)
 	};
 }

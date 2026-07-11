@@ -572,34 +572,33 @@ Public routes that ship meta tags and structured data should follow the same spl
 
 ### Hub `CollectionPage` pattern
 
-For catalog-style public hubs, build `schemaData` in the server load with a `@graph` node (not a flat inline object in Svelte):
+For catalog-style public hubs, build `schemaData` in the server load with `createJsonLdGraph` (see **web-ssr-seo-meta**):
 
 ```ts
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+
 const canonical = new URL(url.pathname, url.origin).href;
-const schemaData = {
-	'@context': 'https://schema.org',
-	'@graph': [
-		{
-			'@type': 'CollectionPage',
-			'@id': `${canonical}#webpage`,
-			name: customTitle,
-			description: customDescription,
-			url: canonical,
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
+const schemaData = createJsonLdGraph([
+	{
+		'@type': 'CollectionPage',
+		'@id': `${canonical}#webpage`,
+		name: customTitle,
+		description: customDescription,
+		url: canonical,
+		isPartOf: {
+			'@type': 'WebSite',
+			name: companyName,
+			url: url.origin
 		}
-	]
-};
+	}
+]);
 ```
 
 Return `schemaData` from `load` alongside `pageMetaTags` and view models.
 
 ### Reusable schema builders
 
-When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`.
+When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`. Compose documents with `createJsonLdGraph` / `createJsonLdWithContext` from `$lib/utils/jsonLdSchema.ts` and type nodes with `schema-dts` (see **web-ssr-seo-meta**).
 
 ### Avoid
 

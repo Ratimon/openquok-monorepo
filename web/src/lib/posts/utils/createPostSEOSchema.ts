@@ -1,7 +1,10 @@
 import { base } from '$app/paths';
 
+import type { BreadcrumbList, Comment, Organization, Person, SocialMediaPosting, Thing } from 'schema-dts';
+
 import type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
 function absoluteAppUrl(origin: string, pathname: string): string {
@@ -27,7 +30,7 @@ export type CreatePostSEOSchemaParams = {
  *
  * Uses Schema.org `SocialMediaPosting` (requested) with a small `BreadcrumbList` graph.
  */
-export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<string, unknown> {
+export function createPostSEOSchema(params: CreatePostSEOSchemaParams): JsonLdGraphSchema {
 	const { post, comments = [], canonicalUrl, companyName, companySiteUrl, requestUrl } = params;
 
 	const origin = requestUrl.origin;
@@ -38,7 +41,7 @@ export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<s
 	const headline = truncatePlainText(snippet || postText || 'Social post preview', 110);
 	const platformLabel = post.socialPlatformLabel?.trim() || null;
 
-	const publisher: Record<string, unknown> = {
+	const publisher: Organization = {
 		'@type': 'Organization',
 		name: companyName,
 		url: siteFallback
@@ -48,7 +51,7 @@ export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<s
 		.map((m) => (typeof m?.path === 'string' ? m.path.trim() : ''))
 		.filter(Boolean);
 
-	const socialPosting: Record<string, unknown> = {
+	const socialPosting: SocialMediaPosting = {
 		'@type': 'SocialMediaPosting',
 		url: canonicalUrl,
 		mainEntityOfPage: canonicalUrl,
@@ -63,7 +66,7 @@ export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<s
 		socialPosting.image = images;
 	}
 
-	const commentNodes: Record<string, unknown>[] = [];
+	const commentNodes: Comment[] = [];
 	for (const c of comments) {
 		if (!c?.id || !c.content) continue;
 		commentNodes.push({
@@ -80,10 +83,10 @@ export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<s
 		});
 	}
 	if (commentNodes.length > 0) {
-		socialPosting.comment = commentNodes.map((n) => ({ '@id': n['@id'] }));
+		socialPosting.comment = commentNodes.map((n) => ({ '@id': n['@id']! }));
 	}
 
-	const breadcrumbList: Record<string, unknown> = {
+	const breadcrumbList: BreadcrumbList = {
 		'@type': 'BreadcrumbList',
 		itemListElement: [
 			{
@@ -101,8 +104,5 @@ export function createPostSEOSchema(params: CreatePostSEOSchemaParams): Record<s
 		]
 	};
 
-	return {
-		'@context': 'https://schema.org',
-		'@graph': [socialPosting, breadcrumbList, ...commentNodes]
-	};
+	return createJsonLdGraph([socialPosting, breadcrumbList, ...commentNodes] as Thing[]);
 }

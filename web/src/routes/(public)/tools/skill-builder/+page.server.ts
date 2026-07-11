@@ -1,11 +1,14 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { WebApplication } from 'schema-dts';
+
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdWithContext } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -32,14 +35,13 @@ export async function load({ url, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
+	const schemaData = createJsonLdWithContext({
 		'@type': 'WebApplication',
 		name: builderVm.metaTitle,
 		description: builderVm.metaDescription,
 		applicationCategory: 'DeveloperApplication',
 		offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-	};
+	} satisfies WebApplication);
 
 	return {
 		pageMetaTags: metaTags,

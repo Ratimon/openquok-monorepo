@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { JsonLdGraphNode } from '$lib/utils/jsonLdSchema';
+
 import { error } from '@sveltejs/kit';
 
 import { publicChannelByPagePresenter } from '$lib/area-public';
@@ -8,6 +10,7 @@ import {
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
 export const ssr = true;
@@ -20,7 +23,7 @@ function buildChannelSoftwareApplicationSchema(params: {
 	docsPath: string;
 	keywords: string[];
 	featureList: string[];
-}) {
+}): JsonLdGraphNode {
 	const { canonical, origin, name, description, docsPath, keywords, featureList } = params;
 
 	return {
@@ -31,7 +34,10 @@ function buildChannelSoftwareApplicationSchema(params: {
 		url: canonical,
 		applicationCategory: 'BusinessApplication',
 		operatingSystem: 'Web',
-		softwareHelp: new URL(docsPath, origin).href,
+		softwareHelp: {
+			'@type': 'CreativeWork',
+			url: new URL(docsPath, origin).href
+		},
 		featureList,
 		keywords: keywords.join(', '),
 		mainEntityOfPage: {
@@ -92,9 +98,8 @@ export async function load({ url, params, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
@@ -125,8 +130,8 @@ export async function load({ url, params, cookies, parent }) {
 				description: channelVm.faqDescription,
 				items: channelVm.faqItems
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

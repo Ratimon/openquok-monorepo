@@ -1,5 +1,9 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { Offer, SoftwareApplication } from 'schema-dts';
+
+import type { JsonLdGraphNode } from '$lib/utils/jsonLdSchema';
+
 import { error } from '@sveltejs/kit';
 
 import { publicComparePagePresenter } from '$lib/area-public';
@@ -15,6 +19,7 @@ import {
 import { getComparePair } from '$lib/content/constants/publicCompareConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -70,9 +75,8 @@ export async function load({ url, params, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebPage',
 				'@id': `${canonical}#webpage`,
@@ -126,8 +130,8 @@ export async function load({ url, params, cookies, parent }) {
 				description: faqDefaults.DESCRIPTION,
 				items: detailVm.faqItems
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,
@@ -144,7 +148,7 @@ type CreateCompareSoftwareApplicationSEOSchemaParams = {
 
 function createCompareSoftwareApplicationSEOSchema(
 	params: CreateCompareSoftwareApplicationSEOSchemaParams
-): Record<string, unknown> {
+): JsonLdGraphNode {
 	const { canonical, product } = params;
 
 	return {
@@ -176,8 +180,8 @@ function createCompareSoftwareApplicationSEOSchema(
 function createPricingOffers(
 	pricingPlans: ComparePricingPlanViewModel[],
 	canonical: string
-): Record<string, unknown> {
-	const offers = pricingPlans.flatMap((plan) => {
+): Pick<SoftwareApplication, 'offers'> | Record<string, never> {
+	const offers: Offer[] = pricingPlans.flatMap((plan) => {
 		if (plan.monthlyPrice === null) {
 			return [];
 		}

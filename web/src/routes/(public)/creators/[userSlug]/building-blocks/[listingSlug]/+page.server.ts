@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { Person, WebPage } from 'schema-dts';
+
 import { error } from '@sveltejs/kit';
 
 import { publicBuildingBlockBySlugPagePresenter } from '$lib/area-public';
@@ -14,6 +16,7 @@ import {
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
 import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 import { createMetaData, type MetaDataImage } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -102,9 +105,8 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': mergeListingSchemaIntoGraph(
+	const schemaData = createJsonLdGraph(
+		mergeListingSchemaIntoGraph(
 			[
 				{
 					'@type': 'WebPage',
@@ -120,7 +122,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 						name: companyName,
 						url: url.origin
 					}
-				},
+				} satisfies WebPage,
 				{
 					'@type': 'Person',
 					'@id': `${canonical}#author`,
@@ -128,11 +130,11 @@ export async function load({ url, params, cookies, fetch, parent }) {
 					url: ownerProfileUrl,
 					image: ownerImage,
 					alternateName: ownerUsername ? `@${ownerUsername}` : undefined
-				}
+				} satisfies Person
 			],
 			buildingBlockVm.schemaJson
 		)
-	};
+	);
 
 	return {
 		pageMetaTags,

@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { ItemList } from 'schema-dts';
+
 import { publicAgentsPagePresenter } from '$lib/area-public';
 import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
 import {
@@ -8,6 +10,7 @@ import {
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import {
 	getRootPathPublicAgent,
 	getRootPathPublicAgents
@@ -20,7 +23,7 @@ function buildAgentsItemListSchema(params: {
 	origin: string;
 	agents: Array<{ slug: string; agentLabel: string }>;
 	mcpIntegrations: Array<{ slug: string; label: string }>;
-}) {
+}): ItemList {
 	const { canonical, origin, agents, mcpIntegrations } = params;
 
 	const allItems = [
@@ -92,9 +95,8 @@ export async function load({ url, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'CollectionPage',
 				'@id': `${canonical}#webpage`,
@@ -125,8 +127,8 @@ export async function load({ url, cookies, parent }) {
 				description: PUBLIC_AGENTS_HUB.faqSection.faqDescription,
 				items: PUBLIC_AGENTS_HUB.faqSection.faqItems
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

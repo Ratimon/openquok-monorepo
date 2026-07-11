@@ -11,6 +11,7 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import { route, url } from '$lib/utils/path';
 
 export const ssr = true;
@@ -59,23 +60,20 @@ export async function load({ url: requestUrl, cookies, parent }) {
 	];
 
 	const canonical = new URL(requestUrl.pathname, requestUrl.origin).href;
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
-				name: metaTitle,
-				description: metaDescription,
-				url: canonical,
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: requestUrl.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'CollectionPage',
+			'@id': `${canonical}#webpage`,
+			name: metaTitle,
+			description: metaDescription,
+			url: canonical,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: requestUrl.origin
 			}
-		]
-	};
+		}
+	]);
 
 	return {
 		pageMetaTags: metaTags,

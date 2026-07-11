@@ -1,5 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ServerLoadEvent } from '@sveltejs/kit';
+import type { DefinedTerm } from 'schema-dts';
 
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { publicBuildingBlocksPagePresenter } from '$lib/area-public';
@@ -18,6 +19,7 @@ import {
 	createTagAboutSchema
 } from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -137,11 +139,10 @@ export async function loadBuildingBlocksHubPage(
 					description: tagTermDescription ?? customDescription
 				})
 			: null
-	].filter((node): node is Record<string, unknown> => node !== null);
+	].filter((node): node is DefinedTerm => node !== null);
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			createCollectionPageSchema({
 				canonical,
 				origin: url.origin,
@@ -169,8 +170,8 @@ export async function loadBuildingBlocksHubPage(
 							items: PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems
 						})
 					])
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

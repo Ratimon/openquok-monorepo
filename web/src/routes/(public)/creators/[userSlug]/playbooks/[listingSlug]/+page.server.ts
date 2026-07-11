@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { CreativeWork, HowTo, HowToStep, Person, WebPage } from 'schema-dts';
+
 import { error } from '@sveltejs/kit';
 
 import { publicPlaybookBySlugPagePresenter } from '$lib/area-public';
@@ -9,17 +11,11 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import { resolveStackListingHeaderSummary } from '$lib/listings/utils/resolveStackListingHeaderSummary';
 import { resolveBlueprintWorkflowStepTitle } from '$lib/skill-builder/utils/resolveBlueprintWorkflowStepTitle';
 
 export const ssr = true;
-
-type HowToStep = {
-	'@type': 'HowToStep';
-	position: number;
-	name: string;
-	text: string;
-};
 
 function resolvePlaybookStepText(step: Record<string, unknown>): string | undefined {
 	const content = typeof step.content === 'string' ? step.content.trim() : '';
@@ -101,58 +97,55 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		.map((asset) => asset.label?.trim())
 		.filter((value): value is string => Boolean(value));
 	const mainEntityType = howToSteps.length > 0 ? 'HowTo' : 'CreativeWork';
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: playbookVm.title,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#main-entity`
-				},
-				author: {
-					'@id': `${canonical}#author`
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'WebPage',
+			'@id': `${canonical}#webpage`,
+			name: playbookVm.title,
+			description: customDescription,
+			url: canonical,
+			mainEntity: {
+				'@id': `${canonical}#main-entity`
 			},
-			{
-				'@type': 'Person',
-				'@id': `${canonical}#author`,
-				name: ownerName,
-				url: ownerProfileUrl,
-				image: ownerImage,
-				alternateName: ownerUsername ? `@${ownerUsername}` : undefined
+			author: {
+				'@id': `${canonical}#author`
 			},
-			{
-				'@type': mainEntityType,
-				'@id': `${canonical}#main-entity`,
-				name: playbookVm.title,
-				description: customDescription,
-				url: canonical,
-				image: playbookVm.logoImageUrl || undefined,
-				author: {
-					'@id': `${canonical}#author`
-				},
-				...(playbookVm.category?.name ? { about: playbookVm.category.name } : {}),
-				...(playbookVm.tags.length > 0
-					? { keywords: playbookVm.tags.map((tag) => tag.name).join(', ') }
-					: {}),
-				...(howToTools.length > 0 ? { tool: howToTools } : {}),
-				...(referenceSupplies.length > 0 ? { supply: referenceSupplies } : {}),
-				...(howToSteps.length > 0 ? { step: howToSteps } : {}),
-				mainEntityOfPage: {
-					'@id': `${canonical}#webpage`
-				}
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
 			}
-		]
-	};
+		} satisfies WebPage,
+		{
+			'@type': 'Person',
+			'@id': `${canonical}#author`,
+			name: ownerName,
+			url: ownerProfileUrl,
+			image: ownerImage,
+			alternateName: ownerUsername ? `@${ownerUsername}` : undefined
+		} satisfies Person,
+		{
+			'@type': mainEntityType,
+			'@id': `${canonical}#main-entity`,
+			name: playbookVm.title,
+			description: customDescription,
+			url: canonical,
+			image: playbookVm.logoImageUrl || undefined,
+			author: {
+				'@id': `${canonical}#author`
+			},
+			...(playbookVm.category?.name ? { about: playbookVm.category.name } : {}),
+			...(playbookVm.tags.length > 0
+				? { keywords: playbookVm.tags.map((tag) => tag.name).join(', ') }
+				: {}),
+			...(howToTools.length > 0 ? { tool: howToTools } : {}),
+			...(referenceSupplies.length > 0 ? { supply: referenceSupplies } : {}),
+			...(howToSteps.length > 0 ? { step: howToSteps } : {}),
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		} satisfies HowTo | CreativeWork
+	]);
 
 	return {
 		pageMetaTags: metaTags,

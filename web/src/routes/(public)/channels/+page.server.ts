@@ -1,11 +1,14 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { ItemList } from 'schema-dts';
+
 import { publicChannelsPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import {
 	getRootPathPublicChannel,
 	getRootPathPublicChannels
@@ -17,7 +20,7 @@ function buildChannelsItemListSchema(params: {
 	canonical: string;
 	origin: string;
 	channels: Array<{ slug: string; platformLabel: string; description: string }>;
-}) {
+}): ItemList {
 	const { canonical, origin, channels } = params;
 
 	return {
@@ -79,35 +82,32 @@ export async function load({ url, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
-				name: customTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#channels-list`
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'CollectionPage',
+			'@id': `${canonical}#webpage`,
+			name: customTitle,
+			description: customDescription,
+			url: canonical,
+			mainEntity: {
+				'@id': `${canonical}#channels-list`
 			},
-			buildChannelsItemListSchema({
-				canonical,
-				origin: url.origin,
-				channels: channelsVm.map((channel) => ({
-					slug: channel.slug,
-					platformLabel: channel.platformLabel,
-					description: channel.hubDescription ?? channel.metaDescription
-				}))
-			})
-		]
-	};
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
+			}
+		},
+		buildChannelsItemListSchema({
+			canonical,
+			origin: url.origin,
+			channels: channelsVm.map((channel) => ({
+				slug: channel.slug,
+				platformLabel: channel.platformLabel,
+				description: channel.hubDescription ?? channel.metaDescription
+			}))
+		})
+	]);
 
 	return {
 		pageMetaTags,

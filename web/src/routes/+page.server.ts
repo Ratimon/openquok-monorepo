@@ -20,6 +20,7 @@ import {
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 
@@ -108,9 +109,8 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 		logo: new URL('/pwa/favicon.svg', url.origin).href
 	});
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
 			{
 				'@type': 'WebSite',
 				'@id': `${url.origin}/#website`,
@@ -143,8 +143,8 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 				description: landingPageConfigVm.DEMO_DESCRIPTION,
 				pageUrl: canonical
 			})
-		].filter((node) => Object.keys(node).length > 0)
-	};
+		])
+	);
 
 	return {
 		pageMetaTags,

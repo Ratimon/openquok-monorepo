@@ -4,6 +4,7 @@ import { publicComparePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -44,48 +45,45 @@ export async function load({ url, cookies, parent }) {
 		url: new URL(pair.href, url.origin).href
 	}));
 
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
-				name: hubVm.metaTitle,
-				description: hubVm.metaDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#comparisons`
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'CollectionPage',
+			'@id': `${canonical}#webpage`,
+			name: hubVm.metaTitle,
+			description: hubVm.metaDescription,
+			url: canonical,
+			mainEntity: {
+				'@id': `${canonical}#comparisons`
 			},
-			{
-				'@type': 'ItemList',
-				'@id': `${canonical}#comparisons`,
-				name: 'Comparison pages',
-				url: canonical,
-				numberOfItems: comparisonPages.length,
-				itemListElement: comparisonPages.map((page, index) => ({
-					'@type': 'ListItem',
-					position: index + 1,
-					item: {
-						'@type': 'WebPage',
-						'@id': `${page.url}#webpage`,
-						name: page.name,
-						url: page.url,
-						isPartOf: {
-							'@type': 'WebSite',
-							name: companyName,
-							url: url.origin
-						}
-					}
-				}))
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
 			}
-		]
-	};
+		},
+		{
+			'@type': 'ItemList',
+			'@id': `${canonical}#comparisons`,
+			name: 'Comparison pages',
+			url: canonical,
+			numberOfItems: comparisonPages.length,
+			itemListElement: comparisonPages.map((page, index) => ({
+				'@type': 'ListItem',
+				position: index + 1,
+				item: {
+					'@type': 'WebPage',
+					'@id': `${page.url}#webpage`,
+					name: page.name,
+					url: page.url,
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
+				}
+			}))
+		}
+	]);
 
 	return {
 		pageMetaTags,

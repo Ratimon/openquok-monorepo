@@ -1,11 +1,14 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { Person, ProfilePage } from 'schema-dts';
+
 import { error } from '@sveltejs/kit';
 
 import { publicCreatorByUsernamePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreator } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -47,38 +50,35 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	const canonical = new URL(url.pathname, url.origin).href;
 	const creatorImage = creator.avatarUrl?.trim() || undefined;
 	const creatorHandle = creator.username?.trim() ? `@${creator.username.trim()}` : undefined;
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'ProfilePage',
-				'@id': `${canonical}#webpage`,
-				name: displayName,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#person`
-				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'ProfilePage',
+			'@id': `${canonical}#webpage`,
+			name: displayName,
+			description: customDescription,
+			url: canonical,
+			mainEntity: {
+				'@id': `${canonical}#person`
 			},
-			{
-				'@type': 'Person',
-				'@id': `${canonical}#person`,
-				name: displayName,
-				description: customDescription,
-				url: canonical,
-				image: creatorImage,
-				alternateName: creatorHandle,
-				mainEntityOfPage: {
-					'@id': `${canonical}#webpage`
-				}
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
 			}
-		]
-	};
+		} satisfies ProfilePage,
+		{
+			'@type': 'Person',
+			'@id': `${canonical}#person`,
+			name: displayName,
+			description: customDescription,
+			url: canonical,
+			image: creatorImage,
+			alternateName: creatorHandle,
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		} satisfies Person
+	]);
 
 	return {
 		pageMetaTags: metaTags,

@@ -4,6 +4,7 @@ import { publicCreatorsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
 
@@ -28,23 +29,20 @@ export async function load({ url, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = new URL(url.pathname, url.origin).href;
-	const schemaData = {
-		'@context': 'https://schema.org',
-		'@graph': [
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
-				name: metaTitle,
-				description: metaDescription,
-				url: canonical,
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'CollectionPage',
+			'@id': `${canonical}#webpage`,
+			name: metaTitle,
+			description: metaDescription,
+			url: canonical,
+			isPartOf: {
+				'@type': 'WebSite',
+				name: companyName,
+				url: url.origin
 			}
-		]
-	};
+		}
+	]);
 
 	return {
 		pageMetaTags: metaTags,
