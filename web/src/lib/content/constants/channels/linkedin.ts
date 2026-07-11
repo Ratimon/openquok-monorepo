@@ -7,7 +7,7 @@ export const linkedinChannel = {
 	slug: 'linkedin',
 	platformId: 'linkedin',
 	platformLabel: 'LinkedIn',
-	icon: icons.LinkedIn.name,
+	icon: icons.LinkedInGlyph.name,
 	heroTitle: 'Show up credibly on LinkedIn when B2B buyers actually look you up',
 	heroDescription:
 		'Connect your personal profile and company Page, queue posts, slide carousels, and video on the OpenQuok calendar, and publish with review — because executives evaluate vendors at your profile, not in the scroll feed.',

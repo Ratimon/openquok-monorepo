@@ -153,7 +153,7 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 	},
 	{
 		identifiers: ['linkedin', 'linkedin-page'],
-		icon: icons.LinkedIn.name,
+		icon: icons.LinkedInGlyph.name,
 		labels: ['LinkedIn', 'LinkedIn Page']
 	},
 	{

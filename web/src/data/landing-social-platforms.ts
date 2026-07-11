@@ -31,7 +31,7 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 	},
 	{
 		id: 'linkedin',
-		icon: icons.LinkedIn.name,
+		icon: icons.LinkedInGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},
@@ -107,7 +107,7 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 	},
 	{
 		id: 'linkedin',
-		icon: icons.LinkedIn.name,
+		icon: icons.LinkedInGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
 	},

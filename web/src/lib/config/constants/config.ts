@@ -185,6 +185,12 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 		type: 'string',
 		default: '',
 		inputType: 'input'
+	},
+	SOCIAL_LINKS_LINKEDIN: {
+		description: 'LinkedIn profile or company page URL.',
+		type: 'string',
+		default: '',
+		inputType: 'input'
 	}
 };
 

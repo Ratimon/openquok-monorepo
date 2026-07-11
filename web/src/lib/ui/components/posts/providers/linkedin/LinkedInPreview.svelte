@@ -41,7 +41,7 @@
 	<div class="flex gap-3 p-4">
 		<IntegrationChannelPicture
 			profilePictureUrl={channel.picture}
-			fallbackIcon={icons.LinkedIn.name}
+			fallbackIcon={icons.LinkedInGlyph.name}
 			alt={channel.name}
 			class="h-12 w-12 shrink-0 rounded-full bg-base-200 object-cover"
 		/>

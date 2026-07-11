@@ -49,7 +49,9 @@
 			</div>
 
 			<div class="md:col-span-2">
-				<InternalLinkBar linkList={footerNavigationLinks} />
+				<InternalLinkBar
+					linkList={footerNavigationLinks}
+				/>
 			</div>
 		</div>
 

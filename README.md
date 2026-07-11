@@ -1,4 +1,10 @@
-<h1>OpenQuok monorepo</h1>
+<p align="center">
+  <a href="https://www.openquok.com" target="_blank">
+    <img alt="OpenQuok Logo" src="web/static/pwa/icon-1024x1024.png" width="280"/>
+  </a>
+</p>
+
+<h1 align="center">OpenQuok monorepo</h1>
 
 **Your AI-ready social media scheduling workspace**. It helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live
 

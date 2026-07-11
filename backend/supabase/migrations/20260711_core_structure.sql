@@ -6520,7 +6520,8 @@ INSERT INTO public.module_configs (module_name, config) VALUES
   "SOCIAL_LINKS_X": "",
   "SOCIAL_LINKS_FACEBOOK": "",
   "SOCIAL_LINKS_INSTAGRAM": "",
-  "SOCIAL_LINKS_YOUTUBE": ""
+  "SOCIAL_LINKS_YOUTUBE": "",
+  "SOCIAL_LINKS_LINKEDIN": ""
 }'::jsonb)
 ON CONFLICT (module_name) DO NOTHING;
 

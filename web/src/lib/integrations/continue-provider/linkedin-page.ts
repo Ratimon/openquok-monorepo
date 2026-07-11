@@ -10,7 +10,7 @@ export const linkedinPageContinueConfig: ContinueProviderStepConfig = {
 		'No LinkedIn Pages were found for this account. Confirm you are a Page admin, then try again.',
 	successToast: 'LinkedIn Page connected.',
 	addedQueryProvider: 'linkedin-page',
-	fallbackIcon: icons.LinkedIn.name,
+	fallbackIcon: icons.LinkedInGlyph.name,
 	validateRow: () => null,
 	toSaveParams: (row) => ({ pageId: row.id, id: row.id })
 };

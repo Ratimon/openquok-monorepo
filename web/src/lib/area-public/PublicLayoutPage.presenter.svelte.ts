@@ -36,7 +36,8 @@ export class PublicLayoutPagePresenter {
 			'SOCIAL_LINKS_X',
 			'SOCIAL_LINKS_FACEBOOK',
 			'SOCIAL_LINKS_INSTAGRAM',
-			'SOCIAL_LINKS_YOUTUBE'
+			'SOCIAL_LINKS_YOUTUBE',
+			'SOCIAL_LINKS_LINKEDIN'
 		];
 		const companyNameVm = companyInformationPm?.NAME ?? (CONFIG_SCHEMA_COMPANY.NAME.default as string);
 		const companyYearVm =

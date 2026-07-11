@@ -44,10 +44,10 @@
 			Icon: icons.Instagram.name
 		},
 		{
-			CHANNEL_ID: 'SOCIAL_LINKS_YOUTUBE',
-			CHANNEL_NAME: 'YouTube',
-			CHANNEL_HREF: 'https://www.youtube.com',
-			Icon: icons.YouTube.name
+			CHANNEL_ID: 'SOCIAL_LINKS_LINKEDIN',
+			CHANNEL_NAME: 'LinkedIn',
+			CHANNEL_HREF: 'https://www.linkedin.com',
+			Icon: icons.LinkedIn.name
 		}
 	];
 </script>
@@ -56,7 +56,7 @@
 	class={cn('flex gap-4', direction === 'horizontal' ? 'flex-row' : 'flex-col')}
 	aria-label="Social links"
 >
-	{#each SocialLinks as link}
+	{#each SocialLinks as link (link.CHANNEL_ID)}
 		{@const href = resolveSocialHref(link.CHANNEL_ID, link.CHANNEL_HREF)}
 		<ExternalLink
 			{href}
