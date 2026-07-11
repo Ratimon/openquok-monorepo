@@ -5,7 +5,6 @@ import { error } from '@sveltejs/kit';
 import { publicAgentByPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';

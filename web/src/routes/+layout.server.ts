@@ -2,6 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import {
+	CONFIG_SCHEMA_COMPANY,
 	getCompanyConfigDefaults,
 	getMarketingConfigDefaults
 } from '$lib/config/constants/config';
@@ -9,6 +10,7 @@ import {
 	getStaticCompanyInformationPm,
 	getStaticMarketingInformationPm
 } from '$lib/config/utils/staticPublicSiteConfig';
+import { createOrganizationSchemaData } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -38,8 +40,22 @@ export async function load({ url, cookies }) {
 		getMarketingConfigDefaults()
 	);
 
+	const companyName = footerInfo.companyNameVm;
+	const companyUrl =
+		(typeof companyInformationPm?.config?.URL === 'string' && companyInformationPm.config.URL) ||
+		String(CONFIG_SCHEMA_COMPANY.URL.default);
+
+	const baseSchemaData = createOrganizationSchemaData({
+		name: companyName,
+		url: companyUrl,
+		origin: url.origin,
+		marketingInformationVm: footerInfo.marketingInformationVm,
+		logo: new URL('/pwa/favicon.svg', url.origin).href
+	});
+
 	return {
 		baseMetaTags,
+		baseSchemaData,
 		companyInformationPm,
 		marketingInformationPm,
 		isLoggedIn,

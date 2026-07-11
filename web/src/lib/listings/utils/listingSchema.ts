@@ -14,6 +14,7 @@ import type {
 	WithContext
 } from 'schema-dts';
 
+
 import type { ListingSchemaType } from '$lib/listings/constants/listingSchemaTypes';
 import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
 

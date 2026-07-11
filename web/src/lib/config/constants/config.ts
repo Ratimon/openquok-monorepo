@@ -165,19 +165,19 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	SOCIAL_LINKS_X: {
 		description: 'X (Twitter) profile URL.',
 		type: 'string',
-		default: '',
+		default: 'https://x.com/openquok',
 		inputType: 'input'
 	},
 	SOCIAL_LINKS_FACEBOOK: {
 		description: 'Facebook page URL.',
 		type: 'string',
-		default: '',
+		default: 'https://www.facebook.com/profile.php?id=61591368794883',
 		inputType: 'input'
 	},
 	SOCIAL_LINKS_INSTAGRAM: {
 		description: 'Instagram profile URL.',
 		type: 'string',
-		default: '',
+		default: 'https://www.instagram.com/openquok',
 		inputType: 'input'
 	},
 	SOCIAL_LINKS_YOUTUBE: {
@@ -189,7 +189,7 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	SOCIAL_LINKS_LINKEDIN: {
 		description: 'LinkedIn profile or company page URL.',
 		type: 'string',
-		default: '',
+		default: 'https://www.linkedin.com/company/openquok',
 		inputType: 'input'
 	}
 };

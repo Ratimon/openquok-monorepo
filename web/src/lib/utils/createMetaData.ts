@@ -1,4 +1,5 @@
 import type { MetaTagsProps, MetaTag } from 'svelte-meta-tags';
+
 import type {
 	CompanyInformationProgrammerModel,
 	MarketingInformationProgrammerModel

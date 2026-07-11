@@ -5,7 +5,6 @@ import { error } from '@sveltejs/kit';
 import { publicChannelByPagePresenter } from '$lib/area-public';
 import {
 	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';

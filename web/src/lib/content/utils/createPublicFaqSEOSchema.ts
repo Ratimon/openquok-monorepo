@@ -13,6 +13,7 @@ export type CreatePublicFaqSEOSchemaParams = {
 	items?: readonly PublicFaqItem[];
 };
 
+
 /**
  * JSON-LD `FAQPage` for public landing and pricing FAQ sections.
  * @see https://schema.org/FAQPage

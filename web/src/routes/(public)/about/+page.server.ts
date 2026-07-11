@@ -1,6 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { createOrganizationSEOSchema, organizationSchemaId } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -9,7 +10,7 @@ export async function load({ url, cookies, parent }) {
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const { companyInformationPm, marketingInformationPm } = await parent();
+	const { companyInformationPm, marketingInformationPm, marketingInformationVm } = await parent();
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 	const companyUrl = companyInformationPm?.config?.URL ?? CONFIG_SCHEMA_COMPANY.URL.default;
@@ -38,7 +39,24 @@ export async function load({ url, cookies, parent }) {
 		...metaTags
 	}) satisfies MetaTagsProps;
 
-	const organizationId = `${canonical}#organization`;
+	const organizationId = organizationSchemaId(url.origin);
+	const organization = createOrganizationSEOSchema({
+		name: companyName,
+		url: companyUrl,
+		origin: url.origin,
+		marketingInformationVm: marketingInformationVm ?? {},
+		email: supportEmail,
+		logo: new URL('/pwa/favicon.svg', url.origin).href,
+		contactPoint: [
+			{
+				'@type': 'ContactPoint',
+				contactType: 'customer support',
+				email: supportEmail,
+				url: canonical
+			}
+		]
+	});
+
 	const schemaData = {
 		'@context': 'https://schema.org',
 		'@graph': [
@@ -60,21 +78,7 @@ export async function load({ url, cookies, parent }) {
 					url: url.origin
 				}
 			},
-			{
-				'@type': 'Organization',
-				'@id': organizationId,
-				name: companyName,
-				url: companyUrl,
-				email: `mailto:${supportEmail}`,
-				contactPoint: [
-					{
-						'@type': 'ContactPoint',
-						contactType: 'customer support',
-						email: supportEmail,
-						url: canonical
-					}
-				]
-			}
+			organization
 		]
 	};
 
