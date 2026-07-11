@@ -8,6 +8,7 @@
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
+	import SocialFollowBar from '$lib/ui/social/SocialFollowBar.svelte';
 
 	type Props = { data: PageData };
 
@@ -56,6 +57,15 @@
 				>{page.data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default}</a
 			>
 		</p>
+
+		<div class="mt-8 flex flex-col items-center gap-3">
+			<p class="text-secondary">Follow us</p>
+			<SocialFollowBar
+				direction="horizontal"
+				size="sm"
+				class="text-sm text-base-content/80 hover:text-base-content"
+			/>
+		</div>
 
 		<!-- to do : add testimonials -->
 	</div>
