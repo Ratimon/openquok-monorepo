@@ -25,6 +25,7 @@ import {
 import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
 import { PublicPhotoEditorPagePresenter } from '$lib/area-public/PublicPhotoEditorPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
+import { PublicAlternativesPagePresenter } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
 import { PublicComparePagePresenter } from '$lib/area-public/PublicComparePage.presenter.svelte';
 import { PublicPricingPagePresenter } from '$lib/area-public/PublicPricingPage.presenter.svelte';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
@@ -64,6 +65,7 @@ const publicCreatorByUsernamePagePresenter = new PublicCreatorByUsernamePagePres
 	listingRepository
 );
 const publicToolsPagePresenter = new PublicToolsPagePresenter();
+const publicAlternativesPagePresenter = new PublicAlternativesPagePresenter();
 const publicComparePagePresenter = new PublicComparePagePresenter();
 const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
 const publicPhotoEditorPagePresenter = new PublicPhotoEditorPagePresenter();
@@ -81,6 +83,7 @@ export {
 	publicCreatorsPagePresenter,
 	publicCreatorByUsernamePagePresenter,
 	publicToolsPagePresenter,
+	publicAlternativesPagePresenter,
 	publicComparePagePresenter,
 	publicSkillBuilderPagePresenter,
 	publicPhotoEditorPagePresenter,

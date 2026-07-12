@@ -53,12 +53,12 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
-		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT
+		PUBLIC_BANNER_CTA_TEXT
 	} from '$lib/ui/templates/banners/centeredDarkCtaBannerCopy';
 	import {
 		SKILL_BUILDER_DOCS_BANNER,
 		accentSplitSkillBuilderCliCtaBannerDescription,
+		accentSplitSkillBuilderCliCtaBannerText,
 		accentSplitSkillBuilderCliCtaBannerTitle
 	} from '$lib/ui/templates/banners/skillBuilderBannerCopy';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -130,6 +130,11 @@
 		channelSlug && channelLabel
 			? accentSplitSkillBuilderCliCtaBannerDescription(channelLabel)
 			: skillBuilderDocsBanner.description
+	);
+	let accentBannerCtaText = $derived(
+		channelSlug && channelLabel
+			? accentSplitSkillBuilderCliCtaBannerText(channelLabel)
+			: skillBuilderDocsBanner.ctaText
 	);
 	let accentBannerHref = $derived(cliExamplesPath ?? skillBuilderDocsBanner.docsPath);
 
@@ -502,7 +507,7 @@
 		<AccentSplitCtaBanner
 			title={accentBannerTitle}
 			description={accentBannerDescription}
-			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaText={accentBannerCtaText}
 			ctaHref={accentBannerHref}
 		/>
 

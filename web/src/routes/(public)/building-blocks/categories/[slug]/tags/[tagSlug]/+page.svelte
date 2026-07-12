@@ -26,7 +26,6 @@
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
@@ -153,7 +152,7 @@
 		<AccentSplitCtaBanner
 			title={buildingBlocksHubDocsBanner.title}
 			description={buildingBlocksHubDocsBanner.description}
-			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaText={buildingBlocksHubDocsBanner.ctaText}
 			ctaHref={buildingBlocksHubDocsBanner.docsPath}
 		/>
 

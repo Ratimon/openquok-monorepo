@@ -10,7 +10,6 @@
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		CONFIG_SCHEMA_LANDING_PAGE,
 		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -437,7 +436,7 @@ openquok analytics:post <post-id> -d 30`
 	<AccentSplitCtaBanner
 		title={landingDocsBanner.title}
 		description={landingDocsBanner.description}
-		ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+		ctaText={landingDocsBanner.ctaText}
 		ctaHref={landingDocsBanner.docsPath}
 	/>
 

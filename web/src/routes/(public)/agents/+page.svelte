@@ -10,7 +10,6 @@
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
@@ -80,7 +79,7 @@
 	<AccentSplitCtaBanner
 		title={agentsHubDocsBanner.title}
 		description={agentsHubDocsBanner.description}
-		ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+		ctaText={agentsHubDocsBanner.ctaText}
 		ctaHref={agentsHubDocsBanner.docsPath}
 	/>
 

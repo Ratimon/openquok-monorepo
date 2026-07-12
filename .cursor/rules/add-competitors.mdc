@@ -1,0 +1,182 @@
+---
+description: Checklist for adding a social scheduler competitor to compare and alternatives surfaces — constants, icons, registry wiring, and UI icon styles
+globs:
+  - web/src/lib/content/constants/competitors/**
+  - web/src/lib/content/constants/publicCompareConfig.ts
+  - web/src/data/icons/branded-icons.ts
+  - web/src/lib/area-public/PublicComparePage.presenter.svelte.ts
+  - web/src/lib/area-public/PublicAlternativesPage.presenter.svelte.ts
+  - web/src/lib/area-public/constants/getRootPathPublicCompare.ts
+  - web/src/lib/area-public/constants/getRootPathPublicAlternatives.ts
+  - web/src/routes/(public)/compare/**
+  - web/src/routes/(public)/alternatives/**
+  - web/src/lib/config/constants/config.ts
+  - web/src/lib/content/constants/publicFaqConfig.ts
+alwaysApply: false
+---
+
+# Adding a compare / alternatives competitor
+
+Ship **one new competitor constant** plus **registry and UI wiring** in the same change. Reference implementations: **`hootsuite.ts`**, **`buffer.ts`**. OpenQuok’s own entry is **`openquok.ts`** (special — see below).
+
+Competitor data powers:
+
+| Surface | Route | Behavior |
+| --- | --- | --- |
+| Compare hub | `/compare` | Dropdown + cards for every product in `PUBLIC_COMPARE_PRODUCTS` (default base: OpenQuok) |
+| Compare detail | `/compare/{productA}/{productB}` | Head-to-head page for any **distinct** pair (auto from `getComparePair`) |
+| Alternatives hub | `/alternatives` | Directory card per **non-OpenQuok** competitor (`ALTERNATIVES_TARGET_SLUGS`) |
+| Alternatives detail | `/alternatives/{slug}` | “Best {name} alternatives” SEO page; OpenQuok ranked first among listings |
+
+**No new route files** are required for compare or alternatives when adding a competitor — only data + the manual steps below.
+
+Follow **source-project-neutrality**: describe products and positioning in first-party terms; trademark notes belong only in `branded-icons.ts` where needed.
+
+---
+
+## Identifier contract
+
+Use one **lowercase kebab-case** slug everywhere:
+
+- `CompareProduct.slug` and `CompareProductSlug` union member
+- Filename: `web/src/lib/content/constants/competitors/{slug}.ts`
+- Export name: `{slug}CompareProduct` (e.g. `hootsuiteCompareProduct`)
+- URLs: `/compare/openquok/{slug}`, `/alternatives/{slug}`
+- `COMPARE_PRODUCT_WEBSITE_URLS` key
+- Branded icon registry key (PascalCase, e.g. `Hootsuite` → `icons.Hootsuite.name`)
+
+Do **not** add OpenQuok as an alternatives **target** — `COMPARE_HUB_BASE_SLUG` (`openquok`) is excluded from `ALTERNATIVES_TARGET_SLUGS` by design.
+
+---
+
+## Required files (manual)
+
+### 1. Branded icon
+
+**`web/src/data/icons/branded-icons.ts`**
+
+- Add `IconName` union entry and `icons.{Brand}` object (inline SVG preferred).
+- See **company-brand-icons** rule.
+
+### 2. Slug type
+
+**`web/src/lib/content/constants/competitors/types.ts`**
+
+- Extend `CompareProductSlug` with the new slug literal.
+
+### 3. Competitor constant (new file)
+
+**`web/src/lib/content/constants/competitors/{slug}.ts`**
+
+Export a `CompareProduct` with:
+
+| Field | Notes |
+| --- | --- |
+| `slug`, `name`, `icon` | `icon: icons.{Brand}.name` |
+| `tagline` | Short subtitle under the name on compare pages |
+| `overview` | 2–3 sentences for platform overview and alternatives listings |
+| `pricingPlans` | `ComparePricingPlan[]` — public list prices in USD; `monthlyPrice: null` for custom/enterprise |
+| `channels` | Human labels aligned with `listAvailablePublicChannelCompareLabels()` in `channels/index.ts` so channel compare icons resolve |
+| `featureSupport` | `Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>` — one cell per row in `PUBLIC_PRICING_COMPARE_ROWS` (`included` / `excluded` / `text`) |
+| `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` |
+
+**Talking points** (`CompareTalkingPointId` keys in `shared.ts` → `COMPARE_TALKING_POINT_ORDER`):
+
+- For a pair row to appear in the with/without section, the **left** product needs `strength` and the **right** product needs `weakness` for the **same** topic id.
+- When OpenQuok is on the left, competitor `weakness` copy drives the “without” column.
+- When a competitor is on the left vs another competitor, both need matching topic keys.
+
+### 4. Registry
+
+**`web/src/lib/content/constants/competitors/index.ts`**
+
+- Import and re-export `{slug}CompareProduct`.
+- Append to `PUBLIC_COMPARE_PRODUCTS` (keep **OpenQuok first**, then competitors alphabetically or by priority).
+
+`ALTERNATIVES_TARGET_SLUGS`, `getCompareProduct`, `getComparePair`, `listComparePairsForHub`, and `listAlternativeProductsFor` derive from this array — no separate list to maintain.
+
+### 5. Official website URL
+
+**`web/src/lib/content/constants/competitors/shared.ts`**
+
+- Add the slug to `COMPARE_PRODUCT_WEBSITE_URLS` (used for “Go to website” on alternatives detail).
+
+### 6. Product icon styles (UI)
+
+Add a `PRODUCT_ICON_STYLES` entry for the new slug in **all four** route components (gradient ring colors for cards/hero):
+
+| File |
+| --- |
+| `web/src/routes/(public)/compare/+page.svelte` |
+| `web/src/routes/(public)/compare/[productA]/[productB]/+page.svelte` |
+| `web/src/routes/(public)/alternatives/+page.svelte` |
+| `web/src/routes/(public)/alternatives/[slug]/+page.svelte` |
+
+Each file defines `Record<CompareProductSlug, { containerClass / heroContainerClass / cardContainerClass; iconClass? }>`. Match the visual language of existing competitors (distinct gradient, readable icon contrast).
+
+---
+
+## Auto-wired (verify, do not duplicate)
+
+After `PUBLIC_COMPARE_PRODUCTS` and `COMPARE_PRODUCT_WEBSITE_URLS` are updated:
+
+| Area | What happens |
+| --- | --- |
+| `PublicComparePagePresenter` | Hub pairs, detail VMs, related comparisons, SEO copy |
+| `PublicAlternativesPagePresenter` | Hub directory entries, detail listings, search filter |
+| `buildComparePair.ts` | Meta titles, keywords, with/without sections for new pairs |
+| Compare/alternatives `+page.server.ts` | JSON-LD `ItemList` / `SoftwareApplication` nodes |
+| Footer | `PUBLIC_FOOTER_LINKS` → Alternatives hub already points at `/alternatives` |
+
+Smoke-test URLs:
+
+- `/compare` — new product in hub dropdown and cards
+- `/compare/openquok/{slug}` and `/compare/{slug}/openquok`
+- `/alternatives` — new “{Name} alternatives” card
+- `/alternatives/{slug}` — OpenQuok #1, other competitors listed, compare + website links work
+
+---
+
+## OpenQuok entry (`openquok.ts`) — special case
+
+Only update when **OpenQuok product facts** change (pricing tiers, limits, channels):
+
+- Pull plan limits from `openquok-common` (`planLimitsForTier`, etc.) — do not hand-copy prices.
+- Channels from `listAvailablePublicChannelCompareLabels()`.
+- `featureSupport` built dynamically in `buildOpenQuokFeatureSupport()`.
+- OpenQuok is `COMPARE_HUB_BASE_SLUG`; it is **not** an alternatives target slug.
+
+---
+
+## Optional copy updates
+
+Update when the new competitor should appear in marketing prose (not required for pages to work):
+
+| File | When |
+| --- | --- |
+| `web/src/lib/config/constants/config.ts` | `PUBLIC_HUB_DOCS_BANNERS.alternatives.description` or pricing banner copy that names competitors |
+| `web/src/lib/content/constants/publicFaqConfig.ts` | FAQ answers that mention specific schedulers by name |
+
+---
+
+## PR checklist
+
+- [ ] `CompareProductSlug`, `{slug}.ts`, `PUBLIC_COMPARE_PRODUCTS`, and `COMPARE_PRODUCT_WEBSITE_URLS` updated together.
+- [ ] Branded icon added; `icons.{Brand}.name` used in the constant (no string literals).
+- [ ] `featureSupport` covers every `PublicPricingCompareRowId` you intend to show (missing rows default to `excluded` on compare detail).
+- [ ] `talkingPoints` pairs with OpenQuok (and peers) so with/without sections are not empty.
+- [ ] `PRODUCT_ICON_STYLES` updated in all **four** compare/alternatives route Svelte files.
+- [ ] Channel labels match public channel compare labels.
+- [ ] `/compare`, `/compare/openquok/{slug}`, `/alternatives`, and `/alternatives/{slug}` manually smoke-tested.
+- [ ] No third-party repo paths or attribution in SQL, comments, or user-facing strings (see **source-project-neutrality**).
+
+---
+
+## Adding a new pricing compare row (rare)
+
+If the feature matrix needs a **new row** for all products:
+
+1. Add the row to `PUBLIC_PRICING_COMPARE_ROWS` in `web/src/lib/billing/constants/publicPricingCatalog.ts`.
+2. Add `featureSupport` cells for **every** product in `competitors/` (including `openquok.ts`).
+
+That is a catalog change, not a single-competitor add.

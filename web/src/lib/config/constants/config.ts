@@ -7,6 +7,7 @@ import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPub
 import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
+import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicDocs, getRootPathPublicDocsGettingStartedForDev } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
@@ -30,6 +31,7 @@ const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
 const publicChannelsPath = route(getRootPathPublicChannels());
 const publicComparePath = route(getRootPathPublicCompare());
+const publicAlternativesPath = route(getRootPathPublicAlternatives());
 const publicPlaybooksPath = route(getRootPathPublicPlaybooks());
 const publicPlaybooksCategoriesPath = route(getRootPathPublicPlaybooksCategories());
 const publicPlaybooksTagsPath = route(getRootPathPublicPlaybooksTags());
@@ -609,6 +611,9 @@ export function accentSplitCtaBannerDescription(agentLabel: string): string {
 /** Top accent banner on hub detail pages — links to the page setup guide. */
 export const PUBLIC_DOCS_BANNER_CTA_TEXT = 'View setup guide';
 
+/** Accent banner CTA when the destination is self-host / getting-started-for-dev docs. */
+export const PUBLIC_SELF_HOST_BANNER_CTA_TEXT = 'Self-host OpenQuok for free';
+
 export function accentSplitDocsCtaBannerTitle(label: string): string {
 	return `Read the ${label} setup guide`;
 }
@@ -617,70 +622,68 @@ export function accentSplitDocsCtaBannerDescription(label: string): string {
 	return `Step-by-step instructions for connecting OpenQuok to ${label} — install commands, auth patterns, and configuration snippets.`;
 }
 
+const PUBLIC_SELF_HOST_DOCS_BANNER = {
+	docsPath: publicDocsGettingStartedForDevPath,
+	title: PUBLIC_SELF_HOST_BANNER_CTA_TEXT,
+	description:
+		'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.',
+	ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
+} as const;
+
 /** Top accent banner on public hub index pages — links to the section overview doc. */
 export const PUBLIC_HUB_DOCS_BANNERS = {
 	agents: {
 		docsPath: '/docs/agent-setup-guides',
 		title: 'Browse agent setup guides',
 		description:
-			'Platform-specific guides for OpenClaw, Hermes, Cursor, Claude Code, and other agent hosts and MCP clients.'
+			'Platform-specific guides for OpenClaw, Hermes, Cursor, Claude Code, and other agent hosts and MCP clients.',
+		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	channels: {
 		docsPath: '/docs/social-integration',
 		title: 'Browse channel setup guides',
 		description:
-			'OAuth, env vars, and dashboard settings for Threads, Facebook, Instagram, and other social channels.'
+			'OAuth, env vars, and dashboard settings for Threads, Facebook, Instagram, and other social channels.',
+		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	buildingBlocks: {
 		docsPath: '/docs/publish-listings/publish-your-listing',
 		title: 'Publish your own building block',
 		description:
-			'Share a skill or MCP server on the catalog — sign in, set a username, and submit from your account.'
+			'Share a skill or MCP server on the catalog — sign in, set a username, and submit from your account.',
+		ctaText: 'View publish guide'
 	},
 	playbooks: {
 		docsPath: '/docs/publish-listings/publish-your-listing',
 		title: 'Publish your own playbook',
 		description:
-			'Bundle building blocks into a workflow others can install — submit from your account or Skill Builder.'
+			'Bundle building blocks into a workflow others can install — submit from your account or Skill Builder.',
+		ctaText: 'View publish guide'
 	},
 	creators: {
 		docsPath: '/docs/publish-listings/publish-your-listing',
 		title: 'Publish your own listing',
 		description:
-			'Sign in, choose a public username, and submit building blocks or playbooks from your account.'
+			'Sign in, choose a public username, and submit building blocks or playbooks from your account.',
+		ctaText: 'View publish guide'
 	},
-	compare: {
-		docsPath: publicDocsPath,
-		title: 'Read the OpenQuok docs',
-		description:
-			'Review setup guides, self-hosting steps, and workflow docs when you are ready to move from comparison to your first workspace.'
-	},
-	pricing: {
-		// docsPath: publicComparePath,
-		docsPath: publicDocsGettingStartedForDevPath,
-		// title: 'Compare OpenQuok to the rest',
-		title: 'Self-host OpenQuok for free',
-		description:
-		// 'See how OpenQuok stacks up against Hootsuite, Buffer, and other scheduling tools on pricing, channels, workspaces, and agent integrations.'
-			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
-	},
-	tools: {
-		docsPath: publicDocsGettingStartedForDevPath,
-		title: 'Self-host OpenQuok for free',
-		description:
-			'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.'
-	},
+	compare: PUBLIC_SELF_HOST_DOCS_BANNER,
+	alternatives: PUBLIC_SELF_HOST_DOCS_BANNER,
+	pricing: PUBLIC_SELF_HOST_DOCS_BANNER,
+	tools: PUBLIC_SELF_HOST_DOCS_BANNER,
 	landing: {
 		docsPath: '/docs/getting-started-for-cli',
 		title: 'Get started with the OpenQuok CLI',
 		description:
-			'Install openquok-core, authenticate, and schedule your first post from any agent workspace.'
+			'Install openquok-core, authenticate, and schedule your first post from any agent workspace.',
+		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	skillBuilder: {
 		docsPath: '/docs/getting-started-for-cli',
 		title: 'Read the OpenQuok CLI guide',
 		description:
-			'Install commands, auth patterns, and workflow recipes to export from Skill Builder into your agent.'
+			'Install commands, auth patterns, and workflow recipes to export from Skill Builder into your agent.',
+		ctaText: 'View CLI guide'
 	}
 } as const;
 
@@ -780,9 +783,11 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	Resources: [
 		{ label: 'All Agent Integrations', href: publicAgentsPath },
 		{ label: 'All Supported Channels', href: publicChannelsPath },
+		{ label: 'Alternatives', href: publicAlternativesPath },
 		{ label: 'Blog', href: publicBlogPath },
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' },
+		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Developer Docs', href: publicDocsPath },
 		{ label: 'Self-hosted', href: publicDocsGettingStartedForDevPath },
 	],
@@ -793,7 +798,6 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	],
 	Company: [
 		{ label: 'About Us', href: '/about' },
-		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Pricing', href: '/pricing' },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	]

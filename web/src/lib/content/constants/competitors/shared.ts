@@ -23,6 +23,13 @@ export const COMPARE_TALKING_POINT_ORDER: readonly CompareTalkingPointId[] = [
 /** Default left-side product slug for the public compare hub and related-pair links. */
 export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 
+/** Official marketing sites for compare / alternatives surfaces. */
+export const COMPARE_PRODUCT_WEBSITE_URLS = {
+	openquok: 'https://www.openquok.com',
+	hootsuite: 'https://www.hootsuite.com',
+	buffer: 'https://buffer.com'
+} as const satisfies Record<typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer', string>;
+
 export function buildCompareChannelPoints(
 	openquokChannels: readonly string[],
 	competitorChannels: readonly string[]

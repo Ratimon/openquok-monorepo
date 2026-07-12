@@ -12,7 +12,10 @@ import { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
-import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
+import {
+	COMPARE_HUB_BASE_SLUG,
+	COMPARE_PRODUCT_WEBSITE_URLS
+} from '$lib/content/constants/competitors/shared';
 
 export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
@@ -72,3 +75,28 @@ export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): Pub
 
 /** Row labels shared with the pricing comparison table. */
 export const PUBLIC_COMPARE_FEATURE_ROW_IDS = PUBLIC_PRICING_COMPARE_ROWS.map((row) => row.id);
+
+/** Competitor slugs that have a public `/alternatives/{slug}` directory page. */
+export const ALTERNATIVES_TARGET_SLUGS = PUBLIC_COMPARE_PRODUCTS.filter(
+	(product) => product.slug !== COMPARE_HUB_BASE_SLUG
+).map((product) => product.slug);
+
+export function getCompareProductWebsiteUrl(slug: CompareProductSlug): string {
+	return COMPARE_PRODUCT_WEBSITE_URLS[slug];
+}
+
+export function isAlternativesTargetSlug(slug: string): slug is CompareProductSlug {
+	return ALTERNATIVES_TARGET_SLUGS.includes(slug.trim().toLowerCase() as CompareProductSlug);
+}
+
+/** Alternatives to `targetSlug`, with OpenQuok ranked first when present. */
+export function listAlternativeProductsFor(targetSlug: CompareProductSlug): CompareProduct[] {
+	const target = getCompareProduct(targetSlug);
+	if (!target) return [];
+
+	return PUBLIC_COMPARE_PRODUCTS.filter((product) => product.slug !== target.slug).sort((left, right) => {
+		if (left.slug === COMPARE_HUB_BASE_SLUG) return -1;
+		if (right.slug === COMPARE_HUB_BASE_SLUG) return 1;
+		return left.name.localeCompare(right.name);
+	});
+}

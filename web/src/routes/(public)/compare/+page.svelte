@@ -10,7 +10,6 @@
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
 		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 
@@ -178,7 +177,7 @@
 		<AccentSplitCtaBanner
 			title={compareHubDocsBanner.title}
 			description={compareHubDocsBanner.description}
-			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaText={compareHubDocsBanner.ctaText}
 			ctaHref={compareHubDocsBanner.docsPath}
 		/>
 

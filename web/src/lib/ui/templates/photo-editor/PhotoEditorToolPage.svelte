@@ -32,12 +32,12 @@
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
-		PUBLIC_BANNER_CTA_TEXT,
-		PUBLIC_DOCS_BANNER_CTA_TEXT
+		PUBLIC_BANNER_CTA_TEXT
 	} from '$lib/ui/templates/banners/centeredDarkCtaBannerCopy';
 	import {
 		PHOTO_EDITOR_DOCS_BANNER,
 		accentSplitPhotoEditorChannelCtaBannerDescription,
+		accentSplitPhotoEditorChannelCtaBannerText,
 		accentSplitPhotoEditorChannelCtaBannerTitle
 	} from '$lib/ui/templates/banners/photoEditorBannerCopy';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
@@ -111,6 +111,11 @@
 		channelSlug && channelLabel
 			? accentSplitPhotoEditorChannelCtaBannerDescription(channelLabel)
 			: photoEditorDocsBanner.description
+	);
+	let accentBannerCtaText = $derived(
+		channelSlug && channelLabel
+			? accentSplitPhotoEditorChannelCtaBannerText(channelLabel)
+			: photoEditorDocsBanner.ctaText
 	);
 	let accentBannerHref = $derived(
 		channelSlug
@@ -218,7 +223,7 @@
 		<AccentSplitCtaBanner
 			title={accentBannerTitle}
 			description={accentBannerDescription}
-			ctaText={PUBLIC_DOCS_BANNER_CTA_TEXT}
+			ctaText={accentBannerCtaText}
 			ctaHref={accentBannerHref}
 		/>
 
