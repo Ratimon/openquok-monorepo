@@ -8,22 +8,22 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		column: RoadmapColumnOptionViewModel;
-		items: RoadmapItemViewModel[];
+		columnOptionVm: RoadmapColumnOptionViewModel;
+		itemsVm: RoadmapItemViewModel[];
 	};
 
-	let { column, items }: Props = $props();
+	let { columnOptionVm, itemsVm }: Props = $props();
 
-	const countLabel = $derived(String(items.length));
+	const countLabel = $derived(String(itemsVm.length));
 </script>
 
 <KanbanColumnShell
-	title={column.title}
+	title={columnOptionVm.title}
 	countLabel={countLabel}
 	countTitle="Items in this column"
-	statusDotClass={column.statusDotClass}
+	statusDotClass={columnOptionVm.statusDotClass}
 >
-	{#if items.length === 0}
+	{#if itemsVm.length === 0}
 		<div class="flex flex-1 flex-col items-center justify-center gap-3 px-2 py-10 text-center">
 			<div
 				class="flex size-14 items-center justify-center rounded-full border border-base-300/80 bg-base-100/70 text-info"
@@ -37,17 +37,19 @@
 				/>
 			</div>
 			<div class="max-w-[220px] space-y-1">
-				{#if column.emptyTitle}
-					<p class="text-sm font-medium text-base-content">{column.emptyTitle}</p>
+				{#if columnOptionVm.emptyTitle}
+					<p class="text-sm font-medium text-base-content">
+						{columnOptionVm.emptyTitle}
+					</p>
 				{/if}
 				<p class="text-xs leading-relaxed text-base-content/60">
-					{column.emptyDescription ?? 'No items in this column yet.'}
+					{columnOptionVm.emptyDescription ?? 'No items in this column yet.'}
 				</p>
 			</div>
 		</div>
 	{:else}
-		{#each items as item (item.id)}
-			<RoadmapCard {item} />
+		{#each itemsVm as itemVm (itemVm.id)}
+			<RoadmapCard {itemVm} />
 		{/each}
 	{/if}
 </KanbanColumnShell>

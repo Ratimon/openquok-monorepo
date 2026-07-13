@@ -16,7 +16,7 @@ export async function load({ parent, data }) {
 			schemaData: unknown;
 			isLoggedIn: boolean;
 			roadmapItems: readonly RoadmapItemViewModel[];
-			roadmapColumns: readonly RoadmapColumnOptionViewModel[];
+			roadmapColumnOptionsVm: readonly RoadmapColumnOptionViewModel[];
 			roadmapCategories: readonly RoadmapCategoryOptionViewModel[];
 			metaTitle: string;
 			metaDescription: string;
@@ -27,7 +27,7 @@ export async function load({ parent, data }) {
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			roadmapItems: serverData.roadmapItems,
-			roadmapColumns: serverData.roadmapColumns,
+			roadmapColumnOptionsVm: serverData.roadmapColumnOptionsVm,
 			roadmapCategories: serverData.roadmapCategories,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription

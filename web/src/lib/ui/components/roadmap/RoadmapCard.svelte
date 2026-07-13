@@ -8,12 +8,12 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	type Props = {
-		item: RoadmapItemViewModel;
+		itemVm: RoadmapItemViewModel;
 	};
 
-	let { item }: Props = $props();
+	let { itemVm }: Props = $props();
 
-	const categoryLabel = $derived(roadmapCategoryLabel(item.categoryId));
+	const categoryLabel = $derived(roadmapCategoryLabel(itemVm.categoryId));
 </script>
 
 <article
@@ -21,7 +21,7 @@
 >
 	<div
 		class="flex w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md border border-base-300/80 bg-base-200/70 px-1 py-2 text-base-content/80"
-		aria-label="{item.upvoteCount} upvotes"
+		aria-label="{itemVm.upvoteCount} upvotes"
 	>
 		<AbstractIcon
 			name={icons.ChevronUp.name}
@@ -30,11 +30,15 @@
 			height="16"
 			aria-hidden="true"
 		/>
-		<span class="text-xs font-semibold tabular-nums">{item.upvoteCount}</span>
+		<span class="text-xs font-semibold tabular-nums">
+			{itemVm.upvoteCount}
+		</span>
 	</div>
 
 	<div class="min-w-0 flex-1">
-		<h4 class="text-sm font-semibold leading-snug text-base-content">{item.title}</h4>
+		<h4 class="text-sm font-semibold leading-snug text-base-content">
+			{itemVm.title}
+		</h4>
 		<p class="mt-1 text-[10px] font-semibold tracking-[0.12em] text-base-content/50 uppercase">
 			{categoryLabel}
 		</p>

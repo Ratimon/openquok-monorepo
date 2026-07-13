@@ -3,12 +3,7 @@
 	import type { RoadmapCategoryId } from '$lib/roadmap/roadmap.types';
 
 	import { page } from '$app/state';
-	import { generalFeedbackPresenter } from '$lib/feedbacks';
-	import {
-		countActiveRoadmapFilters,
-		filterRoadmapItems,
-		groupRoadmapItemsByColumn
-	} from '$lib/roadmap';
+	import { publicRoadmapPagePresenter } from '$lib/area-public';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
@@ -22,30 +17,25 @@
 
 	let schemaData = $derived(data.schemaData);
 	let roadmapItems = $derived(data.roadmapItems);
-	let roadmapColumns = $derived(data.roadmapColumns);
+	let roadmapColumnOptionsVm = $derived(data.roadmapColumnOptionsVm);
 	let roadmapCategories = $derived(data.roadmapCategories);
 	let isLoggedIn = $derived(data.isLoggedIn ?? false);
 
-	let selectedCategoryIds = $state<RoadmapCategoryId[]>([]);
+	let selectedCategoryIds = $derived(publicRoadmapPagePresenter.selectedCategoryIds);
+	let filteredItems = $derived(publicRoadmapPagePresenter.filterItems(roadmapItems));
+	let columnsVm = $derived(publicRoadmapPagePresenter.groupByColumn(filteredItems));
+	let activeFilterCount = $derived(publicRoadmapPagePresenter.getActiveFilterCount());
 
-	const filteredItems = $derived(filterRoadmapItems(roadmapItems, selectedCategoryIds));
-	const columnsVm = $derived(groupRoadmapItemsByColumn(filteredItems));
-	const activeFilterCount = $derived(countActiveRoadmapFilters(selectedCategoryIds));
-
-	let feedbackStatus = $derived(generalFeedbackPresenter.status);
-	let feedbackToastMessage = $derived(generalFeedbackPresenter.toastMessage);
+	let feedbackStatus = $derived(publicRoadmapPagePresenter.feedbackStatus);
+	let feedbackToastMessage = $derived(publicRoadmapPagePresenter.feedbackToastMessage);
 	let feedbackPageUrl = $derived(page.url.href);
 
 	function toggleCategory(categoryId: RoadmapCategoryId) {
-		if (selectedCategoryIds.includes(categoryId)) {
-			selectedCategoryIds = selectedCategoryIds.filter((id) => id !== categoryId);
-			return;
-		}
-		selectedCategoryIds = [...selectedCategoryIds, categoryId];
+		publicRoadmapPagePresenter.toggleCategory(categoryId);
 	}
 
 	function clearFilters() {
-		selectedCategoryIds = [];
+		publicRoadmapPagePresenter.clearFilters();
 	}
 
 	async function handleCreateFeedback(
@@ -54,11 +44,11 @@
 		description: string,
 		email: string
 	) {
-		return generalFeedbackPresenter.createFeedback(feedbackType, url, description, email);
+		return publicRoadmapPagePresenter.createFeedback(feedbackType, url, description, email);
 	}
 
 	function handleResetFeedback() {
-		generalFeedbackPresenter.reset();
+		publicRoadmapPagePresenter.resetFeedback();
 	}
 </script>
 
@@ -81,7 +71,10 @@
 		/>
 	</header>
 
-	<RoadmapKanbanBoard columns={roadmapColumns} {columnsVm} />
+	<RoadmapKanbanBoard
+		columnOptionsVm={roadmapColumnOptionsVm ?? []}
+		{columnsVm}
+	/>
 </SectionOuterContainer>
 
 <FeedbackDialog

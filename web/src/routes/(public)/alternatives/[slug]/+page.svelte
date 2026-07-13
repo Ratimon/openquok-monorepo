@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import type { CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
 
 	import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
-	import type { CompareProductSlug } from '$lib/content/constants/publicCompareConfig';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route } from '$lib/utils/path';
 

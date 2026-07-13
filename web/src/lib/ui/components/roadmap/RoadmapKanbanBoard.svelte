@@ -8,15 +8,18 @@
 	import RoadmapKanbanColumn from '$lib/ui/components/roadmap/RoadmapKanbanColumn.svelte';
 
 	type Props = {
-		columns: readonly RoadmapColumnOptionViewModel[];
+		columnOptionsVm: readonly RoadmapColumnOptionViewModel[];
 		columnsVm: RoadmapColumnsViewModel;
 	};
 
-	let { columns, columnsVm }: Props = $props();
+	let { columnOptionsVm, columnsVm }: Props = $props();
 </script>
 
 <KanbanBoardLayout>
-	{#each columns as column (column.id)}
-		<RoadmapKanbanColumn {column} items={columnsVm[column.id]} />
+	{#each columnOptionsVm as columnVm (columnVm.id)}
+		<RoadmapKanbanColumn
+			columnOptionVm={columnVm}
+			itemsVm={columnsVm[columnVm.id]}
+		/>
 	{/each}
 </KanbanBoardLayout>

@@ -1,11 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import { publicRoadmapPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import {
-	ROADMAP_CATEGORIES,
-	ROADMAP_COLUMNS,
-	ROADMAP_ITEMS
-} from '$lib/roadmap/constants/roadmapCatalog';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
@@ -19,9 +15,13 @@ export async function load({ url, cookies, parent }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = 'Roadmap';
-	const customDescription =
-		'See what we are planning, building, and shipping next for OpenQuok. Upvote ideas and share feedback.';
+	const {
+		metaTitle: customTitle,
+		metaDescription: customDescription,
+		roadmapItems,
+		roadmapColumnOptionsVm,
+		roadmapCategories
+	} = publicRoadmapPagePresenter.loadRoadmapHubStateless();
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -57,9 +57,9 @@ export async function load({ url, cookies, parent }) {
 		pageMetaTags,
 		schemaData,
 		isLoggedIn,
-		roadmapItems: ROADMAP_ITEMS,
-		roadmapColumns: ROADMAP_COLUMNS,
-		roadmapCategories: ROADMAP_CATEGORIES,
+		roadmapItems,
+		roadmapColumnOptionsVm,
+		roadmapCategories,
 		metaTitle: customTitle,
 		metaDescription: customDescription
 	};

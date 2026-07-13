@@ -33,11 +33,32 @@ export const ROADMAP_CATEGORIES: readonly RoadmapCategoryOptionViewModel[] = [
 /** Public roadmap catalog — replace with API data when backend ships. */
 export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 	{
-		id: 'tag-posts-filter',
-		title: 'Tag posts and filter them later',
+		id: 'emoji-parser',
+		title: 'Emoji Parser',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 4
+		upvoteCount: 16
+	},
+	{
+		id: 'ai-writer',
+		title: 'AI (Re) Writer',
+		categoryId: 'product',
+		columnId: 'planned',
+		upvoteCount: 16
+	},
+	{
+		id: 'auto-short-links',
+		title: 'Auto Short links',
+		categoryId: 'product',
+		columnId: 'planned',
+		upvoteCount: 16
+	},
+	{
+		id: 'desktop-app',
+		title: 'Desktop application',
+		categoryId: 'product',
+		columnId: 'planned',
+		upvoteCount: 16
 	},
 	{
 		id: 'mobile-app',
@@ -47,23 +68,107 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		upvoteCount: 16
 	},
 	{
-		id: 'workspace-templates',
-		title: 'Workspace-level post templates',
-		categoryId: 'product',
-		columnId: 'planned',
-		upvoteCount: 2
-	},
-	{
-		id: 'bulk-reschedule',
-		title: 'Bulk reschedule from the calendar',
+		id: 'n8n-integration',
+		title: 'n8n integration',
 		categoryId: 'product',
 		columnId: 'planned',
 		upvoteCount: 5
 	},
 	{
-		id: 'analytics-export',
-		title: 'Export analytics to CSV',
-		categoryId: 'product',
+		id: 'facebook-provider',
+		title: 'Facebook Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
+		upvoteCount: 1
+	},
+	{
+		id: 'instagram-provider',
+		title: 'Instagram Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
+		upvoteCount: 1
+	},
+	{
+		id: 'threads-provider',
+		title: 'Threads Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
+		upvoteCount: 1
+	},
+	{
+		id: 'reddit-provider',
+		title: 'Reddit Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'pinterest-provider',
+		title: 'Pinterest Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'discord-provider',
+		title: 'Discord Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'slack-provider',
+		title: 'Slack Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'telegram-provider',
+		title: 'Telegram Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'medium-provider',
+		title: 'Medium Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'devto-provider',
+		title: 'Dev.to Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'twitch-provider',
+		title: 'Twitch Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'warpcast-provider',
+		title: 'Warpcast Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'farcaster-provider',
+		title: 'Farcaster Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		upvoteCount: 1
+	},
+	{
+		id: 'discord-support-bot',
+		title: 'Discord Support Bot',
+		categoryId: 'platform',
 		columnId: 'planned',
 		upvoteCount: 1
 	},
@@ -75,11 +180,11 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		upvoteCount: 3
 	},
 	{
-		id: 'ai-portraits',
-		title: 'Generate Portraits of yourself with AI Agents',
-		categoryId: 'product',
-		columnId: 'in_progress',
-		upvoteCount: 3
+		id: 'dockerization',
+		title: 'Dockerization',
+		categoryId: 'platform',
+		columnId: 'planned',
+		upvoteCount: 1
 	}
 ] as const;
 
