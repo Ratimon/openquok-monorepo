@@ -40,12 +40,6 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- Additive columns for DBs that already had users before these fields existed.
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS username TEXT,
-    ADD COLUMN IF NOT EXISTS provider TEXT,
-    ADD COLUMN IF NOT EXISTS provider_id TEXT;
-
 COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
 
 COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
