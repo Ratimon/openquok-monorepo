@@ -212,7 +212,7 @@
 						</h1>
 					</CardTitle>
 					<CardDescription>
-						Sign in to your account to continue.
+						Continue to use your account.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="grid gap-4">

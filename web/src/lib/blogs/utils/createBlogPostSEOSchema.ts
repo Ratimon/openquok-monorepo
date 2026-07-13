@@ -1,14 +1,19 @@
 import { base } from '$app/paths';
 
-import type { Thing } from 'schema-dts';
+import type { FAQPage, HowTo, HowToStep, Product, Question, Thing } from 'schema-dts';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import type {
 	BlogPostBySlugPublicViewModel,
 	BlogPostCommentViewModel
 } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogSeoFaqItem, BlogSeoHowtoStep, BlogSeoProduct } from '$lib/blogs/blog.types';
+import {
+	isBlogTopicEligibleForHowTo,
+	isBlogTopicEligibleForProduct
+} from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
-import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
 export function guessImageMimeFromFilename(filename: string): string {
@@ -37,6 +42,86 @@ function absoluteAppUrl(origin: string, pathname: string): string {
 	return `${origin}${b}${p}`;
 }
 
+function createBlogPostFaqPageNode(params: {
+	canonicalUrl: string;
+	postTitle: string;
+	items: BlogSeoFaqItem[];
+}): FAQPage | Record<string, never> {
+	const { canonicalUrl, postTitle, items } = params;
+	if (items.length === 0) return {};
+
+	return {
+		'@type': 'FAQPage',
+		'@id': `${canonicalUrl}#faq`,
+		name: `${postTitle} FAQ`,
+		url: canonicalUrl,
+		mainEntity: items.map(
+			(item) =>
+				({
+					'@type': 'Question',
+					name: item.question,
+					acceptedAnswer: {
+						'@type': 'Answer',
+						text: item.answer
+					}
+				}) as Question
+		)
+	};
+}
+
+function createBlogPostHowToNode(params: {
+	canonicalUrl: string;
+	postTitle: string;
+	description: string;
+	steps: BlogSeoHowtoStep[];
+}): HowTo | Record<string, never> {
+	const { canonicalUrl, postTitle, description, steps } = params;
+	if (steps.length === 0) return {};
+
+	const howToSteps: HowToStep[] = steps.map((step, index) => ({
+		'@type': 'HowToStep',
+		position: index + 1,
+		name: step.name,
+		text: step.text
+	}));
+
+	return {
+		'@type': 'HowTo',
+		'@id': `${canonicalUrl}#howto`,
+		name: postTitle,
+		description: description || undefined,
+		url: canonicalUrl,
+		step: howToSteps
+	};
+}
+
+function createBlogPostProductNode(params: {
+	canonicalUrl: string;
+	companyName: string;
+	companySiteUrl: string;
+	heroImageUrl: string;
+	product: BlogSeoProduct;
+}): Product | Record<string, never> {
+	const { canonicalUrl, companyName, companySiteUrl, heroImageUrl, product } = params;
+	if (!product.name?.trim() || !product.description?.trim()) return {};
+
+	const brandName = product.brand?.trim() || companyName;
+	const productUrl = product.url?.trim() || companySiteUrl;
+
+	return {
+		'@type': 'Product',
+		'@id': `${canonicalUrl}#product`,
+		name: product.name.trim(),
+		description: product.description.trim(),
+		url: productUrl,
+		brand: {
+			'@type': 'Brand',
+			name: brandName
+		},
+		...(heroImageUrl ? { image: heroImageUrl } : {})
+	};
+}
+
 export type CreateBlogPostSEOSchemaParams = {
 	post: BlogPostBySlugPublicViewModel;
 	comments?: BlogPostCommentViewModel[];
@@ -63,6 +148,8 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 
 	const authorName = post.author?.fullName ?? post.author?.username ?? 'Anonymous';
 	const topicName = post.topic?.name ?? 'Blog';
+	const topicSlug = post.topic?.slug ?? null;
+	const topicId = post.topic?.id ?? null;
 	const siteFallback = companySiteUrl?.trim() || origin;
 
 	const publishedAt = post.publishedAt ?? post.createdAt;
@@ -228,5 +315,36 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		itemListElement: breadcrumbItems
 	};
 
-	return createJsonLdGraph([blogPosting, breadcrumbList, ...commentNodes] as Thing[]);
+	const faqItems = post.faqItems ?? [];
+	const howtoSteps = post.howtoSteps ?? [];
+	const product = post.product;
+
+	const extraNodes = filterNonEmptyJsonLdNodes([
+		faqItems.length > 0
+			? createBlogPostFaqPageNode({
+					canonicalUrl,
+					postTitle: post.title,
+					items: faqItems
+				})
+			: {},
+		isBlogTopicEligibleForHowTo(topicSlug, topicId) && howtoSteps.length > 0
+			? createBlogPostHowToNode({
+					canonicalUrl,
+					postTitle: post.title,
+					description,
+					steps: howtoSteps
+				})
+			: {},
+		isBlogTopicEligibleForProduct(topicSlug, topicId) && product
+			? createBlogPostProductNode({
+					canonicalUrl,
+					companyName,
+					companySiteUrl: siteFallback,
+					heroImageUrl: heroUrl,
+					product
+				})
+			: {}
+	]);
+
+	return createJsonLdGraph([blogPosting, breadcrumbList, ...commentNodes, ...extraNodes] as Thing[]);
 }

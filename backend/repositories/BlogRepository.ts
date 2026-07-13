@@ -26,6 +26,12 @@ import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../
 import { logger } from "../utils/Logger";
 import { stringToSlug } from "../utils/blog/slug";
 
+/** Empty array or null/undefined clears optional SEO JSON array columns. */
+function normalizeSeoJsonArray<T>(value: T[] | null | undefined): T[] | null {
+    if (value == null || value.length === 0) return null;
+    return value;
+}
+
 const RPC_GET_PUBLISHED_BLOG_AUTHORS = "get_published_blog_authors";
 const RPC_GET_ACTIVE_BLOG_TOPICS = "get_active_blog_topics";
 
@@ -94,6 +100,9 @@ const SELECT_BLOG_POST = `
   view_count,
   like_count,
   updated_at,
+  faq_items,
+  howto_steps,
+  product,
   topic:blog_topics(id, name, slug),
   author:users!user_id(id, full_name, user_profiles(avatar_url, website_url, tag_line))
 `;
@@ -355,6 +364,9 @@ export class BlogRepository {
             is_admin_approved: isAdminApproved,
             user_id: userId,
             slug,
+            faq_items: normalizeSeoJsonArray(post.faq_items),
+            howto_steps: normalizeSeoJsonArray(post.howto_steps),
+            product: post.product ?? null,
         };
         const { data, error } = await this.supabase
             .from(TABLE_NAME_BLOG_POSTS)
@@ -417,6 +429,9 @@ export class BlogRepository {
             is_admin_approved: isAdminApproved,
             slug,
             updated_at: updatedAt,
+            faq_items: normalizeSeoJsonArray(post.faq_items),
+            howto_steps: normalizeSeoJsonArray(post.howto_steps),
+            product: post.product ?? null,
         };
         const { data, error } = await this.supabase
             .from(TABLE_NAME_BLOG_POSTS)

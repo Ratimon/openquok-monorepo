@@ -1,5 +1,41 @@
 import { z } from "zod";
 
+// --- Blog Post SEO structured fields ---
+
+const blogFaqItemSchema = z.object({
+    question: z.string().min(1, "Question is required"),
+    answer: z.string().min(1, "Answer is required"),
+});
+
+const blogHowtoStepSchema = z.object({
+    name: z.string().min(1, "Step name is required"),
+    text: z.string().min(1, "Step text is required"),
+});
+
+const blogProductUrlSchema = z
+    .string()
+    .optional()
+    .nullable()
+    .refine(
+        (value) => {
+            if (value === "" || value == null) return true;
+            try {
+                new URL(value);
+                return true;
+            } catch {
+                return false;
+            }
+        },
+        { message: "Product URL must be a valid URL" }
+    );
+
+const blogProductSchema = z.object({
+    name: z.string().min(1, "Product name is required"),
+    description: z.string().min(1, "Product description is required"),
+    brand: z.string().optional().nullable(),
+    url: blogProductUrlSchema,
+});
+
 // --- Blog Post ---
 
 const blogPostFields = {
@@ -13,6 +49,12 @@ const blogPostFields = {
     is_featured: z.boolean().default(false),
     is_user_published: z.boolean().default(false),
     is_admin_approved: z.boolean().default(false),
+    /** Optional FAQ Q&A pairs; empty array or null clears. */
+    faq_items: z.array(blogFaqItemSchema).optional().nullable(),
+    /** Optional HowTo steps; empty array or null clears. */
+    howto_steps: z.array(blogHowtoStepSchema).optional().nullable(),
+    /** Optional product summary; null clears. */
+    product: blogProductSchema.optional().nullable(),
 };
 
 /** Schema for creating a blog post (POST /posts). Id optional (ignored on create). */

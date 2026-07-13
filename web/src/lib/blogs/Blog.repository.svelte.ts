@@ -1,6 +1,9 @@
 import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
 import type {
 	BlogPostFormSchemaType,
+	BlogSeoFaqItem,
+	BlogSeoHowtoStep,
+	BlogSeoProduct,
 	BlogTopicFormSchemaType,
 } from '$lib/blogs/blog.types';
 import { CONFIG_SCHEMA_BLOG } from '$lib/blogs/constants/config';
@@ -25,6 +28,9 @@ export interface BlogPostDto {
 	viewCount: number | null;
 	likeCount: number | null;
 	updatedAt: string | null;
+	faqItems: BlogSeoFaqItem[] | null;
+	howtoSteps: BlogSeoHowtoStep[] | null;
+	product: BlogSeoProduct | null;
 	topic: { id: string; name: string; slug: string } | null;
 	author: {
 		id: string;
@@ -322,6 +328,9 @@ export interface BlogPostProgrammerModel {
 	viewCount: number | null;
 	likeCount: number | null;
 	updatedAt: string | null;
+	faqItems: BlogSeoFaqItem[] | null;
+	howtoSteps: BlogSeoHowtoStep[] | null;
+	product: BlogSeoProduct | null;
 	topic: { id: string; name: string; slug: string } | null;
 	author: {
 		id: string;
@@ -933,6 +942,9 @@ export class BlogRepository {
 			viewCount: postDto.viewCount ?? null,
 			likeCount: postDto.likeCount ?? null,
 			updatedAt: postDto.updatedAt ?? null,
+			faqItems: postDto.faqItems?.length ? [...postDto.faqItems] : null,
+			howtoSteps: postDto.howtoSteps?.length ? [...postDto.howtoSteps] : null,
+			product: postDto.product ?? null,
 			topic: postDto.topic ? { ...postDto.topic } : null,
 			author: postDto.author
 				? {
@@ -980,10 +992,11 @@ function createTopicPath(
  */
 export function createSortedTopicChoices(
 	topics: (BlogTopicDto | BlogTopicProgrammerModel)[]
-): { value: string; label: string }[] {
+): { value: string; label: string; slug: string }[] {
 	const choices = topics.map((topic) => ({
 		value: topic.id,
-		label: createTopicPath(topic, topics)
+		label: createTopicPath(topic, topics),
+		slug: topic.slug
 	}));
 	return choices.sort((a, b) => a.label.localeCompare(b.label));
 }

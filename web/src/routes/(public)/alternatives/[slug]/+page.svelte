@@ -169,7 +169,7 @@
 		<div class="mt-10 space-y-6">
 			{#each listings as listing (listing.slug)}
 				<PublicAlternativesListingCard
-					{listing}
+					listingVm={listing}
 					targetName={detailVm.targetName}
 					iconContainerClass={iconStyleForProduct(listing.slug).cardContainerClass}
 					iconClass={iconStyleForProduct(listing.slug).iconClass}

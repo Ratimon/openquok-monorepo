@@ -170,7 +170,10 @@ export class AdminBlogEditorPagePresenter {
 				is_sponsored: false,
 				is_featured: false,
 				is_user_published: false,
-				is_admin_approved: false
+				is_admin_approved: false,
+				faq_items: null,
+				howto_steps: null,
+				product: null
 			};
 		}
 		return {
@@ -183,7 +186,10 @@ export class AdminBlogEditorPagePresenter {
 			is_sponsored: p.isSponsored,
 			is_featured: p.isFeatured,
 			is_user_published: p.isUserPublished,
-			is_admin_approved: p.isAdminApproved
+			is_admin_approved: p.isAdminApproved,
+			faq_items: p.faqItems?.length ? [...p.faqItems] : null,
+			howto_steps: p.howtoSteps?.length ? [...p.howtoSteps] : null,
+			product: p.product ?? null
 		};
 	}
 }

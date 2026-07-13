@@ -1,5 +1,46 @@
 import { z } from 'zod';
 
+const blogSeoProductUrlSchema = z
+	.string()
+	.optional()
+	.nullable()
+	.refine(
+		(value) => {
+			if (value === '' || value == null) return true;
+			try {
+				new URL(value);
+				return true;
+			} catch {
+				return false;
+			}
+		},
+		{ message: 'Product URL must be a valid URL' }
+	);
+
+/** FAQ Q&A pair for blog post SEO (aligned with backend `blogSeoFaqItemSchema`). */
+export const blogSeoFaqItemSchema = z.object({
+	question: z.string().min(1, 'Question is required'),
+	answer: z.string().min(1, 'Answer is required')
+});
+
+/** HowTo step for blog post SEO (aligned with backend `blogSeoHowtoStepSchema`). */
+export const blogSeoHowtoStepSchema = z.object({
+	name: z.string().min(1, 'Step name is required'),
+	text: z.string().min(1, 'Step text is required')
+});
+
+/** Product summary for blog post SEO (aligned with backend `blogSeoProductSchema`). */
+export const blogSeoProductSchema = z.object({
+	name: z.string().min(1, 'Product name is required'),
+	description: z.string().min(1, 'Product description is required'),
+	brand: z.string().optional().nullable(),
+	url: blogSeoProductUrlSchema
+});
+
+export type BlogSeoFaqItem = z.infer<typeof blogSeoFaqItemSchema>;
+export type BlogSeoHowtoStep = z.infer<typeof blogSeoHowtoStepSchema>;
+export type BlogSeoProduct = z.infer<typeof blogSeoProductSchema>;
+
 /** Form schema for create/update blog post (aligned with backend blogPostCreateSchema / blogPostUpdateSchema). */
 export const blogPostFormSchema = z.object({
 	id: z.string().uuid().optional(),
@@ -11,15 +52,19 @@ export const blogPostFormSchema = z.object({
 	is_sponsored: z.boolean().default(false),
 	is_featured: z.boolean().default(false),
 	is_user_published: z.boolean().default(false),
-	is_admin_approved: z.boolean().default(false)
+	is_admin_approved: z.boolean().default(false),
+	faq_items: z.array(blogSeoFaqItemSchema).optional().nullable(),
+	howto_steps: z.array(blogSeoHowtoStepSchema).optional().nullable(),
+	product: blogSeoProductSchema.optional().nullable()
 });
 
 export type BlogPostFormSchemaType = z.infer<typeof blogPostFormSchema>;
 
-/** Choice for topic select: value + label (with hierarchy path). */
+/** Choice for topic select: value + label (with hierarchy path) + slug for SEO section gating. */
 export interface TopicChoice {
 	value: string;
 	label: string;
+	slug: string;
 }
 
 /** Form schema for create/update blog topics (aligned with backend blogTopicCreateSchema/blogTopicUpdateSchema). */

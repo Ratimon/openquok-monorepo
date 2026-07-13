@@ -8,6 +8,9 @@ import type {
     BlogComment,
     AdminBlogComment,
     AdminBlogActivity,
+    BlogSeoFaqItem,
+    BlogSeoHowtoStep,
+    BlogSeoProduct,
 } from "../../data/types/blogTypes";
 
 /** Raw admin `blog_activity` select shape before mapping to AdminBlogActivity. */
@@ -47,6 +50,9 @@ export interface BlogPostLike {
     view_count?: number | null;
     like_count?: number | null;
     updated_at?: string | null;
+    faq_items?: BlogSeoFaqItem[] | null;
+    howto_steps?: BlogSeoHowtoStep[] | null;
+    product?: BlogSeoProduct | null;
     topic?: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
     author?:
         | {
@@ -94,6 +100,9 @@ export interface BlogPostDTO {
     viewCount: number | null;
     likeCount: number | null;
     updatedAt: string | null;
+    faqItems: BlogSeoFaqItem[] | null;
+    howtoSteps: BlogSeoHowtoStep[] | null;
+    product: BlogSeoProduct | null;
     topic: { id: string; name: string; slug: string } | null;
     author: {
         id: string;
@@ -167,6 +176,27 @@ function normalizeTopic(
     return t ? { id: t.id, name: t.name, slug: t.slug } : null;
 }
 
+function normalizeFaqItems(value: BlogPostLike["faq_items"]): BlogSeoFaqItem[] | null {
+    if (value == null || !Array.isArray(value) || value.length === 0) return null;
+    return value;
+}
+
+function normalizeHowtoSteps(value: BlogPostLike["howto_steps"]): BlogSeoHowtoStep[] | null {
+    if (value == null || !Array.isArray(value) || value.length === 0) return null;
+    return value;
+}
+
+function normalizeProduct(value: BlogPostLike["product"]): BlogSeoProduct | null {
+    if (value == null || typeof value !== "object") return null;
+    if (!value.name || !value.description) return null;
+    return {
+        name: value.name,
+        description: value.description,
+        brand: value.brand ?? null,
+        url: value.url ?? null,
+    };
+}
+
 type AuthorProfileRow = { avatar_url?: string | null; website_url?: string | null; tag_line?: string | null };
 
 function normalizeAuthor(
@@ -209,6 +239,9 @@ export const BlogDTOMapper = {
             viewCount: (row.view_count ?? null) as number | null,
             likeCount: (row.like_count ?? null) as number | null,
             updatedAt: (row.updated_at ?? null) as string | null,
+            faqItems: normalizeFaqItems(row.faq_items),
+            howtoSteps: normalizeHowtoSteps(row.howto_steps),
+            product: normalizeProduct(row.product),
             topic: normalizeTopic(row.topic),
             author: normalizeAuthor(row.author),
         };

@@ -1,6 +1,7 @@
 export type TopicLike = {
 	id: string;
 	name: string;
+	slug?: string;
 	parentId?: string | null;
 };
 
@@ -34,12 +35,13 @@ export function sortTopics<T extends TopicLike>(topics: T[]): T[] {
  * Creates a sorted list of topic choices for a parent dropdown.
  * Each topic's label includes its full path in the hierarchy.
  */
-export function createSortedTopicChoices<T extends TopicLike>(topics: T[]): { value: string; label: string }[] {
+export function createSortedTopicChoices<T extends TopicLike>(topics: T[]): { value: string; label: string; slug: string }[] {
 	const safeAll = [...topics];
 	return safeAll
 		.map((topic) => ({
 			value: topic.id,
-			label: createTopicPath(topic, safeAll)
+			label: createTopicPath(topic, safeAll),
+			slug: topic.slug ?? ''
 		}))
 		.sort((a, b) => a.label.localeCompare(b.label));
 }

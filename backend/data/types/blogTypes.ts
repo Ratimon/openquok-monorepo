@@ -37,6 +37,26 @@ export interface ActiveBlogTopic {
     post_count: number;
 }
 
+/** FAQ Q&A pair stored on blog_posts.faq_items. */
+export interface BlogSeoFaqItem {
+    question: string;
+    answer: string;
+}
+
+/** HowTo step stored on blog_posts.howto_steps. */
+export interface BlogSeoHowtoStep {
+    name: string;
+    text: string;
+}
+
+/** Product summary stored on blog_posts.product. */
+export interface BlogSeoProduct {
+    name: string;
+    description: string;
+    brand?: string | null;
+    url?: string | null;
+}
+
 export interface BlogPost {
     id: string;
     user_id: string;
@@ -56,6 +76,9 @@ export interface BlogPost {
     view_count: number | null;
     like_count: number | null;
     updated_at: string | null;
+    faq_items: BlogSeoFaqItem[] | null;
+    howto_steps: BlogSeoHowtoStep[] | null;
+    product: BlogSeoProduct | null;
     topic: BlogTopic | null;
     author: BlogAuthor | null;
 }

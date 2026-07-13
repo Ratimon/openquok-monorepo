@@ -1,8 +1,12 @@
 <script lang="ts">
-	import type { BlogPostFormSchemaType, TopicChoice } from '$lib/blogs/blog.types';
+	import type { BlogPostFormSchemaType, BlogSeoHowtoStep, BlogSeoProduct, TopicChoice } from '$lib/blogs/blog.types';
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
+	import {
+		isBlogTopicEligibleForHowTo,
+		isBlogTopicEligibleForProduct
+	} from '$lib/blogs/constants/blogSeoSchemaTopics';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 	import * as Field from '$lib/ui/field';
@@ -13,6 +17,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Select from '$lib/ui/select';
 	import { blogHeroImageUploadAreaPresenter, imageRepository } from '$lib/core/index';
+	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
 	type Props = {
@@ -23,6 +28,7 @@
 		isSubmitting: boolean;
 		slugDisplay?: string;
 		noPostFound?: boolean;
+		companyName?: string;
 		onSave: (formData: BlogPostFormSchemaType) => void | Promise<void>;
 		onDiscard: () => void;
 	};
@@ -35,9 +41,41 @@
 		isSubmitting,
 		slugDisplay = '',
 		noPostFound = false,
+		companyName = '',
 		onSave,
 		onDiscard
 	}: Props = $props();
+
+	function resolveTopicSlug(topicId: string): string {
+		return topicChoices.find((choice) => choice.value === topicId)?.slug ?? '';
+	}
+
+	function normalizeSeoPayload(
+		value: BlogPostFormSchemaType,
+		topicSlug: string,
+		topicId: string
+	): Pick<BlogPostFormSchemaType, 'faq_items' | 'howto_steps' | 'product'> {
+		const faqItems = value.faq_items?.filter((item) => item.question.trim() && item.answer.trim()) ?? [];
+		const howtoSteps = value.howto_steps?.filter((step) => step.name.trim() && step.text.trim()) ?? [];
+		const product = value.product;
+		const hasProduct =
+			!!product?.name?.trim() && !!product?.description?.trim();
+
+		return {
+			faq_items: faqItems.length > 0 ? faqItems : null,
+			howto_steps:
+				isBlogTopicEligibleForHowTo(topicSlug, topicId) && howtoSteps.length > 0 ? howtoSteps : null,
+			product:
+				isBlogTopicEligibleForProduct(topicSlug, topicId) && hasProduct
+					? {
+							name: product!.name.trim(),
+							description: product!.description.trim(),
+							brand: product!.brand?.trim() || null,
+							url: product!.url?.trim() || null
+						}
+					: null
+		};
+	}
 
 	const form = createForm(() => ({
 		defaultValues: {
@@ -50,7 +88,10 @@
 			is_sponsored: initialValues.is_sponsored ?? false,
 			is_featured: initialValues.is_featured ?? false,
 			is_user_published: initialValues.is_user_published ?? false,
-			is_admin_approved: initialValues.is_admin_approved ?? false
+			is_admin_approved: initialValues.is_admin_approved ?? false,
+			faq_items: initialValues.faq_items ?? null,
+			howto_steps: initialValues.howto_steps ?? null,
+			product: initialValues.product ?? null
 		},
 		onSubmit: async ({ value }) => {
 			// Inline content image files are uploaded only on Create/Update click.
@@ -76,6 +117,9 @@
 				// If upload/replace was cancelled (e.g. delete old object failed), keep existing hero_image_filename and still save other fields.
 			}
 
+			const topicSlug = resolveTopicSlug(value.topic_id);
+			const seoFields = normalizeSeoPayload(value as BlogPostFormSchemaType, topicSlug, value.topic_id);
+
 			const payload = {
 				...(value.id ? { id: value.id } : {}),
 				title: value.title,
@@ -86,7 +130,8 @@
 				is_sponsored: value.is_sponsored,
 				is_featured: value.is_featured,
 				is_user_published: value.is_user_published,
-				is_admin_approved: value.is_admin_approved
+				is_admin_approved: value.is_admin_approved,
+				...seoFields
 			};
 			const result = blogPostFormSchema.safeParse(payload);
 			if (!result.success) {
@@ -103,6 +148,42 @@
 	let hasPendingHeroImageChanges = $derived(() => heroImageUploadRef?.hasSelectedFile?.());
 	let contentEditorMode = $state<'visual' | 'html'>('visual');
 	let htmlSourceContent = $state('');
+	let productPrefillDone = $state(false);
+
+	const seoTopicStore = form.useStore((state) => ({
+		topicId: state.values.topic_id ?? '',
+		title: state.values.title ?? '',
+		description: state.values.description ?? '',
+		product: state.values.product ?? null
+	}));
+
+	$effect(() => {
+		const { topicId, title, description, product } = seoTopicStore.current;
+		const topicSlug = resolveTopicSlug(topicId);
+		const showProductSection = isBlogTopicEligibleForProduct(topicSlug, topicId);
+		if (!showProductSection) {
+			productPrefillDone = false;
+			return;
+		}
+		if (productPrefillDone) return;
+
+		if (product?.name?.trim() && product?.description?.trim()) {
+			productPrefillDone = true;
+			return;
+		}
+
+		const trimmedTitle = title.trim();
+		const trimmedDescription = description.trim();
+		if (!trimmedTitle && !trimmedDescription) return;
+
+		form.setFieldValue('product', {
+			name: product?.name?.trim() || trimmedTitle,
+			description: product?.description?.trim() || trimmedDescription,
+			brand: product?.brand?.trim() || companyName || null,
+			url: product?.url?.trim() || null
+		});
+		productPrefillDone = true;
+	});
 
 	function prettyFormatHtml(html: string): string {
 		const trimmed = html.trim();
@@ -453,12 +534,208 @@
 									</Select.Content>
 								</Select.Root>
 								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
+								{#if !field.state.value}
+									<p class="text-sm text-base-content/60">
+										Choose a topic to unlock Structured SEO. FAQ is available for every topic; How-to steps and product summary appear only for matching topics.
+									</p>
+								{/if}
 							</div>
 						{/snippet}
 					</form.Field>
 				</div>
 			</div>
 		</section>
+
+		<form.Subscribe selector={(state) => state.values.topic_id ?? ''}>
+			{#snippet children(selectedTopicId)}
+				{@const topicSlug = resolveTopicSlug(selectedTopicId)}
+				{@const showFaqSection = !!selectedTopicId}
+				{@const showHowToSection = isBlogTopicEligibleForHowTo(topicSlug, selectedTopicId)}
+				{@const showProductSection = isBlogTopicEligibleForProduct(topicSlug, selectedTopicId)}
+				{#if showFaqSection || showHowToSection || showProductSection}
+					<section class="space-y-4">
+				<div class="mb-4">
+					<h3 class="text-xl font-bold text-base-content">
+						Structured SEO
+					</h3>
+					<p class="text-sm font-medium text-base-content/70">
+						Optional FAQ (any topic), How-to steps, or product summary for eligible topics. Visible on the public post and included in JSON-LD when filled in.
+					</p>
+				</div>
+				<div class="divider"></div>
+
+				{#if showFaqSection}
+					<form.Field name="faq_items">
+						{#snippet children(field)}
+							<div class="rounded-lg border border-base-300 p-4">
+								<FaqEditor
+									faqs={field.state.value ?? []}
+									onChange={(faqs) => field.handleChange(faqs.length > 0 ? faqs : null)}
+									label="FAQ items"
+									description="Question and answer pairs shown on the post and in FAQPage structured data."
+								/>
+							</div>
+						{/snippet}
+					</form.Field>
+				{/if}
+
+				{#if showHowToSection}
+					<form.Field name="howto_steps">
+						{#snippet children(field)}
+							{@const steps = field.state.value ?? []}
+							<div class="space-y-4">
+								<div>
+									<Field.Label>How-to steps</Field.Label>
+									<Field.Description>
+										Step name and instructions shown on the post and in HowTo structured data.
+									</Field.Description>
+								</div>
+								{#each steps as _step, index (index)}
+									<div class="rounded-lg border border-base-300 p-4 space-y-3">
+										<div class="flex items-center justify-between gap-2">
+											<p class="text-sm font-medium text-base-content/80">Step {index + 1}</p>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onclick={() => {
+													const next = steps.filter((_, i) => i !== index);
+													field.handleChange(next.length > 0 ? next : null);
+												}}
+											>
+												Remove
+											</Button>
+										</div>
+										<div class="flex flex-col gap-2">
+											<Field.Label>Step name</Field.Label>
+											<input
+												type="text"
+												class="input input-bordered w-full"
+												placeholder="Enter step name"
+												value={steps[index]?.name ?? ''}
+												oninput={(e) => {
+													const next = [...steps];
+													next[index] = {
+														...(next[index] ?? { name: '', text: '' }),
+														name: e.currentTarget.value
+													};
+													field.handleChange(next);
+												}}
+											/>
+										</div>
+										<div class="flex flex-col gap-2">
+											<Field.Label>Step text</Field.Label>
+											<Textarea
+												class="min-h-20"
+												placeholder="Enter step instructions"
+												value={steps[index]?.text ?? ''}
+												oninput={(e) => {
+													const next = [...steps];
+													next[index] = {
+														...(next[index] ?? { name: '', text: '' }),
+														text: e.currentTarget.value
+													};
+													field.handleChange(next);
+												}}
+											/>
+										</div>
+									</div>
+								{/each}
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onclick={() => {
+										const next: BlogSeoHowtoStep[] = [
+											...(steps ?? []),
+											{ name: '', text: '' }
+										];
+										field.handleChange(next);
+									}}
+								>
+									Add step
+								</Button>
+							</div>
+						{/snippet}
+					</form.Field>
+				{/if}
+
+				{#if showProductSection}
+					<form.Field name="product">
+						{#snippet children(field)}
+							{@const product = field.state.value ?? { name: '', description: '', brand: null, url: null }}
+							<div class="space-y-4">
+								<div>
+									<Field.Label>Product summary</Field.Label>
+									<Field.Description>
+										Name, description, and optional link shown on the post and in Product structured data.
+									</Field.Description>
+								</div>
+								<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
+									<div class="flex flex-col gap-2">
+										<Field.Label>Product name</Field.Label>
+										<input
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="Enter product name"
+											value={product.name ?? ''}
+											oninput={(e) =>
+												field.handleChange({
+													...product,
+													name: e.currentTarget.value
+												} satisfies BlogSeoProduct)}
+										/>
+									</div>
+									<div class="flex flex-col gap-2">
+										<Field.Label>Brand</Field.Label>
+										<input
+											type="text"
+											class="input input-bordered w-full"
+											placeholder="Enter brand name"
+											value={product.brand ?? ''}
+											oninput={(e) =>
+												field.handleChange({
+													...product,
+													brand: e.currentTarget.value || null
+												} satisfies BlogSeoProduct)}
+										/>
+									</div>
+								</div>
+								<div class="flex flex-col gap-2">
+									<Field.Label>Product description</Field.Label>
+									<Textarea
+										class="min-h-24"
+										placeholder="Enter product description"
+										value={product.description ?? ''}
+										oninput={(e) =>
+											field.handleChange({
+												...product,
+												description: e.currentTarget.value
+											} satisfies BlogSeoProduct)}
+									/>
+								</div>
+								<div class="flex flex-col gap-2">
+									<Field.Label>Product URL (optional)</Field.Label>
+									<input
+										type="url"
+										class="input input-bordered w-full"
+										placeholder="https://example.com/product"
+										value={product.url ?? ''}
+										oninput={(e) =>
+											field.handleChange({
+												...product,
+												url: e.currentTarget.value || null
+											} satisfies BlogSeoProduct)}
+									/>
+								</div>
+							</div>
+						{/snippet}
+					</form.Field>
+				{/if}
+					</section>
+				{/if}
+			{/snippet}
+		</form.Subscribe>
 
 		<section class="space-y-4">
 			<div class="mb-4">

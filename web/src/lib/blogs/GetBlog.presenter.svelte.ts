@@ -1,4 +1,4 @@
-import type { AdminBlogCommentVm, AdminBlogActivityVm } from '$lib/blogs/blog.types';
+import type { AdminBlogCommentVm, AdminBlogActivityVm, BlogSeoFaqItem, BlogSeoHowtoStep, BlogSeoProduct } from '$lib/blogs/blog.types';
 import type {
 	AdminBlogActivityProgrammerModel,
 	AdminBlogCommentProgrammerModel,
@@ -70,6 +70,9 @@ export interface BlogPostBySlugPublicViewModel {
 		tagLine: string | null;
 	} | null;
 	likeCount: number | null;
+	faqItems: BlogSeoFaqItem[] | null;
+	howtoSteps: BlogSeoHowtoStep[] | null;
+	product: BlogSeoProduct | null;
 }
 
 /** Public approved comment row for post detail UI / SEO (maps from {@link BlogPostCommentProgrammerModel}). */
@@ -295,7 +298,10 @@ export class GetBlogPresenter {
 						tagLine: post.author.tagLine
 					}
 				: null,
-			likeCount: post.likeCount ?? null
+			likeCount: post.likeCount ?? null,
+			faqItems: post.faqItems?.length ? [...post.faqItems] : null,
+			howtoSteps: post.howtoSteps?.length ? [...post.howtoSteps] : null,
+			product: post.product ?? null
 		};
 	}
 

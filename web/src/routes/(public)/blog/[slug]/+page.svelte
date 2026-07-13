@@ -29,6 +29,7 @@
 	} from '$lib/config/constants/config';
 
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
+	import BlogPostSeoBlocks from '$lib/ui/components/blog-post/BlogPostSeoBlocks.svelte';
 	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
@@ -227,6 +228,10 @@
 			{trackBlogShare}
 			submittingShare={blogShareSubmitting}
 			{trackBlogView}
+		/>
+		<BlogPostSeoBlocks
+			postVm={currentPostVm}
+			class="mt-8"
 		/>
 		<CenteredDarkCtaBanner
 			title={CENTERED_DARK_CTA_BANNER_TITLE}
