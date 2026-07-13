@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS public.users (
     auth_id UUID UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT,
     full_name TEXT,
+    username TEXT,
+    provider TEXT,
+    provider_id TEXT,
     is_super_admin BOOLEAN DEFAULT FALSE,
     is_email_verified BOOLEAN DEFAULT false,
     email_verification_token TEXT,
@@ -26,8 +29,13 @@ CREATE TABLE IF NOT EXISTS public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
+-- Additive columns for DBs that already had users before these fields existed.
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS username TEXT,
+    ADD COLUMN IF NOT EXISTS provider TEXT,
+    ADD COLUMN IF NOT EXISTS provider_id TEXT;
 
+COMMENT ON TABLE public.users IS 'Core identity row (auth.users link). Referenced by user_organizations and tenant-scoped tables such as public.post_internal_comments (composer post comments; FK user_id — defined in post module).';
 
 COMMENT ON COLUMN public.users.last_read_notifications IS 'Cursor for unread in-app notification count (per user)';
 COMMENT ON COLUMN public.users.send_success_emails IS 'When false, org notification emails typed as success are skipped for this user';
@@ -37,6 +45,9 @@ COMMENT ON COLUMN public.users.is_super_admin IS 'Whether the user has super adm
 COMMENT ON COLUMN public.users.is_email_verified IS 'Whether the user has verified their email';
 COMMENT ON COLUMN public.users.email_verification_token IS 'Hashed token for email verification link';
 COMMENT ON COLUMN public.users.email_verification_token_expires IS 'Expiry for email_verification_token';
+COMMENT ON COLUMN public.users.username IS 'Public creator slug for /creators/[username]; nullable until set by user or admin';
+COMMENT ON COLUMN public.users.provider IS 'OAuth provider name: google, github, generic';
+COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
 
 -- ---------------------------
 -- User Profiles

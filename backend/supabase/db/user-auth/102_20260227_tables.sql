@@ -24,17 +24,6 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens (
 );
 
 -- ---------------------------
--- Users (OAuth provider columns; table lives in user-management)
--- ---------------------------
-
-ALTER TABLE public.users
-ADD COLUMN IF NOT EXISTS provider TEXT,
-ADD COLUMN IF NOT EXISTS provider_id TEXT;
-
-COMMENT ON COLUMN public.users.provider IS 'OAuth provider name: google, github, generic';
-COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
-
--- ---------------------------
 -- END OF FILE
 -- ---------------------------
 

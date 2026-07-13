@@ -45,7 +45,6 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
     updated_at TIMESTAMPTZ,
     published_at TIMESTAMPTZ
 );
-
 COMMENT ON COLUMN public.blog_posts.faq_items IS 'Optional FAQ Q&A pairs for topic-eligible posts; drives FAQPage structured data and on-page FAQ block.';
 COMMENT ON COLUMN public.blog_posts.howto_steps IS 'Optional HowTo steps for topic-eligible posts; drives HowTo structured data and on-page steps.';
 COMMENT ON COLUMN public.blog_posts.product IS 'Optional product summary for topic-eligible posts; drives Product structured data and on-page product summary.';
