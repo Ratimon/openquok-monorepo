@@ -839,6 +839,12 @@ CREATE TABLE IF NOT EXISTS public.blog_posts (
     published_at TIMESTAMPTZ
 );
 
+-- Additive columns for DBs that already had blog_posts before SEO fields existed.
+ALTER TABLE public.blog_posts
+ADD COLUMN IF NOT EXISTS faq_items JSONB,
+ADD COLUMN IF NOT EXISTS howto_steps JSONB,
+ADD COLUMN IF NOT EXISTS product JSONB;
+
 COMMENT ON COLUMN public.blog_posts.faq_items IS 'Optional FAQ Q&A pairs for topic-eligible posts; drives FAQPage structured data and on-page FAQ block.';
 COMMENT ON COLUMN public.blog_posts.howto_steps IS 'Optional HowTo steps for topic-eligible posts; drives HowTo structured data and on-page steps.';
 COMMENT ON COLUMN public.blog_posts.product IS 'Optional product summary for topic-eligible posts; drives Product structured data and on-page product summary.';
