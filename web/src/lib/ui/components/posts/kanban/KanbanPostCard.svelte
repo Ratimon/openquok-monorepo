@@ -5,7 +5,7 @@
 	
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
-	import { KANBAN_CARD_DRAG_MIME, serializeKanbanCardDrag } from '$lib/ui/components/kanban-board/kanbanDnd';
+	import { KANBAN_CARD_DRAG_MIME, serializeKanbanCardDrag } from '$lib/ui/components/posts/kanban/kanbanDnd';
 
 	type Props = {
 		cardVm: PostKanbanCardViewModel;

@@ -14,8 +14,8 @@
 		groupKanbanCardsIntoColumns
 	} from '$lib/posts/utils/postKanbanBoardCards';
 
-	import KanbanBoardFilters from '$lib/ui/components/kanban-board/KanbanBoardFilters.svelte';
-	import KanbanColumn from '$lib/ui/components/kanban-board/KanbanColumn.svelte';
+	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
+	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
 	import { THREADS_LANDING_KANBAN_CARDS } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingKanbanMock';
 	import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 

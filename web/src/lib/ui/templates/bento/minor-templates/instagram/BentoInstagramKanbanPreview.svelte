@@ -14,8 +14,8 @@
 		groupKanbanCardsIntoColumns
 	} from '$lib/posts/utils/postKanbanBoardCards';
 
-	import KanbanBoardFilters from '$lib/ui/components/kanban-board/KanbanBoardFilters.svelte';
-	import KanbanColumn from '$lib/ui/components/kanban-board/KanbanColumn.svelte';
+	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
+	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
 	import { INSTAGRAM_LANDING_KANBAN_CARDS } from './instagramLandingKanbanMock';
 	import { INSTAGRAM_LANDING_MOCK_CHANNEL } from './instagramLandingMock';
 

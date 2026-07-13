@@ -19,7 +19,7 @@
 		PostKanbanTimeFilter,
 		PostKanbanTimeFilterOptionViewModel
 	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
-	import type { KanbanCardDragPayload } from '$lib/ui/components/kanban-board/kanbanDnd';
+	import type { KanbanCardDragPayload } from '$lib/ui/components/posts/kanban/kanbanDnd';
 
 	import { UNLIMITED_POSTS_PER_MONTH } from 'openquok-common';
 
@@ -32,6 +32,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import KanbanBoardFilters from './KanbanBoardFilters.svelte';
+	import KanbanBoardLayout from '$lib/ui/components/kanban-board/KanbanBoardLayout.svelte';
 	import KanbanColumn from './KanbanColumn.svelte';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 
@@ -292,7 +293,7 @@
 	{:else if status === 'error' && error}
 		<p class="mt-4 text-sm text-error">{error}</p>
 	{:else}
-		<div class="mt-4 flex gap-3 overflow-x-auto pb-2">
+		<KanbanBoardLayout class="mt-4">
 			{#each columnOptions as col (col.id)}
 				<KanbanColumn
 					columnId={col.id}
@@ -313,6 +314,6 @@
 					{onNoteChange}
 				/>
 			{/each}
-		</div>
+		</KanbanBoardLayout>
 	{/if}
 </section>

@@ -53,7 +53,7 @@
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
-	import PostKanbanBoard from '$lib/ui/components/kanban-board/PostKanbanBoard.svelte';
+	import PostKanbanBoard from '$lib/ui/components/posts/kanban/PostKanbanBoard.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import AccountGettingStartedSection from '$lib/ui/components/home/AccountGettingStartedSection.svelte';
 	import AccountPlanOverviewSection from '$lib/ui/components/home/AccountPlanOverviewSection.svelte';

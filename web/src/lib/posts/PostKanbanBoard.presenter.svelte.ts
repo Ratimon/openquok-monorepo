@@ -44,7 +44,7 @@ import {
 	columnToApiStatus,
 	kanbanMoveBlockedMessage,
 	type KanbanCardDragPayload
-} from '$lib/ui/components/kanban-board/kanbanDnd';
+} from '$lib/ui/components/posts/kanban/kanbanDnd';
 import dayjs from 'dayjs';
 
 export type {

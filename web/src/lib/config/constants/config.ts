@@ -20,6 +20,7 @@ import {
 	getRootPathPublicPlaybooksCategories,
 	getRootPathPublicPlaybooksTags
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import {
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicPhotoEditor,
@@ -44,6 +45,7 @@ const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingSta
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
+const publicRoadmapPath = route(getRootPathPublicRoadmap());
 
 const appName = 'openquok';
 const appTitle = 'Openquok | Agentic Social Media Scheduler';
@@ -798,6 +800,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 	],
 	Company: [
 		{ label: 'About Us', href: '/about' },
+		{ label: 'Roadmap', href: publicRoadmapPath },
 		{ label: 'Pricing', href: '/pricing' },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	]
