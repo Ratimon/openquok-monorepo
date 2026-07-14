@@ -28,7 +28,7 @@ export function groupRoadmapItemsByColumn(
 	}
 
 	for (const columnId of Object.keys(columns) as RoadmapColumnId[]) {
-		columns[columnId].sort((a, b) => b.upvoteCount - a.upvoteCount || a.title.localeCompare(b.title));
+		columns[columnId].sort((a, b) => b.priority - a.priority || a.title.localeCompare(b.title));
 	}
 
 	return columns;

@@ -45,11 +45,32 @@ export async function load({ url, cookies, parent }) {
 			name: customTitle,
 			description: customDescription,
 			url: canonical,
+			mainEntity: {
+				'@id': `${canonical}#roadmap`
+			},
 			isPartOf: {
 				'@type': 'WebSite',
 				name: companyName,
 				url: url.origin
 			}
+		},
+		{
+			'@type': 'ItemList',
+			'@id': `${canonical}#roadmap`,
+			name: customTitle,
+			description: customDescription,
+			url: canonical,
+			numberOfItems: roadmapItems.length,
+			itemListElement: roadmapItems.map((item, index) => ({
+				'@type': 'ListItem',
+				position: index + 1,
+				name: item.title,
+				item: {
+					'@type': 'Thing',
+					name: item.title,
+					identifier: item.id
+				}
+			}))
 		}
 	]);
 

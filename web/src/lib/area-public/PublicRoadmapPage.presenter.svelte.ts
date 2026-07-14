@@ -25,7 +25,7 @@ export type RoadmapHubLoadViewModel = {
 
 const ROADMAP_META_TITLE = 'Roadmap';
 const ROADMAP_META_DESCRIPTION =
-	'See what we are planning, building, and shipping next for OpenQuok. Upvote ideas and share feedback.';
+	'See what we are planning, building, and shipping next for OpenQuok. Share feedback to help us prioritize.';
 
 export class PublicRoadmapPagePresenter {
 	selectedCategoryIds = $state<RoadmapCategoryId[]>([]);

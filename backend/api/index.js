@@ -4693,6 +4693,24 @@ function normalizeTopic(topic) {
   const t = Array.isArray(topic) ? topic[0] : topic;
   return t ? { id: t.id, name: t.name, slug: t.slug } : null;
 }
+function normalizeFaqItems(value) {
+  if (value == null || !Array.isArray(value) || value.length === 0) return null;
+  return value;
+}
+function normalizeHowtoSteps(value) {
+  if (value == null || !Array.isArray(value) || value.length === 0) return null;
+  return value;
+}
+function normalizeProduct(value) {
+  if (value == null || typeof value !== "object") return null;
+  if (!value.name || !value.description) return null;
+  return {
+    name: value.name,
+    description: value.description,
+    brand: value.brand ?? null,
+    url: value.url ?? null
+  };
+}
 function normalizeAuthor(author) {
   if (!author) return null;
   const a = Array.isArray(author) ? author[0] : author;
@@ -4805,6 +4823,9 @@ var init_BlogDTO = __esm({
           viewCount: row.view_count ?? null,
           likeCount: row.like_count ?? null,
           updatedAt: row.updated_at ?? null,
+          faqItems: normalizeFaqItems(row.faq_items),
+          howtoSteps: normalizeHowtoSteps(row.howto_steps),
+          product: normalizeProduct(row.product),
           topic: normalizeTopic(row.topic),
           author: normalizeAuthor(row.author)
         };
@@ -5944,6 +5965,10 @@ var init_slug = __esm({
 });
 
 // repositories/BlogRepository.ts
+function normalizeSeoJsonArray(value) {
+  if (value == null || value.length === 0) return null;
+  return value;
+}
 function resolveOrderKey(candidate, fallback, allowlist) {
   const key = candidate?.toString().trim();
   if (!key) return fallback;
@@ -6008,6 +6033,9 @@ var init_BlogRepository = __esm({
   view_count,
   like_count,
   updated_at,
+  faq_items,
+  howto_steps,
+  product,
   topic:blog_topics(id, name, slug),
   author:users!user_id(id, full_name, user_profiles(avatar_url, website_url, tag_line))
 `;
@@ -6212,7 +6240,10 @@ var init_BlogRepository = __esm({
           is_user_published: post.is_user_published ?? false,
           is_admin_approved: isAdminApproved,
           user_id: userId,
-          slug
+          slug,
+          faq_items: normalizeSeoJsonArray(post.faq_items),
+          howto_steps: normalizeSeoJsonArray(post.howto_steps),
+          product: post.product ?? null
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).insert(row).select("id, title, slug").single();
         if (error || !data?.id) {
@@ -6255,7 +6286,10 @@ var init_BlogRepository = __esm({
           is_user_published: post.is_user_published ?? false,
           is_admin_approved: isAdminApproved,
           slug,
-          updated_at: updatedAt
+          updated_at: updatedAt,
+          faq_items: normalizeSeoJsonArray(post.faq_items),
+          howto_steps: normalizeSeoJsonArray(post.howto_steps),
+          product: post.product ?? null
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).update(row).eq("id", id).select("id, title, slug").single();
         if (error) {
@@ -32034,6 +32068,32 @@ feedbackRouter.patch("/:feedbackId", authWithRoles4, requireSupport, feedbackCon
 init_controllers();
 init_connections();
 init_repositories();
+var blogFaqItemSchema = zod.z.object({
+  question: zod.z.string().min(1, "Question is required"),
+  answer: zod.z.string().min(1, "Answer is required")
+});
+var blogHowtoStepSchema = zod.z.object({
+  name: zod.z.string().min(1, "Step name is required"),
+  text: zod.z.string().min(1, "Step text is required")
+});
+var blogProductUrlSchema = zod.z.string().optional().nullable().refine(
+  (value) => {
+    if (value === "" || value == null) return true;
+    try {
+      new URL(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: "Product URL must be a valid URL" }
+);
+var blogProductSchema = zod.z.object({
+  name: zod.z.string().min(1, "Product name is required"),
+  description: zod.z.string().min(1, "Product description is required"),
+  brand: zod.z.string().optional().nullable(),
+  url: blogProductUrlSchema
+});
 var blogPostFields = {
   id: zod.z.string().uuid("Invalid post id").optional(),
   title: zod.z.string().min(1, "Title is required"),
@@ -32044,7 +32104,13 @@ var blogPostFields = {
   is_sponsored: zod.z.boolean().default(false),
   is_featured: zod.z.boolean().default(false),
   is_user_published: zod.z.boolean().default(false),
-  is_admin_approved: zod.z.boolean().default(false)
+  is_admin_approved: zod.z.boolean().default(false),
+  /** Optional FAQ Q&A pairs; empty array or null clears. */
+  faq_items: zod.z.array(blogFaqItemSchema).optional().nullable(),
+  /** Optional HowTo steps; empty array or null clears. */
+  howto_steps: zod.z.array(blogHowtoStepSchema).optional().nullable(),
+  /** Optional product summary; null clears. */
+  product: blogProductSchema.optional().nullable()
 };
 var blogPostCreateSchema = zod.z.object(blogPostFields);
 var blogPostUpdateSchema = zod.z.object(blogPostFields);

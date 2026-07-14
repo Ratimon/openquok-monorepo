@@ -7,7 +7,7 @@ export type RoadmapItemViewModel = {
 	title: string;
 	categoryId: RoadmapCategoryId;
 	columnId: RoadmapColumnId;
-	upvoteCount: number;
+	priority: number;
 };
 
 export type RoadmapColumnOptionViewModel = {

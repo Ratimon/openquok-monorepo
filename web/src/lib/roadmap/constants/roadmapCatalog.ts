@@ -37,154 +37,161 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		title: 'Emoji Parser',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 16
+		priority: 1
 	},
 	{
 		id: 'ai-writer',
-		title: 'AI (Re) Writer',
+		title: 'AI Writer',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 16
+		priority: 1
+	},
+	{
+		id: 'ai-editor',
+		title: 'AI Content Editor',
+		categoryId: 'product',
+		columnId: 'planned',
+		priority: 1
 	},
 	{
 		id: 'auto-short-links',
 		title: 'Auto Short links',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 16
+		priority: 2
 	},
 	{
 		id: 'desktop-app',
 		title: 'Desktop application',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 16
+		priority: 3
 	},
 	{
 		id: 'mobile-app',
 		title: 'Mobile application',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 16
+		priority: 3
 	},
 	{
 		id: 'n8n-integration',
 		title: 'n8n integration',
 		categoryId: 'product',
 		columnId: 'planned',
-		upvoteCount: 5
+		priority: 3
 	},
 	{
 		id: 'facebook-provider',
 		title: 'Facebook Provider',
 		categoryId: 'integrations',
 		columnId: 'in_progress',
-		upvoteCount: 1
+		priority: 1
 	},
 	{
 		id: 'instagram-provider',
 		title: 'Instagram Provider',
 		categoryId: 'integrations',
 		columnId: 'in_progress',
-		upvoteCount: 1
+		priority: 1
 	},
 	{
 		id: 'threads-provider',
 		title: 'Threads Provider',
 		categoryId: 'integrations',
 		columnId: 'in_progress',
-		upvoteCount: 1
+		priority: 1
 	},
 	{
 		id: 'reddit-provider',
 		title: 'Reddit Provider',
 		categoryId: 'integrations',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
 	},
 	{
 		id: 'pinterest-provider',
 		title: 'Pinterest Provider',
 		categoryId: 'integrations',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
 	},
 	{
 		id: 'discord-provider',
 		title: 'Discord Provider',
 		categoryId: 'integrations',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
 	},
 	{
 		id: 'slack-provider',
 		title: 'Slack Provider',
 		categoryId: 'integrations',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
 	},
 	{
 		id: 'telegram-provider',
 		title: 'Telegram Provider',
 		categoryId: 'integrations',
 		columnId: 'planned',
-		upvoteCount: 1
-	},
-	{
-		id: 'medium-provider',
-		title: 'Medium Provider',
-		categoryId: 'integrations',
-		columnId: 'planned',
-		upvoteCount: 1
-	},
-	{
-		id: 'devto-provider',
-		title: 'Dev.to Provider',
-		categoryId: 'integrations',
-		columnId: 'planned',
-		upvoteCount: 1
-	},
-	{
-		id: 'twitch-provider',
-		title: 'Twitch Provider',
-		categoryId: 'integrations',
-		columnId: 'planned',
-		upvoteCount: 1
-	},
-	{
-		id: 'warpcast-provider',
-		title: 'Warpcast Provider',
-		categoryId: 'integrations',
-		columnId: 'planned',
-		upvoteCount: 1
-	},
-	{
-		id: 'farcaster-provider',
-		title: 'Farcaster Provider',
-		categoryId: 'integrations',
-		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
 	},
 	{
 		id: 'discord-support-bot',
 		title: 'Discord Support Bot',
 		categoryId: 'platform',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 2
+	},
+	{
+		id: 'medium-provider',
+		title: 'Medium Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 2
+	},
+	{
+		id: 'devto-provider',
+		title: 'Dev.to Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 2
+	},
+	{
+		id: 'twitch-provider',
+		title: 'Twitch Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 2
+	},
+	{
+		id: 'warpcast-provider',
+		title: 'Warpcast Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 3
+	},
+	{
+		id: 'farcaster-provider',
+		title: 'Farcaster Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 3
 	},
 	{
 		id: 'publish-webhooks',
 		title: 'Webhooks for publish events',
 		categoryId: 'platform',
 		columnId: 'planned',
-		upvoteCount: 3
+		priority: 3
 	},
 	{
 		id: 'dockerization',
 		title: 'Dockerization',
 		categoryId: 'platform',
 		columnId: 'planned',
-		upvoteCount: 1
+		priority: 1
 	}
 ] as const;
 

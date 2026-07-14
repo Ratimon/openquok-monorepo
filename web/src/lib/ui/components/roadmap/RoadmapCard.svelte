@@ -21,7 +21,7 @@
 >
 	<div
 		class="flex w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-md border border-base-300/80 bg-base-200/70 px-1 py-2 text-base-content/80"
-		aria-label="{itemVm.upvoteCount} upvotes"
+		aria-label="Priority {itemVm.priority}"
 	>
 		<AbstractIcon
 			name={icons.ChevronUp.name}
@@ -31,7 +31,7 @@
 			aria-hidden="true"
 		/>
 		<span class="text-xs font-semibold tabular-nums">
-			{itemVm.upvoteCount}
+			{itemVm.priority}
 		</span>
 	</div>
 
