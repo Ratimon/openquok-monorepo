@@ -867,8 +867,9 @@ export class AuthController {
             }
             if (this.emailService.isEnabled && user.email) {
                 try {
+                    const frontendUrl = serverConfig.frontendDomainUrl ?? "";
                     await this.emailService.send(
-                        new WelcomeEmailTemplate(user.full_name ?? "User"),
+                        new WelcomeEmailTemplate(frontendUrl, user.full_name ?? "User"),
                         user.email
                     );
                     logger.info({ msg: "Welcome email sent after verification", email: user.email });
