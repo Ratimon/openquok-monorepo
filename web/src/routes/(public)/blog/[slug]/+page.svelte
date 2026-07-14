@@ -28,10 +28,12 @@
 		PUBLIC_BANNER_CTA_TEXT
 	} from '$lib/config/constants/config';
 
+	import BlogComments from '$lib/ui/components/blog-post/BlogComments.svelte';
 	import BlogPost from '$lib/ui/components/blog-post/BlogPost.svelte';
 	import BlogPostSeoBlocks from '$lib/ui/components/blog-post/BlogPostSeoBlocks.svelte';
-	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
+	import PostNavigation from '$lib/ui/components/blog-post/PostNavigation.svelte';
+	import BlogHubBreadcrumb from '$lib/ui/components/blog-public/BlogHubBreadcrumb.svelte';
 	import LayoutInnerContainer from '$lib/ui/layouts/LayoutInnerContainer.svelte';
 	import LayoutOuterContainer from '$lib/ui/layouts/LayoutOuterContainer.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
@@ -106,6 +108,7 @@
 
 	let currentPostVm = $derived(data.currentPostVm);
 	let otherPostsVm = $derived(data.otherPostsVm);
+	let comments = $derived(data.comments);
 	let schemaData = $derived(data.schemaData);
 
 	let normalizedContent = $state<string>('');
@@ -214,15 +217,6 @@
 		<BlogPost
 			post={currentPostVm}
 			{contentHtml}
-			comments={data.comments}
-			previousLink={previousNav}
-			nextLink={nextNav}
-			{isLoggedIn}
-			{signInHref}
-			{submitBlogComment}
-			submittingComment={blogCommentSubmitting}
-			{communityCommentsEnabled}
-			onCommunityUpgradeRequired={openCommunityUpgradeDialog}
 			{trackBlogLike}
 			submittingLike={blogLikeSubmitting}
 			{trackBlogShare}
@@ -232,6 +226,23 @@
 		<BlogPostSeoBlocks
 			postVm={currentPostVm}
 			class="mt-8"
+		/>
+		<div class="mt-8">
+			<BlogComments
+				{comments}
+				postId={currentPostVm.id}
+				{isLoggedIn}
+				{signInHref}
+				{submitBlogComment}
+				submittingComment={blogCommentSubmitting}
+				{communityCommentsEnabled}
+				onUpgradeRequired={openCommunityUpgradeDialog}
+			/>
+		</div>
+		<PostNavigation
+			previousLink={previousNav}
+			nextLink={nextNav}
+			class="mt-4"
 		/>
 		<CenteredDarkCtaBanner
 			title={CENTERED_DARK_CTA_BANNER_TITLE}

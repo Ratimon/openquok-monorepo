@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { PublicBlogMutationResultViewModel } from '$lib/area-public/PublicBlogBySlugPage.presenter.svelte';
-	import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 	import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 
 	import { onMount } from 'svelte';
@@ -8,50 +7,26 @@
 
 	import { syncBlogHeadingIds } from '$lib/blogs/utils';
 	import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { stringToSlug } from '$lib/ui/helpers/common';
 	import { url } from '$lib/utils/path';
 
-	import { Badge } from '$lib/ui/badge';
 	import AuthorInfo from '$lib/ui/components/blog-post/AuthorInfo.svelte';
-	import BlogComments from '$lib/ui/components/blog-post/BlogComments.svelte';
+	import { Badge } from '$lib/ui/badge';
 	import BlogLikeButton from '$lib/ui/components/blog-post/BlogLikeButton.svelte';
 	import BlogShare from '$lib/ui/components/blog-post/BlogShare.svelte';
 	import BlogViewPixel from '$lib/ui/components/blog-post/BlogViewPixel.svelte';
-	import PostNavigation from '$lib/ui/components/blog-post/PostNavigation.svelte';
 	import TableOfContents from '$lib/ui/components/blog-post/TableOfContents.svelte';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import SupabaseImage from '$lib/ui/supabase/SupabaseImage.svelte';
 	import OneColSection from '$lib/ui/layouts/OneColSection.svelte';
 
-	// /sign-in
-	const rootPathSignIn = getRootPathSignin();
-	const signInPath = `/${rootPathSignIn}`;
-	const signInHrefDefault = url(signInPath);
-
 	// /blog
 	const rootPathPublicBlog = getRootPathPublicBlog();
 	const publicBlogPath = `/${rootPathPublicBlog}`;
 
-	type NavLink = { name: string; href: string };
-
 	type Props = {
 		post: BlogPostBySlugPublicViewModel;
 		contentHtml: string;
-		comments: BlogPostCommentViewModel[];
-		previousLink?: NavLink;
-		nextLink?: NavLink;
-		isLoggedIn?: boolean;
-		signInHref?: string;
-		composerAvatarUrl?: string | null;
-		submitBlogComment: (params: {
-			postId: string;
-			content: string;
-			parentId: string | null;
-		}) => Promise<PublicBlogMutationResultViewModel>;
-		submittingComment?: boolean;
-		communityCommentsEnabled?: boolean;
-		onCommunityUpgradeRequired?: () => void;
 		trackBlogLike: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
 		submittingLike?: boolean;
 		trackBlogShare: (postId: string) => Promise<PublicBlogMutationResultViewModel>;
@@ -63,16 +38,6 @@
 	let {
 		post,
 		contentHtml,
-		comments,
-		previousLink,
-		nextLink,
-		isLoggedIn = false,
-		signInHref = signInHrefDefault,
-		composerAvatarUrl = null,
-		submitBlogComment,
-		submittingComment = false,
-		communityCommentsEnabled = true,
-		onCommunityUpgradeRequired,
 		trackBlogLike,
 		submittingLike = false,
 		trackBlogShare,
@@ -226,21 +191,6 @@
 						{@html contentHtml}
 					</div>
 				</article>
-
-				<div class="mt-8">
-					<BlogComments
-						{comments}
-						postId={post.id}
-						{isLoggedIn}
-						{signInHref}
-						{composerAvatarUrl}
-						{submitBlogComment}
-						{submittingComment}
-						communityCommentsEnabled={communityCommentsEnabled}
-						onUpgradeRequired={onCommunityUpgradeRequired}
-					/>
-				</div>
-				<PostNavigation previousLink={previousLink} nextLink={nextLink} class="mt-4" />
 			</div>
 
 			<div class="shrink-0 md:w-44 lg:w-48">

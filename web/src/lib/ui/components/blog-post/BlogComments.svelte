@@ -163,11 +163,13 @@
 >
 	<div class="space-y-4">
 		<h2 id="blog-comments-heading" class="text-2xl font-bold">
-			Comments</h2>
+			Comments
+		</h2>
 		<div class="space-y-4">
 			{#if comments.length === 0}
 				<p class="text-base-content/70">
-					No comments yet.</p>
+					No comments yet.
+				</p>
 			{/if}
 			{#each comments as comment (comment.id)}
 				{#if !comment.parentId}
