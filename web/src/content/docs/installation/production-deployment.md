@@ -9,9 +9,9 @@ lastUpdated: 2026-05-09
 import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-This project is set up for **Vercel** as the primary host for the **backend** (Express serverless entry), **web** (SvelteKit), and optionally the **CLI auth server** (<Badge text="agent/server" variant="path" /> — device flow for <code>openquok auth:login</code>). **Supabase** remains the database and auth provider for the product API.
+This project is set up for **Vercel**  for the **backend** (Express.js), **web** (SvelteKit), and optionally the **CLI auth server** (<Badge text="agent/server" variant="path" /> — device flow for <code>openquok auth:login</code>). **Supabase** remains the database and auth provider for the API.
 
-**Orchestrator workers** (BullMQ) are **not** run on Vercel: when <code>backend/config/orchestratorFlows.ts</code> uses <code>transport: "bullmq"</code> for **integration refresh**, **notification email**, and/or **scheduled social posts**, deploy **separate always-on processes** (for example on <a href="/docs/installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Configuration - Worker</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
+**Orchestrator workers** (BullMQ) are **not** run on Vercel. We deploy **separate always-on processes** (for example on <a href="/docs/installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Configuration - Worker</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
 ## What you need
 

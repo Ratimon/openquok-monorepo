@@ -17,6 +17,7 @@ The customer-facing **SvelteKit** app lives in <Badge text="web/" variant="path"
 
 ## Tech stack
 
+- PNPM workspace
 - Supabase DB & Auth
 - Express.js
 - Svelte 5

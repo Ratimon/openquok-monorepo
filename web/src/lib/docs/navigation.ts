@@ -155,7 +155,7 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 		case 'learn-more':
 			return `${base}/getting-started-for-dev`;
 		case 'contributing':
-			return `${base}/publish-listings`;
+			return `${base}/developer-guidelines`;
 	}
 }
 

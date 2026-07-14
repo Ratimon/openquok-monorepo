@@ -4,28 +4,30 @@
   </a>
 </p>
 
-<h1 align="center">OpenQuok monorepo</h1>
+<h1 align="center">OpenQuok: agent-native social media scheduling tool/workspace</h1>
 
-**Your AI-ready social media scheduling workspace**. It helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live
+It helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live
 
-**OpenQuok** — a forkable, self-hosted alternative to closed SaaS schedulers (Buffer, Hypefury, and similar "post later" stacks) when you want publishing power without renting your whole workflow.
+It offers a forkable, self-hosted alternative to closed SaaS schedulers (Buffer, Hypefury, and etc).
 
-Use the **dashboard** to review, schedule and approve with a clear path from draft to post. Fits naturally on top of AI tooling like **OpenClaw**. Forkable and self-hostable.
+Use the **dashboard** to review, schedule and approve with a clear path from draft to post. Fits naturally on top of AI tooling like **OpenClaw**.
 
 Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give them the same scheduling surface to autonomously schedule posts, manage integrations, and upload media from the terminal.
 
 
-### Links
-
-- [Website](https://www.openquok.com)
-- [Doc for Agent Users](https://www.openquok.com/docs)
-- [Doc For Contributors/mainteners](https://www.openquok.com/docs/getting-started-for-dev)
-- [Doc Public API](https://localhost:5173/docs/getting-started-for-public-api)
-- [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
-- [Installation](https://www.openquok.com/docs/installation)
-- [Developer Guidelines](https://www.openquok.com/docs/developer-guidelines)
-- [Security Guidelines](https://www.openquok.com/docs/developer-guidelines/security)
-- [Documentation Contribution Guidelines](https://www.openquok.com/docs/documentation-contribution)
+<p align="center">
+  <a href="https://www.openquok.com/sign-up">Sign up</a>
+  ·
+  <a href="https://www.openquok.com/docs/apis-integrations">Public API</a><br />
+</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/@openquok/auto-cli">Agent CLI</a>
+  ·
+  <a href="https://www.npmjs.com/package/@openquok/node-sdk">NodeJS SDK</a>
+  ·
+  <a href="https://www.openquok.com/tools">Free Tools</a>
+  ·
+</p>
 
 ---
 
@@ -42,8 +44,9 @@ corepack enable
 
 ### Tech stack
 
+- PNPM workspace
 - Supabase DB & Auth
-- Clouldflare R2
+- Cloudflare R2
 - Express.js
 - Svelte 5
 - Tailwind CSS
@@ -56,10 +59,48 @@ corepack enable
 - Vercel
 - Railway
 
+---
+
 ### Quick start
 
-To have the project up and running, please follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started-for-dev/quick-start).
+For a first-time local run — install dependencies, configure env for `backend/` and `web/`, and wire optional workers / CLI auth — follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started-for-dev/quick-start).
 
+Day-to-day commands (dev servers, tests, DB, deploy) live under [Development environment](https://www.openquok.com/docs/installation/development-environment). Production deploy notes are in [Production deployment](https://www.openquok.com/docs/installation/production-deployment).
+
+---
+
+### Links
+
+- [Website](https://www.openquok.com)
+
+**Documentation (by audience)**
+
+- [CLI & agent users](https://www.openquok.com/docs) — `@openquok/auto-cli`, auth, commands, and examples
+- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens
+- [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples
+- [Self-host & contributors](https://www.openquok.com/docs/getting-started-for-dev) — monorepo layout, install, and local setup
+- [Contributing](https://www.openquok.com/docs/developer-guidelines) — repo conventions and contribution guides
+
+**Self-host & setup**
+
+- [Quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start)
+- [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
+- [Installation](https://www.openquok.com/docs/installation)
+- [Social integrations](https://www.openquok.com/docs/social-integration) — connect channels (OAuth, env, provider dashboards)
+- [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup
+- [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) — Authorization Code flow for third-party apps
+- [Configuration – Backend](https://www.openquok.com/docs/configuration-backend)
+- [Configuration – Web](https://www.openquok.com/docs/configuration-web)
+- [Configuration – Workers](https://www.openquok.com/docs/configuration-worker)
+- [Configuration – CLI auth server](https://www.openquok.com/docs/configuration-agent)
+
+**Guidelines**
+
+- [Developer guidelines](https://www.openquok.com/docs/developer-guidelines)
+- [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
+- [Documentation contribution](https://www.openquok.com/docs/documentation-contribution)
+
+---
 
 ### License
 

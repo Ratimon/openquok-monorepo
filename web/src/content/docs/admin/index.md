@@ -1,5 +1,5 @@
 ---
-title: Roles Overview
+title: Admin Setup
 description: Getting Started to Platform admin access and post-deployment setup in Openquok.
 order: 0
 lastUpdated: 2026-05-08
