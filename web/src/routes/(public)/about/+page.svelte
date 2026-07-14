@@ -4,11 +4,17 @@
 	import { page } from '$app/state';
 	import { generalFeedbackPresenter } from '$lib/feedbacks';
 
+	import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 	import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+	import { route } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
 	import SocialFollowBar from '$lib/ui/social/SocialFollowBar.svelte';
+
+	// /roadmap
+	const rootPathPublicRoadmap = getRootPathPublicRoadmap();
+	const publicRoadmapPath = route(rootPathPublicRoadmap);
 
 	type Props = { data: PageData };
 
@@ -45,6 +51,11 @@
 
 		<p class="!text-xl flex justify-center space-x-2 my-8">
 			We are engineering and product focused team
+		</p>
+
+		<p class="mt-6 text-secondary">
+			See what we are planning, building, and shipping on our
+			<a class="underline" href={publicRoadmapPath}>roadmap</a>.
 		</p>
 
 		<p class="mt-6 text-secondary">
