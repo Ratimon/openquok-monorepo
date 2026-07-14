@@ -1,14 +1,24 @@
 /**
- * Jest mock for connections/sentry so the real ESM index.js is not loaded
- * (Jest runs as CJS and fails on that file's import/export).
+ * Jest mock for Sentry (`@sentry/node` and `connections/sentry/index`).
+ * Avoids real SDK init (slow + noisy) in integration/e2e suites.
  */
 const noop = () => {};
+
 const Sentry = {
     init: noop,
     isInitialized: () => false,
     captureException: noop,
     captureMessage: noop,
+    makeNodeTransport: () => ({
+        send: () => Promise.resolve({ statusCode: 200 }),
+        flush: () => Promise.resolve(true),
+    }),
+    expressIntegration: () => ({}),
     setupExpressErrorHandler: () => (_err, _req, _res, next) => next(),
     flush: () => Promise.resolve(true),
+    metrics: {
+        increment: noop,
+    },
 };
-module.exports = { Sentry };
+
+module.exports = { Sentry, ...Sentry, default: Sentry };

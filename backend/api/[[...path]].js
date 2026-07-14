@@ -914,14 +914,13 @@ var init_GlobalConfig = __esm({
           return 3091;
         })()
       },
-      /** Rate limiting. When enabled, applies global and auth-specific limits. */
+      /** Rate limiting. When enabled, applies global and route-specific limits. */
       rateLimit: {
         enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
         global: {
           windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 36e5),
           // 1 hour
-          max: getEnvNumber("RATE_LIMIT_MAX", 30),
-          // 30 requests per hour
+          max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv ? 30 : 1e3),
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many requests from this IP, please try again later"
@@ -940,6 +939,54 @@ var init_GlobalConfig = __esm({
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many OAuth requests, please try again later"
+        },
+        publicApi: {
+          windowMs: getEnvNumber("PUBLIC_API_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("PUBLIC_API_RATE_LIMIT_MAX", 30),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many public API requests for this token, please try again later"
+        },
+        upload: {
+          windowMs: getEnvNumber("UPLOAD_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("UPLOAD_RATE_LIMIT_MAX", 20),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many upload requests, please try again later"
+        },
+        feedback: {
+          windowMs: getEnvNumber("FEEDBACK_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("FEEDBACK_RATE_LIMIT_MAX", 10),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many feedback submissions, please try again later"
+        },
+        integrationConnect: {
+          windowMs: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_WINDOW_MS", 9e5),
+          // 15 minutes
+          max: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_MAX", 30),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many integration connect attempts, please try again later"
+        },
+        oauthToken: {
+          windowMs: getEnvNumber("OAUTH_TOKEN_RATE_LIMIT_WINDOW_MS", 9e5),
+          // 15 minutes
+          max: getEnvNumber("OAUTH_TOKEN_RATE_LIMIT_MAX", 30),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many OAuth token requests, please try again later"
+        },
+        publicWrite: {
+          windowMs: getEnvNumber("PUBLIC_WRITE_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("PUBLIC_WRITE_RATE_LIMIT_MAX", 60),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many requests for this public action, please try again later"
         }
       },
       /** Product analytics (Meta Conversions API). */
@@ -2299,50 +2346,219 @@ The Team
   }
 });
 
+// emails/htmlEscape.ts
+function escapeHtml(text) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+var init_htmlEscape = __esm({
+  "emails/htmlEscape.ts"() {
+  }
+});
+
 // emails/WelcomeEmailTemplate.ts
-var WelcomeEmailTemplate;
+function absoluteUrl(frontendDomainUrl, path7) {
+  const base = frontendDomainUrl.replace(/\/$/, "");
+  if (/^https?:\/\//i.test(path7)) {
+    return path7;
+  }
+  const normalizedPath = path7.startsWith("/") ? path7 : `/${path7}`;
+  return `${base}${normalizedPath}`;
+}
+function buildResourceLinkHtml(href, label) {
+  return `<a href="${escapeHtml(href)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline; font-size: 15px;">${escapeHtml(label)} &gt;</a>`;
+}
+var SUPPORT_EMAIL, DISCORD_SUPPORT_INVITE_URL, ONBOARDING_YOUTUBE_VIDEO_ID, GETTING_STARTED_STEPS, RESOURCE_LINKS, WelcomeEmailTemplate;
 var init_WelcomeEmailTemplate = __esm({
   "emails/WelcomeEmailTemplate.ts"() {
     init_AbstractEmailTemplate();
     init_emailTheme();
+    init_htmlEscape();
+    SUPPORT_EMAIL = "admin@openquok.com";
+    DISCORD_SUPPORT_INVITE_URL = "https://discord.gg/wXgWcYzU4";
+    ONBOARDING_YOUTUBE_VIDEO_ID = "iKNimZ9FBu8";
+    GETTING_STARTED_STEPS = [
+      {
+        title: "Warm up your account",
+        description: "Follow our guide on warming up a TikTok account for US audiences before you publish at scale.",
+        path: "/blog/how-to-warm-up-tiktok-account-us-audience"
+      },
+      {
+        title: "Home",
+        description: "Open your dashboard for recent activity, quick actions, and workspace status.",
+        path: "/account"
+      },
+      {
+        title: "Calendar",
+        description: "Plan, review, and schedule posts on a visual content calendar.",
+        path: "/account/calendar"
+      },
+      {
+        title: "Templates",
+        description: "Save reusable post templates to draft faster and stay consistent.",
+        path: "/account/templates"
+      },
+      {
+        title: "Playbooks",
+        description: "Install workflow playbooks to run multi-step content strategies.",
+        path: "/account/playbooks"
+      },
+      {
+        title: "Auto Plugs",
+        description: "Set up automated follow-up comments and engagement plugs.",
+        path: "/account/plugs"
+      },
+      {
+        title: "Analytics",
+        description: "Track performance and engagement across your connected channels.",
+        path: "/account/analytics"
+      },
+      {
+        title: "Media",
+        description: "Upload and manage images and videos for your scheduled posts.",
+        path: "/account/media"
+      }
+    ];
+    RESOURCE_LINKS = [
+      {
+        label: "Watch the getting started demo",
+        href: `https://www.youtube.com/watch?v=${ONBOARDING_YOUTUBE_VIDEO_ID}`
+      },
+      {
+        label: "Browse developer documentation",
+        href: "/docs"
+      },
+      {
+        label: "Explore supported channels",
+        href: "/channels"
+      },
+      {
+        label: "View the product roadmap",
+        href: "/roadmap"
+      },
+      {
+        label: "Read our vision on content integrity",
+        href: "/blog/openquok-social-content-needs-integrity-not-only-abtopilot"
+      },
+      {
+        label: "Browse the playbooks directory",
+        href: "/playbooks"
+      },
+      {
+        label: "Join our Discord community",
+        href: DISCORD_SUPPORT_INVITE_URL
+      }
+    ];
     WelcomeEmailTemplate = class extends AbstractEmailTemplate {
       fullName;
-      constructor(fullName) {
+      frontendBaseUrl;
+      constructor(frontendDomainUrl, fullName) {
         super();
+        this.frontendBaseUrl = frontendDomainUrl.replace(/\/$/, "");
         this.fullName = fullName;
       }
       buildSubject() {
-        return "Welcome to our platform!";
+        return "Welcome to OpenQuok!";
       }
       buildText() {
+        const greeting = this.fullName || "there";
+        const accountUrl = absoluteUrl(this.frontendBaseUrl, "/account");
+        const steps = GETTING_STARTED_STEPS.map(
+          (step) => `\u2022 ${step.title} \u2014 ${step.description}
+  ${absoluteUrl(this.frontendBaseUrl, step.path)}`
+        ).join("\n\n");
+        const resources = RESOURCE_LINKS.map(
+          (link) => `\u2022 ${link.label}
+  ${absoluteUrl(this.frontendBaseUrl, link.href)}`
+        ).join("\n\n");
         return `
-Hello ${this.fullName || "there"},
+Hello ${greeting},
 
-Thank you for verifying your email address. Your account is now fully activated.
+Congratulations \u2014 your email is verified and your account is ready. You now can plan, draft, and schedule social content with confidence.
 
-You can now access all features of our platform.
+Here's how to get started:
+
+${steps}
+
+Helpful resources
+
+${resources}
+
+Should you have any questions or require assistance, our support is always available. Email us at ${SUPPORT_EMAIL} or join our Discord community: ${DISCORD_SUPPORT_INVITE_URL}
+
+Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
+
+Open your dashboard: ${accountUrl}
 
 Best regards,
-The Team
+The OpenQuok Team
 `.trim();
       }
       buildHtml() {
+        const greeting = escapeHtml(this.fullName || "there");
+        const accountUrl = absoluteUrl(this.frontendBaseUrl, "/account");
+        const stepsHtml = GETTING_STARTED_STEPS.map((step) => {
+          const stepUrl = escapeHtml(absoluteUrl(this.frontendBaseUrl, step.path));
+          return `
+        <li style="margin-bottom: 16px; color: #111;">
+            <strong><a href="${stepUrl}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">${escapeHtml(step.title)}</a></strong>
+            \u2014 ${escapeHtml(step.description)}
+        </li>`;
+        }).join("");
+        const resourceRows = [];
+        for (let i = 0; i < RESOURCE_LINKS.length; i += 2) {
+          const left = RESOURCE_LINKS[i];
+          const right = RESOURCE_LINKS[i + 1];
+          resourceRows.push(`
+        <tr>
+            <td style="width: 50%; padding: 8px 12px 8px 0; vertical-align: top;">
+                ${buildResourceLinkHtml(absoluteUrl(this.frontendBaseUrl, left.href), left.label)}
+            </td>
+            <td style="width: 50%; padding: 8px 0 8px 12px; vertical-align: top;">
+                ${right ? buildResourceLinkHtml(absoluteUrl(this.frontendBaseUrl, right.href), right.label) : "&nbsp;"}
+            </td>
+        </tr>`);
+        }
         return `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome!</title>
+    <title>Welcome to OpenQuok</title>
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #2c3e50; border-bottom: 2px solid ${EMAIL_PRIMARY_COLOR}; padding-bottom: 10px;">Welcome to our platform!</h1>
-    <p>Hello <strong>${this.fullName || "there"}</strong>,</p>
-    <p>Thank you for verifying your email address. Your account is now fully activated.</p>
-    <p>You can now access all features of our platform.</p>
-    <p style="margin-top: 30px;">
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #111; max-width: 600px; margin: 0 auto; padding: 32px 24px; background-color: #ffffff;">
+    <h1 style="font-size: 2rem; font-weight: 700; color: #111; margin: 0 0 24px 0; line-height: 1.25;">
+        <span style="background-color: #fef3c7; padding: 2px 6px;">Welcome to</span> OpenQuok!
+    </h1>
+    <p style="margin: 0 0 20px; color: #111; font-size: 16px;">
+        Hello <strong>${greeting}</strong>,
+    </p>
+    <p style="margin: 0 0 28px; color: #111; font-size: 16px;">
+        Congratulations \u2014 your email is verified and your OpenQuok account is ready. You are now part of a community of creators and teams who plan, draft, and schedule social content with confidence.
+    </p>
+    <p style="margin: 0 0 16px; font-size: 17px; font-weight: 700; color: #111;">Here's how to get started:</p>
+    <ul style="margin: 0 0 32px 0; padding-left: 20px; font-size: 15px;">
+        ${stepsHtml}
+    </ul>
+    <p style="margin: 32px 0 20px; text-align: center;">
+        <a href="${escapeHtml(accountUrl)}" style="display: inline-block; background-color: ${EMAIL_PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Open your dashboard</a>
+    </p>
+    <h2 style="font-size: 1.125rem; font-weight: 700; color: #111; margin: 40px 0 16px 0;">Helpful resources</h2>
+    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin: 0 0 32px 0;">
+        ${resourceRows.join("")}
+    </table>
+    <p style="margin: 0 0 16px; color: #333; font-size: 15px;">
+        Should you have any questions or require assistance, our support is always available. Email us at
+        <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">${SUPPORT_EMAIL}</a>
+        or join our
+        <a href="${escapeHtml(DISCORD_SUPPORT_INVITE_URL)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">Discord community</a>.
+    </p>
+    <p style="margin: 0 0 28px; color: #333; font-size: 15px;">
+        Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
+    </p>
+    <p style="margin: 0; color: #111; font-size: 15px;">
         Best regards,<br>
-        <strong>The Team</strong>
+        <strong>The OpenQuok Team</strong>
     </p>
 </body>
 </html>
@@ -3304,8 +3520,9 @@ var init_AuthController = __esm({
           }
           if (this.emailService.isEnabled && user.email) {
             try {
+              const frontendUrl = serverConfig4.frontendDomainUrl ?? "";
               await this.emailService.send(
-                new WelcomeEmailTemplate(user.full_name ?? "User"),
+                new WelcomeEmailTemplate(frontendUrl, user.full_name ?? "User"),
                 user.email
               );
               logger.info({ msg: "Welcome email sent after verification", email: user.email });
@@ -20305,15 +20522,6 @@ var init_IntegrationConnectionService = __esm({
   }
 });
 
-// emails/htmlEscape.ts
-function escapeHtml(text) {
-  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
-var init_htmlEscape = __esm({
-  "emails/htmlEscape.ts"() {
-  }
-});
-
 // emails/notificationTransactionalEmailHtml.ts
 function buildNotificationEmailDocument(bodyInner) {
   return `<!DOCTYPE html><html><body>${bodyInner}</body></html>`;
@@ -34661,6 +34869,40 @@ function errorHandler(err, _req, res, _next) {
 // middlewares/rateLimit.ts
 init_GlobalConfig();
 init_Logger();
+var PROGRAMMATIC_TOKEN_PREFIX = "opo_";
+var hashRateLimitKey = (value) => crypto.createHash("sha256").update(value).digest("hex").slice(0, 32);
+var extractBearerToken = (req) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) return null;
+  const token = authHeader.slice("Bearer ".length).trim();
+  return token.length > 0 ? token : null;
+};
+var clientIpKey = (req) => rateLimit.ipKeyGenerator(req.ip ?? "unknown");
+var publicApiKeyGenerator = (req) => {
+  const token = extractBearerToken(req);
+  if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
+    return `public-api:token:${hashRateLimitKey(token)}`;
+  }
+  return `public-api:ip:${clientIpKey(req)}`;
+};
+var uploadKeyGenerator = (req) => {
+  const token = extractBearerToken(req);
+  if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
+    return `upload:token:${hashRateLimitKey(token)}`;
+  }
+  return `upload:ip:${clientIpKey(req)}`;
+};
+var isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
+var isUploadPath = (path7) => path7 === "/public/upload" || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
+var isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
+var isPublicWritePath = (path7, method) => {
+  if (method === "POST" && path7 === "/company/t") return true;
+  if (method === "PUT" && /^\/blog-system\/posts\/[^/]+\/activity$/.test(path7)) return true;
+  if (method === "PUT" && /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/.test(path7)) {
+    return true;
+  }
+  return false;
+};
 var createRateLimiter = (options2) => {
   let skipFunction;
   if (options2.skip !== void 0) {
@@ -34691,7 +34933,8 @@ var createRateLimiter = (options2) => {
     windowMs: options2.windowMs,
     max: options2.max,
     message: options2.message,
-    skip: skipFunction
+    skip: skipFunction,
+    keyGenerator: options2.keyGenerator
   });
 };
 var shouldSkipRateLimit = () => {
@@ -34706,7 +34949,8 @@ var globalLimiter = createRateLimiter({
     const originalUrl = req.originalUrl || req.url;
     const isWebhook = path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
     const isBypass = path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
-    return isWebhook || isBypass;
+    const isDedicatedLimiter = isPublicApiPath(path7) || isUploadPath(path7) || req.method === "POST" && path7 === "/feedback" || req.method === "POST" && path7 === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(path7) || isPublicWritePath(path7, req.method);
+    return isWebhook || isBypass || isDedicatedLimiter;
   }
 });
 var authLimiter = createRateLimiter({
@@ -34725,6 +34969,62 @@ var oauthLimiter = createRateLimiter({
   legacyHeaders: false,
   ...config.rateLimit.oauth,
   skip: shouldSkipRateLimit
+});
+var publicApiLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1e3,
+  // 1 hour
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.publicApi,
+  keyGenerator: publicApiKeyGenerator,
+  skip: shouldSkipRateLimit
+});
+var uploadLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1e3,
+  // 1 hour
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.upload,
+  keyGenerator: uploadKeyGenerator,
+  skip: (req) => shouldSkipRateLimit() || !isUploadPath(req.path)
+});
+var feedbackLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1e3,
+  // 1 hour
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.feedback,
+  skip: (req) => shouldSkipRateLimit() || req.method !== "POST"
+});
+var integrationConnectLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.integrationConnect,
+  skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || !isIntegrationConnectPath(req.path)
+});
+var oauthTokenLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1e3,
+  // 15 minutes
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.oauthToken,
+  skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || req.path !== "/token"
+});
+var publicWriteLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1e3,
+  // 1 hour
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.publicWrite,
+  skip: (req) => shouldSkipRateLimit() || !isPublicWritePath(req.path, req.method)
 });
 var applyRateLimiting = (app2) => {
   const rateLimitConfig = config.rateLimit;
@@ -34753,6 +35053,49 @@ var applyRateLimiting = (app2) => {
     msg: "Applied authentication rate limiting",
     windowMs: authConfig2?.windowMs,
     max: authConfig2?.max
+  });
+  const publicApiConfig = config.rateLimit.publicApi;
+  app2.use(`${apiPrefix}/public`, publicApiLimiter);
+  logger.info({
+    msg: "Applied public API rate limiting",
+    windowMs: publicApiConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: publicApiConfig?.max ?? 30,
+    key: "programmatic token (opo_) or IP for anonymous routes"
+  });
+  const uploadConfig = config.rateLimit.upload;
+  app2.use(apiPrefix, uploadLimiter);
+  logger.info({
+    msg: "Applied upload rate limiting",
+    windowMs: uploadConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: uploadConfig?.max ?? 20
+  });
+  const feedbackConfig = config.rateLimit.feedback;
+  app2.use(`${apiPrefix}/feedback`, feedbackLimiter);
+  logger.info({
+    msg: "Applied feedback rate limiting",
+    windowMs: feedbackConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: feedbackConfig?.max ?? 10
+  });
+  const integrationConnectConfig = config.rateLimit.integrationConnect;
+  app2.use(`${apiPrefix}/integrations`, integrationConnectLimiter);
+  logger.info({
+    msg: "Applied integration connect rate limiting",
+    windowMs: integrationConnectConfig?.windowMs ?? 15 * 60 * 1e3,
+    max: integrationConnectConfig?.max ?? 30
+  });
+  const oauthTokenConfig = config.rateLimit.oauthToken;
+  app2.use(`${apiPrefix}/oauth`, oauthTokenLimiter);
+  logger.info({
+    msg: "Applied OAuth token exchange rate limiting",
+    windowMs: oauthTokenConfig?.windowMs ?? 15 * 60 * 1e3,
+    max: oauthTokenConfig?.max ?? 30
+  });
+  const publicWriteConfig = config.rateLimit.publicWrite;
+  app2.use(apiPrefix, publicWriteLimiter);
+  logger.info({
+    msg: "Applied public write rate limiting",
+    windowMs: publicWriteConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: publicWriteConfig?.max ?? 60
   });
 };
 

@@ -4,68 +4,98 @@ import { config } from "../../config/GlobalConfig";
 
 /**
  * Rate limit integration tests. Requires RATE_LIMIT_ENABLED=true.
- * Simplified: shared helpers, grouped assertions, consistent structure.
+ *
+ * Limits are forced low in `jest.integration.ratelimit.env.cjs` so the suite
+ * does not flood request loops against values from `.env.*.local`.
  */
 describe("Rate limit", () => {
-    const originalRateLimitEnabled = process.env.RATE_LIMIT_ENABLED;
-
-    beforeAll(() => {
-        process.env.RATE_LIMIT_ENABLED = "true";
-    });
-
-    afterAll(() => {
-        if (originalRateLimitEnabled !== undefined) {
-            process.env.RATE_LIMIT_ENABLED = originalRateLimitEnabled;
-        } else {
-            delete process.env.RATE_LIMIT_ENABLED;
-        }
-    });
-
     const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
-    const globalLimit = (config.rateLimit as { global?: { max?: number } })?.global?.max ?? 30;
-    const authLimit = (config.rateLimit as { auth?: { max?: number } })?.auth?.max ?? 50;
+    const rl = config.rateLimit as {
+        enabled?: boolean;
+        global?: { max?: number; windowMs?: number };
+        auth?: { max?: number };
+        publicApi?: { max?: number };
+        upload?: Record<string, unknown>;
+        feedback?: { max?: number };
+    };
 
-    /** Make requests until over limit; returns all responses. */
-    async function makeRequestsUntilLimit(
-        requestFn: () => supertest.Test,
-        limit: number,
-        extra = 5
-    ): Promise<supertest.Response[]> {
-        const out: supertest.Response[] = [];
-        for (let i = 0; i < limit + extra; i++) {
-            out.push(await requestFn());
+    const globalLimit = rl.global?.max ?? 3;
+    const authLimit = rl.auth?.max ?? 3;
+    const publicApiLimit = rl.publicApi?.max ?? 3;
+    const feedbackLimit = rl.feedback?.max ?? 3;
+
+    /** Fire requests until 429 (or give up slightly past the configured max). */
+    async function untilRateLimited(
+        requestFn: () => Promise<supertest.Response>,
+        limit: number
+    ): Promise<supertest.Response> {
+        let last: supertest.Response | undefined;
+        for (let i = 0; i < limit + 2; i++) {
+            last = await requestFn();
+            if (last.status === 429) return last;
         }
-        return out;
+        throw new Error(
+            `Expected 429 within ${limit + 2} requests (last status=${last?.status})`
+        );
     }
+
+    it("loads low test limits from the dedicated Jest env (guards against .env.*.local)", () => {
+        expect(rl.enabled).toBe(true);
+        expect(globalLimit).toBeLessThanOrEqual(5);
+        expect(authLimit).toBeLessThanOrEqual(5);
+        expect(publicApiLimit).toBeLessThanOrEqual(5);
+        expect(feedbackLimit).toBeLessThanOrEqual(5);
+        expect(rl.global).toMatchObject({
+            windowMs: expect.any(Number),
+            max: expect.any(Number),
+            standardHeaders: true,
+            legacyHeaders: false,
+        });
+        expect(rl.auth).toBeDefined();
+        expect(rl.publicApi).toBeDefined();
+        expect(rl.upload).toBeDefined();
+        expect(rl.feedback).toBeDefined();
+    });
 
     describe("Global rate limiting", () => {
         const endpoint = `${apiPrefix}/auth/status`;
 
-        it("allows requests within limit; returns 429 with body when exceeded", async () => {
-            const safe = Math.min(10, Math.max(1, globalLimit - 10));
-            for (let i = 0; i < safe; i++) {
-                const res = await supertest(app).get(endpoint).set("X-Forwarded-For", "192.168.1.10");
-                expect(res.status).toBe(200);
-            }
-
-            const responses = await makeRequestsUntilLimit(
-                () => supertest(app).get(endpoint).set("X-Forwarded-For", "192.168.1.100"),
+        it("returns 429 with retryAfter when exceeded", async () => {
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(endpoint)
+                        .set("X-Forwarded-For", "192.168.1.100"),
                 globalLimit
             );
-            const rateLimited = responses.filter((r) => r.status === 429);
-            expect(rateLimited.length).toBeGreaterThan(0);
-            const first = rateLimited[0];
-            expect(first?.body?.status).toBe("error");
-            expect(first?.body?.message).toContain("Too many requests");
-            expect(first?.body?.retryAfter).toBeDefined();
-            expect(typeof first?.body?.retryAfter).toBe("number");
-            expect(first?.body?.retryAfter).toBeGreaterThan(0);
+            expect(limited.body).toMatchObject({
+                status: "error",
+                message: expect.stringContaining("Too many requests"),
+            });
+            expect(typeof limited.body.retryAfter).toBe("number");
+            expect(limited.body.retryAfter).toBeGreaterThan(0);
+            const windowMs = rl.global?.windowMs ?? 3600000;
+            expect(limited.body.retryAfter).toBeLessThanOrEqual(Math.ceil(windowMs / 1000));
+        });
+
+        it("isolates limits by IP", async () => {
+            await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(endpoint)
+                        .set("X-Forwarded-For", "192.168.2.100"),
+                globalLimit
+            );
+            const otherIp = await supertest(app)
+                .get(endpoint)
+                .set("X-Forwarded-For", "192.168.2.101");
+            expect(otherIp.status).not.toBe(429);
         });
     });
 
     describe("Auth rate limiting", () => {
-        it("applies auth limit to sign-in; returns 429 when exceeded", async () => {
-            const responses = await makeRequestsUntilLimit(
+        it("returns 429 on sign-in when exceeded", async () => {
+            const limited = await untilRateLimited(
                 () =>
                     supertest(app)
                         .post(`${apiPrefix}/auth/sign-in`)
@@ -73,56 +103,61 @@ describe("Rate limit", () => {
                         .send({ email: "test@example.com", password: "wrong" }),
                 authLimit
             );
-            const rateLimited = responses.filter((r) => r.status === 429);
-            expect(rateLimited.length).toBeGreaterThan(0);
-            expect(rateLimited[0]?.status).toBe(429);
+            expect(limited.status).toBe(429);
         });
     });
 
-    describe("Isolation and response format", () => {
-        const endpoint = `${apiPrefix}/auth/status`;
+    describe("Public API rate limiting", () => {
+        const endpoint = `${apiPrefix}/public/integrations`;
 
-        it("isolates limits by IP; new IP is not rate limited", async () => {
-            const ip1Responses = await makeRequestsUntilLimit(
-                () => supertest(app).get(endpoint).set("X-Forwarded-For", "192.168.2.100"),
-                globalLimit
+        it("returns 429 per opo_ token when exceeded", async () => {
+            const token = "opo_rate_limit_test_token_alpha";
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(endpoint)
+                        .set("Authorization", `Bearer ${token}`)
+                        .set("X-Forwarded-For", "192.168.4.100"),
+                publicApiLimit
             );
-            expect(ip1Responses.some((r) => r.status === 429)).toBe(true);
-
-            const ip2Res = await supertest(app).get(endpoint).set("X-Forwarded-For", "192.168.2.101");
-            expect(ip2Res.status).not.toBe(429);
+            expect(limited.status).toBe(429);
         });
 
-        it("429 response has status, message, retryAfter within window", async () => {
-            const responses = await makeRequestsUntilLimit(
-                () => supertest(app).get(endpoint).set("X-Forwarded-For", "192.168.3.100"),
-                globalLimit
+        it("isolates public API limits by token", async () => {
+            const tokenA = "opo_rate_limit_test_token_beta";
+            const tokenB = "opo_rate_limit_test_token_gamma";
+            await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(endpoint)
+                        .set("Authorization", `Bearer ${tokenA}`)
+                        .set("X-Forwarded-For", "192.168.4.200"),
+                publicApiLimit
             );
-            const r = responses.find((x) => x.status === 429);
-            expect(r).toBeDefined();
-            expect(r?.body).toMatchObject({
-                status: "error",
-                message: expect.stringContaining("Too many"),
-            });
-            expect(typeof r?.body?.retryAfter).toBe("number");
-            expect(r?.body?.retryAfter).toBeGreaterThan(0);
-            const windowMs = (config.rateLimit as { global?: { windowMs?: number } })?.global?.windowMs ?? 3600000;
-            expect(r?.body?.retryAfter).toBeLessThanOrEqual(Math.ceil(windowMs / 1000));
+            const tokenBRes = await supertest(app)
+                .get(endpoint)
+                .set("Authorization", `Bearer ${tokenB}`)
+                .set("X-Forwarded-For", "192.168.4.200");
+            expect(tokenBRes.status).not.toBe(429);
         });
     });
 
-    describe("Configuration", () => {
-        it("has rate limit enabled flag and global/auth limiters with required props", () => {
-            expect(config.rateLimit).toBeDefined();
-            expect((config.rateLimit as { enabled?: boolean }).enabled).toBeDefined();
-
-            const rl = config.rateLimit as { global?: Record<string, unknown>; auth?: Record<string, unknown> };
-            expect(rl.global).toBeDefined();
-            expect(rl.auth).toBeDefined();
-            const required = ["windowMs", "max", "standardHeaders", "legacyHeaders"];
-            [rl.global, rl.auth].forEach((limiter) => {
-                required.forEach((prop) => expect(limiter).toHaveProperty(prop));
-            });
+    describe("Feedback rate limiting", () => {
+        it("returns 429 on POST /feedback when exceeded", async () => {
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .post(`${apiPrefix}/feedback`)
+                        .set("X-Forwarded-For", "192.168.5.100")
+                        .send({
+                            feedback_type: "feedback",
+                            url: "https://example.com/rate-limit",
+                            description: "rate limit integration test message",
+                            email: "ratelimit@example.com",
+                        }),
+                feedbackLimit
+            );
+            expect(limited.status).toBe(429);
         });
     });
 });

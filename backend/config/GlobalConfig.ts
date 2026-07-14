@@ -332,12 +332,12 @@ export const config: ConfigObject = {
         })(),
     },
 
-    /** Rate limiting. When enabled, applies global and auth-specific limits. */
+    /** Rate limiting. When enabled, applies global and route-specific limits. */
     rateLimit: {
         enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
         global: {
             windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
-            max: getEnvNumber("RATE_LIMIT_MAX", 30), // 30 requests per hour
+            max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv ? 30 : 1000),
             standardHeaders: true,
             legacyHeaders: false,
             message: "Too many requests from this IP, please try again later",
@@ -355,6 +355,48 @@ export const config: ConfigObject = {
             standardHeaders: true,
             legacyHeaders: false,
             message: "Too many OAuth requests, please try again later",
+        },
+        publicApi: {
+            windowMs: getEnvNumber("PUBLIC_API_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("PUBLIC_API_RATE_LIMIT_MAX", 30),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many public API requests for this token, please try again later",
+        },
+        upload: {
+            windowMs: getEnvNumber("UPLOAD_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("UPLOAD_RATE_LIMIT_MAX", 20),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many upload requests, please try again later",
+        },
+        feedback: {
+            windowMs: getEnvNumber("FEEDBACK_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("FEEDBACK_RATE_LIMIT_MAX", 10),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many feedback submissions, please try again later",
+        },
+        integrationConnect: {
+            windowMs: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes
+            max: getEnvNumber("INTEGRATION_CONNECT_RATE_LIMIT_MAX", 30),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many integration connect attempts, please try again later",
+        },
+        oauthToken: {
+            windowMs: getEnvNumber("OAUTH_TOKEN_RATE_LIMIT_WINDOW_MS", 900000), // 15 minutes
+            max: getEnvNumber("OAUTH_TOKEN_RATE_LIMIT_MAX", 30),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many OAuth token requests, please try again later",
+        },
+        publicWrite: {
+            windowMs: getEnvNumber("PUBLIC_WRITE_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("PUBLIC_WRITE_RATE_LIMIT_MAX", 60),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many requests for this public action, please try again later",
         },
     },
 
