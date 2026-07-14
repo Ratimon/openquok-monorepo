@@ -128,7 +128,7 @@ INSERT INTO public.blog_posts (
 <p>Starting with a consistent device setup, using a dedicated VPN, and patiently warming up your account still gives you a much stronger foundation than creating an account and posting immediately.</p>
 <p>The first week can have a lasting impact on performance. Get the setup right, then use a scheduler like OpenQuok to keep the cadence going without losing review control.</p>
 $TIKTOK_WARMUP_POST$,
-    NULL,
+    'aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.2849695354682169.jpg',
     FALSE,
     TRUE,
     TRUE,

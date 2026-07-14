@@ -83,7 +83,7 @@ INSERT INTO public.blog_posts (
 </ul>
 <p>We are not here to sell you autopilot. We are here to help you publish with confidence.</p>
 $OPENQUOK_LAUNCH_POST$,
-    '252ec36e-c237-4375-abc4-f5769b89afa6-0.0367782775145703.jpg',
+    'aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.09461654243460471.jpg',
     FALSE,
     TRUE,
     TRUE,
