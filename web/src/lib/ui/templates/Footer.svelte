@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { url } from '$lib/utils/path';
+
 	import InternalLinkBar from '$lib/ui/components/InternalLinkBar.svelte';
 	import SocialFollowBar from '$lib/ui/social/SocialFollowBar.svelte';
-	import { url } from '$lib/utils/path';
 
 	type Props = {
 		footerNavigationLinks: Record<string, { label: string; href: string }[]>;

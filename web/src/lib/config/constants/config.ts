@@ -198,6 +198,12 @@ export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 		type: 'string',
 		default: 'https://www.linkedin.com/company/openquok',
 		inputType: 'input'
+	},
+	SOCIAL_LINKS_DISCORD: {
+		description: 'Discord community invite URL for support and updates.',
+		type: 'string',
+		default: 'https://discord.gg/wXgWcYzU4',
+		inputType: 'input'
 	}
 };
 
@@ -207,7 +213,8 @@ export type SocialLinkChannelId =
 	| 'SOCIAL_LINKS_X'
 	| 'SOCIAL_LINKS_INSTAGRAM'
 	| 'SOCIAL_LINKS_LINKEDIN'
-	| 'SOCIAL_LINKS_YOUTUBE';
+	| 'SOCIAL_LINKS_YOUTUBE'
+	| 'SOCIAL_LINKS_DISCORD';
 
 export type SocialProfileLink = {
 	CHANNEL_ID: SocialLinkChannelId;
@@ -247,6 +254,11 @@ export const SOCIAL_PROFILE_LINKS: readonly SocialProfileLink[] = [
 		CHANNEL_NAME: 'YouTube',
 		Icon: icons.YouTube.name,
 		showInFollowBar: false
+	},
+	{
+		CHANNEL_ID: 'SOCIAL_LINKS_DISCORD',
+		CHANNEL_NAME: 'Discord',
+		Icon: icons.Discord.name
 	}
 ];
 
@@ -802,6 +814,10 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'About Us', href: '/about' },
 		{ label: 'Roadmap', href: publicRoadmapPath },
 		{ label: 'Pricing', href: '/pricing' },
+		{
+			label: 'Discord',
+			href: getSocialProfileHref('SOCIAL_LINKS_DISCORD')
+		},
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	]
 };

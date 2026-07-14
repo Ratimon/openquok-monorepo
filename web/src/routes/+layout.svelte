@@ -6,14 +6,15 @@
 	import { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 	import { Toaster } from '$lib/ui/sonner';
 	import { MetaTags, deepMerge } from 'svelte-meta-tags';
+	import { identifyPostHogUser } from '$lib/product-analytics/posthog.client';
 	import '../app.postcss';
 	import { THEME_STORAGE_KEY } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 	
 	import { page } from '$app/state';
 	import CookieConsentBanner from '$lib/ui/cookie/CookieConsentBanner.svelte';
+	import DiscordSupportFab from '$lib/ui/social/DiscordSupportFab.svelte';
 	import FacebookPixel from '$lib/product-analytics/FacebookPixel.svelte';
 	import GoogleAnalytics from '$lib/product-analytics/GoogleAnalytics.svelte';
-	import { identifyPostHogUser } from '$lib/product-analytics/posthog.client';
 	import PostHogPageview from '$lib/product-analytics/PostHogPageview.svelte';
 	import UtmAttribution from '$lib/product-analytics/UtmAttribution.svelte';
 
@@ -109,4 +110,5 @@
 	</main>
 	<Toaster />
 	<CookieConsentBanner />
+	<DiscordSupportFab />
 </section>

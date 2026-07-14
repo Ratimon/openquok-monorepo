@@ -3,6 +3,7 @@ import { EMAIL_PRIMARY_COLOR } from "./emailTheme";
 import { escapeHtml } from "./htmlEscape";
 
 const SUPPORT_EMAIL = "admin@openquok.com";
+const DISCORD_SUPPORT_INVITE_URL = "https://discord.gg/wXgWcYzU4";
 const ONBOARDING_YOUTUBE_VIDEO_ID = "iKNimZ9FBu8";
 
 type GettingStartedStep = {
@@ -85,6 +86,10 @@ const RESOURCE_LINKS: ResourceLink[] = [
         label: "Browse the playbooks directory",
         href: "/playbooks",
     },
+    {
+        label: "Join our Discord community",
+        href: DISCORD_SUPPORT_INVITE_URL,
+    },
 ];
 
 function absoluteUrl(frontendDomainUrl: string, path: string): string {
@@ -140,7 +145,7 @@ Helpful resources
 
 ${resources}
 
-Should you have any questions or require assistance, our support is always available. Feel free to reach out via ${SUPPORT_EMAIL}.
+Should you have any questions or require assistance, our support is always available. Email us at ${SUPPORT_EMAIL} or join our Discord community: ${DISCORD_SUPPORT_INVITE_URL}
 
 Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
 
@@ -209,8 +214,10 @@ The OpenQuok Team
         ${resourceRows.join("")}
     </table>
     <p style="margin: 0 0 16px; color: #333; font-size: 15px;">
-        Should you have any questions or require assistance, our support is always available. Feel free to reach out via
-        <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">${SUPPORT_EMAIL}</a>.
+        Should you have any questions or require assistance, our support is always available. Email us at
+        <a href="mailto:${SUPPORT_EMAIL}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">${SUPPORT_EMAIL}</a>
+        or join our
+        <a href="${escapeHtml(DISCORD_SUPPORT_INVITE_URL)}" style="color: ${EMAIL_PRIMARY_COLOR}; text-decoration: underline;">Discord community</a>.
     </p>
     <p style="margin: 0 0 28px; color: #333; font-size: 15px;">
         Thank you for being a valued member of the OpenQuok community. We look forward to continuing to serve you in the best possible way.
