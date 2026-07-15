@@ -318,7 +318,7 @@
 					})}
 					aria-label="Open AI Writer"
 				>
-					<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />
+					<AbstractIcon name={icons.PencilSparkles.name} class="size-5" width="20" height="20" />
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>

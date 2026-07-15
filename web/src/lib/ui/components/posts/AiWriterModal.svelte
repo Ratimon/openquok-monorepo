@@ -5,9 +5,11 @@
 	import {
 		COMPOSER_WRITER_SUGGESTIONS,
 		WRITER_API_DOCS_URL,
+		acceptWriterSoftOptIn,
 		createComposerWriter,
 		destroyWriter,
 		getWriterAvailability,
+		hasWriterSoftOptIn,
 		isWriterSupported,
 		writeDraftStreaming
 	} from '$lib/ai-writer';
@@ -37,7 +39,7 @@
 		onInsertDraft = undefined
 	}: Props = $props();
 
-	type UiPhase = 'resolving' | 'unsupported' | 'ready';
+	type UiPhase = 'opt-in' | 'resolving' | 'unsupported' | 'ready';
 
 	let phase = $state<UiPhase>('resolving');
 	let availability = $state<WriterAvailability | null>(null);
@@ -46,6 +48,8 @@
 	let lastPrompt = $state('');
 	let draftText = $state('');
 	let errorMessage = $state<string | null>(null);
+	let promptText = $state('');
+	let promptTextareaRef = $state<HTMLTextAreaElement | null>(null);
 
 	let writerSession = $state.raw<WriterSession | null>(null);
 	let abortController: AbortController | null = null;
@@ -72,6 +76,20 @@
 	});
 
 	async function onOpen() {
+		if (!hasWriterSoftOptIn()) {
+			phase = 'opt-in';
+			return;
+		}
+
+		await startWriterSession();
+	}
+
+	async function acceptOptIn() {
+		acceptWriterSoftOptIn();
+		await startWriterSession();
+	}
+
+	async function startWriterSession() {
 		const gen = ++sessionGeneration;
 		phase = 'resolving';
 		availability = null;
@@ -122,6 +140,7 @@
 		lastPrompt = '';
 		draftText = '';
 		errorMessage = null;
+		promptText = '';
 	}
 
 	function teardownSession() {
@@ -206,7 +225,8 @@
 	}
 
 	function onSuggestion(suggestion: string) {
-		void runWrite(suggestion);
+		promptText = suggestion;
+		promptTextareaRef?.focus();
 	}
 
 	async function onPromptSubmit(message: PromptInputMessage) {
@@ -245,7 +265,9 @@
 						AI Writer
 					</Dialog.Title>
 					<Dialog.Description class="mt-1 text-xs leading-snug text-base-content/70">
-						{#if phase === 'unsupported'}
+						{#if phase === 'opt-in'}
+							On-device drafting with Chrome's Writer API — review before continuing.
+						{:else if phase === 'unsupported'}
 							On-device drafting with Chrome's Writer API.
 						{:else}
 							Draft a social post on-device, then insert it into the composer.
@@ -258,7 +280,26 @@
 			</div>
 		</Dialog.Header>
 
-		{#if phase === 'resolving'}
+		{#if phase === 'opt-in'}
+			<div class="flex min-h-[220px] flex-col gap-3 px-4 py-4 sm:px-6">
+				<div class="rounded-md border border-base-300 bg-base-100 p-3 text-sm text-base-content/80">
+					<p class="font-medium text-base-content">
+						Use AI Writer on this device?
+					</p>
+					<p class="mt-2 text-base-content/70">
+						AI Writer uses Chrome's on-device Writer API. Your drafts stay on this device.
+					</p>
+					<p class="mt-2 text-base-content/70">
+						The first time you use it, Chrome may download an on-device model. That download and
+						all generation run locally in your browser.
+					</p>
+				</div>
+			</div>
+			<div class="border-base-300 flex shrink-0 justify-end gap-2 border-t px-4 py-3 sm:px-6">
+				<Button type="button" variant="ghost" onclick={close}>Not now</Button>
+				<Button type="button" variant="primary" onclick={acceptOptIn}>Continue</Button>
+			</div>
+		{:else if phase === 'resolving'}
 			<div class="flex min-h-[220px] items-center justify-center px-4 py-8 sm:px-6">
 				<p class="text-sm text-base-content/70">Checking Writer support…</p>
 			</div>
@@ -379,6 +420,8 @@
 					<PromptInput.Root class="divide-y-0 rounded-lg border border-base-300" onSubmit={onPromptSubmit}>
 						<PromptInput.Body>
 							<PromptInput.Textarea
+								bind:ref={promptTextareaRef}
+								bind:value={promptText}
 								placeholder="Describe the post to draft…"
 								class="min-h-[72px]"
 							/>
