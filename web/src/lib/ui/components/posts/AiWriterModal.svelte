@@ -85,7 +85,8 @@
 	$effect(() => {
 		if (!open) return;
 
-		// Snapshot composer limits at open — do not tear down mid-session if softCharLimit updates.
+		// Depend only on `open`. onOpen writes presenter $state; tracking those would
+		// re-run this effect → cleanup resetUi → infinite loop.
 		untrack(() => {
 			const ids =
 				constraintProviderIdentifiers.length > 0
@@ -99,8 +100,8 @@
 				providerIdentifier: ids[0] ?? focusedProviderIdentifier,
 				composerMode
 			});
+			void writerPresenter.onOpen();
 		});
-		void writerPresenter.onOpen();
 
 		return () => {
 			writerPresenter.teardown();
@@ -481,7 +482,10 @@
 							{/each}
 						</div>
 					{/if}
-					<PromptInput.Root class="divide-y-0 rounded-lg border border-base-300" onSubmit={onPromptSubmit}>
+					<PromptInput.Root
+						class="divide-y-0 rounded-lg border border-primary/35 bg-primary/10 shadow-sm"
+						onSubmit={onPromptSubmit}
+					>
 						<PromptInput.Body>
 							<PromptInput.Textarea
 								bind:ref={promptTextareaRef}
@@ -491,10 +495,10 @@
 									: showRefineActions
 										? 'Refine tone or length, or ask for a revision…'
 										: 'Ask for a revision or a new draft…'}
-								class="min-h-[72px]"
+								class="min-h-[72px] font-medium text-primary placeholder:text-primary/50"
 							/>
 						</PromptInput.Body>
-						<PromptInput.Toolbar class="justify-end border-t border-base-300/80">
+						<PromptInput.Toolbar class="justify-end border-t border-primary/25">
 							<PromptInput.Submit
 								class="shrink-0"
 								status={chatStatus}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
@@ -30,6 +31,8 @@
 		exportCanvasToMedia?: ExportCanvasToMediaFn;
 		/** Injected from CreateSocialPostPresenter when the media toolbar (AI Writer) is shown. */
 		writerPresenter?: WriterPresenter;
+		/** Injected from CreateSocialPostPresenter when the media toolbar (AI Summarizer) is shown. */
+		summarizerPresenter?: SummarizerPresenter;
 		body?: string;
 		busy?: boolean;
 		charCount: number;
@@ -75,6 +78,7 @@
 		},
 		exportCanvasToMedia = async () => ({ ok: false, error: 'Export is not configured.' }),
 		writerPresenter = undefined,
+		summarizerPresenter = undefined,
 		body = $bindable(''),
 		busy = false,
 		charCount,
@@ -254,7 +258,7 @@
 						You can't edit networks when creating a set
 					</p>
 				</div>
-			{:else if !comments && writerPresenter}
+			{:else if !comments && writerPresenter && summarizerPresenter}
 				<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
 					<ComposerMediaToolbar
 						class="pointer-events-auto"
@@ -264,6 +268,7 @@
 						{backgroundPanelVm}
 						{exportCanvasToMedia}
 						{writerPresenter}
+						{summarizerPresenter}
 						bind:items={postMediaItems}
 						disabled={busy}
 						{uploadUid}
@@ -287,6 +292,9 @@
 							const base = body ?? '';
 							const suffix = base.trim().length === 0 ? draft : `\n\n${draft}`;
 							body = `${base}${suffix}`;
+						}}
+						onReplaceBody={(text) => {
+							body = text;
 						}}
 					/>
 				</div>

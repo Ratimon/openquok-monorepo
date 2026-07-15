@@ -190,6 +190,7 @@
 							backgroundPanelVm={composerPresenter.backgroundPanelVm}
 							exportCanvasToMedia={composerPresenter.exportCanvasToMedia}
 							writerPresenter={composerPresenter.composerWriterPresenter}
+							summarizerPresenter={composerPresenter.composerSummarizerPresenter}
 							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
 							socialChannels={composerPresenter.baseSocialChannelsVm}
 							bind:body={composerPresenter.editorBody}

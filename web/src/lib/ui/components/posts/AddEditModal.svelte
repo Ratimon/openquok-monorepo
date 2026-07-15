@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
@@ -39,6 +40,7 @@
 		backgroundPanelVm: BackgroundPanelViewModel;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		writerPresenter: WriterPresenter;
+		summarizerPresenter: SummarizerPresenter;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		mode: Mode;
@@ -101,6 +103,7 @@
 		backgroundPanelVm,
 		exportCanvasToMedia,
 		writerPresenter,
+		summarizerPresenter,
 		socialChannels,
 		selectedIds,
 		mode,
@@ -391,6 +394,7 @@
 				{backgroundPanelVm}
 				{exportCanvasToMedia}
 				{writerPresenter}
+				{summarizerPresenter}
 				bind:body
 				bind:postMediaItems
 				{uploadUid}

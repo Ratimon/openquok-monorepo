@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
+	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
@@ -14,6 +15,7 @@
 	import { COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS } from '$lib/ai-writer/constants/config';
 	import { formatBytes } from '$lib/medias';
 	import { attachComposerMediaFromFiles } from '$lib/posts/utils/composerMediaDrop';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
@@ -30,6 +32,7 @@
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
+	import AiSummarizeModal from '$lib/ui/components/posts/AiSummarizeModal.svelte';
 	import AiWriterModal from '$lib/ui/components/posts/AiWriterModal.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
@@ -46,6 +49,8 @@
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		/** Injected from CreateSocialPostPresenter; required for AI Writer. */
 		writerPresenter: WriterPresenter;
+		/** Injected from CreateSocialPostPresenter; required for AI Summarizer. */
+		summarizerPresenter: SummarizerPresenter;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
@@ -55,16 +60,18 @@
 		/** Wired from create-post presenter; keeps the repository out of this component. */
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
-		/** Current composer body — passed to AI Writer as optional drafting context. */
+		/** Current composer body — passed to AI Writer / Summarizer. */
 		existingBody?: string;
 		onInsertDraft?: (text: string) => void;
-		/** Soft character limit for AI Writer sharedContext (matches editor counter). */
+		/** Replace the active composer body with a summary (Summarize applies, does not append). */
+		onReplaceBody?: (text: string) => void;
+		/** Soft character limit for AI Writer / Summarizer sharedContext (matches editor counter). */
 		softCharLimit?: number;
 		textarea?: HTMLTextAreaElement | null;
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-		/** Unique provider identifiers for AI Writer constraint strip / sharedContext. */
+		/** Unique provider identifiers for AI Writer / Summarizer constraint strip / sharedContext. */
 		constraintProviderIdentifiers?: readonly string[];
 		focusedIntegrationId?: string | null;
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
@@ -78,6 +85,7 @@
 		backgroundPanelVm,
 		exportCanvasToMedia,
 		writerPresenter,
+		summarizerPresenter,
 		items = $bindable([]),
 		disabled = false,
 		uploadUid,
@@ -87,6 +95,7 @@
 		onInsertSignature = undefined,
 		existingBody = '',
 		onInsertDraft = undefined,
+		onReplaceBody = undefined,
 		softCharLimit = COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
 		textarea = null,
 		class: className = '',
@@ -110,14 +119,28 @@
 	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
 	let signatureOpen = $state(false);
 	let aiWriterOpen = $state(false);
+	let aiSummarizeOpen = $state(false);
+	/** Snapshot of composer draft (or selection) at the moment Summarize opens. */
+	let summarizeSourceBody = $state('');
 	let linkedInCompanyOpen = $state(false);
 	const showLinkedInCompany = $derived(
 		(focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page') &&
 			Boolean(focusedIntegrationId?.trim()) &&
 			Boolean(organizationId?.trim())
 	);
+	const bodyPlainLength = $derived(stripHtmlToPlainText(existingBody).length);
+	const hasBodyToSummarize = $derived(bodyPlainLength > 0);
+	const summarizeOverLimit = $derived(bodyPlainLength > softCharLimit);
+	const summarizeTooltipLabel = $derived(
+		summarizeOverLimit ? 'Summarize to fit limit' : 'Summarize with AI'
+	);
 	const iconBtn =
 		'border-base-300/90 bg-base-200/45 text-base-content/85 hover:bg-base-300/55 hover:text-base-content focus-visible:ring-primary/40 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border shadow-sm backdrop-blur-sm transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35';
+	const summarizeIconBtn = $derived(
+		summarizeOverLimit
+			? `${iconBtn} border-warning/70 bg-warning/15 text-warning hover:bg-warning/25`
+			: iconBtn
+	);
 
 	async function uploadFiles(files: FileList | null): Promise<boolean> {
 		if (mediaAtCap) return false;
@@ -189,6 +212,31 @@
 		const trimmed = (text ?? '').trim();
 		if (!trimmed) return;
 		onInsertDraft?.(trimmed);
+	}
+
+	function replaceBodyFromModal(text: string) {
+		const trimmed = (text ?? '').trim();
+		if (!trimmed) return;
+		onReplaceBody?.(trimmed);
+	}
+
+	/** Prefer the composer selection when present; otherwise the full draft body. */
+	function resolveSummarizeSourceBody(): string {
+		const el = textarea;
+		if (
+			el &&
+			typeof el.selectionStart === 'number' &&
+			typeof el.selectionEnd === 'number' &&
+			el.selectionStart !== el.selectionEnd
+		) {
+			return el.value.slice(el.selectionStart, el.selectionEnd);
+		}
+		return existingBody;
+	}
+
+	function openAiSummarize() {
+		summarizeSourceBody = resolveSummarizeSourceBody();
+		aiSummarizeOpen = true;
 	}
 
 	function insertLinkedInCompanyMention(text: string) {
@@ -334,7 +382,24 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 6–9: inline text styling (selection-based) -->
+
+		<!-- 6: AI Summarizer (Chrome on-device Summarizer API) -->
+		<ComposerMediaTooltip label={summarizeTooltipLabel}>
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={summarizeIconBtn}
+					disabled={disabled || uploadBusy || !hasBodyToSummarize}
+					onclick={composeTooltipTriggerClick(props, openAiSummarize)}
+					aria-label={summarizeTooltipLabel}
+				>
+					<AbstractIcon name={icons.NotebookPen.name} class="size-5" width="20" height="20" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+
+		<!-- 7–10: inline text styling (selection-based) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
@@ -429,6 +494,17 @@
 	{focusedProviderIdentifier}
 	constraintProviderIdentifiers={constraintProviderIdentifiers}
 	onInsertDraft={insertDraftFromModal}
+/>
+
+<AiSummarizeModal
+	{summarizerPresenter}
+	bind:open={aiSummarizeOpen}
+	existingBody={summarizeSourceBody}
+	{softCharLimit}
+	{composerMode}
+	{focusedProviderIdentifier}
+	constraintProviderIdentifiers={constraintProviderIdentifiers}
+	onReplaceBody={replaceBodyFromModal}
 />
 
 {#if showLinkedInCompany && focusedIntegrationId && organizationId}

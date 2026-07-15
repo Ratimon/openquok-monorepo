@@ -1,5 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { WriterPresenter } from '$lib/ai-writer';
+import type { SummarizerPresenter } from '$lib/ai-summarizer';
 import type {
 	BackgroundPanelViewModel,
 	DesignTemplateViewModel,
@@ -90,6 +91,7 @@ export class CreateSocialPostPresenter {
 		private readonly postsRepository: PostsRepository,
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
 		private readonly writerPresenter: WriterPresenter,
+		private readonly summarizerPresenter: SummarizerPresenter,
 		private readonly getSignaturesPresenter: GetSignaturesPresenter,
 		scheduledPostsPresenter: GetScheduledPostsPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
@@ -269,6 +271,11 @@ export class CreateSocialPostPresenter {
 	/** Injected composer AI Writer feature presenter (session + draft UI state). */
 	get composerWriterPresenter(): WriterPresenter {
 		return this.writerPresenter;
+	}
+
+	/** Injected composer AI Summarizer feature presenter (session + summary UI state). */
+	get composerSummarizerPresenter(): SummarizerPresenter {
+		return this.summarizerPresenter;
 	}
 
 	// --- Open / close preparation ---
