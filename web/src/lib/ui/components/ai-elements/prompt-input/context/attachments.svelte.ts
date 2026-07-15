@@ -23,8 +23,9 @@ type AttachmentOptions = {
 };
 
 export class AttachmentsContext {
-	attachments = $state<PromptInputAttachment[]>([]);
-	fileInputRef = $state<HTMLInputElement | null>(null);
+	/** Raw: always reassigned as a whole array; avoids proxy `===` mismatches. */
+	attachments = $state.raw<PromptInputAttachment[]>([]);
+	fileInputRef = $state.raw<HTMLInputElement | null>(null);
 
 	accept?: string;
 	multiple?: boolean;

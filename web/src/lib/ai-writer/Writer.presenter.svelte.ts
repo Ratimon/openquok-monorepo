@@ -1,4 +1,7 @@
 import type { ChatStatus } from '$lib/ui/components/ai-elements/prompt-input';
+import type { ComposerRewriterRefineAction } from '$lib/ai-writer/constants/config';
+import type { RewriterAvailability } from '$lib/ai-writer/utils/getRewriterAvailability';
+import type { RewriterSession } from '$lib/ai-writer/utils/createComposerRewriter';
 import type { WriterAvailability } from '$lib/ai-writer/utils/getWriterAvailability';
 import type { WriterSession } from '$lib/ai-writer/utils/createComposerWriter';
 import type {
@@ -7,21 +10,34 @@ import type {
 	ComposerWriterDraftConstraints
 } from '$lib/ai-writer/utils/buildComposerWriterCreateOptions';
 
-import { COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS } from '$lib/ai-writer/constants/config';
+import {
+	COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS
+} from '$lib/ai-writer/constants/config';
+import { acceptRewriterSoftOptIn } from '$lib/ai-writer/utils/acceptRewriterSoftOptIn';
 import { acceptWriterSoftOptIn } from '$lib/ai-writer/utils/acceptWriterSoftOptIn';
 import {
 	buildComposerWriterCreateOptions,
 	normalizeWriterProviderIdentifiers,
 	toWriterConstraintProviders
 } from '$lib/ai-writer/utils/buildComposerWriterCreateOptions';
+import { buildComposerRewriterCreateOptionsFromAction } from '$lib/ai-writer/utils/buildComposerRewriterCreateOptions';
+import { createComposerRewriter } from '$lib/ai-writer/utils/createComposerRewriter';
 import { createComposerWriter } from '$lib/ai-writer/utils/createComposerWriter';
+import { destroyAiSession } from '$lib/ai-writer/utils/destroyAiSession';
 import { destroyWriter } from '$lib/ai-writer/utils/destroyWriter';
+import { getRewriterAvailability } from '$lib/ai-writer/utils/getRewriterAvailability';
 import { getWriterAvailability } from '$lib/ai-writer/utils/getWriterAvailability';
+import { hasRewriterSoftOptIn } from '$lib/ai-writer/utils/hasRewriterSoftOptIn';
 import { hasWriterSoftOptIn } from '$lib/ai-writer/utils/hasWriterSoftOptIn';
+import { isRewriterSupported } from '$lib/ai-writer/utils/isRewriterSupported';
 import { isWriterSupported } from '$lib/ai-writer/utils/isWriterSupported';
+import { rewriteDraftStreaming } from '$lib/ai-writer/utils/rewriteDraftStreaming';
 import { writeDraftStreaming } from '$lib/ai-writer/utils/writeDraftStreaming';
 
 export type WriterUiPhase = 'opt-in' | 'resolving' | 'unsupported' | 'ready';
+
+/** Soft gate shown before first Rewriter refine (or when Rewriter is missing after consent). */
+export type RewriterUiGate = 'opt-in' | 'unsupported' | null;
 
 export type WriterChatRole = 'user' | 'assistant';
 
@@ -38,11 +54,13 @@ export type WriterRunWriteOptions = {
 
 /**
  * Feature presenter for the composer AI Writer modal: soft opt-in, on-device
- * Writer session lifecycle, streaming drafts, and soft-char-limit awareness.
+ * Writer/Rewriter session lifecycle, streaming drafts / refine, and soft-char-limit awareness.
  */
 export class WriterPresenter {
 	phase = $state<WriterUiPhase>('resolving');
 	availability = $state<WriterAvailability | null>(null);
+	/** Rewriter model availability (probed on open; does not gate Writer entry). */
+	rewriterAvailability = $state<RewriterAvailability | null>(null);
 	downloadPercent = $state<number | null>(null);
 	chatStatus = $state<ChatStatus>('ready');
 	/** App-owned turn list (Writer API itself is single-shot; we supply prior draft as context). */
@@ -60,15 +78,40 @@ export class WriterPresenter {
 	providerIdentifiers = $state<string[]>([]);
 	constraintProvidersVm = $state<ComposerWriterConstraintProvider[]>([]);
 	composerMode = $state<'global' | 'custom'>('global');
+	/**
+	 * Inline Rewriter consent / unsupported panel while the Writer session stays ready.
+	 * Set when the user first requests a refine chip without Rewriter opt-in (or when
+	 * Rewriter is missing after consent).
+	 */
+	rewriterGate = $state<RewriterUiGate>(null);
 
 	private writerSession: WriterSession | null = null;
+	private rewriterSession: RewriterSession | null = null;
+	/** Cache key `tone:length` for the current Rewriter session. */
+	private rewriterSessionKey: string | null = null;
 	private abortController: AbortController | null = null;
 	private sessionGeneration = 0;
 	private createCore: ComposerWriterCreateCoreOptions = buildComposerWriterCreateOptions();
 	private messageSeq = 0;
+	/** Refine action waiting on Rewriter soft opt-in Continue. */
+	private pendingRefineAction: ComposerRewriterRefineAction | null = null;
 
 	isBusy = $derived(this.chatStatus === 'submitted' || this.chatStatus === 'streaming');
 	canInsert = $derived(this.draftText.trim().length > 0 && !this.isBusy);
+	/**
+	 * Rewriter may be used for refine (API present and not confirmed unavailable).
+	 * `null` availability (still probing) counts as usable so chips can appear promptly.
+	 */
+	rewriterUsable = $derived(
+		isRewriterSupported() && this.rewriterAvailability !== 'unavailable'
+	);
+	/**
+	 * Show refine chip row after any conversation turn (empty-state topic chips are hidden).
+	 * Independent of `canInsert` so the row stays visible while a refine streams.
+	 */
+	showRefineActions = $derived(this.messagesVm.length > 0);
+	/** Tone/length refine chips: Rewriter usable and an insertable draft exists. */
+	canRefine = $derived(this.canInsert && this.rewriterUsable);
 	showEmptyState = $derived(
 		this.messagesVm.length === 0 && !this.isBusy && !this.errorMessage
 	);
@@ -123,6 +166,9 @@ export class WriterPresenter {
 		});
 		destroyWriter(this.writerSession);
 		this.writerSession = null;
+		destroyAiSession(this.rewriterSession);
+		this.rewriterSession = null;
+		this.rewriterSessionKey = null;
 	}
 
 	async onOpen(): Promise<void> {
@@ -141,6 +187,7 @@ export class WriterPresenter {
 	resetUi(): void {
 		this.phase = 'resolving';
 		this.availability = null;
+		this.rewriterAvailability = null;
 		this.downloadPercent = null;
 		this.chatStatus = 'ready';
 		this.messagesVm = [];
@@ -153,10 +200,58 @@ export class WriterPresenter {
 		this.providerIdentifier = null;
 		this.constraintProvidersVm = [];
 		this.messageSeq = 0;
+		this.rewriterGate = null;
+		this.pendingRefineAction = null;
 	}
 
 	clearPendingToastError(): void {
 		this.pendingToastError = null;
+	}
+
+	/** Dismiss Rewriter opt-in / unsupported panel; keep the draft conversation. */
+	dismissRewriterGate(): void {
+		this.rewriterGate = null;
+		this.pendingRefineAction = null;
+	}
+
+	/**
+	 * Entry point for refine chips: soft opt-in first, then unsupported panel if needed,
+	 * otherwise stream via {@link runRefine}.
+	 */
+	async requestRefine(action: ComposerRewriterRefineAction): Promise<void> {
+		const input = this.draftText.trim();
+		if (!input || this.isBusy) return;
+
+		if (!hasRewriterSoftOptIn()) {
+			this.pendingRefineAction = action;
+			this.rewriterGate = 'opt-in';
+			return;
+		}
+
+		await this.refreshRewriterAvailability(this.sessionGeneration);
+		if (!isRewriterSupported() || this.rewriterAvailability === 'unavailable') {
+			this.pendingRefineAction = null;
+			this.rewriterGate = 'unsupported';
+			return;
+		}
+
+		this.rewriterGate = null;
+		await this.runRefine(action);
+	}
+
+	async acceptRewriterOptIn(): Promise<void> {
+		acceptRewriterSoftOptIn();
+		const action = this.pendingRefineAction;
+		this.pendingRefineAction = null;
+		this.rewriterGate = null;
+		if (!action) return;
+
+		await this.refreshRewriterAvailability(this.sessionGeneration);
+		if (!isRewriterSupported() || this.rewriterAvailability === 'unavailable') {
+			this.rewriterGate = 'unsupported';
+			return;
+		}
+		await this.runRefine(action);
 	}
 
 	teardown(): void {
@@ -165,6 +260,9 @@ export class WriterPresenter {
 		this.abortController = null;
 		destroyWriter(this.writerSession);
 		this.writerSession = null;
+		destroyAiSession(this.rewriterSession);
+		this.rewriterSession = null;
+		this.rewriterSessionKey = null;
 	}
 
 	stopGeneration(): void {
@@ -186,18 +284,7 @@ export class WriterPresenter {
 		this.promptText = '';
 		this.chatStatus = 'submitted';
 
-		const userMsg: WriterChatMessageViewModel = {
-			id: this.nextMessageId('user'),
-			role: 'user',
-			content: trimmed
-		};
-		const assistantMsg: WriterChatMessageViewModel = {
-			id: this.nextMessageId('assistant'),
-			role: 'assistant',
-			content: ''
-		};
-		this.messagesVm = [...this.messagesVm, userMsg, assistantMsg];
-		const assistantId = assistantMsg.id;
+		const assistantId = this.appendTurnPair(trimmed);
 
 		const bodyContext = options.existingBody?.trim() || '';
 		const revisionContext = previousDraft
@@ -210,37 +297,107 @@ export class WriterPresenter {
 			const writer = await this.ensureWriter();
 			if (gen !== this.sessionGeneration) return;
 
-			this.chatStatus = 'streaming';
-			let assembled = '';
-			for await (const chunk of writeDraftStreaming(writer, trimmed, {
-				context,
-				signal: this.abortController?.signal
-			})) {
-				if (gen !== this.sessionGeneration) return;
-				assembled += chunk;
-				this.draftText = assembled;
-				this.patchAssistantMessage(assistantId, assembled);
-			}
-			if (gen !== this.sessionGeneration) return;
-			this.chatStatus = 'ready';
+			await this.streamAssistant(
+				assistantId,
+				writeDraftStreaming(writer, trimmed, {
+					context,
+					signal: this.abortController?.signal
+				}),
+				gen
+			);
 		} catch (err) {
 			if (gen !== this.sessionGeneration) return;
-			const aborted =
-				(err instanceof DOMException && err.name === 'AbortError') ||
-				(err instanceof Error && err.name === 'AbortError');
-			if (aborted) {
-				this.chatStatus = 'ready';
-				return;
-			}
-			this.chatStatus = 'error';
-			const message =
-				err instanceof Error && err.message
-					? err.message
-					: 'Could not generate a draft. Try again.';
-			this.errorMessage = message;
-			this.pendingToastError = message;
-			this.patchAssistantMessage(assistantId, message);
+			this.failAssistant(assistantId, err);
 		}
+	}
+
+	/**
+	 * Relative tone/length refine via Chrome Rewriter. Appends a chip-label user turn
+	 * and streams a new draft; history is never cleared mid-session.
+	 * Prefer {@link requestRefine} from the UI (handles soft opt-in / unsupported).
+	 */
+	async runRefine(action: ComposerRewriterRefineAction): Promise<void> {
+		const input = this.draftText.trim();
+		if (!input || this.isBusy) return;
+		if (!isRewriterSupported() || this.rewriterAvailability === 'unavailable') {
+			this.rewriterGate = 'unsupported';
+			return;
+		}
+
+		this.lastPrompt = action.label;
+		this.draftText = '';
+		this.errorMessage = null;
+		this.promptText = '';
+		this.chatStatus = 'submitted';
+
+		const assistantId = this.appendTurnPair(action.label);
+		const gen = this.sessionGeneration;
+
+		try {
+			const rewriter = await this.ensureRewriter(action);
+			if (gen !== this.sessionGeneration) return;
+
+			await this.streamAssistant(
+				assistantId,
+				rewriteDraftStreaming(rewriter, input, {
+					signal: this.abortController?.signal
+				}),
+				gen
+			);
+		} catch (err) {
+			if (gen !== this.sessionGeneration) return;
+			this.failAssistant(assistantId, err);
+		}
+	}
+
+	private appendTurnPair(userContent: string): string {
+		const userMsg: WriterChatMessageViewModel = {
+			id: this.nextMessageId('user'),
+			role: 'user',
+			content: userContent
+		};
+		const assistantMsg: WriterChatMessageViewModel = {
+			id: this.nextMessageId('assistant'),
+			role: 'assistant',
+			content: ''
+		};
+		this.messagesVm = [...this.messagesVm, userMsg, assistantMsg];
+		return assistantMsg.id;
+	}
+
+	private async streamAssistant(
+		assistantId: string,
+		chunks: AsyncIterable<string>,
+		gen: number
+	): Promise<void> {
+		this.chatStatus = 'streaming';
+		let assembled = '';
+		for await (const chunk of chunks) {
+			if (gen !== this.sessionGeneration) return;
+			assembled += chunk;
+			this.draftText = assembled;
+			this.patchAssistantMessage(assistantId, assembled);
+		}
+		if (gen !== this.sessionGeneration) return;
+		this.chatStatus = 'ready';
+	}
+
+	private failAssistant(assistantId: string, err: unknown): void {
+		const aborted =
+			(err instanceof DOMException && err.name === 'AbortError') ||
+			(err instanceof Error && err.name === 'AbortError');
+		if (aborted) {
+			this.chatStatus = 'ready';
+			return;
+		}
+		this.chatStatus = 'error';
+		const message =
+			err instanceof Error && err.message
+				? err.message
+				: 'Could not generate a draft. Try again.';
+		this.errorMessage = message;
+		this.pendingToastError = message;
+		this.patchAssistantMessage(assistantId, message);
 	}
 
 	private nextMessageId(role: WriterChatRole): string {
@@ -252,10 +409,20 @@ export class WriterPresenter {
 		this.messagesVm = this.messagesVm.map((m) => (m.id === id ? { ...m, content } : m));
 	}
 
+	private draftConstraints(): ComposerWriterDraftConstraints {
+		return {
+			maxCharacters: this.maxCharacters,
+			providerIdentifiers: this.providerIdentifiers,
+			providerIdentifier: this.providerIdentifier,
+			composerMode: this.composerMode
+		};
+	}
+
 	private async startWriterSession(): Promise<void> {
 		const gen = ++this.sessionGeneration;
 		this.phase = 'resolving';
 		this.availability = null;
+		this.rewriterAvailability = null;
 		this.downloadPercent = null;
 		this.errorMessage = null;
 		this.abortController = new AbortController();
@@ -277,6 +444,7 @@ export class WriterPresenter {
 		}
 
 		this.phase = 'ready';
+		void this.refreshRewriterAvailability(gen);
 
 		if (nextAvailability === 'downloadable' || nextAvailability === 'downloading') {
 			void this.ensureWriter().catch((err) => {
@@ -294,6 +462,22 @@ export class WriterPresenter {
 		}
 	}
 
+	private async refreshRewriterAvailability(gen: number): Promise<void> {
+		if (!isRewriterSupported()) {
+			if (gen !== this.sessionGeneration) return;
+			this.rewriterAvailability = 'unavailable';
+			return;
+		}
+		const availability = await getRewriterAvailability(
+			buildComposerRewriterCreateOptionsFromAction(
+				{ tone: 'as-is', length: 'as-is' },
+				this.draftConstraints()
+			)
+		);
+		if (gen !== this.sessionGeneration) return;
+		this.rewriterAvailability = availability;
+	}
+
 	private async ensureWriter(): Promise<WriterSession> {
 		if (this.writerSession) return this.writerSession;
 		const signal = this.abortController?.signal;
@@ -307,6 +491,40 @@ export class WriterPresenter {
 		this.writerSession = created;
 		this.downloadPercent = 100;
 		this.availability = 'available';
+		return created;
+	}
+
+	/**
+	 * Rewriter sessions are immutable for tone/length; cache by those keys and
+	 * destroy the previous session when the refine action changes.
+	 */
+	private async ensureRewriter(
+		action: Pick<ComposerRewriterRefineAction, 'tone' | 'length'>
+	): Promise<RewriterSession> {
+		const key = `${action.tone}:${action.length}`;
+		if (this.rewriterSession && this.rewriterSessionKey === key) {
+			return this.rewriterSession;
+		}
+
+		destroyAiSession(this.rewriterSession);
+		this.rewriterSession = null;
+		this.rewriterSessionKey = null;
+
+		const createOptions = buildComposerRewriterCreateOptionsFromAction(
+			action,
+			this.draftConstraints()
+		);
+		const created = await createComposerRewriter({
+			signal: this.abortController?.signal,
+			createOptions,
+			onDownloadProgress: (loaded) => {
+				this.downloadPercent = Math.round(loaded * 100);
+			}
+		});
+		this.rewriterSession = created;
+		this.rewriterSessionKey = key;
+		this.downloadPercent = 100;
+		this.rewriterAvailability = 'available';
 		return created;
 	}
 }

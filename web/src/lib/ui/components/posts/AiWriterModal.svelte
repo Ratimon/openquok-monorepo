@@ -5,10 +5,13 @@
 	import { untrack } from 'svelte';
 
 	import {
+		COMPOSER_REWRITER_REFINE_ACTIONS,
 		COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
 		COMPOSER_WRITER_SUGGESTIONS,
+		REWRITER_API_DOCS_URL,
 		WRITER_API_DOCS_URL
 	} from '$lib/ai-writer/constants/config';
+	import { formatWriterProviderConstraintTooltip } from '$lib/ai-writer/utils/formatWriterProviderConstraintTooltip';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -51,10 +54,11 @@
 		onInsertDraft = undefined
 	}: Props = $props();
 
-	let promptTextareaRef = $state<HTMLTextAreaElement | null>(null);
+	let promptTextareaRef = $state.raw<HTMLTextAreaElement | null>(null);
 	let insertConfirmOpen = $state(false);
 
 	const phase = $derived(writerPresenter.phase);
+	const rewriterGate = $derived(writerPresenter.rewriterGate);
 	const chatStatus = $derived(writerPresenter.chatStatus);
 	const draftText = $derived(writerPresenter.draftText);
 	const messagesVm = $derived(writerPresenter.messagesVm);
@@ -62,6 +66,7 @@
 	const downloadPercent = $derived(writerPresenter.downloadPercent);
 	const isBusy = $derived(writerPresenter.isBusy);
 	const canInsert = $derived(writerPresenter.canInsert);
+	const showRefineActions = $derived(writerPresenter.showRefineActions);
 	const showEmptyState = $derived(writerPresenter.showEmptyState);
 	const showDownloadBanner = $derived(writerPresenter.showDownloadBanner);
 	const draftLength = $derived(writerPresenter.draftLength);
@@ -116,6 +121,14 @@
 
 	async function acceptOptIn() {
 		await writerPresenter.acceptOptIn();
+	}
+
+	async function acceptRewriterOptIn() {
+		await writerPresenter.acceptRewriterOptIn();
+	}
+
+	function dismissRewriterGate() {
+		writerPresenter.dismissRewriterGate();
 	}
 
 	function stopGeneration() {
@@ -178,18 +191,21 @@
 						<span class="text-base-content/55">No channel constraints · up to {maxCharacters} characters</span>
 					{:else}
 						{#each resolvedConstraintProviders as provider, index (provider.identifier)}
+							{@const constraintTooltip = formatWriterProviderConstraintTooltip(
+								provider.identifier
+							)}
 							{#if index > 0}
 								<span class="shrink-0 font-medium text-base-content/55">and</span>
 							{/if}
 							<span
 								class="inline-flex items-center gap-0.5 rounded-md border border-base-300/80 bg-base-200/50 py-0.5 pr-0.5 pl-1.5 text-base-content/85"
 							>
-								<ComposerMediaTooltip label={provider.label} side="top">
+								<ComposerMediaTooltip label={constraintTooltip} side="top">
 									{#snippet trigger({ props })}
 										<span
 											{...props}
 											class="inline-flex size-5 items-center justify-center"
-											aria-label={provider.label}
+											aria-label={constraintTooltip}
 										>
 											<AbstractIcon
 												name={socialProviderIcon(provider.identifier)}
@@ -244,6 +260,12 @@
 							On-device drafting with Chrome's Writer API — review before continuing.
 						{:else if phase === 'unsupported'}
 							On-device drafting with Chrome's Writer API.
+						{:else if rewriterGate === 'opt-in'}
+							On-device refine with Chrome's Rewriter API — review before continuing.
+						{:else if rewriterGate === 'unsupported'}
+							On-device refine with Chrome's Rewriter API.
+						{:else if showRefineActions}
+							Refine tone or length, or ask for a revision — then insert into the composer.
 						{:else}
 							Draft a social post on-device, then insert it into the composer.
 						{/if}
@@ -305,6 +327,49 @@
 			<div class="border-base-300 flex shrink-0 justify-end border-t px-4 py-3 sm:px-6">
 				<Button type="button" variant="ghost" onclick={close}>Close</Button>
 			</div>
+		{:else if rewriterGate === 'opt-in'}
+			<div class="flex min-h-[220px] flex-col gap-3 px-4 py-4 sm:px-6">
+				<div class="rounded-md border border-base-300 bg-base-100 p-3 text-sm text-base-content/80">
+					<p class="font-medium text-base-content">Use tone and length refine on this device?</p>
+					<p class="mt-2 text-base-content/70">
+						Refine uses Chrome's on-device Rewriter API. Your drafts stay on this device.
+					</p>
+					<p class="mt-2 text-base-content/70">
+						The first time you use it, Chrome may download an on-device model. That download and
+						all generation run locally in your browser.
+					</p>
+				</div>
+			</div>
+			<div class="border-base-300 flex shrink-0 justify-end gap-2 border-t px-4 py-3 sm:px-6">
+				<Button type="button" variant="ghost" onclick={dismissRewriterGate}>Not now</Button>
+				<Button type="button" variant="primary" onclick={acceptRewriterOptIn}>Continue</Button>
+			</div>
+		{:else if rewriterGate === 'unsupported'}
+			<div class="flex min-h-[220px] flex-col gap-3 px-4 py-4 sm:px-6">
+				<div class="rounded-md border border-base-300 bg-base-100 p-3 text-sm text-base-content/80">
+					<p class="font-medium text-base-content">Rewriter isn't available here</p>
+					<p class="mt-2 text-base-content/70">
+						Tone and length refine uses Chrome's experimental on-device Rewriter API. It works in
+						recent Chrome builds when the Rewriter API is enabled (and the on-device model can
+						download). Free-text revisions with Writer still work. This feature does not send
+						input to servers.
+					</p>
+					<p class="mt-2 text-base-content/70">
+						See the
+						<ExternalLink
+							href={REWRITER_API_DOCS_URL}
+							trusted={true}
+							class="link link-primary font-medium"
+						>
+							Chrome Rewriter API docs
+						</ExternalLink>
+						for setup steps, hardware notes, and origin-trial details.
+					</p>
+				</div>
+			</div>
+			<div class="border-base-300 flex shrink-0 justify-end border-t px-4 py-3 sm:px-6">
+				<Button type="button" variant="ghost" onclick={dismissRewriterGate}>Back</Button>
+			</div>
 		{:else}
 			<div class="flex min-h-0 flex-1 flex-col">
 				{#if showDownloadBanner}
@@ -320,8 +385,8 @@
 				{/if}
 
 				<div class="min-h-0 flex-1 overflow-hidden px-2 py-2 sm:px-3">
-					<Conversation.Root class="h-[min(42vh,320px)] min-h-[200px]">
-						<Conversation.Content class="flex flex-col gap-3 overflow-y-auto px-2 py-2">
+					<Conversation.Root class="h-full min-h-0 max-h-[min(42vh,320px)]">
+						<Conversation.Content class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-2 py-2 pb-6">
 							{#if showEmptyState}
 								<div class="flex flex-col items-center gap-4 py-6">
 									<Conversation.EmptyState
@@ -398,24 +463,22 @@
 				</div>
 
 				{#if !showEmptyState}
-					<div class="border-base-300 shrink-0 border-t px-3 py-1.5 sm:px-4">
+					<div class="border-base-300 bg-base-100 shrink-0 border-t px-3 py-1.5 sm:px-4">
 						{@render constraintStrip(true)}
 					</div>
 				{/if}
 
 				<div class="border-base-300 shrink-0 border-t px-3 py-3 sm:px-4">
-					{#if !showEmptyState}
-						<div class="mb-2 overflow-x-auto">
-							<Suggestions class="w-max max-w-none">
-								{#each COMPOSER_WRITER_SUGGESTIONS as suggestion (suggestion)}
-									<Suggestion
-										{suggestion}
-										size="sm"
-										disabled={isBusy}
-										onclick={onSuggestion}
-									/>
-								{/each}
-							</Suggestions>
+					{#if showRefineActions}
+						<div class="mb-2 flex flex-wrap gap-2">
+							{#each COMPOSER_REWRITER_REFINE_ACTIONS as action (action.id)}
+								<Suggestion
+									suggestion={action.label}
+									size="sm"
+									disabled={isBusy || !draftText.trim()}
+									onclick={() => void writerPresenter.requestRefine(action)}
+								/>
+							{/each}
 						</div>
 					{/if}
 					<PromptInput.Root class="divide-y-0 rounded-lg border border-base-300" onSubmit={onPromptSubmit}>
@@ -425,7 +488,9 @@
 								bind:value={writerPresenter.promptText}
 								placeholder={showEmptyState
 									? 'Describe the post to draft…'
-									: 'Ask for a revision or a new draft…'}
+									: showRefineActions
+										? 'Refine tone or length, or ask for a revision…'
+										: 'Ask for a revision or a new draft…'}
 								class="min-h-[72px]"
 							/>
 						</PromptInput.Body>

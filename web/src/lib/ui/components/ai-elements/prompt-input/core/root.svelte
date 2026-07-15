@@ -55,12 +55,13 @@
 		...props
 	}: Props = $props();
 
-	let formRef = $state<HTMLFormElement | null>(null);
+	let formRef = $state.raw<HTMLFormElement | null>(null);
 	let controller = getPromptInputProvider();
 	let usingProvider = Boolean(controller);
 	let localAttachmentsContext = new AttachmentsContext();
 	let attachmentsContext = controller?.attachments ?? localAttachmentsContext;
-	let promptTextHandle = $state<PromptInputTextHandle | null>(null);
+	// Raw: identity compare with the plain handle object from Textarea (no proxy wrap).
+	let promptTextHandle = $state.raw<PromptInputTextHandle | null>(null);
 
 	setPromptInputTextRegistration({
 		register: (handle) => {
@@ -72,6 +73,17 @@
 			}
 		},
 	});
+
+	const sameAttachmentIds = (
+		a: PromptInputAttachment[] | undefined,
+		b: PromptInputAttachment[]
+	) => {
+		if (a === undefined || a.length !== b.length) return false;
+		for (let i = 0; i < a.length; i += 1) {
+			if (a[i]?.id !== b[i]?.id) return false;
+		}
+		return true;
+	};
 
 	$effect(() => {
 		attachmentsContext.configure({
@@ -87,7 +99,7 @@
 
 	$effect(() => {
 		let syncAttachments = (next: PromptInputAttachment[]) => {
-			if (attachments !== next) {
+			if (!sameAttachmentIds(attachments, next)) {
 				attachments = next;
 			}
 		};
@@ -103,7 +115,7 @@
 	});
 
 	$effect(() => {
-		if (attachments !== undefined && attachmentsContext.attachments !== attachments) {
+		if (attachments !== undefined && !sameAttachmentIds(attachmentsContext.attachments, attachments)) {
 			attachmentsContext.replace(attachments);
 		}
 	});
