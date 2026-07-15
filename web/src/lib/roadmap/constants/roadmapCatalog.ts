@@ -41,16 +41,16 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 	},
 	{
 		id: 'ai-writer',
-		title: 'AI Writer',
+		title: 'Free AI Writer',
 		categoryId: 'product',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 1
 	},
 	{
 		id: 'ai-editor',
-		title: 'AI Content Editor',
+		title: 'Free AI Content Editor',
 		categoryId: 'product',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 1
 	},
 	{

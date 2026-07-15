@@ -1,4 +1,6 @@
 import type { PaidSubscriptionTier } from 'openquok-common';
+import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
+
 import {
 	accountTeamMemberSeatTotal,
 	isUnlimitedTeamMembersPerWorkspace,
@@ -13,7 +15,6 @@ import {
 	type PublicPricingCompareRowId
 } from '$lib/billing/constants/publicPricingCatalog';
 import { listAvailablePublicChannelCompareLabels } from '$lib/content/constants/channels';
-import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 import { formatBytes } from '$lib/medias';
 import { icons } from '$data/icons';
 
@@ -72,6 +73,8 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 			kind: 'text',
 			text: buildOpenQuokTeamMembersCell(solo, max)
 		},
+		ai_writer: { kind: 'text', text: 'Unlimited' },
+		ai_summarizer: { kind: 'text', text: 'Unlimited' },
 		share_post_preview: solo.share_post_preview
 			? { kind: 'included' }
 			: { kind: 'text', text: 'Team plan+' },
@@ -89,6 +92,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		agent_integrations: { kind: 'included' },
 		analytics: { kind: 'included' },
 		photo_editor: { kind: 'included' },
+		skill_builder: { kind: 'included' },
 		calendar_views: { kind: 'included' },
 		kanban_views: { kind: 'included' },
 		file_manager: { kind: 'included' },

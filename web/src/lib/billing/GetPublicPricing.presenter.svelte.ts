@@ -10,6 +10,7 @@ import {
 } from '$lib/billing/GetBilling.presenter.svelte';
 import { formatBytes } from '$lib/medias';
 import {
+	PUBLIC_PRICING_AI_CARD_FEATURES,
 	PUBLIC_PRICING_COMPARE_ROWS,
 	PUBLIC_PRICING_FEATURED_TIER,
 	PUBLIC_PRICING_PLAN_META,
@@ -136,6 +137,9 @@ function compareCellForRow(
 			return formatPerWorkspaceOAuthResourceCell(limits);
 		case 'cloud_storage':
 			return formatCloudStorageCell(limits);
+		case 'ai_writer':
+		case 'ai_summarizer':
+			return { kind: 'text', text: 'Unlimited' };
 		case 'multi_channel_publishing':
 		case 'agent_integrations':
 		case 'analytics':
@@ -192,13 +196,25 @@ function buildCardFeatures(tier: PaidSubscriptionTier, limits: PlanLimits): stri
 		}
 		return line.label;
 	});
+
+	// Keep on-device AI bullets directly under the team-members line (or posts when seats are omitted).
+	const teamMembersIdx = limitLines.findIndex((label) => /team members/i.test(label));
+	const postsIdx = limitLines.findIndex((label) => /posts per month/i.test(label));
+	const insertAt =
+		teamMembersIdx >= 0 ? teamMembersIdx + 1 : postsIdx >= 0 ? postsIdx + 1 : limitLines.length;
+	const withAi = [
+		...limitLines.slice(0, insertAt),
+		...PUBLIC_PRICING_AI_CARD_FEATURES,
+		...limitLines.slice(insertAt)
+	];
+
 	const shared = PUBLIC_PRICING_SHARED_CARD_FEATURES.filter((label) => {
 		if (label.startsWith('Community') && !limits.community_features) return false;
 		return true;
 	});
 	const seen = new Set<string>();
 	const merged: string[] = [];
-	for (const label of [...limitLines, ...shared]) {
+	for (const label of [...withAi, ...shared]) {
 		const key = label.toLowerCase();
 		if (seen.has(key)) continue;
 		seen.add(key);

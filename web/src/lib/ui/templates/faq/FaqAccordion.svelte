@@ -27,7 +27,9 @@
 			</div>
 		</Accordion.Trigger>
 		<Accordion.Content class="overflow-hidden transition-all duration-500">
-			<div class="mt-4 max-w-lg text-base font-normal text-base-content/70 select-text">
+			<div
+				class="mt-4 max-w-lg text-base font-normal text-base-content/70 select-text [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:opacity-90"
+			>
 				{@html description}
 			</div>
 		</Accordion.Content>

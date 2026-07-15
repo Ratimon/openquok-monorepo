@@ -4,6 +4,7 @@ import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
 } from '$lib/content/constants/publicFaqConfig';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 export type CreatePublicFaqSEOSchemaParams = {
 	/** Page URL where the FAQ section is rendered (typically `{canonical}#faq`). */
@@ -44,7 +45,7 @@ export function createPublicFaqSEOSchema(
 					name: item.title,
 					acceptedAnswer: {
 						'@type': 'Answer',
-						text: item.description
+						text: stripHtmlToPlainText(item.description)
 					} as Answer
 				}) as Question
 		)

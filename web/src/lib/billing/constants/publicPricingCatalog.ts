@@ -47,7 +47,7 @@ export const PUBLIC_PRICING_LANDING_TAB_ICONS: Record<PaidSubscriptionTier, Icon
 };
 
 /** Max feature bullets in the landing tab detail card (two-column grid). */
-export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 9;
+export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 11;
 
 /** Product capabilities included on every paid plan (marketing copy for cards). */
 export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
@@ -66,6 +66,12 @@ export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
 	'Dark / light mode'
 ];
 
+/** On-device AI bullets — inserted on cards immediately after the team-members line. */
+export const PUBLIC_PRICING_AI_CARD_FEATURES: readonly string[] = [
+	'Unlimited AI Writer (experimental)',
+	'Unlimited AI Summarizer (experimental)'
+];
+
 export type PublicPricingCompareRowId =
 	| 'workspaces'
 	| 'channels'
@@ -77,6 +83,8 @@ export type PublicPricingCompareRowId =
 	| 'mcp_server'
 	| 'cloud_storage'
 	| 'multi_channel_publishing'
+	| 'ai_writer'
+	| 'ai_summarizer'
 	| 'agent_integrations'
 	| 'analytics'
 	| 'photo_editor'
@@ -126,6 +134,18 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		label: 'Team members',
 		tooltip:
 			'Seats are capped per workspace. The table shows the total across all workspaces on the plan (for example 3 per workspace × 2 workspaces = 6 total).'
+	},
+	{
+		id: 'ai_writer',
+		label: 'AI Writer',
+		tooltip:
+			'On-device drafting via Chrome’s experimental Writer and Rewriter APIs. Requires a supported Chromium browser.\nDocs: https://developer.chrome.com/docs/ai/writer-api · https://developer.chrome.com/docs/ai/rewriter-api'
+	},
+	{
+		id: 'ai_summarizer',
+		label: 'AI Summarizer',
+		tooltip:
+			'On-device summarization via Chrome’s experimental Summarizer API. Requires a supported Chromium browser.\nDocs: https://developer.chrome.com/docs/ai/scale-summarization'
 	},
 	{
 		id: 'share_post_preview',

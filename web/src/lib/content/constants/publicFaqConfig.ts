@@ -42,6 +42,11 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 			'Each workspace includes one OAuth application. The totals on pricing plans match your workspace limit — for example, Solo includes 1 OAuth app (1 workspace), Team includes 3, Ultimate includes 5, and Max includes 10. Register the app under Developers → Apps to get client credentials for third-party OAuth flows.\n\n. If you need separate apps for different products, clients, or redirect URLs — such as one integration built with our SDK and another product with its own OAuth consent screen — create an additional workspace and register one app there. Each workspace keeps its own channels, credentials, and tokens isolated.\n\nWithin one workspace, that single OAuth app also backs your workspace programmatic token (opo_…) for the Public API, SDK, CI scripts, and MCP.'
 	},
 	{
+		title: 'What are Unlimited AI Writer and AI Summarizer?',
+		description:
+			'Unlimited AI Writer and Unlimited AI Summarizer are experimental, on-device features that run in supported Chromium browsers. Post drafting stays on your device. Writer and rewrite flows use the Writer API (<a href="https://developer.chrome.com/docs/ai/writer-api" target="_blank" rel="noopener noreferrer nofollow">https://developer.chrome.com/docs/ai/writer-api</a>) and Rewriter API (<a href="https://developer.chrome.com/docs/ai/rewriter-api" target="_blank" rel="noopener noreferrer nofollow">https://developer.chrome.com/docs/ai/rewriter-api</a>); summarization uses the Summarizer API, including techniques for longer text described in Scale client-side summarization (<a href="https://developer.chrome.com/docs/ai/scale-summarization" target="_blank" rel="noopener noreferrer nofollow">https://developer.chrome.com/docs/ai/scale-summarization</a>). Availability depends on browser support, hardware, and Chrome’s origin-trial status, and the APIs may change as the experiments evolve.'
+	},
+	{
 		title: 'Can I get a refund?',
 		description:
 			'With in 1 month, you can get a refund if you have not used the product during a billing period. If you have used the product during a billing period, contact support and we will work with you on a fair resolution. Self-hosted deployments follow your own billing policies.'
