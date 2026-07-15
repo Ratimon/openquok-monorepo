@@ -11,7 +11,7 @@ export type CreateComposerWriterOptions = {
 export type WriterSession = Writer;
 
 /**
- * Creates a Writer instance configured for OpenQuok social-post drafting.
+ * Creates a Writer instance configured for social-post drafting in the composer.
  * Triggers model download when needed; wires `downloadprogress` for UI %.
  */
 export async function createComposerWriter(

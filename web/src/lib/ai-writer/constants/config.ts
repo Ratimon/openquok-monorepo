@@ -13,7 +13,7 @@ export const COMPOSER_WRITER_DEFAULTS = {
 	expectedContextLanguages: ['en'] as string[],
 	outputLanguage: 'en',
 	sharedContext:
-		'Draft short social media posts for OpenQuok, a social publishing tool. Prefer clear, engaging plain text suitable for LinkedIn, X, and similar networks. Avoid hashtag spam unless the user asks for tags.'
+		'Draft short social media posts for the user’s own product, brand, or topic. Prefer clear, engaging plain text suitable for LinkedIn, X, and similar networks. Avoid hashtag spam unless the user asks for tags. When the prompt is a generic topic (e.g. launch announcement), use neutral placeholders the user can customize — do not invent or name a specific company.'
 };
 
 export const COMPOSER_WRITER_SUGGESTIONS = [
