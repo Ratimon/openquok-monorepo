@@ -262,6 +262,7 @@
 						{publishDateIso}
 						{organizationId}
 						{loadSignaturesVmForComposer}
+						existingBody={body}
 						textarea={composerTextarea}
 						{composerMode}
 						{focusedProviderIdentifier}
@@ -270,6 +271,11 @@
 						onInsertSignature={(sig) => {
 							const base = body ?? '';
 							const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
+							body = `${base}${suffix}`;
+						}}
+						onInsertDraft={(draft) => {
+							const base = body ?? '';
+							const suffix = base.trim().length === 0 ? draft : `\n\n${draft}`;
 							body = `${base}${suffix}`;
 						}}
 					/>

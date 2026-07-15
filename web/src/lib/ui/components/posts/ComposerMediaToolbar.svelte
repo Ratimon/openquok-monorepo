@@ -28,6 +28,7 @@
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
+	import AiWriterModal from '$lib/ui/components/posts/AiWriterModal.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
@@ -50,6 +51,9 @@
 		/** Wired from create-post presenter; keeps the repository out of this component. */
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
+		/** Current composer body — passed to AI Writer as optional drafting context. */
+		existingBody?: string;
+		onInsertDraft?: (text: string) => void;
 		textarea?: HTMLTextAreaElement | null;
 		class?: string;
 		composerMode?: 'global' | 'custom';
@@ -72,6 +76,8 @@
 		organizationId = null,
 		loadSignaturesVmForComposer = undefined,
 		onInsertSignature = undefined,
+		existingBody = '',
+		onInsertDraft = undefined,
 		textarea = null,
 		class: className = '',
 		composerMode = 'global',
@@ -92,6 +98,7 @@
 	let libraryOpen = $state(false);
 	const mediaAtCap = $derived(maxMediaItems != null && items.length >= maxMediaItems);
 	let signatureOpen = $state(false);
+	let aiWriterOpen = $state(false);
 	let linkedInCompanyOpen = $state(false);
 	const showLinkedInCompany = $derived(
 		(focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page') &&
@@ -165,6 +172,12 @@
 		const trimmed = (text ?? '').trim();
 		if (!trimmed) return;
 		onInsertSignature?.(trimmed);
+	}
+
+	function insertDraftFromModal(text: string) {
+		const trimmed = (text ?? '').trim();
+		if (!trimmed) return;
+		onInsertDraft?.(trimmed);
 	}
 
 	function insertLinkedInCompanyMention(text: string) {
@@ -292,7 +305,25 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 5–8: inline text styling (selection-based) -->
+		<!-- 5: AI Writer (Chrome on-device Writer API) -->
+		<ComposerMediaTooltip label="Draft with AI Writer">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy}
+					onclick={composeTooltipTriggerClick(props, () => {
+						aiWriterOpen = true;
+					})}
+					aria-label="Open AI Writer"
+				>
+					<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+
+		<!-- 6–9: inline text styling (selection-based) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
@@ -364,21 +395,6 @@
 		onAttach={onAttachFromLibrary}
 	/>
 
-	<!-- 8–9: parity placeholders (not wired yet) -->
-	<!-- <button type="button" class={iconBtn} disabled aria-label="AI image (coming soon)" title="Coming soon">
-		<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />
-	</button>
-	<button type="button" class={iconBtn} disabled aria-label="Video (coming soon)" title="Coming soon">
-		<span class="relative inline-flex size-6 items-center justify-center">
-			<AbstractIcon name={icons.ClapperBoard.name} class="size-5" width="20" height="20" />
-			<span
-				class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
-				aria-hidden="true"
-			>
-				<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
-			</span>
-		</span>
-	</button> -->
 </div>
 
 <MediaGenerationModal
@@ -391,6 +407,12 @@
 	organizationId={organizationId}
 	{loadSignaturesVmForComposer}
 	onInsertSignature={insertSignatureFromModal}
+/>
+
+<AiWriterModal
+	bind:open={aiWriterOpen}
+	{existingBody}
+	onInsertDraft={insertDraftFromModal}
 />
 
 {#if showLinkedInCompany && focusedIntegrationId && organizationId}

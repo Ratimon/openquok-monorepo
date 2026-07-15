@@ -8,6 +8,7 @@ export type GeneralIconName =
     | "Africa"
     | "Antarctica"
     | "ArrowBack"
+    | "ArrowDown"
     | "ArrowLeft"
     | "ArrowRight"
     | "ArrowUp"
@@ -107,6 +108,7 @@ export type GeneralIconName =
     | "Oceania"
     | "PaintRoller"
     | "PanelLeft"
+    | "Paperclip"
     | "Pencil"
     | "Phone"
     | "Plus"
@@ -126,6 +128,7 @@ export type GeneralIconName =
     | "Smile"
     | "SouthAmerica"
     | "Sparkles"
+    | "Square"
     | "SquarePlus"
     | "Star"
     | "Table"
@@ -186,6 +189,11 @@ export const generalIcons = {
 					d="M15 10a.75.75 0 01-.75.75H7.612l2.158 1.96a.75.75 0 11-1.04 1.08l-3.5-3.25a.75.75 0 010-1.08l3.5-3.25a.75.75 0 111.04 1.08L7.612 9.25h6.638A.75.75 0 0115 10z"
 				/>
 	  		</svg>`
+    },
+    ArrowDown: {
+        name: "ArrowDown",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-down-icon lucide-arrow-down"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>`
     },
     ArrowLeft: {
         name: "ArrowLeft",
@@ -712,6 +720,11 @@ export const generalIcons = {
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-panel-left-icon lucide-panel-left"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>`
     },
+    Paperclip: {
+        name: "Paperclip",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-paperclip-icon lucide-paperclip"><path d="m16 6-8.414 8.586a2 2 0 0 0 2.829 2.829l8.414-8.586a4 4 0 1 0-5.657-5.657l-8.379 8.551a6 6 0 1 0 8.485 8.485l.61-.61"/></svg>`
+    },
     Pencil: {
         name: "Pencil",
         box: 24,
@@ -840,6 +853,11 @@ export const generalIcons = {
         name: "Sparkles",
         box: 24,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles-icon lucide-sparkles"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg>`
+    },
+    Square: {
+        name: "Square",
+        box: 24,
+        svg: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-square-icon lucide-square"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`
     },
     SquarePlus: {
         name: "SquarePlus",
