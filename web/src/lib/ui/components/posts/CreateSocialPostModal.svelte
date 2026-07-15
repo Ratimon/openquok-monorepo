@@ -152,6 +152,7 @@
 					fetchPolotnoTemplateListPage={presenter.fetchPolotnoTemplateListPage}
 					backgroundPanelVm={presenter.backgroundPanelVm}
 					exportCanvasToMedia={presenter.exportCanvasToMedia}
+					writerPresenter={presenter.composerWriterPresenter}
 					loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
 					socialChannels={presenter.baseSocialChannelsVm}
 					bind:body={presenter.editorBody}
@@ -166,6 +167,7 @@
 					charCount={presenter.charCount}
 					softCharLimit={presenter.softCharLimit}
 					weightedCharCount={presenter.usesWeightedCharCount ? presenter.charCount : undefined}
+					constraintProviderIdentifiers={presenter.writerConstraintProviderIdentifiers}
 					maxMediaItems={presenter.launchMaxMediaItems}
 					scheduleValidationMessage={presenter.scheduleValidationError}
 					contentSetAuthoringNetworkLock={presenter.contentSetAuthoringActive}

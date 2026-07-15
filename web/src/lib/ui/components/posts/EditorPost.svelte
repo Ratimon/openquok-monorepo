@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
@@ -27,6 +28,8 @@
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		backgroundPanelVm?: BackgroundPanelViewModel;
 		exportCanvasToMedia?: ExportCanvasToMediaFn;
+		/** Injected from CreateSocialPostPresenter when the media toolbar (AI Writer) is shown. */
+		writerPresenter?: WriterPresenter;
 		body?: string;
 		busy?: boolean;
 		charCount: number;
@@ -49,6 +52,8 @@
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
 		focusedIntegrationId?: string | null;
+		/** Unique provider identifiers for AI Writer constraint awareness. */
+		constraintProviderIdentifiers?: readonly string[];
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
 		/** When true, render in "comment" mode (no media; smaller UX). */
@@ -69,6 +74,7 @@
 			triggerPolotnoUnsplashDownloadPm: () => {}
 		},
 		exportCanvasToMedia = async () => ({ ok: false, error: 'Export is not configured.' }),
+		writerPresenter = undefined,
 		body = $bindable(''),
 		busy = false,
 		charCount,
@@ -88,6 +94,7 @@
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
 		focusedIntegrationId = null,
+		constraintProviderIdentifiers = [],
 		maxMediaItems = null,
 		comments = false,
 		compact = false,
@@ -247,7 +254,7 @@
 						You can't edit networks when creating a set
 					</p>
 				</div>
-			{:else if !comments}
+			{:else if !comments && writerPresenter}
 				<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
 					<ComposerMediaToolbar
 						class="pointer-events-auto"
@@ -256,6 +263,7 @@
 						{fetchPolotnoTemplateListPage}
 						{backgroundPanelVm}
 						{exportCanvasToMedia}
+						{writerPresenter}
 						bind:items={postMediaItems}
 						disabled={busy}
 						{uploadUid}
@@ -263,9 +271,11 @@
 						{organizationId}
 						{loadSignaturesVmForComposer}
 						existingBody={body}
+						{softCharLimit}
 						textarea={composerTextarea}
 						{composerMode}
 						{focusedProviderIdentifier}
+						{constraintProviderIdentifiers}
 						{focusedIntegrationId}
 						{maxMediaItems}
 						onInsertSignature={(sig) => {

@@ -1,10 +1,14 @@
-import { COMPOSER_WRITER_DEFAULTS } from '$lib/ai-writer/constants/config';
+import type { ComposerWriterCreateCoreOptions } from '$lib/ai-writer/utils/buildComposerWriterCreateOptions';
+
+import { buildComposerWriterCreateOptions } from '$lib/ai-writer/utils/buildComposerWriterCreateOptions';
 import { isWriterSupported } from '$lib/ai-writer/utils/isWriterSupported';
 
 export type CreateComposerWriterOptions = {
 	signal?: AbortSignal;
 	/** Called with download fraction in `[0, 1]` while the on-device model is fetched. */
 	onDownloadProgress?: (loaded: number) => void;
+	/** Constraint-aware create options; defaults to Global Edit–scale limits. */
+	createOptions?: ComposerWriterCreateCoreOptions;
 };
 
 /** Chrome Writer API session created by {@link createComposerWriter}. */
@@ -21,16 +25,17 @@ export async function createComposerWriter(
 		throw new Error('Chrome Writer API is not available in this browser.');
 	}
 
-	const { signal, onDownloadProgress } = options;
+	const { signal, onDownloadProgress, createOptions } = options;
+	const core = createOptions ?? buildComposerWriterCreateOptions();
 
 	return Writer.create({
-		tone: COMPOSER_WRITER_DEFAULTS.tone,
-		format: COMPOSER_WRITER_DEFAULTS.format,
-		length: COMPOSER_WRITER_DEFAULTS.length,
-		expectedInputLanguages: COMPOSER_WRITER_DEFAULTS.expectedInputLanguages,
-		expectedContextLanguages: COMPOSER_WRITER_DEFAULTS.expectedContextLanguages,
-		outputLanguage: COMPOSER_WRITER_DEFAULTS.outputLanguage,
-		sharedContext: COMPOSER_WRITER_DEFAULTS.sharedContext,
+		tone: core.tone,
+		format: core.format,
+		length: core.length,
+		expectedInputLanguages: core.expectedInputLanguages,
+		expectedContextLanguages: core.expectedContextLanguages,
+		outputLanguage: core.outputLanguage,
+		sharedContext: core.sharedContext,
 		signal,
 		monitor: onDownloadProgress
 			? (m) => {

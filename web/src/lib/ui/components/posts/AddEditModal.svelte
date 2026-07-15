@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
@@ -17,14 +18,14 @@
 	import * as Dialog from '$lib/ui/dialog';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
+	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 	import SelectGroupTargeting from '$lib/ui/components/posts/SelectGroupTargeting.svelte';
 	import SelectTargets from '$lib/ui/components/posts/SelectTargets.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
-	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
-	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
+	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 
 	type Mode = 'global' | 'custom';
 
@@ -37,6 +38,7 @@
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		backgroundPanelVm: BackgroundPanelViewModel;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
+		writerPresenter: WriterPresenter;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		mode: Mode;
@@ -48,6 +50,8 @@
 		softCharLimit: number;
 		/** When set, pass weighted count to X preview. */
 		weightedCharCount?: number;
+		/** Unique provider identifiers for AI Writer constraint strip. */
+		constraintProviderIdentifiers?: readonly string[];
 		selectedGroupId: string | null;
 		onToggleChannel: (id: string) => void;
 		onToggleGlobal: () => void;
@@ -96,6 +100,7 @@
 		fetchPolotnoTemplateListPage,
 		backgroundPanelVm,
 		exportCanvasToMedia,
+		writerPresenter,
 		socialChannels,
 		selectedIds,
 		mode,
@@ -106,6 +111,7 @@
 		charCount,
 		softCharLimit,
 		weightedCharCount,
+		constraintProviderIdentifiers = [],
 		selectedGroupId,
 		onToggleChannel,
 		onToggleGlobal,
@@ -384,6 +390,7 @@
 				{fetchPolotnoTemplateListPage}
 				{backgroundPanelVm}
 				{exportCanvasToMedia}
+				{writerPresenter}
 				bind:body
 				bind:postMediaItems
 				{uploadUid}
@@ -395,6 +402,7 @@
 				{softCharLimit}
 				composerMode={mode}
 				focusedProviderIdentifier={focusedProviderIdentifier}
+				constraintProviderIdentifiers={constraintProviderIdentifiers}
 				focusedIntegrationId={focusedIntegrationIdForComposer}
 				{maxMediaItems}
 				{scheduleValidationMessage}

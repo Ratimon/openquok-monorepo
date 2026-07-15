@@ -1,4 +1,5 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+import type { WriterPresenter } from '$lib/ai-writer';
 import type {
 	BackgroundPanelViewModel,
 	DesignTemplateViewModel,
@@ -88,6 +89,7 @@ export class CreateSocialPostPresenter {
 	constructor(
 		private readonly postsRepository: PostsRepository,
 		private readonly mediaModalPresenter: GenerateMediaModalPresenter,
+		private readonly writerPresenter: WriterPresenter,
 		private readonly getSignaturesPresenter: GetSignaturesPresenter,
 		scheduledPostsPresenter: GetScheduledPostsPresenter,
 		private readonly upsertSetPresenter: UpsertSetPresenter,
@@ -185,6 +187,29 @@ export class CreateSocialPostPresenter {
 	minimumCharacters = $derived(this.providerConfig.minimumCharacters);
 	postComment = $derived(this.providerConfig.postComment);
 
+	/**
+	 * Unique provider identifiers for AI Writer constraints / UI strip.
+	 * Custom mode → focused channel; Global Edit → selected channels (deduped).
+	 */
+	writerConstraintProviderIdentifiers = $derived.by((): string[] => {
+		if (this.mode === 'custom') {
+			const id = (this.focusedProviderIdentifier ?? '').trim();
+			return id ? [id] : [];
+		}
+		const seen = new Set<string>();
+		const out: string[] = [];
+		for (const integrationId of this.selectedIds) {
+			const ch = this.baseSocialChannelsVm.find((c) => c.id === integrationId);
+			const ident = (ch?.identifier ?? '').trim();
+			if (!ident) continue;
+			const key = ident.toLowerCase();
+			if (seen.has(key)) continue;
+			seen.add(key);
+			out.push(ident);
+		}
+		return out;
+	});
+
 	previewText = $derived(stripHtmlToPlainText(this.editorBody));
 	charCount = $derived.by(() => {
 		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') {
@@ -240,6 +265,11 @@ export class CreateSocialPostPresenter {
 
 	exportCanvasToMedia = (args: ExportCanvasToMediaArgs): Promise<ExportDesignToMediaResult> =>
 		this.mediaModalPresenter.exportCanvasToMedia(args);
+
+	/** Injected composer AI Writer feature presenter (session + draft UI state). */
+	get composerWriterPresenter(): WriterPresenter {
+		return this.writerPresenter;
+	}
 
 	// --- Open / close preparation ---
 

@@ -1,236 +1,138 @@
 <script lang="ts">
-	import type { WriterAvailability, WriterSession } from '$lib/ai-writer';
-	import type { ChatStatus, Message as PromptInputMessage } from '$lib/ui/components/ai-elements/prompt-input';
+	import type { Message as PromptInputMessage } from '$lib/ui/components/ai-elements/prompt-input';
+	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
+
+	import { untrack } from 'svelte';
 
 	import {
+		COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
 		COMPOSER_WRITER_SUGGESTIONS,
-		WRITER_API_DOCS_URL,
-		acceptWriterSoftOptIn,
-		createComposerWriter,
-		destroyWriter,
-		getWriterAvailability,
-		hasWriterSoftOptIn,
-		isWriterSupported,
-		writeDraftStreaming
-	} from '$lib/ai-writer';
+		WRITER_API_DOCS_URL
+	} from '$lib/ai-writer/constants/config';
+	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ComposerMediaTooltip from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import * as Conversation from '$lib/ui/components/ai-elements/conversation';
 	import * as Message from '$lib/ui/components/ai-elements/message';
 	import * as PromptInput from '$lib/ui/components/ai-elements/prompt-input';
 	import { Shimmer } from '$lib/ui/components/ai-elements/shimmer';
 	import { Suggestion, Suggestions } from '$lib/ui/components/ai-elements/suggestion';
 	import * as Dialog from '$lib/ui/dialog';
+	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
+		writerPresenter: WriterPresenter;
 		open?: boolean;
 		/** Optional current composer body used as Writer context. */
 		existingBody?: string;
+		/** Composer soft character limit (Global Edit or focused provider). */
+		softCharLimit?: number;
+		composerMode?: 'global' | 'custom';
+		focusedProviderIdentifier?: string | null;
+		/** Unique provider identifiers the draft constraints apply to. */
+		constraintProviderIdentifiers?: readonly string[];
 		onInsertDraft?: (text: string) => void;
 	};
 
 	let {
+		writerPresenter,
 		open = $bindable(false),
 		existingBody = '',
+		softCharLimit = COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
+		composerMode = 'global',
+		focusedProviderIdentifier = null,
+		constraintProviderIdentifiers = [],
 		onInsertDraft = undefined
 	}: Props = $props();
 
-	type UiPhase = 'opt-in' | 'resolving' | 'unsupported' | 'ready';
-
-	let phase = $state<UiPhase>('resolving');
-	let availability = $state<WriterAvailability | null>(null);
-	let downloadPercent = $state<number | null>(null);
-	let chatStatus = $state<ChatStatus>('ready');
-	let lastPrompt = $state('');
-	let draftText = $state('');
-	let errorMessage = $state<string | null>(null);
-	let promptText = $state('');
 	let promptTextareaRef = $state<HTMLTextAreaElement | null>(null);
+	let insertConfirmOpen = $state(false);
 
-	let writerSession = $state.raw<WriterSession | null>(null);
-	let abortController: AbortController | null = null;
-	let sessionGeneration = 0;
-
-	const isBusy = $derived(chatStatus === 'submitted' || chatStatus === 'streaming');
-	const canInsert = $derived(draftText.trim().length > 0 && !isBusy);
-	const showEmptyState = $derived(!lastPrompt && !draftText && !isBusy && !errorMessage);
-	const showDownloadBanner = $derived(
-		downloadPercent != null &&
-			downloadPercent < 100 &&
-			(availability === 'downloadable' || availability === 'downloading' || chatStatus === 'submitted')
-	);
+	const phase = $derived(writerPresenter.phase);
+	const chatStatus = $derived(writerPresenter.chatStatus);
+	const draftText = $derived(writerPresenter.draftText);
+	const messagesVm = $derived(writerPresenter.messagesVm);
+	const errorMessage = $derived(writerPresenter.errorMessage);
+	const downloadPercent = $derived(writerPresenter.downloadPercent);
+	const isBusy = $derived(writerPresenter.isBusy);
+	const canInsert = $derived(writerPresenter.canInsert);
+	const showEmptyState = $derived(writerPresenter.showEmptyState);
+	const showDownloadBanner = $derived(writerPresenter.showDownloadBanner);
+	const draftLength = $derived(writerPresenter.draftLength);
+	const isOverLimit = $derived(writerPresenter.isOverLimit);
+	const maxCharacters = $derived(writerPresenter.maxCharacters);
+	/** Presenter is source of truth after open seed / user removals. */
+	const resolvedConstraintProviders = $derived(writerPresenter.constraintProvidersVm);
+	const showConstraintStrip = $derived(true);
+	const lastAssistantId = $derived.by(() => {
+		for (let i = messagesVm.length - 1; i >= 0; i -= 1) {
+			if (messagesVm[i]?.role === 'assistant') return messagesVm[i]!.id;
+		}
+		return null;
+	});
 
 	$effect(() => {
 		if (!open) return;
 
-		void onOpen();
+		// Snapshot composer limits at open — do not tear down mid-session if softCharLimit updates.
+		untrack(() => {
+			const ids =
+				constraintProviderIdentifiers.length > 0
+					? [...constraintProviderIdentifiers]
+					: focusedProviderIdentifier?.trim()
+						? [focusedProviderIdentifier.trim()]
+						: [];
+			writerPresenter.setDraftConstraints({
+				maxCharacters: softCharLimit,
+				providerIdentifiers: ids,
+				providerIdentifier: ids[0] ?? focusedProviderIdentifier,
+				composerMode
+			});
+		});
+		void writerPresenter.onOpen();
 
 		return () => {
-			teardownSession();
-			resetUi();
+			writerPresenter.teardown();
+			writerPresenter.resetUi();
 		};
 	});
 
-	async function onOpen() {
-		if (!hasWriterSoftOptIn()) {
-			phase = 'opt-in';
-			return;
-		}
-
-		await startWriterSession();
-	}
-
-	async function acceptOptIn() {
-		acceptWriterSoftOptIn();
-		await startWriterSession();
-	}
-
-	async function startWriterSession() {
-		const gen = ++sessionGeneration;
-		phase = 'resolving';
-		availability = null;
-		downloadPercent = null;
-		errorMessage = null;
-		abortController = new AbortController();
-
-		if (!isWriterSupported()) {
-			if (gen !== sessionGeneration) return;
-			phase = 'unsupported';
-			availability = 'unavailable';
-			return;
-		}
-
-		const nextAvailability = await getWriterAvailability();
-		if (gen !== sessionGeneration) return;
-		availability = nextAvailability;
-
-		if (nextAvailability === 'unavailable') {
-			phase = 'unsupported';
-			return;
-		}
-
-		phase = 'ready';
-
-		if (nextAvailability === 'downloadable' || nextAvailability === 'downloading') {
-			void ensureWriter().catch((err) => {
-				if (gen !== sessionGeneration) return;
-				const aborted =
-					(err instanceof DOMException && err.name === 'AbortError') ||
-					(err instanceof Error && err.name === 'AbortError');
-				if (aborted) return;
-				downloadPercent = null;
-				toast.error(
-					err instanceof Error && err.message
-						? err.message
-						: 'Could not download the on-device Writer model.'
-				);
-			});
-		}
-	}
-
-	function resetUi() {
-		phase = 'resolving';
-		availability = null;
-		downloadPercent = null;
-		chatStatus = 'ready';
-		lastPrompt = '';
-		draftText = '';
-		errorMessage = null;
-		promptText = '';
-	}
-
-	function teardownSession() {
-		sessionGeneration += 1;
-		abortController?.abort();
-		abortController = null;
-		destroyWriter(writerSession);
-		writerSession = null;
-	}
+	$effect(() => {
+		const msg = writerPresenter.pendingToastError;
+		if (!msg) return;
+		toast.error(msg);
+		writerPresenter.clearPendingToastError();
+	});
 
 	function close() {
 		open = false;
 	}
 
+	async function acceptOptIn() {
+		await writerPresenter.acceptOptIn();
+	}
+
 	function stopGeneration() {
-		abortController?.abort();
-		abortController = new AbortController();
-		if (chatStatus === 'submitted' || chatStatus === 'streaming') {
-			chatStatus = 'ready';
-		}
-	}
-
-	async function ensureWriter(): Promise<WriterSession> {
-		if (writerSession) return writerSession;
-		const signal = abortController?.signal;
-		const created = await createComposerWriter({
-			signal,
-			onDownloadProgress: (loaded) => {
-				downloadPercent = Math.round(loaded * 100);
-			}
-		});
-		writerSession = created;
-		downloadPercent = 100;
-		availability = 'available';
-		return created;
-	}
-
-	async function runWrite(prompt: string) {
-		const trimmed = prompt.trim();
-		if (!trimmed || isBusy) return;
-
-		lastPrompt = trimmed;
-		draftText = '';
-		errorMessage = null;
-		chatStatus = 'submitted';
-
-		const context = existingBody?.trim() || undefined;
-		const gen = sessionGeneration;
-
-		try {
-			const writer = await ensureWriter();
-			if (gen !== sessionGeneration) return;
-
-			chatStatus = 'streaming';
-			let assembled = '';
-			for await (const chunk of writeDraftStreaming(writer, trimmed, {
-				context,
-				signal: abortController?.signal
-			})) {
-				if (gen !== sessionGeneration) return;
-				assembled += chunk;
-				draftText = assembled;
-			}
-			if (gen !== sessionGeneration) return;
-			chatStatus = 'ready';
-		} catch (err) {
-			if (gen !== sessionGeneration) return;
-			const aborted =
-				(err instanceof DOMException && err.name === 'AbortError') ||
-				(err instanceof Error && err.name === 'AbortError');
-			if (aborted) {
-				chatStatus = 'ready';
-				return;
-			}
-			chatStatus = 'error';
-			errorMessage =
-				err instanceof Error && err.message
-					? err.message
-					: 'Could not generate a draft. Try again.';
-			toast.error(errorMessage);
-		}
+		writerPresenter.stopGeneration();
 	}
 
 	function onSuggestion(suggestion: string) {
-		promptText = suggestion;
+		writerPresenter.promptText = suggestion;
 		promptTextareaRef?.focus();
 	}
 
+	function removeConstraint(identifier: string) {
+		writerPresenter.removeConstraintProvider(identifier);
+	}
+
 	async function onPromptSubmit(message: PromptInputMessage) {
-		await runWrite(message.text ?? '');
+		await writerPresenter.runWrite(message.text ?? '', { existingBody });
 	}
 
 	async function copyDraft() {
@@ -244,13 +146,86 @@
 		}
 	}
 
-	function insertDraft() {
+	function requestInsertDraft() {
 		const text = draftText.trim();
+		if (!text) return;
+		insertConfirmOpen = true;
+	}
+
+	function confirmInsertDraft() {
+		const text = draftText.trim();
+		insertConfirmOpen = false;
 		if (!text) return;
 		onInsertDraft?.(text);
 		open = false;
 	}
 </script>
+
+{#snippet constraintStrip(compact: boolean)}
+	{#if showConstraintStrip}
+		<Tooltip.Provider delayDuration={200}>
+			<div
+				class="flex flex-col gap-1.5 {compact ? 'px-1 py-1.5' : 'px-2 py-2'}"
+				role="status"
+			>
+				<p class="text-center text-[11px] font-semibold tracking-wide text-base-content/55 uppercase">
+					Context
+				</p>
+				<div
+					class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 text-xs text-base-content/70"
+				>
+					{#if resolvedConstraintProviders.length === 0}
+						<span class="text-base-content/55">No channel constraints · up to {maxCharacters} characters</span>
+					{:else}
+						{#each resolvedConstraintProviders as provider, index (provider.identifier)}
+							{#if index > 0}
+								<span class="shrink-0 font-medium text-base-content/55">and</span>
+							{/if}
+							<span
+								class="inline-flex items-center gap-0.5 rounded-md border border-base-300/80 bg-base-200/50 py-0.5 pr-0.5 pl-1.5 text-base-content/85"
+							>
+								<ComposerMediaTooltip label={provider.label} side="top">
+									{#snippet trigger({ props })}
+										<span
+											{...props}
+											class="inline-flex size-5 items-center justify-center"
+											aria-label={provider.label}
+										>
+											<AbstractIcon
+												name={socialProviderIcon(provider.identifier)}
+												class="size-3.5 shrink-0"
+												width="14"
+												height="14"
+												aria-hidden="true"
+											/>
+										</span>
+									{/snippet}
+								</ComposerMediaTooltip>
+								<button
+									type="button"
+									class="text-base-content/50 hover:bg-base-300/60 hover:text-base-content inline-flex size-5 items-center justify-center rounded transition-colors"
+									aria-label={`Remove ${provider.label} from context`}
+									onclick={() => removeConstraint(provider.identifier)}
+								>
+									<AbstractIcon
+										name={icons.X2.name}
+										class="size-3"
+										width="12"
+										height="12"
+										aria-hidden="true"
+									/>
+								</button>
+							</span>
+						{/each}
+						<span class="shrink-0 tabular-nums text-base-content/55"
+							>· up to {maxCharacters} characters</span
+						>
+					{/if}
+				</div>
+			</div>
+		</Tooltip.Provider>
+	{/if}
+{/snippet}
 
 <Dialog.Root bind:open>
 	<Dialog.Content
@@ -261,7 +236,7 @@
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0 flex-1">
 					<Dialog.Title class="flex items-center gap-2 text-base font-semibold text-base-content">
-						<AbstractIcon name={icons.Sparkles.name} class="size-5" width="20" height="20" />
+						<AbstractIcon name={icons.PencilSparkles.name} class="size-5" width="20" height="20" />
 						AI Writer
 					</Dialog.Title>
 					<Dialog.Description class="mt-1 text-xs leading-snug text-base-content/70">
@@ -356,7 +331,7 @@
 									>
 										{#snippet icon()}
 											<AbstractIcon
-												name={icons.Sparkles.name}
+												name={icons.PencilSparkles.name}
 												class="size-8 text-base-content/40"
 												width="32"
 												height="32"
@@ -372,81 +347,109 @@
 											/>
 										{/each}
 									</Suggestions>
+									{@render constraintStrip(false)}
 								</div>
 							{:else}
-								{#if lastPrompt}
-									<Message.Root from="user">
-										<Message.Content>
-											{lastPrompt}
-										</Message.Content>
-									</Message.Root>
-								{/if}
-								<Message.Root from="assistant">
-									<Message.Content class="w-full max-w-full">
-										{#if isBusy && !draftText}
-											<Shimmer class="text-sm" content_length={24}>
-												{#if downloadPercent != null && downloadPercent < 100}
-													Downloading model…
+								{#each messagesVm as message (message.id)}
+									{#if message.role === 'user'}
+										<Message.Root from="user">
+											<Message.Content>
+												{message.content}
+											</Message.Content>
+										</Message.Root>
+									{:else}
+										<Message.Root from="assistant">
+											<Message.Content class="w-full max-w-full">
+												{#if isBusy && message.id === lastAssistantId && !message.content}
+													<Shimmer class="text-sm" content_length={24}>
+														{#if downloadPercent != null && downloadPercent < 100}
+															Downloading model…
+														{:else}
+															Writing draft…
+														{/if}
+													</Shimmer>
+												{:else if message.content}
+													{#if message.id === lastAssistantId && errorMessage && chatStatus === 'error'}
+														<p class="text-error text-sm">{message.content}</p>
+													{:else}
+														<Message.Response content={message.content} />
+													{/if}
 												{:else}
-													Writing draft…
+													<p class="text-sm text-base-content/60">No draft yet.</p>
 												{/if}
-											</Shimmer>
-										{:else if draftText}
-											<Message.Response content={draftText} />
-										{:else if errorMessage}
-											<p class="text-error text-sm">{errorMessage}</p>
-										{:else}
-											<p class="text-sm text-base-content/60">No draft yet.</p>
-										{/if}
-									</Message.Content>
-									{#if draftText && !isBusy}
-										<Message.Actions class="mt-1">
-											<Message.Action
-												tooltip="Copy draft"
-												label="Copy draft"
-												onclick={copyDraft}
-											>
-												<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
-											</Message.Action>
-										</Message.Actions>
+											</Message.Content>
+											{#if message.id === lastAssistantId && message.content && !isBusy && chatStatus !== 'error'}
+												<Message.Actions class="mt-1">
+													<Message.Action
+														tooltip="Copy draft"
+														label="Copy draft"
+														onclick={copyDraft}
+													>
+														<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
+													</Message.Action>
+												</Message.Actions>
+											{/if}
+										</Message.Root>
 									{/if}
-								</Message.Root>
+								{/each}
 							{/if}
 						</Conversation.Content>
 					</Conversation.Root>
 				</div>
 
+				{#if !showEmptyState}
+					<div class="border-base-300 shrink-0 border-t px-3 py-1.5 sm:px-4">
+						{@render constraintStrip(true)}
+					</div>
+				{/if}
+
 				<div class="border-base-300 shrink-0 border-t px-3 py-3 sm:px-4">
+					{#if !showEmptyState}
+						<div class="mb-2 overflow-x-auto">
+							<Suggestions class="w-max max-w-none">
+								{#each COMPOSER_WRITER_SUGGESTIONS as suggestion (suggestion)}
+									<Suggestion
+										{suggestion}
+										size="sm"
+										disabled={isBusy}
+										onclick={onSuggestion}
+									/>
+								{/each}
+							</Suggestions>
+						</div>
+					{/if}
 					<PromptInput.Root class="divide-y-0 rounded-lg border border-base-300" onSubmit={onPromptSubmit}>
 						<PromptInput.Body>
 							<PromptInput.Textarea
 								bind:ref={promptTextareaRef}
-								bind:value={promptText}
-								placeholder="Describe the post to draft…"
+								bind:value={writerPresenter.promptText}
+								placeholder={showEmptyState
+									? 'Describe the post to draft…'
+									: 'Ask for a revision or a new draft…'}
 								class="min-h-[72px]"
 							/>
 						</PromptInput.Body>
-						<PromptInput.Toolbar class="border-t border-base-300/80">
-							<PromptInput.Tools>
-								{#if !showEmptyState}
-									<Suggestions class="max-w-[min(100%,280px)]">
-										{#each COMPOSER_WRITER_SUGGESTIONS as suggestion (suggestion)}
-											<Suggestion
-												{suggestion}
-												size="sm"
-												disabled={isBusy}
-												onclick={onSuggestion}
-											/>
-										{/each}
-									</Suggestions>
-								{/if}
-							</PromptInput.Tools>
-							<PromptInput.Submit status={chatStatus} onStop={stopGeneration} disabled={false} />
+						<PromptInput.Toolbar class="justify-end border-t border-base-300/80">
+							<PromptInput.Submit
+								class="shrink-0"
+								status={chatStatus}
+								onStop={stopGeneration}
+								disabled={false}
+							/>
 						</PromptInput.Toolbar>
 					</PromptInput.Root>
 				</div>
 
 				<div class="border-base-300 flex shrink-0 flex-wrap items-center justify-end gap-2 border-t px-4 py-3 sm:px-6">
+					{#if draftText}
+						<span
+							class="mr-auto text-xs font-medium tabular-nums {isOverLimit
+								? 'text-error'
+								: 'text-base-content/60'}"
+						>
+							{draftLength}/{maxCharacters}
+						</span>
+					{/if}
 					<Button type="button" variant="ghost" onclick={close}>Close</Button>
 					{#if isBusy}
 						<Button type="button" variant="outline" size="sm" onclick={stopGeneration}>
@@ -456,7 +459,7 @@
 					<Button type="button" variant="outline" size="sm" disabled={!canInsert} onclick={copyDraft}>
 						Copy
 					</Button>
-					<Button type="button" variant="primary" size="sm" disabled={!canInsert} onclick={insertDraft}>
+					<Button type="button" variant="primary" size="sm" disabled={!canInsert} onclick={requestInsertDraft}>
 						Insert into post
 					</Button>
 				</div>
@@ -464,3 +467,15 @@
 		{/if}
 	</Dialog.Content>
 </Dialog.Root>
+
+<DeleteModal
+	bind:open={insertConfirmOpen}
+	title="Insert draft into the post?"
+	description="The draft will be added to the composer. Closing AI Writer clears this conversation — you won't get the prompt or draft back here."
+	confirmLabel="Insert and close"
+	cancelLabel="Keep editing"
+	confirmVariant="primary"
+	cancelFirst={true}
+	onConfirm={confirmInsertDraft}
+	onCancel={() => (insertConfirmOpen = false)}
+/>

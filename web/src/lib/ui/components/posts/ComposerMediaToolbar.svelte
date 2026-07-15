@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
+	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
 		BackgroundPanelViewModel,
 		DesignTemplateProgrammerModel,
@@ -10,6 +11,7 @@
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
+	import { COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS } from '$lib/ai-writer/constants/config';
 	import { formatBytes } from '$lib/medias';
 	import { attachComposerMediaFromFiles } from '$lib/posts/utils/composerMediaDrop';
 	import { icons } from '$data/icons';
@@ -42,6 +44,8 @@
 		) => Promise<PolotnoTemplateListPageProgrammerModel>;
 		backgroundPanelVm: BackgroundPanelViewModel;
 		exportCanvasToMedia: ExportCanvasToMediaFn;
+		/** Injected from CreateSocialPostPresenter; required for AI Writer. */
+		writerPresenter: WriterPresenter;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
@@ -54,10 +58,14 @@
 		/** Current composer body — passed to AI Writer as optional drafting context. */
 		existingBody?: string;
 		onInsertDraft?: (text: string) => void;
+		/** Soft character limit for AI Writer sharedContext (matches editor counter). */
+		softCharLimit?: number;
 		textarea?: HTMLTextAreaElement | null;
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
+		/** Unique provider identifiers for AI Writer constraint strip / sharedContext. */
+		constraintProviderIdentifiers?: readonly string[];
 		focusedIntegrationId?: string | null;
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
@@ -69,6 +77,7 @@
 		fetchPolotnoTemplateListPage,
 		backgroundPanelVm,
 		exportCanvasToMedia,
+		writerPresenter,
 		items = $bindable([]),
 		disabled = false,
 		uploadUid,
@@ -78,10 +87,12 @@
 		onInsertSignature = undefined,
 		existingBody = '',
 		onInsertDraft = undefined,
+		softCharLimit = COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
 		textarea = null,
 		class: className = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
+		constraintProviderIdentifiers = [],
 		focusedIntegrationId = null,
 		maxMediaItems = null
 	}: ComposerMediaToolbarProps = $props();
@@ -410,8 +421,13 @@
 />
 
 <AiWriterModal
+	{writerPresenter}
 	bind:open={aiWriterOpen}
 	{existingBody}
+	{softCharLimit}
+	{composerMode}
+	{focusedProviderIdentifier}
+	constraintProviderIdentifiers={constraintProviderIdentifiers}
 	onInsertDraft={insertDraftFromModal}
 />
 

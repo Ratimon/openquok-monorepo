@@ -15,7 +15,8 @@
 <div class="space-y-4">
 	<div class="space-y-1">
 		<label class="text-xs font-medium text-base-content/70" for="ig-post-type">
-			Post Type</label>
+			Post Type
+		</label>
 		<select
 			id="ig-post-type"
 			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"

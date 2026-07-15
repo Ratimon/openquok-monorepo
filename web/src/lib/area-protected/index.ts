@@ -29,6 +29,7 @@ import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBill
 import { ProtectedAccountBuildingBlocksPagePresenter } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 import { UserListingEditorPagePresenter } from '$lib/area-protected/UserListingEditorPage.presenter.svelte';
 import { UserListingsManagerPagePresenter } from '$lib/area-protected/UserListingsManagerPage.presenter.svelte';
+import { WriterPresenter } from '$lib/ai-writer';
 import { billingPresenter, firstBillingGatePresenter, getBillingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
@@ -90,16 +91,20 @@ const signatureSettingPresenter = new SignaturesPresenter(signaturesRepository, 
 /** Design / background surface for the social post composer (see {@link CreateSocialPostPresenter}). */
 const composerMediaModalPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
+/** On-device AI Writer for the social post composer (see {@link CreateSocialPostPresenter}). */
+const composerWriterPresenter = new WriterPresenter();
+
 /** Same canvas stack for the account media library page. */
 const mediaLibraryMediaModalPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
 /** Account calendar / Schedule‑X (see {@link SchedulerPresenter}). */
 const schedulerPresenter = new SchedulerPresenter(postsRepository, getScheduledPostsPresenter);
 
-/** Shared create-post composer (posts repository + composer media modal). */
+/** Shared create-post composer (posts repository + composer media modal + AI Writer). */
 const createSocialPostPresenter = new CreateSocialPostPresenter(
 	postsRepository,
 	composerMediaModalPresenter,
+	composerWriterPresenter,
 	getSignaturesPresenter,
 	getScheduledPostsPresenter,
 	upsertSetPresenter,
@@ -248,6 +253,8 @@ export {
 	GenerateMediaModalPresenter,
 	composerMediaModalPresenter,
 	mediaLibraryMediaModalPresenter,
+	WriterPresenter,
+	composerWriterPresenter,
 	schedulerPresenter,
 	signatureSettingPresenter
 };

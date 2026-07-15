@@ -189,6 +189,7 @@
 							fetchPolotnoTemplateListPage={composerPresenter.fetchPolotnoTemplateListPage}
 							backgroundPanelVm={composerPresenter.backgroundPanelVm}
 							exportCanvasToMedia={composerPresenter.exportCanvasToMedia}
+							writerPresenter={composerPresenter.composerWriterPresenter}
 							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
 							socialChannels={composerPresenter.baseSocialChannelsVm}
 							bind:body={composerPresenter.editorBody}
@@ -202,6 +203,7 @@
 							previewText={composerPresenter.previewText}
 							charCount={composerPresenter.charCount}
 							softCharLimit={composerPresenter.softCharLimit}
+							constraintProviderIdentifiers={composerPresenter.writerConstraintProviderIdentifiers}
 							maxMediaItems={composerPresenter.launchMaxMediaItems}
 							scheduleValidationMessage={composerPresenter.scheduleValidationError}
 							contentSetAuthoringNetworkLock={false}
