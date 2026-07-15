@@ -11,7 +11,7 @@
 		REWRITER_API_DOCS_URL,
 		WRITER_API_DOCS_URL
 	} from '$lib/ai-writer/constants/config';
-	import { formatWriterProviderConstraintTooltip } from '$lib/ai-writer/utils/formatWriterProviderConstraintTooltip';
+	import { formatWriterProviderConstraintTooltip } from '$lib/ai-writer/utils';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';

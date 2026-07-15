@@ -1,10 +1,14 @@
+import type { ComposerRewriterRefineAction } from '$lib/ai-writer/constants/config';
+
 import {
+	COMPOSER_REWRITER_DEFAULTS,
 	COMPOSER_WRITER_BASE_SHARED_CONTEXT,
 	COMPOSER_WRITER_DEFAULTS,
 	COMPOSER_WRITER_LENGTH_MEDIUM_MAX_CHARS,
 	COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS
 } from '$lib/ai-writer/constants/config';
 import { socialProviderDisplayLabel } from '$data/social-providers';
+import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 
 export type ComposerWriterLength = 'short' | 'medium' | 'long';
 
@@ -36,6 +40,28 @@ export type ComposerWriterCreateCoreOptions = {
 	expectedInputLanguages: string[];
 	expectedContextLanguages: string[];
 	outputLanguage: string;
+};
+
+/** Create-time Rewriter fields for a single refine action (tone/length immutable). */
+export type ComposerRewriterCreateCoreOptions = {
+	sharedContext: string;
+	tone: RewriterTone;
+	format: typeof COMPOSER_REWRITER_DEFAULTS.format;
+	length: RewriterLength;
+	expectedInputLanguages: string[];
+	expectedContextLanguages: string[];
+	outputLanguage: string;
+};
+
+export type BuildComposerRewriterCreateOptionsInput = {
+	/** Relative tone/length from a refine chip (or defaults to as-is). */
+	tone?: RewriterTone;
+	length?: RewriterLength;
+	/**
+	 * Composer constraints for soft char limits / target platforms.
+	 * Reuses Writer sharedContext so refine still respects draft limits.
+	 */
+	constraints?: ComposerWriterDraftConstraints;
 };
 
 /** Maps a soft char limit onto Chrome Writer's coarse `length` hint. */
@@ -144,4 +170,72 @@ export function buildComposerWriterCreateOptions(
 		length: writerLengthForMaxCharacters(max),
 		sharedContext: buildComposerWriterSharedContext({ ...constraints, maxCharacters: max })
 	};
+}
+
+/**
+ * Resolves full Rewriter.create / availability options for a refine action,
+ * reusing Writer constraint-aware `sharedContext`.
+ */
+export function buildComposerRewriterCreateOptions(
+	input: BuildComposerRewriterCreateOptionsInput = {}
+): ComposerRewriterCreateCoreOptions {
+	const constraints = input.constraints ?? {
+		maxCharacters: COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
+		composerMode: 'global' as const
+	};
+	const max = Number.isFinite(constraints.maxCharacters)
+		? Math.max(1, Math.floor(constraints.maxCharacters))
+		: COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS;
+
+	return {
+		tone: input.tone ?? COMPOSER_REWRITER_DEFAULTS.tone,
+		format: COMPOSER_REWRITER_DEFAULTS.format,
+		length: input.length ?? COMPOSER_REWRITER_DEFAULTS.length,
+		expectedInputLanguages: [...COMPOSER_REWRITER_DEFAULTS.expectedInputLanguages],
+		expectedContextLanguages: [...COMPOSER_REWRITER_DEFAULTS.expectedContextLanguages],
+		outputLanguage: COMPOSER_REWRITER_DEFAULTS.outputLanguage,
+		sharedContext: buildComposerWriterSharedContext({ ...constraints, maxCharacters: max })
+	};
+}
+
+/** Maps a refine chip to Rewriter create options (plus optional composer constraints). */
+export function buildComposerRewriterCreateOptionsFromAction(
+	action: Pick<ComposerRewriterRefineAction, 'tone' | 'length'>,
+	constraints?: ComposerWriterDraftConstraints
+): ComposerRewriterCreateCoreOptions {
+	return buildComposerRewriterCreateOptions({
+		tone: action.tone,
+		length: action.length,
+		constraints
+	});
+}
+
+/**
+ * Hover copy for an AI Writer Context chip: platform name + composer post limits
+ * from {@link getLaunchProviderConfig}.
+ */
+export function formatWriterProviderConstraintTooltip(identifier: string): string {
+	const id = identifier.trim();
+	const label = socialProviderDisplayLabel(id);
+	const cfg = getLaunchProviderConfig(id);
+	const parts: string[] = [label];
+
+	const max = cfg.maximumCharacters;
+	if (id.toLowerCase() === 'x') {
+		parts.push(`Max ${max.toLocaleString()} weighted characters`);
+	} else {
+		parts.push(`Max ${max.toLocaleString()} characters`);
+	}
+
+	if (cfg.minimumCharacters > 0) {
+		parts.push(`Min ${cfg.minimumCharacters.toLocaleString()} characters`);
+	}
+
+	if (cfg.comments === 'no-media') {
+		parts.push('Follow-ups: text only');
+	} else if (cfg.comments === false) {
+		parts.push('Follow-ups: not supported');
+	}
+
+	return parts.join(' · ');
 }
