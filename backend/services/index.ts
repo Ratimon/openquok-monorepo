@@ -85,7 +85,8 @@ export const authenticationService = new AuthenticationService(
     supabaseServiceClientConnection,
     refreshTokenRepository,
     userRepository,
-    userService
+    userService,
+    emailService
 );
 export const companyService = new CompanyService(configRepository, cacheServiceConnection);
 export const marketingService = new MarketingService(configRepository, cacheServiceConnection);

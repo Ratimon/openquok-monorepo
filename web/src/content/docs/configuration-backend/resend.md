@@ -1,8 +1,8 @@
 ---
 title: Resend - Email Setup
-description: Supabase email confirmations, local development email server, and Resend production setup for Openquok.
+description: Supabase email confirmations, local development email server, self-hosted no-email mode, and Resend production setup for OpenQuok.
 order: 7
-lastUpdated: 2026-03-31
+lastUpdated: 2026-07-16
 ---
 
 <script>
@@ -15,6 +15,28 @@ Email flows involve both:
 
 - Supabase **Auth** configuration in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink>
 - Backend environment variables that enable sending and pick a provider
+
+<Badge text="EMAIL_ENABLED" variant="envBackend" /> gates both outbound mail and verification policy: when it is <Badge text="false" variant="param" />, the API does not send mail and treats new accounts as verified.
+
+## Self-hosted / no email provider
+
+Use this when you run OpenQuok without an email features (typical self-hosted that skip mail entirely).
+
+```bash
+EMAIL_ENABLED=false
+```
+
+| Behavior | Effect |
+| --- | --- |
+| Outbound mail | Disabled — no verification, invite, or notification emails |
+| Signup | New users are marked verified automatically |
+| Sign-in | Email verification is not required |
+
+You do not need Resend, local inbox mocks, or AWS SES credentials in this mode.
+
+<Callout type="tip">
+Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset so plan guards and the first-billing paywall stay off. See <a href="/docs/configuration-backend/stripe">Stripe billing</a>.
+</Callout>
 
 ## Steps (local)
 
@@ -34,7 +56,7 @@ pnpm dev:with-local-email
 
 ### Set environment variables
 
-Local email development uses an AWS SES-compatible workflow with an **offline/local inbox mock**, so the backend still expects AWS credentials (even though the values can be placeholders).
+Local email development uses an AWS SES-compatible workflow with an **offline/local inbox mock**, so the backend still expects AWS credentials (even though the values can be placeholders). Set <Badge text="EMAIL_ENABLED" variant="envBackend" /> to <code>true</code> so verification mail is sent and the verify-signup flow applies.
 
 ```bash
 EMAIL_ENABLED=true
@@ -48,6 +70,11 @@ AWS_SECRET_ACCESS_KEY=local
 Open the local inbox UI at <Badge text="http://localhost:8005" variant="new" />.
 
 </Steps>
+
+<Callout type="note" title="Two local modes">
+<p>Self-host / no inbox: <Badge text="EMAIL_ENABLED" variant="envBackend" />{' '}<code>=false</code> — no mail, signup auto-verified (section above).</p>
+<p>Local inbox testing: <Badge text="EMAIL_ENABLED" variant="envBackend" />{' '}<code>=true</code> plus <Badge text="IS_EMAIL_SERVER_OFFLINE" variant="envBackend" />{' '}<code>=true</code> — current contributor path for viewing messages at port 8005.</p>
+</Callout>
 
 ## Steps (production with Resend)
 
@@ -71,21 +98,21 @@ Follow the Resend guide: <DocsExternalLink href="https://resend.com/docs/dashboa
 
 If you use AWS Route 53:
 
-- Go to **Route 53** → **Hosted zones** → select your domain (e.g. `openquok.com`)
+- Go to **Route 53** → **Hosted zones** → select (e.g. <Badge text="openquok.com" variant="param" />)
 - Create a record:
-  - **Name**: `_dmarc`
-  - **Type**: `TXT`
+  - **Name**: <Badge text="_dmarc" variant="param" />
+  - **Type**: <Badge text="TXT" variant="param" />
   - **Value**:
 
 ```txt
 "v=DMARC1; p=none; rua=mailto:dmarcreports@yourdomain.com;"
 ```
 
-Start with `p=none` (monitoring) and move to `p=quarantine` once you confirm your mail is passing DMARC.
+Start with <Badge text="p=none" variant="param" /> (monitoring) and move to <Badge text="p=quarantine" variant="param" /> once you confirm your mail is passing DMARC.
 
 </Steps>
 
-<Callout type="warning" title="Supabase confirmation behavior is configured in the dashboard">
+<Callout type="warning">
 Even if the backend can send email, whether a user must confirm their email is controlled by Supabase Auth settings.
 </Callout>
 
@@ -93,5 +120,6 @@ Even if the backend can send email, whether a user must confirm their email is c
 
 <CardGrid>
 <LinkCard title="Supabase" description="Dashboard setup and auth/email settings" href="/docs/configuration-backend/supabase" />
+<LinkCard title="Stripe billing" description="Self-host: leave publishable key unset" href="/docs/configuration-backend/stripe" />
 <LinkCard title="Database & migrations" description="Supabase CLI, migrations, and pg_cron notes" href="/docs/configuration-backend/database" />
 </CardGrid>

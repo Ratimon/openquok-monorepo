@@ -7,7 +7,7 @@ import {
 describe("usernameAvailability", () => {
     describe("validateUsernameFormat", () => {
         it("accepts valid slugs", () => {
-            expect(validateUsernameFormat("ratixoxo")).toEqual({ ok: true });
+            expect(validateUsernameFormat("user1")).toEqual({ ok: true });
             expect(validateUsernameFormat("a-b-c")).toEqual({ ok: true });
         });
 
@@ -33,13 +33,13 @@ describe("usernameAvailability", () => {
 
         it("marks taken names unavailable", () => {
             expect(
-                evaluateUsernameAvailability({ username: "ratixoxo", isTaken: true })
+                evaluateUsernameAvailability({ username: "user1", isTaken: true })
             ).toMatchObject({ available: false, reason: "taken" });
         });
 
         it("marks free valid names available", () => {
             expect(
-                evaluateUsernameAvailability({ username: "ratixoxo", isTaken: false })
+                evaluateUsernameAvailability({ username: "user1", isTaken: false })
             ).toEqual({ available: true });
         });
     });

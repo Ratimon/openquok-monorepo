@@ -164,7 +164,11 @@ export const config: ConfigObject = {
         programmaticTokenSecret: getEnv("SECURITY_SECRET", ""),
     },
 
-    /** Email (verification, welcome). When enabled, verification emails are sent. */
+    /**
+     * Email (verification, welcome).
+     * When `enabled` is false: no outbound mail, and signup treats users as verified (no verification gate).
+     * When `enabled` is true: verification emails are sent and unverified users cannot sign in.
+     */
     email: {
         enabled: getEnvBoolean("EMAIL_ENABLED", false),
         /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */

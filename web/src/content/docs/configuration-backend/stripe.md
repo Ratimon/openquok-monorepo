@@ -1,8 +1,8 @@
 ---
 title: Stripe billing
-description: Configure Stripe for workspace subscriptions, media storage quotas, checkout, and webhooks in Openquok.
+description: Configure Stripe for workspace subscriptions, media storage quotas, checkout, and webhooks in OpenQuok — including self-host with billing disabled.
 order: 8
-lastUpdated: 2026-06-07
+lastUpdated: 2026-07-16
 ---
 
 <script>
@@ -18,7 +18,7 @@ Plan enforcement (limits + feature gates) lives in the backend guards module:
 | Concern | Location |
 | --- | --- |
 | Guard service (plan evaluation + assertions) | <Badge text="backend/guards/subscription/SubscriptionGuardService.ts" variant="path" /> |
-| Route guard middleware helpers (`requirePlanCapability`, `requireAccountPlanCapability`) | <Badge text="backend/guards/subscription/middleware.ts" variant="path" /> |
+| Route guard middlewares (`requirePlanCapability`, `requireAccountPlanCapability`) | <Badge text="backend/guards/subscription/middleware.ts" variant="path" /> |
 
 
 | Surface | Role |
@@ -50,48 +50,68 @@ Also ensure <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> matches th
 
 Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink>.
 
-### What <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> does (`billingEnabled`)
+### Billing mode
 
-The API does **not** send the publishable key to Stripe. It only answers: **“Is this deployment running paid billing?”**
+Backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> is not sent to Stripe. It only answers: **is paid billing enabled?** (`billingEnabled`).
 
-
-This matches the common **self-hosted vs SaaS** pattern: one env var toggles whether subscription limits and checkout UI apply, without requiring every self-host operator to configure webhooks and secrets just to run the product locally.
-
-#### Self-hosted or local dev (omit publishable key)
+#### Self-hosted or local
 
 Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> **unset** (you may also omit <Badge text="STRIPE_SECRET_KEY" variant="envBackend" /> and <Badge text="STRIPE_WEBHOOK_SECRET" variant="envBackend" /> if you are not testing Stripe at all).
 
 | Behavior | Effect |
 | --- | --- |
 | `billingEnabled` | `false` |
-| Effective tier (no <Badge text="organization_subscriptions" variant="param" /> row) | **TEAM** — see <Badge text="SubscriptionService.resolveTier" variant="path" /> |
-| Plan limits | TEAM limits from <Badge text="pricing.ts" variant="path" /> (storage, features, and so on) |
+| Effective tier (no <Badge text="organization_subscriptions" variant="param" /> row) | **SOLO** — see <Badge text="SubscriptionService.resolveTier" variant="path" /> |
+| Plan limits | SOLO limits from <Badge text="pricing.ts" variant="path" /> (used for display/quota math when a value is needed) |
 | <Badge text="SubscriptionGuardService.assert" variant="path" /> | **Skipped** — subscription policy checks do not run |
+| First Billing paywall | **Does not show** — <Badge text="FirstBillingGate" variant="path" /> only runs when billing is enabled and the tier is FREE |
 | <Badge text="/account/billing" variant="path" /> | Shows an info alert: billing is not configured; no upgrade cards |
 
-Use this for contributors, Docker self-host, or internal instances where Stripe is intentionally disabled.
+Use this for contributors, Docker self-host, or internal instances where Stripe is intentionally disabled. Empty publishable key is the self-host / local default: no paywall, guards off.
 
-#### SaaS or production billing
+#### SaaS or production
 
 Set **all three** backend Stripe variables. With <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> set:
 
 | Behavior | Effect |
 | --- | --- |
 | `billingEnabled` | `true` |
-| Effective tier (no subscription row) | **FREE** — paid limits until the user subscribes |
-| Plan limits | Enforced from the active tier (FREE or paid row in Postgres) |
+| Effective tier  | **FREE** — paid limits until the user subscribes |
+| Plan limits | Enforced from the active tier (FREE or paid plans) |
 | <Badge text="SubscriptionGuardService.assert" variant="path" /> | **Active** — storage, team seats, share preview, public API, and related gates |
-| <Badge text="/account/billing" variant="path" /> | Upgrade UI, Checkout redirect, Customer Portal when a Stripe customer exists |
+| <Badge text="/account/billing" variant="path" /> | Upgrade UI, hosted Checkout redirect (existing subs), Customer Portal when a Stripe customer exists |
 
 Checkout and webhooks still require <Badge text="STRIPE_SECRET_KEY" variant="envBackend" /> and <Badge text="STRIPE_WEBHOOK_SECRET" variant="envBackend" />.
 
-<Callout type="note">
-Openquok checkout is **redirect-based** (hosted Stripe Checkout URL from the API), not embedded Stripe.js in the browser. You do **not** need <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> for `loadStripe()` on the server — only as the billing-enabled switch. A future embedded checkout would use <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" /> on the web app separately.
+<Callout type="note" title="Two checkout paths">
+<p><strong>Embedded</strong> (first-billing paywall): Stripe.js with <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />. Session from <Badge text="POST /api/v1/billing/embedded" variant="path" />.</p>
+<p><strong>Redirect</strong> (account billing upgrades): hosted Checkout URL from <Badge text="POST /api/v1/billing/subscribe" variant="path" />.</p>
 </Callout>
 
-### Stripe Price ids (web — required for checkout)
+<Callout type="tip" title="Backend vs web publishable key">
+<p>Backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> only toggles <Badge text="billingEnabled" variant="param" />. It is never passed to <code>loadStripe()</code>.</p>
+<p>For SaaS with first-billing, set the <strong>same</strong> publishable key on the web as <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />.</p>
+</Callout>
 
-Create **recurring** prices in the Stripe Dashboard for each paid tier (**SOLO**, **TEAM**, **ULTIMATE**, **10x Max**) and cadence (**monthly** and **yearly**). Copy each `price_…` id into the matching **web** variable in <Badge text="web/.env.development.local" variant="envWeb" /> (resolved by <Badge text="web/src/lib/billing/constants/config.ts" variant="path" />):
+### Web publishable key
+
+```bash
+VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+```
+
+Required for **embedded** Checkout.
+
+<Badge text="billingEnabled" variant="param" /> still comes from the API (backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" />), not from this Vite variable. Leave both empty for self-host.
+
+For SaaS, set the **same** publishable key on backend and web.
+
+This key also gates PostHog product analytics when empty — see <a href="/docs/admin/product-analytics">Product analytics</a>.
+
+### Price IDs
+
+Create recurring prices in the Stripe Dashboard for each paid tier (**SOLO**, **TEAM**, **ULTIMATE**, **10x Max**) and cadence (**monthly** / **yearly**). Put the same `price_…` ids on **web** and **backend**.
+
+**Web** (<Badge text="web/.env.development.local" variant="envWeb" />, resolved by <Badge text="web/src/lib/billing/constants/config.ts" variant="path" />):
 
 ```bash
 VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY=price_...
@@ -104,9 +124,7 @@ VITE_PUBLIC_STRIPE_PRICE_ID_MAX_MONTHLY=price_...
 VITE_PUBLIC_STRIPE_PRICE_ID_MAX_YEARLY=price_...
 ```
 
-On upgrade, the billing page sends the selected `stripePriceId` to <Badge text="/api/v1/billing/subscribe" variant="path" />. The API verifies the price amount and interval against <Badge text="common/src/subscription/pricing.ts" variant="path" /> before opening Checkout.
-
-Also set the same `price_…` ids on the **backend** (<Badge text="backend/.env.development.local" variant="envBackend" />) so <Badge text="POST /api/v1/billing/prorate" variant="path" /> can preview plan changes without auto-creating Stripe products:
+**Backend** (<Badge text="backend/.env.development.local" variant="envBackend" />) — used by <Badge text="POST /api/v1/billing/prorate" variant="path" />:
 
 ```bash
 STRIPE_PRICE_ID_SOLO_MONTHLY=price_...
@@ -119,19 +137,7 @@ STRIPE_PRICE_ID_MAX_MONTHLY=price_...
 STRIPE_PRICE_ID_MAX_YEARLY=price_...
 ```
 
-Use the **same values** as the matching <Badge text="VITE_PUBLIC_STRIPE_PRICE_ID_*" variant="envWeb" /> keys.
-
-Plan limits (channels, storage, workspaces, and so on) are edited in <Badge text="pricing.ts" variant="path" />, not in Stripe metadata.
-
-### Web (publishable key)
-
-```bash
-VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-```
-
-Current billing uses a **redirect** from <Badge text="POST /api/v1/billing/subscribe" variant="path" />; the web app reads `billingEnabled` from the API (driven by backend <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" />), not from this Vite variable.
-
-See <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a> for other <Badge text="VITE_*" variant="envWeb" /> variables.
+Plan limits are edited in <Badge text="pricing.ts" variant="path" />, not in Stripe metadata.
 
 ## Steps for Stripe Dashboard
 
@@ -147,7 +153,7 @@ In the Stripe Dashboard, open **Developers** → **API keys**.
 
 Copy:
 
-- **Publishable key** → <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> (billing mode flag; required for SaaS-style enforcement). Mirror on web as <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" />.
+- **Publishable key** → <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> (billing mode flag; required for SaaS-style enforcement). Mirror the **same** value on web as <Badge text="VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY" variant="envWeb" /> for embedded Checkout (first-billing).
 - **Secret key** → <Badge text="STRIPE_SECRET_KEY" variant="envBackend" /> (required for Checkout, Portal, and API calls).
 
 ### Configure the Customer Portal
@@ -244,9 +250,10 @@ Tiers: <Badge text="FREE" variant="param" />(authenticated, no paid row), <Badge
 | --- | --- | --- |
 | `GET` | `/api/v1/billing/plans` | Public plan catalog and limits |
 | `GET` | `/api/v1/billing/current?organizationId=` | Tier, drive usage, trial flags |
-| `POST` | `/api/v1/billing/subscribe` | Start Checkout or upgrade existing sub |
+| `POST` | `/api/v1/billing/embedded` | Create embedded Checkout session (client secret for Stripe.js) |
+| `POST` | `/api/v1/billing/subscribe` | Hosted Checkout redirect or upgrade existing sub |
 | `GET` | `/api/v1/billing/portal?organizationId=` | Stripe Customer Portal URL |
-| `GET` | `/api/v1/billing/check/:id?organizationId=` | Poll after Checkout redirect |
+| `GET` | `/api/v1/billing/check/:id?organizationId=` | Poll after Checkout return |
 | `POST` | `/api/v1/billing/webhooks/stripe` | Stripe webhooks (raw body; no JWT) |
 
 Webhook requests must use the raw JSON body for signature verification; the route is registered **before** the global JSON parser.
@@ -274,7 +281,7 @@ Signed-in users with a workspace should see usage on **Billing** and in the medi
 | Symptom | Likely cause |
 | --- | --- |
 | Billing page says Stripe is not configured | <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> empty on the API (`billingEnabled: false`) — expected for self-host; set it for SaaS |
-| Self-host wants full product without Stripe | Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset; effective tier **TEAM**, policies not enforced |
+| Self-host wants full product without Stripe | Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset; effective tier **SOLO**, guards skipped, no First Billing paywall |
 | SaaS user stuck on FREE limits | Set <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> **and** complete Checkout; confirm webhooks update <Badge text="organization_subscriptions" variant="param" /> |
 | Checkout works but tier never updates | Webhook not reaching the API; wrong signing secret; migrations not applied |
 | `402` on media upload | Workspace over <Badge text="media_storage_bytes_per_workspace" variant="default" /> for its tier |

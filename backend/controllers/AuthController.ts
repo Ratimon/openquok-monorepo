@@ -371,50 +371,62 @@ export class AuthController {
             }
 
             if (newUser?.id) {
-                // Always generate + persist verification token so API endpoints (`verify-signup`, `check-signup-verification`,
-                // `request-verify-signup`) work consistently in all environments (including tests).
-                // Only sending the email depends on EMAIL_ENABLED.
-                const token = this.emailService.generateVerificationToken();
-                const hashedToken = this.emailService.hashToken(token);
-                const expiresAt = new Date();
-                expiresAt.setHours(expiresAt.getHours() + 24);
-                try {
-                    const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
-                        newUser.id,
-                        hashedToken,
-                        expiresAt
-                    );
+                if (!this.emailService.isEnabled) {
+                    // No email service: treat signup as verified (self-host / local without an inbox).
+                    const { updateError } = await this.userRepository.updateEmailVerification(newUser.id, true);
                     if (updateError) {
-                        logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
-                    } else if (rowsAffected === 0) {
-                        logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
+                        logger.warn({
+                            msg: "Failed to auto-verify email when email is disabled",
+                            userId: newUser.id,
+                            email,
+                            error: updateError,
+                        });
                     }
-                    if (!updateError && rowsAffected > 0 && this.emailService.isEnabled) {
-                        try {
-                            await this.emailService.send(
-                                new VerifyEmailTemplate(
-                                    serverConfig.backendDomainUrl ?? "",
-                                    fullName ?? "User",
-                                    email,
-                                    token
-                                ),
-                                email
-                            );
-                            logger.info({ msg: "Verification email sent after signup", email });
-                        } catch (sendErr) {
-                            logger.warn({
-                                msg: "Failed to send verification email after signup",
-                                email,
-                                error: sendErr instanceof Error ? sendErr.message : String(sendErr),
-                            });
+                } else {
+                    // Generate + persist verification token so API endpoints (`verify-signup`, `check-signup-verification`,
+                    // `request-verify-signup`) work consistently; then send the verification email.
+                    const token = this.emailService.generateVerificationToken();
+                    const hashedToken = this.emailService.hashToken(token);
+                    const expiresAt = new Date();
+                    expiresAt.setHours(expiresAt.getHours() + 24);
+                    try {
+                        const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
+                            newUser.id,
+                            hashedToken,
+                            expiresAt
+                        );
+                        if (updateError) {
+                            logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
+                        } else if (rowsAffected === 0) {
+                            logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
                         }
+                        if (!updateError && rowsAffected > 0) {
+                            try {
+                                await this.emailService.send(
+                                    new VerifyEmailTemplate(
+                                        serverConfig.backendDomainUrl ?? "",
+                                        fullName ?? "User",
+                                        email,
+                                        token
+                                    ),
+                                    email
+                                );
+                                logger.info({ msg: "Verification email sent after signup", email });
+                            } catch (sendErr) {
+                                logger.warn({
+                                    msg: "Failed to send verification email after signup",
+                                    email,
+                                    error: sendErr instanceof Error ? sendErr.message : String(sendErr),
+                                });
+                            }
+                        }
+                    } catch (persistErr) {
+                        logger.warn({
+                            msg: "Failed to persist verification token after signup",
+                            email,
+                            error: persistErr instanceof Error ? persistErr.message : String(persistErr),
+                        });
                     }
-                } catch (persistErr) {
-                    logger.warn({
-                        msg: "Failed to persist verification token after signup",
-                        email,
-                        error: persistErr instanceof Error ? persistErr.message : String(persistErr),
-                    });
                 }
             }
 

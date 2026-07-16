@@ -1,8 +1,8 @@
 ---
 title: First setup as super admin
-description: After deployment — sign up, verify email, then set platform admin access in Supabase.
+description: After deployment — sign up, verify email when mail is enabled, then set platform admin access in Supabase.
 order: 1
-lastUpdated: 2026-03-31
+lastUpdated: 2026-07-16
 ---
 
 <script>
@@ -11,9 +11,14 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## When to do this
 
-<Callout type="warning" title="After configuration and deployment">
-Complete **backend and frontend configuration** and confirm a **successful deployment** (or a working local stack) before following these steps. You need a running app, working auth, and access to your Supabase project.
+<Callout type="warning">
+Complete <strong>backend and frontend configuration</strong> and confirm a <strong>successful deployment</strong> (or a working local stack) first before following these steps. You need a running app, working auth, and access to your Supabase project.
 </Callout>
+
+<CardGrid>
+<LinkCard title="Configuration - Backend" description="Backend env, Supabase, and services" href="/docs/configuration-backend" />
+<LinkCard title="Configuration - Web" description="Vite env and web defaults" href="/docs/configuration-web" />
+</CardGrid>
 
 ## Steps
 
@@ -23,9 +28,13 @@ Complete **backend and frontend configuration** and confirm a **successful deplo
 
 Open your **frontend** in the browser — for example <Badge text="http://localhost:5173" variant="new" /> (default Vite dev), <Badge text="http://localhost:3000" variant="new" /> if your setup serves the web app there, or your **production** site URL.
 
-### Sign up and verify your email
+### Sign up (and verify email only when mail is enabled)
 
-In the navbar, choose **Sign up** and complete registration with your email and password. Finish **email verification** using the code or link your setup sends (depends on Supabase Auth and backend email configuration).
+In the navbar, choose **Sign up** and complete registration with your email and password.
+
+Email verification applies only when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is <code>true</code> (finish the verification link your setup sends). When it is <code>false</code> (typical self-host / no email provider), new accounts are treated as verified automatically — skip the verify-signup step and continue.
+
+See <a href="/docs/configuration-backend/resend">Resend / email setup</a> for both modes.
 
 ### Promote your user to platform admin
 
@@ -41,7 +50,7 @@ After that, sign out and sign in again if the app caches roles, or refresh the s
 
 ### Set your public username (optional but recommended)
 
-In the app, open <Badge text="Account → Settings → Profile" variant="path" /> and set a <strong>username</strong> (e.g. <Badge text="ratixoxo" variant="param" />). That powers your creator profile at <Badge text="/creators/&#123;username&#125;" variant="path" /> when you publish listings under your own account.
+In the app, open <Badge text="Account → Settings → Profile" variant="path" /> and set a <strong>username</strong> (e.g. <Badge text="quokka" variant="param" />). That powers your creator profile at <Badge text="/creators/&#123;username&#125;" variant="path" /> when you publish listings under your own account.
 
 Seeded catalog listings (OpenQuok Core, Bloom MCP, etc.) are owned by <Badge text="@openquok" variant="param" /> until you reassign them in <Badge text="Secret Admin → Listing Manager" variant="path" />.
 

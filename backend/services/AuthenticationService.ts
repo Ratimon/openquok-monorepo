@@ -4,6 +4,7 @@ import type { RefreshTokenRepository } from "../repositories/RefreshTokenReposit
 import type { UserRepository } from "../repositories/UserRepository";
 import type { UserLike } from "../utils/dtos/UserDTO";
 import type { UserService } from "./UserService";
+import type { EmailService } from "./EmailService";
 
 import { createSupabaseRLSClient } from "../connections/supabase";
 import {
@@ -40,7 +41,8 @@ export class AuthenticationService {
         private readonly supabaseServiceClient: SupabaseClient,
         private readonly refreshTokenRepository: RefreshTokenRepository,
         private readonly userRepository: UserRepository,
-        private readonly userService: UserService
+        private readonly userService: UserService,
+        private readonly emailService: EmailService
     ) {}
 
     createRLSClient = (context: { req: Request; res: Response }) =>
@@ -80,9 +82,13 @@ export class AuthenticationService {
             throw new UserNotFoundError(normalizedEmail);
         }
 
-        const isEmailVerified = dbUser.is_email_verified !== false;
-        if (!isEmailVerified) {
-            throw new NotVerifiedUserError("User is not verified");
+        // When email is disabled there is no verification flow; allow sign-in for unverified rows
+        // (e.g. accounts created while EMAIL_ENABLED=false before auto-verify on signup).
+        if (this.emailService.isEnabled) {
+            const isEmailVerified = dbUser.is_email_verified !== false;
+            if (!isEmailVerified) {
+                throw new NotVerifiedUserError("User is not verified");
+            }
         }
 
         return {
