@@ -1,15 +1,17 @@
 import { BullMQAdapter } from "@flowcraft/bullmq-adapter";
 import type { JobPayload } from "flowcraft";
-import { Worker, type Job } from "bullmq";
+import { Worker, type Job, type Queue } from "bullmq";
 import type IORedis from "ioredis";
 
 import { config } from "backend/config/GlobalConfig.js";
 
+import { flowcraftExecuteNodeJobOptions } from "./flowcraftBullMqJobOptions.js";
 import { SafeRedisContext } from "./safeRedisContext.js";
 
 type AdapterInternals = {
     redisClient: IORedis;
     queueName: string;
+    queue: Queue;
     logger: { info: (m: string) => void; debug?: (m: string) => void; error: (...a: unknown[]) => void };
     worker: Worker | undefined;
 };
@@ -33,6 +35,10 @@ export type SafeBullMQAdapterOptions = ConstructorParameters<typeof BullMQAdapte
  * longer `lockDuration` than BullMQ’s default (30s). The upstream package does not pass
  * `lockDuration`; long Flowcraft node work (e.g. OAuth refresh) would otherwise throw
  * “Error: could not renew lock for job …” when execution exceeds the lock window.
+ *
+ * Upstream `enqueueJob` calls `queue.add` with no job opts, so completed follow-on / reconcile
+ * jobs accumulate under `bull:<queue>:*`. We pass {@link flowcraftExecuteNodeJobOptions} so
+ * retention matches OpenQuok’s initial run enqueues.
  */
 export class SafeBullMQAdapter extends BullMQAdapter {
     private readonly workerConcurrency: number;
@@ -45,6 +51,11 @@ export class SafeBullMQAdapter extends BullMQAdapter {
     override createContext(runId: string) {
         const redis = (this as unknown as AdapterInternals).redisClient;
         return new SafeRedisContext(redis, runId) as unknown as ReturnType<BullMQAdapter["createContext"]>;
+    }
+
+    protected override async enqueueJob(job: JobPayload): Promise<void> {
+        const $this = this as unknown as AdapterInternals;
+        await $this.queue.add("executeNode", job, flowcraftExecuteNodeJobOptions());
     }
 
     protected override processJobs(handler: (job: JobPayload) => Promise<void>): void {
