@@ -2,7 +2,7 @@
 title: Security guidelines
 description: Openquok's Service key rules, RLS guidance, rate limiting, and SSR state-management safety.
 order: 1
-lastUpdated: 2026-05-11
+lastUpdated: 2026-07-17
 ---
 
 <script>
@@ -44,6 +44,7 @@ await authenticationRepository.checkAuth(); // Shared state - security risk!
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Docker Compose (self-host) — security" description="Local/private-network defaults, env exposure, ports, and what not to do on a public host" href="/docs/installation/docker-compose#security-and-exposure" />
 <LinkCard title="RBAC (roles & permissions)" description="How roles/permissions are loaded and enforced in the backend" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="Developer Guidelines" description="Back to the developer guidelines hub" href="/docs/developer-guidelines" />
 </CardGrid>

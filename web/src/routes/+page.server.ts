@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 
 	let publicFaqRaw: Record<string, unknown> | null = null;
 	try {
-		const loaded = await configRepository.getPublicModuleConfig('public_faq');
+		const loaded = await configRepository.getPublicModuleConfig('public_faq', fetch);
 		if (Object.keys(loaded).length > 0) {
 			publicFaqRaw = loaded;
 		}

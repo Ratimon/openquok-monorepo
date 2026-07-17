@@ -1,8 +1,8 @@
 ---
-title: Production deployment
+title: Production - deployment
 description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-05-09
+lastUpdated: 2026-07-16
 ---
 
 <script>
@@ -12,6 +12,10 @@ import { Badge, Callout, DocsExternalLink, CardGrid, LinkCard, Steps } from '$li
 This project is set up for **Vercel**  for the **backend** (Express.js), **web** (SvelteKit), and optionally the **CLI auth server** (<Badge text="agent/server" variant="path" /> — device flow for <code>openquok auth:login</code>). **Supabase** remains the database and auth provider for the API.
 
 **Orchestrator workers** (BullMQ) are **not** run on Vercel. We deploy **separate always-on processes** (for example on <a href="/docs/installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Configuration - Worker</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
+
+<Callout type="tip" title="Self-host">
+<p>To run API, web, Redis, and BullMQ workers on your own host from this monorepo (instead of Vercel + Railway), follow <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. That path still needs an operator-provided Supabase project; see <a href="/docs/installation/system-requirements">System requirements</a>.</p>
+</Callout>
 
 ## What you need
 
@@ -86,6 +90,7 @@ pnpm railway:deploy:scheduled-social-post
 ## Next steps
 
 <CardGrid>
+<LinkCard title="Docker Compose (self-host)" description="Self-host with docker compose" href="/docs/installation/docker-compose" />
 <LinkCard title="Vercel" description="Separate projects for backend, web, and agent/server—matches the deploy and env sync commands above" href="/docs/installation/vercel" />
 <LinkCard title="Railway (orchestrator workers)" description="CLI linking, env sync, and deploy scripts for BullMQ workers—referenced in the workers section" href="/docs/configuration-worker/railway" />
 <LinkCard title="Configuration - Agent" description="CLI auth server secrets, Vercel root directory, and production OAuth callbacks" href="/docs/configuration-agent" />

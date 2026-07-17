@@ -1,0 +1,264 @@
+# Self-host app stack (API, web, BullMQ workers, Redis).
+# For operators on their own machine / private network — not a public SaaS edge.
+# Contributor Redis / CLI Postgres remain in ../docker-compose.yml.
+#
+# From repo root:
+#   cp infra/self-host/.env.example infra/self-host/.env
+#   # fill PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY (and matching VITE_* for the web image)
+#   docker compose -f infra/self-host/docker-compose.yml up --build
+#
+# Optional CLI device-flow auth (Postgres + agent server):
+#   docker compose -f infra/self-host/docker-compose.yml --profile cli up --build
+#
+# Images build from the monorepo root (context: ../..). Requires Docker + Compose v2.
+
+name: openquok-self-host
+
+# Reach Supabase (or other services) on the Docker host from api/workers.
+x-supabase-host-gateway: &supabase-host-gateway
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - openquok
+    # Uncomment to reach Redis from the host (debug only):
+    # ports:
+    #   - "6379:6379"
+
+  # Named volumes are root-owned; chown so the image `node` user (uid 1000) can write uploads.
+  uploads-init:
+    image: busybox:1.36
+    volumes:
+      - uploads-data:/uploads
+    command: ["sh", "-c", "chown -R 1000:1000 /uploads"]
+    networks:
+      - openquok
+    restart: "no"
+
+  api:
+    <<: *supabase-host-gateway
+    build:
+      context: ../..
+      dockerfile: backend/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      UPLOAD_DIRECTORY: /uploads
+      # Workers own BullMQ jobs; do not also run refresh loops inside the API.
+      ENABLE_INTEGRATION_REFRESH_ORCHESTRATOR: "false"
+    ports:
+      - "${OPENQUOK_API_HOST_PORT:-3000}:3000"
+    volumes:
+      - uploads-data:/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      uploads-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
+    networks:
+      - openquok
+
+  # Web: VITE_* are build-args only.
+  # SUPABASE_SECRET_KEY / Stripe / OAuth secrets into the Node UI process).
+  web:
+    build:
+      context: ../..
+      dockerfile: web/Dockerfile
+      args:
+        # Empty = same-origin /api (web hooks proxy to api). Do not bake http://localhost:3000 — SSR in the web container would call itself.
+        VITE_API_BASE_URL: ${OPENQUOK_WEB_API_BASE_URL:-}
+        VITE_FRONTEND_DOMAIN_URL: ${VITE_FRONTEND_DOMAIN_URL:-http://localhost:4007}
+        VITE_PUBLIC_SUPABASE_URL: ${VITE_PUBLIC_SUPABASE_URL:-}
+        VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-}
+        VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_YEARLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_YEARLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_MONTHLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_MONTHLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_YEARLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_YEARLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_MONTHLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_MONTHLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_YEARLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_YEARLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_MAX_MONTHLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_MAX_MONTHLY:-}
+        VITE_PUBLIC_STRIPE_PRICE_ID_MAX_YEARLY: ${VITE_PUBLIC_STRIPE_PRICE_ID_MAX_YEARLY:-}
+        VITE_MEDIA_LIBRARY_UPLOAD: ${VITE_MEDIA_LIBRARY_UPLOAD:-local}
+        VITE_STORAGE_R2_PUBLIC_BASE_URL: ${VITE_STORAGE_R2_PUBLIC_BASE_URL:-}
+        VITE_SUPPORT_EMAIL_ADDRESS: ${VITE_SUPPORT_EMAIL_ADDRESS:-}
+        VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID: ${VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID:-}
+        VITE_PUBLIC_POSTHOG_KEY: ${VITE_PUBLIC_POSTHOG_KEY:-}
+        VITE_PUBLIC_POSTHOG_HOST: ${VITE_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
+        VITE_PUBLIC_FACEBOOK_PIXEL: ${VITE_PUBLIC_FACEBOOK_PIXEL:-}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      OPENQUOK_API_PROXY_TARGET: http://api:3000
+      CLI_AUTH_SERVER_URL: ${CLI_AUTH_SERVER_URL:-http://localhost:3111}
+    ports:
+      - "${OPENQUOK_WEB_HOST_PORT:-4007}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - openquok
+
+  worker-integration-refresh:
+    <<: *supabase-host-gateway
+    build:
+      context: ../..
+      dockerfile: orchestrator/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      UPLOAD_DIRECTORY: /uploads
+      ORCHESTRATOR_WORKER_HEALTH_PORT: "3091"
+    command: ["node", "dist/worker/runIntegrationRefreshBullMqWorker.js"]
+    ports:
+      - "${OPENQUOK_WORKER_HEALTH_HOST_PORT:-3091}:3091"
+    volumes:
+      - uploads-data:/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      uploads-init:
+        condition: service_completed_successfully
+    networks:
+      - openquok
+
+  worker-notification-email:
+    <<: *supabase-host-gateway
+    build:
+      context: ../..
+      dockerfile: orchestrator/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      UPLOAD_DIRECTORY: /uploads
+      ORCHESTRATOR_WORKER_HEALTH_PORT: "0"
+    command: ["node", "dist/worker/runNotificationEmailBullMqWorker.js"]
+    healthcheck:
+      disable: true
+    volumes:
+      - uploads-data:/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      uploads-init:
+        condition: service_completed_successfully
+    networks:
+      - openquok
+
+  worker-scheduled-social-post:
+    <<: *supabase-host-gateway
+    build:
+      context: ../..
+      dockerfile: orchestrator/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      UPLOAD_DIRECTORY: /uploads
+      ORCHESTRATOR_WORKER_HEALTH_PORT: "0"
+    command: ["node", "dist/worker/runScheduledSocialPostBullMqWorker.js"]
+    healthcheck:
+      disable: true
+    volumes:
+      - uploads-data:/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      uploads-init:
+        condition: service_completed_successfully
+    networks:
+      - openquok
+
+  postgres:
+    profiles: ["cli"]
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: openquok_cli_auth
+      POSTGRES_USER: openquok
+      POSTGRES_PASSWORD: openquok
+    volumes:
+      - cli-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openquok -d openquok_cli_auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - openquok
+
+  agent-server:
+    profiles: ["cli"]
+    build:
+      context: ../..
+      dockerfile: agent/server/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3111"
+      DATABASE_URL: ${CLI_DATABASE_URL:-postgresql://openquok:openquok@postgres:5432/openquok_cli_auth}
+      SERVER_URL: ${SERVER_URL:-http://localhost:3111}
+      OPENQUOK_FRONTEND_URL: ${OPENQUOK_FRONTEND_URL:-http://localhost:4007}
+      OPENQUOK_API_URL: ${OPENQUOK_API_URL:-http://localhost:3000}
+    ports:
+      - "${OPENQUOK_AGENT_HOST_PORT:-3111}:3111"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - openquok
+
+volumes:
+  redis-data:
+  uploads-data:
+  cli-postgres-data:
+
+networks:
+  openquok:
+    driver: bridge

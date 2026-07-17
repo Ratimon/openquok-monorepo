@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-Openquok social channels are **first-party provider classes** registered in the backend, exposed through existing REST routes, and optionally wired in the web composer. There is no runtime plugin loader — each provider is a deliberate code change across a small, predictable set of files.
+Our social channels are ** provider classes** registered in the backend, exposed through existing REST routes, and optionally wired in the web. Each provider is a deliberate code change across a small, predictable set of files.
 
 Use **Facebook** (<Badge text="facebook" variant="default" />), **Instagram (Business)** (<Badge text="instagram-business" variant="default" />), and **Threads** (<Badge text="threads" variant="default" />) as reference implementations.
 
@@ -19,7 +19,7 @@ Use **Facebook** (<Badge text="facebook" variant="default" />), **Instagram (Bus
 The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is the contract everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/[identifier]" variant="path" />, catalog entries, CLI filters, and web routing.
 </Callout>
 
-**Convention reference:** Cursor agents and contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/social-provider-integration.mdc"><Badge text=".cursor/rules/social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.
+**Convention reference:** Contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/social-provider-integration.mdc"><Badge text=".cursor/rules/social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.
 
 **OAuth (typical):**
 
@@ -86,6 +86,8 @@ Extend the `preservesUserTokenForRefresh` branch when adding another Meta-style 
 ### 4. Environment variables
 
 Add keys to <Badge text="backend/config/GlobalConfig.ts" variant="path" /> and <Badge text="backend/.env.development.example" variant="path" />. If orchestrator workers need the same keys, mirror them per the orchestrator env rule.
+
+Also add empty placeholders under **Social provider apps** in <Badge text="infra/self-host/.env.example" variant="path" />, and document the ID/secret pair in <a href="/docs/installation/docker-compose">Self-host — Docker Compose</a>.
 
 ### 5. Database
 

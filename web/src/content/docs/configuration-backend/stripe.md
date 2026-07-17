@@ -1,7 +1,7 @@
 ---
 title: Stripe billing
 description: Configure Stripe for workspace subscriptions, media storage quotas, checkout, and webhooks in OpenQuok — including self-host with billing disabled.
-order: 8
+order: 10
 lastUpdated: 2026-07-16
 ---
 

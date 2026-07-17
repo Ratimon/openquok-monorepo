@@ -2,7 +2,7 @@
 title: Development environment
 description: Run Openquok's agent, backend, workers and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-05-16
+lastUpdated: 2026-07-16
 ---
 
 <script>
@@ -11,6 +11,11 @@ import { Badge, Callout, Tabs, TabItem, CardGrid, LinkCard, Steps } from '$lib/u
 
 <Callout type="warning">
 Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/quick-start">Quick start</a>) and <a href="/docs/configuration-backend">backend</a> / <a href="/docs/configuration-web">web</a> configurations are in place. The sections below assume you run commands from the <strong>repository root</strong> unless noted.
+</Callout>
+
+<Callout type="note" title="Development vs self-host">
+<p><Badge text="infra/docker-compose.yml" variant="path" /> is for <strong>contributors</strong> working on the hosted openquok.com.</p>
+<p>Those who want <strong>own self-host</strong> should use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>.</p>
 </Callout>
 
 ### Backend local development
@@ -467,6 +472,7 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
+<LinkCard title="Docker Compose (self-host)" description="Full containerized stack when you are not using pnpm for API and web" href="/docs/installation/docker-compose" />
 <LinkCard title="Production deployment" description="Full production sequence: backend and web env, CORS, Vercel deploy commands from this page" href="/docs/installation/production-deployment" />
 <LinkCard title="Configuration - Backend" description="Database migrations, pg_cron, Redis cache, and production-linked Supabase commands referenced above" href="/docs/configuration-backend" />
 <LinkCard title="Vite & web env" description="HTTPS on localhost, Vite variables, and aligning the API base URL with the backend" href="/docs/configuration-web/vite" />

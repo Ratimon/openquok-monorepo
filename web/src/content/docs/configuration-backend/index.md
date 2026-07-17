@@ -49,7 +49,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 ## Guides
 
 <CardGrid>
-<LinkCard title="Docker (local services)" description="Run local Redis via Docker Compose for API + workers" href="/docs/configuration-backend/docker" />
+<LinkCard title="Docker (local services)" description="Local Redis for contributors, plus pointer to the self-host Compose stack" href="/docs/configuration-backend/docker" />
 <LinkCard title="Supabase" description="Project setup, keys, dashboard settings, and local vs cloud notes" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Redis cache" description="Switch cache provider to Redis and configure REDIS_* variables" href="/docs/configuration-backend/redis" />
 <LinkCard title="Sentry" description="Enable error monitoring with SENTRY_DSN" href="/docs/configuration-backend/sentry" />
@@ -64,6 +64,7 @@ Configure Redis (recommended for production), Sentry (optional), Google OAuth (o
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Docker Compose (self-host)" description="Run API, web, Redis, and workers from infra/self-host/" href="/docs/installation/docker-compose" />
 <LinkCard title="Production deployment" description="Align FRONTEND_DOMAIN_URL with VITE_FRONTEND_DOMAIN_URL in production" href="/docs/installation/production-deployment" />
 <LinkCard title="Vite (SvelteKit)" description="VITE_FRONTEND_DOMAIN_URL and OAuth alignment" href="/docs/configuration-web/vite" />
 <LinkCard title="Installation" description="Deploy and configure OpenQuok" href="/docs/installation" />

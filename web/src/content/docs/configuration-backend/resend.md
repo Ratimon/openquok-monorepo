@@ -1,7 +1,7 @@
 ---
 title: Resend - Email Setup
 description: Supabase email confirmations, local development email server, self-hosted no-email mode, and Resend production setup for OpenQuok.
-order: 7
+order: 8
 lastUpdated: 2026-07-16
 ---
 

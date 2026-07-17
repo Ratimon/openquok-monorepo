@@ -58,12 +58,15 @@ export class ModuleConfigRepository {
 		return {};
 	}
 
-	public async getPublicModuleConfig(moduleName: string): Promise<Record<string, unknown>> {
+	public async getPublicModuleConfig(
+		moduleName: string,
+		fetch?: typeof globalThis.fetch
+	): Promise<Record<string, unknown>> {
 		try {
 			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
 				this.config.endpoints.getPublicModuleConfig,
 				{ moduleName },
-				{ withCredentials: false }
+				{ withCredentials: false, fetch }
 			);
 
 			if (ok && moduleConfigDto?.success && moduleConfigDto.data) {

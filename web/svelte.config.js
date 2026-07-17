@@ -1,15 +1,33 @@
 import adapterAuto from '@sveltejs/adapter-auto';
+import adapterNode from '@sveltejs/adapter-node';
 import adapterVercel from '@sveltejs/adapter-vercel';
 import { mdsvex } from 'mdsvex';
-import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
-
-const adapter = process.env.VERCEL ? adapterVercel() : adapterAuto();
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import autoprefixer from "autoprefixer";
-
+import autoprefixer from 'autoprefixer';
 import { loadEnv } from 'vite';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+
+import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
+
+/**
+ * Adapter selection (build-time):
+ * - VERCEL set → adapter-vercel (SaaS / Vercel CI; wins over Docker flags)
+ * - OPENQUOK_ADAPTER=node or DOCKER=1 → adapter-node (self-host / container)
+ * - otherwise → adapter-auto (local / platform zero-config)
+ */
+function resolveAdapter() {
+	if (process.env.VERCEL) {
+		return adapterVercel();
+	}
+	if (process.env.OPENQUOK_ADAPTER === 'node' || process.env.DOCKER === '1') {
+		// Leave compression to a reverse proxy when present; avoids double work in containers.
+		return adapterNode({ precompress: false });
+	}
+	return adapterAuto();
+}
+
+const adapter = resolveAdapter();
 
 // Load environment variables using Vite's loadEnv
 // Vite uses MODE to determine which .env files to load:

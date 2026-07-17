@@ -1,0 +1,37 @@
+# Git and editor
+.git
+.gitignore
+.cursor
+**/.DS_Store
+
+# Dependencies (reinstalled in image)
+**/node_modules
+
+# Local env and secrets
+**/.env
+**/.env.*
+!**/.env.*.example
+
+# Build outputs (rebuilt in image)
+**/dist
+web/build
+web/.svelte-kit
+backend/static/routes-manifest.json
+
+# Deploy artifacts
+**/.vercel
+**/coverage
+
+# Tests and dev-only
+**/*.test.ts
+**/*.unit.test.ts
+**/*.integration.test.ts
+**/*.e2e.test.ts
+backend/tests
+orchestrator/**/*.test.ts
+
+# Large or irrelevant paths for app images
+agent/server/node_modules
+agent/server/dist
+sdk
+LICENSE

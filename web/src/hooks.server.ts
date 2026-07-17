@@ -1,11 +1,35 @@
 import type { Handle } from '@sveltejs/kit';
 
 /**
- * Forward `/api/*` to the local backend in development so the browser stays on the HTTPS dev origin.
- * Vite `server.proxy` is not always applied before SvelteKit's dev middleware, which breaks auth
- * cookies and OAuth callbacks when the SPA uses same-origin `/api` URLs.
+ * Forward `/api/*` (and local `/uploads/*`) to the backend when:
+ * - `OPENQUOK_API_PROXY_TARGET` is set (Docker self-host: `http://api:3000`), or
+ * - Vite dev (`import.meta.env.DEV`) with optional `DEV_BACKEND_PROXY_TARGET`.
+ *
+ * Same-origin relative API paths then work in the browser and in SSR (`event.fetch`).
  */
 const DEFAULT_DEV_BACKEND_ORIGIN = 'http://localhost:3000';
+
+function shouldProxyPathname(pathname: string): boolean {
+	return pathname.startsWith('/api') || pathname.startsWith('/uploads');
+}
+
+function resolveBackendProxyOrigin(): string | null {
+	const composeTarget =
+		typeof process.env.OPENQUOK_API_PROXY_TARGET === 'string'
+			? process.env.OPENQUOK_API_PROXY_TARGET.trim()
+			: '';
+	if (composeTarget) {
+		return composeTarget.replace(/\/+$/, '');
+	}
+	if (import.meta.env.DEV) {
+		const devTarget =
+			typeof process.env.DEV_BACKEND_PROXY_TARGET === 'string'
+				? process.env.DEV_BACKEND_PROXY_TARGET.trim()
+				: '';
+		return (devTarget || DEFAULT_DEV_BACKEND_ORIGIN).replace(/\/+$/, '');
+	}
+	return null;
+}
 
 /** `Headers` iteration merges `Set-Cookie`; browsers need each cookie appended separately. */
 function forwardUpstreamResponse(upstream: Response): Response {
@@ -31,20 +55,25 @@ function forwardUpstreamResponse(upstream: Response): Response {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
-	if (!import.meta.env.DEV || !event.url.pathname.startsWith('/api')) {
+	const backendOrigin = resolveBackendProxyOrigin();
+	if (!backendOrigin || !shouldProxyPathname(event.url.pathname)) {
 		return resolve(event);
 	}
 
-	const raw =
-		typeof process.env.DEV_BACKEND_PROXY_TARGET === 'string'
-			? process.env.DEV_BACKEND_PROXY_TARGET.trim()
-			: '';
-	const backendOrigin = raw || DEFAULT_DEV_BACKEND_ORIGIN;
-	const targetUrl = `${backendOrigin.replace(/\/+$/, '')}${event.url.pathname}${event.url.search}`;
+	const targetUrl = `${backendOrigin}${event.url.pathname}${event.url.search}`;
 
 	const headers = new Headers(event.request.headers);
 	headers.delete('host');
 	headers.delete('connection');
+
+	const clientAddress = event.getClientAddress();
+	if (clientAddress) {
+		const prior = event.request.headers.get('x-forwarded-for');
+		headers.set(
+			'x-forwarded-for',
+			prior?.trim() ? `${prior}, ${clientAddress}` : clientAddress
+		);
+	}
 
 	const init: RequestInit = {
 		method: event.request.method,

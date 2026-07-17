@@ -1,5 +1,5 @@
 ---
-title: Vercel
+title: Production - Vercel
 description: Deploy Openquok's Application on Vercel — backend, web, and CLI auth server.
 order: 2
 lastUpdated: 2026-05-08

@@ -8,7 +8,7 @@ import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathP
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
-import { getRootPathPublicDocs, getRootPathPublicDocsGettingStartedForDev } from '$lib/area-public/constants/getRootPathPublicDocs';
+import { getRootPathPublicDocs, getRootPathPublicDocsInstallationDockerCompose } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
 	getRootPathPublicBuildingBlocksCategories,
@@ -41,7 +41,7 @@ const publicBuildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocks
 const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
 const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
-const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingStartedForDev());
+const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
@@ -625,7 +625,7 @@ export function accentSplitCtaBannerDescription(agentLabel: string): string {
 /** Top accent banner on hub detail pages — links to the page setup guide. */
 export const PUBLIC_DOCS_BANNER_CTA_TEXT = 'View setup guide';
 
-/** Accent banner CTA when the destination is self-host / getting-started-for-dev docs. */
+/** Accent banner CTA when the destination is self-host Docker Compose docs. */
 export const PUBLIC_SELF_HOST_BANNER_CTA_TEXT = 'Self-host OpenQuok for free';
 
 export function accentSplitDocsCtaBannerTitle(label: string): string {
@@ -637,7 +637,7 @@ export function accentSplitDocsCtaBannerDescription(label: string): string {
 }
 
 const PUBLIC_SELF_HOST_DOCS_BANNER = {
-	docsPath: publicDocsGettingStartedForDevPath,
+	docsPath: publicDocsInstallationDockerComposePath,
 	title: PUBLIC_SELF_HOST_BANNER_CTA_TEXT,
 	description:
 		'Run your own instance on your machine or cloud — the free path when you want full control without a paid workspace.',
@@ -803,7 +803,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Blog Authors', href: '/blog/author' },
 		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Developer Docs', href: publicDocsPath },
-		{ label: 'Self-hosted', href: publicDocsGettingStartedForDevPath },
+		{ label: 'Self-hosted', href: publicDocsInstallationDockerComposePath },
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },

@@ -34,6 +34,7 @@ const deriveWwwVariants = (origin: string): string[] => {
 
 loadBackendDotenv();
 const isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+const notSecured = getEnvBoolean("NOT_SECURED", false);
 
 const rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
 const resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
@@ -152,7 +153,7 @@ export const config: ConfigObject = {
     /** When true, registration is disabled (unless DISABLE_REGISTRATION is not set). */
         disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
         /** When true, allow cookie in header for dev (NOT_SECURED). */
-        notSecured: getEnvBoolean("NOT_SECURED", false),
+        notSecured: notSecured,
         /** Shared secret for security-sensitive deterministic signing/hashing. */
         securitySecret: getEnv("SECURITY_SECRET", ""),
         /** Secret for signing organization invite tokens. Required for invite-by-email. */
@@ -338,10 +339,11 @@ export const config: ConfigObject = {
 
     /** Rate limiting. When enabled, applies global and route-specific limits. */
     rateLimit: {
-        enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
+        /** Off by default when NOT_SECURED (self-host / local HTTP); set RATE_LIMIT_ENABLED=true to test limits. */
+        enabled: getEnv("RATE_LIMIT_ENABLED", notSecured ? "false" : "true") !== "false",
         global: {
             windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
-            max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv ? 30 : 1000),
+            max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 30 : 1000),
             standardHeaders: true,
             legacyHeaders: false,
             message: "Too many requests from this IP, please try again later",

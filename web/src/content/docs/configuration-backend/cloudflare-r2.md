@@ -1,7 +1,7 @@
 ---
 title: R2 or local storage
 description: Choose Cloudflare R2 (S3-compatible) or local disk for workspace media uploads; configure env vars and optional browser direct uploads.
-order: 4
+order: 5
 lastUpdated: 2026-04-18
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -44,12 +44,15 @@ globs:
   - web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte
   - agent/skills/openquok-core/SKILL.md
   - agent/skills/openquok-core/resources/**
+  - infra/self-host/.env.example
+  - infra/self-host/docker-compose.yml
+  - web/src/content/docs/installation/docker-compose.md
 alwaysApply: false
 ---
 
 # Adding a social provider
 
-Ship **backend + web + docs + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
@@ -59,7 +62,7 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
 
 1. **`SocialProvider` class** — `backend/integrations/providers/{id}/` implementing `social.integrations.interface.ts`: OAuth (`generateAuthUrl`, `authenticate`), `post`, `maxLength`, scopes. Split publish logic into helpers (e.g. `*GraphPublish.ts`) when non-trivial.
 2. **Register** — add `new YourProvider()` in `backend/integrations/integrationManager.ts` (no new REST routes).
-3. **Config** — secrets only via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
+3. **Config** — secrets only via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Also add the same empty keys to **`infra/self-host/.env.example`** (Social provider apps section) so self-host operators get the vars. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **Tests** — unit tests for OAuth edge cases, publish payload shaping, and connection save when behavior differs.
@@ -227,6 +230,8 @@ Wire through `PublicChannelLandingPage.svelte` (`secondaryCtaText` / `secondaryC
 | --- | --- |
 | Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard |
 | CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
+| Self-host env template | `infra/self-host/.env.example` — add `{PROVIDER}_*` / `{PROVIDER}_*_SECRET` (or the keys `GlobalConfig` expects) under **Social provider apps** |
+| Self-host install docs | `web/src/content/docs/installation/docker-compose.md` — add the new ID/secret pair to **Optional: Social provider apps** (and keep Related / in-section LinkCard to `/docs/social-integration`) |
 | Agent skill index | `agent/skills/openquok-core/SKILL.md` — add row under **Channels** with user-intent summary + link to `{id}-examples.md` |
 | Agent per-channel file | `agent/skills/openquok-core/resources/{id}-examples.md` (slug = `provider.identifier`; e.g. `facebook`, `threads`, `instagram-business`) |
 | Agent settings hub | `agent/skills/openquok-core/resources/provider-settings.md` — update when merge semantics or cross-channel setting patterns change |
@@ -365,6 +370,7 @@ Agent channel pages 404 when the slug is missing from `publicChannelConfig`, `av
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
+- **Self-host:** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for live channels on **agent hosts and MCP clients**; generic agent/MCP kanban mock updated when the catalog gains a platform.
