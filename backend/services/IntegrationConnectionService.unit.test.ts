@@ -262,6 +262,46 @@ describe("IntegrationConnectionService", () => {
             ]);
             expect(integrations.listByOrganization).toHaveBeenCalledWith(orgId);
         });
+
+        it("filters rows by customer group id when group is provided", async () => {
+            const groupId = faker.string.uuid();
+            const inGroup = sampleRow({
+                id: faker.string.uuid(),
+                customer_id: groupId,
+                customer_name: "Acme",
+            });
+            const otherGroup = sampleRow({
+                id: faker.string.uuid(),
+                customer_id: faker.string.uuid(),
+                customer_name: "Other",
+            });
+            integrations.listByOrganization.mockResolvedValue([inGroup, otherGroup]);
+            const out = await service().publicListIntegrations(orgId, groupId);
+            expect(out).toEqual([
+                {
+                    id: inGroup.id,
+                    name: inGroup.name,
+                    identifier: "threads",
+                    picture: "/no-picture.jpg",
+                    disabled: false,
+                    profile: "prof",
+                    customer: { id: groupId, name: "Acme" },
+                },
+            ]);
+        });
+    });
+
+    describe("publicListCustomerGroups", () => {
+        it("returns integration customers for the organization", async () => {
+            const groups = [
+                { id: faker.string.uuid(), name: "Acme" },
+                { id: faker.string.uuid(), name: "Beta" },
+            ];
+            integrations.customers.mockResolvedValue(groups);
+            const out = await service().publicListCustomerGroups(orgId);
+            expect(out).toEqual(groups);
+            expect(integrations.customers).toHaveBeenCalledWith(orgId);
+        });
     });
 
     describe("getIntegrationList", () => {

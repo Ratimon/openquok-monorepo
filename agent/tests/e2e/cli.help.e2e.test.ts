@@ -14,6 +14,8 @@ describe("openquok CLI help", () => {
     expect(stdout).toContain("Commands:");
     expect(stdout).toContain("auth:workspace");
     expect(stdout).toContain("auth:login:poll");
+    expect(stdout).toContain("integrations:groups");
+    expect(stdout).toContain("integrations:list");
     expect(stdout).not.toContain('"success": false');
   });
 });

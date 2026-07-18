@@ -116,7 +116,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | Step | Action |
 |------|--------|
 | 1 | Session opening (Rule 0): shell version/auth check, then one Openquok-bot greeting |
-| 2 | `openquok integrations:list` → `integrations:settings <uuid>` per channel |
+| 2 | `openquok integrations:groups` when the workspace uses channel groups; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
 | 5 | `posts:create` / `posts:status`; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
@@ -124,6 +124,18 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
 
 Connect new channels in the web app; the CLI only uses UUIDs from `integrations:list`.
+
+### Integration discovery
+
+```bash
+openquok integrations:list
+openquok integrations:list --group <customer-group-id>
+openquok integrations:groups
+openquok integrations:settings <integration-uuid>
+openquok integrations:trigger <integration-uuid> <method-name> -d '{}'
+```
+
+Use `integrations:groups` to list channel groups (`{id, name}`), then filter channels with `integrations:list --group`. Full flag reference: [resources/command-reference.md](./resources/command-reference.md#integrations).
 
 ---
 

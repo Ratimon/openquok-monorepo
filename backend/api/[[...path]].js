@@ -627,7 +627,7 @@ function orchestrationTransportFromEnv(envKey, fallback) {
   }
   return fallback;
 }
-var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, rawApiPrefix, resolvedApiPrefix, config, server, underJestHarness, stripeCfg;
+var loadBackendDotenvCjs, loadBackendDotenv, normalizeOrigin, deriveWwwVariants, isProductionEnv, notSecured, rawApiPrefix, resolvedApiPrefix, config, server, underJestHarness, stripeCfg;
 var init_GlobalConfig = __esm({
   "config/GlobalConfig.ts"() {
     init_envHelper();
@@ -658,6 +658,7 @@ var init_GlobalConfig = __esm({
     };
     loadBackendDotenv();
     isProductionEnv = (process.env.NODE_ENV ?? "development") === "production";
+    notSecured = getEnvBoolean("NOT_SECURED", false);
     rawApiPrefix = getEnv("API_PREFIX", DEFAULT_API_PREFIX);
     resolvedApiPrefix = normalizeApiPrefix(rawApiPrefix);
     if (rawApiPrefix.trim() && resolvedApiPrefix !== rawApiPrefix.trim().replace(/\/+$/, "")) {
@@ -744,7 +745,7 @@ var init_GlobalConfig = __esm({
         /** When true, registration is disabled (unless DISABLE_REGISTRATION is not set). */
         disableRegistration: getEnvBoolean("DISABLE_REGISTRATION", false),
         /** When true, allow cookie in header for dev (NOT_SECURED). */
-        notSecured: getEnvBoolean("NOT_SECURED", false),
+        notSecured,
         /** Shared secret for security-sensitive deterministic signing/hashing. */
         securitySecret: getEnv("SECURITY_SECRET", ""),
         /** Secret for signing organization invite tokens. Required for invite-by-email. */
@@ -755,7 +756,11 @@ var init_GlobalConfig = __esm({
          */
         programmaticTokenSecret: getEnv("SECURITY_SECRET", "")
       },
-      /** Email (verification, welcome). When enabled, verification emails are sent. */
+      /**
+       * Email (verification, welcome).
+       * When `enabled` is false: no outbound mail, and signup treats users as verified (no verification gate).
+       * When `enabled` is true: verification emails are sent and unverified users cannot sign in.
+       */
       email: {
         enabled: getEnvBoolean("EMAIL_ENABLED", false),
         /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
@@ -916,11 +921,12 @@ var init_GlobalConfig = __esm({
       },
       /** Rate limiting. When enabled, applies global and route-specific limits. */
       rateLimit: {
-        enabled: getEnv("RATE_LIMIT_ENABLED", "true") !== "false",
+        /** Off by default when NOT_SECURED (self-host / local HTTP); set RATE_LIMIT_ENABLED=true to test limits. */
+        enabled: getEnv("RATE_LIMIT_ENABLED", notSecured ? "false" : "true") !== "false",
         global: {
           windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 36e5),
           // 1 hour
-          max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv ? 30 : 1e3),
+          max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 30 : 1e3),
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many requests from this IP, please try again later"
@@ -3087,47 +3093,59 @@ var init_AuthController = __esm({
             }
           }
           if (newUser?.id) {
-            const token = this.emailService.generateVerificationToken();
-            const hashedToken = this.emailService.hashToken(token);
-            const expiresAt = /* @__PURE__ */ new Date();
-            expiresAt.setHours(expiresAt.getHours() + 24);
-            try {
-              const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
-                newUser.id,
-                hashedToken,
-                expiresAt
-              );
+            if (!this.emailService.isEnabled) {
+              const { updateError } = await this.userRepository.updateEmailVerification(newUser.id, true);
               if (updateError) {
-                logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
-              } else if (rowsAffected === 0) {
-                logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
+                logger.warn({
+                  msg: "Failed to auto-verify email when email is disabled",
+                  userId: newUser.id,
+                  email,
+                  error: updateError
+                });
               }
-              if (!updateError && rowsAffected > 0 && this.emailService.isEnabled) {
-                try {
-                  await this.emailService.send(
-                    new VerifyEmailTemplate(
-                      serverConfig4.backendDomainUrl ?? "",
-                      fullName ?? "User",
-                      email,
-                      token
-                    ),
-                    email
-                  );
-                  logger.info({ msg: "Verification email sent after signup", email });
-                } catch (sendErr) {
-                  logger.warn({
-                    msg: "Failed to send verification email after signup",
-                    email,
-                    error: sendErr instanceof Error ? sendErr.message : String(sendErr)
-                  });
+            } else {
+              const token = this.emailService.generateVerificationToken();
+              const hashedToken = this.emailService.hashToken(token);
+              const expiresAt = /* @__PURE__ */ new Date();
+              expiresAt.setHours(expiresAt.getHours() + 24);
+              try {
+                const { updateError, rowsAffected } = await this.userRepository.updateVerificationToken(
+                  newUser.id,
+                  hashedToken,
+                  expiresAt
+                );
+                if (updateError) {
+                  logger.warn({ msg: "Failed to store verification token", userId: newUser.id, email, error: updateError });
+                } else if (rowsAffected === 0) {
+                  logger.warn({ msg: "Verification token update matched 0 rows", userId: newUser.id, email });
                 }
+                if (!updateError && rowsAffected > 0) {
+                  try {
+                    await this.emailService.send(
+                      new VerifyEmailTemplate(
+                        serverConfig4.backendDomainUrl ?? "",
+                        fullName ?? "User",
+                        email,
+                        token
+                      ),
+                      email
+                    );
+                    logger.info({ msg: "Verification email sent after signup", email });
+                  } catch (sendErr) {
+                    logger.warn({
+                      msg: "Failed to send verification email after signup",
+                      email,
+                      error: sendErr instanceof Error ? sendErr.message : String(sendErr)
+                    });
+                  }
+                }
+              } catch (persistErr) {
+                logger.warn({
+                  msg: "Failed to persist verification token after signup",
+                  email,
+                  error: persistErr instanceof Error ? persistErr.message : String(persistErr)
+                });
               }
-            } catch (persistErr) {
-              logger.warn({
-                msg: "Failed to persist verification token after signup",
-                email,
-                error: persistErr instanceof Error ? persistErr.message : String(persistErr)
-              });
             }
           }
           const { userData: dbUser } = await this.userRepository.findFullUserByEmail(email);
@@ -10623,11 +10641,12 @@ var init_AuthenticationService = __esm({
     init_Logger();
     init_GlobalConfig();
     AuthenticationService = class {
-      constructor(supabaseServiceClient, refreshTokenRepository2, userRepository2, userService2) {
+      constructor(supabaseServiceClient, refreshTokenRepository2, userRepository2, userService2, emailService2) {
         this.supabaseServiceClient = supabaseServiceClient;
         this.refreshTokenRepository = refreshTokenRepository2;
         this.userRepository = userRepository2;
         this.userService = userService2;
+        this.emailService = emailService2;
       }
       createRLSClient = (context) => createSupabaseRLSClient(context);
       async signIn(email, password, context) {
@@ -10652,9 +10671,11 @@ var init_AuthenticationService = __esm({
           logger.error({ msg: "Authenticated user not found in DB", email: normalizedEmail });
           throw new UserNotFoundError(normalizedEmail);
         }
-        const isEmailVerified = dbUser.is_email_verified !== false;
-        if (!isEmailVerified) {
-          throw new NotVerifiedUserError("User is not verified");
+        if (this.emailService.isEnabled) {
+          const isEmailVerified = dbUser.is_email_verified !== false;
+          if (!isEmailVerified) {
+            throw new NotVerifiedUserError("User is not verified");
+          }
         }
         return {
           signedInUser: signedInUser.user,
@@ -24997,7 +25018,8 @@ var init_services = __esm({
       supabaseServiceClientConnection,
       refreshTokenRepository,
       userRepository,
-      userService
+      userService,
+      emailService
     );
     companyService = new CompanyService(configRepository, cacheServiceConnection);
     marketingService = new MarketingService(configRepository, cacheServiceConnection);

@@ -88,10 +88,14 @@ openquok config:show
 
 ```bash
 openquok integrations:list
+openquok integrations:list --group <customer-group-id>
+openquok integrations:groups
 openquok integrations:settings <id>
 openquok integrations:trigger <id> <method> [--data '<json>']
 ```
 
+- `integrations:list` returns integration IDs, provider identifiers, and metadata. Use `--group` to return only channels assigned to one channel group (`integration_customers.id`).
+- `integrations:groups` returns every channel group for the workspace as `{id, name}`. Pass a group's `id` to `integrations:list --group` or `posts:list --customer`.
 - `integrations:settings` returns the provider's rules, max post length, settings schema, and the list of allow-listed `tools` you can invoke via `integrations:trigger`.
 - `integrations:trigger` dispatches a single allow-listed provider method (e.g. `getSubreddits`). The `--data` payload, when present, must be a JSON object; its shape is provider-specific (see the `dataSchema` field of the corresponding tool in `integrations:settings`).
 - Connecting new channels (OAuth) is done from the web UI; the CLI consumes the resulting integration IDs.
@@ -205,6 +209,8 @@ pnpm --filter ./agent cli -- --help
 
 # 2. Each command should respond to `--help` with its yargs `Examples:` block
 pnpm --filter ./agent cli -- config:show --help
+pnpm --filter ./agent cli -- integrations:groups --help
+pnpm --filter ./agent cli -- integrations:list --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- posts:status --help
