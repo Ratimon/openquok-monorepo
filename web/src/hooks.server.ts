@@ -1,5 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 
+import { ensureUtf8CharsetResponse } from '$lib/utils/ensureUtf8CharsetResponse';
+
 /**
  * Forward `/api/*` (and local `/uploads/*`) to the backend when:
  * - `OPENQUOK_API_PROXY_TARGET` is set (Docker self-host: `http://api:3000`), or
@@ -57,7 +59,8 @@ function forwardUpstreamResponse(upstream: Response): Response {
 export const handle: Handle = async ({ event, resolve }) => {
 	const backendOrigin = resolveBackendProxyOrigin();
 	if (!backendOrigin || !shouldProxyPathname(event.url.pathname)) {
-		return resolve(event);
+		const response = await resolve(event);
+		return ensureUtf8CharsetResponse(response);
 	}
 
 	const targetUrl = `${backendOrigin}${event.url.pathname}${event.url.search}`;

@@ -15,6 +15,8 @@ globs:
   - web/src/routes/robots.txt/**/*
   - web/src/routes/(auth)/+layout.server.ts
   - web/src/routes/(protected)/+layout.server.ts
+  - web/src/hooks.server.ts
+  - web/src/app.html
 alwaysApply: false
 ---
 
@@ -35,6 +37,20 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
 | Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |
+| Charset / UTF-8 (this file) | **web-ssr-seo-meta** → Charset |
+
+## Charset (UTF-8)
+
+Crawlers and browsers must decode HTML as **UTF-8**. A `<meta charset="UTF-8">` that does not match the real byte encoding (or a missing HTTP charset) makes non-English copy unreadable and hurts international SEO.
+
+| Layer | Mechanism |
+| --- | --- |
+| **HTML** | `web/src/app.html` — `<meta charset="utf-8" />` is the **first** child of `<head>` (within the first 1024 bytes). Do not move it below styles, scripts, or `%sveltekit.head%`. |
+| **HTTP** | `hooks.server.ts` — `ensureUtf8CharsetResponse` adds `charset=utf-8` when SvelteKit SSR returns `content-type: text/html` without a charset. |
+| **Text feeds** | `robots.txt`, `rss.xml`, `llms*.txt`, markdown doc routes, and sitemap XML declare `charset=utf-8` (or `encoding="UTF-8"` in XML prologs). |
+| **Source** | Keep repo source and CMS/API payloads UTF-8; avoid re-encoding user copy to Latin-1. |
+
+**Audit:** View page source → confirm `<meta charset="utf-8">` near the top of `<head>`. In DevTools → Network → document response → `Content-Type` must include `charset=utf-8`. Non-ASCII title/body/JSON-LD must render correctly in both.
 
 ## JavaScript rendering mismatch
 
@@ -44,6 +60,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 
 | Signal | Must appear in initial HTML |
 | --- | --- |
+| `<meta charset="utf-8">` | First child of `<head>` in `app.html` (see **Charset** above) |
 | `<title>`, meta description, OG/Twitter | `pageMetaTags` from server load |
 | `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) — path-only; strips UTM/`gclid`/`fbclid` in SSR |
 | JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
@@ -55,6 +72,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 ## Quick checklist (public route)
 
 - [ ] `export const ssr = true` in `+page.server.ts`
+- [ ] `app.html` keeps `<meta charset="utf-8">` as the first `<head>` child; document responses include `charset=utf-8` (see **Charset**)
 - [ ] `createMetaData(...)` → `withCanonicalMetaTags(metaTags, buildCanonicalUrl(url), …)` (see **web-seo-canonical**)
 - [ ] `pageMetaTags` and `schemaData` returned from server load
 - [ ] `+page.ts` forwards `pageMetaTags` + `schemaData` on `browser && data` (see **web-sveltekit-universal-page-load**)

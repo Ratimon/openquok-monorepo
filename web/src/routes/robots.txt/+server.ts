@@ -47,7 +47,7 @@ export async function GET({ url }: { url: URL }) {
 
 	return new Response(robotsTxt, {
 		headers: {
-			'Content-Type': 'text/plain',
+			'Content-Type': 'text/plain; charset=utf-8',
 			'Cache-Control': 'public, max-age=3600'
 		}
 	});
