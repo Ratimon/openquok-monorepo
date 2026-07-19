@@ -99,5 +99,22 @@ export const OPENQUOK_CLI_COMMAND_REFERENCE: readonly OpenquokCliCommandReferenc
 	{
 		command: 'openquok analytics:post <post-id> -d 7',
 		description: 'Get analytics for a specific published post'
+	},
+	{
+		command: 'openquok plugs:catalog',
+		description: 'List global plug types per provider (likes-threshold rules)'
+	},
+	{
+		command: 'openquok plugs:list <integration-id>',
+		description: 'List saved global plug rules on a connected channel'
+	},
+	{
+		command:
+			'openquok plugs:upsert <integration-id> --func autoPlugPost --fields \'[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks!"}]\'',
+		description: 'Create or update a channel-level plug rule (auto-reply when likes hit a threshold)'
+	},
+	{
+		command: 'openquok plugs:activate <plug-id> --activated false',
+		description: 'Enable or pause a global plug rule'
 	}
 ] as const;

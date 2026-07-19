@@ -13,6 +13,8 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#linkedin). Settings 
 | MP4 video (one attachment) | Yes |
 | Image → PDF document carousel | Yes (≥2 images, no video) |
 | Follow-up text comments | Yes |
+| Cross-account comment / reshare (internal plugs) | Yes (`linkedin.crossAccountPlugs`) |
+| Global plugs (likes threshold) | Yes — `plugs:*` CLI or web **Account → Plugs** |
 | Account analytics | Yes |
 | Per-post analytics | Yes |
 
@@ -23,6 +25,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#linkedin). Settings 
 | Connect a company Page | OAuth `linkedin-page` + Page picker |
 | Schedule slide deck / carousel | [linkedin-page-document-carousel.json](./examples/linkedin-page-document-carousel.json) |
 | Pull Page insights | `analytics:platform` (see below) |
+| Set global plug rules (auto repost / comment at likes threshold) | `plugs:upsert` — see [plugs.md](./plugs.md) |
 
 ## Provider settings
 
@@ -30,6 +33,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#linkedin). Settings 
 | --- | --- | --- |
 | `post_as_images_carousel` | `linkedin.postAsImagesCarousel` | Convert images to PDF document |
 | `carousel_name` | `linkedin.carouselName` | PDF title (default `slides`) |
+| `linkedin.crossAccountPlugs` | `linkedin.crossAccountPlugs` | Cross-account comment or reshare — see [plugs.md](./plugs.md) |
 
 ## Run an example
 

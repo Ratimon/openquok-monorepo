@@ -94,6 +94,35 @@ export const THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD = {
 	}
 } as const;
 
+export const THREADS_GLOBAL_AUTO_PLUG_PAYLOAD = {
+	func: 'autoPlugPost',
+	fields: [
+		{ name: 'likesAmount', value: '100' },
+		{ name: 'post', value: 'Thanks for reading — what should we cover next?' }
+	]
+} as const;
+
+export const X_GLOBAL_AUTO_REPOST_PAYLOAD = {
+	func: 'autoRepostPost',
+	fields: [{ name: 'likesAmount', value: '100' }]
+} as const;
+
+export const X_GLOBAL_AUTO_PLUG_PAYLOAD = {
+	func: 'autoPlugPost',
+	fields: [
+		{ name: 'likesAmount', value: '100' },
+		{ name: 'post', value: 'Appreciate the support — link in bio!' }
+	]
+} as const;
+
+export const LINKEDIN_PAGE_GLOBAL_AUTO_PLUG_PAYLOAD = {
+	func: 'autoPlugPost',
+	fields: [
+		{ name: 'likesAmount', value: '100' },
+		{ name: 'post', value: 'Great discussion — full details in the comments.' }
+	]
+} as const;
+
 export const INSTAGRAM_FEED_POST_PAYLOAD = {
 	scheduledAt: '2026-01-01T12:00:00.000Z',
 	status: 'scheduled',

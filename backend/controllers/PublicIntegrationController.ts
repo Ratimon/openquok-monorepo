@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { ProgrammaticAuthRequest } from "../guards";
 import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
+import type { PlugUpsertBodyDto } from "../utils/dtos/PlugDTO";
 
 import { countPublicApiRequest } from "../connections/index";
 
@@ -132,6 +133,75 @@ export class PublicIntegrationController {
                 data ?? {}
             );
             res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /public/plug-catalog — global plug types per provider (likes-threshold rules). */
+    getPlugCatalog = async (_req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("plug-catalog");
+            const data = this.integrationConnectionService.getPlugCatalog();
+            res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /public/integration-plugs/:id — list saved global plug rules for a channel. */
+    listIntegrationPlugs = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("integration-plugs-list");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const { id } = req.params as { id: string };
+            const plugs = await this.integrationConnectionService.publicListIntegrationPlugs(organizationId, id);
+            res.status(200).json({ plugs });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /public/integration-plugs/:id — create or update a global plug rule. */
+    upsertIntegrationPlug = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("integration-plugs-upsert");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const { id } = req.params as { id: string };
+            const body = req.body as PlugUpsertBodyDto;
+            const data = await this.integrationConnectionService.publicUpsertIntegrationPlug(organizationId, id, body);
+            res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** DELETE /public/plugs/:plugId — remove a global plug rule. */
+    deleteIntegrationPlug = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("plugs-delete");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const { plugId } = req.params as { plugId: string };
+            const data = await this.integrationConnectionService.publicDeleteIntegrationPlug(organizationId, plugId);
+            res.status(200).json(data);
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** PUT /public/plugs/:plugId/activate — enable or disable a global plug rule. */
+    setIntegrationPlugActivated = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("plugs-activate");
+            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const { plugId } = req.params as { plugId: string };
+            const { activated } = req.body as { activated: boolean };
+            const data = await this.integrationConnectionService.publicSetIntegrationPlugActivated(
+                organizationId,
+                plugId,
+                activated
+            );
+            res.status(200).json(data);
         } catch (error) {
             next(error);
         }

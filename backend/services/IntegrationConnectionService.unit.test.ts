@@ -1285,6 +1285,30 @@ describe("IntegrationConnectionService", () => {
             });
             expect(plugs.deleteIntegrationPlug).not.toHaveBeenCalled();
         });
+
+        it("publicListIntegrationPlugs skips membership and delegates", async () => {
+            integrations.getById.mockResolvedValue(sampleRow());
+            const rows = [{ id: plugId, organization_id: orgId, integration_id: integrationId, plug_function: "autoPlugPost", data: "{}", activated: true }];
+            plugs.listIntegrationPlugs.mockResolvedValue(rows);
+            const out = await service().publicListIntegrationPlugs(orgId, integrationId);
+            expect(out).toBe(rows);
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
+        });
+
+        it("publicUpsertIntegrationPlug validates and delegates without membership", async () => {
+            integrations.getById.mockResolvedValue(sampleRow());
+            plugs.upsertIntegrationPlug.mockResolvedValue({ id: plugId, activated: true });
+            const body = {
+                func: "autoPlugPost",
+                fields: [
+                    { name: "likesAmount", value: "10" },
+                    { name: "post", value: "Thanks for the love!" },
+                ],
+            };
+            const out = await service().publicUpsertIntegrationPlug(orgId, integrationId, body);
+            expect(out).toEqual({ id: plugId, activated: true });
+            expect(orgRepo.findMembership).not.toHaveBeenCalled();
+        });
     });
 
     describe("deleteChannel", () => {

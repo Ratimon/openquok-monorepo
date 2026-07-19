@@ -1,6 +1,6 @@
 # Workflow recipes
 
-Extended `openquok` patterns. Rules and auth: [SKILL.md](../SKILL.md). Commands: [command-reference.md](./command-reference.md). Per-channel features and publish settings: [provider-settings.md](./provider-settings.md) and `*-examples.md`.
+Extended `openquok` patterns. Rules and auth: [SKILL.md](../SKILL.md). Commands: [command-reference.md](./command-reference.md). Per-channel features and publish settings: [provider-settings.md](./provider-settings.md) and `*-examples.md`. Plugs (internal + global): [plugs.md](./plugs.md).
 
 ## Resolve integration UUIDs
 
@@ -50,6 +50,21 @@ MAX=$(openquok integrations:settings "$INTEGRATION_ID" | jq '.output.maxLength')
 ## Batch schedule
 
 Loop `openquok upload` + `posts:create` per slot; reuse one integration UUID; vary `-s` and `-c` per iteration.
+
+## Internal plugs on scheduled posts
+
+Attach internal plugs when creating posts — same-account Threads reply or cross-account comment/repost/reshare. Use `providerSettingsByIntegrationId` with the channel bucket (`threads`, `x`, `linkedin`). Examples: [threads-engagement-plug.json](./examples/threads-engagement-plug.json), [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json), [x-cross-account-repost.json](./examples/x-cross-account-repost.json). Catalog: [plugs.md](./plugs.md).
+
+## Global plugs on channels
+
+```bash
+openquok plugs:catalog
+openquok plugs:list <integration-id>
+openquok plugs:upsert <integration-id> --func autoPlugPost \
+  --fields '[{"name":"likesAmount","value":"100"},{"name":"post","value":"Grab the link in bio!"}]'
+```
+
+See [plugs.md](./plugs.md) for provider matrix and `plugs:activate` / `plugs:delete`.
 
 ## Retry on transient failure
 

@@ -2,6 +2,8 @@
 
 How to pass per-channel options on `openquok posts:create`. Feature matrices and copy-paste recipes live in each channel’s `*-examples.md` file.
 
+**Plugs:** Internal plugs (per-post engagement automation) are configured on `posts:create`. Global plugs (likes-threshold channel rules) use `plugs:*` commands — see [plugs.md](./plugs.md).
+
 ## Two CLI paths
 
 | Flag | Scope | Use when |
@@ -39,9 +41,23 @@ Backend publish helpers accept **flat API keys** and **nested web buckets** wher
 
 Copy-paste JSON payloads: [examples/EXAMPLES.md](./examples/EXAMPLES.md).
 
-## Cross-account plugs (`crossAccountPlugs`)
+## Internal plugs
 
-After the publishing channel’s post goes live, **other connected channels in the same workspace** can run an internal plug (comment, repost, etc.). Configure on the **publishing** integration’s provider bucket:
+Internal plugs run after publish — either from the same account (Threads delayed reply) or from other connected channels in the workspace (cross-account comment, repost, or reshare). Configure on the **publishing** integration’s provider bucket when creating the post.
+
+Overview and global-plug contrast: [plugs.md](./plugs.md).
+
+### Same-account delayed reply (Threads)
+
+| Provider bucket | Key | Shape |
+| --- | --- | --- |
+| `threads` | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` |
+
+Runs after follow-up replies and the thread finisher. Example: [threads-engagement-plug.json](./examples/threads-engagement-plug.json).
+
+### Cross-account plugs (`crossAccountPlugs`)
+
+After the publishing channel’s post goes live, **other connected channels in the same workspace** run the plug (comment, repost, etc.):
 
 | Provider bucket | Plug identifier | Action |
 | --- | --- | --- |

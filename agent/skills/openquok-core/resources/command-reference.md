@@ -130,6 +130,24 @@ openquok analytics:post <post-id> [--days 7|30|90]
 - `--days` / `-d` must be **7**, **30**, or **90** (default 7).
 - `analytics:post` returns `[]` for drafts/queued rows.
 
+## Plugs
+
+| Type | CLI support | How |
+| --- | --- | --- |
+| **Internal plugs** | Yes | Per-post `providerSettingsByIntegrationId` on `posts:create` — `threads.internalEngagementPlug`, `*.crossAccountPlugs` |
+| **Global plugs** | Yes | `plugs:catalog`, `plugs:list <integration-id>`, `plugs:upsert`, `plugs:activate`, `plugs:delete` |
+
+```bash
+openquok plugs:catalog
+openquok plugs:list <integration-id>
+openquok plugs:upsert <integration-id> --func autoPlugPost \
+  --fields '[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks!"}]'
+openquok plugs:activate <plug-id> --activated true
+openquok plugs:delete <plug-id>
+```
+
+Channels with plugs: Threads, X, LinkedIn, LinkedIn Page. Full catalog: [plugs.md](./plugs.md).
+
 ## Media upload
 
 ```bash

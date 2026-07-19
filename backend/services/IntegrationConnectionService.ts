@@ -812,6 +812,45 @@ export class IntegrationConnectionService {
 
     async listIntegrationPlugs(authUserId: string, organizationId: string, integrationId: string) {
         await this.assertOrganizationMember(authUserId, organizationId);
+        return this.listIntegrationPlugsForOrganization(organizationId, integrationId);
+    }
+
+    /** Programmatic API — list global plug rules for a channel (org from API key). */
+    async publicListIntegrationPlugs(organizationId: string, integrationId: string) {
+        return this.listIntegrationPlugsForOrganization(organizationId, integrationId);
+    }
+
+    async upsertIntegrationPlug(authUserId: string, organizationId: string, integrationId: string, body: PlugUpsertBodyDto) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.upsertIntegrationPlugForOrganization(organizationId, integrationId, body);
+    }
+
+    /** Programmatic API — create or update a global plug rule (org from API key). */
+    async publicUpsertIntegrationPlug(organizationId: string, integrationId: string, body: PlugUpsertBodyDto) {
+        return this.upsertIntegrationPlugForOrganization(organizationId, integrationId, body);
+    }
+
+    async deleteIntegrationPlug(authUserId: string, organizationId: string, plugId: string) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.deleteIntegrationPlugForOrganization(organizationId, plugId);
+    }
+
+    /** Programmatic API — delete a global plug rule (org from API key). */
+    async publicDeleteIntegrationPlug(organizationId: string, plugId: string) {
+        return this.deleteIntegrationPlugForOrganization(organizationId, plugId);
+    }
+
+    async setIntegrationPlugActivated(authUserId: string, organizationId: string, plugId: string, activated: boolean) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.setIntegrationPlugActivatedForOrganization(organizationId, plugId, activated);
+    }
+
+    /** Programmatic API — enable or disable a global plug rule (org from API key). */
+    async publicSetIntegrationPlugActivated(organizationId: string, plugId: string, activated: boolean) {
+        return this.setIntegrationPlugActivatedForOrganization(organizationId, plugId, activated);
+    }
+
+    private async listIntegrationPlugsForOrganization(organizationId: string, integrationId: string) {
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row || row.deleted_at) {
             throw new AppError("Integration not found", 404);
@@ -819,8 +858,11 @@ export class IntegrationConnectionService {
         return this.plugs.listIntegrationPlugs(organizationId, integrationId);
     }
 
-    async upsertIntegrationPlug(authUserId: string, organizationId: string, integrationId: string, body: PlugUpsertBodyDto) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+    private async upsertIntegrationPlugForOrganization(
+        organizationId: string,
+        integrationId: string,
+        body: PlugUpsertBodyDto
+    ) {
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row || row.deleted_at) {
             throw new AppError("Integration not found", 404);
@@ -854,8 +896,7 @@ export class IntegrationConnectionService {
         });
     }
 
-    async deleteIntegrationPlug(authUserId: string, organizationId: string, plugId: string) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+    private async deleteIntegrationPlugForOrganization(organizationId: string, plugId: string) {
         const plug = await this.plugs.getPlugRowById(plugId);
         if (!plug || plug.organization_id !== organizationId) {
             throw new AppError("Plug not found", 404);
@@ -867,8 +908,11 @@ export class IntegrationConnectionService {
         return deleted;
     }
 
-    async setIntegrationPlugActivated(authUserId: string, organizationId: string, plugId: string, activated: boolean) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+    private async setIntegrationPlugActivatedForOrganization(
+        organizationId: string,
+        plugId: string,
+        activated: boolean
+    ) {
         const plug = await this.plugs.getPlugRowById(plugId);
         if (!plug || plug.organization_id !== organizationId) {
             throw new AppError("Plug not found", 404);

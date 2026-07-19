@@ -45,3 +45,41 @@ export const validatePublicIntegrationTriggerRequest: RequestHandler = validateR
     params: publicIntegrationIdParamsSchema,
     body: publicIntegrationTriggerBodySchema,
 });
+
+/** `:plugId` path param for global plug rule mutations. */
+export const publicPlugIdParamsSchema = z.object({
+    plugId: z.string().uuid("Invalid plug id"),
+});
+
+export const validatePublicPlugIdParams: RequestHandler = validateRequest({
+    params: publicPlugIdParamsSchema,
+});
+
+/** Body for `POST /public/integration-plugs/:id` (global plug upsert). */
+export const publicIntegrationPlugUpsertBodySchema = z.object({
+    func: z.string().min(1, "func is required"),
+    fields: z.array(
+        z.object({
+            name: z.string().min(1),
+            value: z.string(),
+        })
+    ),
+    plugId: z.string().uuid("Invalid plug id").optional(),
+});
+
+export type PublicIntegrationPlugUpsertBodyDto = z.infer<typeof publicIntegrationPlugUpsertBodySchema>;
+
+export const validatePublicIntegrationPlugUpsertRequest: RequestHandler = validateRequest({
+    params: publicIntegrationIdParamsSchema,
+    body: publicIntegrationPlugUpsertBodySchema,
+});
+
+/** Body for `PUT /public/plugs/:plugId/activate`. */
+export const publicPlugActivateBodySchema = z.object({
+    activated: z.boolean(),
+});
+
+export const validatePublicPlugActivateRequest: RequestHandler = validateRequest({
+    params: publicPlugIdParamsSchema,
+    body: publicPlugActivateBodySchema,
+});

@@ -20,7 +20,8 @@ Run `integrations:settings` for `output.maxLength` (280 or 4000 when Verified) a
 | Community post | Yes | Community URL → `community_id` at publish |
 | Made with AI / Paid partnership | Yes | Content disclosure labels |
 | Channel / post analytics | Yes | `analytics:platform`, `analytics:post` (unless `DISABLE_X_ANALYTICS`) |
-| Cross-account repost | Yes | `x.crossAccountPlugs` (`x-repost-post-users`) |
+| Cross-account repost (internal plug) | Yes | `x.crossAccountPlugs` (`x-repost-post-users`) |
+| Global plugs (likes threshold → auto repost / reply) | Yes — `plugs:*` CLI or web **Account → Plugs** | See [plugs.md](./plugs.md) |
 | Cross-post to other channels | Yes | Separate `-i` UUIDs and per-channel settings |
 
 ## Agent tasks
@@ -32,7 +33,8 @@ Run `integrations:settings` for `output.maxLength` (280 or 4000 when Verified) a
 | Schedule a reply chain | [Scheduled reply chain](#scheduled-reply-chain-thread) |
 | End with a finisher reply | [Thread finisher](#thread-finisher) |
 | Restrict who can reply | [Compose settings](#compose-settings-reply-audience-community-labels) |
-| Repost from other X channels after publish | [x-cross-account-repost.json](./examples/x-cross-account-repost.json) |
+| Repost from other X channels (internal plug) | [x-cross-account-repost.json](./examples/x-cross-account-repost.json) |
+| Set global plug rules (auto repost / reply at likes threshold) | `plugs:upsert` — see [plugs.md](./plugs.md) |
 | Check channel limits | `openquok integrations:settings "$X_ID"` |
 
 ## Provider settings (`x` bucket)
@@ -50,7 +52,7 @@ Use nested keys under `x` in `--providerSettingsByIntegrationId` (matches compos
 | `x.paidPartnership` | boolean | Paid partnership label |
 | `x.crossAccountPlugs` | `[{ "plugName": "x-repost-post-users", "enabled": true, "delayMs": 0, "integrationIds": ["<other-integration-id>"], "fields": {} }]` | Repost from other X channels after publish |
 
-Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#cross-account-plugs-crossaccountplugs).
+Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#internal-plugs). Full plug guide: [plugs.md](./plugs.md).
 
 Flat CLI keys (`who_can_reply_post`, `made_with_ai`, `community`, etc.) merge with the nested bucket at publish time.
 

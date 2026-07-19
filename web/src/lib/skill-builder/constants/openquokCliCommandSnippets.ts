@@ -35,7 +35,16 @@ export const OPENQUOK_COMMAND_TEMPLATES: Record<string, string> = {
 		'# Per-post metrics for a published post row\nopenquok analytics:post <post-id> --days 7',
 	upload: '# Upload a local image or video; returns media id and path for posts:create\nopenquok upload ./image.png',
 	'upload-from-url':
-		'# Upload media from a remote URL; returns media id and path\nopenquok upload-from-url "https://cdn.example.com/banner.png"'
+		'# Upload media from a remote URL; returns media id and path\nopenquok upload-from-url "https://cdn.example.com/banner.png"',
+	'plugs:catalog':
+		'# List global plug types per provider (likes-threshold channel rules)\nopenquok plugs:catalog',
+	'plugs:list':
+		'# List saved global plug rules for a connected channel\nopenquok plugs:list <integration-uuid>',
+	'plugs:upsert':
+		'# Create or update a global plug rule on a channel\nopenquok plugs:upsert <integration-uuid> --func autoPlugPost --fields \'[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks!"}]\'',
+	'plugs:activate':
+		'# Enable or pause a global plug rule\nopenquok plugs:activate <plug-id> --activated true',
+	'plugs:delete': '# Delete a global plug rule\nopenquok plugs:delete <plug-id>'
 };
 
 export const OPENQUOK_CORE_QUICK_REFERENCE = `# ⚠️ AUTHENTICATE FIRST — required before any other command
@@ -76,6 +85,13 @@ openquok analytics:post <post-id> -d 30                # Post analytics (30 days
 # If release_id is missing, resolve before per-post analytics work:
 openquok posts:missing <post-id>                     # List provider release candidates
 openquok posts:connect <post-id> --release-id "<rid>"  # Link post to provider content
+
+# Global plugs (likes-threshold channel rules)
+openquok plugs:catalog                                  # Plug types per provider
+openquok plugs:list <integration-uuid>                  # Saved rules on a channel
+openquok plugs:upsert <integration-uuid> --func autoPlugPost --fields '[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks!"}]'
+openquok plugs:activate <plug-id> --activated false     # Pause or resume a rule
+openquok plugs:delete <plug-id>                         # Remove a rule
 
 # Help
 openquok --help

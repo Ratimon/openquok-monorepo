@@ -48,16 +48,17 @@ export function buildChannelSkillBuilderWorkflowSteps(
 	];
 
 	for (const recipe of config.recipes) {
+		const commandName = recipe.commandName ?? 'posts:create';
 		steps.push({
 			id: nanoid(),
 			type: 'command',
 			kind: 'cli',
 			listingSlug: OPENQUOK_CORE_EXTENSION_SLUG,
 			listingTitle: 'OpenQuok Core',
-			commandName: 'posts:create',
+			commandName,
 			title: recipe.label,
 			prompt: recipe.prompt,
-			commandTemplate: resolveOpenquokCommandTemplate('posts:create'),
+			commandTemplate: resolveOpenquokCommandTemplate(commandName),
 			examplePayload: { ...recipe.examplePayload }
 		});
 	}

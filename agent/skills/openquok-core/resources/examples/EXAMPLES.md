@@ -8,6 +8,8 @@ Copy-paste payloads for `openquok posts:create --json ./examples/<file>.json`. E
 2. Replace `<media-id>` and `https://cdn.example.com/…` paths with `{id, path}` from `openquok upload` or `openquok upload-from-url` (Rule 2 in [SKILL.md](../../SKILL.md)).
 3. Run `openquok integrations:settings <integration-id>` for `maxLength`, `rules`, and allow-listed `integrations:trigger` methods.
 
+Global plugs (likes-threshold channel rules) are configured with `plugs:*` commands — see [plugs.md](../plugs.md).
+
 ```bash
 openquok posts:create --json ./examples/threads-text-only.json
 ```
@@ -21,8 +23,8 @@ openquok posts:create --json ./examples/threads-text-only.json
 | [threads-media-carousel.json](./threads-media-carousel.json) | Multi-image carousel |
 | [threads-follow-up-replies.json](./threads-follow-up-replies.json) | `threads.replies` chain |
 | [threads-thread-finisher.json](./threads-thread-finisher.json) | Finisher + follow-ups |
-| [threads-engagement-plug.json](./threads-engagement-plug.json) | `threads.internalEngagementPlug` |
-| [threads-cross-account-plug.json](./threads-cross-account-plug.json) | `threads.crossAccountPlugs` (comment from other Threads channels) |
+| [threads-engagement-plug.json](./threads-engagement-plug.json) | Internal plug — `threads.internalEngagementPlug` (same-account delayed reply) |
+| [threads-cross-account-plug.json](./threads-cross-account-plug.json) | Internal plug — `threads.crossAccountPlugs` (comment from other Threads channels) |
 
 ## Facebook Page
 
@@ -80,7 +82,7 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 
 | File | Scenario |
 | --- | --- |
-| [x-cross-account-repost.json](./x-cross-account-repost.json) | `x.crossAccountPlugs` (repost from other X channels) |
+| [x-cross-account-repost.json](./x-cross-account-repost.json) | Internal plug — `x.crossAccountPlugs` (repost from other X channels) |
 
 ## Multi-channel
 
@@ -88,4 +90,4 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | --- | --- |
 | [multi-platform-campaign.json](./multi-platform-campaign.json) | Per-channel bodies + settings |
 
-Per-channel feature matrices and CLI flags: `../{identifier}-examples.md` and [provider-settings.md](../provider-settings.md).
+Per-channel feature matrices and CLI flags: `../{identifier}-examples.md`, [provider-settings.md](../provider-settings.md), and [plugs.md](../plugs.md).

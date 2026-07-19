@@ -1,7 +1,7 @@
 ---
 name: openquok-core
 description: >-
-  Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, and read channel analytics for integrations in your OpenQuok workspace.
+  Schedule and manage social posts with the openquok CLI — authenticate, upload media, create drafts and scheduled posts, configure internal plugs, and read channel analytics for integrations in your OpenQuok workspace.
 homepage: https://www.npmjs.com/package/@openquok/auto-cli
 version: 1.0.0
 license: MIT
@@ -167,6 +167,34 @@ Command surface: [resources/command-reference.md](./resources/command-reference.
 
 ---
 
+## Plugs (internal and global)
+
+OpenQuok automates post-publish engagement with two plug types (included on paid plans):
+
+| Type | What it does | CLI |
+| --- | --- | --- |
+| **Internal plugs** | Same-account delayed reply (Threads) or actions from other connected channels (comment, repost, reshare) | Yes — set on `posts:create` via `providerSettingsByIntegrationId` |
+| **Global plugs** | Channel rules that trigger a reply/repost when likes hit a threshold (checks every 6h, up to 3 runs) | Yes — `plugs:catalog`, `plugs:list`, `plugs:upsert`, `plugs:activate`, `plugs:delete` |
+
+Supported channels: **Threads**, **X**, **LinkedIn**, **LinkedIn Page** (not Facebook, Instagram, YouTube, or TikTok).
+
+```bash
+# Internal plug — cross-account Threads comment (see examples/)
+openquok posts:create --json ./examples/threads-cross-account-plug.json
+
+# Internal plug — same-account Threads delayed reply
+openquok posts:create --json ./examples/threads-engagement-plug.json
+
+# Global plug — auto-reply when likes reach threshold (channel-level rule)
+openquok plugs:catalog
+openquok plugs:upsert <integration-id> --func autoPlugPost \
+  --fields '[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks for reading!"}]'
+```
+
+Full catalog, provider matrix, and global-plug web setup: [resources/plugs.md](./resources/plugs.md). Setting keys: [resources/provider-settings.md](./resources/provider-settings.md#internal-plugs).
+
+---
+
 ## Channels (Meta)
 
 Run `integrations:settings <uuid>` for `rules`, `maxLength`, and `tools`. Match the user’s goal to the **Agent tasks** table in each channel file; publish keys and recipes are there.
@@ -175,15 +203,15 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 
 | Channel | `identifier` | User intents (see file) | Examples |
 |---------|----------------|-------------------------|----------|
-| Threads | `threads` | text/media/carousel, reply chain, finisher, engagement plug, missing post | [threads-examples.md](./resources/threads-examples.md) |
+| Threads | `threads` | text/media/carousel, reply chain, finisher, internal plugs, global plugs, missing post | [threads-examples.md](./resources/threads-examples.md) |
 | Facebook Page | `facebook` | text, link preview, photo, carousel, Reel, comments | [facebook-examples.md](./resources/facebook-examples.md) |
 | Instagram Login | `instagram-standalone` | feed, carousel, Reel, Story, trial reel, comments | [instagram-standalone-examples.md](./resources/instagram-standalone-examples.md) |
 | Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 | YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |
 | TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |
-| LinkedIn | `linkedin` | personal profile posts, images, video, text comments | [linkedin-examples.md](./resources/linkedin-examples.md) |
-| LinkedIn Page | `linkedin-page` | Page picker, document carousel, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
-| X | `x` | text/media, thread replies, finisher, reply settings, analytics | [x-examples.md](./resources/x-examples.md) |
+| LinkedIn | `linkedin` | personal profile posts, images, video, text comments, internal plugs | [linkedin-examples.md](./resources/linkedin-examples.md) |
+| LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
+| X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
@@ -191,7 +219,9 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 
 ## More recipes
 
-[resources/patterns.md](./resources/patterns.md) — multi-attachment posts, `integrations:trigger`, JSON campaigns, length checks, batching, retries.
+[resources/patterns.md](./resources/patterns.md) — multi-attachment posts, `integrations:trigger`, JSON campaigns, internal plugs, length checks, batching, retries.
+
+[resources/plugs.md](./resources/plugs.md) — internal plugs (CLI) and global plugs (web app).
 
 ---
 
@@ -209,6 +239,7 @@ Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 | Unknown `integrations:trigger` | Method must appear in `output.tools` |
 | `--settings` parse error | Single-quoted JSON: `'{"post_type":"post"}'` |
 | Thread timing wrong | `-d` is **milliseconds**, not minutes |
+| Unknown global plug `func` | Run `plugs:catalog` and use `methodName` (e.g. `autoPlugPost`, `autoRepostPost`) |
 | Analytics rejected | `-d` must be **7**, **30**, or **90** |
 | Env key ignored | `auth:logout` if disk credentials exist |
 | Old CLI / wrong verify host | Compare `openquok --version` with the current release on the [CLI package page](https://www.npmjs.com/package/@openquok/auto-cli); reinstall or upgrade the binary there — skill install does not update it |

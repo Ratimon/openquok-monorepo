@@ -58,6 +58,35 @@ export const OPENQUOK_COMMAND_WORKFLOW_META: Record<string, OpenquokCommandWorkf
 	'posts:connect': {
 		title: 'Connect post to provider content',
 		prompt: 'Link a post row to its provider release id so per-post analytics can run.'
+	},
+	'plugs:catalog': {
+		title: 'Browse global plug types',
+		prompt:
+			'List global plug definitions per provider. Use methodName values (e.g. autoPlugPost, autoRepostPost) with plugs:upsert.'
+	},
+	'plugs:list': {
+		title: 'List channel plug rules',
+		prompt: 'List saved global plug rules for an integration UUID before editing or pausing them.'
+	},
+	'plugs:upsert': {
+		title: 'Create or update a global plug rule',
+		prompt:
+			'Set a channel-level likes-threshold rule. Use func from plugs:catalog and fields as a JSON array of { name, value } objects.',
+		examplePayload: {
+			func: 'autoPlugPost',
+			fields: [
+				{ name: 'likesAmount', value: '100' },
+				{ name: 'post', value: 'Thanks for reading — link in bio!' }
+			]
+		}
+	},
+	'plugs:activate': {
+		title: 'Enable or pause a plug rule',
+		prompt: 'Toggle a saved global plug rule on or off without deleting its configuration.'
+	},
+	'plugs:delete': {
+		title: 'Delete a plug rule',
+		prompt: 'Remove a global plug rule from the channel.'
 	}
 };
 

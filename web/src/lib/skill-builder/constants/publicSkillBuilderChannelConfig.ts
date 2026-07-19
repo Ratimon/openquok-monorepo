@@ -14,13 +14,17 @@ import {
 	FACEBOOK_REEL_PAYLOAD,
 	FACEBOOK_TEXT_ONLY_PAYLOAD,
 	INSTAGRAM_FEED_POST_PAYLOAD,
+	LINKEDIN_PAGE_GLOBAL_AUTO_PLUG_PAYLOAD,
 	LINKEDIN_TEXT_POST_PAYLOAD,
 	THREADS_FOLLOW_UP_REPLIES_PAYLOAD,
 	THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD,
+	THREADS_GLOBAL_AUTO_PLUG_PAYLOAD,
 	THREADS_TEXT_ONLY_PAYLOAD,
 	TIKTOK_VIDEO_DIRECT_POST_PAYLOAD,
-	X_REPLY_CHAIN_PAYLOAD,
 	X_CROSS_ACCOUNT_REPOST_PAYLOAD,
+	X_GLOBAL_AUTO_PLUG_PAYLOAD,
+	X_GLOBAL_AUTO_REPOST_PAYLOAD,
+	X_REPLY_CHAIN_PAYLOAD,
 	X_TEXT_ONLY_PAYLOAD,
 	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
@@ -30,6 +34,8 @@ type SkillBuilderChannelRecipe = {
 	label: string;
 	prompt: string;
 	examplePayload: Record<string, unknown>;
+	/** CLI command name (defaults to posts:create). */
+	commandName?: string;
 };
 
 export type SkillBuilderChannelPageConfig = {
@@ -110,6 +116,14 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			prompt:
 				'After publish on channel A, comment from another Threads channel using threads.crossAccountPlugs.',
 			examplePayload: { ...THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD }
+		},
+		{
+			id: 'threads-global-auto-plug',
+			label: 'Global auto-reply at likes threshold',
+			prompt:
+				'Set a channel-level rule: when any published thread reaches the likes threshold, auto-reply with plugs:upsert.',
+			commandName: 'plugs:upsert',
+			examplePayload: { ...THREADS_GLOBAL_AUTO_PLUG_PAYLOAD }
 		}
 	],
 	instagram: [
@@ -142,6 +156,14 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			label: 'Text post',
 			prompt: 'Schedule a LinkedIn profile or Page text post.',
 			examplePayload: { ...LINKEDIN_TEXT_POST_PAYLOAD }
+		},
+		{
+			id: 'linkedin-page-global-auto-plug',
+			label: 'Page global auto-comment',
+			prompt:
+				'LinkedIn Page only: auto-comment when a post reaches a likes threshold (plugs:upsert with autoPlugPost).',
+			commandName: 'plugs:upsert',
+			examplePayload: { ...LINKEDIN_PAGE_GLOBAL_AUTO_PLUG_PAYLOAD }
 		}
 	],
 	x: [
@@ -163,18 +185,32 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			prompt:
 				'After publish on channel A, repost from another X channel using x.crossAccountPlugs.',
 			examplePayload: { ...X_CROSS_ACCOUNT_REPOST_PAYLOAD }
+		},
+		{
+			id: 'x-global-auto-repost',
+			label: 'Global auto-repost at likes threshold',
+			prompt: 'Set a channel-level rule to auto-repost when likes hit a threshold (plugs:upsert).',
+			commandName: 'plugs:upsert',
+			examplePayload: { ...X_GLOBAL_AUTO_REPOST_PAYLOAD }
+		},
+		{
+			id: 'x-global-auto-plug',
+			label: 'Global auto-reply at likes threshold',
+			prompt: 'Set a channel-level rule to auto-reply when likes hit a threshold (plugs:upsert).',
+			commandName: 'plugs:upsert',
+			examplePayload: { ...X_GLOBAL_AUTO_PLUG_PAYLOAD }
 		}
 	]
 };
 
 const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	facebook: 'Page posts, Reels, photos, and link previews.',
-	threads: 'Text posts, reply chains, and cross-account comments.',
+	threads: 'Text posts, reply chains, cross-account comments, and global plugs.',
 	instagram: 'Feed image posts and scheduling settings.',
 	youtube: 'Video uploads — title, privacy, and tags.',
 	tiktok: 'Direct video posts with privacy controls.',
-	linkedin: 'Profile and company Page text posts.',
-	x: 'Text posts, reply threads, and cross-account reposts.'
+	linkedin: 'Profile and company Page text posts; Page global plugs.',
+	x: 'Text posts, reply threads, cross-account reposts, and global plugs.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

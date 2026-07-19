@@ -8646,6 +8646,44 @@ SET
     "description": "Upload media from a remote URL; returns media id and path for posts:create.",
     "kind": "cli",
     "command_template": "openquok upload-from-url \"https://cdn.example.com/banner.png\""
+  },
+  {
+    "name": "plugs:catalog",
+    "description": "List global plug types per provider (likes-threshold channel rules).",
+    "kind": "cli",
+    "command_template": "openquok plugs:catalog"
+  },
+  {
+    "name": "plugs:list",
+    "description": "List saved global plug rules for a connected channel.",
+    "kind": "cli",
+    "command_template": "openquok plugs:list <integration-uuid>"
+  },
+  {
+    "name": "plugs:upsert",
+    "description": "Create or update a global plug rule on a channel (likes threshold → auto reply/repost).",
+    "kind": "cli",
+    "command_template": "openquok plugs:upsert <integration-uuid> --func autoPlugPost --fields '[{\"name\":\"likesAmount\",\"value\":\"100\"},{\"name\":\"post\",\"value\":\"Thanks!\"}]'",
+    "example_prompt": "Set a Threads auto-reply when posts reach 100 likes.",
+    "example_payload": {
+      "func": "autoPlugPost",
+      "fields": [
+        { "name": "likesAmount", "value": "100" },
+        { "name": "post", "value": "Thanks for reading!" }
+      ]
+    }
+  },
+  {
+    "name": "plugs:activate",
+    "description": "Enable or pause a global plug rule.",
+    "kind": "cli",
+    "command_template": "openquok plugs:activate <plug-id> --activated true"
+  },
+  {
+    "name": "plugs:delete",
+    "description": "Delete a global plug rule from a channel.",
+    "kind": "cli",
+    "command_template": "openquok plugs:delete <plug-id>"
   }
 ]$skill_commands$::jsonb,
     updated_at = NOW()

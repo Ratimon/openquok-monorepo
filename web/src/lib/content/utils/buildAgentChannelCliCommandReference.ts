@@ -30,6 +30,30 @@ function postsCreateJsonCommand(
 	};
 }
 
+function globalPlugUpsertRecipe(
+	func: string,
+	fieldsJson: string,
+	description: string
+): AgentChannelCliRecipe {
+	return {
+		command: `openquok plugs:upsert "$ID" --func ${func} --fields '${fieldsJson}'`,
+		description
+	};
+}
+
+function globalPlugCommands(providerIdentifier: string): readonly AgentChannelCliRecipe[] {
+	return [
+		{
+			command: `openquok plugs:catalog | jq '.plugs[] | select(.identifier=="${providerIdentifier}")'`,
+			description: 'List global plug types and field names for this provider'
+		},
+		{
+			command: 'openquok plugs:list "$ID"',
+			description: 'List saved global plug rules on this channel'
+		}
+	];
+}
+
 function toCommandReferenceItem(recipe: AgentChannelCliRecipe): OpenquokCliCommandReferenceItem {
 	const exampleJson = recipe.exampleJsonFile
 		? OPENQUOK_CORE_EXAMPLE_JSON_BY_FILE[recipe.exampleJsonFile]
@@ -93,6 +117,16 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 		postsCreateJsonCommand(
 			'threads-cross-account-plug.json',
 			'Comment from another Threads channel after publish (crossAccountPlugs)'
+		),
+		postsCreateJsonCommand(
+			'threads-engagement-plug.json',
+			'Same-account delayed engagement reply (internalEngagementPlug)'
+		),
+		...globalPlugCommands('threads'),
+		globalPlugUpsertRecipe(
+			'autoPlugPost',
+			'[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks for reading!"}]',
+			'Auto-reply when a thread reaches a likes threshold (global plug)'
 		),
 		{
 			command: 'openquok analytics:platform "$THREADS_ID" -d 30',
@@ -186,6 +220,17 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok posts:create --json ./examples/linkedin-document-carousel.json',
 			description: 'Publish a document carousel on LinkedIn'
 		},
+		...globalPlugCommands('linkedin-page'),
+		globalPlugUpsertRecipe(
+			'autoPlugPost',
+			'[{"name":"likesAmount","value":"100"},{"name":"post","value":"Great discussion — link in comments."}]',
+			'LinkedIn Page: auto-comment when a post reaches a likes threshold (global plug)'
+		),
+		globalPlugUpsertRecipe(
+			'autoRepostPost',
+			'[{"name":"likesAmount","value":"100"}]',
+			'LinkedIn Page: auto-reshare when a post reaches a likes threshold (global plug)'
+		),
 		{
 			command: 'openquok analytics:platform "$LI_ID" -d 30',
 			description: 'Pull 30-day LinkedIn analytics'
@@ -204,6 +249,17 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 		postsCreateJsonCommand(
 			'x-cross-account-repost.json',
 			'Repost from another X channel after publish (crossAccountPlugs)'
+		),
+		...globalPlugCommands('x'),
+		globalPlugUpsertRecipe(
+			'autoRepostPost',
+			'[{"name":"likesAmount","value":"100"}]',
+			'Auto-repost when a post reaches a likes threshold (global plug)'
+		),
+		globalPlugUpsertRecipe(
+			'autoPlugPost',
+			'[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks for the support!"}]',
+			'Auto-reply when a post reaches a likes threshold (global plug)'
 		),
 		{
 			command: 'openquok analytics:platform "$X_ID" -d 30',

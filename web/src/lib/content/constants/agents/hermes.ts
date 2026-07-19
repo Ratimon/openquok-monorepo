@@ -273,7 +273,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What can Hermes Agent do with OpenQuok?',
 			description:
-				'Hermes can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
+				'Hermes can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, configure internal and global plugs, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, plugs:upsert, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
 		},
 		{
 			title: 'Which social media platforms are supported?',

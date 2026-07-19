@@ -19,8 +19,9 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | 500-character cap | Yes | Provider trims overflow before publish |
 | Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds` |
 | Thread finisher | Yes | `threads.enabled` + `threads.message` |
-| Delayed engagement reply | Yes | `threads.internalEngagementPlug` (same account) |
-| Cross-account comments | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`) |
+| Delayed engagement reply (internal plug, same account) | Yes | `threads.internalEngagementPlug` |
+| Cross-account comments (internal plug) | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`) |
+| Global plugs (likes threshold → auto reply) | Yes — `plugs:*` CLI or web **Account → Plugs** | See [plugs.md](./plugs.md) |
 | Missing `release_id` recovery | Yes | `posts:missing` → `posts:connect` |
 | Channel / post analytics | Yes | `analytics:platform`, `analytics:post` |
 | Cross-post to other channels | Yes | Separate `-i` UUIDs and per-channel settings |
@@ -34,8 +35,9 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Post a carousel | [threads-media-carousel.json](./examples/threads-media-carousel.json) |
 | Schedule a reply chain / thread | [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json) |
 | End with a “thanks for reading” reply | [threads-thread-finisher.json](./examples/threads-thread-finisher.json) |
-| Schedule a delayed engagement comment | [threads-engagement-plug.json](./examples/threads-engagement-plug.json) |
-| Comment from other Threads channels after publish | [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json) |
+| Schedule a delayed engagement comment (internal plug) | [threads-engagement-plug.json](./examples/threads-engagement-plug.json) |
+| Comment from other Threads channels (internal plug) | [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json) |
+| Set global plug rules (auto reply at likes threshold) | `plugs:upsert` — see [plugs.md](./plugs.md) |
 | Fix analytics on a “missing” post | [Reconnect missing post](#reconnect-missing-post) |
 | Debug vague Meta/media errors | [threads-publish.md](./threads-publish.md) |
 | Check channel limits / tools | `openquok integrations:settings "$TH_ID"` |
@@ -52,7 +54,7 @@ Use nested keys under `threads` in `--providerSettingsByIntegrationId` (matches 
 | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` | Same-account engagement reply after replies + finisher |
 | `threads.crossAccountPlugs` | `[{ "plugName": "threads-cross-account-comment", "enabled": true, "delayMs": 0, "integrationIds": ["<other-integration-id>"], "fields": { "comment": "…" } }]` | Comments from other Threads channels in the workspace |
 
-Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#cross-account-plugs-crossaccountplugs).
+Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#internal-plugs). Full plug guide: [plugs.md](./plugs.md).
 
 ## Run an example
 

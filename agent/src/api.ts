@@ -46,6 +46,49 @@ export class OpenquokApi {
     });
   }
 
+  async getPlugCatalog(): Promise<unknown> {
+    return await requestJson({
+      url: this.url("/public/plug-catalog"),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async listIntegrationPlugs(integrationId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/integration-plugs/${encodeURIComponent(integrationId)}`),
+      apiKey: this.cfg.apiKey,
+    });
+  }
+
+  async upsertIntegrationPlug(
+    integrationId: string,
+    body: { func: string; fields: { name: string; value: string }[]; plugId?: string }
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/integration-plugs/${encodeURIComponent(integrationId)}`),
+      apiKey: this.cfg.apiKey,
+      method: "POST",
+      body,
+    });
+  }
+
+  async deleteIntegrationPlug(plugId: string): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/plugs/${encodeURIComponent(plugId)}`),
+      apiKey: this.cfg.apiKey,
+      method: "DELETE",
+    });
+  }
+
+  async setIntegrationPlugActivated(plugId: string, activated: boolean): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/plugs/${encodeURIComponent(plugId)}/activate`),
+      apiKey: this.cfg.apiKey,
+      method: "PUT",
+      body: { activated },
+    });
+  }
+
   async triggerIntegrationTool(
     id: string,
     methodName: string,

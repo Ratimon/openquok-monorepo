@@ -5,8 +5,11 @@ import { requireProgrammaticAuth, requireProgrammaticPlanCapability } from "../.
 import { SubscriptionSection } from "openquok-common";
 import {
     validatePublicIntegrationIdParams,
+    validatePublicIntegrationPlugUpsertRequest,
     validatePublicIntegrationTriggerRequest,
     validatePublicIntegrationsListQuery,
+    validatePublicPlugActivateRequest,
+    validatePublicPlugIdParams,
     validatePublicSocialOAuthQuery,
 } from "../../data/schemas/publicIntegrationsSchemas";
 import { oauthAppService, subscriptionGuard } from "../../services/index";
@@ -55,6 +58,31 @@ publicIntegrationRouter.post(
     apiKeyAuth,
     validatePublicIntegrationTriggerRequest,
     publicIntegrationController.triggerIntegration
+);
+publicIntegrationRouter.get("/plug-catalog", apiKeyAuth, publicIntegrationController.getPlugCatalog);
+publicIntegrationRouter.get(
+    "/integration-plugs/:id",
+    apiKeyAuth,
+    validatePublicIntegrationIdParams,
+    publicIntegrationController.listIntegrationPlugs
+);
+publicIntegrationRouter.post(
+    "/integration-plugs/:id",
+    apiKeyAuth,
+    validatePublicIntegrationPlugUpsertRequest,
+    publicIntegrationController.upsertIntegrationPlug
+);
+publicIntegrationRouter.delete(
+    "/plugs/:plugId",
+    apiKeyAuth,
+    validatePublicPlugIdParams,
+    publicIntegrationController.deleteIntegrationPlug
+);
+publicIntegrationRouter.put(
+    "/plugs/:plugId/activate",
+    apiKeyAuth,
+    validatePublicPlugActivateRequest,
+    publicIntegrationController.setIntegrationPlugActivated
 );
 
 export { publicIntegrationRouter };
