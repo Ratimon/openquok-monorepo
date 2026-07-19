@@ -20435,14 +20435,44 @@ var init_IntegrationConnectionService = __esm({
       }
       async listIntegrationPlugs(authUserId, organizationId, integrationId) {
         await this.assertOrganizationMember(authUserId, organizationId);
+        return this.listIntegrationPlugsForOrganization(organizationId, integrationId);
+      }
+      /** Programmatic API — list global plug rules for a channel (org from API key). */
+      async publicListIntegrationPlugs(organizationId, integrationId) {
+        return this.listIntegrationPlugsForOrganization(organizationId, integrationId);
+      }
+      async upsertIntegrationPlug(authUserId, organizationId, integrationId, body) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.upsertIntegrationPlugForOrganization(organizationId, integrationId, body);
+      }
+      /** Programmatic API — create or update a global plug rule (org from API key). */
+      async publicUpsertIntegrationPlug(organizationId, integrationId, body) {
+        return this.upsertIntegrationPlugForOrganization(organizationId, integrationId, body);
+      }
+      async deleteIntegrationPlug(authUserId, organizationId, plugId) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.deleteIntegrationPlugForOrganization(organizationId, plugId);
+      }
+      /** Programmatic API — delete a global plug rule (org from API key). */
+      async publicDeleteIntegrationPlug(organizationId, plugId) {
+        return this.deleteIntegrationPlugForOrganization(organizationId, plugId);
+      }
+      async setIntegrationPlugActivated(authUserId, organizationId, plugId, activated) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        return this.setIntegrationPlugActivatedForOrganization(organizationId, plugId, activated);
+      }
+      /** Programmatic API — enable or disable a global plug rule (org from API key). */
+      async publicSetIntegrationPlugActivated(organizationId, plugId, activated) {
+        return this.setIntegrationPlugActivatedForOrganization(organizationId, plugId, activated);
+      }
+      async listIntegrationPlugsForOrganization(organizationId, integrationId) {
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row || row.deleted_at) {
           throw new AppError("Integration not found", 404);
         }
         return this.plugs.listIntegrationPlugs(organizationId, integrationId);
       }
-      async upsertIntegrationPlug(authUserId, organizationId, integrationId, body) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+      async upsertIntegrationPlugForOrganization(organizationId, integrationId, body) {
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row || row.deleted_at) {
           throw new AppError("Integration not found", 404);
@@ -20475,8 +20505,7 @@ var init_IntegrationConnectionService = __esm({
           plugId: body.plugId
         });
       }
-      async deleteIntegrationPlug(authUserId, organizationId, plugId) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+      async deleteIntegrationPlugForOrganization(organizationId, plugId) {
         const plug = await this.plugs.getPlugRowById(plugId);
         if (!plug || plug.organization_id !== organizationId) {
           throw new AppError("Plug not found", 404);
@@ -20487,8 +20516,7 @@ var init_IntegrationConnectionService = __esm({
         }
         return deleted;
       }
-      async setIntegrationPlugActivated(authUserId, organizationId, plugId, activated) {
-        await this.assertOrganizationMember(authUserId, organizationId);
+      async setIntegrationPlugActivatedForOrganization(organizationId, plugId, activated) {
         const plug = await this.plugs.getPlugRowById(plugId);
         if (!plug || plug.organization_id !== organizationId) {
           throw new AppError("Plug not found", 404);
@@ -28527,6 +28555,70 @@ var init_PublicIntegrationController = __esm({
           next(error);
         }
       };
+      /** GET /public/plug-catalog — global plug types per provider (likes-threshold rules). */
+      getPlugCatalog = async (_req, res, next) => {
+        try {
+          countPublicApiRequest("plug-catalog");
+          const data = this.integrationConnectionService.getPlugCatalog();
+          res.status(200).json(data);
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /public/integration-plugs/:id — list saved global plug rules for a channel. */
+      listIntegrationPlugs = async (req, res, next) => {
+        try {
+          countPublicApiRequest("integration-plugs-list");
+          const organizationId = req.organization.id;
+          const { id } = req.params;
+          const plugs = await this.integrationConnectionService.publicListIntegrationPlugs(organizationId, id);
+          res.status(200).json({ plugs });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /public/integration-plugs/:id — create or update a global plug rule. */
+      upsertIntegrationPlug = async (req, res, next) => {
+        try {
+          countPublicApiRequest("integration-plugs-upsert");
+          const organizationId = req.organization.id;
+          const { id } = req.params;
+          const body = req.body;
+          const data = await this.integrationConnectionService.publicUpsertIntegrationPlug(organizationId, id, body);
+          res.status(200).json(data);
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** DELETE /public/plugs/:plugId — remove a global plug rule. */
+      deleteIntegrationPlug = async (req, res, next) => {
+        try {
+          countPublicApiRequest("plugs-delete");
+          const organizationId = req.organization.id;
+          const { plugId } = req.params;
+          const data = await this.integrationConnectionService.publicDeleteIntegrationPlug(organizationId, plugId);
+          res.status(200).json(data);
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PUT /public/plugs/:plugId/activate — enable or disable a global plug rule. */
+      setIntegrationPlugActivated = async (req, res, next) => {
+        try {
+          countPublicApiRequest("plugs-activate");
+          const organizationId = req.organization.id;
+          const { plugId } = req.params;
+          const { activated } = req.body;
+          const data = await this.integrationConnectionService.publicSetIntegrationPlugActivated(
+            organizationId,
+            plugId,
+            activated
+          );
+          res.status(200).json(data);
+        } catch (error) {
+          next(error);
+        }
+      };
     };
   }
 });
@@ -33553,6 +33645,33 @@ var validatePublicIntegrationTriggerRequest = validateRequest({
   params: publicIntegrationIdParamsSchema,
   body: publicIntegrationTriggerBodySchema
 });
+var publicPlugIdParamsSchema = zod.z.object({
+  plugId: zod.z.string().uuid("Invalid plug id")
+});
+var validatePublicPlugIdParams = validateRequest({
+  params: publicPlugIdParamsSchema
+});
+var publicIntegrationPlugUpsertBodySchema = zod.z.object({
+  func: zod.z.string().min(1, "func is required"),
+  fields: zod.z.array(
+    zod.z.object({
+      name: zod.z.string().min(1),
+      value: zod.z.string()
+    })
+  ),
+  plugId: zod.z.string().uuid("Invalid plug id").optional()
+});
+var validatePublicIntegrationPlugUpsertRequest = validateRequest({
+  params: publicIntegrationIdParamsSchema,
+  body: publicIntegrationPlugUpsertBodySchema
+});
+var publicPlugActivateBodySchema = zod.z.object({
+  activated: zod.z.boolean()
+});
+var validatePublicPlugActivateRequest = validateRequest({
+  params: publicPlugIdParamsSchema,
+  body: publicPlugActivateBodySchema
+});
 
 // routes/publicApi/IntegrationRoutes.ts
 init_services();
@@ -33590,6 +33709,31 @@ publicIntegrationRouter.post(
   apiKeyAuth2,
   validatePublicIntegrationTriggerRequest,
   publicIntegrationController.triggerIntegration
+);
+publicIntegrationRouter.get("/plug-catalog", apiKeyAuth2, publicIntegrationController.getPlugCatalog);
+publicIntegrationRouter.get(
+  "/integration-plugs/:id",
+  apiKeyAuth2,
+  validatePublicIntegrationIdParams,
+  publicIntegrationController.listIntegrationPlugs
+);
+publicIntegrationRouter.post(
+  "/integration-plugs/:id",
+  apiKeyAuth2,
+  validatePublicIntegrationPlugUpsertRequest,
+  publicIntegrationController.upsertIntegrationPlug
+);
+publicIntegrationRouter.delete(
+  "/plugs/:plugId",
+  apiKeyAuth2,
+  validatePublicPlugIdParams,
+  publicIntegrationController.deleteIntegrationPlug
+);
+publicIntegrationRouter.put(
+  "/plugs/:plugId/activate",
+  apiKeyAuth2,
+  validatePublicPlugActivateRequest,
+  publicIntegrationController.setIntegrationPlugActivated
 );
 
 // routes/publicApi/MediaUploadRoutes.ts
