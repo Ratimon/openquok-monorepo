@@ -564,7 +564,7 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 
 ## 8. Route SEO and JSON-LD: build in `+page.server.ts`
 
-Public routes that ship meta tags and structured data should follow the same split as **agents**, **channels**, and **extensions**. Full guidance: **web-ssr-seo-meta** (index) and **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**, **web-seo-cms-copy**.
+Public routes that ship meta tags and structured data should follow the same split as **agents**, **channels**, and **extensions**. Full guidance: **web-seo-index** and **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**, **web-seo-cms-copy**.
 
 - **`+page.server.ts`** owns SSR SEO: `createMetaData` → `withCanonicalMetaTags(metaTags, buildCanonicalUrl(url), …)` for `pageMetaTags`, plus `schemaData` for JSON-LD.
 - **`+page.svelte`** renders `<JsonLdHead schemaData={schemaData} />` where `schemaData` comes from load (`let schemaData = $derived(data.schemaData)` per **§6**).

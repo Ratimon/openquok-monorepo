@@ -23,7 +23,7 @@ In `+page.server.ts`:
 3. **Apply request canonical** with `withCanonicalMetaTags` (see **web-seo-canonical** — do not hand-roll spread order).
 4. **Return** `pageMetaTags` for first-render HTML (no client JS required).
 
-Crawlers read the initial response; meta tags added only after hydration may be missed at index time (see **web-ssr-seo-meta** → JavaScript rendering mismatch).
+Crawlers read the initial response; meta tags added only after hydration may be missed at index time (see **web-seo-index** → JavaScript rendering mismatch).
 
 ```ts
 import { createMetaData } from '$lib/utils/createMetaData';

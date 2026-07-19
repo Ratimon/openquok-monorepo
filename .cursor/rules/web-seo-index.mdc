@@ -1,5 +1,5 @@
 ---
-description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy). See web-seo-*.mdc rules for detail.
+description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy, audits). See web-seo-*.mdc rules for detail.
 globs:
   - web/src/routes/+page.server.ts
   - web/src/routes/+page.ts
@@ -37,7 +37,32 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
 | Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |
-| Charset / UTF-8 (this file) | **web-ssr-seo-meta** → Charset |
+| Charset, rendering, pagination, mixed content, audits (this file) | **web-seo-index** |
+
+## Common edge cases
+
+| Mistake | Impact | Code fix (this repo) | Rule |
+| --- | --- | --- | --- |
+| Ignoring parameter handling | Crawl waste on filter/pagination variants | Path-only `buildCanonicalUrl`; param table by type | **web-seo-canonical** |
+| Tracking params (`utm_*`, `gclid`, …) | Duplicate URLs, authority dilution | Canonical strip + `UtmAttribution.svelte` bar cleanup | **web-seo-canonical** |
+| Content only after client JS | Thin or empty index | `export const ssr = true`; server `pageMetaTags` + `schemaData` | This file → Rendering |
+| Infinite scroll on indexable hubs | Products/posts never indexed | Server pagination + `Pagination.svelte` with crawlable links | This file → Pagination |
+| Mixed HTTP/HTTPS assets or URLs | Broken images, blocked subresources | HTTPS canonical/OG in `createMetaData`; `https://` for external assets | This file → Mixed content |
+| Charset mismatch | Garbled international copy | `app.html` charset first; `ensureUtf8CharsetResponse` | This file → Charset |
+
+## Audit playbook (manual — GSC / DevTools)
+
+Run after shipping SEO changes or when Coverage/duplicate reports spike.
+
+| Audit | Where | Pass criteria |
+| --- | --- | --- |
+| **Parameter handling** | GSC → Settings → URL parameters | UTM/`gclid`/`fbclid` marked “doesn't change page content” (optional); canonical on `?page=` variants points to path-only hub URL |
+| **Rendering** | GSC → URL Inspection → View crawled page / Live test | Raw HTML and rendered HTML both include `<title>`, `<link rel="canonical">`, and `<script type="application/ld+json">` with matching URLs |
+| **Indexation** | GSC → Pages / Coverage | Public hubs and detail URLs indexed; auth/app routes excluded (`noindex`, `robots.txt` Disallow) |
+| **Mixed content** | DevTools → Security (on HTTPS deploy) | No “active mixed content”; no `http://` subresources on indexable pages |
+| **Charset** | View page source + Network → document `Content-Type` | `<meta charset="utf-8">` is first in `<head>`; response header includes `charset=utf-8`; non-ASCII copy renders correctly |
+
+Code-side rendering or canonical gaps → fix server loads per **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**, **web-seo-cms-copy**. Do **not** block parameterized URLs in `robots.txt` for consolidation (see **web-seo-canonical**).
 
 ## Charset (UTF-8)
 
@@ -49,8 +74,6 @@ Crawlers and browsers must decode HTML as **UTF-8**. A `<meta charset="UTF-8">` 
 | **HTTP** | `hooks.server.ts` — `ensureUtf8CharsetResponse` adds `charset=utf-8` when SvelteKit SSR returns `content-type: text/html` without a charset. |
 | **Text feeds** | `robots.txt`, `rss.xml`, `llms*.txt`, markdown doc routes, and sitemap XML declare `charset=utf-8` (or `encoding="UTF-8"` in XML prologs). |
 | **Source** | Keep repo source and CMS/API payloads UTF-8; avoid re-encoding user copy to Latin-1. |
-
-**Audit:** View page source → confirm `<meta charset="utf-8">` near the top of `<head>`. In DevTools → Network → document response → `Content-Type` must include `charset=utf-8`. Non-ASCII title/body/JSON-LD must render correctly in both.
 
 ## JavaScript rendering mismatch
 
@@ -67,7 +90,30 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 | Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy** |
 | Paginated hub grids (playbooks, building blocks, blog) | Current page items in SSR HTML + crawlable `<a href="?page=N">` links — no client-only "Show more" or infinite scroll |
 
-**Audit (manual):** Google Search Console → URL Inspection → compare **viewed HTML** (or “page source” before JS) vs **rendered** output. Mismatches on indexable text or `<script type="application/ld+json">` mean a rendering gap.
+## Pagination (indexable catalog grids)
+
+Indexable listing hubs must expose **crawlable page URLs**, not client-only infinite scroll or “Show more” that appends DOM without new URLs.
+
+| Layer | Pattern |
+| --- | --- |
+| **Server load** | `parseHubListPagination` / `paginateHubList` (`$lib/listings/utils/hubListPagination.ts`) in `+page.server.ts`; return only the current page slice |
+| **UI** | `Pagination.svelte` with real `<a href>` links and `rel="prev"` / `rel="next"` on adjacent pages |
+| **JSON-LD** | `numberOfItems` and `ListItem.position` reflect the **full filtered set** (`totalCount`, `listOffset`) — see **web-seo-jsonld** |
+| **Canonical** | Path-only (hub path with category/tag in path when set); `?page=` stripped — see **web-seo-canonical** |
+
+**Allowed:** infinite scroll in **non-indexable** app surfaces (editor, admin tables, modals). **Not allowed:** infinite scroll as the only way to reach indexable catalog items on public hub routes.
+
+## Mixed content (HTTPS)
+
+Production pages are served over HTTPS. Subresources and SEO URLs loaded over plain HTTP may be blocked or downgrade the page.
+
+| Layer | Mechanism |
+| --- | --- |
+| **Canonical / OG base** | `createMetaData` upgrades `http://` company/site origins to `https://` for canonical and social URLs |
+| **Images and embeds** | Use `https://` (or same-origin relative paths) for `customImages`, hero media, and JSON-LD `image` / `thumbnailUrl` on public routes |
+| **CMS / API copy** | Sanitize or normalize user-supplied URLs that might ship `http://` in indexed body or schema |
+
+**Audit:** On a staging/production HTTPS URL, DevTools → Security → confirm no active mixed content. Fix any `http://` asset or iframe before launch.
 
 ## Quick checklist (public route)
 
@@ -80,6 +126,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 - [ ] JSON-LD `url` / `canonicalUrl` matches `<link rel="canonical">` (same `buildCanonicalUrl` value)
 - [ ] Indexable body copy and headings come from server load data, not client-only fetches
 - [ ] Paginated catalog hubs render the current page in SSR and expose crawlable pagination links (`Pagination.svelte` with `rel="prev"` / `rel="next"`); avoid client-only "Show more" or infinite scroll on indexable listing grids
+- [ ] External images/embeds and meta image URLs use HTTPS on production
 
 ## Representative routes
 

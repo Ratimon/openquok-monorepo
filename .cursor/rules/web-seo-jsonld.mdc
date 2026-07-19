@@ -21,7 +21,7 @@ alwaysApply: false
 
 # Web SEO: JSON-LD structured data
 
-Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so crawlers receive real JSON in SSR HTML — **before** any client hydration. JSON-LD must not depend on JavaScript execution (see **web-ssr-seo-meta** → JavaScript rendering mismatch).
+Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so crawlers receive real JSON in SSR HTML — **before** any client hydration. JSON-LD must not depend on JavaScript execution (see **web-seo-index** → JavaScript rendering mismatch).
 
 ```svelte
 <script lang="ts">
