@@ -80,8 +80,10 @@ export function createBuildingBlocksItemListSchema(params: {
 	name: string;
 	description: string;
 	buildingBlocks: ExtensionCardViewModel[];
+	totalCount?: number;
+	listOffset?: number;
 }): ItemList {
-	const { canonical, origin, name, description, buildingBlocks } = params;
+	const { canonical, origin, name, description, buildingBlocks, totalCount, listOffset = 0 } = params;
 
 	return {
 		'@type': 'ItemList',
@@ -89,7 +91,7 @@ export function createBuildingBlocksItemListSchema(params: {
 		name,
 		description,
 		url: canonical,
-		numberOfItems: buildingBlocks.length,
+		numberOfItems: totalCount ?? buildingBlocks.length,
 		itemListOrder: 'https://schema.org/ItemListOrderAscending',
 		itemListElement: buildingBlocks.map((buildingBlock, index) => {
 			const itemUrl = buildingBlock.ownerUsername
@@ -102,7 +104,7 @@ export function createBuildingBlocksItemListSchema(params: {
 
 			return {
 				'@type': 'ListItem',
-				position: index + 1,
+				position: listOffset + index + 1,
 				url: itemUrl,
 				item: {
 					'@type': 'Thing',

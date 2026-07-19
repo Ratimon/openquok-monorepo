@@ -53,6 +53,10 @@
 	let heroSubtitle = $derived(data.heroSubtitle);
 	let categorySlug = $derived(data.filtersVm.category ?? null);
 	let tagPathSlug = $derived(page.params.tagSlug ?? '');
+	let listPage = $derived(data.page);
+	let itemsPerPage = $derived(data.itemsPerPage);
+	let filteredCount = $derived(data.filteredCount);
+	let totalPages = $derived(data.totalPages);
 
 	const pagePresenter = publicPlaybooksPagePresenter;
 	const categoriesOverviewHref = url(route(getRootPathPublicPlaybooksCategories()));
@@ -141,6 +145,10 @@
 			{categoriesVm}
 			{filtersVm}
 			{tagFilterVm}
+			{listPage}
+			{itemsPerPage}
+			{filteredCount}
+			{totalPages}
 			{isLoggedIn}
 			{bookmarksPaidEnabled}
 			{bookmarkedIds}

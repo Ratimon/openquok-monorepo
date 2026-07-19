@@ -21,6 +21,11 @@ import {
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import {
+	HUB_LIST_FETCH_LIMIT,
+	parseHubListPagination,
+	paginateHubList
+} from '$lib/listings/utils/hubListPagination';
 
 export const ssr = true;
 
@@ -75,13 +80,19 @@ export async function loadPlaybooksHubPage(
 		filters.tags = undefined;
 	}
 
-	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch, limit: 50 });
+	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({
+		fetch,
+		limit: HUB_LIST_FETCH_LIMIT
+	});
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildStacksTagFilterVm({
 		tagsCatalog,
 		stacks: hub.stacks
 	});
 	const filteredPlaybooks = publicPlaybooksPagePresenter.applyClientFilters(hub.stacks, filters, tagFilterVm);
+
+	const { page, itemsPerPage } = parseHubListPagination(url.searchParams);
+	const paginatedPlaybooks = paginateHubList(filteredPlaybooks, page, itemsPerPage);
 
 	const statsVm = getListingPresenter.computeStacksHubStats(hub.stacks, hub.categories);
 
@@ -152,7 +163,9 @@ export async function loadPlaybooksHubPage(
 				origin: url.origin,
 				name: customTitle,
 				description: customDescription,
-				playbooks: filteredPlaybooks
+				playbooks: paginatedPlaybooks.items,
+				totalCount: paginatedPlaybooks.count,
+				listOffset: paginatedPlaybooks.listOffset
 			}),
 			...aboutNodes,
 			...(fixedCategorySlug || fixedTagSlug || fixedTagGroupSlug
@@ -171,13 +184,17 @@ export async function loadPlaybooksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		playbooksVm: filteredPlaybooks,
+		playbooksVm: paginatedPlaybooks.items,
 		allPlaybooksVm: hub.stacks,
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,
 		tagFilterVm,
 		totalCount: hub.totalCount,
+		filteredCount: paginatedPlaybooks.count,
+		page: paginatedPlaybooks.page,
+		itemsPerPage: paginatedPlaybooks.itemsPerPage,
+		totalPages: paginatedPlaybooks.totalPages,
 		schemaData,
 		heroTitle: customTitle,
 		heroDescription: customDescription,

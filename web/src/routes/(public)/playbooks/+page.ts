@@ -31,6 +31,10 @@ export const load: PageLoad = async ({ parent, data }) => {
 			filtersVm: StacksHubFilters;
 			tagFilterVm: ExtensionsTagFilterViewModel;
 			totalCount: number;
+			filteredCount: number;
+			page: number;
+			itemsPerPage: number;
+			totalPages: number;
 			schemaData: unknown;
 			heroTitle: string;
 			heroDescription: string;
@@ -51,6 +55,10 @@ export const load: PageLoad = async ({ parent, data }) => {
 			filtersVm: serverData.filtersVm,
 			tagFilterVm: serverData.tagFilterVm,
 			totalCount: serverData.totalCount,
+			filteredCount: serverData.filteredCount,
+			page: serverData.page,
+			itemsPerPage: serverData.itemsPerPage,
+			totalPages: serverData.totalPages,
 			schemaData: serverData.schemaData,
 			heroTitle: serverData.heroTitle,
 			heroDescription: serverData.heroDescription,

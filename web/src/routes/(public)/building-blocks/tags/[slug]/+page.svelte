@@ -50,6 +50,10 @@
 	let heroDescription = $derived(data.heroDescription);
 	let heroSubtitle = $derived(data.heroSubtitle);
 	let pathSlug = $derived(page.params.slug ?? '');
+	let listPage = $derived(data.page);
+	let itemsPerPage = $derived(data.itemsPerPage);
+	let filteredCount = $derived(data.filteredCount);
+	let totalPages = $derived(data.totalPages);
 
 	const pagePresenter = publicBuildingBlocksPagePresenter;
 	const tagsOverviewHref = url(route(getRootPathPublicBuildingBlocksTags()));
@@ -133,6 +137,10 @@
 			{categoriesVm}
 			{filtersVm}
 			{tagFilterVm}
+			{listPage}
+			{itemsPerPage}
+			{filteredCount}
+			{totalPages}
 			{isLoggedIn}
 			{bookmarksPaidEnabled}
 			{bookmarkedIds}

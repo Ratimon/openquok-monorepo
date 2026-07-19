@@ -17,6 +17,10 @@
 	import { publicBuildingBlocksPagePresenter } from '$lib/area-public/index';
 	import { showListingBookmarkToast } from '$lib/listings';
 	import {
+		buildHubListUrl,
+		HUB_LIST_PAGE_SIZE_OPTIONS
+	} from '$lib/listings/utils/hubListPagination';
+	import {
 		SKILL_BUILDER_BUILDING_BLOCKS_QUERY_PARAM,
 		serializeExtensionSlugs
 	} from '$lib/skill-builder/utils/parseBuilderQuery';
@@ -29,12 +33,17 @@
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
 	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
 	import ListingsTypeChips from '$lib/ui/templates/listings/ListingsTypeChips.svelte';
+	import Pagination from '$lib/ui/templates/Pagination.svelte';
 
 	type Props = {
 		buildingBlocksVm: ExtensionCardViewModel[];
 		categoriesVm: ExtensionCategoryViewModel[];
 		filtersVm: ExtensionsHubFilters;
 		tagFilterVm: ExtensionsTagFilterViewModel;
+		listPage: number;
+		itemsPerPage: number;
+		filteredCount: number;
+		totalPages: number;
 		isLoggedIn: boolean;
 		bookmarksPaidEnabled: boolean | null;
 		bookmarkedIds: Record<string, boolean>;
@@ -51,6 +60,10 @@
 		categoriesVm,
 		filtersVm,
 		tagFilterVm,
+		listPage,
+		itemsPerPage,
+		filteredCount,
+		totalPages,
 		isLoggedIn,
 		bookmarksPaidEnabled,
 		bookmarkedIds,
@@ -63,16 +76,10 @@
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
 	const skillBuilderHref = url(route(getRootPathPublicSkillBuilder()));
 
-	const BUILDING_BLOCKS_GRID_PAGE_SIZE = 20;
-
 	let expandedId = $state<string | null>(null);
 	let searchDraft = $derived(filtersVm.search ?? '');
-	let visibleCount = $state(BUILDING_BLOCKS_GRID_PAGE_SIZE);
 	let selectedBuildingBlockIds = $state<string[]>([]);
 
-	let visibleBuildingBlocks = $derived(buildingBlocksVm.slice(0, visibleCount));
-	let remainingCount = $derived(Math.max(0, buildingBlocksVm.length - visibleCount));
-	let hasMoreBuildingBlocks = $derived(remainingCount > 0);
 	let selectedBuildingBlocks = $derived(
 		buildingBlocksVm.filter((buildingBlockVm) => selectedBuildingBlockIds.includes(buildingBlockVm.id))
 	);
@@ -91,8 +98,11 @@
 		{ id: 'views', label: 'Most viewed' }
 	];
 
+	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
+		return buildHubListUrl(page.url.pathname, page.url.searchParams, overrides);
+	}
+
 	function navigateFilters(overrides: Partial<ExtensionsHubFilters>) {
-		visibleCount = BUILDING_BLOCKS_GRID_PAGE_SIZE;
 		expandedId = null;
 		const href = pagePresenter.buildFilterUrl(filtersVm, overrides);
 		void goto(href, { keepFocus: true, noScroll: true });
@@ -133,10 +143,6 @@
 
 	function toggleExpanded(id: string) {
 		expandedId = expandedId === id ? null : id;
-	}
-
-	function showMoreBuildingBlocks() {
-		visibleCount = Math.min(visibleCount + BUILDING_BLOCKS_GRID_PAGE_SIZE, buildingBlocksVm.length);
 	}
 
 	function isSelected(listingId: string) {
@@ -243,7 +249,7 @@
 				</p>
 			{:else}
 				<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					{#each visibleBuildingBlocks as buildingBlockVm (buildingBlockVm.id)}
+					{#each buildingBlocksVm as buildingBlockVm (buildingBlockVm.id)}
 						<li class={expandedId === buildingBlockVm.id ? 'col-span-full' : undefined}>
 							<BuildingBlockCard
 								extensionVm={buildingBlockVm}
@@ -263,16 +269,16 @@
 						</li>
 					{/each}
 				</ul>
-				{#if hasMoreBuildingBlocks}
-					<div class="mt-8 flex justify-center">
-						<button
-							type="button"
-							class="btn btn-outline btn-warning rounded-full px-6"
-							onclick={showMoreBuildingBlocks}
-						>
-							Show more ({remainingCount.toLocaleString()} remaining)
-						</button>
-					</div>
+				{#if filteredCount > 0}
+					<Pagination
+						{itemsPerPage}
+						totalItems={filteredCount}
+						currentPage={listPage}
+						{totalPages}
+						{buildListUrl}
+						nameOfItems="building blocks"
+						pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}
+					/>
 				{/if}
 			{/if}
 		</section>

@@ -119,7 +119,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | Playbooks hub builders | `$lib/listings/utils/createPlaybooksSeoSchema.ts` | `CollectionPage`, item lists, term sets |
 | Building blocks hub builders | `$lib/listings/utils/createBuildingBlocksSeoSchema.ts` | same pattern |
 
-Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.ts`) compose builders with `createJsonLdGraph` + `filterNonEmptyJsonLdNodes`.
+Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.ts`) compose builders with `createJsonLdGraph` + `filterNonEmptyJsonLdNodes`. Paginate hub grids in the server load (`parseHubListPagination`, `paginateHubList` from `$lib/listings/utils/hubListPagination.ts`); pass `totalCount` and `listOffset` into item-list builders so `numberOfItems` and `ListItem.position` match the full filtered set, not only the current page slice.
 
 ## Reference graph shapes
 

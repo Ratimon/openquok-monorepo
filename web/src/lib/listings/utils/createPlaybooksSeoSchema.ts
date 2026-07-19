@@ -80,8 +80,10 @@ export function createPlaybooksItemListSchema(params: {
 	name: string;
 	description: string;
 	playbooks: StackCardViewModel[];
+	totalCount?: number;
+	listOffset?: number;
 }): ItemList {
-	const { canonical, origin, name, description, playbooks } = params;
+	const { canonical, origin, name, description, playbooks, totalCount, listOffset = 0 } = params;
 
 	return {
 		'@type': 'ItemList',
@@ -89,7 +91,7 @@ export function createPlaybooksItemListSchema(params: {
 		name,
 		description,
 		url: canonical,
-		numberOfItems: playbooks.length,
+		numberOfItems: totalCount ?? playbooks.length,
 		itemListOrder: 'https://schema.org/ItemListOrderAscending',
 		itemListElement: playbooks.map((playbook, index) => {
 			const itemUrl = playbook.ownerUsername
@@ -99,7 +101,7 @@ export function createPlaybooksItemListSchema(params: {
 
 			return {
 				'@type': 'ListItem',
-				position: index + 1,
+				position: listOffset + index + 1,
 				url: itemUrl,
 				item: {
 					'@type': 'HowTo',

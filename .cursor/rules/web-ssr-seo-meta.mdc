@@ -48,6 +48,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 | `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) |
 | JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
 | Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy** |
+| Paginated hub grids (playbooks, building blocks, blog) | Current page items in SSR HTML + crawlable `<a href="?page=N">` links — no client-only "Show more" or infinite scroll |
 
 **Audit (manual):** Google Search Console → URL Inspection → compare **viewed HTML** (or “page source” before JS) vs **rendered** output. Mismatches on indexable text or `<script type="application/ld+json">` mean a rendering gap.
 
@@ -60,6 +61,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 - [ ] `+page.svelte` renders `<JsonLdHead schemaData={…} />` only — no inline JSON-LD
 - [ ] JSON-LD `url` / `canonicalUrl` matches `<link rel="canonical">` (same `buildCanonicalUrl` value)
 - [ ] Indexable body copy and headings come from server load data, not client-only fetches
+- [ ] Paginated catalog hubs render the current page in SSR and expose crawlable pagination links (`Pagination.svelte` with `rel="prev"` / `rel="next"`); avoid client-only "Show more" or infinite scroll on indexable listing grids
 
 ## Representative routes
 

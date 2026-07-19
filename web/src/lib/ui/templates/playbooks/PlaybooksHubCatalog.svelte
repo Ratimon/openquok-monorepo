@@ -9,16 +9,22 @@
 	} from '$lib/listings/index';
 
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { publicPlaybooksPagePresenter } from '$lib/area-public/index';
 	import { showListingBookmarkToast } from '$lib/listings';
+	import {
+		buildHubListUrl,
+		HUB_LIST_PAGE_SIZE_OPTIONS
+	} from '$lib/listings/utils/hubListPagination';
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
 	import ListingsCategorySidebar from '$lib/ui/templates/listings/ListingsCategorySidebar.svelte';
 	import ListingsSearchBar from '$lib/ui/templates/listings/ListingsSearchBar.svelte';
 	import ListingsTagFilter from '$lib/ui/templates/listings/ListingsTagFilter.svelte';
+	import Pagination from '$lib/ui/templates/Pagination.svelte';
 	import PlaybookHubCard from '$lib/ui/templates/playbooks/PlaybookHubCard.svelte';
 
 	type Props = {
@@ -26,6 +32,10 @@
 		categoriesVm: ExtensionCategoryViewModel[];
 		filtersVm: StacksHubFilters;
 		tagFilterVm: ExtensionsTagFilterViewModel;
+		listPage: number;
+		itemsPerPage: number;
+		filteredCount: number;
+		totalPages: number;
 		isLoggedIn: boolean;
 		bookmarksPaidEnabled: boolean | null;
 		bookmarkedIds: Record<string, boolean>;
@@ -42,6 +52,10 @@
 		categoriesVm,
 		filtersVm,
 		tagFilterVm,
+		listPage,
+		itemsPerPage,
+		filteredCount,
+		totalPages,
 		isLoggedIn,
 		bookmarksPaidEnabled,
 		bookmarkedIds,
@@ -53,14 +67,7 @@
 	const pagePresenter = publicPlaybooksPagePresenter;
 	const accountBillingHref = url(`${route(getRootPathAccount())}/billing`);
 
-	const PLAYBOOKS_GRID_PAGE_SIZE = 20;
-
-	let visibleCount = $state(PLAYBOOKS_GRID_PAGE_SIZE);
 	let searchDraft = $derived(filtersVm.search ?? '');
-
-	let visiblePlaybooks = $derived(playbooksVm.slice(0, visibleCount));
-	let remainingCount = $derived(Math.max(0, playbooksVm.length - visibleCount));
-	let hasMorePlaybooks = $derived(remainingCount > 0);
 
 	let activeTagPathSlug = $derived(
 		filtersVm.tags?.length === 1
@@ -75,8 +82,11 @@
 		{ id: 'views', label: 'Most viewed' }
 	];
 
+	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
+		return buildHubListUrl(page.url.pathname, page.url.searchParams, overrides);
+	}
+
 	function navigateFilters(overrides: Partial<StacksHubFilters>) {
-		visibleCount = PLAYBOOKS_GRID_PAGE_SIZE;
 		const href = pagePresenter.buildFilterUrl(filtersVm, overrides);
 		void goto(href, { keepFocus: true, noScroll: true });
 	}
@@ -107,10 +117,6 @@
 	function handleSortChange(event: Event) {
 		const value = (event.currentTarget as HTMLSelectElement).value as ExtensionSort;
 		navigateFilters({ sort: value });
-	}
-
-	function showMorePlaybooks() {
-		visibleCount = Math.min(visibleCount + PLAYBOOKS_GRID_PAGE_SIZE, playbooksVm.length);
 	}
 
 	async function handleToggleBookmark(listingId: string, nextBookmarked: boolean) {
@@ -174,7 +180,7 @@
 				</p>
 			{:else}
 				<ul class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-					{#each visiblePlaybooks as playbookVm (playbookVm.id)}
+					{#each playbooksVm as playbookVm (playbookVm.id)}
 						<li>
 							<PlaybookHubCard
 								{playbookVm}
@@ -188,16 +194,16 @@
 						</li>
 					{/each}
 				</ul>
-				{#if hasMorePlaybooks}
-					<div class="mt-8 flex justify-center">
-						<button
-							type="button"
-							class="btn btn-outline btn-warning rounded-full px-6"
-							onclick={showMorePlaybooks}
-						>
-							Show more ({remainingCount.toLocaleString()} remaining)
-						</button>
-					</div>
+				{#if filteredCount > 0}
+					<Pagination
+						{itemsPerPage}
+						totalItems={filteredCount}
+						currentPage={listPage}
+						{totalPages}
+						{buildListUrl}
+						nameOfItems="playbooks"
+						pageSizeOptions={[...HUB_LIST_PAGE_SIZE_OPTIONS]}
+					/>
 				{/if}
 			{/if}
 		</section>

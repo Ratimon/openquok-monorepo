@@ -21,6 +21,11 @@ import {
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import {
+	HUB_LIST_FETCH_LIMIT,
+	parseHubListPagination,
+	paginateHubList
+} from '$lib/listings/utils/hubListPagination';
 
 export const ssr = true;
 
@@ -75,7 +80,10 @@ export async function loadBuildingBlocksHubPage(
 		filters.tags = undefined;
 	}
 
-	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({ fetch, limit: 50 });
+	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({
+		fetch,
+		limit: HUB_LIST_FETCH_LIMIT
+	});
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildExtensionsTagFilterVm({
 		tagsCatalog,
@@ -86,6 +94,9 @@ export async function loadBuildingBlocksHubPage(
 		filters,
 		tagFilterVm
 	);
+
+	const { page, itemsPerPage } = parseHubListPagination(url.searchParams);
+	const paginatedBuildingBlocks = paginateHubList(filteredBuildingBlocks, page, itemsPerPage);
 
 	const statsVm = getListingPresenter.computeHubStats(hub.extensions, hub.categories);
 
@@ -156,7 +167,9 @@ export async function loadBuildingBlocksHubPage(
 				origin: url.origin,
 				name: customTitle,
 				description: customDescription,
-				buildingBlocks: filteredBuildingBlocks
+				buildingBlocks: paginatedBuildingBlocks.items,
+				totalCount: paginatedBuildingBlocks.count,
+				listOffset: paginatedBuildingBlocks.listOffset
 			}),
 			...aboutNodes,
 			...(fixedCategorySlug || fixedTagSlug || fixedTagGroupSlug
@@ -175,13 +188,17 @@ export async function loadBuildingBlocksHubPage(
 	return {
 		pageMetaTags,
 		isLoggedIn,
-		buildingBlocksVm: filteredBuildingBlocks,
+		buildingBlocksVm: paginatedBuildingBlocks.items,
 		allBuildingBlocksVm: hub.extensions,
 		categoriesVm: hub.categories,
 		statsVm,
 		filtersVm: filters,
 		tagFilterVm,
 		totalCount: hub.totalCount,
+		filteredCount: paginatedBuildingBlocks.count,
+		page: paginatedBuildingBlocks.page,
+		itemsPerPage: paginatedBuildingBlocks.itemsPerPage,
+		totalPages: paginatedBuildingBlocks.totalPages,
 		schemaData,
 		heroTitle: customTitle,
 		heroDescription: customDescription,

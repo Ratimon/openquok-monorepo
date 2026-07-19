@@ -53,6 +53,7 @@ const pageMetaTags = { ...metaTags, canonical, openGraph: { ...metaTags.openGrap
 | --- | --- | --- |
 | `utm_*`, `ref`, `gclid`, `fbclid`, … | Stripped after capture (`replaceUrlWithoutTrackingParams` in `UtmAttribution.svelte`) | Stripped |
 | Hub `sort`, `search`, `type` | Kept (shareable filter state) | Stripped — canonical is path only |
+| Hub `page`, `ipp` (playbooks, building blocks) | Kept | Stripped — paginated hub views canonicalize to path (category/tag in path when set) |
 | Blog `page`, `ipp`, `topic`, `author` | Kept | Stripped — paginated/filtered views canonicalize to hub path (e.g. `/blog`) |
 | OAuth / auth (`code`, `state`, `redirectURL`) | Kept (functional) | Stripped in canonical tag |
 | Skill builder `stack`, building-block query | Kept | Stripped — channel slug is in path when applicable |
