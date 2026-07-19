@@ -8,6 +8,7 @@ import {
 	publicBlogPagePresenter,
 	publicBlogTopicPagePresenter
 } from '$lib/area-public/index';
+import { createBlogIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 
@@ -86,6 +87,15 @@ export async function load({ url, fetch, cookies, parent }) {
 
 	const { topics: _topicsForNavRemoved, ...overviewRest } = overview;
 
+	const schemaData = createBlogIndexSEOSchema({
+		canonicalUrl: canonical,
+		origin: url.origin,
+		companyName,
+		name: heroTitle,
+		description: heroDescription,
+		posts: overviewRest.posts
+	});
+
 	return {
 		pageMetaTags,
 		isLoggedIn,
@@ -94,6 +104,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		heroTitle,
 		heroDescription,
 		...overviewRest,
-		topicsNav: topicsOverview.topics
+		topicsNav: topicsOverview.topics,
+		schemaData
 	};
 }

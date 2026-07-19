@@ -2,6 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/index';
+import { createBlogAuthorSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 
@@ -69,6 +70,18 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		}
 	});
 
+	const schemaData =
+		author != null
+			? createBlogAuthorSEOSchema({
+					canonicalUrl: canonical,
+					origin: url.origin,
+					companyName,
+					author,
+					identifier,
+					posts
+				})
+			: undefined;
+
 	return {
 		pageMetaTags,
 		isLoggedIn,
@@ -79,6 +92,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		posts,
 		count,
 		page: listPage,
-		itemsPerPage: ipp
+		itemsPerPage: ipp,
+		schemaData
 	};
 }

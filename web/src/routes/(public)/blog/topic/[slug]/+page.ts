@@ -25,6 +25,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			topicsNav: BlogTopicOverviewPublicViewModel[];
 			page: number;
 			itemsPerPage: number;
+			schemaData?: unknown;
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
@@ -47,7 +48,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			count: serverData.count,
 			topicsNav: serverData.topicsNav,
 			page: serverData.page,
-			itemsPerPage: serverData.itemsPerPage
+			itemsPerPage: serverData.itemsPerPage,
+			schemaData: serverData.schemaData
 		};
 	}
 

@@ -11,6 +11,7 @@ globs:
   - web/src/lib/ui/components/docs/DocsSeoHead.svelte
   - web/src/lib/content/utils/create*SEOSchema.ts
   - web/src/lib/blogs/utils/createBlogPostSEOSchema.ts
+  - web/src/lib/blogs/utils/createBlogHubSEOSchema.ts
   - web/src/lib/posts/utils/createPostSEOSchema.ts
   - web/src/lib/listings/utils/listingSchema.ts
   - web/src/lib/listings/utils/create*SeoSchema.ts
@@ -20,7 +21,7 @@ alwaysApply: false
 
 # Web SEO: JSON-LD structured data
 
-Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so crawlers receive real JSON in SSR HTML.
+Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so crawlers receive real JSON in SSR HTML — **before** any client hydration. JSON-LD must not depend on JavaScript execution (see **web-ssr-seo-meta** → JavaScript rendering mismatch).
 
 ```svelte
 <script lang="ts">
@@ -111,6 +112,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
 | `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
 | `createBlogPostSEOSchema` | `$lib/blogs/utils/createBlogPostSEOSchema.ts` | `JsonLdGraphSchema` |
+| Blog hub builders | `$lib/blogs/utils/createBlogHubSEOSchema.ts` | `Blog`, `CollectionPage`, `ItemList`, `ProfilePage`, `BreadcrumbList` for `/blog`, `/blog/topic`, `/blog/author` |
 | `createPostSEOSchema` | `$lib/posts/utils/createPostSEOSchema.ts` | `JsonLdGraphSchema` |
 | `createListingSEOSchema` | `$lib/listings/utils/listingSchema.ts` | `JsonLdGraphSchema` |
 | `mergeListingSchemaIntoGraph` | `$lib/listings/utils/listingSchema.ts` | `Thing[]` |
@@ -130,6 +132,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 | **Channel / agent detail** | `WebPage` + `SoftwareApplication` + `FAQPage` |
 | **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
 | **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` |
+| **Blog hubs** | `Blog` + `CollectionPage` + `ItemList` (index); `ProfilePage` + `Person` (author); topic `CollectionPage` + breadcrumbs |
 | **Creator profile** | `ProfilePage` + `Person` |
 | **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
 | **Compare** | `WebPage` + `ItemList` + `SoftwareApplication` × 2 + `FAQPage` |

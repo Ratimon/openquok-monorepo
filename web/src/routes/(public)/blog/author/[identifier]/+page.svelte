@@ -23,6 +23,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	// /blog
 	const rootPathPublicBlog = getRootPathPublicBlog();
@@ -95,7 +96,10 @@
 	let totalPages = $derived(Math.max(1, Math.ceil(count / Math.max(itemsPerPage, 1))));
 	let firstPost = $derived(posts[0]);
 	let restPosts = $derived(posts.slice(1));
+	let schemaData = $derived(data.schemaData);
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

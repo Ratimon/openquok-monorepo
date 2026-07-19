@@ -2,6 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogTopicPagePresenter } from '$lib/area-public/index';
+import { createBlogTopicsIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 
@@ -40,11 +41,21 @@ export async function load({ url, fetch, cookies, parent }) {
 
 	const { topics } = await publicBlogTopicPagePresenter.loadDataForTopicsOverviewStateless({ fetch });
 
+	const schemaData = createBlogTopicsIndexSEOSchema({
+		canonicalUrl: canonical,
+		origin: url.origin,
+		companyName,
+		name: customTitle,
+		description: customDescription,
+		topics
+	});
+
 	return {
 		pageMetaTags,
 		isLoggedIn,
 		companyInformationPm,
 		marketingInformationPm,
-		topics
+		topics,
+		schemaData
 	};
 }

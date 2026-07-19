@@ -11,6 +11,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	/** From `en.ts` — blog.blog-authors-overview-page */
 	const PAGE_TITLE = 'Blog Authors';
@@ -24,6 +25,7 @@
 	let { data }: Props = $props();
 
 	let authors = $derived(data.authors);
+	let schemaData = $derived(data.schemaData);
 
 	function authorHref(author: (typeof authors)[number]): string {
 		const segment = stringToSlug(author.fullName || author.username || 'Anonymous');
@@ -38,6 +40,8 @@
 		return count === 1 ? '1 Post' : `${count} Posts`;
 	}
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

@@ -36,6 +36,21 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
 | Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |
 
+## JavaScript rendering mismatch
+
+Google separates **crawl**, **render**, and **index**. If meaningful content or SEO signals exist only after client JS runs, the indexer may store an empty or thin version even when users see the full page.
+
+**This stack (SvelteKit SSR):** public routes use `export const ssr = true`, compute `pageMetaTags` and `schemaData` in `+page.server.ts`, and render them in the first HTML response (`MetaTags` in `+layout.svelte`, `JsonLdHead` in `+page.svelte`). Do not rely on `onMount`, `if (browser)`, or client-only presenter fetches for indexable copy or structured data.
+
+| Signal | Must appear in initial HTML |
+| --- | --- |
+| `<title>`, meta description, OG/Twitter | `pageMetaTags` from server load |
+| `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) |
+| JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
+| Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy** |
+
+**Audit (manual):** Google Search Console → URL Inspection → compare **viewed HTML** (or “page source” before JS) vs **rendered** output. Mismatches on indexable text or `<script type="application/ld+json">` mean a rendering gap.
+
 ## Quick checklist (public route)
 
 - [ ] `export const ssr = true` in `+page.server.ts`
@@ -44,10 +59,11 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 - [ ] `+page.ts` forwards `pageMetaTags` + `schemaData` on `browser && data` (see **web-sveltekit-universal-page-load**)
 - [ ] `+page.svelte` renders `<JsonLdHead schemaData={…} />` only — no inline JSON-LD
 - [ ] JSON-LD `url` / `canonicalUrl` matches `<link rel="canonical">` (same `buildCanonicalUrl` value)
+- [ ] Indexable body copy and headings come from server load data, not client-only fetches
 
 ## Representative routes
 
 - **Landing / pricing / about**: `/`, `/pricing`, `/about`
-- **Content**: `/blog/[slug]`, `/p/[postId]`
+- **Content**: `/blog`, `/blog/[slug]`, `/blog/topic`, `/blog/author`, `/p/[postId]`
 - **Hubs**: `/channels`, `/agents`, `/tools`, `/creators`, `/compare`, `/playbooks`, `/building-blocks`, category/tag sub-hubs
 - **Detail pages**: channel, agent, tool, creator, listing detail routes

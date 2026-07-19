@@ -21,6 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			count: number;
 			page: number;
 			itemsPerPage: number;
+			schemaData?: unknown;
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
@@ -42,7 +43,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			posts: serverData.posts,
 			count: serverData.count,
 			page: serverData.page,
-			itemsPerPage: serverData.itemsPerPage
+			itemsPerPage: serverData.itemsPerPage,
+			schemaData: serverData.schemaData
 		};
 	}
 

@@ -16,6 +16,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			companyInformationPm: unknown;
 			marketingInformationPm: unknown;
 			authors: BlogAuthorPublicViewModel[];
+			schemaData: unknown;
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
@@ -32,7 +33,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			isEditor,
 			companyInformationPm: serverData.companyInformationPm,
 			marketingInformationPm: serverData.marketingInformationPm,
-			authors: serverData.authors
+			authors: serverData.authors,
+			schemaData: serverData.schemaData
 		};
 	}
 

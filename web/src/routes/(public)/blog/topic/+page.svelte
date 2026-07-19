@@ -8,6 +8,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
 	// /blog
 	const rootPathPublicBlog = getRootPathPublicBlog();
@@ -24,6 +25,7 @@
 	let { data }: Props = $props();
 
 	let topics = $derived(data.topics);
+	let schemaData = $derived(data.schemaData);
 
 	function topicListingHref(topicId: string): string {
 		return url(`/${rootPathPublicBlog}?topic=${encodeURIComponent(topicId)}`);
@@ -33,6 +35,8 @@
 		return count === 1 ? '1 post' : `${count} posts`;
 	}
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">

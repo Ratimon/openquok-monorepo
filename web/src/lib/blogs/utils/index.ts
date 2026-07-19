@@ -4,6 +4,18 @@ export {
 	guessImageMimeFromFilename,
 	type CreateBlogPostSEOSchemaParams
 } from '$lib/blogs/utils/createBlogPostSEOSchema';
+export {
+	createBlogAuthorSEOSchema,
+	createBlogAuthorsIndexSEOSchema,
+	createBlogIndexSEOSchema,
+	createBlogTopicSEOSchema,
+	createBlogTopicsIndexSEOSchema,
+	type CreateBlogAuthorSEOSchemaParams,
+	type CreateBlogAuthorsIndexSEOSchemaParams,
+	type CreateBlogIndexSEOSchemaParams,
+	type CreateBlogTopicSEOSchemaParams,
+	type CreateBlogTopicsIndexSEOSchemaParams
+} from '$lib/blogs/utils/createBlogHubSEOSchema';
 export { buildBlogTopicViewModelFromUpsert } from '$lib/blogs/utils/buildBlogTopicViewModelFromUpsert';
 export { extractBlogImageStoragePathFromImageSrc } from '$lib/blogs/utils/extractBlogImageStoragePathFromImageSrc';
 export { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils/extractBlogImageStoragePathsFromHtml';

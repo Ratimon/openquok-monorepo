@@ -80,6 +80,8 @@ Raw markdown doc routes use `X-Robots-Tag: noindex` via `markdown-route-headers.
 
 Canonical tags are the primary code fix. Optionally mark UTM parameters as “doesn't change page content” in GSC → URL parameters.
 
+**Rendering audit:** URL Inspection → compare raw/viewed HTML vs rendered HTML. Canonical and JSON-LD must match in both; if they appear only after JS, fix server loads (see **web-ssr-seo-meta**).
+
 ## Checklist
 
 - [ ] Every public `+page.server.ts` uses `buildCanonicalUrl` + `withCanonicalMetaTags`

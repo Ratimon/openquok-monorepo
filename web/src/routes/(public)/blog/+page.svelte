@@ -15,6 +15,7 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
+	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	
 	type Props = {
 		data: PageData;
@@ -30,6 +31,7 @@
 	let topicsNav = $derived(data.topicsNav);
 	let heroTitle = $derived(data.heroTitle);
 	let heroDescription = $derived(data.heroDescription);
+	let schemaData = $derived(data.schemaData);
 
 	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
 		const sp = new URLSearchParams(page.url.searchParams);
@@ -65,6 +67,8 @@
 	let restPosts = $derived(posts.slice(1));
 
 </script>
+
+<JsonLdHead schemaData={schemaData} />
 
 <SectionOuterContainer class="bg-base-100">
 	<SubSectionOuterContainer class="md:py-10">
