@@ -564,20 +564,21 @@ Follow **§6** for load `data`: `let { data }: Props = $props()` plus `$derived`
 
 ## 8. Route SEO and JSON-LD: build in `+page.server.ts`
 
-Public routes that ship meta tags and structured data should follow the same split as **agents**, **channels**, and **extensions**:
+Public routes that ship meta tags and structured data should follow the same split as **agents**, **channels**, and **extensions**. Full guidance: **web-ssr-seo-meta** (index) and **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**, **web-seo-cms-copy**.
 
-- **`+page.server.ts`** owns SSR SEO: `createMetaData` → `pageMetaTags`, plus a `schemaData` object for JSON-LD (`CollectionPage` hubs, `FAQPage` add-ons, or domain helpers such as `createBlogPostSEOSchema` / `createPostSEOSchema`).
+- **`+page.server.ts`** owns SSR SEO: `createMetaData` → `withCanonicalMetaTags(metaTags, buildCanonicalUrl(url), …)` for `pageMetaTags`, plus `schemaData` for JSON-LD.
 - **`+page.svelte`** renders `<JsonLdHead schemaData={schemaData} />` where `schemaData` comes from load (`let schemaData = $derived(data.schemaData)` per **§6**).
 - **`+page.ts`** (universal load): when present, include `schemaData` (and `pageMetaTags` when typed) in the `browser && data` cast and explicit return so client navigations keep SEO fields. See **web-sveltekit-universal-page-load**.
 
 ### Hub `CollectionPage` pattern
 
-For catalog-style public hubs, build `schemaData` in the server load with `createJsonLdGraph` (see **web-ssr-seo-meta**):
+For catalog-style public hubs, build `schemaData` in the server load with `createJsonLdGraph` (see **web-seo-jsonld**):
 
 ```ts
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
-const canonical = new URL(url.pathname, url.origin).href;
+const canonical = buildCanonicalUrl(url);
 const schemaData = createJsonLdGraph([
 	{
 		'@type': 'CollectionPage',
@@ -593,12 +594,13 @@ const schemaData = createJsonLdGraph([
 	}
 ]);
 ```
+```
 
 Return `schemaData` from `load` alongside `pageMetaTags` and view models.
 
 ### Reusable schema builders
 
-When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`. Compose documents with `createJsonLdGraph` / `createJsonLdWithContext` from `$lib/utils/jsonLdSchema.ts` and type nodes with `schema-dts` (see **web-ssr-seo-meta**).
+When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`. Compose documents with `createJsonLdGraph` / `createJsonLdWithContext` from `$lib/utils/jsonLdSchema.ts` and type nodes with `schema-dts` (see **web-seo-jsonld**).
 
 ### Avoid
 

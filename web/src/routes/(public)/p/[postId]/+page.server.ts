@@ -8,6 +8,7 @@ import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import { createPostSEOSchema } from '$lib/posts/utils/createPostSEOSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
 export const ssr = true;
@@ -95,15 +96,10 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 		requestUrl: url
 	}) satisfies MetaTagsProps;
 
-	const pageMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
-		...metaTags
-	}) satisfies MetaTagsProps;
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical);
 
-	const canonicalHref =
-		typeof pageMetaTags.canonical === 'string'
-			? pageMetaTags.canonical
-			: new URL(url.pathname, url.origin).href;
+	const canonicalHref = canonical;
 
 	const companyUrl = String((companyConfig?.URL ?? CONFIG_SCHEMA_COMPANY.URL.default) || '');
 

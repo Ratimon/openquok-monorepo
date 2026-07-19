@@ -1,5 +1,7 @@
 import type { MetaTagsProps, MetaTag } from 'svelte-meta-tags';
 
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
+
 import type {
 	CompanyInformationProgrammerModel,
 	MarketingInformationProgrammerModel
@@ -151,12 +153,12 @@ export async function createMetaData({
 	const keywords: string[] = customTags ??
 		(Array.isArray(rawKeywords) ? [...rawKeywords] : rawKeywords?.split(',').map((k) => k.trim()) ?? []);
 
-	const canonicalHref =
-		requestUrl && !customSlug
-			? requestUrl.href
-			: customSlug
-				? `${canonicalBaseUrl.replace(/\/$/, '')}/${customSlug}`
-				: canonicalBaseUrl ?? (typeof window !== 'undefined' ? window.location.href : DEFAULT_ORIGIN);
+	const canonicalHref = requestUrl
+		? buildCanonicalUrl(requestUrl)
+		: customSlug
+			? `${canonicalBaseUrl.replace(/\/$/, '')}/${customSlug}`
+			: canonicalBaseUrl ??
+				(typeof window !== 'undefined' ? buildCanonicalUrl(window.location) : DEFAULT_ORIGIN);
 
 	const defaultOgImages: MetaDataImage[] = [
 		{ url: `${baseUrl}/og/og_1200x630.png`, type: 'image', alt: `${companyName} OG 1200x630`, width: 1200, height: 630 },

@@ -1,0 +1,156 @@
+---
+description: JSON-LD structured data — schema-dts, jsonLdSchema helpers, domain builders, JsonLdHead SSR rendering
+globs:
+  - web/src/routes/+page.server.ts
+  - web/src/routes/(public)/**/+page.server.ts
+  - web/src/routes/+page.svelte
+  - web/src/routes/(public)/**/+page.svelte
+  - web/src/lib/utils/jsonLdSchema.ts
+  - web/src/lib/utils/jsonLdScriptHtml.ts
+  - web/src/lib/ui/components/seo/JsonLdHead.svelte
+  - web/src/lib/ui/components/docs/DocsSeoHead.svelte
+  - web/src/lib/content/utils/create*SEOSchema.ts
+  - web/src/lib/blogs/utils/createBlogPostSEOSchema.ts
+  - web/src/lib/posts/utils/createPostSEOSchema.ts
+  - web/src/lib/listings/utils/listingSchema.ts
+  - web/src/lib/listings/utils/create*SeoSchema.ts
+  - web/src/lib/listings/server/load*HubPage.server.ts
+alwaysApply: false
+---
+
+# Web SEO: JSON-LD structured data
+
+Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so crawlers receive real JSON in SSR HTML.
+
+```svelte
+<script lang="ts">
+  import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+  let schemaData = $derived(data.schemaData);
+</script>
+
+<JsonLdHead schemaData={schemaData} />
+```
+
+Serialization: `$lib/utils/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScriptHtml`). Docs use the same helper in `DocsSeoHead.svelte`.
+
+## Avoid
+
+- `<script type="application/ld+json">{JSON.stringify(schemaData)}</script>` — Svelte does not interpolate inside script tags in SSR.
+- JSON-LD only in `onMount` or behind `if (browser)`.
+- Inline `schemaData={{ '@context': … }}` in `+page.svelte`.
+- Hardcoding `'@context': 'https://schema.org'` — use shared helpers below.
+
+## Typed JSON-LD (`schema-dts` + `jsonLdSchema`)
+
+All JSON-LD is typed with [`schema-dts`](https://www.npmjs.com/package/schema-dts) via **`$lib/utils/jsonLdSchema.ts`**:
+
+| Export | Use |
+| --- | --- |
+| `SCHEMA_ORG_CONTEXT` | Canonical `@context` (`https://schema.org`) |
+| `JsonLdGraphSchema` | Return type for `@graph` documents |
+| `JsonLdGraphNode` | Single node inside `@graph` |
+| `createJsonLdGraph(nodes)` | `{ '@context', '@graph': [...] }` |
+| `createJsonLdWithContext(node)` | Single top-level node with `@context` |
+| `filterNonEmptyJsonLdNodes(nodes)` | Drop `{}` from optional builders |
+
+Annotate nodes with `satisfies` where it helps catch typos.
+
+### `@graph` (most pages)
+
+```ts
+import type { WebSite } from 'schema-dts';
+
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+
+const canonical = buildCanonicalUrl(url);
+
+const schemaData = createJsonLdGraph(
+  filterNonEmptyJsonLdNodes([
+    {
+      '@type': 'WebSite',
+      '@id': `${url.origin}/#website`,
+      name: companyName,
+      url: url.origin,
+      description: heroDescription
+    },
+    createPublicFaqSEOSchema({
+      pageUrl: `${canonical}#faq`,
+      name: faqTitle,
+      description: faqDescription,
+      items: faqItems
+    })
+  ])
+);
+```
+
+### Single-node (rare — e.g. `/tools/skill-builder` index)
+
+```ts
+import type { WebApplication } from 'schema-dts';
+
+import { createJsonLdWithContext } from '$lib/utils/jsonLdSchema';
+
+const schemaData = createJsonLdWithContext({
+  '@type': 'WebApplication',
+  name: metaTitle,
+  description: metaDescription,
+  applicationCategory: 'DeveloperApplication',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+} satisfies WebApplication);
+```
+
+## Reusable schema builders
+
+Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` only.
+
+| Helper | Path | Returns |
+| --- | --- | --- |
+| `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
+| `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
+| `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
+| `createBlogPostSEOSchema` | `$lib/blogs/utils/createBlogPostSEOSchema.ts` | `JsonLdGraphSchema` |
+| `createPostSEOSchema` | `$lib/posts/utils/createPostSEOSchema.ts` | `JsonLdGraphSchema` |
+| `createListingSEOSchema` | `$lib/listings/utils/listingSchema.ts` | `JsonLdGraphSchema` |
+| `mergeListingSchemaIntoGraph` | `$lib/listings/utils/listingSchema.ts` | `Thing[]` |
+| Playbooks hub builders | `$lib/listings/utils/createPlaybooksSeoSchema.ts` | `CollectionPage`, item lists, term sets |
+| Building blocks hub builders | `$lib/listings/utils/createBuildingBlocksSeoSchema.ts` | same pattern |
+
+Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.ts`) compose builders with `createJsonLdGraph` + `filterNonEmptyJsonLdNodes`.
+
+## Reference graph shapes
+
+| Route type | Typical `@graph` nodes |
+| --- | --- |
+| **Landing** | `WebSite` + `Organization` + `FAQPage` + `VideoObject` |
+| **About** | `AboutPage` + `Organization` |
+| **Pricing** | `WebPage` (with `Offer` list) + `FAQPage` |
+| **Hub** | `CollectionPage` + `ItemList` (+ optional `FAQPage`) |
+| **Channel / agent detail** | `WebPage` + `SoftwareApplication` + `FAQPage` |
+| **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
+| **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` |
+| **Creator profile** | `ProfilePage` + `Person` |
+| **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
+| **Compare** | `WebPage` + `ItemList` + `SoftwareApplication` × 2 + `FAQPage` |
+
+## Builder notes
+
+### FAQPage (`createPublicFaqSEOSchema`)
+
+- `pageUrl: \`${canonical}#faq\`` — same section name/description as visible `PublicFaq`.
+- Plain-text `Answer.text` matching accordion copy.
+- Returns `{}` when empty — always `filterNonEmptyJsonLdNodes`.
+
+### VideoObject (`createLandingDemoSEOSchema`)
+
+- Landing demo from SSR `landing_page` config. Filter when `youtubeVideoId` is empty.
+- `HeroDemo`: crawlable thumbnail, YouTube link, `id="landing-demo"`.
+
+### Organization (`createOrganizationSEOSchema`)
+
+- Landing and about only — not sitewide. Use `organizationSchemaId(origin)` for stable `@id`.
+
+## Canonical alignment
+
+JSON-LD `url` / `canonicalUrl` must match `<link rel="canonical">` — use the same `buildCanonicalUrl(url)` value (see **web-seo-canonical**). Do not duplicate title/description in `+page.svelte` when they already exist in the server load.

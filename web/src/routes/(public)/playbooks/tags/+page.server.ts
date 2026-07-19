@@ -13,6 +13,7 @@ import {
 	createTagTermSetSchema
 } from '$lib/listings/utils/createPlaybooksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -39,22 +40,20 @@ export async function load({ url, fetch, cookies, parent }) {
 		requestUrl: url
 	}) satisfies MetaTagsProps;
 
-	const pageMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
 			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const hub = await publicPlaybooksPagePresenter.loadPlaybooksHubStateless({ fetch, limit: 50 });
 	const tagsCatalog = await getListingPresenter.loadAllTagsVm(fetch);
 	const tagFilterVm = getListingPresenter.buildStacksTagFilterVm({
 		tagsCatalog,
 		stacks: hub.stacks
-	});
-	const canonical = new URL(url.pathname, url.origin).href;
+	}	);
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			createCollectionPageSchema({

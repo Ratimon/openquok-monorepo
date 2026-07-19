@@ -3,6 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogAuthorPagePresenter } from '$lib/area-public/index';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 
 export const ssr = true;
 
@@ -29,14 +30,13 @@ export async function load({ url, fetch, cookies, parent }) {
 		requestUrl: url
 	}) satisfies MetaTagsProps;
 
-	const pageMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default),
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+		}
+	});
 
 	const { authors } = await publicBlogAuthorPagePresenter.loadDataForAuthorsOverviewStateless({ fetch });
 

@@ -8,6 +8,7 @@ import { publicCreatorByUsernamePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreator } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -47,7 +48,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const creatorImage = creator.avatarUrl?.trim() || undefined;
 	const creatorHandle = creator.username?.trim() ? `@${creator.username.trim()}` : undefined;
 	const schemaData = createJsonLdGraph([
@@ -81,7 +82,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	]);
 
 	return {
-		pageMetaTags: metaTags,
+		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		userSlug,
 		creator,

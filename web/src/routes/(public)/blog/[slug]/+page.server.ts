@@ -8,6 +8,7 @@ import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 
 export const ssr = true;
 
@@ -109,19 +110,15 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		requestUrl: url
 	}) satisfies MetaTagsProps;
 
-	const pageMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default),
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+		}
+	});
 
-	const canonicalHref =
-		typeof pageMetaTags.canonical === 'string'
-			? pageMetaTags.canonical
-			: new URL(url.pathname, url.origin).href;
+	const canonicalHref = canonical;
 
 	const schemaData = createBlogPostSEOSchema({
 		post: currentPostVm,

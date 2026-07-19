@@ -6,6 +6,7 @@ import {
 	getStaticCompanyInformationPm,
 	getStaticMarketingInformationPm
 } from '$lib/config/utils/staticPublicSiteConfig';
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
 import { createMetaData } from '$lib/utils/createMetaData';
 
 export const ssr = true;
@@ -27,7 +28,7 @@ export async function load({ url, cookies }) {
 	const baseMetaTags = Object.freeze({
 		...metaTags,
 		// Per-request canonical and og:url alignment (createMetaData also sets canonical from the request URL).
-		canonical: new URL(url.pathname, url.origin).href
+		canonical: buildCanonicalUrl(url)
 	}) satisfies MetaTagsProps;
 
 	const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(

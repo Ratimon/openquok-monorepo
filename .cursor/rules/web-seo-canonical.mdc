@@ -1,0 +1,88 @@
+---
+description: Canonical URLs and query-parameter SEO — buildCanonicalUrl, withCanonicalMetaTags, UTM stripping, robots.txt, noindex
+globs:
+  - web/src/lib/utils/buildCanonicalUrl.ts
+  - web/src/lib/utils/createMetaData.ts
+  - web/src/lib/product-analytics/utm.ts
+  - web/src/lib/product-analytics/UtmAttribution.svelte
+  - web/src/routes/+layout.server.ts
+  - web/src/routes/+page.server.ts
+  - web/src/routes/(public)/**/+page.server.ts
+  - web/src/routes/(auth)/+layout.server.ts
+  - web/src/routes/(protected)/+layout.server.ts
+  - web/src/routes/robots.txt/**/*
+  - web/src/lib/ui/components/docs/DocsSeoHead.svelte
+alwaysApply: false
+---
+
+# Web SEO: Canonical URLs and query parameters
+
+Multiple URLs that render the same content (UTM tags, `ref`, hub `sort`/`search`, blog `page`) must consolidate to **one canonical** so crawlers do not split authority across duplicates.
+
+## Helpers (`$lib/utils/buildCanonicalUrl.ts`)
+
+| Export | Use |
+| --- | --- |
+| `buildCanonicalUrl(url)` | Path-only canonical: `new URL(url.pathname, url.origin).href` — strips query and hash |
+| `withCanonicalMetaTags(metaTags, canonical, overrides?)` | Spread `metaTags` first, then set `canonical`, `openGraph.url`, and `twitter:url` |
+
+Always use these helpers in `+page.server.ts` instead of inline `new URL(url.pathname, url.origin).href` or manual object spreads.
+
+```ts
+const canonical = buildCanonicalUrl(url);
+const pageMetaTags = withCanonicalMetaTags(metaTags, canonical);
+```
+
+Pass the **same** `canonical` string to JSON-LD (`canonicalUrl`, `pageUrl`, schema `url` fields).
+
+## Spread-order rule
+
+`createMetaData` returns a `canonical` field. If you build `pageMetaTags` manually:
+
+```ts
+// ❌ BAD — metaTags.canonical overwrites the line above
+const pageMetaTags = { canonical, ...metaTags };
+
+// ✅ GOOD — use withCanonicalMetaTags, or spread meta first then override
+const pageMetaTags = { ...metaTags, canonical, openGraph: { ...metaTags.openGraph, url: canonical } };
+```
+
+## Parameter handling (by type)
+
+| Params | Browser URL | `<link rel="canonical">` |
+| --- | --- | --- |
+| `utm_*`, `ref`, `gclid`, `fbclid`, … | Stripped after capture (`replaceUrlWithoutTrackingParams` in `UtmAttribution.svelte`) | Stripped |
+| Hub `sort`, `search`, `type` | Kept (shareable filter state) | Stripped — canonical is path only |
+| Blog `page`, `ipp`, `topic`, `author` | Kept | Stripped — paginated/filtered views canonicalize to hub path (e.g. `/blog`) |
+| OAuth / auth (`code`, `state`, `redirectURL`) | Kept (functional) | Stripped in canonical tag |
+| Skill builder `stack`, building-block query | Kept | Stripped — channel slug is in path when applicable |
+
+Sitemap URLs are always path-only (backend `generateSitemap.ts`).
+
+## Root layout baseline
+
+`+layout.server.ts` sets `baseMetaTags.canonical` via `buildCanonicalUrl(url)`. Child `pageMetaTags` from `deepMerge` override per route.
+
+## Docs
+
+`DocsSeoHead.svelte` builds canonical from configured site URL + `page.url.pathname` (no query). Prerender-safe — avoid `page.url.href` at build time.
+
+## Non-indexable routes
+
+App and auth surfaces should not compete in search:
+
+- **`(auth)/+layout.server.ts`** and **`(protected)/+layout.server.ts`**: return `pageMetaTags: { robots: 'noindex, nofollow' }`.
+- **`robots.txt`**: `Disallow` for `/sign-in`, `/account`, `/editor`, `/admin`, `/secret-admin`, `/oauth`, etc.
+
+Raw markdown doc routes use `X-Robots-Tag: noindex` via `markdown-route-headers.ts`.
+
+## Google Search Console (manual)
+
+Canonical tags are the primary code fix. Optionally mark UTM parameters as “doesn't change page content” in GSC → URL parameters.
+
+## Checklist
+
+- [ ] Every public `+page.server.ts` uses `buildCanonicalUrl` + `withCanonicalMetaTags`
+- [ ] JSON-LD URLs match the canonical string
+- [ ] No `requestUrl.href` (with query) used as canonical
+- [ ] New marketing links with UTM still attribute correctly after URL cleanup

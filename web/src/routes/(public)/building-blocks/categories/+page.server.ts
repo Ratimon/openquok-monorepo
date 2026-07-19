@@ -14,6 +14,7 @@ import {
 	createCollectionPageSchema
 } from '$lib/listings/utils/createBuildingBlocksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -40,14 +41,13 @@ export async function load({ url, fetch, cookies, parent }) {
 		requestUrl: url
 	}) satisfies MetaTagsProps;
 
-	const pageMetaTags = Object.freeze({
-		canonical: new URL(url.pathname, url.origin).href,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
 			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const hub = await publicBuildingBlocksPagePresenter.loadBuildingBlocksHubStateless({ fetch, limit: 50 });
 	const categoryDetails = await listingRepository.getActiveCategories(fetch);
@@ -56,7 +56,6 @@ export async function load({ url, fetch, cookies, parent }) {
 		hub.categories,
 		categoryDetails
 	);
-	const canonical = new URL(url.pathname, url.origin).href;
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			createCollectionPageSchema({

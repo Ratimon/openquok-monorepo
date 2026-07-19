@@ -20,6 +20,7 @@ import {
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
@@ -83,7 +84,7 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 		requestUrl: url
 	});
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const og = openGraphForPublicPage(customTitle, heroDescription, canonical);
 
 	const pageMetaTags = Object.freeze({

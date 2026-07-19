@@ -8,6 +8,7 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import {
 	getRootPathPublicChannel,
@@ -72,15 +73,13 @@ export async function load({ url, cookies, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
-	const pageMetaTags = Object.freeze({
-		canonical,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
 			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const schemaData = createJsonLdGraph([
 		{

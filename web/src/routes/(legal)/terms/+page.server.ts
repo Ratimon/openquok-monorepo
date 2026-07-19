@@ -1,4 +1,5 @@
 import { openGraphForPublicPage, type MetaTagsProps } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 export const ssr = true;
@@ -26,7 +27,7 @@ export async function load({ url, cookies, parent }) {
 	const description =
 		'Terms governing use of our social scheduling platform, connected channels, workspaces, billing, and integrations—including YouTube API Services.';
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = Object.freeze({
 		title,
 		titleTemplate: `%s | ${companyName}`,

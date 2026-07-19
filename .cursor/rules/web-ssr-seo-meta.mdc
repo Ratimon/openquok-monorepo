@@ -1,5 +1,5 @@
 ---
-description: SEO via SSR for public routes — server meta, OG/Twitter, canonical, CMS copy, typed JSON-LD (schema-dts + jsonLdSchema helpers), and universal load forwarding
+description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy). See web-seo-*.mdc rules for detail.
 globs:
   - web/src/routes/+page.server.ts
   - web/src/routes/+page.ts
@@ -7,242 +7,47 @@ globs:
   - web/src/routes/(public)/**/+page.server.ts
   - web/src/routes/(public)/**/+page.ts
   - web/src/routes/(public)/**/+page.svelte
+  - web/src/lib/utils/createMetaData.ts
+  - web/src/lib/utils/buildCanonicalUrl.ts
   - web/src/lib/utils/jsonLdSchema.ts
-  - web/src/lib/content/utils/create*SEOSchema.ts
-  - web/src/lib/blogs/utils/createBlogPostSEOSchema.ts
-  - web/src/lib/posts/utils/createPostSEOSchema.ts
-  - web/src/lib/listings/utils/listingSchema.ts
-  - web/src/lib/listings/utils/create*SeoSchema.ts
-  - web/src/lib/listings/server/load*HubPage.server.ts
+  - web/src/lib/product-analytics/utm.ts
+  - web/src/lib/product-analytics/UtmAttribution.svelte
+  - web/src/routes/robots.txt/**/*
+  - web/src/routes/(auth)/+layout.server.ts
+  - web/src/routes/(protected)/+layout.server.ts
 alwaysApply: false
 ---
 
-# Web: SSR SEO (meta tags + JSON‑LD) for public routes
+# Web: SSR SEO (index)
 
-For SEO and link unfurls, ensure **all metadata is computed during SSR** (in `+page.server.ts`) and **rendered in the initial HTML**. The universal `+page.ts` and `+page.svelte` should *forward and render* the server results without recomputing them client-side.
+Public marketing and catalog routes under `web/src/routes/(public)/` plus the landing route (`web/src/routes/+page.*`) must ship **SSR metadata** in the initial HTML. Compute SEO in `+page.server.ts`; forward it through universal `+page.ts`; render in `+layout.svelte` (`MetaTags`) and `JsonLdHead`.
 
-This rule applies to **all public marketing and catalog routes** under `web/src/routes/(public)/` plus the landing route (`web/src/routes/+page.*`). Representative routes:
+**Docs** use a separate head component: `DocsSeoHead.svelte` (same JSON-LD serialization helpers).
+
+Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+layout.svelte` via `deepMerge(data.baseMetaTags, page.data.pageMetaTags)`.
+
+## Rule map
+
+| Topic | Rule file |
+| --- | --- |
+| Meta tags, `createMetaData`, OG/Twitter | **web-seo-meta-tags** |
+| Canonical URLs, query params, UTM, robots | **web-seo-canonical** |
+| JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
+| Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
+| Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |
+
+## Quick checklist (public route)
+
+- [ ] `export const ssr = true` in `+page.server.ts`
+- [ ] `createMetaData(...)` → `withCanonicalMetaTags(metaTags, buildCanonicalUrl(url), …)` (see **web-seo-canonical**)
+- [ ] `pageMetaTags` and `schemaData` returned from server load
+- [ ] `+page.ts` forwards `pageMetaTags` + `schemaData` on `browser && data` (see **web-sveltekit-universal-page-load**)
+- [ ] `+page.svelte` renders `<JsonLdHead schemaData={…} />` only — no inline JSON-LD
+- [ ] JSON-LD `url` / `canonicalUrl` matches `<link rel="canonical">` (same `buildCanonicalUrl` value)
+
+## Representative routes
 
 - **Landing / pricing / about**: `/`, `/pricing`, `/about`
 - **Content**: `/blog/[slug]`, `/p/[postId]`
-- **Hubs**: `/channels`, `/agents`, `/tools`, `/creators`, `/compare`, `/playbooks`, `/building-blocks`, and their category/tag sub-hubs
-- **Detail pages**: channel/agent/tool/creator/listing detail routes
-- **Docs** (separate head component): `DocsSeoHead.svelte` uses the same JSON-LD helpers
-
-Root layout SEO (`+layout.server.ts` → `baseMetaTags`, footer VMs) is separate; page loads merge `pageMetaTags` in `+layout.svelte` via `deepMerge(data.baseMetaTags, page.data.pageMetaTags)`.
-
----
-
-## 1. SSR meta must be created in `+page.server.ts`
-
-- **Set** `export const ssr = true;`.
-- **Build meta via** `createMetaData(...) satisfies MetaTagsProps`.
-- **Freeze** `pageMetaTags` and include a canonical fallback:
-  - `canonical: new URL(url.pathname, url.origin).href`
-  - then spread `...metaTags` (and `...baseMetaTags` on landing when extending layout meta)
-- **Return** `pageMetaTags` from the server load so it exists on the first render (no JS required).
-
-### Landing / pricing titles
-
-- **Landing**: derive `customTitle` / `customDescription` from SSR `landing_page` config (`HERO_TITLE`, `HERO_SLOGAN`); collapse newlines in titles for the `<title>` tag. Merge OG/Twitter with `openGraphForPublicPage(customTitle, heroDescription, canonical)`.
-- **Pricing**: use a fixed page title (e.g. `Pricing | {companyName}`) and a dedicated description string; pass `customSlug: 'pricing'`.
-
-### Keywords (`customTags`)
-
-- Prefer a dedicated `keywords` variable (array of strings) before calling `createMetaData`.
-- Keep the array **stable and filter empty values**:
-  - `.filter((t) => typeof t === 'string' && t.trim().length > 0)`
-
-### OG image + Twitter card
-
-If the page has a content-specific image, pass it via `customImages`:
-- **Blog route**: build from `heroImageFilename` (inline blog image helper) and include `type` from a mime guess helper.
-- **Preview route**: if there is post media, derive the public URL from the first `media[].path` (do not guess relative URLs).
-
-When a content-specific image is present, also add a `twitter:card` override tag:
-- `customMetaTags: [{ name: 'twitter:card', content: 'summary_large_image' }, ...]`
-
-Notes:
-- `createMetaData` already provides sane defaults (OG images and `twitter.cardType`), but **explicit `twitter:card` helps parity** with other public pages and avoids crawler quirks.
-
----
-
-## 2. CMS copy must load on the server (landing + FAQ)
-
-Public marketing copy that crawlers should index must not rely on client-only presenter state or in-component schema fallbacks alone.
-
-- Load module config in `+page.server.ts` via `configRepository.getPublicModuleConfig(...)` (stateless; safe on server).
-- Start from defaults helpers, then overlay API values when non-empty:
-  - `getLandingPageConfigDefaults()` → `landingPageConfigVm` (`landing_page` module)
-  - `getPublicFaqConfigDefaults()` → `publicFaqConfigVm` / `publicFaqConfigPm` (`public_faq` module)
-- Return VMs from the server load; pass them through universal `+page.ts` and into templates (`LandingPage`, `PublicFaq`).
-- **Landing FAQ headers**: prefer `landing_page` `FAQ_*` fields in the UI; use `public_faq` as fallback. **Pricing FAQ headers**: use `public_faq` only.
-- Q&A item copy lives in `public_faq.ITEMS` (admin FAQ editor). `publicFaqConfig.ts` supplies code defaults when config is empty.
-- Return `publicFaqItemsVm` from `+page.server.ts` via `parsePublicFaqConfigModule()`; pass to `PublicFaq` as `faqItems`.
-- Default `items` is `PUBLIC_FAQ_ITEMS`; only override when a route renders a different FAQ list.
-
----
-
-## 3. JSON‑LD must render in SSR HTML
-
-- Compute structured data (JSON‑LD) in `+page.server.ts` (`schemaData`) and return it.
-- Render with **`JsonLdHead`** (`$lib/ui/components/seo/JsonLdHead.svelte`) so crawlers receive real JSON (Svelte does not interpolate inside `<script type="application/ld+json">` tags):
-
-```svelte
-<script lang="ts">
-  import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
-  let schemaData = $derived(data.schemaData);
-</script>
-
-<JsonLdHead schemaData={schemaData} />
-```
-
-Serialization helper: `$lib/utils/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScriptHtml`). Docs pages use the same helper in `DocsSeoHead.svelte`.
-
-Avoid:
-- `<script type="application/ld+json">{JSON.stringify(schemaData)}</script>` — renders the literal string in SSR HTML.
-- Generating JSON‑LD only in `onMount` (not SSR-visible).
-- Putting JSON‑LD behind client-only conditions (`if (browser)`).
-- Inline `schemaData={{ '@context': … }}` objects in `+page.svelte`.
-- Hardcoding `'@context': 'https://schema.org'` in routes — use the shared helpers below.
-
-### Typed JSON-LD (`schema-dts` + `jsonLdSchema`)
-
-All JSON-LD in this codebase is typed with [`schema-dts`](https://www.npmjs.com/package/schema-dts) and built through **`$lib/utils/jsonLdSchema.ts`**:
-
-| Export | Use |
-| --- | --- |
-| `SCHEMA_ORG_CONTEXT` | Canonical `@context` value (`https://schema.org`) |
-| `JsonLdGraphSchema` | Return type for multi-node `@graph` documents |
-| `JsonLdGraphNode` | A single node inside `@graph` (`Thing`) |
-| `createJsonLdGraph(nodes)` | Build `{ '@context', '@graph': [...] }` |
-| `createJsonLdWithContext(node)` | Build a single top-level node with `@context` (no `@graph`) |
-| `filterNonEmptyJsonLdNodes(nodes)` | Drop optional helpers that return `{}` when empty |
-
-Import `schema-dts` types for individual nodes (`WebPage`, `CollectionPage`, `WebApplication`, `FAQPage`, `Person`, `HowTo`, etc.) and annotate graph nodes with `satisfies` where it helps catch typos.
-
-**`@graph` (most pages):**
-
-```ts
-import type { WebSite } from 'schema-dts';
-
-import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
-
-const canonical = new URL(url.pathname, url.origin).href;
-
-const schemaData = createJsonLdGraph(
-  filterNonEmptyJsonLdNodes([
-    {
-      '@type': 'WebSite',
-      '@id': `${url.origin}/#website`,
-      name: companyName,
-      url: url.origin,
-      description: heroDescription
-    },
-    createPublicFaqSEOSchema({
-      pageUrl: `${canonical}#faq`,
-      name: faqTitle,
-      description: faqDescription,
-      items: faqItems
-    })
-  ])
-);
-```
-
-**Single-node (rare — e.g. `/tools/skill-builder` index):**
-
-```ts
-import type { WebApplication } from 'schema-dts';
-
-import { createJsonLdWithContext } from '$lib/utils/jsonLdSchema';
-
-const schemaData = createJsonLdWithContext({
-  '@type': 'WebApplication',
-  name: metaTitle,
-  description: metaDescription,
-  applicationCategory: 'DeveloperApplication',
-  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-} satisfies WebApplication);
-```
-
-### Reusable schema builders
-
-When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` and call it from `+page.server.ts` — not from `+page.svelte`. Builders return typed `schema-dts` nodes or `JsonLdGraphSchema`:
-
-| Helper | Path | Returns |
-| --- | --- | --- |
-| `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
-| `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
-| `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
-| `createBlogPostSEOSchema` | `$lib/blogs/utils/createBlogPostSEOSchema.ts` | `JsonLdGraphSchema` |
-| `createPostSEOSchema` | `$lib/posts/utils/createPostSEOSchema.ts` | `JsonLdGraphSchema` |
-| `createListingSEOSchema` | `$lib/listings/utils/listingSchema.ts` | `JsonLdGraphSchema` |
-| `mergeListingSchemaIntoGraph` | `$lib/listings/utils/listingSchema.ts` | `Thing[]` — merges CMS `schemaJson` into a base graph |
-| `createCollectionPageSchema`, `create*ItemListSchema`, `create*TermSetSchema` | `$lib/listings/utils/createPlaybooksSeoSchema.ts` | playbooks hub / category / tag pages |
-| Same pattern for building blocks | `$lib/listings/utils/createBuildingBlocksSeoSchema.ts` | building-blocks hub / category / tag pages |
-
-Hub server loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.ts`) compose these builders with `createJsonLdGraph` + `filterNonEmptyJsonLdNodes`.
-
-### Reference graph shapes by route type
-
-| Route type | Typical `@graph` nodes |
-| --- | --- |
-| **Landing** | `WebSite` + `Organization` + `FAQPage` + `VideoObject` |
-| **About** | `AboutPage` + `Organization` |
-| **Pricing** | `WebPage` (with `Offer` list) + `FAQPage` |
-| **Hub** (`/channels`, `/agents`, `/tools`, …) | `CollectionPage` + `ItemList` (+ optional `FAQPage`) |
-| **Channel / agent detail** | `WebPage` + `SoftwareApplication` + `FAQPage` |
-| **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
-| **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` (+ `Comment` nodes) |
-| **Creator profile** | `ProfilePage` + `Person` |
-| **Playbook detail** | `WebPage` + `Person` + `HowTo` or `CreativeWork` |
-| **Building block detail** | `WebPage` + `Person` + merged listing `schemaJson` |
-| **Compare** | `WebPage` + `ItemList` + `SoftwareApplication` × 2 + `FAQPage` |
-
-Do not duplicate title/description strings for JSON-LD in the component when they already exist in the server load.
-
-### FAQPage (`createPublicFaqSEOSchema`)
-
-- Builds `FAQPage` with `mainEntity` → `Question` / `acceptedAnswer` → `Answer` (`text` must be plain text, matching visible accordion copy).
-- Pass `pageUrl: `${canonical}#faq`` and the **same** section `name` / `description` shown in `PublicFaq`.
-- Returns `{}` when `items` is empty — always pass through `filterNonEmptyJsonLdNodes` when composing a `@graph`.
-- Default `items` is `PUBLIC_FAQ_ITEMS`; only override when a route renders a different FAQ list.
-
-### VideoObject (`createLandingDemoSEOSchema`)
-
-- Builds `VideoObject` for the landing demo (`DEMO_YOUTUBE_VIDEO_ID`, `DEMO_TITLE`, `DEMO_DESCRIPTION` from SSR `landing_page` config).
-- Include in landing `@graph` alongside `WebSite`, `Organization`, and `FAQPage`.
-- Returns `{}` when `youtubeVideoId` is empty — filter before emitting.
-- `HeroDemo` must expose crawlable demo URLs in SSR HTML: thumbnail `<img alt="…">`, `ExternalLink` to `https://www.youtube.com/watch?v={id}`, and section `id="landing-demo"`.
-
-### Organization (`createOrganizationSEOSchema`)
-
-- Emit on **landing** and **about** — not sitewide on every layout.
-- Use `organizationSchemaId(origin)` for stable `@id` cross-linking (`{origin}/#organization`).
-- `sameAs` defaults to marketing social URLs via `resolveSocialSameAsUrls()`.
-
----
-
-## 4. Universal `+page.ts` must forward SSR meta + schema on client navigations
-
-Client-side navigation (`goto`, clicking internal links) still needs correct meta/schema in page data.
-
-- Follow the universal load pattern in `web-sveltekit-universal-page-load`:
-  - `await parent()` first (auth state)
-  - `if (browser && data)` return an explicit object that includes:
-    - `pageMetaTags`
-    - `schemaData`
-    - SSR config VMs (`landingPageConfigVm`, `publicFaqConfigVm`, etc.)
-    - route view models / arrays
-    - accurate `isLoggedIn` (and `currentUser` / role flags if that route uses them)
-- Do **not** recompute SEO meta in `+page.ts` on the client. Forward server output.
-
----
-
-## 5. Canonical + slug hygiene
-
-- `customSlug` passed to `createMetaData` must be a **path segment**, not a full URL.
-- Use `encodeURIComponent` for dynamic path pieces.
-- Prefer canonical derived from the request URL for SSR correctness:
-  - `new URL(url.pathname, url.origin).href`
+- **Hubs**: `/channels`, `/agents`, `/tools`, `/creators`, `/compare`, `/playbooks`, `/building-blocks`, category/tag sub-hubs
+- **Detail pages**: channel, agent, tool, creator, listing detail routes

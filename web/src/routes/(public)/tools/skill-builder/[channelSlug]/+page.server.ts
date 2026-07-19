@@ -15,6 +15,7 @@ import {
 } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -51,7 +52,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const schemaData = createJsonLdGraph([
 		{
 			'@type': 'WebApplication',
@@ -70,7 +71,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	]);
 
 	return {
-		pageMetaTags: metaTags,
+		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		schemaData,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),

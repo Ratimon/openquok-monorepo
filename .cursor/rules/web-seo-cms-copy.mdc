@@ -1,0 +1,51 @@
+---
+description: SSR CMS copy for SEO — landing_page and public_faq config on the server for crawlers and JSON-LD parity
+globs:
+  - web/src/routes/+page.server.ts
+  - web/src/routes/+page.ts
+  - web/src/routes/(public)/pricing/+page.server.ts
+  - web/src/lib/config/Config.repository.svelte.ts
+  - web/src/lib/content/utils/parsePublicFaqConfig.ts
+  - web/src/lib/content/constants/publicFaqConfig.ts
+  - web/src/lib/ui/templates/LandingPage.svelte
+  - web/src/lib/ui/components/PublicFaq.svelte
+alwaysApply: false
+---
+
+# Web SEO: CMS copy on the server
+
+Marketing copy that crawlers should index must not rely on client-only presenter state or in-component schema fallbacks alone.
+
+## Load pattern (`+page.server.ts`)
+
+1. Call `configRepository.getPublicModuleConfig(...)` (stateless; safe on server).
+2. Start from defaults helpers; overlay API values when non-empty.
+3. Return VMs from the server load; pass through universal `+page.ts` into templates.
+
+| Module | Defaults helper | Used for |
+| --- | --- | --- |
+| `landing_page` | `getLandingPageConfigDefaults()` | Hero, demo, landing FAQ headers |
+| `public_faq` | `getPublicFaqConfigDefaults()` | FAQ section headers + Q&A items |
+
+Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicFaqItemsVm` for `PublicFaq` and `createPublicFaqSEOSchema`.
+
+## Landing vs pricing FAQ headers
+
+- **Landing**: prefer `landing_page` `FAQ_*` fields in the UI; fall back to `public_faq`.
+- **Pricing**: `public_faq` only for FAQ headers.
+
+Q&A item copy lives in `public_faq.ITEMS` (admin FAQ editor). `publicFaqConfig.ts` supplies code defaults when config is empty.
+
+Default `items` is `PUBLIC_FAQ_ITEMS`; override only when a route renders a different FAQ list.
+
+## SEO parity
+
+- FAQ JSON-LD (`createPublicFaqSEOSchema`) must use the **same** question/answer text as the visible accordion.
+- Landing hero title/description from config feed both `createMetaData` and JSON-LD (`WebSite`, `Organization`).
+- Demo section: `createLandingDemoSEOSchema` reads `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_TITLE`, `DEMO_DESCRIPTION` from SSR `landing_page` config.
+
+## Related rules
+
+- Meta tags from CMS strings: **web-seo-meta-tags**
+- JSON-LD builders: **web-seo-jsonld**
+- Universal load forwarding: **web-sveltekit-universal-page-load**

@@ -19,6 +19,7 @@ import {
 	createTagAboutSchema
 } from '$lib/listings/utils/createPlaybooksSeoSchema';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -100,15 +101,13 @@ export async function loadPlaybooksHubPage(
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
-	const pageMetaTags = Object.freeze({
-		canonical,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
 			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const aboutNodes = [
 		fixedCategorySlug

@@ -4,6 +4,7 @@ import { publicCreatorsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -28,7 +29,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const schemaData = createJsonLdGraph([
 		{
 			'@type': 'CollectionPage',
@@ -45,7 +46,7 @@ export async function load({ url, cookies, fetch, parent }) {
 	]);
 
 	return {
-		pageMetaTags: metaTags,
+		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		creators,
 		metaTitle,

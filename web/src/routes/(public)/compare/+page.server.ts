@@ -4,6 +4,7 @@ import { publicComparePagePresenter } from '$lib/area-public';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -26,9 +27,8 @@ export async function load({ url, cookies, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
-	const pageMetaTags = Object.freeze({
-		canonical,
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: customTitle,
 			description: customDescription
@@ -36,9 +36,8 @@ export async function load({ url, cookies, parent }) {
 		twitter: {
 			title: customTitle,
 			description: customDescription
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const comparisonPages = hubVm.pairs.map((pair) => ({
 		name: `${hubVm.baseProductName} vs ${pair.name} comparison`,

@@ -16,6 +16,7 @@ import {
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
 import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
 import { createMetaData, type MetaDataImage } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -86,13 +87,12 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const ownerName =
 		buildingBlockVm.owner?.fullName?.trim() || buildingBlockVm.owner?.username?.trim() || 'Creator';
 	const ownerImage = buildingBlockVm.owner?.avatarUrl?.trim() || undefined;
 	const ownerProfileUrl = new URL(`/${getRootPathPublicCreator(ownerUsername)}`, url.origin).href;
-	const pageMetaTags = Object.freeze({
-		canonical,
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: customTitle,
 			description: customDescription,
@@ -101,9 +101,8 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		twitter: {
 			title: customTitle,
 			description: customDescription
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const schemaData = createJsonLdGraph(
 		mergeListingSchemaIntoGraph(

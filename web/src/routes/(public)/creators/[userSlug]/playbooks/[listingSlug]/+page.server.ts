@@ -11,6 +11,7 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import { resolveStackListingHeaderSummary } from '$lib/listings/utils/resolveStackListingHeaderSummary';
 import { resolveBlueprintWorkflowStepTitle } from '$lib/skill-builder/utils/resolveBlueprintWorkflowStepTitle';
@@ -72,7 +73,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const ownerName = playbookVm.owner?.fullName?.trim() || playbookVm.owner?.username?.trim() || 'Creator';
 	const ownerImage = playbookVm.owner?.avatarUrl?.trim() || undefined;
 	const ownerProfileUrl = new URL(`/${getRootPathPublicCreator(ownerUsername)}`, url.origin).href;
@@ -148,7 +149,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 	]);
 
 	return {
-		pageMetaTags: metaTags,
+		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn: !!cookies.get('access_token'),
 		playbookVm,
 		commentsVm: comments,

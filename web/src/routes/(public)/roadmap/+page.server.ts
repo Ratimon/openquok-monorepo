@@ -3,6 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicRoadmapPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 
 export const ssr = true;
@@ -32,11 +33,8 @@ export async function load({ url, cookies, parent }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
-	const pageMetaTags = Object.freeze({
-		canonical,
-		...metaTags
-	}) satisfies MetaTagsProps;
+	const canonical = buildCanonicalUrl(url);
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical);
 
 	const schemaData = createJsonLdGraph([
 		{

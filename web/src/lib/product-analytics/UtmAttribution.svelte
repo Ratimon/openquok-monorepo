@@ -8,6 +8,7 @@
 	import {
 		captureLandingAttribution,
 		readUtmFromSearchParams,
+		replaceUrlWithoutTrackingParams,
 		storeUtmIfEmpty
 	} from '$lib/product-analytics/utm';
 
@@ -25,5 +26,6 @@
 		if (utm) {
 			storeUtmIfEmpty(utm);
 		}
+		replaceUrlWithoutTrackingParams(page.url);
 	});
 </script>

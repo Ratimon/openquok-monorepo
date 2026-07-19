@@ -11,6 +11,7 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
 import { route, url } from '$lib/utils/path';
 
@@ -59,7 +60,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		}
 	];
 
-	const canonical = new URL(requestUrl.pathname, requestUrl.origin).href;
+	const canonical = buildCanonicalUrl(requestUrl);
 	const schemaData = createJsonLdGraph([
 		{
 			'@type': 'CollectionPage',
@@ -76,7 +77,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 	]);
 
 	return {
-		pageMetaTags: metaTags,
+		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		metaTitle,
 		metaDescription,

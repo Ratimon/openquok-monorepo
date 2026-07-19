@@ -16,6 +16,7 @@ import {
 } from '$lib/content/constants/publicAgentChannelConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
 
@@ -98,13 +99,12 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const featureList = [
 		...landingVm.setupSteps.map((step) => step.title),
 		...landingVm.featureSections.map((section) => section.title)
 	].filter((value, index, values) => value.trim().length > 0 && values.indexOf(value) === index);
-	const pageMetaTags = Object.freeze({
-		canonical,
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
 			title: customTitle,
 			description: customDescription
@@ -112,9 +112,8 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		twitter: {
 			title: customTitle,
 			description: customDescription
-		},
-		...metaTags
-	}) satisfies MetaTagsProps;
+		}
+	});
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
