@@ -28,6 +28,8 @@ function skipLazyDocVendorPackage(label: string): boolean {
 		pkg.startsWith('d3-') ||
 		pkg === 'd3' ||
 		pkg.startsWith('micromark') ||
+		pkg.includes('cjk') ||
+		pkg === 'get-east-asian-width' ||
 		pkg.includes('emoji') ||
 		pkg === 'skin-tone' ||
 		pkg === 'ts-dedent' ||
