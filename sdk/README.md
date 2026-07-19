@@ -15,7 +15,8 @@
 - Create/schedule posts via the programmatic API (including agent/kanban review fields)
 - List posts and flip draft ↔ scheduled (`flipPostStatus`)
 - Upload media (multipart or from URL) for use in posts
-- Manage integrations (list, settings, trigger provider tools, OAuth URL, delete)
+- Manage integrations (list, groups, settings, trigger provider tools, OAuth URL, delete)
+- Configure global plugs (catalog, list, upsert, activate, delete)
 - Analytics, notifications, and missing-release linking
 
 It’s intentionally small: a typed wrapper around the same HTTP endpoints the `openquok` CLI uses.
@@ -75,7 +76,13 @@ await openquok.postAsAgent({
 | `deletePost(postId)` | `DELETE /public/posts/:postId` |
 | `getMissingContent(postId)` | `GET /public/posts/:postId/missing` |
 | `updateReleaseId(postId, releaseId)` | `PUT /public/posts/:postId/release-id` |
-| `integrations()` | `GET /public/integrations` |
+| `listGroups()` | `GET /public/groups` |
+| `integrations({ group? })` | `GET /public/integrations` |
+| `getPlugCatalog()` | `GET /public/plug-catalog` |
+| `listIntegrationPlugs(integrationId)` | `GET /public/integration-plugs/:id` |
+| `upsertIntegrationPlug(integrationId, body)` | `POST /public/integration-plugs/:id` |
+| `deleteIntegrationPlug(plugId)` | `DELETE /public/plugs/:plugId` |
+| `setIntegrationPlugActivated(plugId, activated)` | `PUT /public/plugs/:plugId/activate` |
 | `getIntegrationSettings(id)` | `GET /public/integration-settings/:id` |
 | `triggerIntegration(id, { methodName, data? })` | `POST /public/integration-trigger/:id` |
 | `getIntegrationOAuthUrl(identifier, { refresh? })` | `GET /public/social/:identifier` |

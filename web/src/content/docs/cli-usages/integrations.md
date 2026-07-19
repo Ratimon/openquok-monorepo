@@ -124,6 +124,7 @@ openquok posts:create \
 
 <CardGrid>
 <LinkCard title="Managing Posts" description="Create, list, and delete posts using the channel IDs you discover here" href="/docs/cli-usages/managing-posts" />
+<LinkCard title="Global Plugs" description="Channel-level likes-threshold rules (plugs:catalog, plugs:upsert, …)" href="/docs/cli-usages/plugs" />
 <LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />
 <LinkCard title="Integrations APIs" description="Call the API for the same list, settings, and tool workflows as the CLI" href="/docs/apis-integrations" />
 <LinkCard title="Social integrations" description="Connect accounts with OAuth before you automate them from the terminal" href="/docs/social-integration" />

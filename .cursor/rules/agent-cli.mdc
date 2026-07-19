@@ -58,7 +58,8 @@ The programmatic CLI lives in `agent/`, published as `@openquok/auto-cli`. It ta
 2. Add or extend `OpenquokApi` only if this command calls a new HTTP surface.
 3. Add `.example()` lines for the common cases.
 4. Update `agent/README.md` (and smoke-test lists in `development-environment.md` if they enumerate commands).
-5. Update on-site CLI docs under `web/src/content/docs/cli-*/` when user-facing flags or workflows change.
+5. Update on-site CLI docs under `web/src/content/docs/cli-*/` when user-facing flags or workflows change — add or extend `cli-usages/<topic>.md` and the `cli-usages/index.md` `CardGrid` (e.g. `plugs.md` for `plugs:*` commands).
+6. When the command wraps a **new public API route**, complete the full **`public-api-surface-sync.mdc`** checklist (Swagger JSDoc, `apis-*` page, SDK if applicable) in the same PR — do not defer docs.
 
 ## Publishing
 

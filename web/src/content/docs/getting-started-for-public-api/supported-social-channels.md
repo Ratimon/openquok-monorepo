@@ -2,7 +2,7 @@
 title: Supported social channels
 description: Social channels Openquok currently supports — Meta Threads and Instagram (Business + Standalone) — plus the per-channel settings shape behind the public API.
 order: 1
-lastUpdated: 2026-05-29
+lastUpdated: 2026-07-19
 ---
 
 <script>
@@ -85,6 +85,41 @@ Both Threads and Instagram support an optional **follow-up reply / comment** cha
 | Instagram (Business + Standalone) | <Badge text="instagram.replies" variant="param" /> | array of objects with <Badge text="message" variant="param" /> (string) and <Badge text="delaySeconds" variant="param" /> (number) — comments threaded under the published media |
 
 See [Schedule a Threads post with a follow-up reply](#schedule-a-threads-post-with-a-follow-up-reply) below for the exact JSON.
+
+#### Internal plugs
+
+**Internal plugs** boost engagement after publish — from the same channel or from other connected channels in the workspace. Configure them on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> when you call <Badge text="POST /public/posts" variant="path" /> (or <Badge text="openquok posts:create" variant="default" />).
+
+| Provider | Bucket / plug id | What it does |
+| --- | --- | --- |
+| Meta Threads | <Badge text="threads.internalEngagementPlug" variant="param" /> | Same-account reply after follow-up replies complete |
+| Meta Threads | <Badge text="threads-cross-account-comment" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Comment from other Threads channels |
+| X | <Badge text="x-repost-post-users" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Repost from other X channels |
+| LinkedIn / LinkedIn Page | <Badge text="linkedin-add-comment" variant="param" />, <Badge text="linkedin-repost-post-users" variant="param" /> | Cross-account comment or reshare |
+
+Example — same-account Threads engagement plug on create:
+
+```json
+{
+  "providerSettingsByIntegrationId": {
+    "YOUR_THREADS_CHANNEL_UUID": {
+      "threads": {
+        "internalEngagementPlug": {
+          "enabled": true,
+          "message": "Thanks for reading — link in bio!",
+          "delaySeconds": 300
+        }
+      }
+    }
+  }
+}
+```
+
+For cross-account plugs, each entry in <Badge text="crossAccountPlugs" variant="param" /> needs <Badge text="plugName" variant="param" />, <Badge text="integrationIds" variant="param" /> (acting channels — not the publisher), and plug-specific <Badge text="fields" variant="param" />. See <a href="/docs/cli-examples/threads">Threads CLI examples</a> and <a href="/docs/cli-examples/x">X CLI examples</a>.
+
+<Callout type="note" title="Global plugs are separate">
+<p><strong>Global plugs</strong> (auto-repost or auto-reply when likes cross a threshold) are channel-level rules — not part of the create-post payload. Configure them with <Badge text="GET /public/plug-catalog" variant="path" /> and <Badge text="POST /public/integration-plugs/:id" variant="path" />, or via <Badge text="openquok plugs:*" variant="default" /> commands. See <a href="/docs/getting-started-for-public-api#plugs">Public API → Plugs</a>.</p>
+</Callout>
 
 <Callout type="note" title="Discover the exact shape with the Payload Wizard">
 <p>Rather than memorizing field names, fill out a real post in the <a href="/account/payload-wizard">Payload Wizard</a>, click <strong>Copy scheduled payload</strong>, and inspect the <Badge text="providerSettingsByIntegrationId" variant="param" /> object — it is always the source of truth for what the backend currently accepts (and the cleanest way to spot the difference between platform-specific settings and cross-provider features like follow-up replies).</p>
@@ -201,7 +236,8 @@ When <Badge text="isGlobal" variant="param" /> is `false`, channels listed in <B
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Public API Overview" description="Authentication, base URL, rate limits, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Public API Overview" description="Authentication, channel groups, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Integrations APIs" description="Connect / inspect / trigger endpoints around connected channels" href="/docs/apis-integrations" />
+<LinkCard title="Threads CLI examples" description="Follow-up replies, internal plugs, and cross-account comments" href="/docs/cli-examples/threads" />
 <LinkCard title="Social integration" description="Backend env vars and Meta dashboard setup for each provider" href="/docs/social-integration" />
 </CardGrid>

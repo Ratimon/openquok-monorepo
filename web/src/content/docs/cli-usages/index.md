@@ -16,6 +16,7 @@ Operational recipes for the <Badge text="openquok" variant="default" /> CLI grou
 <CardGrid>
 <LinkCard title="Managing Posts" description="List, create, find slots, delete, and reconnect missing posts" href="/docs/cli-usages/managing-posts" />
 <LinkCard title="Integrations" description="Discover connected channels, settings schemas, and dynamic tools" href="/docs/cli-usages/integrations" />
+<LinkCard title="Global Plugs" description="Catalog, list, upsert, activate, and delete channel-level engagement rules" href="/docs/cli-usages/plugs" />
 <LinkCard title="Analytics" description="Platform-level and per-post analytics over a 7 / 30 / 90 day window" href="/docs/cli-usages/analytics" />
 <LinkCard title="Media Upload" description="Upload local files (`upload`) or mirror a public URL (`upload-from-url`); both return the ids you pass to posts:create" href="/docs/cli-usages/media-upload" />
 </CardGrid>

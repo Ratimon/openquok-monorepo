@@ -1,7 +1,7 @@
 ---
 title: Analytics
 description: View platform-level and per-post analytics from the Openquok CLI over a 7, 30, or 90 day window.
-order: 3
+order: 4
 lastUpdated: 2026-05-12
 ---
 

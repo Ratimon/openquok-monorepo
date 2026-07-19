@@ -1,6 +1,14 @@
 ---
-description: Keep @openquok/node-sdk (sdk/) aligned with the public API, CLI, docs, and runnable examples.
-globs: ["sdk/**/*.ts", "sdk/**/*.md", "sdk/examples/**/*", "web/src/content/docs/getting-started-for-public-api/**/*.md", "web/src/content/docs/oauth2-for-apps/**/*.md"]
+description: Keep @openquok/node-sdk (sdk/) aligned with the public API, CLI, apis-* docs, overview docs, and runnable examples.
+globs:
+  [
+    "sdk/**/*.ts",
+    "sdk/**/*.md",
+    "sdk/examples/**/*",
+    "web/src/content/docs/getting-started-for-public-api/**/*.md",
+    "web/src/content/docs/apis-*/**/*.md",
+    "web/src/content/docs/oauth2-for-apps/**/*.md",
+  ]
 alwaysApply: false
 ---
 
@@ -10,11 +18,13 @@ Package root: `sdk/`. Published artifact is **`dist/` only** (gitignored; built 
 
 ## Public API changes
 
-When `backend/routes/publicApi/**` changes, follow **`public-api-surface-sync.mdc`**:
+When `backend/routes/publicApi/**` changes, follow **`public-api-surface-sync.mdc`** end-to-end (that rule is always applied). For SDK work specifically:
 
 1. Update `sdk/src/index.ts` and `sdk/src/dtos.ts` (method names, URLs, DTO fields).
 2. Run `pnpm --filter ./sdk run build`.
 3. Update `sdk/README.md` method table when the surface changes.
+4. Update `web/src/content/docs/getting-started-for-public-api/index.md` SDK quickstart when new methods are user-facing.
+5. Ensure matching `web/src/content/docs/apis-<domain>/*.md` pages exist (frontmatter `openapi:` must match Swagger paths).
 
 The SDK should stay in parity with `agent/src/api.ts` for shared routes, plus SDK-only methods when useful (`getPost`, `listNotifications`, etc.).
 

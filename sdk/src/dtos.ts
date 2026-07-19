@@ -103,3 +103,87 @@ export type PublicIntegrationTriggerDto = {
     data?: Record<string, unknown>;
 };
 
+/** `GET /public/groups` — channel group row (`integration_customers`). */
+export type PublicChannelGroupDto = {
+    id: string;
+    name: string;
+};
+
+/** `GET /public/integrations` — connected channel summary. */
+export type PublicIntegrationDto = {
+    id: string;
+    name: string;
+    identifier: string;
+    picture: string;
+    disabled: boolean;
+    profile: unknown;
+    customer: { id: string; name: string } | null;
+};
+
+/** `POST /public/integration-plugs/{id}` — field name/value pairs for a plug rule. */
+export type PublicPlugFieldDto = {
+    name: string;
+    value: string;
+};
+
+/** `POST /public/integration-plugs/{id}` */
+export type PublicPlugUpsertBodyDto = {
+    func: string;
+    fields: PublicPlugFieldDto[];
+    /** When set, updates this plug row; omit to create another rule for the same plug type. */
+    plugId?: string;
+};
+
+/** `GET /public/integration-plugs/{id}` — saved global plug rule row. */
+export type PublicIntegrationPlugRowDto = {
+    id: string;
+    organization_id: string;
+    integration_id: string;
+    plug_function: string;
+    data: string;
+    activated: boolean;
+};
+
+/** `GET /public/plug-catalog` — field metadata for a global plug type. */
+export type PublicPlugCatalogFieldDto = {
+    name: string;
+    description: string;
+    type: string;
+    placeholder: string;
+    validation?: string;
+};
+
+/** `GET /public/plug-catalog` — one global plug type for a provider. */
+export type PublicPlugCatalogEntryDto = {
+    methodName: string;
+    identifier: string;
+    title: string;
+    description: string;
+    runEveryMilliseconds: number;
+    totalRuns: number;
+    fields: PublicPlugCatalogFieldDto[];
+};
+
+/** `GET /public/plug-catalog` — global plug types grouped by provider. */
+export type PublicProviderPlugsCatalogDto = {
+    name: string;
+    identifier: string;
+    plugs: PublicPlugCatalogEntryDto[];
+};
+
+/** `GET /public/plug-catalog` */
+export type PublicPlugCatalogDto = {
+    plugs: PublicProviderPlugsCatalogDto[];
+};
+
+/** `POST /public/integration-plugs/{id}` — upsert response. */
+export type PublicPlugUpsertResultDto = {
+    id: string;
+    activated: boolean;
+};
+
+/** `DELETE /public/plugs/{plugId}` and `PUT /public/plugs/{plugId}/activate` — mutation response. */
+export type PublicPlugMutationResultDto = {
+    id: string;
+};
+

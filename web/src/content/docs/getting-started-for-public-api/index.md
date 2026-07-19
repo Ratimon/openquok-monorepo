@@ -1,8 +1,8 @@
 ---
 title: Overview - Public API
-description: Getting started to automate your Social Scheduling with Openquok 's public api.
+description: Getting started to automate your Social Scheduling with Openquok's public API and Node.js SDK.
 order: 0
-lastUpdated: 2026-05-29
+lastUpdated: 2026-07-19
 ---
 
 <script>
@@ -82,9 +82,67 @@ Skip hand-writing JSON — open the <a href="/account/payload-wizard">Payload Wi
 
 It's the same post composer you already use in the Openquok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.
 
+## Channel groups
+
+Workspaces can organize connected channels into **channel groups** (the dashboard calls them customers). Use them to scope list and calendar queries to one client or brand.
+
+| Action | HTTP | SDK |
+| --- | --- | --- |
+| List groups | <Badge text="GET /public/groups" variant="path" /> | <Badge text="listGroups()" variant="default" /> |
+| List channels in a group | <Badge text="GET /public/integrations?group=" variant="path" /> | <Badge text="integrations({ group })" variant="default" /> |
+
+```bash
+# List channel groups, then filter integrations to one group
+curl -H "Authorization: Bearer opo_your_programmatic_token" \
+  https://api.openquok.com/api/v1/public/groups
+
+curl -H "Authorization: Bearer opo_your_programmatic_token" \
+  "https://api.openquok.com/api/v1/public/integrations?group=<channel-group-id>"
+```
+
+The same <Badge text="group" variant="param" /> filter is available on <Badge text="GET /public/posts/list" variant="path" /> via <Badge text="customerGroupId" variant="param" /> — see <a href="/docs/apis-posts/list">List Posts</a>.
+
+<Callout type="tip" title="CLI equivalent">
+<p><Badge text="openquok integrations:groups" variant="default" /> lists groups; <Badge text="openquok integrations:list --group &lt;channel-group-id&gt;" variant="default" /> filters channels. See <a href="/docs/cli-usages/integrations">CLI integrations</a>.</p>
+</Callout>
+
+## Plugs
+
+**Plugs** automate engagement after a post goes live (auto-replies, cross-account comments, reposts when a likes threshold is met). They are available on paid plans.
+
+| Type | Scope | Configure via |
+| --- | --- | --- |
+| **Internal plugs** | Per post (compose time) | <Badge text="providerSettingsByIntegrationId" variant="param" /> on <Badge text="POST /public/posts" variant="path" /> |
+| **Global plugs** | Per channel (account rules) | Plug endpoints below |
+
+**Internal plugs** run once after publish — for example a same-account Threads reply or a cross-account comment from another connected channel. Set them in the create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#internal-plugs">Supported social channels → Internal plugs</a> and the <a href="/docs/cli-examples/threads">Threads CLI examples</a>.
+
+**Global plugs** are saved rules on a channel (e.g. auto-repost when likes ≥ 100). The orchestrator re-checks every 6 hours, up to 3 times per post.
+
+| Action | HTTP | SDK |
+| --- | --- | --- |
+| Catalog (field names per provider) | <Badge text="GET /public/plug-catalog" variant="path" /> | <Badge text="getPlugCatalog()" variant="default" /> |
+| List saved rules on a channel | <Badge text="GET /public/integration-plugs/:id" variant="path" /> | <Badge text="listIntegrationPlugs(integrationId)" variant="default" /> |
+| Create or update a rule | <Badge text="POST /public/integration-plugs/:id" variant="path" /> | <Badge text="upsertIntegrationPlug(integrationId, body)" variant="default" /> |
+| Delete a rule | <Badge text="DELETE /public/plugs/:plugId" variant="path" /> | <Badge text="deleteIntegrationPlug(plugId)" variant="default" /> |
+| Enable or disable a rule | <Badge text="PUT /public/plugs/:plugId/activate" variant="path" /> | <Badge text="setIntegrationPlugActivated(plugId, activated)" variant="default" /> |
+
+```bash
+# Discover plug types for Threads, then upsert a global rule
+curl -H "Authorization: Bearer opo_your_programmatic_token" \
+  https://api.openquok.com/api/v1/public/plug-catalog
+
+curl -X POST -H "Authorization: Bearer opo_your_programmatic_token" \
+  -H "Content-Type: application/json" \
+  https://api.openquok.com/api/v1/public/integration-plugs/<integration-id> \
+  -d '{"func":"autoPlugPost","fields":[{"name":"likesAmount","value":"100"},{"name":"post","value":"Thanks for reading!"}]}'
+```
+
+Not every provider exposes plugs — Threads, X, and LinkedIn Page support global rules; Instagram and TikTok do not. Provider-specific behavior is documented under <a href="/docs/social-integration">Social integration</a>.
+
 ## Start Integrating with SDK
 
-<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around Openquok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, and inspect connected channels from any Node.js script or backend.
+<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around Openquok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, list channel groups, configure global plugs, and inspect connected channels from any Node.js script or backend.
 
 
 ### Installation
@@ -108,6 +166,14 @@ const openquok = new Openquok('opo_your_programmatic_token', {
 	apiPrefix: '/api/v1'
 });
 
+await openquok.isConnected();
+
+// List channel groups, then channels in the first group
+const groups = await openquok.listGroups();
+const channels = groups[0]
+	? await openquok.integrations({ group: groups[0].id })
+	: await openquok.integrations();
+
 // Upload a file (multipart field name: `file`)
 const uploaded = await openquok.upload(fileBuffer, 'png');
 
@@ -118,11 +184,24 @@ await openquok.post({
 	body: 'Hello from Openquok SDK',
 	media: uploaded?.data?.filePath
 		? [{ id: '1', path: uploaded.data.filePath }]
-		: undefined
+		: undefined,
+	integrationIds: [channels[0]?.id].filter(Boolean)
 });
+
+// Configure a global plug on a Threads channel (auto-reply at 100 likes)
+const threadsChannel = channels.find((c) => c.identifier === 'threads');
+if (threadsChannel) {
+	await openquok.upsertIntegrationPlug(threadsChannel.id, {
+		func: 'autoPlugPost',
+		fields: [
+			{ name: 'likesAmount', value: '100' },
+			{ name: 'post', value: 'Thanks for reading!' }
+		]
+	});
+}
 ```
 
-For the full method list (`upload`, `post`, `postList`, `getPost`, `flipPostStatus`, `deletePost`, `integrations`, `deleteIntegrationChannel`), see the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/README.md">SDK README</DocsExternalLink>.
+For the full method table — posts, integrations, plugs, analytics, notifications, and more — see the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/README.md">SDK README</DocsExternalLink> (current release: <Badge text="@openquok/node-sdk@0.0.10" variant="experimental" />).
 
 ### References
 
@@ -136,7 +215,7 @@ For the full method list (`upload`, `post`, `postList`, `getPost`, `flipPostStat
 <CardGrid>
 <LinkCard title="Supported social channels" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
 <LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
-<LinkCard title="Integrations APIs" description="Programmatic endpoints for connecting channels and triggering provider tools — what the SDK wraps" href="/docs/apis-integrations" />
+<LinkCard title="Integrations APIs" description="Programmatic endpoints for channels, groups, global plugs, and provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts against your connected channels" href="/docs/apis-posts" />
 <LinkCard title="Analytics APIs" description="Platform and per-post insights backed by each provider's native analytics" href="/docs/apis-analytics" />
 <LinkCard title="Notifications APIs" description="Paginated in-app notification history scoped to your workspace" href="/docs/apis-notifications" />

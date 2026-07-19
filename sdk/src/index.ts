@@ -2,11 +2,18 @@ import type { Buffer } from "node:buffer";
 
 import { withAgentCreatePayload } from "./agent";
 import type {
+    PublicChannelGroupDto,
     PublicCreatePostDto,
     PublicDeletePostDataDto,
     PublicFlipPostStatusDto,
+    PublicIntegrationDto,
+    PublicIntegrationPlugRowDto,
     PublicIntegrationTriggerDto,
     PublicListPostsQueryDto,
+    PublicPlugCatalogDto,
+    PublicPlugMutationResultDto,
+    PublicPlugUpsertBodyDto,
+    PublicPlugUpsertResultDto,
     PublicPostSummaryDto,
     PublicUpdatePostReleaseIdDataDto,
     PublicUpdatePostReviewTodoDto,
@@ -17,13 +24,24 @@ import { OpenquokHttpError, requestJson } from "./http";
 export { withAgentCreatePayload } from "./agent";
 export { OpenquokHttpError } from "./http";
 export type {
+    PublicChannelGroupDto,
     PublicCreatePostDto,
     PublicCreatePostMediaItemDto,
     PublicDeletePostDataDto,
     PublicFlipPostStatusDto,
+    PublicIntegrationDto,
+    PublicIntegrationPlugRowDto,
     PublicIntegrationTriggerDto,
     PublicListPostsQueryDto,
+    PublicPlugCatalogDto,
+    PublicPlugCatalogEntryDto,
+    PublicPlugCatalogFieldDto,
+    PublicPlugFieldDto,
+    PublicPlugMutationResultDto,
+    PublicPlugUpsertBodyDto,
+    PublicPlugUpsertResultDto,
     PublicPostSummaryDto,
+    PublicProviderPlugsCatalogDto,
     PublicUpdatePostReleaseIdDataDto,
     PublicUpdatePostReviewTodoDto,
     PublicWorkspaceDto,
@@ -185,8 +203,72 @@ export default class Openquok {
         });
     }
 
-    async integrations() {
-        return await this.json("/public/integrations");
+    /** Channel groups (`GET /public/groups`) — use `id` as `group` on `integrations()`. */
+    async listGroups(): Promise<PublicChannelGroupDto[]> {
+        return await this.json<PublicChannelGroupDto[]>("/public/groups");
+    }
+
+    /**
+     * Connected channels (`GET /public/integrations`).
+     * Pass `group` (channel group id from `listGroups()`) to filter by group.
+     */
+    async integrations(options?: { group?: string }): Promise<PublicIntegrationDto[]> {
+        const qs = options?.group?.trim() ? toQueryString({ group: options.group.trim() }) : "";
+        return await this.json<PublicIntegrationDto[]>(
+            `/public/integrations${qs ? `?${qs}` : ""}`
+        );
+    }
+
+    /** Global plug types per provider (`GET /public/plug-catalog`). */
+    async getPlugCatalog(): Promise<PublicPlugCatalogDto> {
+        return await this.json<PublicPlugCatalogDto>("/public/plug-catalog");
+    }
+
+    /** Saved global plug rules for a channel (`GET /public/integration-plugs/:id`). */
+    async listIntegrationPlugs(
+        integrationId: string
+    ): Promise<{ plugs: PublicIntegrationPlugRowDto[] }> {
+        return await this.json<{ plugs: PublicIntegrationPlugRowDto[] }>(
+            `/public/integration-plugs/${encodeURIComponent(integrationId)}`
+        );
+    }
+
+    /** Create or update a global plug rule (`POST /public/integration-plugs/:id`). */
+    async upsertIntegrationPlug(
+        integrationId: string,
+        body: PublicPlugUpsertBodyDto
+    ): Promise<PublicPlugUpsertResultDto> {
+        return await this.json<PublicPlugUpsertResultDto>(
+            `/public/integration-plugs/${encodeURIComponent(integrationId)}`,
+            {
+                method: "POST",
+                body,
+            }
+        );
+    }
+
+    /** Remove a global plug rule (`DELETE /public/plugs/:plugId`). */
+    async deleteIntegrationPlug(plugId: string): Promise<PublicPlugMutationResultDto> {
+        return await this.json<PublicPlugMutationResultDto>(
+            `/public/plugs/${encodeURIComponent(plugId)}`,
+            {
+                method: "DELETE",
+            }
+        );
+    }
+
+    /** Enable or disable a global plug rule (`PUT /public/plugs/:plugId/activate`). */
+    async setIntegrationPlugActivated(
+        plugId: string,
+        activated: boolean
+    ): Promise<PublicPlugMutationResultDto> {
+        return await this.json<PublicPlugMutationResultDto>(
+            `/public/plugs/${encodeURIComponent(plugId)}/activate`,
+            {
+                method: "PUT",
+                body: { activated },
+            }
+        );
     }
 
     /**
