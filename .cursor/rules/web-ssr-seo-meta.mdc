@@ -45,7 +45,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 | Signal | Must appear in initial HTML |
 | --- | --- |
 | `<title>`, meta description, OG/Twitter | `pageMetaTags` from server load |
-| `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) |
+| `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) — path-only; strips UTM/`gclid`/`fbclid` in SSR |
 | JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
 | Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy** |
 | Paginated hub grids (playbooks, building blocks, blog) | Current page items in SSR HTML + crawlable `<a href="?page=N">` links — no client-only "Show more" or infinite scroll |

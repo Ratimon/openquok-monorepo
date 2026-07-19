@@ -1,4 +1,5 @@
 import { openGraphForPublicPage, type MetaTagsProps } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 export const ssr = true;
@@ -21,7 +22,7 @@ export async function load({ url, cookies, parent }) {
 	const description =
 		'How we collect, use, and protect personal information—including Google and YouTube user data, connected social channels, and how to request deletion.';
 
-	const canonical = new URL(url.pathname, url.origin).href;
+	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = Object.freeze({
 		title,
 		titleTemplate: `%s | ${companyName}`,

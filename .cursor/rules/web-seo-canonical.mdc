@@ -47,6 +47,19 @@ const pageMetaTags = { canonical, ...metaTags };
 const pageMetaTags = { ...metaTags, canonical, openGraph: { ...metaTags.openGraph, url: canonical } };
 ```
 
+## Duplicate tracking parameters (UTM, gclid, fbclid)
+
+Parameterized marketing URLs (e.g. `/pricing?utm_source=email&utm_medium=email`) must consolidate to one indexable URL.
+
+| Layer | Mechanism |
+| --- | --- |
+| **SSR (primary)** | `<link rel="canonical">` via `buildCanonicalUrl` + `withCanonicalMetaTags` — path only, no query or hash, in the first HTML response |
+| **JSON-LD** | Same `buildCanonicalUrl(url)` string for `url`, `canonicalUrl`, and `pageUrl` fields |
+| **Browser** | `UtmAttribution.svelte` captures attribution, then `replaceUrlWithoutTrackingParams` strips tracking params from the address bar |
+| **Param list** | `TRACKING_PARAM_NAMES` in `$lib/product-analytics/utm.ts` (`utm_*`, `ref`, `gclid`, `fbclid`, `msclkid`, `mc_cid`, `mc_eid`) |
+
+**Do not** add `robots.txt` `Disallow: /*?utm_*` (or similar) for tracking params. Blocking crawl prevents Google from fetching the page and reading the canonical tag on parameterized URLs; it does not reliably consolidate ranking signals. Canonical tags are the correct fix. Optionally configure URL parameters in Google Search Console as “doesn't change page content.”
+
 ## Parameter handling (by type)
 
 | Params | Browser URL | `<link rel="canonical">` |
