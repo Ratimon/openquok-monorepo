@@ -80,6 +80,8 @@ const aggregateMigrations = async () => {
         let fileContent = await fs.promises.readFile(filePath, "utf-8")
         // Strip only the module's outer transaction wrapper (keep mid-file COMMIT/BEGIN for enum safety, etc.).
         fileContent = fileContent.trim()
+        // Seed files often lead with MODULE header comments before BEGIN;
+        fileContent = fileContent.replace(/^((?:--[^\n]*\n)+)BEGIN;\s*\n/, "$1")
         if (fileContent.startsWith("BEGIN;")) {
           fileContent = fileContent.slice("BEGIN;".length).trimStart()
         }

@@ -6686,8 +6686,6 @@ ON CONFLICT (module_name) DO NOTHING;
 -- MODULE SCOPE: seed
 -- ---------------------------
 
-BEGIN;
-
 INSERT INTO public.blog_posts (
     id,
     user_id,
@@ -6774,8 +6772,9 @@ $OPENQUOK_LAUNCH_POST$,
     '2026-07-09 11:27:27.817069+00',
     '2026-07-09 10:45:56.964732+00'
 )
-ON CONFLICT (slug) DO UPDATE
+ON CONFLICT (id) DO UPDATE
 SET
+    slug = EXCLUDED.slug,
     user_id = COALESCE(EXCLUDED.user_id, public.blog_posts.user_id),
     topic_id = EXCLUDED.topic_id,
     title = EXCLUDED.title,
@@ -6796,8 +6795,6 @@ SET
 -- MODULE DATE: 20260712
 -- MODULE SCOPE: seed
 -- ---------------------------
-
-BEGIN;
 
 INSERT INTO public.blog_posts (
     id,
@@ -6979,8 +6976,9 @@ $TIKTOK_WARMUP_POST$,
     '2026-07-12 09:00:00+00',
     '2026-07-12 09:00:00+00'
 )
-ON CONFLICT (slug) DO UPDATE
+ON CONFLICT (id) DO UPDATE
 SET
+    slug = EXCLUDED.slug,
     user_id = COALESCE(EXCLUDED.user_id, public.blog_posts.user_id),
     topic_id = EXCLUDED.topic_id,
     title = EXCLUDED.title,

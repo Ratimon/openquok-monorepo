@@ -4,8 +4,6 @@
 -- MODULE SCOPE: seed
 -- ---------------------------
 
-BEGIN;
-
 INSERT INTO public.blog_posts (
     id,
     user_id,
@@ -186,8 +184,9 @@ $TIKTOK_WARMUP_POST$,
     '2026-07-12 09:00:00+00',
     '2026-07-12 09:00:00+00'
 )
-ON CONFLICT (slug) DO UPDATE
+ON CONFLICT (id) DO UPDATE
 SET
+    slug = EXCLUDED.slug,
     user_id = COALESCE(EXCLUDED.user_id, public.blog_posts.user_id),
     topic_id = EXCLUDED.topic_id,
     title = EXCLUDED.title,
@@ -203,5 +202,3 @@ SET
     product = EXCLUDED.product,
     updated_at = EXCLUDED.updated_at,
     published_at = COALESCE(public.blog_posts.published_at, EXCLUDED.published_at);
-
-COMMIT;
