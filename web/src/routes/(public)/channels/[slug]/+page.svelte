@@ -24,6 +24,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 
 	type Props = { data: PageData };
 
@@ -31,7 +32,7 @@
 
 	const pagePresenter = publicChannelByPagePresenter;
 
-	let schemaData  = $derived(data.schemaData);
+	let schemaData = $derived(data.schemaData);
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
@@ -48,12 +49,20 @@
 <JsonLdHead schemaData={schemaData} />
 
 {#if channelVm}
-	<PublicChannelHero
-		channelVm={channelVm}
-		heroTheme={landingHeroTheme}
-		ctaText={secondaryCtaText}
-		ctaHref={secondaryCtaHref}
-	/>
+	{#if channelVm.available}
+		<PublicChannelHero
+			channelVm={channelVm}
+			heroTheme={landingHeroTheme}
+			ctaText={secondaryCtaText}
+			ctaHref={secondaryCtaHref}
+		/>
+	{:else}
+		<PublicComingSoonIntegrationPage
+			heroOnly
+			platformLabel={channelVm.platformLabel}
+			icon={channelVm.icon}
+		/>
+	{/if}
 
 	<WhoIsFor
 		heroTheme={landingHeroTheme}

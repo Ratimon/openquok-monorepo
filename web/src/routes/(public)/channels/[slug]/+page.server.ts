@@ -66,8 +66,12 @@ export async function load({ url, params, cookies, parent }) {
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${channelVm.metaTitle} | ${companyName}`;
-	const customDescription = channelVm.metaDescription;
+	const customTitle = channelVm.available
+		? `${channelVm.metaTitle} | ${companyName}`
+		: `${channelVm.platformLabel} scheduling — Coming soon | ${companyName}`;
+	const customDescription = channelVm.available
+		? channelVm.metaDescription
+		: `${channelVm.platformLabel} scheduling in OpenQuok is coming soon. ${channelVm.metaDescription}`;
 	const featureList = [
 		channelVm.heroTitle,
 		...channelVm.featureSections.flatMap((section) => [section.subtitle, section.title]),

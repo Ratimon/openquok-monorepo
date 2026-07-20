@@ -41,7 +41,7 @@ export type PublicChannelLandingPageViewModel = {
 	faqItems: PublicFaqItem[];
 	/** Setup guide under `/docs/social-integration/`. */
 	docsPath: string;
-	/** When false, hub shows a coming-soon badge and detail route 404s. */
+	/** When false, hub and nav show a coming-soon badge; detail route renders a coming-soon page. */
 	available: boolean;
 	/**
 	 * Extra platform names for competitor compare tables (e.g. Shorts under the YouTube integration).

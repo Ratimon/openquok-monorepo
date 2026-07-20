@@ -99,7 +99,7 @@ Day-to-day commands (dev servers, tests, DB, deploy) live under [Development env
 
 ### Links
 
-- [Website](https://www.openquok.com)
+- [Official Website](https://www.openquok.com)
 
 **Documentation (by audience)**
 

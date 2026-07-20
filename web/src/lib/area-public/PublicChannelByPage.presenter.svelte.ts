@@ -1,5 +1,5 @@
 import {
-	getAvailablePublicChannelBySlug,
+	getPublicChannelBySlug,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/publicChannelConfig';
 
@@ -13,10 +13,10 @@ export class PublicChannelByPagePresenter {
 
 	/**
 	 * Stateless — safe for `+page.server.ts` (SSR): resolve slug → VM without mutating `$state`.
-	 * Returns `null` when the slug is missing or the channel is not available.
+	 * Returns `null` when the slug is missing.
 	 */
 	loadChannelBySlugStateless(slug: string): PublicChannelViewModel | null {
-		const channel = getAvailablePublicChannelBySlug(slug);
+		const channel = getPublicChannelBySlug(slug);
 		return channel ? toPublicChannelVm(channel) : null;
 	}
 

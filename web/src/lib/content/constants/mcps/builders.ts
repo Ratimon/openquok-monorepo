@@ -86,7 +86,7 @@ function buildMcpFaqItems(label: string): PublicFaqItem[] {
 		{
 			title: 'Which social platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, YouTube, TikTok, LinkedIn, and X are available today. Connect channels in the OpenQuok web app first.'
+				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app first.'
 		}
 	];
 }

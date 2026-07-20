@@ -21,12 +21,13 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn: boolean;
 			landingVm: PublicAgentViewModel;
-			listingsPreviewVm: PublicListingsPreviewVm;
+			listingsPreviewVm: PublicListingsPreviewVm | null;
 			schemaData: unknown;
 			channelSlug: string;
 			channelLabel: string;
 			cliExamplesPath: string;
 			agentSlug: string;
+			isChannelComingSoon: boolean;
 			agentChannelLinksVm: PublicAgentChannelHubLinkViewModel[];
 		};
 
@@ -44,6 +45,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelLabel: serverData.channelLabel,
 			cliExamplesPath: serverData.cliExamplesPath,
 			agentSlug: serverData.agentSlug,
+			isChannelComingSoon: serverData.isChannelComingSoon,
 			agentChannelLinksVm: serverData.agentChannelLinksVm
 		};
 	}

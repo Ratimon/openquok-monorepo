@@ -31,6 +31,8 @@ export type PublicAgentChannelHubLinkViewModel = {
 	icon: IconName;
 	href: string;
 	description: string;
+	/** When false, the channel integration is not live yet. */
+	available: boolean;
 };
 
 export type PublicAgentChannelHostConfig = {

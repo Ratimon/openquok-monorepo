@@ -33,6 +33,7 @@
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicAgentHero from '$lib/ui/templates/landing-page/PublicAgentHero.svelte';
+	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
@@ -41,11 +42,13 @@
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
-		listingsPreviewVm: PublicListingsPreviewVm;
+		listingsPreviewVm: PublicListingsPreviewVm | null;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
 		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
 		activeChannelSlug?: string | null;
+		isChannelComingSoon?: boolean;
+		comingSoonPlatformLabel?: string;
 	};
 
 	let {
@@ -54,7 +57,9 @@
 		secondaryCtaText,
 		secondaryCtaHref,
 		channelLinksVm = [],
-		activeChannelSlug = null
+		activeChannelSlug = null,
+		isChannelComingSoon = false,
+		comingSoonPlatformLabel = ''
 	}: Props = $props();
 
 	// /sign-up
@@ -79,14 +84,23 @@
 	});
 </script>
 
-<PublicAgentHero
-	{agentVm}
-	heroTheme={landingHeroTheme}
-	ctaText={secondaryCtaText}
-	ctaHref={secondaryCtaHref}
-	docsCtaText="View Docs"
-	docsCtaHref={agentVm.docsPath}
-/>
+{#if isChannelComingSoon && comingSoonPlatformLabel && agentVm.heroSecondaryIcon}
+	<PublicComingSoonIntegrationPage
+		heroOnly
+		platformLabel={comingSoonPlatformLabel}
+		icon={agentVm.heroSecondaryIcon}
+		agentLabel={agentVm.agentLabel}
+	/>
+{:else}
+	<PublicAgentHero
+		{agentVm}
+		heroTheme={landingHeroTheme}
+		ctaText={secondaryCtaText}
+		ctaHref={secondaryCtaHref}
+		docsCtaText="View Docs"
+		docsCtaHref={agentVm.docsPath}
+	/>
+{/if}
 
 {#if agentVm.workflowSection}
 	<PublicLandingWorkflowSection
@@ -125,10 +139,12 @@
 	/>
 {/each}
 
-<PublicListingsPreviewDualGrid
-	heroTheme={landingHeroTheme}
-	previewVm={listingsPreviewVm}
-/>
+{#if listingsPreviewVm}
+	<PublicListingsPreviewDualGrid
+		heroTheme={landingHeroTheme}
+		previewVm={listingsPreviewVm}
+	/>
+{/if}
 
 {#if agentVm.comparisonSection}
 	<WithWithout

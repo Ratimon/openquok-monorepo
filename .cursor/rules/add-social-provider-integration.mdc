@@ -38,7 +38,8 @@ globs:
   - web/src/lib/area-public/constants/getRootPathPublicTools.ts
   - web/src/routes/(public)/tools/+page.server.ts
   - web/src/routes/(public)/tools/+page.svelte
-  - web/src/lib/ui/templates/PublicChannelLandingPage.svelte
+  - web/src/routes/(public)/channels/[slug]/+page.svelte
+  - web/src/lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte
   - web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte
@@ -129,14 +130,15 @@ Routes and UI are **generic** — adding a channel is a **catalog entry only** (
 | Content catalog | `web/src/lib/content/constants/publicChannelConfig.ts` |
 | Route helpers | `web/src/lib/area-public/constants/getRootPathPublicChannels.ts` (`channels`, `channels/{slug}`) |
 | Hub route | `/channels` — `web/src/routes/(public)/channels/+page.server.ts` lists `listPublicChannelsForHub()` |
-| Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getAvailablePublicChannelBySlug(slug)` (404 when missing or `available: false`) |
-| Page template | `web/src/lib/ui/templates/PublicChannelLandingPage.svelte` |
+| Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getPublicChannelBySlug(slug)` (404 when missing); `available: false` renders a coming-soon hero plus the full landing sections below |
+| Page route | `web/src/routes/(public)/channels/[slug]/+page.svelte` — live hero (`PublicChannelHero`) or coming-soon hero (`PublicComingSoonIntegrationPage` with `heroOnly`) |
 | Hub grid | `web/src/lib/ui/templates/landing-page/PublicChannelsHubGrid.svelte` |
-| Hero | `web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte` |
+| Hero (live) | `web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte` |
+| Hero (coming soon) | `web/src/lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte` |
 
 Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/config.ts`; **do not add per-channel nav entries**.
 
-### Catalog entry (`PublicChannelLandingPage`)
+### Catalog entry (`PublicChannelLandingPageViewModel`)
 
 Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LANDING_PAGES` (before or instead of a coming-soon stub).
 
@@ -150,11 +152,11 @@ Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LAND
 | `featureSections` | **3 sections** typical: subtitle, title, description, `bentoId` (preferred), `mediaOnRight` (alternate left/right). See **Feature bento showcases** below — do **not** ship go-live pages with generic `/landing/*.mp4` placeholders when the provider has a bento set. |
 | `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems` | Channel-specific FAQ; JSON-LD `FAQPage` is generated in `+page.server.ts` |
 | `docsPath` | Setup guide path, e.g. `/docs/social-integration/{id}` — must match the doc you ship |
-| `available` | `true` when the detail page should be live; `false` for hub-only “Coming soon” |
+| `available` | `true` when Skill Builder / Photo Editor channel routes and live hero CTAs should ship; `false` for **Soon** badges on hub/nav and a coming-soon hero on `/channels/{slug}` and `/agents/{agentSlug}/{slug}` (full landing sections still render) |
 
-**Coming soon (provider not ready):** add a minimal stub in `COMING_SOON_CHANNELS` with `available: false`, empty hero/FAQ/feature arrays, and a short `metaDescription`. Hub shows a badge; `/channels/{slug}` returns 404.
+**Coming soon (provider not ready):** add a full catalog entry in `web/src/lib/content/constants/channels/{slug}.ts` with `available: false` (or append a minimal stub to `COMING_SOON_CHANNELS` in `channels/index.ts` before the full file exists). Hub and header show a **Soon** badge; `/channels/{slug}` and agent channel pages use `PublicComingSoonIntegrationPage` (`heroOnly`) for the hero and omit listings preview — all other sections still render from the catalog copy.
 
-**Go live:** replace the stub with a full entry (or flip `available: true` and fill content). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
+**Go live:** flip `available: true` (and ensure backend integration is registered). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
 
 ### Landing copy voice (problem-first)
 
@@ -216,13 +218,13 @@ Use **one CTA label everywhere**, matching `web/src/lib/ui/templates/LandingPage
 - **Text:** `Get Started For Free`
 - **Href:** `/pricing`
 
-Wire through `PublicChannelLandingPage.svelte` (`secondaryCtaText` / `secondaryCtaHref`) into the hero and every feature section. **Do not** add login-dependent CTAs (`Start for $0`, `Open workspace`), a secondary “Setup guide” button, or a bottom CTA block.
+Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChannelByPagePresenter.secondaryCtaText` / `secondaryCtaHref`) into the live hero and every feature section. **Do not** add login-dependent CTAs (`Start for $0`, `Open workspace`), a secondary “Setup guide” button, or a bottom CTA block.
 
 ### Load / page conventions
 
 - `+page.server.ts` files own SSR, meta tags (`createMetaData`), and JSON-LD schema.
 - `+page.ts` follows the universal load pattern (`await parent()`, merge `isLoggedIn` / roles on the client branch). See **web-sveltekit-universal-page-load**.
-- `+page.svelte` exposes load fields via `$derived(data.*)` — do not pass `isLoggedIn` into `PublicChannelLandingPage`.
+- `+page.svelte` exposes load fields via `$derived(data.*)` and owns the page markup (no separate `*Page.svelte` wrapper).
 
 ## Docs and agent resources (user-facing providers)
 
@@ -326,15 +328,15 @@ Ship platform-specific agent landing pages alongside the generic agent host page
 | CLI command reference | `web/src/lib/content/utils/buildAgentChannelCliCommandReference.ts` — per-platform commands aligned with `agent/skills/openquok-core/resources/{id}-examples.md` and `examples/*.json` |
 | Listings preview filter | `loadAgentListingsPreviewStateless({ listingTagSlug })` — playbooks + building blocks filtered by `listing_tags.slug` |
 | Presenter | `PublicAgentByPagePresenter.loadAgentChannelStateless(agentSlug, channelSlug)` |
-| Shared page UI | `web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte` (same template as `/agents/{agentSlug}`) |
+| Shared page UI | `web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte` and `PublicMcpLandingPage.svelte` — coming-soon channels pass `isChannelComingSoon` (hero swap + skip listings preview) |
 | Route helper | `getRootPathPublicAgentChannel(agentSlug, channelSlug)` in `getRootPathPublicAgents.ts` |
 | Route files | `web/src/routes/(public)/agents/[slug]/[channelSlug]/+page.server.ts` (+ `+page.ts`, `+page.svelte`) |
 
 MCP channel pages use **example prompts** (not CLI commands) in kanban/analytics feature rows. Generic MCP pages (`/agents/{mcpSlug}`) use the **multi-platform** kanban bento (`agent-multi-platform-bulk-scheduling`), same as generic agent host pages.
 
-Agent channel pages 404 when the agent slug is missing from `publicAgentConfig` / `publicMcpConfig`, the channel slug is missing from `publicChannelConfig`, or `available: false` on either catalog entry.
+Agent channel pages 404 only when the agent/MCP slug or channel slug is missing from the catalogs. `available: false` on the channel still resolves the route (coming-soon hero, no listings preview; MCP clients derive per-channel config via `getPublicAgentChannelBySlug`).
 
-Derived from the base agent host VM (`publicAgentConfig.ts`) plus `buildAgentChannelLandingVm`:
+Derived from the base agent host VM (`publicAgentConfig.ts`) plus `buildAgentChannelLandingVm` / `buildMcpChannelLandingVm`:
 
 | Section | Channel-specific behavior |
 | --- | --- |
@@ -350,14 +352,12 @@ Generic `/agents/openclaw` and generic MCP pages (e.g. `/agents/claude-cowork`) 
 
 ### Catalog entry (`publicAgentChannelConfig`)
 
-Configs are built from `listAvailablePublicChannels()` — a new live channel appears on agent channel routes automatically **after** bento showcases and CLI examples exist. When adding or go-live-ing a provider, also update:
+Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw.ts` / `hermes.ts`; MCP clients resolve per-channel config at runtime in `agents/channels/index.ts`. A new live channel appears on agent channel routes automatically **after** bento showcases and CLI examples exist. When adding or go-live-ing a provider, also update:
 
 1. **`CHANNEL_PROVIDER_IDENTIFIERS`** in `publicAgentChannelConfig.ts` — jq filter ids (match `integrations:list` identifiers; mirror Skill Builder).
 2. **`KANBAN_BENTO_BY_CHANNEL`** and **`ANALYTICS_BENTO_BY_CHANNEL`** — map slug → `{slug}-bulk-scheduling` and `{slug}-insights` (requires bento IDs in `publicChannelFeatureBentoConfig.ts` and branches in `BentoPublicChannelFeature.svelte`; same bar as `/channels/{slug}`).
 3. **`CHANNEL_CLI_RECIPES`**, **`KANBAN_EXAMPLE_BY_CHANNEL`**, and **`kanbanMcpPrompts` / `analyticsMcpPrompts`** in `publicAgentChannelConfig.ts` / `buildAgentChannelCliCommandReference.ts` — CLI commands (agent hosts) and example prompts (MCP clients), aligned with `resources/{id}-examples.md` and `examples/*.json`.
 4. **`agentMultiPlatformKanbanMock.ts`** (optional but recommended) — one mock kanban card for the new platform on generic agent host pages.
-
-Agent channel pages 404 when the slug is missing from `publicChannelConfig`, `available: false`, or the parent agent/MCP slug is unavailable.
 
 ## PR self-check
 
@@ -373,5 +373,5 @@ Agent channel pages 404 when the slug is missing from `publicChannelConfig`, `av
 - **Self-host:** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
-- **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for live channels on **agent hosts and MCP clients**; generic agent/MCP kanban mock updated when the catalog gains a platform.
+- **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

@@ -125,5 +125,5 @@ export const threadsChannel = {
 		}
 	],
 	docsPath: '/docs/social-integration/threads',
-	available: true
+	available: false
 } satisfies PublicChannelLandingPageViewModel;

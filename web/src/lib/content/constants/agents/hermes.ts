@@ -278,7 +278,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'Facebook, Instagram (Business and Standalone), Threads, YouTube, TikTok, LinkedIn, and X are available today. Connect channels in the OpenQuok web app; Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app; Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.'
 		},
 		{
 			title: 'Does Hermes publish immediately or wait for approval?',

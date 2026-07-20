@@ -1,4 +1,4 @@
-import { listAvailablePublicChannels } from '$lib/content/constants/channels';
+import { listPublicChannelsForHub } from '$lib/content/constants/channels';
 
 import type { PublicAgentChannelHostConfig } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelConfigsForHost } from '$lib/content/constants/agents/channels/shared';
@@ -18,5 +18,5 @@ export const openclawAgentChannelHost: PublicAgentChannelHostConfig = {
 
 export const openclawAgentChannelConfigs = buildAgentChannelConfigsForHost(
 	openclawAgentChannelHost,
-	listAvailablePublicChannels()
+	listPublicChannelsForHub()
 );

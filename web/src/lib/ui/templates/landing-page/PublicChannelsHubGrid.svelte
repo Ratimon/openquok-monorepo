@@ -5,6 +5,7 @@
 	import { route } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
 
 	type Props = {
 		channelsVm: PublicChannelLandingPageViewModel[];
@@ -35,70 +36,55 @@
 		aria-label="Social channels you can connect"
 	>
 		{#each channelsVm as channelVm (channelVm.slug)}
-			{@const href = channelVm.available ? route(getRootPathPublicChannel(channelVm.slug)) : undefined}
+			{@const href = route(getRootPathPublicChannel(channelVm.slug))}
 			<li>
-				{#if href}
-					<a
-						href={href}
-						class="group flex h-full flex-col gap-4 rounded-2xl border border-base-content/10 bg-base-200/40 p-6 transition hover:border-primary/40 hover:bg-base-200/70"
-					>
-						<div class="flex items-start justify-between gap-3">
-							<span
-								class="grid size-12 place-items-center rounded-xl border border-white/10 bg-base-100/80"
-								aria-hidden="true"
-							>
-								<AbstractIcon
-									name={channelVm.icon}
-									width="28"
-									height="28"
-									class="size-7"
-									focusable="false"
-								/>
-							</span>
-						</div>
-						<div class="space-y-2 text-left">
-							<h2 class="text-lg font-bold text-base-content group-hover:text-primary">
-								{channelVm.platformLabel}
-							</h2>
-							<p class="text-sm leading-relaxed text-base-content/70">
-								{channelVm.hubDescription ?? channelVm.metaDescription}
-							</p>
-						</div>
-						<span class="mt-auto text-sm font-semibold text-primary">View scheduler →</span>
-					</a>
-				{:else}
-					<div
-						class="flex h-full flex-col gap-4 rounded-2xl border border-dashed border-base-content/15 bg-base-200/20 p-6 opacity-80"
-					>
-						<div class="flex items-start justify-between gap-3">
-							<span
-								class="grid size-12 place-items-center rounded-xl border border-white/10 bg-base-100/50"
-								aria-hidden="true"
-							>
-								<AbstractIcon
-									name={channelVm.icon}
-									width="28"
-									height="28"
-									class="size-7 opacity-70"
-									focusable="false"
-								/>
-							</span>
-							<span
-								class="rounded-full bg-base-content/10 px-2.5 py-0.5 text-xs font-semibold text-base-content/60 uppercase"
-							>
-								Coming soon
-							</span>
-						</div>
-						<div class="space-y-2 text-left">
-							<h2 class="text-lg font-bold text-base-content/80">
-								{channelVm.platformLabel}
-							</h2>
-							<p class="text-sm leading-relaxed text-base-content/60">
-								{channelVm.hubDescription ?? channelVm.metaDescription}
-							</p>
-						</div>
+				<a
+					href={href}
+					class="group flex h-full flex-col gap-4 rounded-2xl border p-6 transition {channelVm.available
+						? 'border-base-content/10 bg-base-200/40 hover:border-primary/40 hover:bg-base-200/70'
+						: 'border-dashed border-base-content/15 bg-base-200/20 opacity-90 hover:border-base-content/25 hover:bg-base-200/30'}"
+				>
+					<div class="flex items-start justify-between gap-3">
+						<span
+							class="grid size-12 place-items-center rounded-xl border border-white/10 bg-base-100/80"
+							aria-hidden="true"
+						>
+							<AbstractIcon
+								name={channelVm.icon}
+								width="28"
+								height="28"
+								class="size-7 {channelVm.available ? '' : 'opacity-70'}"
+								focusable="false"
+							/>
+						</span>
+						{#if !channelVm.available}
+							<PublicSoonBadge label="Coming soon" />
+						{/if}
 					</div>
-				{/if}
+					<div class="space-y-2 text-left">
+						<h2
+							class="text-lg font-bold {channelVm.available
+								? 'text-base-content group-hover:text-primary'
+								: 'text-base-content/80'}"
+						>
+							{channelVm.platformLabel}
+						</h2>
+						<p
+							class="text-sm leading-relaxed {channelVm.available
+								? 'text-base-content/70'
+								: 'text-base-content/60'}"
+						>
+							{channelVm.hubDescription ?? channelVm.metaDescription}
+						</p>
+					</div>
+					<span
+						class="mt-auto text-sm font-semibold {channelVm.available
+							? 'text-primary'
+							: 'text-base-content/50'}"
+					>
+						{channelVm.available ? 'View scheduler →' : 'Preview coming soon →'}
+					</span>
+				</a>
 			</li>
 		{/each}
 	</ul>

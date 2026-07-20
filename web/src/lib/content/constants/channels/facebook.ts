@@ -127,5 +127,5 @@ export const facebookChannel = {
 		}
 	],
 	docsPath: '/docs/social-integration/facebook',
-	available: true
+	available: false
 } satisfies PublicChannelLandingPageViewModel;

@@ -6,6 +6,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PatternedCardShell from '$lib/ui/templates/feature-grid/PatternedCardShell.svelte';
+	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
 
 	export type SimpleLinkCardItem = {
 		id: string;
@@ -16,6 +17,7 @@
 		href: string;
 		description?: string;
 		ctaLabel?: string;
+		badgeLabel?: string;
 	};
 
 	type Props = {
@@ -44,10 +46,10 @@
 	/>
 
 	<div class="relative z-20 flex h-full items-center justify-between gap-4">
-		<div class="space-y-2">
-			<div class="flex items-center gap-3">
-				<h2 class="flex items-center gap-3 text-xl font-semibold text-base-content">
-					<span>{item.title}</span>
+		<div class="min-w-0 flex-1 space-y-2">
+			<div class="flex items-start justify-between gap-3">
+				<h2 class="flex min-w-0 items-center gap-3 text-xl font-semibold text-base-content">
+					<span class="truncate">{item.title}</span>
 					{#if item.iconName}
 						<div
 							class={`flex size-10 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${
@@ -65,6 +67,9 @@
 						</div>
 					{/if}
 				</h2>
+				{#if item.badgeLabel}
+					<PublicSoonBadge label={item.badgeLabel} />
+				{/if}
 			</div>
 			{#if item.description}
 				<p class="text-sm font-medium leading-relaxed text-base-content/65">

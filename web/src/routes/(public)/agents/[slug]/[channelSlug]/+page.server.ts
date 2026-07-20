@@ -14,6 +14,7 @@ import {
 	getPublicAgentChannelBySlug,
 	listPublicAgentChannelsForHub
 } from '$lib/content/constants/publicAgentChannelConfig';
+import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
@@ -71,23 +72,32 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		throw error(404, 'Agent channel page not found');
 	}
 
+	const catalogChannel = getPublicChannelBySlug(channelSlug);
+	const isChannelComingSoon = catalogChannel ? !catalogChannel.available : false;
+
 	const { landingVm } = channelPage;
 	const accessToken = cookies.get('access_token');
 	const isLoggedIn = !!accessToken;
 
-	const listingsPreviewVm = await loadAgentListingsPreviewStateless({
-		fetch,
-		previewSection: landingVm.listingsPreviewSection,
-		listingTagSlug: channelConfig.listingTagSlug,
-		skillBuilderChannelSlug: channelSlug
-	});
+	const listingsPreviewVm = isChannelComingSoon
+		? null
+		: await loadAgentListingsPreviewStateless({
+				fetch,
+				previewSection: landingVm.listingsPreviewSection,
+				listingTagSlug: channelConfig.listingTagSlug,
+				skillBuilderChannelSlug: channelSlug
+			});
 
 	const { companyInformationPm, marketingInformationPm } = await parent();
 
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = `${landingVm.metaTitle} | ${companyName}`;
-	const customDescription = landingVm.metaDescription;
+	const customTitle = isChannelComingSoon
+		? `${channelConfig.platformLabel} with ${landingVm.agentLabel} — Coming soon | ${companyName}`
+		: `${landingVm.metaTitle} | ${companyName}`;
+	const customDescription = isChannelComingSoon
+		? `${channelConfig.platformLabel} scheduling with ${landingVm.agentLabel} is coming soon. ${landingVm.metaDescription}`
+		: landingVm.metaDescription;
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -160,6 +170,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		channelLabel: channelPage.channelLabel,
 		cliExamplesPath: channelPage.cliExamplesPath,
 		agentSlug,
+		isChannelComingSoon,
 		agentChannelLinksVm: listPublicAgentChannelsForHub(agentSlug)
 	};
 }

@@ -3,7 +3,7 @@ import {
 	getAvailablePublicAgentHostBySlug,
 	getPublicAgentHostBySlug
 } from '$lib/content/constants/publicAgentConfig';
-import { getAvailablePublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
+import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
 import {
 	getPublicAgentChannelBySlug
 } from '$lib/content/constants/publicAgentChannelConfig';
@@ -87,7 +87,7 @@ export class PublicAgentByPagePresenter {
 		const normalizedAgentSlug = agentSlug.trim().toLowerCase();
 		const normalizedChannelSlug = channelSlug.trim().toLowerCase();
 
-		const channel = getAvailablePublicChannelBySlug(normalizedChannelSlug);
+		const channel = getPublicChannelBySlug(normalizedChannelSlug);
 		const channelConfig = getPublicAgentChannelBySlug(normalizedAgentSlug, normalizedChannelSlug);
 		if (!channel || !channelConfig) return null;
 

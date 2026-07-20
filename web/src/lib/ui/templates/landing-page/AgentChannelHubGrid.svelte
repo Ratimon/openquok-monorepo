@@ -30,7 +30,8 @@
 					iconName: channel.icon,
 					href: url(channel.href),
 					description: channel.description,
-					ctaLabel: 'Open'
+					ctaLabel: channel.available ? 'Open' : 'Preview',
+					badgeLabel: channel.available ? undefined : 'Soon'
 				})
 			)
 	);

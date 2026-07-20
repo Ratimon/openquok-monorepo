@@ -133,5 +133,5 @@ export const instagramChannel = {
 		}
 	],
 	docsPath: '/docs/social-integration/instagram',
-	available: true
+	available: false
 } satisfies PublicChannelLandingPageViewModel;

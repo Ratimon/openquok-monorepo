@@ -28,6 +28,7 @@
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicMcpIntegrationSetup from '$lib/ui/templates/landing-page/PublicMcpIntegrationSetup.svelte';
 	import PublicMcpHero from '$lib/ui/templates/landing-page/PublicMcpHero.svelte';
+	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
@@ -35,11 +36,13 @@
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
-		listingsPreviewVm: PublicListingsPreviewVm;
+		listingsPreviewVm: PublicListingsPreviewVm | null;
 		secondaryCtaText: string;
 		secondaryCtaHref: string;
 		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
 		activeChannelSlug?: string | null;
+		isChannelComingSoon?: boolean;
+		comingSoonPlatformLabel?: string;
 	};
 
 	let {
@@ -48,7 +51,9 @@
 		secondaryCtaText,
 		secondaryCtaHref,
 		channelLinksVm = [],
-		activeChannelSlug = null
+		activeChannelSlug = null,
+		isChannelComingSoon = false,
+		comingSoonPlatformLabel = ''
 	}: Props = $props();
 
 	// /sign-up
@@ -79,13 +84,22 @@
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(mcpVm.agentLabel));
 </script>
 
-<PublicMcpHero
-	{mcpVm}
-	ctaText={secondaryCtaText}
-	ctaHref={secondaryCtaHref}
-	docsCtaText="View Docs"
-	docsCtaHref={mcpVm.docsPath}
-/>
+{#if isChannelComingSoon && comingSoonPlatformLabel && mcpVm.heroSecondaryIcon}
+	<PublicComingSoonIntegrationPage
+		heroOnly
+		platformLabel={comingSoonPlatformLabel}
+		icon={mcpVm.heroSecondaryIcon}
+		agentLabel={mcpVm.agentLabel}
+	/>
+{:else}
+	<PublicMcpHero
+		{mcpVm}
+		ctaText={secondaryCtaText}
+		ctaHref={secondaryCtaHref}
+		docsCtaText="View Docs"
+		docsCtaHref={mcpVm.docsPath}
+	/>
+{/if}
 
 <div class="container mx-auto px-4 py-12 sm:py-16">
 	<div class="mx-auto max-w-4xl">
@@ -131,10 +145,12 @@
 	/>
 {/each}
 
-<PublicListingsPreviewDualGrid
-	heroTheme={landingHeroTheme}
-	previewVm={listingsPreviewVm}
-/>
+{#if listingsPreviewVm}
+	<PublicListingsPreviewDualGrid
+		heroTheme={landingHeroTheme}
+		previewVm={listingsPreviewVm}
+	/>
+{/if}
 
 {#if mcpVm.comparisonSection}
 	<WithWithout

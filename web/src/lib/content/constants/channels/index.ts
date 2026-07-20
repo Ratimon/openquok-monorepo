@@ -39,12 +39,6 @@ export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageVi
 	return channelBySlug.get(key);
 }
 
-export function getAvailablePublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
-	const page = getPublicChannelBySlug(slug);
-	if (!page?.available) return undefined;
-	return page;
-}
-
 export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] {
 	return [...PUBLIC_CHANNEL_LANDING_PAGES];
 }

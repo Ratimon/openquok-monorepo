@@ -10,6 +10,7 @@
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PublicNavCollapsibleSection from '$lib/ui/nav-bars/PublicNavCollapsibleSection.svelte';
+	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
 
 	type Props = {
 		title: string;
@@ -44,8 +45,7 @@
 		).filter((column) => column.length > 0);
 	}
 
-	function channelHref(channel: PublicChannelLandingPageViewModel): string | undefined {
-		if (!channel.available) return undefined;
+	function channelHref(channel: PublicChannelLandingPageViewModel): string {
 		return route(getRootPathPublicChannel(channel.slug));
 	}
 
@@ -60,12 +60,14 @@
 			<div class="flex min-w-0 flex-col gap-0.5">
 				{#each column as channel (channel.slug)}
 					{@const href = channelHref(channel)}
-					{#if href}
-						<a
-							href={href}
-							onclick={handleNavigate}
-							class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
-						>
+					<a
+						href={href}
+						onclick={handleNavigate}
+						class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-base-100/80 hover:text-primary {channel.available
+							? 'text-base-content'
+							: 'text-base-content/60'}"
+					>
+						<span class="flex min-w-0 items-center gap-2.5">
 							<span
 								class="grid size-7 shrink-0 place-items-center rounded-md border border-white/10 bg-base-100/80"
 								aria-hidden="true"
@@ -74,32 +76,16 @@
 									name={channel.icon}
 									width="16"
 									height="16"
-									class="size-4"
-									focusable="false"
-								/>
-							</span>
-							<span class="truncate">{channel.platformLabel}</span>
-						</a>
-					{:else}
-						<span
-							class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content/45"
-							title="Coming soon"
-						>
-							<span
-								class="grid size-7 shrink-0 place-items-center rounded-md border border-white/5 bg-base-100/40"
-								aria-hidden="true"
-							>
-								<AbstractIcon
-									name={channel.icon}
-									width="16"
-									height="16"
-									class="size-4 opacity-60"
+									class="size-4 {channel.available ? '' : 'opacity-60'}"
 									focusable="false"
 								/>
 							</span>
 							<span class="truncate">{channel.platformLabel}</span>
 						</span>
-					{/if}
+						{#if !channel.available}
+							<PublicSoonBadge />
+						{/if}
+					</a>
 				{/each}
 			</div>
 		{/each}
