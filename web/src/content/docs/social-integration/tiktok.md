@@ -110,13 +110,13 @@ Follow TikTok’s developer portal flow, then apply the Openquok-specific detail
 
 Open <DocsExternalLink href="https://developers.tiktok.com/apps/">TikTok Developer — My Apps</DocsExternalLink> and create a new app.
 
-![Create New Tiktok App](/docs/social-integration/tiktok/create-new-tiktok-app.webp)
+![Create New Tiktok App](/docs/_assets/social-integration/tiktok/create-new-tiktok-app.webp)
 
 <Callout type="tip">
 You may also choose to create an organization first, then create an app in that organization rather than individually.
 </Callout>
 
-![Create New Organization](/docs/social-integration/tiktok/create-new-organization.webp)
+![Create New Organization](/docs/_assets/social-integration/tiktok/create-new-organization.webp)
 
 ### Configure the App Details
 
@@ -124,13 +124,13 @@ In **App Details → Basic Information**:
 
 Fill required app information (app name, category, description).
 
-![Configure Basic Info](/docs/social-integration/tiktok/configure-basic-info.webp)
+![Configure Basic Info](/docs/_assets/social-integration/tiktok/configure-basic-info.webp)
 
 Fill required urls (term of service, privacy policy, web urls).
 
 For Openquok-hosted deployments, register your public <strong>Terms</strong> and <strong>Privacy Policy</strong> URLs (for example <code>https://www.openquok.com/terms</code> and <code>https://www.openquok.com/privacy-policy</code>). TikTok app review requires these links to be active and visible on your official website without opening a menu.
 
-![Configure App Urls](/docs/social-integration/tiktok/configure-urls.webp)
+![Configure App Urls](/docs/_assets/social-integration/tiktok/configure-urls.webp)
 
 <Callout type="note">
 TikTok typically requires publicly reachable HTTPS URLs. If you are self host, you can fill up with own info/urls.
@@ -140,38 +140,38 @@ TikTok typically requires publicly reachable HTTPS URLs. If you are self host, y
 
 In **Product → + Add products**:
 
-![Add Product](/docs/social-integration/tiktok/add-product.webp)
+![Add Product](/docs/_assets/social-integration/tiktok/add-product.webp)
 
 Add the **Login Kit** product for OAuth.
 
-![Add Login Kit](/docs/social-integration/tiktok/add-login-kit.webp)
+![Add Login Kit](/docs/_assets/social-integration/tiktok/add-login-kit.webp)
 
 For **Product → Login Kit → Web**, add the redirect URI from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/tiktok#oauth-redirect-uri-register-in-tiktok">OAuth redirect URI</a> section to your app’s valid redirect list.
 
 For production url, we can add as web url:
 
-![Add Web Redirect Url](/docs/social-integration/tiktok/add-web-redirect-url.webp)
+![Add Web Redirect Url](/docs/_assets/social-integration/tiktok/add-web-redirect-url.webp)
 
 <Callout type="note" title="Local redirect URI">
 <p>TikTok <strong>Web</strong> Login Kit does not accept <code>localhost</code> redirect URIs, even in Sandbox. For local Openquok, register a <strong>Desktop</strong> redirect URI (see above) or connect against your deployed frontend, for example <Badge text="https://www.openquok.com/integration/oauth/tiktok" variant="new" /> with <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> set to match.</p>
 </Callout>
 
-![Add Desktop Redirect Url](/docs/social-integration/tiktok/add-desktop-redirect-url.webp)
+![Add Desktop Redirect Url](/docs/_assets/social-integration/tiktok/add-desktop-redirect-url.webp)
 
 
 ### Enable Content Posting API (Direct Post)
 
 In **Product → + Add products**:
 
-![Add Product](/docs/social-integration/tiktok/add-product.webp)
+![Add Product](/docs/_assets/social-integration/tiktok/add-product.webp)
 
 Add both **Share Kit**  and **Content Posting API**
 
-![Add Share Kit](/docs/social-integration/tiktok/add-share-kit.webp)
+![Add Share Kit](/docs/_assets/social-integration/tiktok/add-share-kit.webp)
 
 In **Content Posting API**, ensure **Direct Post** is allowed for your app.
 
-![Allow Direct Post](/docs/social-integration/tiktok/allow-direct-post.webp)
+![Allow Direct Post](/docs/_assets/social-integration/tiktok/allow-direct-post.webp)
 
 ### Add required scopes
 

@@ -99,26 +99,26 @@ For local HTTPS (or relay) examples, mirror the pattern used for Threads in <Doc
 
 Create an app in <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink>.
 
-![Step 1 - Create a Meta app](/docs/social-integration/meta/create-meta-app.webp)
+![Step 1 - Create a Meta app](/docs/_assets/social-integration/meta/create-meta-app.webp)
 
 
 ### Select use case
 
 Select **Other**.
 
-![Step 2 - Select Other Type](/docs/social-integration/meta/select-other-usecases.webp)
+![Step 2 - Select Other Type](/docs/_assets/social-integration/meta/select-other-usecases.webp)
 
 
 ### Select app type
 
 Select **Business**.
 
-![Step 3 - Finish Creating Meta App](/docs/social-integration/meta/select-business-type.webp)
+![Step 3 - Finish Creating Meta App](/docs/_assets/social-integration/meta/select-business-type.webp)
 
 
 ### Finish Creating Meta App
 
-![Step 4 - Finish Creating Meta App](/docs/social-integration/meta/finish-creating-meta-app.webp)
+![Step 4 - Finish Creating Meta App](/docs/_assets/social-integration/meta/finish-creating-meta-app.webp)
 
 <Callout type="warning" title="Business Verification Needed">
 If you are deploying public app,business verification is required and you may need to link your app with Meta's Business portfolio
@@ -137,14 +137,14 @@ When your professional Instagram account is already tied to a Facebook Page, you
 
 In dashboard, select **Facebook Login for Business**
 
-![Step 1 - Add Facebook Login for Business](/docs/social-integration/meta/set-business-login.webp)
+![Step 1 - Add Facebook Login for Business](/docs/_assets/social-integration/meta/set-business-login.webp)
 
 
 ### Set Redirect URI
 
 Add the **Instagram (Business)** redirect URI from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/instagram#oauth-redirect-uris-register-in-meta">OAuth redirect URIs (register in Meta)</a> section to your app’s valid OAuth redirect list.
 
-![Step 2 - Redirect URI](/docs/social-integration/meta/add-redirect-urls.webp)
+![Step 2 - Redirect URI](/docs/_assets/social-integration/meta/add-redirect-urls.webp)
 
 
 ### Request permissions
@@ -161,7 +161,7 @@ In the Meta developer app, open the permissions area where you can request **adv
 <li><Badge text="instagram_manage_insights" variant="default" /></li>
 </ul>
 
-![Step 4 - Set Permissions](/docs/social-integration/meta/set-permissions.webp)
+![Step 4 - Set Permissions](/docs/_assets/social-integration/meta/set-permissions.webp)
 
 <Callout type="note">
 Meta reorganizes this screen from time to time. If a scope name differs slightly in the UI, align with <DocsExternalLink href="https://developers.facebook.com/docs/instagram-api">Instagram Platform documentation</DocsExternalLink> and your app’s use case; keep the list in sync with <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramBusinessProvider.ts"><Badge text="backend/integrations/providers/instagram/instagramBusinessProvider.ts" variant="path" /></DocsExternalLink> for the canonical set in this repo.
@@ -172,7 +172,7 @@ Meta reorganizes this screen from time to time. If a scope name differs slightly
 
 In the Meta app **Settings** area, copy **App ID** → <Badge text="FACEBOOK_APP_ID" variant="envBackend" />, and **App Secret** → <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" /> to your env file.
 
-![Step 4 - Copy your credentials](/docs/social-integration/meta/copy-app-credetials.webp)
+![Step 4 - Copy your credentials](/docs/_assets/social-integration/meta/copy-app-credetials.webp)
 
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 
@@ -193,12 +193,12 @@ Standalone Login requires a professional Instagram account (creator or business)
 
 In dashboard, select **Instagram**
 
-![Step 1 - Add Facebook Login for Business](/docs/social-integration/meta/instagram-standalone/set-instagram.webp)
+![Step 1 - Add Facebook Login for Business](/docs/_assets/social-integration/meta/instagram-standalone/set-instagram.webp)
 
 
 ### Set Instagram Business Login
 
-![Step 2 - Set up Business Login for Business](/docs/social-integration/meta/instagram-standalone/set-business-login.webp)
+![Step 2 - Set up Business Login for Business](/docs/_assets/social-integration/meta/instagram-standalone/set-business-login.webp)
 
 This will let you to provide a redirect URL.
 
@@ -207,14 +207,14 @@ This will let you to provide a redirect URL.
 
 Add the **Instagram (Standalone)** redirect URI from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/instagram#oauth-redirect-uris-register-in-meta">OAuth redirect URIs (register in Meta)</a> section to your app’s valid OAuth redirect list.
 
-![Step 3 - Set Redirect URI](/docs/social-integration/meta/instagram-standalone/add-redirect-urls.webp)
+![Step 3 - Set Redirect URI](/docs/_assets/social-integration/meta/instagram-standalone/add-redirect-urls.webp)
 
 
 ### Copy your credentials
 
 Copy **Instagram app ID** → <Badge text="INSTAGRAM_APP_ID" variant="envBackend" />, and **Instagram app secret** → <Badge text="INSTAGRAM_APP_SECRET" variant="envBackend" /> to your env file.
 
-![Step 4 - Copy your credentials](/docs/social-integration/meta/instagram-standalone/copy-app-credetials.webp)
+![Step 4 - Copy your credentials](/docs/_assets/social-integration/meta/instagram-standalone/copy-app-credetials.webp)
 
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 
@@ -228,14 +228,14 @@ Restart the backend. Otherwise, the backend may not pick up your new environment
 
 Go to **App Roles page** and click "Add People"
 
-![Step 1 - Add People](/docs/social-integration/meta/add-people.webp)
+![Step 1 - Add People](/docs/_assets/social-integration/meta/add-people.webp)
 
 
 ### Add the Instagram account as Tester
 
 Under additional roles for this app, select **Instagram Tester**.
 
-![Step 2 - Add instagram test user](/docs/social-integration/meta/add-instagram-test-user.webp)
+![Step 2 - Add instagram test user](/docs/_assets/social-integration/meta/add-instagram-test-user.webp)
 
 Enter the **Instagram** username that should test the app (often your own).
 
@@ -244,7 +244,7 @@ Enter the **Instagram** username that should test the app (often your own).
 
 You should see a pending invite on Instagram’s <DocsExternalLink href="https://www.instagram.com/accounts/manage_access/">manage access</DocsExternalLink> page.
 
-![Step 3 - Accept invite](/docs/social-integration/meta/accept-instagram-invite.webp)
+![Step 3 - Accept invite](/docs/_assets/social-integration/meta/accept-instagram-invite.webp)
 
 Accept it to finish tester setup for that account.
 

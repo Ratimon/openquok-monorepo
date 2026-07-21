@@ -46,7 +46,7 @@ Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset so plan
 
 In the Supabase Dashboard, configure whether sign-in requires email confirmation and related Auth settings.
 
-![Supabase confirmation settings](/docs/configuration-backend/resend/supabase-email-setting.webp)
+![Supabase confirmation settings](/docs/_assets/configuration-backend/resend/supabase-email-setting.webp)
 
 ### Run the backend with the local inbox
 

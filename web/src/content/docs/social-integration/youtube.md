@@ -129,12 +129,12 @@ On the project selector, choose **New project** (or pick an existing project ded
 
 In **APIs &amp; Services → Library**, search for and enable:
 
-![Enable Google APIs](/docs/social-integration/youtube/enable-google-apis.webp)
+![Enable Google APIs](/docs/_assets/social-integration/youtube/enable-google-apis.webp)
 
 - **YouTube Data API v3** — uploads, channel listing, video metadata
 - **YouTube Analytics API** — channel analytics in Openquok
 
-![Enable Youtube APIs](/docs/social-integration/youtube/enable-youtube-apis.webp)
+![Enable Youtube APIs](/docs/_assets/social-integration/youtube/enable-youtube-apis.webp)
 
 You do **not** need **YouTube Reporting API** for Openquok today.
 
@@ -142,7 +142,7 @@ You do **not** need **YouTube Reporting API** for Openquok today.
 
 In **APIs &amp; Services → OAuth consent screen -> Get Started**:
 
-![Configure Outh Consent](/docs/social-integration/youtube/configure-oauth-consent.webp)
+![Configure Outh Consent](/docs/_assets/social-integration/youtube/configure-oauth-consent.webp)
 
 <Callout type="tip">
 <p>If you alread created set up Oauth Consent Scene before, you need to click <Badge text="Branding" variant="param" /> on the left side bar in order to edit it</p>
@@ -150,11 +150,11 @@ In **APIs &amp; Services → OAuth consent screen -> Get Started**:
 
 - Choose <Badge text="External" variant="param" /> for a public app that , or <Badge text="internal" variant="param" /> for business accounts only.
 
-![Choose Audience](/docs/social-integration/youtube/choose-audience.webp)
+![Choose Audience](/docs/_assets/social-integration/youtube/choose-audience.webp)
 
 - Fill required app information (app name, support email, developer contact).
 
-![Fill App Info](/docs/social-integration/youtube/fill-app-info.webp)
+![Fill App Info](/docs/_assets/social-integration/youtube/fill-app-info.webp)
 
 ### Create OAuth Web client credentials
 
@@ -166,7 +166,7 @@ In **APIs &amp; Services → OAuth consent screen -> Get Started**:
 
 - Under <Badge text="Authorized redirect URIs" variant="default" />, add the following **Authorized redirect URIs** from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/youtube#oauth-redirect-uri-register-in-google-cloud">OAuth redirect URIs</a> section to your app’s valid OAuth redirect list.
 
-![Oauth Credentials](/docs/social-integration/youtube/oauth-credentials.webp)
+![Oauth Credentials](/docs/_assets/social-integration/youtube/oauth-credentials.webp)
 
 After creation, copy **Client ID** → <Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> and **Client secret** → <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" /> into <Badge text="backend/.env.development.local" variant="envBackend" /> (or your deployment secrets).
 
@@ -199,7 +199,7 @@ In **OAuth consent screen**, → OAuth consent screen -> Audience ->  Click  **+
 
 Add every Google account that will connect a YouTube channel during development.
 
-![Add test users](/docs/social-integration/youtube/add-test-users.webp)
+![Add test users](/docs/_assets/social-integration/youtube/add-test-users.webp)
 
 <Callout type="warning" title="Test vs production">
 <p>While consent is in <strong>Testing</strong>, only listed test users can complete the flow. Move to <strong>Production</strong> (and complete Verification).</p>

@@ -34,11 +34,11 @@ If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> p
 
 - Find <Badge text="Google" variant="default" /> in the list and click <Badge text="Enable" variant="new" />.
 
-![Enable Google Auth](/docs/configuration-backend/google-oauth/enable-google-auth.webp)
+![Enable Google Auth](/docs/_assets/configuration-backend/google-oauth/enable-google-auth.webp)
 
 - Leave the provider dialog open — you will paste the Client ID and Client Secret in a later step.
 
-![Supabase Provider Dialog](/docs/configuration-backend/google-oauth/supabase-provider-dialog.webp)
+![Supabase Provider Dialog](/docs/_assets/configuration-backend/google-oauth/supabase-provider-dialog.webp)
 
 
 **Local Supabase CLI** (`supabase start` on `127.0.0.1:54321`)
@@ -61,7 +61,7 @@ If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> p
 
 - Click <Badge text="Create Credentials" variant="default" />, then choose <Badge text="OAuth client ID" variant="default" />.
 
-![Oauth Credentials](/docs/configuration-backend/google-oauth/oauth-credentials.webp)
+![Oauth Credentials](/docs/_assets/configuration-backend/google-oauth/oauth-credentials.webp)
 
 - Choose application type <Badge text="Web application" variant="path" />.
 
@@ -99,7 +99,7 @@ http://127.0.0.1:54321/auth/v1/callback
 
 - Copy the <Badge text="Client ID" variant="default" /> and <Badge text="Client Secret" variant="default" /> into the Supabase Google provider dialog (hosted) or into <Badge text="backend/supabase/.env" variant="path" /> (local CLI), then save.
 
-![Supabase Provider Dialog](/docs/configuration-backend/google-oauth/supabase-provider-dialog.webp)
+![Supabase Provider Dialog](/docs/_assets/configuration-backend/google-oauth/supabase-provider-dialog.webp)
 
 - For hosted projects, set <Badge text="Site URL" variant="path" /> correctly in <DocsExternalLink href="https://supabase.com/dashboard/project/_/auth/url-configuration">Supabase → Authentication → URL Configuration</DocsExternalLink>. Local CLI uses <Badge text="[auth]" variant="path" /> in <Badge text="config.toml" variant="path" /> (already includes the frontend and backend callback URLs used in this repo).
 
@@ -109,7 +109,7 @@ After Google redirects to Supabase and Supabase finishes the exchange, Supabase 
 
 **Hosted Supabase:** in <DocsExternalLink href="https://supabase.com/dashboard/project/_/auth/url-configuration">Supabase → Authentication → URL Configuration</DocsExternalLink>
 
-![Supabase URL config](/docs/configuration-backend/google-oauth/url-config.webp)
+![Supabase URL config](/docs/_assets/configuration-backend/google-oauth/url-config.webp)
 
 - Set <Badge text="Site URL" variant="path" /> to your frontend (users open this in the browser):
 

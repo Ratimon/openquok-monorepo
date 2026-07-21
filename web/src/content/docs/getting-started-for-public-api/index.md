@@ -77,7 +77,7 @@ For per-channel settings, and copy-paste API examples — plus the **channel vs 
 Skip hand-writing JSON — open the <a href="/account/payload-wizard">Payload Wizard</a> instead.
 
 
-![Wizard Payload Generator](/docs/getting-started-for-public-api/wizard-payload.webp)
+![Wizard Payload Generator](/docs/_assets/getting-started-for-public-api/wizard-payload.webp)
 
 
 It's the same post composer you already use in the Openquok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.

@@ -1,25 +1,11 @@
-import { docsConfig, getAllDocs, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
+import { getRawContent } from '$lib/docs/index';
 import { markdownResourceHeaders } from '$lib/docs/utils/markdown-route-headers';
 import { error } from '@sveltejs/kit';
 
 import type { RequestHandler } from './$types';
 
-export const prerender = true;
-
-export async function entries() {
-	await preloadDocsRegistry(undefined);
-	const docs = getAllDocs();
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	const localeCodes = new Set(
-		(docsConfig.i18n?.locales ?? [])
-			.map((l) => l.code)
-			.filter((code) => code && code !== defaultLocale)
-	);
-
-	return docs
-		.filter((d) => d.slug && !localeCodes.has(d.slug))
-		.map((d) => ({ slug: d.slug }));
-}
+// Do not prerender raw-markdown endpoints; they are runtime resources.
+export const prerender = false;
 
 export const GET: RequestHandler = async ({ params }) => {
 	const raw = await getRawContent(params.slug);

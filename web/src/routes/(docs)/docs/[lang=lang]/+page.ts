@@ -1,4 +1,4 @@
-import { docsConfig, getDoc, getPrevNext, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
+import { getDoc, getPrevNext, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -11,13 +11,8 @@ function landingSlugForLocale(lang: string): string {
 	throw error(404, 'Documentation landing not found for locale');
 }
 
-export const prerender = true;
-
-export function entries() {
-	const locales = docsConfig.i18n?.locales ?? [];
-	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
-	return locales.filter((l) => l.code !== defaultLocale).map((l) => ({ lang: l.code }));
-}
+// SSR only: a prerendered `/docs/<lang>` page becomes a file and blocks localized slug children.
+export const prerender = false;
 
 export const load: PageLoad = async ({ params }) => {
 	await preloadDocsRegistry(params.lang);

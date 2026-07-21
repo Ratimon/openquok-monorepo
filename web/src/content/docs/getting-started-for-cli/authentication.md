@@ -23,7 +23,7 @@ If both are present, stored OAuth2 credentials take priority over <Badge text="O
 Open the sign-in link on your phone or computer, sign in to Openquok if needed, choose a workspace, and tap **Authorize**. Credentials are stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
 
 <p class="not-prose flex justify-center">
-  <img src="/docs/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
+  <img src="/docs/_assets/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
 </p>
 
 Alternatively, it equals to run following in terminal:

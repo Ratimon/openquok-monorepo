@@ -94,7 +94,7 @@ https://localhost:5173/integration/oauth/x
 
 Open the <DocsExternalLink href="https://developer.twitter.com/en/portal/dashboard">X developer portal</DocsExternalLink> 
 
-![Create New X App](/docs/social-integration/x/create-new-x-app.webp)
+![Create New X App](/docs/_assets/social-integration/x/create-new-x-app.webp)
 
 Then, submit the form and the project will be created.
 
@@ -102,7 +102,7 @@ Then, submit the form and the project will be created.
 
 In **Developer Console → Apps -> Settings**:
 
-![Configure Authentication Settings](/docs/social-integration/x/configure-auth-settings.webp)
+![Configure Authentication Settings](/docs/_assets/social-integration/x/configure-auth-settings.webp)
 
 - **App permissions:** <Badge text="Read and Write" variant="param" />
 
@@ -110,11 +110,11 @@ In **Developer Console → Apps -> Settings**:
 <Callout type="warning"><Badge text="Native App" variant="param" /> is required for OAuth 1.0a. Using Web App, Automated App or Bot can fail with error code 32
 </Callout>
 
-![Configure App Type and Permissions](/docs/social-integration/x/configure-type-permissions.webp)
+![Configure App Type and Permissions](/docs/_assets/social-integration/x/configure-type-permissions.webp)
 
 - **Callback URI / Redirect URL:** add the redirect URI (see <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/x#oauth-redirect-uri">OAuth redirect URI</a> above)
 
-![Configure App Type and Permissions](/docs/social-integration/x/configure-app-info.webp)
+![Configure App Type and Permissions](/docs/_assets/social-integration/x/configure-app-info.webp)
 
 ### Copy API keys
 

@@ -73,7 +73,7 @@ https://localhost:5173/integration/oauth/linkedin
 
 Create an app at <DocsExternalLink href="https://www.linkedin.com/developers/apps">LinkedIn Developers</DocsExternalLink>.
 
-![Create New Linkedin App](/docs/social-integration/linkedin/create-new-linkedin-app.webp)
+![Create New Linkedin App](/docs/_assets/social-integration/linkedin/create-new-linkedin-app.webp)
 
 ### Add required products
 
@@ -85,7 +85,7 @@ In **Products**, add all required products. They include:
 <li><Badge text="Advertising API" variant="default" /></li>
 </ul>
 
-![Added Linkedin Products](/docs/social-integration/linkedin/added-products.webp)
+![Added Linkedin Products](/docs/_assets/social-integration/linkedin/added-products.webp)
 
 <Callout type="note">
 <p>OpenQuok requests <Badge text="openid" variant="default" /> and <Badge text="profile" variant="default" /> during OAuth and loads the signing-in member from LinkedIn’s <code>/v2/userinfo</code> endpoint.</p>
@@ -107,7 +107,7 @@ In **Auth**, after verification is completed, you can verify that the following 
 
 In **Auth**, add the **personal profile OAuth redirect URI** (see <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/linkedin#oauth-redirect-uri">OAuth redirect URI</a> above). If you also use <Badge text="linkedin-page" variant="default" />, add that URI too (see <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/linkedin-page#oauth-redirect-uri">LinkedIn Page — OAuth redirect URI</a>).
 
-![Set  Redirect URI](/docs/social-integration/linkedin/add-redirect-urls.webp)
+![Set  Redirect URI](/docs/_assets/social-integration/linkedin/add-redirect-urls.webp)
 
 ### Copy credentials
 

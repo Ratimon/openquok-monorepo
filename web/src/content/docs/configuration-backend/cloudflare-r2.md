@@ -30,14 +30,14 @@ Pick **one** <Badge text="STORAGE_PROVIDER" variant="envBackend" /> value for th
 
 Sign in to the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, then open <strong>R2 Object Storage</strong>. If this is your first time using Cloudflare for this domain, finish the domain onboarding and DNS setup first so you can later attach a custom hostname such as <code>media.yourdomain.com</code>.
 
-![Setup Domain](/docs/configuration-backend/cloudflare-r2/setup-domain.webp)
+![Setup Domain](/docs/_assets/configuration-backend/cloudflare-r2/setup-domain.webp)
 
 
 ### Create a bucket
 
 Create a new R2 bucket. For OpenQuok, this bucket stores user-uploaded or generated files in R2.
 
-![Create a Bucket](/docs/configuration-backend/cloudflare-r2/create-a-bucket.webp)
+![Create a Bucket](/docs/_assets/configuration-backend/cloudflare-r2/create-a-bucket.webp)
 
 Copy your <strong>Bucket Name</strong> for later.
 
@@ -45,15 +45,15 @@ Copy your <strong>Bucket Name</strong> for later.
 
 - In Cloudflare, go to <Badge text="Storage & Database" variant="default" /> → <Badge text="R2 Object Storage" variant="default" /> → <Badge text="Overview" variant="default" />. Then look at <Badge text="Account Details" variant="default" />
 
-![R2 Object Storage](/docs/configuration-backend/cloudflare-r2/r2-object-storage.webp)
+![R2 Object Storage](/docs/_assets/configuration-backend/cloudflare-r2/r2-object-storage.webp)
 
 Copy your <strong>Account ID</strong> for later, then choose <strong>Create API token</strong> and create an <strong>Account API token</strong>.
 
-![Create account api Token](/docs/configuration-backend/cloudflare-r2/create-account-api-token.webp)
+![Create account api Token](/docs/_assets/configuration-backend/cloudflare-r2/create-account-api-token.webp)
 
 Under <strong>Permissions</strong>, grant <strong>Object Read &amp; Write</strong>. Under bucket scope, choose only the bucket you created for OpenQuok media uploads.
 
-![Set permissions](/docs/configuration-backend/cloudflare-r2/set-permissions.webp)
+![Set permissions](/docs/_assets/configuration-backend/cloudflare-r2/set-permissions.webp)
 
 Copy these values for the backend:
 
@@ -148,7 +148,7 @@ Click to edit the CORS policy and add the following JSON if you plan to upload *
 
 If uploads go **only** through the backend API (XHR to the API), bucket CORS is optional for that path.
 
-![Cors](/docs/configuration-backend/cloudflare-r2/cors.webp)
+![Cors](/docs/_assets/configuration-backend/cloudflare-r2/cors.webp)
 
 </Steps>
 

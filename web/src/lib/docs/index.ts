@@ -1,5 +1,6 @@
 export { docsConfig, docsTabs } from '$lib/docs/constants';
 export {
+	docSlugsSafeForPrerender,
 	eachLocaleDocPages,
 	getAllDocs,
 	getDoc,

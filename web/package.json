@@ -15,7 +15,7 @@
 		"build:vite": "NODE_OPTIONS=--max-old-space-size=8192 node ./scripts/vite-build.mjs",
 		"dev": "pnpm run generate_icon && NODE_ENV=development NODE_OPTIONS=--max-http-header-size=65536 vite dev",
 		"dev:clean": "pnpm run clean:kit && pnpm run dev",
-		"build": "NODE_OPTIONS=--max-old-space-size=8192 node ./scripts/vite-build.mjs && pagefind --site .svelte-kit/output/prerendered/pages --output-path .svelte-kit/output/client/pagefind",
+		"build": "NODE_OPTIONS=--max-old-space-size=8192 node ./scripts/vite-build.mjs && node ./scripts/pagefind-index.mjs",
 		"preview": "NODE_OPTIONS=--max-http-header-size=65536 vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

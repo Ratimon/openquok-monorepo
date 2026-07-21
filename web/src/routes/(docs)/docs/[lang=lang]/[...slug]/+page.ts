@@ -1,5 +1,6 @@
 import {
 	docsConfig,
+	docSlugsSafeForPrerender,
 	getAllDocs,
 	getDoc,
 	getPrevNext,
@@ -20,10 +21,9 @@ export async function entries() {
 		if (locale.code === defaultLocale) continue;
 		await preloadDocsRegistry(locale.code);
 		const docs = getAllDocs(locale.code);
-		for (const doc of docs) {
-			if (doc.slug) {
-				results.push({ lang: locale.code, slug: doc.slug });
-			}
+		const slugs = docs.map((doc) => doc.slug).filter((slug): slug is string => Boolean(slug));
+		for (const slug of docSlugsSafeForPrerender(slugs)) {
+			results.push({ lang: locale.code, slug });
 		}
 	}
 

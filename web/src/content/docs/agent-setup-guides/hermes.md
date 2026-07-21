@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 - For OAuth device login: you can authorize the sign-in link on your phone when the agent asks you to log in.
 
 <p class="not-prose flex justify-center">
-  <img src="/docs/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
+  <img src="/docs/_assets/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
 </p>
 
 ## Installation

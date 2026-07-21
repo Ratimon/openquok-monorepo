@@ -4,7 +4,8 @@ import { error } from '@sveltejs/kit';
 
 import type { RequestHandler } from './$types';
 
-export const prerender = true;
+// Do not prerender raw-markdown endpoints; they are runtime resources.
+export const prerender = false;
 
 export const GET: RequestHandler = async () => {
 	const raw = await getRawContent('');

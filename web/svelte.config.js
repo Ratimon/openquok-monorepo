@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 
 import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
+import { adapterVercelWithoutPrerenderDeps } from './adapter-vercel-static-docs.mjs';
 
 /**
  * Adapter selection (build-time):
@@ -18,7 +19,7 @@ import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
  */
 function resolveAdapter() {
 	if (process.env.VERCEL) {
-		return adapterVercel();
+		return adapterVercelWithoutPrerenderDeps(() => adapterVercel());
 	}
 	if (process.env.OPENQUOK_ADAPTER === 'node' || process.env.DOCKER === '1') {
 		// Leave compression to a reverse proxy when present; avoids double work in containers.

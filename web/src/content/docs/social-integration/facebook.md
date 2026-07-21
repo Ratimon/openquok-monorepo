@@ -76,24 +76,24 @@ Shared with <a href="/docs/social-integration/instagram#meta-app-setup-summary">
 
 Create an app in <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink>.
 
-![Step 1 - Create a Meta app](/docs/social-integration/meta/create-meta-app.webp)
+![Step 1 - Create a Meta app](/docs/_assets/social-integration/meta/create-meta-app.webp)
 
 ### Select use case
 
 Select **Other**.
 
-![Step 2 - Select Other Type](/docs/social-integration/meta/select-other-usecases.webp)
+![Step 2 - Select Other Type](/docs/_assets/social-integration/meta/select-other-usecases.webp)
 
 ### Select app type
 
 Select **Business**.
 
-![Step 3 - Select Business type](/docs/social-integration/meta/select-business-type.webp)
+![Step 3 - Select Business type](/docs/_assets/social-integration/meta/select-business-type.webp)
 
 
 ### Finish creating the app
 
-![Step 4 - Finish Creating Meta App](/docs/social-integration/meta/finish-creating-meta-app.webp)
+![Step 4 - Finish Creating Meta App](/docs/_assets/social-integration/meta/finish-creating-meta-app.webp)
 
 <Callout type="warning" title="Business verification needed">
 If you are deploying a public app, business verification may be required and you may need to link your app with Meta’s business portfolio.
@@ -111,14 +111,14 @@ When you manage one or more Facebook Pages, connect through **Facebook Login for
 
 In the app dashboard, select **Facebook Login for Business**.
 
-![Step 1 - Add Facebook Login for Business](/docs/social-integration/meta/set-business-login.webp)
+![Step 1 - Add Facebook Login for Business](/docs/_assets/social-integration/meta/set-business-login.webp)
 
 
 ### Set redirect URI
 
 Add the **Facebook Page** redirect URI from the <a class="not-prose font-medium text-primary underline decoration-primary/50 underline-offset-[3px] transition-colors hover:text-primary hover:decoration-primary" href="/docs/social-integration/facebook#oauth-redirect-uris-register-in-meta">OAuth redirect URIs (register in Meta)</a> section to your app’s valid OAuth redirect list.
 
-![Step 2 - Redirect URI](/docs/social-integration/meta/add-redirect-urls.webp)
+![Step 2 - Redirect URI](/docs/_assets/social-integration/meta/add-redirect-urls.webp)
 
 
 ### Request permissions
@@ -134,7 +134,7 @@ In the Meta developer app, open the permissions area where you can request **adv
 <li><Badge text="read_insights" variant="default" /></li>
 </ul>
 
-![Step 3 - Set permissions](/docs/social-integration/meta/set-permissions.webp)
+![Step 3 - Set permissions](/docs/_assets/social-integration/meta/set-permissions.webp)
 
 <Callout type="note">
 Meta reorganizes this screen from time to time. If a scope name differs slightly in the UI, align with <DocsExternalLink href="https://developers.facebook.com/docs/pages-api">Meta Pages API documentation</DocsExternalLink> and keep the list in sync with <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/facebook/facebookProvider.ts"><Badge text="backend/integrations/providers/facebook/facebookProvider.ts" variant="path" /></DocsExternalLink> for the canonical set in this repo.
@@ -154,7 +154,7 @@ Switch **App Mode** from Development to **Live** when you publish for users outs
 
 In the Meta app **Settings** area, copy **App ID** → <Badge text="FACEBOOK_APP_ID" variant="envBackend" />, and **App Secret** → <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" /> to your env file.
 
-![Step 4 - Copy your credentials](/docs/social-integration/meta/copy-app-credetials.webp)
+![Step 4 - Copy your credentials](/docs/_assets/social-integration/meta/copy-app-credetials.webp)
 
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 

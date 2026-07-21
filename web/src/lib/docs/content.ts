@@ -269,6 +269,18 @@ export function getDocsByDirectory(directory: string, locale?: string): DocPage[
 	);
 }
 
+/**
+ * Slugs safe to prerender when other docs live under the same path prefix.
+ * A prerendered section index (`getting-started-for-dev`) becomes a file and blocks
+ * child slugs (`getting-started-for-dev/installation`) — same constraint as `/docs` landing routes.
+ */
+export function docSlugsSafeForPrerender(slugs: Iterable<string>): string[] {
+	const all = [...slugs];
+	return all.filter(
+		(slug) => !all.some((other) => other !== slug && other.startsWith(`${slug}/`))
+	);
+}
+
 /** All published doc pages per locale (for sitemaps, RSS, llms.txt). Await `preloadAllDocLocales()` first unless each caller already did. */
 export async function eachLocaleDocPages(): Promise<
 	{

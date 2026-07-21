@@ -1,7 +1,8 @@
 import { getDoc, getPrevNext, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
 import { error } from '@sveltejs/kit';
 
-export const prerender = true;
+// SSR only: a prerendered `/docs` page becomes a file and blocks `/docs/<slug>` children.
+export const prerender = false;
 
 export async function load() {
 	await preloadDocsRegistry(undefined);
