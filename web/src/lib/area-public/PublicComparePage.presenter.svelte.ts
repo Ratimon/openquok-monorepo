@@ -19,6 +19,7 @@ import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricin
 import { route, url } from '$lib/utils/path';
 
 import { getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
+import { buildCompareHubMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type CompareFeatureCellViewModel = CompareFeatureCell;
 
@@ -193,7 +194,7 @@ function buildCompareHubSeoCopy(
 
 	if (isOpenQuokHub) {
 		return {
-			metaTitle: `${baseProduct.name} vs. the rest`,
+			metaTitle: buildCompareHubMetaTitle(baseProduct.name, true),
 			metaDescription:
 				'Compare the top social media scheduling tools side by side — pricing, channels, workspaces, and agent integrations. See why teams are switching to OpenQuok.',
 			eyebrow: 'Compare',
@@ -204,7 +205,7 @@ function buildCompareHubSeoCopy(
 	}
 
 	return {
-		metaTitle: `Best ${baseProduct.name} Alternatives`,
+		metaTitle: buildCompareHubMetaTitle(baseProduct.name, false),
 		metaDescription: `Discover the best alternatives to ${baseProduct.name} for social media scheduling, agent workflows, and multi-workspace publishing. Compare top tools side by side on pricing, channels, and features.`,
 		eyebrow: 'Alternatives',
 		title: `Best ${baseProduct.name} alternatives`,

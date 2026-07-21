@@ -3,6 +3,7 @@ import type { ComparePair, CompareProduct, PublicFaqItemId } from '$lib/content/
 
 import { COMPARE_HUB_BASE_SLUG } from '$lib/content/constants/competitors/shared';
 import { COMPARE_TALKING_POINT_ORDER } from '$lib/content/constants/competitors/shared';
+import { buildComparePairMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 const DEFAULT_COMPARE_FAQ_ITEM_IDS: PublicFaqItemId[] = [
 	'switch-from-buffer-hootsuite',
@@ -14,7 +15,7 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 	return {
 		productASlug: left.slug,
 		productBSlug: right.slug,
-		metaTitle: buildCompareMetaTitle(left, right),
+		metaTitle: buildComparePairMetaTitle(left, right),
 		metaDescription: buildCompareMetaDescription(left, right),
 		keywords: buildCompareKeywords(left, right),
 		heroTitle: `${left.name} vs ${right.name}: Compare Side by Side`,
@@ -22,16 +23,6 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 		withWithoutSection: buildWithWithoutSection(left, right),
 		faqItemIds: DEFAULT_COMPARE_FAQ_ITEM_IDS
 	};
-}
-
-function buildCompareMetaTitle(left: CompareProduct, right: CompareProduct): string {
-	if (left.slug === COMPARE_HUB_BASE_SLUG) {
-		return `${left.name} vs ${right.name} — Social Media Scheduler Comparison`;
-	}
-	if (right.slug === COMPARE_HUB_BASE_SLUG) {
-		return `Best ${left.name} Alternative: ${right.name} vs ${left.name} Comparison`;
-	}
-	return `${left.name} vs ${right.name} — Social Media Scheduler Comparison`;
 }
 
 function buildCompareMetaDescription(left: CompareProduct, right: CompareProduct): string {

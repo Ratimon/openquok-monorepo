@@ -33,6 +33,39 @@ const EXCLUDED_PATTERNS = {
 
 const EXCLUDED_PATHS = ['sitemap.xml', 'robots.txt', 'api', 'favicon.ico'];
 
+/** Keep in sync with backend/middlewares/generateSitemap.ts (MANIFEST_NON_INDEXABLE_*). */
+const COMPARE_HUB_BASE_SLUG = 'openquok';
+
+const MANIFEST_NON_INDEXABLE_EXACT = new Set([
+	'/p',
+	'/docs/markdown',
+	'/llms.txt',
+	'/llms-full.txt',
+	'/rss.xml'
+]);
+
+const MANIFEST_NON_INDEXABLE_PREFIXES = ['/oauth', '/integration', '/join-org', '/cli'];
+
+const PUBLIC_TOOL_CHANNEL_PATHS = ['/tools/photo-editor', '/tools/skill-builder'];
+
+const LISTING_HUB_PREFIXES = ['/playbooks', '/building-blocks'];
+
+const CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
+
+const COMPARE_PRODUCT_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],/;
+
+function isIndexableManifestPath(routePath) {
+	if (MANIFEST_NON_INDEXABLE_EXACT.has(routePath)) return false;
+
+	for (const prefix of MANIFEST_NON_INDEXABLE_PREFIXES) {
+		if (routePath === prefix || routePath.startsWith(`${prefix}/`)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 function scanRoutes(dirPath, previousFolder = '') {
 	const routes = [];
 
@@ -140,6 +173,86 @@ function extractPublicCatalogSlugs(constantsDir = WEB_CONSTANTS_DIR) {
 	};
 }
 
+function extractAllChannelSlugs(constantsDir = WEB_CONSTANTS_DIR) {
+	const channelFiles = readCatalogDirFiles(path.join(constantsDir, 'channels'));
+	const slugs = [];
+
+	for (const content of channelFiles) {
+		for (const match of content.matchAll(CHANNEL_SLUG_REGEX)) {
+			if (match[1]) slugs.push(match[1]);
+		}
+	}
+
+	return [...new Set(slugs)];
+}
+
+function extractCompareProductSlugs(constantsDir = WEB_CONSTANTS_DIR) {
+	const competitorFiles = readCatalogDirFiles(path.join(constantsDir, 'competitors'));
+	const slugs = [];
+
+	for (const content of competitorFiles) {
+		const match = content.match(COMPARE_PRODUCT_SLUG_REGEX);
+		if (match?.[1]) slugs.push(match[1]);
+	}
+
+	return [...new Set(slugs)];
+}
+
+function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
+	const catalog = extractPublicCatalogSlugs(constantsDir);
+	const compareSlugs = extractCompareProductSlugs(constantsDir);
+	const allChannels = extractAllChannelSlugs(constantsDir);
+	const routes = [];
+
+	for (const productA of compareSlugs) {
+		for (const productB of compareSlugs) {
+			if (productA !== productB) {
+				routes.push({
+					path: `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`,
+					priority: 0.75,
+					changeFreq: 'monthly',
+					type: 'programmatic-compare'
+				});
+			}
+		}
+	}
+
+	for (const slug of compareSlugs) {
+		if (slug !== COMPARE_HUB_BASE_SLUG) {
+			routes.push({
+				path: `/alternatives/${encodeURIComponent(slug)}`,
+				priority: 0.75,
+				changeFreq: 'monthly',
+				type: 'programmatic-alternatives'
+			});
+		}
+	}
+
+	for (const agentSlug of catalog.agents) {
+		for (const channelSlug of allChannels) {
+			routes.push({
+				path: `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`,
+				priority: 0.7,
+				changeFreq: 'monthly',
+				type: 'programmatic-agent-channel'
+			});
+		}
+	}
+
+	for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
+		for (const channelSlug of catalog.channels) {
+			routes.push({
+				path: `${toolPrefix}/${encodeURIComponent(channelSlug)}`,
+				priority: 0.7,
+				changeFreq: 'monthly',
+				type: 'programmatic-tool-channel'
+			});
+		}
+	}
+
+	return routes;
+}
+
 function publicCatalogSlugsToRoutes(catalog) {
 	const routes = [];
 
@@ -173,9 +286,11 @@ function generateManifest() {
 		process.exit(1);
 	}
 
-	const routes = scanRoutes(ROUTES_DIR);
+	const routes = scanRoutes(ROUTES_DIR)
+		.filter((route) => isIndexableManifestPath(route.path));
 	const catalogRoutes = publicCatalogSlugsToRoutes(extractPublicCatalogSlugs());
-	routes.push(...catalogRoutes);
+	const programmaticRoutes = buildProgrammaticRoutes();
+	routes.push(...catalogRoutes, ...programmaticRoutes);
 
 	const manifest = {
 		generated: new Date().toISOString(),
@@ -196,7 +311,7 @@ function generateManifest() {
 	fs.writeFileSync(OUTPUT_FILE, JSON.stringify(manifest, null, 2));
 
 	console.log(`Routes manifest written: ${OUTPUT_FILE}`);
-	console.log(`   Routes found: ${routes.length} (${catalogRoutes.length} from public catalog)`);
+	console.log(`   Routes found: ${routes.length} (${catalogRoutes.length} catalog + ${programmaticRoutes.length} programmatic)`);
 	if (routes.length > 0) {
 		console.log('\nSample routes:');
 		routes.slice(0, 8).forEach((route) => console.log(`   - ${route.path}`));
@@ -207,6 +322,9 @@ function generateManifest() {
 	if (catalogRoutes.length > 0) {
 		console.log('\nPublic catalog routes:');
 		catalogRoutes.forEach((route) => console.log(`   - ${route.path}`));
+	}
+	if (programmaticRoutes.length > 0) {
+		console.log(`\nProgrammatic SEO routes: ${programmaticRoutes.length} (compare, alternatives, agent×channel, tool×channel)`);
 	}
 }
 

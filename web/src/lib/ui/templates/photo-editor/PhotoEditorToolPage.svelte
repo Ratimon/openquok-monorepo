@@ -99,7 +99,7 @@
 		return `${signInHrefBase}?redirectURL=${encodeURIComponent(redirectTarget)}`;
 	});
 
-	const pageHeading = $derived(channelLabel?.trim() ? `${channelLabel.trim()} Photo Editor` : metaTitle);
+	const pageHeading = $derived(metaTitle);
 	const mediaLibraryHref = absoluteUrl(getRootPathMedia());
 
 	let accentBannerTitle = $derived(

@@ -4,6 +4,7 @@ import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publi
 
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
+import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 /** Merge a base MCP client VM with channel-specific SEO copy and showcases. */
 export function buildMcpChannelLandingVm(params: {
@@ -24,7 +25,7 @@ export function buildMcpChannelLandingVm(params: {
 		...baseMcp,
 		heroSecondaryIcon: channel.icon,
 		...audienceSection,
-		metaTitle: `${platformLabel} scheduling with ${clientLabel} MCP`,
+		metaTitle: buildMcpChannelMetaTitle(platformLabel, clientLabel),
 		metaDescription: `Connect ${clientLabel} to OpenQuok MCP to draft and schedule ${platformLabel} posts from your editor or terminal. Queue drafts and approve every publish on the calendar or kanban.`,
 		keywords: [
 			`${clientLabel} ${platformLabel} MCP`,

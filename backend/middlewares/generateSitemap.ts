@@ -41,12 +41,33 @@ const CUSTOM_CHANGEFREQ: Record<string, string> = {
 
 const MANIFEST_EXCLUDED = new Set(["sitemap.xml", "robots.txt", "api", "favicon.ico"]);
 
+/** Keep in sync with scripts/generate-routes-manifest.mjs (MANIFEST_NON_INDEXABLE_*). */
+const COMPARE_HUB_BASE_SLUG = "openquok";
+
+const MANIFEST_NON_INDEXABLE_EXACT = new Set([
+    "/p",
+    "/docs/markdown",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/rss.xml",
+]);
+
+const MANIFEST_NON_INDEXABLE_PREFIXES = ["/oauth", "/integration", "/join-org", "/cli"];
+
+const PUBLIC_TOOL_CHANNEL_PATHS = ["/tools/photo-editor", "/tools/skill-builder"] as const;
+
+const LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"] as const;
+
 /** Keep parsing logic in sync with scripts/generate-routes-manifest.mjs. */
 const AGENT_HOST_PAGE_REGEX =
     /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 
 const CHANNEL_PAGE_REGEX =
     /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+
+const CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
+
+const COMPARE_PRODUCT_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],/;
 
 interface PublicCatalogSlugs {
     agents: string[];
@@ -156,6 +177,93 @@ function publicCatalogSlugsToSitemapPaths(catalog: PublicCatalogSlugs): {
         agents: catalog.agents.map((slug) => `/agents/${encodeURIComponent(slug)}`),
         channels: catalog.channels.map((slug) => `/channels/${encodeURIComponent(slug)}`),
     };
+}
+
+function isIndexableManifestPath(url: string): boolean {
+    if (MANIFEST_NON_INDEXABLE_EXACT.has(url)) return false;
+
+    for (const prefix of MANIFEST_NON_INDEXABLE_PREFIXES) {
+        if (url === prefix || url.startsWith(`${prefix}/`)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function extractAllChannelSlugs(constantsDir: string): string[] {
+    const channelFiles = readCatalogDirFiles(path.join(constantsDir, "channels"));
+    const slugs: string[] = [];
+
+    for (const content of channelFiles) {
+        for (const match of content.matchAll(CHANNEL_SLUG_REGEX)) {
+            if (match[1]) slugs.push(match[1]);
+        }
+    }
+
+    return [...new Set(slugs)];
+}
+
+function extractCompareProductSlugs(constantsDir: string): string[] {
+    const competitorFiles = readCatalogDirFiles(path.join(constantsDir, "competitors"));
+    const slugs: string[] = [];
+
+    for (const content of competitorFiles) {
+        const match = content.match(COMPARE_PRODUCT_SLUG_REGEX);
+        if (match?.[1]) slugs.push(match[1]);
+    }
+
+    return [...new Set(slugs)];
+}
+
+function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
+    const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
+    const compareSlugs = extractCompareProductSlugs(constantsDir);
+    const allChannels = extractAllChannelSlugs(constantsDir);
+    const paths: string[] = [];
+
+    for (const productA of compareSlugs) {
+        for (const productB of compareSlugs) {
+            if (productA !== productB) {
+                paths.push(
+                    `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`,
+                );
+            }
+        }
+    }
+
+    for (const slug of compareSlugs) {
+        if (slug !== COMPARE_HUB_BASE_SLUG) {
+            paths.push(`/alternatives/${encodeURIComponent(slug)}`);
+        }
+    }
+
+    for (const agentSlug of catalog.agents) {
+        for (const channelSlug of allChannels) {
+            paths.push(
+                `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`,
+            );
+        }
+    }
+
+    for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
+        for (const channelSlug of catalog.channels) {
+            paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
+        }
+    }
+
+    return paths;
+}
+
+function pushSitemapPaths(
+    urls: SitemapUrl[],
+    paths: string[],
+    changeFreq: string,
+    lastMod: string,
+): void {
+    for (const urlPath of paths) {
+        urls.push({ url: urlPath, lastMod, changeFreq });
+    }
 }
 
 function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[] {
@@ -362,6 +470,63 @@ async function fetchListingCreatorUsernames(supabase: SupabaseClient): Promise<s
     return usernames;
 }
 
+async function fetchActiveListingCategorySlugs(supabase: SupabaseClient): Promise<string[]> {
+    const { data, error } = await supabase.rpc("get_active_listing_categories");
+
+    if (error) {
+        logger.error({
+            msg: "Error fetching listing categories for sitemap",
+            error: error.message,
+            code: error.code,
+        });
+        return [];
+    }
+
+    const slugs: string[] = [];
+    for (const row of (data ?? []) as Array<{ slug: string | null }>) {
+        const slug = row.slug?.trim();
+        if (slug) slugs.push(slug);
+    }
+
+    return slugs;
+}
+
+async function fetchActiveListingTagSlugs(supabase: SupabaseClient): Promise<string[]> {
+    const { data, error } = await supabase.rpc("get_active_listing_tags");
+
+    if (error) {
+        logger.error({
+            msg: "Error fetching listing tags for sitemap",
+            error: error.message,
+            code: error.code,
+        });
+        return [];
+    }
+
+    const slugs: string[] = [];
+    for (const row of (data ?? []) as Array<{ slug: string | null }>) {
+        const slug = row.slug?.trim();
+        if (slug) slugs.push(slug);
+    }
+
+    return slugs;
+}
+
+function listingHubPathsFromSlugs(categorySlugs: string[], tagSlugs: string[]): string[] {
+    const paths: string[] = [];
+
+    for (const hubPrefix of LISTING_HUB_PREFIXES) {
+        for (const slug of categorySlugs) {
+            paths.push(`${hubPrefix}/categories/${encodeURIComponent(slug)}`);
+        }
+        for (const slug of tagSlugs) {
+            paths.push(`${hubPrefix}/tags/${encodeURIComponent(slug)}`);
+        }
+    }
+
+    return paths;
+}
+
 async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<SitemapUrl[]> {
     const { supabaseClient, routesPath, routesManifestPath } = options;
     const urls: SitemapUrl[] = [];
@@ -374,7 +539,10 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
 
     if (routesManifestPath && fs.existsSync(routesManifestPath)) {
         logger.info({ msg: "Using routes manifest for static pages", path: routesManifestPath });
-        urls.push(...loadRoutesFromManifest(routesManifestPath));
+        const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter((entry) =>
+            isIndexableManifestPath(entry.url),
+        );
+        urls.push(...manifestUrls);
     } else if (routesPath && fs.existsSync(routesPath)) {
         logger.info({ msg: "Scanning file system for routes", path: routesPath });
         try {
@@ -483,6 +651,17 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 agentCount: agents.length,
                 channelCount: channels.length,
             });
+
+            const constantsDir = resolveWebConstantsDir(routesPath);
+            if (constantsDir) {
+                const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
+                const today = new Date().toISOString().slice(0, 10);
+                pushSitemapPaths(urls, programmaticPaths, "monthly", today);
+                logger.info({
+                    msg: "Added programmatic SEO URLs to sitemap",
+                    count: programmaticPaths.length,
+                });
+            }
         } else {
             logger.warn({ msg: "Public catalog config not found for sitemap", routesPath });
         }
@@ -539,6 +718,27 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
     } catch (error) {
         logger.error({
             msg: "Error processing listing catalog for sitemap",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
+    try {
+        const [categorySlugs, tagSlugs] = await Promise.all([
+            fetchActiveListingCategorySlugs(supabaseClient),
+            fetchActiveListingTagSlugs(supabaseClient),
+        ]);
+        const hubPaths = listingHubPathsFromSlugs(categorySlugs, tagSlugs);
+        const today = new Date().toISOString().slice(0, 10);
+        pushSitemapPaths(urls, hubPaths, "weekly", today);
+        logger.info({
+            msg: "Added listing hub filter URLs to sitemap",
+            categoryCount: categorySlugs.length,
+            tagCount: tagSlugs.length,
+            urlCount: hubPaths.length,
+        });
+    } catch (error) {
+        logger.error({
+            msg: "Error processing listing hub filters for sitemap",
             error: error instanceof Error ? error.message : String(error),
         });
     }

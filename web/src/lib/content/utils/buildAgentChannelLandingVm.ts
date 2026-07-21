@@ -4,6 +4,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/p
 
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
+import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 /** Merge a base agent host VM with channel-specific SEO copy and showcases. */
 export function buildAgentChannelLandingVm(params: {
@@ -24,7 +25,7 @@ export function buildAgentChannelLandingVm(params: {
 		...baseAgent,
 		heroSecondaryIcon: channel.icon,
 		...audienceSection,
-		metaTitle: `${platformLabel} scheduling with ${agentLabel}`,
+		metaTitle: buildAgentChannelMetaTitle(platformLabel, agentLabel),
 		metaDescription: channelConfig.metaDescription.replace('OpenClaw', agentLabel),
 		keywords: [
 			...channelConfig.keywords.map((keyword) =>

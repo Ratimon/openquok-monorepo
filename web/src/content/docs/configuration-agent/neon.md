@@ -1,6 +1,6 @@
 ---
 title: Neon Postgres
-description: Create a Neon Postgres project and wire its connection string into the Openquok CLI auth server (agent/server) DATABASE_URL.
+description: Create a Neon Postgres project and wire its connection string into the Openquok CLI auth server.
 order: 2
 lastUpdated: 2026-05-09
 ---

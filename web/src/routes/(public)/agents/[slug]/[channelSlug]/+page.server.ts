@@ -93,10 +93,10 @@ export async function load({ url, params, cookies, parent, fetch }) {
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
 	const customTitle = isChannelComingSoon
-		? `${channelConfig.platformLabel} with ${landingVm.agentLabel} — Coming soon | ${companyName}`
+		? `${landingVm.metaTitle} — Coming Soon | ${companyName}`
 		: `${landingVm.metaTitle} | ${companyName}`;
 	const customDescription = isChannelComingSoon
-		? `${channelConfig.platformLabel} scheduling with ${landingVm.agentLabel} is coming soon. ${landingVm.metaDescription}`
+		? `${landingVm.metaTitle} is coming soon. ${landingVm.metaDescription}`
 		: landingVm.metaDescription;
 
 	const metaTags = (await createMetaData({

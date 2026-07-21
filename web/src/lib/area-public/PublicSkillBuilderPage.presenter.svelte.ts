@@ -57,7 +57,7 @@ export class PublicSkillBuilderPagePresenter {
 
 		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, buildingBlockTitlesBySlug);
 
-		const defaultMetaTitle = 'Skill Builder';
+		const defaultMetaTitle = 'Social Media Skill Builder';
 		const defaultMetaDescription =
 			'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.';
 

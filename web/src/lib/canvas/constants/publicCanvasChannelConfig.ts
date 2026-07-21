@@ -12,6 +12,7 @@ import {
 	defaultAspectRatioIdForComposer
 } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 import { route } from '$lib/utils/path';
+import { buildPhotoEditorChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type CanvasChannelPageConfig = {
 	/** URL segment under `/tools/photo-editor/` — matches `publicChannelConfig.slug`. */
@@ -29,7 +30,7 @@ export type CanvasChannelPageConfig = {
 };
 
 export const PUBLIC_CANVAS_GENERIC_CONFIG = {
-	metaTitle: 'Photo Editor',
+	metaTitle: 'Social Media Photo Editor',
 	metaDescription:
 		'Free design editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
 	defaultAspectRatioId: DEFAULT_ASPECT_RATIO_ID,
@@ -67,7 +68,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Can
 		focusedProviderIdentifier,
 		defaultAspectRatioId,
 		aspectPlatformGroupId,
-		metaTitle: `${channel.platformLabel} Photo Editor`,
+		metaTitle: buildPhotoEditorChannelMetaTitle(channel.platformLabel),
 		metaDescription: `Design and resize visuals for ${channel.platformLabel} — feed posts, stories, and channel formats. Edit in the browser, download PNG, or save to your cloud when signed in.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??

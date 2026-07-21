@@ -68,7 +68,7 @@ export class PublicAlternativesPagePresenter {
 		const entries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
 
 		return {
-			metaTitle: 'Best Alternatives to Popular Social Media Schedulers',
+			metaTitle: 'Best Social Media Scheduler Alternatives',
 			metaDescription:
 				'Compare the top social media management tools and discover why teams are switching to OpenQuok for scheduling, agent workflows, multi-workspace publishing, and analytics.',
 			eyebrow: 'Alternatives',

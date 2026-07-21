@@ -7,6 +7,7 @@ import {
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { route } from '$lib/utils/path';
+import { buildSkillBuilderChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	FACEBOOK_FOLLOW_UP_COMMENT_PAYLOAD,
 	FACEBOOK_LINK_PREVIEW_PAYLOAD,
@@ -223,7 +224,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 		providerIdentifiers,
 		platformLabel: channel.platformLabel,
 		icon: channel.icon,
-		metaTitle: `${channel.platformLabel} Skill Builder`,
+		metaTitle: buildSkillBuilderChannelMetaTitle(channel.platformLabel),
 		metaDescription: `Build a ${channel.platformLabel} scheduling skill with pre-loaded openquok CLI examples. Compose posts:create recipes, preview SKILL.md, and export for your agent workspace.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
