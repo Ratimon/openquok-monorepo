@@ -2,7 +2,7 @@
 title: Railway (workers)
 description: Deploy BullMQ workers as always-on Railway services—build/start scripts, CLI deploy, and stopping a worker safely.
 order: 2
-lastUpdated: 2026-05-11
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -36,8 +36,8 @@ pnpm railway:orchestrator:start:notification-email
 pnpm railway:orchestrator:start:scheduled-social-post
 ```
 
-<Callout type="note" title="Railway build vs start">
-Repo-root <Badge text="railway.toml" variant="path" /> sets a shared build command for Railway. The start command is set per Railway service (one persistent service per worker process).
+<Callout type="note">
+Repo-root <Badge text="railway.toml" variant="path" /> sets build, health check, region (<code>us-west2</code>), and limits for integration-refresh / notification-email (<code>1</code> vCPU, <code>1</code> GiB). Scheduled social post uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — point that service’s Railway Config File at <code>/railway.scheduled-social-post.toml</code>.
 </Callout>
 
 ## Stopping a worker service (Railway CLI)

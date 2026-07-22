@@ -8,11 +8,19 @@ const redisHost = process.env.REDIS_HOST || "";
 const redisPort = Number(process.env.REDIS_PORT || 6379);
 const redisPassword = process.env.REDIS_PASSWORD || "";
 const redisDb = Number(process.env.REDIS_DB || 0);
+const redisTls = process.env.REDIS_TLS === "true";
+const redisTlsRejectUnauthorized = process.env.REDIS_TLS_REJECT_UNAUTHORIZED !== "false";
 
 const enableRedisTests = (process.env.THIRD_PARTY_TESTS_REDIS ?? "").toLowerCase() === "true";
 const hasRedisConfig = enableRedisTests && !!redisHost && redisHost !== "localhost";
 
 const describeIfRedis = hasRedisConfig ? describe : describe.skip;
+
+function redisSocketOpts(): { host: string; port: number; tls?: true; rejectUnauthorized?: boolean } {
+    const base = { host: redisHost, port: redisPort };
+    if (!redisTls) return base;
+    return { ...base, tls: true, rejectUnauthorized: redisTlsRejectUnauthorized };
+}
 
 const r2AccountId = process.env.STORAGE_R2_ACCOUNT_ID || "";
 const r2AccessKeyId = process.env.STORAGE_R2_ACCESS_KEY_ID || "";
@@ -29,7 +37,7 @@ const describeIfR2 = hasR2Config ? describe : describe.skip;
 // ---------------------------------------------------------------------------
 describeIfRedis("Third-party: Redis Cloud (production)", () => {
     const clientOpts = {
-        socket: { host: redisHost, port: redisPort },
+        socket: redisSocketOpts(),
         password: redisPassword || undefined,
         database: redisDb,
     };
@@ -58,6 +66,8 @@ describeIfRedis("Third-party: Redis Cloud (production)", () => {
                 password: redisPassword,
                 db: redisDb,
                 prefix: TEST_PREFIX,
+                tls: redisTls,
+                tlsRejectUnauthorized: redisTlsRejectUnauthorized,
             });
             await provider.connect();
         });

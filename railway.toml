@@ -1,5 +1,11 @@
-# Shared build for orchestrator worker services (same monorepo, same image build).
-# Build (all workers): `pnpm railway:orchestrator:build` (see [build] below).
+# Shared build / deploy defaults for lighter BullMQ workers:
+#   - openquok-worker-integration-refresh
+#   - openquok-worker-notification-email
+#
+# scheduled-social-post uses a separate config (more memory for media publish):
+#   railway.scheduled-social-post.toml
+# Set that path under Railway → service Settings → Config-as-code / Railway Config File
+# (absolute path from repo root: /railway.scheduled-social-post.toml).
 #
 # Worker ↔ Railpack file ↔ start command (container process):
 #   Integration refresh (BullMQ):  railpack.integration-refresh.json
@@ -10,15 +16,20 @@
 #                                  → `pnpm railway:orchestrator:start:scheduled-social-post`
 #
 # Local CLI: link the Railway CLI to the service you are deploying, then:
-#   pnpm railway:deploy:integration-refresh      # sets RAILPACK_CONFIG_FILE=railpack.integration-refresh.json
-#   pnpm railway:deploy:notification-email       # sets RAILPACK_CONFIG_FILE=railpack.notification-email.json
-#   pnpm railway:deploy:scheduled-social-post    # sets RAILPACK_CONFIG_FILE=railpack.scheduled-social-post.json
+#   pnpm railway:deploy:integration-refresh
+#   pnpm railway:deploy:notification-email
+#   pnpm railway:deploy:scheduled-social-post
 #
 # On Railway dashboard (per service), either:
 #   Set variable `RAILPACK_CONFIG_FILE` to the matching railpack.*.json, or
 #   Set Start Command to the matching `pnpm railway:orchestrator:start:…` line.
 #
+# Sizing (this file): 1 replica in us-west2, 1 vCPU, 1 GiB.
+# scheduled-social-post: 1 vCPU, 2 GiB (see railway.scheduled-social-post.toml).
+# Region id must be exactly `us-west2` (not `us-west`).
+#
 # Config-as-code reference: https://docs.railway.com/reference/config-as-code
+# Schema: https://railway.com/railway.schema.json
 
 [build]
 # Backend `tsc` needs a larger heap on constrained builders (Railpack defaults can OOM).
@@ -30,3 +41,12 @@ restartPolicyMaxRetries = 10
 # Workers expose GET /health and GET /health/status on Railway's injected PORT.
 healthcheckPath = "/health"
 healthcheckTimeout = 300
+numReplicas = 1
+
+[deploy.multiRegionConfig.us-west2]
+numReplicas = 1
+
+[deploy.limitOverride.containers]
+cpu = 1
+# 1 GiB (1073741824 bytes)
+memoryBytes = 1073741824

@@ -2,7 +2,7 @@
 title: Production - Railway
 description: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI.
 order: 3
-lastUpdated: 2026-05-15
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -31,7 +31,7 @@ Railway treats these as <DocsExternalLink href="https://docs.railway.com/service
 | **Start** — notification email | <Badge text="pnpm railway:orchestrator:start:notification-email" variant="default" /> |
 | **Start** — scheduled social post | <Badge text="pnpm railway:orchestrator:start:scheduled-social-post" variant="default" /> |
 
-The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code> and a restart policy; **start command is not** fixed in that file so **each** Railway **worker** service can use the **same image/build** with a different start line (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
+The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo root with <code>buildCommand</code>, a restart policy, region <code>us-west2</code> (US West / Oregon), and replica limits for the lighter workers (<code>numReplicas = 1</code>, <code>1</code> vCPU, <code>1</code> GiB). <Badge text="scheduled-social-post" variant="default" /> uses <Badge text="railway.scheduled-social-post.toml" variant="path" /> (<code>1</code> vCPU, <code>2</code> GiB) — set that service’s Railway Config File to <code>/railway.scheduled-social-post.toml</code>. **Start command is not** fixed in those files so **each** worker can differ (<DocsExternalLink href="https://docs.railway.com/reference/config-as-code">config as code</DocsExternalLink>).
 
 ## Dashboard setup
 

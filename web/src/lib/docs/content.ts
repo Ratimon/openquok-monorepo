@@ -270,12 +270,16 @@ export function getDocsByDirectory(directory: string, locale?: string): DocPage[
 }
 
 /**
- * Slugs safe to prerender when other docs live under the same path prefix.
- * A prerendered section index (`getting-started-for-dev`) becomes a file and blocks
- * child slugs (`getting-started-for-dev/installation`) — same constraint as `/docs` landing routes.
+ * Slugs safe to emit as static prerender entries when other docs live under the same prefix.
+ *
+ * A prerendered section index (`getting-started-for-dev`) is written as a *file*, which blocks
+ * child paths (`getting-started-for-dev/quick-start`) during prerender (see Kit route conflicts).
+ * Keep indexes out of `entries()` and use `prerender = 'auto'` on the catch-all so those hubs
+ * still render via SSR. (`/docs` and `/docs/<lang>` landings stay `prerender = false` for the
+ * same static-route vs catch-all reason.)
  */
 export function docSlugsSafeForPrerender(slugs: Iterable<string>): string[] {
-	const all = [...slugs];
+	const all = [...slugs].filter((slug): slug is string => Boolean(slug));
 	return all.filter(
 		(slug) => !all.some((other) => other !== slug && other.startsWith(`${slug}/`))
 	);

@@ -31724,8 +31724,21 @@ var CUSTOM_CHANGEFREQ = {
   "/blog": "daily"
 };
 var MANIFEST_EXCLUDED = /* @__PURE__ */ new Set(["sitemap.xml", "robots.txt", "api", "favicon.ico"]);
+var COMPARE_HUB_BASE_SLUG = "openquok";
+var MANIFEST_NON_INDEXABLE_EXACT = /* @__PURE__ */ new Set([
+  "/p",
+  "/docs/markdown",
+  "/llms.txt",
+  "/llms-full.txt",
+  "/rss.xml"
+]);
+var MANIFEST_NON_INDEXABLE_PREFIXES = ["/oauth", "/integration", "/join-org", "/cli"];
+var PUBLIC_TOOL_CHANNEL_PATHS = ["/tools/photo-editor", "/tools/skill-builder"];
+var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
+var CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
+var COMPARE_PRODUCT_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],/;
 function readCatalogDirFiles(dirPath) {
   if (!fs2__default.default.existsSync(dirPath)) return [];
   const skip = /* @__PURE__ */ new Set(["index.ts", "types.ts", "shared.ts", "hub.ts", "builders.ts"]);
@@ -31801,6 +31814,72 @@ function publicCatalogSlugsToSitemapPaths(catalog) {
     agents: catalog.agents.map((slug) => `/agents/${encodeURIComponent(slug)}`),
     channels: catalog.channels.map((slug) => `/channels/${encodeURIComponent(slug)}`)
   };
+}
+function isIndexableManifestPath(url) {
+  if (MANIFEST_NON_INDEXABLE_EXACT.has(url)) return false;
+  for (const prefix of MANIFEST_NON_INDEXABLE_PREFIXES) {
+    if (url === prefix || url.startsWith(`${prefix}/`)) {
+      return false;
+    }
+  }
+  return true;
+}
+function extractAllChannelSlugs(constantsDir) {
+  const channelFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "channels"));
+  const slugs = [];
+  for (const content of channelFiles) {
+    for (const match of content.matchAll(CHANNEL_SLUG_REGEX)) {
+      if (match[1]) slugs.push(match[1]);
+    }
+  }
+  return [...new Set(slugs)];
+}
+function extractCompareProductSlugs(constantsDir) {
+  const competitorFiles = readCatalogDirFiles(path3__default.default.join(constantsDir, "competitors"));
+  const slugs = [];
+  for (const content of competitorFiles) {
+    const match = content.match(COMPARE_PRODUCT_SLUG_REGEX);
+    if (match?.[1]) slugs.push(match[1]);
+  }
+  return [...new Set(slugs)];
+}
+function buildProgrammaticSitemapPaths(constantsDir) {
+  const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
+  const compareSlugs = extractCompareProductSlugs(constantsDir);
+  const allChannels = extractAllChannelSlugs(constantsDir);
+  const paths = [];
+  for (const productA of compareSlugs) {
+    for (const productB of compareSlugs) {
+      if (productA !== productB) {
+        paths.push(
+          `/compare/${encodeURIComponent(productA)}/${encodeURIComponent(productB)}`
+        );
+      }
+    }
+  }
+  for (const slug of compareSlugs) {
+    if (slug !== COMPARE_HUB_BASE_SLUG) {
+      paths.push(`/alternatives/${encodeURIComponent(slug)}`);
+    }
+  }
+  for (const agentSlug of catalog.agents) {
+    for (const channelSlug of allChannels) {
+      paths.push(
+        `/agents/${encodeURIComponent(agentSlug)}/${encodeURIComponent(channelSlug)}`
+      );
+    }
+  }
+  for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
+    for (const channelSlug of catalog.channels) {
+      paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
+    }
+  }
+  return paths;
+}
+function pushSitemapPaths(urls, paths, changeFreq, lastMod) {
+  for (const urlPath of paths) {
+    urls.push({ url: urlPath, lastMod, changeFreq });
+  }
 }
 function readFolderStructure(dirPath, previousFolder = "") {
   const urls = [];
@@ -31949,6 +32028,52 @@ async function fetchListingCreatorUsernames(supabase2) {
   }
   return usernames;
 }
+async function fetchActiveListingCategorySlugs(supabase2) {
+  const { data, error } = await supabase2.rpc("get_active_listing_categories");
+  if (error) {
+    logger.error({
+      msg: "Error fetching listing categories for sitemap",
+      error: error.message,
+      code: error.code
+    });
+    return [];
+  }
+  const slugs = [];
+  for (const row of data ?? []) {
+    const slug = row.slug?.trim();
+    if (slug) slugs.push(slug);
+  }
+  return slugs;
+}
+async function fetchActiveListingTagSlugs(supabase2) {
+  const { data, error } = await supabase2.rpc("get_active_listing_tags");
+  if (error) {
+    logger.error({
+      msg: "Error fetching listing tags for sitemap",
+      error: error.message,
+      code: error.code
+    });
+    return [];
+  }
+  const slugs = [];
+  for (const row of data ?? []) {
+    const slug = row.slug?.trim();
+    if (slug) slugs.push(slug);
+  }
+  return slugs;
+}
+function listingHubPathsFromSlugs(categorySlugs, tagSlugs) {
+  const paths = [];
+  for (const hubPrefix of LISTING_HUB_PREFIXES) {
+    for (const slug of categorySlugs) {
+      paths.push(`${hubPrefix}/categories/${encodeURIComponent(slug)}`);
+    }
+    for (const slug of tagSlugs) {
+      paths.push(`${hubPrefix}/tags/${encodeURIComponent(slug)}`);
+    }
+  }
+  return paths;
+}
 async function generateSitemapUrls(options2) {
   const { supabaseClient, routesPath, routesManifestPath } = options2;
   const urls = [];
@@ -31959,7 +32084,10 @@ async function generateSitemapUrls(options2) {
   });
   if (routesManifestPath && fs2__default.default.existsSync(routesManifestPath)) {
     logger.info({ msg: "Using routes manifest for static pages", path: routesManifestPath });
-    urls.push(...loadRoutesFromManifest(routesManifestPath));
+    const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter(
+      (entry) => isIndexableManifestPath(entry.url)
+    );
+    urls.push(...manifestUrls);
   } else if (routesPath && fs2__default.default.existsSync(routesPath)) {
     logger.info({ msg: "Scanning file system for routes", path: routesPath });
     try {
@@ -32057,6 +32185,16 @@ async function generateSitemapUrls(options2) {
         agentCount: agents.length,
         channelCount: channels.length
       });
+      const constantsDir = resolveWebConstantsDir(routesPath);
+      if (constantsDir) {
+        const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
+        const today2 = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+        pushSitemapPaths(urls, programmaticPaths, "monthly", today2);
+        logger.info({
+          msg: "Added programmatic SEO URLs to sitemap",
+          count: programmaticPaths.length
+        });
+      }
     } else {
       logger.warn({ msg: "Public catalog config not found for sitemap", routesPath });
     }
@@ -32104,6 +32242,26 @@ async function generateSitemapUrls(options2) {
   } catch (error) {
     logger.error({
       msg: "Error processing listing catalog for sitemap",
+      error: error instanceof Error ? error.message : String(error)
+    });
+  }
+  try {
+    const [categorySlugs, tagSlugs] = await Promise.all([
+      fetchActiveListingCategorySlugs(supabaseClient),
+      fetchActiveListingTagSlugs(supabaseClient)
+    ]);
+    const hubPaths = listingHubPathsFromSlugs(categorySlugs, tagSlugs);
+    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    pushSitemapPaths(urls, hubPaths, "weekly", today);
+    logger.info({
+      msg: "Added listing hub filter URLs to sitemap",
+      categoryCount: categorySlugs.length,
+      tagCount: tagSlugs.length,
+      urlCount: hubPaths.length
+    });
+  } catch (error) {
+    logger.error({
+      msg: "Error processing listing hub filters for sitemap",
       error: error instanceof Error ? error.message : String(error)
     });
   }

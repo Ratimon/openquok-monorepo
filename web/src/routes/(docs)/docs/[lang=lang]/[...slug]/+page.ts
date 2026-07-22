@@ -10,7 +10,9 @@ import {
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
-export const prerender = true;
+// Leaf pages are prerendered via `entries()`. Section indexes are omitted from entries
+// (file vs directory conflict) and must SSR — `true` would 404 those hubs at runtime.
+export const prerender = 'auto';
 
 export async function entries() {
 	const locales = docsConfig.i18n?.locales ?? [];
@@ -21,7 +23,7 @@ export async function entries() {
 		if (locale.code === defaultLocale) continue;
 		await preloadDocsRegistry(locale.code);
 		const docs = getAllDocs(locale.code);
-		const slugs = docs.map((doc) => doc.slug).filter((slug): slug is string => Boolean(slug));
+		const slugs = docs.map((doc) => doc.slug);
 		for (const slug of docSlugsSafeForPrerender(slugs)) {
 			results.push({ lang: locale.code, slug });
 		}

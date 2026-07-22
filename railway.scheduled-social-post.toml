@@ -1,0 +1,24 @@
+# Config-as-code for openquok-worker-scheduled-social-post only.
+# In Railway → that service → Settings → set Railway Config File to:
+#   /railway.scheduled-social-post.toml
+#
+# Same build/health/region as railway.toml; higher memory for media publish workloads.
+# Schema: https://railway.com/railway.schema.json
+
+[build]
+buildCommand = "export NODE_OPTIONS=--max-old-space-size=8192 && pnpm install --prod=false && pnpm railway:orchestrator:build"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+numReplicas = 1
+
+[deploy.multiRegionConfig.us-west2]
+numReplicas = 1
+
+[deploy.limitOverride.containers]
+cpu = 1
+# 2 GiB (2147483648 bytes)
+memoryBytes = 2147483648

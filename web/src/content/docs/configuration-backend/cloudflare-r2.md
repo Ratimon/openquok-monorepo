@@ -72,7 +72,7 @@ STORAGE_R2_ACCOUNT_ID=your_account_id
 STORAGE_R2_ACCESS_KEY_ID=your_r2_access_key_id
 STORAGE_R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
 STORAGE_R2_BUCKET=your_bucket_name
-STORAGE_R2_REGION=APAC
+STORAGE_R2_REGION=WNAM
 ```
 
 Restart the backend after changing these values.
@@ -223,7 +223,7 @@ STORAGE_R2_ACCOUNT_ID=your_account_id
 STORAGE_R2_ACCESS_KEY_ID=your_r2_access_key_id
 STORAGE_R2_SECRET_ACCESS_KEY=your_r2_secret_access_key
 STORAGE_R2_BUCKET=your_bucket_name
-STORAGE_R2_REGION=APAC
+STORAGE_R2_REGION=WNAM
 STORAGE_R2_PUBLIC_BASE_URL=https://media.yourdomain.com
 ```
 
