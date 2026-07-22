@@ -46,11 +46,13 @@ Let AI agents handle volume — drafting and scheduling at scale. You handle qua
 
 <div align="center">
 
-**Terminal** (`openquok` CLI · schedule posts · upload media · flip draft ↔ scheduled)  ·  **Chat** (OpenClaw · Hermes · Claude · agent drafts from conversation)  ·  **Web UI** (calendar · kanban review · analytics · approve before publish)
+**Terminal** (`openquok` CLI · schedule posts · upload media · flip draft ↔ scheduled)  ·  **Chat** (OpenClaw · Hermes · Claude · Cursor)  ·  **Web UI** (calendar · kanban review · analytics · approve before publish)
 
-| <video src="web/static/landing/2-calendar-filters.mp4" title="Calendar & smart filters" controls muted loop playsinline width="100%"></video> | <video src="web/static/landing/3-kanban-filters.mp4" title="Kanban review workflow" controls muted loop playsinline width="100%"></video> |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| <video src="web/static/landing/4-file-manager.mp4" title="File manager" controls muted loop playsinline width="100%"></video> | <video src="web/static/landing/5-analytics.mp4" title="Analytics" controls muted loop playsinline width="100%"></video> |
+| <a href="assets/readme/2-calendar-filters.gif"><img src="assets/readme/2-calendar-filters.gif" alt="Calendar & smart filters" width="440" /></a> | <a href="assets/readme/3-kanban-filters.gif"><img src="assets/readme/3-kanban-filters.gif" alt="Kanban review workflow" width="440" /></a> |
+| :---: | :---: |
+| <a href="assets/readme/4-file-manager.gif"><img src="assets/readme/4-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/5-analytics.gif"><img src="assets/readme/5-analytics.gif" alt="Analytics" width="440" /></a> |
+
+
 
 </div>
 
