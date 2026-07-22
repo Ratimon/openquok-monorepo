@@ -2,7 +2,7 @@
 title: Devin Desktop
 description: Connect OpenQuok MCP to Devin Desktop via ~/.codeium/mcp_config.json.
 order: 5
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -28,7 +28,9 @@ You can edit the file directly or open it from <Badge text="Settings" variant="d
 
 ### Generate your token
 
-Create an <Badge text="opo_…" variant="default" /> token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Edit mcp_config.json
 

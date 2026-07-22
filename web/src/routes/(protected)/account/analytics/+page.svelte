@@ -70,7 +70,7 @@
 	async function handleRemoveChannel(id: string): Promise<boolean> {
 		const resultVm = await protectedHomePagePresenter.removeChannel(id);
 		if (resultVm.ok) {
-			toast.success('Channel removed.');
+			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
 		toast.error(resultVm.error);

@@ -2,7 +2,7 @@
 title: Amp
 description: Connect OpenQuok MCP to Amp via amp mcp add or Amp settings.json.
 order: 6
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -20,7 +20,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ### Generate your token
 
-Create an <Badge text="opo_…" variant="default" /> token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Register OpenQuok
 

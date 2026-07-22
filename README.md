@@ -24,12 +24,9 @@ Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give t
 
 <p align="center">
   <a href="https://www.openquok.com/sign-up">Sign up</a>
-  ·
-  <a href="https://www.openquok.com/docs/apis-integrations">Public API</a>
-
-  <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
-
-  <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a><br />
+  · <a href="https://www.openquok.com/docs/apis-integrations">Public API</a>
+  · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
+  · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a><br />
 </p>
 
 ---

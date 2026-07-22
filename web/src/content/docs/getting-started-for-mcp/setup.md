@@ -2,7 +2,7 @@
 title: MCP Client Setup
 description: Configure Cursor, Claude Code, Claude Cowork, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming.
 order: 1
-lastUpdated: 2026-06-25
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -16,6 +16,8 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 ### Generate a programmatic token
 
 In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create your OAuth app on the Apps tab if needed, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Open MCP client configuration
 

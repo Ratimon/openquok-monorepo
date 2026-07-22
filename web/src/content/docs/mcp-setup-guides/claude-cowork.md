@@ -2,7 +2,7 @@
 title: Claude Cowork
 description: Connect OpenQuok MCP to Claude Cowork via custom connectors or managedMcpServers organization settings.
 order: 3
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -24,7 +24,9 @@ Claude Cowork registers remote MCP servers at the **organization** level — eit
 
 ### Generate your token
 
-In OpenQuok, open <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> and create an <Badge text="opo_…" variant="default" /> token for the target workspace.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Add the connector JSON
 

@@ -2,7 +2,7 @@
 title: Antigravity CLI
 description: Connect OpenQuok MCP to Antigravity CLI via ~/.gemini/config/mcp_config.json.
 order: 8
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -35,7 +35,9 @@ If you used Gemini CLI, run <Badge text="agy plugin import gemini" variant="defa
 
 ### Generate your token
 
-Create an <Badge text="opo_…" variant="default" /> token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Edit mcp_config.json
 

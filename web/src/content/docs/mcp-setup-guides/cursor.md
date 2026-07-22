@@ -2,7 +2,7 @@
 title: Cursor
 description: Connect OpenQuok MCP to Cursor via .cursor/mcp.json for Agent, Composer, and inline chat tools.
 order: 1
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -29,7 +29,9 @@ Cursor reads MCP servers from <Badge text=".cursor/mcp.json" variant="path" /> a
 
 ### Generate your token
 
-In the OpenQuok app, open <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Create or edit .cursor/mcp.json
 

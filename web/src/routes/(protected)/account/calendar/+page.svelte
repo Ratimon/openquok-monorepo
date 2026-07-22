@@ -330,7 +330,7 @@
 	async function handleRemoveChannel(id: string): Promise<boolean> {
 		const resultVm = await calendarPresenter.removeChannel(id);
 		if (resultVm.ok) {
-			toast.success('Channel removed.');
+			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
 		toast.error(resultVm.error);

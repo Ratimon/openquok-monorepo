@@ -99,7 +99,7 @@
 
 	<OneColSection class="rounded-md bg-base-200 py-4 text-base-content">
 		<div class="relative flex w-full flex-row gap-x-4 md:gap-x-8 lg:gap-x-10">
-			<div class="mx-auto w-full space-y-4 p-4 text-center">
+			<div class="mx-auto flex w-full flex-col items-center space-y-4 p-4 text-center">
 				<div class="flex flex-wrap items-center justify-center gap-2">
 					{#if post.isSponsored}
 						<span class="badge badge-secondary badge-sm">Sponsored</span>
@@ -124,7 +124,9 @@
 					</div>
 				{/if}
 
-				<h1 class="mb-2 mt-4 max-w-5xl text-center text-4xl font-black text-primary md:text-7xl">
+				<h1
+					class="w-full max-w-5xl text-center text-4xl font-black tracking-tight text-balance text-primary md:text-7xl"
+				>
 					{post.title}
 				</h1>
 

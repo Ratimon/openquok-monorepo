@@ -2,7 +2,7 @@
 title: VS Code / Copilot
 description: Connect OpenQuok MCP to VS Code and GitHub Copilot via .vscode/mcp.json.
 order: 4
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -24,7 +24,9 @@ VS Code reads MCP servers from <Badge text=".vscode/mcp.json" variant="path" /> 
 
 ### Generate your token
 
-Create an <Badge text="opo_…" variant="default" /> token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Create or edit .vscode/mcp.json
 

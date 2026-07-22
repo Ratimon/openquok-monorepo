@@ -2,7 +2,7 @@
 title: Codex
 description: Connect OpenQuok MCP to OpenAI Codex via config.toml MCP server entries.
 order: 7
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-22
 ---
 
 <script>
@@ -24,7 +24,9 @@ Codex reads MCP servers from <Badge text="~/.codex/config.toml" variant="path" /
 
 ### Generate your token
 
-Create an <Badge text="opo_…" variant="default" /> token under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+In the OpenQuok app, open <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />. Create an OAuth app if prompted, then generate an <Badge text="opo_…" variant="default" /> token.
+
+![Generate programmatic token](/docs/_assets/mcp-setup-guides/generate-programmatic-token.webp)
 
 ### Add the OpenQuok server block
 

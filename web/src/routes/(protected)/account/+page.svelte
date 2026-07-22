@@ -765,7 +765,8 @@
 	async function handleRemoveChannel(id: string): Promise<boolean> {
 		const resultVm = await protectedHomePagePresenter.removeChannel(id);
 		if (resultVm.ok) {
-			toast.success('Channel removed.');
+			// Defer until after the delete dialog unmounts so hover/pointer state does not trap the toast.
+			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
 		toast.error(resultVm.error);
