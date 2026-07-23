@@ -107,7 +107,8 @@ function mcpAuthFromPath(req: Request, res: Response, next: NextFunction): void 
 }
 
 async function handleMcpRequest(req: Request, res: Response): Promise<void> {
-    const auth = (req as Request & { mcpAuth?: { organizationId: string; tokenId: string } }).mcpAuth;
+    const auth = (req as Request & { mcpAuth?: { organizationId: string; tokenId: string; publicUserId: string } })
+        .mcpAuth;
     if (!auth) {
         res.status(401).json({ msg: "Unauthorized" });
         return;
@@ -124,8 +125,9 @@ async function handleMcpRequest(req: Request, res: Response): Promise<void> {
         void server.close();
     });
 
-    await runWithMcpContext({ organizationId: auth.organizationId, tokenId: auth.tokenId }, () =>
-        transport.handleRequest(req, res, (req as Request & { body?: unknown }).body)
+    await runWithMcpContext(
+        { organizationId: auth.organizationId, tokenId: auth.tokenId, publicUserId: auth.publicUserId },
+        () => transport.handleRequest(req, res, (req as Request & { body?: unknown }).body)
     );
 }
 

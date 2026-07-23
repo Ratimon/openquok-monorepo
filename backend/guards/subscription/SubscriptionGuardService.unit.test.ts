@@ -326,6 +326,32 @@ describe("SubscriptionGuardService POSTS_PER_MONTH", () => {
         });
     });
 
+    it("allows scheduling on FREE when token owner is platform admin", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: true });
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                publicUserId: userId,
+                delta: 1,
+            })
+        ).resolves.toBeUndefined();
+    });
+
+    it("still blocks scheduling on FREE when publicUserId is a normal (non-admin) user", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: false });
+        await expect(
+            guard.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId,
+                publicUserId: userId,
+                delta: 1,
+            })
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.POSTS_PER_MONTH,
+        });
+    });
+
     it("allows a post when under the SOLO monthly cap", async () => {
         const guard = createGuardHarness({ workspaceTier: "SOLO", postsCount: 0 });
         await expect(
@@ -403,6 +429,19 @@ describe("SubscriptionGuardService boolean and role gates", () => {
                 publicUserId: userId,
             })
         ).resolves.toBeUndefined();
+    });
+
+    it("still blocks PUBLIC_API on FREE when publicUserId is a normal (non-admin) user", async () => {
+        const guard = createGuardHarness({ workspaceTier: "FREE", isPlatformAdmin: false });
+        await expect(
+            guard.assert(SubscriptionSection.PUBLIC_API, {
+                scope: "workspace",
+                organizationId,
+                publicUserId: userId,
+            })
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.PUBLIC_API,
+        });
     });
 
     it("allows PUBLIC_API on SOLO tier", async () => {

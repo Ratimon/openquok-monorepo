@@ -4,8 +4,11 @@ import { logger } from "backend/utils/Logger.js";
 import { runScheduledSocialPostOrchestration } from "./scheduledSocialPostWorkflow.js";
 
 /**
- * `searchForMissingThreeHoursPosts` / `missing.post.workflow`: find `QUEUE` groups whose `publish_date`
- * falls in a 4h window (now±2h) and re-enqueue Flowcraft (worker was down, BullMQ job lost, etc.).
+ * Re-scan for `QUEUE` groups whose `publish_date` already passed but publish never ran
+ * (worker down, lost BullMQ job, etc.).
+ *
+ * Window is **past-only**: `[now - 2h, now)`. Including future slots caused early publishes
+ * because re-enqueue always used `delayMs: 0`.
  */
 export async function runMissingScheduledPostRescan(): Promise<void> {
     const transport = (config.bullmq as { scheduledSocialPost?: { transport?: string } }).scheduledSocialPost
@@ -14,7 +17,7 @@ export async function runMissingScheduledPostRescan(): Promise<void> {
 
     const t = Date.now();
     const fromIso = new Date(t - 2 * 60 * 60 * 1000).toISOString();
-    const toIso = new Date(t + 2 * 60 * 60 * 1000).toISOString();
+    const toIso = new Date(t).toISOString();
 
     const groups = await postsRepository.listQueuePostGroupsForMissingPublishRescan(fromIso, toIso);
     for (const g of groups) {

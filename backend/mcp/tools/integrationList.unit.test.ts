@@ -20,7 +20,7 @@ function captureIntegrationListHandler(listIntegrations: jest.Mock): ToolHandler
     });
 
     return (input) =>
-        runWithMcpContext({ organizationId: "org-1", tokenId: "tok-1" }, () =>
+        runWithMcpContext({ organizationId: "org-1", tokenId: "tok-1", publicUserId: "user-1" }, () =>
             handlers.integrationList(input)
         );
 }

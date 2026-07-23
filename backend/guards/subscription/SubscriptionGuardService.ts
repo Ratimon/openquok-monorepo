@@ -67,8 +67,9 @@ export class SubscriptionGuardService {
     }
 
     /**
-     * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
+     * Platform admins (`users.is_super_admin === true`) bypass plan limits when billing is enabled
      * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
+     * Non-admin `publicUserId` values always return false — they do not unlock paid capabilities.
      */
     async shouldBypassBillingForPublicUserId(publicUserId?: string): Promise<boolean> {
         if (!publicUserId?.trim() || !this.subscriptionService.billingEnabled()) {
@@ -111,6 +112,11 @@ export class SubscriptionGuardService {
     /**
      * Single entry point for plan capability checks.
      * When Stripe billing is not configured, all checks pass (local/dev).
+     *
+     * Platform-admin bypass requires `users.is_super_admin === true` for the
+     * auth user or token owner (`publicUserId`). Passing an ordinary
+     * `publicUserId` does **not** skip plan limits — unpaid FREE workspaces
+     * still fail `public_api` / `posts_per_month` the same as before.
      */
     async assert(section: SubscriptionSection, ctx: SubscriptionGuardContext): Promise<void> {
         if (!this.subscriptionService.billingEnabled()) return;

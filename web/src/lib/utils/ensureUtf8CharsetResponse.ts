@@ -9,6 +9,10 @@ function isHtmlWithoutCharset(contentType: string): boolean {
  * SvelteKit SSR may emit `content-type: text/html` without a charset. Align the HTTP
  * header with `<meta charset="utf-8">` in `app.html` so crawlers and browsers do not
  * mis-decode non-ASCII copy as Latin-1.
+ *
+ * Do not apply this during build/prerender (`building` in `hooks.server.ts`). Kit decides
+ * HTML vs asset with an exact `content-type === 'text/html'` check; a charset parameter
+ * causes extensionless prerender files that hosts may serve as downloads.
  */
 export function ensureUtf8CharsetResponse(response: Response): Response {
 	const contentType = response.headers.get('content-type');

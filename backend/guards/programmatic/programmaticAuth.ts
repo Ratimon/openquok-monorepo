@@ -8,6 +8,8 @@ import { resolveProgrammaticAuth } from "./resolveProgrammaticAuth";
 export interface ProgrammaticAuthRequest extends Request {
     organization?: OrganizationLike;
     oauthApp?: { id: string; tokenId: string };
+    /** Token owner `public.users.id` for platform-admin billing bypass. */
+    publicUserId?: string;
 }
 
 function parseRawToken(req: Request): string | null {
@@ -43,6 +45,7 @@ export function requireProgrammaticAuth(params: {
 
             (req as ProgrammaticAuthRequest).organization = resolved.organization;
             (req as ProgrammaticAuthRequest).oauthApp = resolved.oauthApp;
+            (req as ProgrammaticAuthRequest).publicUserId = resolved.publicUserId;
             next();
         } catch (err) {
             next(err);

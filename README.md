@@ -69,6 +69,14 @@ corepack enable
 
 ---
 
+### Quick start
+
+For a first-time local run — install dependencies, configure env for `backend/` and `web/`, and wire optional workers / CLI auth — follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started-for-dev/quick-start).
+
+Day-to-day commands (dev servers, tests, DB, deploy) live under [Development environment](https://www.openquok.com/docs/installation/development-environment). Production deploy notes are in [Production deployment](https://www.openquok.com/docs/installation/production-deployment).
+
+---
+
 ### Tech stack
 
 - PNPM workspace
@@ -85,14 +93,6 @@ corepack enable
 - Posthog
 - Vercel
 - Railway
-
----
-
-### Quick start
-
-For a first-time local run — install dependencies, configure env for `backend/` and `web/`, and wire optional workers / CLI auth — follow the [Quick Start Guide](https://www.openquok.com/docs/getting-started-for-dev/quick-start).
-
-Day-to-day commands (dev servers, tests, DB, deploy) live under [Development environment](https://www.openquok.com/docs/installation/development-environment). Production deploy notes are in [Production deployment](https://www.openquok.com/docs/installation/production-deployment).
 
 ---
 

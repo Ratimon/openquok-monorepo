@@ -37,6 +37,9 @@ export type ScheduledPostsRepository = {
 
 const PUBLISH_ATTEMPTS = 5;
 
+/** Skip worker publish when `publish_date` is still meaningfully in the future (clock skew buffer). */
+const EARLY_PUBLISH_GRACE_MS = 30_000;
+
 const META_OPAQUE_MESSAGE = "An unknown error occurred";
 
 /** Dependencies for post-publish plug pipeline (Threads internal + global threshold plugs). */
@@ -1046,6 +1049,18 @@ export function createPublishScheduledGroupHandler(deps: {
                     msg: "[Orchestrator] scheduled post: nothing in QUEUE with channel, skipping",
                     postGroup,
                     organizationId,
+                });
+                return;
+            }
+
+            const scheduledMs = new Date(String(toPublish[0]!.publish_date ?? "").trim().replace(" ", "T")).getTime();
+            if (!Number.isNaN(scheduledMs) && scheduledMs > Date.now() + EARLY_PUBLISH_GRACE_MS) {
+                logger.warn({
+                    msg: "[Orchestrator] scheduled post: publish_date still in the future; skipping early run",
+                    postGroup,
+                    organizationId,
+                    publish_date: toPublish[0]!.publish_date,
+                    earlyByMs: scheduledMs - Date.now(),
                 });
                 return;
             }

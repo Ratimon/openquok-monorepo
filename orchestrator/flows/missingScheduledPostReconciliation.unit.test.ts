@@ -57,7 +57,7 @@ describe("runMissingScheduledPostRescan", () => {
         expect(mockedRun).not.toHaveBeenCalled();
     });
 
-    it("lists groups in a ±2h window and re-enqueues each; logs when orchestration returns true", async () => {
+    it("lists groups in a past-only 2h window and re-enqueues each; logs when orchestration returns true", async () => {
         mockBullmqSection.scheduledSocialPost.transport = "bullmq";
         const orgA = faker.string.uuid();
         const orgB = faker.string.uuid();
@@ -69,11 +69,18 @@ describe("runMissingScheduledPostRescan", () => {
         ]);
         mockedRun.mockResolvedValue(true);
 
+        const before = Date.now();
         await runMissingScheduledPostRescan();
+        const after = Date.now();
 
         expect(listMock).toHaveBeenCalledTimes(1);
         const [fromIso, toIso] = listMock.mock.calls[0]!;
-        expect(new Date(toIso).getTime() - new Date(fromIso).getTime()).toBe(4 * 60 * 60 * 1000);
+        const fromMs = new Date(fromIso).getTime();
+        const toMs = new Date(toIso).getTime();
+        expect(toMs - fromMs).toBe(2 * 60 * 60 * 1000);
+        expect(toMs).toBeGreaterThanOrEqual(before);
+        expect(toMs).toBeLessThanOrEqual(after);
+        expect(fromMs).toBe(toMs - 2 * 60 * 60 * 1000);
 
         expect(mockedRun).toHaveBeenCalledTimes(2);
         expect(mockedRun).toHaveBeenNthCalledWith(1, {

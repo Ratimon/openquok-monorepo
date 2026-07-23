@@ -106,6 +106,7 @@ export const orchestratorFlows = {
         enabled: true,
         /**
          * Re-scan `posts` for `QUEUE` rows whose slot passed but publish never ran (worker down, lost job).
+         * Past-only window (`[now-2h, now)`) — never include future slots.
          */
         missingPostRescanIntervalMs: 3_600_000,
     },

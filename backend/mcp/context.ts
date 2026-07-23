@@ -3,6 +3,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 export type McpRequestContext = {
     organizationId: string;
     tokenId: string;
+    /** Token owner `public.users.id` for platform-admin billing bypass. */
+    publicUserId: string;
 };
 
 const mcpContextStorage = new AsyncLocalStorage<McpRequestContext>();

@@ -12,6 +12,8 @@ export type McpAuthDeps = {
 export type McpAuthContext = {
     organizationId: string;
     tokenId: string;
+    /** Token owner `public.users.id` for platform-admin billing bypass. */
+    publicUserId: string;
 };
 
 export async function resolveMcpAuth(token: string, deps: McpAuthDeps): Promise<McpAuthContext | null> {
@@ -20,5 +22,6 @@ export async function resolveMcpAuth(token: string, deps: McpAuthDeps): Promise<
     return {
         organizationId: resolved.organization.id,
         tokenId: resolved.oauthApp.tokenId,
+        publicUserId: resolved.publicUserId,
     };
 }

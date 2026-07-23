@@ -28,6 +28,9 @@ export class PostsRepository {
      * `QUEUE` rows in `[fromIso, toIso)` on `publish_date`,
      * with resolvable channels (integration row exists, not disabled, not `refresh_needed`, not in-between steps).
      * Returns one entry per `post_group` (deduped) for re-enqueueing a Flowcraft run.
+     *
+     * Callers must pass a past-only window (typically `[now-2h, now)`). Future slots must not be
+     * included — the missing-post rescan re-enqueues with `delayMs: 0`.
      */
     async listQueuePostGroupsForMissingPublishRescan(
         fromIso: string,

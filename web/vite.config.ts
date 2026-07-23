@@ -147,8 +147,50 @@ function clientVendorChunks(): Plugin {
 	};
 }
 
+/**
+ * streamdown-svelte (and docs Mermaid) dynamically import mermaid / katex / Shiki langs.
+ * Vite still emits those as SSR chunks (~MB each) even though they never run on the server.
+ * Stub them during the SSR build so Docker/CI builds stay lean; the client build is unchanged.
+ */
+function stubHeavyClientDepsForSsr(): Plugin {
+	const exact = new Set(['mermaid', 'katex', 'rehype-katex', 'remark-math']);
+
+	function stubKey(id: string): string | undefined {
+		if (id.endsWith('.css') && (exact.has(id.split('/')[0] ?? '') || id.startsWith('katex/'))) {
+			return 'css:katex';
+		}
+		if (exact.has(id)) return id;
+		// CSS / deep imports from Math.svelte and similar.
+		if (id.startsWith('katex/')) return 'katex';
+		if (id.startsWith('mermaid/')) return 'mermaid';
+		// streamdown's default createCodePlugin() registers every Shiki language —
+		// coalesce to one virtual module so SSR does not emit hundreds of empty chunks.
+		if (id.startsWith('@shikijs/langs')) return '@shikijs/langs';
+		return undefined;
+	}
+
+	return {
+		name: 'stub-heavy-client-deps-for-ssr',
+		apply: 'build',
+		enforce: 'pre',
+		resolveId(id, _importer, options) {
+			if (!options?.ssr) return;
+			const bare = id.split('?')[0] ?? id;
+			const key = stubKey(bare);
+			if (!key) return;
+			return `\0ssr-stub:${key}`;
+		},
+		load(id) {
+			if (!id.startsWith('\0ssr-stub:')) return;
+			if (id.startsWith('\0ssr-stub:css:')) return '';
+			// Enough surface for type-erased / dynamic imports that never execute on SSR.
+			return 'export default {};\nexport const renderToString = () => "";\n';
+		}
+	};
+}
+
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), clientVendorChunks()],
+	plugins: [tailwindcss(), sveltekit(), clientVendorChunks(), stubHeavyClientDepsForSsr()],
 	build: {
 		// chunkSizeWarningLimit: 550,
 	},

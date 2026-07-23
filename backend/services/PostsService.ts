@@ -192,9 +192,12 @@ export type CreatePostInput = {
 
 /**
  * Programmatic post creation input (organization API key auth).
- * No auth user is available; `created_by_user_id` is stored as null.
+ * No auth user JWT is available; `created_by_user_id` is stored as null.
+ * Pass `publicUserId` (token owner) so platform admins bypass plan limits.
  */
 export type CreatePostProgrammaticInput = Omit<CreatePostInput, "authUserId"> & {
+    /** Token owner `public.users.id` for platform-admin billing bypass. */
+    publicUserId?: string;
     /** When true or omitted on `POST /public/posts`, sets `is_agent_edited`. CLI should send `true`. */
     isAgent?: boolean;
     /** Optional kanban review checklist for humans (stored on every row in the group). */
@@ -342,6 +345,8 @@ export class PostsService {
         organizationId: string;
         /** Auth user id (Supabase auth.uid()) when called via JWT routes. */
         authUserId?: string | null;
+        /** Token owner `public.users.id` when called via programmatic/MCP (no auth UUID). */
+        publicUserId?: string | null;
         postGroup: string;
         body: string;
         bodiesByIntegrationId?: Record<string, string> | null;
@@ -370,6 +375,7 @@ export class PostsService {
         const {
             organizationId,
             authUserId = null,
+            publicUserId = null,
             postGroup,
             body,
             bodiesByIntegrationId,
@@ -502,6 +508,7 @@ export class PostsService {
                 scope: "workspaceWithDelta",
                 organizationId,
                 authUserId: authUserId ?? undefined,
+                publicUserId: publicUserId ?? undefined,
                 delta: toInsert.length,
             });
         }
@@ -529,7 +536,8 @@ export class PostsService {
             providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        // Await enqueue: on Vercel, `void` background work can be frozen before Redis add completes.
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup,
@@ -551,6 +559,7 @@ export class PostsService {
             ...input,
             postGroup,
             skipMembershipCheck: true,
+            publicUserId: input.publicUserId ?? null,
             reviewFields: {
                 note: input.note ?? null,
                 isAgentEdited: input.isAgent !== false,
@@ -567,7 +576,7 @@ export class PostsService {
             providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null,
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup,
@@ -775,13 +784,15 @@ export class PostsService {
     async flipPostGroupStatusByPostIdProgrammatic(
         postId: string,
         organizationId: string,
-        status: "draft" | "scheduled"
+        status: "draft" | "scheduled",
+        publicUserId?: string | null
     ): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
         return await this.flipPostGroupStatusByPostId({
             postId,
             organizationId,
             status,
             authUserId: null,
+            publicUserId: publicUserId ?? null,
             skipMembershipCheck: true,
         });
     }
@@ -795,6 +806,8 @@ export class PostsService {
         organizationId: string;
         status: "draft" | "scheduled";
         authUserId: string | null;
+        /** Token owner `public.users.id` when called via programmatic/MCP (no auth UUID). */
+        publicUserId?: string | null;
         skipMembershipCheck: boolean;
     }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
         const post = await this.postsRepository.getPostById(input.postId);
@@ -840,6 +853,7 @@ export class PostsService {
                     scope: "workspaceWithDelta",
                     organizationId: input.organizationId,
                     authUserId: input.authUserId ?? undefined,
+                    publicUserId: input.publicUserId ?? undefined,
                     delta: draftRows.length,
                 });
             }
@@ -856,7 +870,7 @@ export class PostsService {
                 isAgentEdited: false,
             });
         }
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup: post.post_group,
@@ -1836,7 +1850,7 @@ export class PostsService {
             providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
         await this._invalidatePostMutationCaches({
             organizationId,
             postGroup,
@@ -1989,7 +2003,9 @@ export class PostsService {
     }
 
     /**
-     * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group ).
+     * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group.
+     * Must be awaited by callers: fire-and-forget (`void`) is unsafe on Vercel — the function can
+     * freeze after the HTTP response and drop the Redis enqueue, leaving `QUEUE` rows with no job.
      */
     private async maybeEnqueueScheduledSocialPostOrchestration(
         organizationId: string,
@@ -2025,27 +2041,63 @@ export class PostsService {
                 postGroup: first.post_group,
                 organizationId,
             });
-            return;
+            throw new AppError("Could not schedule post: invalid publish time", 500, {
+                metadata: { postGroup: first.post_group, organizationId, publish_date: first.publish_date },
+            });
         }
         const delayMs = Math.max(0, publishMs - Date.now());
-        const mod = (await import("openquok-orchestrator")) as any;
-        const runScheduledSocialPostOrchestration =
-            mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
-        if (typeof runScheduledSocialPostOrchestration !== "function") {
-            throw new TypeError("runScheduledSocialPostOrchestration is not a function");
-        }
-        const ok = await runScheduledSocialPostOrchestration({
-            organizationId,
-            postGroup: first.post_group,
-            delayMs,
-        });
-        if (!ok) {
-            logger.warn({
-                msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+        try {
+            const mod = (await import("openquok-orchestrator")) as any;
+            const runScheduledSocialPostOrchestration =
+                mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
+            if (typeof runScheduledSocialPostOrchestration !== "function") {
+                throw new TypeError("runScheduledSocialPostOrchestration is not a function");
+            }
+            const ok = await runScheduledSocialPostOrchestration({
                 organizationId,
                 postGroup: first.post_group,
                 delayMs,
             });
+            if (!ok) {
+                logger.warn({
+                    msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+                    organizationId,
+                    postGroup: first.post_group,
+                    delayMs,
+                });
+                throw new AppError(
+                    "Post was saved but the publish job could not be queued. Try scheduling again.",
+                    503,
+                    {
+                        metadata: {
+                            postGroup: first.post_group,
+                            organizationId,
+                            delayMs,
+                        },
+                    }
+                );
+            }
+        } catch (err) {
+            if (err instanceof AppError) throw err;
+            logger.error({
+                msg: "[PostsService] Error enqueueing scheduled social post workflow",
+                organizationId,
+                postGroup: first.post_group,
+                delayMs,
+                error: err instanceof Error ? err.message : String(err),
+            });
+            throw new AppError(
+                "Post was saved but the publish job could not be queued. Try scheduling again.",
+                503,
+                {
+                    metadata: {
+                        postGroup: first.post_group,
+                        organizationId,
+                        delayMs,
+                    },
+                    cause: err instanceof Error ? err : null,
+                }
+            );
         }
     }
 

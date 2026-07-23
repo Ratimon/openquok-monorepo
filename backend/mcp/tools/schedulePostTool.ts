@@ -41,7 +41,7 @@ export function registerSchedulePostTool(
             },
         },
         async (input) => {
-            const { organizationId } = getMcpContext();
+            const { organizationId, publicUserId } = getMcpContext();
             const scheduleInput = input as SchedulePostToolInput;
 
             const integrations = await deps.integrationConnectionService.publicListIntegrations(organizationId);
@@ -72,6 +72,7 @@ export function registerSchedulePostTool(
             const result = await deps.postsService.createPostProgrammatic({
                 organizationId,
                 ...mapped.createInput,
+                publicUserId,
             });
 
             const output = formatSchedulePostToolOutput(result.posts, mapped.integrationIdentifiers);

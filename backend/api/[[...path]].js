@@ -600,6 +600,7 @@ var init_orchestratorFlows = __esm({
         enabled: true,
         /**
          * Re-scan `posts` for `QUEUE` rows whose slot passed but publish never ran (worker down, lost job).
+         * Past-only window (`[now-2h, now)`) — never include future slots.
          */
         missingPostRescanIntervalMs: 36e5
       }
@@ -9334,6 +9335,9 @@ var init_PostsRepository = __esm({
        * `QUEUE` rows in `[fromIso, toIso)` on `publish_date`,
        * with resolvable channels (integration row exists, not disabled, not `refresh_needed`, not in-between steps).
        * Returns one entry per `post_group` (deduped) for re-enqueueing a Flowcraft run.
+       *
+       * Callers must pass a past-only window (typically `[now-2h, now)`). Future slots must not be
+       * included — the missing-post rescan re-enqueues with `delayMs: 0`.
        */
       async listQueuePostGroupsForMissingPublishRescan(fromIso, toIso) {
         const { data: posts, error } = await this.supabase.from(TABLE_POSTS).select("organization_id, post_group, integration_id").eq("state", "QUEUE").is("parent_post_id", null).is("deleted_at", null).not("integration_id", "is", null).gte("publish_date", fromIso).lt("publish_date", toIso);
@@ -21009,6 +21013,7 @@ var init_PostsService = __esm({
         const {
           organizationId,
           authUserId = null,
+          publicUserId = null,
           postGroup,
           body,
           bodiesByIntegrationId,
@@ -21118,6 +21123,7 @@ var init_PostsService = __esm({
             scope: "workspaceWithDelta",
             organizationId,
             authUserId: authUserId ?? void 0,
+            publicUserId: publicUserId ?? void 0,
             delta: toInsert.length
           });
         }
@@ -21140,7 +21146,7 @@ var init_PostsService = __esm({
           providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup,
@@ -21158,6 +21164,7 @@ var init_PostsService = __esm({
           ...input,
           postGroup,
           skipMembershipCheck: true,
+          publicUserId: input.publicUserId ?? null,
           reviewFields: {
             note: input.note ?? null,
             isAgentEdited: input.isAgent !== false,
@@ -21173,7 +21180,7 @@ var init_PostsService = __esm({
           providerSettingsByIntegrationId: input.providerSettingsByIntegrationId ?? null
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, out.posts, input.status);
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup,
@@ -21333,12 +21340,13 @@ var init_PostsService = __esm({
        * Loads the post group via the row id and reapplies the same payload with a new `status`
        * (no public `GET/PUT /public/posts/group/*` — full group edits stay session/UI only).
        */
-      async flipPostGroupStatusByPostIdProgrammatic(postId, organizationId, status) {
+      async flipPostGroupStatusByPostIdProgrammatic(postId, organizationId, status, publicUserId) {
         return await this.flipPostGroupStatusByPostId({
           postId,
           organizationId,
           status,
           authUserId: null,
+          publicUserId: publicUserId ?? null,
           skipMembershipCheck: true
         });
       }
@@ -21385,6 +21393,7 @@ var init_PostsService = __esm({
               scope: "workspaceWithDelta",
               organizationId: input.organizationId,
               authUserId: input.authUserId ?? void 0,
+              publicUserId: input.publicUserId ?? void 0,
               delta: draftRows.length
             });
           }
@@ -21399,7 +21408,7 @@ var init_PostsService = __esm({
             isAgentEdited: false
           });
         }
-        void this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, input.status);
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup: post.post_group,
@@ -22132,7 +22141,7 @@ var init_PostsService = __esm({
           providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null
         });
         const out = { postGroup, posts: inserted };
-        void this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
+        await this.maybeEnqueueScheduledSocialPostOrchestration(organizationId, out.posts, status);
         await this._invalidatePostMutationCaches({
           organizationId,
           postGroup,
@@ -22269,7 +22278,9 @@ var init_PostsService = __esm({
         }
       }
       /**
-       * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group ).
+       * When `scheduledSocialPost` uses BullMQ, enqueue a delayed Flowcraft run for this group.
+       * Must be awaited by callers: fire-and-forget (`void`) is unsafe on Vercel — the function can
+       * freeze after the HTTP response and drop the Redis enqueue, leaving `QUEUE` rows with no job.
        */
       async maybeEnqueueScheduledSocialPostOrchestration(organizationId, posts, status) {
         if (status !== "scheduled") return;
@@ -22293,26 +22304,62 @@ var init_PostsService = __esm({
             postGroup: first.post_group,
             organizationId
           });
-          return;
+          throw new AppError("Could not schedule post: invalid publish time", 500, {
+            metadata: { postGroup: first.post_group, organizationId, publish_date: first.publish_date }
+          });
         }
         const delayMs = Math.max(0, publishMs - Date.now());
-        const mod = await import('openquok-orchestrator');
-        const runScheduledSocialPostOrchestration = mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
-        if (typeof runScheduledSocialPostOrchestration !== "function") {
-          throw new TypeError("runScheduledSocialPostOrchestration is not a function");
-        }
-        const ok = await runScheduledSocialPostOrchestration({
-          organizationId,
-          postGroup: first.post_group,
-          delayMs
-        });
-        if (!ok) {
-          logger.warn({
-            msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+        try {
+          const mod = await import('openquok-orchestrator');
+          const runScheduledSocialPostOrchestration = mod?.runScheduledSocialPostOrchestration ?? mod?.default?.runScheduledSocialPostOrchestration;
+          if (typeof runScheduledSocialPostOrchestration !== "function") {
+            throw new TypeError("runScheduledSocialPostOrchestration is not a function");
+          }
+          const ok = await runScheduledSocialPostOrchestration({
             organizationId,
             postGroup: first.post_group,
             delayMs
           });
+          if (!ok) {
+            logger.warn({
+              msg: "[PostsService] Failed to enqueue scheduled social post workflow (BullMQ)",
+              organizationId,
+              postGroup: first.post_group,
+              delayMs
+            });
+            throw new AppError(
+              "Post was saved but the publish job could not be queued. Try scheduling again.",
+              503,
+              {
+                metadata: {
+                  postGroup: first.post_group,
+                  organizationId,
+                  delayMs
+                }
+              }
+            );
+          }
+        } catch (err) {
+          if (err instanceof AppError) throw err;
+          logger.error({
+            msg: "[PostsService] Error enqueueing scheduled social post workflow",
+            organizationId,
+            postGroup: first.post_group,
+            delayMs,
+            error: err instanceof Error ? err.message : String(err)
+          });
+          throw new AppError(
+            "Post was saved but the publish job could not be queued. Try scheduling again.",
+            503,
+            {
+              metadata: {
+                postGroup: first.post_group,
+                organizationId,
+                delayMs
+              },
+              cause: err instanceof Error ? err : null
+            }
+          );
         }
       }
       async resolveTagIds(organizationId, names) {
@@ -23530,8 +23577,9 @@ var init_SubscriptionGuardService = __esm({
         };
       }
       /**
-       * Platform admins (`users.is_super_admin`) bypass plan limits when billing is enabled
+       * Platform admins (`users.is_super_admin === true`) bypass plan limits when billing is enabled
        * so operators can dogfood production (e.g. OAuth verification demos) without a paid seat.
+       * Non-admin `publicUserId` values always return false — they do not unlock paid capabilities.
        */
       async shouldBypassBillingForPublicUserId(publicUserId) {
         if (!publicUserId?.trim() || !this.subscriptionService.billingEnabled()) {
@@ -23563,6 +23611,11 @@ var init_SubscriptionGuardService = __esm({
       /**
        * Single entry point for plan capability checks.
        * When Stripe billing is not configured, all checks pass (local/dev).
+       *
+       * Platform-admin bypass requires `users.is_super_admin === true` for the
+       * auth user or token owner (`publicUserId`). Passing an ordinary
+       * `publicUserId` does **not** skip plan limits — unpaid FREE workspaces
+       * still fail `public_api` / `posts_per_month` the same as before.
        */
       async assert(section, ctx) {
         if (!this.subscriptionService.billingEnabled()) return;
@@ -29186,14 +29239,16 @@ var init_PublicPostsController = __esm({
       flipPostStatus = async (req, res, next) => {
         try {
           countPublicApiRequest("posts-flip-status");
-          const organizationId = req.organization.id;
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
           const postId = req.params.postId;
           const raw = req.body.status;
           const status = raw === "draft" ? "draft" : "scheduled";
           const result = await this.postsService.flipPostGroupStatusByPostIdProgrammatic(
             postId,
             organizationId,
-            status
+            status,
+            programmaticReq.publicUserId
           );
           res.status(200).json({
             success: true,
@@ -29228,10 +29283,12 @@ var init_PublicPostsController = __esm({
       /** POST /public/posts */
       createPost = async (req, res, next) => {
         try {
-          const organizationId = req.organization.id;
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
           const b = req.body;
           const result = await this.postsService.createPostProgrammatic({
             organizationId,
+            publicUserId: programmaticReq.publicUserId,
             isAgent: b.isAgent,
             note: b.note,
             body: b.body ?? "",
@@ -30036,7 +30093,8 @@ async function resolveProgrammaticAuth(token, deps) {
   });
   return {
     organization,
-    oauthApp: { id: verified.oauthAppId, tokenId: verified.tokenId }
+    oauthApp: { id: verified.oauthAppId, tokenId: verified.tokenId },
+    publicUserId: verified.userId
   };
 }
 var init_resolveProgrammaticAuth = __esm({
@@ -30051,7 +30109,8 @@ async function resolveMcpAuth(token, deps) {
   if (!resolved) return null;
   return {
     organizationId: resolved.organization.id,
-    tokenId: resolved.oauthApp.tokenId
+    tokenId: resolved.oauthApp.tokenId,
+    publicUserId: resolved.publicUserId
   };
 }
 var init_auth = __esm({
@@ -30439,7 +30498,7 @@ function registerSchedulePostTool(server2, deps) {
       }
     },
     async (input) => {
-      const { organizationId } = getMcpContext();
+      const { organizationId, publicUserId } = getMcpContext();
       const scheduleInput = input;
       const integrations = await deps.integrationConnectionService.publicListIntegrations(organizationId);
       const integrationProviderById = {};
@@ -30465,7 +30524,8 @@ function registerSchedulePostTool(server2, deps) {
       });
       const result = await deps.postsService.createPostProgrammatic({
         organizationId,
-        ...mapped.createInput
+        ...mapped.createInput,
+        publicUserId
       });
       const output = formatSchedulePostToolOutput(result.posts, mapped.integrationIdentifiers);
       return {
@@ -30569,7 +30629,7 @@ async function handleMcpRequest(req, res) {
     void server2.close();
   });
   await runWithMcpContext(
-    { organizationId: auth10.organizationId, tokenId: auth10.tokenId },
+    { organizationId: auth10.organizationId, tokenId: auth10.tokenId, publicUserId: auth10.publicUserId },
     () => transport.handleRequest(req, res, req.body)
   );
 }
@@ -30928,7 +30988,8 @@ function requireProgrammaticPlanCapability(section) {
       const ctx = {
         scope: "workspace",
         organizationId,
-        authUserId: void 0
+        authUserId: void 0,
+        publicUserId: req.publicUserId
       };
       await subscriptionGuard.assert(section, ctx);
       next();
@@ -31342,6 +31403,7 @@ function requireProgrammaticAuth(params) {
       }
       req.organization = resolved.organization;
       req.oauthApp = resolved.oauthApp;
+      req.publicUserId = resolved.publicUserId;
       next();
     } catch (err) {
       next(err);

@@ -120,14 +120,16 @@ export class PublicPostsController {
     flipPostStatus = async (req: Request, res: Response, next: NextFunction) => {
         try {
             countPublicApiRequest("posts-flip-status");
-            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const programmaticReq = req as ProgrammaticAuthRequest;
+            const organizationId = programmaticReq.organization!.id;
             const postId = (req.params as { postId: string }).postId;
             const raw = (req.body as { status: "draft" | "schedule" | "scheduled" }).status;
             const status: "draft" | "scheduled" = raw === "draft" ? "draft" : "scheduled";
             const result = await this.postsService.flipPostGroupStatusByPostIdProgrammatic(
                 postId,
                 organizationId,
-                status
+                status,
+                programmaticReq.publicUserId
             );
             res.status(200).json({
                 success: true,
@@ -176,7 +178,8 @@ export class PublicPostsController {
     /** POST /public/posts */
     createPost = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const organizationId = (req as ProgrammaticAuthRequest).organization!.id;
+            const programmaticReq = req as ProgrammaticAuthRequest;
+            const organizationId = programmaticReq.organization!.id;
             const b = req.body as {
                 body?: string;
                 bodiesByIntegrationId?: Record<string, string>;
@@ -194,6 +197,7 @@ export class PublicPostsController {
 
             const result = await this.postsService.createPostProgrammatic({
                 organizationId,
+                publicUserId: programmaticReq.publicUserId,
                 isAgent: b.isAgent,
                 note: b.note,
                 body: b.body ?? "",

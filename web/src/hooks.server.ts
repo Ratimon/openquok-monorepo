@@ -1,5 +1,7 @@
 import type { Handle } from '@sveltejs/kit';
 
+import { building } from '$app/environment';
+
 import { ensureUtf8CharsetResponse } from '$lib/utils/ensureUtf8CharsetResponse';
 
 /**
@@ -56,11 +58,22 @@ function forwardUpstreamResponse(upstream: Response): Response {
 	});
 }
 
+/**
+ * During build/prerender, leave `Content-Type: text/html` alone. Kit only treats an exact
+ * `text/html` match as HTML (`type === 'text/html'`); adding `charset=utf-8` makes it
+ * write extensionless files that Vercel then serves as `application/octet-stream`
+ * (browser downloads named after the last path segment, e.g. `cursor`).
+ */
+function maybeEnsureUtf8Charset(response: Response): Response {
+	if (building) return response;
+	return ensureUtf8CharsetResponse(response);
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
 	const backendOrigin = resolveBackendProxyOrigin();
 	if (!backendOrigin || !shouldProxyPathname(event.url.pathname)) {
 		const response = await resolve(event);
-		return ensureUtf8CharsetResponse(response);
+		return maybeEnsureUtf8Charset(response);
 	}
 
 	const targetUrl = `${backendOrigin}${event.url.pathname}${event.url.search}`;

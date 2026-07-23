@@ -190,6 +190,7 @@ describe("requireProgrammaticAuth", () => {
         });
         expect(req.organization).toEqual(organization);
         expect(req.oauthApp).toEqual({ id: oauthAppId, tokenId });
+        expect(req.publicUserId).toBe(publicUserId);
         expect(next).toHaveBeenCalledWith();
     });
 

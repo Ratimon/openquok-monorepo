@@ -125,6 +125,7 @@ export function requireProgrammaticPlanCapability(section: SubscriptionSection) 
                 scope: "workspace",
                 organizationId,
                 authUserId: undefined,
+                publicUserId: req.publicUserId,
             };
 
             await subscriptionGuard.assert(section, ctx);

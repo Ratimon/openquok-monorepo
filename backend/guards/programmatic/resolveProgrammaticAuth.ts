@@ -7,6 +7,8 @@ import type { OrganizationLike } from "../../utils/dtos/OrganizationDTO";
 export type ProgrammaticAuthResult = {
     organization: OrganizationLike;
     oauthApp: { id: string; tokenId: string };
+    /** Token owner `public.users.id` — used for platform-admin billing bypass on later guards. */
+    publicUserId: string;
 };
 
 /**
@@ -39,5 +41,6 @@ export async function resolveProgrammaticAuth(
     return {
         organization,
         oauthApp: { id: verified.oauthAppId, tokenId: verified.tokenId },
+        publicUserId: verified.userId,
     };
 }

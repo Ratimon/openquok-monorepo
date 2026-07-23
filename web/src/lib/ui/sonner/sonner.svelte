@@ -67,31 +67,53 @@
 
 <style>
 	/*
-	  Guard against toast-library CSS (e.g. DaisyUI `.toast`) stretching the Sonner viewport:
-	  `top` + `bottom` + `display:flex` makes a full-height hit target that pauses auto-dismiss on hover.
+	  Soft guards only. Do not reset `inset-inline` or `translate` on the toaster —
+	  those map onto `left` / individual transform and wipe Sonner's `top-center`
+	  (`left: 50%; transform: translateX(-50%)`), pinning toasts to the top-left.
 	*/
 	:global([data-sonner-toaster].sonner-toaster) {
-		bottom: unset !important;
-		height: unset !important;
+		bottom: auto !important;
+		height: auto !important;
 		max-height: none !important;
-		display: block !important;
-		flex-direction: unset !important;
-		gap: unset !important;
-		translate: none !important;
-		inset-inline: unset !important;
 		background: transparent !important;
 	}
 
+	/* Desktop center only — Sonner drops translateX under 600px and uses left/right offsets. */
+	@media (min-width: 601px) {
+		:global([data-sonner-toaster][data-x-position='center'].sonner-toaster) {
+			left: 50% !important;
+			right: auto !important;
+			transform: translateX(-50%) !important;
+		}
+	}
+
 	:global([data-sonner-toaster][data-y-position='top'].sonner-toaster) {
-		bottom: unset !important;
+		bottom: auto !important;
 	}
 
 	:global([data-sonner-toaster][data-y-position='bottom'].sonner-toaster) {
-		top: unset !important;
+		top: auto !important;
 	}
 
 	:global([data-sonner-toast][data-styled='true']) {
 		flex: none !important;
-		align-self: flex-start !important;
+		width: var(--width, 356px) !important;
+		min-width: min(356px, calc(100vw - 2rem));
+	}
+
+	/* Keep title/icon readable even if a parent utility fights Sonner colors. */
+	:global([data-sonner-toast][data-styled='true'] [data-content]),
+	:global([data-sonner-toast][data-styled='true'] [data-title]),
+	:global([data-sonner-toast][data-styled='true'] [data-description]),
+	:global([data-sonner-toast][data-styled='true'] [data-icon]) {
+		color: inherit !important;
+		opacity: 1 !important;
+		visibility: visible !important;
+	}
+
+	:global([data-sonner-toast][data-styled='true'] [data-title]) {
+		font-size: 13px !important;
+		line-height: 1.5 !important;
+		font-weight: 500 !important;
 	}
 </style>

@@ -16,6 +16,9 @@
 .env.*
 !.env*.example
 
+# Cursor MCP config (contains programmatic API tokens)
+.cursor/mcp.json
+
 # SST build output
 .build
 .sst
