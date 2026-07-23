@@ -2,7 +2,7 @@
 title: Cursor
 description: Connect OpenQuok MCP to Cursor via .cursor/mcp.json for Agent, Composer, and inline chat tools.
 order: 1
-lastUpdated: 2026-07-22
+lastUpdated: 2026-07-23
 ---
 
 <script>
@@ -73,9 +73,15 @@ In your project root, add an <Badge text="openquok" variant="default" /> entry u
 </TabItem>
 </Tabs>
 
-### Reload MCP in Cursor
+### Attach OpenQuok in Cursor
 
-Save the file, then reload the window or open <strong>Cursor Settings → MCP</strong> and confirm <Badge text="openquok" variant="default" /> appears with a connected status. Start a **new Agent or Composer session** so the tool list refreshes.
+Save <Badge text=".cursor/mcp.json" variant="path" />, then make sure Cursor has loaded the server into the session you will use:
+
+1. Open <strong>Customize → MCPs</strong> (or <strong>Cursor Settings → MCP</strong> on builds that still use that label).
+2. Confirm <Badge text="openquok" variant="default" /> shows as <strong>connected</strong> — not error or disabled.
+3. Start a <strong>new</strong> Agent or Composer chat and ask there. Existing sessions often keep the old server list and will not see tools from a server added after the chat started.
+
+On some Cursor versions, editing <Badge text="mcp.json" variant="path" /> alone is not enough. If the file looks valid but <Badge text="openquok" variant="default" /> is missing or stuck, fully quit Cursor and reopen the project, then repeat the steps above.
 
 ### Verify the connection
 
@@ -95,6 +101,14 @@ Replace <Badge text="https://api.openquok.com" variant="new" /> with your <Badge
 
 <Callout type="warning" title="Server not listed">
 <p>Confirm <Badge text=".cursor/mcp.json" variant="path" /> is at the workspace root Cursor opened — not a parent folder. Merge multiple servers under one <Badge text="mcpServers" variant="param" /> object; duplicate top-level keys overwrite earlier entries.</p>
+</Callout>
+
+<Callout type="warning" title="Config valid, but tools missing in chat">
+<p><Badge text=".cursor/mcp.json" variant="path" /> can be correct while the current chat still has no OpenQuok tools. After a full quit and reopen:</p>
+<ul>
+<li>Open <strong>Customize → MCPs</strong> and confirm <Badge text="openquok" variant="default" /> is connected (not error or disabled).</li>
+<li>Start a <strong>new</strong> agent chat and ask again — existing sessions often keep the old server list.</li>
+</ul>
 </Callout>
 
 <Callout type="note" title="Auth failures">

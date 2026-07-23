@@ -19,6 +19,7 @@
 		LANDING_HERO_HOURS_ROTATE_TEXTS,
 		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
 
 	type Props = {
 		heroTitle?: string;
@@ -261,6 +262,25 @@
 					{:else}
 						{heroSlogan}
 					{/if}
+					<span class="ms-1 inline-flex items-center gap-1.5 align-middle">
+						<span>with human support by</span>
+						<img
+							src="https://unavatar.io/x/RATi_MOn"
+							alt="Rati"
+							width="20"
+							height="20"
+							class="size-5 shrink-0 rounded-full"
+							loading="lazy"
+							decoding="async"
+						/>
+						<ExternalLink
+							href="https://x.com/RATi_MOn"
+							class="font-semibold text-base-content/80 hover:underline"
+							ariaLabel="RATi_MOn on X"
+						>
+							@RATi_MOn
+						</ExternalLink>
+					</span>
 				</p>
 
 				<div class="mt-8">
