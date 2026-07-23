@@ -226,21 +226,28 @@ export class WorkspaceSettingsPresenter {
 		}
 	}
 
-	public async createWorkspace(defaultName = 'My Workspace'): Promise<{ success: boolean; message: string }> {
+	public async createWorkspace(
+		defaultName = 'My Workspace',
+		options?: { silent?: boolean }
+	): Promise<{ success: boolean; message: string }> {
 		this.status = WorkspaceSettingsStatus.CREATING;
 		try {
 			const createdPm = await this.settingsRepository.createOrganization({ name: defaultName });
 			if (!createdPm) {
 				const msg = 'Failed to create workspace. Please try again.';
-				this.toastMessage = msg;
-				this.toastIsError = true;
-				this.showToastMessage = true;
+				if (!options?.silent) {
+					this.toastMessage = msg;
+					this.toastIsError = true;
+					this.showToastMessage = true;
+				}
 				return { success: false, message: msg };
 			}
-			await this.load();
-			this.toastMessage = 'Workspace created.';
-			this.toastIsError = false;
-			this.showToastMessage = true;
+			await this.load({ includeTeam: false });
+			if (!options?.silent) {
+				this.toastMessage = 'Workspace created.';
+				this.toastIsError = false;
+				this.showToastMessage = true;
+			}
 			return { success: true, message: 'Workspace created.' };
 		} finally {
 			this.status = WorkspaceSettingsStatus.IDLE;

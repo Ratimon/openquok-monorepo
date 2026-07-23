@@ -310,11 +310,15 @@ export class StripeService {
         options?: { allowAutoCreate?: boolean }
     ): Promise<string> {
         const fromClient = stripePriceIdFromClient?.trim();
+        const configured = configuredStripePriceId(this.stripePriceIds(), tier, period);
         if (fromClient) {
+            // Same id as backend env — skip Stripe prices.retrieve (anti-tamper already satisfied).
+            if (configured && configured === fromClient) {
+                return fromClient;
+            }
             await this.assertPriceMatchesPlan(fromClient, tier, period);
             return fromClient;
         }
-        const configured = configuredStripePriceId(this.stripePriceIds(), tier, period);
         if (configured) {
             return configured;
         }
@@ -921,13 +925,16 @@ export class StripeService {
         body: BillingSubscribeBody;
         allowTrial: boolean;
     }): Promise<{ clientSecret?: string }> {
-        const customer = await this.createOrGetCustomer(params.organizationId);
+        // Customer lookup and price assert are independent Stripe round-trips — overlap them.
+        const [customer, priceId] = await Promise.all([
+            this.createOrGetCustomer(params.organizationId),
+            this.resolvePriceId(
+                params.body.billing,
+                params.body.period,
+                params.body.stripePriceId
+            ),
+        ]);
         const uniqueId = makeId(12);
-        const priceId = await this.resolvePriceId(
-            params.body.billing,
-            params.body.period,
-            params.body.stripePriceId
-        );
         const frontend = this.frontendUrl();
         if (!frontend) {
             throw new UserValidationError(

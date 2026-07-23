@@ -9,7 +9,7 @@
 	import FirstBilling from '$lib/ui/components/billing/FirstBilling.svelte';
 	import PostsLimitProvider from '$lib/ui/components/posts/PostsLimitProvider.svelte';
 	import { protectedBillingPagePresenter } from '$lib/area-protected';
-	import { firstBillingGatePresenter, ownedAccountBillingPresenter } from '$lib/billing';
+	import { firstBillingGatePresenter, ownedAccountBillingPresenter, preloadStripe } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { authenticationRepository } from '$lib/user-auth/index';
 
@@ -33,6 +33,15 @@
 		Boolean(checkoutId) &&
 			firstBillingGatePresenter.checkoutReturnInFlightFor === checkoutId
 	);
+	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+
+	/** Hold the shell until billing gate is known — avoids flashing the free dashboard. */
+	const gatePending = $derived(
+		!isPlatformAdmin &&
+			!checkoutBypass &&
+			!checkoutReturnInFlight &&
+			!firstBillingGatePresenter.hasResolvedGate(currentWorkspaceId)
+	);
 
 	const showFirstBilling = $derived(
 		!isPlatformAdmin &&
@@ -43,8 +52,13 @@
 
 	$effect(() => {
 		workspaceSettingsPresenter.currentWorkspaceId;
-		// Non-blocking: show the app shell immediately; overlay FirstBilling only when needed.
-		void firstBillingGatePresenter.evaluate({ blocking: false });
+		void firstBillingGatePresenter.evaluate();
+	});
+
+	$effect(() => {
+		if (!browser || (!showFirstBilling && !gatePending)) return;
+		// Begin Stripe.js while the gate resolves / FirstBilling mounts.
+		void preloadStripe();
 	});
 
 	$effect(() => {
@@ -55,7 +69,7 @@
 			try {
 				const result =
 					await protectedBillingPagePresenter.completeHostedCheckoutReturn(checkoutId);
-				await firstBillingGatePresenter.evaluate({ blocking: true, force: true });
+				await firstBillingGatePresenter.evaluate({ force: true });
 				void ownedAccountBillingPresenter.load();
 				const subscriptionReady = !firstBillingGatePresenter.restrictFreeUser;
 				if (result !== 'pending_confirmation' && subscriptionReady) {
@@ -70,7 +84,11 @@
 
 <SetPostingScheduleTimezone />
 
-{#if showFirstBilling}
+{#if gatePending}
+	<div class="flex min-h-screen items-center justify-center bg-base-200">
+		<span class="loading loading-spinner loading-lg text-primary"></span>
+	</div>
+{:else if showFirstBilling}
 	<FirstBilling {companyName} />
 {:else}
 	<PostsLimitProvider>

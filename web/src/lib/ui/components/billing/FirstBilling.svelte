@@ -8,6 +8,7 @@
 	import {
 		billingPresenter,
 		firstBillingGatePresenter,
+		preloadStripe,
 		tierDisplayName
 	} from '$lib/billing';
 	import { icons } from '$data/icons';
@@ -59,9 +60,30 @@
 	);
 	const workspaceReady = $derived(
 		Boolean(organizationId) &&
-			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.LOADING
+			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.LOADING &&
+			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.CREATING
 	);
-	const awaitingWorkspace = $derived(!workspaceReady);
+	const awaitingWorkspace = $derived(
+		!organizationId &&
+			(workspaceSettingsPresenter.status === WorkspaceSettingsStatus.LOADING ||
+				workspaceSettingsPresenter.status === WorkspaceSettingsStatus.CREATING)
+	);
+	const missingWorkspace = $derived(
+		!organizationId &&
+			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.LOADING &&
+			workspaceSettingsPresenter.status !== WorkspaceSettingsStatus.CREATING
+	);
+	/** Keep the payment shell mounted while the session secret is in flight. */
+	const showPaymentShell = $derived(workspaceReady && (!checkoutLoadFailed || Boolean(checkoutSecret)));
+
+	async function ensureWorkspaceAndCheckout(): Promise<void> {
+		if (!organizationId) {
+			await workspaceSettingsPresenter.createWorkspace('My Organization', { silent: true });
+			void firstBillingGatePresenter.evaluate({ force: true });
+			return;
+		}
+		void refreshCheckoutSecret();
+	}
 
 	async function refreshCheckoutSecret(): Promise<void> {
 		if (!workspaceReady || !selectedTier) {
@@ -146,6 +168,8 @@
 
 	onMount(() => {
 		ensureDefaultTheme('forest');
+		// Overlap Stripe.js download with POST /billing/embedded (previously sequential).
+		void preloadStripe();
 		if (headerWorkspaces.length === 0) {
 			void workspaceSettingsPresenter.load({ includeTeam: false });
 		}
@@ -202,11 +226,24 @@
 				<FirstBillingHero {allowTrial} />
 			</div>
 
-			{#if awaitingWorkspace || (checkoutLoading && !checkoutSecret)}
+			{#if awaitingWorkspace}
 				<div class="flex flex-1 items-center justify-center py-16">
 					<span class="loading loading-spinner loading-lg text-primary"></span>
 				</div>
-			{:else if checkoutLoadFailed || !checkoutSecret}
+			{:else if missingWorkspace}
+				<div
+					class="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
+					role="alert"
+				>
+					<p class="text-base text-base-content/80">
+						Your account does not have a workspace yet, so checkout cannot start. Create one to
+						continue.
+					</p>
+					<Button variant="primary" onclick={() => void ensureWorkspaceAndCheckout()}>
+						Create workspace
+					</Button>
+				</div>
+			{:else if !showPaymentShell}
 				<div
 					class="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center"
 					role="alert"
@@ -224,9 +261,9 @@
 					<FirstBillingPaymentLead {companyName} />
 				</div>
 				<EmbeddedBilling
-					clientSecret={checkoutSecret}
+					clientSecret={checkoutSecret ?? ''}
 					showCoupon={period === 'MONTHLY'}
-					checkoutUpdating={checkoutLoading}
+					checkoutUpdating={checkoutLoading || !checkoutSecret}
 				/>
 			{/if}
 		</section>

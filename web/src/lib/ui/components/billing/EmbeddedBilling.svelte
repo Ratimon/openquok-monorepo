@@ -7,7 +7,6 @@
 	} from '@stripe/stripe-js';
 
 	import dayjs from 'dayjs';
-	import { loadStripe } from '@stripe/stripe-js';
 	import { onDestroy, onMount, tick } from 'svelte';
 
 	import { icons } from '$data/icons';
@@ -16,14 +15,15 @@
 		embeddedCheckoutAppearance,
 		isDarkCheckoutTheme
 	} from '$lib/billing/stripe/embeddedCheckoutAppearance';
+	import { preloadStripe } from '$lib/billing';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	
 
 	type Props = {
+		/** Empty while the parent is still creating the Checkout session. */
 		clientSecret: string;
 		showCoupon?: boolean;
 		checkoutUpdating?: boolean;
@@ -196,7 +196,8 @@
 			toast.error('Stripe publishable key is not configured.');
 			return;
 		}
-		stripe = await loadStripe(STRIPE_PUBLISHABLE_KEY);
+		// Reuses any in-flight preload started by FirstBilling / protected layout.
+		stripe = await preloadStripe();
 	});
 
 	onDestroy(() => {
@@ -214,7 +215,7 @@
 				</div>
 			{/if}
 			<div bind:this={paymentMountEl} class="min-h-[220px]"></div>
-			{#if (!paymentReady || checkoutUpdating) && !mountError && clientSecret}
+			{#if (!paymentReady || checkoutUpdating || !clientSecret) && !mountError}
 				<div
 					class="absolute inset-0 flex items-center justify-center rounded-lg bg-base-100/80 backdrop-blur-[1px]"
 				>

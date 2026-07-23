@@ -348,6 +348,42 @@ describe("OrganizationService", () => {
         // });
     });
 
+    describe("ensureDefaultOrganizationForUser", () => {
+        it("returns existing org without creating another", async () => {
+            (orgRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [orgRow],
+                memberships: [{ organizationId: orgId, role: "owner", disabled: false }],
+                error: null,
+            });
+            (orgRepo.getMemberCounts as jest.Mock).mockResolvedValue({ [orgId]: 1 });
+            const service = new OrganizationService(orgRepo, userRepo);
+            const result = await service.ensureDefaultOrganizationForUser(authUserId, { name: orgName });
+            expect(result).toEqual(orgRow);
+            expect(orgRepo.createOrganization).not.toHaveBeenCalled();
+        });
+
+        it("creates a default org when the user has none", async () => {
+            (orgRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [],
+                memberships: [],
+                error: null,
+            });
+            (orgRepo.getMemberCounts as jest.Mock).mockResolvedValue({});
+            (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            const result = await service.ensureDefaultOrganizationForUser(authUserId, { name: orgName });
+            expect(result).toEqual(orgRow);
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: orgName,
+                description: null,
+                userId,
+            });
+        });
+    });
+
     describe("updateOrganization", () => {
         it("updates when user is admin", async () => {
             (orgRepo.findMembership as jest.Mock).mockResolvedValue({

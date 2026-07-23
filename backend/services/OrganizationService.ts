@@ -383,6 +383,31 @@ export class OrganizationService {
         }
     }
 
+    /**
+     * Ensure the user has at least one workspace (idempotent).
+     * Google OAuth historically skipped default-org creation; call this on OAuth callback
+     * and any other auth path that may land a user with zero memberships.
+     */
+    async ensureDefaultOrganizationForUser(
+        authUserId: string,
+        params?: { name?: string; email?: string }
+    ): Promise<OrganizationLike | null> {
+        try {
+            const { organizations } = await this.listMyOrganizations(authUserId);
+            if (organizations.length > 0) {
+                return organizations[0] ?? null;
+            }
+            return await this.createDefaultOrganizationForNewUser(authUserId, params);
+        } catch (err) {
+            logger.warn({
+                msg: "ensureDefaultOrganizationForUser failed",
+                authUserId,
+                error: err instanceof Error ? err.message : String(err),
+            });
+            return null;
+        }
+    }
+
     /** Update organization; requires admin or owner. Returns row; controller maps to DTO. */
     async updateOrganization(
         authUserId: string,

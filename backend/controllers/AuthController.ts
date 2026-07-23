@@ -128,7 +128,7 @@ export class AuthController {
             httpOnly: true,
             secure: isProduction,
             sameSite: this.getSameSiteValue(),
-            maxAge: 7 * 24 * 60 * 60 * 1000, //7 days
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
             path: "/",
             ...(domain ? { domain } : {}),
         });
@@ -286,6 +286,22 @@ export class AuthController {
                     msg: "Failed to mark OAuth user email verified in public.users",
                     userId: authUser.id,
                     error: oauthVerifyErr,
+                });
+            }
+
+            // Password signup creates a default workspace; OAuth must do the same or /account
+            // first-billing spins forever waiting for organizationId.
+            const defaultOrg = await this.organizationService.ensureDefaultOrganizationForUser(
+                authUser.id,
+                {
+                    name: fullName || "My Organization",
+                    email,
+                }
+            );
+            if (!defaultOrg) {
+                logger.warn({
+                    msg: "Default organization creation failed at Google OAuth",
+                    userId: authUser.id,
                 });
             }
 

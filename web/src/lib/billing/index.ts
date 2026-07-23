@@ -70,6 +70,7 @@ export {
 	type ListBillingPlansProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 export { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';
+export { preloadStripe, ensureStripePreconnect } from '$lib/billing/stripe/loadStripeClient';
 export {
 	teamMemberDowngradeWarning,
 	wouldRemoveTeamMembers,
