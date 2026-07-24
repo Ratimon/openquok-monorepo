@@ -35,7 +35,7 @@
 
 	let {
 		children,
-		companyName = 'Openquok',
+		companyName = 'OPENQUOK',
 		workspaces = [],
 		currentWorkspaceId = null,
 		workspacesLoading = false,

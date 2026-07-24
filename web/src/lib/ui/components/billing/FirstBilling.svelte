@@ -34,7 +34,7 @@
 		companyName?: string;
 	};
 
-	let { companyName = 'Openquok' }: Props = $props();
+	let { companyName = 'OPENQUOK' }: Props = $props();
 
 	let period = $state<SubscriptionPeriod>('MONTHLY');
 	let selectedTier = $state<PaidSubscriptionTier>('ULTIMATE');

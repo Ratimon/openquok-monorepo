@@ -3,7 +3,7 @@
 		companyName?: string;
 	};
 
-	let { companyName = 'Openquok' }: Props = $props();
+	let { companyName = 'OPENQUOK' }: Props = $props();
 </script>
 
 <h2 class="text-balance text-3xl font-semibold leading-tight md:text-4xl lg:text-[2.75rem] lg:leading-[1.1]">

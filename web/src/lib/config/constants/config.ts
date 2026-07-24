@@ -47,8 +47,8 @@ const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 
-const appName = 'openquok';
-const appTitle = 'Openquok | Agentic Social Media Scheduler';
+const appName = 'OPENQUOK';
+const appTitle = 'OPENQUOK | Agentic Social Media Scheduler';
 const appDescription =
 	'OpenQuok is a social media scheduler to plan, draft, and schedule social media posts across every channel. Calendar, kanban review, and AI agents — start with a 7-day free trial.';
 const appKeywords =
@@ -106,7 +106,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 		inputType: 'input'
 	},
 	LEGAL_NAME: {
-		description: "Company's legal name (if different from trading name).",
+		description: "Company's legal name (all-caps brand: OPENQUOK).",
 		type: 'string',
 		default: appName,
 		inputType: 'input',

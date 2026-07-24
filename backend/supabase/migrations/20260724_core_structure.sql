@@ -6476,12 +6476,12 @@ BEGIN;
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('company_information', '{
-  "NAME": "Openquok",
-  "LEGAL_NAME": "Openquok",
+  "NAME": "OPENQUOK",
+  "LEGAL_NAME": "OPENQUOK",
   "VAT_ID": "",
   "COMPANY_ADDRESS": "",
   "URL": "https://www.openquok.com/",
-  "SUPPORT_EMAIL": "support@openquok.com",
+  "SUPPORT_EMAIL": "admin@openquok.com",
   "SUPPORT_PHONE": "",
   "FOUNDING_YEAR": "",
   "RESPONSIBLE_PERSON": ""
@@ -6494,9 +6494,9 @@ ON CONFLICT (module_name) DO NOTHING;
 
 INSERT INTO public.module_configs (module_name, config) VALUES
 ('marketing_information', '{
-  "META_TITLE": "Openquok | Agentic Social Media Scheduler",
+  "META_TITLE": "OPENQUOK | Agentic Social Media Scheduler",
   "META_DESCRIPTION": "Draft, review, and schedule social posts from AI agents across platforms and workspaces—stay in control of what goes live.",
-  "META_KEYWORDS": "social media scheduler, AI content, content scheduling, social media management, multi-platform posting, content approval, agentic AI, Openquok",
+  "META_KEYWORDS": "social media scheduler, AI content, content scheduling, social media management, multi-platform posting, content approval, agentic AI, OPENQUOK",
   "SOCIAL_LINKS_X": "",
   "SOCIAL_LINKS_FACEBOOK": "",
   "SOCIAL_LINKS_INSTAGRAM": "",

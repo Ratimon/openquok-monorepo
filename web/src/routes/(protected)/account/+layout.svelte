@@ -42,7 +42,7 @@
 	let { children, data }: AccountLayoutProps = $props();
 
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
-	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
+	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
 
 	// /account 
 	const rootPathAccount = getRootPathAccount();

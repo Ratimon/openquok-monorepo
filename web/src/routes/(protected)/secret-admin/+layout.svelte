@@ -70,7 +70,7 @@
 
 	let { children, data }: Props = $props();
 	const currentUser = $derived((data as App.LayoutData)?.currentUser ?? null);
-	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'Openquok');
+	const companyNameVm = $derived((data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
 
 	const secretAdminLinks: SidebarLinkItem[] = [
 		{ label: 'Admin Dashboard', href: secretAdminAreaHref, iconName: icons.Gauge.name },

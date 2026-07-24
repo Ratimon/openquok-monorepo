@@ -11,7 +11,7 @@
 		CardFooter
 	} from '$lib/ui/card';
 
-	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'Openquok');
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
 	let prefilledCode = $derived(page.form?.userCode ?? page.data.prefilledCode ?? '');
 	let errorMessage = $derived(page.form?.error ?? null);
 	let codeInput = $state<HTMLInputElement | null>(null);

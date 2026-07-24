@@ -89,6 +89,15 @@ const adminRoleManagerPagePresenter = new AdminRoleManagerPagePresenter(
 
 const adminEmailManagerPagePresenter = new AdminEmailManagerPagePresenter(getEmailPresenter, emailRepository);
 
+const companyInformationFormPresenter = new ModuleConfigRendererPresenter(
+	configRepository,
+	'company_information'
+);
+const marketingInformationFormPresenter = new ModuleConfigRendererPresenter(
+	configRepository,
+	'marketing_information'
+);
+const landingPageFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'landing_page');
 const publicFaqFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'public_faq');
 const blogInformationFormPresenter = new ModuleConfigRendererPresenter(configRepository, 'blog');
 
@@ -113,6 +122,9 @@ export {
 	adminListingTagsManagerPagePresenter,
 	adminListingCommentsManagerPagePresenter,
 	adminListingActivitiesManagerPagePresenter,
+	companyInformationFormPresenter,
+	marketingInformationFormPresenter,
+	landingPageFormPresenter,
 	publicFaqFormPresenter,
 	blogInformationFormPresenter
 };
