@@ -9,6 +9,11 @@ export type CreateLandingDemoSEOSchemaParams = {
 	description: string;
 	/** Page URL where the demo section is rendered (typically landing canonical). */
 	pageUrl: string;
+	/**
+	 * ISO 8601 date (or date-time) the video was first published.
+	 * Required by Google for VideoObject rich results.
+	 */
+	uploadDate: string;
 };
 
 /**
@@ -18,9 +23,10 @@ export type CreateLandingDemoSEOSchemaParams = {
 export function createLandingDemoSEOSchema(
 	params: CreateLandingDemoSEOSchemaParams
 ): VideoObject | Record<string, never> {
-	const { youtubeVideoId, name, description, pageUrl } = params;
+	const { youtubeVideoId, name, description, pageUrl, uploadDate } = params;
 	const videoId = youtubeVideoId.trim();
-	if (!videoId) {
+	const published = uploadDate.trim();
+	if (!videoId || !published) {
 		return {};
 	}
 
@@ -32,6 +38,7 @@ export function createLandingDemoSEOSchema(
 		name,
 		description,
 		thumbnailUrl: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+		uploadDate: published,
 		contentUrl: `https://www.youtube.com/watch?v=${videoId}`,
 		embedUrl: `https://www.youtube.com/embed/${videoId}`
 	};

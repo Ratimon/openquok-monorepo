@@ -31820,6 +31820,806 @@ init_controllers();
 
 // middlewares/generateSitemap.ts
 init_Logger();
+
+// static/routes-manifest.json
+var routes_manifest_default = {
+  generated: "2026-07-24T10:51:17.766Z",
+  routes: [
+    {
+      path: "/docs",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/cookie-policy",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/privacy-policy",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/terms",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/about",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/agents",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/alternatives",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/blog",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/blog/author",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/blog/topic",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/building-blocks",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/building-blocks/categories",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/building-blocks/tags",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/channels",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/compare",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/creators",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/playbooks",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/playbooks/categories",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/playbooks/tags",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/pricing",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/roadmap",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/tools",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/tools/photo-editor",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/tools/skill-builder",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/agents/hermes",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/openclaw",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/amp",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/antigravity-cli",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/claude-code",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/claude-cowork",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/codex",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/cursor",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/devin-desktop",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/vscode-copilot",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/warp",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/linkedin",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/tiktok",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/x",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/youtube",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/compare/buffer/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/alternatives/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/agents/hermes/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/openclaw/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/antigravity-cli/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-code/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/codex/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/devin-desktop/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/warp/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/tools/photo-editor/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/photo-editor/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/photo-editor/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/photo-editor/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    }
+  ]};
+
+// middlewares/generateSitemap.ts
 var EXCLUDED_PATHS = ["/robots.txt", "/sitemap.xml"];
 var CUSTOM_CHANGEFREQ = {
   "/blog": "daily"
@@ -32021,25 +32821,39 @@ function readFolderStructure(dirPath, previousFolder = "") {
   }
   return urls;
 }
+function sitemapUrlsFromManifest(manifest, source) {
+  logger.info({
+    msg: "Loaded routes from manifest",
+    source,
+    routeCount: manifest.routes.length,
+    generated: manifest.generated
+  });
+  return manifest.routes.map((route) => ({
+    url: route.path,
+    lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+    changeFreq: route.changeFreq || "monthly"
+  }));
+}
 function loadRoutesFromManifest(manifestPath) {
-  try {
-    const manifestData = fs2__default.default.readFileSync(manifestPath, "utf-8");
-    const manifest = JSON.parse(manifestData);
-    logger.info({
-      msg: "Loaded routes from manifest",
-      manifestPath,
-      routeCount: manifest.routes.length,
-      generated: manifest.generated
+  if (manifestPath && fs2__default.default.existsSync(manifestPath)) {
+    try {
+      const manifestData = fs2__default.default.readFileSync(manifestPath, "utf-8");
+      const manifest = JSON.parse(manifestData);
+      return sitemapUrlsFromManifest(manifest, manifestPath);
+    } catch (error) {
+      logger.error({
+        msg: "Error loading routes manifest from disk; falling back to bundled copy",
+        error,
+        manifestPath
+      });
+    }
+  } else if (manifestPath) {
+    logger.warn({
+      msg: "Routes manifest path missing on disk; using bundled copy",
+      manifestPath
     });
-    return manifest.routes.map((route) => ({
-      url: route.path,
-      lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-      changeFreq: route.changeFreq || "monthly"
-    }));
-  } catch (error) {
-    logger.error({ msg: "Error loading routes manifest", error, manifestPath });
-    return [];
   }
+  return sitemapUrlsFromManifest(routes_manifest_default, "bundled");
 }
 function escapeXml(s) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
@@ -32183,8 +32997,11 @@ async function generateSitemapUrls(options2) {
     lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
     changeFreq: "weekly"
   });
-  if (routesManifestPath && fs2__default.default.existsSync(routesManifestPath)) {
-    logger.info({ msg: "Using routes manifest for static pages", path: routesManifestPath });
+  if (routesManifestPath) {
+    logger.info({
+      msg: "Using routes manifest for static and programmatic pages",
+      path: routesManifestPath
+    });
     const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter(
       (entry) => isIndexableManifestPath(entry.url)
     );
@@ -32198,10 +33015,14 @@ async function generateSitemapUrls(options2) {
     }
   } else {
     logger.warn({
-      msg: "No routes source available for static pages",
+      msg: "No routesPath; using bundled routes manifest for static and programmatic pages",
       manifestPath: routesManifestPath,
       routesPath
     });
+    const manifestUrls = loadRoutesFromManifest().filter(
+      (entry) => isIndexableManifestPath(entry.url)
+    );
+    urls.push(...manifestUrls);
   }
   try {
     const posts = await fetchPublishedPostSlugs(supabaseClient);

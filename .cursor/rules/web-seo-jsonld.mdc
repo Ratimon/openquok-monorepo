@@ -147,7 +147,8 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 
 ### VideoObject (`createLandingDemoSEOSchema`)
 
-- Landing demo from SSR `landing_page` config. Filter when `youtubeVideoId` is empty.
+- Landing demo from SSR `landing_page` config. Filter when `youtubeVideoId` or `uploadDate` is empty.
+- Include `uploadDate` (ISO 8601) — required by Google for VideoObject rich results (`DEMO_YOUTUBE_UPLOAD_DATE`).
 - `HeroDemo`: crawlable thumbnail, YouTube link, `id="landing-demo"`.
 
 ### Organization (`createOrganizationSEOSchema`)

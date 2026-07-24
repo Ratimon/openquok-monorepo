@@ -142,7 +142,8 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 				youtubeVideoId: landingPageConfigVm.DEMO_YOUTUBE_VIDEO_ID,
 				name: landingPageConfigVm.DEMO_TITLE,
 				description: landingPageConfigVm.DEMO_DESCRIPTION,
-				pageUrl: canonical
+				pageUrl: canonical,
+				uploadDate: landingPageConfigVm.DEMO_YOUTUBE_UPLOAD_DATE
 			})
 		])
 	);

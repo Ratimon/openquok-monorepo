@@ -335,6 +335,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		inputType: 'input',
 		maxInputLength: 20
 	},
+	DEMO_YOUTUBE_UPLOAD_DATE: {
+		description:
+			'ISO 8601 upload/publish date for the demo video (JSON-LD VideoObject.uploadDate; required for Google rich results)',
+		type: 'string',
+		default: '2026-06-02T17:25:12-07:00',
+		inputType: 'input',
+		maxInputLength: 40
+	},
 	DEMO_THUMBNAIL_ALT: {
 		description: 'Alt text for the demo video thumbnail image',
 		type: 'string',

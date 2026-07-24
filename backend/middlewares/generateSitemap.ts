@@ -4,6 +4,8 @@ import path from "path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../utils/Logger";
 
+import bundledRoutesManifest from "../static/routes-manifest.json";
+
 export interface GenerateSitemapOptions {
     supabaseClient: SupabaseClient;
     baseURL: string;
@@ -320,27 +322,47 @@ function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[]
     return urls;
 }
 
-function loadRoutesFromManifest(manifestPath: string): SitemapUrl[] {
-    try {
-        const manifestData = fs.readFileSync(manifestPath, "utf-8");
-        const manifest: RouteManifest = JSON.parse(manifestData);
+function sitemapUrlsFromManifest(manifest: RouteManifest, source: string): SitemapUrl[] {
+    logger.info({
+        msg: "Loaded routes from manifest",
+        source,
+        routeCount: manifest.routes.length,
+        generated: manifest.generated,
+    });
 
-        logger.info({
-            msg: "Loaded routes from manifest",
+    return manifest.routes.map((route) => ({
+        url: route.path,
+        lastMod: new Date().toISOString().slice(0, 10),
+        changeFreq: route.changeFreq || "monthly",
+    }));
+}
+
+/**
+ * Prefer the on-disk manifest (Docker / local refresh), then the JSON bundled into the
+ * serverless build. Vercel only ships the tsup `api/*.js` output — `static/` is not on disk
+ * at runtime, so without the bundled fallback hubs like `/alternatives` never enter the sitemap.
+ */
+function loadRoutesFromManifest(manifestPath?: string): SitemapUrl[] {
+    if (manifestPath && fs.existsSync(manifestPath)) {
+        try {
+            const manifestData = fs.readFileSync(manifestPath, "utf-8");
+            const manifest = JSON.parse(manifestData) as RouteManifest;
+            return sitemapUrlsFromManifest(manifest, manifestPath);
+        } catch (error) {
+            logger.error({
+                msg: "Error loading routes manifest from disk; falling back to bundled copy",
+                error,
+                manifestPath,
+            });
+        }
+    } else if (manifestPath) {
+        logger.warn({
+            msg: "Routes manifest path missing on disk; using bundled copy",
             manifestPath,
-            routeCount: manifest.routes.length,
-            generated: manifest.generated,
         });
-
-        return manifest.routes.map((route) => ({
-            url: route.path,
-            lastMod: new Date().toISOString().slice(0, 10),
-            changeFreq: route.changeFreq || "monthly",
-        }));
-    } catch (error) {
-        logger.error({ msg: "Error loading routes manifest", error, manifestPath });
-        return [];
     }
+
+    return sitemapUrlsFromManifest(bundledRoutesManifest as RouteManifest, "bundled");
 }
 
 function escapeXml(s: string): string {
@@ -537,8 +559,11 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         changeFreq: "weekly",
     });
 
-    if (routesManifestPath && fs.existsSync(routesManifestPath)) {
-        logger.info({ msg: "Using routes manifest for static pages", path: routesManifestPath });
+    if (routesManifestPath) {
+        logger.info({
+            msg: "Using routes manifest for static and programmatic pages",
+            path: routesManifestPath,
+        });
         const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter((entry) =>
             isIndexableManifestPath(entry.url),
         );
@@ -552,10 +577,14 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         }
     } else {
         logger.warn({
-            msg: "No routes source available for static pages",
+            msg: "No routesPath; using bundled routes manifest for static and programmatic pages",
             manifestPath: routesManifestPath,
             routesPath,
         });
+        const manifestUrls = loadRoutesFromManifest().filter((entry) =>
+            isIndexableManifestPath(entry.url),
+        );
+        urls.push(...manifestUrls);
     }
 
     try {

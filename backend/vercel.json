@@ -7,6 +7,14 @@
 	"outputDirectory": "public",
 	"installCommand": "cd .. && pnpm install --frozen-lockfile",
 	"buildCommand": "pnpm run build:vercel",
+	"functions": {
+		"api/index.js": {
+			"includeFiles": "static/routes-manifest.json"
+		},
+		"api/[[...path]].js": {
+			"includeFiles": "static/routes-manifest.json"
+		}
+	},
 	"rewrites": [
 		{
 			"source": "/(.*)",

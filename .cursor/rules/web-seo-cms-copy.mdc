@@ -42,7 +42,7 @@ Default `items` is `PUBLIC_FAQ_ITEMS`; override only when a route renders a diff
 
 - FAQ JSON-LD (`createPublicFaqSEOSchema`) must use the **same** question/answer text as the visible accordion.
 - Landing hero title/description from config feed both `createMetaData` and JSON-LD (`WebSite`, `Organization`).
-- Demo section: `createLandingDemoSEOSchema` reads `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_TITLE`, `DEMO_DESCRIPTION` from SSR `landing_page` config.
+- Demo section: `createLandingDemoSEOSchema` reads `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_YOUTUBE_UPLOAD_DATE`, `DEMO_TITLE`, `DEMO_DESCRIPTION` from SSR `landing_page` config.
 
 ## Related rules
 

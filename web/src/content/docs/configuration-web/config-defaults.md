@@ -62,7 +62,7 @@ When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web
 - **Common changes**:
   - **Hero title / slogan** (`HERO_TITLE`, `HERO_SLOGAN`)
   - **Top banner toggle** (`ACTIVE_TOP_BANNER`)
-  - **Product demo video** (`DEMO_SUBTITLE`, `DEMO_TITLE`, `DEMO_DESCRIPTION`, `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_THUMBNAIL_ALT`)
+  - **Product demo video** (`DEMO_SUBTITLE`, `DEMO_TITLE`, `DEMO_DESCRIPTION`, `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_YOUTUBE_UPLOAD_DATE`, `DEMO_THUMBNAIL_ALT`)
   - **Secondary feature sections** (`FEATURE_1_*` … `FEATURE_7_*` — subtitle, title, description per block)
   - **Landing FAQ section** (`FAQ_SUBTITLE`, `FAQ_TITLE`, `FAQ_DESCRIPTION` on the home page)
 - **Public FAQ section** (`CONFIG_SCHEMA_PUBLIC_FAQ` — `SUBTITLE`, `TITLE`, `DESCRIPTION`, `ITEMS` on `/` and `/pricing#faq`; `ITEMS` uses the admin FAQ editor)
