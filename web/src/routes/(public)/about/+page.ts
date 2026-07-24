@@ -9,6 +9,8 @@ export async function load({ parent, data }) {
 			companyName: string;
 			companyUrl: string;
 			supportEmail: string;
+			supportPhone: string;
+			companyAddress: string;
 			responsiblePerson: string;
 			pageMetaTags: MetaTagsProps;
 			schemaData: unknown;
@@ -24,6 +26,8 @@ export async function load({ parent, data }) {
 			companyName: serverData.companyName,
 			companyUrl: serverData.companyUrl,
 			supportEmail: serverData.supportEmail,
+			supportPhone: serverData.supportPhone,
+			companyAddress: serverData.companyAddress,
 			responsiblePerson: serverData.responsiblePerson
 		};
 	}

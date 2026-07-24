@@ -28,6 +28,24 @@
 	let companyYearVm = $derived(
 		data.companyYearVm ?? page.data.companyYearVm ?? publicLayoutPagePresenter.companyYearVm
 	);
+	let companyAddressVm = $derived(
+		data.companyAddressVm ??
+			page.data.companyAddressVm ??
+			publicLayoutPagePresenter.companyAddressVm ??
+			''
+	);
+	let supportPhoneVm = $derived(
+		data.supportPhoneVm ??
+			page.data.supportPhoneVm ??
+			publicLayoutPagePresenter.supportPhoneVm ??
+			''
+	);
+	let supportEmailVm = $derived(
+		data.supportEmailVm ??
+			page.data.supportEmailVm ??
+			publicLayoutPagePresenter.supportEmailVm ??
+			''
+	);
 	let landingPageConfigVm = $derived(
 		data.landingPageConfigVm && Object.keys(data.landingPageConfigVm).length > 0
 			? data.landingPageConfigVm
@@ -49,6 +67,9 @@
 	{isLoggedIn}
 	{companyNameVm}
 	{companyYearVm}
+	{companyAddressVm}
+	{supportPhoneVm}
+	{supportEmailVm}
 	{navbarDesktopLinks}
 	{navbarMobileLinks}
 	{footerNavigationLinks}

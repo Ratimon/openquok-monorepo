@@ -23,6 +23,9 @@
 		footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
 		companyYearVm: string;
+		companyAddressVm?: string;
+		supportPhoneVm?: string;
+		supportEmailVm?: string;
 	}
 
 	let {
@@ -34,7 +37,10 @@
 		navbarMobileLinks: propNavbarMobileLinks,
 		footerNavigationLinks: propFooterNavigationLinks,
 		companyNameVm,
-		companyYearVm
+		companyYearVm,
+		companyAddressVm = '',
+		supportPhoneVm = '',
+		supportEmailVm = ''
 	}: Props = $props();
 
 	let navbarDesktopLinks = $derived(propNavbarDesktopLinks ?? PUBLIC_NAVBAR_LINKS);
@@ -58,5 +64,8 @@
 		{footerNavigationLinks}
 		{companyNameVm}
 		{companyYearVm}
+		{companyAddressVm}
+		{supportPhoneVm}
+		{supportEmailVm}
 	/>
 </section>

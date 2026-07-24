@@ -26,6 +26,24 @@
 	let companyYearVm = $derived(
 		data?.companyYearVm ?? page.data?.companyYearVm ?? publicLayoutPagePresenter.companyYearVm ?? new Date().getFullYear().toString()
 	);
+	let companyAddressVm = $derived(
+		data?.companyAddressVm ??
+			page.data?.companyAddressVm ??
+			publicLayoutPagePresenter.companyAddressVm ??
+			''
+	);
+	let supportPhoneVm = $derived(
+		data?.supportPhoneVm ??
+			page.data?.supportPhoneVm ??
+			publicLayoutPagePresenter.supportPhoneVm ??
+			''
+	);
+	let supportEmailVm = $derived(
+		data?.supportEmailVm ??
+			page.data?.supportEmailVm ??
+			publicLayoutPagePresenter.supportEmailVm ??
+			''
+	);
 </script>
 
 <PublicArea
@@ -35,6 +53,9 @@
 	{footerNavigationLinks}
 	companyNameVm={companyNameVm}
 	companyYearVm={companyYearVm}
+	companyAddressVm={companyAddressVm}
+	supportPhoneVm={supportPhoneVm}
+	supportEmailVm={supportEmailVm}
 >
 	<div class="min-h-full bg-base-200/50 py-8 md:py-10">
 		{@render children?.()}

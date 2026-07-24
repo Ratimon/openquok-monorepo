@@ -20,6 +20,10 @@ export async function load({ url, cookies, parent }) {
 	const companyUrl = companyInformationPm?.config?.URL ?? CONFIG_SCHEMA_COMPANY.URL.default;
 	const supportEmail =
 		companyInformationPm?.config?.SUPPORT_EMAIL ?? CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default;
+	const supportPhone =
+		companyInformationPm?.config?.SUPPORT_PHONE ?? CONFIG_SCHEMA_COMPANY.SUPPORT_PHONE.default;
+	const companyAddress =
+		companyInformationPm?.config?.COMPANY_ADDRESS ?? CONFIG_SCHEMA_COMPANY.COMPANY_ADDRESS.default;
 	const responsiblePerson =
 		companyInformationPm?.config?.RESPONSIBLE_PERSON ??
 		CONFIG_SCHEMA_COMPANY.RESPONSIBLE_PERSON.default;
@@ -41,6 +45,7 @@ export async function load({ url, cookies, parent }) {
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical);
 
 	const organizationId = organizationSchemaId(url.origin);
+	const trimmedPhone = String(supportPhone ?? '').trim();
 	const organization = createOrganizationSEOSchema({
 		name: companyName,
 		url: companyUrl,
@@ -52,6 +57,7 @@ export async function load({ url, cookies, parent }) {
 				'@type': 'ContactPoint',
 				contactType: 'customer support',
 				email: supportEmail,
+				...(trimmedPhone ? { telephone: trimmedPhone } : {}),
 				url: canonical
 			}
 		]
@@ -87,6 +93,8 @@ export async function load({ url, cookies, parent }) {
 		companyName,
 		companyUrl,
 		supportEmail,
+		supportPhone,
+		companyAddress,
 		responsiblePerson
 	};
 }

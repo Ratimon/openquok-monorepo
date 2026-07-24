@@ -19,8 +19,15 @@
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
-	let { isLoggedIn } = $derived(data);
+
+	let isLoggedIn = $derived(data.isLoggedIn);
 	let schemaData = $derived(data.schemaData);
+	let companyName = $derived(data.companyName || CONFIG_SCHEMA_COMPANY.NAME.default);
+	let supportEmail = $derived(
+		String(data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default)
+	);
+	let supportPhone = $derived(String(data.supportPhone || '').trim());
+	let companyAddress = $derived(String(data.companyAddress || '').trim());
 
 	let feedbackStatus = $derived(generalFeedbackPresenter.status);
 	let feedbackToastMessage = $derived(generalFeedbackPresenter.toastMessage);
@@ -46,7 +53,7 @@
 <section class="py-2 px-4 text-center">
 	<div class="max-w-auto md:max-w-lg mx-auto">
 		<p class="!text-2xl flex justify-center space-x-2 font-black my-8">
-			About {page.data.companyName || CONFIG_SCHEMA_COMPANY.NAME.default}
+			About {companyName}
 		</p>
 
 		<p class="!text-xl flex justify-center space-x-2 my-8">
@@ -58,16 +65,28 @@
 			<a class="underline" href={publicRoadmapPath}>roadmap</a>.
 		</p>
 
-		<p class="mt-6 text-secondary">
-			Contact us at
-			<a
-				class="underline"
-				href={'mailto:' + (page.data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default)}
-				target="_blank"
-				rel="noreferrer"
-				>{page.data.supportEmail || CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default}</a
-			>
-		</p>
+		<div class="mt-6 space-y-2 text-secondary">
+			<p>
+				Contact us at
+				<a
+					class="underline"
+					href={'mailto:' + supportEmail}
+					target="_blank"
+					rel="noreferrer"
+				>{supportEmail}</a>
+			</p>
+			{#if supportPhone}
+				<p>
+					Phone:
+					<a class="underline" href="tel:{supportPhone.replace(/\s+/g, '')}">{supportPhone}</a>
+				</p>
+			{/if}
+			{#if companyAddress}
+				<p class="whitespace-pre-line">
+					{companyAddress}
+				</p>
+			{/if}
+		</div>
 
 		<div class="mt-8 flex flex-col items-center gap-3">
 			<p class="text-secondary">Follow us</p>

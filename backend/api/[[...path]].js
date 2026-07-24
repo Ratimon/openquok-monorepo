@@ -2897,7 +2897,7 @@ var init_AuthController = __esm({
           secure: isProduction,
           sameSite: this.getSameSiteValue(),
           maxAge: 7 * 24 * 60 * 60 * 1e3,
-          //7 days
+          // 7 days
           path: "/",
           ...domain ? { domain } : {}
         });
@@ -3027,6 +3027,19 @@ var init_AuthController = __esm({
               msg: "Failed to mark OAuth user email verified in public.users",
               userId: authUser.id,
               error: oauthVerifyErr
+            });
+          }
+          const defaultOrg = await this.organizationService.ensureDefaultOrganizationForUser(
+            authUser.id,
+            {
+              name: fullName || "My Organization",
+              email
+            }
+          );
+          if (!defaultOrg) {
+            logger.warn({
+              msg: "Default organization creation failed at Google OAuth",
+              userId: authUser.id
             });
           }
           this.setRefreshTokenCookie(res, session.refresh_token);
@@ -11873,6 +11886,27 @@ var init_OrganizationService = __esm({
         } catch (err) {
           logger.warn({
             msg: "createDefaultOrganizationForNewUser failed",
+            authUserId,
+            error: err instanceof Error ? err.message : String(err)
+          });
+          return null;
+        }
+      }
+      /**
+       * Ensure the user has at least one workspace (idempotent).
+       * Google OAuth historically skipped default-org creation; call this on OAuth callback
+       * and any other auth path that may land a user with zero memberships.
+       */
+      async ensureDefaultOrganizationForUser(authUserId, params) {
+        try {
+          const { organizations } = await this.listMyOrganizations(authUserId);
+          if (organizations.length > 0) {
+            return organizations[0] ?? null;
+          }
+          return await this.createDefaultOrganizationForNewUser(authUserId, params);
+        } catch (err) {
+          logger.warn({
+            msg: "ensureDefaultOrganizationForUser failed",
             authUserId,
             error: err instanceof Error ? err.message : String(err)
           });
@@ -24236,11 +24270,14 @@ var init_StripeService = __esm({
        */
       async resolvePriceId(tier, period, stripePriceIdFromClient, options2) {
         const fromClient = stripePriceIdFromClient?.trim();
+        const configured = configuredStripePriceId(this.stripePriceIds(), tier, period);
         if (fromClient) {
+          if (configured && configured === fromClient) {
+            return fromClient;
+          }
           await this.assertPriceMatchesPlan(fromClient, tier, period);
           return fromClient;
         }
-        const configured = configuredStripePriceId(this.stripePriceIds(), tier, period);
         if (configured) {
           return configured;
         }
@@ -24708,13 +24745,15 @@ var init_StripeService = __esm({
         };
       }
       async createEmbeddedCheckout(params) {
-        const customer = await this.createOrGetCustomer(params.organizationId);
+        const [customer, priceId] = await Promise.all([
+          this.createOrGetCustomer(params.organizationId),
+          this.resolvePriceId(
+            params.body.billing,
+            params.body.period,
+            params.body.stripePriceId
+          )
+        ]);
         const uniqueId = makeId(12);
-        const priceId = await this.resolvePriceId(
-          params.body.billing,
-          params.body.period,
-          params.body.stripePriceId
-        );
         const frontend = this.frontendUrl();
         if (!frontend) {
           throw new UserValidationError(

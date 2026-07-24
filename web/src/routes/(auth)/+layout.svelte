@@ -50,6 +50,24 @@
 			publicLayoutPagePresenter.companyYearVm ??
 			new Date().getFullYear().toString()
 	);
+	let companyAddressVm = $derived(
+		(data as App.LayoutData)?.companyAddressVm ??
+			(page.data as App.LayoutData)?.companyAddressVm ??
+			publicLayoutPagePresenter.companyAddressVm ??
+			''
+	);
+	let supportPhoneVm = $derived(
+		(data as App.LayoutData)?.supportPhoneVm ??
+			(page.data as App.LayoutData)?.supportPhoneVm ??
+			publicLayoutPagePresenter.supportPhoneVm ??
+			''
+	);
+	let supportEmailVm = $derived(
+		(data as App.LayoutData)?.supportEmailVm ??
+			(page.data as App.LayoutData)?.supportEmailVm ??
+			publicLayoutPagePresenter.supportEmailVm ??
+			''
+	);
 	let navbarDesktopLinks = $derived((page.data as { navbarDesktopLinks?: typeof PUBLIC_NAVBAR_LINKS })?.navbarDesktopLinks ?? PUBLIC_NAVBAR_LINKS);
 	let navbarMobileLinks = $derived((page.data as { navbarMobileLinks?: typeof PUBLIC_NAVBAR_MOBILE_LINKS })?.navbarMobileLinks ?? PUBLIC_NAVBAR_MOBILE_LINKS);
 	let footerNavigationLinks = $derived((page.data as { footerNavigationLinks?: typeof PUBLIC_FOOTER_LINKS })?.footerNavigationLinks ?? PUBLIC_FOOTER_LINKS);
@@ -61,6 +79,9 @@
 	accountHardNavigate={accountHardNavigate}
 	companyNameVm={companyNameVm}
 	companyYearVm={companyYearVm}
+	companyAddressVm={companyAddressVm}
+	supportPhoneVm={supportPhoneVm}
+	supportEmailVm={supportEmailVm}
 	{navbarDesktopLinks}
 	{navbarMobileLinks}
 	{footerNavigationLinks}

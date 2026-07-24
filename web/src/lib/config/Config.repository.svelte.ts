@@ -7,6 +7,18 @@ export interface ModuleConfigResponseDto {
 	message: string;
 }
 
+export interface PublicCompanyInformationPm {
+	module_name: string;
+	config: Record<string, unknown>;
+	updated_at: string;
+}
+
+export interface GetPublicCompanyInformationResponseDto {
+	success: boolean;
+	data: PublicCompanyInformationPm;
+	message: string;
+}
+
 export interface UpsertModuleResponseDto {
 	success: boolean;
 	data: {
@@ -19,6 +31,7 @@ export interface ModuleConfigConfig {
 	endpoints: {
 		getModuleConfig: string;
 		getPublicModuleConfig: string;
+		getPublicCompanyInformation: string;
 		updateConfig: string;
 	};
 }
@@ -79,6 +92,34 @@ export class ModuleConfigRepository {
 		return {};
 	}
 
+	/** Public company_information row (address, phone, legal name, …) from module_configs. */
+	public async getPublicCompanyInformation(
+		fetch?: typeof globalThis.fetch
+	): Promise<PublicCompanyInformationPm | null> {
+		try {
+			const { data: companyInformationDto, ok } =
+				await this.httpGateway.get<GetPublicCompanyInformationResponseDto>(
+					this.config.endpoints.getPublicCompanyInformation,
+					undefined,
+					{ withCredentials: false, fetch }
+				);
+
+			if (ok && companyInformationDto?.success && companyInformationDto.data?.config) {
+				return {
+					module_name: companyInformationDto.data.module_name ?? 'company_information',
+					config: normalizeModuleConfigPayload(
+						companyInformationDto.data.config as Record<string, unknown>
+					),
+					updated_at: companyInformationDto.data.updated_at ?? ''
+				};
+			}
+		} catch {
+			// Fallback handled at call site.
+		}
+
+		return null;
+	}
+
 	public async updateConfig(
 		moduleName: string,
 		newConfig: Record<string, unknown>
@@ -111,6 +152,7 @@ const moduleConfigConfig: ModuleConfigConfig = {
 	endpoints: {
 		getModuleConfig: '/api/v1/admin/config',
 		getPublicModuleConfig: '/api/v1/company/config',
+		getPublicCompanyInformation: '/api/v1/company/information',
 		updateConfig: '/api/v1/admin/config'
 	}
 };

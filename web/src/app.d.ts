@@ -27,6 +27,9 @@ declare global {
 			currentUser?: import('$lib/user-auth/Authentication.repository.svelte').BasicUserAuthProgrammerModel | null;
 			companyNameVm?: string | null;
 			companyYearVm?: string | null;
+			companyAddressVm?: string | null;
+			supportPhoneVm?: string | null;
+			supportEmailVm?: string | null;
 		}
 
 		interface HomePageData extends LayoutData {
