@@ -22,15 +22,15 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 ## Guides
 
 <CardGrid>
-<LinkCard title="Meta Threads" description="Create a Meta app, OAuth redirect URIs, THREADS_APP_ID and THREADS_APP_SECRET, and tester invites" href="/docs/social-integration/threads" />
-<LinkCard title="Instagram" description="Instagram Business (Facebook Login) and Instagram Standalone — Meta app, redirect URIs, and env vars" href="/docs/social-integration/instagram" />
-<LinkCard title="Facebook Page" description="Facebook Login, Page picker, FACEBOOK_APP_ID and FACEBOOK_APP_SECRET" href="/docs/social-integration/facebook" />
-<LinkCard title="YouTube" description="Google Cloud OAuth, channel picker, YOUTUBE_CLIENT_ID and YOUTUBE_CLIENT_SECRET" href="/docs/social-integration/youtube" />
-<LinkCard title="TikTok" description="TikTok Developer app, OAuth redirect URI, Content Posting API, and media domain verification" href="/docs/social-integration/tiktok" />
-<LinkCard title="LinkedIn" description="Personal profile — OAuth, document carousels, cross-account plugs, and company mentions" href="/docs/social-integration/linkedin" />
-<LinkCard title="LinkedIn Page" description="Company Page — two-step OAuth, Page analytics, document carousels, and channel plugs" href="/docs/social-integration/linkedin-page" />
-<LinkCard title="X" description="OAuth 1.0a Native App, Read+Write, redirect URI, and env vars" href="/docs/social-integration/x" />
-<LinkCard title="Adding a provider" description="Contributor checklist for new social integrations" href="/docs/developer-guidelines/add-provider" />
+<LinkCard title="Meta Threads" description="Connect Threads so you can schedule posts from OpenQuok" href="/docs/social-integration/threads" />
+<LinkCard title="Instagram" description="Connect Instagram Business or Standalone and start posting" href="/docs/social-integration/instagram" />
+<LinkCard title="Facebook Page" description="Link a Facebook Page and publish from your workspace" href="/docs/social-integration/facebook" />
+<LinkCard title="YouTube" description="Connect a YouTube channel and schedule video uploads" href="/docs/social-integration/youtube" />
+<LinkCard title="TikTok" description="Connect TikTok and schedule content to your account" href="/docs/social-integration/tiktok" />
+<LinkCard title="LinkedIn" description="Connect your personal LinkedIn profile for posts and documents" href="/docs/social-integration/linkedin" />
+<LinkCard title="LinkedIn Page" description="Connect a Company Page to post and view page insights" href="/docs/social-integration/linkedin-page" />
+<LinkCard title="X" description="Connect X (Twitter) so you can schedule posts" href="/docs/social-integration/x" />
+<LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/developer-guidelines/add-provider" />
 </CardGrid>
 
 ## Related Section(s)
