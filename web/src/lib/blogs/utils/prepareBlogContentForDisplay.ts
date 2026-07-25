@@ -1,3 +1,5 @@
+import { normalizeBlogContentLinks } from '$lib/blogs/utils/normalizeBlogContentLinks';
+
 function decodeHtmlEntities(html: string): string {
 	return html
 		.replace(/&amp;/g, '&')
@@ -95,6 +97,7 @@ function promoteLikelyBlockquotes(html: string): string {
  * - Decodes double-escaped HTML from bad paste/submit flows.
  * - Wraps plain text in paragraphs when no HTML tags are present.
  * - Promotes likely plain-text section titles to h2.
+ * - Aligns `<a>` rel/target with ExternalLink defaults (external nofollow; internal followable).
  */
 export function prepareBlogContentForDisplay(content: string): string {
 	const trimmed = content.trim();
@@ -106,5 +109,6 @@ export function prepareBlogContentForDisplay(content: string): string {
 	}
 	html = promoteLikelySectionHeadings(html);
 	html = promoteLikelyBlockquotes(html);
+	html = normalizeBlogContentLinks(html);
 	return html;
 }

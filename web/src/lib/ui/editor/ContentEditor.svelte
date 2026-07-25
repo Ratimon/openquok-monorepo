@@ -8,6 +8,7 @@
 	import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 	import {
 		buildBlogInlineImageSrc,
+		normalizeBlogContentLinks,
 		normalizeBlogInlineImagesInHtml,
 		prepareBlogContentForDisplay
 	} from '$lib/blogs/utils';
@@ -61,8 +62,8 @@
 			extensions: [
 				StarterKit.configure({
 					link: {
-						openOnClick: false,
-						HTMLAttributes: { rel: 'noopener noreferrer nofollow', target: '_blank' }
+						openOnClick: false
+						// rel/target applied in normalizeBlogContentLinks (ExternalLink-aligned)
 					}
 				}),
 				Placeholder.configure({
@@ -136,16 +137,20 @@
 	}
 
 	function sanitizeContentForPersistence(html: string): string {
-		if (typeof document === 'undefined' || !html.trim()) return html;
-		const doc = document.createElement('div');
-		doc.innerHTML = html;
-		for (const img of Array.from(doc.querySelectorAll('img'))) {
-			const storagePath = (img.getAttribute('data-storage-path') ?? '').trim();
-			if (storagePath && storagePath !== 'null' && storagePath !== 'undefined') {
-				img.setAttribute('src', buildBlogInlineImageSrc(storagePath));
+		if (!html.trim()) return html;
+		let next = html;
+		if (typeof document !== 'undefined') {
+			const doc = document.createElement('div');
+			doc.innerHTML = html;
+			for (const img of Array.from(doc.querySelectorAll('img'))) {
+				const storagePath = (img.getAttribute('data-storage-path') ?? '').trim();
+				if (storagePath && storagePath !== 'null' && storagePath !== 'undefined') {
+					img.setAttribute('src', buildBlogInlineImageSrc(storagePath));
+				}
 			}
+			next = doc.innerHTML;
 		}
-		return doc.innerHTML;
+		return normalizeBlogContentLinks(next);
 	}
 
 	function insertLocalImagePreview(file: File): void {

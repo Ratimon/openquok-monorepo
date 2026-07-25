@@ -21,6 +21,10 @@ export { extractBlogImageStoragePathFromImageSrc } from '$lib/blogs/utils/extrac
 export { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils/extractBlogImageStoragePathsFromHtml';
 export { normalizeBlogInlineImagesInHtml } from '$lib/blogs/utils/normalizeBlogInlineImagesInHtml';
 export {
+	isExternalBlogHref,
+	normalizeBlogContentLinks
+} from '$lib/blogs/utils/normalizeBlogContentLinks';
+export {
 	plainTextToBlogHtml,
 	prepareBlogContentForDisplay,
 	repairDoubleEncodedBlogHtml
