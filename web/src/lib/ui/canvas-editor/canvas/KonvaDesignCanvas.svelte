@@ -24,7 +24,12 @@
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icons';
 
-	import { GRID_STEP, computePageLayout, drawBackgroundGrid } from '$lib/ui/canvas-editor/canvas/helpers';
+	import {
+		GRID_STEP,
+		clampNodePositionToPage,
+		computePageLayout,
+		drawBackgroundGrid
+	} from '$lib/ui/canvas-editor/canvas/helpers';
 	import { loadKonva } from '$lib/ui/canvas-editor/canvas/loadKonva';
 	import { HistoryStack } from '$lib/ui/canvas-editor/utils/historyStack';
 
@@ -146,24 +151,12 @@
 			function attachDrawStrokeHandlers(ln: KonvaLine) {
 				ln.off('dragend.drawStroke');
 				ln.on('dragend.drawStroke', () => {
-					const box = pageInnerBox();
-					const pad = 4;
-					const rect = ln.getClientRect();
-					const dx = ln.x() - rect.x;
-					const dy = ln.y() - rect.y;
-
-					const viewW = Math.max(1, box.pw - pad * 2);
-					const viewH = Math.max(1, box.ph - pad * 2);
-
-					const minRectX = box.px + pad - Math.max(0, rect.width - viewW);
-					const maxRectX = box.px + pad + Math.max(0, viewW - rect.width);
-					const minRectY = box.py + pad - Math.max(0, rect.height - viewH);
-					const maxRectY = box.py + pad + Math.max(0, viewH - rect.height);
-
-					const nxRect = Math.min(Math.max(rect.x, minRectX), maxRectX);
-					const nyRect = Math.min(Math.max(rect.y, minRectY), maxRectY);
-
-					ln.position({ x: nxRect + dx, y: nyRect + dy });
+					const next = clampNodePositionToPage(
+						{ x: ln.x(), y: ln.y() },
+						ln.getClientRect(),
+						pageInnerBox()
+					);
+					ln.position(next);
 					contentLayer.batchDraw();
 					pushHistory();
 				});
@@ -392,8 +385,8 @@
 							id: img.id() || img.name(),
 							x: img.x(),
 							y: img.y(),
-							width: img.width(),
-							height: img.height(),
+							width: img.width() * img.scaleX(),
+							height: img.height() * img.scaleY(),
 							rotation: img.rotation(),
 							opacity: img.opacity() ?? 1,
 							draggable: img.draggable(),
@@ -465,18 +458,43 @@
 				notifySelection();
 			}
 
+			/**
+			 * Transformer applies scaleX/scaleY; bake into width/height (and text fontSize)
+			 * so drag clamps, export, and undo use the visual size.
+			 */
+			function bakeNodeScale(node: KonvaShape) {
+				const sx = node.scaleX();
+				const sy = node.scaleY();
+				if (sx === 1 && sy === 1) return;
+				const cn = node.getClassName();
+				if (cn === 'Image') {
+					const img = node as KonvaImage;
+					img.width(Math.max(1, img.width() * sx));
+					img.height(Math.max(1, img.height() * sy));
+					img.scaleX(1);
+					img.scaleY(1);
+					return;
+				}
+				if (cn === 'Text') {
+					const t = node as KonvaText;
+					const scale = Math.abs(sx) >= Math.abs(sy) ? sx : sy;
+					t.fontSize(Math.max(1, t.fontSize() * scale));
+					t.width(Math.max(1, t.width() * sx));
+					t.scaleX(1);
+					t.scaleY(1);
+				}
+			}
+
 			function attachImageHandlers(kImg: KonvaImage) {
 				kImg.on('dragend', () => {
-					const box = pageInnerBox();
-					const minX = box.px + 4;
-					const minY = box.py + 4;
-					const maxX = box.px + box.pw - kImg.width() - 4;
-					const maxY = box.py + box.ph - kImg.height() - 4;
-					let nx = kImg.x();
-					let ny = kImg.y();
-					nx = Math.min(Math.max(nx, minX), maxX);
-					ny = Math.min(Math.max(ny, minY), maxY);
-					kImg.position({ x: nx, y: ny });
+					// Use client rect (includes Transformer scale) — raw width()/height()
+					// snap resized images back to one corner when maxX < minX.
+					const next = clampNodePositionToPage(
+						{ x: kImg.x(), y: kImg.y() },
+						kImg.getClientRect(),
+						pageInnerBox()
+					);
+					kImg.position(next);
 					contentLayer.batchDraw();
 					pushHistory();
 				});
@@ -484,29 +502,12 @@
 
 			function attachTextHandlers(t: KonvaText) {
 				t.on('dragend', () => {
-					const box = pageInnerBox();
-					const pad = 4;
-					const rect = t.getClientRect();
-
-					// Align Konva's `x/y` to the clientRect origin (accounts for font metrics and transforms).
-					const dx = t.x() - rect.x;
-					const dy = t.y() - rect.y;
-
-					const viewW = Math.max(1, box.pw - pad * 2);
-					const viewH = Math.max(1, box.ph - pad * 2);
-
-					// If narrower than page: clamp within [left, right - width].
-					// If wider than page: allow sliding within [right - width, left].
-					const minRectX = box.px + pad - Math.max(0, rect.width - viewW);
-					const maxRectX = box.px + pad + Math.max(0, viewW - rect.width);
-
-					const minRectY = box.py + pad - Math.max(0, rect.height - viewH);
-					const maxRectY = box.py + pad + Math.max(0, viewH - rect.height);
-
-					const nxRect = Math.min(Math.max(rect.x, minRectX), maxRectX);
-					const nyRect = Math.min(Math.max(rect.y, minRectY), maxRectY);
-
-					t.position({ x: nxRect + dx, y: nyRect + dy });
+					const next = clampNodePositionToPage(
+						{ x: t.x(), y: t.y() },
+						t.getClientRect(),
+						pageInnerBox()
+					);
+					t.position(next);
 					contentLayer.batchDraw();
 					pushHistory();
 				});
@@ -690,6 +691,11 @@
 			marqueeLayer.add(marqueeRect);
 
 			transformer.on('transformend', () => {
+				for (const node of transformer.nodes()) {
+					bakeNodeScale(node as KonvaShape);
+				}
+				transformer.forceUpdate();
+				contentLayer.batchDraw();
 				pushHistory();
 				notifySelection();
 			});
@@ -1477,17 +1483,18 @@
 				if (!n || isDrawStrokeLine(n)) return;
 				const box = pageInnerBox();
 				const pad = 4;
-				const w = n.width();
-				const h = n.height();
-				let x = n.x();
-				let y = n.y();
-				if (mode === 'left') x = box.px + pad;
-				if (mode === 'centerH') x = box.px + (box.pw - w) / 2;
-				if (mode === 'right') x = box.px + box.pw - w - pad;
-				if (mode === 'top') y = box.py + pad;
-				if (mode === 'centerV') y = box.py + (box.ph - h) / 2;
-				if (mode === 'bottom') y = box.py + box.ph - h - pad;
-				n.position({ x, y });
+				const rect = n.getClientRect();
+				const dx = n.x() - rect.x;
+				const dy = n.y() - rect.y;
+				let rx = rect.x;
+				let ry = rect.y;
+				if (mode === 'left') rx = box.px + pad;
+				if (mode === 'centerH') rx = box.px + (box.pw - rect.width) / 2;
+				if (mode === 'right') rx = box.px + box.pw - rect.width - pad;
+				if (mode === 'top') ry = box.py + pad;
+				if (mode === 'centerV') ry = box.py + (box.ph - rect.height) / 2;
+				if (mode === 'bottom') ry = box.py + box.ph - rect.height - pad;
+				n.position({ x: rx + dx, y: ry + dy });
 				contentLayer.batchDraw();
 				pushHistory();
 				notifySelection();

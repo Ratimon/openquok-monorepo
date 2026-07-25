@@ -133,7 +133,7 @@ OpenClaw uses <strong>two separate systems</strong>:
 
 Do <strong>not</strong> set an image-only model (for example <Badge text="google/gemini-3-pro-image-preview" variant="default" /> or <Badge text="openrouter/google/gemini-3-pro-image-preview" variant="default" />) as your main Telegram or session model. Those models are built for image output, not general chat — the gateway may fail before it can run tools or answer questions.
 
-<Callout type="warning" title="Capable chat + quality images">
+<Callout type="warning"">
 <p>Pick a capable chat model for <Badge text="agents.defaults.model.primary" variant="param" /> (for example <Badge text="anthropic/claude-sonnet-4-6" variant="default" />). Configure image generation separately under <Badge text="imageGenerationModel" variant="param" /> — the agent calls <Badge text="image_generate" variant="default" /> when the user asks for a picture, without changing the main model. Image jobs run in the background; OpenClaw wakes the agent when the provider finishes.</p>
 </Callout>
 
