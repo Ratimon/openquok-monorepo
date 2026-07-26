@@ -43,7 +43,6 @@
 	<h2 id="footer-heading" class="sr-only">
 		Footer
 	</h2>
-
 	<div class="mx-auto max-w-7xl px-4 pb-8 pt-16 lg:px-12">
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 			<div class="space-y-8 md:col-span-1 md:pr-12">

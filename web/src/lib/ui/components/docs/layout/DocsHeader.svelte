@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type { DocsDocTabId, DocsTabDefinition } from '$lib/docs/types';
-	import type { SocialLink } from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';
 
 	import { afterNavigate } from '$app/navigation';
 
@@ -13,7 +12,6 @@
 
 	import AutoBreadcrumb from '$lib/ui/components/docs/nav/DocsAutoBreadcrumb.svelte';
 	import DocsLocaleSwitcher from '$lib/ui/components/docs/DocsLocaleSwitcher.svelte';
-	import SocialLinks from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';
 	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -21,12 +19,10 @@
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
 
 	let {
-		socialLinks = [],
 		docsTabs = [] as DocsTabDefinition[],
 		activeDocsTabId,
 		locale
 	}: {
-		socialLinks?: SocialLink[];
 		docsTabs?: DocsTabDefinition[];
 		activeDocsTabId?: DocsDocTabId;
 		locale?: string;
@@ -38,7 +34,7 @@
 		sidebar.setOpenMobile(false);
 	});
 
-	/** Match DocsSocialLinks / header cluster */
+	/** Match docs header controls: base-200 hover, not ghost accent. */
 	const headerIconHitClass = cn(
 		'text-base-content/70 hover:bg-base-200 hover:text-base-content transition-colors outline-none',
 		'inline-flex shrink-0 items-center justify-center'
@@ -109,9 +105,6 @@
 				</Tooltip.Trigger>
 				<Tooltip.Content side="bottom" sideOffset={6}>Home</Tooltip.Content>
 			</Tooltip.Root>
-			<div class="hidden items-center md:flex">
-				<SocialLinks links={socialLinks} />
-			</div>
 			<DocsLocaleSwitcher variant="header" />
 			<Tooltip.Root>
 				<Tooltip.Trigger>

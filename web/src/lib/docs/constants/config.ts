@@ -11,9 +11,8 @@ export const docsSite = {
 	description: 'Developer Reference',
 	url: '',
 	social: {
-		github: 'https://github.com/Ratimon/openquok-monorepo',
-		/** X (Twitter); set empty string to hide in UI */
-		twitter: 'https://x.com/'
+		/** Repo URL for sidebar GitHub + “Edit this page” links. */
+		github: 'https://github.com/Ratimon/openquok-monorepo'
 	}
 };
 

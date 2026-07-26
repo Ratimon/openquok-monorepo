@@ -8,9 +8,11 @@
 		...socialProviderIconByIdentifier,
 		github: icons.Github.name,
 		twitter: icons.X.name,
-		linkedin: icons.Link.name,
-		// to do: add discord, slack, twitch, rss, mail, email, website icons
-		discord: icons.MessageCircle.name,
+		x: icons.X.name,
+		linkedin: icons.LinkedIn.name,
+		facebook: icons.Facebook.name,
+		instagram: icons.Instagram.name,
+		discord: icons.Discord.name,
 		slack: icons.MessageCircle.name,
 		twitch: icons.Megaphone.name,
 		mastodon: icons.Mastodon.name,
@@ -24,6 +26,8 @@
 		platform: string;
 		url: string;
 		label?: string;
+		/** When set, used instead of looking up `platform` in the icon map. */
+		icon?: IconName;
 	};
 </script>
 
@@ -43,7 +47,7 @@
 </script>
 
 {#each links as link}
-	{@const iconName = iconMap[link.platform.toLowerCase()]}
+	{@const iconName = link.icon ?? iconMap[link.platform.toLowerCase()]}
 	{@const tip = link.label ?? link.platform.replace(/^\w/, (c) => c.toUpperCase())}
 	{#if iconName}
 		<Tooltip.Root>
