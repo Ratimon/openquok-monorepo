@@ -195,10 +195,16 @@ export default defineConfig({
 		// chunkSizeWarningLimit: 550,
 	},
 	server: {
-		https: {
-			key: fs.readFileSync('./.cert/localhost-key.pem'),
-			cert: fs.readFileSync('./.cert/localhost.pem')
-		},
+		// mkcert certs are local-dev-only (gitignored) and absent during `vite build`
+		// (Docker/self-host image build has no dev server to serve). Skip https there instead of crashing.
+		...(fs.existsSync('./.cert/localhost-key.pem') && fs.existsSync('./.cert/localhost.pem')
+			? {
+					https: {
+						key: fs.readFileSync('./.cert/localhost-key.pem'),
+						cert: fs.readFileSync('./.cert/localhost.pem')
+					}
+				}
+			: {}),
 		host: 'localhost',
 		port: 5173,
 		// Same-origin `/api` in dev so auth cookies set during OAuth match the page origin (HTTPS + port 5173).
