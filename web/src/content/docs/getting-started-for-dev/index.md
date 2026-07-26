@@ -25,12 +25,12 @@ Looking to edit or extend this documentation? See <a href="/docs/documentation-c
 
 For the full operator stack (API, web, Redis, workers), use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. After <code>up --build</code>, open <Badge text="http://localhost:4007" variant="default" /> — Compose serves the UI; you do not run the Vite dev server for that path.
 
-<Callout type="tip" title="Email without a provider">
+<Callout type="tip" title="Without Email">
 <p>Set <Badge text="EMAIL_ENABLED" variant="envBackend" />{' '}<code>=false</code> — no outbound mail; signup marks users verified.</p>
 <p>Details: <a href="/docs/configuration-backend/resend">Resend / email setup</a>.</p>
 </Callout>
 
-<Callout type="tip" title="Billing without Stripe">
+<Callout type="tip" title="Without Billing">
 <p>Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset — <code>billingEnabled</code> is false, plan guards skip, and the first-billing paywall does not show.</p>
 <p>Details: <a href="/docs/configuration-backend/stripe">Stripe billing</a>.</p>
 </Callout>

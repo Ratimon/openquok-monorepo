@@ -39,22 +39,6 @@
 		{ value: 'long', label: 'Long' }
 	];
 
-	/**
-	 * Composer body is usually plain text; keep newlines in the Source preview while
-	 * still stripping any accidental markup tags.
-	 */
-	function toSourcePreviewText(raw: string): string {
-		return raw
-			.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-			.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-			.replace(/<br\s*\/?>/gi, '\n')
-			.replace(/<\/(?:p|div|li|h[1-6])>/gi, '\n')
-			.replace(/<[^>]+>/g, '')
-			.replace(/[ \t]+\n/g, '\n')
-			.replace(/\n{3,}/g, '\n\n')
-			.trim();
-	}
-
 	type Props = {
 		summarizerPresenter: SummarizerPresenter;
 		open?: boolean;
@@ -94,7 +78,6 @@
 	const summaryType = $derived(summarizerPresenter.type);
 	const summaryLengthOption = $derived(summarizerPresenter.length);
 
-	const sourcePreviewText = $derived(toSourcePreviewText(existingBody));
 	const sourcePlainText = $derived(stripHtmlToPlainText(existingBody));
 	const hasSource = $derived(sourcePlainText.length > 0);
 	const showEmptyState = $derived(phase === 'ready' && !hasSource);
@@ -388,7 +371,7 @@
 								role="region"
 								aria-label="Post draft to summarize"
 							>
-								{sourcePreviewText}
+								{sourcePlainText}
 							</div>
 						</div>
 
