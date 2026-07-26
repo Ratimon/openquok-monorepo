@@ -2,7 +2,7 @@
 title: Production - deployment
 description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-07-16
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -14,7 +14,7 @@ The production version (openquok.com) is set up for **Vercel**  for the **backen
 **Orchestrator workers** (BullMQ) are **not** run on Vercel. We deploy **separate always-on processes** (for example on <a href="/docs/installation/railway">Railway</a>) that share the same **Redis** and **Supabase** credentials as the API. See <a href="/docs/configuration-worker">Configuration - Worker</a> and <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
 <Callout type="tip" title="Self-host">
-<p>To run API, web, Redis, and BullMQ workers on your own host from this monorepo (instead of Vercel + Railway), follow <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. That path still needs an operator-provided Supabase project; see <a href="/docs/installation/system-requirements">System requirements</a>.</p>
+<p>To run API, web, Redis, and BullMQ workers on your own host from this monorepo (instead of Vercel + Railway), follow <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. After <code>docker compose … up --build</code>, open the UI at <code>http://localhost:4007</code> (API at <code>http://localhost:3000</code>). That path still needs an operator-provided Supabase project; see <a href="/docs/installation/system-requirements">System requirements</a>.</p>
 </Callout>
 
 ## What you need

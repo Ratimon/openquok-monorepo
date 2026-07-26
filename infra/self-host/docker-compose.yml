@@ -6,6 +6,7 @@
 #   cp infra/self-host/.env.example infra/self-host/.env
 #   # fill PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY (and matching VITE_* for the web image)
 #   docker compose -f infra/self-host/docker-compose.yml up --build
+#   # then open the UI: http://localhost:4007  (API: http://localhost:3000)
 #
 # Optional CLI device-flow auth (Postgres + agent server):
 #   docker compose -f infra/self-host/docker-compose.yml --profile cli up --build

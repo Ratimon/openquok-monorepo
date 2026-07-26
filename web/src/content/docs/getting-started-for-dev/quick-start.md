@@ -2,7 +2,7 @@
 title: Quick Start
 description: Quick start — install dependencies, configure env, and run the Openquok's social scheduler locally.
 order: 2
-lastUpdated: 2026-07-14
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -35,6 +35,15 @@ pnpm install
 <CardGrid>
 <LinkCard title="Backend configuration" description="Env files and variables for the backend / Supabase workspace" href="/docs/configuration-backend" />
 <LinkCard title="Frontend configuration" description="Environment variables for the SvelteKit app in web/" href="/docs/configuration-web" />
+</CardGrid>
+
+## Self-host with Docker Compose
+
+Operators who want API, web, Redis, and workers in containers (not the contributor <code>pnpm</code> path) should follow Docker Compose. After <code>docker compose -f infra/self-host/docker-compose.yml up --build</code>, open <strong>http://localhost:4007</strong>.
+
+<CardGrid>
+<LinkCard title="Docker Compose (self-host)" description="Bring the stack up" href="/docs/installation/docker-compose" />
+<LinkCard title="System requirements" description="CPU, RAM, ports, and operator-provided Supabase" href="/docs/installation/system-requirements" />
 </CardGrid>
 
 ## Development and Production environments

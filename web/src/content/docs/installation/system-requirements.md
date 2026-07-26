@@ -2,7 +2,7 @@
 title: Self-host - System requirements
 description: CPU, RAM, disk, ports, and required services for running OpenQuok as a self-hosted social scheduler with Docker Compose.
 order: 4
-lastUpdated: 2026-07-16
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -41,8 +41,8 @@ Use these floors when you self-host OpenQuok with the Compose stack under <Badge
 
 | Service | Host port (default) | Container | Purpose |
 | --- | --- | --- | --- |
-| Web UI | <Badge text="4007" variant="default" /> | <code>3000</code> | SvelteKit Node server |
-| API | <Badge text="3000" variant="default" /> | <code>3000</code> | Express backend |
+| Web UI | <Badge text="4007" variant="default" /> | <code>3000</code> | SvelteKit Node server — open <Badge text="http://localhost:4007" variant="default" /> after Compose is up |
+| API | <Badge text="3000" variant="default" /> | <code>3000</code> | Express backend — <Badge text="http://localhost:3000" variant="default" /> |
 | Worker health (integration refresh) | <Badge text="3091" variant="default" /> | <code>3091</code> | Optional health probe |
 | Redis | not published | <code>6379</code> | Cache + BullMQ (debug publish optional) |
 | CLI auth server (profile <code>cli</code>) | <Badge text="3111" variant="default" /> | <code>3111</code> | Device-flow OAuth helper |
@@ -62,7 +62,7 @@ Override host maps with <Badge text="OPENQUOK_WEB_HOST_PORT" variant="envBackend
 ## Related
 
 <CardGrid>
-<LinkCard title="Docker Compose (self-host)" description="Copy env, fill Supabase, bring the stack up" href="/docs/installation/docker-compose" />
+<LinkCard title="Docker Compose (self-host)" description="Bring the stack up" href="/docs/installation/docker-compose" />
 <LinkCard title="Development environment" description="pnpm-based local API and web; infra/docker-compose.yml for Redis only" href="/docs/installation/development-environment" />
 <LinkCard title="Supabase" description="Project keys and dashboard setup for the API" href="/docs/configuration-backend/supabase" />
 </CardGrid>

@@ -2,7 +2,7 @@
 title: Overview - Getting Started
 description: Getting started with OpenQuok for contributors and self-hosted social scheduler instances — architecture, quick start, and default env patterns.
 order: 0
-lastUpdated: 2026-07-16
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -23,6 +23,8 @@ Looking to edit or extend this documentation? See <a href="/docs/documentation-c
 
 ## Self-hosted defaults
 
+For the full operator stack (API, web, Redis, workers), use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. After <code>up --build</code>, open <Badge text="http://localhost:4007" variant="default" /> — Compose serves the UI; you do not run the Vite dev server for that path.
+
 <Callout type="tip" title="Email without a provider">
 <p>Set <Badge text="EMAIL_ENABLED" variant="envBackend" />{' '}<code>=false</code> — no outbound mail; signup marks users verified.</p>
 <p>Details: <a href="/docs/configuration-backend/resend">Resend / email setup</a>.</p>
@@ -36,5 +38,6 @@ Looking to edit or extend this documentation? See <a href="/docs/documentation-c
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Docker Compose (self-host)" description="Bring the stack up" href="/docs/installation/docker-compose" />
 <LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/installation" />
 </CardGrid>

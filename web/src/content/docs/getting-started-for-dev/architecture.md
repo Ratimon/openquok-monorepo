@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-07-18
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -237,10 +237,10 @@ Docker and self-host operator assets:
 </FileTree>
 
 - <Badge text="infra/docker-compose.yml" variant="path" /> — devvelopment environment only.
-- <Badge text="infra/self-host/" variant="path" /> — full stack: Redis, API, web, BullMQ workers, uploads volume; optional `cli` profile for Postgres + agent server.
+- <Badge text="infra/self-host/" variant="path" /> — full stack: Redis, API, web, BullMQ workers, uploads volume; optional `cli` profile for Postgres + agent server. Default UI: <Badge text="http://localhost:4007" variant="default" />.
 - <Badge text="infra/self-host/.env.example" variant="path" /> — Template for self-host env vars; operators copy to `.env` beside the Compose file.
 
-User-facing bring-up steps live under <a href="/docs/installation">Installation</a> (especially <a href="/docs/installation/docker-compose">Docker Compose</a>).
+User-facing bring-up steps live under <a href="/docs/installation">Installation</a> (especially <a href="/docs/installation/docker-compose">Docker Compose</a> — open the UI at <code>http://localhost:4007</code> after <code>up --build</code>).
 
 ### <Badge text="web/" variant="path" />
 

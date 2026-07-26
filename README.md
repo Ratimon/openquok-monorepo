@@ -75,6 +75,18 @@ For a first-time local run — install dependencies, configure env for `backend/
 
 Day-to-day commands (dev servers, tests, DB, deploy) live under [Development environment](https://www.openquok.com/docs/installation/development-environment). Production deploy notes are in [Production deployment](https://www.openquok.com/docs/installation/production-deployment).
 
+### Self-host (Docker Compose)
+
+Run the full app stack from the repo:
+
+```bash
+cp infra/self-host/.env.example infra/self-host/.env
+# fill PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY (and matching VITE_* for the web image)
+docker compose -f infra/self-host/docker-compose.yml up --build
+```
+
+When the stack is up, open the UI at **http://localhost:4007** (API at **http://localhost:3000**). Full env and bring-up steps: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose).
+
 ---
 
 ### Tech stack
@@ -105,11 +117,13 @@ Day-to-day commands (dev servers, tests, DB, deploy) live under [Development env
 - [CLI & agent users](https://www.openquok.com/docs) — `@openquok/auto-cli`, auth, commands, and examples
 - [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens
 - [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples
-- [Self-host & contributors](https://www.openquok.com/docs/getting-started-for-dev) — monorepo layout, install, and local setup
+- [Contributors/Mainteners](https://www.openquok.com/docs/getting-started-for-dev) — monorepo layout, install, and local setup
 - [Contributing](https://www.openquok.com/docs/developer-guidelines) — repo conventions and contribution guides
 
 **Self-host & setup**
 
+- [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose)
+- [System requirements](https://www.openquok.com/docs/installation/system-requirements)
 - [Quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start)
 - [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
 - [Installation](https://www.openquok.com/docs/installation)

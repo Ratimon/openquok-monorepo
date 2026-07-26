@@ -2,7 +2,7 @@
 title: Overview - Installation
 description: Set up OpenQuok — system requirements, Docker Compose self-host, local development, and Vercel / Railway production deploys for the social scheduler.
 order: 0
-lastUpdated: 2026-07-16
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 
 <CardGrid>
 <LinkCard title="System requirements" description="CPU, RAM, ports, Docker, and operator-provided Supabase for self-host" href="/docs/installation/system-requirements" />
-<LinkCard title="Docker Compose (self-host)" description="Full app stack: API, web, Redis, and BullMQ workers from the monorepo" href="/docs/installation/docker-compose" />
+<LinkCard title="Docker Compose (self-host)" description="Full app stack from the monorepo" href="/docs/installation/docker-compose" />
 <LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />
 <LinkCard title="Development environment" description="Local development commands" href="/docs/installation/development-environment" />
 <LinkCard title="Production Vercel" description="Vercel deployment detail for backend and web" href="/docs/installation/vercel" />

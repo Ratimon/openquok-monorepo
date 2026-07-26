@@ -2,7 +2,7 @@
 title: Self-host - Docker Compose
 description: Self-host OpenQuok with Docker Compose — env setup, Supabase, and bring-up of API, web, Redis, and BullMQ workers.
 order: 5
-lastUpdated: 2026-07-17
+lastUpdated: 2026-07-26
 ---
 
 <script>
@@ -116,8 +116,10 @@ Detach with <code>-d</code> when you want background containers. The <code>web</
 
 ### Open the UI
 
-- Web: <Badge text="http://localhost:4007" variant="default" />
+- Web UI: <Badge text="http://localhost:4007" variant="default" />
 - API: <Badge text="http://localhost:3000" variant="default" />
+
+Override the web host port with <Badge text="OPENQUOK_WEB_HOST_PORT" variant="envBackend" /> if <code>4007</code> is taken; then open that port instead.
 
 Sign up with email/password; with the defaults above you should enter the app without email verification or a billing paywall.
 
