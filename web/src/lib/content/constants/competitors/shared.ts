@@ -27,8 +27,9 @@ export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
 	hootsuite: 'https://www.hootsuite.com',
-	buffer: 'https://buffer.com'
-} as const satisfies Record<typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer', string>;
+	buffer: 'https://buffer.com',
+	postiz: 'https://postiz.com'
+} as const satisfies Record<typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'postiz', string>;
 
 export function buildCompareChannelPoints(
 	openquokChannels: readonly string[],
