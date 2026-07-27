@@ -244,12 +244,14 @@ describe("TransactionalNotificationEmailService", () => {
             errorSpy.mockRestore();
         });
 
-        it("logs error when deliverToOrganizationMembers throws", async () => {
+        it("logs error and rethrows when deliverToOrganizationMembers throws", async () => {
             orgRepo.listMembersForNotificationEmails.mockRejectedValue(new Error("db error"));
             const errorSpy = jest.spyOn(logger, "error").mockImplementation(() => {});
             const entries = [{ subject: "a", message: "b", type: "info" as const }];
 
-            await service().deliverDigestBatch(organizationId, entries, jest.fn());
+            await expect(service().deliverDigestBatch(organizationId, entries, jest.fn())).rejects.toThrow(
+                "db error"
+            );
 
             expect(errorSpy).toHaveBeenCalledWith(
                 expect.objectContaining({

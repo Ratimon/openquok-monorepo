@@ -33,6 +33,7 @@
 
 [build]
 # Backend `tsc` needs a larger heap on constrained builders (Railpack defaults can OOM).
+# Generate routes-manifest.json before backend:build — that file is gitignored and missing on Railway.
 buildCommand = "export NODE_OPTIONS=--max-old-space-size=8192 && pnpm install --prod=false && pnpm railway:orchestrator:build"
 
 [deploy]

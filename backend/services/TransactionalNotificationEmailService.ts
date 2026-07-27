@@ -80,7 +80,8 @@ export class TransactionalNotificationEmailService {
     }
 
     /**
-     * Send one combined digest mail per drained batch (type `info`). Called from worker after Redis drain.
+     * Send one combined digest mail per batch (type `info`).
+     * Throws on failure so the worker can leave Redis entries for the next flush.
      */
     async deliverDigestBatch(
         organizationId: string,
@@ -106,6 +107,7 @@ export class TransactionalNotificationEmailService {
                 organizationId,
                 error: err instanceof Error ? err.message : String(err),
             });
+            throw err;
         }
     }
 }

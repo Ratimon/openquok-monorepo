@@ -205,8 +205,8 @@ describe("EmailService", () => {
             });
         });
 
-        it("calls transporter.sendMail with text, replyTo, and headers when enabled", async () => {
-            mockSendMail.mockClear();
+        it("POSTs to Resend HTTPS /emails when RESEND_SECRET_KEY is set", async () => {
+            (global.fetch as jest.Mock).mockResolvedValue(mockFetchResponse({ id: "email_123" }));
             const enabled = new EmailService({ isEnabled: true });
 
             await enabled.sendPlain({
@@ -220,20 +220,30 @@ describe("EmailService", () => {
                 },
             });
 
-            expect(mockSendMail).toHaveBeenCalledTimes(1);
-            expect(mockSendMail).toHaveBeenCalledWith(
+            expect(mockSendMail).not.toHaveBeenCalled();
+            expect(global.fetch).toHaveBeenCalledWith(
+                "https://api.resend.com/emails",
                 expect.objectContaining({
-                    from: { name: "Openquok", address: "noreply@example.com" },
-                    to: "user@example.com",
-                    subject: "Re: Hello",
-                    text: "Plain body",
-                    replyTo: "support@example.com",
+                    method: "POST",
                     headers: {
-                        "In-Reply-To": "<msg-1@host>",
-                        References: "<msg-1@host>",
+                        Authorization: "Bearer re_test_key",
+                        "Content-Type": "application/json",
+                        "User-Agent": "openquok-backend/1.0",
                     },
                 })
             );
+            const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string);
+            expect(body).toEqual({
+                from: "Openquok <noreply@example.com>",
+                to: ["user@example.com"],
+                subject: "Re: Hello",
+                text: "Plain body",
+                reply_to: "support@example.com",
+                headers: {
+                    "In-Reply-To": "<msg-1@host>",
+                    References: "<msg-1@host>",
+                },
+            });
         });
     });
 
@@ -262,6 +272,37 @@ describe("EmailService", () => {
                 statusCode: 503,
                 message: "Resend API key is not configured",
             });
+        });
+
+        it("falls back to nodemailer transporter when Resend is unset", async () => {
+            mockSendMail.mockClear();
+            const enabled = new EmailService({ isEnabled: true });
+
+            await enabled.sendPlain({
+                to: "user@example.com",
+                subject: "Re: Hello",
+                text: "Plain body",
+                replyTo: "support@example.com",
+                headers: {
+                    "In-Reply-To": "<msg-1@host>",
+                    References: "<msg-1@host>",
+                },
+            });
+
+            expect(mockSendMail).toHaveBeenCalledTimes(1);
+            expect(mockSendMail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    from: { name: "Openquok", address: "noreply@example.com" },
+                    to: "user@example.com",
+                    subject: "Re: Hello",
+                    text: "Plain body",
+                    replyTo: "support@example.com",
+                    headers: {
+                        "In-Reply-To": "<msg-1@host>",
+                        References: "<msg-1@host>",
+                    },
+                })
+            );
         });
     });
 });

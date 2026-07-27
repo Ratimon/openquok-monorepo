@@ -77,7 +77,7 @@ export const orchestratorFlows = {
     },
     /**
      * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
-     * notification-email worker flushes on a fixed interval.
+     * notification-email worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
      */
     notificationEmail: {
         /**

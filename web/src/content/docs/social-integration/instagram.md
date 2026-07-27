@@ -120,7 +120,7 @@ Select **Business**.
 
 ![Step 4 - Finish Creating Meta App](/docs/_assets/social-integration/meta/finish-creating-meta-app.webp)
 
-<Callout type="warning" title="Business Verification Needed">
+<Callout type="warning">
 If you are deploying public app,business verification is required and you may need to link your app with Meta's Business portfolio
 </Callout>
 

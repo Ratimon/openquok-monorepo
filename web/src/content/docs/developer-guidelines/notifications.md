@@ -2,7 +2,7 @@
 title: Notifications
 description: How OpenQuok creates in-app notifications and sends notification emails (immediate vs digest), including BullMQ worker setup and troubleshooting.
 order: 4
-lastUpdated: 2026-04-25
+lastUpdated: 2026-07-27
 ---
 
 <script>
@@ -98,6 +98,8 @@ pnpm orchestrator:dev:worker:notification-email-bullmq
 - **Check Redis**: worker and API must point at the same Redis (<Badge text="REDIS_*" variant="envBackend" />).
 - **Check user preferences**: success/fail emails may be opted out per member (digest flush emails are type <code>info</code> and are always eligible).
 - **Check digest timing**: digest entries flush on an interval (default ~5 minutes) from the worker process.
+- **Check Resend HTTPS**: production outbound mail uses <code>POST https://api.resend.com/emails</code> (not SMTP :465). If the worker can reach <code>api.resend.com</code> over HTTPS, send should work even when SMTP is blocked.
+- **Failed digest sends retry**: Redis digest entries are acknowledged only after a successful send; a failed flush leaves them for the next interval.
 
 ## Related docs
 

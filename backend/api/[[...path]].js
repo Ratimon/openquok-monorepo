@@ -571,7 +571,7 @@ var init_orchestratorFlows = __esm({
       },
       /**
        * Org notification emails: immediate sends enqueue `sendPlain` jobs; digest appends to Redis and the
-       * notification-email worker flushes on a fixed interval.
+       * notification-email worker flushes on a fixed interval (acknowledges Redis entries only after send succeeds).
        */
       notificationEmail: {
         /**
@@ -11169,6 +11169,14 @@ var init_UserService = __esm({
     };
   }
 });
+function formatFromAddress() {
+  const name = basicConfig?.siteName ?? "Openquok";
+  const address = basicConfig?.senderEmailAddress ?? "noreply@example.com";
+  return `${name} <${address}>`;
+}
+function toEmailList(value) {
+  return (Array.isArray(value) ? value : [value]).map((v) => v.trim()).filter(Boolean);
+}
 var RESEND_API_BASE, RESEND_USER_AGENT, emailConfig, serverConfig6, basicConfig, awsConfig, resendConfig, EmailService;
 var init_EmailService = __esm({
   "services/EmailService.ts"() {
@@ -11189,68 +11197,61 @@ var init_EmailService = __esm({
         this.isEnabled = options2?.isEnabled ?? emailConfig?.enabled ?? false;
         if (!this.isEnabled) return;
         const isProduction = serverConfig6?.nodeEnv === "production";
-        const createResendSmtpTransport = () => nodemailer__default.default.createTransport({
-          host: "smtp.resend.com",
-          secure: true,
-          port: 465,
-          auth: {
-            user: "resend",
-            pass: resendConfig?.secretKey ?? ""
-          }
-        });
-        if (isProduction) {
-          if (resendConfig?.secretKey) {
-            this.transporter = createResendSmtpTransport();
-          } else {
-            logger.warn({ msg: "Email enabled but RESEND_SECRET_KEY not set; emails will not be sent." });
-          }
-        } else {
-          if (resendConfig?.secretKey) {
-            this.transporter = createResendSmtpTransport();
-          } else {
-            const useLocalSes = serverConfig6?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
-            let sesOptions = {
-              region: "ap-southeast-1",
-              apiVersion: "2019-09-27",
-              credentials: {
-                accessKeyId: awsConfig?.accessKeyId ?? "",
-                secretAccessKey: awsConfig?.secretAccessKey ?? ""
-              }
-            };
-            if (useLocalSes) {
-              sesOptions = {
-                region: "aws-ses-v2-local",
-                apiVersion: "2019-09-27",
-                endpoint: "http://127.0.0.1:8005",
-                credentials: {
-                  accessKeyId: awsConfig?.accessKeyId ?? "local",
-                  secretAccessKey: awsConfig?.secretAccessKey ?? "local"
-                }
-              };
-              logger.info({ msg: "[Email] Using local SES mock", endpoint: "http://127.0.0.1:8005" });
-            }
-            if (awsConfig?.accessKeyId && awsConfig?.secretAccessKey) {
-              const sesClient = new clientSesv2.SESv2Client(sesOptions);
-              this.transporter = nodemailer__default.default.createTransport({
-                SES: {
-                  sesClient,
-                  SendEmailCommand: clientSesv2.SendEmailCommand
-                }
-              });
-            } else {
-              logger.warn({
-                msg: "Email enabled but neither AWS credentials nor RESEND_SECRET_KEY are set; emails will not be sent."
-              });
-            }
-          }
+        if (resendConfig?.secretKey) {
+          logger.info({
+            msg: "[Email] Using Resend HTTPS API for outbound mail",
+            base: RESEND_API_BASE
+          });
+          return;
         }
+        if (isProduction) {
+          logger.warn({ msg: "Email enabled but RESEND_SECRET_KEY not set; emails will not be sent." });
+          return;
+        }
+        const useLocalSes = serverConfig6?.isEmailServerOffline === true || awsConfig?.accessKeyId === "local" && awsConfig?.secretAccessKey === "local";
+        let sesOptions = {
+          region: "ap-southeast-1",
+          apiVersion: "2019-09-27",
+          credentials: {
+            accessKeyId: awsConfig?.accessKeyId ?? "",
+            secretAccessKey: awsConfig?.secretAccessKey ?? ""
+          }
+        };
+        if (useLocalSes) {
+          sesOptions = {
+            region: "aws-ses-v2-local",
+            apiVersion: "2019-09-27",
+            endpoint: "http://127.0.0.1:8005",
+            credentials: {
+              accessKeyId: awsConfig?.accessKeyId ?? "local",
+              secretAccessKey: awsConfig?.secretAccessKey ?? "local"
+            }
+          };
+          logger.info({ msg: "[Email] Using local SES mock", endpoint: "http://127.0.0.1:8005" });
+        }
+        if (awsConfig?.accessKeyId && awsConfig?.secretAccessKey) {
+          const sesClient = new clientSesv2.SESv2Client(sesOptions);
+          this.transporter = nodemailer__default.default.createTransport({
+            SES: {
+              sesClient,
+              SendEmailCommand: clientSesv2.SendEmailCommand
+            }
+          });
+        } else {
+          logger.warn({
+            msg: "Email enabled but neither AWS credentials nor RESEND_SECRET_KEY are set; emails will not be sent."
+          });
+        }
+      }
+      get hasOutboundTransport() {
+        return this.isResendApiConfigured || this.transporter !== null;
       }
       /**
        * Send an email using the given template. No-op when isEnabled is false or transport is not configured.
        */
       async send(template, to) {
         if (!this.isEnabled) return;
-        if (!this.transporter) {
+        if (!this.hasOutboundTransport) {
           logger.info({
             msg: "Email (skipped \u2013 no transport)",
             to,
@@ -11259,11 +11260,7 @@ var init_EmailService = __esm({
           return;
         }
         try {
-          await this.transporter.sendMail({
-            from: {
-              name: basicConfig?.siteName ?? "Openquok",
-              address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
-            },
+          await this.dispatchMail({
             to,
             subject: template.buildSubject(),
             html: template.buildHtml()
@@ -11281,29 +11278,73 @@ var init_EmailService = __esm({
         if (!this.isEnabled) {
           throw new AppError("Email is disabled", 503);
         }
-        if (!this.transporter) {
+        if (!this.hasOutboundTransport) {
           throw new AppError("Email transport is not configured", 503);
         }
         if (!options2.text && !options2.html) {
           throw new AppError("Provide at least one of text or html", 400);
         }
         try {
-          await this.transporter.sendMail({
-            from: {
-              name: basicConfig?.siteName ?? "Openquok",
-              address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
-            },
-            to: options2.to,
-            subject: options2.subject,
-            ...options2.text ? { text: options2.text } : {},
-            ...options2.html ? { html: options2.html } : {},
-            ...options2.replyTo ? { replyTo: options2.replyTo } : {},
-            ...options2.headers ? { headers: options2.headers } : {}
-          });
+          await this.dispatchMail(options2);
         } catch (err) {
           logger.error({ msg: "Email send failed", to: options2.to, err });
           throw err;
         }
+      }
+      async dispatchMail(options2) {
+        if (this.isResendApiConfigured) {
+          await this.sendViaResendHttps(options2);
+          return;
+        }
+        if (!this.transporter) {
+          throw new AppError("Email transport is not configured", 503);
+        }
+        await this.transporter.sendMail({
+          from: {
+            name: basicConfig?.siteName ?? "Openquok",
+            address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
+          },
+          to: options2.to,
+          subject: options2.subject,
+          ...options2.text ? { text: options2.text } : {},
+          ...options2.html ? { html: options2.html } : {},
+          ...options2.replyTo ? { replyTo: options2.replyTo } : {},
+          ...options2.headers ? { headers: options2.headers } : {}
+        });
+      }
+      /** Outbound send via Resend REST (`POST /emails`) — works where SMTP :465 is blocked. */
+      async sendViaResendHttps(options2) {
+        const apiKey = resendConfig?.secretKey;
+        if (!apiKey) {
+          throw new AppError("Resend API key is not configured", 503);
+        }
+        const to = toEmailList(options2.to);
+        if (to.length === 0) {
+          throw new AppError("At least one recipient is required", 400);
+        }
+        const replyList = options2.replyTo ? toEmailList(options2.replyTo) : [];
+        const body = {
+          from: formatFromAddress(),
+          to,
+          subject: options2.subject
+        };
+        if (options2.html) body.html = options2.html;
+        if (options2.text) body.text = options2.text;
+        if (replyList.length === 1) body.reply_to = replyList[0];
+        else if (replyList.length > 1) body.reply_to = replyList;
+        if (options2.headers && Object.keys(options2.headers).length > 0) {
+          body.headers = options2.headers;
+        }
+        const res = await fetch(`${RESEND_API_BASE}/emails`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "User-Agent": RESEND_USER_AGENT
+          },
+          body: JSON.stringify(body)
+        });
+        await this.parseResendJson(res);
       }
       generateVerificationToken() {
         return crypto.randomBytes(32).toString("hex");
@@ -11311,7 +11352,7 @@ var init_EmailService = __esm({
       hashToken(token) {
         return crypto.createHash("sha256").update(token).digest("hex");
       }
-      /** True when `RESEND_SECRET_KEY` is set (used for Resend REST API, e.g. receiving). */
+      /** True when `RESEND_SECRET_KEY` is set (used for Resend REST API, send + receiving). */
       get isResendApiConfigured() {
         return Boolean(resendConfig?.secretKey);
       }
@@ -20823,7 +20864,8 @@ var init_TransactionalNotificationEmailService = __esm({
         }
       }
       /**
-       * Send one combined digest mail per drained batch (type `info`). Called from worker after Redis drain.
+       * Send one combined digest mail per batch (type `info`).
+       * Throws on failure so the worker can leave Redis entries for the next flush.
        */
       async deliverDigestBatch(organizationId, entries, sendPlain) {
         const subject = buildNotificationDigestSubject(entries);
@@ -20844,6 +20886,7 @@ var init_TransactionalNotificationEmailService = __esm({
             organizationId,
             error: err instanceof Error ? err.message : String(err)
           });
+          throw err;
         }
       }
     };
@@ -31823,7 +31866,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-07-24T10:51:17.766Z",
+  generated: "2026-07-26T23:46:50.443Z",
   routes: [
     {
       path: "/docs",

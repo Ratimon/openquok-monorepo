@@ -2,7 +2,7 @@
 title: Resend - Email Setup
 description: Supabase email confirmations, local development email server, self-hosted no-email mode, and Resend production setup for OpenQuok.
 order: 8
-lastUpdated: 2026-07-16
+lastUpdated: 2026-07-27
 ---
 
 <script>
@@ -90,6 +90,8 @@ Verify the **root domain** (not only a subdomain) in <DocsExternalLink href="htt
 SENDER_EMAIL_ADDRESS=support@yourdomain.com
 RESEND_SECRET_KEY=
 ```
+
+Outbound mail uses the Resend <strong>HTTPS</strong> API (<code>POST https://api.resend.com/emails</code>), not SMTP port 465. That avoids PaaS environments that block outbound SMTP while still allowing HTTPS.
 
 ### Implement DMARC (recommended for Gmail to not be marked as spam)
 
