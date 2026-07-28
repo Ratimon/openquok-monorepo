@@ -157,16 +157,32 @@
 
 	<!-- TOC + article + sidebar: full width of LayoutInnerContainer (template OneColSection, no inner max-w-6xl) -->
 	<OneColSection class="mt-2 w-full pb-8">
-		<div class="relative flex w-full flex-row gap-x-4 md:gap-x-6 lg:gap-x-8">
-			<div class="mt-4 shrink-0 md:mt-0 md:w-44 lg:w-48">
+		<div class="relative flex w-full flex-col gap-y-4 md:flex-row md:gap-x-6 md:gap-y-0 lg:gap-x-8">
+			<div class="hidden shrink-0 md:mt-0 md:block md:w-44 lg:w-48">
 				<TableOfContents title="Table of contents" content={contentHtml} />
 			</div>
 
-			<div class="flex min-w-0 flex-1 flex-col">
+			<div class="flex w-full min-w-0 flex-1 flex-col">
+				<div class="mb-4 flex items-center justify-center gap-4 md:hidden">
+					<BlogLikeButton
+						postId={post.id}
+						initialLikeCount={post.likeCount ?? 0}
+						{trackBlogLike}
+						{submittingLike}
+					/>
+					<BlogShare
+						postId={post.id}
+						title={post.title}
+						slug={post.slug}
+						{trackBlogShare}
+						{submittingShare}
+					/>
+				</div>
+
 				<article
 					aria-labelledby="blog-post-content-label"
 					data-testid="blog-post-content"
-					class="gap-8 rounded-md border border-base-300 bg-base-100 p-4 py-8"
+					class="w-full gap-8 rounded-md border border-base-300 bg-base-100 p-4 py-8"
 				>
 					<span id="blog-post-content-label" class="sr-only">Blog post content</span>
 
@@ -188,14 +204,14 @@
 
 					<div
 						bind:this={proseEl}
-						class="blog-post-prose prose prose-lg max-w-none text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60"
+						class="blog-post-prose prose prose-lg min-w-0 max-w-none break-words text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 [&_img]:max-w-full [&_pre]:max-w-full [&_pre]:overflow-x-auto"
 					>
 						{@html contentHtml}
 					</div>
 				</article>
 			</div>
 
-			<div class="shrink-0 md:w-44 lg:w-48">
+			<div class="hidden shrink-0 md:block md:w-44 lg:w-48">
 				<div class="sticky flex h-fit w-full flex-col md:top-[180px]">
 					<AuthorInfo author={post.author} />
 					<div class="flex flex-col gap-4">

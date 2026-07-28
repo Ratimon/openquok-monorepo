@@ -82,7 +82,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	headers.delete('host');
 	headers.delete('connection');
 
-	const clientAddress = event.getClientAddress();
+	let clientAddress: string | undefined;
+	try {
+		clientAddress = event.getClientAddress();
+	} catch {
+		// Vite dev SSR cannot always resolve a client IP for proxied `/api` fetches.
+		clientAddress = undefined;
+	}
 	if (clientAddress) {
 		const prior = event.request.headers.get('x-forwarded-for');
 		headers.set(
