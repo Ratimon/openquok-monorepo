@@ -48,17 +48,17 @@ const POSTIZ_CHANNELS = [
 ];
 
 const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>> = {
-	workspaces: { kind: 'excluded' },
+	workspaces: { kind: 'text', text: '1 for all plans' },
 	channels: { kind: 'text', text: '5–100 by plan' },
 	posts_per_month: { kind: 'text', text: 'Unlimited on paid plans' },
 	team_members: { kind: 'text', text: 'Solo on Standard · unlimited on Team+' },
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
-	share_post_preview: { kind: 'excluded' },
+	share_post_preview: { kind: 'included' },
 	public_api: { kind: 'included' },
-	oauth_apps: { kind: 'text', text: 'Custom integrations / OAuth' },
-	mcp_server: { kind: 'included' },
-	cloud_storage: { kind: 'text', text: 'Media library (plan limits apply)' },
+	oauth_apps: { kind: 'text', text: 'Only 1 for all plans' },
+	mcp_server: { kind: 'text', text: 'Only 1 for all plans' },
+	cloud_storage: { kind: 'text', text: 'Media library' },
 	multi_channel_publishing: { kind: 'included' },
 	agent_integrations: { kind: 'text', text: 'CLI, MCP, and agent skills' },
 	analytics: { kind: 'included' },
@@ -68,7 +68,7 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	kanban_views: { kind: 'excluded' },
 	file_manager: { kind: 'included' },
 	repeated_posts: { kind: 'included' },
-	reusable_templates: { kind: 'text', text: 'Posting sets' },
+	reusable_templates: { kind: 'included' },
 	reusable_signatures: { kind: 'included' },
 	smart_filter: { kind: 'excluded' },
 	post_delays: { kind: 'included' },
@@ -76,7 +76,7 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'included' },
 	global_plugs: { kind: 'included' },
-	group_management: { kind: 'text', text: 'Customer groups (Team+)' },
+	group_management: { kind: 'included' },
 	dark_light_mode: { kind: 'included' },
 	community: { kind: 'excluded' }
 };

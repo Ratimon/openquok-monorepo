@@ -1,14 +1,9 @@
 import type { PaidSubscriptionTier } from 'openquok-common';
 import type { CompareFeatureCell, ComparePricingPlan, CompareProduct } from '$lib/content/constants/competitors/types';
 
-import {
-	accountTeamMemberSeatTotal,
-	isUnlimitedTeamMembersPerWorkspace,
-	planLimitsForTier
-} from 'openquok-common';
+import { isUnlimitedTeamMembersPerWorkspace, planLimitsForTier } from 'openquok-common';
 
 import { formatPostsPerMonthLimit } from '$lib/billing/Billing.repository.svelte';
-import { formatTeamMembersPerWorkspaceDisplay } from '$lib/billing/GetBilling.presenter.svelte';
 import {
 	PUBLIC_PRICING_TIER_ORDER,
 	PUBLIC_PRICING_PLAN_META,
@@ -71,7 +66,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		},
 		team_members: {
 			kind: 'text',
-			text: buildOpenQuokTeamMembersCell(solo, max)
+			text: buildOpenQuokTeamMembersCell()
 		},
 		ai_writer: { kind: 'text', text: 'Unlimited' },
 		ai_summarizer: { kind: 'text', text: 'Unlimited' },
@@ -89,7 +84,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 					: `${soloStorage}–${maxStorage} (${formatBytes(solo.media_storage_bytes_per_workspace)}–${formatBytes(max.media_storage_bytes_per_workspace)}/ workspace)`
 		},
 		multi_channel_publishing: { kind: 'included' },
-		agent_integrations: { kind: 'included' },
+		agent_integrations: { kind: 'text', text: 'CLI, MCP, and agent skills' },
 		analytics: { kind: 'included' },
 		photo_editor: { kind: 'included' },
 		skill_builder: { kind: 'included' },
@@ -113,37 +108,37 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 	return support;
 }
 
-function buildOpenQuokTeamMembersCell(
-	soloLimits: ReturnType<typeof planLimitsForTier>,
-	maxLimits: ReturnType<typeof planLimitsForTier>
-): string {
-	const soloUnlimited = isUnlimitedTeamMembersPerWorkspace(soloLimits.team_members_per_workspace);
-	const maxUnlimited = isUnlimitedTeamMembersPerWorkspace(maxLimits.team_members_per_workspace);
+/** Per-workspace seat caps across public tiers (e.g. `1 for Solo · 3 for Team · Unlimited on Ultimate+`). */
+function buildOpenQuokTeamMembersCell(): string {
+	const entries = PUBLIC_PRICING_TIER_ORDER.map((tier) => {
+		const limits = planLimitsForTier(tier);
+		const value = isUnlimitedTeamMembersPerWorkspace(limits.team_members_per_workspace)
+			? 'Unlimited'
+			: String(limits.team_members_per_workspace);
+		return { name: tierDisplayNameForCompare(tier), value };
+	});
 
-	if (soloUnlimited || maxUnlimited) {
-		return 'Unlimited';
+	const segments: string[] = [];
+	let i = 0;
+	while (i < entries.length) {
+		let j = i + 1;
+		while (j < entries.length && entries[j]!.value === entries[i]!.value) j++;
+		const run = entries.slice(i, j);
+		const first = run[0]!;
+		if (run.length > 1 && first.value === 'Unlimited') {
+			segments.push(`Unlimited on ${first.name}+`);
+		} else if (run.length === 1) {
+			segments.push(
+				first.value === 'Unlimited' ? `Unlimited on ${first.name}` : `${first.value} for ${first.name}`
+			);
+		} else {
+			const last = run[run.length - 1]!;
+			segments.push(`${first.value} for ${first.name}–${last.name}`);
+		}
+		i = j;
 	}
 
-	const soloTotal = accountTeamMemberSeatTotal(
-		soloLimits.workspaces,
-		soloLimits.team_members_per_workspace
-	);
-	const maxTotal = accountTeamMemberSeatTotal(
-		maxLimits.workspaces,
-		maxLimits.team_members_per_workspace
-	);
-
-	if (soloTotal === maxTotal) {
-		return String(maxTotal);
-	}
-
-	const soloPerWorkspace = formatTeamMembersPerWorkspaceDisplay(soloLimits.team_members_per_workspace, {
-		includeYou: false
-	});
-	const maxPerWorkspace = formatTeamMembersPerWorkspaceDisplay(maxLimits.team_members_per_workspace, {
-		includeYou: false
-	});
-	return `${soloTotal}–${maxTotal} (${soloPerWorkspace}–${maxPerWorkspace}/ workspace)`;
+	return segments.join(' · ');
 }
 
 export const openquokCompareProduct: CompareProduct = {
