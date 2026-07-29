@@ -3,6 +3,7 @@ import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/m
 import type { McpLandingSeed, PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
 import { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/antigravity-cli';
+import { chatgptMcpSeed } from '$lib/content/constants/mcps/chatgpt';
 import { codexMcpSeed } from '$lib/content/constants/mcps/codex';
 import { cursorMcpSeed } from '$lib/content/constants/mcps/cursor';
 import { claude_codeMcpSeed } from '$lib/content/constants/mcps/claude-code';
@@ -15,6 +16,7 @@ import { warpMcpSeed } from '$lib/content/constants/mcps/warp';
 export * from '$lib/content/constants/mcps/types';
 export * from '$lib/content/constants/mcps/builders';
 export { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/antigravity-cli';
+export { chatgptMcpSeed } from '$lib/content/constants/mcps/chatgpt';
 export { codexMcpSeed } from '$lib/content/constants/mcps/codex';
 export { cursorMcpSeed } from '$lib/content/constants/mcps/cursor';
 export { claude_codeMcpSeed } from '$lib/content/constants/mcps/claude-code';
@@ -26,6 +28,7 @@ export { warpMcpSeed } from '$lib/content/constants/mcps/warp';
 
 const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	antigravity_cliMcpSeed,
+	chatgptMcpSeed,
 	codexMcpSeed,
 	cursorMcpSeed,
 	claude_codeMcpSeed,

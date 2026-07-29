@@ -8,6 +8,7 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-cursor'
 	| 'mcp-verify-claude-code'
 	| 'mcp-verify-claude-cowork'
+	| 'mcp-verify-chatgpt'
 	| 'mcp-verify-vscode-copilot'
 	| 'mcp-verify-devin-desktop'
 	| 'mcp-verify-amp'
@@ -19,6 +20,7 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-cursor'
 	| 'mcp-install-claude-code'
 	| 'mcp-install-claude-cowork'
+	| 'mcp-install-chatgpt'
 	| 'mcp-install-vscode-copilot'
 	| 'mcp-install-devin-desktop'
 	| 'mcp-install-amp'
@@ -86,6 +88,17 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		accentClass: 'text-[#b85c3d]',
 		accentSoftClass: 'bg-[#d77655]/12 text-[#8f4a31]',
 		borderClass: 'border-[#e7ddd4]'
+	},
+	ChatGPT: {
+		layout: 'cowork',
+		mockUrl: 'chatgpt.com',
+		productLabel: 'ChatGPT',
+		panelLabel: 'Connectors',
+		icon: icons.ChatGPT.name,
+		surfaceClass: 'bg-[#212121]',
+		accentClass: 'text-emerald-300',
+		accentSoftClass: 'bg-emerald-500/15 text-emerald-100',
+		borderClass: 'border-white/10'
 	},
 	'VS Code / Copilot': {
 		layout: 'ide',

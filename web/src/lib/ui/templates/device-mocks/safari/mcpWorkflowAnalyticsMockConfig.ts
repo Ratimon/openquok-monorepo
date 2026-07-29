@@ -8,6 +8,7 @@ export type McpWorkflowAnalyticsMockContentId =
 	| 'mcp-analytics-cursor'
 	| 'mcp-analytics-claude-code'
 	| 'mcp-analytics-claude-cowork'
+	| 'mcp-analytics-chatgpt'
 	| 'mcp-analytics-vscode-copilot'
 	| 'mcp-analytics-devin-desktop'
 	| 'mcp-analytics-amp'

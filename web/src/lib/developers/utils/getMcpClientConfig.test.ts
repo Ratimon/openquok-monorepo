@@ -52,6 +52,19 @@ describe('getMcpClientConfig', () => {
 		expect(parsed[0]?.headers.Authorization).toBe(`Bearer ${API_KEY}`);
 	});
 
+	it('generates ChatGPT path auth as a pasteable MCP connector URL', () => {
+		const { config, hint } = getMcpClientConfig('ChatGPT', 'path', MCP_BASE, API_KEY);
+		expect(config).toBe(`${MCP_BASE}/mcp/${API_KEY}`);
+		expect(hint).toContain('Connectors');
+	});
+
+	it('generates ChatGPT header auth as server URL plus Authorization', () => {
+		const { config, hint } = getMcpClientConfig('ChatGPT', 'header', MCP_BASE, API_KEY);
+		expect(config).toContain(`Server URL: ${MCP_BASE}/mcp`);
+		expect(config).toContain(`Authorization: Bearer ${API_KEY}`);
+		expect(hint).toContain('API key in URL');
+	});
+
 	it('generates Devin Desktop header auth with global mcp_config.json hint', () => {
 		const { config, hint } = getMcpClientConfig('Devin Desktop', 'header', MCP_BASE, API_KEY);
 		expect(hint).toContain('~/.codeium/mcp_config.json');

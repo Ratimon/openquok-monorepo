@@ -54,5 +54,5 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 
 <LinkCard title="Developer Guidelines" description="Conventions for the monorepo, layering, and day-to-day development" href="/docs/developer-guidelines/" />
 
-<LinkCard title="Documentation contribution" description="Configure the docs site and contribute to OpenQuok documentation" href="/docs/documentation-contribution/" />
+<LinkCard title="Documentation contribution" description="Configure the docs site and contribute to OPENQUOK documentation" href="/docs/documentation-contribution/" />
 </CardGrid>

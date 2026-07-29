@@ -69,7 +69,7 @@
 		<div>
 			<h3 class="text-base font-semibold">MCP client configuration</h3>
 			<p class="text-sm text-base-content/70">
-				Connect Cursor, Claude Code, Codex, and other MCP clients to OpenQuok over HTTP streaming to
+				Connect Cursor, Claude Code, ChatGPT, Codex, and other MCP clients to OpenQuok over HTTP streaming to
 				schedule posts from your agent.
 			</p>
 		</div>

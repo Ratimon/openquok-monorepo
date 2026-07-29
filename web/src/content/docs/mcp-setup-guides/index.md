@@ -1,8 +1,8 @@
 ---
 title: MCP Clients Overview
-description: Platform-specific setup for connecting OpenQuok MCP to Cursor, Claude Code, Codex, VS Code Copilot, and other native MCP clients.
+description: Platform-specific setup for connecting OpenQuok MCP to Cursor, Claude Code, ChatGPT, Codex, VS Code Copilot, and other native MCP clients.
 order: 0
-lastUpdated: 2026-06-26
+lastUpdated: 2026-07-29
 ---
 
 <script>
@@ -19,6 +19,7 @@ For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Telegram bot
 
 <CardGrid>
 <LinkCard title="Antigravity CLI" description="Global ~/.gemini/config/mcp_config.json for agy" href="/docs/mcp-setup-guides/antigravity-cli" />
+<LinkCard title="ChatGPT" description="Custom connector / developer-mode MCP URL" href="/docs/mcp-setup-guides/chatgpt" />
 <LinkCard title="Codex" description="OpenAI Codex config.toml MCP servers" href="/docs/mcp-setup-guides/codex" />
 <LinkCard title="Cursor" description="Project-level .cursor/mcp.json for Agent and Composer" href="/docs/mcp-setup-guides/cursor" />
 <LinkCard title="Claude Code" description="claude mcp add with HTTP transport" href="/docs/mcp-setup-guides/claude-code" />

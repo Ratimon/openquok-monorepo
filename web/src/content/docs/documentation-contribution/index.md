@@ -11,7 +11,7 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 # Documentation contribution
 
-This section is for anyone who wants to **improve OpenQuok documentation** — fix typos, add examples, clarify setup steps, or extend the docs site itself. You do not need to be a core maintainer; contributions via GitHub pull requests are welcome.
+This section is for anyone who wants to **improve OPENQUOK documentation** — fix typos, add examples, clarify setup steps, or extend the docs site itself. You do not need to be a core maintainer; contributions via GitHub pull requests are welcome.
 
 Use the sidebar or jump to a guide below.
 

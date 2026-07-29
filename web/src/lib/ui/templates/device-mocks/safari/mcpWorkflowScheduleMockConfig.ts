@@ -8,6 +8,7 @@ export type McpWorkflowScheduleMockContentId =
 	| 'mcp-workflow-cursor'
 	| 'mcp-workflow-claude-code'
 	| 'mcp-workflow-claude-cowork'
+	| 'mcp-workflow-chatgpt'
 	| 'mcp-workflow-vscode-copilot'
 	| 'mcp-workflow-devin-desktop'
 	| 'mcp-workflow-amp'

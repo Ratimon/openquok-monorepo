@@ -4,6 +4,7 @@ import { normalizeApiBaseUrl } from '$lib/utils/path';
 export const MCP_CLIENTS = [
 	'Claude Code',
 	'Claude Cowork',
+	'ChatGPT',
 	'Cursor',
 	'VS Code / Copilot',
 	'Devin Desktop',
@@ -22,6 +23,7 @@ export const MCP_TOKEN_PLACEHOLDER = 'opo_your_programmatic_token';
 export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	'Claude Code': 'claude-code',
 	'Claude Cowork': 'claude-cowork',
+	ChatGPT: 'chatgpt',
 	Cursor: 'cursor',
 	'VS Code / Copilot': 'vscode-copilot',
 	'Devin Desktop': 'devin-desktop',
@@ -72,6 +74,11 @@ export function getMcpClientConfig(
 						}
 					]),
 					hint: 'Add via Custom connectors or managedMcpServers in Cowork organization settings.'
+				};
+			case 'ChatGPT':
+				return {
+					config: urlWithKey,
+					hint: 'Paste this URL into ChatGPT Settings → Connectors → Add custom connector (or create a developer-mode MCP app).'
 				};
 			case 'Cursor':
 				return {
@@ -134,6 +141,11 @@ export function getMcpClientConfig(
 					}
 				]),
 				hint: 'Add via Custom connectors or managedMcpServers in Cowork organization settings.'
+			};
+		case 'ChatGPT':
+			return {
+				config: `Server URL: ${urlBase}\nAuthorization: ${bearer}`,
+				hint: 'ChatGPT custom connectors usually need the token in the URL — prefer API key in URL. Use these values only if your connector supports custom headers.'
 			};
 		case 'Cursor':
 			return {

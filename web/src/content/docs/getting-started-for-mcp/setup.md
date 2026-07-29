@@ -1,8 +1,8 @@
 ---
 title: MCP Client Setup
-description: Configure Cursor, Claude Code, Claude Cowork, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming.
+description: Configure Cursor, Claude Code, Claude Cowork, ChatGPT, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming.
 order: 1
-lastUpdated: 2026-07-22
+lastUpdated: 2026-07-29
 ---
 
 <script>
@@ -58,6 +58,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | --- | --- | --- |
 | <Badge text="Claude Code" variant="default" /> | Terminal <Badge text="claude mcp add" variant="default" /> command | <a href="/docs/mcp-setup-guides/claude-code">Claude Code</a> |
 | <Badge text="Claude Cowork" variant="default" /> | Custom connector or <Badge text="managedMcpServers" variant="param" /> entry | <a href="/docs/mcp-setup-guides/claude-cowork">Claude Cowork</a> |
+| <Badge text="ChatGPT" variant="default" /> | Custom connector / developer-mode MCP URL | <a href="/docs/mcp-setup-guides/chatgpt">ChatGPT</a> |
 | <Badge text="Cursor" variant="default" /> | <Badge text=".cursor/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/cursor">Cursor</a> |
 | <Badge text="VS Code / Copilot" variant="default" /> | <Badge text=".vscode/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/vscode-copilot">VS Code / Copilot</a> |
 | <Badge text="Devin Desktop" variant="default" /> | <Badge text="~/.codeium/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/devin-desktop">Devin Desktop</a> |
@@ -144,7 +145,7 @@ Run this checklist after copying a snippet from the dashboard. Use a workspace t
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, Warp, and other clients" href="/docs/mcp-setup-guides" />
+<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, ChatGPT, Warp, and other clients" href="/docs/mcp-setup-guides" />
 <LinkCard title="MCP introduction" description="Endpoints, authentication, and v1 tool list" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Tools reference" description="schedulePostTool input shape and provider settings" href="/docs/mcp-references/tools" />
 <LinkCard title="MCP examples" description="Copy-paste agent workflows for scheduling posts by platform" href="/docs/mcp-examples" />
