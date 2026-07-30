@@ -54,6 +54,16 @@ export function setPostingScheduleTimezone(tz: string): void {
 	}
 }
 
+/** `true` after the user has chosen a zone in Date metrics (stored under {@link TIMEZONE_STORAGE_KEY}). */
+export function hasUserSetPostingScheduleTimezone(): boolean {
+	if (typeof window === 'undefined') return false;
+	try {
+		return window.localStorage.getItem(TIMEZONE_STORAGE_KEY) != null;
+	} catch {
+		return false;
+	}
+}
+
 /** Apply `localStorage` zone to `dayjs.tz.setDefault` (e.g. after load). */
 export function applyPostingScheduleTimezoneDefaultFromStorage(): void {
 	if (typeof window === 'undefined') return;

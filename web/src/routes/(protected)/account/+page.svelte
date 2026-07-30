@@ -11,6 +11,7 @@
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
+	import { hasUserSetPostingScheduleTimezone } from '$lib/utils/postingSchedulePreferences';
 
 	// --- Area & integrations ---
 	import {
@@ -125,6 +126,9 @@
 		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('developers')}`)
 	);
 	const accountSettingsTeamHref = $derived(url(`${accountRoot}/settings?section=workspace`));
+	const accountSettingsTimezoneHref = $derived(
+		url(`${accountRoot}/settings?${buildAccountSettingsSearchParams('timezone')}`)
+	);
 	const accountBillingHref = $derived(url(`${accountRoot}/billing`));
 	const workspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
 
@@ -609,6 +613,15 @@
 		postKanbanStatus === 'ready' &&
 			(postKanbanColumnCountsVm.scheduled.total + postKanbanColumnCountsVm.published.total) > 0
 	);
+	const hasTimezoneForGettingStarted = $derived.by(() => {
+		if (!browser) return false;
+		void page.url.href;
+		return hasUserSetPostingScheduleTimezone();
+	});
+
+	function openTimezoneSettingsFromGettingStarted(): void {
+		void goto(accountSettingsTimezoneHref);
+	}
 
 	const gettingStartedChecklist = $derived([
 		{ id: 'account', label: 'Create an account', done: true },
@@ -618,6 +631,14 @@
 			done: hasChannelForGettingStarted,
 			actionLabel: 'Add channel',
 			onAction: openOnboardingFlow
+		},
+		{
+			id: 'timezone',
+			label: 'Set timezone',
+			done: hasTimezoneForGettingStarted,
+			actionLabel: hasTimezoneForGettingStarted ? 'Settings' : 'Set timezone',
+			showActionWhenDone: true,
+			onAction: openTimezoneSettingsFromGettingStarted
 		},
 		{
 			id: 'post',

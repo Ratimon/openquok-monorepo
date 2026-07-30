@@ -13,6 +13,8 @@
 		actionLabel?: string;
 		onAction?: () => void;
 		disabled?: boolean;
+		/** Show the action button even when `done` is true (e.g. revisit settings). */
+		showActionWhenDone?: boolean;
 	};
 
 	type ResourceLink = {
@@ -81,7 +83,7 @@
 								{item.label}
 							</span>
 						</div>
-						{#if !item.done && item.actionLabel && item.onAction}
+						{#if item.actionLabel && item.onAction && (!item.done || item.showActionWhenDone)}
 							<Button
 								type="button"
 								variant="outline"
