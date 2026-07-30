@@ -8,6 +8,7 @@
 
 	import SidebarBody from '$lib/ui/sidebar-expandable/SidebarBody.svelte';
 	import SidebarLink from '$lib/ui/sidebar-expandable/SidebarLink.svelte';
+	import SidebarProductTourReset from '$lib/ui/components/onboarding/SidebarProductTourReset.svelte';
 	import HeaderProtected from '$lib/ui/templates/HeaderProtected.svelte';
 
 	type Props = {
@@ -130,6 +131,7 @@
 				</div>
 				<div class="flex-1 min-h-[1.5rem]" aria-hidden="true"></div>
 			</div>
+			<SidebarProductTourReset workspaceId={currentWorkspaceId} />
 		</div>
 	</SidebarBody>
 

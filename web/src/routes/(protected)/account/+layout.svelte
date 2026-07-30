@@ -5,7 +5,7 @@
 	import type { SettingsNavItem } from '$lib/ui/sidebar-main/types';
 
 	import { browser } from '$app/environment';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
 	import { icons } from '$data/icons';
@@ -22,6 +22,7 @@
 	import { route } from '$lib/utils/path';
 	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
+	import { productTourResetPresenter } from '$lib/onboarding';
 	
 	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 
@@ -125,6 +126,15 @@
 	}
 
 	afterNavigate(refreshDockBadge);
+
+	$effect(() => {
+		if (!browser) return;
+		if (!productTourResetPresenter.shouldOpenWizard) return;
+		const homePath = accountPath;
+		const currentPath = route(page.url.pathname);
+		if (currentPath === homePath || currentPath === `${homePath}/`) return;
+		void goto(homePath);
+	});
 </script>
 
 <ProtectedLayout

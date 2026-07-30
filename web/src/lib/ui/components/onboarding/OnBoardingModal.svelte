@@ -6,6 +6,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { markOnboardingCompleted } from '$lib/onboarding';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
@@ -131,9 +132,7 @@
 	}
 
 	function finish() {
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('onboarding:completed', 'true');
-		}
+		markOnboardingCompleted();
 		close();
 	}
 

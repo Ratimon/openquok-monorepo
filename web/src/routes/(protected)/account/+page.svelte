@@ -35,6 +35,14 @@
 	import { isUnlimitedTeamMembersPerWorkspace } from 'openquok-common';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
+	import {
+		GETTING_STARTED_NOTICE_KIND,
+		isOnboardingCompleted,
+		markOnboardingCompleted,
+		persistHomeNoticeDismissed,
+		productTourResetPresenter,
+		readHomeNoticeDismissed
+	} from '$lib/onboarding';
 
 	// --- Feedback ---
 	import { fireProductEvent } from '$lib/product-analytics';
@@ -509,47 +517,13 @@
 
 	let gettingStartedDismissed = $state(false);
 
-	const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
-	const GETTING_STARTED_NOTICE_KIND = 'getting-started';
+	const HOME_NOTICE_KIND_NO_CHANNELS = 'no-channels';
+	const HOME_NOTICE_KIND_INVITE_TEAM = 'invite-team';
+	const HOME_NOTICE_KIND_SOLO_UPGRADE = 'solo-upgrade';
 
-	function homeNoticeStorageKey(kind: string, orgId: string): string {
-		return `${HOME_NOTICE_STORAGE_PREFIX}:${kind}:${orgId}`;
-	}
-
-	function readHomeNoticeDismissed(kind: string, orgId: string | null): boolean {
-		if (!browser || !orgId) return false;
-		try {
-			return localStorage.getItem(homeNoticeStorageKey(kind, orgId)) === 'true';
-		} catch {
-			return false;
-		}
-	}
-
-	function persistHomeNoticeDismissed(kind: string, orgId: string): void {
+	function persistHomeNoticeDismissedLocal(kind: string, orgId: string): void {
 		if (!browser) return;
-		try {
-			localStorage.setItem(homeNoticeStorageKey(kind, orgId), 'true');
-		} catch {
-			// ignore
-		}
-	}
-
-	function isOnboardingCompleted(): boolean {
-		if (!browser) return false;
-		try {
-			return localStorage.getItem('onboarding:completed') === 'true';
-		} catch {
-			return false;
-		}
-	}
-
-	function markOnboardingCompleted(): void {
-		if (!browser) return;
-		try {
-			localStorage.setItem('onboarding:completed', 'true');
-		} catch {
-			// ignore
-		}
+		persistHomeNoticeDismissed(kind, orgId);
 	}
 
 	function openOnboardingFlow(): void {
@@ -558,30 +532,42 @@
 
 	function dismissNoChannelsNotice(): void {
 		noChannelsNoticeDismissed = true;
-		if (workspaceId) persistHomeNoticeDismissed('no-channels', workspaceId);
+		if (workspaceId) persistHomeNoticeDismissedLocal(HOME_NOTICE_KIND_NO_CHANNELS, workspaceId);
 	}
 
 	function dismissInviteTeamNotice(): void {
 		inviteTeamNoticeDismissed = true;
-		if (workspaceId) persistHomeNoticeDismissed('invite-team', workspaceId);
+		if (workspaceId) persistHomeNoticeDismissedLocal(HOME_NOTICE_KIND_INVITE_TEAM, workspaceId);
 	}
 
 	function dismissSoloUpgradeNotice(): void {
 		soloUpgradeNoticeDismissed = true;
-		if (workspaceId) persistHomeNoticeDismissed('solo-upgrade', workspaceId);
+		if (workspaceId) persistHomeNoticeDismissedLocal(HOME_NOTICE_KIND_SOLO_UPGRADE, workspaceId);
 	}
 
 	function dismissGettingStartedSection(): void {
 		gettingStartedDismissed = true;
-		if (workspaceId) persistHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, workspaceId);
+		if (workspaceId) persistHomeNoticeDismissedLocal(GETTING_STARTED_NOTICE_KIND, workspaceId);
+		productTourResetPresenter.bumpRevision();
 	}
 
 	$effect(() => {
 		const orgId = workspaceId;
-		noChannelsNoticeDismissed = readHomeNoticeDismissed('no-channels', orgId);
-		inviteTeamNoticeDismissed = readHomeNoticeDismissed('invite-team', orgId);
-		soloUpgradeNoticeDismissed = readHomeNoticeDismissed('solo-upgrade', orgId);
+		void productTourResetPresenter.revision;
+		noChannelsNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_NO_CHANNELS, orgId);
+		inviteTeamNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_INVITE_TEAM, orgId);
+		soloUpgradeNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_SOLO_UPGRADE, orgId);
 		gettingStartedDismissed = readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, orgId);
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		if (!productTourResetPresenter.shouldOpenWizard) return;
+		const homePath = accountPath;
+		const currentPath = route(page.url.pathname);
+		if (currentPath !== homePath && currentPath !== `${homePath}/`) return;
+		productTourResetPresenter.clearOpenWizardRequest();
+		onboardingDialogOpen = true;
 	});
 
 	/** At most one home notice; no connected channels wins over upgrade and invite. */
