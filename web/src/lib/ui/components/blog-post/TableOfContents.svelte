@@ -46,12 +46,12 @@
 	data-testid="table-of-contents"
 	id="table-of-contents"
 	class={cn(
-		'sticky flex w-full flex-col md:top-[180px] md:max-h-[calc(100vh-200px)] md:w-48 md:overflow-y-auto md:overscroll-contain',
+		'sticky flex w-full flex-col md:top-[180px] md:max-h-[calc(100vh-200px)] md:w-48',
 		className
 	)}
 >
 	{#if showBreadcrumb}
-		<Breadcrumb.Root class="mb-3 max-w-full">
+		<Breadcrumb.Root class="mb-3 shrink-0 max-w-full">
 			<Breadcrumb.List>
 				<Breadcrumb.Item>
 					<Breadcrumb.Link href={blogHref} class="text-sm">{blogLabel}</Breadcrumb.Link>
@@ -61,9 +61,8 @@
 	{/if}
 
 	{#if headers.length > 0}
-		<h2 class="text-sm font-semibold text-base-content">
-			{title}</h2>
-		<ul class="space-y-1 py-2">
+		<h2 class="shrink-0 text-sm font-semibold text-base-content">{title}</h2>
+		<ul class="min-h-0 flex-1 space-y-1 py-2 md:overflow-y-auto md:overscroll-contain">
 			{#each headers as header, index (header.slug + index)}
 				<li class={indentClass(header.level)}>
 					<ScrollLink
