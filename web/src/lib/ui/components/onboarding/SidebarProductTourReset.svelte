@@ -4,6 +4,7 @@
 	import { icons } from '$data/icons';
 	import {
 		GETTING_STARTED_NOTICE_KIND,
+		hasAnyAccountSidebarTourCompleted,
 		productTourResetPresenter,
 		readHomeNoticeDismissed
 	} from '$lib/onboarding';
@@ -22,7 +23,10 @@
 	const showResetUi = $derived.by(() => {
 		void productTourResetPresenter.revision;
 		if (!workspaceId) return false;
-		return readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, workspaceId);
+		return (
+			readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, workspaceId) ||
+			hasAnyAccountSidebarTourCompleted(workspaceId)
+		);
 	});
 
 	function handleReset(): void {
@@ -41,7 +45,7 @@
 		>
 			<p class="text-xs font-medium text-base-content">Product tours</p>
 			<p class="mt-0.5 text-[11px] leading-snug text-base-content/55">
-				Missed something? Reset and run onboarding again.
+				Missed something? Reset sidebar guides and onboarding.
 			</p>
 			<Button
 				type="button"

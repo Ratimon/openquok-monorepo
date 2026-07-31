@@ -40,11 +40,11 @@
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
-		open: boolean;
+		open?: boolean;
 		onOpenChange?: (next: boolean) => void;
 	};
 
-	let { open, onOpenChange }: Props = $props();
+	let { open = $bindable(false), onOpenChange }: Props = $props();
 
 	let onboardingMode = $state<OnboardingMode>('agent');
 	let modeTabValue = $state<OnboardingMode>('agent');
@@ -88,7 +88,7 @@
 		void ensureWorkspaceLoaded().then(() => {
 			if (!workspaceSettingsPresenter.currentWorkspaceId) {
 				toast.error('Create or select a workspace in Account settings before adding channels.');
-				onOpenChange?.(false);
+				handleOpenChange(false);
 				return;
 			}
 			void loadProviders();
@@ -112,7 +112,12 @@
 	});
 
 	function close() {
-		onOpenChange?.(false);
+		handleOpenChange(false);
+	}
+
+	function handleOpenChange(next: boolean) {
+		open = next;
+		onOpenChange?.(next);
 	}
 
 	function onPickProvider(identifier: string) {
@@ -156,7 +161,7 @@
 	}
 </script>
 
-<Dialog.Root bind:open onOpenChange={(v) => onOpenChange?.(v)}>
+<Dialog.Root {open} onOpenChange={handleOpenChange}>
 	<Dialog.Content class={cn(ONBOARDING_DIALOG_CONTENT_CLASS)}>
 		<Tooltip.Provider delayDuration={200}>
 			<div class={ONBOARDING_MODAL_BODY_CLASS}>

@@ -4,6 +4,8 @@
 	import type { SidebarLinkItem } from '$lib/ui/sidebar-expandable/types';
 	import type { SettingsNavItem } from '$lib/ui/sidebar-main/types';
 
+	import type { AccountSidebarTourId } from '$lib/onboarding/accountSidebarTour.types';
+
 	import { browser } from '$app/environment';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -22,8 +24,17 @@
 	import { route } from '$lib/utils/path';
 	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
 	import { SETTINGS_SIDEBAR_KEY } from '$lib/ui/templates/sidebar-secondary-context';
-	import { productTourResetPresenter } from '$lib/onboarding';
-	
+	import {
+		accountSidebarTourPresenter,
+		isOnboardingCompleted,
+		persistAccountSidebarTourCompleted,
+		productTourResetPresenter,
+		readAccountSidebarTourCompleted,
+		resolveAccountSidebarTourId
+	} from '$lib/onboarding';
+	import { workspaceSettingsPresenter } from '$lib/settings';
+
+	import AccountSidebarFeatureTourDialog from '$lib/ui/components/onboarding/AccountSidebarFeatureTourDialog.svelte';
 	import ProtectedLayout from '$lib/ui/layouts/ProtectedLayout.svelte';
 
 	type AppSettingsSectionId =
@@ -127,13 +138,83 @@
 
 	afterNavigate(refreshDockBadge);
 
+	let sidebarTourOpen = $state(false);
+	let activeSidebarTourId = $state<AccountSidebarTourId | null>(null);
+	let sidebarTourPending = $state(false);
+
+	function queueSidebarFeatureTour(): void {
+		if (!browser) return;
+		if (accountSidebarTourPresenter.onboardingBlocksTours) return;
+		if (productTourResetPresenter.shouldOpenWizard) return;
+		if (!isOnboardingCompleted()) return;
+
+		const workspaceId = workspaceSettingsPresenter.currentWorkspaceId;
+		if (!workspaceId) return;
+
+		const tourId = resolveAccountSidebarTourId(page.url.pathname);
+		if (!tourId) {
+			sidebarTourOpen = false;
+			activeSidebarTourId = null;
+			return;
+		}
+
+		void productTourResetPresenter.revision;
+
+		if (readAccountSidebarTourCompleted(workspaceId, tourId)) {
+			if (activeSidebarTourId === tourId && sidebarTourOpen) {
+				sidebarTourOpen = false;
+				activeSidebarTourId = null;
+			}
+			return;
+		}
+
+		if (sidebarTourOpen && activeSidebarTourId === tourId) return;
+
+		activeSidebarTourId = tourId;
+		sidebarTourOpen = true;
+	}
+
+	function scheduleSidebarFeatureTourCheck(): void {
+		if (!browser) return;
+		if (sidebarTourPending) return;
+		sidebarTourPending = true;
+		scheduleDeferredWork(() => {
+			sidebarTourPending = false;
+			queueSidebarFeatureTour();
+		});
+	}
+
+	function onSidebarTourFinished(tourId: AccountSidebarTourId): void {
+		const workspaceId = workspaceSettingsPresenter.currentWorkspaceId;
+		if (workspaceId) persistAccountSidebarTourCompleted(workspaceId, tourId);
+		sidebarTourOpen = false;
+		activeSidebarTourId = null;
+		productTourResetPresenter.bumpRevision();
+	}
+
+	afterNavigate(() => {
+		scheduleSidebarFeatureTourCheck();
+	});
+
+	$effect(() => {
+		if (!browser) return;
+		void page.url.pathname;
+		void workspaceSettingsPresenter.currentWorkspaceId;
+		void productTourResetPresenter.revision;
+		void accountSidebarTourPresenter.onboardingBlocksTours;
+		scheduleSidebarFeatureTourCheck();
+	});
+
 	$effect(() => {
 		if (!browser) return;
 		if (!productTourResetPresenter.shouldOpenWizard) return;
 		const homePath = accountPath;
 		const currentPath = route(page.url.pathname);
-		if (currentPath === homePath || currentPath === `${homePath}/`) return;
-		void goto(homePath);
+		sidebarTourOpen = false;
+		activeSidebarTourId = null;
+		if (currentPath !== homePath && currentPath !== `${homePath}/`) {
+			void goto(homePath);
+		}
 	});
 </script>
 
@@ -146,4 +227,10 @@
 >
 	{@render children?.()}
 </ProtectedLayout>
+
+<AccountSidebarFeatureTourDialog
+	bind:open={sidebarTourOpen}
+	tourId={activeSidebarTourId}
+	onFinished={onSidebarTourFinished}
+/>
 

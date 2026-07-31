@@ -41,6 +41,7 @@
 		isOnboardingCompleted,
 		markOnboardingCompleted,
 		persistHomeNoticeDismissed,
+		accountSidebarTourPresenter,
 		productTourResetPresenter,
 		readHomeNoticeDismissed
 	} from '$lib/onboarding';
@@ -565,11 +566,16 @@
 	});
 
 	$effect(() => {
+		accountSidebarTourPresenter.setOnboardingBlocksTours(onboardingDialogOpen);
+	});
+
+	$effect(() => {
 		if (!browser) return;
 		if (!productTourResetPresenter.shouldOpenWizard) return;
 		const homePath = accountPath;
 		const currentPath = route(page.url.pathname);
 		if (currentPath !== homePath && currentPath !== `${homePath}/`) return;
+		accountSidebarTourPresenter.setOnboardingBlocksTours(true);
 		productTourResetPresenter.clearOpenWizardRequest();
 		onboardingDialogOpen = true;
 	});
@@ -733,10 +739,10 @@
 		if (w && !prevOnboardingWelcome) {
 			onboardingDialogOpen = true;
 		}
-		prevOnboardingWelcome = w;
-		if (!w) {
+		if (prevOnboardingWelcome && !w) {
 			onboardingDialogOpen = false;
 		}
+		prevOnboardingWelcome = w;
 	});
 
 	$effect(() => {
@@ -1170,7 +1176,7 @@
 />
 
 <OnBoardingModal
-	open={onboardingDialogOpen}
+	bind:open={onboardingDialogOpen}
 	onOpenChange={(v) => {
 		onboardingDialogOpen = v;
 		if (!v) {

@@ -1,3 +1,5 @@
+import { clearAccountSidebarTours } from '$lib/onboarding/accountSidebarTourStorage';
+
 export const ONBOARDING_COMPLETED_STORAGE_KEY = 'onboarding:completed';
 
 export const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
@@ -48,6 +50,7 @@ export function resetProductTours(workspaceId: string | null): void {
 	if (typeof localStorage === 'undefined') return;
 	try {
 		localStorage.removeItem(ONBOARDING_COMPLETED_STORAGE_KEY);
+		clearAccountSidebarTours(workspaceId);
 		if (workspaceId) {
 			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_NOTICE_KIND, workspaceId));
 		}
