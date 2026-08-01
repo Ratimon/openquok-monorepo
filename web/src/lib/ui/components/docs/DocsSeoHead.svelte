@@ -1,8 +1,13 @@
 <script lang="ts">
-	import type { BreadcrumbList, ListItem, TechArticle, WebSite, WithContext } from 'schema-dts';
+	import type { BreadcrumbList, TechArticle, WebSite, WithContext } from 'schema-dts';
 
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import {
+		buildDocsBreadcrumbListItems,
+		resolveDocsPageUrl
+	} from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
+	import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
 	import { createJsonLdWithContext, SCHEMA_ORG_CONTEXT } from '$lib/utils/jsonLdSchema';
 	import { jsonLdScriptHtml } from '$lib/utils/jsonLdScriptHtml';
 
@@ -16,22 +21,11 @@
 
 	let siteTitle = docsConfig.site.title;
 	let fullTitle = $derived(title === siteTitle ? title : `${title} — ${siteTitle}`);
-	// Prerender-safe: avoid `page.url.search` / `page.url.href` (querystrings are not stable at build time).
-	let url = $derived.by(() => {
-		const baseUrl = docsConfig.site.url ?? '';
-		return baseUrl ? `${baseUrl}${page.url.pathname}` : page.url.pathname;
-	});
+	let siteOrigin = $derived(resolvePublicSiteUrl(page.url));
+	// Prerender-safe: pathname + configured origin only (no query string).
+	let url = $derived(resolveDocsPageUrl(page.url.pathname, page.url));
 
-	let breadcrumbItems = $derived.by((): ListItem[] => {
-		const parts = page.url.pathname.split('/').filter(Boolean);
-		const baseUrl = docsConfig.site.url ?? '';
-		return parts.map((part, i) => ({
-			'@type': 'ListItem' as const,
-			position: i + 1,
-			name: part.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
-			item: `${baseUrl}/${parts.slice(0, i + 1).join('/')}`
-		}));
-	});
+	let breadcrumbItems = $derived(buildDocsBreadcrumbListItems(page.url.pathname, page.url));
 
 	let schemaData = $derived([
 		createJsonLdWithContext({
@@ -42,7 +36,7 @@
 			isPartOf: {
 				'@type': 'WebSite',
 				name: siteTitle,
-				url: docsConfig.site.url ?? ''
+				url: siteOrigin
 			} satisfies WebSite
 		} satisfies TechArticle),
 		{
