@@ -3,7 +3,7 @@ import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import type { IconName } from '$data/icons';
 
-export type CompareProductSlug = 'openquok' | 'hootsuite' | 'buffer' | 'postiz';
+export type CompareProductSlug = 'openquok' | 'hootsuite' | 'buffer' | 'post-bridge' | 'postiz';
 
 /**
  * Comparison angles shared across products. When building a pair, a row is included only

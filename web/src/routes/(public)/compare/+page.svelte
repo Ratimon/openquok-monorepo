@@ -55,6 +55,10 @@
 			containerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
 		},
+		'post-bridge': {
+			containerClass:
+				'bg-linear-to-br from-rose-400/30 via-orange-300/20 to-amber-300/20 text-rose-100 ring-rose-300/35'
+		},
 		postiz: {
 			containerClass:
 				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35'

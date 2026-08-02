@@ -12,6 +12,7 @@ import { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
+import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 import {
 	COMPARE_HUB_BASE_SLUG,
@@ -24,12 +25,14 @@ export { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
 	hootsuiteCompareProduct,
 	bufferCompareProduct,
+	postBridgeCompareProduct,
 	postizCompareProduct
 ];
 

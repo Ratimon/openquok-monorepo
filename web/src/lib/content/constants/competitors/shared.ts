@@ -28,8 +28,12 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
 	hootsuite: 'https://www.hootsuite.com',
 	buffer: 'https://buffer.com',
+	'post-bridge': 'https://www.post-bridge.com',
 	postiz: 'https://postiz.com'
-} as const satisfies Record<typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'postiz', string>;
+} as const satisfies Record<
+	typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'post-bridge' | 'postiz',
+	string
+>;
 
 export function buildCompareChannelPoints(
 	openquokChannels: readonly string[],
