@@ -71,7 +71,8 @@
 				}),
 				ContentEditorBlogImage.configure({
 					HTMLAttributes: {
-						class: 'max-w-full h-auto rounded-md border border-base-300'
+						class:
+							'mx-auto block h-auto w-auto max-h-[min(70vh,26rem)] max-w-full rounded-md border border-base-300'
 					}
 				})
 			],
@@ -342,13 +343,17 @@
 		min-height: 100px;
 	}
 
-	/* Inline / block images (plain <img> from HTML + node view preview) */
+	/* Inline images: cap height so mobile UI screenshots stay readable, not column-wide */
 	:global(.content-editor .ProseMirror img),
 	:global(.content-editor .content-editor-image-img) {
-		max-width: 100%;
-		height: auto;
 		display: block;
+		width: auto;
+		height: auto;
+		max-width: 100%;
+		max-height: min(70vh, 26rem);
+		margin-inline: auto;
 		border-radius: 0.375rem;
+		object-fit: contain;
 	}
 
 	:global(.content-editor .content-editor-image-wrap) {
@@ -356,7 +361,7 @@
 		display: block;
 		width: fit-content;
 		max-width: 100%;
-		margin: 0.5rem 0;
+		margin: 0.5rem auto;
 	}
 
 	:global(.content-editor .content-editor-image-delete) {
