@@ -156,6 +156,6 @@ Compiled CLI code published as [`@openquok/auto-cli`](https://www.npmjs.com/pack
 
 <p align="center">
   <a href="https://www.trustpilot.com/review/openquok.com" target="_blank">
-    <img alt="Leave a review on Trustpilot" src="assets/review-trustpilot-banner.jpg" />
+    <img alt="Leave a review on Trustpilot" src="assets/readme/review-trustpilot-banner.jpg" />
   </a>
 </p>
