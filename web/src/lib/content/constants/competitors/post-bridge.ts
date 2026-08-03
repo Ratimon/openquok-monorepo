@@ -77,11 +77,11 @@ const POST_BRIDGE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Com
 
 export const postBridgeCompareProduct: CompareProduct = {
 	slug: 'post-bridge',
-	name: 'Post Bridge',
+	name: 'PostBridge',
 	icon: icons.PostBridge.name,
 	tagline: 'Straightforward hosted cross-poster for creators and small teams',
 	overview:
-		'Post Bridge is a hosted social scheduling tool focused on fast cross-posting. Connect major networks, tailor copy per platform or account, schedule posts (including carousels and bulk video), and optionally automate through a paid HTTP API add-on with MCP support — with flat Creator, Growth, and Pro plans plus a small free tier.',
+		'PostBridge is a hosted social scheduling tool focused on fast cross-posting. Connect major networks, tailor copy per platform or account, schedule posts (including carousels and bulk video), and optionally automate through a paid HTTP API add-on with MCP support — with flat Creator, Growth, and Pro plans plus a small free tier.',
 	pricingPlans: POST_BRIDGE_PRICING_PLANS,
 	channels: POST_BRIDGE_CHANNELS,
 	featureSupport: POST_BRIDGE_FEATURE_SUPPORT,

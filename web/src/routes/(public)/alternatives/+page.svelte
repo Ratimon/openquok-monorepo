@@ -58,6 +58,10 @@
 		postiz: {
 			containerClass:
 				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35'
+		},
+		typefully: {
+			containerClass:
+				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35'
 		}
 	};
 

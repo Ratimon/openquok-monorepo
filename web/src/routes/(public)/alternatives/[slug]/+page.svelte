@@ -84,6 +84,12 @@
 				'bg-linear-to-br from-violet-400/30 via-purple-300/20 to-fuchsia-300/20 text-violet-100 ring-violet-300/35',
 			cardContainerClass:
 				'bg-linear-to-br from-violet-400/20 via-purple-300/16 to-fuchsia-300/16 text-violet-100 ring-violet-300/28'
+		},
+		typefully: {
+			heroContainerClass:
+				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',
+			cardContainerClass:
+				'bg-linear-to-br from-blue-500/20 via-indigo-400/16 to-sky-300/16 text-blue-100 ring-blue-400/28'
 		}
 	};
 

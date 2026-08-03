@@ -29,9 +29,10 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	hootsuite: 'https://www.hootsuite.com',
 	buffer: 'https://buffer.com',
 	'post-bridge': 'https://www.post-bridge.com',
-	postiz: 'https://postiz.com'
+	postiz: 'https://postiz.com',
+	typefully: 'https://typefully.com'
 } as const satisfies Record<
-	typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'post-bridge' | 'postiz',
+	typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'post-bridge' | 'postiz' | 'typefully',
 	string
 >;
 

@@ -14,6 +14,7 @@ import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hoot
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
+import { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_PRODUCT_WEBSITE_URLS
@@ -27,13 +28,15 @@ export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hoot
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
+export { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
 	hootsuiteCompareProduct,
 	bufferCompareProduct,
 	postBridgeCompareProduct,
-	postizCompareProduct
+	postizCompareProduct,
+	typefullyCompareProduct
 ];
 
 const FAQ_ITEM_INDEX_BY_ID: Record<PublicFaqItemId, number> = {
