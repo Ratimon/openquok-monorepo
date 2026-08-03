@@ -45,39 +45,39 @@
 		patternClass={patternClass ?? 'text-primary/10 stroke-[0.75]'}
 	/>
 
-	<div class="relative z-20 flex h-full items-center justify-between gap-4">
-		<div class="min-w-0 flex-1 space-y-2">
-			<div class="flex items-start justify-between gap-3">
-				<h2 class="flex min-w-0 items-center gap-3 text-xl font-semibold text-base-content">
-					<span class="truncate">{item.title}</span>
-					{#if item.iconName}
-						<div
-							class={`flex size-10 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${
-								item.iconContainerClass ??
-								'bg-base-100/90 text-base-content ring-base-content/10'
-							}`}
-						>
-							<AbstractIcon
-								name={item.iconName}
-								width="20"
-								height="20"
-								class={item.iconClass ?? 'size-5'}
-								focusable="false"
-							/>
-						</div>
-					{/if}
-				</h2>
+	<div class="relative z-20 flex h-full flex-col gap-3">
+		<div class="flex items-start justify-between gap-3">
+			<h2 class="min-w-0 flex-1 text-balance text-xl font-semibold leading-snug text-base-content">
+				{item.title}
+			</h2>
+			<div class="flex shrink-0 items-start gap-2">
 				{#if item.badgeLabel}
 					<PublicSoonBadge label={item.badgeLabel} />
 				{/if}
+				{#if item.iconName}
+					<div
+						class={`flex size-10 shrink-0 items-center justify-center rounded-2xl shadow-sm ring-1 ${
+							item.iconContainerClass ??
+							'bg-base-100/90 text-base-content ring-base-content/10'
+						}`}
+					>
+						<AbstractIcon
+							name={item.iconName}
+							width="20"
+							height="20"
+							class={item.iconClass ?? 'size-5'}
+							focusable="false"
+						/>
+					</div>
+				{/if}
 			</div>
-			{#if item.description}
-				<p class="text-sm font-medium leading-relaxed text-base-content/65">
-					{item.description}
-				</p>
-			{/if}
 		</div>
-		<span class="shrink-0 text-sm font-medium text-primary" aria-hidden="true">
+		{#if item.description}
+			<p class="text-sm font-medium leading-relaxed text-base-content/65">
+				{item.description}
+			</p>
+		{/if}
+		<span class="mt-auto self-end text-sm font-medium text-primary" aria-hidden="true">
 			{item.ctaLabel ?? 'Explore'}
 		</span>
 	</div>
