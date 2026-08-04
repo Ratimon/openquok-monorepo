@@ -58,6 +58,8 @@ function isCliDocsPath(segmentOrSlug: string): boolean {
 		segmentOrSlug.startsWith('getting-started-for-cli/') ||
 		segmentOrSlug === 'agent-setup-guides' ||
 		segmentOrSlug.startsWith('agent-setup-guides/') ||
+		segmentOrSlug === 'other-skills' ||
+		segmentOrSlug.startsWith('other-skills/') ||
 		segmentOrSlug.startsWith('cli-')
 	);
 }

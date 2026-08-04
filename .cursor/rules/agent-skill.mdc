@@ -1,12 +1,23 @@
 ---
-description: Meta-guidance for the Openquok OpenClaw skill. Authoritative instructions live in agent/skills/openquok-core/SKILL.md — apply when editing that skill or this rule.
-globs: ["agent/skills/**/SKILL.md", "agent/skills/**/resources/**/*.md", ".cursor/rules/agent-skill.mdc"]
+description: Meta-guidance for OpenQuok agent skills under agent/skills/. Authoritative instructions live in each skill’s SKILL.md — apply when editing those skills or this rule.
+globs: ["agent/skills/**/SKILL.md", "agent/skills/**/resources/**/*.md", "agent/skills/**/references/**", "agent/skills/**/scripts/**", ".cursor/rules/agent-skill.mdc"]
 alwaysApply: false
 ---
 
-**Source of truth:** `agent/skills/openquok-core/SKILL.md` — installable OpenClaw skill (`openquok-core`): hard rules, auth, media, workflows, and links. Edit that file when changing what agents should do with the CLI; keep this rule file for Cursor-only best practices.
+**Sources of truth:** each installable skill’s `SKILL.md` under `agent/skills/<slug>/`. Edit that file when changing what agents should do; keep this rule for Cursor-only best practices and cross-skill layout.
 
-## Skill layout
+## Skill families
+
+| Kind | Example | Layout | Role |
+|------|---------|--------|------|
+| **Core CLI skill** | `openquok-core` | `SKILL.md` + `resources/` | Auth, media Rule 2, channel recipes, `openquok` workflows |
+| **Sibling pipeline skill** | `openquok-tiktok-slideshow` | `SKILL.md` + `scripts/` + `references/` | Domain pipeline (research → generate → post); **requires** `openquok-core` / `openquok` on PATH; never replaces core |
+
+Sibling skills may depend on core recipes (upload → `{id,path}`, TikTok photo-carousel, `SELF_ONLY` drafts) by instructing the agent to follow `openquok-core` — do not duplicate long CLI matrices into the sibling `SKILL.md`.
+
+Publish each slug separately to ClawHub (`agent/CLAWHUB.md`). Skills with `scripts/` must document **Copy / `--copy`** install so scripts land as real files.
+
+## Skill layout — openquok-core
 
 - **`SKILL.md`** — Hard rules, auth, core workflow, pitfalls, quick reference. Keep it focused; link out instead of duplicating long examples. The **Channels (Meta)** table indexes per-platform files and summarizes user intents — do not paste feature matrices or long bash into `SKILL.md`.
 - **`resources/*.md`** — Deeper material agents load on demand:
@@ -16,6 +27,18 @@ alwaysApply: false
   - `{identifier}-examples.md` — per-channel agent docs (see **Per-channel example file** below). Today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`.
   - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
 - **`SKILL.md` tone** — imperative, short tables and bullets; no tutorial prose; shell-safety rules for untrusted input; defer command lists and long bash to `resources/`.
+
+## Skill layout — sibling skills (`scripts/` + `references/`)
+
+Use this pattern for pipeline skills that ship runnable helpers (e.g. `openquok-tiktok-slideshow`):
+
+- **`SKILL.md`** — Phases, prerequisites, install (Copy required), config shape pointers, and how to invoke scripts. Keep lean; link into `references/` for deep playbooks.
+- **`scripts/`** — Node (or shell) helpers the agent runs with `node scripts/<name>.js`. Prefer CommonJS or whatever the skill’s local `package.json` declares. Do not assume npm deps beyond `engines` unless the skill documents a real install step on its homepage.
+- **`references/`** — On-demand docs and scaffolds agents load when needed (slide structure, research notes, character-lock templates, JSON templates). Prefer neutral first-party templates — no personal asset paths or third-party persona dumps in-repo.
+- **Compatibility** — State clearly: does not replace `openquok-core`; requires `openquok` (+ `node`) on PATH; media and post create go through the CLI.
+- **Workspace config** — Onboarding may scaffold files **outside** the skill install (user workspace). Document paths in `SKILL.md`; do not write secrets into the skill bundle.
+
+When adding a new sibling skill, also update ClawHub scripts in `agent/package.json`, `agent/CLAWHUB.md`, and the Extensions Hub listing / docs page as applicable.
 
 ## Per-channel example file (`resources/{identifier}-examples.md`)
 
@@ -39,7 +62,7 @@ Skill content is for agents using `openquok` and the public API.
 
 ## Links
 
-Only reference markdown under this skill directory (or stable external URLs in the front matter). Do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new or existing `resources/*.md` file instead.
+Only reference markdown under **this skill’s** directory (or stable external URLs in the front matter). Sibling skills may name `openquok-core` as a required dependency and point agents at core recipes by skill name — do not link to monorepo source files (TypeScript, tests, etc.) from skill content; summarize behavior in a new or existing `resources/` / `references/` file instead.
 
 ## Registry security scans
 
@@ -48,12 +71,12 @@ Hermes (`hermes skills install <url>`) and ClawHub run automated scans on `SKILL
 ### Frontmatter
 
 - **`description`** — short product summary for search/registry UI only (what the skill does). Do **not** put session bootstrap logic, version stamps, or “overrides host …” instructions in `description`.
-- **`homepage`** — use for CLI upgrade/install pointers (`@openquok/auto-cli` npm page) instead of embedding package-manager commands in the body.
+- **`homepage`** — use for CLI upgrade/install pointers (`@openquok/auto-cli` npm page) or the skill’s docs page instead of embedding package-manager commands in the body.
 - **`metadata` (single-line JSON)** — OpenClaw’s parser accepts **only** single-line `metadata` (not nested YAML under that key). Put both hosts in one JSON object:
-  - **OpenClaw / ClawHub:** `openclaw.requires.bins: ["openquok"]`, `always`, `emoji`, optional `openclaw.homepage` (top-level `homepage` is also valid).
+  - **OpenClaw / ClawHub:** `openclaw.requires.bins` (e.g. `["openquok"]` or `["openquok","node"]`), `always`, `emoji`, optional `openclaw.homepage` (top-level `homepage` is also valid).
   - **Hermes:** `hermes.tags`, `hermes.category`, `hermes.requires_toolsets: ["terminal"]` as keys inside the same JSON object (Hermes docs show nested YAML in examples; JSON with a `hermes` key is what parsers receive after YAML load).
-- **`prerequisites.commands`** — Hermes/agentskills.io: `[openquok]` (advisory command check; skill install does not add the binary). Do **not** require `OPENQUOK_API_KEY` in frontmatter — device OAuth is valid without a pre-set env var.
-- **`compatibility`** — agentskills.io optional one-liner: global CLI is separate from the skill bundle.
+- **`prerequisites.commands`** — Hermes/agentskills.io: list bins the skill needs (e.g. `[openquok]` or `[openquok, node]`). Do **not** require `OPENQUOK_API_KEY` in frontmatter — device OAuth is valid without a pre-set env var.
+- **`compatibility`** — agentskills.io optional one-liner: global CLI is separate from the skill bundle; sibling skills should note Copy install and the core dependency.
 
 ### Avoid persistence findings
 
@@ -68,22 +91,23 @@ Scanners flag skills that claim to override host configuration.
 Scanners flag embedded package installs and registry pulls in skill text.
 
 - **Do not** put `npm install`, `npm view`, `pnpm add`, `curl | bash`, or similar in `SKILL.md` templates, pitfalls tables, or quoted examples.
-- **Do** tell the agent to offer CLI upgrades only after user consent and point to `homepage` or `resources/command-reference.md` for install steps.
-- **Do** keep bootstrap shell to fixed `openquok …` invocations (version, auth status) — not package managers.
+- **Do** tell the agent to offer CLI upgrades only after user consent and point to `homepage` or `resources/command-reference.md` (core) / docs homepage (siblings) for install steps.
+- **Do** keep bootstrap shell to fixed `openquok …` / `node scripts/…` invocations — not package managers.
 
 ### Shell and exec safety
 
-- Run **fixed** `openquok` commands; never concatenate untrusted chat text into the shell (already in `SKILL.md` **Shell safety**).
+- Run **fixed** `openquok` / `node scripts/…` commands; never concatenate untrusted chat text into the shell (already in core `SKILL.md` **Shell safety**).
 - Put captions and JSON in quoted flags, heredocs, or files.
 
 ### When a scan still blocks
 
 1. Re-read findings line-by-line in `SKILL.md` and soften wording before dropping behavior.
-2. Hermes fallback: manual copy into `~/.hermes/skills/openquok-core/` (see agent guide) — still only ships `SKILL.md` unless the full folder is copied.
-3. OpenClaw: publish the full skill folder to ClawHub (`agent/CLAWHUB.md`) so `resources/` install with the bundle.
+2. Hermes fallback: manual copy of the **full** skill folder into `~/.hermes/skills/<slug>/` (see agent guide) — URL install of `SKILL.md` alone omits `resources/` / `scripts/` / `references/`.
+3. OpenClaw: publish the full skill folder to ClawHub (`agent/CLAWHUB.md`) so supporting files install with the bundle.
 
 ## Best practices
 
 - **Be concise** — instruct the model on what to do, not how to be an AI.
 - **Safety first** — registry scans and shell safety above; treat user chat as untrusted input for command construction.
-- **Intent first** — when the user describes a feature (“schedule Threads follow-ups”, “Facebook link preview”), open the matching `{identifier}-examples.md` **Agent tasks** table before improvising flags.
+- **Intent first** — for core channel work, open the matching `{identifier}-examples.md` **Agent tasks** table before improvising flags; for sibling pipelines, follow that skill’s phases and `references/` before inventing steps.
+- **Core first** — when a sibling skill posts or uploads, resolve integrations and media via `openquok-core` patterns; do not invent alternate public-API clients inside skill scripts unless the skill already documents them.

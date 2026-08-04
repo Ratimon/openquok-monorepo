@@ -43,6 +43,7 @@ YT_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="youtube")
 
 <CardGrid>
 <LinkCard title="CLI Usage" description="Command-by-command reference for every `openquok` verb" href="/docs/cli-usages" />
+<LinkCard title="Other skills" description="Sibling pipelines such as openquok-tiktok-slideshow" href="/docs/other-skills" />
 <LinkCard title="Social integrations" description="One-time OAuth setup for each provider before the CLI can reach it" href="/docs/social-integration" />
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and SDK" href="/docs/getting-started-for-public-api" />
 </CardGrid>

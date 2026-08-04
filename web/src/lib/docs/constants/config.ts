@@ -39,7 +39,7 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started-for-cli' }
 	},
 	{
-		label: 'Usage',
+		label: 'CLI Core Usages',
 		icon: icons.Terminal.name,
 		autogenerate: { directory: 'cli-usages' }
 	},
@@ -52,8 +52,12 @@ export const docsSidebarCli: DocsSidebarSection[] = [
 		label: 'Agent Setup Guides',
 		icon: icons.Link.name,
 		autogenerate: { directory: 'agent-setup-guides' }
+	},
+	{
+		label: 'Other skills',
+		icon: icons.Images.name,
+		autogenerate: { directory: 'other-skills' }
 	}
-	
 ];
 
 export const docsSidebarMcp: DocsSidebarSection[] = [

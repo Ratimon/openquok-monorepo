@@ -1,8 +1,13 @@
-# Publishing `openquok-core` to ClawHub
+# Publishing agent skills to ClawHub
 
-[ClawHub](https://clawhub.ai) is the public skill registry for OpenClaw. After publish, users can install with `clawhub install openquok-core` or `openclaw skills install openquok-core` from their OpenClaw workspace.
+[ClawHub](https://clawhub.ai) is the public skill registry for OpenClaw. Skills live under `agent/skills/<slug>/` and publish independently of the `@openquok/auto-cli` npm package.
 
-The skill bundle lives at `agent/skills/openquok-core/` (`SKILL.md` plus `resources/`). Frontmatter declares both hosts: OpenClaw `metadata.openclaw.requires.bins` and Hermes `prerequisites.commands` + `metadata.hermes`.
+| Slug | Path | Bundle | Notes |
+|------|------|--------|-------|
+| `openquok-core` | `agent/skills/openquok-core/` | `SKILL.md` + `resources/` | Primary CLI skill; auth, media Rule 2, channel recipes |
+| `openquok-tiktok-slideshow` | `agent/skills/openquok-tiktok-slideshow/` | `SKILL.md` + `scripts/` + `references/` | Sibling pipeline skill; **requires** `openquok-core` / `openquok` on PATH; install with **Copy** so `scripts/` are real files |
+
+Frontmatter on each skill declares both hosts: OpenClaw `metadata.openclaw.requires.bins` and Hermes `prerequisites.commands` + `metadata.hermes`.
 
 ## Prerequisites
 
@@ -29,6 +34,8 @@ Headless / CI: create a token in the ClawHub dashboard and use `clawhub login --
 
 Requires the global [ClawHub CLI](https://docs.openclaw.ai/clawhub/cli) (`npm i -g clawhub`) and `clawhub login`.
 
+### openquok-core
+
 From the **monorepo root** (pnpm shortcuts):
 
 ```bash
@@ -52,6 +59,26 @@ clawhub skill publish ./agent/skills/openquok-core \
   --name "OpenQuok Core"
 ```
 
+### openquok-tiktok-slideshow
+
+```bash
+pnpm publish:clawhub:tiktok-slideshow:dry-run
+pnpm publish:clawhub:tiktok-slideshow:manual
+```
+
+Equivalent raw commands:
+
+```bash
+clawhub skill publish ./agent/skills/openquok-tiktok-slideshow \
+  --slug openquok-tiktok-slideshow \
+  --name "OpenQuok TikTok Slideshow" \
+  --dry-run
+
+clawhub skill publish ./agent/skills/openquok-tiktok-slideshow \
+  --slug openquok-tiktok-slideshow \
+  --name "OpenQuok TikTok Slideshow"
+```
+
 Later changes auto-bump the patch version when content changes. Pass `--version <semver>` only when you need an explicit release.
 
 Optional flags:
@@ -60,18 +87,22 @@ Optional flags:
 - `--changelog "..."` — release notes for that version.
 - `--tags latest` — default tag; add more comma-separated tags if needed.
 
-Publishing releases the skill under **MIT-0** on ClawHub (free, open redistribution).
+Publishing releases each skill under **MIT-0** on ClawHub (free, open redistribution).
 
 ## Verify
 
 ```bash
 clawhub search openquok
 clawhub inspect openquok-core
+clawhub inspect openquok-tiktok-slideshow
 ```
 
-Public page: `https://clawhub.ai/skills/openquok-core` (after review completes).
+Public pages (after review completes):
 
-New releases may stay hidden from install/search until automated security review finishes. Use `clawhub scan --slug openquok-core` while logged in to check scan status.
+- `https://clawhub.ai/skills/openquok-core`
+- `https://clawhub.ai/skills/openquok-tiktok-slideshow`
+
+New releases may stay hidden from install/search until automated security review finishes. Use `clawhub scan --slug <slug>` while logged in to check scan status.
 
 ## Consumer install (OpenClaw workspace)
 
@@ -79,26 +110,35 @@ Users install from the workspace directory (e.g. `cd /data/workspace` on Docker/
 
 ```bash
 clawhub install openquok-core
+clawhub install openquok-tiktok-slideshow
 ```
 
-Equivalent native command:
+Equivalent native commands:
 
 ```bash
 openclaw skills install openquok-core
+openclaw skills install openquok-tiktok-slideshow
 ```
 
-`clawhub update openquok-core` (or `openclaw skills update openquok-core`) refreshes a ClawHub-tracked install. Installing or updating the skill does **not** install the `openquok` CLI — users still run `npm install -g @openquok/auto-cli@latest`.
+Skills that ship `scripts/` (today: `openquok-tiktok-slideshow`) must land as **real files**, not agent-dir symlinks only. Prefer Copy when the host offers it; GitHub/skills CLI installs should use `--copy`:
+
+```bash
+npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent \
+  --skill openquok-tiktok-slideshow --copy -y
+```
+
+`clawhub update <slug>` (or `openclaw skills update <slug>`) refreshes a ClawHub-tracked install. Installing or updating a skill does **not** install the `openquok` CLI — users still run `npm install -g @openquok/auto-cli@latest`. Sibling skills that call `openquok` also need `openquok-core` (or an equivalent CLI install) on PATH.
 
 ## CI publish (optional)
 
 ClawHub ships a reusable workflow for catalog repos. Add a job that calls `openclaw/clawhub/.github/workflows/skill-publish.yml@main` with:
 
-- `skill_path: agent/skills/openquok-core` (single skill), or
+- `skill_path: agent/skills/<slug>` (single skill), or
 - `root: agent/skills` (publish every immediate child folder that changed)
 
 Store `CLAWHUB_TOKEN` in GitHub Actions secrets. Use `dry_run: true` on PRs to preview without uploading.
 
-Example:
+Example (core only):
 
 ```yaml
 jobs:
@@ -113,12 +153,13 @@ jobs:
       clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
 ```
 
-Trigger on changes under `agent/skills/openquok-core/**` so recipe and `SKILL.md` updates ship to ClawHub without a manual CLI run.
+To cover every skill under `agent/skills/` when any of them change, prefer `root: agent/skills` and trigger on `agent/skills/**`. For a single sibling skill, set `skill_path: agent/skills/openquok-tiktok-slideshow` and trigger on that folder.
 
 ## Maintainer checklist
 
-- [ ] `SKILL.md` frontmatter `name` stays `openquok-core` (matches ClawHub slug).
+- [ ] `SKILL.md` frontmatter `name` matches the ClawHub slug (`openquok-core`, `openquok-tiktok-slideshow`, …).
 - [ ] `description` and `metadata.openclaw` are valid single-line JSON where required.
-- [ ] Run `clawhub skill publish ... --dry-run` before the first live publish.
-- [ ] After publish, confirm `clawhub install openquok-core` from a test workspace.
+- [ ] Sibling skills with `scripts/` document Copy / `--copy` install and do not claim to replace `openquok-core`.
+- [ ] Run `clawhub skill publish ... --dry-run` before the first live publish of that slug.
+- [ ] After publish, confirm `clawhub install <slug>` from a test workspace (and that `scripts/` are executable files when applicable).
 - [ ] Bump `@openquok/auto-cli` on npm separately when the CLI changes (`agent/PUBLISHING.md`).

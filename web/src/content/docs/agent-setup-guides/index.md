@@ -24,6 +24,7 @@ For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you ca
 
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="Quick start, and overview" href="/docs/getting-started-for-cli" />
+<LinkCard title="Other skills" description="Sibling skills (e.g. TikTok slideshow) that require openquok-core" href="/docs/other-skills" />
 <LinkCard title="MCP setup guides" description="Step-by-step Cursor, Claude Code, Codex, and other client guides" href="/docs/mcp-setup-guides" />
 <LinkCard title="MCP" description="Connect Cursor, Claude Code, and Codex without the CLI skill" href="/docs/getting-started-for-mcp" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic tokens, and auth server URLs" href="/docs/getting-started-for-cli/authentication" />

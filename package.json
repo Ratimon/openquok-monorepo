@@ -87,6 +87,8 @@
     "publish:cli:manual": "pnpm --filter ./agent run publish:manual",
     "publish:clawhub:dry-run": "pnpm --filter ./agent run publish:clawhub:dry-run",
     "publish:clawhub:manual": "pnpm --filter ./agent run publish:clawhub:manual",
+    "publish:clawhub:tiktok-slideshow:dry-run": "pnpm --filter ./agent run publish:clawhub:tiktok-slideshow:dry-run",
+    "publish:clawhub:tiktok-slideshow:manual": "pnpm --filter ./agent run publish:clawhub:tiktok-slideshow:manual",
     "release:notes": "node scripts/release-notes.mjs"
   },
   "keywords": [],

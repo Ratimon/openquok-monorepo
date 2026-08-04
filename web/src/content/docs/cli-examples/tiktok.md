@@ -117,6 +117,7 @@ openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
 
 <CardGrid>
 <LinkCard title="TikTok setup" description="TikTok developer app, OAuth redirect URI, scopes, and media domain verification" href="/docs/social-integration/tiktok" />
+<LinkCard title="openquok-tiktok-slideshow" description="Locked-character slideshow pipeline that posts via openquok-core" href="/docs/other-skills/openquok-tiktok-slideshow" />
 <LinkCard title="Managing Posts" description="Create, list, and schedule posts with the full flag reference" href="/docs/cli-usages/managing-posts" />
 <LinkCard title="Media Upload" description="Upload from disk or mirror a public URL before attaching media" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />

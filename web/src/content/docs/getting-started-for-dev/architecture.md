@@ -322,6 +322,7 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
   - cli-usages/
   - cli-examples/
   - agent-setup-guides/
+  - other-skills/
   - getting-started-for-mcp/
   - mcp-examples/
   - mcp-references/

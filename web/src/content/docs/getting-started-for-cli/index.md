@@ -184,6 +184,7 @@ openquok posts:delete <post-id>
 <CardGrid>
 <LinkCard title="CLI Usage" description="Command-by-command reference" href="/docs/cli-usages" />
 <LinkCard title="CLI Examples" description="e.g. Meta Threads and Instagram (Business / Standalone)" href="/docs/cli-examples" />
+<LinkCard title="Other skills" description="Sibling pipelines such as openquok-tiktok-slideshow" href="/docs/other-skills" />
 <LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/getting-started-for-public-api" />
 </CardGrid>
 

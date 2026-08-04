@@ -1,0 +1,10 @@
+{
+  "name": "openquok-tiktok-slideshow",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "OpenQuok TikTok slideshow skill scripts (CommonJS). Channel + locked-character pipeline; requires openquok on PATH and optional canvas for overlays.",
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -167,14 +167,25 @@ openquok --help
 
 The CLI job runs `pnpm run publish:cli:build` (monorepo build script), then `npm publish` from `agent/` via OIDC.
 
-## ClawHub (openquok-core skill)
+## ClawHub (agent skills)
 
-The agent skill bundle is published separately from npm. See [CLAWHUB.md](./CLAWHUB.md) for details.
+Skill bundles under `agent/skills/` publish to ClawHub separately from npm. See [CLAWHUB.md](./CLAWHUB.md) for full details (core + sibling skills).
 
 ```bash
-# From monorepo root — preview, then publish
+# From monorepo root — openquok-core
 pnpm publish:clawhub:dry-run
 pnpm publish:clawhub:manual
+
+# openquok-tiktok-slideshow (sibling; requires openquok-core at runtime)
+pnpm publish:clawhub:tiktok-slideshow:dry-run
+pnpm publish:clawhub:tiktok-slideshow:manual
 ```
 
-Consumer install after publish: `clawhub install openquok-core`.
+Consumer install after publish:
+
+```bash
+clawhub install openquok-core
+clawhub install openquok-tiktok-slideshow
+```
+
+Skills that ship `scripts/` should be installed with Copy / `--copy` so script files are real on disk.

@@ -19,6 +19,8 @@
     "publish:manual": "pnpm run build && pnpm publish --access public",
     "publish:clawhub:dry-run": "clawhub skill publish ./skills/openquok-core --slug openquok-core --name \"OpenQuok Core\" --dry-run",
     "publish:clawhub:manual": "clawhub skill publish ./skills/openquok-core --slug openquok-core --name \"OpenQuok Core\"",
+    "publish:clawhub:tiktok-slideshow:dry-run": "clawhub skill publish ./skills/openquok-tiktok-slideshow --slug openquok-tiktok-slideshow --name \"OpenQuok TikTok Slideshow\" --dry-run",
+    "publish:clawhub:tiktok-slideshow:manual": "clawhub skill publish ./skills/openquok-tiktok-slideshow --slug openquok-tiktok-slideshow --name \"OpenQuok TikTok Slideshow\"",
     "prepublishOnly": "pnpm run build"
   },
   "publishConfig": {

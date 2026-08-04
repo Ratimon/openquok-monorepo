@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "character_id": "",
+  "display_name": "",
+  "LOCKED": {
+    "identity": {
+      "species_or_persona": "",
+      "age_presentation": "",
+      "gender_presentation": "",
+      "personality_summary": "",
+      "backstory_one_liner": ""
+    },
+    "face": {
+      "shape": "",
+      "eyes": "",
+      "brows": "",
+      "nose": "",
+      "mouth": "",
+      "skin_or_fur": "",
+      "hair_or_mane": "",
+      "distinctive_marks": [],
+      "do_not_change": "Never alter face geometry, marks, or eye color across slides."
+    },
+    "body": {
+      "height_build": "",
+      "proportions": "",
+      "posture_default": "",
+      "do_not_change": "Keep the same body proportions and silhouette across every frame."
+    },
+    "signature": {
+      "accessory": "",
+      "always_present": true,
+      "notes": ""
+    },
+    "conflict_rule": "When VARIATIONS disagree with LOCKED, LOCKED always wins. Never invent new facial marks or change body proportions."
+  },
+  "VARIATIONS": {
+    "outfit": "",
+    "pose": "",
+    "expression": "",
+    "setting": "",
+    "visual_style": "",
+    "framing": "portrait 1024x1536, subject centered, phone-camera depth of field"
+  },
+  "reference_assets": {
+    "face_lock": "refs/face-lock.png",
+    "body_lock": "refs/body-lock.png",
+    "notes": "Generate face_lock and body_lock once after identity approval. Attach both on every image request. Do not regenerate locks after approval."
+  },
+  "generation_contract": {
+    "must_attach_reference_images": ["face_lock", "body_lock"],
+    "locked_wins_on_conflict": true,
+    "size": "1024x1536",
+    "orientation": "portrait",
+    "provider_notes": "Prefer photorealistic phone-camera look unless visual_style says otherwise. Repeat LOCKED face + body + signature in every prompt."
+  },
+  "post_template": {
+    "image_generation_request": {
+      "locked_block": "Use LOCKED.identity, LOCKED.face, LOCKED.body, LOCKED.signature verbatim.",
+      "variation_block": {
+        "outfit": "",
+        "pose": "",
+        "expression": "",
+        "setting": "",
+        "visual_style": "",
+        "framing": ""
+      },
+      "slide_index": 1,
+      "slide_role": "hook|problem|discovery|transform|transform|cta"
+    }
+  }
+}
