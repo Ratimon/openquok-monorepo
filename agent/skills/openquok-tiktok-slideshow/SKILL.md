@@ -55,6 +55,7 @@ Native overlay dependency (`canvas`) and image-provider setup: see [homepage](ht
 | **canvas** | Text overlays (`add-text-overlay.js`) — install per OS docs on homepage |
 | **Image provider** | Prefer OpenAI `gpt-image-1.5` (not `gpt-image-1`); or Stability / Replicate / local images |
 | **TikTok (or other) integration** | Connected in the OpenQuok workspace; UUID from `openquok integrations:list` |
+| **New TikTok account** | Follow [account warm-up guide](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) before scheduling slideshows |
 
 Verify CLI before API work:
 
@@ -72,6 +73,8 @@ Ask one or two things at a time. End with `scripts/onboarding.js --validate`.
 ### Phase 0: Account warmup (optional)
 
 If the TikTok account is new or barely used, warm it up **7–14 days** before posting AI slideshows. Established accounts can skip to Phase 1.
+
+**Give the user this guide and have them follow it before Phase 5 posting:** [How to warm up a TikTok account to reach a US audience](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup, VPN/network consistency, normal browsing behavior, and when to start publishing.
 
 ### Phase 1: Channel intent
 
@@ -231,7 +234,7 @@ Additional channels: schedule separate OpenQuok posts with other integration UUI
 | Raw local paths in `posts:create` | Always `openquok upload` first (core Rule 2) |
 | Public direct post with no sound | Prefer `SELF_ONLY` draft → add trending audio in-app |
 | `gpt-image-1` | Switch to **`gpt-image-1.5`** |
-| Skipping warmup on a new account | Warm 7–14 days first |
+| Skipping warmup on a new account | Warm **7–14 days** first — [warm-up guide](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) |
 | Changing face/body after lock | Keep LOCKED + ref images fixed; only edit VARIATIONS |
 
 ---

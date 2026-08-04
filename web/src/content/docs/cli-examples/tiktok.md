@@ -22,6 +22,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 TIKTOK_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="tiktok") | .id')
 ```
 
+<Callout type="note">
+<p>Before you schedule carousels or post at volume, warm the account <strong>7–14 days</strong>: <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a>. The <a href="/docs/other-skills/openquok-tiktok-slideshow">openquok-tiktok-slideshow</a> skill expects the same pattern.</p>
+</Callout>
+
 ## Video with privacy + DIRECT_POST
 
 ```bash
@@ -118,6 +122,7 @@ openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
 <CardGrid>
 <LinkCard title="TikTok setup" description="TikTok developer app, OAuth redirect URI, scopes, and media domain verification" href="/docs/social-integration/tiktok" />
 <LinkCard title="openquok-tiktok-slideshow" description="Locked-character slideshow pipeline that posts via openquok-core" href="/docs/other-skills/openquok-tiktok-slideshow" />
+<LinkCard title="Warm up a TikTok account" description="Step-by-step warm-up before scaling posts or slideshows" href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience" />
 <LinkCard title="Managing Posts" description="Create, list, and schedule posts with the full flag reference" href="/docs/cli-usages/managing-posts" />
 <LinkCard title="Media Upload" description="Upload from disk or mirror a public URL before attaching media" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />

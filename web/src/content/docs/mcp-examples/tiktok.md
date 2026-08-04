@@ -51,6 +51,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <p>Some workspaces use <Badge text="content_posting_method: SEND_TO_INBOX" variant="param" /> so creators finish editing in the TikTok app. Ask the agent to read <Badge text="integrationSchema" variant="default" /> for allowed values on your account.</p>
 </Callout>
 
+<Callout type="note">
+<p>Before scheduling at volume, warm the account using <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a>.</p>
+</Callout>
+
 ## Related
 
 <CardGrid>

@@ -19,6 +19,10 @@ TikTok servers fetch media from your storage via **HTTPS** URLs (“pull from UR
 
 CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a>.
 
+<Callout type="note">
+<p>Connecting TikTok in Openquok does not replace account warm-up. For new or barely used accounts, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> before you rely on reach or schedule heavy posting.</p>
+</Callout>
+
 ## Features
 
 ### Supported

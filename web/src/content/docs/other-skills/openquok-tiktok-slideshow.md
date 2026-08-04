@@ -47,6 +47,7 @@ Interactive installs: Project scope + **Copy**. Hermes: copy the **full** skill 
 | **canvas** | Native deps for <Badge text="add-text-overlay.js" variant="path" /> — see below |
 | **Image provider** | Prefer OpenAI <Badge text="gpt-image-1.5" variant="default" /> (not <Badge text="gpt-image-1" variant="deprecated" />); or Stability / Replicate / local images |
 | **TikTok (or other) integration** | Connected in the workspace; UUID from <Badge text="openquok integrations:list" variant="default" /> |
+| **New or cold TikTok account** | Warm up <strong>7–14 days</strong> before heavy posting — <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">warm-up guide</a> |
 
 ```bash
 openquok --version
@@ -65,7 +66,15 @@ npm install canvas
 
 ## Pipeline
 
+<Callout type="note" title="Account warmup (new or cold accounts)">
+<p>If the TikTok account is new or barely used, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> for <strong>7–14 days</strong> before you schedule AI slideshows or scale posting. Established accounts can skip straight to channel intent.</p>
+</Callout>
+
 <Steps>
+
+### Account warmup (optional)
+
+New or cold accounts: use the <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">warm-up guide</a> (device region, VPN consistency, normal browsing, first posts) before the generate → post pipeline below.
 
 ### Channel intent
 
@@ -201,6 +210,7 @@ openquok analytics:platform <integration-uuid> --days 7
 | Raw local paths in <Badge text="posts:create" variant="default" /> | Always <Badge text="openquok upload" variant="default" /> first (core Rule 2) |
 | Public direct post with no sound | Prefer <code>SELF_ONLY</code> draft → add trending audio in-app |
 | <Badge text="gpt-image-1" variant="deprecated" /> | Switch to <Badge text="gpt-image-1.5" variant="default" /> |
+| Skipping warmup on a new account | Warm <strong>7–14 days</strong> first — <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">warm-up guide</a> |
 | Changing face/body after lock | Keep LOCKED + ref images fixed; only edit VARIATIONS |
 
 ## Related
@@ -212,4 +222,5 @@ openquok analytics:platform <integration-uuid> --days 7
 <LinkCard title="TikTok setup" description="OAuth, scopes, and media domain verification" href="/docs/social-integration/tiktok" />
 <LinkCard title="Media Upload" description="upload and upload-from-url before posts:create" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Agent Setup Guides" description="Install openquok-core on OpenClaw or Hermes" href="/docs/agent-setup-guides" />
+<LinkCard title="Warm up a TikTok account" description="VPN, device setup, and posting cadence before you scale" href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience" />
 </CardGrid>

@@ -115,6 +115,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 **Documentation (by audience)**
 
 - [CLI & agent users](https://www.openquok.com/docs) — `@openquok/auto-cli`, auth, commands, and examples
+- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 - [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens
 - [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples
 - [Contributors/Mainteners](https://www.openquok.com/docs/getting-started-for-dev) — monorepo layout, install, and local setup
