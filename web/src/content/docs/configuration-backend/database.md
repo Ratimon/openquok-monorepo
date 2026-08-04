@@ -77,6 +77,8 @@ After you enable <code>pg&#95;cron</code> on Supabase Cloud, push the migrations
 When you use the “Production-linked Supabase” commands on the local development page, run these (in `backend/`):
 
 ```bash
+pnpm db:production:migration-list
+pnpm db:production:push-db:dry-run
 pnpm db:production:typegen
 pnpm db:production:push-db
 ```

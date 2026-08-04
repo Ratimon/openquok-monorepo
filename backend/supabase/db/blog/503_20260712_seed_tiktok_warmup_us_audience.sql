@@ -33,7 +33,7 @@ INSERT INTO public.blog_posts (
     ),
     'd5f7a000-0000-4000-a000-000000000202',
     'How to Warm Up a TikTok Account to Reach a US Audience',
-    'how-to-warm-up-tiktok-account-us-audience',
+    'how-to-warm-up-a-tiktok-account-to-reach-a-us-audience',
     'A step-by-step guide to preparing your device, using a dedicated US VPN, warming up a new TikTok account, and scheduling consistent posts with OpenQuok so US viewers actually see your content.',
     $TIKTOK_WARMUP_POST$
 <h2>Growing on TikTok is not only about the video.</h2>
@@ -48,6 +48,7 @@ INSERT INTO public.blog_posts (
 <p>Prefer to skip the VPS setup and start warming up sooner? Creator-focused Outline VPN services such as <a href="https://dansvpn.com/" target="_blank" rel="noopener noreferrer nofollow">DansVPN</a> already run dedicated US servers so you can grab a key and connect without hosting your own box. <a href="https://dansvpn.com/" target="_blank" rel="noopener noreferrer nofollow">Get your key here</a>.</p>
 
 <h3>Step 2: Prepare your device before installing TikTok</h3>
+<p>From my experience, I recommend to use <strong>Iphone</strong>, not Android. Tiktok simply can not detect the location.</p>
 <p>Before you download TikTok:</p>
 <ul>
   <li>Remove your SIM card if possible</li>
@@ -106,6 +107,8 @@ INSERT INTO public.blog_posts (
 <p>After the account is warmed up, the next challenge is shipping content on a reliable cadence without burning hours every day uploading from your phone.</p>
 <p>That is where <a href="https://www.openquok.com/channels/tiktok">OpenQuok for TikTok</a> helps.</p>
 <p>OpenQuok is an open-source, agent-native social media scheduler. Connect your TikTok account once, then queue vertical videos or photo carousels on a calendar, review drafts on a kanban board, and publish through TikTok’s official APIs - from the dashboard, public API, or CLI.</p>
+<p>You may directly sign in via mobile or ask auth code via CLI. Either way, you connecy once, then you can chat anywhere from you prefered agent while still targeting US user or others as you wish.</p>
+<img class="max-w-full h-auto rounded-md border border-base-300" src="https://ldewhviobysqevtnfznh.supabase.co/storage/v1/object/public/blog_images/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.022983113811150924.png" alt="" data-storage-path="aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.022983113811150924.png">
 <p>Creators who warm up for a US audience especially benefit from:</p>
 <ul>
   <li><strong>Bulk scheduling</strong> - batch a week of clips and carousels ahead of time so posting stays consistent after warm-up</li>
@@ -184,21 +187,4 @@ $TIKTOK_WARMUP_POST$,
     '2026-07-12 09:00:00+00',
     '2026-07-12 09:00:00+00'
 )
-ON CONFLICT (id) DO UPDATE
-SET
-    slug = EXCLUDED.slug,
-    user_id = COALESCE(EXCLUDED.user_id, public.blog_posts.user_id),
-    topic_id = EXCLUDED.topic_id,
-    title = EXCLUDED.title,
-    description = EXCLUDED.description,
-    content = EXCLUDED.content,
-    hero_image_filename = EXCLUDED.hero_image_filename,
-    is_sponsored = EXCLUDED.is_sponsored,
-    is_admin_approved = EXCLUDED.is_admin_approved,
-    is_user_published = EXCLUDED.is_user_published,
-    is_featured = EXCLUDED.is_featured,
-    faq_items = EXCLUDED.faq_items,
-    howto_steps = EXCLUDED.howto_steps,
-    product = EXCLUDED.product,
-    updated_at = EXCLUDED.updated_at,
-    published_at = COALESCE(public.blog_posts.published_at, EXCLUDED.published_at);
+ON CONFLICT (id) DO NOTHING;

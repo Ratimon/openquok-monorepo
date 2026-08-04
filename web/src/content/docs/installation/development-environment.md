@@ -75,6 +75,8 @@ pnpm backend:db:typegen
 **Production-linked Supabase** — there is no root alias for these; call the backend package from the root with `pnpm --filter`:
 
 ```bash
+pnpm --filter ./backend db:production:migration-list
+pnpm --filter ./backend db:production:push-db:dry-run
 pnpm --filter ./backend db:production:typegen
 pnpm --filter ./backend db:production:push-db
 ```
@@ -117,6 +119,8 @@ pnpm db:local:typegen
 **Production-linked Supabase** — generate types against the linked remote project and push schema changes.
 
 ```bash
+pnpm db:production:migration-list
+pnpm db:production:push-db:dry-run
 pnpm db:production:typegen
 pnpm db:production:push-db
 ```

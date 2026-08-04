@@ -76,6 +76,8 @@
     "db:aggregate-migrations-single": "node scripts/aggregate_migrations_single.mjs",
     "db:local:typegen": "npx --yes supabase@latest gen types typescript --local > types/table-types.ts.tmp && mv types/table-types.ts.tmp types/table-types.ts",
     "db:production:typegen": "npx supabase@latest gen types typescript --linked --schema public > types/table-types.ts",
+    "db:production:migration-list": "npx supabase@latest migration list --linked",
+    "db:production:push-db:dry-run": "npx supabase@latest db push --linked --dry-run",
     "db:production:push-db": "npx supabase@latest db push --linked --include-seed"
   },
   "keywords": [],
