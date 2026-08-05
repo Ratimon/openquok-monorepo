@@ -1,8 +1,15 @@
 import tailwindcss from '@tailwindcss/vite';
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
+
+import { isAllowedShikiLanguageId } from './src/lib/shiki/limitedLanguages';
+
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+const limitedShikiBundle = path.join(webRoot, 'src/lib/shiki/limitedBundle.ts');
 
 /** After the last `/node_modules/`, yields npm scope+name or package name (pnpm-safe). */
 function npmPackageChunkLabel(id: string): string | undefined {
@@ -189,10 +196,67 @@ function stubHeavyClientDepsForSsr(): Plugin {
 	};
 }
 
+/**
+ * Drop non-curated `@shikijs/langs/*` from the client graph.
+ * `@streamdown-svelte/plugin-core` still lists cpp/java/… in bundledLanguagesInfo; without this
+ * stub those grammars become multi‑hundred‑KB async chunks even when unused at runtime.
+ */
+function stubDisallowedShikiLangsForClient(): Plugin {
+	function langIdFromSpecifier(id: string): string | undefined {
+		const bare = id.split('?')[0] ?? id;
+		const scoped = bare.match(/^@shikijs\/langs\/([^/]+?)(?:\.mjs)?$/);
+		if (scoped?.[1]) return scoped[1];
+		const shikiLang = bare.match(/^shiki\/langs\/([^/]+?)(?:\.mjs)?$/);
+		if (shikiLang?.[1]) return shikiLang[1];
+		const normalized = bare.replace(/\\/g, '/');
+		const fromPackage = normalized.match(
+			/\/(?:@shikijs\/langs|shiki\/dist\/langs)\/(?:dist\/)?([^/]+?)(?:\.mjs)?$/
+		);
+		return fromPackage?.[1];
+	}
+
+	return {
+		name: 'stub-disallowed-shiki-langs-for-client',
+		enforce: 'pre',
+		resolveId(id, _importer, options) {
+			if (options?.ssr) return;
+			const lang = langIdFromSpecifier(id);
+			if (!lang || isAllowedShikiLanguageId(lang)) return;
+			return `\0shiki-lang-stub:${lang}`;
+		},
+		load(id) {
+			if (!id.startsWith('\0shiki-lang-stub:')) return;
+			const lang = id.slice('\0shiki-lang-stub:'.length);
+			// Minimal TextMate grammar so accidental loads do not throw.
+			return `export default { name: ${JSON.stringify(lang)}, patterns: [] };\n`;
+		}
+	};
+}
+
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit(), clientVendorChunks(), stubHeavyClientDepsForSsr()],
+	plugins: [
+		tailwindcss(),
+		sveltekit(),
+		clientVendorChunks(),
+		stubHeavyClientDepsForSsr(),
+		stubDisallowedShikiLangsForClient()
+	],
+	resolve: {
+		// carta-md + plugin-core import bare `shiki` (full catalog). Keep subpaths
+		// (`shiki/core`, `shiki/engine/*`, `shiki/wasm`) on the real package.
+		alias: [
+			{
+				find: /^shiki$/,
+				replacement: limitedShikiBundle
+			}
+		]
+	},
 	build: {
-		// chunkSizeWarningLimit: 550,
+		// Docs Mermaid (`@friendofsvelte/mermaid`) already loads via `import()`; individual
+		// diagram chunks (flowchart-ELK ~1.4MB, cynefin, cytoscape, mermaid.core) still exceed
+		// Vite’s default 500 kB warning. Raise the limit so the build log only flags unexpected
+		// eager regressions — do not treat this as permission to ship huge sync bundles.
+		chunkSizeWarningLimit: 1500
 	},
 	server: {
 		// mkcert certs are local-dev-only (gitignored) and absent during `vite build`

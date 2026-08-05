@@ -44,6 +44,12 @@
 			publicLayoutPagePresenter.companyNameVm ??
 			'OPENQUOK'
 	);
+	let companyLegalNameVm = $derived(
+		(data as App.LayoutData)?.companyLegalNameVm ??
+			(page.data as App.LayoutData)?.companyLegalNameVm ??
+			publicLayoutPagePresenter.companyLegalNameVm ??
+			companyNameVm
+	);
 	let companyYearVm = $derived(
 		(data as App.LayoutData)?.companyYearVm ??
 			(page.data as App.LayoutData)?.companyYearVm ??
@@ -78,6 +84,7 @@
 	accountNavEnabled={accountNavEnabled}
 	accountHardNavigate={accountHardNavigate}
 	companyNameVm={companyNameVm}
+	companyLegalNameVm={companyLegalNameVm}
 	companyYearVm={companyYearVm}
 	companyAddressVm={companyAddressVm}
 	supportPhoneVm={supportPhoneVm}

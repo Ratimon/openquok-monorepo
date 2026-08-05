@@ -25,6 +25,12 @@
 	let companyNameVm = $derived(
 		data.companyNameVm ?? page.data.companyNameVm ?? publicLayoutPagePresenter.companyNameVm
 	);
+	let companyLegalNameVm = $derived(
+		data.companyLegalNameVm ??
+			page.data.companyLegalNameVm ??
+			publicLayoutPagePresenter.companyLegalNameVm ??
+			companyNameVm
+	);
 	let companyYearVm = $derived(
 		data.companyYearVm ?? page.data.companyYearVm ?? publicLayoutPagePresenter.companyYearVm
 	);
@@ -66,6 +72,7 @@
 <PublicArea
 	{isLoggedIn}
 	{companyNameVm}
+	{companyLegalNameVm}
 	{companyYearVm}
 	{companyAddressVm}
 	{supportPhoneVm}

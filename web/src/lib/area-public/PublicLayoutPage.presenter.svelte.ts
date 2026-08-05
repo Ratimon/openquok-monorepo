@@ -5,6 +5,9 @@ import {
 
 export class PublicLayoutPagePresenter {
 	public companyNameVm = $state<string>(CONFIG_SCHEMA_COMPANY.NAME.default as string);
+	public companyLegalNameVm = $state<string>(
+		String(CONFIG_SCHEMA_COMPANY.LEGAL_NAME.default ?? CONFIG_SCHEMA_COMPANY.NAME.default ?? '')
+	);
 	public companyYearVm = $state<string>(CONFIG_SCHEMA_COMPANY.FOUNDING_YEAR.default as string);
 	public companyAddressVm = $state<string>(
 		String(CONFIG_SCHEMA_COMPANY.COMPANY_ADDRESS.default ?? '')
@@ -19,6 +22,7 @@ export class PublicLayoutPagePresenter {
 	public applyStaticFooterDefaults(): void {
 		const result = this.loadInfoForFooterStateless(getCompanyConfigDefaults());
 		this.companyNameVm = result.companyNameVm;
+		this.companyLegalNameVm = result.companyLegalNameVm;
 		this.companyYearVm = result.companyYearVm;
 		this.companyAddressVm = result.companyAddressVm;
 		this.supportPhoneVm = result.supportPhoneVm;
@@ -29,6 +33,7 @@ export class PublicLayoutPagePresenter {
 		companyInformationPm: { [key: string]: string } | null
 	): {
 		companyNameVm: string;
+		companyLegalNameVm: string;
 		companyYearVm: string;
 		companyAddressVm: string;
 		supportPhoneVm: string;
@@ -36,6 +41,10 @@ export class PublicLayoutPagePresenter {
 	} {
 		const companyNameVm =
 			companyInformationPm?.NAME ?? (CONFIG_SCHEMA_COMPANY.NAME.default as string);
+		const legalNameRaw = String(
+			companyInformationPm?.LEGAL_NAME ?? CONFIG_SCHEMA_COMPANY.LEGAL_NAME.default ?? ''
+		).trim();
+		const companyLegalNameVm = legalNameRaw || companyNameVm;
 		const companyYearVm =
 			companyInformationPm?.FOUNDING_YEAR ??
 			(CONFIG_SCHEMA_COMPANY.FOUNDING_YEAR.default as string);
@@ -51,6 +60,7 @@ export class PublicLayoutPagePresenter {
 
 		return {
 			companyNameVm,
+			companyLegalNameVm,
 			companyYearVm,
 			companyAddressVm,
 			supportPhoneVm,

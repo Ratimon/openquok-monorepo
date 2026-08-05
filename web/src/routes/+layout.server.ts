@@ -52,6 +52,7 @@ export async function load({ url, cookies, fetch }) {
 		marketingInformationPm,
 		isLoggedIn,
 		companyNameVm: footerInfo.companyNameVm,
+		companyLegalNameVm: footerInfo.companyLegalNameVm,
 		companyYearVm: footerInfo.companyYearVm,
 		companyAddressVm: footerInfo.companyAddressVm,
 		supportPhoneVm: footerInfo.supportPhoneVm,

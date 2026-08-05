@@ -7,6 +7,8 @@
 	type Props = {
 		footerNavigationLinks: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
+		/** Legal entity name for copyright; falls back to brand name when unset. */
+		companyLegalNameVm?: string;
 		companyYearVm: string;
 		companyAddressVm?: string;
 		supportPhoneVm?: string;
@@ -16,6 +18,7 @@
 	let {
 		footerNavigationLinks,
 		companyNameVm,
+		companyLegalNameVm = companyNameVm,
 		companyYearVm,
 		companyAddressVm = '',
 		supportPhoneVm = '',
@@ -96,7 +99,7 @@
 			<div class="mx-auto space-y-2 text-center text-xs leading-5 text-base-content/80">
 				<div class="flex-wrap whitespace-nowrap">
 					&copy; {copyrightDuration}
-					{companyNameVm}. All rights reserved.
+					{companyLegalNameVm}. All rights reserved.
 				</div>
 				{#if trimmedAddress || trimmedPhone}
 					<div class="flex flex-col items-center gap-1 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-3">

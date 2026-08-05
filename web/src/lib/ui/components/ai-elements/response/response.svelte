@@ -5,12 +5,13 @@
 	import githubDarkDefault from '@shikijs/themes/github-dark-default';
 	import githubLightDefault from '@shikijs/themes/github-light-default';
 
+	import { limitedStreamdownCodePlugin } from '$lib/shiki/limitedStreamdownCodePlugin';
+	import { limitedStreamdownLanguages } from '$lib/shiki/limitedLanguages';
 	import { cn } from '$lib/ui/helpers/common';
 	import { createStreamdownShikiTheme } from '$lib/ui/components/ai-elements/helpers/streamdownTheme.svelte.js';
 
-	// Add plugins as needed
-	// pnpm add @streamdown-svelte/code @streamdown-svelte/mermaid @streamdown-svelte/math @streamdown-svelte/cjk
-	// import { code } from '@streamdown-svelte/code';
+	// Mermaid / math / CJK plugins stay opt-in (heavy). Code uses the curated language set.
+	// pnpm add @streamdown-svelte/mermaid @streamdown-svelte/math @streamdown-svelte/cjk
 	// import { mermaid } from '@streamdown-svelte/mermaid';
 	// import { math } from '@streamdown-svelte/math';
 	// import { cjk } from '@streamdown-svelte/cjk';
@@ -32,7 +33,8 @@
 			'github-light-default': githubLightDefault,
 			'github-dark-default': githubDarkDefault
 		}}
-		// plugins={{ code, mermaid, math, cjk }}
+		shikiLanguages={limitedStreamdownLanguages}
+		plugins={{ code: limitedStreamdownCodePlugin }}
 		{...restProps}
 	/>
 </div>

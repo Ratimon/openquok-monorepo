@@ -26,6 +26,7 @@ declare global {
 			/** Authenticated user; matches backend AuthUserDTO / BasicUserAuthProgrammerModel */
 			currentUser?: import('$lib/user-auth/Authentication.repository.svelte').BasicUserAuthProgrammerModel | null;
 			companyNameVm?: string | null;
+			companyLegalNameVm?: string | null;
 			companyYearVm?: string | null;
 			companyAddressVm?: string | null;
 			supportPhoneVm?: string | null;

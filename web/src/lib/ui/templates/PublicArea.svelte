@@ -22,6 +22,7 @@
 		navbarMobileLinks?: Link[];
 		footerNavigationLinks?: Record<string, { label: string; href: string }[]>;
 		companyNameVm: string;
+		companyLegalNameVm?: string;
 		companyYearVm: string;
 		companyAddressVm?: string;
 		supportPhoneVm?: string;
@@ -37,6 +38,7 @@
 		navbarMobileLinks: propNavbarMobileLinks,
 		footerNavigationLinks: propFooterNavigationLinks,
 		companyNameVm,
+		companyLegalNameVm = companyNameVm,
 		companyYearVm,
 		companyAddressVm = '',
 		supportPhoneVm = '',
@@ -63,6 +65,7 @@
 	<Footer
 		{footerNavigationLinks}
 		{companyNameVm}
+		{companyLegalNameVm}
 		{companyYearVm}
 		{companyAddressVm}
 		{supportPhoneVm}

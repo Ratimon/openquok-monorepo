@@ -263,7 +263,6 @@ export class BlogRepository {
 
     /**
      * Returns all users who have at least one published and approved blog post.
-     * Uses RPC get_published_blog_authors (profile fields from user_profiles).
      */
     async getPublishedBlogAuthors(): Promise<{ data: PublishedBlogAuthor[] }> {
         const { data, error } = await this.supabase.rpc(RPC_GET_PUBLISHED_BLOG_AUTHORS);
@@ -285,7 +284,6 @@ export class BlogRepository {
     /**
      * Returns a single published and approved blog post by slug, or null if not found.
      * Used by public GET /posts/:identifier (slug). Treats PGRST116 (no rows) as null.
-     * Uses SELECT_BLOG_POST (author id, full_name only) so it works in test DBs without optional user columns.
      */
     async findPublishedBlogPostBySlug(slug: string): Promise<{ data: BlogPostLike | null }> {
         const { data, error } = await this.supabase

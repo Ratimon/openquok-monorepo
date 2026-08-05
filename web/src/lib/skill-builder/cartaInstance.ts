@@ -3,12 +3,17 @@ import { emoji } from '@cartamd/plugin-emoji';
 import { slash } from '@cartamd/plugin-slash';
 import { Carta } from 'carta-md';
 
+import { limitedCartaShikiLangs } from '$lib/shiki/limitedLanguages';
 import { preprocessMarkdownForPreview } from '$lib/skill-builder/utils/preprocessMarkdownForPreview';
 
 /** Shared Carta instance for skill-builder markdown editor (generated + hand-edited export). */
 export const skillBuilderCarta = new Carta({
 	sanitizer: false,
 	rendererDebounce: 150,
+	// Bare `shiki` is aliased to the curated bundle; only request those grammars at runtime.
+	shikiOptions: {
+		langs: [...limitedCartaShikiLangs]
+	},
 	extensions: [code(), emoji(), slash()]
 });
 
