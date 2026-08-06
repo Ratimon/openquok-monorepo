@@ -23,11 +23,11 @@
 			id={headingId}
 			class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl"
 		>
-			Schedule posts to every social channel
+			Schedule social media posts to every channel
 		</h1>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			See which social platforms you can connect — Facebook, Threads, Instagram, YouTube, TikTok,
-			and more — then schedule posts from one workspace while you stay in control of what publishes.
+			and more — then schedule social media posts from one workspace while you stay in control of what publishes.
 		</p>
 	</div>
 

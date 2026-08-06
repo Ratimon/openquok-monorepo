@@ -3,7 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { getCompanyConfigDefaults } from '$lib/config/constants/config';
-import { mergeCompanyConfigDefaults } from '$lib/config/utils/mergeCompanyConfigDefaults';
+import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
 import {
 	getStaticCompanyInformationPm,
 	getStaticMarketingInformationPm
@@ -22,7 +22,7 @@ export async function load({ url, cookies, fetch }) {
 	const marketingInformationPm = getStaticMarketingInformationPm();
 
 	const runtimeCompany = await configRepository.getPublicCompanyInformation(fetch);
-	const companyConfig = mergeCompanyConfigDefaults(
+	const companyConfig = mergeModuleConfigDefaults(
 		getCompanyConfigDefaults(),
 		runtimeCompany?.config
 	);

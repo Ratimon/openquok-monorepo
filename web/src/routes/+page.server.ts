@@ -11,6 +11,7 @@ import {
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
+import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
 import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 import { createLandingDemoSEOSchema } from '$lib/content/utils/createLandingDemoSEOSchema';
 import {
@@ -27,6 +28,20 @@ import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgen
 
 export const ssr = true;
 
+/** Public module config for SSR copy; `null` when unset so git-managed defaults win. */
+async function loadPublicModuleConfig(
+	moduleName: string,
+	fetch: typeof globalThis.fetch
+): Promise<Record<string, unknown> | null> {
+	try {
+		const loaded = await configRepository.getPublicModuleConfig(moduleName, fetch);
+		return Object.keys(loaded).length > 0 ? loaded : null;
+	} catch (error) {
+		console.error(`[+page.server] Failed to fetch ${moduleName} config:`, error);
+		return null;
+	}
+}
+
 export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 	const { baseMetaTags, companyInformationPm, marketingInformationPm } = await parent();
 
@@ -34,17 +49,15 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
-	const landingPageConfigVm = getLandingPageConfigDefaults();
+	const [landingPageRaw, publicFaqRaw] = await Promise.all([
+		loadPublicModuleConfig('landing_page', fetch),
+		loadPublicModuleConfig('public_faq', fetch)
+	]);
 
-	let publicFaqRaw: Record<string, unknown> | null = null;
-	try {
-		const loaded = await configRepository.getPublicModuleConfig('public_faq', fetch);
-		if (Object.keys(loaded).length > 0) {
-			publicFaqRaw = loaded;
-		}
-	} catch (error) {
-		console.error('[+page.server] Failed to fetch public FAQ config:', error);
-	}
+	const landingPageConfigVm = mergeModuleConfigDefaults(
+		getLandingPageConfigDefaults(),
+		landingPageRaw
+	);
 
 	const { configVm: publicFaqConfigVm, itemsVm: publicFaqItemsVm } =
 		parsePublicFaqConfigModule(publicFaqRaw);
@@ -124,6 +137,16 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 					target: `${url.origin}/blog?q={search_term_string}`,
 					'query-input': 'required name=search_term_string'
 				}
+			},
+			{
+				'@type': 'SoftwareApplication',
+				'@id': `${canonical}#software`,
+				name: companyName,
+				description: heroDescription,
+				url: canonical,
+				applicationCategory: 'BusinessApplication',
+				operatingSystem: 'Web',
+				publisher: { '@id': organizationId }
 			},
 			organization,
 			createPublicFaqSEOSchema({

@@ -150,6 +150,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 	}
 };
 
+
 export const CONFIG_SCHEMA_MARKETING: ModuleConfigSchema = {
 	META_TITLE: {
 		description: 'Default meta title.',
@@ -287,7 +288,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	HERO_TITLE: {
 		description: 'The primary headline displayed in the hero section of your landing page',
 		type: 'string',
-		default: 'Save hours\nmanaging AI content\nat scale',
+		default: 'Save hours\nSchedule social media\nat scale',
 		inputType: 'textarea',
 		maxInputLength: 80
 	},

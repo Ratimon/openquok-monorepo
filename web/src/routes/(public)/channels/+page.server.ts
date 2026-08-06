@@ -3,10 +3,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { ItemList } from 'schema-dts';
 
 import { publicChannelsPagePresenter } from '$lib/area-public';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/utils/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
@@ -76,8 +73,12 @@ export async function load({ url, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+			title: customTitle,
+			description: customDescription
+		},
+		twitter: {
+			title: customTitle,
+			description: customDescription
 		}
 	});
 

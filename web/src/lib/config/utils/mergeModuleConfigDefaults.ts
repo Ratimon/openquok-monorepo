@@ -1,5 +1,5 @@
 /** Prefer non-empty runtime values so blank DB fields do not wipe static defaults. */
-export function mergeCompanyConfigDefaults(
+export function mergeModuleConfigDefaults(
 	defaults: Record<string, string>,
 	runtime: Record<string, unknown> | null | undefined
 ): Record<string, string> {

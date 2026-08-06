@@ -2,10 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { SubscriptionPeriod } from 'openquok-common';
 
 import { GetPublicPricingPresenter } from '$lib/billing';
-import {
-	CONFIG_SCHEMA_COMPANY,
-	CONFIG_SCHEMA_MARKETING
-} from '$lib/config/constants/config';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
@@ -59,8 +56,12 @@ export async function load({ url, cookies, parent }) {
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
 		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
+			title: customTitle,
+			description: customDescription
+		},
+		twitter: {
+			title: customTitle,
+			description: customDescription
 		}
 	});
 
