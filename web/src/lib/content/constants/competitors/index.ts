@@ -11,6 +11,7 @@ import type {
 import { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+import { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
@@ -25,6 +26,7 @@ export * from '$lib/content/constants/competitors/shared';
 export { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
 export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
@@ -34,6 +36,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
 	hootsuiteCompareProduct,
 	bufferCompareProduct,
+	mixpostCompareProduct,
 	postBridgeCompareProduct,
 	postizCompareProduct,
 	typefullyCompareProduct

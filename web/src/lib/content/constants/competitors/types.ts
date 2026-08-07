@@ -7,6 +7,7 @@ export type CompareProductSlug =
 	| 'openquok'
 	| 'hootsuite'
 	| 'buffer'
+	| 'mixpost'
 	| 'post-bridge'
 	| 'postiz'
 	| 'typefully';
