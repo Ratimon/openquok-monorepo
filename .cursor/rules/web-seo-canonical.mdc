@@ -86,7 +86,11 @@ Sitemap URLs are always path-only (backend `generateSitemap.ts`).
 App and auth surfaces should not compete in search:
 
 - **`(auth)/+layout.server.ts`** and **`(protected)/+layout.server.ts`**: return `pageMetaTags: { robots: 'noindex, nofollow' }`.
-- **`robots.txt`**: `Disallow` for `/sign-in`, `/account`, `/editor`, `/admin`, `/secret-admin`, `/oauth`, etc.
+- **`robots.txt`**: `Disallow` for `/sign-in`, `/account`, `/editor`, `/admin`, `/secret-admin`, `/oauth`, etc. AI crawler `Allow` groups live in `$lib/utils/robotsTxt.ts` (served from `web/src/routes/robots.txt/+server.ts`).
+
+## Cloudflare managed robots.txt (production)
+
+If the marketing zone uses **Cloudflare AI Crawl Control / managed robots.txt**, Cloudflare **prepends** `Disallow: /` for bots such as `ClaudeBot` and `Google-Extended` before the app’s rules. That blocks Claude and Gemini in directory “AI engine coverage” tools even when the repo allows those paths. Align the zone: **Allow** those crawlers in AI Crawl Control and adjust managed robots.txt so the prepended block does not site-wide disallow them. Ops guide: `web/src/content/docs/configuration-web/ai-crawlers-and-robots.md`.
 
 Raw markdown doc routes use `X-Robots-Tag: noindex` via `markdown-route-headers.ts`.
 

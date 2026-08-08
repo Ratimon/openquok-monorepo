@@ -1,4 +1,5 @@
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { robotsAiCrawlerBlocks, robotsDisallowLines } from '$lib/utils/robotsTxt';
 
 export async function GET({ url }: { url: URL }) {
 	const siteUrl = resolvePublicSiteUrl(url);
@@ -7,21 +8,10 @@ export async function GET({ url }: { url: URL }) {
 
 	const robotsTxt = [
 		'User-agent: *',
-		'Disallow: /sign-in',
-		'Disallow: /sign-up',
-		'Disallow: /forgot-password',
-		'Disallow: /update-password',
-		'Disallow: /verify-signup',
-		'Disallow: /confirm-change-password',
-		'Disallow: /auth-error',
-		'Disallow: /account',
-		'Disallow: /editor',
-		'Disallow: /admin',
-		'Disallow: /secret-admin',
-		'Disallow: /oauth',
-		'Disallow: /integration/oauth',
+		...robotsDisallowLines('Disallow'),
 		`Sitemap: ${sitemapURL}`,
 		'',
+		...robotsAiCrawlerBlocks(),
 		'# --- Meta web crawlers (public URL checks, link previews, developer app settings) ---',
 		'# https://developers.facebook.com/docs/sharing/webmasters/web-crawlers',
 		'# Explicit Allow so privacy policy, OAuth, and other app URLs stay reachable if rules evolve.',

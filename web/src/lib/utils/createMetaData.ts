@@ -204,6 +204,12 @@ export async function createMetaData({
 		],
 
 		additionalLinkTags: [
+			{
+				rel: 'alternate',
+				href: '/llms.txt',
+				type: 'text/plain',
+				title: 'LLM documentation index'
+			},
 			{ rel: 'icon', href: '/favicon.ico', type: 'image/x-icon' },
 			{ rel: 'shortcut icon', href: '/favicon.ico', type: 'image/x-icon' },
 			{ rel: 'icon', href: '/pwa/favicon.svg', type: 'image/svg+xml' },

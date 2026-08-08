@@ -43,6 +43,7 @@ Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 <CardGrid>
 <LinkCard title="Vite (SvelteKit)" description="VITE_* variables, HTTPS dev server, and API proxy" href="/docs/configuration-web/vite" />
 <LinkCard title="SEO & marketing defaults" description="Meta tags, keywords, and social links (CONFIG_SCHEMA_MARKETING)" href="/docs/configuration-web/seo" />
+<LinkCard title="AI crawlers & robots.txt" description="Cloudflare AI Crawl Control and Claude/Gemini visibility" href="/docs/configuration-web/ai-crawlers-and-robots" />
 <LinkCard title="Config defaults" description="Backend URL, company, landing, and navigation schema defaults" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 <LinkCard title="Configuration - Agent" description="CLI auth server API, BROWSER_ORIGIN, and OAuth callback" href="/docs/configuration-agent" />
