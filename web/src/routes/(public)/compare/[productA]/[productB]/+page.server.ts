@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import type { Offer, SoftwareApplication } from 'schema-dts';
 
-import type { JsonLdGraphNode } from '$lib/utils/jsonLdSchema';
+import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
 import { error } from '@sveltejs/kit';
 
@@ -18,9 +18,9 @@ import {
 } from '$lib/config/constants/config';
 import { getComparePair } from '$lib/content/constants/publicCompareConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 

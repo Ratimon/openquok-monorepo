@@ -13,7 +13,7 @@ export const load: PageLoad = async ({ parent, data, url }) => {
 	const isAdmin = roles?.includes('admin') || false;
 	const isEditor = roles?.includes('editor') || false;
 
-	const { createMetaData } = await import('$lib/utils/createMetaData');
+	const { createMetaData } = await import('$lib/seo/createMetaData');
 	const { CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const metaTags = await createMetaData({
 		customTitle: 'Editor: Feedback manager',

@@ -15,9 +15,9 @@ import {
 } from '$lib/config/constants/config';
 import { mergeListingSchemaIntoGraph } from '$lib/listings/index';
 import { resolveListingHeaderSummary } from '$lib/listings/utils/resolveListingHeaderSummary';
-import { createMetaData, type MetaDataImage } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+import { createMetaData, type MetaDataImage } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 

@@ -4,8 +4,8 @@ globs:
   - web/src/routes/+page.server.ts
   - web/src/routes/(public)/**/+page.server.ts
   - web/src/routes/+layout.server.ts
-  - web/src/lib/utils/createMetaData.ts
-  - web/src/lib/utils/buildCanonicalUrl.ts
+  - web/src/lib/seo/createMetaData.ts
+  - web/src/lib/seo/buildCanonicalUrl.ts
   - web/src/lib/listings/server/load*HubPage.server.ts
 alwaysApply: false
 ---
@@ -26,8 +26,8 @@ In `+page.server.ts`:
 Crawlers read the initial response; meta tags added only after hydration may be missed at index time (see **web-seo-index** → JavaScript rendering mismatch).
 
 ```ts
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
 const metaTags = await createMetaData({
   companyInformation: companyInformationPm,

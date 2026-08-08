@@ -5,8 +5,8 @@ globs:
   - web/src/routes/(public)/**/+page.server.ts
   - web/src/routes/+page.svelte
   - web/src/routes/(public)/**/+page.svelte
-  - web/src/lib/utils/jsonLdSchema.ts
-  - web/src/lib/utils/jsonLdScriptHtml.ts
+  - web/src/lib/seo/jsonLdSchema.ts
+  - web/src/lib/seo/jsonLdScriptHtml.ts
   - web/src/lib/ui/components/seo/JsonLdHead.svelte
   - web/src/lib/ui/components/docs/DocsSeoHead.svelte
   - web/src/lib/content/utils/create*SEOSchema.ts
@@ -32,7 +32,7 @@ Compute `schemaData` in `+page.server.ts` and render with **`JsonLdHead`** so cr
 <JsonLdHead schemaData={schemaData} />
 ```
 
-Serialization: `$lib/utils/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScriptHtml`). Docs use the same helper in `DocsSeoHead.svelte`.
+Serialization: `$lib/seo/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScriptHtml`). Docs use the same helper in `DocsSeoHead.svelte`.
 
 ## Avoid
 
@@ -43,7 +43,7 @@ Serialization: `$lib/utils/jsonLdScriptHtml.ts` (`serializeJsonLd`, `jsonLdScrip
 
 ## Typed JSON-LD (`schema-dts` + `jsonLdSchema`)
 
-All JSON-LD is typed with [`schema-dts`](https://www.npmjs.com/package/schema-dts) via **`$lib/utils/jsonLdSchema.ts`**:
+All JSON-LD is typed with [`schema-dts`](https://www.npmjs.com/package/schema-dts) via **`$lib/seo/jsonLdSchema.ts`**:
 
 | Export | Use |
 | --- | --- |
@@ -62,8 +62,8 @@ Annotate nodes with `satisfies` where it helps catch typos.
 import type { WebSite } from 'schema-dts';
 
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 const canonical = buildCanonicalUrl(url);
 
@@ -91,7 +91,7 @@ const schemaData = createJsonLdGraph(
 ```ts
 import type { WebApplication } from 'schema-dts';
 
-import { createJsonLdWithContext } from '$lib/utils/jsonLdSchema';
+import { createJsonLdWithContext } from '$lib/seo/jsonLdSchema';
 
 const schemaData = createJsonLdWithContext({
   '@type': 'WebApplication',

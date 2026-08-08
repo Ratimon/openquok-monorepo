@@ -1,8 +1,8 @@
 ---
 description: Canonical URLs and query-parameter SEO — buildCanonicalUrl, withCanonicalMetaTags, UTM stripping, robots.txt, noindex
 globs:
-  - web/src/lib/utils/buildCanonicalUrl.ts
-  - web/src/lib/utils/createMetaData.ts
+  - web/src/lib/seo/buildCanonicalUrl.ts
+  - web/src/lib/seo/createMetaData.ts
   - web/src/lib/product-analytics/utm.ts
   - web/src/lib/product-analytics/UtmAttribution.svelte
   - web/src/routes/+layout.server.ts
@@ -11,6 +11,7 @@ globs:
   - web/src/routes/(auth)/+layout.server.ts
   - web/src/routes/(protected)/+layout.server.ts
   - web/src/routes/robots.txt/**/*
+  - web/src/lib/seo/robotsTxt.ts
   - web/src/lib/ui/components/docs/DocsSeoHead.svelte
 alwaysApply: false
 ---
@@ -19,7 +20,7 @@ alwaysApply: false
 
 Multiple URLs that render the same content (UTM tags, `ref`, hub `sort`/`search`, blog `page`) must consolidate to **one canonical** so crawlers do not split authority across duplicates.
 
-## Helpers (`$lib/utils/buildCanonicalUrl.ts`)
+## Helpers (`$lib/seo/buildCanonicalUrl.ts`)
 
 | Export | Use |
 | --- | --- |
@@ -86,7 +87,7 @@ Sitemap URLs are always path-only (backend `generateSitemap.ts`).
 App and auth surfaces should not compete in search:
 
 - **`(auth)/+layout.server.ts`** and **`(protected)/+layout.server.ts`**: return `pageMetaTags: { robots: 'noindex, nofollow' }`.
-- **`robots.txt`**: `Disallow` for `/sign-in`, `/account`, `/editor`, `/admin`, `/secret-admin`, `/oauth`, etc. AI crawler `Allow` groups live in `$lib/utils/robotsTxt.ts` (served from `web/src/routes/robots.txt/+server.ts`).
+- **`robots.txt`**: `Disallow` for `/sign-in`, `/account`, `/editor`, `/admin`, `/secret-admin`, `/oauth`, etc. AI crawler `Allow` groups live in `$lib/seo/robotsTxt.ts` (served from `web/src/routes/robots.txt/+server.ts`).
 
 ## Cloudflare managed robots.txt (production)
 

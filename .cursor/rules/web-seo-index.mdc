@@ -7,9 +7,10 @@ globs:
   - web/src/routes/(public)/**/+page.server.ts
   - web/src/routes/(public)/**/+page.ts
   - web/src/routes/(public)/**/+page.svelte
-  - web/src/lib/utils/createMetaData.ts
-  - web/src/lib/utils/buildCanonicalUrl.ts
-  - web/src/lib/utils/jsonLdSchema.ts
+  - web/src/lib/seo/createMetaData.ts
+  - web/src/lib/seo/buildCanonicalUrl.ts
+  - web/src/lib/seo/jsonLdSchema.ts
+  - web/src/lib/seo/robotsTxt.ts
   - web/src/lib/product-analytics/utm.ts
   - web/src/lib/product-analytics/UtmAttribution.svelte
   - web/src/routes/robots.txt/**/*

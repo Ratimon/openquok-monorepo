@@ -575,8 +575,8 @@ Public routes that ship meta tags and structured data should follow the same spl
 For catalog-style public hubs, build `schemaData` in the server load with `createJsonLdGraph` (see **web-seo-jsonld**):
 
 ```ts
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 const canonical = buildCanonicalUrl(url);
 const schemaData = createJsonLdGraph([
@@ -600,7 +600,7 @@ Return `schemaData` from `load` alongside `pageMetaTags` and view models.
 
 ### Reusable schema builders
 
-When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`. Compose documents with `createJsonLdGraph` / `createJsonLdWithContext` from `$lib/utils/jsonLdSchema.ts` and type nodes with `schema-dts` (see **web-seo-jsonld**).
+When JSON-LD logic is non-trivial or reused, put it in `$lib/<domain>/utils/` (e.g. `createBlogPostSEOSchema`, `createPostSEOSchema`, `createPublicFaqSEOSchema`, `createListingSEOSchema`) and call it from `+page.server.ts` — not from `+page.svelte`. Compose documents with `createJsonLdGraph` / `createJsonLdWithContext` from `$lib/seo/jsonLdSchema.ts` and type nodes with `schema-dts` (see **web-seo-jsonld**).
 
 ### Avoid
 

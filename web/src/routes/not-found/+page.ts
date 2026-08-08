@@ -1,7 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
-import { createMetaData } from '$lib/utils/createMetaData';
+import { createMetaData } from '$lib/seo/createMetaData';
 
 export async function load({ url, fetch, params, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();

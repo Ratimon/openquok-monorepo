@@ -9,8 +9,8 @@ import {
 	publicBlogTopicPagePresenter
 } from '$lib/area-public/index';
 import { createBlogIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
 export const ssr = true;
 

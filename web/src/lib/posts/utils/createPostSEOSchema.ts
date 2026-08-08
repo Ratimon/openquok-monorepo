@@ -4,7 +4,7 @@ import type { BreadcrumbList, Comment, Organization, Person, SocialMediaPosting,
 
 import type { PublicPreviewPostViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import type { PostCommentViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
-import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
 function absoluteAppUrl(origin: string, pathname: string): string {

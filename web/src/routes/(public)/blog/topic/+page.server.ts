@@ -3,8 +3,8 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogTopicPagePresenter } from '$lib/area-public/index';
 import { createBlogTopicsIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
 export const ssr = true;
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
 describe('buildCanonicalUrl', () => {

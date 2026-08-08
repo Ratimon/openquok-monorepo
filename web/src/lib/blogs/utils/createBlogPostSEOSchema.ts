@@ -13,7 +13,7 @@ import {
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
 export function guessImageMimeFromFilename(filename: string): string {

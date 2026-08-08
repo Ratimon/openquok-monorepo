@@ -7,9 +7,9 @@ import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRoo
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdWithContext } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdWithContext } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 

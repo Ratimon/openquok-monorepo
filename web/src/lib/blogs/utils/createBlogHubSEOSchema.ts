@@ -12,7 +12,7 @@ import type {
 	BlogPostPublicViewModel,
 	BlogTopicOverviewPublicViewModel
 } from '$lib/blogs/GetBlog.presenter.svelte';
-import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
 function absoluteAppUrl(origin: string, pathname: string): string {
 	const b = base === '/' ? '' : base.replace(/\/$/, '');

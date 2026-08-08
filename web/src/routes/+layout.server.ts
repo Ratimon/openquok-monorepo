@@ -8,8 +8,8 @@ import {
 	getStaticCompanyInformationPm,
 	getStaticMarketingInformationPm
 } from '$lib/config/utils/staticPublicSiteConfig';
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
-import { createMetaData } from '$lib/utils/createMetaData';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
 
 export const ssr = true;
 

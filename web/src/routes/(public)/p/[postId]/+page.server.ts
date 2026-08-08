@@ -7,8 +7,8 @@ import { error } from '@sveltejs/kit';
 import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import { createPostSEOSchema } from '$lib/posts/utils/createPostSEOSchema';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { stripHtmlToPlainText, truncatePlainText } from '$lib/utils/plainTextFromHtml';
 
 export const ssr = true;

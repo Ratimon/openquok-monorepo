@@ -1,5 +1,5 @@
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
-import { robotsAiCrawlerBlocks, robotsDisallowLines } from '$lib/utils/robotsTxt';
+import { robotsAiCrawlerBlocks, robotsDisallowLines } from '$lib/seo/robotsTxt';
 
 export async function GET({ url }: { url: URL }) {
 	const siteUrl = resolvePublicSiteUrl(url);

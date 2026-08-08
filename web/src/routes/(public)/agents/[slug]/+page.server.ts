@@ -1,6 +1,6 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { JsonLdGraphNode } from '$lib/utils/jsonLdSchema';
+import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
 import { error } from '@sveltejs/kit';
 
@@ -11,9 +11,9 @@ import {
 import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 
 export const ssr = true;

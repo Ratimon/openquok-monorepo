@@ -10,9 +10,9 @@ import {
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 import { route, url } from '$lib/utils/path';
 
 export const ssr = true;

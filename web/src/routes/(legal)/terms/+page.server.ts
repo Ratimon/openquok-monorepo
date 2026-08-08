@@ -1,5 +1,5 @@
-import { openGraphForPublicPage, type MetaTagsProps } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
+import { openGraphForPublicPage, type MetaTagsProps } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 
 export const ssr = true;

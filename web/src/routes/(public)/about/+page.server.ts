@@ -4,9 +4,9 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createOrganizationSEOSchema,
 	organizationSchemaId
 } from '$lib/content/utils/createOrganizationSEOSchema';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 

@@ -1,6 +1,6 @@
 import type { MetaTagsProps, MetaTag } from 'svelte-meta-tags';
 
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 
 import type {
 	CompanyInformationProgrammerModel,

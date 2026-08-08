@@ -1,6 +1,6 @@
 import type { PageLoad } from './$types';
 
-import { createMetaData } from '$lib/utils/createMetaData';
+import { createMetaData } from '$lib/seo/createMetaData';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
 
 export const ssr = false;

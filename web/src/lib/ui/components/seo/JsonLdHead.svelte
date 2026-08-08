@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { jsonLdScriptHtml } from '$lib/utils/jsonLdScriptHtml';
+	import { jsonLdScriptHtml } from '$lib/seo/jsonLdScriptHtml';
 
 	type Props = {
 		schemaData?: unknown;

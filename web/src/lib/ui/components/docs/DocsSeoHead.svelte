@@ -8,8 +8,8 @@
 		resolveDocsPageUrl
 	} from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
 	import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
-	import { createJsonLdWithContext, SCHEMA_ORG_CONTEXT } from '$lib/utils/jsonLdSchema';
-	import { jsonLdScriptHtml } from '$lib/utils/jsonLdScriptHtml';
+	import { createJsonLdWithContext, SCHEMA_ORG_CONTEXT } from '$lib/seo/jsonLdSchema';
+	import { jsonLdScriptHtml } from '$lib/seo/jsonLdScriptHtml';
 
 	let {
 		title,

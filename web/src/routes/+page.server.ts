@@ -20,9 +20,9 @@ import {
 } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
-import { createMetaData, openGraphForPublicPage } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/utils/jsonLdSchema';
+import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 

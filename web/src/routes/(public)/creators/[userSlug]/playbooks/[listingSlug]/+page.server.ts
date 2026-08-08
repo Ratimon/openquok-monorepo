@@ -10,9 +10,9 @@ import {
 	getRootPathPublicCreatorPlaybook
 } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/utils/jsonLdSchema';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 import { resolveStackListingHeaderSummary } from '$lib/listings/utils/resolveStackListingHeaderSummary';
 import { resolveBlueprintWorkflowStepTitle } from '$lib/skill-builder/utils/resolveBlueprintWorkflowStepTitle';
 

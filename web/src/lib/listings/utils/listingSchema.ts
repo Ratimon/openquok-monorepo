@@ -16,7 +16,7 @@ import type {
 
 import type { ListingSchemaType } from '$lib/listings/constants/listingSchemaTypes';
 import type { ListingFaqItemProgrammerModel } from '$lib/listings/listing.types';
-import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/utils/jsonLdSchema';
+import { createJsonLdGraph, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
 type ListingSeoInput = {
 	title: string;

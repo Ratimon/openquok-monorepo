@@ -7,8 +7,8 @@ import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFil
 import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
-import { createMetaData } from '$lib/utils/createMetaData';
-import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/utils/buildCanonicalUrl';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
 export const ssr = true;
 
