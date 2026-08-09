@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ExtensionDetailViewModel } from '$lib/listings/index';
+	import type { CreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
 
 	import { browser } from '$app/environment';
 
@@ -9,7 +10,6 @@
 	import { url } from '$lib/utils/path';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 	import { toast } from '$lib/ui/sonner';
-
 	import { icons } from '$data/icons';
 	import {
 		buildingBlockDetailTabTriggerClass,
@@ -21,6 +21,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tabs from '$lib/ui/tabs';
 	import ListingCreatorAttribution from '$lib/ui/templates/listings/ListingCreatorAttribution.svelte';
+	import PublicCreatorListingHero from '$lib/ui/templates/listings/PublicCreatorListingHero.svelte';
 	import BuildingBlockExternalLinkButton from '$lib/ui/templates/building-blocks/BuildingBlockExternalLinkButton.svelte';
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
@@ -53,6 +54,7 @@
 		submittingRating?: boolean;
 		onRatingSignInRequired?: () => void;
 		onRatingUpgradeRequired?: () => void;
+		openQuokHeroVm?: CreatorListingHeroVm | null;
 	};
 
 	let {
@@ -70,7 +72,8 @@
 		submitRating,
 		submittingRating = false,
 		onRatingSignInRequired,
-		onRatingUpgradeRequired
+		onRatingUpgradeRequired,
+		openQuokHeroVm = null
 	}: Props = $props();
 
 	let activeModality = $state<'skills' | 'mcp'>('skills');
@@ -213,6 +216,22 @@
 	</div>
 
 	<ListingDetailTagBadges tags={extensionVm.tags} />
+
+	{#if openQuokHeroVm}
+		<PublicCreatorListingHero
+			variant="inline"
+			eyebrow={openQuokHeroVm.eyebrow}
+			titleSegments={openQuokHeroVm.titleSegments}
+			description={openQuokHeroVm.description}
+			listingIcon={openQuokHeroVm.listingIcon}
+			logoImageUrl={openQuokHeroVm.logoImageUrl}
+			listingTitle={openQuokHeroVm.listingTitle}
+			ctaText={openQuokHeroVm.ctaText}
+			ctaHref={openQuokHeroVm.ctaHref}
+			docsCtaText={openQuokHeroVm.docsCtaText}
+			docsCtaHref={openQuokHeroVm.docsCtaHref}
+		/>
+	{/if}
 </header>
 
 <section class="py-8">

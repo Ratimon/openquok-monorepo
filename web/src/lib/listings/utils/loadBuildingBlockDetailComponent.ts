@@ -1,6 +1,7 @@
 import type { Component } from 'svelte';
 
 import type { ExtensionDetailViewModel } from '$lib/listings/index';
+import type { CreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
 
 export type BuildingBlockBookmarkToggleResult =
 	| { ok: true; bookmarked: boolean }
@@ -28,6 +29,8 @@ export type BuildingBlockDetailComponentProps = {
 	submittingRating?: boolean;
 	onRatingSignInRequired?: () => void;
 	onRatingUpgradeRequired?: () => void;
+	/** OPENQUOK pairing band — rendered after tags, above Install. */
+	openQuokHeroVm?: CreatorListingHeroVm | null;
 };
 
 export type BuildingBlockDetailComponent = Component<BuildingBlockDetailComponentProps>;

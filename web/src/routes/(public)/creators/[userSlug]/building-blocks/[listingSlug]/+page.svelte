@@ -15,6 +15,7 @@
 	import { publicBuildingBlockBySlugPagePresenter } from '$lib/area-public/index';
 	import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 	import { showListingBookmarkToast } from '$lib/listings';
+	import { buildBuildingBlockCreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
 	import { loadBuildingBlockDetailComponent } from '$lib/listings/utils/loadBuildingBlockDetailComponent';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -51,6 +52,15 @@
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
 	let displayLikes = $derived(buildingBlockVm.likes + extraLikes);
+
+	let creatorListingHeroVm = $derived(
+		buildBuildingBlockCreatorListingHeroVm({
+			title: buildingBlockVm.title,
+			extensionType: buildingBlockVm.extensionType,
+			logoImageUrl: buildingBlockVm.logoImageUrl,
+			installCommandSkills: buildingBlockVm.installCommandSkills
+		})
+	);
 
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
@@ -130,6 +140,7 @@
 				upgradeHref={accountBillingHref}
 				onToggleBookmark={handleToggleBookmark}
 				communityEnabled={communityEnabled}
+				openQuokHeroVm={creatorListingHeroVm}
 				submitRating={(listingId, rating) =>
 					publicBuildingBlockBySlugPagePresenter.submitListingRating(listingId, rating)}
 				submittingRating={publicBuildingBlockBySlugPagePresenter.submittingRating}

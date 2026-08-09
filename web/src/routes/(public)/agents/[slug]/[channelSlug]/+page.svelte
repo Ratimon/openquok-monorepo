@@ -24,7 +24,7 @@
 	let channelSlug = $derived(data.channelSlug);
 	let channelLabel = $derived(data.channelLabel);
 	let isChannelComingSoon = $derived(data.isChannelComingSoon);
-	let agentSlug = $derived(data.agentSlug);
+	// let agentSlug = $derived(data.agentSlug);
 
 	let agentHostVm = $derived(
 		landingVm && isPublicAgentHostLandingPage(landingVm) ? landingVm : null

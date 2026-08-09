@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { StackDetailViewModel } from '$lib/listings/GetListing.presenter.svelte';
+	import type { CreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
 
 	import { browser } from '$app/environment';
 
@@ -7,19 +8,19 @@
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { parseGithubRepoFromUrl } from '$lib/utils/github';
 	import { url } from '$lib/utils/path';
-
-	import { icons } from '$data/icons';
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
-	import { toast } from '$lib/ui/sonner';
-
 	import {
 		resolveStackListingHeaderSummary,
 		resolveStackLicense,
-		resolveStackVersion,
+		resolveStackVersion
 	} from '$lib/listings/utils/resolveStackListingHeaderSummary';
+	import { toast } from '$lib/ui/sonner';
+	import { icons } from '$data/icons';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import BuildingBlockBookmarkButton from '$lib/ui/components/building-blocks/BuildingBlockBookmarkButton.svelte';
 	import ListingCreatorAttribution from '$lib/ui/templates/listings/ListingCreatorAttribution.svelte';
+	import PublicCreatorListingHero from '$lib/ui/templates/listings/PublicCreatorListingHero.svelte';
 	import ListingRating from '$lib/ui/components/listings/ListingRating.svelte';
 	import ListingDetailTagBadges from '$lib/ui/components/listings/ListingDetailTagBadges.svelte';
 	import ListingDetailTypeBadges from '$lib/ui/components/listings/ListingDetailTypeBadges.svelte';
@@ -47,6 +48,7 @@
 		submittingRating?: boolean;
 		onRatingSignInRequired?: () => void;
 		onRatingUpgradeRequired?: () => void;
+		openQuokHeroVm?: CreatorListingHeroVm | null;
 	};
 
 	let {
@@ -64,7 +66,8 @@
 		submitRating,
 		submittingRating = false,
 		onRatingSignInRequired,
-		onRatingUpgradeRequired
+		onRatingUpgradeRequired,
+		openQuokHeroVm = null
 	}: Props = $props();
 
 	const headerSummary = $derived(resolveStackListingHeaderSummary(playbookVm));
@@ -174,4 +177,20 @@
 	</div>
 
 	<ListingDetailTagBadges tags={playbookVm.tags} />
+
+	{#if openQuokHeroVm}
+		<PublicCreatorListingHero
+			variant="inline"
+			eyebrow={openQuokHeroVm.eyebrow}
+			titleSegments={openQuokHeroVm.titleSegments}
+			description={openQuokHeroVm.description}
+			listingIcon={openQuokHeroVm.listingIcon}
+			logoImageUrl={openQuokHeroVm.logoImageUrl}
+			listingTitle={openQuokHeroVm.listingTitle}
+			ctaText={openQuokHeroVm.ctaText}
+			ctaHref={openQuokHeroVm.ctaHref}
+			docsCtaText={openQuokHeroVm.docsCtaText}
+			docsCtaHref={openQuokHeroVm.docsCtaHref}
+		/>
+	{/if}
 </header>

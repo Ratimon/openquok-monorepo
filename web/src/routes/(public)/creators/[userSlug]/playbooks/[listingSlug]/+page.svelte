@@ -20,6 +20,8 @@
 	import { route, url } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 
+	import { buildPlaybookCreatorListingHeroVm } from '$lib/listings/utils/buildCreatorListingHeroVm';
+
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CommunityFeaturesLimitUpgradeModal from '$lib/ui/components/blog-post/CommunityFeaturesLimitUpgradeModal.svelte';
 	import ListingComments from '$lib/ui/components/listings/ListingComments.svelte';
@@ -62,6 +64,13 @@
 
 	const communityEnabled = $derived(viewerCommunityFeaturesEnabled ?? true);
 	let displayLikes = $derived(playbookVm.likes + extraLikes);
+
+	let creatorListingHeroVm = $derived(
+		buildPlaybookCreatorListingHeroVm({
+			title: playbookVm.title,
+			logoImageUrl: playbookVm.logoImageUrl
+		})
+	);
 
 	$effect(() => {
 		if (!browser || !isLoggedIn) {
@@ -168,6 +177,7 @@
 			playbookVm={playbookVm}
 			{displayLikes}
 			{skillBuilderHref}
+			openQuokHeroVm={creatorListingHeroVm}
 			onLike={handleLike}
 			likeDisabled={publicPlaybookBySlugPagePresenter.submittingLike}
 			{isBookmarked}
