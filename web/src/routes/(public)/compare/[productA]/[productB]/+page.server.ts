@@ -189,7 +189,13 @@ function createPricingOffers(
 			{
 				'@type': 'Offer',
 				name: plan.name,
-				description: [plan.tagline, plan.footnote].filter(Boolean).join(' · '),
+				description: [
+					plan.tagline,
+					plan.pricePeriod === 'one_time' ? 'One-time USD license' : undefined,
+					plan.footnote
+				]
+					.filter(Boolean)
+					.join(' · '),
 				priceCurrency: 'USD',
 				price: plan.monthlyPrice,
 				url: canonical

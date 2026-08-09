@@ -30,7 +30,13 @@
 
 	function formatPrice(plan: ComparePricingPlanViewModel): string {
 		if (plan.monthlyPrice == null) return 'Custom';
-		return `$${plan.monthlyPrice}`;
+		return `$${plan.monthlyPrice.toLocaleString('en-US')}`;
+	}
+
+	function priceSuffix(plan: ComparePricingPlanViewModel): string | null {
+		if (plan.monthlyPrice == null) return null;
+		if (plan.pricePeriod === 'one_time') return 'one-time';
+		return '/mo';
 	}
 </script>
 
@@ -47,8 +53,10 @@
 							<span class="font-semibold text-base-content">{planVm.name}</span>
 							<span class="text-2xl font-bold tabular-nums text-base-content">
 								{formatPrice(planVm)}
-								{#if planVm.monthlyPrice != null}
-									<span class="text-sm font-normal text-base-content/60">/mo</span>
+								{#if priceSuffix(planVm)}
+									<span class="text-sm font-normal text-base-content/60">
+										{priceSuffix(planVm)}
+									</span>
 								{/if}
 							</span>
 						</div>
@@ -74,8 +82,8 @@
 							<span class="font-semibold text-base-content">{plan.name}</span>
 							<span class="text-2xl font-bold tabular-nums text-base-content">
 								{formatPrice(plan)}
-								{#if plan.monthlyPrice != null}
-									<span class="text-sm font-normal text-base-content/60">/mo</span>
+								{#if priceSuffix(plan)}
+									<span class="text-sm font-normal text-base-content/60">{priceSuffix(plan)}</span>
 								{/if}
 							</span>
 						</div>

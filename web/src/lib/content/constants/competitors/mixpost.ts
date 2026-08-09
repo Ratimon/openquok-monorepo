@@ -11,15 +11,17 @@ const MIXPOST_PRICING_PLANS: ComparePricingPlan[] = [
 	},
 	{
 		name: 'Pro',
-		monthlyPrice: null,
+		monthlyPrice: 299,
+		pricePeriod: 'one_time',
 		tagline: 'Best for teams and agencies that need the full platform on their server',
-		footnote: '$299 one-time license · 1-year updates · unlimited accounts and team members'
+		footnote: 'One-time license · 1-year free updates · unlimited accounts and team members'
 	},
 	{
 		name: 'Enterprise',
-		monthlyPrice: null,
+		monthlyPrice: 1199,
+		pricePeriod: 'one_time',
 		tagline: 'Best for resellers building a self-hosted social SaaS',
-		footnote: '$1,199 one-time · subscription billing, coupons, and white-label branding'
+		footnote: 'One-time license · subscription billing, coupons, and white-label branding'
 	}
 ];
 

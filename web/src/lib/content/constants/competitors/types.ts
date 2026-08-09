@@ -38,8 +38,10 @@ export type CompareFeatureCell =
 
 export type ComparePricingPlan = {
 	name: string;
-	/** Monthly price in USD; `null` for custom or contact-sales tiers. */
+	/** Price in USD; `null` for custom or contact-sales tiers. */
 	monthlyPrice: number | null;
+	/** How to label `monthlyPrice` in compare UI; defaults to monthly when omitted. */
+	pricePeriod?: 'month' | 'one_time';
 	/** Short line under the plan name (e.g. tagline or audience). */
 	tagline: string;
 	/** Price footnote (e.g. per-user billing or trial copy). */
