@@ -2,7 +2,7 @@
 title: AI crawlers and robots.txt
 description: Allow Claude, Gemini, ChatGPT, and Perplexity to discover OpenQuok public pages when Cloudflare managed robots.txt is enabled.
 order: 5
-lastUpdated: 2026-08-08
+lastUpdated: 2026-08-09
 ---
 
 <script>
@@ -13,9 +13,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 OpenQuok serves <Badge text="/robots.txt" variant="path" /> from the web app and publishes <Badge text="/llms.txt" variant="path" /> plus <Badge text="/llms-full.txt" variant="path" /> for documentation discovery. Marketing pages, docs, and channel hubs are meant to be crawlable; auth and workspace routes stay disallowed.
 
-If a **directory or AI visibility tool** reports that **Claude** or **Gemini** “has not found you” while ChatGPT or Copilot partially do, the usual cause on production is **Cloudflare Managed robots.txt** (AI Crawl Control), not the SvelteKit route alone.
+If a **directory or AI visibility tool** (for example PeerPush’s “AI engine coverage map”) reports that **Claude** or **Gemini** “has not found you” while ChatGPT, Copilot, or Perplexity partially do, check production <Badge text="/robots.txt" variant="path" /> first. On OpenQuok, the usual cause is **Cloudflare managed robots.txt** (“block training in robots.txt”), not the SvelteKit route alone.
 
-## What production looks like today
+## Why ChatGPT can look fine while Claude and Gemini do not
+
+Cloudflare’s managed block list typically includes <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, and <Badge text="GPTBot" variant="default" />, but **not** every OpenAI or Microsoft user agent. Tools often attribute ChatGPT coverage to <Badge text="OAI-SearchBot" variant="default" /> / <Badge text="ChatGPT-User" variant="default" />, Copilot to Bing, and Perplexity to <Badge text="PerplexityBot" variant="default" /> — none of which appear in the managed Disallow list. Claude and Gemini map to the blocked tokens, so the coverage map shows a gap.
+
+## What production looks like when the bug is present
 
 When Cloudflare injects managed content, <Badge text="/robots.txt" variant="path" /> begins with a block like:
 
@@ -30,47 +34,42 @@ Disallow: /
 # END Cloudflare Managed Content
 ```
 
-The OpenQuok app **appends** its own rules after that block (sitemap, auth disallows, explicit <strong>Allow</strong> groups for AI crawlers). Some crawlers merge duplicate user-agent groups; others treat the first <Badge text="Disallow: /" variant="path" /> as a full-site block. **You should align Cloudflare with the Allow policy below** so Claude and Gemini can crawl public URLs reliably.
+The OpenQuok app **appends** its own rules after that block (sitemap, auth disallows, explicit <strong>Allow</strong> groups for AI crawlers). Most parsers treat the Cloudflare <Badge text="Disallow: /" variant="path" /> as a full-site block for that user agent. **Appending** <Badge text="Allow: /" variant="path" /> in the app cannot undo it.
 
-<Callout type="warning" title="Dashboard change required">
-Turning off blanket AI blocks in Cloudflare is required for Claude (<Badge text="ClaudeBot" variant="default" />) and Gemini training/grounding crawlers (<Badge text="Google-Extended" variant="default" />). Repo changes alone cannot remove the prepended Cloudflare section.
+<Callout type="warning" title="Repo deploy is not enough">
+Turning off Cloudflare managed robots.txt is required. Allowing crawlers in <strong>AI Crawl Control</strong> alone does <strong>not</strong> remove the prepended <Badge text="Disallow: /" variant="path" /> block. Verify with <code>pnpm --filter ./web run verify:ai-robots</code>.
 </Callout>
 
 ## Fix in Cloudflare (production)
 
 <Steps>
 
-### Open AI Crawl Control
+### Open Security Settings → Bot traffic
 
-In the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, select the zone that serves <Badge text="www.openquok.com" variant="new" /> (or your marketing hostname). Open <strong>Security</strong> → <strong>AI Crawl Control</strong> (formerly AI Audit).
+In the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, select the zone that serves <Badge text="www.openquok.com" variant="new" />. Open <strong>Security</strong> → <strong>Settings</strong>, filter by <strong>Bot traffic</strong>.
 
-### Allow crawlers you want indexed
+### Turn OFF managed training blocks in robots.txt
 
-For each crawler you want in AI search and directory coverage tools, set **Action** to <strong>Allow</strong> (at minimum):
+Find <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) and <strong>turn it off</strong>.
 
-- <Badge text="ClaudeBot" variant="default" /> (Anthropic / Claude)
-- <Badge text="Google-Extended" variant="default" /> (Google Gemini / AI products)
-- <Badge text="GPTBot" variant="default" /> and <Badge text="OAI-SearchBot" variant="default" /> (OpenAI / ChatGPT) if you want parity with other engines
-- <Badge text="PerplexityBot" variant="default" /> if not already allowed via <Badge text="User-agent: *" variant="default" />
+That is the control that prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, and related training crawlers. With it off, crawlers see only the OpenQuok origin file (Content Signals + auth disallows + explicit AI <strong>Allow</strong> groups).
 
-Keep **training** restrictions if you prefer: managed content can still emit <Badge text="Content-Signal: ai-train=no" variant="default" /> while allowing search and grounding crawlers.
+### Optional: AI Crawl Control Allow
 
-### Review Managed robots.txt
-
-Under <strong>Security</strong> → <strong>Bots</strong> → <strong>Configure robots.txt</strong> (managed robots.txt), either:
-
-- Disable automatic <Badge text="Disallow: /" variant="path" /> injection for the crawlers you allowed above, or
-- Rely on Cloudflare’s updated Allow actions so the prepended file no longer blocks those user agents.
+Under <strong>Security</strong> → <strong>AI Crawl Control</strong>, set <strong>Action</strong> to <strong>Allow</strong> for crawlers you want (at least <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" />). This controls WAF blocking; it does not replace turning off managed robots.txt for the PeerPush-style robots check.
 
 ### Verify the live file
 
-After saving, fetch the live file (replace the host with yours):
-
 ```bash
+pnpm --filter ./web run verify:ai-robots
+# or
 curl -sS "https://www.openquok.com/robots.txt"
 ```
 
-Confirm <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" /> are not left with a site-wide <Badge text="Disallow: /" variant="path" /> in the Cloudflare-managed section, and that the OpenQuok suffix still lists <Badge text="Sitemap:" variant="default" /> and <Badge text="Allow: /" variant="path" /> for those bots.
+Pass criteria:
+
+- No Cloudflare managed section with <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> and <Badge text="Disallow: /" variant="path" />
+- Origin suffix still lists <Badge text="Sitemap:" variant="default" /> and <Badge text="Allow: /" variant="path" /> for those bots
 
 </Steps>
 
@@ -78,8 +77,8 @@ Confirm <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Ext
 
 The route <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/routes/robots.txt/%2Bserver.ts"><Badge text="web/src/routes/robots.txt/+server.ts" variant="path" /></DocsExternalLink> builds:
 
-- <Badge text="User-agent: *" variant="default" /> — disallow auth, editor, admin, and OAuth paths only
-- Per–AI-bot groups with <Badge text="Allow: /" variant="path" /> plus the same auth/admin disallows
+- <Badge text="User-agent: *" variant="default" /> — Content-Signal (<Badge text="search=yes" variant="default" />, <Badge text="ai-input=yes" variant="default" />, <Badge text="ai-train=no" variant="default" />) plus disallow auth, editor, admin, and OAuth paths only
+- Per–AI-bot groups with <Badge text="Allow: /" variant="path" /> plus the same auth/admin disallows (including <Badge text="Claude-SearchBot" variant="default" /> / <Badge text="Claude-User" variant="default" />)
 - Meta crawler allows (Facebook / Instagram app verification)
 - Comments pointing to <Badge text="/llms.txt" variant="path" /> and <Badge text="/rss.xml" variant="path" />
 

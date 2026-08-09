@@ -1,5 +1,9 @@
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
-import { robotsAiCrawlerBlocks, robotsDisallowLines } from '$lib/seo/robotsTxt';
+import {
+	ROBOTS_CONTENT_SIGNAL,
+	robotsAiCrawlerBlocks,
+	robotsDisallowLines
+} from '$lib/seo/robotsTxt';
 
 export async function GET({ url }: { url: URL }) {
 	const siteUrl = resolvePublicSiteUrl(url);
@@ -8,6 +12,7 @@ export async function GET({ url }: { url: URL }) {
 
 	const robotsTxt = [
 		'User-agent: *',
+		ROBOTS_CONTENT_SIGNAL,
 		...robotsDisallowLines('Disallow'),
 		`Sitemap: ${sitemapURL}`,
 		'',

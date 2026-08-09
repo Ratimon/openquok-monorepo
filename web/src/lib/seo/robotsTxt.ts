@@ -17,18 +17,28 @@ export const ROBOTS_DISALLOWED_PATHS = [
 
 /**
  * User agents used for AI search, grounding, and assistant browsing.
- * Explicit Allow keeps public marketing/docs reachable when rules are merged with CDN-managed robots.txt.
+ * Explicit Allow keeps public marketing/docs reachable once CDN-managed robots.txt is disabled.
+ *
+ * Directory “AI engine coverage” tools commonly treat ClaudeBot / Google-Extended
+ * site-wide Disallow as “Claude / Gemini hasn’t found you.”
  */
 export const ROBOTS_AI_CRAWLER_USER_AGENTS = [
 	'GPTBot',
 	'ChatGPT-User',
 	'OAI-SearchBot',
 	'ClaudeBot',
+	'Claude-SearchBot',
+	'Claude-User',
 	'anthropic-ai',
 	'Google-Extended',
 	'PerplexityBot',
+	'Perplexity-User',
 	'Applebot-Extended'
 ] as const;
+
+/** Prefer search / grounding; discourage training when Content Signals are honored. */
+export const ROBOTS_CONTENT_SIGNAL =
+	'Content-Signal: search=yes,ai-input=yes,ai-train=no,use=reference';
 
 export function robotsDisallowLines(prefix: 'Disallow' | 'Allow' = 'Disallow'): string[] {
 	return ROBOTS_DISALLOWED_PATHS.map((path) => `${prefix}: ${path}`);
@@ -38,8 +48,8 @@ export function robotsAiCrawlerBlocks(): string[] {
 	const lines: string[] = [
 		'# --- AI crawlers (search, grounding, and assistant link previews) ---',
 		'# Public pages, docs (/docs/*), and /llms.txt stay reachable; app/auth paths stay blocked.',
-		'# Production: Cloudflare "Managed robots.txt" may prepend Disallow: / for these bots.',
-		'# Allow them in Cloudflare AI Crawl Control (or turn off blanket AI blocks) so directives match.',
+		'# Production: turn OFF Cloudflare "block training in robots.txt" (managed robots.txt).',
+		'# That feature prepends Disallow: / for ClaudeBot / Google-Extended and overrides these Allows.',
 		'# See /docs/configuration-web/ai-crawlers-and-robots',
 		''
 	];
