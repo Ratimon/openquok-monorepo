@@ -163,4 +163,12 @@
 			{/each}
 		</ul>
 	{/if}
+
+	{#if bindingsVm.length > 0}
+		<div class="flex justify-start">
+			<Button type="button" variant="outline" size="sm" onclick={addBinding}>
+				Add model
+			</Button>
+		</div>
+	{/if}
 </div>

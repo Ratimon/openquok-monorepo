@@ -133,4 +133,12 @@
 			{/each}
 		</ul>
 	{/if}
+
+	{#if members.length > 0}
+		<div class="flex justify-start">
+			<Button type="button" variant="outline" size="sm" onclick={addMember} disabled={!extensionChoices.length}>
+				Add building block
+			</Button>
+		</div>
+	{/if}
 </div>
