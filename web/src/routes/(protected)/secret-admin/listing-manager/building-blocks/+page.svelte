@@ -56,9 +56,13 @@
 			</p>
 			<p class="mt-2 opacity-90">
 				For listings under your own creator profile, use
-				<a href={url('/account/playbooks')} class="link link-primary">Account → Playbooks</a>
+				<a href={url('/account/playbooks')} class="link font-medium text-info-content underline"
+					>Account → Playbooks</a
+				>
 				and set your username in
-				<a href={url('/account/settings')} class="link link-primary">Account → Settings</a>.
+				<a href={url('/account/settings')} class="link font-medium text-info-content underline"
+					>Account → Settings</a
+				>.
 			</p>
 		</div>
 	</div>

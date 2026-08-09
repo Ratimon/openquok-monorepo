@@ -110,4 +110,13 @@
 			<p class="text-sm text-base-content/60">No FAQs added yet.</p>
 		</div>
 	{/if}
+
+	{#if localFaqs.length > 0}
+		<div class="flex justify-start">
+			<Button variant="outline" size="sm" type="button" onclick={addFaq}>
+				<AbstractIcon name={icons.Plus.name} class="mr-2 size-4" width="16" height="16" />
+				Add FAQ
+			</Button>
+		</div>
+	{/if}
 </div>

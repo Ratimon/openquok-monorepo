@@ -717,7 +717,9 @@
 
 		{#if listingKind === 'stack' && onImportGithub}
 			<div class="space-y-3 rounded-lg border border-base-300 p-4">
-				<Field.Label>Import from GitHub (SKILL.md)</Field.Label>
+				<Field.Label>
+					Import from GitHub (SKILL.md)
+				</Field.Label>
 				<Field.Description>
 					Prefills title and content from SKILL.md.
 				</Field.Description>

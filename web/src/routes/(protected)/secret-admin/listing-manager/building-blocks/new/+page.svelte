@@ -70,7 +70,9 @@
 		<p>
 			This listing will publish under
 			<span class="font-mono">/creators/openquok/…</span>. To publish under your own username, use
-			<a href={url('/account/playbooks')} class="link link-primary">Account → Playbooks</a>.
+			<a href={url('/account/playbooks')} class="link font-medium text-info-content underline"
+				>Account → Playbooks</a
+			>.
 		</p>
 	</div>
 
