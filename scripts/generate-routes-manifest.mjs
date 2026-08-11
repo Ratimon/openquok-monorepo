@@ -46,7 +46,11 @@ const MANIFEST_NON_INDEXABLE_EXACT = new Set([
 
 const MANIFEST_NON_INDEXABLE_PREFIXES = ['/oauth', '/integration', '/join-org', '/cli'];
 
-const PUBLIC_TOOL_CHANNEL_PATHS = ['/tools/photo-editor', '/tools/skill-builder'];
+const PUBLIC_TOOL_CHANNEL_PATHS = [
+	'/tools/photo-editor',
+	'/tools/skill-builder',
+	'/tools/best-time-to-post'
+];
 
 const LISTING_HUB_PREFIXES = ['/playbooks', '/building-blocks'];
 

@@ -5,11 +5,11 @@
 		applyPostingScheduleTimezoneDefaultFromStorage,
 		getDateMetricUsStyle,
 		getPostingScheduleTimezone,
-		getTimeZoneSelectOptions,
 		setDateMetricUsStyle,
 		setPostingScheduleTimezone
 	} from '$lib/utils/postingSchedulePreferences';
 
+	import PostingScheduleTimezoneSelect from '$lib/ui/components/settings/PostingScheduleTimezoneSelect.svelte';
 	import * as Select from '$lib/ui/select';
 
 	const clockFormatChoices = [
@@ -19,21 +19,10 @@
 
 	let usStyle = $state(false);
 	let timezoneValue = $state('UTC');
-	let tzOptions = $state<{ value: string; label: string }[]>(getTimeZoneSelectOptions());
-
-	function buildTzOptions(): { value: string; label: string }[] {
-		const base = getTimeZoneSelectOptions();
-		const current = getPostingScheduleTimezone();
-		if (base.some((o) => o.value === current)) return base;
-		return [{ value: current, label: current.replace(/_/g, ' ') }, ...base].sort((a, b) =>
-			a.value.localeCompare(b.value, 'en')
-		);
-	}
 
 	function syncFromStorage() {
 		usStyle = getDateMetricUsStyle();
 		timezoneValue = getPostingScheduleTimezone();
-		tzOptions = buildTzOptions();
 		applyPostingScheduleTimezoneDefaultFromStorage();
 	}
 
@@ -94,18 +83,12 @@
 			<label class="text-sm font-medium text-base-content" for="editor-metric-tz">
 				Your current timezone
 			</label>
-			<select
+			<PostingScheduleTimezoneSelect
 				id="editor-metric-tz"
 				class="select select-bordered bg-base-100 w-full max-w-md"
-				value={timezoneValue}
-				onchange={(e) => onTimezoneChange((e.currentTarget as HTMLSelectElement).value)}
-			>
-				{#each tzOptions as opt (opt.value)}
-					<option value={opt.value}>
-						{opt.label}
-					</option>
-				{/each}
-			</select>
+				bind:value={timezoneValue}
+				onValueChange={onTimezoneChange}
+			/>
 		</div>
 	</div>
 </section>

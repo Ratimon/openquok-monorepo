@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -38,6 +38,10 @@ globs:
   - web/src/lib/area-public/constants/getRootPathPublicTools.ts
   - web/src/routes/(public)/tools/+page.server.ts
   - web/src/routes/(public)/tools/+page.svelte
+  - web/src/lib/best-time-to-post/**
+  - web/src/routes/(public)/tools/best-time-to-post/**
+  - web/src/lib/ui/templates/best-time-to-post/**
+  - web/src/lib/ui/components/best-time-to-post/**
   - web/src/routes/(public)/channels/[slug]/+page.svelte
   - web/src/lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte
@@ -53,11 +57,11 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, `/channels/{slug}`, and **`/agents/{agentSlug}/{slug}`** (agent channel SEO). Do not fork slugs between layers.
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, `/channels/{slug}`, **`/tools/best-time-to-post/{slug}`**, **`/tools/photo-editor/{slug}`**, and **`/agents/{agentSlug}/{slug}`** (agent channel SEO). Do not fork slugs between layers. When `platformId` differs from the marketing slug (rare), still key **`benchmarkSlots.ts` `PLATFORM_WINDOWS`** by every identifier the calculator can pass (`platformSlug` from channel config / platform select).
 
 ## Backend (required)
 
@@ -313,6 +317,52 @@ When go-live-ing a provider, update aspect-ratio presets **before or with** the 
 
 **Note:** If a provider has no dedicated aspect group yet, the channel page still appears but falls back to General presets — ship platform-specific presets before or with go-live for a good UX. Channel pages default to the platform’s **first preset** in the group (via `defaultAspectRatioIdForComposer`), not General.
 
+## Programmatic Best Time to Post SEO (channel routes)
+
+Ship channel-specific **Best Time to Post** calculator pages alongside the generic tool when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — channel pages are **mostly auto-derived** from the live channel catalog (no new `+page` files per slug). Slot **math** is **not** account analytics; it comes from static benchmark tables for controlled timing tests.
+
+| Artifact | Path / URL |
+| --- | --- |
+| Generic calculator (all channels) | `/tools/best-time-to-post` — platform picker from live channels; default platform in `DEFAULT_PLATFORM_SLUG` (`best-time-to-post.types.ts`) |
+| Channel calculator | `/tools/best-time-to-post/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` (e.g. `tiktok`, `linkedin`) |
+| Benchmark windows (required for go-live quality) | `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts` — `PLATFORM_WINDOWS` per slug; `DEFAULT_WINDOWS` fallback when a key is missing |
+| Last-reviewed date (public FAQ) | `BENCHMARK_SLOTS_LAST_REVIEWED` in `benchmarkSlots.ts` — bump when you add or refresh a platform table (`publicBestTimeToPostFaqConfig.ts` imports it) |
+| Channel SEO + hub cards | `web/src/lib/best-time-to-post/constants/publicBestTimeToPostChannelConfig.ts` — built from `listAvailablePublicChannels()` |
+| FAQ (generic + tailored channel copy) | `web/src/lib/best-time-to-post/constants/publicBestTimeToPostFaqConfig.ts` — channel pages get platform-specific answers via `buildBestTimeToPostFaqSection` |
+| Plan + calendar preview | `buildTimingTestPlan.ts`, `buildBestTimeCalendarPreview.ts` — audience timezone vs shown timezone; cadence rules documented in `benchmarkSlots.ts` module comment |
+| Shared page UI | `web/src/lib/ui/templates/best-time-to-post/BestTimeToPostToolPage.svelte`, `BestTimeToPostCalculatorPanel.svelte` |
+| Channel hub grid | `web/src/lib/ui/components/best-time-to-post/BestTimeToPostChannelHubGrid.svelte` — **By channel** on generic and channel pages |
+| Route helpers | `getRootPathPublicBestTimeToPost()` and `getRootPathPublicBestTimeToPostChannel(slug)` in `getRootPathPublicTools.ts` |
+
+### Auto-derived (no per-provider route files)
+
+- Channel pages at `/tools/best-time-to-post/{channelSlug}` via generic route + `publicBestTimeToPostChannelConfig.ts` (from `listAvailablePublicChannels()`).
+- Platform select options on the calculator use the same hub link list (`listBestTimeChannelsForHub()`).
+- SEO meta defaults from `platformLabel` + merged `keywords` from `publicChannelConfig`.
+- Channel FAQ tailors the first two items (benchmark vs analytics, where clock times come from) from `platformLabel`.
+
+Channel pages **404** when the slug is missing from `publicChannelConfig` or `available: false`.
+
+### Manual updates when shipping a new provider
+
+When go-live-ing a provider, add **platform-specific benchmark windows** in the **same PR** as `available: true`. Do not rely on `DEFAULT_WINDOWS` for a shipped channel unless you intentionally accept generic midweek afternoons until a dedicated table lands.
+
+| Artifact | Path / action |
+| --- | --- |
+| Platform window table | `benchmarkSlots.ts` — add `PLATFORM_WINDOWS['{slug}']` with seven `weekday` rows (1 = Mon … 7 = Sun), each with ordered `times` (first = primary for `3_per_week` Tue/Wed/Thu). Hours are **audience-local** clock times, not UTC. |
+| Identifier aliases | When composer / `platformId` uses a different key than the channel slug (e.g. `instagram-business`), duplicate or share the same `DayWindow[]` under both keys so the calculator never silently falls back. |
+| Research refresh | Update module comment themes as needed; set `BENCHMARK_SLOTS_LAST_REVIEWED` to the calendar date of the review. |
+| Hub card blurb (optional) | `publicBestTimeToPostChannelConfig.ts` — `CHANNEL_HUB_DESCRIPTIONS['{slug}']` for a sharper **By channel** card; otherwise a generic `${platformLabel} benchmark windows…` string is used. |
+
+**Cadence behavior** (do not reimplement in the provider PR — document slots accordingly):
+
+- `3_per_week` → Tuesday, Wednesday, Thursday only, **first** time in each day’s `times` array.
+- `daily` → all seven days, one slot per day (first time).
+- `2_per_day` / `3_per_day` → first two or three times per selected day.
+- Content type applies a small minute offset within the same local hour band (`CONTENT_TYPE_MINUTE_OFFSET`).
+
+The tool does **not** call integration APIs or read workspace analytics. Copy on the page and FAQ must stay aligned with that (benchmark timing **test plan**, not “your best hour”).
+
 ## Programmatic Agent channel SEO (agent host routes)
 
 Ship platform-specific agent landing pages alongside the generic agent host page when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — adding a channel is a **catalog + bento + CLI recipe update** (no new `+page` files per slug).
@@ -373,5 +423,6 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Self-host:** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
+- **Best Time to Post:** `PLATFORM_WINDOWS['{identifier}']` in `benchmarkSlots.ts` (no silent `DEFAULT_WINDOWS` for a live channel); `BENCHMARK_SLOTS_LAST_REVIEWED` updated when windows change; optional `CHANNEL_HUB_DESCRIPTIONS` entry; `/tools/best-time-to-post/{slug}` resolves when channel is live; calculator platform picker and **By channel** hub include the new channel automatically.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

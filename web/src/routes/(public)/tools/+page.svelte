@@ -26,6 +26,7 @@
 	let toolsVm = $derived(data.toolsVm);
 	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
+	let bestTimeToPostChannelsVm = $derived(data.bestTimeToPostChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
 	// /sign-up
@@ -70,6 +71,15 @@
 						genericHref={toolVm.href}
 						channelLinks={photoEditorChannelsVm}
 						toolLabel="Photo Editor"
+					/>
+				{:else if toolVm.id === 'best-time-to-post'}
+					<ChannelHubToolCard
+						title={toolVm.title}
+						description={toolVm.description}
+						badge={toolVm.badge}
+						genericHref={toolVm.href}
+						channelLinks={bestTimeToPostChannelsVm}
+						toolLabel="Best Time to Post"
 					/>
 				{:else}
 					<li>

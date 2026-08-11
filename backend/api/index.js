@@ -6414,7 +6414,6 @@ var init_BlogRepository = __esm({
       }
       /**
        * Returns all users who have at least one published and approved blog post.
-       * Uses RPC get_published_blog_authors (profile fields from user_profiles).
        */
       async getPublishedBlogAuthors() {
         const { data, error } = await this.supabase.rpc(RPC_GET_PUBLISHED_BLOG_AUTHORS);
@@ -6434,7 +6433,6 @@ var init_BlogRepository = __esm({
       /**
        * Returns a single published and approved blog post by slug, or null if not found.
        * Used by public GET /posts/:identifier (slug). Treats PGRST116 (no rows) as null.
-       * Uses SELECT_BLOG_POST (author id, full_name only) so it works in test DBs without optional user columns.
        */
       async findPublishedBlogPostBySlug(slug) {
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).select(SELECT_BLOG_POST).match({
@@ -31866,7 +31864,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-07-26T23:46:50.443Z",
+  generated: "2026-08-10T13:33:32.955Z",
   routes: [
     {
       path: "/docs",
@@ -32001,6 +31999,12 @@ var routes_manifest_default = {
       type: "static"
     },
     {
+      path: "/tools/best-time-to-post",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
       path: "/tools/photo-editor",
       priority: 0.7,
       changeFreq: "monthly",
@@ -32032,6 +32036,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/antigravity-cli",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/agents/chatgpt",
       priority: 0.8,
       changeFreq: "monthly",
       type: "public-catalog"
@@ -32109,7 +32119,31 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/typefully",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -32121,7 +32155,67 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hootsuite/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/typefully",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -32139,6 +32233,138 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openquok/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/alternatives/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -32146,6 +32372,30 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/typefully",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -32314,6 +32564,48 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/antigravity-cli/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/youtube",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -32659,6 +32951,30 @@ var routes_manifest_default = {
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
     }
   ]};
 
@@ -32677,7 +32993,11 @@ var MANIFEST_NON_INDEXABLE_EXACT = /* @__PURE__ */ new Set([
   "/rss.xml"
 ]);
 var MANIFEST_NON_INDEXABLE_PREFIXES = ["/oauth", "/integration", "/join-org", "/cli"];
-var PUBLIC_TOOL_CHANNEL_PATHS = ["/tools/photo-editor", "/tools/skill-builder"];
+var PUBLIC_TOOL_CHANNEL_PATHS = [
+  "/tools/photo-editor",
+  "/tools/skill-builder",
+  "/tools/best-time-to-post"
+];
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;

@@ -3,10 +3,12 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicToolsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import {
+	getRootPathPublicBestTimeToPost,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
+import { listBestTimeChannelsForHub } from '$lib/best-time-to-post';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
@@ -51,6 +53,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			badge: 'Design editor'
 		},
 		{
+			id: 'best-time-to-post',
+			title: 'Best Time to Post',
+			description:
+				'Build a timing test plan from platform benchmark slots, preview them on a week calendar, and schedule controlled experiments in OpenQuok.',
+			href: url(route(getRootPathPublicBestTimeToPost())),
+			badge: 'Timing calculator'
+		},
+		{
 			id: 'apis-integrations',
 			title: 'Integrations APIs',
 			description:
@@ -84,6 +94,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
 		photoEditorChannelsVm: listCanvasChannelsForHub(),
+		bestTimeToPostChannelsVm: listBestTimeChannelsForHub(),
 		schemaData
 	};
 }

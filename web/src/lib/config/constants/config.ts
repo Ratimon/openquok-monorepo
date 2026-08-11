@@ -22,6 +22,7 @@ import {
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import {
+	getRootPathPublicBestTimeToPost,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicTools
@@ -42,9 +43,11 @@ const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags()
 const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
+const publicApisIntegrationsDocsPath = route(`${getRootPathPublicDocs()}/apis-integrations`);
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
+const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 
 const appName = 'OPENQUOK';
@@ -793,6 +796,8 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
 		{ label: 'Photo Editor', href: publicPhotoEditorPath },
+		{ label: 'Best Time to Post', href: publicBestTimeToPostPath },
+		{ label: 'API Payload Validator', href: publicApisIntegrationsDocsPath },
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },

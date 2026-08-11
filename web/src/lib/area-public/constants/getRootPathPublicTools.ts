@@ -22,3 +22,13 @@ export function getRootPathPublicPhotoEditor(): string {
 export function getRootPathPublicPhotoEditorChannel(channelSlug: string): string {
 	return `${getRootPathPublicPhotoEditor()}/${channelSlug.trim()}`;
 }
+
+/** Best time to post calculator: `tools/best-time-to-post` (no leading slash). */
+export function getRootPathPublicBestTimeToPost(): string {
+	return `${getRootPathPublicTools()}/best-time-to-post`;
+}
+
+/** Channel-specific Best Time to Post: `tools/best-time-to-post/{channelSlug}` (no leading slash). */
+export function getRootPathPublicBestTimeToPostChannel(channelSlug: string): string {
+	return `${getRootPathPublicBestTimeToPost()}/${channelSlug.trim()}`;
+}

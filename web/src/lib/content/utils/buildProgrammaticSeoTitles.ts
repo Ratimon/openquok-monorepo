@@ -22,6 +22,10 @@ export function buildSkillBuilderChannelMetaTitle(platformLabel: string): string
 	return `Build ${platformLabel} Social Media Skills`;
 }
 
+export function buildBestTimeToPostChannelMetaTitle(platformLabel: string): string {
+	return `Best Time to Post on ${platformLabel}`;
+}
+
 export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {
 	if (left.slug === COMPARE_HUB_BASE_SLUG) {
 		return `${left.name} vs ${right.name}: Social Media Scheduler Comparison`;

@@ -47,6 +47,11 @@
 		rangeStartDate: string;
 		events: CalendarEventExternal[];
 		backgroundEvents?: BackgroundEvent[];
+		/** Compact week preview (Best Time to Post tool) — shorter grid + optional day boundaries. */
+		embeddedToolPreview?: boolean;
+		/** IANA zone for embedded preview (defaults to UTC for workspace scheduler). */
+		calendarTimezone?: string;
+		dayBoundaries?: { start: string; end: string };
 		onEditPostGroup?: (postGroup: string) => void;
 		openActionsForPostGroup?: (
 			postGroup: string | null,
@@ -63,6 +68,9 @@
 		rangeStartDate,
 		events,
 		backgroundEvents = [],
+		embeddedToolPreview = false,
+		calendarTimezone,
+		dayBoundaries,
 		onEditPostGroup,
 		openActionsForPostGroup,
 		onCreatePostAtIso,
@@ -165,15 +173,25 @@
 	}
 
 	function buildCalendarApp(initialEvents: CalendarEventExternal[]) {
+		const tz =
+			embeddedToolPreview && calendarTimezone?.trim()
+				? calendarTimezone.trim()
+				: 'UTC';
+
 		return createCalendar(
 			{
-				timezone: 'UTC',
+				timezone: tz,
 				views,
 				events: initialEvents,
 				backgroundEvents,
 				selectedDate: selectedPlainDateFromProps(),
 				defaultView: viewNameForDisplay(display) as DefaultViewName,
+				...(dayBoundaries ? { dayBoundaries } : {}),
+				...(embeddedToolPreview
+					? { weekOptions: { gridHeight: 520, gridStep: 60 as const, nDays: 7 } }
+					: {}),
 				callbacks: {
+					...(embeddedToolPreview ? { isCalendarSmall: () => false } : {}),
 					onClickDateTime: (dt, e) => {
 						// Only act on empty-cell clicks (ignore clicks on an event chip).
 						const target = (e?.target ?? null) as HTMLElement | null;
@@ -342,7 +360,6 @@
 		createStripHeightPx = `${stripH}px`;
 	}
 
-	const TIME_GRID_HEIGHT_PX = 3600;
 	const CREATE_STRIP_WIDTH_PX = 32;
 
 	$effect(() => {
@@ -356,7 +373,7 @@
 
 		// We bucket posts into a single chip per slot (+N), so the time-grid height can be constant.
 		// Schedule‑X default is 1600; we run a denser constant height.
-		const gridHeight = TIME_GRID_HEIGHT_PX;
+		const gridHeight = embeddedToolPreview ? 520 : 3600;
 		if (lastAppliedGridHeight === gridHeight) return;
 
 		const app = (calendarApp as any)?.$app;
@@ -661,7 +678,11 @@
 	});
 </script>
 
-<div bind:this={hostEl} class="schedule-x-calendar-host w-full">
+<div
+	bind:this={hostEl}
+	class="schedule-x-calendar-host w-full"
+	class:embedded-tool-preview={embeddedToolPreview}
+>
 	<ScheduleXCalendarHost
 		{calendarApp}
 		timeGridEvent={TimeGridEvent}
@@ -818,6 +839,33 @@
 	.schedule-x-calendar-host :global(.sx-svelte-calendar-wrapper) {
 		width: 100%;
 		height: min(900px, 78vh);
+	}
+
+	.schedule-x-calendar-host.embedded-tool-preview {
+		width: 100%;
+		min-width: 0;
+	}
+
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx-svelte-calendar-wrapper) {
+		height: 380px;
+		min-height: 380px;
+		width: 100%;
+		min-width: 0;
+	}
+
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx__calendar-wrapper) {
+		min-width: 0;
+	}
+
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx__week-grid),
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx__time-grid) {
+		min-width: 0;
+		width: 100%;
+	}
+
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx__week-grid__day),
+	.schedule-x-calendar-host.embedded-tool-preview :global(.sx__time-grid-day) {
+		min-width: 3.25rem;
 	}
 
 	@media (max-width: 640px) {

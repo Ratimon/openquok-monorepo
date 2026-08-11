@@ -1,12 +1,10 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
-import type { BestTimeChannelHubLinkViewModel } from '$lib/best-time-to-post';
-import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
 import type {
-	SkillBuilderChannelHubLinkViewModel,
-	ToolsIndexToolCardViewModel
-} from '$lib/skill-builder/skillBuilder.types';
+	BestTimeChannelHubLinkViewModel,
+	BestTimeToolPageViewModel
+} from '$lib/best-time-to-post';
 
 import type { PageLoad } from './$types';
 
@@ -20,24 +18,21 @@ export const load: PageLoad = async ({ parent, data }) => {
 	const isEditor = roles?.includes('editor') || false;
 
 	if (browser && data) {
-		const serverData = data as {
+		const serverData = data as BestTimeToolPageViewModel & {
 			pageMetaTags: MetaTagsProps;
-			metaTitle: string;
-			metaDescription: string;
-			toolsVm: ToolsIndexToolCardViewModel[];
-			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
-			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
-			bestTimeToPostChannelsVm: BestTimeChannelHubLinkViewModel[];
+			isLoggedIn?: boolean;
 			schemaData: unknown;
+			bestTimeToPostChannelsVm: BestTimeChannelHubLinkViewModel[];
 		};
 
 		return {
 			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
 			metaDescription: serverData.metaDescription,
-			toolsVm: serverData.toolsVm,
-			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
-			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
+			channelSlug: serverData.channelSlug,
+			channelLabel: serverData.channelLabel,
+			focusedProviderIdentifier: serverData.focusedProviderIdentifier,
+			defaultPlatformSlug: serverData.defaultPlatformSlug,
 			bestTimeToPostChannelsVm: serverData.bestTimeToPostChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

@@ -27,11 +27,66 @@ function intlTimeZoneIds(): string[] {
 }
 
 /** Sorted IANA ids for UI pickers; falls back to a single guessed zone when `Intl` is unavailable. */
-export function getTimeZoneSelectOptions(): { value: string; label: string }[] {
+export function formatTimeZoneUtcOffsetLabel(timeZone: string, at?: ConfigType): string {
+	const trimmed = timeZone.trim();
+	if (!trimmed) return 'UTC';
+	try {
+		const d = newDayjs(at).tz(trimmed);
+		if (!d.isValid()) throw new Error('invalid zone');
+		const offsetMin = d.utcOffset();
+		const sign = offsetMin >= 0 ? '+' : '-';
+		const abs = Math.abs(offsetMin);
+		const hours = Math.floor(abs / 60);
+		const mins = abs % 60;
+		const offset =
+			mins === 0
+				? `UTC${sign}${hours}`
+				: `UTC${sign}${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+		const friendly = trimmed.replace(/_/g, ' ');
+		return `${offset} — ${friendly}`;
+	} catch {
+		return trimmed.replace(/_/g, ' ');
+	}
+}
+
+function timeZoneUtcOffsetMinutes(timeZone: string, at?: ConfigType): number {
+	try {
+		return newDayjs(at).tz(timeZone).utcOffset();
+	} catch {
+		return 0;
+	}
+}
+
+export function getTimeZoneSelectOptions(at?: ConfigType): { value: string; label: string }[] {
 	const ids = intlTimeZoneIds();
 	const list = ids.length > 0 ? ids : [dayjs.tz.guess() || 'UTC'];
-	const unique = [...new Set(list)].sort((a, b) => a.localeCompare(b, 'en'));
-	return unique.map((value) => ({ value, label: value.replace(/_/g, ' ') }));
+	const unique = [...new Set(list)];
+	return unique
+		.map((value) => ({
+			value,
+			label: formatTimeZoneUtcOffsetLabel(value, at),
+			offset: timeZoneUtcOffsetMinutes(value, at)
+		}))
+		.sort((a, b) => a.offset - b.offset || a.value.localeCompare(b.value, 'en'))
+		.map(({ value, label }) => ({ value, label }));
+}
+
+/** Ensures `current` appears in the list (e.g. legacy or manually typed IANA ids). */
+export function getTimeZoneSelectOptionsIncluding(
+	current: string,
+	at?: ConfigType
+): { value: string; label: string }[] {
+	const trimmed = current.trim();
+	const base = getTimeZoneSelectOptions(at);
+	if (!trimmed || base.some((o) => o.value === trimmed)) return base;
+	return [
+		{ value: trimmed, label: formatTimeZoneUtcOffsetLabel(trimmed, at) },
+		...base
+	].sort(
+		(a, b) =>
+			timeZoneUtcOffsetMinutes(a.value, at) - timeZoneUtcOffsetMinutes(b.value, at) ||
+			a.label.localeCompare(b.label, 'en')
+	);
 }
 
 /** Same key as {@link TIMEZONE_STORAGE_KEY}; used by posting time UI. */
