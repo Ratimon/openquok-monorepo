@@ -955,6 +955,14 @@ var init_GlobalConfig = __esm({
           legacyHeaders: false,
           message: "Too many public API requests for this token, please try again later"
         },
+        mcp: {
+          windowMs: getEnvNumber("MCP_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("MCP_RATE_LIMIT_MAX", 120),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many MCP requests for this token, please try again later"
+        },
         upload: {
           windowMs: getEnvNumber("UPLOAD_RATE_LIMIT_WINDOW_MS", 36e5),
           // 1 hour
@@ -32020,7 +32028,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-12T03:18:30.586Z",
+  generated: "2026-08-12T11:47:37.982Z",
   routes: [
     {
       path: "/docs",
@@ -36713,6 +36721,27 @@ var publicApiKeyGenerator = (req) => {
   }
   return `public-api:ip:${clientIpKey(req)}`;
 };
+var extractMcpToken = (req) => {
+  const bearer = extractBearerToken(req);
+  if (bearer) return bearer;
+  const pathCandidates = [req.originalUrl ?? "", req.path ?? "", req.url ?? ""];
+  for (const candidate of pathCandidates) {
+    const pathOnly = candidate.split("?")[0] ?? "";
+    const match = pathOnly.match(/\/mcp\/([^/]+)/);
+    if (match?.[1]) {
+      const token = decodeURIComponent(match[1]).trim();
+      if (token.length > 0) return token;
+    }
+  }
+  return null;
+};
+var mcpKeyGenerator = (req) => {
+  const token = extractMcpToken(req);
+  if (token) {
+    return `mcp:token:${hashRateLimitKey(token)}`;
+  }
+  return `mcp:ip:${clientIpKey(req)}`;
+};
 var uploadKeyGenerator = (req) => {
   const token = extractBearerToken(req);
   if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
@@ -36808,6 +36837,16 @@ var publicApiLimiter = createRateLimiter({
   keyGenerator: publicApiKeyGenerator,
   skip: shouldSkipRateLimit
 });
+var mcpLimiter = createRateLimiter({
+  windowMs: 60 * 60 * 1e3,
+  // 1 hour
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  ...config.rateLimit.mcp,
+  keyGenerator: mcpKeyGenerator,
+  skip: (req) => shouldSkipRateLimit() || req.method === "OPTIONS"
+});
 var uploadLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1e3,
   // 1 hour
@@ -36889,6 +36928,14 @@ var applyRateLimiting = (app2) => {
     windowMs: publicApiConfig?.windowMs ?? 60 * 60 * 1e3,
     max: publicApiConfig?.max ?? 30,
     key: "programmatic token (opo_) or IP for anonymous routes"
+  });
+  const mcpConfig = config.rateLimit.mcp;
+  app2.use("/mcp", mcpLimiter);
+  logger.info({
+    msg: "Applied MCP rate limiting",
+    windowMs: mcpConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: mcpConfig?.max ?? 120,
+    key: "Bearer or path token, else IP"
   });
   const uploadConfig = config.rateLimit.upload;
   app2.use(apiPrefix, uploadLimiter);

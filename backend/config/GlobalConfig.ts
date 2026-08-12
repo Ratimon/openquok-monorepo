@@ -369,6 +369,13 @@ export const config: ConfigObject = {
             legacyHeaders: false,
             message: "Too many public API requests for this token, please try again later",
         },
+        mcp: {
+            windowMs: getEnvNumber("MCP_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("MCP_RATE_LIMIT_MAX", 120),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many MCP requests for this token, please try again later",
+        },
         upload: {
             windowMs: getEnvNumber("UPLOAD_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
             max: getEnvNumber("UPLOAD_RATE_LIMIT_MAX", 20),

@@ -10,6 +10,8 @@ process.env.AUTH_RATE_LIMIT_WINDOW_MS = "900000";
 process.env.AUTH_RATE_LIMIT_MAX = "3";
 process.env.PUBLIC_API_RATE_LIMIT_WINDOW_MS = "3600000";
 process.env.PUBLIC_API_RATE_LIMIT_MAX = "3";
+process.env.MCP_RATE_LIMIT_WINDOW_MS = "3600000";
+process.env.MCP_RATE_LIMIT_MAX = "3";
 process.env.UPLOAD_RATE_LIMIT_WINDOW_MS = "3600000";
 process.env.UPLOAD_RATE_LIMIT_MAX = "3";
 process.env.FEEDBACK_RATE_LIMIT_WINDOW_MS = "3600000";
@@ -22,6 +24,7 @@ process.env.PUBLIC_WRITE_RATE_LIMIT_WINDOW_MS = "3600000";
 process.env.PUBLIC_WRITE_RATE_LIMIT_MAX = "3";
 
 // Skip expensive app side-channels during this suite.
+// MCP routes stay disabled; mcpLimiter is still registered on /mcp.
 process.env.SENTRY_ENABLED = "false";
 process.env.SENTRY_DSN = "";
 process.env.BULL_BOARD_ENABLED = "false";

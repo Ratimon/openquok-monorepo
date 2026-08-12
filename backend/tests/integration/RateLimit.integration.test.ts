@@ -15,6 +15,7 @@ describe("Rate limit", () => {
         global?: { max?: number; windowMs?: number };
         auth?: { max?: number };
         publicApi?: { max?: number };
+        mcp?: { max?: number; windowMs?: number };
         upload?: Record<string, unknown>;
         feedback?: { max?: number };
     };
@@ -22,6 +23,7 @@ describe("Rate limit", () => {
     const globalLimit = rl.global?.max ?? 3;
     const authLimit = rl.auth?.max ?? 3;
     const publicApiLimit = rl.publicApi?.max ?? 3;
+    const mcpLimit = rl.mcp?.max ?? 3;
     const feedbackLimit = rl.feedback?.max ?? 3;
 
     /** Fire requests until 429 (or give up slightly past the configured max). */
@@ -44,6 +46,7 @@ describe("Rate limit", () => {
         expect(globalLimit).toBeLessThanOrEqual(5);
         expect(authLimit).toBeLessThanOrEqual(5);
         expect(publicApiLimit).toBeLessThanOrEqual(5);
+        expect(mcpLimit).toBeLessThanOrEqual(5);
         expect(feedbackLimit).toBeLessThanOrEqual(5);
         expect(rl.global).toMatchObject({
             windowMs: expect.any(Number),
@@ -53,6 +56,7 @@ describe("Rate limit", () => {
         });
         expect(rl.auth).toBeDefined();
         expect(rl.publicApi).toBeDefined();
+        expect(rl.mcp).toBeDefined();
         expect(rl.upload).toBeDefined();
         expect(rl.feedback).toBeDefined();
     });
@@ -138,6 +142,51 @@ describe("Rate limit", () => {
                 .get(endpoint)
                 .set("Authorization", `Bearer ${tokenB}`)
                 .set("X-Forwarded-For", "192.168.4.200");
+            expect(tokenBRes.status).not.toBe(429);
+        });
+    });
+
+    describe("MCP rate limiting", () => {
+        it("returns 429 on POST /mcp with Bearer token when exceeded", async () => {
+            const token = "opo_mcp_rate_limit_bearer_alpha";
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .post("/mcp")
+                        .set("Authorization", `Bearer ${token}`)
+                        .set("X-Forwarded-For", "192.168.6.100"),
+                mcpLimit
+            );
+            expect(limited.status).toBe(429);
+        });
+
+        it("returns 429 on POST /mcp/:token when exceeded", async () => {
+            const token = "opo_mcp_rate_limit_path_alpha";
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .post(`/mcp/${token}`)
+                        .set("X-Forwarded-For", "192.168.6.110"),
+                mcpLimit
+            );
+            expect(limited.status).toBe(429);
+        });
+
+        it("isolates MCP limits by token", async () => {
+            const tokenA = "opo_mcp_rate_limit_token_beta";
+            const tokenB = "opo_mcp_rate_limit_token_gamma";
+            await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .post("/mcp")
+                        .set("Authorization", `Bearer ${tokenA}`)
+                        .set("X-Forwarded-For", "192.168.6.200"),
+                mcpLimit
+            );
+            const tokenBRes = await supertest(app)
+                .post("/mcp")
+                .set("Authorization", `Bearer ${tokenB}`)
+                .set("X-Forwarded-For", "192.168.6.200");
             expect(tokenBRes.status).not.toBe(429);
         });
     });

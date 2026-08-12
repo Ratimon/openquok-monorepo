@@ -43,6 +43,31 @@ const publicApiKeyGenerator = (req: Request): string => {
     return `public-api:ip:${clientIpKey(req)}`;
 };
 
+/** Bearer first; else first path segment after `/mcp/` (query stripped). */
+const extractMcpToken = (req: Request): string | null => {
+    const bearer = extractBearerToken(req);
+    if (bearer) return bearer;
+
+    const pathCandidates = [req.originalUrl ?? "", req.path ?? "", req.url ?? ""];
+    for (const candidate of pathCandidates) {
+        const pathOnly = candidate.split("?")[0] ?? "";
+        const match = pathOnly.match(/\/mcp\/([^/]+)/);
+        if (match?.[1]) {
+            const token = decodeURIComponent(match[1]).trim();
+            if (token.length > 0) return token;
+        }
+    }
+    return null;
+};
+
+const mcpKeyGenerator = (req: Request): string => {
+    const token = extractMcpToken(req);
+    if (token) {
+        return `mcp:token:${hashRateLimitKey(token)}`;
+    }
+    return `mcp:ip:${clientIpKey(req)}`;
+};
+
 const uploadKeyGenerator = (req: Request): string => {
     const token = extractBearerToken(req);
     if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
@@ -171,6 +196,16 @@ export const publicApiLimiter = createRateLimiter({
     skip: shouldSkipRateLimit,
 } as RateLimitConfig);
 
+export const mcpLimiter = createRateLimiter({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...(config.rateLimit as { mcp?: RateLimitConfig }).mcp,
+    keyGenerator: mcpKeyGenerator,
+    skip: (req: Request) => shouldSkipRateLimit() || req.method === "OPTIONS",
+} as RateLimitConfig);
+
 export const uploadLimiter = createRateLimiter({
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 20,
@@ -261,6 +296,15 @@ export const applyRateLimiting = (app: Express): void => {
         windowMs: publicApiConfig?.windowMs ?? 60 * 60 * 1000,
         max: publicApiConfig?.max ?? 30,
         key: "programmatic token (opo_) or IP for anonymous routes",
+    });
+
+    const mcpConfig = (config.rateLimit as { mcp?: RateLimitConfig }).mcp;
+    app.use("/mcp", mcpLimiter);
+    logger.info({
+        msg: "Applied MCP rate limiting",
+        windowMs: mcpConfig?.windowMs ?? 60 * 60 * 1000,
+        max: mcpConfig?.max ?? 120,
+        key: "Bearer or path token, else IP",
     });
 
     const uploadConfig = (config.rateLimit as { upload?: RateLimitConfig }).upload;
