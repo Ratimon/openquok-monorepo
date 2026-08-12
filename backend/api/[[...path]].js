@@ -26814,6 +26814,22 @@ var init_MediaController = __esm({
       authUserIdFromRequest(req) {
         return req.user?.id;
       }
+      requireProgrammaticOrganizationId(req) {
+        const organization = req.organization;
+        if (!organization?.id?.trim()) {
+          throw new UserValidationError("Organization required");
+        }
+        return organization.id;
+      }
+      assertMultipartSupported() {
+        if (!this.uploadProvider.supportsMultipart) {
+          throw new UserError(
+            "Direct-to-storage multipart upload is not available on this deployment. Use POST /public/upload, or configure object storage that supports multipart.",
+            501,
+            { errorCode: "MULTIPART_NOT_SUPPORTED" }
+          );
+        }
+      }
       list = async (req, res, next) => {
         try {
           const authUser = req.user;
@@ -27332,6 +27348,146 @@ var init_MediaController = __esm({
               id: saved.id
             },
             message: "Media uploaded successfully"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
+       * Start a direct-to-storage multipart upload (`POST {api.prefix}/public/upload/create-multipart`).
+       * Organization comes from the API key. Bytes never pass through the API.
+       */
+      uploadProgrammaticCreateMultipart = async (req, res, next) => {
+        try {
+          this.requireProgrammaticOrganizationId(req);
+          this.assertMultipartSupported();
+          const fileName = String(req.body?.fileName ?? "");
+          const contentType = inferMediaMimeType(
+            fileName,
+            String(req.body?.contentType ?? "")
+          );
+          if (!isAllowedMediaMime(contentType)) {
+            throw new UserValidationError("Unsupported media type");
+          }
+          const fileSize = Number(req.body?.fileSize ?? NaN);
+          if (Number.isFinite(fileSize)) {
+            const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
+            if (uploadSizeError) {
+              throw new UserValidationError(uploadSizeError);
+            }
+          }
+          const ext = fileName.includes(".") ? `.${fileName.split(".").pop()}` : "";
+          const key = `${makeId(20)}${ext || ""}`;
+          const out = await this.storageR2Repository.createMultipartUpload({ key, contentType });
+          res.status(200).json({
+            success: true,
+            data: { uploadId: out.uploadId, key: out.key },
+            message: "Multipart upload created"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
+       * Presign one or more parts (`POST {api.prefix}/public/upload/sign-parts`).
+       * PUT each returned URL from the client; the API never sees the bytes.
+       */
+      uploadProgrammaticSignParts = async (req, res, next) => {
+        try {
+          this.requireProgrammaticOrganizationId(req);
+          this.assertMultipartSupported();
+          const key = String(req.body?.key ?? "");
+          const uploadId = String(req.body?.uploadId ?? "");
+          const rawParts = Array.isArray(req.body?.partNumbers) ? req.body.partNumbers : [];
+          const parts = rawParts.map((n) => ({ number: Number(n) }));
+          const out = await this.storageR2Repository.prepareUploadParts({
+            key,
+            uploadId,
+            parts
+          });
+          res.status(200).json({
+            success: true,
+            data: { urls: out.presignedUrls },
+            message: "Parts signed"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
+       * Finish a direct-to-storage upload (`POST {api.prefix}/public/upload/complete-multipart`).
+       * Returns the same `{ id, filePath }` envelope as `POST /public/upload`.
+       */
+      uploadProgrammaticCompleteMultipart = async (req, res, next) => {
+        try {
+          const organizationId = this.requireProgrammaticOrganizationId(req);
+          this.assertMultipartSupported();
+          const body = req.body;
+          const key = String(body.key ?? "");
+          const uploadId = String(body.uploadId ?? "");
+          const fileName = String(body.fileName ?? "");
+          const contentType = inferMediaMimeType(fileName, String(body.contentType ?? ""));
+          const fileSize = Number(body.fileSize ?? 0) || 0;
+          if (!isAllowedMediaMime(contentType)) {
+            throw new UserValidationError("Unsupported media type");
+          }
+          const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
+          if (uploadSizeError) {
+            throw new UserValidationError(uploadSizeError);
+          }
+          await this.subscriptionService.assertMediaStorageAvailable(
+            organizationId,
+            fileSize,
+            this.authUserIdFromRequest(req)
+          );
+          const parts = Array.isArray(body.parts) ? body.parts : [];
+          await this.storageR2Repository.completeMultipartUpload({
+            key,
+            uploadId,
+            parts: parts.map((p) => ({
+              ETag: String(p?.ETag ?? ""),
+              PartNumber: Number(p?.PartNumber ?? 0)
+            })),
+            publicBaseUrl: null
+          });
+          const saved = await this.mediaService.saveFile({
+            organizationId,
+            name: key.split("/").pop() ?? key,
+            path: key,
+            virtualPath: readVirtualPath(req.body),
+            originalName: fileName || null,
+            fileSize,
+            type: contentType.startsWith("video/") ? "video" : "image"
+          });
+          const publicUrl = saved.publicUrl ?? publicUrlForObjectKey(key);
+          res.status(200).json({
+            success: true,
+            data: {
+              id: saved.id,
+              filePath: saved.path,
+              originalName: fileName,
+              ...publicUrl ? { publicUrl } : {}
+            },
+            message: "Media uploaded successfully"
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /**
+       * Abort an in-flight multipart upload (`POST {api.prefix}/public/upload/abort-multipart`).
+       */
+      uploadProgrammaticAbortMultipart = async (req, res, next) => {
+        try {
+          this.requireProgrammaticOrganizationId(req);
+          this.assertMultipartSupported();
+          const key = String(req.body?.key ?? "");
+          const uploadId = String(req.body?.uploadId ?? "");
+          await this.storageR2Repository.abortMultipartUpload({ key, uploadId });
+          res.status(200).json({
+            success: true,
+            data: { key, uploadId },
+            message: "Multipart upload aborted"
           });
         } catch (error) {
           next(error);
@@ -31864,7 +32020,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-10T13:33:32.955Z",
+  generated: "2026-08-12T03:18:30.586Z",
   routes: [
     {
       path: "/docs",
@@ -34669,6 +34825,45 @@ var publicUploadFromUrlBodySchema = zod.z.object({
 var validatePublicUploadFromUrlBody = validateRequest({
   body: publicUploadFromUrlBodySchema
 });
+var publicCreateMultipartBodySchema = zod.z.object({
+  fileName: zod.z.string().trim().min(1).max(512),
+  contentType: zod.z.string().trim().max(256).optional(),
+  fileSize: zod.z.number().int().nonnegative().optional()
+});
+var validatePublicCreateMultipartBody = validateRequest({
+  body: publicCreateMultipartBodySchema
+});
+var publicSignPartsBodySchema = zod.z.object({
+  key: zod.z.string().trim().min(1).max(1024),
+  uploadId: zod.z.string().trim().min(1).max(2048),
+  partNumbers: zod.z.array(zod.z.number().int().min(1).max(1e4)).min(1).max(1e4)
+});
+var validatePublicSignPartsBody = validateRequest({
+  body: publicSignPartsBodySchema
+});
+var publicCompleteMultipartBodySchema = zod.z.object({
+  key: zod.z.string().trim().min(1).max(1024),
+  uploadId: zod.z.string().trim().min(1).max(2048),
+  fileName: zod.z.string().trim().min(1).max(512),
+  contentType: zod.z.string().trim().max(256).optional(),
+  fileSize: zod.z.number().int().nonnegative(),
+  parts: zod.z.array(
+    zod.z.object({
+      ETag: zod.z.string().trim().min(1).max(256),
+      PartNumber: zod.z.number().int().min(1).max(1e4)
+    })
+  ).min(1).max(1e4)
+});
+var validatePublicCompleteMultipartBody = validateRequest({
+  body: publicCompleteMultipartBodySchema
+});
+var publicAbortMultipartBodySchema = zod.z.object({
+  key: zod.z.string().trim().min(1).max(1024),
+  uploadId: zod.z.string().trim().min(1).max(2048)
+});
+var validatePublicAbortMultipartBody = validateRequest({
+  body: publicAbortMultipartBodySchema
+});
 var saveMediaInformationBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
   id: zod.z.string().uuid("Invalid media id"),
@@ -35190,6 +35385,30 @@ var upload3 = multer__default.default({
 });
 var publicMediaUploadRouter = express.Router();
 var apiKeyAuth3 = requireProgrammaticAuth({ oauthAppService, organizationRepository, subscriptionGuard });
+publicMediaUploadRouter.post(
+  "/upload/create-multipart",
+  apiKeyAuth3,
+  validatePublicCreateMultipartBody,
+  mediaController.uploadProgrammaticCreateMultipart
+);
+publicMediaUploadRouter.post(
+  "/upload/sign-parts",
+  apiKeyAuth3,
+  validatePublicSignPartsBody,
+  mediaController.uploadProgrammaticSignParts
+);
+publicMediaUploadRouter.post(
+  "/upload/complete-multipart",
+  apiKeyAuth3,
+  validatePublicCompleteMultipartBody,
+  mediaController.uploadProgrammaticCompleteMultipart
+);
+publicMediaUploadRouter.post(
+  "/upload/abort-multipart",
+  apiKeyAuth3,
+  validatePublicAbortMultipartBody,
+  mediaController.uploadProgrammaticAbortMultipart
+);
 publicMediaUploadRouter.post(
   "/upload",
   apiKeyAuth3,
@@ -36502,7 +36721,7 @@ var uploadKeyGenerator = (req) => {
   return `upload:ip:${clientIpKey(req)}`;
 };
 var isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
-var isUploadPath = (path7) => path7 === "/public/upload" || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
+var isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
 var isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
 var isPublicWritePath = (path7, method) => {
   if (method === "POST" && path7 === "/company/t") return true;

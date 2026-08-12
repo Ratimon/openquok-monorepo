@@ -1,11 +1,13 @@
 export type { UserMeWorkspaceRole, UserMeWorkspaceSession } from './user/meSession.js';
 export type { DigestQueueEntry, NotificationEmailType } from './notification/emailTypes.js';
 export {
+	MAX_MEDIA_DIRECT_UPLOAD_BYTES,
 	MAX_MEDIA_IMAGE_UPLOAD_BYTES_BACKEND,
 	MAX_MEDIA_IMAGE_UPLOAD_BYTES_FRONTEND,
 	MAX_MEDIA_UPLOAD_BYTES,
 	MAX_MEDIA_UPLOAD_SESSION_BYTES,
 	MAX_MEDIA_VIDEO_UPLOAD_BYTES,
+	MEDIA_MULTIPART_PART_BYTES,
 	maxMediaUploadBytesForMime,
 	mediaUploadLimitsHint,
 	validateMediaFileUploadSize,

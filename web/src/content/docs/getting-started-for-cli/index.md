@@ -2,7 +2,7 @@
 title: Introduction to Openquok CLI
 description: An CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media from the terminal.
 order: 0
-lastUpdated: 2026-06-06
+lastUpdated: 2026-08-11
 ---
 
 <script>
@@ -137,10 +137,11 @@ openquok posts:create \
   --note "Verify links and hashtags before scheduling"
 ```
 
-**Upload media** (use returned paths/IDs in <code>posts:create</code>):
+**Upload media** (use returned <code>data.id</code> + <code>data.filePath</code> in <code>posts:create</code>; videos over ~4 MB use direct-to-storage automatically):
 
 ```bash
 openquok upload ./image.png
+openquok upload ./clip.mp4
 ```
 
 **List your scheduled posts** (defaults to ±30 local calendar days from today when you omit dates):

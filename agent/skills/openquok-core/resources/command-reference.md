@@ -158,7 +158,7 @@ openquok upload ./image.png
 openquok upload-from-url "https://cdn.example.com/banner.png"
 ```
 
-Both return `data.id` and `data.path` or `data.filePath` for use in `-m` / JSON `media`.
+Both return `data.id` and `data.filePath` for use in `-m` / JSON `media` (`path` is the post field). `openquok upload` switches to direct-to-storage multipart for files over ~4 MB so hosted Cloud does not return HTTP 413.
 
 ## Help
 

@@ -142,7 +142,7 @@ openquok upload ./image.png
 openquok upload-from-url "https://cdn.example.com/banner.png"
 ```
 
-- `upload` posts a local file as multipart form data.
+- `upload` posts a local file. Files over ~4 MB use direct-to-storage multipart so hosted OpenQuok Cloud does not return HTTP 413.
 - `upload-from-url` instructs the API to fetch a publicly reachable http(s) URL server-side (no local file needed); the response shape matches `upload`.
 
 Both return JSON including `data.filePath` and `data.id`, which you can pass into `posts:create` as `--media`.

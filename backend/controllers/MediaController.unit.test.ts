@@ -1037,6 +1037,188 @@ describe("MediaController", () => {
         });
     });
 
+    describe("uploadProgrammaticCreateMultipart", () => {
+        function programmaticReq(body: Record<string, unknown>, orgId: string | null = "org-1"): Request {
+            return {
+                body,
+                organization: orgId === null ? undefined : { id: orgId },
+            } as unknown as Request;
+        }
+
+        it("requires an organization", async () => {
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticCreateMultipart(
+                programmaticReq({ fileName: "clip.mp4" }, null),
+                res,
+                next
+            );
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(storageR2Repository.createMultipartUpload).not.toHaveBeenCalled();
+        });
+
+        it("returns 501 when the storage provider does not support multipart", async () => {
+            (uploadProvider as { supportsMultipart: boolean }).supportsMultipart = false;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticCreateMultipart(
+                programmaticReq({ fileName: "clip.mp4", contentType: "video/mp4" }),
+                res,
+                next
+            );
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(storageR2Repository.createMultipartUpload).not.toHaveBeenCalled();
+        });
+
+        it("rejects unsupported mime types", async () => {
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticCreateMultipart(
+                programmaticReq({ fileName: "notes.txt", contentType: "text/plain" }),
+                res,
+                next
+            );
+
+            expect(next).toHaveBeenCalledTimes(1);
+            expect(storageR2Repository.createMultipartUpload).not.toHaveBeenCalled();
+        });
+
+        it("creates a multipart upload and returns uploadId + key", async () => {
+            storageR2Repository.createMultipartUpload.mockResolvedValue({
+                uploadId: "up-9",
+                key: "abc123.mp4",
+            });
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticCreateMultipart(
+                programmaticReq({ fileName: "clip.mp4", contentType: "video/mp4", fileSize: 8_000_000 }),
+                res,
+                next
+            );
+
+            expect(storageR2Repository.createMultipartUpload).toHaveBeenCalledWith(
+                expect.objectContaining({ contentType: "video/mp4" })
+            );
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: { uploadId: "up-9", key: "abc123.mp4" },
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("uploadProgrammaticSignParts", () => {
+        it("returns presigned URLs keyed by part number", async () => {
+            storageR2Repository.prepareUploadParts.mockResolvedValue({
+                presignedUrls: { "1": "https://signed.example/1", "2": "https://signed.example/2" },
+            });
+            const req = {
+                body: { key: "k1.mp4", uploadId: "up-1", partNumbers: [1, 2] },
+                organization: { id: "org-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticSignParts(req, res, next);
+
+            expect(storageR2Repository.prepareUploadParts).toHaveBeenCalledWith({
+                key: "k1.mp4",
+                uploadId: "up-1",
+                parts: [{ number: 1 }, { number: 2 }],
+            });
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: { urls: { "1": "https://signed.example/1", "2": "https://signed.example/2" } },
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("uploadProgrammaticCompleteMultipart", () => {
+        it("completes the upload and returns the same envelope as POST /public/upload", async () => {
+            storageR2Repository.completeMultipartUpload.mockResolvedValue({ Location: null });
+            mediaService.saveFile.mockResolvedValue({
+                id: "media-mp",
+                path: "k1.mp4",
+                publicUrl: "https://cdn.example.com/k1.mp4",
+            });
+            const req = {
+                body: {
+                    key: "k1.mp4",
+                    uploadId: "up-1",
+                    fileName: "clip.mp4",
+                    contentType: "video/mp4",
+                    fileSize: 6_000_000,
+                    parts: [{ ETag: "etag-1", PartNumber: 1 }],
+                },
+                organization: { id: "org-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticCompleteMultipart(req, res, next);
+
+            expect(storageR2Repository.completeMultipartUpload).toHaveBeenCalled();
+            expect(mediaService.saveFile).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    organizationId: "org-1",
+                    path: "k1.mp4",
+                    type: "video",
+                    originalName: "clip.mp4",
+                })
+            );
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    message: "Media uploaded successfully",
+                    data: expect.objectContaining({
+                        id: "media-mp",
+                        filePath: "k1.mp4",
+                        originalName: "clip.mp4",
+                    }),
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("uploadProgrammaticAbortMultipart", () => {
+        it("aborts the in-flight upload", async () => {
+            storageR2Repository.abortMultipartUpload.mockResolvedValue({});
+            const req = {
+                body: { key: "k1.mp4", uploadId: "up-1" },
+                organization: { id: "org-1" },
+            } as unknown as Request;
+            const res = createMockResponse();
+            const next = jest.fn() as unknown as NextFunction;
+
+            await controller.uploadProgrammaticAbortMultipart(req, res, next);
+
+            expect(storageR2Repository.abortMultipartUpload).toHaveBeenCalledWith({
+                key: "k1.mp4",
+                uploadId: "up-1",
+            });
+            expect(res.json).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    success: true,
+                    data: { key: "k1.mp4", uploadId: "up-1" },
+                })
+            );
+            expect(next).not.toHaveBeenCalled();
+        });
+    });
+
     describe("uploadProgrammaticFromUrl", () => {
         let fetchSpy: jest.SpyInstance;
 

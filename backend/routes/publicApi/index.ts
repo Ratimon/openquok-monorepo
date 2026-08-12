@@ -8,7 +8,7 @@ import { publicPostRouter } from "./PostRoutes.js";
 /**
  * `{api.prefix}/public` composite router.
  * - **`IntegrationRoutes`** — org API key (programmatic integrations); not the same as session `routes/integrationApi/*`.
- * - **`MediaUploadRoutes`** — org API key uploads (`POST /upload`, `POST /upload-from-url`).
+ * - **`MediaUploadRoutes`** — org API key uploads (`POST /upload`, multipart helpers, `POST /upload-from-url`).
  * - **`PostRoutes`** — anonymous and org API key post endpoints (mounted at `/posts`).
  * - **`AnalyticsRoutes`** — org API key platform and per-post analytics (mounted at `/analytics`).
  * - **`NotificationRoutes`** — org API key paginated in-app notifications.

@@ -20,6 +20,56 @@ export const validatePublicUploadFromUrlBody: RequestHandler = validateRequest({
     body: publicUploadFromUrlBodySchema,
 });
 
+export const publicCreateMultipartBodySchema = z.object({
+    fileName: z.string().trim().min(1).max(512),
+    contentType: z.string().trim().max(256).optional(),
+    fileSize: z.number().int().nonnegative().optional(),
+});
+
+export const validatePublicCreateMultipartBody: RequestHandler = validateRequest({
+    body: publicCreateMultipartBodySchema,
+});
+
+export const publicSignPartsBodySchema = z.object({
+    key: z.string().trim().min(1).max(1024),
+    uploadId: z.string().trim().min(1).max(2048),
+    partNumbers: z.array(z.number().int().min(1).max(10_000)).min(1).max(10_000),
+});
+
+export const validatePublicSignPartsBody: RequestHandler = validateRequest({
+    body: publicSignPartsBodySchema,
+});
+
+export const publicCompleteMultipartBodySchema = z.object({
+    key: z.string().trim().min(1).max(1024),
+    uploadId: z.string().trim().min(1).max(2048),
+    fileName: z.string().trim().min(1).max(512),
+    contentType: z.string().trim().max(256).optional(),
+    fileSize: z.number().int().nonnegative(),
+    parts: z
+        .array(
+            z.object({
+                ETag: z.string().trim().min(1).max(256),
+                PartNumber: z.number().int().min(1).max(10_000),
+            })
+        )
+        .min(1)
+        .max(10_000),
+});
+
+export const validatePublicCompleteMultipartBody: RequestHandler = validateRequest({
+    body: publicCompleteMultipartBodySchema,
+});
+
+export const publicAbortMultipartBodySchema = z.object({
+    key: z.string().trim().min(1).max(1024),
+    uploadId: z.string().trim().min(1).max(2048),
+});
+
+export const validatePublicAbortMultipartBody: RequestHandler = validateRequest({
+    body: publicAbortMultipartBodySchema,
+});
+
 export const saveMediaInformationBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
     id: z.string().uuid("Invalid media id"),

@@ -2,7 +2,9 @@ import type { Buffer } from "node:buffer";
 
 import { withAgentCreatePayload } from "./agent";
 import type {
+    PublicAbortMultipartResponseDto,
     PublicChannelGroupDto,
+    PublicCreateMultipartResponseDto,
     PublicCreatePostDto,
     PublicDeletePostDataDto,
     PublicFlipPostStatusDto,
@@ -15,16 +17,26 @@ import type {
     PublicPlugUpsertBodyDto,
     PublicPlugUpsertResultDto,
     PublicPostSummaryDto,
+    PublicSignPartsResponseDto,
     PublicUpdatePostReleaseIdDataDto,
     PublicUpdatePostReviewTodoDto,
+    PublicUploadResponseDto,
     PublicWorkspaceDto,
 } from "./dtos";
 import { OpenquokHttpError, requestJson } from "./http";
+import {
+    MEDIA_MULTIPART_PART_BYTES,
+    mimeFromExtension,
+    multipartPartCount,
+    shouldUseMultipartUpload,
+} from "./upload";
 
 export { withAgentCreatePayload } from "./agent";
 export { OpenquokHttpError } from "./http";
 export type {
+    PublicAbortMultipartResponseDto,
     PublicChannelGroupDto,
+    PublicCreateMultipartResponseDto,
     PublicCreatePostDto,
     PublicCreatePostMediaItemDto,
     PublicDeletePostDataDto,
@@ -42,10 +54,14 @@ export type {
     PublicPlugUpsertResultDto,
     PublicPostSummaryDto,
     PublicProviderPlugsCatalogDto,
+    PublicSignPartsResponseDto,
     PublicUpdatePostReleaseIdDataDto,
     PublicUpdatePostReviewTodoDto,
+    PublicUploadDataDto,
+    PublicUploadResponseDto,
     PublicWorkspaceDto,
 } from "./dtos";
+export { MAX_MEDIA_DIRECT_UPLOAD_BYTES, MEDIA_MULTIPART_PART_BYTES } from "./upload";
 
 function toQueryString(obj: Record<string, unknown>): string {
     const params = new URLSearchParams();
@@ -104,23 +120,40 @@ export default class Openquok {
     }
 
     /**
-     * Upload media via programmatic API (`POST /public/upload`).
-     * Field name `file`; organization is inferred from the API key.
+     * Upload media via the programmatic API.
+     * Files at or under ~4 MB use `POST /public/upload`. Larger files use
+     * direct-to-storage multipart so they are not rejected by the hosted
+     * inbound body limit. Organization is inferred from the API key.
      */
-    async upload(file: Buffer, extension: string) {
+    async upload(file: Buffer, extension: string): Promise<PublicUploadResponseDto> {
         const ext = extension.replace(/^\./, "").toLowerCase();
-        const type =
-            ext === "png"
-                ? "image/png"
-                : ext === "jpg" || ext === "jpeg"
-                  ? "image/jpeg"
-                  : ext === "gif"
-                    ? "image/gif"
-                    : "image/jpeg";
+        if (shouldUseMultipartUpload(file.length)) {
+            try {
+                return await this.uploadViaMultipart(file, ext);
+            } catch (error) {
+                if (error instanceof OpenquokHttpError && error.status === 501) {
+                    return await this.uploadDirect(file, ext);
+                }
+                throw error;
+            }
+        }
+        try {
+            return await this.uploadDirect(file, ext);
+        } catch (error) {
+            if (error instanceof OpenquokHttpError && error.status === 413) {
+                return await this.uploadViaMultipart(file, ext);
+            }
+            throw error;
+        }
+    }
 
+    /** `POST /public/upload` — single multipart field `file`. */
+    async uploadDirect(file: Buffer, extension: string): Promise<PublicUploadResponseDto> {
+        const ext = extension.replace(/^\./, "").toLowerCase();
+        const type = mimeFromExtension(ext);
         const formData = new FormData();
         const blob = new Blob([new Uint8Array(file)], { type });
-        formData.append("file", blob, ext);
+        formData.append("file", blob, `upload.${ext}`);
 
         const res = await fetch(this.url("/public/upload"), {
             method: "POST",
@@ -143,7 +176,111 @@ export default class Openquok {
             throw new OpenquokHttpError(`Request failed: ${res.status} ${res.statusText}`, res.status, parsed);
         }
 
-        return parsed;
+        return parsed as PublicUploadResponseDto;
+    }
+
+    /** `POST /public/upload/create-multipart` */
+    async createMultipartUpload(body: {
+        fileName: string;
+        contentType?: string;
+        fileSize?: number;
+    }): Promise<PublicCreateMultipartResponseDto> {
+        return await this.json<PublicCreateMultipartResponseDto>("/public/upload/create-multipart", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** `POST /public/upload/sign-parts` */
+    async signMultipartParts(body: {
+        key: string;
+        uploadId: string;
+        partNumbers: number[];
+    }): Promise<PublicSignPartsResponseDto> {
+        return await this.json<PublicSignPartsResponseDto>("/public/upload/sign-parts", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** `POST /public/upload/complete-multipart` */
+    async completeMultipartUpload(body: {
+        key: string;
+        uploadId: string;
+        fileName: string;
+        contentType?: string;
+        fileSize: number;
+        parts: Array<{ ETag: string; PartNumber: number }>;
+    }): Promise<PublicUploadResponseDto> {
+        return await this.json<PublicUploadResponseDto>("/public/upload/complete-multipart", {
+            method: "POST",
+            body,
+        });
+    }
+
+    /** `POST /public/upload/abort-multipart` */
+    async abortMultipartUpload(body: {
+        key: string;
+        uploadId: string;
+    }): Promise<PublicAbortMultipartResponseDto> {
+        return await this.json<PublicAbortMultipartResponseDto>("/public/upload/abort-multipart", {
+            method: "POST",
+            body,
+        });
+    }
+
+    private async uploadViaMultipart(file: Buffer, extension: string): Promise<PublicUploadResponseDto> {
+        const ext = extension.replace(/^\./, "").toLowerCase();
+        const fileName = `upload.${ext}`;
+        const contentType = mimeFromExtension(ext);
+        const created = await this.createMultipartUpload({
+            fileName,
+            contentType,
+            fileSize: file.length,
+        });
+        const { key, uploadId } = created.data;
+        const partCount = multipartPartCount(file.length);
+        const partNumbers = Array.from({ length: partCount }, (_, i) => i + 1);
+
+        try {
+            const signed = await this.signMultipartParts({ key, uploadId, partNumbers });
+            const completedParts: Array<{ ETag: string; PartNumber: number }> = [];
+
+            for (const partNumber of partNumbers) {
+                const start = (partNumber - 1) * MEDIA_MULTIPART_PART_BYTES;
+                const chunk = file.subarray(start, start + MEDIA_MULTIPART_PART_BYTES);
+                const url = signed.data.urls[String(partNumber)];
+                if (!url) {
+                    throw new OpenquokHttpError(`Missing signed URL for part ${partNumber}`, 502, signed);
+                }
+                const putRes = await fetch(url, { method: "PUT", body: new Uint8Array(chunk) });
+                if (!putRes.ok) {
+                    throw new OpenquokHttpError(
+                        `Part upload failed: ${putRes.status} ${putRes.statusText}`,
+                        putRes.status,
+                        await putRes.text().catch(() => null)
+                    );
+                }
+                const rawEtag = putRes.headers.get("ETag") ?? putRes.headers.get("etag") ?? "";
+                const etag = rawEtag.replace(/^"+|"+$/g, "");
+                if (!etag) {
+                    throw new OpenquokHttpError("Part upload missing ETag", 502, null);
+                }
+                completedParts.push({ ETag: etag, PartNumber: partNumber });
+            }
+
+            return await this.completeMultipartUpload({
+                key,
+                uploadId,
+                fileName,
+                contentType,
+                fileSize: file.length,
+                parts: completedParts,
+            });
+        } catch (error) {
+            await this.abortMultipartUpload({ key, uploadId }).catch(() => undefined);
+            throw error;
+        }
     }
 
     /**

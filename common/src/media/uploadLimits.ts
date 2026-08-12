@@ -16,6 +16,16 @@ export const MAX_MEDIA_IMAGE_UPLOAD_BYTES_FRONTEND = 30 * 1024 * 1024;
 export const MAX_MEDIA_VIDEO_UPLOAD_BYTES = 1024 * 1024 * 1024;
 
 /**
+ * Largest request body that should go through `POST /public/upload` on the hosted API.
+ * Vercel Functions reject inbound bodies above 4.5 MB; 4 MiB leaves multipart overhead.
+ * Larger files must use the public multipart (direct-to-storage) endpoints.
+ */
+export const MAX_MEDIA_DIRECT_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+/** S3-compatible multipart part size (minimum 5 MiB except the last part). */
+export const MEDIA_MULTIPART_PART_BYTES = 5 * 1024 * 1024;
+
+/**
  * Largest single file the API accepts (multer). Matches video cap.
  * @deprecated Prefer {@link maxMediaUploadBytesForMime} for validation.
  */

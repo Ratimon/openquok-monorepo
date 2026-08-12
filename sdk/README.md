@@ -14,7 +14,7 @@
 
 - Create/schedule posts via the programmatic API (including agent/kanban review fields)
 - List posts and flip draft ↔ scheduled (`flipPostStatus`)
-- Upload media (multipart or from URL) for use in posts
+- Upload media (simple multipart, direct-to-storage for large videos, or from URL) for use in posts
 - Manage integrations (list, groups, settings, trigger provider tools, OAuth URL, delete)
 - Configure global plugs (catalog, list, upsert, activate, delete)
 - Analytics, notifications, and missing-release linking
@@ -52,8 +52,8 @@ await openquok.postAsAgent({
   status: "draft",
   body: "Hello from Openquok SDK",
   note: "Review CTA before scheduling",
-  media: uploaded?.data?.filePath
-    ? [{ id: "1", path: uploaded.data.filePath }]
+  media: uploaded?.data?.id && uploaded?.data?.filePath
+    ? [{ id: uploaded.data.id, path: uploaded.data.filePath }]
     : undefined,
   integrationIds: ["<integration-id>"],
 });
@@ -65,7 +65,12 @@ await openquok.postAsAgent({
 |--------|------|
 | `isConnected()` | `GET /public/is-connected` |
 | `getWorkspace()` | `GET /public/workspace` |
-| `upload(file, extension)` | `POST /public/upload` |
+| `upload(file, extension)` | `POST /public/upload`, or multipart (`create-multipart` → `sign-parts` → `complete-multipart`) when the file is larger than ~4 MB |
+| `uploadDirect(file, extension)` | `POST /public/upload` (no automatic fallback) |
+| `createMultipartUpload({ fileName, contentType?, fileSize? })` | `POST /public/upload/create-multipart` |
+| `signMultipartParts({ key, uploadId, partNumbers })` | `POST /public/upload/sign-parts` |
+| `completeMultipartUpload({ key, uploadId, fileName, fileSize, parts, contentType? })` | `POST /public/upload/complete-multipart` |
+| `abortMultipartUpload({ key, uploadId })` | `POST /public/upload/abort-multipart` |
 | `uploadFromUrl(url)` | `POST /public/upload-from-url` |
 | `post(body)` | `POST /public/posts` |
 | `postAsAgent(body)` | `POST /public/posts` with `isAgent: true` |

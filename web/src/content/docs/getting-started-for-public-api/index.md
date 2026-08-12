@@ -2,7 +2,7 @@
 title: Overview - Public API
 description: Getting started to automate your Social Scheduling with Openquok's public API and Node.js SDK.
 order: 0
-lastUpdated: 2026-07-19
+lastUpdated: 2026-08-11
 ---
 
 <script>
@@ -174,7 +174,8 @@ const channels = groups[0]
 	? await openquok.integrations({ group: groups[0].id })
 	: await openquok.integrations();
 
-// Upload a file (multipart field name: `file`)
+// Upload a file. Small files use POST /public/upload; larger videos
+// automatically use direct-to-storage multipart (same return shape).
 const uploaded = await openquok.upload(fileBuffer, 'png');
 
 // Create a scheduled post
@@ -182,8 +183,8 @@ await openquok.post({
 	scheduledAt: new Date().toISOString(),
 	status: 'scheduled',
 	body: 'Hello from Openquok SDK',
-	media: uploaded?.data?.filePath
-		? [{ id: '1', path: uploaded.data.filePath }]
+	media: uploaded?.data?.id && uploaded?.data?.filePath
+		? [{ id: uploaded.data.id, path: uploaded.data.filePath }]
 		: undefined,
 	integrationIds: [channels[0]?.id].filter(Boolean)
 });

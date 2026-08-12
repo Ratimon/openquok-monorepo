@@ -56,6 +56,7 @@ const isPublicApiPath = (path: string): boolean =>
 
 const isUploadPath = (path: string): boolean =>
     path === "/public/upload" ||
+    path.startsWith("/public/upload/") ||
     path === "/public/upload-from-url" ||
     path === "/media/upload" ||
     path === "/media/upload-server" ||

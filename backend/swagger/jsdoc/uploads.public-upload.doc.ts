@@ -15,8 +15,12 @@
  *     description: >-
  *       Multipart upload of one media asset (field name `file`). Accepts
  *       images, video, audio, and PDF; mimetype is inferred from the filename
- *       when the multipart part omits it. The total upload size is capped at
- *       `MAX_MEDIA_UPLOAD_BYTES` (shared with the session uploader).
+ *       when the multipart part omits it. The application cap is
+ *       `MAX_MEDIA_UPLOAD_BYTES` (1 GB for video). On the hosted API the
+ *       inbound function body is limited to about 4.5 MB — use
+ *       `POST /public/upload/create-multipart` (then sign-parts and
+ *       complete-multipart) for larger files. The CLI and Node SDK switch
+ *       automatically.
  *     requestBody:
  *       required: true
  *       content:
@@ -71,6 +75,10 @@
  *       '401':
  *         description: Missing or invalid API key.
  *       '413':
- *         description: File exceeds the workspace upload size cap.
+ *         description: >-
+ *           File exceeds the hosted inbound body limit (~4.5 MB on Vercel) or
+ *           the workspace upload size cap. Retry with the public multipart
+ *           endpoints, or use `openquok upload` / `Openquok.upload()` which
+ *           switch automatically.
  */
 export {};

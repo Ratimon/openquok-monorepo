@@ -2,7 +2,7 @@
 title: Media Upload
 description: Upload local files or mirror a public URL into the Openquok media library, then reference the returned id and path in `posts:create`.
 order: 5
-lastUpdated: 2026-05-12
+lastUpdated: 2026-08-11
 ---
 
 <script>
@@ -48,7 +48,7 @@ openquok upload /tmp/clip.mp4
 }
 ```
 
-<p><Badge text="data.publicUrl" variant="param" />{' '}is only present when the workspace's storage provider exposes a public URL. The pair you need for{' '}<Badge text="posts:create" variant="param" />{' '}is{' '}<Badge text="data.id" variant="param" />{' '}+{' '}<Badge text="data.filePath" variant="param" />.</p>
+<p><Badge text="data.publicUrl" variant="param" />{' '}is only present when the workspace's storage provider exposes a public URL. The pair you need for{' '}<Badge text="posts:create" variant="param" />{' '}is{' '}<Badge text="data.id" variant="param" />{' '}+{' '}<Badge text="data.filePath" variant="param" />. Pass that <code>filePath</code> as <code>media[].path</code> — there is no <code>data.path</code> on the upload response.</p>
 
 ## Upload from a public URL
 
@@ -116,7 +116,11 @@ openquok posts:create \
 </TabItem>
 </Tabs>
 
-Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> on the backend.
+<Callout type="warning" title="Large videos">
+<p><Badge text="openquok upload" variant="default" /> posts small files through <Badge text="POST /public/upload" variant="path" />. On OpenQuok Cloud that inbound path is about 4.5 MB. For larger files the CLI automatically uses direct-to-storage multipart (<Badge text="create-multipart" variant="param" /> → PUT parts → <Badge text="complete-multipart" variant="param" />). Prefer the CLI (or the Node SDK) over raw <code>curl</code> for TikTok / Reels / YouTube clips. Application video cap remains 1 GB.</p>
+</Callout>
+
+Per-file size is capped by <Badge text="MAX_MEDIA_UPLOAD_BYTES" variant="envBackend" /> on the backend (1 GB for video). The hosted simple-upload gateway is lower — see the callout above.
 
 ## Related
 

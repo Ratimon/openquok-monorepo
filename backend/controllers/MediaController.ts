@@ -10,7 +10,7 @@ import { makeId } from "../utils/ids/makeId";
 import { buildMediaTreeEntities } from "../utils/media/mediaTreeBuilder";
 
 import { AuthError } from "../errors/AuthError";
-import { UserValidationError } from "../errors/UserError";
+import { UserError, UserValidationError } from "../errors/UserError";
 import {
     MAX_MEDIA_UPLOAD_BYTES,
     inferMediaMimeType,
@@ -80,6 +80,24 @@ export class MediaController {
 
     private authUserIdFromRequest(req: Request): string | undefined {
         return (req as AuthenticatedRequest).user?.id;
+    }
+
+    private requireProgrammaticOrganizationId(req: Request): string {
+        const organization = (req as ProgrammaticAuthRequest).organization;
+        if (!organization?.id?.trim()) {
+            throw new UserValidationError("Organization required");
+        }
+        return organization.id;
+    }
+
+    private assertMultipartSupported(): void {
+        if (!this.uploadProvider.supportsMultipart) {
+            throw new UserError(
+                "Direct-to-storage multipart upload is not available on this deployment. Use POST /public/upload, or configure object storage that supports multipart.",
+                501,
+                { errorCode: "MULTIPART_NOT_SUPPORTED" }
+            );
+        }
     }
 
     list = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -685,6 +703,173 @@ export class MediaController {
                     id: saved.id,
                 },
                 message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Start a direct-to-storage multipart upload (`POST {api.prefix}/public/upload/create-multipart`).
+     * Organization comes from the API key. Bytes never pass through the API.
+     */
+    uploadProgrammaticCreateMultipart = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            this.requireProgrammaticOrganizationId(req);
+            this.assertMultipartSupported();
+
+            const fileName = String((req.body as { fileName?: string })?.fileName ?? "");
+            const contentType = inferMediaMimeType(
+                fileName,
+                String((req.body as { contentType?: string })?.contentType ?? "")
+            );
+            if (!isAllowedMediaMime(contentType)) {
+                throw new UserValidationError("Unsupported media type");
+            }
+
+            const fileSize = Number((req.body as { fileSize?: number })?.fileSize ?? NaN);
+            if (Number.isFinite(fileSize)) {
+                const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
+                if (uploadSizeError) {
+                    throw new UserValidationError(uploadSizeError);
+                }
+            }
+
+            const ext = fileName.includes(".") ? `.${fileName.split(".").pop()}` : "";
+            const key = `${makeId(20)}${ext || ""}`;
+            const out = await this.storageR2Repository.createMultipartUpload({ key, contentType });
+
+            res.status(200).json({
+                success: true,
+                data: { uploadId: out.uploadId, key: out.key },
+                message: "Multipart upload created",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Presign one or more parts (`POST {api.prefix}/public/upload/sign-parts`).
+     * PUT each returned URL from the client; the API never sees the bytes.
+     */
+    uploadProgrammaticSignParts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            this.requireProgrammaticOrganizationId(req);
+            this.assertMultipartSupported();
+
+            const key = String((req.body as { key?: string })?.key ?? "");
+            const uploadId = String((req.body as { uploadId?: string })?.uploadId ?? "");
+            const rawParts = Array.isArray((req.body as { partNumbers?: unknown })?.partNumbers)
+                ? ((req.body as { partNumbers: unknown[] }).partNumbers)
+                : [];
+            const parts = rawParts.map((n) => ({ number: Number(n) }));
+
+            const out = await this.storageR2Repository.prepareUploadParts({
+                key,
+                uploadId,
+                parts,
+            });
+
+            res.status(200).json({
+                success: true,
+                data: { urls: out.presignedUrls },
+                message: "Parts signed",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Finish a direct-to-storage upload (`POST {api.prefix}/public/upload/complete-multipart`).
+     * Returns the same `{ id, filePath }` envelope as `POST /public/upload`.
+     */
+    uploadProgrammaticCompleteMultipart = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const organizationId = this.requireProgrammaticOrganizationId(req);
+            this.assertMultipartSupported();
+
+            const body = req.body as {
+                key?: string;
+                uploadId?: string;
+                fileName?: string;
+                contentType?: string;
+                fileSize?: number;
+                parts?: Array<{ ETag?: string; PartNumber?: number }>;
+            };
+            const key = String(body.key ?? "");
+            const uploadId = String(body.uploadId ?? "");
+            const fileName = String(body.fileName ?? "");
+            const contentType = inferMediaMimeType(fileName, String(body.contentType ?? ""));
+            const fileSize = Number(body.fileSize ?? 0) || 0;
+
+            if (!isAllowedMediaMime(contentType)) {
+                throw new UserValidationError("Unsupported media type");
+            }
+            const uploadSizeError = validateMediaFileUploadSize(fileSize, contentType, "backend");
+            if (uploadSizeError) {
+                throw new UserValidationError(uploadSizeError);
+            }
+            await this.subscriptionService.assertMediaStorageAvailable(
+                organizationId,
+                fileSize,
+                this.authUserIdFromRequest(req)
+            );
+
+            const parts = Array.isArray(body.parts) ? body.parts : [];
+            await this.storageR2Repository.completeMultipartUpload({
+                key,
+                uploadId,
+                parts: parts.map((p) => ({
+                    ETag: String(p?.ETag ?? ""),
+                    PartNumber: Number(p?.PartNumber ?? 0),
+                })),
+                publicBaseUrl: null,
+            });
+
+            const saved = await this.mediaService.saveFile({
+                organizationId,
+                name: key.split("/").pop() ?? key,
+                path: key,
+                virtualPath: readVirtualPath(req.body),
+                originalName: fileName || null,
+                fileSize,
+                type: contentType.startsWith("video/") ? "video" : "image",
+            });
+            const publicUrl = saved.publicUrl ?? publicUrlForObjectKey(key);
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    id: saved.id,
+                    filePath: saved.path,
+                    originalName: fileName,
+                    ...(publicUrl ? { publicUrl } : {}),
+                },
+                message: "Media uploaded successfully",
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /**
+     * Abort an in-flight multipart upload (`POST {api.prefix}/public/upload/abort-multipart`).
+     */
+    uploadProgrammaticAbortMultipart = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            this.requireProgrammaticOrganizationId(req);
+            this.assertMultipartSupported();
+
+            const key = String((req.body as { key?: string })?.key ?? "");
+            const uploadId = String((req.body as { uploadId?: string })?.uploadId ?? "");
+            await this.storageR2Repository.abortMultipartUpload({ key, uploadId });
+
+            res.status(200).json({
+                success: true,
+                data: { key, uploadId },
+                message: "Multipart upload aborted",
             });
         } catch (error) {
             next(error);

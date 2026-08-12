@@ -19,7 +19,7 @@ export const registerUploadCommands: RegisterCommands = (y: Argv, ctx: CommandCo
           })
           .example(
             "$0 upload ./image.png",
-            "Upload a local image; response includes `data.id` and `data.path` for use with `posts:create --media`"
+            "Upload a local image; response includes `data.id` and `data.filePath` for use with `posts:create --media`"
           )
           .example("$0 upload /tmp/clip.mp4", "Upload a video by absolute path"),
       async (args: any) => {

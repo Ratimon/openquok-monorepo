@@ -187,3 +187,46 @@ export type PublicPlugMutationResultDto = {
     id: string;
 };
 
+/** Shared success envelope from `POST /public/upload` and `POST /public/upload/complete-multipart`. */
+export type PublicUploadDataDto = {
+    id: string;
+    filePath: string;
+    originalName: string;
+    publicUrl?: string;
+};
+
+export type PublicUploadResponseDto = {
+    success: boolean;
+    message: string;
+    data: PublicUploadDataDto;
+};
+
+/** `POST /public/upload/create-multipart` */
+export type PublicCreateMultipartResponseDto = {
+    success: boolean;
+    message: string;
+    data: {
+        uploadId: string;
+        key: string;
+    };
+};
+
+/** `POST /public/upload/sign-parts` */
+export type PublicSignPartsResponseDto = {
+    success: boolean;
+    message: string;
+    data: {
+        urls: Record<string, string>;
+    };
+};
+
+/** `POST /public/upload/abort-multipart` */
+export type PublicAbortMultipartResponseDto = {
+    success: boolean;
+    message: string;
+    data: {
+        key: string;
+        uploadId: string;
+    };
+};
+
