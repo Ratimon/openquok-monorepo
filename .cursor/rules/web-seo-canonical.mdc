@@ -91,7 +91,7 @@ App and auth surfaces should not compete in search:
 
 ## Cloudflare managed robots.txt (production)
 
-If the marketing zone has **“Set your preference to block training in robots.txt”** enabled, Cloudflare **prepends** `Disallow: /` for bots such as `ClaudeBot` and `Google-Extended` before the app’s rules. That blocks Claude and Gemini in directory “AI engine coverage” tools even when the repo allows those paths. **Turn that setting off** (AI Crawl Control **Allow** alone does not remove the prepend). Verify with `pnpm --filter ./web run verify:ai-robots`. Ops guide: `web/src/content/docs/configuration-web/ai-crawlers-and-robots.md`.
+If the marketing zone has **“Set your preference to block training in robots.txt”** enabled, Cloudflare **prepends** `Disallow: /` for bots such as `ClaudeBot` and `Google-Extended` before the app’s rules. That blocks Claude and Gemini in directory “AI engine coverage” tools even when the repo allows those paths. **Turn that setting off** (AI Crawl Control **Allow** alone does not remove the prepend). Verify with `pnpm --filter ./web run verify:ai-robots`; API helper: `pnpm --filter ./web run fix:ai-robots` (needs `CLOUDFLARE_API_TOKEN`). Ops guide: `web/src/content/docs/configuration-web/ai-crawlers-and-robots.md`.
 
 Raw markdown doc routes use `X-Robots-Tag: noindex` via `markdown-route-headers.ts`.
 

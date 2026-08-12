@@ -57,9 +57,15 @@ console.error(
 	`Cloudflare managed robots.txt still has site-wide Disallow for: ${blocked.join(', ')}`
 );
 console.error('');
-console.error('Fix (Cloudflare dashboard → zone for www.openquok.com):');
-console.error('  Security → Settings → Bot traffic');
-console.error('  Turn OFF “Set your preference to block training in robots.txt”');
+console.error('This is the PeerPush “Claude / Gemini hasn’t found you” cause.');
+console.error('Repo Allow rules cannot override the Cloudflare prepend.');
+console.error('');
+console.error('Fix (pick one):');
+console.error('  A) Cloudflare dashboard → zone for www.openquok.com');
+console.error('     Security → Settings → Bot traffic');
+console.error('     Turn OFF “Set your preference to block training in robots.txt”');
+console.error('  B) API (Bot Management Write token):');
+console.error('     CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ZONE_NAME=openquok.com pnpm --filter ./web run fix:ai-robots');
 console.error('');
 console.error(
 	'Allowing crawlers in AI Crawl Control alone does not remove this prepended Disallow block.'

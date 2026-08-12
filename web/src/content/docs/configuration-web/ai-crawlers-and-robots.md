@@ -2,7 +2,7 @@
 title: AI crawlers and robots.txt
 description: Allow Claude, Gemini, ChatGPT, and Perplexity to discover OpenQuok public pages when Cloudflare managed robots.txt is enabled.
 order: 5
-lastUpdated: 2026-08-09
+lastUpdated: 2026-08-12
 ---
 
 <script>
@@ -14,6 +14,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 OpenQuok serves <Badge text="/robots.txt" variant="path" /> from the web app and publishes <Badge text="/llms.txt" variant="path" /> plus <Badge text="/llms-full.txt" variant="path" /> for documentation discovery. Marketing pages, docs, and channel hubs are meant to be crawlable; auth and workspace routes stay disallowed.
 
 If a **directory or AI visibility tool** (for example PeerPush’s “AI engine coverage map”) reports that **Claude** or **Gemini** “has not found you” while ChatGPT, Copilot, or Perplexity partially do, check production <Badge text="/robots.txt" variant="path" /> first. On OpenQuok, the usual cause is **Cloudflare managed robots.txt** (“block training in robots.txt”), not the SvelteKit route alone.
+
+<Callout type="danger" title="Repo deploy cannot fix PeerPush Claude / Gemini">
+The SvelteKit <Badge text="Allow: /" variant="path" /> groups are already correct. Cloudflare still prepends <Badge text="Disallow Path" variant="path" /> for <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" /> until you turn managed robots.txt off in the zone. Confirm with <code>pnpm --filter ./web run verify:ai-robots</code> — it fails while that prepend exists.
+</Callout>
 
 ## Why ChatGPT can look fine while Claude and Gemini do not
 
@@ -40,23 +44,54 @@ The OpenQuok app **appends** its own rules after that block (sitemap, auth disal
 Turning off Cloudflare managed robots.txt is required. Allowing crawlers in <strong>AI Crawl Control</strong> alone does <strong>not</strong> remove the prepended <Badge text="Disallow: /" variant="path" /> block. Verify with <code>pnpm --filter ./web run verify:ai-robots</code>.
 </Callout>
 
+## Why “Training → Allow” is not enough
+
+Cloudflare has <strong>two separate controls</strong>:
+
+| Control | What it does | PeerPush Claude / Gemini |
+| --- | --- | --- |
+| <strong>Training → Allow (do not block)</strong> under Configure AI bot policies | Stops Cloudflare from <strong>HTTP-blocking</strong> training crawlers at the edge | Necessary, but not sufficient |
+| <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) | Prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, … | This is what PeerPush reads |
+
+Cloudflare’s Training UI even points at the robots preference (“To exclude such crawlers, set your preference <em>here</em>”). Having Training on <strong>Allow</strong> while managed robots.txt stays on is exactly the state that produces: crawlers are not WAF-blocked, but <Badge text="/robots.txt" variant="path" /> still tells them the site is off-limits — and coverage tools treat that as “Claude / Gemini hasn’t found you.”
+
+<Callout type="warning" title="Confirm with curl, not the Training toggle">
+If <code>curl -sS https://www.openquok.com/robots.txt</code> still shows <code># BEGIN Cloudflare Managed content</code> with <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> and <Badge text="Disallow: /" variant="path" />, managed robots.txt is still on — regardless of Training Allow.
+</Callout>
+
 ## Fix in Cloudflare (production)
 
 <Steps>
 
 ### Open Security Settings → Bot traffic
 
-In the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, select the zone that serves <Badge text="www.openquok.com" variant="new" />. Open <strong>Security</strong> → <strong>Settings</strong>, filter by <strong>Bot traffic</strong>.
+In the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>, select the zone that serves <Badge text="www.openquok.com" variant="new" />. Open <strong>Security</strong> → <strong>Settings</strong>, filter by <strong>Bot traffic</strong> (or follow the <strong>here</strong> link from the Training policy copy).
 
 ### Turn OFF managed training blocks in robots.txt
 
-Find <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) and <strong>turn it off</strong>.
+Find <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) and <strong>turn it off</strong>. Do <strong>not</strong> stop at <strong>Training → Allow (do not block)</strong> — that is a different setting.
 
-That is the control that prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, and related training crawlers. With it off, crawlers see only the OpenQuok origin file (Content Signals + auth disallows + explicit AI <strong>Allow</strong> groups).
+That is the control that prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, and related training crawlers. With it off, crawlers see only the OpenQuok origin file (Content Signals + auth disallows + explicit AI <strong>Allow</strong> groups). OpenQuok still emits <Badge text="ai-train=no" variant="default" /> via Content-Signal, so you keep a soft training preference without a site-wide crawl block.
+
+### Or flip it via API
+
+Create a Cloudflare API token with <strong>Bot Management Write</strong> for the marketing zone, then:
+
+```bash
+export CLOUDFLARE_API_TOKEN='…'
+export CLOUDFLARE_ZONE_NAME='openquok.com' # or set CLOUDFLARE_ZONE_ID
+pnpm --filter ./web run fix:ai-robots
+```
+
+This sets <Badge text="is_robots_txt_managed" variant="default" /> to <code>false</code> on the zone (see <DocsExternalLink href="https://developers.cloudflare.com/api/resources/bot_management/methods/update/">Update Zone Bot Management Config</DocsExternalLink>).
+
+### Keep Training Allow (already correct if set)
+
+Under <strong>Security</strong> → <strong>Settings</strong> → <strong>Configure AI bot policies</strong>, leave <strong>Training</strong> on <strong>Allow (do not block)</strong>. That only affects edge HTTP blocking. PeerPush still fails until managed robots.txt is off.
 
 ### Optional: AI Crawl Control Allow
 
-Under <strong>Security</strong> → <strong>AI Crawl Control</strong>, set <strong>Action</strong> to <strong>Allow</strong> for crawlers you want (at least <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" />). This controls WAF blocking; it does not replace turning off managed robots.txt for the PeerPush-style robots check.
+Under <strong>Security</strong> → <strong>AI Crawl Control</strong>, set <strong>Action</strong> to <strong>Allow</strong> for crawlers you want (at least <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" />). This also controls WAF blocking; it does not replace turning off managed robots.txt for the PeerPush-style robots check.
 
 ### Verify the live file
 

@@ -23,6 +23,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run",
 		"verify:ai-robots": "node ./scripts/verify-ai-robots.mjs",
+		"fix:ai-robots": "node ./scripts/disable-cloudflare-managed-robots.mjs",
 		"lint": "eslint ."
 	},
 	"dependencies": {
