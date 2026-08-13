@@ -32028,7 +32028,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-12T11:47:37.982Z",
+  generated: "2026-08-12T19:29:07.666Z",
   routes: [
     {
       path: "/docs",

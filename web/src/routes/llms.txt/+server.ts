@@ -40,9 +40,37 @@ export const GET: RequestHandler = async ({ url }) => {
 	lines.push('');
 	lines.push(`> ${siteDesc}`);
 	lines.push('');
-	lines.push(`Documentation index for LLM and tool consumption (all locales).`);
-	lines.push(`Full page text: ${siteUrl}/llms-full.txt`);
+	lines.push(`Curated index for LLM and tool consumption (product facts + docs).`);
+	lines.push(`Full documentation text: ${siteUrl}/llms-full.txt`);
 	lines.push(`Blog feed (RSS): ${blogRss}`);
+	lines.push(`Sitemap: ${siteUrl}/sitemap.xml`);
+	lines.push('');
+	lines.push('## Product');
+	lines.push('');
+	lines.push(
+		`- [Home](${siteUrl}/): OpenQuok overview — agentic social media scheduling, multi-channel publish, and human review.`
+	);
+	lines.push(
+		`- [Pricing](${siteUrl}/pricing): Plan names, limits, and trial details for the hosted social scheduler.`
+	);
+	lines.push(
+		`- [Channels](${siteUrl}/channels): Supported social networks and per-channel scheduling guides.`
+	);
+	lines.push(
+		`- [Agents](${siteUrl}/agents): Agent / MCP hosts that connect to OpenQuok (CLI, Cursor, Claude Code, and more).`
+	);
+	lines.push(
+		`- [Compare](${siteUrl}/compare): Side-by-side comparisons vs other social schedulers.`
+	);
+	lines.push(
+		`- [Alternatives](${siteUrl}/alternatives): Alternative pages for Buffer, Hootsuite, and similar tools.`
+	);
+	lines.push(`- [About](${siteUrl}/about): Company and product positioning.`);
+	lines.push(`- [Blog](${siteUrl}/blog): Product updates and scheduling guides.`);
+	lines.push(`- [Playbooks](${siteUrl}/playbooks): Viral format playbooks for social publishing.`);
+	lines.push(
+		`- [Building blocks](${siteUrl}/building-blocks): Skills and MCP servers for agent workflows.`
+	);
 	lines.push('');
 
 	const localePages = await eachLocaleDocPages();

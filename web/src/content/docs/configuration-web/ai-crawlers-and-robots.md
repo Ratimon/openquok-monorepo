@@ -108,6 +108,18 @@ Pass criteria:
 
 </Steps>
 
+## After robots is fixed: PeerPush may still lag
+
+Once <code>pnpm --filter ./web run verify:ai-robots</code> passes, the crawl <strong>gate</strong> is open. PeerPush’s “AI engine coverage map” is not only a robots check — the percentages (e.g. ChatGPT 73% / Copilot 24% / Perplexity 3%) are a <strong>visibility mix</strong> across engines that have already retrieved or attributed your product.
+
+So <strong>Claude hasn’t found you</strong> / <strong>Gemini hasn’t found you</strong> after a successful Cloudflare change usually means:
+
+1. PeerPush has not rescanned yet (force a refresh/rescan in their dashboard if available), or
+2. Claude / Gemini have not crawled or cited the product yet (often days to weeks after allow), or
+3. Those engines still lack enough public facts / third-party mentions to retrieve you for PeerPush’s prompts
+
+That is no longer fixed by more <Badge text="robots.txt" variant="path" /> edits. Keep <Badge text="/llms.txt" variant="path" />, pricing, compare, and docs public; watch Cloudflare <strong>AI Crawl Control</strong> for <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> request logs; and re-check PeerPush after a rescan.
+
 ## What the web app emits
 
 The route <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/routes/robots.txt/%2Bserver.ts"><Badge text="web/src/routes/robots.txt/+server.ts" variant="path" /></DocsExternalLink> builds:
