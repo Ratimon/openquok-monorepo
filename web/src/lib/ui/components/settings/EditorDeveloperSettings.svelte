@@ -5,9 +5,11 @@
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
 	import { browser } from '$app/environment';
-	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { route, url } from '$lib/utils/path';
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { hostedMarketingAnchorAttrs, hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route } from '$lib/utils/path';
 
 	import UpdateDeveloperAccess from '$lib/ui/components/developer/UpdateDeveloperAccess.svelte';
 	import McpClientConfiguration from '$lib/ui/components/developer/McpClientConfiguration.svelte';
@@ -24,7 +26,12 @@
 	// /docs/getting-started-for-cli/authentication
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
-	const cliAuthDocsHref = url(`${publicDocsPath}/getting-started-for-cli/authentication`);
+	const cliAuthDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
+	);
+	const cliAuthDocsAnchor = $derived(
+		hostedMarketingAnchorAttrs(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
+	);
 
 	let cliDeviceLoginNoticeDismissed = $state(false);
 
@@ -226,7 +233,12 @@
 			<p class="text-base-content/90">
 				For everyday CLI use, run <code class={inlineTerminalCodeClass}>openquok auth:login</code>. You only need an
 				<code class={inlineTerminalCodeClass}>opo_…</code> token for CI or headless automation. Follow the
-				<a class="link link-primary font-medium" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
+				<a
+					class="link link-primary font-medium"
+					href={cliAuthDocsAnchor.href}
+					target={cliAuthDocsAnchor.target}
+					rel={cliAuthDocsAnchor.rel}
+				>
 					CLI authentication tutorial
 				</a>.
 			</p>

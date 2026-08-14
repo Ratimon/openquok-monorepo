@@ -2,6 +2,7 @@
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/ui/card/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 
 	let {
 		title,
@@ -18,6 +19,9 @@
 	} = $props();
 
 	const isExternal = $derived(/^https?:\/\//i.test(href));
+	const policy = $derived(resolveExternalLinkPolicy(href));
+	const resolvedTrusted = $derived(trusted ?? policy.trusted);
+	const resolvedFollow = $derived(follow ?? policy.follow);
 </script>
 
 {#snippet cardBody()}
@@ -44,7 +48,12 @@
 {/snippet}
 
 {#if isExternal}
-	<ExternalLink {href} {trusted} {follow} class="not-prose no-underline block">
+	<ExternalLink
+		{href}
+		trusted={resolvedTrusted}
+		follow={resolvedFollow}
+		class="not-prose no-underline block"
+	>
 		{@render cardBody()}
 	</ExternalLink>
 {:else}

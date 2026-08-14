@@ -2,6 +2,11 @@
 	import type { DockItem } from '$lib/ui/floating-dock/types';
 	import type { WorkspaceCardViewModel } from '$lib/settings/GetWorkspace.presenter.svelte';
 
+	import { page } from '$app/state';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route } from '$lib/utils/path';
+
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DockCustomSlot from '$lib/ui/floating-dock/DockCustomSlot.svelte';
 	import HeaderWorkspaceSwitcher from '$lib/ui/components/workspaces/HeaderWorkspaceSwitcher.svelte';
@@ -51,6 +56,12 @@
 		feedbackSuccessMessage,
 		onFeedbackSubmit
 	}: Props = $props();
+
+	// /docs
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const publicDocsHref = $derived(
+		hostedMarketingHref(route(rootPathPublicDocs), page.url.origin)
+	);
 </script>
 
 <header
@@ -84,7 +95,7 @@
 			{onSwitchWorkspace}
 		/>
 
-		<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href="/docs">
+		<Button variant="ghost" size="sm" class="hidden sm:inline-flex" href={publicDocsHref}>
 			Docs
 		</Button>
 

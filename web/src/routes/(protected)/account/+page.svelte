@@ -10,6 +10,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { absoluteUrl, route, url } from '$lib/utils/path';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { scheduleDeferredWork } from '$lib/utils/scheduleDeferredWork';
 	import { hasUserSetPostingScheduleTimezone } from '$lib/utils/postingSchedulePreferences';
 
@@ -89,21 +90,38 @@
 
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
-	const cliDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli`));
-	const cliAuthDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-cli/authentication`));
-	const openclawGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/openclaw`));
-	const hermesGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/hermes`));
-	const mcpSetupGuidesHref = $derived(url(`${publicDocsPath}/mcp-setup-guides`));
+	const cliDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli`, page.url.origin)
+	);
+	const cliAuthDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
+	);
+	const openclawGuideHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/openclaw`, page.url.origin)
+	);
+	const hermesGuideHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/hermes`, page.url.origin)
+	);
+	const mcpSetupGuidesHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
+	);
 
 	// /blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience
-	const tiktokWarmUpGuideHref = route(
-		getRootPathPublicBlogPost('how-to-warm-up-a-tiktok-account-to-reach-a-us-audience')
+	const tiktokWarmUpGuideHref = $derived(
+		hostedMarketingHref(
+			route(getRootPathPublicBlogPost('how-to-warm-up-a-tiktok-account-to-reach-a-us-audience')),
+			page.url.origin
+		)
 	);
 
 	const rootPathPublicAgents = getRootPathPublicAgents();
 	const publicAgentsPath = route(rootPathPublicAgents);
-	const openclawAgentHref = $derived(url(`${publicAgentsPath}/openclaw`));
-	const hermesAgentHref = $derived(url(`${publicAgentsPath}/hermes`));
+	const openclawAgentHref = $derived(
+		hostedMarketingHref(`${publicAgentsPath}/openclaw`, page.url.origin)
+	);
+	const hermesAgentHref = $derived(
+		hostedMarketingHref(`${publicAgentsPath}/hermes`, page.url.origin)
+	);
 
 	const pagePresenter = protectedHomePagePresenter;
 	const postKanbanBoard = pagePresenter.postKanbanBoardPresenter;

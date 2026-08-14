@@ -1,10 +1,11 @@
 <script lang="ts">
-	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { getRootPathAccount } from '$lib/area-protected';
-	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
-	import { route, url } from '$lib/utils/path';
-
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
+	import { getRootPathAccount } from '$lib/area-protected';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route, url } from '$lib/utils/path';
 
 	import {
 		INSTALL_AGENT_SKILL_COMMAND,
@@ -22,10 +23,18 @@
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
 
-	const cliDocsHref = url(`${publicDocsPath}/getting-started-for-cli`);
-	const cliAuthDocsHref = url(`${publicDocsPath}/getting-started-for-cli/authentication`);
-	const openclawDocsHref = url(`${publicDocsPath}/agent-setup-guides/openclaw`);
-	const hermesDocsHref = url(`${publicDocsPath}/agent-setup-guides/hermes`);
+	const cliDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli`, page.url.origin)
+	);
+	const cliAuthDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
+	);
+	const openclawDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/openclaw`, page.url.origin)
+	);
+	const hermesDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/hermes`, page.url.origin)
+	);
 	const apiKeySettingsHref = url(
 		`${accountPath}/settings?${buildAccountSettingsSearchParams('developers')}`
 	);

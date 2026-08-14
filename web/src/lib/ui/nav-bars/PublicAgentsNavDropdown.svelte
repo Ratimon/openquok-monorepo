@@ -8,6 +8,7 @@
 	import { listPublicAgentsForHub } from '$lib/content/constants/publicAgentConfig';
 	import { listPublicMcpLandingPages } from '$lib/content/constants/publicMcpConfig';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
+	import { hostedMarketingAnchorAttrs, hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { isParentRoute, route } from '$lib/utils/path';
 
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -69,12 +70,20 @@
 
 	function entryHref(entry: AgentsNavEntry): string | undefined {
 		if (!entry.available) return undefined;
-		return route(getRootPathPublicAgent(entry.slug));
+		return hostedMarketingHref(route(getRootPathPublicAgent(entry.slug)), page.url.origin);
+	}
+
+	function entryAnchor(entry: AgentsNavEntry) {
+		const href = entryHref(entry);
+		if (!href) return undefined;
+		return hostedMarketingAnchorAttrs(href, page.url.origin);
 	}
 
 	function handleNavigate() {
 		onAfterNavigate?.();
 	}
+
+	const seeAll = $derived(hostedMarketingAnchorAttrs(agentsPath, page.url.origin));
 </script>
 
 {#snippet agentsNavContent()}
@@ -89,10 +98,12 @@
 			{#each agentColumns as column (column.map((entry) => entry.slug).join('-'))}
 				<div class="flex min-w-0 flex-col gap-0.5">
 					{#each column as entry (entry.slug)}
-						{@const href = entryHref(entry)}
-						{#if href}
+						{@const marketing = entryAnchor(entry)}
+						{#if marketing}
 							<a
-								href={href}
+								href={marketing.href}
+								target={marketing.target}
+								rel={marketing.rel}
 								onclick={handleNavigate}
 								class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 							>
@@ -144,10 +155,12 @@
 			{#each mcpColumns as column (column.map((entry) => entry.slug).join('-'))}
 				<div class="flex min-w-0 flex-col gap-0.5">
 					{#each column as entry (entry.slug)}
-						{@const href = entryHref(entry)}
-						{#if href}
+						{@const marketing = entryAnchor(entry)}
+						{#if marketing}
 							<a
-								href={href}
+								href={marketing.href}
+								target={marketing.target}
+								rel={marketing.rel}
 								onclick={handleNavigate}
 								class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 							>
@@ -192,7 +205,9 @@
 	</div>
 	<div class="mt-2 border-t border-base-content/10 pt-2">
 		<a
-			href={agentsPath}
+			href={seeAll.href}
+			target={seeAll.target}
+			rel={seeAll.rel}
 			onclick={handleNavigate}
 			class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 		>

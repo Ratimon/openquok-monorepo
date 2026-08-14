@@ -11,7 +11,7 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 ## External links (docs pages)
 
 - **In `web/src/content/docs/**`**, use **`DocsExternalLink`** from `$lib/ui/components/docs/mdx/index.js` for **third-party** URLs (Vercel, Supabase, GitHub, npm docs, etc.). It wraps `ExternalLink` with **`not-prose`** and **`text-primary`** + underline so links stay readable inside docs prose (avoids low-contrast inherited `prose-a` styles).
-- **Pattern**: `<DocsExternalLink href="https://...">Label</DocsExternalLink>`. Optional props match the base component: `trusted`, `follow`, `ariaLabel`, or `class` to extend styles — see `web/src/lib/ui/components/ExternalLink.svelte` and `web/src/lib/ui/components/docs/mdx/DocsExternalLink.svelte`.
+- **Pattern**: `<DocsExternalLink href="https://...">Label</DocsExternalLink>`. It auto-applies **`resolveExternalLinkPolicy`** (first-party GitHub / openquok.com / npm follow; other hosts nofollow). Optional `trusted` / `follow` / `ariaLabel` / `class` override the policy — see **web-seo-outbound-links**, `ExternalLink.svelte`, and `DocsExternalLink.svelte`.
 - **`ExternalLink`** remains the low-level primitive (used inside `DocsExternalLink`). Do not use raw `<ExternalLink>` in new docs content unless you have a rare case that must not use docs styling.
 - **Do not** rely on raw Markdown **inside** custom MDX component children (e.g. `<Callout>`): see **Markdown inside custom components** below.
 - For external URLs in **plain prose** (including **“References”** sections), prefer **`DocsExternalLink`** over raw `<a href="...">` so outbound attributes and contrast stay consistent.

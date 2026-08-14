@@ -3,18 +3,22 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { OauthAppViewModel } from '$lib/developers/UpsertOAuthApp.presenter.svelte';
 
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import {
 		OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH,
 		OPENQUOK_HOSTED_OAUTH_REDIRECT_URL
 	} from '$lib/developers/constants/oauthAppDefaults';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route, url } from '$lib/utils/path';
+
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
-	import { url } from '$lib/utils/path';
 
 	type Props = {
 		loadForbidden: boolean;
@@ -112,6 +116,12 @@
 	const mediaPickerBusy = $derived(mediaPickerLoading || mediaPickerUploadBusy);
 	const defaultProfilePreviewUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
 	const createProfilePreviewUrl = $derived(formPicturePreviewUrl ?? defaultProfilePreviewUrl);
+
+	// /docs/oauth2-for-apps
+	const rootPathPublicDocs = getRootPathPublicDocs();
+	const oauthDocsHref = $derived(
+		hostedMarketingHref(`${route(rootPathPublicDocs)}/oauth2-for-apps`, page.url.origin)
+	);
 </script>
 
 <div class="space-y-6">
@@ -137,7 +147,7 @@
 				<Button
 					variant="ghost"
 					size="sm"
-					href="/docs/oauth2-for-apps"
+					href={oauthDocsHref}
 				>
 					Read more ..
 				</Button>
@@ -246,7 +256,7 @@
 					<Button
 						variant="ghost"
 						size="sm"
-						href="/docs/oauth2-for-apps"
+						href={oauthDocsHref}
 					>
 						Docs
 					</Button>

@@ -21,6 +21,7 @@
 		href={discordHref}
 		ariaLabel="Join Discord Support"
 		trusted
+		follow
 		class={cn(
 			'fixed bottom-20 right-6 z-40 inline-flex items-center gap-2 rounded-full border border-primary bg-primary px-4 py-2.5 text-sm font-medium text-primary-content shadow-lg transition hover:bg-primary/90 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
 			className

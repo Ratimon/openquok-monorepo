@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
+	import { externalLinkAnchorAttrs } from '$lib/utils/externalLinkRel';
 
 	type Props = {
 		owner: string;
@@ -10,6 +11,7 @@
 
 	let { owner, name }: Props = $props();
 	let stars = $state(0);
+	const repoAttrs = $derived(externalLinkAnchorAttrs(`https://github.com/${owner}/${name}`));
 
 	function formatStars(count: number): string {
 		if (count >= 1000) {
@@ -32,9 +34,9 @@
 
 {#if owner && name}
 	<a
-		href={`https://github.com/${owner}/${name}`}
-		target="_blank"
-		rel="noreferrer"
+		href={repoAttrs.href}
+		target={repoAttrs.target}
+		rel={repoAttrs.rel}
 		class="inline-flex items-center gap-2 rounded-full border border-base-content/20 bg-base-content/5 px-4 py-1.5 text-base-content/80 transition-colors hover:bg-base-content/10"
 	>
 		<AbstractIcon

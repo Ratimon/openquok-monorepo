@@ -12,6 +12,7 @@
 
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
+	import { externalLinkRelForHref } from '$lib/utils/externalLinkRel';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
@@ -193,7 +194,13 @@
 		{/if}
 		<Button variant="outline" size="sm" onclick={openSkillMarkdownDownload}>Download SKILL.md</Button>
 		{#if extensionVm.sourceRepoUrl}
-			<Button href={extensionVm.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
+			<Button
+				href={extensionVm.sourceRepoUrl}
+				variant="ghost"
+				size="sm"
+				target="_blank"
+				rel={externalLinkRelForHref(extensionVm.sourceRepoUrl)}
+			>
 				Source repo
 			</Button>
 		{/if}

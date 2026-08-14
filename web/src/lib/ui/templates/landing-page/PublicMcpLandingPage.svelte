@@ -8,7 +8,9 @@
 		resolvePublicMcpSkillSetupStepsTitle
 	} from '$lib/content/constants/publicMcpConfig';
 
+	import { page } from '$app/state';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
@@ -56,6 +58,10 @@
 		comingSoonPlatformLabel = ''
 	}: Props = $props();
 
+	const resolvedSecondaryCtaHref = $derived(
+		hostedMarketingHref(secondaryCtaHref, page.url.origin)
+	);
+
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
@@ -95,7 +101,7 @@
 	<PublicMcpHero
 		{mcpVm}
 		ctaText={secondaryCtaText}
-		ctaHref={secondaryCtaHref}
+		ctaHref={resolvedSecondaryCtaHref}
 		docsCtaText="View Docs"
 		docsCtaHref={mcpVm.docsPath}
 	/>
@@ -115,7 +121,7 @@
 <PublicLandingWorkflowSection
 	section={mcpVm.workflowSection}
 	ctaText={secondaryCtaText}
-	ctaHref={secondaryCtaHref}
+	ctaHref={resolvedSecondaryCtaHref}
 />
 
 <WhoIsFor
@@ -141,7 +147,7 @@
 		{section}
 		{index}
 		ctaText={secondaryCtaText}
-		ctaHref={secondaryCtaHref}
+		ctaHref={resolvedSecondaryCtaHref}
 	/>
 {/each}
 

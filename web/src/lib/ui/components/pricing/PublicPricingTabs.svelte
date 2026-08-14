@@ -19,7 +19,6 @@
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	import { cn } from '$lib/ui/helpers/common';
-	import { url } from '$lib/utils/path';
 
 	const TIER_ICON_CLASS: Record<PaidSubscriptionTier, string> = {
 		SOLO: 'text-emerald-400',
@@ -296,7 +295,7 @@
 										class={cn(heroTheme.ctaButtonClass, '!my-0 !max-w-none w-full')}
 										variant="primary"
 										size="lg"
-										href={url(ctaHref)}
+										href={ctaHref}
 										preload="off"
 									>
 										{ctaLabel}
@@ -307,7 +306,7 @@
 											class={cn(heroTheme.ctaButtonClass, '!my-0 !max-w-none w-full')}
 											variant="ghost"
 											size="lg"
-											href={url(secondaryCtaHref!)}
+											href={secondaryCtaHref}
 											preload="off"
 										>
 											{secondaryCtaLabel}

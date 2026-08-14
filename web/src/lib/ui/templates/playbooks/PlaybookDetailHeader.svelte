@@ -15,6 +15,7 @@
 	} from '$lib/listings/utils/resolveStackListingHeaderSummary';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { externalLinkRelForHref } from '$lib/utils/externalLinkRel';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -170,7 +171,13 @@
 		</Button>
 		<Button href={skillBuilderHref} variant="primary" size="sm">Customize this playbook</Button>
 		{#if playbookVm.sourceRepoUrl}
-			<Button href={playbookVm.sourceRepoUrl} variant="ghost" size="sm" target="_blank" rel="noopener noreferrer nofollow">
+			<Button
+				href={playbookVm.sourceRepoUrl}
+				variant="ghost"
+				size="sm"
+				target="_blank"
+				rel={externalLinkRelForHref(playbookVm.sourceRepoUrl)}
+			>
 				Source repo
 			</Button>
 		{/if}

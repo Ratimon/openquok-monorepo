@@ -1,17 +1,19 @@
+import type { SkillBuilderWorkflowStepViewModel } from '$lib/skill-builder/skillBuilder.types';
+
 import { nanoid } from 'nanoid';
 
 import { OPENQUOK_COMMAND_WORKFLOW_META } from '$lib/skill-builder/constants/openquokCommandWorkflowMeta';
 import { resolveOpenquokCommandTemplate } from '$lib/skill-builder/constants/openquokCliCommandSnippets';
-import type { SkillBuilderWorkflowStepViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { defaultPostsCreatePayload } from '$lib/skill-builder/utils/postsCreatePayload';
+import { OPENQUOK_HOSTED_WEB_ORIGIN } from '$lib/utils/hostedMarketingHref';
 
 export const OPENQUOK_CORE_EXTENSION_SLUG = 'openquok-core' as const;
 
 export const DEFAULT_SKILL_BUILDER_EXTENSION_SLUGS = [OPENQUOK_CORE_EXTENSION_SLUG] as const;
 
-export const OPENQUOK_CLI_GETTING_STARTED_URL = 'https://www.openquok.com/docs/getting-started-for-cli';
+export const OPENQUOK_CLI_GETTING_STARTED_URL = `${OPENQUOK_HOSTED_WEB_ORIGIN}/docs/getting-started-for-cli`;
 
-export const OPENQUOK_CORE_SKILL_SETUP_URL = 'https://www.openquok.com/docs/agent-setup-guides';
+export const OPENQUOK_CORE_SKILL_SETUP_URL = `${OPENQUOK_HOSTED_WEB_ORIGIN}/docs/agent-setup-guides`;
 
 export const OPENQUOK_CLI_NPM_URL = 'https://www.npmjs.com/package/@openquok/auto-cli';
 

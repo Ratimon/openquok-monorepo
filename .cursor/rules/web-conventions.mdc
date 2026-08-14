@@ -80,7 +80,8 @@ Use **`$lib/ui/components/ExternalLink.svelte`** for external URLs that are rend
   - If **`!trusted`**: add **`noopener`** and **`noreferrer`** (do not hand the opener to the target; strip referrer where appropriate).
   - If **`!follow`**: add **`nofollow`** (do not pass link equity to the target for SEO).
 - **Defaults** (`trusted=false`, `follow=false`) → `rel="noopener noreferrer nofollow"`.
-- Override **`trusted`** / **`follow`** only when the product explicitly wants a different security or SEO posture for that destination.
+- For **brand social**, **first-party GitHub**, and allowlisted product hosts, resolve flags with **`resolveExternalLinkPolicy`** / **`externalLinkAnchorAttrs`** from `$lib/utils/externalLinkRel` — do not invent one-off `rel` strings. Full policy: **web-seo-outbound-links**.
+- Override **`trusted`** / **`follow`** only when the product explicitly wants a different security or SEO posture for that destination (prefer the shared helper).
 
 ### Programmatic opens (buttons, menus, `onclick`)
 
@@ -305,6 +306,8 @@ const { ok, data } = await httpGateway.request({ method: HttpMethod.POST, url: J
 ---
 
 ## 4. Route Paths: Use Central Helpers and `absoluteUrl` / `route`
+
+For **marketing** prefixes (docs, blog, agents, channels, playbooks, building-blocks, creators, compare, alternatives, tools, roadmap, pricing, about), resolve the final `href` with `hostedMarketingHref` — see **web-hosted-marketing-links**.
 
 Do not hardcode route path strings (e.g. `'/confirm-change-password'`, `'/account'`) in layouts or pages. Use the same pattern as account and auth:
 

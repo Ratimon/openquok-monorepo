@@ -1,10 +1,11 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import { icons } from '$data/icons';
 	import { getRootPathAccount, getRootPathPayloadWizard } from '$lib/area-protected/getRootPathProtectedArea';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
-	import { route, url } from '$lib/utils/path';
+	import { hostedMarketingAnchorAttrs, hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
-
-	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Badge from '$lib/ui/badge/Badge.svelte';
@@ -45,8 +46,18 @@
 	// /docs
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
-	const publicApiDocsHref = url(`${publicDocsPath}/getting-started-for-public-api`);
-	const cliAuthDocsHref = url(`${publicDocsPath}/getting-started-for-cli/authentication`);
+	const publicApiDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-public-api`, page.url.origin)
+	);
+	const cliAuthDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-cli/authentication`, page.url.origin)
+	);
+	const cliAuthDocsAnchor = $derived(
+		hostedMarketingAnchorAttrs(
+			`${publicDocsPath}/getting-started-for-cli/authentication`,
+			page.url.origin
+		)
+	);
 
 	// /account/payload-wizard
 	const rootPathAccount = getRootPathAccount();
@@ -128,7 +139,12 @@
 		{:else if oauthAppReady}
 			<span class="text-base-content/60">
 				No token on screen — generate one below. Existing tokens stay hidden for security.
-				<a class="link link-primary" href={cliAuthDocsHref} target="_blank" rel="noopener noreferrer">
+				<a
+					class="link link-primary"
+					href={cliAuthDocsAnchor.href}
+					target={cliAuthDocsAnchor.target}
+					rel={cliAuthDocsAnchor.rel}
+				>
 					CLI authentication docs
 				</a>
 			</span>

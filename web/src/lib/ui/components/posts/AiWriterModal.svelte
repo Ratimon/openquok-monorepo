@@ -316,7 +316,6 @@
 						See the
 						<ExternalLink
 							href={WRITER_API_DOCS_URL}
-							trusted={true}
 							class="link link-primary font-medium"
 						>
 							Chrome Writer API docs
@@ -359,7 +358,6 @@
 						See the
 						<ExternalLink
 							href={REWRITER_API_DOCS_URL}
-							trusted={true}
 							class="link link-primary font-medium"
 						>
 							Chrome Rewriter API docs

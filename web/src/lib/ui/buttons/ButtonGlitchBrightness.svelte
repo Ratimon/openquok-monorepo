@@ -17,6 +17,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { pushState } from '$app/navigation';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 
 	let {
 		class: className,
@@ -31,27 +32,36 @@
 		...rest
 	}: ButtonGlitchBrightnessProps = $props();
 
+	const marketing = $derived(
+		href && !href.startsWith('#') ? hostedMarketingAnchorAttrs(href, page.url.origin) : null
+	);
+	const resolvedHref = $derived(marketing?.href ?? href);
+
 	// Strip data-sveltekit-preload-data so `preload` controls the attribute; recompute when `rest` updates
 	const anchorRest = $derived.by(() => {
 		const { 'data-sveltekit-preload-data': _, ...r } = rest as Record<string, unknown>;
+		if (marketing?.external) {
+			return { ...r, target: marketing.target, rel: marketing.rel };
+		}
 		return r;
 	});
 
 	function handleAnchorClick(event: MouseEvent) {
-		if (!href) return;
-		
+		if (!resolvedHref) return;
+		if (marketing?.external) return;
+
 		// Check if href is a hash link (starts with #)
-		if (href.startsWith('#')) {
+		if (resolvedHref.startsWith('#')) {
 			event.preventDefault();
 			// Handle scrolling to hash link
-			const elementId = href.slice(1); // Remove the '#'
+			const elementId = resolvedHref.slice(1); // Remove the '#'
 			const anchor = document.getElementById(elementId);
 			
 			if (anchor) {
 				anchor.scrollIntoView({ behavior: "smooth" });
 				// Update the URL hash using SvelteKit's pushState
 				const newUrl = new URL(window.location.href);
-				newUrl.hash = href;
+				newUrl.hash = resolvedHref;
 				pushState(newUrl, {});
 				// Dispatch hashchange event so listeners can react
 				window.dispatchEvent(new HashChangeEvent('hashchange'));
@@ -63,10 +73,10 @@
 {#if href}
 	<a
 		bind:this={ref}
-		data-current={checkCurrent && page.url.pathname === href}
+		data-current={checkCurrent && page.url.pathname === resolvedHref}
 		class={cn("group relative inline-flex items-center gap-1 overflow-hidden", buttonVariants({ variant, size }), className)}
-		{href}
-		data-sveltekit-preload-data={preload}
+		href={resolvedHref}
+		data-sveltekit-preload-data={marketing?.external ? 'off' : preload}
 		onclick={handleAnchorClick}
 		{...anchorRest}
 	>

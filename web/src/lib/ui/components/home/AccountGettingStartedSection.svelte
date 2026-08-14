@@ -1,8 +1,10 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
 
-	import { cn } from '$lib/ui/helpers/common';
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
+	import { cn } from '$lib/ui/helpers/common';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -79,8 +81,11 @@
 								{/if}
 							</span>
 							{#if item.href}
+								{@const marketing = hostedMarketingAnchorAttrs(item.href, page.url.origin)}
 								<a
-									href={item.href}
+									href={marketing.href}
+									target={marketing.target}
+									rel={marketing.rel}
 									class={cn(
 										'text-sm hover:underline',
 										item.done ? 'text-base-content/50 line-through' : 'text-base-content'
@@ -141,10 +146,13 @@
 								</span>
 							</button>
 						{:else if link.href}
+							{@const marketing = hostedMarketingAnchorAttrs(link.href, page.url.origin)}
 							<a
-								href={link.href}
+								href={marketing.href}
 								class="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-base-200/70"
-								{...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+								{...(marketing.external
+									? { target: marketing.target, rel: marketing.rel }
+									: {})}
 							>
 								<span
 									class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
@@ -170,8 +178,11 @@
 			<ul class="mt-4 space-y-1">
 				{#each exploreLinks as link (link.href)}
 					<li>
+						{@const marketing = hostedMarketingAnchorAttrs(link.href, page.url.origin)}
 						<a
-							href={link.href}
+							href={marketing.href}
+							target={marketing.target}
+							rel={marketing.rel}
 							class="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-base-200/70"
 						>
 							<span

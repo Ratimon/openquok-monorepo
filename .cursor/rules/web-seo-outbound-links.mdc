@@ -1,0 +1,61 @@
+---
+description: Outbound link SEO — brand social / first-party GitHub follow; third-party nofollow; use resolveExternalLinkPolicy / ExternalLink.
+globs:
+  - web/src/lib/ui/components/ExternalLink.svelte
+  - web/src/lib/ui/components/docs/mdx/DocsExternalLink.svelte
+  - web/src/lib/ui/components/docs/mdx/DocsLinkCard.svelte
+  - web/src/lib/ui/components/docs/nav/DocsSocialLinks.svelte
+  - web/src/lib/ui/components/InternalLinkBar.svelte
+  - web/src/lib/ui/social/**
+  - web/src/lib/ui/icons/Stargazers.svelte
+  - web/src/lib/ui/templates/building-blocks/**
+  - web/src/lib/ui/templates/playbooks/**
+  - web/src/lib/utils/externalLinkRel.ts
+  - web/src/lib/utils/hostedMarketingHref.ts
+  - web/src/lib/listings/utils/listingMarkdown.ts
+alwaysApply: false
+---
+
+# Web: Outbound links (`rel` / SEO)
+
+Default posture for third-party `<a target="_blank">` is **nofollow**. Pass link equity only for allowlisted brand / first-party destinations. Shared policy lives in `$lib/utils/externalLinkRel`.
+
+## Policy (Option A)
+
+| Destination | `trusted` | `follow` | Typical `rel` |
+| --- | --- | --- | --- |
+| Configured brand social (`SOCIAL_LINKS_*` via `getSocialProfileHref`) | yes | yes | _(omit)_ |
+| First-party GitHub (`FIRST_PARTY_GITHUB_OWNERS`, e.g. `Ratimon/…`) | yes | yes | _(omit)_ |
+| `*.openquok.com`, `npmjs.com` | yes | yes | _(omit)_ |
+| Self-host → hosted marketing (`hostedMarketingAnchorAttrs`) | n/a | n/a | `noopener` only — see **web-hosted-marketing-links** |
+| All other absolute http(s) | no | no | `noopener noreferrer nofollow` |
+
+Do **not** treat all of `github.com` as followable. Hub listing setup / source-repo buttons must call `resolveExternalLinkPolicy` / `externalLinkRelForHref` (or `ExternalLink` with those flags) — never hardcode `trusted` + `follow` on arbitrary third-party URLs.
+
+## Helpers
+
+- `resolveExternalLinkPolicy(href)` → `{ trusted, follow }`
+- `externalLinkRelForHref(href)` → `rel` string (or `undefined` when followable)
+- `externalLinkAnchorAttrs(href)` → `{ href, target: '_blank', rel, trusted, follow }`
+- `isConfiguredBrandSocialHref` / `isFirstPartyGithubHref` / `isTrustedExternalHref`
+
+Prefer these over hand-rolled `rel="noopener noreferrer"`.
+
+## Components
+
+- **`ExternalLink`**: low-level; defaults are untrusted + nofollow. Pass `trusted` / `follow` from the policy when the destination is allowlisted.
+- **`DocsExternalLink` / `DocsLinkCard`**: auto-apply `resolveExternalLinkPolicy` unless props override.
+- **Brand social UI** (`SocialFollowBar`, `DiscordSupportFab`, footer Discord via `InternalLinkBar`, `DocsSocialLinks`): must end up followable for configured profile URLs.
+- **`Stargazers` / listing source repos / setup-doc buttons**: policy-driven (first-party GitHub / openquok.com follow; third-party nofollow).
+
+## Do not confuse with hosted marketing
+
+Relative marketing paths rewritten to `https://www.openquok.com/...` on self-host use **`hostedMarketingHref`**, not `ExternalLink` defaults. That path stays dofollow with `rel="noopener"` only — documented in **web-hosted-marketing-links**.
+
+## Checklist
+
+1. New outbound `<a>` / `Button` / `ExternalLink` → decide allowlist vs third-party.
+2. Allowlisted → `trusted` + `follow` (or `externalLinkAnchorAttrs`).
+3. Third-party → leave ExternalLink defaults (or `externalLinkRelForHref`).
+4. Brand social URLs come from `getSocialProfileHref`, not hard-coded invites (except tests).
+5. Extend `FIRST_PARTY_GITHUB_OWNERS` only when adding another first-party GitHub owner.

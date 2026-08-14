@@ -2,8 +2,10 @@
 	import type { PageData } from './$types';
 	import type { PublicChannelViewModel } from '$lib/area-public/PublicChannelByPage.presenter.svelte';
 
+	import { page } from '$app/state';
 	import { publicChannelByPagePresenter } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
@@ -36,7 +38,9 @@
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
-	const secondaryCtaHref = pagePresenter.secondaryCtaHref;
+	const secondaryCtaHref = $derived(
+		hostedMarketingHref(pagePresenter.secondaryCtaHref, page.url.origin)
+	);
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();

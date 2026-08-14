@@ -10,10 +10,12 @@
 		PUBLIC_NAVBAR_PLAYBOOKS_ANCHOR_ID,
 		type PublicPlaybooksNavTab
 	} from '$lib/config/constants/config';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
+	import { isParentRoute, route } from '$lib/utils/path';
+
 	import { ShiftingTabDropdown } from '$lib/ui/dropdown-shifting';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PublicNavCollapsibleSection from '$lib/ui/nav-bars/PublicNavCollapsibleSection.svelte';
-	import { isParentRoute, route } from '$lib/utils/path';
 
 	type Props = {
 		title: string;
@@ -143,8 +145,11 @@
 		aria-label={selectedTabId === 'playbook' ? 'Playbook links' : 'Building blocks links'}
 	>
 		{#each entries as entry (entry.href)}
+			{@const marketing = hostedMarketingAnchorAttrs(entry.href, page.url.origin)}
 			<a
-				href={entry.href}
+				href={marketing.href}
+				target={marketing.target}
+				rel={marketing.rel}
 				onclick={handleNavigate}
 				class="flex min-w-0 items-start gap-3 rounded-xl border border-base-content/10 bg-base-100/75 px-3 py-3 transition-colors hover:border-primary/30 hover:bg-base-100"
 			>
@@ -166,9 +171,12 @@
 {/snippet}
 
 {#snippet seeAllLink(entry: NavEntry)}
+	{@const marketing = hostedMarketingAnchorAttrs(entry.href, page.url.origin)}
 	<div class="mt-3 border-t border-base-content/10 pt-3">
 		<a
-			href={entry.href}
+			href={marketing.href}
+			target={marketing.target}
+			rel={marketing.rel}
 			onclick={handleNavigate}
 			class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 		>

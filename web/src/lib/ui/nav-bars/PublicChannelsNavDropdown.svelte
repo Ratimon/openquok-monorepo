@@ -5,6 +5,7 @@
 	import { icons } from '$data/icons';
 	import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 	import { isParentRoute, route } from '$lib/utils/path';
 
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
@@ -45,13 +46,15 @@
 		).filter((column) => column.length > 0);
 	}
 
-	function channelHref(channel: PublicChannelLandingPageViewModel): string {
-		return route(getRootPathPublicChannel(channel.slug));
+	function channelAnchor(channel: PublicChannelLandingPageViewModel) {
+		return hostedMarketingAnchorAttrs(route(getRootPathPublicChannel(channel.slug)), page.url.origin);
 	}
 
 	function handleNavigate() {
 		onAfterNavigate?.();
 	}
+
+	const seeAll = $derived(hostedMarketingAnchorAttrs(channelsPath, page.url.origin));
 </script>
 
 {#snippet channelsNavContent()}
@@ -59,9 +62,11 @@
 		{#each columns as column (column.map((channel) => channel.slug).join('-'))}
 			<div class="flex min-w-0 flex-col gap-0.5">
 				{#each column as channel (channel.slug)}
-					{@const href = channelHref(channel)}
+					{@const marketing = channelAnchor(channel)}
 					<a
-						href={href}
+						href={marketing.href}
+						target={marketing.target}
+						rel={marketing.rel}
 						onclick={handleNavigate}
 						class="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold transition-colors hover:bg-base-100/80 hover:text-primary {channel.available
 							? 'text-base-content'
@@ -92,7 +97,9 @@
 	</div>
 	<div class="mt-2 border-t border-base-content/10 pt-2">
 		<a
-			href={channelsPath}
+			href={seeAll.href}
+			target={seeAll.target}
+			rel={seeAll.rel}
 			onclick={handleNavigate}
 			class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 		>

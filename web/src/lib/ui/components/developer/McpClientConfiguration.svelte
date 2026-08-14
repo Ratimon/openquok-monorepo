@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import {
 		getMcpClientConfig,
@@ -9,7 +10,8 @@
 		type McpAuthMethod,
 		type McpClient
 	} from '$lib/developers/utils/getMcpClientConfig';
-	import { route, url } from '$lib/utils/path';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+	import { route } from '$lib/utils/path';
 
 	import { icons } from '$data/icons';
 
@@ -42,7 +44,9 @@
 
 	const rootPathPublicDocs = getRootPathPublicDocs();
 	const publicDocsPath = route(rootPathPublicDocs);
-	const mcpDocsHref = url(`${publicDocsPath}/getting-started-for-mcp`);
+	const mcpDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-mcp`, page.url.origin)
+	);
 
 	const mcpBase = resolveMcpBaseUrl();
 	const apiKey = $derived(programmaticAccessToken ?? MCP_TOKEN_PLACEHOLDER);

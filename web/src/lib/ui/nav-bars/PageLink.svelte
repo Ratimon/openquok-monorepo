@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 	import { route, isParentRoute, isSameRoute } from '$lib/utils/path';
 
 	type Props = {
@@ -31,10 +32,13 @@
 		onAfterNavigate
 	}: Props = $props();
 
+	const marketing = $derived(hostedMarketingAnchorAttrs(href, page.url.origin));
+
 	function handleClick(e: MouseEvent) {
+		if (marketing.external) return;
 		if (!useGoto || !href) return;
 		e.preventDefault();
-		const path = href.startsWith('http://') || href.startsWith('https://') ? href : route(href);
+		const path = marketing.href;
 		if (hardNavigate && typeof window !== 'undefined') {
 			window.location.assign(path);
 			onAfterNavigate?.();
@@ -46,14 +50,14 @@
 
 	// Path form for same-origin active detection: use pathname for absolute URLs, else normalized path
 	const hrefPath = $derived.by(() => {
-		if (href.startsWith('http://') || href.startsWith('https://')) {
+		if (marketing.href.startsWith('http://') || marketing.href.startsWith('https://')) {
 			try {
-				return new URL(href).pathname || '/';
+				return new URL(marketing.href).pathname || '/';
 			} catch {
 				return route(href);
 			}
 		}
-		return route(href);
+		return route(marketing.href);
 	});
 
 	let isActive = $derived(
@@ -61,16 +65,13 @@
 			? isSameRoute(page.url.pathname, hrefPath)
 			: isParentRoute(page.url.pathname, hrefPath)
 	);
-
-	// Use href as-is for absolute URLs (http/https); otherwise normalize path for same-origin links
-	const hrefToUse = $derived(
-		href.startsWith('http://') || href.startsWith('https://') ? href : route(href)
-	);
 </script>
 
 <a
-	href={hrefToUse}
-	data-sveltekit-preload-data={preload}
+	href={marketing.href}
+	target={marketing.target}
+	rel={marketing.rel}
+	data-sveltekit-preload-data={marketing.external ? 'off' : preload}
 	onclick={handleClick}
 	class="{className} {isActive ? whenSelected : whenUnselected}"
 	>{@render children?.()}</a

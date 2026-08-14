@@ -70,6 +70,7 @@
 
 <script lang="ts">
 	import { page } from '$app/state';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
 
 	let {
 		class: className,
@@ -84,9 +85,19 @@
 		...rest
 	}: ButtonProps = $props();
 
+	const marketing = $derived(
+		href ? hostedMarketingAnchorAttrs(href, page.url.origin) : null
+	);
+
+	const resolvedHref = $derived(marketing?.href ?? href);
+
 	const anchorRest = $derived.by(() => {
 		const copy = { ...rest };
 		delete (copy as Record<string, unknown>)['data-sveltekit-preload-data'];
+		if (marketing?.external) {
+			copy.target = marketing.target;
+			copy.rel = marketing.rel;
+		}
 		return copy;
 	});
 </script>
@@ -94,10 +105,10 @@
 {#if href}
 	<a
 		bind:this={ref}
-		data-current={checkCurrent && page.url.pathname === href}
+		data-current={checkCurrent && page.url.pathname === resolvedHref}
 		class={cn(buttonVariants({ variant, size }), className)}
-		{href}
-		data-sveltekit-preload-data={preload}
+		href={resolvedHref}
+		data-sveltekit-preload-data={marketing?.external ? 'off' : preload}
 		{...anchorRest}
 	>
 		{@render children?.()}

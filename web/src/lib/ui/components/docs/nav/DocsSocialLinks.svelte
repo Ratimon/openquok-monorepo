@@ -36,6 +36,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 	import * as Tooltip from '$lib/ui/tooltip';
+	import { externalLinkAnchorAttrs } from '$lib/utils/externalLinkRel';
 
 	/** Match docs header controls (ThemeSwitcher, DocsLocaleSwitcher): base-200 hover, not ghost accent. */
 	const headerIconHitClass = cn(
@@ -49,6 +50,7 @@
 {#each links as link}
 	{@const iconName = link.icon ?? iconMap[link.platform.toLowerCase()]}
 	{@const tip = link.label ?? link.platform.replace(/^\w/, (c) => c.toUpperCase())}
+	{@const external = externalLinkAnchorAttrs(link.url)}
 	{#if iconName}
 		<Tooltip.Root>
 			<Tooltip.Trigger>
@@ -58,9 +60,9 @@
 							variant="ghost"
 							size="icon"
 							class={headerIconHitClass}
-							href={link.url}
-							target="_blank"
-							rel="noopener noreferrer"
+							href={external.href}
+							target={external.target}
+							rel={external.rel}
 							aria-label={link.label ?? link.platform}
 						>
 							<AbstractIcon name={iconName} class="size-4" width="16" height="16" />

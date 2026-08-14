@@ -1,5 +1,5 @@
 ---
-description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy, audits). See web-seo-*.mdc rules for detail.
+description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy, outbound links, audits). See web-seo-*.mdc rules for detail.
 globs:
   - web/src/routes/+page.server.ts
   - web/src/routes/+page.ts
@@ -37,6 +37,8 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Canonical URLs, query params, UTM, robots | **web-seo-canonical** |
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
+| Outbound `rel` / brand social / first-party GitHub | **web-seo-outbound-links** |
+| Self-host → openquok.com marketing hrefs | **web-hosted-marketing-links** |
 | Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |
 | Charset, rendering, pagination, mixed content, audits (this file) | **web-seo-index** |
 

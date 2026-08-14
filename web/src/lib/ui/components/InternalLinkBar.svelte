@@ -1,4 +1,11 @@
 <script lang="ts">
+	import { page } from '$app/state';
+	import {
+		externalLinkAnchorAttrs,
+		isAbsoluteHttpHref
+	} from '$lib/utils/externalLinkRel';
+	import { hostedMarketingAnchorAttrs } from '$lib/utils/hostedMarketingHref';
+
 	type Props = {
 		linkList: Record<string, { label: string; href: string }[]>;
 	};
@@ -6,6 +13,33 @@
 
 	function capitalize(s: string): string {
 		return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+	}
+
+	function footerAnchorAttrs(href: string) {
+		const marketing = hostedMarketingAnchorAttrs(href, page.url.origin);
+		if (marketing.external) {
+			return {
+				href: marketing.href,
+				target: marketing.target,
+				rel: marketing.rel,
+				external: true
+			};
+		}
+		if (isAbsoluteHttpHref(href)) {
+			const external = externalLinkAnchorAttrs(href);
+			return {
+				href: external.href,
+				target: external.target,
+				rel: external.rel,
+				external: true
+			};
+		}
+		return {
+			href: marketing.href,
+			target: marketing.target,
+			rel: marketing.rel,
+			external: false
+		};
 	}
 </script>
 
@@ -16,11 +50,14 @@
 				{capitalize(category)}</h3>
 			<ul role="list" class="mt-6 space-y-4">
 				{#each linkList[category] as link (link.href)}
+					{@const attrs = footerAnchorAttrs(link.href)}
 					<li>
 						<a
-							href={link.href}
+							href={attrs.href}
+							target={attrs.target}
+							rel={attrs.rel}
 							class="text-sm leading-6 text-base-content/80 hover:underline"
-							data-sveltekit-preload-data="tap"
+							data-sveltekit-preload-data={attrs.external ? 'off' : 'tap'}
 						>
 							{link.label}
 						</a>

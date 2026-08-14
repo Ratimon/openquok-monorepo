@@ -7,6 +7,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 
 	type Props = {
 		direction?: 'horizontal' | 'vertical';
@@ -27,12 +28,13 @@
 >
 	{#each SOCIAL_FOLLOW_BAR_LINKS as link (link.CHANNEL_ID)}
 		{@const href = getSocialProfileHref(link.CHANNEL_ID)}
-		{#if href}
+		{@const policy = href ? resolveExternalLinkPolicy(href) : null}
+		{#if href && policy}
 			<ExternalLink
 				{href}
 				ariaLabel={`Follow us on ${link.CHANNEL_NAME}`}
-				trusted
-				follow
+				trusted={policy.trusted}
+				follow={policy.follow}
 				class={className}
 			>
 				{#if size === 'sm'}

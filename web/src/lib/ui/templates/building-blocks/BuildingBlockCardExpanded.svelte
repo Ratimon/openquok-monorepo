@@ -6,6 +6,7 @@
 	import BuildingBlockMcpToolsTable from '$lib/ui/components/building-blocks/BuildingBlockMcpToolsTable.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tabs from '$lib/ui/tabs';
+	import { externalLinkAnchorAttrs } from '$lib/utils/externalLinkRel';
 
 	type Props = {
 		extensionVm: ExtensionCardViewModel;
@@ -144,7 +145,14 @@
 	<div class="flex flex-wrap gap-2">
 		<Button href={detailHref} variant="primary" size="sm">View details</Button>
 		{#if docButton}
-			<Button href={docButton.href} variant="outline" size="sm" target="_blank" rel="noopener noreferrer">
+			{@const docAttrs = externalLinkAnchorAttrs(docButton.href)}
+			<Button
+				href={docAttrs.href}
+				variant="outline"
+				size="sm"
+				target={docAttrs.target}
+				rel={docAttrs.rel}
+			>
 				{docButton.label}
 			</Button>
 		{/if}

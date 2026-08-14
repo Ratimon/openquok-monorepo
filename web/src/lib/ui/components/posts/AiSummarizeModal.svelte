@@ -307,7 +307,6 @@
 						See the
 						<ExternalLink
 							href={SUMMARIZER_API_DOCS_URL}
-							trusted={true}
 							class="link link-primary font-medium"
 						>
 							Chrome Summarizer API docs

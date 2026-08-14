@@ -1,15 +1,16 @@
 <script lang="ts">
-	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
+	import { page } from '$app/state';
+	import { icons } from '$data/icons';
 	import { getRootPathAccount } from '$lib/area-protected';
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import {
 		getMcpClientConfig,
 		MCP_TOKEN_PLACEHOLDER,
 		resolveMcpBaseUrl
 	} from '$lib/developers/utils/getMcpClientConfig';
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route, url } from '$lib/utils/path';
-
-	import { icons } from '$data/icons';
 
 	import {
 		getOnboardingMcpClientById,
@@ -37,15 +38,19 @@
 	const apiKeySettingsHref = url(
 		`${accountPath}/settings?${buildAccountSettingsSearchParams('developers')}`
 	);
-	const mcpIntroDocsHref = $derived(url(`${publicDocsPath}/getting-started-for-mcp`));
-	const mcpSetupGuidesHref = $derived(url(`${publicDocsPath}/mcp-setup-guides`));
+	const mcpIntroDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/getting-started-for-mcp`, page.url.origin)
+	);
+	const mcpSetupGuidesHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
+	);
 
 	const tabTriggerClass =
 		'h-auto min-h-0 flex-1 rounded-lg border-0 !border-b-0 bg-transparent px-4 py-2.5 text-sm font-semibold text-base-content/75 transition-colors hover:bg-base-content/10 hover:text-base-content sm:flex-none [&.tab-active]:bg-primary [&.tab-active]:text-primary-content [&.tab-active]:shadow-md';
 
 	const activeClient = $derived(getOnboardingMcpClientById(selectedClient));
 	const activeClientDocsHref = $derived(
-		url(`${publicDocsPath}/mcp-setup-guides/${activeClient.docsSlug}`)
+		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides/${activeClient.docsSlug}`, page.url.origin)
 	);
 	const mcpConfigSnippet = $derived(
 		getMcpClientConfig(

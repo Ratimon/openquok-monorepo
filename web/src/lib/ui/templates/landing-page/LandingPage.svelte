@@ -4,6 +4,7 @@
 	import type { PublicAgentFeatureSection as FeatureSectionConfig } from '$lib/content/constants/publicAgentConfig';
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -13,6 +14,7 @@
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 
 	import AnimatedBeamMultipleAgent from '$lib/ui/templates/landing-page/AnimatedBeamMultipleAgent.svelte';
@@ -241,7 +243,10 @@ openquok analytics:post <post-id> -d 30`
 	);
 
 	const secondaryCtaText = 'Get Started For Free';
-	const secondaryCtaHref = '/pricing';
+	const secondaryCtaHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
+	const pricingCompareHref = $derived(
+		hostedMarketingHref('/pricing#pricing-compare', page.url.origin)
+	);
 	const pricingCtaHref = $derived(isLoggedIn ? '/account/billing' : '/sign-up');
 	const pricingCtaLabel = $derived(isLoggedIn ? 'Manage billing' : 'Start for $0');
 
@@ -418,7 +423,7 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={pricingDescription}
 	ctaHref={pricingCtaHref}
 	ctaLabel={pricingCtaLabel}
-	secondaryCtaHref="/pricing#pricing-compare"
+	secondaryCtaHref={pricingCompareHref}
 	secondaryCtaLabel="Compare all features"
 />
 

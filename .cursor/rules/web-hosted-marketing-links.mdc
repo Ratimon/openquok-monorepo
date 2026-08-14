@@ -1,0 +1,54 @@
+---
+description: Self-host marketing hrefs resolve to https://www.openquok.com (dofollow); use hostedMarketingHref — not raw route()/url() for docs/blog/agents/…
+globs: web/**/*
+alwaysApply: false
+---
+
+# Web: Hosted marketing links (self-host backlinks)
+
+On **www.openquok.com** (and Vite `import.meta.env.DEV`), marketing hrefs stay same-origin. On any other origin (self-host production), those hrefs become absolute `https://www.openquok.com/...` so crawlers get **dofollow** backlinks.
+
+Helper: `$lib/utils/hostedMarketingHref` — `hostedMarketingHref`, `hostedMarketingAnchorAttrs`, `OPENQUOK_HOSTED_WEB_ORIGIN`, `isHostedMarketingPath`. Prefer a shared primitive that already resolves (`PageLink`, `InternalLinkBar`, `Button`, nav dropdowns, `BannerCtaLink`) when one fits.
+
+## Marketing prefixes (rewrite)
+
+`docs`, `blog`, `agents`, `channels`, `playbooks`, `building-blocks`, `creators`, `compare`, `alternatives`, `tools`, `roadmap`, `pricing`, `about` (and subpaths).
+
+When the **final** `href` is one of these, use `hostedMarketingHref(path, page.url.origin)` (or `hostedMarketingAnchorAttrs`). Do **not** use bare `route()` / `url()` / hardcoded `/docs` as the rendered href.
+
+## Stay local (do not rewrite)
+
+Functional app routes: `/account`, auth, `/join-org`, `/oauth`, `/cli/device`, `/p/[postId]`, `/editor`, `/admin`, `/secret-admin`, legal, `/sitemap.xml`, `/`.
+
+Also leave local: in-section catalog nav (docs sidebar, blog lists, listing cards), secret-admin preview links. No HTTP redirects of local `/docs` or `/blog`.
+
+## Anchor attributes (self-host → hosted)
+
+Use a real `<a href="https://www.openquok.com/...">` with `target="_blank"` and `rel="noopener"` only. **Never** add `nofollow` or `noreferrer` (do not use `ExternalLink` defaults with `follow=false`).
+
+This is separate from third-party outbound policy (**web-seo-outbound-links**): hosted marketing backlinks stay dofollow; Discord / GitHub / other absolute outsides use `resolveExternalLinkPolicy`.
+
+## Examples
+
+```ts
+// ✅ GOOD — resolve at render
+import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
+import { page } from '$app/state';
+
+const tiktokWarmUpGuideHref = hostedMarketingHref(
+	'/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience',
+	page.url.origin
+);
+const docsHref = hostedMarketingHref('/docs', page.url.origin);
+```
+
+```svelte
+<!-- ✅ GOOD — footer / header via resolved attrs -->
+<a href={attrs.href} target={attrs.target} rel={attrs.rel}>Blog</a>
+```
+
+```ts
+// ❌ BAD — final href is always relative; no backlink on self-host
+const docsHref = route(getRootPathPublicDocs());
+const blogHref = '/blog';
+```
