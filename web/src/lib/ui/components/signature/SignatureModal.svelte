@@ -87,7 +87,7 @@
 			<div class="flex items-start justify-between gap-2">
 				<div class="min-w-0 flex-1">
 					<Dialog.Title class="flex items-center gap-2 text-base font-semibold text-base-content">
-						<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
+						<AbstractIcon name={icons.Signature.name} class="size-5" width="20" height="20" />
 						Signatures
 					</Dialog.Title>
 					<Dialog.Description class="mt-1 text-xs leading-snug text-base-content/70">

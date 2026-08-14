@@ -245,6 +245,20 @@
 		onInsertSignature?.(trimmed);
 	}
 
+	/** Insert a token (e.g. `#` / `@`) at the composer caret, replacing any selection. */
+	function insertAtComposerCursor(text: string) {
+		const el = textarea;
+		if (!el || disabled || uploadBusy) return;
+		const start = el.selectionStart ?? 0;
+		const end = el.selectionEnd ?? 0;
+		const value = el.value ?? '';
+		el.value = value.slice(0, start) + text + value.slice(end);
+		el.dispatchEvent(new Event('input', { bubbles: true }));
+		el.focus();
+		const next = start + text.length;
+		el.setSelectionRange(next, next);
+	}
+
 	const mediaGenerationFields = $derived.by(
 		(): Omit<MediaGenerationProps, 'open'> => ({
 			stockPhotosVm,
@@ -352,7 +366,7 @@
 					aria-label="Insert signature"
 				>
 					<span class="relative inline-flex size-6 items-center justify-center">
-						<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
+						<AbstractIcon name={icons.Signature.name} class="size-5" width="20" height="20" />
 						<span
 							class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
 							aria-hidden="true"
@@ -399,7 +413,7 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 7–10: inline text styling (selection-based) -->
+		<!-- 7–12: inline text styling and tokens (selection / cursor) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
@@ -426,6 +440,34 @@
 				<span {...props} class="inline-flex">
 					<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
 				</span>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<ComposerMediaTooltip label="Insert a hashtag at the cursor">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || !textarea}
+					onclick={composeTooltipTriggerClick(props, () => insertAtComposerCursor('#'))}
+					aria-label="Insert hashtag"
+				>
+					<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+		<ComposerMediaTooltip label="Insert a mention at the cursor">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || !textarea}
+					onclick={composeTooltipTriggerClick(props, () => insertAtComposerCursor('@'))}
+					aria-label="Insert mention"
+				>
+					<AbstractIcon name={icons.AtSign.name} class="size-5" width="20" height="20" />
+				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
 		{#if showLinkedInCompany}
