@@ -51,7 +51,7 @@ Flat JSON on `--settings` or inside `--providerSettingsByIntegrationId` for the 
 | `autoAddMusic` | boolean | Auto add music (if supported by account) |
 | `brand_content_toggle` | boolean | Branded content disclosure |
 | `brand_organic_toggle` | boolean | Brand organic disclosure |
-| `video_made_with_ai` | boolean | AI label (if applicable) |
+| `video_made_with_ai` | boolean | Disclose AI-generated or AI-edited content. Unlabeled AI posts may be kept out of TikTok distribution (including For You). |
 | `tiktok.privacy_level` | same | Composer bucket form |
 | `tiktok.content_posting_method` | same | Composer bucket form |
 | `tiktok.title` | same | Composer bucket form |

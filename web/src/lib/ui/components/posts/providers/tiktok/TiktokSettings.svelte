@@ -139,13 +139,29 @@
 		</label>
 	</div>
 
-	<label class="flex items-center gap-2 text-sm text-base-content/80">
-		<input
-			type="checkbox"
-			class="checkbox checkbox-primary checkbox-sm"
-			bind:checked={videoMadeWithAi}
-			{disabled}
-		/>
-		Disclose AI-gen content
-	</label>
+	<div class="space-y-2">
+		<div class="text-xs font-medium text-base-content/70">AI-generated content</div>
+		<label class="flex items-start gap-2 text-sm text-base-content/80">
+			<input
+				type="checkbox"
+				class="checkbox checkbox-primary checkbox-sm mt-0.5"
+				bind:checked={videoMadeWithAi}
+				{disabled}
+			/>
+			<span>
+				<span class="block">Disclose AI-generated content</span>
+				<span class="mt-0.5 block text-xs text-base-content/50">
+					Add this label to tell viewers the post was generated or edited with AI.
+				</span>
+			</span>
+		</label>
+		<div
+			class="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs leading-relaxed text-base-content/80"
+			role="note"
+		>
+			<strong class="font-medium text-base-content">Required disclosure.</strong>
+			If this post was generated or edited with AI and you do not label it, TikTok may keep it
+			out of distribution (including For You).
+		</div>
+	</div>
 </div>
