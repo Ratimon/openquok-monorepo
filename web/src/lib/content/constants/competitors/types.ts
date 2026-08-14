@@ -10,6 +10,7 @@ export type CompareProductSlug =
 	| 'mixpost'
 	| 'post-bridge'
 	| 'postiz'
+	| 'recurpost'
 	| 'typefully';
 
 /**

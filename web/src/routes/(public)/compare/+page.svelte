@@ -55,6 +55,10 @@
 			containerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
 		},
+		recurpost: {
+			containerClass:
+				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40'
+		},
 		mixpost: {
 			containerClass:
 				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35'

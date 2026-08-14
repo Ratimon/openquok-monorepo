@@ -31,9 +31,17 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	mixpost: 'https://mixpost.app',
 	'post-bridge': 'https://www.post-bridge.com',
 	postiz: 'https://postiz.com',
+	recurpost: 'https://recurpost.com',
 	typefully: 'https://typefully.com'
 } as const satisfies Record<
-	typeof COMPARE_HUB_BASE_SLUG | 'hootsuite' | 'buffer' | 'mixpost' | 'post-bridge' | 'postiz' | 'typefully',
+	| typeof COMPARE_HUB_BASE_SLUG
+	| 'hootsuite'
+	| 'buffer'
+	| 'mixpost'
+	| 'post-bridge'
+	| 'postiz'
+	| 'recurpost'
+	| 'typefully',
 	string
 >;
 

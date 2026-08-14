@@ -73,6 +73,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-sky-400/20 via-cyan-300/16 to-blue-300/16 text-sky-100 ring-sky-300/28'
 		},
+		recurpost: {
+			heroContainerClass:
+				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40',
+			cardContainerClass:
+				'bg-linear-to-br from-yellow-400/22 via-amber-300/16 to-yellow-500/18 text-yellow-50 ring-yellow-400/28'
+		},
 		mixpost: {
 			heroContainerClass:
 				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35',
