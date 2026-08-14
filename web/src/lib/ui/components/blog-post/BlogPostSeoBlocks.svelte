@@ -5,6 +5,7 @@
 		isBlogTopicEligibleForHowTo,
 		isBlogTopicEligibleForProduct
 	} from '$lib/blogs/constants/blogSeoSchemaTopics';
+	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
@@ -39,7 +40,10 @@
 				</h2>
 				<div class="flex flex-col gap-3">
 					{#each postVm.faqItems as item, index (index)}
-						<FaqAccordion title={item.question} description={item.answer} />
+						<FaqAccordion
+							title={item.question}
+							description={prepareBlogRichTextForDisplay(item.answer)}
+						/>
 					{/each}
 				</div>
 			</section>
@@ -57,9 +61,11 @@
 								<span class="mr-2 text-base-content/60">{index + 1}.</span>
 								{step.name}
 							</h3>
-							<p class="mt-2 whitespace-pre-wrap text-base-content/80">
-								{step.text}
-							</p>
+							<div
+								class="mt-2 max-w-none text-base-content/80 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:opacity-90"
+							>
+								{@html prepareBlogRichTextForDisplay(step.text)}
+							</div>
 						</li>
 					{/each}
 				</ol>

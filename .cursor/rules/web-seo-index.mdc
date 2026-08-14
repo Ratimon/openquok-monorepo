@@ -37,6 +37,7 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Canonical URLs, query params, UTM, robots | **web-seo-canonical** |
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
+| Blog CMS HTML, Skill Builder / specific tool links, FAQ/HowTo fields | **web-seo-blog** |
 | Outbound `rel` / brand social / first-party GitHub | **web-seo-outbound-links** |
 | Self-host → openquok.com marketing hrefs | **web-hosted-marketing-links** |
 | Universal `+page.ts` forwarding on client nav | **web-sveltekit-universal-page-load** |

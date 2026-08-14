@@ -112,3 +112,18 @@ export function prepareBlogContentForDisplay(content: string): string {
 	html = normalizeBlogContentLinks(html);
 	return html;
 }
+
+/**
+ * FAQ answers and How-to step copy: keep author HTML (including internal `<a>`),
+ * wrap plain text, and normalize link `rel` — do not promote headings or callouts.
+ */
+export function prepareBlogRichTextForDisplay(content: string): string {
+	const trimmed = content.trim();
+	if (!trimmed) return '';
+
+	let html = repairDoubleEncodedBlogHtml(trimmed);
+	if (!looksLikeHtml(html)) {
+		html = plainTextToBlogHtml(html);
+	}
+	return normalizeBlogContentLinks(html);
+}

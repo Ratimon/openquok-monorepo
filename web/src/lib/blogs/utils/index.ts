@@ -27,6 +27,7 @@ export {
 export {
 	plainTextToBlogHtml,
 	prepareBlogContentForDisplay,
+	prepareBlogRichTextForDisplay,
 	repairDoubleEncodedBlogHtml
 } from '$lib/blogs/utils/prepareBlogContentForDisplay';
 export {

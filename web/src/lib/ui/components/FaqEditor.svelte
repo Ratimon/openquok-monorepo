@@ -3,6 +3,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import BlogRichTextField from '$lib/ui/components/blog-post/BlogRichTextField.svelte';
 	import * as Field from '$lib/ui/field';
 	import { Textarea } from '$lib/ui/textarea';
 
@@ -16,13 +17,16 @@
 		onChange: (faqs: FaqEditorItem[]) => void;
 		label?: string;
 		description?: string;
+		/** Visual + HTML source for answers (internal links). Questions stay plain text. */
+		richTextAnswers?: boolean;
 	};
 
 	let {
 		faqs = [],
 		onChange,
 		label = 'FAQs',
-		description = 'Add frequently asked questions for public pages.'
+		description = 'Add frequently asked questions for public pages.',
+		richTextAnswers = false
 	}: Props = $props();
 
 	let localFaqs = $state<FaqEditorItem[]>([]);
@@ -92,15 +96,24 @@
 
 					<Field.Group>
 						<Field.Label for="faq-answer-{index}">Answer {index + 1}</Field.Label>
-						<Textarea
-							id="faq-answer-{index}"
-							class="w-full"
-							rows={3}
-							placeholder="Enter the answer"
-							value={faq.answer}
-							oninput={(e) =>
-								updateFaq(index, 'answer', (e.currentTarget as HTMLTextAreaElement).value)}
-						/>
+						{#if richTextAnswers}
+							<BlogRichTextField
+								textareaId="faq-answer-{index}"
+								value={faq.answer}
+								placeholder="Paste HTML or use Visual → link. Example: /tools/skill-builder"
+								onChange={(next) => updateFaq(index, 'answer', next)}
+							/>
+						{:else}
+							<Textarea
+								id="faq-answer-{index}"
+								class="w-full"
+								rows={3}
+								placeholder="Enter the answer"
+								value={faq.answer}
+								oninput={(e) =>
+									updateFaq(index, 'answer', (e.currentTarget as HTMLTextAreaElement).value)}
+							/>
+						{/if}
 					</Field.Group>
 				</div>
 			{/each}

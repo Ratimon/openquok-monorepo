@@ -1,0 +1,62 @@
+---
+description: Blog CMS HTML SEO — link the relevant tool page (usually /tools/skill-builder), not only /tools; keep FAQ/HowTo in structured fields.
+globs:
+  - web/src/routes/(protected)/secret-admin/blog-manager/**
+  - web/src/lib/ui/components/blog-post/**
+  - web/src/lib/blogs/**
+  - web/src/lib/ui/editor/ContentEditor.svelte
+alwaysApply: false
+---
+
+# Web SEO: Blog post body (CMS HTML)
+
+Public posts at `/blog/[slug]` render CMS HTML through `BlogPost.svelte` after `normalizeBlogContentLinks`. Edit in secret-admin **HTML source** (or visual) — do not add a markdown file under `web/src/content` for blog articles.
+
+FAQ, HowTo, and Product blocks are **form fields** (`faq_items`, `howto_steps`, `product`). They render in `BlogPostSeoBlocks` and JSON-LD (`createBlogPostSEOSchema`). Do not duplicate those Q&A / step lists as a second accordion in `content`.
+
+**FAQ answers and How-to step text** use the same Visual / HTML source editor as Content (`BlogRichTextField`). Questions and step **names** stay plain text. Paste root-relative `<a href="/tools/skill-builder">Skill Builder</a>` (or use Visual → link; the prompt keeps `/…` paths). Visible HTML is normalized with `prepareBlogRichTextForDisplay`; JSON-LD `Answer.text` / `HowToStep.text` is **plain text** (`stripHtmlToPlainText`) so schema stays valid.
+
+## Pick the tool page, not the hub
+
+Do **not** send most equity to `/tools`. Link the **specific** tool the article is about.
+
+| Article topic | Primary href | Typical anchors |
+| --- | --- | --- |
+| Agent skills, `SKILL.md`, zips, CLI recipes, Codex/ChatGPT skills | `/tools/skill-builder` | Skill Builder |
+| Same + a named channel | `/tools/skill-builder/{slug}` | TikTok Skill Builder |
+| Timing tests / “when to post” (secondary unless the post is about timing) | `/tools/best-time-to-post` or `…/{slug}` | Best Time to Post calculator |
+| Stills / covers / aspect ratios | `/tools/photo-editor` or `…/{slug}` | Photo Editor |
+| Listing several unrelated utilities | `/tools` (at most once) | OpenQuok free tools |
+
+Skills / MCP / CLI how-tos (ChatGPT, Codex, OpenClaw, CapCut + OpenQuok Core) → **Skill Builder is the primary internal tool link**. Mention `/tools` only if you truly mean the whole catalog.
+
+Prefer **one or two** links per destination. Repeat the tool name in prose without linking every mention.
+
+## Internal links (pass equity)
+
+Use **root-relative** paths. The normalizer strips `rel`/`target` on same-site and `/…` hrefs so they stay **dofollow**. Do not add `rel="nofollow"` on internal anchors.
+
+Also link `/docs/…`, `/playbooks`, `/channels/{slug}` when those pages match the sentence. Channel slugs follow `publicChannelConfig` (`tiktok`, `instagram`, …).
+
+```html
+<!-- ✅ GOOD — Skill Builder is the destination; hub is not a substitute -->
+<p>Assemble <code>openquok-core</code> in <a href="/tools/skill-builder">Skill Builder</a> instead of zipping by hand.</p>
+<p>For TikTok recipes, start from the <a href="/tools/skill-builder/tiktok">TikTok Skill Builder</a>.</p>
+
+<!-- ❌ BAD — generic hub when the post is about skills -->
+<p>See our <a href="/tools">free tools</a>.</p>
+```
+
+Absolute `https://www.openquok.com/…` is treated as internal (followable). Prefer `/tools/skill-builder` (and siblings) so self-host and preview stay same-origin in the editor.
+
+## External links
+
+Third-party `http(s)` get `rel="noopener noreferrer nofollow"` + `target="_blank"` on display. You do not need to hand-author those attributes.
+
+## Checklist (blog HTML)
+
+- [ ] Primary tool link is the matching page (`/tools/skill-builder` for skill posts) — not only `/tools`
+- [ ] Channel tool URLs use catalog slugs when a platform is named
+- [ ] Headings stay `h2` / `h3` (TipTap); no extra `h1` in the body
+- [ ] FAQ answers and How-to steps can include the same internal `<a href="/tools/skill-builder">` links (admin Visual / HTML source)
+- [ ] FAQ / HowTo stay in the admin SEO fields, not copied into `content`

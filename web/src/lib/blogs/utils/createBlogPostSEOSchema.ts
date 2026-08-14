@@ -2,6 +2,8 @@ import { base } from '$app/paths';
 
 import type { FAQPage, HowTo, HowToStep, Product, Question, Thing } from 'schema-dts';
 
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import type {
 	BlogPostBySlugPublicViewModel,
@@ -62,7 +64,7 @@ function createBlogPostFaqPageNode(params: {
 					name: item.question,
 					acceptedAnswer: {
 						'@type': 'Answer',
-						text: item.answer
+						text: stripHtmlToPlainText(item.answer)
 					}
 				}) as Question
 		)
@@ -82,7 +84,7 @@ function createBlogPostHowToNode(params: {
 		'@type': 'HowToStep',
 		position: index + 1,
 		name: step.name,
-		text: step.text
+		text: stripHtmlToPlainText(step.text)
 	}));
 
 	return {

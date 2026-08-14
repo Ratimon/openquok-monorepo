@@ -3,6 +3,8 @@
 
 	import { icons } from '$data/icons';
 
+	import { normalizeContentEditorLinkHref } from '$lib/ui/editor/normalizeContentEditorLinkHref';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ContentEditorMenuButton from '$lib/ui/editor/ContentEditorMenuButton.svelte';
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
@@ -21,15 +23,18 @@
 			if (url === null) return;
 			if (url === '') {
 				editor.chain().focus().extendMarkRange('link').unsetLink().run();
-			} else {
-				editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+				return;
 			}
-		} else {
-			const url = window.prompt('Enter link URL:', 'https://');
-			if (url === null || url === '') return;
-			const href = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
-			editor.chain().focus().setLink({ href }).run();
+			const nextHref = normalizeContentEditorLinkHref(url);
+			if (!nextHref) return;
+			editor.chain().focus().extendMarkRange('link').setLink({ href: nextHref }).run();
+			return;
 		}
+		const url = window.prompt('Enter link URL:', '/tools/skill-builder');
+		if (url === null) return;
+		const nextHref = normalizeContentEditorLinkHref(url);
+		if (!nextHref) return;
+		editor.chain().focus().setLink({ href: nextHref }).run();
 	}
 </script>
 

@@ -2,12 +2,14 @@
 	import type { BlogPostFormSchemaType, BlogSeoHowtoStep, BlogSeoProduct, TopicChoice } from '$lib/blogs/blog.types';
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
+	import { createForm } from '@tanstack/svelte-form';
+
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
 	import {
 		isBlogTopicEligibleForHowTo,
 		isBlogTopicEligibleForProduct
 	} from '$lib/blogs/constants/blogSeoSchemaTopics';
-	import { createForm } from '@tanstack/svelte-form';
+	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { toast } from '$lib/ui/sonner';
 	import * as Field from '$lib/ui/field';
 	import { ContentEditor } from '$lib/ui/editor';
@@ -18,6 +20,7 @@
 	import * as Select from '$lib/ui/select';
 	import { blogHeroImageUploadAreaPresenter, imageRepository } from '$lib/core/index';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
+	import BlogRichTextField from '$lib/ui/components/blog-post/BlogRichTextField.svelte';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
 
 	type Props = {
@@ -55,8 +58,14 @@
 		topicSlug: string,
 		topicId: string
 	): Pick<BlogPostFormSchemaType, 'faq_items' | 'howto_steps' | 'product'> {
-		const faqItems = value.faq_items?.filter((item) => item.question.trim() && item.answer.trim()) ?? [];
-		const howtoSteps = value.howto_steps?.filter((step) => step.name.trim() && step.text.trim()) ?? [];
+		const faqItems =
+			value.faq_items?.filter(
+				(item) => item.question.trim() && stripHtmlToPlainText(item.answer).trim()
+			) ?? [];
+		const howtoSteps =
+			value.howto_steps?.filter(
+				(step) => step.name.trim() && stripHtmlToPlainText(step.text).trim()
+			) ?? [];
 		const product = value.product;
 		const hasProduct =
 			!!product?.name?.trim() && !!product?.description?.trim();
@@ -573,7 +582,8 @@
 									faqs={field.state.value ?? []}
 									onChange={(faqs) => field.handleChange(faqs.length > 0 ? faqs : null)}
 									label="FAQ items"
-									description="Question and answer pairs shown on the post and in FAQPage structured data."
+									description="Questions stay plain text. Answers use Visual or HTML source so you can link Skill Builder and other first-party pages. JSON-LD stores the answer as plain text."
+									richTextAnswers={true}
 								/>
 							</div>
 						{/snippet}
@@ -588,7 +598,7 @@
 								<div>
 									<Field.Label>How-to steps</Field.Label>
 									<Field.Description>
-										Step name and instructions shown on the post and in HowTo structured data.
+										Step name stays plain text. Instructions use Visual or HTML source for internal links. HowTo JSON-LD uses the stripped text.
 									</Field.Description>
 								</div>
 								{#each steps as _step, index (index)}
@@ -626,17 +636,17 @@
 										</div>
 										<div class="flex flex-col gap-2">
 											<Field.Label>Step text</Field.Label>
-											<Textarea
-												class="min-h-20"
-												placeholder="Enter step instructions"
+											<BlogRichTextField
+												textareaId="howto-step-text-{index}"
 												value={steps[index]?.text ?? ''}
-												oninput={(e) => {
-													const next = [...steps];
-													next[index] = {
-														...(next[index] ?? { name: '', text: '' }),
-														text: e.currentTarget.value
+												placeholder="Paste HTML or use Visual → link. Example: /tools/skill-builder"
+												onChange={(next) => {
+													const updated = [...steps];
+													updated[index] = {
+														...(updated[index] ?? { name: '', text: '' }),
+														text: next
 													};
-													field.handleChange(next);
+													field.handleChange(updated);
 												}}
 											/>
 										</div>
