@@ -52,6 +52,25 @@ const DEFAULT_META_TITLE = 'OPENQUOK';
 const DEFAULT_META_DESCRIPTION = 'OPENQUOK web application';
 const DEFAULT_META_KEYWORDS = 'openquok, cms, content platform';
 
+function escapeRegExp(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * svelte-meta-tags renders `titleTemplate.replace('%s', title)`.
+ * Skip the `| company` suffix when the title already is or contains the company name.
+ */
+export function resolveDocumentTitleTemplate(title: string, companyName: string): string {
+	const name = companyName.trim();
+	if (!name) return '%s';
+	const escaped = escapeRegExp(name);
+	const alreadyIncludesCompany = new RegExp(
+		`(^${escaped}$)|(^${escaped}\\s*\\|)|(\\|\\s*${escaped}\\s*$)`,
+		'i'
+	).test(title.trim());
+	return alreadyIncludesCompany ? '%s' : `%s | ${name}`;
+}
+
 /**
  * Creates metadata for a web page. If no custom values are provided, uses company/marketing config or defaults.
  * @param customTitle - Override page title.
@@ -135,14 +154,17 @@ export async function createMetaData({
 		});
 	}
 
+	const escapedCompanyName = escapeRegExp(companyName);
 	const cleanCustomTitle = customTitle
-		? (() => {
-				const pattern = new RegExp(
-					`\\s*\\|\\s*${companyName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\s*\\|\\s*${companyName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})*\\s*$`,
-					'g'
-				);
-				return customTitle.replace(pattern, '').trim();
-			})()
+		? customTitle
+				.replace(
+					new RegExp(
+						`\\s*\\|\\s*${escapedCompanyName}(\\s*\\|\\s*${escapedCompanyName})*\\s*$`,
+						'g'
+					),
+					''
+				)
+				.trim()
 		: undefined;
 
 	const title = cleanCustomTitle ?? finalMarketingConfig.META_TITLE ?? DEFAULT_META_TITLE;
@@ -169,7 +191,7 @@ export async function createMetaData({
 
 	return {
 		title,
-		titleTemplate: `%s | ${companyName}`,
+		titleTemplate: resolveDocumentTitleTemplate(title, companyName),
 		description,
 		canonical: canonicalHref,
 		keywords,

@@ -21,14 +21,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Authorize CLI — {companyName}</title>
-	<meta
-		name="description"
-		content="Authorize the official Openquok command-line tool on your computer."
-	/>
-</svelte:head>
-
 <div class="mt-12 flex min-h-[60vh] items-start justify-center px-4">
 	<Card class="w-full max-w-md">
 		<CardHeader>

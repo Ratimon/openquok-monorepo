@@ -3,12 +3,6 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 </script>
 
-<svelte:head>
-	<title>
-		Integrations — OpenQuok
-	</title>
-</svelte:head>
-
 <div class="mx-auto max-w-6xl min-w-0 px-4 py-8">
 	<div>
 		<div class="flex items-center gap-3">

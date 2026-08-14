@@ -192,10 +192,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Authorize Application - OpenQuok</title>
-</svelte:head>
-
 <div class="mx-auto max-w-xl py-10">
 	<div class="rounded-lg border border-base-300 bg-base-100 p-6">
 		{#if isPreparing}

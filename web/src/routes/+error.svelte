@@ -1,3 +1,13 @@
+<script lang="ts">
+	import { page } from '$app/state';
+
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
+</script>
+
+<svelte:head>
+	<title>Page not found | {companyName}</title>
+</svelte:head>
+
 <section class="min-h-screen">
 	<div class="w-full py-14">
 		<div class="mx-auto max-w-2xl text-center">

@@ -48,12 +48,6 @@
 	});
 </script>
 
-<svelte:head>
-	<title>
-		Confirm change password - OpenQuok
-	</title>
-</svelte:head>
-
 <div class="mt-12 flex justify-center px-4">
 	<Card class="w-full max-w-md border-base-300 bg-base-100">
 		<CardHeader>

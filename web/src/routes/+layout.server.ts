@@ -32,9 +32,15 @@ export async function load({ url, cookies, fetch }) {
 		updated_at: runtimeCompany?.updated_at ?? staticCompanyInformationPm.updated_at
 	};
 
+	const companyName =
+		typeof companyConfig.NAME === 'string' && companyConfig.NAME.trim()
+			? companyConfig.NAME.trim()
+			: String(getCompanyConfigDefaults().NAME ?? 'OPENQUOK');
+
 	const metaTags = await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
+		customTitle: companyName,
 		requestUrl: url
 	});
 

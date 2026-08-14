@@ -1,10 +1,28 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getCliAuthServerUrl } from '$lib/cli-auth/server';
+import { createMetaData } from '$lib/seo/createMetaData';
+import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ parent, url }) => {
+	const { companyInformationPm, marketingInformationPm } = await parent();
 	const code = url.searchParams.get('code')?.trim().toUpperCase() ?? '';
-	return { prefilledCode: code };
+
+	const metaTags = await createMetaData({
+		companyInformation: companyInformationPm,
+		marketingInformation: marketingInformationPm,
+		customTitle: 'Authorize CLI',
+		customDescription: 'Authorize the official OpenQuok command-line tool on your computer.',
+		customSlug: 'cli/device/verify',
+		requestUrl: url
+	});
+
+	const pageMetaTags = Object.freeze({
+		...withCanonicalMetaTags(metaTags, buildCanonicalUrl(url)),
+		robots: 'noindex, nofollow'
+	});
+
+	return { prefilledCode: code, pageMetaTags };
 };
 
 export const actions = {

@@ -11,7 +11,7 @@ import { url } from '$lib/utils/path';
 
 export const ssr = false;
 
-export const load: LayoutLoad = async ({ parent, url: loadUrl }) => {
+export const load: LayoutLoad = async ({ parent, data, url: loadUrl }) => {
 	const { isLoggedIn } = await parent();
 
 	const confirmChangePasswordPath = url(getRootPathConfirmChangePassword());
@@ -33,5 +33,5 @@ export const load: LayoutLoad = async ({ parent, url: loadUrl }) => {
 		goto(destination, { replaceState: true });
 	}
 
-	return { isLoggedIn };
+	return { ...data, isLoggedIn };
 };
