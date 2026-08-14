@@ -1,10 +1,11 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
 
+	import { cn } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import { cn } from '$lib/ui/helpers/common';
 
 	type ChecklistItem = {
 		id: string;
@@ -13,6 +14,7 @@
 		actionLabel?: string;
 		onAction?: () => void;
 		disabled?: boolean;
+		href?: string;
 		/** Show the action button even when `done` is true (e.g. revisit settings). */
 		showActionWhenDone?: boolean;
 	};
@@ -53,7 +55,9 @@
 
 	<div class="grid divide-y divide-base-300 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
 		<div class="px-5 py-5">
-			<h3 class="text-sm font-semibold text-base-content">Welcome to OpenQuok!</h3>
+			<h3 class="text-sm font-semibold text-base-content">
+				Welcome to OpenQuok!
+			</h3>
 			<p class="mt-1 text-sm text-base-content/65">
 				Complete these steps to get your workspace ready.
 			</p>
@@ -74,14 +78,26 @@
 									<AbstractIcon name={icons.Check.name} class="size-3" width="12" height="12" />
 								{/if}
 							</span>
-							<span
-								class={cn(
-									'text-sm',
-									item.done ? 'text-base-content/50 line-through' : 'text-base-content'
-								)}
-							>
-								{item.label}
-							</span>
+							{#if item.href}
+								<a
+									href={item.href}
+									class={cn(
+										'text-sm hover:underline',
+										item.done ? 'text-base-content/50 line-through' : 'text-base-content'
+									)}
+								>
+									{item.label}
+								</a>
+							{:else}
+								<span
+									class={cn(
+										'text-sm',
+										item.done ? 'text-base-content/50 line-through' : 'text-base-content'
+									)}
+								>
+									{item.label}
+								</span>
+							{/if}
 						</div>
 						{#if item.actionLabel && item.onAction && (!item.done || item.showActionWhenDone)}
 							<Button

@@ -26,6 +26,7 @@
 	} from '$lib/area-protected';
 	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
+	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import { getSetPresenter } from '$lib/sets';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
 	import {
@@ -38,6 +39,7 @@
 	import { buildAccountSettingsSearchParams } from '$lib/settings/utils/buildAccountSettingsSearch';
 	import {
 		GETTING_STARTED_NOTICE_KIND,
+		GETTING_STARTED_TIKTOK_WARMUP_KIND,
 		isOnboardingCompleted,
 		markOnboardingCompleted,
 		persistHomeNoticeDismissed,
@@ -92,6 +94,11 @@
 	const openclawGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/openclaw`));
 	const hermesGuideHref = $derived(url(`${publicDocsPath}/agent-setup-guides/hermes`));
 	const mcpSetupGuidesHref = $derived(url(`${publicDocsPath}/mcp-setup-guides`));
+
+	// /blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience
+	const tiktokWarmUpGuideHref = route(
+		getRootPathPublicBlogPost('how-to-warm-up-a-tiktok-account-to-reach-a-us-audience')
+	);
 
 	const rootPathPublicAgents = getRootPathPublicAgents();
 	const publicAgentsPath = route(rootPathPublicAgents);
@@ -521,6 +528,7 @@
 	let soloUpgradeNoticeDismissed = $state(false);
 
 	let gettingStartedDismissed = $state(false);
+	let tiktokWarmupDone = $state(false);
 
 	const HOME_NOTICE_KIND_NO_CHANNELS = 'no-channels';
 	const HOME_NOTICE_KIND_INVITE_TEAM = 'invite-team';
@@ -556,6 +564,13 @@
 		productTourResetPresenter.bumpRevision();
 	}
 
+	function markTiktokWarmupDone(): void {
+		tiktokWarmupDone = true;
+		if (workspaceId) {
+			persistHomeNoticeDismissedLocal(GETTING_STARTED_TIKTOK_WARMUP_KIND, workspaceId);
+		}
+	}
+
 	$effect(() => {
 		const orgId = workspaceId;
 		void productTourResetPresenter.revision;
@@ -563,6 +578,7 @@
 		inviteTeamNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_INVITE_TEAM, orgId);
 		soloUpgradeNoticeDismissed = readHomeNoticeDismissed(HOME_NOTICE_KIND_SOLO_UPGRADE, orgId);
 		gettingStartedDismissed = readHomeNoticeDismissed(GETTING_STARTED_NOTICE_KIND, orgId);
+		tiktokWarmupDone = readHomeNoticeDismissed(GETTING_STARTED_TIKTOK_WARMUP_KIND, orgId);
 	});
 
 	$effect(() => {
@@ -630,6 +646,14 @@
 	}
 
 	const gettingStartedChecklist = $derived([
+		{
+			id: 'tiktok-warmup',
+			label: 'Warm up TikTok account (optional)',
+			done: tiktokWarmupDone,
+			href: tiktokWarmUpGuideHref,
+			actionLabel: 'Mark done',
+			onAction: markTiktokWarmupDone
+		},
 		{ id: 'account', label: 'Create an account', done: true },
 		{
 			id: 'channel',

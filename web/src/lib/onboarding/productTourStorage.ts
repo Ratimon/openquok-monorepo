@@ -4,6 +4,7 @@ export const ONBOARDING_COMPLETED_STORAGE_KEY = 'onboarding:completed';
 
 export const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
 export const GETTING_STARTED_NOTICE_KIND = 'getting-started';
+export const GETTING_STARTED_TIKTOK_WARMUP_KIND = 'getting-started-tiktok-warmup';
 
 export function homeNoticeStorageKey(kind: string, orgId: string): string {
 	return `${HOME_NOTICE_STORAGE_PREFIX}:${kind}:${orgId}`;
@@ -53,6 +54,7 @@ export function resetProductTours(workspaceId: string | null): void {
 		clearAccountSidebarTours(workspaceId);
 		if (workspaceId) {
 			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_NOTICE_KIND, workspaceId));
+			localStorage.removeItem(homeNoticeStorageKey(GETTING_STARTED_TIKTOK_WARMUP_KIND, workspaceId));
 		}
 	} catch {
 		// ignore
