@@ -27,7 +27,7 @@ They **never replace** openquok-core. Install core + the CLI first, then add the
 
 <CardGrid>
 <LinkCard title="Introduction to Openquok CLI" description="Install openquok-core, the global CLI, and authenticate" href="/docs/getting-started-for-cli" />
-<LinkCard title="Agent Setup Guides" description="Wire openquok-core into OpenClaw, Hermes, and similar hosts" href="/docs/agent-setup-guides" />
+<LinkCard title="Agent Setup Guides" description="Wire openquok-core into OpenClaw, Hermes, Grok Bot, and similar hosts" href="/docs/agent-setup-guides" />
 <LinkCard title="CLI Examples — TikTok" description="Photo carousel and privacy settings for posts:create" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Warm up a TikTok account" description="Before start TikTok account" href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience" />
 <LinkCard title="CLI Usage" description="Command-by-command reference" href="/docs/cli-usages" />

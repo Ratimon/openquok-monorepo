@@ -15,6 +15,7 @@ import {
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
+import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
@@ -64,7 +65,7 @@ function createBlogPostFaqPageNode(params: {
 					name: item.question,
 					acceptedAnswer: {
 						'@type': 'Answer',
-						text: stripHtmlToPlainText(item.answer)
+						text: stripHtmlToPlainText(prepareBlogRichTextForDisplay(item.answer))
 					}
 				}) as Question
 		)
@@ -84,7 +85,7 @@ function createBlogPostHowToNode(params: {
 		'@type': 'HowToStep',
 		position: index + 1,
 		name: step.name,
-		text: stripHtmlToPlainText(step.text)
+		text: stripHtmlToPlainText(prepareBlogRichTextForDisplay(step.text))
 	}));
 
 	return {

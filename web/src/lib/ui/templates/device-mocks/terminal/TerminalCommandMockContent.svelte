@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { TerminalMockContentId } from '$lib/ui/templates/device-mocks/terminal/terminalMock.types';
 
+	import OpenquokSkillInstallGrokBotMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallGrokBotMock.svelte';
 	import OpenquokSkillInstallHermesMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallHermesMock.svelte';
 	import OpenquokSkillInstallMock from '$lib/ui/templates/device-mocks/terminal/content/OpenquokSkillInstallMock.svelte';
 
@@ -15,4 +16,6 @@
 	<OpenquokSkillInstallMock />
 {:else if content === 'openquok-skill-install-hermes'}
 	<OpenquokSkillInstallHermesMock />
+{:else if content === 'openquok-skill-install-grok-bot'}
+	<OpenquokSkillInstallGrokBotMock />
 {/if}

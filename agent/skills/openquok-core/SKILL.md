@@ -8,7 +8,7 @@ license: MIT
 compatibility: Requires the global openquok CLI on PATH (see homepage). Installing this skill does not add the binary.
 prerequisites:
   commands: [openquok]
-metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquok"]},"homepage":"https://www.npmjs.com/package/@openquok/auto-cli"},"hermes":{"tags":["social-media","openquok","scheduling"],"category":"social-media","requires_toolsets":["terminal"]}}
+metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquok"]},"homepage":"https://www.npmjs.com/package/@openquok/auto-cli"},"hermes":{"tags":["social-media","openquok","scheduling"],"category":"social-media","requires_toolsets":["terminal"]},"grok-bot":{"tags":["social-media","openquok","scheduling"],"category":"social-media","requires_toolsets":["terminal"],"workspace_skill_path":"/workspace/openquok-core/SKILL.md"}}
 ---
 
 <!-- SPDX-FileCopyrightText: 2026 Rati Montreewat -->

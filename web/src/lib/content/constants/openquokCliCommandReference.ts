@@ -44,6 +44,19 @@ export const HERMES_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl', command: OPENQUOK_CORE_SKILL_INSTALL_HERMES_CURL }
 ];
 
+/** Grok Bot: ask the Bot to install the global CLI on its cloud computer. */
+export const OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_ASK = `npm install -g @openquok/auto-cli@latest`;
+
+/** Grok Bot: curl SKILL.md into durable workspace, then save as a skill named openquok-core. */
+export const OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL = `mkdir -p /workspace/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o /workspace/openquok-core/SKILL.md`;
+
+export const GROK_BOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'ask-bot', label: 'Ask the Bot', command: OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_ASK },
+	{ id: 'curl', label: 'curl + Plugins', command: OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL }
+];
+
 /** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
 export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }

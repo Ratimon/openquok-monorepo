@@ -102,6 +102,9 @@
 	const hermesGuideHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/hermes`, page.url.origin)
 	);
+	const grokBotGuideHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/grok-bot`, page.url.origin)
+	);
 	const mcpSetupGuidesHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
 	);
@@ -121,6 +124,9 @@
 	);
 	const hermesAgentHref = $derived(
 		hostedMarketingHref(`${publicAgentsPath}/hermes`, page.url.origin)
+	);
+	const grokBotAgentHref = $derived(
+		hostedMarketingHref(`${publicAgentsPath}/grok-bot`, page.url.origin)
 	);
 
 	const pagePresenter = protectedHomePagePresenter;
@@ -734,6 +740,13 @@
 			external: true
 		},
 		{
+			label: 'Grok Bot agent guide',
+			description: 'Install openquok-core on Grok Bot.',
+			iconName: icons.BookOpen.name,
+			href: grokBotGuideHref,
+			external: true
+		},
+		{
 			label: 'MCP setup guides',
 			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
 			iconName: icons.BookOpen.name,
@@ -772,6 +785,12 @@
 			description: 'Agent automation with messaging gateways.',
 			iconName: icons.Bot.name,
 			href: hermesAgentHref
+		},
+		{
+			label: 'Grok Bot + OpenQuok',
+			description: 'Schedule from desktop chat on a cloud computer.',
+			iconName: icons.Bot.name,
+			href: grokBotAgentHref
 		}
 	]);
 

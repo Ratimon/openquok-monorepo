@@ -8,6 +8,7 @@ import type {
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/shared';
+import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
 import { hermesAgentChannelConfigs, hermesAgentChannelHost } from '$lib/content/constants/agents/channels/hermes';
 import {
 	openclawAgentChannelConfigs,
@@ -17,9 +18,10 @@ import {
 export * from '$lib/content/constants/agents/channels/types';
 export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/openclaw';
 export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hermes';
+export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/grok-bot';
 
 /** Agent host slugs that support `/agents/{agentSlug}/{channelSlug}` SEO pages. */
-export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = ['openclaw', 'hermes'] as const;
+export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = ['openclaw', 'hermes', 'grok-bot'] as const;
 
 export type PublicAgentChannelHostSlug = (typeof PUBLIC_AGENT_CHANNEL_HOST_SLUGS)[number];
 
@@ -28,7 +30,8 @@ const channelConfigsByHostSlug: Record<
 	readonly PublicAgentChannelPageConfig[]
 > = {
 	openclaw: openclawAgentChannelConfigs,
-	hermes: hermesAgentChannelConfigs
+	hermes: hermesAgentChannelConfigs,
+	'grok-bot': grokBotAgentChannelConfigs
 };
 
 const channelConfigByHostAndSlug = new Map<string, PublicAgentChannelPageConfig>();
@@ -121,4 +124,8 @@ export function listPublicAgentChannelsForHub(
 	return [];
 }
 
-export const AGENT_CHANNEL_HOSTS = [openclawAgentChannelHost, hermesAgentChannelHost] as const;
+export const AGENT_CHANNEL_HOSTS = [
+	openclawAgentChannelHost,
+	hermesAgentChannelHost,
+	grokBotAgentChannelHost
+] as const;

@@ -62,7 +62,7 @@
 								{step.name}
 							</h3>
 							<div
-								class="mt-2 max-w-none text-base-content/80 [&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:opacity-90"
+								class="blog-howto-step-prose prose prose-sm mt-2 max-w-none text-base-content/80 prose-p:text-base-content/80 prose-strong:text-base-content prose-a:text-primary prose-code:text-base-content [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:opacity-90"
 							>
 								{@html prepareBlogRichTextForDisplay(step.text)}
 							</div>

@@ -8,11 +8,12 @@
 
 	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 
-	type AgentTab = 'openclaw' | 'hermes';
+	type AgentTab = 'openclaw' | 'hermes' | 'grok-bot';
 
 	const OPENCLAW_OFFICIAL_DOCS_HREF = 'https://docs.openclaw.ai';
 	const HERMES_OFFICIAL_DOCS_HREF =
 		'https://hermes-agent.nousresearch.com/docs/getting-started/quickstart';
+	const GROK_BOT_OFFICIAL_DOCS_HREF = 'https://docs.x.ai/grok-bot/get-started';
 
 	let agentTab = $state<AgentTab>('openclaw');
 
@@ -23,17 +24,18 @@
 <div class="px-6 py-6">
 	<h3 class="text-lg font-semibold text-base-content">Connect your AI agent</h3>
 	<p class="mt-2 max-w-3xl text-sm text-base-content/70">
-		Install OpenClaw or Hermes Agent on a host you control, connect Telegram or another chat app, then
-		continue to install the OpenQuok CLI and skill.
+		Install OpenClaw, Hermes Agent, or Grok Bot on a host you control (or Grok Bot’s cloud computer),
+		connect your chat surface, then continue to install the OpenQuok CLI and skill.
 	</p>
 
 	<div class="mt-6">
 		<Tabs.Root bind:value={agentTab} defaultValue="openclaw" class="w-full">
 			<Tabs.List
-				class="inline-flex w-full max-w-md flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
+				class="inline-flex w-full max-w-2xl flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
 			>
 				<Tabs.Trigger value="openclaw" class={tabTriggerClass}>OpenClaw</Tabs.Trigger>
 				<Tabs.Trigger value="hermes" class={tabTriggerClass}>Hermes Agent</Tabs.Trigger>
+				<Tabs.Trigger value="grok-bot" class={tabTriggerClass}>Grok Bot</Tabs.Trigger>
 			</Tabs.List>
 
 			<div class="mt-6 grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -87,7 +89,7 @@
 							<SafariMockContent content="openclaw-docs-overview" />
 						</SafariMock>
 					</div>
-				{:else}
+				{:else if agentTab === 'hermes'}
 					<div class="space-y-4">
 						<p class="text-sm text-base-content/80">
 							Hermes Agent runs on your laptop or a cloud VM. Install it, pick a model, connect a messaging
@@ -142,6 +144,56 @@
 					>
 						<SafariMock class="size-full" url="hermes-agent.nousresearch.com">
 							<SafariMockContent content="hermes-docs-overview" />
+						</SafariMock>
+					</div>
+				{:else}
+					<div class="space-y-4">
+						<p class="text-sm text-base-content/80">
+							Grok Bot is an AI teammate on a shared cloud computer. Install the desktop or iOS app, create
+							a Bot, then add the OpenQuok skill on its computer in the next step.
+						</p>
+						<ol class="space-y-3 text-sm text-base-content/80">
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>1</span>
+								<span>Install Grok Bot on macOS, Windows, or iOS (eligible Cursor or SuperGrok plan).</span>
+							</li>
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>2</span>
+								<span>Create a Bot — it gets a persistent browser, filesystem, and terminal.</span>
+							</li>
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>3</span>
+								<span>Message the Bot from desktop or iOS; add skills via Settings → Plugins or / in chat.</span>
+							</li>
+						</ol>
+						<Button
+							variant="outline"
+							size="sm"
+							class="gap-1.5"
+							href={GROK_BOT_OFFICIAL_DOCS_HREF}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
+							Grok Bot get started
+						</Button>
+					</div>
+					<div
+						class="mx-auto w-full max-w-xl overflow-hidden"
+						role="img"
+						aria-label="Grok Bot documentation at x.ai/bot"
+					>
+						<SafariMock class="size-full" url="x.ai/bot">
+							<SafariMockContent content="grok-bot-docs-overview" />
 						</SafariMock>
 					</div>
 				{/if}

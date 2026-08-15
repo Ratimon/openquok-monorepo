@@ -35,6 +35,9 @@
 	const hermesDocsHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/hermes`, page.url.origin)
 	);
+	const grokBotDocsHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/grok-bot`, page.url.origin)
+	);
 	const apiKeySettingsHref = url(
 		`${accountPath}/settings?${buildAccountSettingsSearchParams('developers')}`
 	);
@@ -93,7 +96,7 @@
 				<p>
 					Install the
 					<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>openquok-core</code>
-					skill for your agent that supports project skills (e.g. OpenClaw, Hermes, and others). The skill
+					skill for your agent that supports project skills (e.g. OpenClaw, Hermes, Grok Bot, and others). The skill
 					teaches Openquok CLI usage; run the install command below:
 				</p>
 				<CopyBlock
@@ -152,6 +155,17 @@
 		>
 			<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
 			Hermes guide
+		</Button>
+		<Button
+			variant="outline"
+			size="sm"
+			class="gap-1.5"
+			href={grokBotDocsHref}
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
+			Grok Bot guide
 		</Button>
 		<Button variant="primary" size="sm" href={apiKeySettingsHref}>Get programmatic token</Button>
 	</div>

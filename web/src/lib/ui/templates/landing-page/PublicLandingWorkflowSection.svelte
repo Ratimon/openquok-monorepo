@@ -50,6 +50,7 @@
 				<DesktopMock class="size-full">
 					<DesktopMockContent
 						content={section.deviceMockContent as DesktopMockContentId}
+						{telegramAgentBranding}
 					/>
 				</DesktopMock>
 			</div>

@@ -7,11 +7,33 @@ function decodeHtmlEntities(html: string): string {
 		.replace(/&gt;/g, '>')
 		.replace(/&quot;/g, '"')
 		.replace(/&#39;/g, "'")
-		.replace(/&#x27;/gi, "'");
+		.replace(/&#x27;/gi, "'")
+		.replace(/&#0*60;/g, '<')
+		.replace(/&#x0*3c;/gi, '<')
+		.replace(/&#0*62;/g, '>')
+		.replace(/&#x0*3e;/gi, '>');
 }
 
 function looksLikeHtml(text: string): boolean {
 	return /<\/?[a-z][\s\S]*>/i.test(text);
+}
+
+function looksLikeEncodedHtml(text: string): boolean {
+	return /(?:&lt;|&#0*60;|&#x0*3c;)\s*\/?\s*[a-z]/i.test(text);
+}
+
+/** TipTap Visual mode often wraps pasted HTML as a single code block or paragraph of escaped tags. */
+function unwrapTipTapEscapedHtmlShell(html: string): string {
+	const trimmed = html.trim();
+	const preCode = /^<pre\b[^>]*>\s*<code\b[^>]*>([\s\S]*)<\/code>\s*<\/pre>$/i.exec(trimmed);
+	if (preCode && looksLikeEncodedHtml(preCode[1])) {
+		return decodeHtmlEntities(preCode[1]);
+	}
+	const paragraph = /^<p\b[^>]*>([\s\S]*)<\/p>$/i.exec(trimmed);
+	if (paragraph && looksLikeEncodedHtml(paragraph[1])) {
+		return decodeHtmlEntities(paragraph[1]);
+	}
+	return html;
 }
 
 function escapeHtml(text: string): string {
@@ -40,13 +62,13 @@ export function plainTextToBlogHtml(text: string): string {
  * (each tag line wrapped in `<p>&lt;...&gt;</p>`).
  */
 export function repairDoubleEncodedBlogHtml(html: string): string {
-	if (!html.includes('&lt;')) return html;
-
-	let decoded = decodeHtmlEntities(html);
-	if (decoded.includes('&lt;')) {
-		decoded = decodeHtmlEntities(decoded);
+	let current = unwrapTipTapEscapedHtmlShell(html);
+	for (let i = 0; i < 3; i++) {
+		if (!looksLikeEncodedHtml(current) && !current.includes('&lt;')) break;
+		current = decodeHtmlEntities(current);
+		current = unwrapTipTapEscapedHtmlShell(current);
 	}
-	return decoded;
+	return current;
 }
 
 /**
@@ -122,6 +144,9 @@ export function prepareBlogRichTextForDisplay(content: string): string {
 	if (!trimmed) return '';
 
 	let html = repairDoubleEncodedBlogHtml(trimmed);
+	if (looksLikeEncodedHtml(html)) {
+		html = decodeHtmlEntities(html);
+	}
 	if (!looksLikeHtml(html)) {
 		html = plainTextToBlogHtml(html);
 	}

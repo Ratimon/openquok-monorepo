@@ -4,6 +4,10 @@
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import {
+		GROK_BOT_CORE_MESSAGING_CHANNELS,
+		GROK_BOT_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/grok-bot-messaging-channels';
+	import {
 		HERMES_CORE_MESSAGING_CHANNELS,
 		HERMES_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/hermes-messaging-channels';
@@ -75,13 +79,28 @@
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(agentVm.agentLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(agentVm.agentLabel));
 
+	const messagingChannelsByHostSlug = {
+		openclaw: {
+			core: OPENCLAW_CORE_MESSAGING_CHANNELS,
+			extension: OPENCLAW_EXTENSION_MESSAGING_CHANNELS
+		},
+		hermes: {
+			core: HERMES_CORE_MESSAGING_CHANNELS,
+			extension: HERMES_EXTENSION_MESSAGING_CHANNELS
+		},
+		'grok-bot': {
+			core: GROK_BOT_CORE_MESSAGING_CHANNELS,
+			extension: GROK_BOT_EXTENSION_MESSAGING_CHANNELS
+		}
+	} as const;
+
 	const coreMessagingChannels = $derived(
-		agentVm.slug === 'hermes' ? HERMES_CORE_MESSAGING_CHANNELS : OPENCLAW_CORE_MESSAGING_CHANNELS
+		messagingChannelsByHostSlug[agentVm.slug as keyof typeof messagingChannelsByHostSlug]?.core ??
+			[]
 	);
 	const extensionMessagingChannels = $derived(
-		agentVm.slug === 'hermes'
-			? HERMES_EXTENSION_MESSAGING_CHANNELS
-			: OPENCLAW_EXTENSION_MESSAGING_CHANNELS
+		messagingChannelsByHostSlug[agentVm.slug as keyof typeof messagingChannelsByHostSlug]
+			?.extension ?? []
 	);
 
 	const telegramAgentBranding = $derived({

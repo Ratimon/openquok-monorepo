@@ -3,14 +3,21 @@ description: Checklist for adding an agent host (OpenClaw, Hermes, …) or an MC
 globs:
   - web/src/lib/content/constants/agents/**
   - web/src/lib/content/constants/mcps/**
+  - web/src/data/*messaging-channels.ts
   - web/src/lib/developers/utils/getMcpClientConfig.ts
   - web/src/lib/ui/components/developer/McpClientConfiguration.svelte
   - web/src/lib/ui/components/onboarding/mcp/**
+  - web/src/lib/ui/components/onboarding/agent/**
   - web/src/lib/ui/templates/device-mocks/safari/mcp*.ts
+  - web/src/lib/ui/templates/device-mocks/safari/safariMock.types.ts
+  - web/src/lib/ui/templates/device-mocks/terminal/terminalMock.types.ts
   - web/src/content/docs/agent-setup-guides/**
   - web/src/content/docs/mcp-setup-guides/**
   - web/src/content/docs/getting-started-for-mcp/**
   - web/src/routes/(public)/agents/**
+  - web/src/routes/(protected)/secret-admin/blog-manager/**
+  - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
+  - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
   - .cursor/rules/add-agent.mdc
 alwaysApply: false
 ---
@@ -23,10 +30,12 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 | Kind | Examples | Landing seed | Docs section | Developer Access |
 | --- | --- | --- | --- | --- |
-| **Agent host** | OpenClaw, Hermes | `web/src/lib/content/constants/agents/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
+| **Agent host** | OpenClaw, Hermes, Grok Bot | `web/src/lib/content/constants/agents/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
 | **MCP client** | Cursor, ChatGPT, Warp | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
-Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**.
+Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**.
+
+**Do not edit `backend/supabase/db/**`** for agent launches (no listing-tag seeds, no blog seeds, no migration re-aggregate). Catalog tags and launch blog posts go in through secret-admin UI — see **C. CMS (blog + listing tag)** below.
 
 ---
 
@@ -41,6 +50,14 @@ Use one **lowercase kebab-case** slug everywhere:
 - Public URL: `/agents/{slug}` (and `/agents/{slug}/{channelSlug}` when channel SEO applies)
 
 `mcpClient` label (MCP clients) must be a member of `MCP_CLIENTS` in `getMcpClientConfig.ts` — exact string match.
+
+### Hero title gradient highlights
+
+Landing heroes (`heroTitle` is usually `Schedule social media from {label} then you approve`) pick up gradient styling via `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in **`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts`**.
+
+Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
+
+Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface that passes `landingHeroTheme` into `HeroMain`.
 
 ---
 
@@ -106,6 +123,7 @@ Do **not** add MCP clients under `agent-setup-guides/` (that section is for CLI 
 
 - [ ] Icon + `MCP_CLIENTS` + `MCP_CLIENT_DOCS_SLUG` + both auth branches + unit test
 - [ ] `{slug}.ts` seed registered in `mcps/index.ts`
+- [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the client label
 - [ ] Mock verify/install/workflow/analytics unions + theme
 - [ ] `mcp-setup-guides/{slug}.md` + index `LinkCard` + `getting-started-for-mcp/setup.md` table
 - [ ] Smoke `/agents/{slug}`, Developers → Access client chip, `/docs/mcp-setup-guides/{slug}`
@@ -122,24 +140,76 @@ Same as MCP clients — `branded-icons.ts`.
 
 **`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/index.ts`** (and hub copy in `hub.ts` / shared FAQs when needed).
 
-### 3. Docs
+Add host-specific **`skillInstallOptions`** in **`openquokCliCommandReference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
 
-**`web/src/content/docs/agent-setup-guides/{slug}.md`** + **`agent-setup-guides/index.md`** `LinkCard`. Cross-link CLI auth / openquok-core as appropriate.
+### 3. Messaging / workflow mocks (agent hosts)
 
-### 4. Channel SEO (when shipping per-channel agent pages)
+Do **not** let new hosts fall through to OpenClaw Telegram/WhatsApp in **`PublicAgentLandingPage.svelte`**. Either reuse Hermes/OpenClaw channel data or add **`web/src/data/{slug}-messaging-channels.ts`** and branch in the landing page map.
 
-Follow patterns under `web/src/lib/content/constants/agents/channels/` and **add-social-provider-integration** for `/agents/{agentSlug}/{channelSlug}`.
+| File | Agent-host mocks |
+| --- | --- |
+| `safariMock.types.ts` + `SafariMockContent.svelte` | `{slug}-docs-overview` + `*DocsOverviewMock.svelte` |
+| `terminalMock.types.ts` + `TerminalCommandMockContent.svelte` | `openquok-skill-install-{slug}` when install is terminal-driven |
 
-### 5. Skills / CLI
+Telegram-first hosts (OpenClaw, Hermes): `iphone-15-pro` + `agent-chat-schedule`. Desktop-first hosts (Grok Bot): `desktop` workflow mocks.
 
-Update `agent/skills/openquok-core/` (and related docs under `getting-started-for-cli` / `cli-usages`) only when the host’s install path or skill discovery changes.
+Wire onboarding: **`OnboardingAgentConnectStep.svelte`** tab + official docs link; **`OnboardingAgentCliStep.svelte`** docs href; **`account/+page.svelte`** landing + guide shortcut cards.
+
+### 4. Docs
+
+**`web/src/content/docs/agent-setup-guides/{slug}.md`** + **`agent-setup-guides/index.md`** `LinkCard`. Cross-link CLI auth / openquok-core as appropriate. Mention the host in **`hub.ts`**, **`getting-started-for-cli/index.md`**, **`mcp-setup-guides/index.md`** (agent-hosts sentence), **`other-skills/index.md`**, **`publicSkillBuilderFaqConfig.ts`**, and **`publicFaqConfig.ts`** when OpenClaw/Hermes are named.
+
+### 5. Channel SEO (when shipping per-channel agent pages)
+
+Follow patterns under `web/src/lib/content/constants/agents/channels/` and **add-social-provider-integration** for `/agents/{agentSlug}/{channelSlug}`. Append slug to **`PUBLIC_AGENT_CHANNEL_HOST_SLUGS`** in `agents/channels/index.ts`.
+
+### 6. Skills / CLI
+
+Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when discovery differs) and related docs under `getting-started-for-cli` / `cli-usages` only when the host’s install path changes.
+
+### Grok Bot specifics (`grok-bot`)
+
+- **Not** an MCP client — no `mcps/grok-bot.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/grok-bot.md`.
+- Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
+- Reference implementation: **`grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**.
 
 ### Agent host PR checklist
 
 - [ ] Icon + agent seed registered; hub lists the host
-- [ ] `agent-setup-guides/{slug}.md` + index card
-- [ ] Channel SEO seeds if `/agents/{slug}/{channel}` is in scope
+- [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the host label
+- [ ] `skillInstallOptions` + messaging channels (no OpenClaw fallback on landing)
+- [ ] Safari/terminal mock ids + onboarding + account shortcuts
+- [ ] `agent-setup-guides/{slug}.md` + index card + cross-mentions in hub/CLI/FAQ copy
+- [ ] Channel SEO in `agents/channels/` if `/agents/{slug}/{channel}` is in scope
+- [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
 - [ ] Smoke `/agents/{slug}` and docs page
+
+---
+
+## C. CMS (blog + listing tag) — no DB migrations
+
+Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in secret-admin (or hand paste-ready copy to an operator). Follow **web-seo-blog** for blog HTML.
+
+### Listing tag — Listing Manager
+
+1. `/secret-admin/listing-manager/tags` → **Add tag**
+2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
+3. **Description:** one neutral sentence on skills/CLI for that host
+4. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
+
+**UI gap:** Tags modal has name + description only; **`tagGroupIds` is always `[]`**. Autonomous agents hub group membership is not editable in UI — tag still works on listings and free tag filters.
+
+Do **not** create a separate Extensions Hub listing row unless shipping a dedicated catalog card (OpenClaw/Hermes use tag-only).
+
+### Launch blog — Blog Manager
+
+1. `/secret-admin/blog-manager/posts/new` → create; polish at `/secret-admin/blog-manager/posts/[id]`
+2. **Topic:** How-to Tutorials (unlocks How-to steps)
+3. **Content:** HTML source — `h2`/`h3` only; root-relative `/agents/{slug}`, `/docs/agent-setup-guides/{slug}`, `/tools/…` links per **web-seo-blog**
+4. **Structured SEO:** FAQ + How-to in form fields — **not** duplicated in body HTML
+5. **Publish:** User published + **Admin approved** (required for public `/blog/[slug]`)
+
+Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff — do **not** add blog markdown under `web/src/content`.
 
 ---
 
@@ -150,3 +220,5 @@ Update `agent/skills/openquok-core/` (and related docs under `getting-started-fo
 - Put MCP-client setup under `agent-setup-guides/` or agent-host skill install under `mcp-setup-guides/`.
 - Hardcode icon name strings — use `icons.{Brand}.name`.
 - Name third-party source projects or external repo paths in seeds, docs, or comments (see **source-project-neutrality**).
+- Create or edit **`backend/supabase/db/**`** listing-tag or blog seeds for agent launches — use secret-admin (**C**).
+- Classify a desktop/cloud teammate product as an MCP client when it uses CLI + skills (Grok Bot → agent host).

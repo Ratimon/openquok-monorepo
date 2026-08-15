@@ -24,6 +24,7 @@ export type BrandedIconName =
     | "Github"
     | "Google"
     | "GoogleChat"
+    | "GrokBot"
     | "HermesAgent"
     | "Hootsuite"
     | "IMessage"
@@ -233,6 +234,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 512 512"><path d="M129 0v122.7H6.4V32.5c.9-6.4 2.8-11.7 5.7-16.1C19.2 5.7 29.5.3 43 .3 71.5.1 100.2 0 129 0" style="fill:#0066da"/><path d="M129 0h252.6c.5 0 1 .2 1.5.5l.6.4c-.2.1-.3.1-.4.2-.2.1-.3.2-.3.4v121.2H129.1z" style="fill:#fbbc04"/><path d="m383.7.9 121.1 121.4-121.8.4V1.5c0-.2.1-.4.3-.4.1 0 .2-.1.4-.2" style="fill:#ea4335"/><path d="M6.5 122.7h122.6v169.6H6.5z" style="fill:#2684fc"/><path d="m504.7 122.4.8.5v259.8c-2.8 15.5-10.9 25.6-24.2 30.1-4.7 1.6-11.7 2.4-20.9 2.4l-181.2-.3c-8.9 0-17.8.1-27 .2-.5 0-.9.2-1.3.5-29.8 29.7-59.8 59.7-89.9 89.9-4.6 4.6-9.8 7.2-16.4 6.2-6.2-.9-10.7-4.1-13.6-9.5-1.2-2.3-1.9-6.5-1.9-12.6-.1-24.8-.1-49.7-.1-74.7v-61.4l60.6-60.6c.5-.5 1.3-.8 2-.8l189.8.1c.7 0 1.3-.6 1.3-1.3V122.8h.1z" style="fill:#00ac47"/><path d="M129.1 292.3v122.6c-25.6.1-51.1.2-76.3.1-10.5 0-18.1-.8-22.7-2.5-13-4.5-20.9-14.6-23.7-30.2v-90.2z" style="fill:#00832d"/></svg>`
+    },
+    /** Grok Bot product mark. */
+    GrokBot: {
+        name: "GrokBot",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="6" fill="#0a0a0a"/><path fill="#fff" d="M6.5 17.5 12 6.5l5.5 11H15l-1.2-2.5H10.2L9 17.5H6.5Zm2.8-4.5h3.4L12 9.8l-2.7 3.2Z"/><path fill="#fff" opacity=".35" d="M17.5 17.5V6.5h2v11h-2Z"/>`
     },
     /** Hermes Agent product mark. */
     HermesAgent: {
