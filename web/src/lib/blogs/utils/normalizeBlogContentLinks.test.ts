@@ -35,4 +35,24 @@ describe('normalizeBlogContentLinks', () => {
 		const html = `<p><a href="/pricing" rel="noopener noreferrer nofollow" target="_blank">Pricing</a></p>`;
 		expect(normalizeBlogContentLinks(html)).toBe(`<p><a href="/pricing">Pricing</a></p>`);
 	});
+
+	it('keeps npmjs and first-party GitHub followable', () => {
+		expect(normalizeBlogContentLinks('<p><a href="https://www.npmjs.com/package/@openquok/auto-cli">CLI</a></p>')).toBe(
+			'<p><a href="https://www.npmjs.com/package/@openquok/auto-cli" target="_blank">CLI</a></p>'
+		);
+		expect(
+			normalizeBlogContentLinks(
+				'<p><a href="https://github.com/Ratimon/openquok-monorepo/tree/main/agent">openquok-core</a></p>'
+			)
+		).toBe(
+			'<p><a href="https://github.com/Ratimon/openquok-monorepo/tree/main/agent" target="_blank">openquok-core</a></p>'
+		);
+	});
+
+	it('nofollows third-party GitHub', () => {
+		const html = '<p><a href="https://github.com/renezander030/capcut-cli">capcut-cli</a></p>';
+		expect(normalizeBlogContentLinks(html)).toBe(
+			'<p><a href="https://github.com/renezander030/capcut-cli" rel="noopener noreferrer nofollow" target="_blank">capcut-cli</a></p>'
+		);
+	});
 });

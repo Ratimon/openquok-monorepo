@@ -175,6 +175,14 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 	{
 		icon: icons.WhatsApp.name,
 		labels: ['WhatsApp']
+	},
+	{
+		icon: icons.Discord.name,
+		labels: ['Discord']
+	},
+	{
+		icon: icons.Telegram.name,
+		labels: ['Telegram']
 	}
 ];
 

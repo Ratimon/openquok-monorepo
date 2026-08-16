@@ -16,6 +16,7 @@ import { openquokCompareProduct } from '$lib/content/constants/competitors/openq
 import { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 import { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
+import { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 import { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 import {
 	COMPARE_HUB_BASE_SLUG,
@@ -32,6 +33,7 @@ export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer'
 export { postBridgeCompareProduct } from '$lib/content/constants/competitors/post-bridge';
 export { postizCompareProduct } from '$lib/content/constants/competitors/postiz';
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
+export { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 export { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
@@ -42,6 +44,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	mixpostCompareProduct,
 	postBridgeCompareProduct,
 	postizCompareProduct,
+	socialclawCompareProduct,
 	typefullyCompareProduct
 ];
 

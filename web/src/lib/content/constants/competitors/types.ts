@@ -11,6 +11,7 @@ export type CompareProductSlug =
 	| 'post-bridge'
 	| 'postiz'
 	| 'recurpost'
+	| 'socialclaw'
 	| 'typefully';
 
 /**

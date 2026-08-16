@@ -1,9 +1,11 @@
+import { buildExternalLinkRel, resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
+
 /**
- * Align blog-body `<a>` tags with ExternalLink defaults for third-party URLs,
- * while keeping same-site / relative links followable for SEO.
+ * Align blog-body `<a>` tags with ExternalLink / outbound-link policy.
  *
- * External (http/https to other hosts): `rel="noopener noreferrer nofollow"` + `target="_blank"`.
  * Internal (relative, hash, mailto/tel, own openquok.com host): strip forced TipTap rel/target.
+ * Allowlisted external (npmjs.com, first-party GitHub): `target="_blank"` only.
+ * Other absolute http(s): `rel="noopener noreferrer nofollow"` + `target="_blank"`.
  */
 
 const OWN_HOST_SUFFIX = 'openquok.com';
@@ -65,8 +67,9 @@ export function normalizeBlogContentLinks(html: string): string {
 
 		const attrs = stripRelAndTarget(attrBlob);
 		if (isExternalBlogHref(href)) {
-			const externalAttrs = 'rel="noopener noreferrer nofollow" target="_blank"';
-			return attrs.length > 0 ? `<a ${attrs} ${externalAttrs}>` : `<a ${externalAttrs}>`;
+			const rel = buildExternalLinkRel(resolveExternalLinkPolicy(href));
+			const extra = rel ? `rel="${rel}" target="_blank"` : 'target="_blank"';
+			return attrs.length > 0 ? `<a ${attrs} ${extra}>` : `<a ${extra}>`;
 		}
 		return attrs.length > 0 ? `<a ${attrs}>` : '<a>';
 	});

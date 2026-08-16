@@ -97,6 +97,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-violet-400/20 via-purple-300/16 to-fuchsia-300/16 text-violet-100 ring-violet-300/28'
 		},
+		socialclaw: {
+			heroContainerClass:
+				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-orange-300/20 text-red-50 ring-red-400/40',
+			cardContainerClass:
+				'bg-linear-to-br from-red-500/20 via-rose-400/16 to-orange-300/16 text-red-50 ring-red-400/28'
+		},
 		typefully: {
 			heroContainerClass:
 				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',

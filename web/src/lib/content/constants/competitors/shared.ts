@@ -32,6 +32,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	'post-bridge': 'https://www.post-bridge.com',
 	postiz: 'https://postiz.com',
 	recurpost: 'https://recurpost.com',
+	socialclaw: 'https://getsocialclaw.com',
 	typefully: 'https://typefully.com'
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
@@ -41,6 +42,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'post-bridge'
 	| 'postiz'
 	| 'recurpost'
+	| 'socialclaw'
 	| 'typefully',
 	string
 >;
