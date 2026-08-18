@@ -5,7 +5,8 @@ import {
 	hostedMarketingHref,
 	isHostedMarketingPath,
 	isOpenquokHostedOrigin,
-	OPENQUOK_HOSTED_WEB_ORIGIN
+	OPENQUOK_HOSTED_WEB_ORIGIN,
+	rewriteHtmlHostedMarketingHrefs
 } from '$lib/utils/hostedMarketingHref';
 
 const HOSTED_ORIGIN = 'https://www.openquok.com';
@@ -121,5 +122,26 @@ describe('hostedMarketingAnchorAttrs', () => {
 			href: 'https://discord.gg/example',
 			external: false
 		});
+	});
+});
+
+describe('rewriteHtmlHostedMarketingHrefs', () => {
+	it('leaves relative marketing anchors on the hosted origin', () => {
+		const html = '<p>See the <a href="/docs/getting-started-for-cli">CLI guide</a>.</p>';
+		expect(rewriteHtmlHostedMarketingHrefs(html, HOSTED_ORIGIN, { isDev: false })).toBe(html);
+	});
+
+	it('rewrites self-host production FAQ links to hosted backlinks', () => {
+		const html =
+			'<p>Follow the <a href="/docs/installation/docker-compose">Docker Compose setup</a>.</p>';
+		expect(rewriteHtmlHostedMarketingHrefs(html, SELF_HOST_ORIGIN, { isDev: false })).toBe(
+			`<p>Follow the <a href="${OPENQUOK_HOSTED_WEB_ORIGIN}/docs/installation/docker-compose" target="_blank" rel="noopener">Docker Compose setup</a>.</p>`
+		);
+	});
+
+	it('does not rewrite GitHub or functional app hrefs', () => {
+		const html =
+			'<p><a href="https://github.com/Ratimon/openquok-monorepo">GitHub</a> and <a href="/sign-up">sign up</a>.</p>';
+		expect(rewriteHtmlHostedMarketingHrefs(html, SELF_HOST_ORIGIN, { isDev: false })).toBe(html);
 	});
 });

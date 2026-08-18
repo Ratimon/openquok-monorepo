@@ -142,7 +142,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 ### FAQPage (`createPublicFaqSEOSchema`)
 
 - `pageUrl: \`${canonical}#faq\`` — same section name/description as visible `PublicFaq`.
-- Plain-text `Answer.text` matching accordion copy.
+- Plain-text `Answer.text` matching accordion copy (HTML answers: `prepareBlogRichTextForDisplay` then `stripHtmlToPlainText`; link labels kept).
 - Returns `{}` when empty — always `filterNonEmptyJsonLdNodes`.
 
 ### VideoObject (`createLandingDemoSEOSchema`)

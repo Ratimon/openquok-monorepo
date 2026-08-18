@@ -581,7 +581,8 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		maxInputLength: 100
 	},
 	FAQ_DESCRIPTION: {
-		description: 'Support copy for the landing FAQ section',
+		description:
+			'Support copy for the landing FAQ section. Q&A items and answer links are edited under Public FAQ, not here.',
 		type: 'string',
 		default: 'Common questions and answers. Contact us if you need more help.',
 		inputType: 'textarea',
@@ -614,7 +615,8 @@ export const CONFIG_SCHEMA_PUBLIC_FAQ: ModuleConfigSchema = {
 		maxInputLength: 300
 	},
 	ITEMS: {
-		description: 'Questions and answers shown on the landing and pricing FAQ sections',
+		description:
+			'Questions and answers on landing and pricing. Answers support HTML: Visual → link or paste <a href="/docs/…">. Use root-relative paths (/docs, /blog, /pricing, /channels, /agents, /compare) or first-party GitHub. JSON-LD stores answers as plain text.',
 		type: 'object',
 		default: getDefaultPublicFaqConfigItems(),
 		inputType: 'faq'

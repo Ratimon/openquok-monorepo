@@ -134,6 +134,8 @@
 				onChange={field.handleChange}
 				label={fieldName}
 				description={fieldDescription}
+				richTextAnswers={true}
+				answerPlaceholder="Paste HTML or use Visual → link. Example: /docs/getting-started-for-cli"
 			/>
 		{/if}
 

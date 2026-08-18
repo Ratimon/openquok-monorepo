@@ -148,3 +148,41 @@ export function hostedMarketingAnchorAttrs(
 	}
 	return { href, external: true, target: '_blank', rel: 'noopener' };
 }
+
+function readHrefFromAttrBlob(attrBlob: string): string {
+	const match = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrBlob);
+	return (match?.[1] ?? match?.[2] ?? match?.[3] ?? '').trim();
+}
+
+function stripHrefRelAndTarget(attrBlob: string): string {
+	return attrBlob
+		.replace(/\s*\bhref\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+		.replace(/\s*\brel\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+		.replace(/\s*\btarget\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+		.trim();
+}
+
+/**
+ * Rewrite marketing `<a href="/docs/…">` (and siblings) in CMS HTML for the current origin.
+ * Self-host production becomes a dofollow `https://www.openquok.com/…` backlink (`rel="noopener"`).
+ * Hosted / DEV origins leave relative hrefs unchanged.
+ */
+export function rewriteHtmlHostedMarketingHrefs(
+	html: string,
+	currentOrigin: string,
+	options?: HostedMarketingHrefOptions
+): string {
+	if (!html.trim()) return html;
+
+	return html.replace(/<a\b([^>]*)>/gi, (full, attrBlob: string) => {
+		const href = readHrefFromAttrBlob(attrBlob);
+		if (!href || !isHostedMarketingPath(href)) return full;
+
+		const resolved = hostedMarketingAnchorAttrs(href, currentOrigin, options);
+		if (!resolved.external) return full;
+
+		const rest = stripHrefRelAndTarget(attrBlob);
+		const extra = `href="${resolved.href}" target="${resolved.target}" rel="${resolved.rel}"`;
+		return rest.length > 0 ? `<a ${rest} ${extra}>` : `<a ${extra}>`;
+	});
+}

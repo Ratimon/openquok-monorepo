@@ -5,10 +5,16 @@ globs:
   - web/src/routes/+page.ts
   - web/src/routes/(public)/pricing/+page.server.ts
   - web/src/lib/config/Config.repository.svelte.ts
+  - web/src/lib/config/constants/config.ts
   - web/src/lib/content/utils/parsePublicFaqConfig.ts
   - web/src/lib/content/constants/publicFaqConfig.ts
+  - web/src/lib/content/utils/createPublicFaqSEOSchema.ts
   - web/src/lib/ui/templates/LandingPage.svelte
-  - web/src/lib/ui/components/PublicFaq.svelte
+  - web/src/lib/ui/templates/faq/PublicFaq.svelte
+  - web/src/lib/ui/templates/faq/FaqAccordion.svelte
+  - web/src/lib/ui/components/FaqEditor.svelte
+  - web/src/routes/(protected)/secret-admin/config-manager/public-faq/**
+  - web/src/routes/(protected)/secret-admin/config-manager/landing-page/**
 alwaysApply: false
 ---
 
@@ -24,23 +30,60 @@ Marketing copy that crawlers should index must not rely on client-only presenter
 
 | Module | Defaults helper | Used for |
 | --- | --- | --- |
-| `landing_page` | `getLandingPageConfigDefaults()` | Hero, demo, landing FAQ headers |
-| `public_faq` | `getPublicFaqConfigDefaults()` | FAQ section headers + Q&A items |
+| `landing_page` | `getLandingPageConfigDefaults()` | Hero, demo, landing FAQ **headers** |
+| `public_faq` | `getPublicFaqConfigDefaults()` | FAQ section headers + Q&A **items** |
 
 Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicFaqItemsVm` for `PublicFaq` and `createPublicFaqSEOSchema`.
 
 ## Landing vs pricing FAQ headers
 
-- **Landing**: prefer `landing_page` `FAQ_*` fields in the UI; fall back to `public_faq`.
-- **Pricing**: `public_faq` only for FAQ headers.
+- **Landing** (`/`): prefer `landing_page` `FAQ_*` fields in the UI; fall back to `public_faq`.
+- **Pricing** (`/pricing`): `public_faq` only for FAQ headers.
 
-Q&A item copy lives in `public_faq.ITEMS` (admin FAQ editor). `publicFaqConfig.ts` supplies code defaults when config is empty.
+Q&A item copy lives in `public_faq.ITEMS` (secret-admin **Public FAQ**, not Landing page). `publicFaqConfig.ts` (`PUBLIC_FAQ_ITEMS`) supplies code defaults when config is empty.
 
 Default `items` is `PUBLIC_FAQ_ITEMS`; override only when a route renders a different FAQ list.
 
+Stored `public_faq.ITEMS` **replaces** git defaults when non-empty. After changing default answers, re-save Public FAQ in admin (or clear `ITEMS`) so production matches `PUBLIC_FAQ_ITEMS`.
+
+## FAQ answer links (landing + pricing accordion)
+
+Answers are HTML. `FaqAccordion` runs `prepareBlogRichTextForDisplay` (internal followable; third-party `nofollow`) then `rewriteHtmlHostedMarketingHrefs` (self-host → `https://www.openquok.com/…` dofollow backlinks). JSON-LD `Answer.text` is **plain text** (`stripHtmlToPlainText` after the same rich-text prepare).
+
+**Admin:** Public FAQ → ITEMS uses `FaqEditor` with Visual / HTML source (`richTextAnswers`). Questions stay plain text. Landing page config only edits FAQ **headers**.
+
+Prefer **root-relative** `<a href="/docs/…">` (or Visual → link). Do not add `rel="nofollow"` on first-party anchors. One or two links per destination.
+
+When adding or rewriting a landing/pricing FAQ answer, include a first-party link when the sentence names a surface:
+
+| Topic | Typical href | Anchor |
+| --- | --- | --- |
+| Buffer / Hootsuite switch | `/compare/openquok/buffer`, `/blog/best-buffer-alternatives-for-teams-that-approve-ai-content-before-posting` | OpenQuok vs Buffer, Buffer alternatives guide |
+| Trial / plan limits / seats | `/pricing` | Pricing |
+| Schedule from CLI / agents | `/docs/getting-started-for-cli` | CLI getting started |
+| Grok Bot | `/docs/agent-setup-guides/grok-bot`, `/blog/schedule-social-posts-from-grok-bot-with-openquok` | setup guide, walkthrough |
+| Self-host | `/docs/installation/docker-compose`, `https://github.com/Ratimon/openquok-monorepo`, `/blog/how-to-self-host-openquok-with-cli-device-login-free-no-api-keys-on-your-agent` | Docker Compose, GitHub, device-login walkthrough |
+| Agent hosts | `/agents`, `/docs/agent-setup-guides` | Agents, agent setup guides |
+| MCP | `/docs/getting-started-for-mcp`, `/docs/mcp-setup-guides` | MCP getting started, MCP setup |
+| Public API / OAuth / tokens | `/docs/getting-started-for-public-api`, `/docs/oauth2-for-apps` | Public API, OAuth2 for apps |
+| Channels / official APIs | `/channels`, `/docs/social-integration` | Supported channels, channel setup guides |
+| Channel groups | `/docs/apis-integrations/groups` | channel groups API |
+| Analytics | `/docs/cli-usages/analytics` | analytics CLI |
+| Threads / X comments | `/docs/cli-examples/threads`, `/docs/cli-examples/x` | Threads / X CLI examples |
+
+Chrome Writer/Rewriter/Summarizer docs stay third-party (`nofollow` applied on display). Do not treat all of `github.com` as followable — only first-party `Ratimon/…` (see **web-seo-outbound-links**).
+
+```html
+<!-- ✅ GOOD -->
+<p>Follow the <a href="/docs/installation/docker-compose">Docker Compose self-host guide</a>.</p>
+
+<!-- ❌ BAD — nofollow on a first-party docs path -->
+<p>See <a href="/docs" rel="nofollow">docs</a>.</p>
+```
+
 ## SEO parity
 
-- FAQ JSON-LD (`createPublicFaqSEOSchema`) must use the **same** question/answer text as the visible accordion.
+- FAQ JSON-LD (`createPublicFaqSEOSchema`) must use the **same** question text and the **plain-text** form of the visible accordion answer (link labels kept; tags stripped).
 - Landing hero title/description from config feed both `createMetaData` and JSON-LD (`WebSite`, `Organization`).
 - Demo section: `createLandingDemoSEOSchema` reads `DEMO_YOUTUBE_VIDEO_ID`, `DEMO_YOUTUBE_UPLOAD_DATE`, `DEMO_TITLE`, `DEMO_DESCRIPTION` from SSR `landing_page` config.
 
@@ -48,4 +91,7 @@ Default `items` is `PUBLIC_FAQ_ITEMS`; override only when a route renders a diff
 
 - Meta tags from CMS strings: **web-seo-meta-tags**
 - JSON-LD builders: **web-seo-jsonld**
+- Blog FAQ HTML (same Visual editor, tool-page hrefs): **web-seo-blog**
+- Outbound `rel` / first-party GitHub: **web-seo-outbound-links**
+- Self-host marketing backlinks: **web-hosted-marketing-links**
 - Universal load forwarding: **web-sveltekit-universal-page-load**

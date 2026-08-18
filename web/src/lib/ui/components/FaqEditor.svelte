@@ -19,6 +19,7 @@
 		description?: string;
 		/** Visual + HTML source for answers (internal links). Questions stay plain text. */
 		richTextAnswers?: boolean;
+		answerPlaceholder?: string;
 	};
 
 	let {
@@ -26,7 +27,8 @@
 		onChange,
 		label = 'FAQs',
 		description = 'Add frequently asked questions for public pages.',
-		richTextAnswers = false
+		richTextAnswers = false,
+		answerPlaceholder = 'Paste HTML or use Visual → link. Example: /docs/getting-started-for-cli'
 	}: Props = $props();
 
 	let localFaqs = $state<FaqEditorItem[]>([]);
@@ -100,7 +102,7 @@
 							<BlogRichTextField
 								textareaId="faq-answer-{index}"
 								value={faq.answer}
-								placeholder="Paste HTML or use Visual → link. Example: /tools/skill-builder"
+								placeholder={answerPlaceholder}
 								onChange={(next) => updateFaq(index, 'answer', next)}
 							/>
 						{:else}

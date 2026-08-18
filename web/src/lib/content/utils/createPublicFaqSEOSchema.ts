@@ -1,5 +1,6 @@
 import type { Answer, FAQPage, Question } from 'schema-dts';
 
+import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem
@@ -45,7 +46,7 @@ export function createPublicFaqSEOSchema(
 					name: item.title,
 					acceptedAnswer: {
 						'@type': 'Answer',
-						text: stripHtmlToPlainText(item.description)
+						text: stripHtmlToPlainText(prepareBlogRichTextForDisplay(item.description))
 					} as Answer
 				}) as Question
 		)
