@@ -3,8 +3,6 @@ import type {
 	WorkspaceChannelGroupViewModel
 } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
-import { isProfileChannelDisplayName } from '$data/social-providers';
-import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import type {
 	PostCommentProgrammerModel,
 	PostGroupDetailsProgrammerModel,
@@ -13,6 +11,9 @@ import type {
 	PostRowProgrammerModel,
 	PostsRepository
 } from '$lib/posts/Post.repository.svelte';
+
+import { isProfileChannelDisplayName } from '$data/social-providers';
+import { postMediaPreviewUrls } from '$lib/posts/utils/postMediaPreviewUrls';
 
 /** Resolved channel label + avatar for a post row (kanban, calendar, modals). */
 export type PostChannelDisplayViewModel = {
@@ -268,9 +269,9 @@ export class GetScheduledPostsPresenter {
 		return toPostCommentVm(pm);
 	}
 
-	/** Maps attached post media PM rows to public CDN URLs for previews / thumbnails. */
+	/** Maps attached post media PM rows to preview URLs (local blob or public storage). */
 	public toPostMediaPreviewUrlsVm(items: PostMediaProgrammerModel[]): string[] {
-		return items.map((m) => publicUrlForMediaStorageKey(m.path));
+		return postMediaPreviewUrls(items);
 	}
 
 	private toPreviewPostVm(previewPostPm: PostPreviewProgrammerModel): PublicPreviewPostViewModel {

@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanize channel routes + feature bento showcases + Extensions Hub listing tags
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -42,6 +42,11 @@ globs:
   - web/src/routes/(public)/tools/best-time-to-post/**
   - web/src/lib/ui/templates/best-time-to-post/**
   - web/src/lib/ui/components/best-time-to-post/**
+  - web/src/lib/ai-humanize/**
+  - web/src/routes/(public)/tools/humanizer/**
+  - web/src/lib/ui/templates/humanize/**
+  - web/src/lib/ui/components/humanize/**
+  - web/src/lib/area-public/PublicHumanizePage.presenter.svelte.ts
   - web/src/routes/(public)/channels/[slug]/+page.svelte
   - web/src/lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte
   - web/src/lib/ui/templates/landing-page/PublicAgentLandingPage.svelte
@@ -57,11 +62,11 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanize channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanize references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
-Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, `/channels/{slug}`, **`/tools/best-time-to-post/{slug}`**, **`/tools/photo-editor/{slug}`**, and **`/agents/{agentSlug}/{slug}`** (agent channel SEO). Do not fork slugs between layers. When `platformId` differs from the marketing slug (rare), still key **`benchmarkSlots.ts` `PLATFORM_WINDOWS`** by every identifier the calculator can pass (`platformSlug` from channel config / platform select).
+Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifier`, OAuth callback `/integration/oauth/{identifier}`, `getLaunchProviderConfig`, CLI filters, docs filenames, **`publicChannelConfig` `slug` / `platformId`**, **`listing_tags.slug`**, `/channels/{slug}`, **`/tools/best-time-to-post/{slug}`**, **`/tools/photo-editor/{slug}`**, **`/tools/humanizer/{slug}`**, and **`/agents/{agentSlug}/{slug}`** (agent channel SEO). Do not fork slugs between layers. When `platformId` differs from the marketing slug (rare), still key **`benchmarkSlots.ts` `PLATFORM_WINDOWS`** by every identifier the calculator can pass (`platformSlug` from channel config / platform select).
 
 ## Backend (required)
 
@@ -363,6 +368,43 @@ When go-live-ing a provider, add **platform-specific benchmark windows** in the 
 
 The tool does **not** call integration APIs or read workspace analytics. Copy on the page and FAQ must stay aligned with that (benchmark timing **test plan**, not “your best hour”).
 
+## Programmatic Humanize SEO (channel routes)
+
+Ship channel-specific **Humanize** pages alongside the generic tool when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — channel pages are **auto-derived** from the live channel catalog (no new `+page` files per slug). The guest composer is mocked (no OAuth, no posts repository).
+
+| Artifact | Path / URL |
+| --- | --- |
+| Generic tool | `/tools/humanizer` — Global Edit mock, all live channels selectable |
+| Channel tool | `/tools/humanizer/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` (e.g. `linkedin`, `x`) |
+| Channel catalog | `web/src/lib/ai-humanize/constants/publicHumanizeChannelConfig.ts` — built from `listAvailablePublicChannels()` |
+| Page presenter | `web/src/lib/area-public/PublicHumanizePage.presenter.svelte.ts` — generic vs channel VM |
+| Guest composer | `web/src/lib/ai-humanize/PublicHumanizeComposer.presenter.svelte.ts` — local body/media/selection only |
+| Shared page UI | `web/src/lib/ui/templates/humanize/HumanizeToolPage.svelte` |
+| Channel hub grid | `web/src/lib/ui/components/humanize/HumanizeChannelHubGrid.svelte` — **For all** + **By channel** on generic and channel pages |
+| FAQ | `web/src/lib/ai-humanize/constants/publicHumanizeFaqConfig.ts` — generic + `buildHumanizeFaqSection(slug, label)` |
+| Route helpers | `getRootPathPublicHumanize()` and `getRootPathPublicHumanizeChannel(slug)` in `getRootPathPublicTools.ts` |
+| Tools hub entry | `ChannelHubToolCard` on `/tools` — `ShiftingTabDropdown` with **For all** vs **By channel** tabs (`listHumanizeChannelsForHub()`) |
+
+### Auto-derived (no per-provider route files)
+
+- Channel pages at `/tools/humanizer/{channelSlug}` via generic route + `publicHumanizeChannelConfig.ts` (from `listAvailablePublicChannels()`).
+- Hub links and Tools card dropdown from `listHumanizeChannelsForHub()`.
+- SEO meta defaults from `platformLabel` + merged `keywords` from `publicChannelConfig`.
+- Channel FAQ tailors the “what is Humanize” and platform items from `platformLabel`.
+- Mock channels on the composer come from `listAvailablePublicChannels()`. Channel pages **preselect + focus** the matching mock (`composerMode: 'custom'`).
+
+Channel pages **404** when the slug is missing from `publicChannelConfig` or `available: false`.
+
+### Manual updates when shipping a new provider
+
+Live channels appear automatically after `available: true` — no extra Humanize route files. Optional hub blurb:
+
+| Artifact | Path / action |
+| --- | --- |
+| Hub card blurb (optional) | `publicHumanizeChannelConfig.ts` — `CHANNEL_HUB_DESCRIPTIONS['{slug}']` for a sharper **By channel** card; otherwise a generic `Humanize ${platformLabel} drafts…` string is used. |
+
+Do **not** claim detector-proof results in copy or FAQ. Humanize rewrites so a draft reads less machine-written; users still review invented details in Roughen mode.
+
 ## Programmatic Agent channel SEO (agent host routes)
 
 Ship platform-specific agent landing pages alongside the generic agent host page when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — adding a channel is a **catalog + bento + CLI recipe update** (no new `+page` files per slug).
@@ -424,5 +466,6 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
 - **Best Time to Post:** `PLATFORM_WINDOWS['{identifier}']` in `benchmarkSlots.ts` (no silent `DEFAULT_WINDOWS` for a live channel); `BENCHMARK_SLOTS_LAST_REVIEWED` updated when windows change; optional `CHANNEL_HUB_DESCRIPTIONS` entry; `/tools/best-time-to-post/{slug}` resolves when channel is live; calculator platform picker and **By channel** hub include the new channel automatically.
+- **Humanize:** live channels (`available: true`) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanize card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees).
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.

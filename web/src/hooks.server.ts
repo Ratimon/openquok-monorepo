@@ -1,7 +1,10 @@
 import type { Handle } from '@sveltejs/kit';
 
+import { redirect } from '@sveltejs/kit';
+
 import { building } from '$app/environment';
 
+import { rewriteLegacyPublicHumanizePathname } from '$lib/area-public/constants/getRootPathPublicTools';
 import { ensureUtf8CharsetResponse } from '$lib/utils/ensureUtf8CharsetResponse';
 
 /**
@@ -70,6 +73,11 @@ function maybeEnsureUtf8Charset(response: Response): Response {
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+	const rewrittenHumanizePath = rewriteLegacyPublicHumanizePathname(event.url.pathname);
+	if (rewrittenHumanizePath) {
+		throw redirect(301, `${rewrittenHumanizePath}${event.url.search}`);
+	}
+
 	const backendOrigin = resolveBackendProxyOrigin();
 	if (!backendOrigin || !shouldProxyPathname(event.url.pathname)) {
 		const response = await resolve(event);

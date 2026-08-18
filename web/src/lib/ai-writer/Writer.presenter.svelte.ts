@@ -1,6 +1,7 @@
 import type { ChatStatus } from '$lib/ui/components/ai-elements/prompt-input';
 import type { ComposerRewriterRefineAction } from '$lib/ai-writer/constants/config';
 import type {
+	ComposerRewriterCreateCoreOptions,
 	ComposerWriterConstraintProvider,
 	ComposerWriterCreateCoreOptions,
 	ComposerWriterDraftConstraints,
@@ -10,6 +11,10 @@ import type {
 	WriterSession
 } from '$lib/ai-writer/utils';
 
+import {
+	buildComposerHumanizeCreateOptions,
+	toComposerRewriterCreateOptions
+} from '$lib/ai-humanize/utils';
 import { COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS } from '$lib/ai-writer/constants/config';
 import {
 	acceptRewriterSoftOptIn,
@@ -17,6 +22,7 @@ import {
 	buildComposerRewriterCreateOptionsFromAction,
 	buildComposerWriterCreateOptions,
 	createComposerRewriter,
+	createComposerRewriterSessionKey,
 	createComposerWriter,
 	destroyAiSession,
 	destroyWriter,
@@ -28,6 +34,7 @@ import {
 	isWriterSupported,
 	normalizeWriterProviderIdentifiers,
 	rewriteDraftStreaming,
+	rewriterRefineActionUsesHumanSharedContext,
 	toWriterConstraintProviders,
 	writeDraftStreaming
 } from '$lib/ai-writer/utils';
@@ -85,7 +92,7 @@ export class WriterPresenter {
 
 	private writerSession: WriterSession | null = null;
 	private rewriterSession: RewriterSession | null = null;
-	/** Cache key `tone:length` for the current Rewriter session. */
+	/** Cache key `id:tone:length` for the current Rewriter session. */
 	private rewriterSessionKey: string | null = null;
 	private abortController: AbortController | null = null;
 	private sessionGeneration = 0;
@@ -493,13 +500,11 @@ export class WriterPresenter {
 	}
 
 	/**
-	 * Rewriter sessions are immutable for tone/length; cache by those keys and
-	 * destroy the previous session when the refine action changes.
+	 * Rewriter sessions are immutable for tone/length/sharedContext; cache by
+	 * action id plus tone/length so Sound more human does not reuse More casual.
 	 */
-	private async ensureRewriter(
-		action: Pick<ComposerRewriterRefineAction, 'tone' | 'length'>
-	): Promise<RewriterSession> {
-		const key = `${action.tone}:${action.length}`;
+	private async ensureRewriter(action: ComposerRewriterRefineAction): Promise<RewriterSession> {
+		const key = createComposerRewriterSessionKey(action);
 		if (this.rewriterSession && this.rewriterSessionKey === key) {
 			return this.rewriterSession;
 		}
@@ -508,10 +513,7 @@ export class WriterPresenter {
 		this.rewriterSession = null;
 		this.rewriterSessionKey = null;
 
-		const createOptions = buildComposerRewriterCreateOptionsFromAction(
-			action,
-			this.draftConstraints()
-		);
+		const createOptions = this.rewriterCreateOptionsForAction(action);
 		const created = await createComposerRewriter({
 			signal: this.abortController?.signal,
 			createOptions,
@@ -524,5 +526,21 @@ export class WriterPresenter {
 		this.downloadPercent = 100;
 		this.rewriterAvailability = 'available';
 		return created;
+	}
+
+	/** Sound more human uses Human-mode sharedContext; other chips keep Writer defaults. */
+	private rewriterCreateOptionsForAction(
+		action: ComposerRewriterRefineAction
+	): ComposerRewriterCreateCoreOptions {
+		const constraints = this.draftConstraints();
+		if (rewriterRefineActionUsesHumanSharedContext(action)) {
+			return toComposerRewriterCreateOptions(
+				buildComposerHumanizeCreateOptions({
+					mode: 'human',
+					constraints
+				})
+			);
+		}
+		return buildComposerRewriterCreateOptionsFromAction(action, constraints);
 	}
 }

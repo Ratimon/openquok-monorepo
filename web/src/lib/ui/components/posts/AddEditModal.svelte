@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
 	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
@@ -41,6 +42,7 @@
 		exportCanvasToMedia: ExportCanvasToMediaFn;
 		writerPresenter: WriterPresenter;
 		summarizerPresenter: SummarizerPresenter;
+		humanizePresenter: HumanizePresenter;
 		socialChannels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		mode: Mode;
@@ -52,7 +54,7 @@
 		softCharLimit: number;
 		/** When set, pass weighted count to X preview. */
 		weightedCharCount?: number;
-		/** Unique provider identifiers for AI Writer constraint strip. */
+		/** Unique provider identifiers for AI Writer / Summarizer / Humanize constraint strip. */
 		constraintProviderIdentifiers?: readonly string[];
 		selectedGroupId: string | null;
 		onToggleChannel: (id: string) => void;
@@ -94,6 +96,10 @@
 		previewProviderSettings?: Record<string, unknown>;
 		/** Locks per-network customization while authoring a reusable workspace set. */
 		contentSetAuthoringNetworkLock?: boolean;
+		/**
+		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
+		 */
+		guestMode?: boolean;
 	};
 
 	let {
@@ -104,6 +110,7 @@
 		exportCanvasToMedia,
 		writerPresenter,
 		summarizerPresenter,
+		humanizePresenter,
 		socialChannels,
 		selectedIds,
 		mode,
@@ -148,7 +155,8 @@
 		maxMediaItems = null,
 		scheduleValidationMessage = null,
 		previewProviderSettings = {},
-		contentSetAuthoringNetworkLock = false
+		contentSetAuthoringNetworkLock = false,
+		guestMode = false
 	}: Props = $props();
 
 	const publishDateIso = $derived(
@@ -183,6 +191,11 @@
 	/** Threads internal plug (`threads.internalEngagementPlug`) — runs after replies & thread finisher in the worker. */
 	let editorPostRef = $state<import('./EditorPost.svelte').default | undefined>();
 	let plugSettingsOpen = $state(false);
+
+	/** Public Humanize header — opens Sound more human on the composer toolbar. */
+	export function openHumanize() {
+		editorPostRef?.openHumanize?.();
+	}
 
 	function handleToggleGlobalFromTargets() {
 		const needsConfirm =
@@ -395,6 +408,7 @@
 				{exportCanvasToMedia}
 				{writerPresenter}
 				{summarizerPresenter}
+				{humanizePresenter}
 				bind:body
 				bind:postMediaItems
 				{uploadUid}
@@ -411,6 +425,7 @@
 				{maxMediaItems}
 				{scheduleValidationMessage}
 				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
+				{guestMode}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ComponentProps } from 'svelte';
+	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
 	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
@@ -9,12 +10,16 @@
 		PolotnoTemplateListPageProgrammerModel,
 		StockPhotoViewModel
 	} from '$lib/canvas';
+	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS } from '$lib/ai-writer/constants/config';
 	import { formatBytes } from '$lib/medias';
-	import { attachComposerMediaFromFiles } from '$lib/posts/utils/composerMediaDrop';
+	import {
+		attachComposerMediaFromFiles,
+		attachComposerMediaFromLocalFiles
+	} from '$lib/posts/utils/composerMediaDrop';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -32,10 +37,13 @@
 	import ComposerMediaTooltip, {
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
+	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
+	import AiHumanizeModal from '$lib/ui/components/posts/AiHumanizeModal.svelte';
 	import AiSummarizeModal from '$lib/ui/components/posts/AiSummarizeModal.svelte';
 	import AiWriterModal from '$lib/ui/components/posts/AiWriterModal.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
+	import SignInToComposerActionModal from '$lib/ui/components/posts/SignInToComposerActionModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	interface ComposerMediaToolbarProps {
@@ -51,6 +59,8 @@
 		writerPresenter: WriterPresenter;
 		/** Injected from CreateSocialPostPresenter; required for AI Summarizer. */
 		summarizerPresenter: SummarizerPresenter;
+		/** Injected from CreateSocialPostPresenter; required for Sound more human. */
+		humanizePresenter: HumanizePresenter;
 		items?: PostMediaProgrammerModel[];
 		disabled?: boolean;
 		uploadUid: string;
@@ -60,22 +70,27 @@
 		/** Wired from create-post presenter; keeps the repository out of this component. */
 		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
 		onInsertSignature?: (text: string) => void;
-		/** Current composer body — passed to AI Writer / Summarizer. */
+		/** Current composer body — passed to AI Writer / Summarizer / Humanize. */
 		existingBody?: string;
 		onInsertDraft?: (text: string) => void;
-		/** Replace the active composer body with a summary (Summarize applies, does not append). */
+		/** Replace the active composer body with a summary or rewrite (applies, does not append). */
 		onReplaceBody?: (text: string) => void;
-		/** Soft character limit for AI Writer / Summarizer sharedContext (matches editor counter). */
+		/** Soft character limit for AI Writer / Summarizer / Humanize sharedContext (matches editor counter). */
 		softCharLimit?: number;
 		textarea?: HTMLTextAreaElement | null;
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
-		/** Unique provider identifiers for AI Writer / Summarizer constraint strip / sharedContext. */
+		/** Unique provider identifiers for AI Writer / Summarizer / Humanize constraint strip / sharedContext. */
 		constraintProviderIdentifiers?: readonly string[];
 		focusedIntegrationId?: string | null;
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
+		/**
+		 * Public tool composer: local blob attach stays on-device; library / design / signatures
+		 * open the Sign in + Sign up gate instead of workspace APIs.
+		 */
+		guestMode?: boolean;
 	}
 
 	let {
@@ -86,6 +101,7 @@
 		exportCanvasToMedia,
 		writerPresenter,
 		summarizerPresenter,
+		humanizePresenter,
 		items = $bindable([]),
 		disabled = false,
 		uploadUid,
@@ -103,7 +119,8 @@
 		focusedProviderIdentifier = null,
 		constraintProviderIdentifiers = [],
 		focusedIntegrationId = null,
-		maxMediaItems = null
+		maxMediaItems = null,
+		guestMode = false
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -120,16 +137,41 @@
 	let signatureOpen = $state(false);
 	let aiWriterOpen = $state(false);
 	let aiSummarizeOpen = $state(false);
-	/** Snapshot of composer draft (or selection) at the moment Summarize opens. */
+	let humanizeOpen = $state(false);
+	/** Snapshot of composer draft (or selection) at the moment Summarize / Humanize opens. */
 	let summarizeSourceBody = $state('');
+	let humanizeSourceBody = $state('');
 	let linkedInCompanyOpen = $state(false);
+	let guestLockOpen = $state(false);
+	let guestLockAction = $state<GuestComposerLockAction>('media-library');
+	const isLinkedInFocus = $derived(
+		focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page'
+	);
 	const showLinkedInCompany = $derived(
-		(focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page') &&
-			Boolean(focusedIntegrationId?.trim()) &&
-			Boolean(organizationId?.trim())
+		isLinkedInFocus &&
+			(guestMode || (Boolean(focusedIntegrationId?.trim()) && Boolean(organizationId?.trim())))
+	);
+	const libraryTooltipLabel = $derived(
+		guestMode
+			? 'Sign in to attach from your media library'
+			: 'Attach images or videos from your media library'
+	);
+	const designTooltipLabel = $derived(
+		guestMode ? 'Sign in to open the design editor' : 'Open the design editor to create or edit visuals'
+	);
+	const signatureTooltipLabel = $derived(
+		guestMode ? 'Sign in to insert a workspace signature' : 'Insert a saved workspace signature'
+	);
+	const linkedInCompanyTooltipLabel = $derived(
+		guestMode ? 'Sign in to mention a LinkedIn company' : 'Add a LinkedIn company mention'
+	);
+	const deviceAttachDescription = $derived(
+		guestMode
+			? 'Drag and drop images or videos here, or click the area to browse. Previews stay on this device.'
+			: 'Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added.'
 	);
 	const bodyPlainLength = $derived(stripHtmlToPlainText(existingBody).length);
-	const hasBodyToSummarize = $derived(bodyPlainLength > 0);
+	const hasComposerBody = $derived(bodyPlainLength > 0);
 	const summarizeOverLimit = $derived(bodyPlainLength > softCharLimit);
 	const summarizeTooltipLabel = $derived(
 		summarizeOverLimit ? 'Summarize to fit limit' : 'Summarize with AI'
@@ -145,6 +187,20 @@
 	async function uploadFiles(files: FileList | null): Promise<boolean> {
 		if (mediaAtCap) return false;
 		if (!files?.length || disabled || uploadBusy) return false;
+		if (guestMode) {
+			const batch = attachComposerMediaFromLocalFiles({ files });
+			if (!batch.ok) {
+				toast.error(batch.message);
+				return false;
+			}
+			items = [...items, ...batch.items];
+			if (batch.items.length) {
+				toast.success(
+					batch.items.length === 1 ? 'Media attached.' : `${batch.items.length} items attached.`
+				);
+			}
+			return true;
+		}
 		uploadBusy = true;
 		uploadPhase = 'uploading';
 		barPercent = 0;
@@ -202,6 +258,11 @@
 
 	const attachedMediaPaths = $derived(items.map((m) => m.path));
 
+	function openGuestLock(action: GuestComposerLockAction) {
+		guestLockAction = action;
+		guestLockOpen = true;
+	}
+
 	function insertSignatureFromModal(text: string) {
 		const trimmed = (text ?? '').trim();
 		if (!trimmed) return;
@@ -221,7 +282,7 @@
 	}
 
 	/** Prefer the composer selection when present; otherwise the full draft body. */
-	function resolveSummarizeSourceBody(): string {
+	function resolveToolbarSourceBody(): string {
 		const el = textarea;
 		if (
 			el &&
@@ -235,8 +296,18 @@
 	}
 
 	function openAiSummarize() {
-		summarizeSourceBody = resolveSummarizeSourceBody();
+		summarizeSourceBody = resolveToolbarSourceBody();
 		aiSummarizeOpen = true;
+	}
+
+	function openAiHumanize() {
+		humanizeSourceBody = resolveToolbarSourceBody();
+		humanizeOpen = true;
+	}
+
+	/** Public Humanize header calls this so Sound more human is not toolbar-only. */
+	export function openHumanize() {
+		openAiHumanize();
 	}
 
 	function insertLinkedInCompanyMention(text: string) {
@@ -289,7 +360,11 @@
 >
 	<Tooltip.Provider delayDuration={200}>
 		<!-- 1: add media from disk -->
-		<ComposerMediaTooltip label="Attach images or videos from your device">
+		<ComposerMediaTooltip
+			label={guestMode
+				? 'Attach images or videos from your device. Previews stay on this device.'
+				: 'Attach images or videos from your device'}
+		>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
@@ -318,62 +393,87 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 		<!-- 2: workspace media library -->
-		<ComposerMediaTooltip label="Attach images or videos from your media library">
+		<ComposerMediaTooltip label={libraryTooltipLabel}>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
 					type="button"
-					class={iconBtn}
-					disabled={disabled || uploadBusy || mediaAtCap || !organizationId?.trim()}
+					class="{iconBtn} relative"
+					disabled={disabled || uploadBusy || mediaAtCap || (!guestMode && !organizationId?.trim())}
 					onclick={composeTooltipTriggerClick(props, () => {
+						if (guestMode) {
+							openGuestLock('media-library');
+							return;
+						}
 						libraryOpen = true;
 					})}
-					aria-label="Attach images or videos from media library"
+					aria-label={libraryTooltipLabel}
 				>
 					<AbstractIcon name={icons.Images.name} class="size-6" width="24" height="24" />
+					{#if guestMode}
+						<ComposerGuestLockBadge />
+					{/if}
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
 		<!-- 3: design / canvas modal -->
-		<ComposerMediaTooltip label="Open the design editor to create or edit visuals">
+		<ComposerMediaTooltip label={designTooltipLabel}>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
 					type="button"
-					class={iconBtn}
+					class="{iconBtn} relative"
 					disabled={disabled || uploadBusy || mediaAtCap}
 					onclick={composeTooltipTriggerClick(props, () => {
+						if (guestMode) {
+							openGuestLock('design-editor');
+							return;
+						}
 						designOpen = true;
 					})}
-					aria-label="Open design editor"
+					aria-label={designTooltipLabel}
 				>
 					<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
+					{#if guestMode}
+						<ComposerGuestLockBadge />
+					{/if}
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
 
 		<!-- 4: signatures modal -->
-		<ComposerMediaTooltip label="Insert a saved workspace signature">
+		<ComposerMediaTooltip label={signatureTooltipLabel}>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
 					type="button"
-					class={iconBtn}
-					disabled={disabled || uploadBusy || !organizationId?.trim() || !loadSignaturesVmForComposer}
+					class="{iconBtn} relative"
+					disabled={disabled ||
+						uploadBusy ||
+						(!guestMode && (!organizationId?.trim() || !loadSignaturesVmForComposer))}
 					onclick={composeTooltipTriggerClick(props, () => {
+						if (guestMode) {
+							openGuestLock('signature');
+							return;
+						}
 						signatureOpen = true;
 					})}
-					aria-label="Insert signature"
+					aria-label={signatureTooltipLabel}
 				>
 					<span class="relative inline-flex size-6 items-center justify-center">
 						<AbstractIcon name={icons.Signature.name} class="size-5" width="20" height="20" />
-						<span
-							class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
-							aria-hidden="true"
-						>
-							<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
-						</span>
+						{#if !guestMode}
+							<span
+								class="bg-primary text-primary-content ring-base-100 absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full ring-2"
+								aria-hidden="true"
+							>
+								<AbstractIcon name={icons.Plus.name} class="size-2.5" width="10" height="10" />
+							</span>
+						{/if}
 					</span>
+					{#if guestMode}
+						<ComposerGuestLockBadge />
+					{/if}
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
@@ -396,7 +496,6 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-
 		<!-- 6: AI Summarizer (Chrome on-device Summarizer API) -->
 		<ComposerMediaTooltip label={summarizeTooltipLabel}>
 			{#snippet trigger({ props })}
@@ -404,7 +503,7 @@
 					{...props}
 					type="button"
 					class={summarizeIconBtn}
-					disabled={disabled || uploadBusy || !hasBodyToSummarize}
+					disabled={disabled || uploadBusy || !hasComposerBody}
 					onclick={composeTooltipTriggerClick(props, openAiSummarize)}
 					aria-label={summarizeTooltipLabel}
 				>
@@ -413,7 +512,23 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		<!-- 7–12: inline text styling and tokens (selection / cursor) -->
+		<!-- 7: Sound more human (Chrome on-device Rewriter + local tell audit) -->
+		<ComposerMediaTooltip label="Sound more human">
+			{#snippet trigger({ props })}
+				<button
+					{...props}
+					type="button"
+					class={iconBtn}
+					disabled={disabled || uploadBusy || !hasComposerBody}
+					onclick={composeTooltipTriggerClick(props, openAiHumanize)}
+					aria-label="Sound more human"
+				>
+					<AbstractIcon name={icons.UserRoundPen.name} class="size-5" width="20" height="20" />
+				</button>
+			{/snippet}
+		</ComposerMediaTooltip>
+
+		<!-- 8–13: inline text styling and tokens (selection / cursor) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
@@ -471,19 +586,26 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 		{#if showLinkedInCompany}
-			<ComposerMediaTooltip label="Add a LinkedIn company mention">
+			<ComposerMediaTooltip label={linkedInCompanyTooltipLabel}>
 				{#snippet trigger({ props })}
 					<button
 						{...props}
 						type="button"
-						class={iconBtn}
+						class="{iconBtn} relative"
 						disabled={disabled || uploadBusy}
 						onclick={composeTooltipTriggerClick(props, () => {
+							if (guestMode) {
+								openGuestLock('linkedin-company');
+								return;
+							}
 							linkedInCompanyOpen = true;
 						})}
-						aria-label="Add LinkedIn company mention"
+						aria-label={linkedInCompanyTooltipLabel}
 					>
 						<AbstractIcon name={icons.LinkedIn.name} class="size-5" width="20" height="20" />
+						{#if guestMode}
+							<ComposerGuestLockBadge />
+						{/if}
 					</button>
 				{/snippet}
 			</ComposerMediaTooltip>
@@ -499,33 +621,37 @@
 		{uploadDetailLine}
 		accept="image/*,video/*"
 		title="Add media"
-		description="Drag and drop images or videos here, or click the area to browse. Files upload as soon as they are added."
+		description={deviceAttachDescription}
 		dropTitle="Drop images or videos here"
 		onFilesSelected={ingestFilesFromAttachDialog}
 	/>
 
-	<MediaLibraryModal
-		bind:open={libraryOpen}
-		{organizationId}
-		disabled={disabled || uploadBusy}
-		mediaLocked={mediaAtCap}
-		attachedPaths={attachedMediaPaths}
-		onAttach={onAttachFromLibrary}
-	/>
+	{#if !guestMode}
+		<MediaLibraryModal
+			bind:open={libraryOpen}
+			{organizationId}
+			disabled={disabled || uploadBusy}
+			mediaLocked={mediaAtCap}
+			attachedPaths={attachedMediaPaths}
+			onAttach={onAttachFromLibrary}
+		/>
+	{/if}
 
 </div>
 
-<MediaGenerationModal
-	{...mediaGenerationFields}
-	bind:open={designOpen}
-/>
+{#if !guestMode}
+	<MediaGenerationModal
+		{...mediaGenerationFields}
+		bind:open={designOpen}
+	/>
 
-<SignatureModal
-	bind:open={signatureOpen}
-	organizationId={organizationId}
-	{loadSignaturesVmForComposer}
-	onInsertSignature={insertSignatureFromModal}
-/>
+	<SignatureModal
+		bind:open={signatureOpen}
+		organizationId={organizationId}
+		{loadSignaturesVmForComposer}
+		onInsertSignature={insertSignatureFromModal}
+	/>
+{/if}
 
 <AiWriterModal
 	{writerPresenter}
@@ -549,7 +675,18 @@
 	onReplaceBody={replaceBodyFromModal}
 />
 
-{#if showLinkedInCompany && focusedIntegrationId && organizationId}
+<AiHumanizeModal
+	{humanizePresenter}
+	bind:open={humanizeOpen}
+	existingBody={humanizeSourceBody}
+	{softCharLimit}
+	{composerMode}
+	{focusedProviderIdentifier}
+	constraintProviderIdentifiers={constraintProviderIdentifiers}
+	onReplaceBody={replaceBodyFromModal}
+/>
+
+{#if showLinkedInCompany && !guestMode && focusedIntegrationId && organizationId}
 	<LinkedInCompanyModal
 		bind:open={linkedInCompanyOpen}
 		organizationId={organizationId}
@@ -557,4 +694,8 @@
 		onClose={() => (linkedInCompanyOpen = false)}
 		onInsert={insertLinkedInCompanyMention}
 	/>
+{/if}
+
+{#if guestMode}
+	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} />
 {/if}

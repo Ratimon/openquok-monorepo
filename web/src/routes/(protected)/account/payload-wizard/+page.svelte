@@ -191,6 +191,7 @@
 							exportCanvasToMedia={composerPresenter.exportCanvasToMedia}
 							writerPresenter={composerPresenter.composerWriterPresenter}
 							summarizerPresenter={composerPresenter.composerSummarizerPresenter}
+							humanizePresenter={composerPresenter.composerHumanizePresenter}
 							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
 							socialChannels={composerPresenter.baseSocialChannelsVm}
 							bind:body={composerPresenter.editorBody}

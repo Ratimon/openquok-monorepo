@@ -26,6 +26,10 @@ export function buildBestTimeToPostChannelMetaTitle(platformLabel: string): stri
 	return `Best Time to Post on ${platformLabel}`;
 }
 
+export function buildHumanizeChannelMetaTitle(platformLabel: string): string {
+	return `Humanizer ${platformLabel} Social Posts`;
+}
+
 export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {
 	if (left.slug === COMPARE_HUB_BASE_SLUG) {
 		return `${left.name} vs ${right.name}: Social Media Scheduler Comparison`;

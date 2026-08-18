@@ -2,11 +2,16 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
+	import { onDestroy } from 'svelte';
+
 	import { isVideoMediaPath, publicUrlForMediaStorageKey, formatBytes } from '$lib/medias';
 	import { getScheduledPostsPresenter } from '$lib/posts';
 	import {
 		attachComposerMediaFromFiles,
-		filesFromDataTransfer
+		attachComposerMediaFromLocalFiles,
+		filesFromDataTransfer,
+		revokeLocalMediaPreviewUrl,
+		revokeLocalMediaPreviewUrls
 	} from '$lib/posts/utils/composerMediaDrop';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -27,6 +32,8 @@
 		uploadUid?: string;
 		publishDateIso?: string | null;
 		maxMediaItems?: number | null;
+		/** Public tool composer: attach as local `blob:` previews, never upload. */
+		guestMode?: boolean;
 	};
 
 	let {
@@ -39,7 +46,8 @@
 		disabled = false,
 		uploadUid = '',
 		publishDateIso = null,
-		maxMediaItems = null
+		maxMediaItems = null,
+		guestMode = false
 	}: Props = $props();
 
 	let previewUrl = $state('');
@@ -72,6 +80,8 @@
 	);
 
 	function removeAt(index: number) {
+		const row = items[index];
+		revokeLocalMediaPreviewUrl(row?.localPreviewUrl);
 		items = items.filter((_, i) => i !== index);
 	}
 
@@ -88,6 +98,20 @@
 		const list =
 			files == null ? [] : files instanceof FileList ? Array.from(files) : files;
 		if (!list.length || disabled || uploadBusy) return;
+		if (guestMode) {
+			const batch = attachComposerMediaFromLocalFiles({ files: list });
+			if (!batch.ok) {
+				toast.error(batch.message);
+				return;
+			}
+			items = [...items, ...batch.items];
+			if (batch.items.length) {
+				toast.success(
+					batch.items.length === 1 ? 'Media attached.' : `${batch.items.length} items attached.`
+				);
+			}
+			return;
+		}
 		uploadBusy = true;
 		uploadPhase = 'uploading';
 		barPercent = 0;
@@ -133,6 +157,10 @@
 	export function isUploadBusy(): boolean {
 		return uploadBusy;
 	}
+
+	onDestroy(() => {
+		revokeLocalMediaPreviewUrls(items);
+	});
 
 	function onDropZoneDrop(e: DragEvent) {
 		e.preventDefault();
@@ -369,7 +397,11 @@
 					<AbstractIcon name={icons.Images.name} class="size-8" width="32" height="32" />
 				</span>
 				<span>
-					Drag and drop images or videos here, or use the icons on the editor.
+					{#if guestMode}
+						Drag and drop images or videos here. Previews stay on this device.
+					{:else}
+						Drag and drop images or videos here, or use the icons on the editor.
+					{/if}
 				</span>
 			{/if}
 		</div>

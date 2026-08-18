@@ -49,6 +49,8 @@ export {
 	type ComposerWriterLength,
 	buildComposerRewriterCreateOptions,
 	buildComposerRewriterCreateOptionsFromAction,
+	createComposerRewriterSessionKey,
+	rewriterRefineActionUsesHumanSharedContext,
 	type BuildComposerRewriterCreateOptionsInput,
 	type ComposerRewriterCreateCoreOptions,
 	formatWriterProviderConstraintTooltip

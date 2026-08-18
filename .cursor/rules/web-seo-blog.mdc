@@ -26,6 +26,7 @@ Do **not** send most equity to `/tools`. Link the **specific** tool the article 
 | Same + a named channel | `/tools/skill-builder/{slug}` | TikTok Skill Builder |
 | Timing tests / “when to post” (secondary unless the post is about timing) | `/tools/best-time-to-post` or `…/{slug}` | Best Time to Post calculator |
 | Stills / covers / aspect ratios | `/tools/photo-editor` or `…/{slug}` | Photo Editor |
+| Humanizer / “sound more human” / less machine-written drafts | `/tools/humanizer` or `…/{slug}` | Humanizer |
 | Listing several unrelated utilities | `/tools` (at most once) | OpenQuok free tools |
 
 Skills / MCP / CLI how-tos (ChatGPT, Codex, OpenClaw, CapCut + OpenQuok Core) → **Skill Builder is the primary internal tool link**. Mention `/tools` only if you truly mean the whole catalog.

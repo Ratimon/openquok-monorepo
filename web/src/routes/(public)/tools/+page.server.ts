@@ -1,9 +1,11 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import { listHumanizeChannelsForHub } from '$lib/ai-humanize';
 import { publicToolsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import {
 	getRootPathPublicBestTimeToPost,
+	getRootPathPublicHumanize,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
@@ -53,6 +55,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			badge: 'Design editor'
 		},
 		{
+			id: 'humanizer',
+			title: 'Humanizer',
+			description:
+				'Rewrite a social post so it reads less machine-written. Human and Roughen run on-device in Chrome. Copy stays free; scheduling needs an account.',
+			href: url(route(getRootPathPublicHumanize())),
+			badge: 'On-device rewrite'
+		},
+		{
 			id: 'best-time-to-post',
 			title: 'Best Time to Post',
 			description:
@@ -94,6 +104,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
 		photoEditorChannelsVm: listCanvasChannelsForHub(),
+		humanizeChannelsVm: listHumanizeChannelsForHub(),
 		bestTimeToPostChannelsVm: listBestTimeChannelsForHub(),
 		schemaData
 	};

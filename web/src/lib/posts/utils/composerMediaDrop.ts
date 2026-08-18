@@ -1,7 +1,7 @@
 import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte';
+import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
 import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
-import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
 /** Collect files from a drag event (`files` first, then `items` for Safari). */
 export function filesFromDataTransfer(transfer: DataTransfer | null | undefined): File[] {
@@ -51,4 +51,76 @@ export async function attachComposerMediaFromFiles(args: {
 		publishDateIso: args.publishDateIso,
 		onProgress: args.onProgress
 	});
+}
+
+export function isComposerMediaFile(file: File): boolean {
+	const mime = file.type.toLowerCase();
+	if (mime.startsWith('image/') || mime.startsWith('video/')) return true;
+	return /\.(png|jpe?g|gif|webp|svg|avif|mp4|mov|webm|m4v|mpeg)$/i.test(file.name);
+}
+
+function localPathForComposerFile(file: File): string {
+	const name = file.name.trim();
+	if (name.includes('.')) return name;
+	const mime = file.type.toLowerCase();
+	const ext = mime.includes('png')
+		? 'png'
+		: mime.includes('jpeg') || mime.includes('jpg')
+			? 'jpg'
+			: mime.includes('gif')
+				? 'gif'
+				: mime.includes('webp')
+					? 'webp'
+					: mime.includes('mp4')
+						? 'mp4'
+						: mime.includes('webm')
+							? 'webm'
+							: mime.includes('quicktime')
+								? 'mov'
+								: mime.startsWith('video/')
+									? 'mp4'
+									: mime.startsWith('image/')
+										? 'jpg'
+										: 'bin';
+	return `${name || 'media'}.${ext}`;
+}
+
+function filesToArray(files: File[] | FileList | null | undefined): File[] {
+	if (files == null) return [];
+	if (Array.isArray(files)) return files;
+	return Array.from(files);
+}
+
+/**
+ * Guest composer: attach files as local `blob:` previews without calling `/api/v1/media`.
+ */
+export function attachComposerMediaFromLocalFiles(args: {
+	files: File[] | FileList | null | undefined;
+}): { ok: true; items: PostMediaProgrammerModel[] } | { ok: false; message: string } {
+	const list = filesToArray(args.files).filter(isComposerMediaFile);
+	if (!list.length) {
+		return { ok: false, message: 'Add image or video files only.' };
+	}
+	if (typeof URL === 'undefined' || typeof URL.createObjectURL !== 'function') {
+		return { ok: false, message: 'Local media previews are only available in the browser.' };
+	}
+	const items: PostMediaProgrammerModel[] = list.map((file) => ({
+		id: crypto.randomUUID(),
+		path: localPathForComposerFile(file),
+		localPreviewUrl: URL.createObjectURL(file)
+	}));
+	return { ok: true, items };
+}
+
+export function revokeLocalMediaPreviewUrl(previewUrl: string | null | undefined): void {
+	const value = previewUrl?.trim();
+	if (!value || !value.startsWith('blob:')) return;
+	if (typeof URL === 'undefined' || typeof URL.revokeObjectURL !== 'function') return;
+	URL.revokeObjectURL(value);
+}
+
+export function revokeLocalMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): void {
+	for (const item of items) {
+		revokeLocalMediaPreviewUrl(item.localPreviewUrl);
+	}
 }

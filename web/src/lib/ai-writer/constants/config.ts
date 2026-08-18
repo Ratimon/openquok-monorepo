@@ -57,8 +57,16 @@ export const COMPOSER_WRITER_SUGGESTIONS = [
 /**
  * Post-draft refine chips for the Chrome Rewriter API.
  * Each action maps to create-time `tone` / `length` (immutable per session).
+ * Session cache keys include `id` so `sound-more-human` does not reuse the
+ * `more-casual` Rewriter session (same tone/length, Human sharedContext).
  */
 export const COMPOSER_REWRITER_REFINE_ACTIONS = [
+	{
+		id: 'sound-more-human',
+		label: 'Sound more human',
+		tone: 'more-casual',
+		length: 'as-is'
+	},
 	{ id: 'more-casual', label: 'More casual', tone: 'more-casual', length: 'as-is' },
 	{ id: 'more-formal', label: 'More formal', tone: 'more-formal', length: 'as-is' },
 	{ id: 'shorter', label: 'Shorter', tone: 'as-is', length: 'shorter' },

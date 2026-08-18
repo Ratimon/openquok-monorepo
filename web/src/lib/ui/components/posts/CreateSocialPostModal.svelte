@@ -154,6 +154,7 @@
 					exportCanvasToMedia={presenter.exportCanvasToMedia}
 					writerPresenter={presenter.composerWriterPresenter}
 					summarizerPresenter={presenter.composerSummarizerPresenter}
+					humanizePresenter={presenter.composerHumanizePresenter}
 					loadSignaturesVmForComposer={presenter.loadSignaturesVmForComposer}
 					socialChannels={presenter.baseSocialChannelsVm}
 					bind:body={presenter.editorBody}

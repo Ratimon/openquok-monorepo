@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
 	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
 	import type {
@@ -33,6 +34,8 @@
 		writerPresenter?: WriterPresenter;
 		/** Injected from CreateSocialPostPresenter when the media toolbar (AI Summarizer) is shown. */
 		summarizerPresenter?: SummarizerPresenter;
+		/** Injected from CreateSocialPostPresenter when the media toolbar (Sound more human) is shown. */
+		humanizePresenter?: HumanizePresenter;
 		body?: string;
 		busy?: boolean;
 		charCount: number;
@@ -55,7 +58,7 @@
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
 		focusedIntegrationId?: string | null;
-		/** Unique provider identifiers for AI Writer constraint awareness. */
+		/** Unique provider identifiers for AI Writer / Summarizer / Humanize constraint awareness. */
 		constraintProviderIdentifiers?: readonly string[];
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
@@ -66,6 +69,10 @@
 		scheduleValidationMessage?: string | null;
 		/** Blocks per-network customization UX while defining a reusable workspace set (global authoring only). */
 		setsAuthoringNetworkLock?: boolean;
+		/**
+		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
+		 */
+		guestMode?: boolean;
 	}
 
 	let {
@@ -79,6 +86,7 @@
 		exportCanvasToMedia = async () => ({ ok: false, error: 'Export is not configured.' }),
 		writerPresenter = undefined,
 		summarizerPresenter = undefined,
+		humanizePresenter = undefined,
 		body = $bindable(''),
 		busy = false,
 		charCount,
@@ -103,10 +111,12 @@
 		comments = false,
 		compact = false,
 		scheduleValidationMessage = null,
-		setsAuthoringNetworkLock = false
+		setsAuthoringNetworkLock = false,
+		guestMode = false
 	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
+	let mediaToolbarRef = $state<import('./ComposerMediaToolbar.svelte').default | undefined>();
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
 	let composerMedia = $state<MultiMedia | undefined>(undefined);
 	let composerDragOver = $state(false);
@@ -128,6 +138,11 @@
 	/** Same flow as the "Back to global" banner control (confirmation when enabled). */
 	export function requestBackToGlobalWithConfirmation() {
 		requestBannerRightAction();
+	}
+
+	/** Public Humanize header — opens Sound more human on the composer toolbar. */
+	export function openHumanize() {
+		mediaToolbarRef?.openHumanize();
 	}
 
 	const numMedia = $derived(postMediaItems.length);
@@ -258,9 +273,10 @@
 						You can't edit networks when creating a set
 					</p>
 				</div>
-			{:else if !comments && writerPresenter && summarizerPresenter}
+			{:else if !comments && writerPresenter && summarizerPresenter && humanizePresenter}
 				<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
 					<ComposerMediaToolbar
+						bind:this={mediaToolbarRef}
 						class="pointer-events-auto"
 						{stockPhotosVm}
 						{designTemplatesVm}
@@ -269,6 +285,7 @@
 						{exportCanvasToMedia}
 						{writerPresenter}
 						{summarizerPresenter}
+						{humanizePresenter}
 						bind:items={postMediaItems}
 						disabled={busy}
 						{uploadUid}
@@ -283,6 +300,7 @@
 						{constraintProviderIdentifiers}
 						{focusedIntegrationId}
 						{maxMediaItems}
+						{guestMode}
 						onInsertSignature={(sig) => {
 							const base = body ?? '';
 							const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
@@ -309,6 +327,7 @@
 				{uploadUid}
 				{publishDateIso}
 				{maxMediaItems}
+				{guestMode}
 			/>
 		</div>
 		{#if scheduleValidationMessage}

@@ -211,6 +211,23 @@ export function buildComposerRewriterCreateOptionsFromAction(
 }
 
 /**
+ * Cache key for an on-device Rewriter refine session.
+ * Includes `id` because Sound more human shares tone/length with More casual.
+ */
+export function createComposerRewriterSessionKey(
+	action: Pick<ComposerRewriterRefineAction, 'id' | 'tone' | 'length'>
+): string {
+	return `${action.id}:${action.tone}:${action.length}`;
+}
+
+/** True when the chip should use Human-mode sharedContext instead of Writer defaults. */
+export function rewriterRefineActionUsesHumanSharedContext(
+	action: Pick<ComposerRewriterRefineAction, 'id'>
+): boolean {
+	return action.id === 'sound-more-human';
+}
+
+/**
  * Hover copy for an AI Writer Context chip: platform name + composer post limits
  * from {@link getLaunchProviderConfig}.
  */

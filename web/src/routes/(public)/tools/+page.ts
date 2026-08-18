@@ -1,6 +1,7 @@
 import { browser } from '$app/environment';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize';
 import type { BestTimeChannelHubLinkViewModel } from '$lib/best-time-to-post';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
 import type {
@@ -27,6 +28,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			toolsVm: ToolsIndexToolCardViewModel[];
 			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
 			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
+			humanizeChannelsVm: HumanizeChannelHubLinkViewModel[];
 			bestTimeToPostChannelsVm: BestTimeChannelHubLinkViewModel[];
 			schemaData: unknown;
 		};
@@ -38,6 +40,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			toolsVm: serverData.toolsVm,
 			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
 			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
+			humanizeChannelsVm: serverData.humanizeChannelsVm,
 			bestTimeToPostChannelsVm: serverData.bestTimeToPostChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

@@ -11,6 +11,8 @@ export {
 	buildComposerWriterSharedContext,
 	buildComposerRewriterCreateOptions,
 	buildComposerRewriterCreateOptionsFromAction,
+	createComposerRewriterSessionKey,
+	rewriterRefineActionUsesHumanSharedContext,
 	formatWriterConstraintTargetLabel,
 	formatWriterProviderConstraintTooltip,
 	normalizeWriterProviderIdentifiers,

@@ -10,6 +10,11 @@ export type PostMediaProgrammerModel = {
 	path: string;
 	/** Wire field for create-post payloads; composer uploads use `social_media`. */
 	bucket?: 'social_media';
+	/**
+	 * Guest composer only: `blob:` object URL for an on-device preview.
+	 * Never a storage key — do not send this on create/update payloads.
+	 */
+	localPreviewUrl?: string;
 };
 
 function isComposerMediaFile(file: File): boolean {

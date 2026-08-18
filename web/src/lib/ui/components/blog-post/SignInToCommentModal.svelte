@@ -13,7 +13,9 @@
 <Dialog.Root bind:open>
 	<Dialog.Content class="max-w-md" showCloseButton>
 		<Dialog.Header>
-			<Dialog.Title>Sign in to comment</Dialog.Title>
+			<Dialog.Title>
+				Sign in to comment
+			</Dialog.Title>
 			<Dialog.Description>
 				Sign in to add collaboration comments on this share link.
 			</Dialog.Description>

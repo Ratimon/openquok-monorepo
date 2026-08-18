@@ -4,7 +4,7 @@ export class PublicToolsPagePresenter {
 		return {
 			metaTitle: 'OpenQuok Free tools',
 			metaDescription:
-				'Free utilities for building agent workflows, designing channel visuals, and building your own viral format.'
+				'Free utilities for building agent workflows, designing channel visuals, rewriting posts so they read less machine-written, and building your own viral format.'
 		};
 	}
 	

@@ -29,8 +29,9 @@ import { ProtectedBillingPagePresenter } from '$lib/area-protected/ProtectedBill
 import { ProtectedAccountBuildingBlocksPagePresenter } from '$lib/area-protected/ProtectedAccountBuildingBlocksPage.presenter.svelte';
 import { UserListingEditorPagePresenter } from '$lib/area-protected/UserListingEditorPage.presenter.svelte';
 import { UserListingsManagerPagePresenter } from '$lib/area-protected/UserListingsManagerPage.presenter.svelte';
-import { WriterPresenter } from '$lib/ai-writer';
+import { HumanizePresenter } from '$lib/ai-humanize';
 import { SummarizerPresenter } from '$lib/ai-summarizer';
+import { WriterPresenter } from '$lib/ai-writer';
 import { billingPresenter, firstBillingGatePresenter, getBillingPresenter } from '$lib/billing';
 import { getListingPresenter, listingRepository } from '$lib/listings';
 import { GenerateMediaModalPresenter } from '$lib/canvas';
@@ -98,18 +99,22 @@ const composerWriterPresenter = new WriterPresenter();
 /** On-device AI Summarizer for the social post composer (see {@link CreateSocialPostPresenter}). */
 const composerSummarizerPresenter = new SummarizerPresenter();
 
+/** On-device Humanize (Sound more human) for the social post composer (see {@link CreateSocialPostPresenter}). */
+const composerHumanizePresenter = new HumanizePresenter();
+
 /** Same canvas stack for the account media library page. */
 const mediaLibraryMediaModalPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
 /** Account calendar / Schedule‑X (see {@link SchedulerPresenter}). */
 const schedulerPresenter = new SchedulerPresenter(postsRepository, getScheduledPostsPresenter);
 
-/** Shared create-post composer (posts repository + composer media modal + AI Writer / Summarizer). */
+/** Shared create-post composer (posts repository + composer media modal + AI Writer / Summarizer / Humanize). */
 const createSocialPostPresenter = new CreateSocialPostPresenter(
 	postsRepository,
 	composerMediaModalPresenter,
 	composerWriterPresenter,
 	composerSummarizerPresenter,
+	composerHumanizePresenter,
 	getSignaturesPresenter,
 	getScheduledPostsPresenter,
 	upsertSetPresenter,
@@ -262,6 +267,8 @@ export {
 	composerWriterPresenter,
 	SummarizerPresenter,
 	composerSummarizerPresenter,
+	HumanizePresenter,
+	composerHumanizePresenter,
 	schedulerPresenter,
 	signatureSettingPresenter
 };

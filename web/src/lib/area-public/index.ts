@@ -24,6 +24,7 @@ import {
 } from '$lib/area-public/PublicPlaybooksPage.presenter.svelte';
 import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
 import { PublicPhotoEditorPagePresenter } from '$lib/area-public/PublicPhotoEditorPage.presenter.svelte';
+import { PublicHumanizePagePresenter } from '$lib/area-public/PublicHumanizePage.presenter.svelte';
 import { PublicBestTimeToPostPagePresenter } from '$lib/area-public/PublicBestTimeToPostPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicAlternativesPagePresenter } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
@@ -73,6 +74,7 @@ const publicComparePagePresenter = new PublicComparePagePresenter();
 const publicRoadmapPagePresenter = new PublicRoadmapPagePresenter(generalFeedbackPresenter);
 const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
 const publicPhotoEditorPagePresenter = new PublicPhotoEditorPagePresenter();
+const publicHumanizePagePresenter = new PublicHumanizePagePresenter();
 const publicBestTimeToPostPagePresenter = new PublicBestTimeToPostPagePresenter();
 const publicPhotoEditorCanvasPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
@@ -93,6 +95,7 @@ export {
 	publicRoadmapPagePresenter,
 	publicSkillBuilderPagePresenter,
 	publicPhotoEditorPagePresenter,
+	publicHumanizePagePresenter,
 	publicBestTimeToPostPagePresenter,
 	publicPhotoEditorCanvasPresenter,
 	publicPricingPagePresenter,
