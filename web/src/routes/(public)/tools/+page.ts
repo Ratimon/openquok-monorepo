@@ -28,7 +28,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			toolsVm: ToolsIndexToolCardViewModel[];
 			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
 			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
-			humanizeChannelsVm: HumanizeChannelHubLinkViewModel[];
+			humanizerChannelsVm: HumanizeChannelHubLinkViewModel[];
 			bestTimeToPostChannelsVm: BestTimeChannelHubLinkViewModel[];
 			schemaData: unknown;
 		};
@@ -40,7 +40,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			toolsVm: serverData.toolsVm,
 			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,
 			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
-			humanizeChannelsVm: serverData.humanizeChannelsVm,
+			humanizerChannelsVm: serverData.humanizerChannelsVm,
 			bestTimeToPostChannelsVm: serverData.bestTimeToPostChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,

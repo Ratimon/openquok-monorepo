@@ -5,14 +5,14 @@
 
 	type Props = {
 		toolsHubHref: string;
-		humanizeHref: string;
+		humanizerHref: string;
 		channelLabel?: string | null;
 		class?: string;
 	};
 
 	let {
 		toolsHubHref,
-		humanizeHref,
+		humanizerHref,
 		channelLabel = null,
 		class: className = ''
 	}: Props = $props();
@@ -32,7 +32,7 @@
 		{#if channelLabel?.trim()}
 			<Breadcrumb.Item>
 				<Breadcrumb.Link
-					href={humanizeHref}
+					href={humanizerHref}
 					class="text-primary hover:text-primary/80 text-sm no-underline"
 				>
 					Humanizer

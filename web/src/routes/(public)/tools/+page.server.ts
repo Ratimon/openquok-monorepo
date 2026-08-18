@@ -5,7 +5,7 @@ import { publicToolsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import {
 	getRootPathPublicBestTimeToPost,
-	getRootPathPublicHumanize,
+	getRootPathPublicHumanizer,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
@@ -59,7 +59,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			title: 'Humanizer',
 			description:
 				'Rewrite a social post so it reads less machine-written. Human and Roughen run on-device in Chrome. Copy stays free; scheduling needs an account.',
-			href: url(route(getRootPathPublicHumanize())),
+			href: url(route(getRootPathPublicHumanizer())),
 			badge: 'On-device rewrite'
 		},
 		{
@@ -104,7 +104,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),
 		photoEditorChannelsVm: listCanvasChannelsForHub(),
-		humanizeChannelsVm: listHumanizeChannelsForHub(),
+		humanizerChannelsVm: listHumanizeChannelsForHub(),
 		bestTimeToPostChannelsVm: listBestTimeChannelsForHub(),
 		schemaData
 	};

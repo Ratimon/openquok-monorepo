@@ -47,7 +47,7 @@ export type PublicHumanizeComposerInit = {
 };
 
 /**
- * Local-only composer for the public Humanize tool. Holds body, media, and
+ * Local-only composer for the public Humanizer tool. Holds body, media, and
  * channel selection — no posts repository and no cloud uploads.
  */
 export class PublicHumanizeComposerPresenter {
@@ -354,7 +354,7 @@ export class PublicHumanizeComposerPresenter {
 		const href = URL.createObjectURL(blob);
 		const anchor = document.createElement('a');
 		anchor.href = href;
-		anchor.download = 'humanize-post.txt';
+		anchor.download = 'humanizer-post.txt';
 		anchor.rel = 'noopener noreferrer';
 		document.body.appendChild(anchor);
 		anchor.click();

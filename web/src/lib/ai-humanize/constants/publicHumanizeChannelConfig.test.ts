@@ -5,7 +5,7 @@ import {
 	listHumanizeChannelsForHub,
 	PUBLIC_HUMANIZE_GENERIC_CONFIG
 } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
-import { getRootPathPublicHumanizeChannel } from '$lib/area-public/constants/getRootPathPublicTools';
+import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import {
 	listAvailablePublicChannels,
 	listPublicChannelsForHub
@@ -41,7 +41,7 @@ describe('publicHumanizeChannelConfig', () => {
 			expect(link).toBeDefined();
 			expect(link?.platformLabel).toBe(channel.platformLabel);
 			expect(link?.icon).toBe(channel.icon);
-			expect(link?.href).toBe(route(getRootPathPublicHumanizeChannel(channel.slug)));
+			expect(link?.href).toBe(route(getRootPathPublicHumanizerChannel(channel.slug)));
 			expect(link?.description.length).toBeGreaterThan(0);
 			expect(/bypass|detector|homoglyph/i.test(link?.description ?? '')).toBe(false);
 		}

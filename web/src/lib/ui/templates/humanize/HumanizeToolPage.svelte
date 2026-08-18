@@ -9,7 +9,7 @@
 		getRootPathPublicChannels
 	} from '$lib/area-public/constants/getRootPathPublicChannels';
 	import {
-		getRootPathPublicHumanize,
+		getRootPathPublicHumanizer,
 		getRootPathPublicTools
 	} from '$lib/area-public/constants/getRootPathPublicTools';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -69,8 +69,8 @@
 	const toolsHubHref = url(route(rootPathPublicTools));
 
 	// /tools/humanizer
-	const rootPathPublicHumanize = getRootPathPublicHumanize();
-	const humanizeHref = url(route(rootPathPublicHumanize));
+	const rootPathPublicHumanizer = getRootPathPublicHumanizer();
+	const humanizerHref = url(route(rootPathPublicHumanizer));
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -115,7 +115,7 @@
 
 <SectionOuterContainer class="pb-16">
 	<div class="space-y-6">
-		<HumanizeHubBreadcrumb {toolsHubHref} {humanizeHref} {channelLabel} />
+		<HumanizeHubBreadcrumb {toolsHubHref} {humanizerHref} {channelLabel} />
 
 		<header class="space-y-3">
 			<h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
@@ -142,7 +142,7 @@
 			<HumanizeChannelHubGrid
 				{channelLinksVm}
 				activeChannelSlug={channelSlug}
-				genericHref={humanizeHref}
+				genericHref={humanizerHref}
 			/>
 		{/if}
 	</div>

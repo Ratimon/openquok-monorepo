@@ -2,7 +2,7 @@
 	import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize';
 
 	import { icons } from '$data/icons';
-	import { getRootPathPublicHumanize } from '$lib/area-public/constants/getRootPathPublicTools';
+	import { getRootPathPublicHumanizer } from '$lib/area-public/constants/getRootPathPublicTools';
 	import { route, url } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -17,10 +17,10 @@
 	let {
 		channelLinksVm,
 		activeChannelSlug = null,
-		genericHref = url(route(getRootPathPublicHumanize()))
+		genericHref = url(route(getRootPathPublicHumanizer()))
 	}: Props = $props();
 
-	const headingId = 'humanize-channel-hub-heading';
+	const headingId = 'humanizer-channel-hub-heading';
 
 	const isGenericActive = $derived(!activeChannelSlug?.trim());
 </script>

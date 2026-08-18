@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
-	import { route, url } from '$lib/utils/path';
+	import { route } from '$lib/utils/path';
 
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -26,7 +26,7 @@
 	let toolsVm = $derived(data.toolsVm);
 	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
-	let humanizeChannelsVm = $derived(data.humanizeChannelsVm);
+	let humanizerChannelsVm = $derived(data.humanizerChannelsVm);
 	let bestTimeToPostChannelsVm = $derived(data.bestTimeToPostChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
@@ -79,7 +79,7 @@
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
-						channelLinks={humanizeChannelsVm}
+						channelLinks={humanizerChannelsVm}
 						toolLabel="Humanizer"
 					/>
 				{:else if toolVm.id === 'best-time-to-post'}

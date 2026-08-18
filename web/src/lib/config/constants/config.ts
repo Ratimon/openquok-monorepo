@@ -23,7 +23,7 @@ import {
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import {
 	getRootPathPublicBestTimeToPost,
-	getRootPathPublicHumanize,
+	getRootPathPublicHumanizer,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicTools
@@ -48,7 +48,7 @@ const publicApisIntegrationsDocsPath = route(`${getRootPathPublicDocs()}/apis-in
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
-const publicHumanizePath = route(getRootPathPublicHumanize());
+const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 
@@ -798,7 +798,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
 		{ label: 'Photo Editor', href: publicPhotoEditorPath },
-		{ label: 'Humanizer', href: publicHumanizePath },
+		{ label: 'Humanizer', href: publicHumanizerPath },
 		{ label: 'Best Time to Post', href: publicBestTimeToPostPath },
 		{ label: 'API Payload Validator', href: publicApisIntegrationsDocsPath },
 	],

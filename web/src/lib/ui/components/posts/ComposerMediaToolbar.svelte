@@ -305,7 +305,7 @@
 		humanizeOpen = true;
 	}
 
-	/** Public Humanize header calls this so Sound more human is not toolbar-only. */
+	/** Public Humanizer header calls this so Sound more human is not toolbar-only. */
 	export function openHumanize() {
 		openAiHumanize();
 	}

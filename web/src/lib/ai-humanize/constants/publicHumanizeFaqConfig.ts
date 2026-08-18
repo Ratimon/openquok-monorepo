@@ -7,7 +7,7 @@ export type HumanizeFaqSection = {
 	faqItems: PublicFaqItem[];
 };
 
-const WHAT_IS_HUMANIZE_FAQ_TITLE = 'What is OpenQuok Humanizer?';
+const WHAT_IS_HUMANIZER_FAQ_TITLE = 'What is OpenQuok Humanizer?';
 const ACCOUNT_FAQ_TITLE = 'Do I need an OpenQuok account?';
 const HUMAN_VS_ROUGHEN_FAQ_TITLE = 'What is Human vs Roughen?';
 const CHROME_FAQ_TITLE = 'Does Humanizer require Chrome?';
@@ -16,14 +16,14 @@ const PLATFORM_FAQ_TITLE = 'Can I humanize a post for a specific platform?';
 
 const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
-		title: WHAT_IS_HUMANIZE_FAQ_TITLE,
+		title: WHAT_IS_HUMANIZER_FAQ_TITLE,
 		description:
 			'A free browser composer that rewrites a draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. Work stays on this page until you copy it or sign in to schedule.'
 	},
 	{
 		title: ACCOUNT_FAQ_TITLE,
 		description:
-			'No to rewrite, attach local media, and copy the result. Sign in or sign up when you want workspace media, signatures, drafts, or scheduling on connected channels.'
+			'No. You can rewrite, attach local media, and copy the result. Sign in or sign up when you want workspace media, signatures, drafts, or scheduling on connected channels.'
 	},
 	{
 		title: HUMAN_VS_ROUGHEN_FAQ_TITLE,
@@ -53,7 +53,7 @@ function tailorHumanizeFaqItem(
 	platformLabel: string
 ): PublicFaqItem {
 	switch (item.title) {
-		case WHAT_IS_HUMANIZE_FAQ_TITLE:
+		case WHAT_IS_HUMANIZER_FAQ_TITLE:
 			return {
 				title: item.title,
 				description: `A free browser composer that rewrites a ${platformLabel} draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. This ${channelSlug} page focuses the preview and character limit on ${platformLabel}.`

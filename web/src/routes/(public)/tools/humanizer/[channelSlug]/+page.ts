@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			pageMetaTags: MetaTagsProps;
 			isLoggedIn?: boolean;
 			schemaData: unknown;
-			humanizeChannelsVm: HumanizeChannelHubLinkViewModel[];
+			humanizerChannelsVm: HumanizeChannelHubLinkViewModel[];
 		};
 
 		return {
@@ -30,7 +30,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			channelLabel: serverData.channelLabel,
 			focusedProviderIdentifier: serverData.focusedProviderIdentifier,
 			composerMode: serverData.composerMode,
-			humanizeChannelsVm: serverData.humanizeChannelsVm,
+			humanizerChannelsVm: serverData.humanizerChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

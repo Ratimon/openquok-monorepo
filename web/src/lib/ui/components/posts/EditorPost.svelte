@@ -140,7 +140,7 @@
 		requestBannerRightAction();
 	}
 
-	/** Public Humanize header — opens Sound more human on the composer toolbar. */
+	/** Public Humanizer header — opens Sound more human on the composer toolbar. */
 	export function openHumanize() {
 		mediaToolbarRef?.openHumanize();
 	}

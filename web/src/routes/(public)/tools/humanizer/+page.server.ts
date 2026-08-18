@@ -8,7 +8,7 @@ import {
 } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
 import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
 import { publicHumanizePagePresenter } from '$lib/area-public';
-import { getRootPathPublicHumanize } from '$lib/area-public/constants/getRootPathPublicTools';
+import { getRootPathPublicHumanizer } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -30,7 +30,7 @@ export async function load({ url, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${toolVm.metaTitle} | ${companyName}`,
 		customDescription: toolVm.metaDescription,
-		customSlug: getRootPathPublicHumanize(),
+		customSlug: getRootPathPublicHumanizer(),
 		customTags: [...PUBLIC_HUMANIZE_GENERIC_CONFIG.keywords],
 		requestUrl: url
 	})) satisfies MetaTagsProps;
@@ -65,7 +65,7 @@ export async function load({ url, cookies, parent }) {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		schemaData,
-		humanizeChannelsVm: listHumanizeChannelsForHub(),
+		humanizerChannelsVm: listHumanizeChannelsForHub(),
 		...toolVm
 	};
 }

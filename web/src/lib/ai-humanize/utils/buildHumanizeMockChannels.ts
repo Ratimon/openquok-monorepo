@@ -8,7 +8,7 @@ export function humanizeMockChannelId(slug: string): string {
 	return `${HUMANIZE_MOCK_CHANNEL_ID_PREFIX}${slug.trim().toLowerCase()}`;
 }
 
-/** Fake connected channels for the public Humanize composer (catalog icons/labels, no OAuth). */
+/** Fake connected channels for the public Humanizer composer (catalog icons/labels, no OAuth). */
 export function buildHumanizeMockChannels(): CreateSocialPostChannelViewModel[] {
 	return listAvailablePublicChannels().map((channel) => {
 		const id = humanizeMockChannelId(channel.slug);

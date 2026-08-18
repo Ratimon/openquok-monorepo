@@ -2,7 +2,7 @@ import type { IconName } from '$data/icons';
 import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize/Humanize.presenter.svelte';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
-import { getRootPathPublicHumanizeChannel } from '$lib/area-public/constants/getRootPathPublicTools';
+import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { listAvailablePublicChannels } from '$lib/content/constants/publicChannelConfig';
 import { buildHumanizeChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { route } from '$lib/utils/path';
@@ -21,7 +21,7 @@ export type HumanizeChannelPageConfig = {
 };
 
 export const PUBLIC_HUMANIZE_GENERIC_CONFIG = {
-	metaTitle: 'Humanizer Social Posts',
+	metaTitle: 'Humanizer for Social Posts',
 	metaDescription:
 		'Rewrite a social post so it reads less machine-written. Human and Roughen modes run on-device in Chrome. Copy stays free; scheduling needs an account.',
 	keywords: [
@@ -38,7 +38,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	facebook: 'Clean Page drafts so they read less machine-written.',
 	threads: 'Tighten text posts for a more spoken Threads voice.',
 	instagram: 'Rewrite captions for feed, Reel, and Story posts.',
-	youtube: 'Humanize titles and descriptions before you publish.',
+	youtube: 'Rewrite titles and descriptions before you publish.',
 	tiktok: 'Clean or roughen captions for short-video posts.',
 	linkedin: 'Drop stock phrasing from professional feed posts.',
 	x: 'Shorten drafts for a more conversational post.'
@@ -54,7 +54,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Hum
 		metaDescription: `Rewrite a ${channel.platformLabel} draft so it reads less machine-written. Human and Roughen run on-device in Chrome. Copy stays free; scheduling needs an account. No classifier guarantees.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
-			`Humanize ${channel.platformLabel} drafts so they read less machine-written.`,
+			`Rewrite ${channel.platformLabel} drafts so they read less machine-written.`,
 		keywords: [
 			`humanize ${channel.platformLabel} posts`,
 			`${channel.platformLabel} sound more human`,
@@ -79,7 +79,7 @@ export function listHumanizeChannelsForHub(): HumanizeChannelHubLinkViewModel[] 
 		slug: config.channelSlug,
 		platformLabel: config.platformLabel,
 		icon: config.icon,
-		href: route(getRootPathPublicHumanizeChannel(config.channelSlug)),
+		href: route(getRootPathPublicHumanizerChannel(config.channelSlug)),
 		description: config.hubDescription
 	}));
 }

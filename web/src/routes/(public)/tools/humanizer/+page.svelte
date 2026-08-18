@@ -15,7 +15,7 @@
 	let channelLabel = $derived(data.channelLabel);
 	let focusedProviderIdentifier = $derived(data.focusedProviderIdentifier);
 	let composerMode = $derived(data.composerMode);
-	let humanizeChannelsVm = $derived(data.humanizeChannelsVm);
+	let humanizerChannelsVm = $derived(data.humanizerChannelsVm);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -28,6 +28,6 @@
 		{channelLabel}
 		{focusedProviderIdentifier}
 		{composerMode}
-		channelLinksVm={humanizeChannelsVm}
+		channelLinksVm={humanizerChannelsVm}
 	/>
 {/key}

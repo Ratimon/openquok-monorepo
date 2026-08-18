@@ -27,7 +27,7 @@ export function buildBestTimeToPostChannelMetaTitle(platformLabel: string): stri
 }
 
 export function buildHumanizeChannelMetaTitle(platformLabel: string): string {
-	return `Humanizer ${platformLabel} Social Posts`;
+	return `${platformLabel} Humanizer for Social Posts`;
 }
 
 export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {
