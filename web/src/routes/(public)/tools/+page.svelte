@@ -61,7 +61,7 @@
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
-						channelLinks={skillBuilderChannelsVm}
+						channelLinksVm={skillBuilderChannelsVm}
 						toolLabel="Skill Builder"
 					/>
 				{:else if toolVm.id === 'photo-editor'}
@@ -70,7 +70,7 @@
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
-						channelLinks={photoEditorChannelsVm}
+						channelLinksVm={photoEditorChannelsVm}
 						toolLabel="Photo Editor"
 					/>
 				{:else if toolVm.id === 'humanizer'}
@@ -79,7 +79,7 @@
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
-						channelLinks={humanizerChannelsVm}
+						channelLinksVm={humanizerChannelsVm}
 						toolLabel="Humanizer"
 					/>
 				{:else if toolVm.id === 'best-time-to-post'}
@@ -88,7 +88,7 @@
 						description={toolVm.description}
 						badge={toolVm.badge}
 						genericHref={toolVm.href}
-						channelLinks={bestTimeToPostChannelsVm}
+						channelLinksVm={bestTimeToPostChannelsVm}
 						toolLabel="Best Time to Post"
 					/>
 				{:else}

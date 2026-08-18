@@ -19,12 +19,12 @@
 		description: string;
 		badge?: string;
 		genericHref: string;
-		channelLinks: ChannelHubLinkViewModel[];
+		channelLinksVm: ChannelHubLinkViewModel[];
 		/** Used in aria labels for the channel dropdown (e.g. "Skill Builder", "Photo Editor"). */
 		toolLabel: string;
 	};
 
-	let { title, description, badge, genericHref, channelLinks, toolLabel }: Props = $props();
+	let { title, description, badge, genericHref, channelLinksVm, toolLabel }: Props = $props();
 
 	let open = $state(false);
 	let cardEl = $state<HTMLDivElement | undefined>();
@@ -92,9 +92,9 @@
 						class="flex max-h-[min(60vh,16rem)] flex-col gap-0.5 overflow-y-auto"
 						aria-label="{toolLabel} channels"
 					>
-						{#each channelLinks as channel (channel.slug)}
+						{#each channelLinksVm as channelVm (channelVm.slug)}
 							<a
-								href={url(channel.href)}
+								href={url(channelVm.href)}
 								onclick={handleNavigate}
 								class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm font-medium text-base-content transition-colors hover:bg-base-100/80 hover:text-primary"
 							>
@@ -103,14 +103,14 @@
 									aria-hidden="true"
 								>
 									<AbstractIcon
-										name={channel.icon}
+										name={channelVm.icon}
 										width="16"
 										height="16"
 										class="size-4"
 										focusable="false"
 									/>
 								</span>
-								<span class="truncate">{channel.platformLabel}</span>
+								<span class="truncate">{channelVm.platformLabel}</span>
 							</a>
 						{/each}
 					</div>
