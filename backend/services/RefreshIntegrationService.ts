@@ -37,7 +37,6 @@ export class RefreshIntegrationService {
                     organizationId: integration.organization_id,
                     internalId: integration.internal_id,
                     picture: refresh.picture,
-                    resolveFreshRemoteUrl: async () => refresh.picture,
                     downloadBytes: () =>
                         downloadProviderProfilePicture({
                             providerIdentifier: integration.provider_identifier,

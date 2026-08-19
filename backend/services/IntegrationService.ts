@@ -108,11 +108,6 @@ export class IntegrationService {
         await this.integrationRepository.syncTokensByRootInternalId(params);
     }
 
-    async updatePicture(organizationId: string, integrationId: string, picture: string): Promise<void> {
-        await this.integrationRepository.updatePicture(organizationId, integrationId, picture);
-        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
-    }
-
     async setPostingTimes(organizationId: string, integrationId: string, json: string) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);

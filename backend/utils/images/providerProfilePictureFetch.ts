@@ -1,8 +1,5 @@
 import { isExternalCdnProfilePictureUrl } from "./allowedExternalImageHosts";
-import {
-    fetchAllowlistedExternalImageWithOptionalBearer,
-    type FetchedExternalImage,
-} from "./externalImageFetch";
+import { fetchAllowlistedExternalImage, type FetchedExternalImage } from "./externalImageFetch";
 
 const GRAPH = "https://graph.facebook.com/v20.0";
 
@@ -18,14 +15,11 @@ async function imageFromResponse(response: Response): Promise<FetchedExternalIma
     return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
 }
 
-async function fetchRemotePictureUrl(
-    pictureUrl: string | null | undefined,
-    accessToken?: string
-): Promise<FetchedExternalImage | null> {
+async function fetchRemotePictureUrl(pictureUrl: string | null | undefined): Promise<FetchedExternalImage | null> {
     const url = pictureUrl?.trim();
     if (!url || !isExternalCdnProfilePictureUrl(url)) return null;
     try {
-        return await fetchAllowlistedExternalImageWithOptionalBearer(url, accessToken);
+        return await fetchAllowlistedExternalImage(url);
     } catch {
         return null;
     }
@@ -38,32 +32,12 @@ async function fetchFacebookGraphPicture(
     const id = objectId.trim();
     const token = accessToken.trim();
     if (!id || !token) return null;
-    const auth = { Authorization: `Bearer ${token}` };
-    const tokenQuery = `access_token=${encodeURIComponent(token)}`;
-
     try {
-        const redirectRes = await fetch(`${facebookGraphProfilePictureUrl(id)}&${tokenQuery}`, {
-            method: "GET",
-            redirect: "follow",
-            headers: auth,
-        });
-        const fromRedirect = await imageFromResponse(redirectRes);
-        if (fromRedirect) return fromRedirect;
-    } catch {
-        /* try JSON picture URL next */
-    }
-
-    try {
-        const metaRes = await fetch(
-            `${GRAPH}/${encodeURIComponent(id)}?fields=picture.type(large),profile_picture_url&${tokenQuery}`,
-            { headers: auth }
+        const res = await fetch(
+            `${facebookGraphProfilePictureUrl(id)}&access_token=${encodeURIComponent(token)}`,
+            { method: "GET", redirect: "follow", headers: { Authorization: `Bearer ${token}` } }
         );
-        const meta = (await metaRes.json()) as {
-            picture?: { data?: { url?: string } };
-            profile_picture_url?: string;
-        };
-        const url = meta.profile_picture_url || meta.picture?.data?.url;
-        return await fetchRemotePictureUrl(url, token);
+        return await imageFromResponse(res);
     } catch {
         return null;
     }
@@ -75,7 +49,7 @@ async function fetchLinkedInPersonPicture(accessToken: string): Promise<FetchedE
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         const json = (await res.json()) as { picture?: string };
-        return await fetchRemotePictureUrl(json.picture, accessToken);
+        return await fetchRemotePictureUrl(json.picture);
     } catch {
         return null;
     }
@@ -103,7 +77,7 @@ async function fetchLinkedInOrganizationPicture(
             logoV2?: { "original~"?: { elements?: Array<{ identifiers?: Array<{ identifier?: string }> }> } };
         };
         const url = org.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier;
-        return await fetchRemotePictureUrl(url, accessToken);
+        return await fetchRemotePictureUrl(url);
     } catch {
         return null;
     }

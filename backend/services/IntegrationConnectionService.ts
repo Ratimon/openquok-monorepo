@@ -24,7 +24,7 @@ import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
-import { resolveIntegrationPictureForStorage, isIntegrationProfileStoragePath } from "../utils/images/mirrorIntegrationProfilePicture";
+import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
 import { isExternalCdnProfilePictureUrl } from "../utils/images/allowedExternalImageHosts";
 import {
     downloadProviderProfilePicture,
@@ -161,7 +161,6 @@ export class IntegrationConnectionService {
     async getIntegrationList(authUserId: string, organizationId: string) {
         await this.assertOrganizationMember(authUserId, organizationId);
         const rows = await this.integrations.listByOrganization(organizationId);
-        await Promise.all(rows.map((row) => this.ensureMirroredProfilePicture(row)));
         const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
         return { integrations };
     }
@@ -196,31 +195,17 @@ export class IntegrationConnectionService {
         await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
     }
 
-    private async ensureMirroredProfilePicture(row: IntegrationLike): Promise<void> {
-        const raw = row.picture?.trim() ?? "";
-        if (!raw || isIntegrationProfileStoragePath(raw) || !isExternalCdnProfilePictureUrl(raw)) {
-            return;
-        }
-        try {
-            const stored = await resolveIntegrationPictureForStorage({
-                storageRepository: this.storageRepository,
-                organizationId: row.organization_id,
-                internalId: row.internal_id,
-                picture: raw,
-                downloadBytes: () =>
-                    downloadProviderProfilePicture({
-                        providerIdentifier: row.provider_identifier,
-                        internalId: row.internal_id,
-                        accessToken: row.token,
-                    }),
+    private downloadProfilePictureBytes(
+        providerIdentifier: string,
+        internalId: string,
+        accessToken: string
+    ) {
+        return () =>
+            downloadProviderProfilePicture({
+                providerIdentifier,
+                internalId,
+                accessToken,
             });
-            if (stored && stored !== raw) {
-                await this.integrations.updatePicture(row.organization_id, row.id, stored);
-                row.picture = stored;
-            }
-        } catch {
-            /* keep the stored CDN URL; list display may still rewrite Facebook to Graph /picture */
-        }
     }
 
     /**
@@ -623,13 +608,7 @@ export class IntegrationConnectionService {
             organizationId,
             internalId: String(id),
             picture: picture || null,
-            resolveFreshRemoteUrl: async () => picture || null,
-            downloadBytes: () =>
-                downloadProviderProfilePicture({
-                    providerIdentifier: integration,
-                    internalId: String(id),
-                    accessToken,
-                }),
+            downloadBytes: this.downloadProfilePictureBytes(integration, String(id), accessToken),
         });
 
         await this.subscriptionGuard?.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
@@ -1025,13 +1004,11 @@ export class IntegrationConnectionService {
             organizationId,
             internalId: String(information.id),
             picture: information.picture || null,
-            resolveFreshRemoteUrl: async () => information.picture || null,
-            downloadBytes: () =>
-                downloadProviderProfilePicture({
-                    providerIdentifier: row.provider_identifier,
-                    internalId: String(information.id),
-                    accessToken: information.access_token || userAccessToken,
-                }),
+            downloadBytes: this.downloadProfilePictureBytes(
+                row.provider_identifier,
+                String(information.id),
+                information.access_token || userAccessToken
+            ),
         });
 
         await this.integrations.updateIntegrationById(organizationId, integrationId, {

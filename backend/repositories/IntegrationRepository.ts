@@ -250,23 +250,6 @@ export class IntegrationRepository {
         }
     }
 
-    async updatePicture(organizationId: string, integrationId: string, picture: string): Promise<void> {
-        const { error } = await this.supabase
-            .from(TABLE)
-            .update({ picture, updated_at: new Date().toISOString() })
-            .eq("organization_id", organizationId)
-            .eq("id", integrationId)
-            .is("deleted_at", null);
-
-        if (error) {
-            throw new DatabaseError("Failed to update integration picture", {
-                cause: error as unknown as Error,
-                operation: "update",
-                resource: { type: "table", name: TABLE },
-            });
-        }
-    }
-
     async setPostingTimes(organizationId: string, integrationId: string, postingTimesJson: string): Promise<void> {
         const { error } = await this.supabase
             .from(TABLE)

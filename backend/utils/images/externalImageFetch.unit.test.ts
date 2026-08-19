@@ -46,29 +46,7 @@ describe("externalImageFetch", () => {
         expect(result.buffer.equals(Buffer.from(bytes))).toBe(true);
     });
 
-    it("retries without Referer when the Instagram Referer attempt is forbidden", async () => {
-        const bytes = new Uint8Array([0xff, 0xd8, 0xff]);
-        jest.mocked(global.fetch)
-            .mockResolvedValueOnce({
-                ok: false,
-                status: 403,
-                statusText: "Forbidden",
-                headers: { get: () => null },
-            } as unknown as Response)
-            .mockResolvedValueOnce({
-                ok: true,
-                status: 200,
-                statusText: "OK",
-                headers: { get: (name: string) => (name === "content-type" ? "image/jpeg" : null) },
-                arrayBuffer: async () => bytes.buffer,
-            } as unknown as Response);
-
-        const result = await fetchAllowlistedExternalImage("https://scontent.cdninstagram.com/a.jpg");
-        expect(result.contentType).toBe("image/jpeg");
-        expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it("throws ExternalImageFetchError with 403 when every CDN attempt is forbidden", async () => {
+    it("throws ExternalImageFetchError with 403 when the CDN forbids the fetch", async () => {
         jest.mocked(global.fetch).mockResolvedValue({
             ok: false,
             status: 403,

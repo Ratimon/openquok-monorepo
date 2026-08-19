@@ -37,13 +37,11 @@ export async function mirrorIntegrationProfilePicture(params: {
     organizationId: string;
     internalId: string;
     remoteUrl: string | null | undefined;
-    /** When the CDN URL fails, call this to obtain a fresh URL (e.g. Graph API `me` fields). */
-    resolveFreshRemoteUrl?: () => Promise<string | null | undefined>;
     /** Provider API download when hotlinked CDN URLs keep returning 403. */
     downloadBytes?: () => Promise<FetchedExternalImage | null>;
 }): Promise<string | null> {
     const { storageRepository, organizationId, internalId } = params;
-    let remoteUrl = typeof params.remoteUrl === "string" ? params.remoteUrl.trim() : "";
+    const remoteUrl = typeof params.remoteUrl === "string" ? params.remoteUrl.trim() : "";
 
     const tryFetch = async (url: string) => {
         try {
@@ -54,13 +52,6 @@ export async function mirrorIntegrationProfilePicture(params: {
     };
 
     let fetched = remoteUrl && isExternalCdnProfilePictureUrl(remoteUrl) ? await tryFetch(remoteUrl) : null;
-    if (!fetched && params.resolveFreshRemoteUrl) {
-        const fresh = (await params.resolveFreshRemoteUrl())?.trim();
-        if (fresh && fresh !== remoteUrl && isExternalCdnProfilePictureUrl(fresh)) {
-            remoteUrl = fresh;
-            fetched = await tryFetch(remoteUrl);
-        }
-    }
     if (!fetched && params.downloadBytes) {
         try {
             fetched = (await params.downloadBytes()) ?? null;
@@ -115,7 +106,6 @@ export async function resolveIntegrationPictureForStorage(params: {
     organizationId: string;
     internalId: string;
     picture: string | null | undefined;
-    resolveFreshRemoteUrl?: () => Promise<string | null | undefined>;
     downloadBytes?: () => Promise<FetchedExternalImage | null>;
 }): Promise<string | null> {
     const raw = typeof params.picture === "string" ? params.picture.trim() : "";
@@ -127,7 +117,6 @@ export async function resolveIntegrationPictureForStorage(params: {
         organizationId: params.organizationId,
         internalId: params.internalId,
         remoteUrl: raw,
-        resolveFreshRemoteUrl: params.resolveFreshRemoteUrl,
         downloadBytes: params.downloadBytes,
     });
     return mirrored ?? raw;
