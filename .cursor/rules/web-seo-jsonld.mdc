@@ -131,7 +131,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 | **Hub** | `CollectionPage` + `ItemList` (+ optional `FAQPage`) |
 | **Channel / agent detail** | `WebPage` + `SoftwareApplication` + `FAQPage` |
 | **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
-| **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` |
+| **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` (+ `FAQPage` / `HowTo` / `Product` with a free `Offer`) |
 | **Blog hubs** | `Blog` + `CollectionPage` + `ItemList` (index); `ProfilePage` + `Person` (author); topic `CollectionPage` + breadcrumbs |
 | **Creator profile** | `ProfilePage` + `Person` |
 | **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
@@ -154,6 +154,10 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 ### Organization (`createOrganizationSEOSchema`)
 
 - Landing and about only — not sitewide. Use `organizationSchemaId(origin)` for stable `@id`.
+
+### Product (`createBlogPostSEOSchema`)
+
+Google Product snippets require **`offers`**, **`review`**, or **`aggregateRating`**. Blog product JSON-LD always includes a free `Offer` (`price: '0'`, `priceCurrency: 'USD'`, `availability: InStock`) — same as public tool `WebApplication` nodes. Do not emit a bare `Product` with only name/description/brand.
 
 ## Canonical alignment
 

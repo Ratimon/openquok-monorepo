@@ -1,6 +1,6 @@
 import { base } from '$app/paths';
 
-import type { FAQPage, HowTo, HowToStep, Product, Question, Thing } from 'schema-dts';
+import type { FAQPage, HowTo, HowToStep, Offer, Product, Question, Thing } from 'schema-dts';
 
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
@@ -111,6 +111,14 @@ function createBlogPostProductNode(params: {
 	const brandName = product.brand?.trim() || companyName;
 	const productUrl = product.url?.trim() || companySiteUrl;
 
+	const offers = {
+		'@type': 'Offer',
+		price: '0',
+		priceCurrency: 'USD',
+		availability: 'https://schema.org/InStock',
+		url: productUrl
+	} satisfies Offer;
+
 	return {
 		'@type': 'Product',
 		'@id': `${canonicalUrl}#product`,
@@ -121,8 +129,9 @@ function createBlogPostProductNode(params: {
 			'@type': 'Brand',
 			name: brandName
 		},
+		offers,
 		...(heroImageUrl ? { image: heroImageUrl } : {})
-	};
+	} satisfies Product;
 }
 
 export type CreateBlogPostSEOSchemaParams = {
