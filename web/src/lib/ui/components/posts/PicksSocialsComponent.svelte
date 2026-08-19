@@ -1,22 +1,41 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
-	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
 	type Props = {
 		channels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		onToggleChannel: (id: string) => void;
+		guestMode?: boolean;
+		onConnectAccounts?: () => void;
 	};
 
-	let { channels, selectedIds, onToggleChannel }: Props = $props();
+	let {
+		channels,
+		selectedIds,
+		onToggleChannel,
+		guestMode = false,
+		onConnectAccounts
+	}: Props = $props();
+
+	const heading = $derived(guestMode ? 'Sample channels' : 'Connected channels');
 </script>
 
 <div>
-	<p class="mb-2 text-xs font-medium text-base-content/60">
-		Connected channels</p>
+	<p class="text-xs font-medium text-base-content/60 {guestMode ? 'mb-1' : 'mb-2'}">
+		{heading}
+	</p>
+	{#if guestMode}
+		<p class="mb-2 text-xs text-base-content/50">
+			These chips set format and character limits. They are not your accounts.
+		</p>
+	{/if}
 	<div class="flex flex-wrap gap-3">
 		{#each channels as ch (ch.id)}
 			{@const schedulable = ch.schedulable}
@@ -63,5 +82,20 @@
 				</span>
 			</button>
 		{/each}
+		{#if guestMode}
+			<button
+				type="button"
+				class="ring-primary/60 relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none"
+				onclick={() => onConnectAccounts?.()}
+				aria-label="Connect your accounts"
+			>
+				<span
+					class="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border border-dashed border-base-300 bg-base-200 text-base-content/70"
+				>
+					<AbstractIcon name={icons.Plus.name} class="size-5" width="20" height="20" />
+				</span>
+				<ComposerGuestLockBadge />
+			</button>
+		{/if}
 	</div>
 </div>

@@ -15,6 +15,7 @@
 	let channelLabel = $derived(data.channelLabel);
 	let focusedProviderIdentifier = $derived(data.focusedProviderIdentifier);
 	let composerMode = $derived(data.composerMode);
+	let isLoggedIn = $derived(data.isLoggedIn);
 	let humanizerChannelsVm = $derived(data.humanizerChannelsVm);
 </script>
 
@@ -28,6 +29,7 @@
 		{channelLabel}
 		{focusedProviderIdentifier}
 		{composerMode}
+		{isLoggedIn}
 		channelLinksVm={humanizerChannelsVm}
 	/>
 {/key}

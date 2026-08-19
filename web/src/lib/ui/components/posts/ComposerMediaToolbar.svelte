@@ -91,6 +91,7 @@
 		 * open the Sign in + Sign up gate instead of workspace APIs.
 		 */
 		guestMode?: boolean;
+		isLoggedIn?: boolean;
 	}
 
 	let {
@@ -120,7 +121,8 @@
 		constraintProviderIdentifiers = [],
 		focusedIntegrationId = null,
 		maxMediaItems = null,
-		guestMode = false
+		guestMode = false,
+		isLoggedIn = false
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -354,7 +356,7 @@
 />
 
 <div
-	class="border-base-300/80 bg-base-100/90 flex items-center gap-1 rounded-xl border p-1 shadow-md backdrop-blur-md {className}"
+	class="border-base-300/80 bg-base-100/90 inline-flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border p-1 shadow-md backdrop-blur-md {className}"
 	role="toolbar"
 	aria-label="Post media"
 >
@@ -697,5 +699,5 @@
 {/if}
 
 {#if guestMode}
-	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} />
+	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} {isLoggedIn} />
 {/if}

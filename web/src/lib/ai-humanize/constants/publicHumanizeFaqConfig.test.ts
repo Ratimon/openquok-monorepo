@@ -16,6 +16,12 @@ describe('buildHumanizeFaqSection', () => {
 		expect(section.faqItems.every((item) => !/bypass|detector|homoglyph/i.test(item.description))).toBe(
 			true
 		);
+
+		const accountFaq = section.faqItems.find((item) => item.title === 'Do I need an OpenQuok account?');
+		expect(accountFaq?.description.toLowerCase()).toContain('without an account');
+		expect(accountFaq?.description.toLowerCase()).toContain('samples');
+		expect(accountFaq?.description.toLowerCase()).toContain('connect real accounts');
+		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
 	});
 
 	it('tailors platform copy when a channel slug and label are set', () => {
@@ -26,5 +32,14 @@ describe('buildHumanizeFaqSection', () => {
 		expect(section.faqItems.every((item) => !/bypass|detector|homoglyph/i.test(item.description))).toBe(
 			true
 		);
+
+		const accountFaq = section.faqItems.find((item) => item.title === 'Do I need an OpenQuok account?');
+		expect(accountFaq?.description.toLowerCase()).toContain('samples');
+		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
+
+		const platformFaq = section.faqItems.find((item) => item.title.includes('LinkedIn'));
+		expect(platformFaq?.description.toLowerCase()).toContain('connect a real linkedin');
+		expect(platformFaq?.description.toLowerCase()).toContain('sample chip');
+		expect(platformFaq?.description.toLowerCase()).not.toContain('your connected');
 	});
 });

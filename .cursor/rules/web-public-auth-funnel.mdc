@@ -1,0 +1,44 @@
+---
+description: Public mock UI must stay ungated; label samples; Sign in + Sign up (or Open workspace); no OAuth on public pages.
+globs:
+  - web/src/routes/(public)/tools/**
+  - web/src/routes/(public)/extensions/**
+  - web/src/routes/(public)/building-blocks/**
+  - web/src/routes/(public)/playbooks/**
+  - web/src/routes/(public)/blog/**
+  - web/src/lib/ui/templates/humanize/**
+  - web/src/lib/ui/templates/photo-editor/**
+  - web/src/lib/ui/templates/skill-builder/**
+  - web/src/lib/ui/templates/best-time-to-post/**
+  - web/src/lib/ui/components/**/SignInTo*.svelte
+  - web/src/lib/posts/constants/guestComposerLock.ts
+  - web/src/lib/posts/utils/buildGuestComposerAuthHrefs.ts
+  - web/src/lib/ui/components/posts/PicksSocialsComponent.svelte
+alwaysApply: false
+---
+
+# Public mock UI → auth funnel
+
+Keep the **free public surface ungated**. Do not require Sign in to use the page’s core tool (Humanizer rewrite/copy, Photo Editor canvas/download, and similar). Auth dialogs are for **workspace upgrades only**.
+
+If the page mocks a workspace capability (channels, media library, schedule, cloud save, bookmarks, comments), **label it as a sample/preview**. Never use **Connected channels** for fake data.
+
+Put a visible CTA on the mock (lock badge + short line). Do not rely only on a later Schedule click. **Not now** must leave the free tool usable.
+
+Gate with Dialog + Button: **Not now**, **Sign up**, **Sign in**. Prefer a new `action` on `SignInToComposerActionModal` over a new `SignInTo*.svelte`. New funnels use **both** auth buttons; do not copy Sign-in-only from comments, Photo Editor, or bookmarks.
+
+Build `redirectURL` with `buildGuestComposerAuthHrefs` (or the same helper). Paths from `getRootPathSignin` / `getRootPathSignup` + `route` / `url`.
+
+If `isLoggedIn`, skip Sign in: primary CTA **Open workspace** (`getRootPathAccount()`) or the real feature when the session can run it. Pass `isLoggedIn` from `+page.server.ts` / `+page.ts` into the template.
+
+Do **not** start social OAuth, cloud upload, or schedule from a public guest page. Auth first, then the workspace surface that already owns that flow (`AddProvider` stays on `/account`). Ship the funnel in the **same PR** as the mock UI.
+
+```svelte
+<!-- ✅ GOOD — sample heading; footer keeps the free tool usable -->
+<h2>Sample channels</h2>
+<!-- Dialog: Not now | Sign up | Sign in  (logged in: Open workspace) -->
+
+<!-- ❌ BAD — fake accounts look connected; Sign-in-only; OAuth on public origin -->
+<h2>Connected channels</h2>
+<!-- Dialog: Sign in only -->
+```

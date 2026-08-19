@@ -73,6 +73,7 @@
 		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
 		 */
 		guestMode?: boolean;
+		isLoggedIn?: boolean;
 	}
 
 	let {
@@ -112,7 +113,8 @@
 		compact = false,
 		scheduleValidationMessage = null,
 		setsAuthoringNetworkLock = false,
-		guestMode = false
+		guestMode = false,
+		isLoggedIn = false
 	}: EditorPostProps = $props();
 
 	let confirmOpen = $state(false);
@@ -197,9 +199,10 @@
 	const textareaMinHeightClass = $derived(
 		compact ? 'min-h-[4.5rem] sm:min-h-[4.5rem]' : 'min-h-[140px] sm:min-h-[180px]'
 	);
+	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && !comments);
 </script>
 
-<div class="min-h-0 flex-1">
+<div class="min-h-0 min-w-0 flex-1">
 	{#if bannerLeftLabel || bannerRightActionLabel}
 		<div class="text-base-content/70 mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
 			<div class="flex items-center gap-2">
@@ -229,26 +232,71 @@
 		Post body</label>
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="rounded-lg {composerDragOver ? 'ring-primary/60 ring-2 ring-inset' : ''}"
+		class="min-w-0 rounded-lg {composerDragOver ? 'ring-primary/60 ring-2 ring-inset' : ''}"
 		ondragover={onComposerDragOver}
 		ondragleave={onComposerDragLeave}
 		ondrop={onComposerDrop}
 	>
-		<div class="relative">
-			<textarea
-				id="composer-body"
-				bind:this={composerTextarea}
-				bind:value={body}
-				rows={textareaRows}
-				placeholder={comments ? 'Write a comment…' : 'Write something…'}
-				onpaste={onComposerPaste}
-				disabled={busy || locked || defineSetScopeOverlay}
-				class="border-base-300 bg-base-200 focus:border-primary focus:ring-primary/30 focus:ring-inset {textareaMinHeightClass} max-h-[320px] w-full resize-none sm:resize-y rounded-lg border px-3 pt-2 text-sm text-base-content placeholder:text-base-content/40 focus:ring-2 focus:outline-none {locked
-					? 'pb-2'
-					: comments
-						? 'pb-2'
-						: 'pb-12'}"
-			></textarea>
+		<div class="relative min-w-0">
+			<div
+				class="border-base-300 bg-base-200 has-[textarea:focus]:border-primary has-[textarea:focus]:ring-primary/30 has-[textarea:focus]:ring-inset min-w-0 rounded-lg border has-[textarea:focus]:ring-2"
+			>
+				<textarea
+					id="composer-body"
+					bind:this={composerTextarea}
+					bind:value={body}
+					rows={textareaRows}
+					placeholder={comments ? 'Write a comment…' : 'Write something…'}
+					onpaste={onComposerPaste}
+					disabled={busy || locked || defineSetScopeOverlay}
+					class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
+				></textarea>
+
+				{#if mediaToolbarVisible && writerPresenter && summarizerPresenter && humanizePresenter}
+					<div class="min-w-0 max-w-full px-2 pb-2">
+						<ComposerMediaToolbar
+							bind:this={mediaToolbarRef}
+							{stockPhotosVm}
+							{designTemplatesVm}
+							{fetchPolotnoTemplateListPage}
+							{backgroundPanelVm}
+							{exportCanvasToMedia}
+							{writerPresenter}
+							{summarizerPresenter}
+							{humanizePresenter}
+							bind:items={postMediaItems}
+							disabled={busy}
+							{uploadUid}
+							{publishDateIso}
+							{organizationId}
+							{loadSignaturesVmForComposer}
+							existingBody={body}
+							{softCharLimit}
+							textarea={composerTextarea}
+							{composerMode}
+							{focusedProviderIdentifier}
+							{constraintProviderIdentifiers}
+							{focusedIntegrationId}
+							{maxMediaItems}
+							{guestMode}
+							{isLoggedIn}
+							onInsertSignature={(sig) => {
+								const base = body ?? '';
+								const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
+								body = `${base}${suffix}`;
+							}}
+							onInsertDraft={(draft) => {
+								const base = body ?? '';
+								const suffix = base.trim().length === 0 ? draft : `\n\n${draft}`;
+								body = `${base}${suffix}`;
+							}}
+							onReplaceBody={(text) => {
+								body = text;
+							}}
+						/>
+					</div>
+				{/if}
+			</div>
 
 			{#if locked}
 				<div class="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/45 p-6 text-center">
@@ -272,49 +320,6 @@
 					<p class="max-w-[420px] text-sm font-medium text-white/95">
 						You can't edit networks when creating a set
 					</p>
-				</div>
-			{:else if !comments && writerPresenter && summarizerPresenter && humanizePresenter}
-				<div class="pointer-events-none absolute inset-x-2 bottom-2 z-10 flex justify-start">
-					<ComposerMediaToolbar
-						bind:this={mediaToolbarRef}
-						class="pointer-events-auto"
-						{stockPhotosVm}
-						{designTemplatesVm}
-						{fetchPolotnoTemplateListPage}
-						{backgroundPanelVm}
-						{exportCanvasToMedia}
-						{writerPresenter}
-						{summarizerPresenter}
-						{humanizePresenter}
-						bind:items={postMediaItems}
-						disabled={busy}
-						{uploadUid}
-						{publishDateIso}
-						{organizationId}
-						{loadSignaturesVmForComposer}
-						existingBody={body}
-						{softCharLimit}
-						textarea={composerTextarea}
-						{composerMode}
-						{focusedProviderIdentifier}
-						{constraintProviderIdentifiers}
-						{focusedIntegrationId}
-						{maxMediaItems}
-						{guestMode}
-						onInsertSignature={(sig) => {
-							const base = body ?? '';
-							const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
-							body = `${base}${suffix}`;
-						}}
-						onInsertDraft={(draft) => {
-							const base = body ?? '';
-							const suffix = base.trim().length === 0 ? draft : `\n\n${draft}`;
-							body = `${base}${suffix}`;
-						}}
-						onReplaceBody={(text) => {
-							body = text;
-						}}
-					/>
 				</div>
 			{/if}
 		</div>

@@ -51,6 +51,7 @@
 		channelLabel?: string | null;
 		focusedProviderIdentifier?: string | null;
 		composerMode?: 'global' | 'custom';
+		isLoggedIn?: boolean;
 		channelLinksVm?: HumanizeChannelHubLinkViewModel[];
 	};
 
@@ -61,6 +62,7 @@
 		channelLabel = null,
 		focusedProviderIdentifier = null,
 		composerMode = 'global',
+		isLoggedIn = false,
 		channelLinksVm = []
 	}: Props = $props();
 
@@ -130,7 +132,7 @@
 			{#await loadHumanizeComposerPanelChunk()}
 				{@render composerFallback()}
 			{:then { default: HumanizeComposerPanel }}
-				<HumanizeComposerPanel {focusedProviderIdentifier} {composerMode} />
+				<HumanizeComposerPanel {focusedProviderIdentifier} {composerMode} {isLoggedIn} />
 			{:catch}
 				<p class="text-error px-2 py-8 text-center text-sm">Could not load the composer.</p>
 			{/await}

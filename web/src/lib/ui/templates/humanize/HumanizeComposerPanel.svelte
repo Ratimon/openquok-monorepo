@@ -15,9 +15,11 @@
 	type Props = {
 		focusedProviderIdentifier?: string | null;
 		composerMode?: 'global' | 'custom';
+		isLoggedIn?: boolean;
 	};
 
-	let { focusedProviderIdentifier = null, composerMode = 'global' }: Props = $props();
+	let { focusedProviderIdentifier = null, composerMode = 'global', isLoggedIn = false }: Props =
+		$props();
 
 	const composer = new PublicHumanizeComposerPresenter({
 		focusedProviderIdentifier: untrack(() => focusedProviderIdentifier),
@@ -153,6 +155,7 @@
 				mediaUrls={composer.previewMediaUrls}
 				previewProviderSettings={composer.previewProviderSettings}
 				guestMode={true}
+				{isLoggedIn}
 			/>
 		</div>
 		<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
@@ -174,6 +177,7 @@
 				onSaveDraft={() => {}}
 				onSchedule={() => {}}
 				guestMode={true}
+				{isLoggedIn}
 			/>
 		</div>
 	</div>

@@ -23,7 +23,7 @@ const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: ACCOUNT_FAQ_TITLE,
 		description:
-			'No. You can rewrite, attach local media, and copy the result. Sign in or sign up when you want workspace media, signatures, drafts, or scheduling on connected channels.'
+			'No. You can rewrite, attach local media, and copy the result without an account. The channel chips on this page are samples for format and character limits — they are not your accounts. Sign in or sign up only when you want to connect real accounts in your workspace and schedule.'
 	},
 	{
 		title: HUMAN_VS_ROUGHEN_FAQ_TITLE,
@@ -43,7 +43,7 @@ const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: PLATFORM_FAQ_TITLE,
 		description:
-			'Yes. This page is Global Edit across live channels — pick a network in the composer to preview that format and character limit. Scheduling still needs an OpenQuok account.'
+			'Yes. This page is Global Edit across live channels — pick a sample chip in the composer to preview that format and character limit. Those chips are not your accounts. Sign in or sign up to connect real channels in your workspace and schedule.'
 	}
 ];
 
@@ -69,7 +69,7 @@ function tailorHumanizeFaqItem(
 		case PLATFORM_FAQ_TITLE:
 			return {
 				title: `What's included for ${platformLabel}?`,
-				description: `This page opens with ${platformLabel} selected so the preview and soft character limit match that network. Rewrite on-device, copy the result, then sign in to schedule to your connected ${platformLabel} channel. For another platform, pick a different channel in the composer.`
+				description: `This page opens with ${platformLabel} selected so the preview and soft character limit match that network. Rewrite on-device, copy the result, then sign in or sign up to connect a real ${platformLabel} account in your workspace and schedule. For another platform, pick a different sample chip in the composer.`
 			};
 		default:
 			return item;

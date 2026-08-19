@@ -41,6 +41,7 @@
 		 * The date picker stays usable for preview.
 		 */
 		guestMode?: boolean;
+		isLoggedIn?: boolean;
 	};
 
 	let {
@@ -63,7 +64,8 @@
 		onSchedule,
 		footerVariant = 'schedulePost',
 		onSaveContentSet = undefined,
-		guestMode = false
+		guestMode = false,
+		isLoggedIn = false
 	}: Props = $props();
 
 	let guestLockOpen = $state(false);
@@ -188,5 +190,9 @@
 </div>
 
 {#if guestMode}
-	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} />
+	<SignInToComposerActionModal
+		bind:open={guestLockOpen}
+		action={guestLockAction}
+		{isLoggedIn}
+	/>
 {/if}

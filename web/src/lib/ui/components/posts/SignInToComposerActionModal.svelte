@@ -3,7 +3,8 @@
 
 	import { page } from '$app/state';
 
-	import { GUEST_COMPOSER_LOCK_COPY } from '$lib/posts/constants/guestComposerLock';
+	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
+	import { resolveGuestComposerLockCopy } from '$lib/posts/constants/guestComposerLock';
 	import { buildGuestComposerAuthHrefs } from '$lib/posts/utils/buildGuestComposerAuthHrefs';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { route, url } from '$lib/utils/path';
@@ -14,15 +15,19 @@
 	type Props = {
 		open?: boolean;
 		action: GuestComposerLockAction;
+		isLoggedIn?: boolean;
 		signInHref?: string;
 		signUpHref?: string;
+		workspaceHref?: string;
 	};
 
 	let {
 		open = $bindable(false),
 		action,
+		isLoggedIn = false,
 		signInHref = '',
-		signUpHref = ''
+		signUpHref = '',
+		workspaceHref = ''
 	}: Props = $props();
 
 	// /sign-in
@@ -33,7 +38,11 @@
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = url(route(rootPathSignUp));
 
-	const copy = $derived(GUEST_COMPOSER_LOCK_COPY[action]);
+	// /account
+	const rootPathAccount = getRootPathAccount();
+	const accountHref = url(route(rootPathAccount));
+
+	const copy = $derived(resolveGuestComposerLockCopy(action, isLoggedIn));
 	const derivedHrefs = $derived.by(() => {
 		const pathname = page.url.pathname || '/';
 		const search = page.url.search || '';
@@ -45,6 +54,7 @@
 	});
 	const resolvedSignInHref = $derived(signInHref.trim() || derivedHrefs.signInHref);
 	const resolvedSignUpHref = $derived(signUpHref.trim() || derivedHrefs.signUpHref);
+	const resolvedWorkspaceHref = $derived(workspaceHref.trim() || accountHref);
 </script>
 
 <Dialog.Root bind:open>
@@ -63,12 +73,18 @@
 					Not now
 				</Button>
 			</Dialog.Close>
-			<Button href={resolvedSignUpHref} variant="secondary" checkCurrent={false}>
-				Sign up
-			</Button>
-			<Button href={resolvedSignInHref} variant="primary" checkCurrent={false}>
-				Sign in
-			</Button>
+			{#if isLoggedIn}
+				<Button href={resolvedWorkspaceHref} variant="primary" checkCurrent={false}>
+					Open workspace
+				</Button>
+			{:else}
+				<Button href={resolvedSignUpHref} variant="secondary" checkCurrent={false}>
+					Sign up
+				</Button>
+				<Button href={resolvedSignInHref} variant="primary" checkCurrent={false}>
+					Sign in
+				</Button>
+			{/if}
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

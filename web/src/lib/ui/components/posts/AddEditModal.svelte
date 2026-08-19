@@ -11,6 +11,7 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
+	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
@@ -20,6 +21,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
+	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
 	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 	import EditorPost from '$lib/ui/components/posts/EditorPost.svelte';
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
@@ -27,6 +29,7 @@
 	import SelectTargets from '$lib/ui/components/posts/SelectTargets.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
+	import SignInToComposerActionModal from '$lib/ui/components/posts/SignInToComposerActionModal.svelte';
 	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 
 	type Mode = 'global' | 'custom';
@@ -100,6 +103,8 @@
 		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
 		 */
 		guestMode?: boolean;
+		/** When guestMode is true, lock dialogs send signed-in visitors to the workspace. */
+		isLoggedIn?: boolean;
 	};
 
 	let {
@@ -156,8 +161,17 @@
 		scheduleValidationMessage = null,
 		previewProviderSettings = {},
 		contentSetAuthoringNetworkLock = false,
-		guestMode = false
+		guestMode = false,
+		isLoggedIn = false
 	}: Props = $props();
+
+	let guestLockOpen = $state(false);
+	let guestLockAction = $state<GuestComposerLockAction>('connect-channels');
+
+	function openGuestLock(action: GuestComposerLockAction) {
+		guestLockAction = action;
+		guestLockOpen = true;
+	}
 
 	const publishDateIso = $derived(
 		scheduledPostDatetimeLocal?.trim() ? datetimeLocalToIso(scheduledPostDatetimeLocal) : null
@@ -375,15 +389,35 @@
 	});
 </script>
 
-<div class="grid min-h-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-	<div class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+<div class="grid min-h-0 min-w-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+	<div class="flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
 		<div class="flex items-start justify-between gap-3">
-			<PicksSocialsComponent channels={socialChannels} {selectedIds} onToggleChannel={onToggleChannel} />
-			<SelectGroupTargeting
+			<PicksSocialsComponent
 				channels={socialChannels}
-				selectedGroupId={selectedGroupId}
-				onSelect={onSelectGroup}
+				{selectedIds}
+				onToggleChannel={onToggleChannel}
+				{guestMode}
+				onConnectAccounts={() => openGuestLock('connect-channels')}
 			/>
+			<div class="relative">
+				<div class={guestMode ? 'pointer-events-none' : ''} inert={guestMode}>
+					<SelectGroupTargeting
+						channels={socialChannels}
+						selectedGroupId={selectedGroupId}
+						onSelect={onSelectGroup}
+					/>
+				</div>
+				{#if guestMode}
+					<button
+						type="button"
+						class="absolute inset-0 z-10 rounded-lg"
+						aria-label="Connect your accounts"
+						onclick={() => openGuestLock('connect-channels')}
+					>
+						<ComposerGuestLockBadge />
+					</button>
+				{/if}
+			</div>
 		</div>
 
 		<SelectTargets
@@ -398,7 +432,7 @@
 		/>
 
 		<!-- Wrapper: editor + add-post button -->
-		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
+		<div class="min-w-0 rounded-lg border border-base-300 bg-base-100/30 p-3">
 			<EditorPost
 				bind:this={editorPostRef}
 				{stockPhotosVm}
@@ -426,6 +460,7 @@
 				{scheduleValidationMessage}
 				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
 				{guestMode}
+				{isLoggedIn}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}
@@ -480,7 +515,7 @@
 		{/if}
 
 	</div>
-	<div class="min-h-0">
+	<div class="min-h-0 min-w-0">
 		<div class="bg-base-200/20 flex min-h-[200px] flex-col lg:min-h-0">
 			<div class="border-base-300 flex items-center justify-between border-b px-4 py-3 sm:px-6">
 				<div class="text-base-content/90 text-base font-medium">
@@ -545,3 +580,7 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+{#if guestMode}
+	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} {isLoggedIn} />
+{/if}
