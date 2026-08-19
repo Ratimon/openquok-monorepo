@@ -86,6 +86,16 @@
 		};
 	}
 
+	let savePhase = $state<'idle' | 'uploading' | 'saving'>('idle');
+	const saveBusy = $derived(savePhase !== 'idle' || isSubmitting);
+	const saveStatusLabel = $derived(
+		savePhase === 'uploading'
+			? 'Uploading cover…'
+			: savePhase === 'saving' || isSubmitting
+				? 'Saving…'
+				: ''
+	);
+
 	const form = createForm(() => ({
 		defaultValues: {
 			id: initialValues.id ?? '',
@@ -103,51 +113,58 @@
 			product: initialValues.product ?? null
 		},
 		onSubmit: async ({ value }) => {
-			// Inline content image files are uploaded only on Create/Update click.
-			if (contentEditorMode === 'visual' && contentEditorRef?.hasPendingInlineImages?.()) {
-				const committed = await contentEditorRef.commitPendingInlineImages();
-				if (!committed) return;
-			}
-			const latestContent =
-				contentEditorMode === 'html'
-					? value.content
-					: (contentEditorRef?.getCurrentContent?.() ?? value.content);
-			form.setFieldValue('content', latestContent);
-
-			// TanStack submit `value` can be a stale snapshot; merge hero path explicitly after upload.
-			let heroImageFilename = (value.hero_image_filename ?? '').trim();
-
-			if (heroImageUploadRef?.hasSelectedFile?.()) {
-				const uploadedPath = await heroImageUploadRef.uploadSelectedImage();
-				if (uploadedPath !== false) {
-					heroImageFilename = uploadedPath;
-					form.setFieldValue('hero_image_filename', uploadedPath);
+			savePhase = 'uploading';
+			try {
+				if (contentEditorMode === 'visual' && contentEditorRef?.hasPendingInlineImages?.()) {
+					const committed = await contentEditorRef.commitPendingInlineImages();
+					if (!committed) return;
 				}
-				// If upload/replace was cancelled (e.g. delete old object failed), keep existing hero_image_filename and still save other fields.
-			}
+				const latestContent =
+					contentEditorMode === 'html'
+						? value.content
+						: (contentEditorRef?.getCurrentContent?.() ?? value.content);
+				form.setFieldValue('content', latestContent);
 
-			const topicSlug = resolveTopicSlug(value.topic_id);
-			const seoFields = normalizeSeoPayload(value as BlogPostFormSchemaType, topicSlug, value.topic_id);
+				let heroImageFilename = (value.hero_image_filename ?? '').trim();
 
-			const payload = {
-				...(value.id ? { id: value.id } : {}),
-				title: value.title,
-				description: value.description,
-				content: latestContent,
-				topic_id: value.topic_id,
-				hero_image_filename: heroImageFilename || undefined,
-				is_sponsored: value.is_sponsored,
-				is_featured: value.is_featured,
-				is_user_published: value.is_user_published,
-				is_admin_approved: value.is_admin_approved,
-				...seoFields
-			};
-			const result = blogPostFormSchema.safeParse(payload);
-			if (!result.success) {
-				result.error.issues.forEach((issue) => toast.error(issue.message));
-				return;
+				if (heroImageUploadRef?.hasSelectedFile?.()) {
+					const uploadedPath = await heroImageUploadRef.uploadSelectedImage();
+					if (uploadedPath !== false) {
+						heroImageFilename = uploadedPath;
+						form.setFieldValue('hero_image_filename', uploadedPath);
+					}
+				}
+
+				const topicSlug = resolveTopicSlug(value.topic_id);
+				const seoFields = normalizeSeoPayload(
+					value as BlogPostFormSchemaType,
+					topicSlug,
+					value.topic_id
+				);
+
+				const payload = {
+					...(value.id ? { id: value.id } : {}),
+					title: value.title,
+					description: value.description,
+					content: latestContent,
+					topic_id: value.topic_id,
+					hero_image_filename: heroImageFilename || undefined,
+					is_sponsored: value.is_sponsored,
+					is_featured: value.is_featured,
+					is_user_published: value.is_user_published,
+					is_admin_approved: value.is_admin_approved,
+					...seoFields
+				};
+				const result = blogPostFormSchema.safeParse(payload);
+				if (!result.success) {
+					result.error.issues.forEach((issue) => toast.error(issue.message));
+					return;
+				}
+				savePhase = 'saving';
+				await onSave(result.data);
+			} finally {
+				savePhase = 'idle';
 			}
-			await onSave(result.data);
 		}
 	}));
 
@@ -290,17 +307,34 @@
 	<form onsubmit={handleFormSubmit} class="space-y-8">
 		<div class="sticky top-0 z-40 flex items-center justify-end">
 			<div class="flex flex-col items-center gap-2">
-				<form.Subscribe selector={(state) => ({ isDirty: state.isDirty, values: state.values })}>
+				<form.Subscribe
+					selector={(state) => ({
+						isDirty: state.isDirty,
+						values: state.values,
+						isSubmitting: state.isSubmitting
+					})}
+				>
 					{#snippet children(state)}
-						{#if state.isDirty || hasPendingHeroImageChanges()}
+						{@const stickyBusy = saveBusy || state.isSubmitting}
+						{#if stickyBusy && saveStatusLabel}
+							<p class="text-xs text-base-content/70">{saveStatusLabel}</p>
+						{:else if state.isDirty || hasPendingHeroImageChanges()}
 							<p class="text-xs text-base-content/70">
 								Unsaved changes</p>
 						{/if}
 						<div class="flex flex-wrap items-center justify-end gap-2 rounded-lg bg-base-200 p-4">
-							<Button type="button" variant="outline" disabled={isSubmitting} onclick={handleDiscard}>
+							<Button type="button" variant="outline" disabled={stickyBusy} onclick={handleDiscard}>
 								Discard
 							</Button>
-							<Button type="submit" disabled={(!state.isDirty && !hasPendingHeroImageChanges()) || isSubmitting}>
+							<Button
+								type="submit"
+								class="gap-2"
+								disabled={(!state.isDirty && !hasPendingHeroImageChanges()) || stickyBusy}
+								aria-busy={stickyBusy}
+							>
+								{#if stickyBusy}
+									<span class="loading loading-spinner loading-sm shrink-0"></span>
+								{/if}
 								{state.values?.id ? 'Update' : 'Create'}
 							</Button>
 						</div>

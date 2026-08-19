@@ -19323,9 +19323,12 @@ var init_integrationManager = __esm({
 });
 
 // utils/images/allowedExternalImageHosts.ts
+function hostnameIsOrUnder(hostname, root) {
+  return hostname === root || hostname.endsWith(`.${root}`);
+}
 function isAllowedExternalImageHost(hostname) {
   const h = hostname.toLowerCase();
-  return h === "cdninstagram.com" || h.endsWith(".cdninstagram.com") || h === "fbcdn.net" || h.endsWith(".fbcdn.net") || h === "platform-lookaside.fbsbx.com" || h.endsWith(".fbsbx.com");
+  return hostnameIsOrUnder(h, "cdninstagram.com") || hostnameIsOrUnder(h, "fbcdn.net") || hostnameIsOrUnder(h, "fbsbx.com") || hostnameIsOrUnder(h, "licdn.com");
 }
 function isExternalCdnProfilePictureUrl(url) {
   try {
@@ -19341,11 +19344,15 @@ var init_allowedExternalImageHosts = __esm({
 
 // utils/images/externalImageFetch.ts
 function externalCdnImageRequestHeaders(remoteUrl) {
-  let referer = "https://www.instagram.com/";
+  let referer = "https://www.facebook.com/";
   try {
     const host = new URL(remoteUrl).hostname.toLowerCase();
     if (host.includes("threads")) {
       referer = "https://www.threads.net/";
+    } else if (host.includes("instagram") || host.endsWith(".cdninstagram.com") || host === "cdninstagram.com") {
+      referer = "https://www.instagram.com/";
+    } else if (host === "licdn.com" || host.endsWith(".licdn.com")) {
+      referer = "https://www.linkedin.com/";
     }
   } catch {
   }
@@ -20639,10 +20646,17 @@ var init_IntegrationConnectionService = __esm({
         const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
         const rootInternalId2 = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
         const expiresInSeconds = preservesUserTokenForRefresh ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
+        const storedPicture = await resolveIntegrationPictureForStorage({
+          storageRepository: this.storageRepository,
+          organizationId,
+          internalId: String(information.id),
+          picture: information.picture || null,
+          resolveFreshRemoteUrl: async () => information.picture || null
+        });
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
           internalId: String(information.id),
           name: (information.name ?? "").trim() || information.username || row.name,
-          picture: information.picture || null,
+          picture: storedPicture,
           token: information.access_token,
           refreshToken,
           profile: information.username || null,
@@ -26626,7 +26640,7 @@ var init_ImageController = __esm({
         }
       };
       /**
-       * Allowlisted proxy for external avatar URLs (e.g. Instagram CDN profile pictures).
+       * Allowlisted proxy for external avatar URLs (Instagram, Facebook, and LinkedIn CDNs).
        *
        * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
        * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
@@ -32028,7 +32042,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-12T19:29:07.666Z",
+  generated: "2026-08-19T04:32:04.613Z",
   routes: [
     {
       path: "/docs",
@@ -32169,6 +32183,12 @@ var routes_manifest_default = {
       type: "static"
     },
     {
+      path: "/tools/humanizer",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
       path: "/tools/photo-editor",
       priority: 0.7,
       changeFreq: "monthly",
@@ -32179,6 +32199,12 @@ var routes_manifest_default = {
       priority: 0.7,
       changeFreq: "monthly",
       type: "static"
+    },
+    {
+      path: "/agents/grok-bot",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
     },
     {
       path: "/agents/hermes",
@@ -32307,6 +32333,18 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/typefully",
       priority: 0.75,
       changeFreq: "monthly",
@@ -32338,6 +32376,18 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hootsuite/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/socialclaw",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -32379,6 +32429,18 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/mixpost/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/typefully",
       priority: 0.75,
       changeFreq: "monthly",
@@ -32410,6 +32472,18 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openquok/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/socialclaw",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -32451,6 +32525,18 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/typefully",
       priority: 0.75,
       changeFreq: "monthly",
@@ -32487,7 +32573,115 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/typefully",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -32529,6 +32723,18 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/typefully/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/alternatives/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -32559,10 +32765,64 @@ var routes_manifest_default = {
       type: "programmatic-alternatives"
     },
     {
+      path: "/alternatives/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
       path: "/alternatives/typefully",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
+    },
+    {
+      path: "/agents/grok-bot/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/grok-bot/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
     },
     {
       path: "/agents/hermes/facebook",
@@ -33139,6 +33399,30 @@ var routes_manifest_default = {
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
     }
   ]};
 
@@ -33160,7 +33444,8 @@ var MANIFEST_NON_INDEXABLE_PREFIXES = ["/oauth", "/integration", "/join-org", "/
 var PUBLIC_TOOL_CHANNEL_PATHS = [
   "/tools/photo-editor",
   "/tools/skill-builder",
-  "/tools/best-time-to-post"
+  "/tools/best-time-to-post",
+  "/tools/humanizer"
 ];
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
