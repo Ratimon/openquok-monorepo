@@ -46,10 +46,6 @@ export interface ImageConfig {
 /** Max file size for upload (4MB). Vercel serverless body limit is 4.5MB; multipart overhead keeps us under. */
 export const MAX_IMAGE_UPLOAD_BYTES = 4 * 1024 * 1024;
 
-/**
- * Instagram `profile_picture_url` often resolves to `*.cdninstagram.com`, which may 403 when hotlinked.
- * Those URLs must be fetched via {@link ImageRepository.fetchExternalProxiedImageBlob} (authenticated).
- */
 /** Mirrored integration avatars in the `avatars` bucket (`integration-profiles/...`). */
 export const INTEGRATION_PROFILE_STORAGE_PREFIX = 'integration-profiles';
 
@@ -57,10 +53,24 @@ export function isIntegrationProfileStoragePath(url: string | null | undefined):
 	return typeof url === 'string' && url.startsWith(`${INTEGRATION_PROFILE_STORAGE_PREFIX}/`);
 }
 
-export function instagramProfilePictureNeedsAuthenticatedProxy(url: string): boolean {
+function hostnameIsOrUnder(hostname: string, root: string): boolean {
+	return hostname === root || hostname.endsWith(`.${root}`);
+}
+
+/**
+ * Instagram, Facebook, and LinkedIn CDN avatars often 403 when hotlinked.
+ * Those URLs must be fetched via {@link ImageRepository.fetchExternalProxiedImageBlob} (authenticated).
+ * Keep host matching in sync with `backend/utils/images/allowedExternalImageHosts.ts`.
+ */
+export function integrationProfilePictureNeedsAuthenticatedProxy(url: string): boolean {
 	try {
-		const u = new URL(url);
-		return u.hostname === 'cdninstagram.com' || u.hostname.endsWith('.cdninstagram.com');
+		const h = new URL(url).hostname.toLowerCase();
+		return (
+			hostnameIsOrUnder(h, 'cdninstagram.com') ||
+			hostnameIsOrUnder(h, 'fbcdn.net') ||
+			hostnameIsOrUnder(h, 'fbsbx.com') ||
+			hostnameIsOrUnder(h, 'licdn.com')
+		);
 	} catch {
 		return false;
 	}

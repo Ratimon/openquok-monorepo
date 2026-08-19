@@ -13,8 +13,8 @@
 
 	let { src, alt = '', class: className = '', fallbackIcon }: Props = $props();
 
-	let failed = $state(false);
-	let showPicture = $derived(Boolean(src?.trim()) && !failed);
+	let failedSrc = $state<string | null>(null);
+	let showPicture = $derived(Boolean(src?.trim()) && failedSrc !== src);
 </script>
 
 {#if showPicture}
@@ -22,8 +22,9 @@
 		src={src!}
 		{alt}
 		class={className}
+		referrerpolicy="no-referrer"
 		onerror={() => {
-			failed = true;
+			failedSrc = src ?? null;
 		}}
 	/>
 {:else}

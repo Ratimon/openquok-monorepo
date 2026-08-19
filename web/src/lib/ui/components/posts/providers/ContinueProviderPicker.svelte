@@ -8,7 +8,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
+	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
 
 	type Props = {
@@ -42,8 +42,8 @@
 					onclick={() => onSelect(page.id)}
 				>
 					<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-base-200">
-						<ImageWithFallback
-							src={page.pictureUrl?.trim() || null}
+						<IntegrationChannelPicture
+							profilePictureUrl={page.pictureUrl?.trim() || null}
 							alt=""
 							class="h-full w-full object-cover"
 							fallbackIcon={config.fallbackIcon}

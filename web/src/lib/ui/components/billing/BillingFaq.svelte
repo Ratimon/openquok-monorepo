@@ -20,6 +20,7 @@
 			});
 		}
 
+
 		list.push(
 			{
 				title: 'Can I trust OpenQuok?',
@@ -34,7 +35,7 @@
 			{
 				title: 'What counts as a channel?',
 				description:
-					'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect.'
+					'A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, or Threads). You schedule posts to the channels you connect.'
 			},
 			{
 				title: 'How does team member work?',

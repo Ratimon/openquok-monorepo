@@ -2,16 +2,20 @@ import { isAllowedExternalImageHost } from "./allowedExternalImageHosts";
 
 const FETCH_TIMEOUT_MS = 15_000;
 
-/** Browser-like headers; Meta CDNs often 403 on bot or missing Referer. */
+/** Browser-like headers; provider CDNs often 403 on bot or a mismatched Referer. */
 export function externalCdnImageRequestHeaders(remoteUrl: string): Record<string, string> {
-    let referer = "https://www.instagram.com/";
+    let referer = "https://www.facebook.com/";
     try {
         const host = new URL(remoteUrl).hostname.toLowerCase();
         if (host.includes("threads")) {
             referer = "https://www.threads.net/";
+        } else if (host.includes("instagram") || host.endsWith(".cdninstagram.com") || host === "cdninstagram.com") {
+            referer = "https://www.instagram.com/";
+        } else if (host === "licdn.com" || host.endsWith(".licdn.com")) {
+            referer = "https://www.linkedin.com/";
         }
     } catch {
-        /* keep default */
+        /* keep Facebook default for Meta lookaside / fbcdn */
     }
 
     return {
@@ -39,7 +43,7 @@ export type FetchedExternalImage = {
 };
 
 /**
- * Fetches an allowlisted external image URL (Instagram / Meta CDN).
+ * Fetches an allowlisted external image URL (Instagram / Meta / LinkedIn CDN).
  * @throws {ExternalImageFetchError} when upstream fails or response is not an image
  */
 export async function fetchAllowlistedExternalImage(remoteUrl: string): Promise<FetchedExternalImage> {

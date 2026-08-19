@@ -964,10 +964,18 @@ export class IntegrationConnectionService {
             ? dayjs().add(59, "days").unix() - dayjs().unix()
             : undefined;
 
+        const storedPicture = await resolveIntegrationPictureForStorage({
+            storageRepository: this.storageRepository,
+            organizationId,
+            internalId: String(information.id),
+            picture: information.picture || null,
+            resolveFreshRemoteUrl: async () => information.picture || null,
+        });
+
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
             internalId: String(information.id),
             name: (information.name ?? "").trim() || information.username || row.name,
-            picture: information.picture || null,
+            picture: storedPicture,
             token: information.access_token,
             refreshToken,
             profile: information.username || null,

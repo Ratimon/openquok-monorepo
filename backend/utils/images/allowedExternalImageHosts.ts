@@ -1,13 +1,18 @@
-/** Hostnames allowed for `/api/v1/image/external-proxy` (SSRF-safe allowlist). */
+function hostnameIsOrUnder(hostname: string, root: string): boolean {
+    return hostname === root || hostname.endsWith(`.${root}`);
+}
+
+/**
+ * Hostnames allowed for `/api/v1/image/external-proxy` (SSRF-safe allowlist).
+ * Keep the web matcher in `Image.repository.svelte.ts` in sync.
+ */
 export function isAllowedExternalImageHost(hostname: string): boolean {
     const h = hostname.toLowerCase();
     return (
-        h === "cdninstagram.com" ||
-        h.endsWith(".cdninstagram.com") ||
-        h === "fbcdn.net" ||
-        h.endsWith(".fbcdn.net") ||
-        h === "platform-lookaside.fbsbx.com" ||
-        h.endsWith(".fbsbx.com")
+        hostnameIsOrUnder(h, "cdninstagram.com") ||
+        hostnameIsOrUnder(h, "fbcdn.net") ||
+        hostnameIsOrUnder(h, "fbsbx.com") ||
+        hostnameIsOrUnder(h, "licdn.com")
     );
 }
 

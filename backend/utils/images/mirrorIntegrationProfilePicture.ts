@@ -28,7 +28,7 @@ function contentTypeToExtension(contentType: string): string {
 }
 
 /**
- * Downloads a Meta CDN profile picture and stores it in Supabase (`avatars` bucket).
+ * Downloads an allowlisted CDN profile picture and stores it in Supabase (`avatars` bucket).
  * Returns the storage object key on success, or `null` when mirroring is skipped or fails.
  */
 export async function mirrorIntegrationProfilePicture(params: {

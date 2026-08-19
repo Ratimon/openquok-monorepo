@@ -3,14 +3,14 @@
 
 	import { imageRepository } from '$lib/core';
 	import {
-		instagramProfilePictureNeedsAuthenticatedProxy,
+		integrationProfilePictureNeedsAuthenticatedProxy,
 		isIntegrationProfileStoragePath
 	} from '$lib/core/Image.repository.svelte';
 
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
 	type Props = {
-		/** Raw profile picture URL from the integration API (may be an Instagram CDN URL). */
+		/** Raw profile picture URL from the integration API (may be a Meta or LinkedIn CDN URL). */
 		profilePictureUrl: string | null | undefined;
 		fallbackIcon: IconName;
 		alt?: string;
@@ -53,7 +53,7 @@
 			})();
 		} else if (!/^https?:\/\//i.test(raw)) {
 			resolvedSrc = raw;
-		} else if (!instagramProfilePictureNeedsAuthenticatedProxy(raw)) {
+		} else if (!integrationProfilePictureNeedsAuthenticatedProxy(raw)) {
 			resolvedSrc = raw;
 		} else {
 			void (async () => {

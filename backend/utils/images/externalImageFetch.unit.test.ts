@@ -22,6 +22,21 @@ describe("externalImageFetch", () => {
         expect(headers.Referer).toBe("https://www.instagram.com/");
     });
 
+    it("sets Facebook referer for lookaside and fbcdn hosts", () => {
+        expect(externalCdnImageRequestHeaders("https://platform-lookaside.fbsbx.com/x.jpg").Referer).toBe(
+            "https://www.facebook.com/"
+        );
+        expect(externalCdnImageRequestHeaders("https://scontent.xx.fbcdn.net/v/t1.jpg").Referer).toBe(
+            "https://www.facebook.com/"
+        );
+    });
+
+    it("sets LinkedIn referer for licdn hosts", () => {
+        expect(externalCdnImageRequestHeaders("https://media.licdn.com/dms/image/x.jpg").Referer).toBe(
+            "https://www.linkedin.com/"
+        );
+    });
+
     it("returns image buffer on success", async () => {
         const bytes = new Uint8Array([0xff, 0xd8, 0xff]);
         jest.mocked(global.fetch).mockResolvedValue({

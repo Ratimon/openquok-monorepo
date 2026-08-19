@@ -14,7 +14,7 @@ export interface CreateSocialPostChannelViewModel {
 	internalId: string;
 	name: string;
 	identifier: string;
-	/** Raw provider/profile picture URL from the API (may be an Instagram CDN URL). */
+	/** Raw provider/profile picture URL from the API (may be a Meta or LinkedIn CDN URL). */
 	picture: string | null;
 	type: string;
 	disabled: boolean;

@@ -930,6 +930,66 @@ describe("IntegrationConnectionService", () => {
             expect(updateArg.expiresInSeconds).toBeGreaterThan(0);
         });
 
+        it("mirrors Facebook Page CDN pictures into avatars storage", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            integrations.getById.mockResolvedValue(
+                sampleRow({
+                    in_between_steps: true,
+                    provider_identifier: "facebook",
+                    token: "fb-user-access",
+                    internal_id: "fb-user-id",
+                    refresh_token: "ignored-for-this-path",
+                    root_internal_id: null,
+                })
+            );
+            const remotePicture = "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=page-1";
+            const fetchPageInformation = jest.fn().mockResolvedValue({
+                id: "page-1",
+                name: "Openquok",
+                access_token: "page-access",
+                picture: remotePicture,
+                username: "openquok",
+            });
+            manager.getSocialIntegration.mockReturnValue(
+                createMockProvider({
+                    identifier: "facebook",
+                    name: "Facebook Page",
+                    fetchPageInformation,
+                })
+            );
+            integrations.updateIntegrationById.mockResolvedValue(sampleRow());
+
+            const bytes = new Uint8Array([0xff, 0xd8, 0xff]);
+            const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue({
+                ok: true,
+                status: 200,
+                statusText: "OK",
+                headers: { get: (name: string) => (name === "content-type" ? "image/jpeg" : null) },
+                arrayBuffer: async () => bytes.buffer,
+            } as unknown as Response);
+
+            try {
+                await service().saveProviderPage(authUserId, orgId, integrationId, {
+                    organizationId: orgId,
+                    pageId: "page-1",
+                    id: "page-1",
+                });
+            } finally {
+                fetchSpy.mockRestore();
+            }
+
+            expect(storageRepository.uploadIntegrationProfilePicture).toHaveBeenCalled();
+            expect(integrations.updateIntegrationById).toHaveBeenCalledWith(
+                orgId,
+                integrationId,
+                expect.objectContaining({
+                    internalId: "page-1",
+                    picture: `integration-profiles/${orgId}/page-1.jpg`,
+                })
+            );
+        });
+
         it("for non-Instagram providers preserves refresh_token and root_internal_id from row", async () => {
             orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
             orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));

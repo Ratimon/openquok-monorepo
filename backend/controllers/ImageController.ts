@@ -100,7 +100,7 @@ export class ImageController {
     };
 
     /**
-     * Allowlisted proxy for external avatar URLs (e.g. Instagram CDN profile pictures).
+     * Allowlisted proxy for external avatar URLs (Instagram, Facebook, and LinkedIn CDNs).
      *
      * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
      * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
