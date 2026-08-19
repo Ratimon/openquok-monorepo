@@ -58,19 +58,17 @@ function hostnameIsOrUnder(hostname: string, root: string): boolean {
 }
 
 /**
- * Instagram, Facebook, and LinkedIn CDN avatars often 403 when hotlinked.
- * Those URLs must be fetched via {@link ImageRepository.fetchExternalProxiedImageBlob} (authenticated).
+ * Instagram and LinkedIn CDN avatars often 403 when hotlinked from the browser.
+ * Fetch them via {@link ImageRepository.fetchExternalProxiedImageBlob} (authenticated POST).
+ *
+ * Facebook signed CDNs 403 from our API IPs; list rows use Graph `/picture` so the browser
+ * can follow a fresh redirect. Do not send Facebook URLs through this proxy.
  * Keep host matching in sync with `backend/utils/images/allowedExternalImageHosts.ts`.
  */
 export function integrationProfilePictureNeedsAuthenticatedProxy(url: string): boolean {
 	try {
 		const h = new URL(url).hostname.toLowerCase();
-		return (
-			hostnameIsOrUnder(h, 'cdninstagram.com') ||
-			hostnameIsOrUnder(h, 'fbcdn.net') ||
-			hostnameIsOrUnder(h, 'fbsbx.com') ||
-			hostnameIsOrUnder(h, 'licdn.com')
-		);
+		return hostnameIsOrUnder(h, 'cdninstagram.com') || hostnameIsOrUnder(h, 'licdn.com');
 	} catch {
 		return false;
 	}
@@ -170,12 +168,12 @@ export class ImageRepository {
 	}
 
 	/**
-	 * Allowlisted CDN avatar proxy (`GET .../image/external-proxy`); requires Bearer auth via HttpGateway interceptors.
-	 * (`/image/public-proxy` is a backwards-compatible alias.)
+	 * Allowlisted CDN avatar proxy (`POST .../image/external-proxy`); requires Bearer auth via HttpGateway interceptors.
+	 * Body `{ url }` avoids WAF blocks on long signed CDN query strings. GET remains supported on the API.
 	 */
 	public async fetchExternalProxiedImageBlob(remoteUrl: string): Promise<Blob | null> {
 		try {
-			const { data, ok } = await this.httpGateway.get<Blob>(
+			const { data, ok } = await this.httpGateway.post<Blob>(
 				this.config.endpoints.externalProxyImage,
 				{ url: remoteUrl },
 				{

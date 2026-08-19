@@ -99,12 +99,24 @@ export class ImageController {
         }
     };
 
+    private readExternalImageUrl(req: Request): string {
+        const fromQuery = req.query.url;
+        if (typeof fromQuery === "string" && fromQuery.trim()) {
+            return fromQuery.trim();
+        }
+        const body = req.body as { url?: unknown } | undefined;
+        if (body && typeof body.url === "string" && body.url.trim()) {
+            return body.url.trim();
+        }
+        throw new UserValidationError("URL parameter is required");
+    }
+
     /**
      * Allowlisted proxy for external avatar URLs (Instagram, Facebook, and LinkedIn CDNs).
      *
      * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
-     * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
-     * `IntegrationChannelPicture.svelte`), not bare `<img src>` to this URL.
+     * small host allowlist is supported. Prefer POST `{ url }` so long signed CDN query strings are
+     * not stripped by edge WAFs; GET `?url=` remains for older clients.
      */
     allowlistedExternalImageProxy = async (
         req: Request,
@@ -112,11 +124,7 @@ export class ImageController {
         next: NextFunction
     ): Promise<void> => {
         try {
-            const { url } = req.query;
-
-            if (!url || typeof url !== "string") {
-                throw new UserValidationError("URL parameter is required");
-            }
+            const url = this.readExternalImageUrl(req);
 
             const imageUrl = new URL(url);
             if (!["http:", "https:"].includes(imageUrl.protocol)) {

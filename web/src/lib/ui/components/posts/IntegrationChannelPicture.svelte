@@ -10,7 +10,7 @@
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
 	type Props = {
-		/** Raw profile picture URL from the integration API (may be a Meta or LinkedIn CDN URL). */
+		/** Raw profile picture URL from the integration API (storage key, Graph `/picture`, or CDN URL). */
 		profilePictureUrl: string | null | undefined;
 		fallbackIcon: IconName;
 		alt?: string;
@@ -59,11 +59,12 @@
 			void (async () => {
 				const blob = await imageRepository.fetchExternalProxiedImageBlob(raw);
 				if (cancelled) return;
-				if (!blob) {
-					resolvedSrc = null;
+				if (blob) {
+					setBlobSrc(blob);
 					return;
 				}
-				setBlobSrc(blob);
+				// Proxy 403 (WAF or datacenter IP): try the signed URL in the browser with no Referer.
+				resolvedSrc = raw;
 			})();
 		}
 

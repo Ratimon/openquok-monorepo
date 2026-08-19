@@ -7,6 +7,7 @@ import type { AuthTokenDetails, SocialProvider } from "../integrations/social.in
 import { config } from "../config/GlobalConfig";
 import { IntegrationManager } from "../integrations/integrationManager";
 import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
+import { downloadProviderProfilePicture } from "../utils/images/providerProfilePictureFetch";
 import { logger } from "../utils/Logger";
 
 /** Token refresh orchestration; long-running refresh timing runs as an in-process Flowcraft loop under `orchestrator/`. */
@@ -37,6 +38,12 @@ export class RefreshIntegrationService {
                     internalId: integration.internal_id,
                     picture: refresh.picture,
                     resolveFreshRemoteUrl: async () => refresh.picture,
+                    downloadBytes: () =>
+                        downloadProviderProfilePicture({
+                            providerIdentifier: integration.provider_identifier,
+                            internalId: integration.internal_id,
+                            accessToken: refresh.accessToken,
+                        }),
                 })
             :   integration.picture;
 

@@ -24,7 +24,12 @@ import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
-import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
+import { resolveIntegrationPictureForStorage, isIntegrationProfileStoragePath } from "../utils/images/mirrorIntegrationProfilePicture";
+import { isExternalCdnProfilePictureUrl } from "../utils/images/allowedExternalImageHosts";
+import {
+    downloadProviderProfilePicture,
+    facebookGraphProfilePictureUrl,
+} from "../utils/images/providerProfilePictureFetch";
 import { logger } from "../utils/Logger";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
@@ -156,6 +161,7 @@ export class IntegrationConnectionService {
     async getIntegrationList(authUserId: string, organizationId: string) {
         await this.assertOrganizationMember(authUserId, organizationId);
         const rows = await this.integrations.listByOrganization(organizationId);
+        await Promise.all(rows.map((row) => this.ensureMirroredProfilePicture(row)));
         const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
         return { integrations };
     }
@@ -190,6 +196,50 @@ export class IntegrationConnectionService {
         await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
     }
 
+    private async ensureMirroredProfilePicture(row: IntegrationLike): Promise<void> {
+        const raw = row.picture?.trim() ?? "";
+        if (!raw || isIntegrationProfileStoragePath(raw) || !isExternalCdnProfilePictureUrl(raw)) {
+            return;
+        }
+        try {
+            const stored = await resolveIntegrationPictureForStorage({
+                storageRepository: this.storageRepository,
+                organizationId: row.organization_id,
+                internalId: row.internal_id,
+                picture: raw,
+                downloadBytes: () =>
+                    downloadProviderProfilePicture({
+                        providerIdentifier: row.provider_identifier,
+                        internalId: row.internal_id,
+                        accessToken: row.token,
+                    }),
+            });
+            if (stored && stored !== raw) {
+                await this.integrations.updatePicture(row.organization_id, row.id, stored);
+                row.picture = stored;
+            }
+        } catch {
+            /* keep the stored CDN URL; list display may still rewrite Facebook to Graph /picture */
+        }
+    }
+
+    /**
+     * Facebook signed CDN URLs 403 from our servers and expire. Graph `/picture` lets the
+     * browser follow a fresh redirect from the user's IP.
+     */
+    private listDisplayPicture(p: IntegrationLike): string | null {
+        const pic = p.picture?.trim() || null;
+        if (!pic) return null;
+        if (
+            p.provider_identifier === "facebook" &&
+            isExternalCdnProfilePictureUrl(pic) &&
+            p.internal_id.trim()
+        ) {
+            return facebookGraphProfilePictureUrl(p.internal_id);
+        }
+        return pic;
+    }
+
     private async mapListRow(p: IntegrationLike) {
         const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
         const editor = findIntegration?.editor ?? "normal";
@@ -205,7 +255,7 @@ export class IntegrationConnectionService {
             editor,
             // Do not inject a placeholder path: the web uses provider icon fallbacks and a hardcoded
             // "/no-picture.jpg" path breaks avatar rendering (it is not guaranteed to exist on the web origin).
-            picture: p.picture || null,
+            picture: this.listDisplayPicture(p),
             identifier: p.provider_identifier,
             inBetweenSteps: p.in_between_steps,
             refreshNeeded: p.refresh_needed,
@@ -574,6 +624,12 @@ export class IntegrationConnectionService {
             internalId: String(id),
             picture: picture || null,
             resolveFreshRemoteUrl: async () => picture || null,
+            downloadBytes: () =>
+                downloadProviderProfilePicture({
+                    providerIdentifier: integration,
+                    internalId: String(id),
+                    accessToken,
+                }),
         });
 
         await this.subscriptionGuard?.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
@@ -970,6 +1026,12 @@ export class IntegrationConnectionService {
             internalId: String(information.id),
             picture: information.picture || null,
             resolveFreshRemoteUrl: async () => information.picture || null,
+            downloadBytes: () =>
+                downloadProviderProfilePicture({
+                    providerIdentifier: row.provider_identifier,
+                    internalId: String(information.id),
+                    accessToken: information.access_token || userAccessToken,
+                }),
         });
 
         await this.integrations.updateIntegrationById(organizationId, integrationId, {

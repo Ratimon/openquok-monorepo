@@ -24,8 +24,9 @@ const imageRouter: ImageRouter = Router();
 
 imageRouter.get("/download", imageController.getByUrl);
 
-// Allowlisted external avatar proxy (Instagram CDN, etc.); JWT required (see `middlewares/core.ts`).
+// Allowlisted external avatar proxy; JWT required (see `middlewares/core.ts`).
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
+imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
 
 imageRouter.post(
     "/upload",

@@ -8842,6 +8842,16 @@ var init_IntegrationRepository = __esm({
           });
         }
       }
+      async updatePicture(organizationId, integrationId, picture) {
+        const { error } = await this.supabase.from(TABLE2).update({ picture, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Failed to update integration picture", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE2 }
+          });
+        }
+      }
       async setPostingTimes(organizationId, integrationId, postingTimesJson) {
         const { error } = await this.supabase.from(TABLE2).update({ posting_times: postingTimesJson, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
         if (error) {
@@ -19343,25 +19353,42 @@ var init_allowedExternalImageHosts = __esm({
 });
 
 // utils/images/externalImageFetch.ts
-function externalCdnImageRequestHeaders(remoteUrl) {
-  let referer = "https://www.facebook.com/";
-  try {
-    const host = new URL(remoteUrl).hostname.toLowerCase();
-    if (host.includes("threads")) {
-      referer = "https://www.threads.net/";
-    } else if (host.includes("instagram") || host.endsWith(".cdninstagram.com") || host === "cdninstagram.com") {
-      referer = "https://www.instagram.com/";
-    } else if (host === "licdn.com" || host.endsWith(".licdn.com")) {
-      referer = "https://www.linkedin.com/";
-    }
-  } catch {
-  }
+function externalCdnImageBaseHeaders() {
   return {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
     Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    Referer: referer
+    "Accept-Language": "en-US,en;q=0.9"
   };
+}
+function instagramFamilyReferer(hostname) {
+  if (hostname.includes("threads")) return "https://www.threads.net/";
+  if (hostname.includes("instagram") || hostname === "cdninstagram.com" || hostname.endsWith(".cdninstagram.com")) {
+    return "https://www.instagram.com/";
+  }
+  return null;
+}
+function externalCdnImageHeaderAttempts(remoteUrl) {
+  const base = externalCdnImageBaseHeaders();
+  let instagramReferer = null;
+  try {
+    instagramReferer = instagramFamilyReferer(new URL(remoteUrl).hostname.toLowerCase());
+  } catch {
+  }
+  const attempts = [];
+  if (instagramReferer) {
+    attempts.push({ ...base, Referer: instagramReferer });
+  }
+  attempts.push({ ...base });
+  return attempts;
+}
+function contentTypeFromResponse(response) {
+  return (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+}
+function errorForFailedResponse(response) {
+  return new ExternalImageFetchError(
+    `Failed to fetch image: ${response.status} ${response.statusText}`,
+    response.status === 403 || response.status === 404 ? response.status : 502
+  );
 }
 async function fetchAllowlistedExternalImage(remoteUrl) {
   const parsed = new URL(remoteUrl);
@@ -19371,40 +19398,75 @@ async function fetchAllowlistedExternalImage(remoteUrl) {
   if (!isAllowedExternalImageHost(parsed.hostname)) {
     throw new ExternalImageFetchError("URL host is not allowed", 400);
   }
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  const attempts = externalCdnImageHeaderAttempts(remoteUrl);
+  const deadline = Date.now() + FETCH_TIMEOUT_MS;
+  let lastError = null;
+  for (const headers of attempts) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), remaining);
+    try {
+      const response = await fetch(remoteUrl, {
+        method: "GET",
+        redirect: "follow",
+        headers,
+        signal: controller.signal
+      });
+      if (!response.ok) {
+        lastError = errorForFailedResponse(response);
+        continue;
+      }
+      const contentType = contentTypeFromResponse(response);
+      if (!contentType.startsWith("image/")) {
+        lastError = new ExternalImageFetchError("URL does not point to a valid image", 400);
+        continue;
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      return { buffer: Buffer.from(arrayBuffer), contentType };
+    } catch (error) {
+      if (error instanceof ExternalImageFetchError) {
+        lastError = error;
+        continue;
+      }
+      if (error instanceof Error && error.name === "AbortError") {
+        lastError = new ExternalImageFetchError("Request timeout", 504);
+        break;
+      }
+      lastError = new ExternalImageFetchError(
+        error instanceof Error ? error.message : "Failed to fetch image",
+        502
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  throw lastError ?? new ExternalImageFetchError("Failed to fetch image", 502);
+}
+async function fetchAllowlistedExternalImageWithOptionalBearer(remoteUrl, accessToken2) {
   try {
+    return await fetchAllowlistedExternalImage(remoteUrl);
+  } catch (error) {
+    const token = accessToken2?.trim();
+    if (!token) throw error;
+    const parsed = new URL(remoteUrl);
+    if (!isAllowedExternalImageHost(parsed.hostname)) throw error;
     const response = await fetch(remoteUrl, {
       method: "GET",
       redirect: "follow",
-      headers: externalCdnImageRequestHeaders(remoteUrl),
-      signal: controller.signal
+      headers: {
+        ...externalCdnImageBaseHeaders(),
+        Authorization: `Bearer ${token}`
+      }
     });
     if (!response.ok) {
-      throw new ExternalImageFetchError(
-        `Failed to fetch image: ${response.status} ${response.statusText}`,
-        response.status === 403 || response.status === 404 ? response.status : 502
-      );
+      throw errorForFailedResponse(response);
     }
-    const contentType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+    const contentType = contentTypeFromResponse(response);
     if (!contentType.startsWith("image/")) {
       throw new ExternalImageFetchError("URL does not point to a valid image", 400);
     }
-    const arrayBuffer = await response.arrayBuffer();
-    return { buffer: Buffer.from(arrayBuffer), contentType };
-  } catch (error) {
-    if (error instanceof ExternalImageFetchError) {
-      throw error;
-    }
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new ExternalImageFetchError("Request timeout", 504);
-    }
-    throw new ExternalImageFetchError(
-      error instanceof Error ? error.message : "Failed to fetch image",
-      502
-    );
-  } finally {
-    clearTimeout(timeout);
+    return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
   }
 }
 var FETCH_TIMEOUT_MS, ExternalImageFetchError;
@@ -19441,9 +19503,6 @@ function contentTypeToExtension(contentType) {
 async function mirrorIntegrationProfilePicture(params) {
   const { storageRepository, organizationId, internalId } = params;
   let remoteUrl = typeof params.remoteUrl === "string" ? params.remoteUrl.trim() : "";
-  if (!remoteUrl || !isExternalCdnProfilePictureUrl(remoteUrl)) {
-    return null;
-  }
   const tryFetch = async (url) => {
     try {
       return await fetchAllowlistedExternalImage(url);
@@ -19451,12 +19510,19 @@ async function mirrorIntegrationProfilePicture(params) {
       return null;
     }
   };
-  let fetched = await tryFetch(remoteUrl);
+  let fetched = remoteUrl && isExternalCdnProfilePictureUrl(remoteUrl) ? await tryFetch(remoteUrl) : null;
   if (!fetched && params.resolveFreshRemoteUrl) {
     const fresh = (await params.resolveFreshRemoteUrl())?.trim();
     if (fresh && fresh !== remoteUrl && isExternalCdnProfilePictureUrl(fresh)) {
       remoteUrl = fresh;
       fetched = await tryFetch(remoteUrl);
+    }
+  }
+  if (!fetched && params.downloadBytes) {
+    try {
+      fetched = await params.downloadBytes() ?? null;
+    } catch {
+      fetched = null;
     }
   }
   if (!fetched) {
@@ -19505,7 +19571,8 @@ async function resolveIntegrationPictureForStorage(params) {
     organizationId: params.organizationId,
     internalId: params.internalId,
     remoteUrl: raw,
-    resolveFreshRemoteUrl: params.resolveFreshRemoteUrl
+    resolveFreshRemoteUrl: params.resolveFreshRemoteUrl,
+    downloadBytes: params.downloadBytes
   });
   return mirrored ?? raw;
 }
@@ -19519,12 +19586,117 @@ var init_mirrorIntegrationProfilePicture = __esm({
   }
 });
 
+// utils/images/providerProfilePictureFetch.ts
+function facebookGraphProfilePictureUrl(objectId) {
+  return `${GRAPH5}/${encodeURIComponent(objectId.trim())}/picture?type=large`;
+}
+async function imageFromResponse(response) {
+  if (!response.ok) return null;
+  const contentType = (response.headers.get("content-type") ?? "").split(";")[0]?.trim() ?? "";
+  if (!contentType.startsWith("image/")) return null;
+  return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
+}
+async function fetchRemotePictureUrl(pictureUrl, accessToken2) {
+  const url = pictureUrl?.trim();
+  if (!url || !isExternalCdnProfilePictureUrl(url)) return null;
+  try {
+    return await fetchAllowlistedExternalImageWithOptionalBearer(url, accessToken2);
+  } catch {
+    return null;
+  }
+}
+async function fetchFacebookGraphPicture(objectId, accessToken2) {
+  const id = objectId.trim();
+  const token = accessToken2.trim();
+  if (!id || !token) return null;
+  const auth10 = { Authorization: `Bearer ${token}` };
+  const tokenQuery = `access_token=${encodeURIComponent(token)}`;
+  try {
+    const redirectRes = await fetch(`${facebookGraphProfilePictureUrl(id)}&${tokenQuery}`, {
+      method: "GET",
+      redirect: "follow",
+      headers: auth10
+    });
+    const fromRedirect = await imageFromResponse(redirectRes);
+    if (fromRedirect) return fromRedirect;
+  } catch {
+  }
+  try {
+    const metaRes = await fetch(
+      `${GRAPH5}/${encodeURIComponent(id)}?fields=picture.type(large),profile_picture_url&${tokenQuery}`,
+      { headers: auth10 }
+    );
+    const meta = await metaRes.json();
+    const url = meta.profile_picture_url || meta.picture?.data?.url;
+    return await fetchRemotePictureUrl(url, token);
+  } catch {
+    return null;
+  }
+}
+async function fetchLinkedInPersonPicture(accessToken2) {
+  try {
+    const res = await fetch("https://api.linkedin.com/v2/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken2}` }
+    });
+    const json = await res.json();
+    return await fetchRemotePictureUrl(json.picture, accessToken2);
+  } catch {
+    return null;
+  }
+}
+async function fetchLinkedInOrganizationPicture(organizationId, accessToken2) {
+  const id = organizationId.trim();
+  if (!id) return null;
+  try {
+    const res = await fetch(
+      `https://api.linkedin.com/v2/organizations/${encodeURIComponent(id)}?projection=(logoV2(original~:playableStreams))`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken2}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+          "LinkedIn-Version": "202601"
+        }
+      }
+    );
+    const org = await res.json();
+    const url = org.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier;
+    return await fetchRemotePictureUrl(url, accessToken2);
+  } catch {
+    return null;
+  }
+}
+async function downloadProviderProfilePicture(params) {
+  const token = params.accessToken.trim();
+  const internalId = params.internalId.trim();
+  if (!token || !internalId) return null;
+  switch (params.providerIdentifier) {
+    case "facebook":
+    case "instagram-business":
+      return fetchFacebookGraphPicture(internalId, token);
+    case "linkedin":
+      return fetchLinkedInPersonPicture(token);
+    case "linkedin-page":
+      return fetchLinkedInOrganizationPicture(internalId, token);
+    default:
+      return null;
+  }
+}
+var GRAPH5;
+var init_providerProfilePictureFetch = __esm({
+  "utils/images/providerProfilePictureFetch.ts"() {
+    init_allowedExternalImageHosts();
+    init_externalImageFetch();
+    GRAPH5 = "https://graph.facebook.com/v20.0";
+  }
+});
+
 // services/RefreshIntegrationService.ts
 var RefreshIntegrationService;
 var init_RefreshIntegrationService = __esm({
   "services/RefreshIntegrationService.ts"() {
     init_GlobalConfig();
     init_mirrorIntegrationProfilePicture();
+    init_providerProfilePictureFetch();
     init_Logger();
     RefreshIntegrationService = class {
       constructor(integrationRepository2, integrationManager2, storageRepository, notificationService2) {
@@ -19547,7 +19719,12 @@ var init_RefreshIntegrationService = __esm({
           organizationId: integration.organization_id,
           internalId: integration.internal_id,
           picture: refresh.picture,
-          resolveFreshRemoteUrl: async () => refresh.picture
+          resolveFreshRemoteUrl: async () => refresh.picture,
+          downloadBytes: () => downloadProviderProfilePicture({
+            providerIdentifier: integration.provider_identifier,
+            internalId: integration.internal_id,
+            accessToken: refresh.accessToken
+          })
         }) : integration.picture;
         await this.integrationRepository.upsertIntegration({
           organizationId: integration.organization_id,
@@ -19731,6 +19908,10 @@ var init_IntegrationService = __esm({
       }
       async syncTokensByRootInternalId(params) {
         await this.integrationRepository.syncTokensByRootInternalId(params);
+      }
+      async updatePicture(organizationId, integrationId, picture) {
+        await this.integrationRepository.updatePicture(organizationId, integrationId, picture);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
       }
       async setPostingTimes(organizationId, integrationId, json) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
@@ -19992,6 +20173,8 @@ var init_IntegrationConnectionService = __esm({
     init_AppError();
     init_ProviderIntegrationErrors();
     init_mirrorIntegrationProfilePicture();
+    init_allowedExternalImageHosts();
+    init_providerProfilePictureFetch();
     init_Logger();
     CACHE_KEYS12 = {
       oauth: {
@@ -20044,6 +20227,7 @@ var init_IntegrationConnectionService = __esm({
       async getIntegrationList(authUserId, organizationId) {
         await this.assertOrganizationMember(authUserId, organizationId);
         const rows = await this.integrations.listByOrganization(organizationId);
+        await Promise.all(rows.map((row) => this.ensureMirroredProfilePicture(row)));
         const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
         return { integrations };
       }
@@ -20069,6 +20253,42 @@ var init_IntegrationConnectionService = __esm({
         }
         await this.integrations.updateIntegrationGroup(organizationId, integrationId, customerId);
       }
+      async ensureMirroredProfilePicture(row) {
+        const raw = row.picture?.trim() ?? "";
+        if (!raw || isIntegrationProfileStoragePath(raw) || !isExternalCdnProfilePictureUrl(raw)) {
+          return;
+        }
+        try {
+          const stored = await resolveIntegrationPictureForStorage({
+            storageRepository: this.storageRepository,
+            organizationId: row.organization_id,
+            internalId: row.internal_id,
+            picture: raw,
+            downloadBytes: () => downloadProviderProfilePicture({
+              providerIdentifier: row.provider_identifier,
+              internalId: row.internal_id,
+              accessToken: row.token
+            })
+          });
+          if (stored && stored !== raw) {
+            await this.integrations.updatePicture(row.organization_id, row.id, stored);
+            row.picture = stored;
+          }
+        } catch {
+        }
+      }
+      /**
+       * Facebook signed CDN URLs 403 from our servers and expire. Graph `/picture` lets the
+       * browser follow a fresh redirect from the user's IP.
+       */
+      listDisplayPicture(p) {
+        const pic = p.picture?.trim() || null;
+        if (!pic) return null;
+        if (p.provider_identifier === "facebook" && isExternalCdnProfilePictureUrl(pic) && p.internal_id.trim()) {
+          return facebookGraphProfilePictureUrl(p.internal_id);
+        }
+        return pic;
+      }
       async mapListRow(p) {
         const findIntegration = this.manager.getSocialIntegration(p.provider_identifier);
         const editor = findIntegration?.editor ?? "normal";
@@ -20084,7 +20304,7 @@ var init_IntegrationConnectionService = __esm({
           editor,
           // Do not inject a placeholder path: the web uses provider icon fallbacks and a hardcoded
           // "/no-picture.jpg" path breaks avatar rendering (it is not guaranteed to exist on the web origin).
-          picture: p.picture || null,
+          picture: this.listDisplayPicture(p),
           identifier: p.provider_identifier,
           inBetweenSteps: p.in_between_steps,
           refreshNeeded: p.refresh_needed,
@@ -20348,7 +20568,12 @@ var init_IntegrationConnectionService = __esm({
           organizationId,
           internalId: String(id),
           picture: picture || null,
-          resolveFreshRemoteUrl: async () => picture || null
+          resolveFreshRemoteUrl: async () => picture || null,
+          downloadBytes: () => downloadProviderProfilePicture({
+            providerIdentifier: integration,
+            internalId: String(id),
+            accessToken: accessToken2
+          })
         });
         await this.subscriptionGuard?.assert(SubscriptionSection.CHANNEL_PER_WORKSPACE, {
           scope: "workspaceWithReconnect",
@@ -20651,7 +20876,12 @@ var init_IntegrationConnectionService = __esm({
           organizationId,
           internalId: String(information.id),
           picture: information.picture || null,
-          resolveFreshRemoteUrl: async () => information.picture || null
+          resolveFreshRemoteUrl: async () => information.picture || null,
+          downloadBytes: () => downloadProviderProfilePicture({
+            providerIdentifier: row.provider_identifier,
+            internalId: String(information.id),
+            accessToken: information.access_token || userAccessToken
+          })
         });
         await this.integrations.updateIntegrationById(organizationId, integrationId, {
           internalId: String(information.id),
@@ -26639,19 +26869,27 @@ var init_ImageController = __esm({
           next(error);
         }
       };
+      readExternalImageUrl(req) {
+        const fromQuery = req.query.url;
+        if (typeof fromQuery === "string" && fromQuery.trim()) {
+          return fromQuery.trim();
+        }
+        const body = req.body;
+        if (body && typeof body.url === "string" && body.url.trim()) {
+          return body.url.trim();
+        }
+        throw new UserValidationError("URL parameter is required");
+      }
       /**
        * Allowlisted proxy for external avatar URLs (Instagram, Facebook, and LinkedIn CDNs).
        *
        * Requires a valid user JWT (see global API auth in `middlewares/core.ts`). To avoid SSRF, only a
-       * small host allowlist is supported. The web client loads pixels via fetch + Bearer token (see
-       * `IntegrationChannelPicture.svelte`), not bare `<img src>` to this URL.
+       * small host allowlist is supported. Prefer POST `{ url }` so long signed CDN query strings are
+       * not stripped by edge WAFs; GET `?url=` remains for older clients.
        */
       allowlistedExternalImageProxy = async (req, res, next) => {
         try {
-          const { url } = req.query;
-          if (!url || typeof url !== "string") {
-            throw new UserValidationError("URL parameter is required");
-          }
+          const url = this.readExternalImageUrl(req);
           const imageUrl = new URL(url);
           if (!["http:", "https:"].includes(imageUrl.protocol)) {
             throw new UserValidationError("Invalid URL protocol. Only HTTP and HTTPS are allowed.");
@@ -32042,7 +32280,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-19T04:32:04.613Z",
+  generated: "2026-08-19T11:12:36.002Z",
   routes: [
     {
       path: "/docs",
@@ -35092,6 +35330,7 @@ var authWithRoles7 = requireFullAuthWithRoles(
 var imageRouter = express.Router();
 imageRouter.get("/download", imageController.getByUrl);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
+imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post(
   "/upload",
   authWithRoles7,

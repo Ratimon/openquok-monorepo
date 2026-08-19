@@ -1,4 +1,5 @@
 import type { StorageSupabaseRepository } from "../../repositories/StorageSupabaseRepository";
+import type { FetchedExternalImage } from "./externalImageFetch";
 import { isExternalCdnProfilePictureUrl } from "./allowedExternalImageHosts";
 import { fetchAllowlistedExternalImage } from "./externalImageFetch";
 import { logger } from "../Logger";
@@ -38,13 +39,11 @@ export async function mirrorIntegrationProfilePicture(params: {
     remoteUrl: string | null | undefined;
     /** When the CDN URL fails, call this to obtain a fresh URL (e.g. Graph API `me` fields). */
     resolveFreshRemoteUrl?: () => Promise<string | null | undefined>;
+    /** Provider API download when hotlinked CDN URLs keep returning 403. */
+    downloadBytes?: () => Promise<FetchedExternalImage | null>;
 }): Promise<string | null> {
     const { storageRepository, organizationId, internalId } = params;
     let remoteUrl = typeof params.remoteUrl === "string" ? params.remoteUrl.trim() : "";
-
-    if (!remoteUrl || !isExternalCdnProfilePictureUrl(remoteUrl)) {
-        return null;
-    }
 
     const tryFetch = async (url: string) => {
         try {
@@ -54,12 +53,19 @@ export async function mirrorIntegrationProfilePicture(params: {
         }
     };
 
-    let fetched = await tryFetch(remoteUrl);
+    let fetched = remoteUrl && isExternalCdnProfilePictureUrl(remoteUrl) ? await tryFetch(remoteUrl) : null;
     if (!fetched && params.resolveFreshRemoteUrl) {
         const fresh = (await params.resolveFreshRemoteUrl())?.trim();
         if (fresh && fresh !== remoteUrl && isExternalCdnProfilePictureUrl(fresh)) {
             remoteUrl = fresh;
             fetched = await tryFetch(remoteUrl);
+        }
+    }
+    if (!fetched && params.downloadBytes) {
+        try {
+            fetched = (await params.downloadBytes()) ?? null;
+        } catch {
+            fetched = null;
         }
     }
 
@@ -110,6 +116,7 @@ export async function resolveIntegrationPictureForStorage(params: {
     internalId: string;
     picture: string | null | undefined;
     resolveFreshRemoteUrl?: () => Promise<string | null | undefined>;
+    downloadBytes?: () => Promise<FetchedExternalImage | null>;
 }): Promise<string | null> {
     const raw = typeof params.picture === "string" ? params.picture.trim() : "";
     if (!raw) return null;
@@ -121,6 +128,7 @@ export async function resolveIntegrationPictureForStorage(params: {
         internalId: params.internalId,
         remoteUrl: raw,
         resolveFreshRemoteUrl: params.resolveFreshRemoteUrl,
+        downloadBytes: params.downloadBytes,
     });
     return mirrored ?? raw;
 }

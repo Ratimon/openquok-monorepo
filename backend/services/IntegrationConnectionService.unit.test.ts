@@ -83,8 +83,9 @@ function createMockIntegrations(): jest.Mocked<Pick<
     | "softDeleteChannel"
     | "customers"
     | "createIntegrationCustomer"
-    | "updateIntegrationGroup"
-    | "updateOnCustomerName"
+        | "updateIntegrationGroup"
+        | "updateOnCustomerName"
+        | "updatePicture"
 >> {
     return {
         listByOrganization: jest.fn(),
@@ -99,6 +100,7 @@ function createMockIntegrations(): jest.Mocked<Pick<
         createIntegrationCustomer: jest.fn(),
         updateIntegrationGroup: jest.fn(),
         updateOnCustomerName: jest.fn(),
+        updatePicture: jest.fn(),
     };
 }
 
@@ -329,6 +331,36 @@ describe("IntegrationConnectionService", () => {
                 identifier: "threads",
                 editor: "normal",
             });
+        });
+
+        it("rewrites Facebook CDN avatars to Graph picture URLs when mirroring cannot store them", async () => {
+            const originalFetch = global.fetch;
+            global.fetch = jest.fn().mockResolvedValue({
+                ok: false,
+                status: 403,
+                statusText: "Forbidden",
+                headers: { get: () => null },
+                json: async () => ({}),
+                arrayBuffer: async () => new ArrayBuffer(0),
+            }) as unknown as typeof fetch;
+            try {
+                orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+                orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+                integrations.listByOrganization.mockResolvedValue([
+                    sampleRow({
+                        provider_identifier: "facebook",
+                        internal_id: "page-123",
+                        picture: "https://scontent.xx.fbcdn.net/v/t1.jpg?oh=abc",
+                    }),
+                ]);
+                const { integrations: list } = await service().getIntegrationList(authUserId, orgId);
+                expect(list[0]?.picture).toBe(
+                    "https://graph.facebook.com/v20.0/page-123/picture?type=large"
+                );
+                expect(integrations.updatePicture).not.toHaveBeenCalled();
+            } finally {
+                global.fetch = originalFetch;
+            }
         });
     });
 

@@ -43,6 +43,7 @@ function createMockRepo(): jest.Mocked<
         | "updateIntegrationById"
         | "updateIntegrationGroup"
         | "updateOnCustomerName"
+        | "updatePicture"
     >
 > {
     return {
@@ -58,6 +59,7 @@ function createMockRepo(): jest.Mocked<
         updateIntegrationById: jest.fn(),
         updateIntegrationGroup: jest.fn(),
         updateOnCustomerName: jest.fn(),
+        updatePicture: jest.fn(),
     };
 }
 
@@ -200,6 +202,17 @@ describe("IntegrationService", () => {
     describe("mutations with per-integration invalidation", () => {
         beforeEach(() => {
             repo.getById.mockResolvedValue({ provider_identifier: "threads" } as unknown as IntegrationLike);
+        });
+
+        it("updatePicture updates then invalidates by provider from row", async () => {
+            await service().updatePicture(orgId, integrationId, "integration-profiles/org/id.jpg");
+            expect(repo.updatePicture).toHaveBeenCalledWith(
+                orgId,
+                integrationId,
+                "integration-profiles/org/id.jpg"
+            );
+            expect(repo.getById).toHaveBeenCalledWith(orgId, integrationId);
+            expect(cacheInvalidator.invalidatePattern).toHaveBeenCalledWith(`integration:${orgId}:threads:*`);
         });
 
         it("setPostingTimes updates then invalidates by provider from row", async () => {
