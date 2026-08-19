@@ -397,6 +397,7 @@
 				{selectedIds}
 				onToggleChannel={onToggleChannel}
 				{guestMode}
+				{isLoggedIn}
 				onConnectAccounts={() => openGuestLock('connect-channels')}
 			/>
 			<div class="relative">

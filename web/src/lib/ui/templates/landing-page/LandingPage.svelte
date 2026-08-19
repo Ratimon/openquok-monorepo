@@ -360,7 +360,7 @@ openquok analytics:post <post-id> -d 30`
 	ctaHref={secondaryCtaHref}
 >
 	{#snippet rightMedia()}
-		<BentoLandingComposeSettings />
+		<BentoLandingComposeSettings {isLoggedIn} />
 	{/snippet}
 </HeroWithRightMedia>
 

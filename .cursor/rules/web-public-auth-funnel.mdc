@@ -6,11 +6,16 @@ globs:
   - web/src/routes/(public)/building-blocks/**
   - web/src/routes/(public)/playbooks/**
   - web/src/routes/(public)/blog/**
+  - web/src/routes/(public)/channels/**
+  - web/src/routes/(public)/agents/**
   - web/src/lib/ui/templates/humanize/**
   - web/src/lib/ui/templates/photo-editor/**
   - web/src/lib/ui/templates/skill-builder/**
   - web/src/lib/ui/templates/best-time-to-post/**
+  - web/src/lib/ui/templates/landing-page/**
+  - web/src/lib/ui/templates/bento/minor-templates/**
   - web/src/lib/ui/components/**/SignInTo*.svelte
+  - web/src/lib/ui/components/posts/ComposerGuestLock*.svelte
   - web/src/lib/posts/constants/guestComposerLock.ts
   - web/src/lib/posts/utils/buildGuestComposerAuthHrefs.ts
   - web/src/lib/ui/components/posts/PicksSocialsComponent.svelte
@@ -19,11 +24,11 @@ alwaysApply: false
 
 # Public mock UI → auth funnel
 
-Keep the **free public surface ungated**. Do not require Sign in to use the page’s core tool (Humanizer rewrite/copy, Photo Editor canvas/download, and similar). Auth dialogs are for **workspace upgrades only**.
+Keep the **free public surface ungated**. Do not require Sign in to use the page’s core tool (Humanizer rewrite/copy, Photo Editor canvas/download, browsing a landing composer preview). Auth dialogs are for **workspace upgrades only**.
 
 If the page mocks a workspace capability (channels, media library, schedule, cloud save, bookmarks, comments), **label it as a sample/preview**. Never use **Connected channels** for fake data.
 
-Put a visible CTA on the mock (lock badge + short line). Do not rely only on a later Schedule click. **Not now** must leave the free tool usable.
+Put a visible CTA on the mock (lock badge + short line). Do not rely only on a later Schedule click. **Not now** must leave the free tool usable. Landing and channel composer mocks use `ComposerGuestLockToolbar` / `ComposerGuestLockFooter`; keep those lock controls clickable even when the rest of the mock is `pointer-events-none`.
 
 Gate with Dialog + Button: **Not now**, **Sign up**, **Sign in**. Prefer a new `action` on `SignInToComposerActionModal` over a new `SignInTo*.svelte`. New funnels use **both** auth buttons; do not copy Sign-in-only from comments, Photo Editor, or bookmarks.
 

@@ -1,18 +1,21 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
+	import { page } from '$app/state';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import SignInToComposerActionModal from '$lib/ui/components/posts/SignInToComposerActionModal.svelte';
 
 	type Props = {
 		channels: CreateSocialPostChannelViewModel[];
 		selectedIds: string[];
 		onToggleChannel: (id: string) => void;
 		guestMode?: boolean;
+		isLoggedIn?: boolean;
 		onConnectAccounts?: () => void;
 	};
 
@@ -21,10 +24,23 @@
 		selectedIds,
 		onToggleChannel,
 		guestMode = false,
+		isLoggedIn: isLoggedInProp,
 		onConnectAccounts
 	}: Props = $props();
 
 	const heading = $derived(guestMode ? 'Sample channels' : 'Connected channels');
+	const isLoggedIn = $derived(
+		isLoggedInProp ?? Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
+	);
+	let connectLockOpen = $state(false);
+
+	function handleConnectAccounts() {
+		if (onConnectAccounts) {
+			onConnectAccounts();
+			return;
+		}
+		connectLockOpen = true;
+	}
 </script>
 
 <div>
@@ -85,8 +101,8 @@
 		{#if guestMode}
 			<button
 				type="button"
-				class="ring-primary/60 relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none"
-				onclick={() => onConnectAccounts?.()}
+				class="ring-primary/60 pointer-events-auto relative shrink-0 rounded-full focus-visible:ring-2 focus-visible:outline-none"
+				onclick={handleConnectAccounts}
 				aria-label="Connect your accounts"
 			>
 				<span
@@ -98,4 +114,13 @@
 			</button>
 		{/if}
 	</div>
+	{#if guestMode && !onConnectAccounts}
+		<div class="pointer-events-auto">
+			<SignInToComposerActionModal
+				bind:open={connectLockOpen}
+				action="connect-channels"
+				{isLoggedIn}
+			/>
+		</div>
+	{/if}
 </div>

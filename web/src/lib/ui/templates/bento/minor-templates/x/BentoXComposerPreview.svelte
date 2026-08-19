@@ -2,8 +2,8 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
-	import DatePicker from '$lib/ui/components/posts/DatePicker.svelte';
+	import ComposerGuestLockFooter from '$lib/ui/components/posts/ComposerGuestLockFooter.svelte';
+	import ComposerGuestLockToolbar from '$lib/ui/components/posts/ComposerGuestLockToolbar.svelte';
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
@@ -16,6 +16,12 @@
 		X_LANDING_MOCK_SCHEDULED_LOCAL,
 		X_LANDING_MOCK_THREAD_REPLIES
 	} from '$lib/ui/templates/bento/minor-templates/x/xLandingMock';
+
+	type Props = {
+		isLoggedIn?: boolean;
+	};
+
+	let { isLoggedIn }: Props = $props();
 
 	const mockChannels = [X_LANDING_MOCK_CHANNEL];
 	const selectedIds = [X_LANDING_MOCK_CHANNEL.id];
@@ -53,7 +59,13 @@
 
 	<div class="grid grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
 		<div class="flex flex-col gap-4 p-4">
-			<PicksSocialsComponent channels={mockChannels} {selectedIds} onToggleChannel={noop} />
+			<PicksSocialsComponent
+				channels={mockChannels}
+				{selectedIds}
+				onToggleChannel={noop}
+				guestMode={true}
+				{isLoggedIn}
+			/>
 
 			<div class="text-base-content/70 flex flex-wrap items-center justify-between gap-2 text-xs">
 				<span class="inline-flex items-center gap-2 font-medium">
@@ -61,6 +73,8 @@
 					Editing a Specific Network
 				</span>
 			</div>
+
+			<ComposerGuestLockToolbar {isLoggedIn} />
 
 			<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 				<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-x-mock-body">
@@ -120,11 +134,5 @@
 		</div>
 	</div>
 
-	<div
-		class="flex flex-col gap-3 border-t border-base-300 bg-base-100/95 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
-	>
-		<DatePicker bind:value={scheduledLocal} disabled />
-		<Button type="button" variant="secondary" disabled>Save as draft</Button>
-		<Button type="button" variant="primary" disabled>Schedule Post</Button>
-	</div>
+	<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
 </div>

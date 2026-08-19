@@ -2,6 +2,7 @@
 	import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
 	import type { TelegramMockAgentBranding } from '$lib/ui/templates/device-mocks/iphone-15-pro/telegramMockBranding';
 
+	import { page } from '$app/state';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
@@ -21,6 +22,9 @@
 
 	let { section, index, ctaText, ctaHref, telegramAgentBranding }: Props = $props();
 
+	const isLoggedIn = $derived(
+		Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
+	);
 	const bgColorClass = $derived(index % 2 === 0 ? 'bg-base-100' : 'bg-base-200');
 	const cliCommandsTitle = $derived(section.cliCommandsTitle ?? 'CLI command options');
 	const hasSideMedia = $derived(
@@ -74,7 +78,7 @@
 	{:else if section.deviceMock}
 		<PublicAgentFeatureMedia {section} {telegramAgentBranding} />
 	{:else if section.bentoId}
-		<BentoPublicChannelFeature bentoId={section.bentoId} />
+		<BentoPublicChannelFeature bentoId={section.bentoId} {isLoggedIn} />
 	{/if}
 {/snippet}
 

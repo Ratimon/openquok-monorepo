@@ -7,14 +7,16 @@
 
 	type Props = {
 		class?: string;
+		isLoggedIn?: boolean;
 	};
 
-	let { class: className = '' }: Props = $props();
+	let { class: className = '', isLoggedIn }: Props = $props();
 </script>
 
 <BentoGridOneCol class={cn('auto-rows-[minmax(22rem,auto)]', className)}>
 	<BentoCard
 		class="col-span-1 overflow-hidden shadow-2xl ring-1 ring-base-content/10"
 		background={BentoXComposerPreview}
+		backgroundProps={{ isLoggedIn }}
 	/>
 </BentoGridOneCol>

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 
+	import { page } from '$app/state';
+
 	import BentoAgentMultiPlatformBulkScheduling from '$lib/ui/templates/bento/minor-templates/agent/BentoAgentMultiPlatformBulkScheduling.svelte';
 	import BentoFacebookBulkScheduling from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookBulkScheduling.svelte';
 	import BentoFacebookInsights from '$lib/ui/templates/bento/minor-templates/facebook/BentoFacebookInsights.svelte';
@@ -26,9 +28,14 @@
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
+		isLoggedIn?: boolean;
 	};
 
-	let { bentoId }: Props = $props();
+	let { bentoId, isLoggedIn: isLoggedInProp }: Props = $props();
+
+	const isLoggedIn = $derived(
+		isLoggedInProp ?? Boolean((page.data as { isLoggedIn?: boolean } | undefined)?.isLoggedIn)
+	);
 </script>
 
 
@@ -37,43 +44,43 @@
 {:else if bentoId === 'facebook-bulk-scheduling'}
 	<BentoFacebookBulkScheduling />
 {:else if bentoId === 'facebook-video-links'}
-	<BentoFacebookVideoLinks />
+	<BentoFacebookVideoLinks {isLoggedIn} />
 {:else if bentoId === 'facebook-insights'}
 	<BentoFacebookInsights />
 {:else if bentoId === 'threads-bulk-scheduling'}
 	<BentoThreadsBulkScheduling />
 {:else if bentoId === 'threads-media-replies'}
-	<BentoThreadsMediaReplies />
+	<BentoThreadsMediaReplies {isLoggedIn} />
 {:else if bentoId === 'threads-insights'}
 	<BentoThreadsInsights />
 {:else if bentoId === 'instagram-bulk-scheduling'}
 	<BentoInstagramBulkScheduling />
 {:else if bentoId === 'instagram-compose-settings'}
-	<BentoInstagramComposeSettings />
+	<BentoInstagramComposeSettings {isLoggedIn} />
 {:else if bentoId === 'instagram-insights'}
 	<BentoInstagramInsights />
 {:else if bentoId === 'youtube-bulk-scheduling'}
 	<BentoYoutubeBulkScheduling />
 {:else if bentoId === 'youtube-video-settings'}
-	<BentoYoutubeVideoSettings />
+	<BentoYoutubeVideoSettings {isLoggedIn} />
 {:else if bentoId === 'youtube-insights'}
 	<BentoYoutubeInsights />
 {:else if bentoId === 'tiktok-bulk-scheduling'}
 	<BentoTiktokBulkScheduling />
 {:else if bentoId === 'tiktok-compose-settings'}
-	<BentoTiktokComposeSettings />
+	<BentoTiktokComposeSettings {isLoggedIn} />
 {:else if bentoId === 'tiktok-insights'}
 	<BentoTiktokInsights />
 {:else if bentoId === 'linkedin-bulk-scheduling'}
 	<BentoLinkedinBulkScheduling />
 {:else if bentoId === 'linkedin-compose-settings'}
-	<BentoLinkedinComposeSettings />
+	<BentoLinkedinComposeSettings {isLoggedIn} />
 {:else if bentoId === 'linkedin-insights'}
 	<BentoLinkedinInsights />
 {:else if bentoId === 'x-bulk-scheduling'}
 	<BentoXBulkScheduling />
 {:else if bentoId === 'x-compose-settings'}
-	<BentoXComposeSettings />
+	<BentoXComposeSettings {isLoggedIn} />
 {:else if bentoId === 'x-insights'}
 	<BentoXInsights />
 {/if}

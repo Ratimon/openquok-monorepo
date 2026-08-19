@@ -36,6 +36,7 @@
 
 	let schemaData = $derived(data.schemaData);
 	let channelVm: PublicChannelViewModel = $derived(data.channelVm);
+	let isLoggedIn = $derived(data.isLoggedIn === true);
 
 	const secondaryCtaText = pagePresenter.secondaryCtaText;
 	const secondaryCtaHref = $derived(
@@ -78,7 +79,7 @@
 	{#each channelVm.featureSections as section, index (index)}
 		{#snippet sectionBento()}
 			{#if section.bentoId}
-				<BentoPublicChannelFeature bentoId={section.bentoId} />
+				<BentoPublicChannelFeature bentoId={section.bentoId} {isLoggedIn} />
 			{/if}
 		{/snippet}
 		{#if section.mediaOnRight !== false}

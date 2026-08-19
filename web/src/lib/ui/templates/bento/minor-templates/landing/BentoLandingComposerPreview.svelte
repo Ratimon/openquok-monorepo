@@ -4,8 +4,8 @@
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
-	import DatePicker from '$lib/ui/components/posts/DatePicker.svelte';
+	import ComposerGuestLockFooter from '$lib/ui/components/posts/ComposerGuestLockFooter.svelte';
+	import ComposerGuestLockToolbar from '$lib/ui/components/posts/ComposerGuestLockToolbar.svelte';
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 	import SelectTargets from '$lib/ui/components/posts/SelectTargets.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
@@ -22,6 +22,12 @@
 		LANDING_COMPOSER_MOCK_SELECTED_IDS,
 		LANDING_COMPOSER_MOCK_THREAD_REPLIES_BY_CHANNEL
 	} from '$lib/ui/templates/bento/minor-templates/landing/landingComposerMultiAccountMock';
+
+	type Props = {
+		isLoggedIn?: boolean;
+	};
+
+	let { isLoggedIn }: Props = $props();
 
 	type Mode = 'global' | 'custom';
 
@@ -164,6 +170,8 @@
 				channels={mockChannels}
 				{selectedIds}
 				onToggleChannel={noop}
+				guestMode={true}
+				{isLoggedIn}
 			/>
 
 			<SelectTargets
@@ -193,6 +201,8 @@
 					</button>
 				</div>
 			{/if}
+
+			<ComposerGuestLockToolbar {isLoggedIn} />
 
 			<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
 				<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-composer-mock-body">
@@ -254,11 +264,5 @@
 		</div>
 	</div>
 
-	<div
-		class="pointer-events-none flex flex-col gap-3 border-t border-base-300 bg-base-100/95 px-4 py-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
-	>
-		<DatePicker bind:value={scheduledLocal} disabled />
-		<Button type="button" variant="secondary" disabled>Save as draft</Button>
-		<Button type="button" variant="primary" disabled>Schedule Post</Button>
-	</div>
+	<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
 </div>

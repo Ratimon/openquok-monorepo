@@ -61,10 +61,10 @@ export const GUEST_COMPOSER_LOCK_COPY: Record<GuestComposerLockAction, GuestComp
 	schedule: {
 		title: 'Sign in to schedule this post',
 		description:
-			'Scheduling publishes to your connected channels. Sign in or sign up to continue. Rewritten text and local previews stay on this page until you leave.',
+			'Scheduling publishes to your connected channels. Sign in or sign up to continue. This preview stays on the page until you leave.',
 		loggedInTitle: 'Open workspace to schedule this post',
 		loggedInDescription:
-			'Scheduling publishes to your connected channels. Open your workspace to continue. Rewritten text and local previews stay on this page until you leave.'
+			'Scheduling publishes to your connected channels. Open your workspace to continue. This preview stays on the page until you leave.'
 	},
 	tags: {
 		title: 'Sign in to tag this post',
@@ -79,9 +79,9 @@ export const GUEST_COMPOSER_LOCK_COPY: Record<GuestComposerLockAction, GuestComp
 		loggedInDescription: 'Repeat posting is a workspace feature. Open your workspace to continue.'
 	},
 	'connect-channels': {
-		title: 'Connect More Channels to Schedule for Real',
+		title: 'Connect your social accounts',
 		description:
-			'Sign in or sign up, then connect LinkedIn, X, and other channels in your workspace to schedule. You can keep rewriting on this page without an account.',
+			'These chips are samples. Sign in or sign up, then connect LinkedIn, X, and other channels in your workspace to schedule for real. You can keep using this page without an account.',
 		loggedInTitle: 'Connect your social accounts',
 		loggedInDescription: 'Open your workspace to add real channels, then schedule.'
 	}
