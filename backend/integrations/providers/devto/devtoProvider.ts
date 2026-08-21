@@ -45,7 +45,7 @@ function authTokenFromProfile(apiKey: string, profile: Awaited<ReturnType<typeof
         id: profile.id,
         name: profile.name,
         accessToken: apiKey,
-        refreshToken: apiKey,
+        refreshToken: "",
         expiresIn: tokenTtlSeconds(),
         picture: profile.picture,
         username: profile.username,

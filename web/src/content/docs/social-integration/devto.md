@@ -2,7 +2,7 @@
 title: Dev.to
 description: Connect Dev.to to OpenQuok with a personal API key — and schedule markdown articles.
 order: 9
-lastUpdated: 2026-08-20
+lastUpdated: 2026-08-21
 ---
 
 <script>
@@ -11,12 +11,28 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-Dev.to publishing uses a <strong>personal API key</strong> you paste in the OpenQuok dashboard. There is no operator-registered developer app and <strong>no</strong> backend env vars such as a client ID or secret. OpenQuok stores the key on the connected channel and publishes markdown articles through the DEV Community API.
+Dev.to publishing uses a <strong>personal API key</strong> you paste in the dashboard. There is no operator-registered developer app and <strong>no</strong> backend env vars such as a client ID or secret. OpenQuok keeps the key on the server so workers can publish markdown articles through the DEV Community API.
 
 CLI walkthroughs: <a href="/docs/cli-examples/devto">CLI Examples — Dev.to</a>.
 
 <Callout type="note" title="Dashboard connect only">
-<p>Connect Dev.to in the workspace (<strong>Add Channel</strong>). <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> — there is no public OAuth start URL for this channel.</p>
+<strong>Add Dev.to Channel</strong><p> in the workspace . <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> — there is no public OAuth start URL for this channel.</p>
+</Callout>
+
+## How OpenQuok stores the API key
+
+OpenQuok needs a <strong>reversible</strong> copy of the key to call DEV on your behalf (one-way hashing is not an option for publishing).
+
+| Layer | What happens |
+| --- | --- |
+| Browser | You paste once in Add Channel. The key is <strong>not</strong> kept in <code>localStorage</code> or other client storage. |
+| HTTP APIs | List, connect, and public integration responses <strong>omit</strong> token fields — the browser never reads the key back. |
+| Database | The key is stored as AES-GCM ciphertext on the connected channel (when <Badge text="INTEGRATIONS_TOKEN_ENCRYPTION_KEY" variant="envBackend" /> or <Badge text="SECURITY_SECRET" variant="envBackend" /> is set) so the API and publish workers can decrypt it only when publishing, refreshing, or triggering tools. Treat it like a password. |
+
+OpenQuok uses field-level encryption at rest for provider secrets when a server encryption key is configured. Protect that key and database backups the same way you protect other server secrets. If the Dev.to key leaks, rotate it in DEV Settings → Extensions, then reconnect the channel in OpenQuok.
+
+<Callout type="warning" title="Treat the key as a secret">
+<p>Anyone with the key can publish as that Dev.to user. Rotate it in DEV Settings if it leaks, then reconnect the channel in OpenQuok.</p>
 </Callout>
 
 ## Features
@@ -55,7 +71,9 @@ Sign in to Dev.to and open <DocsExternalLink href="https://dev.to/settings/exten
 
 ### Generate a key
 
-Create an API key. Copy it once — OpenQuok stores it on the channel after you paste it.
+Create an API key. Copy it once — OpenQuok keeps it on the server for publishing after you paste it (see <a href="#how-openquok-stores-the-api-key">How OpenQuok stores the API key</a>).
+
+![Step 1 - Generate an devto key](/docs/_assets/social-integration/devto/generate-api-key.webp)
 
 ### Connect in OpenQuok
 
@@ -64,10 +82,6 @@ In the workspace, choose <strong>Add Channel</strong> → <strong>Dev.to</strong
 To refresh an existing channel, open the same credentials form (do not expect a platform OAuth redirect).
 
 </Steps>
-
-<Callout type="warning" title="Treat the key as a secret">
-<p>Anyone with the key can publish as that Dev.to user. Rotate it in DEV Settings if it leaks, then reconnect the channel in OpenQuok.</p>
-</Callout>
 
 ## Compose settings
 
@@ -92,4 +106,5 @@ Dev.to needs <strong>no</strong> operator OAuth pair. Leave the social-app ID/se
 <CardGrid>
 <LinkCard title="CLI examples" description="posts:create with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 <LinkCard title="Adding a provider" description="OAuth vs credentials-in-app contributor checklist" href="/docs/developer-guidelines/add-provider" />
+<LinkCard title="Security guidelines" description="Service key rules, channel credentials at rest, and RLS" href="/docs/developer-guidelines/security" />
 </CardGrid>

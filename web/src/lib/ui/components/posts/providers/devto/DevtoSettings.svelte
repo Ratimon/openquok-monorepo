@@ -195,7 +195,9 @@
 	</div>
 
 	<div class="space-y-1">
-		<label class="text-xs font-medium text-base-content/70" for="devto-canonical">Canonical URL</label>
+		<label class="text-xs font-medium text-base-content/70" for="devto-canonical"
+			>Canonical URL (optional)</label
+		>
 		<input
 			id="devto-canonical"
 			type="url"
@@ -204,6 +206,10 @@
 			bind:value={canonical}
 			{disabled}
 		/>
+		<p class="text-xs text-base-content/50">
+			If this article already lives on your blog or site, paste that URL. Dev.to will treat it as the
+			original and point readers there (syndication). Leave blank for a first-party Dev.to post.
+		</p>
 	</div>
 
 	<div class="space-y-1">

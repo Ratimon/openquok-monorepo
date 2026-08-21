@@ -428,7 +428,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     CONSTRAINT uq_integrations_organization_internal UNIQUE (organization_id, internal_id)
 );
 
-COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; access tokens via service role from API';
+COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; token columns are service_role-only (see integration 403 rlsgrants).';
 COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provider groupings)';
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
 COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';
@@ -2609,7 +2609,8 @@ USING (
 -- MODULE DATE: 20260402
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
--- API uses service_role; RLS limits direct authenticated access to tokens.
+-- API uses service_role. RLS scopes rows by org membership; column privileges that
+-- hide token / refresh_token from authenticated are in 403_*_rlsgrants.sql.
 
 BEGIN;
 
@@ -5452,6 +5453,29 @@ AS PERMISSIVE
 FOR DELETE
 TO authenticated
 USING (public.is_active_member_of_org(integrations.organization_id, auth.uid()));
+
+
+-- Module: integration, File: 403_20260821_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: integration
+-- MODULE DATE: 20260821
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Hide channel secrets from the authenticated role when querying via PostgREST
+-- with a user JWT. The API and workers use service_role and keep full access.
+-- Application layer encrypts token / refresh_token at rest (AES-GCM) when
+-- INTEGRATIONS_TOKEN_ENCRYPTION_KEY or SECURITY_SECRET is set.
+
+BEGIN;
+
+-- Table-level GRANT SELECT/UPDATE still applies to other columns; revoke only secrets.
+REVOKE SELECT (token, refresh_token) ON public.integrations FROM authenticated;
+REVOKE UPDATE (token, refresh_token) ON public.integrations FROM authenticated;
+
+COMMENT ON COLUMN public.integrations.token IS
+  'Provider access credential (OAuth access token or pasted API key). Stored AES-GCM ciphertext when field-level encryption is enabled; readable/writable by service_role only; authenticated has no column privilege.';
+COMMENT ON COLUMN public.integrations.refresh_token IS
+  'Provider refresh credential when the platform issues one. Stored AES-GCM ciphertext when field-level encryption is enabled; readable/writable by service_role only; authenticated has no column privilege.';
 
 
 -- Module: plug, File: 402_20260502_rls_policies.sql

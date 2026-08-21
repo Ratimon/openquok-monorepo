@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.integrations (
     CONSTRAINT uq_integrations_organization_internal UNIQUE (organization_id, internal_id)
 );
 
-COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; access tokens via service role from API';
+COMMENT ON TABLE public.integrations IS 'Connected social/article channels per workspace; token columns are service_role-only (see integration 403 rlsgrants).';
 COMMENT ON COLUMN public.integrations.type IS 'social | article (and other provider groupings)';
 COMMENT ON COLUMN public.integrations.profile IS 'Display handle or profile line for the connected account';
 COMMENT ON COLUMN public.integrations.customer_id IS 'Optional FK to integration_customers for workspace channel grouping';

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
+	import { page } from '$app/state';
 	import { validateCatalogCustomFieldValue } from '$lib/integrations/utils/credentialsConnect';
+	import { isOpenquokHostedOrigin } from '$lib/utils/hostedMarketingHref';
 	import { toast } from '$lib/ui/sonner';
 	import Button from '$lib/ui/buttons/Button.svelte';
 
@@ -16,6 +18,8 @@
 	let { providerName, fields, submitting = false, onSubmit, onCancel }: Props = $props();
 
 	let values = $state<Record<string, string>>({});
+
+	const isHostedCloud = $derived(isOpenquokHostedOrigin(page.url.origin));
 
 	const canSubmit = $derived(
 		!submitting && fields.every((field) => (values[field.key] ?? '').trim().length > 0)
@@ -47,8 +51,13 @@
 
 <form class="space-y-4" onsubmit={handleSubmit}>
 	<p class="text-sm text-base-content/70">
-		Paste your {providerName} API key to connect this channel. The key is stored on the channel and is
-		not used as an operator OAuth app.
+		{#if isHostedCloud}
+			Paste your {providerName} API key. OpenQuok encrypts it on the server to publish for you — it is
+			not saved in your browser.
+		{:else}
+			Paste your {providerName} API key. OpenQuok keeps it on the server to publish for you — it is not
+			saved in your browser.
+		{/if}
 	</p>
 
 	{#each fields as field (field.key)}

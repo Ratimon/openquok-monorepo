@@ -2,7 +2,7 @@
 title: Security guidelines
 description: Openquok's Service key rules, RLS guidance, rate limiting, and SSR state-management safety.
 order: 1
-lastUpdated: 2026-07-17
+lastUpdated: 2026-08-21
 ---
 
 <script>
@@ -19,6 +19,14 @@ import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js'
    - **RLS Client:** Authenticated user data
    - **Service Client:** Admin operations
 5. Configure rate limiting in <Badge text="backend/middlewares/rateLimit.ts" variant="path" /> and <Badge text="backend/config/GlobalConfig.ts" variant="path" /> (docs: <Badge text="/docs/configuration-backend/rate-limiting" variant="path" />).
+
+## Channel credentials at rest
+
+Connected channels store provider credentials in <Badge text="public.integrations.token" variant="path" /> (and <Badge text="refresh_token" variant="path" /> when needed) so the API and publish workers can call platforms. HTTP list/connect/public mappers must <strong>omit</strong> those columns.
+
+For credentials-in-app channels (for example Dev.to), the pasted API key is reversible on the server — hashing cannot replace it. Document storage honestly in the channel setup guide (see <a href="/docs/social-integration/devto#how-openquok-stores-the-api-key">Dev.to — How OpenQuok stores the API key</a>).
+
+<strong>Shipped mitigations:</strong> strip tokens from API responses; revoke <Badge text="authenticated" variant="default" /> column privileges on <Badge text="token" variant="path" /> / <Badge text="refresh_token" variant="path" /> (service_role keeps access); AES-GCM encrypt those columns at rest when <Badge text="INTEGRATIONS_TOKEN_ENCRYPTION_KEY" variant="envBackend" /> or <Badge text="SECURITY_SECRET" variant="envBackend" /> is set (decrypt in the repository for publish / refresh / trigger / mention paths).
 
 ## SSR state management security
 
@@ -45,6 +53,7 @@ await authenticationRepository.checkAuth(); // Shared state - security risk!
 
 <CardGrid>
 <LinkCard title="Docker Compose (self-host) — security" description="Local/private-network defaults, env exposure, ports, and what not to do on a public host" href="/docs/installation/docker-compose#security-and-exposure" />
+<LinkCard title="Dev.to API key storage" description="Honest docs for credentials-in-app channel secrets" href="/docs/social-integration/devto#how-openquok-stores-the-api-key" />
 <LinkCard title="RBAC (roles & permissions)" description="How roles/permissions are loaded and enforced in the backend" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="Developer Guidelines" description="Back to the developer guidelines hub" href="/docs/developer-guidelines" />
 </CardGrid>

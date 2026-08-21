@@ -3,7 +3,8 @@
 -- MODULE DATE: 20260402
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
--- API uses service_role; RLS limits direct authenticated access to tokens.
+-- API uses service_role. RLS scopes rows by org membership; column privileges that
+-- hide token / refresh_token from authenticated are in 403_*_rlsgrants.sql.
 
 BEGIN;
 

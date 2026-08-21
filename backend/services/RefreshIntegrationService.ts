@@ -114,7 +114,9 @@ export class RefreshIntegrationService {
         integration: IntegrationLike,
         socialProvider: SocialProvider
     ): Promise<AuthTokenDetails | false> {
-        const rt = integration.refresh_token;
+        const rt =
+            integration.refresh_token?.trim() ||
+            (typeof socialProvider.customFields === "function" ? integration.token?.trim() || "" : "");
         if (!rt || !socialProvider.refreshToken) {
             await this.markRefreshFailed(integration);
             return false;

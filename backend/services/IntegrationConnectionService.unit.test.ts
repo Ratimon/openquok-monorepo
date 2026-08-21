@@ -247,7 +247,7 @@ describe("IntegrationConnectionService", () => {
 
     describe("publicListIntegrations", () => {
         it("maps repository rows to public list shape", async () => {
-            const row = sampleRow({ name: "My channel", picture: "/pic.jpg" });
+            const row = sampleRow({ name: "My channel", picture: "/pic.jpg", token: "secret-tok" });
             integrations.listByOrganization.mockResolvedValue([row]);
             const out = await service().publicListIntegrations(orgId);
             expect(out).toEqual([
@@ -261,6 +261,8 @@ describe("IntegrationConnectionService", () => {
                     customer: null,
                 },
             ]);
+            expect(out[0]).not.toHaveProperty("token");
+            expect(out[0]).not.toHaveProperty("refresh_token");
             expect(integrations.listByOrganization).toHaveBeenCalledWith(orgId);
         });
 
@@ -330,6 +332,9 @@ describe("IntegrationConnectionService", () => {
                 identifier: "threads",
                 editor: "normal",
             });
+            expect(list[0]).not.toHaveProperty("token");
+            expect(list[0]).not.toHaveProperty("refresh_token");
+            expect(list[0]).not.toHaveProperty("refreshToken");
         });
 
         it("rewrites Facebook CDN avatars to Graph picture URLs for display", async () => {
@@ -664,7 +669,7 @@ describe("IntegrationConnectionService", () => {
             });
             integrations.upsertIntegration.mockResolvedValue(sampleRow({ id: "new-id", provider_identifier: "devto" }));
 
-            await service().connectSocialMedia(authUserId, "devto", {
+            const out = await service().connectSocialMedia(authUserId, "devto", {
                 state: "st",
                 code: "eyJhcGlLZXkiOiJrZXkifQ==",
                 timezone: "0",
@@ -680,6 +685,9 @@ describe("IntegrationConnectionService", () => {
                 undefined
             );
             expect(integrations.upsertIntegration).toHaveBeenCalled();
+            expect(out).not.toHaveProperty("token");
+            expect(out).not.toHaveProperty("refresh_token");
+            expect(out).not.toHaveProperty("refreshToken");
         });
 
         it("removes OAuth keys via cacheInvalidator when present", async () => {

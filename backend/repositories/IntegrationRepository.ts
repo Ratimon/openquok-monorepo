@@ -1,9 +1,33 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { IntegrationCustomerLike, IntegrationLike } from "../utils/dtos/IntegrationDTO";
+import { config } from "../config/GlobalConfig";
 import { DatabaseError } from "../errors/InfraError";
+import {
+    decryptIntegrationSecret,
+    encryptIntegrationSecret,
+    isEncryptedIntegrationSecret,
+} from "../utils/auth/integrationTokenCrypto";
 
 /** Table `public.integrations` — connected channels (snake_case columns). */
 const TABLE = "integrations";
+
+function tokenEncryptionKey(): string {
+    const integrations = config.integrations as { tokenEncryptionKey?: string } | undefined;
+    return String(integrations?.tokenEncryptionKey ?? "").trim();
+}
+
+function encryptStoredSecret(value: string | null | undefined): string | null {
+    return encryptIntegrationSecret(value ?? null, tokenEncryptionKey());
+}
+
+function decryptRowSecrets(row: IntegrationLike): IntegrationLike {
+    const key = tokenEncryptionKey();
+    return {
+        ...row,
+        token: decryptIntegrationSecret(row.token, key) ?? "",
+        refresh_token: decryptIntegrationSecret(row.refresh_token, key),
+    };
+}
 
 export class IntegrationRepository {
     constructor(private readonly supabase: SupabaseClient) {}
@@ -20,6 +44,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
+        // List RPC omits token columns; no decrypt needed.
         return (data ?? []) as IntegrationLike[];
     }
 
@@ -137,7 +162,8 @@ export class IntegrationRepository {
             });
         }
         const rows = (data ?? []) as IntegrationLike[];
-        return rows[0] ?? null;
+        const row = rows[0];
+        return row ? decryptRowSecrets(row) : null;
     }
 
     /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
@@ -156,7 +182,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return (data as IntegrationLike | null) ?? null;
+        return data ? decryptRowSecrets(data as IntegrationLike) : null;
     }
 
     async upsertIntegration(params: {
@@ -188,8 +214,8 @@ export class IntegrationRepository {
             picture: params.picture ?? null,
             provider_identifier: params.providerIdentifier,
             type: params.integrationType,
-            token: params.token,
-            refresh_token: params.refreshToken || null,
+            token: encryptStoredSecret(params.token) ?? "",
+            refresh_token: encryptStoredSecret(params.refreshToken || null),
             token_expiration: tokenExpiration,
             profile: params.profile ?? null,
             in_between_steps: params.inBetweenSteps,
@@ -215,7 +241,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return data as IntegrationLike;
+        return decryptRowSecrets(data as IntegrationLike);
     }
 
     async disableChannel(organizationId: string, id: string): Promise<void> {
@@ -310,8 +336,8 @@ export class IntegrationRepository {
                 internal_id: params.internalId,
                 name: params.name,
                 picture: params.picture,
-                token: params.token,
-                refresh_token: params.refreshToken || null,
+                token: encryptStoredSecret(params.token) ?? "",
+                refresh_token: encryptStoredSecret(params.refreshToken || null),
                 token_expiration: tokenExpiration,
                 profile: params.profile,
                 in_between_steps: params.inBetweenSteps,
@@ -332,7 +358,7 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
-        return data as IntegrationLike;
+        return decryptRowSecrets(data as IntegrationLike);
     }
 
     /**
@@ -355,8 +381,8 @@ export class IntegrationRepository {
         const { error } = await this.supabase
             .from(TABLE)
             .update({
-                token: params.token,
-                refresh_token: params.refreshToken || null,
+                token: encryptStoredSecret(params.token) ?? "",
+                refresh_token: encryptStoredSecret(params.refreshToken || null),
                 token_expiration: tokenExpiration,
                 refresh_needed: false,
                 updated_at: new Date().toISOString(),
@@ -373,6 +399,62 @@ export class IntegrationRepository {
                 resource: { type: "table", name: TABLE },
             });
         }
+    }
+
+    /**
+     * One-shot: rewrite legacy plaintext `token` / `refresh_token` rows as AES-GCM ciphertext.
+     * No-op when `config.integrations.tokenEncryptionKey` is empty. Safe to re-run.
+     */
+    async migrateEncryptPlaintextTokensAtRest(): Promise<{ scanned: number; updated: number }> {
+        const key = tokenEncryptionKey();
+        if (!key) {
+            return { scanned: 0, updated: 0 };
+        }
+
+        const { data, error } = await this.supabase
+            .from(TABLE)
+            .select("id, token, refresh_token")
+            .is("deleted_at", null);
+
+        if (error) {
+            throw new DatabaseError("Failed to scan integrations for token encryption", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+
+        const rows = (data ?? []) as Pick<IntegrationLike, "id" | "token" | "refresh_token">[];
+        let updated = 0;
+
+        for (const row of rows) {
+            const tokenPlain = !isEncryptedIntegrationSecret(row.token);
+            const refreshPlain =
+                row.refresh_token != null &&
+                row.refresh_token !== "" &&
+                !isEncryptedIntegrationSecret(row.refresh_token);
+            if (!tokenPlain && !refreshPlain) continue;
+
+            const { error: updateError } = await this.supabase
+                .from(TABLE)
+                .update({
+                    token: encryptStoredSecret(row.token) ?? "",
+                    refresh_token: encryptStoredSecret(row.refresh_token),
+                    updated_at: new Date().toISOString(),
+                })
+                .eq("id", row.id);
+
+            if (updateError) {
+                throw new DatabaseError("Failed to encrypt integration tokens at rest", {
+                    cause: updateError as unknown as Error,
+                    operation: "update",
+                    resource: { type: "table", name: TABLE },
+                });
+            }
+            updated += 1;
+        }
+
+        return { scanned: rows.length, updated };
     }
 
     /** @returns whether a row was updated */

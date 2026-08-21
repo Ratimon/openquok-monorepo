@@ -437,6 +437,14 @@ export const config: ConfigObject = {
     },
 
     integrations: {
+        /**
+         * AES-256-GCM key material for `integrations.token` / `refresh_token` at rest.
+         * Prefer a dedicated secret; falls back to SECURITY_SECRET so self-host stacks that
+         * already set one secret still encrypt. Empty disables encryption (legacy plaintext).
+         */
+        tokenEncryptionKey:
+            getEnv("INTEGRATIONS_TOKEN_ENCRYPTION_KEY", "").trim() ||
+            getEnv("SECURITY_SECRET", "").trim(),
         threads: {
             appId: getEnvTrimmed("THREADS_APP_ID"),
             appSecret: getEnvTrimmed("THREADS_APP_SECRET"),

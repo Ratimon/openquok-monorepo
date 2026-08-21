@@ -8,20 +8,22 @@ export const devtoChannel = {
 	platformId: 'devto',
 	platformLabel: 'Dev.to',
 	icon: icons.DevtoGlyph.name,
-	heroTitle: 'Keep technical posts shipping when writing cadence slips',
+	heroTitle: 'Schedule Dev.to articles you approve on a real writing cadence',
 	heroDescription:
-		'Connect Dev.to with your personal API key, queue markdown articles on the calendar, and set title, tags, cover, organization, and canonical URL in the composer — so drafts do not stall in unpublished notes.',
-	metaTitle: 'Dev.to Article Scheduler for Technical Writers',
+		'Paste your DEV Community API key, queue markdown articles on the calendar, and set title, tags, cover, organization, and canonical URL before anything goes live — so technical posts ship on a cadence instead of stalling in unpublished notes.',
+	metaTitle: 'Dev.to Scheduler — Schedule DEV Community Articles',
 	metaDescription:
-		'Schedule Dev.to articles with OpenQuok. Paste your API key, queue markdown posts with title, tags, cover, and canonical URL, and publish from the dashboard, public API, or CLI.',
+		'Schedule Dev.to posts with OpenQuok. Connect with an API key, queue markdown articles with title, tags, cover, and canonical URL, and publish from the dashboard, public API, or CLI.',
 	hubDescription:
-		'Markdown technical articles — title, tags, cover, organization, and canonical URL on a calendar.',
+		'Schedule Dev.to markdown articles — title, tags, cover, organization, and canonical URL on a calendar.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Dev.to scheduler',
 		'schedule Dev.to posts',
+		'schedule Dev.to articles',
 		'Dev.to content calendar',
 		'DEV Community scheduler',
+		'DEV Community API key',
 		'technical blog scheduler',
 		'markdown article scheduler',
 		'canonical URL syndication'
@@ -29,7 +31,7 @@ export const devtoChannel = {
 	featureSections: [
 		{
 			subtitle: 'Bulk scheduling',
-			title: 'Queue markdown articles, batch tags and covers, weeks ahead',
+			title: 'Queue Dev.to articles, batch drafts on the calendar, weeks ahead',
 			description:
 				'Technical writing stalls when drafts sit unpublished. Put articles on the OpenQuok calendar, review agent and human drafts on the kanban board, then move them to Scheduled when the title and tags are ready.',
 			bentoId: 'devto-bulk-scheduling',
@@ -37,15 +39,15 @@ export const devtoChannel = {
 		},
 		{
 			subtitle: 'Article settings',
-			title: 'Set title and tags, attach a cover, pick an organization',
+			title: 'Craft title and tags, attach a cover, approve before publish',
 			description:
-				'Write the body as markdown in the usual editor. Tune Dev.to settings per article — title, up to four tags, optional cover (1000×420), and organization — before anything goes live.',
+				'Write the body as markdown in the usual editor. Tune Dev.to settings per article — title, up to four tags, optional cover (1000×420), and organization — then approve on the kanban board before anything goes live.',
 			bentoId: 'devto-article-settings',
 			mediaOnRight: false
 		},
 		{
 			subtitle: 'Canonical syndication',
-			title: 'Keep the original URL, syndicate to Dev.to, stay discoverable',
+			title: 'Keep your original URL, syndicate to Dev.to, schedule in one place',
 			description:
 				'When the long-form post already lives on your site, set a canonical URL so Dev.to points readers at the original. Schedule the syndication the same way you schedule a first-party article — no separate analytics dashboard.',
 			bentoId: 'devto-canonical',
@@ -60,7 +62,7 @@ export const devtoChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Engineers & indie hackers',
 			description:
-				'Ship changelog posts and tutorials on a cadence instead of waiting until you remember to paste into the Dev.to editor.',
+				'Ship changelogs and tutorials on a cadence instead of waiting until you remember to paste into the Dev.to editor.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -68,7 +70,7 @@ export const devtoChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Developer relations',
 			description:
-				'Queue docs, release notes, and how-tos with consistent tags and covers. Review drafts on the kanban board before publish.',
+				'Batch docs, release notes, and how-tos with consistent tags and covers. Review drafts on the kanban board before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -83,17 +85,17 @@ export const devtoChannel = {
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Dev.to scheduling, answered',
 	faqDescription:
-		'Connecting with an API key, markdown bodies, tags, cover images, and canonical URLs — what OpenQuok supports for Dev.to today.',
+		'API-key connect, markdown bodies, tags, cover images, and canonical URLs — what OpenQuok supports for Dev.to today.',
 	faqItems: [
 		{
 			title: 'How do I connect Dev.to to OpenQuok?',
 			description:
-				'Open a workspace, choose Add Channel → Dev.to, and paste an API key from DEV Settings → Extensions. OpenQuok stores the key on the channel. There is no operator OAuth app and no public OAuth connect URL.'
+				'Open a workspace, choose Add Channel → Dev.to, and paste an API key from DEV Settings → Extensions. OpenQuok keeps the key on the server so it can publish for you; list and connect APIs never return it. Treat the key like a password — if it leaks, rotate it in DEV Settings and reconnect. There is no operator OAuth app and no public OAuth connect URL.'
 		},
 		{
 			title: 'Do I write the article body as markdown?',
 			description:
-				'Yes. Use the normal composer. The post body is sent as markdown. Title, tags, cover, organization, and canonical URL live in Dev.to settings — not in a separate markdown editor.'
+				'Yes. Use the normal composer — the body is sent as markdown. Title, tags, cover, organization, and canonical URL live in Dev.to settings, not in a separate markdown editor.'
 		},
 		{
 			title: 'How many tags can I set on a scheduled article?',

@@ -86,7 +86,7 @@ describe("DevToProvider", () => {
             name: "Ada",
             username: "ada",
             accessToken: "valid-key-1",
-            refreshToken: "valid-key-1",
+            refreshToken: "",
             picture: "https://cdn.example/ada.png",
         });
         expect((result as { expiresIn: number }).expiresIn).toBeGreaterThan(90 * 365 * 24 * 60 * 60);
@@ -96,6 +96,21 @@ describe("DevToProvider", () => {
                 headers: expect.objectContaining({ "api-key": "valid-key-1" }),
             })
         );
+    });
+
+    it("refreshToken re-validates the stored API key without requiring a separate refresh credential", async () => {
+        mockFetchJson(200, {
+            id: 99,
+            name: "Ada",
+            username: "ada",
+            profile_image: "https://cdn.example/ada.png",
+        });
+
+        await expect(provider.refreshToken("valid-key-1")).resolves.toMatchObject({
+            id: "99",
+            accessToken: "valid-key-1",
+            refreshToken: "",
+        });
     });
 
     it("returns Invalid API key when /users/me rejects the key", async () => {
