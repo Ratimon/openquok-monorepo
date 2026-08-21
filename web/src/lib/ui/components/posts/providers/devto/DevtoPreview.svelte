@@ -36,6 +36,7 @@
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const title = $derived(settings.title.trim() || 'Untitled article');
+	const series = $derived(settings.series?.trim() || '');
 	const coverUrl = $derived(resolveCoverUrl(settings, mediaUrls));
 	const tags = $derived(settings.tags.map((t) => t.label).filter(Boolean));
 
@@ -80,6 +81,12 @@
 		</div>
 
 		<h3 class="text-lg font-bold leading-snug">{title}</h3>
+
+		{#if series}
+			<p class="text-xs font-medium uppercase tracking-wide text-[#737373]">
+				Series · {series}
+			</p>
+		{/if}
 
 		{#if cropped.length > 0}
 			<div class="whitespace-pre-wrap text-sm leading-6 text-[#262626]">

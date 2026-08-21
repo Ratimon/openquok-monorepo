@@ -47,7 +47,9 @@ OpenQuok uses field-level encryption at rest for provider secrets when a server 
 | Tags | Up to <strong>4</strong> names |
 | Cover image | Optional; recommended <strong>1000×420</strong> |
 | Organization | Optional; publish under an organization the key can access |
+| Series | Optional free-text name; Dev.to creates the series if missing |
 | Canonical URL | Optional syndication URL |
+| Analytics | Account and per-article page views, reactions, and comments (<Badge text="7" variant="param" /> / <Badge text="30" variant="param" /> / <Badge text="90" variant="param" /> days) |
 | Tools | <Badge text="tags" variant="default" /> and <Badge text="organizations" variant="default" /> via <Badge text="integrations:trigger" variant="default" /> |
 | Body length | Up to <strong>100,000</strong> characters |
 
@@ -57,8 +59,6 @@ OpenQuok uses field-level encryption at rest for provider secrets when a server 
 | --- | --- |
 | Operator OAuth app | No OpenQuok env keys; users paste their own API key |
 | Public OAuth connect | Dashboard only |
-| Series | Not implemented |
-| Date-range analytics | Not implemented |
 | Follow-up comments | Not implemented |
 
 ## Create an API key
@@ -85,7 +85,7 @@ To refresh an existing channel, open the same credentials form (do not expect a 
 
 ## Compose settings
 
-The post <strong>body</strong> is markdown. Title, tags, cover, organization, and canonical URL live in Dev.to settings (composer or CLI).
+The post <strong>body</strong> is markdown. Title, tags, cover, organization, series, and canonical URL live in Dev.to settings (composer or CLI).
 
 | Setting | Keys |
 | --- | --- |
@@ -94,6 +94,7 @@ The post <strong>body</strong> is markdown. Title, tags, cover, organization, an
 | Cover | <Badge text="main_image" variant="param" /> / <Badge text="mainImage" variant="param" /> with a <Badge text="path" variant="param" /> from a prior upload |
 | Canonical URL | <Badge text="canonical" variant="param" /> (aliases <Badge text="canonical_url" variant="param" />, <Badge text="canonicalUrl" variant="param" />) |
 | Organization | <Badge text="organization" variant="param" /> (id; aliases <Badge text="organization_id" variant="param" />, <Badge text="organizationId" variant="param" />) |
+| Series | <Badge text="series" variant="param" /> or <Badge text="devto.series" variant="param" /> — free-text name; creates the series on Dev.to if missing |
 
 Discover the typed schema with <Badge text="openquok integrations:settings" variant="default" />. List tag and organization options with <Badge text="openquok integrations:trigger" variant="default" /> <Badge text="tags" variant="default" /> and <Badge text="organizations" variant="default" />.
 
@@ -104,7 +105,7 @@ Dev.to needs <strong>no</strong> operator OAuth pair. Leave the social-app ID/se
 ## Related
 
 <CardGrid>
-<LinkCard title="CLI examples" description="posts:create with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
+<LinkCard title="CLI examples" description="posts:create with title, tags, series, and organization; analytics:platform and analytics:post" href="/docs/cli-examples/devto" />
 <LinkCard title="Adding a provider" description="OAuth vs credentials-in-app contributor checklist" href="/docs/developer-guidelines/add-provider" />
 <LinkCard title="Security guidelines" description="Service key rules, channel credentials at rest, and RLS" href="/docs/developer-guidelines/security" />
 </CardGrid>

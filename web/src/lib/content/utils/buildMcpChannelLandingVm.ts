@@ -1,10 +1,13 @@
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
+import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
 
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+
+const SHARED_CHANNEL_KEYWORD_SET = new Set<string>(SHARED_CHANNEL_SEO_KEYWORDS);
 
 /** Merge a base MCP client VM with channel-specific SEO copy and showcases. */
 export function buildMcpChannelLandingVm(params: {
@@ -20,6 +23,9 @@ export function buildMcpChannelLandingVm(params: {
 		agentLabel: clientLabel,
 		mode: 'mcp-client'
 	});
+	const channelKeywords = channel.keywords
+		.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword))
+		.slice(0, 4);
 
 	return {
 		...baseMcp,
@@ -33,7 +39,7 @@ export function buildMcpChannelLandingVm(params: {
 			`${platformLabel} MCP scheduler`,
 			'OpenQuok MCP',
 			'MCP social media scheduler',
-			...channel.keywords.slice(0, 4)
+			...channelKeywords
 		],
 		heroTitle: `Schedule ${platformLabel} from ${clientLabel} then you approve`,
 		heroDescription: `Connect ${clientLabel} to OpenQuok over MCP with a programmatic token. Draft and schedule ${platformLabel} posts in natural language while you review and approve on the calendar or kanban.`,

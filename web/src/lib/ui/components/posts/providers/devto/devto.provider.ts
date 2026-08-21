@@ -99,6 +99,10 @@ export function readDevtoLaunchSettings(settings: Record<string, unknown>): Devt
 					: '';
 	const canonical = nestedCanonical || flatCanonical;
 
+	const nestedSeries = typeof bucket?.series === 'string' ? bucket.series.trim() : '';
+	const flatSeries = typeof settings.series === 'string' ? settings.series.trim() : '';
+	const series = nestedSeries || flatSeries;
+
 	const nestedTags = Array.isArray(bucket?.tags) ? bucket.tags : [];
 	const tags = tagOptionsFromUnknown(nestedTags.length > 0 ? nestedTags : source.tags);
 
@@ -110,6 +114,7 @@ export function readDevtoLaunchSettings(settings: Record<string, unknown>): Devt
 		tags,
 		...(canonical ? { canonical } : {}),
 		...(organization ? { organization } : {}),
+		...(series ? { series } : {}),
 		...(mainImage ? { mainImage } : {})
 	};
 }

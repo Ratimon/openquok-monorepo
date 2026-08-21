@@ -15,6 +15,7 @@ describe('devto.provider', () => {
 				title: 'Nested title',
 				canonical: 'https://example.com/post',
 				organization: 42,
+				series: 'Shipping notes',
 				tags: [{ value: 'javascript', label: 'javascript' }, 'svelte'],
 				mainImage: { path: 'covers/hero.webp' }
 			}
@@ -23,6 +24,7 @@ describe('devto.provider', () => {
 			title: 'Nested title',
 			canonical: 'https://example.com/post',
 			organization: 42,
+			series: 'Shipping notes',
 			tags: [
 				{ value: 'javascript', label: 'javascript' },
 				{ value: 'svelte', label: 'svelte' }
@@ -35,14 +37,21 @@ describe('devto.provider', () => {
 		const settings = readDevtoLaunchSettings({
 			title: 'CLI title',
 			canonical_url: 'https://blog.example.com/a',
+			series: 'Release log',
 			tags: ['webdev', 'typescript']
 		});
 		expect(settings.title).toBe('CLI title');
 		expect(settings.canonical).toBe('https://blog.example.com/a');
+		expect(settings.series).toBe('Release log');
 		expect(settings.tags).toEqual([
 			{ value: 'webdev', label: 'webdev' },
 			{ value: 'typescript', label: 'typescript' }
 		]);
+	});
+
+	it('omits blank series', () => {
+		expect(readDevtoLaunchSettings({ title: 'OK', series: '   ' }).series).toBeUndefined();
+		expect(readDevtoLaunchSettings({ title: 'OK', devto: { series: '' } }).series).toBeUndefined();
 	});
 
 	it('requires a title of at least 2 characters', () => {

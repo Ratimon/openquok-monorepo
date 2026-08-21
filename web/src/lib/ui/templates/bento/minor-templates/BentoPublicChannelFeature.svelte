@@ -28,6 +28,7 @@
 	import BentoDevtoBulkScheduling from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoBulkScheduling.svelte';
 	import BentoDevtoArticleSettings from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoArticleSettings.svelte';
 	import BentoDevtoCanonical from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoCanonical.svelte';
+	import BentoDevtoInsights from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoInsights.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -92,4 +93,6 @@
 	<BentoDevtoArticleSettings {isLoggedIn} />
 {:else if bentoId === 'devto-canonical'}
 	<BentoDevtoCanonical {isLoggedIn} />
+{:else if bentoId === 'devto-insights'}
+	<BentoDevtoInsights />
 {/if}

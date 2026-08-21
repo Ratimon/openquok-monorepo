@@ -2,9 +2,13 @@ import type { PublicAgentChannelPageConfig } from '$lib/content/constants/public
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
+import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
+
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+
+const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);
 
 /** Merge a base agent host VM with channel-specific SEO copy and showcases. */
 export function buildAgentChannelLandingVm(params: {
@@ -15,6 +19,9 @@ export function buildAgentChannelLandingVm(params: {
 	const { baseAgent, channel, channelConfig } = params;
 	const platformLabel = channel.platformLabel;
 	const agentLabel = baseAgent.agentLabel;
+	const supportsAnalytics = channelConfig.providerIdentifiers.some((id) =>
+		ANALYTICS_CAPABLE_IDENTIFIERS.has(id)
+	);
 	const audienceSection = buildAgentsChannelAudienceSection({
 		channel,
 		agentLabel,
@@ -87,12 +94,16 @@ export function buildAgentChannelLandingVm(params: {
 			}
 			if (
 				item.title === 'What can OpenClaw do with OpenQuok?' ||
-				item.title === 'What can Hermes Agent do with OpenQuok?'
+				item.title === 'What can Hermes Agent do with OpenQuok?' ||
+				item.title === 'What can Grok Bot do with OpenQuok?'
 			) {
+				const capabilities = supportsAnalytics
+					? `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse.`
+					: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, and apply per-platform settings for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, upload, and more — every command returns structured JSON for the agent to parse.`;
 				return {
 					...item,
 					title: `What can ${agentLabel} do with ${platformLabel} on OpenQuok?`,
-					description: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse.`
+					description: capabilities
 				};
 			}
 			return item;

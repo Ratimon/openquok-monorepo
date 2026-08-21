@@ -12,6 +12,8 @@ export type DevtoResolvedPublishSettings = {
     canonical?: string;
     organizationId?: number;
     mainImagePath?: string;
+    /** Free-text series name; creates the series on Dev.to if it does not exist. */
+    series?: string;
 };
 
 function readTitle(source: Record<string, unknown>): string {
@@ -21,6 +23,12 @@ function readTitle(source: Record<string, unknown>): string {
 
 function readCanonical(source: Record<string, unknown>): string | undefined {
     const raw = source.canonical ?? source.canonical_url ?? source.canonicalUrl;
+    if (typeof raw === "string" && raw.trim()) return raw.trim();
+    return undefined;
+}
+
+function readSeries(source: Record<string, unknown>): string | undefined {
+    const raw = source.series;
     if (typeof raw === "string" && raw.trim()) return raw.trim();
     return undefined;
 }
@@ -110,6 +118,7 @@ export function resolveDevtoSettings(postDetailsSettings: unknown): DevtoResolve
         canonical: readCanonical(source),
         organizationId: readOrganizationId(source),
         mainImagePath: readMainImagePath(source),
+        series: readSeries(source),
     };
 }
 
@@ -134,6 +143,10 @@ export const DEVTO_SETTINGS_SCHEMA = {
         organization: {
             description: "Organization id to publish under",
             oneOf: [{ type: "integer" }, { type: "string" }],
+        },
+        series: {
+            type: "string",
+            description: "Series name; creates the series on Dev.to if missing",
         },
     },
 } as const;

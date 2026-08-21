@@ -280,6 +280,10 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			description: 'Schedule a markdown article with title and tags'
 		},
 		{
+			command: 'openquok posts:create --json ./examples/devto-series.json',
+			description: 'Schedule an article in a Dev.to series'
+		},
+		{
 			command: 'openquok posts:create --json ./examples/devto-canonical.json',
 			description: 'Syndicate an article with a canonical URL'
 		},
@@ -294,6 +298,14 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 		{
 			command: 'openquok integrations:trigger "$DEVTO_ID" organizations',
 			description: 'List organizations you can publish as'
+		},
+		{
+			command: 'openquok analytics:platform "$DEVTO_ID" -d 30',
+			description: 'Pull 30-day Dev.to analytics (page views, reactions, comments)'
+		},
+		{
+			command: 'openquok analytics:post "$POST_ID" -d 7',
+			description: 'Pull 7-day insights for a published Dev.to article'
 		}
 	]
 };

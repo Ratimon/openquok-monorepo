@@ -19,7 +19,7 @@ export const DEVTO_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 };
 
 export const DEVTO_LANDING_MOCK_BODY =
-	'Shipping cadence for technical posts — queue this markdown article with title, tags, cover, and an optional canonical URL before it goes live.';
+	'Queue this markdown article with title, tags, cover, series, and an optional canonical URL before it goes live.';
 
 /** `datetime-local` value for the mock schedule footer (Tuesday 9:00 AM). */
 export const DEVTO_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-16T09:00';
@@ -28,8 +28,9 @@ export const DEVTO_LANDING_MOCK_COVER_URL = LANDING_SOCIAL_PROFILE_URL;
 
 export const DEVTO_LANDING_MOCK_PROVIDER_SETTINGS = {
 	devto: {
-		title: 'Keep technical posts shipping when writing cadence slips',
+		title: 'Ship technical posts with tags and series you approve',
 		organization: 1,
+		series: 'Shipping notes',
 		tags: [
 			{ value: 'webdev', label: 'webdev' },
 			{ value: 'productivity', label: 'productivity' }

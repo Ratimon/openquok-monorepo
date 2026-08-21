@@ -25,6 +25,7 @@ export type DevtoCreateArticleBody = {
     canonical_url?: string;
     main_image?: string;
     organization_id?: number;
+    series?: string;
 };
 
 export type DevtoUserProfile = {
@@ -128,6 +129,7 @@ export function buildDevtoArticlePayload(
     if (settings.canonical) article.canonical_url = settings.canonical;
     if (mainImageUrl) article.main_image = mainImageUrl;
     if (settings.organizationId !== undefined) article.organization_id = settings.organizationId;
+    if (settings.series) article.series = settings.series;
     return { article };
 }
 

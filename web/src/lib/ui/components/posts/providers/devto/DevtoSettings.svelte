@@ -25,6 +25,7 @@
 		title?: string;
 		canonical?: string;
 		organization?: number | undefined;
+		series?: string;
 		tags?: DevtoTagOption[];
 		mainImage?: { path: string } | undefined;
 		organizationId?: string | null;
@@ -37,6 +38,7 @@
 		title = $bindable(''),
 		canonical = $bindable(''),
 		organization = $bindable<number | undefined>(undefined),
+		series = $bindable(''),
 		tags = $bindable<DevtoTagOption[]>([]),
 		mainImage = $bindable<{ path: string } | undefined>(undefined),
 		organizationId = null,
@@ -207,8 +209,8 @@
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			If this article already lives on your blog or site, paste that URL. Dev.to will treat it as the
-			original and point readers there (syndication). Leave blank for a first-party Dev.to post.
+			If this article already lives on your blog, paste that URL. Dev.to will treat it as the
+			original and point readers there. Leave blank for a first-party Dev.to post.
 		</p>
 	</div>
 
@@ -226,6 +228,23 @@
 				<option value={org.id}>{org.name}{org.username ? ` (@${org.username})` : ''}</option>
 			{/each}
 		</select>
+	</div>
+
+	<div class="space-y-1">
+		<label class="text-xs font-medium text-base-content/70" for="devto-series"
+			>Series (optional)</label
+		>
+		<input
+			id="devto-series"
+			type="text"
+			class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
+			placeholder="e.g. Shipping notes"
+			bind:value={series}
+			{disabled}
+		/>
+		<p class="text-xs text-base-content/50">
+			Free-text series name. Dev.to creates the series if it does not already exist.
+		</p>
 	</div>
 
 	<DevtoTags bind:value={tags} suggestions={tagSuggestions} {disabled} />

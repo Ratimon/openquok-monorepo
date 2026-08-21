@@ -1,8 +1,8 @@
 ---
 title: Dev.to
-description: OpenQuok CLI examples for Dev.to — markdown articles with title, tags, canonical URL, and organization.
+description: OpenQuok CLI examples for Dev.to — markdown articles with title, tags, series, organization, and analytics.
 order: 9
-lastUpdated: 2026-08-20
+lastUpdated: 2026-08-21
 ---
 
 <script>
@@ -49,6 +49,18 @@ openquok posts:create \
   --providerSettingsByIntegrationId '{"<integration-id>":{"devto":{"title":"Weekly changelog","tags":[{"value":"webdev","label":"webdev"},{"value":"opensource","label":"opensource"}]}}}'
 ```
 
+## Series
+
+Pass a free-text series name. Dev.to creates the series if it does not already exist:
+
+```bash
+openquok posts:create \
+  -c "Part of an ongoing shipping-notes series." \
+  -s "2026-01-01T12:00:00Z" \
+  -i "<integration-id>" \
+  --settings '{"title":"Shipping notes — week 12","series":"Shipping notes","tags":["webdev"]}'
+```
+
 ## Canonical URL
 
 When the long-form post already lives on your site, pass a canonical URL:
@@ -86,14 +98,32 @@ openquok integrations:trigger "$DEVTO_ID" tags
 openquok integrations:trigger "$DEVTO_ID" organizations
 ```
 
+## Platform analytics
+
+Account-wide page views, reactions, and comments over <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" /> days:
+
+```bash
+openquok analytics:platform "$DEVTO_ID" -d 30
+```
+
+## Post insights
+
+Per-article metrics for a <strong>published</strong> Dev.to post (page views, reactions, comments):
+
+```bash
+POST_ID=$(openquok posts:list | jq -r '.items[] | select(.identifier=="devto") | .id' | head -1)
+openquok analytics:post "$POST_ID" -d 7
+```
+
 <Callout type="note" title="Validation">
-<p>Title must be at least 2 characters. At most 4 tags. Follow-up comments, series, and analytics are not supported. Run <Badge text="integrations:settings" variant="default" /> for <code>output.rules</code> and <code>output.settings</code> before batch scripts.</p>
+<p>Title must be at least 2 characters. At most 4 tags. Follow-up comments are not supported. Drafts and queued rows return empty analytics until the article is published. Run <Badge text="integrations:settings" variant="default" /> for <code>output.rules</code> and <code>output.settings</code> before batch scripts.</p>
 </Callout>
 
 ## Related
 
 <CardGrid>
 <LinkCard title="Dev.to setup guide" description="Personal API key from DEV Settings → Extensions — no operator env vars" href="/docs/social-integration/devto" />
+<LinkCard title="Analytics" description="analytics:platform and analytics:post windows and response shape" href="/docs/cli-usages/analytics" />
 <LinkCard title="Managing posts" description="posts:create, posts:list, and status commands" href="/docs/cli-usages/managing-posts" />
 <LinkCard title="Integrations" description="integrations:settings and integrations:trigger" href="/docs/cli-usages/integrations" />
 </CardGrid>

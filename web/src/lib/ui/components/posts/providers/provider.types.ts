@@ -74,6 +74,8 @@ export type DevtoLaunchProviderSettings = {
 	title: string;
 	canonical?: string;
 	organization?: number;
+	/** Free-text series name; creates the series on Dev.to if missing. */
+	series?: string;
 	tags: DevtoTagOption[];
 	mainImage?: { path: string };
 };

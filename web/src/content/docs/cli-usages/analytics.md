@@ -56,7 +56,7 @@ The response is an array of metric series, each with daily data points and a <Ba
 ```
 
 <Callout type="tip">
-<p>Metrics vary by provider. Meta Threads, for example, exposes followers, views, likes, replies, reposts, and quotes; Instagram exposes followers, impressions, reach, profile views, and website clicks. Fetch <Badge text="integrations:settings" variant="param" /> first if you need the canonical metric list for a provider.</p>
+<p>Metrics vary by provider. Meta Threads, for example, exposes followers, views, likes, replies, reposts, and quotes; Instagram exposes followers, impressions, reach, profile views, and website clicks; Dev.to exposes page views, reactions, and comments. Fetch <Badge text="integrations:settings" variant="param" /> first if you need the canonical metric list for a provider.</p>
 </Callout>
 
 ### Scripting examples

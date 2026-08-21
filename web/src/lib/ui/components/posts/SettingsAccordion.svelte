@@ -84,6 +84,7 @@
 			title: string;
 			canonical?: string;
 			organization?: number;
+			series?: string;
 			tags: DevtoTagOption[];
 			mainImage?: { path: string };
 		};
@@ -166,6 +167,7 @@
 	let dtTitle = $state('');
 	let dtCanonical = $state('');
 	let dtOrganization = $state<number | undefined>(undefined);
+	let dtSeries = $state('');
 	let dtTags = $state<DevtoTagOption[]>([]);
 	let dtMainImage = $state<{ path: string } | undefined>(undefined);
 
@@ -376,6 +378,7 @@
 			dtCanonical = typeof s.devto.canonical === 'string' ? s.devto.canonical : '';
 			const org = s.devto.organization;
 			dtOrganization = typeof org === 'number' && Number.isFinite(org) && org > 0 ? org : undefined;
+			dtSeries = typeof s.devto.series === 'string' ? s.devto.series : '';
 			dtTags = Array.isArray(s.devto.tags) ? s.devto.tags : [];
 			dtMainImage =
 				s.devto.mainImage &&
@@ -387,6 +390,7 @@
 			dtTitle = '';
 			dtCanonical = '';
 			dtOrganization = undefined;
+			dtSeries = '';
 			dtTags = [];
 			dtMainImage = undefined;
 		}
@@ -477,12 +481,14 @@
 			};
 		} else if (identifier === 'devto') {
 			const canonical = dtCanonical.trim();
+			const series = dtSeries.trim();
 			next = {
 				devto: {
 					title: dtTitle.trim(),
 					tags: dtTags,
 					...(canonical ? { canonical } : {}),
 					...(dtOrganization ? { organization: dtOrganization } : {}),
+					...(series ? { series } : {}),
 					...(dtMainImage?.path ? { mainImage: dtMainImage } : {})
 				}
 			};
@@ -611,6 +617,7 @@
 			bind:title={dtTitle}
 			bind:canonical={dtCanonical}
 			bind:organization={dtOrganization}
+			bind:series={dtSeries}
 			bind:tags={dtTags}
 			bind:mainImage={dtMainImage}
 			{organizationId}

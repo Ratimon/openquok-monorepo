@@ -1,4 +1,5 @@
 import type {
+    AnalyticsData,
     AuthTokenDetails,
     GenerateAuthUrlResponse,
     IntegrationRecord,
@@ -11,6 +12,7 @@ import {
     DEVTO_MAX_LENGTH,
     DEVTO_SETTINGS_SCHEMA,
 } from "./resolveDevtoSettings";
+import { fetchDevtoAccountAnalytics, fetchDevtoPostAnalytics } from "./devtoAnalytics";
 import {
     fetchDevtoCurrentUser,
     fetchDevtoOrganizationOptions,
@@ -20,6 +22,7 @@ import {
 
 import dayjs from "dayjs";
 import { makeId } from "../../../utils/ids/makeId";
+import { ProviderAccessTokenExpiredError } from "../../../errors/ProviderIntegrationErrors";
 
 const DEVTO_TOKEN_TTL_YEARS = 100;
 
@@ -65,7 +68,7 @@ export class DevToProvider implements SocialProvider {
     toolTip = "Connect with a Dev.to API key (no OAuth app)";
 
     rules =
-        "Dev.to articles are markdown. Title must be at least 2 characters. Optional cover image, up to 4 tags, organization id, and canonical URL. Follow-up comments are not supported.";
+        "Dev.to articles are markdown. Title must be at least 2 characters. Optional cover image, up to 4 tags, organization id, canonical URL, and series name. Follow-up comments are not supported.";
 
     maxLength(_additionalSettings?: unknown): number {
         return DEVTO_MAX_LENGTH;
@@ -160,5 +163,37 @@ export class DevToProvider implements SocialProvider {
         if (!postDetails.length) return [];
         const result = await publishDevtoArticle(accessToken, postDetails[0]!);
         return [result];
+    }
+
+    /**
+     * Account-wide Dev.to insights (`GET /api/analytics/historical`).
+     * Scoped to the API key owner; `id` is unused.
+     */
+    async analytics(_id: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
+        try {
+            return await fetchDevtoAccountAnalytics(accessToken, dateWindowDays);
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Per-article insights using Forem historical + totals (`article_id` = `release_id`).
+     */
+    async postAnalytics(
+        _integrationId: string,
+        accessToken: string,
+        releaseId: string,
+        dateWindowDays: number
+    ): Promise<AnalyticsData[]> {
+        try {
+            return await fetchDevtoPostAnalytics(accessToken, releaseId, dateWindowDays);
+        } catch (e) {
+            if (e instanceof ProviderAccessTokenExpiredError) throw e;
+            if (e instanceof Error && /Missing Dev\.to article id/i.test(e.message)) {
+                throw e;
+            }
+            return [];
+        }
     }
 }

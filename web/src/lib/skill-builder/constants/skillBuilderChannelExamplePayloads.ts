@@ -236,6 +236,22 @@ export const DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD = {
 	}
 } as const;
 
+export const DEVTO_SERIES_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Part of an ongoing shipping-notes series.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			devto: {
+				title: 'Shipping notes — week 12',
+				series: 'Shipping notes',
+				tags: [{ value: 'webdev', label: 'webdev' }]
+			}
+		}
+	}
+} as const;
+
 export const DEVTO_CANONICAL_PAYLOAD = {
 	scheduledAt: '2026-01-01T12:00:00.000Z',
 	status: 'scheduled',

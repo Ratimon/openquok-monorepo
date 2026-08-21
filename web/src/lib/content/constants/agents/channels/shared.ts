@@ -1,8 +1,8 @@
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
+import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
 import {
 	buildAgentChannelAnalyticsCliCommands,
-	buildAgentChannelCanonicalCliCommands,
 	buildAgentChannelCliCommandReference,
 	buildAgentChannelKanbanCliCommands
 } from '$lib/content/utils/buildAgentChannelCliCommandReference';
@@ -11,6 +11,8 @@ import type {
 	PublicAgentChannelHostConfig,
 	PublicAgentChannelPageConfig
 } from '$lib/content/constants/agents/channels/types';
+
+const SHARED_CHANNEL_KEYWORD_SET = new Set<string>(SHARED_CHANNEL_SEO_KEYWORDS);
 
 const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	facebook: ['facebook'],
@@ -42,7 +44,7 @@ const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = 
 	tiktok: 'tiktok-insights',
 	linkedin: 'linkedin-insights',
 	x: 'x-insights',
-	devto: 'devto-canonical'
+	devto: 'devto-insights'
 };
 
 export function buildAgentChannelPageConfig(
@@ -66,20 +68,18 @@ export function buildAgentChannelPageConfig(
 			...host.extraKeywords(channel.platformLabel),
 			'openquok-core skill',
 			'agent social media',
-			...channel.keywords.slice(0, 4)
+			// Prefer channel-specific SEO nouns (posts / series / analytics) over shared generics.
+			...channel.keywords.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword)).slice(0, 4)
 		],
 		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
 		commands: buildAgentChannelCliCommandReference(channel.slug),
 		kanbanCliCommands: buildAgentChannelKanbanCliCommands(channel.slug, channel.platformLabel),
-		analyticsCliCommands:
-			channel.slug === 'devto'
-				? buildAgentChannelCanonicalCliCommands('devto')
-				: buildAgentChannelAnalyticsCliCommands(channel.platformLabel, providerIdentifiers),
+		analyticsCliCommands: buildAgentChannelAnalyticsCliCommands(
+			channel.platformLabel,
+			providerIdentifiers
+		),
 		kanbanMcpPrompts: `Schedule a ${channel.platformLabel} post for tomorrow at 9am — move to review with a note to check the CTA before it goes live`,
-		analyticsMcpPrompts:
-			channel.slug === 'devto'
-				? `List Dev.to tags I can use, then schedule an article with a canonical URL pointing at my original post`
-				: `What performed best on my ${channel.platformLabel} account over the last 30 days?
+		analyticsMcpPrompts: `What performed best on my ${channel.platformLabel} account over the last 30 days?
 Break down likes, comments, and shares for post <id>`
 	};
 }

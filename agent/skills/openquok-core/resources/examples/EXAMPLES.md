@@ -89,6 +89,7 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | File | Scenario |
 | --- | --- |
 | [devto-article-title-tags.json](./devto-article-title-tags.json) | Markdown article + title + tags |
+| [devto-series.json](./devto-series.json) | Free-text series name |
 | [devto-canonical.json](./devto-canonical.json) | Canonical URL syndication |
 | [devto-organization.json](./devto-organization.json) | Organization id + cover `mainImage.path` |
 

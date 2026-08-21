@@ -24,4 +24,5 @@ export type PublicChannelFeatureBentoId =
 	| 'x-insights'
 	| 'devto-bulk-scheduling'
 	| 'devto-article-settings'
-	| 'devto-canonical';
+	| 'devto-canonical'
+	| 'devto-insights';

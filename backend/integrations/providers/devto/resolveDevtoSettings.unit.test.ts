@@ -10,6 +10,7 @@ describe("resolveDevtoSettings", () => {
                     canonical: "https://example.com/post",
                     organization: 42,
                     main_image: { path: "composer-media/cover.jpg" },
+                    series: "Shipping notes",
                 },
             })
         ).toEqual({
@@ -18,6 +19,7 @@ describe("resolveDevtoSettings", () => {
             canonical: "https://example.com/post",
             organizationId: 42,
             mainImagePath: "composer-media/cover.jpg",
+            series: "Shipping notes",
         });
     });
 
@@ -31,6 +33,7 @@ describe("resolveDevtoSettings", () => {
                         canonical: "https://blog.example/canonical",
                         organization: { id: 99, name: "Acme", username: "acme" },
                         mainImage: { path: "composer-media/hero.png" },
+                        series: "Web series",
                     },
                 },
             })
@@ -40,6 +43,7 @@ describe("resolveDevtoSettings", () => {
             canonical: "https://blog.example/canonical",
             organizationId: 99,
             mainImagePath: "composer-media/hero.png",
+            series: "Web series",
         });
     });
 
@@ -49,15 +53,18 @@ describe("resolveDevtoSettings", () => {
                 providerSettings: {
                     title: "Flat title",
                     tags: ["one"],
+                    series: "Flat series",
                     devto: {
                         title: "Nested title",
                         tags: ["two", "three"],
+                        series: "Nested series",
                     },
                 },
             })
         ).toMatchObject({
             title: "Nested title",
             tags: ["two", "three"],
+            series: "Nested series",
         });
     });
 
@@ -89,5 +96,32 @@ describe("resolveDevtoSettings", () => {
 
     it("returns defaults when settings are empty", () => {
         expect(resolveDevtoSettings(null)).toEqual({ title: "", tags: [] });
+    });
+
+    it("omits series when blank or whitespace-only", () => {
+        expect(
+            resolveDevtoSettings({
+                providerSettings: {
+                    title: "No series",
+                    series: "   ",
+                },
+            }).series
+        ).toBeUndefined();
+        expect(
+            resolveDevtoSettings({
+                providerSettings: {
+                    title: "No series",
+                    series: "",
+                },
+            }).series
+        ).toBeUndefined();
+        expect(
+            resolveDevtoSettings({
+                providerSettings: {
+                    title: "No series",
+                    devto: { series: "  " },
+                },
+            }).series
+        ).toBeUndefined();
     });
 });

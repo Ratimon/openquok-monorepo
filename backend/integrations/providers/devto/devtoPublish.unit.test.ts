@@ -32,7 +32,7 @@ describe("validateDevtoTitle", () => {
 });
 
 describe("buildDevtoArticlePayload", () => {
-    it("maps title, markdown body, tags, cover, canonical, and organization", () => {
+    it("maps title, markdown body, tags, cover, canonical, organization, and series", () => {
         expect(
             buildDevtoArticlePayload(
                 {
@@ -41,6 +41,7 @@ describe("buildDevtoArticlePayload", () => {
                     canonical: "https://example.com/post",
                     organizationId: 12,
                     mainImagePath: "composer-media/cover.jpg",
+                    series: "Shipping notes",
                 },
                 "# Body",
                 "https://cdn.example.com/cover.jpg"
@@ -54,12 +55,25 @@ describe("buildDevtoArticlePayload", () => {
                 canonical_url: "https://example.com/post",
                 main_image: "https://cdn.example.com/cover.jpg",
                 organization_id: 12,
+                series: "Shipping notes",
             },
         });
     });
 
     it("omits optional fields when unset", () => {
         expect(buildDevtoArticlePayload({ title: "Only title", tags: [] }, "")).toEqual({
+            article: {
+                title: "Only title",
+                published: true,
+                body_markdown: "",
+            },
+        });
+    });
+
+    it("omits series when empty", () => {
+        expect(
+            buildDevtoArticlePayload({ title: "Only title", tags: [], series: undefined }, "")
+        ).toEqual({
             article: {
                 title: "Only title",
                 published: true,

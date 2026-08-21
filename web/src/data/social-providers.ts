@@ -11,7 +11,8 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'tiktok',
 	'youtube',
 	'threads',
-	'x'
+	'x',
+	'devto'
 ] as const;
 
 export type SupportedAnalyticsProviderIdentifier =

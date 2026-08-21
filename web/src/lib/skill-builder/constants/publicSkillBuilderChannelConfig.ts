@@ -29,6 +29,7 @@ import {
 	X_TEXT_ONLY_PAYLOAD,
 	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD,
 	DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD,
+	DEVTO_SERIES_PAYLOAD,
 	DEVTO_CANONICAL_PAYLOAD,
 	DEVTO_ORGANIZATION_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
@@ -214,6 +215,12 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			examplePayload: { ...DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD }
 		},
 		{
+			id: 'devto-series',
+			label: 'Article in a series',
+			prompt: 'Schedule a Dev.to article into a free-text series.',
+			examplePayload: { ...DEVTO_SERIES_PAYLOAD }
+		},
+		{
 			id: 'devto-canonical',
 			label: 'Canonical URL syndication',
 			prompt: 'Syndicate an existing post to Dev.to with a canonical URL.',
@@ -236,7 +243,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	tiktok: 'Direct video posts with privacy controls.',
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
 	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
-	devto: 'Markdown articles with title, tags, cover, and canonical URL.'
+	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

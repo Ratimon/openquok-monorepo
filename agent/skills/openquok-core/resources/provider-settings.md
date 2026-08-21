@@ -36,7 +36,7 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
 | LinkedIn / LinkedIn Page | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName`, `linkedin.crossAccountPlugs` |
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
-| Dev.to article | `title`, `tags`, `canonical`, `organization`, `main_image` / `mainImage` | `devto.title`, `devto.tags`, `devto.canonical`, `devto.organization`, `devto.mainImage` |
+| Dev.to article | `title`, `tags`, `canonical`, `organization`, `series`, `main_image` / `mainImage` | `devto.title`, `devto.tags`, `devto.canonical`, `devto.organization`, `devto.series`, `devto.mainImage` |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For Threads and Instagram **scheduled follow-ups**, use the nested bucket (`threads` / `instagram`) in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time.
 
@@ -114,4 +114,4 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | LinkedIn Page | [linkedin-page-examples.md](./linkedin-page-examples.md) | Same carousel keys + Page analytics |
 | TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |
 | X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels, `crossAccountPlugs` |
-| Dev.to | [devto-examples.md](./devto-examples.md) | `title`, `tags`, `canonical`, `organization`, `mainImage` |
+| Dev.to | [devto-examples.md](./devto-examples.md) | `title`, `tags`, `canonical`, `organization`, `series`, `mainImage` + analytics |
