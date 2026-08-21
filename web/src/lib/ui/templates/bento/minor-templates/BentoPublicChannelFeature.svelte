@@ -25,6 +25,9 @@
 	import BentoXBulkScheduling from '$lib/ui/templates/bento/minor-templates/x/BentoXBulkScheduling.svelte';
 	import BentoXComposeSettings from '$lib/ui/templates/bento/minor-templates/x/BentoXComposeSettings.svelte';
 	import BentoXInsights from '$lib/ui/templates/bento/minor-templates/x/BentoXInsights.svelte';
+	import BentoDevtoBulkScheduling from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoBulkScheduling.svelte';
+	import BentoDevtoArticleSettings from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoArticleSettings.svelte';
+	import BentoDevtoCanonical from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoCanonical.svelte';
 
 	type Props = {
 		bentoId: PublicChannelFeatureBentoId;
@@ -83,4 +86,10 @@
 	<BentoXComposeSettings {isLoggedIn} />
 {:else if bentoId === 'x-insights'}
 	<BentoXInsights />
+{:else if bentoId === 'devto-bulk-scheduling'}
+	<BentoDevtoBulkScheduling />
+{:else if bentoId === 'devto-article-settings'}
+	<BentoDevtoArticleSettings {isLoggedIn} />
+{:else if bentoId === 'devto-canonical'}
+	<BentoDevtoCanonical {isLoggedIn} />
 {/if}

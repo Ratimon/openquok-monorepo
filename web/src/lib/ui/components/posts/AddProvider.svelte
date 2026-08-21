@@ -1,9 +1,17 @@
 <script lang="ts">
-    import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
+	import type { IntegrationCatalogItemProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
+	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
+	import type { ButtonSize, ButtonVariant } from '$lib/ui/buttons/Button.svelte';
 
 	import { goto } from '$app/navigation';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+	import {
+		catalogItemHasCustomFields,
+		encodeCredentialsConnectCode,
+		normalizeCatalogCustomFields,
+		timezoneOffsetMinutes
+	} from '$lib/integrations/utils/credentialsConnect';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
@@ -13,8 +21,9 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import ChannelLimitUpgradeModal from '$lib/ui/components/channels/ChannelLimitUpgradeModal.svelte';
+	import CredentialsConnectDialog from '$lib/ui/components/posts/CredentialsConnectDialog.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import Button, { type ButtonSize, type ButtonVariant } from '$lib/ui/buttons/Button.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 	import ChannelConnectLegalFooter from '$lib/ui/components/legal/ChannelConnectLegalFooter.svelte';
 
@@ -87,6 +96,12 @@
 	let upgradeDialogOpen = $state(false);
 	let loading = $state(false);
 	let providers = $state<IntegrationCatalogItemProgrammerModel[]>([]);
+	let credentialsOpen = $state(false);
+	let credentialsSubmitting = $state(false);
+	let credentialsProviderName = $state('channel');
+	let credentialsProviderIdentifier = $state('');
+	let credentialsFields = $state<IntegrationCatalogCustomField[]>([]);
+	let credentialsFinished = $state(false);
 
 	function openAddChannelFlow() {
 		if (channelLimitFull) {
@@ -154,6 +169,18 @@
 			return;
 		}
 
+		const catalogItem = providers.find((p) => p.identifier === identifier);
+		const fields = normalizeCatalogCustomFields(catalogItem?.customFields);
+		if (catalogItemHasCustomFields(catalogItem)) {
+			open = false;
+			credentialsProviderIdentifier = identifier;
+			credentialsProviderName = catalogItem?.name ?? identifier;
+			credentialsFields = fields;
+			credentialsFinished = false;
+			credentialsOpen = true;
+			return;
+		}
+
 		open = false;
 		const afterConnect = returnToPath ?? accountPath;
 		const connectPath = integrationOAuthCallbackPath(identifier);
@@ -163,6 +190,53 @@
 			...(onboarding ? { onboarding: 'true' } : {})
 		});
 		goto(absoluteUrl(`${connectPath}?${qs}`));
+	}
+
+	async function submitCredentials(values: Record<string, string>) {
+		const workspaceId = workspaceSettingsPresenter.currentWorkspaceId;
+		const identifier = credentialsProviderIdentifier;
+		if (!workspaceId || !identifier) {
+			toast.error('Create or select a workspace before connecting a channel.');
+			return;
+		}
+		credentialsSubmitting = true;
+		try {
+			const authorizeVm = await integrationsRepository.getAuthorizeUrl({
+				organizationId: workspaceId,
+				provider: identifier,
+				...(onboarding ? { onboarding: 'true' } : {})
+			});
+			if (!('url' in authorizeVm)) {
+				toast.error(authorizeVm.error);
+				return;
+			}
+			const connectResult = await integrationsRepository.connectSocial(identifier, {
+				state: authorizeVm.url,
+				code: encodeCredentialsConnectCode(values),
+				timezone: timezoneOffsetMinutes()
+			});
+			if (!connectResult.ok) {
+				toast.error(connectResult.error);
+				return;
+			}
+			toast.success(`${credentialsProviderName} connected.`);
+			credentialsFinished = true;
+			credentialsOpen = false;
+			const afterConnect = returnToPath ?? accountPath;
+			const successQs = new URLSearchParams({ added: identifier });
+			if (onboarding) successQs.set('onboarding', 'true');
+			await goto(absoluteUrl(`${afterConnect}?${successQs}`));
+		} finally {
+			credentialsSubmitting = false;
+		}
+	}
+
+	function cancelCredentials() {
+		if (credentialsFinished) return;
+		credentialsOpen = false;
+		credentialsProviderIdentifier = '';
+		credentialsFields = [];
+		if (!open) open = true;
 	}
 </script>
 
@@ -263,7 +337,13 @@
 			</div>
 		{:else}
 			{@const visibleProviders = invite
-				? providers.filter((p) => !p.isExternal && !p.isWeb3 && !p.isChromeExtension && !p.customFields)
+				? providers.filter(
+						(p) =>
+							!p.isExternal &&
+							!p.isWeb3 &&
+							!p.isChromeExtension &&
+							!catalogItemHasCustomFields(p)
+					)
 				: providers}
 			<div class="px-6 pb-4 pt-1">
 				<div
@@ -325,6 +405,15 @@
 		</Tooltip.Provider>
 	</Dialog.Content>
 </Dialog.Root>
+
+<CredentialsConnectDialog
+	bind:open={credentialsOpen}
+	providerName={credentialsProviderName}
+	fields={credentialsFields}
+	submitting={credentialsSubmitting}
+	onSubmit={submitCredentials}
+	onCancel={cancelCredentials}
+/>
 
 <ChannelLimitUpgradeModal bind:open={upgradeDialogOpen} {upgradeHref} />
 

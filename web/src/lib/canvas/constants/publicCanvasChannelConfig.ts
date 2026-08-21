@@ -53,7 +53,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	youtube: 'Thumbnails and Shorts canvas sizes.',
 	tiktok: 'Vertical video and cover image sizes.',
 	linkedin: 'Feed and link preview image sizes.',
-	x: 'Post and header image sizes.'
+	x: 'Post and header image sizes.',
+	devto: 'Article cover (1000×420) canvas size.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): CanvasChannelPageConfig {

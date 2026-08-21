@@ -212,6 +212,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | LinkedIn | `linkedin` | personal profile posts, images, video, text comments, internal plugs | [linkedin-examples.md](./resources/linkedin-examples.md) |
 | LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
 | X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |
+| Dev.to | `devto` | markdown article, title/tags/cover/canonical/org, `tags` + `organizations` tools | [devto-examples.md](./resources/devto-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

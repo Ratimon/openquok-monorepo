@@ -11,6 +11,7 @@ import type CacheInvalidationService from "../connections/cache/CacheInvalidatio
 import { faker } from "@faker-js/faker";
 import { IntegrationConnectionService } from "./IntegrationConnectionService";
 import { IntegrationManager } from "../integrations/integrationManager";
+import { DevToProvider } from "../integrations/providers/devto/devtoProvider";
 
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
@@ -185,8 +186,8 @@ function createMockManager(provider: SocialProvider): jest.Mocked<
     >
 > {
     return {
-        getAllowedSocialsIntegrations: jest.fn().mockReturnValue(["threads"]),
-        getSocialIntegration: jest.fn((id: string) => (id === "threads" ? provider : undefined)),
+        getAllowedSocialsIntegrations: jest.fn().mockReturnValue([provider.identifier]),
+        getSocialIntegration: jest.fn((id: string) => (id === provider.identifier ? provider : undefined)),
         listGlobalPlugCatalog: jest.fn(() => livePlugCatalog.listGlobalPlugCatalog()),
         getInternalPlugDefinitionsForProvider: jest.fn((id: string) =>
             livePlugCatalog.getInternalPlugDefinitionsForProvider(id)
@@ -370,6 +371,29 @@ describe("IntegrationConnectionService", () => {
             expect(cache.set).toHaveBeenCalledWith("organization:oauth-state-xyz", orgId, 3600);
             expect(cache.set).toHaveBeenCalledWith("login:oauth-state-xyz", "code-verifier", 3600);
         });
+
+        it("seeds org/state cache for customFields providers (credentials connect)", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            const provider = createMockProvider({
+                identifier: "devto",
+                customFields: async () => [
+                    { key: "apiKey", label: "API key", validation: "/^.{3,}$/", type: "password" },
+                ],
+                generateAuthUrl: jest.fn().mockResolvedValue({
+                    codeVerifier: "code-verifier",
+                    state: "oauth-state-xyz",
+                    url: "oauth-state-xyz",
+                }),
+            });
+            manager = createMockManager(provider);
+
+            const result = await service().getIntegrationUrl(authUserId, orgId, "devto", {});
+
+            expect(result).toEqual({ url: "oauth-state-xyz" });
+            expect(cache.set).toHaveBeenCalledWith("organization:oauth-state-xyz", orgId, 3600);
+            expect(cache.set).toHaveBeenCalledWith("login:oauth-state-xyz", "code-verifier", 3600);
+        });
     });
 
     describe("getIntegrationUrlPublicApi", () => {
@@ -381,6 +405,21 @@ describe("IntegrationConnectionService", () => {
         it("returns auth URL without membership check", async () => {
             const result = await service().getIntegrationUrlPublicApi(orgId, "threads", {});
             expect(result).toEqual({ url: "https://oauth.example/authorize" });
+        });
+
+        it("returns 400 when the provider uses customFields (dashboard API key)", async () => {
+            const provider = createMockProvider({
+                identifier: "devto",
+                customFields: async () => [
+                    { key: "apiKey", label: "API key", validation: "/^.{3,}$/", type: "password" },
+                ],
+            });
+            manager = createMockManager(provider);
+
+            await expect(service().getIntegrationUrlPublicApi(orgId, "devto", {})).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Connect this channel in the dashboard with an API key",
+            });
         });
     });
 
@@ -440,6 +479,21 @@ describe("IntegrationConnectionService", () => {
             const out = await service().getIntegrationSettings(orgId, integrationId);
 
             expect(out.output.settings).toEqual(settings);
+        });
+
+        it("returns a real settingsSchema() object from DevToProvider", async () => {
+            const provider = new DevToProvider();
+            manager = createMockManager(provider);
+            integrations.getById.mockResolvedValue(sampleRow({ provider_identifier: "devto" }));
+
+            const out = await service().getIntegrationSettings(orgId, integrationId);
+
+            expect(out.output.settings).toEqual(provider.settingsSchema?.());
+            expect(out.output.settings).toMatchObject({
+                type: "object",
+                required: ["title"],
+            });
+            expect(out.output.tools.map((t) => t.methodName)).toEqual(["tags", "organizations"]);
         });
 
         it("passes the 'Verified' flag from additional_settings into provider.maxLength", async () => {
@@ -589,6 +643,43 @@ describe("IntegrationConnectionService", () => {
                 message: expect.stringContaining("Invalid OAuth state"),
                 metadata: expect.objectContaining({ errorCode: "OAUTH_STATE_INVALID" }),
             });
+        });
+
+        it("skips OAuth login verifier for customFields providers", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            const authenticate = jest.fn().mockResolvedValue(defaultOAuthUser);
+            const provider = createMockProvider({
+                identifier: "devto",
+                customFields: async () => [
+                    { key: "apiKey", label: "API key", validation: "/^.{3,}$/", type: "password" },
+                ],
+                authenticate,
+            });
+            manager = createMockManager(provider);
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return null;
+                if (key === "organization:st") return orgId;
+                return null;
+            });
+            integrations.upsertIntegration.mockResolvedValue(sampleRow({ id: "new-id", provider_identifier: "devto" }));
+
+            await service().connectSocialMedia(authUserId, "devto", {
+                state: "st",
+                code: "eyJhcGlLZXkiOiJrZXkifQ==",
+                timezone: "0",
+            });
+
+            expect(cache.get).not.toHaveBeenCalledWith("login:st");
+            expect(cacheInvalidator.invalidateKey).not.toHaveBeenCalledWith("login:st");
+            expect(authenticate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    code: "eyJhcGlLZXkiOiJrZXkifQ==",
+                    codeVerifier: "none",
+                }),
+                undefined
+            );
+            expect(integrations.upsertIntegration).toHaveBeenCalled();
         });
 
         it("removes OAuth keys via cacheInvalidator when present", async () => {

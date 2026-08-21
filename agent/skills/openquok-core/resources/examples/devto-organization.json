@@ -1,0 +1,16 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Release notes for the latest workspace update.",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "devto": {
+        "title": "Workspace update — what shipped this week",
+        "organization": 12345,
+        "tags": [{ "value": "opensource", "label": "opensource" }],
+        "mainImage": { "path": "https://cdn.example.com/devto-cover.webp" }
+      }
+    }
+  }
+}

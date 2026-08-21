@@ -2,6 +2,7 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 	import type {
+		DevtoTagOption,
 		TiktokContentPostingMethod,
 		TiktokPrivacyLevel,
 		XReplySetting,
@@ -20,6 +21,7 @@
 	import LinkedInSettings from '$lib/ui/components/posts/providers/linkedin/LinkedInSettings.svelte';
 	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
 	import YoutubeSettings from '$lib/ui/components/posts/providers/youtube/YoutubeSettings.svelte';
+	import DevtoSettings from '$lib/ui/components/posts/providers/devto/DevtoSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
 
@@ -77,6 +79,13 @@
 			enabled?: boolean;
 			message?: string;
 			crossAccountPlugs?: CrossAccountPlugState[];
+		};
+		devto: {
+			title: string;
+			canonical?: string;
+			organization?: number;
+			tags: DevtoTagOption[];
+			mainImage?: { path: string };
 		};
 	};
 
@@ -153,6 +162,12 @@
 	let xPaidPartnership = $state(false);
 	let xFinisherEnabled = $state(false);
 	let xFinisherMessage = $state("That's a wrap!");
+
+	let dtTitle = $state('');
+	let dtCanonical = $state('');
+	let dtOrganization = $state<number | undefined>(undefined);
+	let dtTags = $state<DevtoTagOption[]>([]);
+	let dtMainImage = $state<{ path: string } | undefined>(undefined);
 
 	type CrossAccountPlugDefinition = {
 		identifier: string;
@@ -356,6 +371,25 @@
 			xFinisherMessage = "That's a wrap!";
 			xCrossAccountPlugs = [];
 		}
+		if (s.devto && typeof s.devto === 'object') {
+			dtTitle = typeof s.devto.title === 'string' ? s.devto.title : '';
+			dtCanonical = typeof s.devto.canonical === 'string' ? s.devto.canonical : '';
+			const org = s.devto.organization;
+			dtOrganization = typeof org === 'number' && Number.isFinite(org) && org > 0 ? org : undefined;
+			dtTags = Array.isArray(s.devto.tags) ? s.devto.tags : [];
+			dtMainImage =
+				s.devto.mainImage &&
+				typeof s.devto.mainImage === 'object' &&
+				typeof s.devto.mainImage.path === 'string'
+					? { path: s.devto.mainImage.path }
+					: undefined;
+		} else {
+			dtTitle = '';
+			dtCanonical = '';
+			dtOrganization = undefined;
+			dtTags = [];
+			dtMainImage = undefined;
+		}
 	});
 
 	let lastEmitted = $state('');
@@ -439,6 +473,17 @@
 					enabled: xFinisherEnabled,
 					message: xFinisherMessage,
 					...(activeXCrossPlugs.length ? { crossAccountPlugs: activeXCrossPlugs } : {})
+				}
+			};
+		} else if (identifier === 'devto') {
+			const canonical = dtCanonical.trim();
+			next = {
+				devto: {
+					title: dtTitle.trim(),
+					tags: dtTags,
+					...(canonical ? { canonical } : {}),
+					...(dtOrganization ? { organization: dtOrganization } : {}),
+					...(dtMainImage?.path ? { mainImage: dtMainImage } : {})
 				}
 			};
 		} else {
@@ -560,6 +605,18 @@
 			bind:value={xCrossAccountPlugs}
 			{disabled}
 			compact={compactEditors}
+		/>
+	{:else if identifier === 'devto'}
+		<DevtoSettings
+			bind:title={dtTitle}
+			bind:canonical={dtCanonical}
+			bind:organization={dtOrganization}
+			bind:tags={dtTags}
+			bind:mainImage={dtMainImage}
+			{organizationId}
+			integrationId={channel.id}
+			{uploadUid}
+			{disabled}
 		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>

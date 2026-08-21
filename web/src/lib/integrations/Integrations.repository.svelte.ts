@@ -1,5 +1,10 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
+
 import { ApiError } from '$lib/core/HttpGateway';
+import { normalizeCatalogCustomFields } from '$lib/integrations/utils/credentialsConnect';
+
+export type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
 export type SocialProviderIdentifier = string;
 
@@ -29,7 +34,7 @@ export interface IntegrationCatalogItemProgrammerModel {
 	isWeb3?: boolean;
 	isChromeExtension?: boolean;
 	extensionCookies?: unknown;
-	customFields?: unknown;
+	customFields?: IntegrationCatalogCustomField[];
 }
 
 export interface GetIntegrationsCatalogResponseDto {
@@ -54,7 +59,7 @@ export interface ConnectedIntegrationProgrammerModel {
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
 	isCustomFields: boolean;
-	customFields?: unknown;
+	customFields?: IntegrationCatalogCustomField[];
 	display: string | null;
 	time: unknown[];
 	changeProfilePicture: boolean;
@@ -145,12 +150,26 @@ export class IntegrationsRepository {
 					withCredentials: true
 				});
 			if (ok) {
+				const withCustomFields = (
+					rows: IntegrationCatalogItemProgrammerModel[]
+				): IntegrationCatalogItemProgrammerModel[] =>
+					rows.map((item) => ({
+						...item,
+						customFields: normalizeCatalogCustomFields(item.customFields)
+					}));
 				// backend: `{ success: true, data: { social: [...] } }`
-				if (dto?.success === true && Array.isArray(dto?.data?.social)) return dto.data.social;
+				if (dto?.success === true && Array.isArray(dto?.data?.social)) {
+					return withCustomFields(dto.data.social);
+				}
 				// legacy fallbacks (keep flexible)
-				if (Array.isArray(dto)) return dto as unknown as IntegrationCatalogItemProgrammerModel[];
-				if (Array.isArray((dto as { integrations?: unknown })?.integrations))
-					return (dto as { integrations: IntegrationCatalogItemProgrammerModel[] }).integrations;
+				if (Array.isArray(dto)) {
+					return withCustomFields(dto as unknown as IntegrationCatalogItemProgrammerModel[]);
+				}
+				if (Array.isArray((dto as { integrations?: unknown })?.integrations)) {
+					return withCustomFields(
+						(dto as { integrations: IntegrationCatalogItemProgrammerModel[] }).integrations
+					);
+				}
 			}
 			return [];
 		} catch {

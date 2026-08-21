@@ -60,6 +60,12 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-5',
 		iconWidth: '20',
 		iconHeight: '20'
+	},
+	{
+		id: 'devto',
+		icon: icons.DevtoGlyph.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
 	}
 ];
 
@@ -118,13 +124,11 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		iconClass: 'size-7'
 	},
 	{
-		id: 'google',
-		icon: icons.Google.name,
-		label: 'Google Business',
-		containerClass: 'bg-white',
-		iconClass: 'size-6',
-		iconWidth: '24',
-		iconHeight: '24'
+		id: 'devto',
+		icon: icons.DevtoGlyph.name,
+		label: 'Dev.to',
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
 	}
 ];
 
@@ -140,7 +144,7 @@ export const FEATURES_GRID_SOCIAL_ROWS: { offsetClass: string; platformIds: stri
 	},
 	{
 		offsetClass: '-translate-x-4 sm:-translate-x-8 md:-translate-x-12',
-		platformIds: ['x', 'instagram-standalone', 'google']
+		platformIds: ['x', 'instagram-standalone', 'devto']
 	}
 ];
 

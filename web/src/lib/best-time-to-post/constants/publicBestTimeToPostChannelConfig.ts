@@ -45,7 +45,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	youtube: 'Probe afternoon and evening publish windows.',
 	tiktok: 'Test noon and evening short-video windows.',
 	linkedin: 'Probe weekday morning and lunch B2B slots.',
-	x: 'Test morning and midday conversation windows.'
+	x: 'Test morning and midday conversation windows.',
+	devto: 'Probe weekday morning, lunch, and early-evening writing windows.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): BestTimeChannelPageConfig {

@@ -155,7 +155,7 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		id: 'devto-provider',
 		title: 'Dev.to Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'complete',
 		priority: 2
 	},
 	{

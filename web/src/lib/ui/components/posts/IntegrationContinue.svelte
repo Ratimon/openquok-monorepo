@@ -1,9 +1,7 @@
 <script lang="ts">
 	import type { ContinueSocialIntegrationViewModel } from '$lib/integrations';
+	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 	import type { TwoStepPickerViewModel } from '$lib/integrations/continue-provider';
-	import dayjs from 'dayjs';
-	import utc from 'dayjs/plugin/utc';
-	import timezone from 'dayjs/plugin/timezone';
 
 	import { absoluteUrl, route, url } from '$lib/utils/path';
 	import { browser } from '$app/environment';
@@ -11,6 +9,14 @@
 	import { page } from '$app/state';
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+	import {
+		DEFAULT_API_KEY_CUSTOM_FIELDS,
+		catalogItemHasCustomFields,
+		encodeCredentialsConnectCode,
+		isExternalHttpUrl,
+		normalizeCatalogCustomFields,
+		timezoneOffsetMinutes
+	} from '$lib/integrations/utils/credentialsConnect';
 	import {
 		continueIntegrationPresenter,
 		getContinueProviderConfig,
@@ -24,6 +30,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import CircularProgressBar from '$lib/ui/circular-progress-bar/CircularProgressBar.svelte';
 	import ContinueProviderPicker from '$lib/ui/components/posts/providers/ContinueProviderPicker.svelte';
+	import CredentialsConnectForm from '$lib/ui/components/posts/CredentialsConnectForm.svelte';
 	import GoogleApiPrivacyNotice from '$lib/ui/components/legal/GoogleApiPrivacyNotice.svelte';
 	import TiktokApiPrivacyNotice from '$lib/ui/components/legal/TiktokApiPrivacyNotice.svelte';
 
@@ -34,9 +41,6 @@
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
 	const signInPath = route(rootPathSignIn);
-
-	dayjs.extend(utc);
-	dayjs.extend(timezone);
 
 	let busy = $state(true);
 	/** Signed-out user landed without OAuth callback params — GET authorize requires a session. */
@@ -54,6 +58,12 @@
 	 */
 	let lastHandledOAuthCallbackKey = $state<string | null>(null);
 	let startedOAuthRedirectKey = $state<string | null>(null);
+	/** API-key channels (no OAuth redirect) — show the credentials form instead of `window.location`. */
+	let credentialsActive = $state(false);
+	let credentialsFields = $state<IntegrationCatalogCustomField[]>([]);
+	let credentialsSubmitting = $state(false);
+	/** Authorize `url` already fetched (non-http state). Reused on submit so state stays single-use. */
+	let credentialsAuthorizeState = $state<string | null>(null);
 
 	const provider = $derived(page.params.provider ?? '');
 
@@ -115,11 +125,6 @@
 		const path = integrationOAuthCallbackPath(providerSlug);
 		if (!searchParams || [...searchParams].length === 0) return absoluteUrl(path);
 		return absoluteUrl(`${path}?${searchParams}`);
-	}
-
-	function timezoneOffsetMinutes(): string {
-		const zone = dayjs.tz.guess() || 'UTC';
-		return String(dayjs.tz(dayjs(), zone).utcOffset());
 	}
 
 	function formatOAuthErrorDescription(raw: string): string {
@@ -350,10 +355,72 @@
 				return;
 			}
 
+			if (!isExternalHttpUrl(resPm.url)) {
+				credentialsAuthorizeState = resPm.url;
+				if (credentialsFields.length === 0) {
+					credentialsFields = DEFAULT_API_KEY_CUSTOM_FIELDS;
+				}
+				credentialsActive = true;
+				busy = false;
+				return;
+			}
+
 			authenticationRepository.prepareForOAuthRedirect();
 			window.location.href = resPm.url;
 		} finally {
 			busy = false;
+		}
+	}
+
+	async function detectCredentialsProvider(p: string): Promise<boolean> {
+		try {
+			const catalog = await integrationsRepository.getCatalog();
+			const item = catalog.find((row) => row.identifier === p);
+			if (!catalogItemHasCustomFields(item)) return false;
+			credentialsFields = normalizeCatalogCustomFields(item?.customFields);
+			credentialsActive = true;
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	async function submitCredentials(values: Record<string, string>) {
+		const p = provider;
+		credentialsSubmitting = true;
+		busy = true;
+		try {
+			let state = credentialsAuthorizeState;
+			if (!state) {
+				if (!workspaceSettingsPresenter.currentWorkspaceId) {
+					await workspaceSettingsPresenter.load({ includeTeam: false });
+				}
+				const organizationId =
+					organizationIdParam || workspaceSettingsPresenter.currentWorkspaceId || '';
+				if (!organizationId) {
+					toast.error('Create or select a workspace before connecting a channel.');
+					await goto(absoluteUrl(`${accountPath}/settings?section=workspace`), {
+						replaceState: true
+					});
+					return;
+				}
+				const resPm = await integrationsRepository.getAuthorizeUrl({
+					organizationId,
+					provider: p,
+					externalUrl: returnTo,
+					...(refresh && { refresh }),
+					...(onboarding === 'true' && { onboarding: 'true' })
+				});
+				if (!('url' in resPm)) {
+					toast.error(resPm.error);
+					return;
+				}
+				state = resPm.url;
+				credentialsAuthorizeState = state;
+			}
+			await finishOAuthCallback(p, encodeCredentialsConnectCode(values), state, refresh);
+		} finally {
+			credentialsSubmitting = false;
 		}
 	}
 
@@ -363,6 +430,10 @@
 			return;
 		}
 		if (twoStepPicker) {
+			busy = false;
+			return;
+		}
+		if (credentialsActive) {
 			busy = false;
 			return;
 		}
@@ -406,6 +477,11 @@
 			return;
 		}
 
+		if (await detectCredentialsProvider(p)) {
+			busy = false;
+			return;
+		}
+
 		await startOAuthRedirect(p, orgParam, externalReturn, refreshParam);
 	}
 
@@ -437,13 +513,15 @@
 			? (getContinueProviderConfig(twoStepPicker.provider)?.title ?? 'Choose account')
 			: oauthAnonymousSuccess
 				? 'Channel connected'
-				: signInRequiredForOAuthStart
-					? 'Sign in to connect'
-					: isOAuthErrorCallback
-						? 'Connection cancelled'
-						: isOAuthSuccessCallback
-							? 'Connecting channel'
-							: 'Connect channel'}</title
+				: credentialsActive
+					? `Connect ${providerLabel}`
+					: signInRequiredForOAuthStart
+						? 'Sign in to connect'
+						: isOAuthErrorCallback
+							? 'Connection cancelled'
+							: isOAuthSuccessCallback
+								? 'Connecting channel'
+								: 'Connect channel'}</title
 	>
 </svelte:head>
 
@@ -458,6 +536,19 @@
 			onCancel={cancelContinuePicker}
 		/>
 	{/if}
+{:else if credentialsActive}
+	<div class="mx-auto max-w-lg px-4 py-10">
+		<h1 class="text-xl font-semibold text-base-content">Connect {providerLabel}</h1>
+		<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-6">
+			<CredentialsConnectForm
+				providerName={providerLabel}
+				fields={credentialsFields}
+				submitting={credentialsSubmitting}
+				onSubmit={submitCredentials}
+				onCancel={() => goto(absoluteUrl(returnTo), { replaceState: true })}
+			/>
+		</div>
+	</div>
 {:else if oauthAnonymousSuccess}
 	<div class="mx-auto max-w-lg px-4 py-10">
 		<h1 class="text-xl font-semibold text-base-content">

@@ -23,7 +23,7 @@ import type {
  */
 
 /** Calendar date (YYYY-MM-DD) when platform windows were last reviewed against public timing research. */
-export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-08-10';
+export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-08-20';
 
 /** Preferred local clock windows for a weekday (first entry = primary benchmark). */
 type DayWindow = {
@@ -103,6 +103,16 @@ const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {
 		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] },
 		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 18, minute: 0 }] },
 		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 13, minute: 0 }, { hour: 19, minute: 0 }] }
+	],
+	// Technical writing audience: weekday mornings, lunch, early evening (local clock).
+	devto: [
+		{ weekday: 1, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] },
+		{ weekday: 2, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] },
+		{ weekday: 3, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 30 }, { hour: 17, minute: 0 }] },
+		{ weekday: 4, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 30 }] },
+		{ weekday: 5, times: [{ hour: 9, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 0 }] },
+		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 16, minute: 0 }] },
+		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 17, minute: 0 }] }
 	]
 };
 

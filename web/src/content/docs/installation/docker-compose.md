@@ -2,7 +2,7 @@
 title: Self-host - Docker Compose
 description: Self-host OpenQuok with Docker Compose — env setup, Supabase, and bring-up of API, web, Redis, and BullMQ workers.
 order: 5
-lastUpdated: 2026-07-26
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -54,8 +54,12 @@ Leave these empty until you connect a channel. Fill only the pairs for networks 
 | <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> / <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" /> | LinkedIn / LinkedIn Page |
 | <Badge text="X_API_KEY" variant="envBackend" /> / <Badge text="X_API_SECRET" variant="envBackend" /> | X |
 
+<Callout type="note" title="Dev.to needs no operator app">
+<p>Dev.to (<Badge text="devto" variant="default" />) connects with a <strong>personal API key</strong> the user pastes in Add Channel. Do not add operator ID/secret env vars for it. Setup: <a href="/docs/social-integration/devto">Dev.to</a>.</p>
+</Callout>
+
 <CardGrid>
-<LinkCard title="Social integration" description="Per-channel OAuth apps, redirect URIs, and env setup guides" href="/docs/social-integration" />
+<LinkCard title="Social integration" description="Per-channel OAuth apps, API keys, redirect URIs, and env setup guides" href="/docs/social-integration" />
 </CardGrid>
 
 ### Self-host friendly defaults
@@ -194,6 +198,6 @@ This stack is designed for **trusted local / private-network** operators, not a 
 <LinkCard title="Docker (local services)" description="Contributor Redis via infra/docker-compose.yml" href="/docs/configuration-backend/docker" />
 <LinkCard title="Email (Resend / local)" description="EMAIL_ENABLED=false self-host mode" href="/docs/configuration-backend/resend" />
 <LinkCard title="Stripe billing" description="Empty publishable key disables billing" href="/docs/configuration-backend/stripe" />
-<LinkCard title="Social integration" description="OAuth app credentials and redirect URIs for each channel" href="/docs/social-integration" />
+<LinkCard title="Social integration" description="OAuth app credentials, API keys, and redirect URIs for each channel" href="/docs/social-integration" />
 <LinkCard title="Configuration - Worker" description="BullMQ workers and Redis queues" href="/docs/configuration-worker" />
 </CardGrid>

@@ -21,4 +21,7 @@ export type PublicChannelFeatureBentoId =
 	| 'linkedin-insights'
 	| 'x-bulk-scheduling'
 	| 'x-compose-settings'
-	| 'x-insights';
+	| 'x-insights'
+	| 'devto-bulk-scheduling'
+	| 'devto-article-settings'
+	| 'devto-canonical';

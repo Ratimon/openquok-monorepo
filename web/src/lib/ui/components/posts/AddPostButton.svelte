@@ -2,7 +2,7 @@
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
-	export type PostCommentMode = 'ALL' | 'POST' | 'COMMENT';
+	export type PostCommentMode = 'ALL' | 'POST' | 'COMMENT' | 'NONE';
 
 	export type TranslateFn = (key: string, fallback: string) => string;
 
@@ -21,6 +21,7 @@
 		// Note: upstream's `add_post` fallback is "Add post in a thread".
 		if (postComment === 'POST') return ['add_post', 'Add more thread'];
 		if (postComment === 'COMMENT') return ['add_comment', 'Add comment'];
+		if (postComment === 'NONE') return ['add_post', 'Add more thread'];
 		return ['add_comment_or_post', 'Add comment or post'];
 	});
 

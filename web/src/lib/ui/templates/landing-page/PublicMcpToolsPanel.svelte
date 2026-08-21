@@ -20,7 +20,7 @@
 		},
 		{
 			name: 'triggerTool',
-			description: 'run provider helpers (subreddits, pages, Discord channels)'
+			description: 'Dev.to tags and organizations, LinkedIn company URLs, and other provider helpers'
 		},
 		{
 			name: 'schedulePostTool',

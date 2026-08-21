@@ -11,7 +11,7 @@
 - Create and schedule posts via the programmatic API
 - List posts and flip draft ↔ scheduled (`posts:status`)
 - Upload media for use in posts
-- List programmatic integrations and trigger provider-specific tools (e.g. fetch subreddits, pages, playlists)
+- List programmatic integrations and trigger provider-specific tools (e.g. Dev.to tags and organizations, LinkedIn company URLs)
 
 
 ## Quickstart
@@ -97,8 +97,8 @@ openquok integrations:trigger <id> <method> [--data '<json>']
 - `integrations:list` returns integration IDs, provider identifiers, and metadata. Use `--group` to return only channels assigned to one channel group (`integration_customers.id`).
 - `integrations:groups` returns every channel group for the workspace as `{id, name}`. Pass a group's `id` to `integrations:list --group` or `posts:list --customer`.
 - `integrations:settings` returns the provider's rules, max post length, settings schema, and the list of allow-listed `tools` you can invoke via `integrations:trigger`.
-- `integrations:trigger` dispatches a single allow-listed provider method (e.g. `getSubreddits`). The `--data` payload, when present, must be a JSON object; its shape is provider-specific (see the `dataSchema` field of the corresponding tool in `integrations:settings`).
-- Connecting new channels (OAuth) is done from the web UI; the CLI consumes the resulting integration IDs.
+- `integrations:trigger` dispatches a single allow-listed provider method (e.g. Dev.to `tags` / `organizations`, LinkedIn `company`). The `--data` payload, when present, must be a JSON object; its shape is provider-specific (see the `dataSchema` field of the corresponding tool in `integrations:settings`).
+- Connecting new channels is done from the web UI (OAuth, or a dashboard API key for Dev.to); the CLI consumes the resulting integration IDs.
 
 ### Posts
 

@@ -92,12 +92,12 @@ export const registerIntegrationCommands: RegisterCommands = (y: Argv, ctx: Comm
               "Tool input payload as a JSON string (object). Shape is provider-specific; see `output.tools[].dataSchema`.",
           })
           .example(
-            "$0 integrations:trigger 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b getThings",
-            "Run a tool that takes no input"
+            "$0 integrations:trigger <integration-id> tags",
+            "List Dev.to tags (no input payload)"
           )
           .example(
-            "$0 integrations:trigger 4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b searchThings -d '{\"query\":\"programming\"}'",
-            "Run a tool with a JSON payload (note shell quoting of the JSON)"
+            "$0 integrations:trigger <integration-id> company -d '{\"url\":\"https://www.linkedin.com/company/example\"}'",
+            "Resolve a LinkedIn company URL (note shell quoting of the JSON)"
           ),
       async (args: any) => {
         await runCommand("integrations:trigger", async () => {

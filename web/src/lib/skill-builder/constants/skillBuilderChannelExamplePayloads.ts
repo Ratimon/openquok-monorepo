@@ -217,3 +217,54 @@ export const X_CROSS_ACCOUNT_REPOST_PAYLOAD = {
 		}
 	}
 } as const;
+
+export const DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Technical writing cadence — queue this markdown article before it stalls in drafts.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			devto: {
+				title: 'Keep technical posts shipping',
+				tags: [
+					{ value: 'webdev', label: 'webdev' },
+					{ value: 'productivity', label: 'productivity' }
+				]
+			}
+		}
+	}
+} as const;
+
+export const DEVTO_CANONICAL_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'This tutorial already lives on our docs site. Dev.to should point at the original.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			devto: {
+				title: 'Syndicate this tutorial without losing the original URL',
+				canonical: 'https://example.com/blog/tutorial',
+				tags: [{ value: 'webdev', label: 'webdev' }]
+			}
+		}
+	}
+} as const;
+
+export const DEVTO_ORGANIZATION_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Release notes for the latest workspace update.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			devto: {
+				title: 'Workspace update — what shipped this week',
+				organization: 12345,
+				tags: [{ value: 'opensource', label: 'opensource' }],
+				mainImage: { path: 'https://cdn.example.com/devto-cover.webp' }
+			}
+		}
+	}
+} as const;

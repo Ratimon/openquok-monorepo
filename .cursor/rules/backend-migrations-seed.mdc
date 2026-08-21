@@ -32,7 +32,7 @@ The hub **expanded card** (`ExtensionCardExpanded.svelte`) shows an **MCP tools*
 | `click_url_skills` | `NULL` for MCP-only listings. |
 | `description_mcp` / `content_mcp` | Populate; `description_skills` / `content_skills` stay `NULL`. |
 | `is_official` | `FALSE` for third-party MCP servers; `TRUE` only for first-party OpenQuok entries. |
-| `listing_tag_slugs` | Use existing catalog tags (client + content-type tags). Do not add a tag row per third-party product unless it is a social channel (see **social-provider-integration**). |
+| `listing_tag_slugs` | Use existing catalog tags (client + content-type tags). Do not add a SQL seed tag row per third-party product or per social channel — new social-channel tags go through secret-admin (see **add-social-provider-integration**). |
 
 ### Skills-only (`extension_type = 'skills'`)
 

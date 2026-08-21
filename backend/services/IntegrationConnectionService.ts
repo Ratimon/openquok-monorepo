@@ -350,12 +350,20 @@ export class IntegrationConnectionService {
         return this.integrations.customers(organizationId);
     }
 
+    /** Public OAuth URL. Providers with `customFields` must be connected in the dashboard with an API key. */
     async getIntegrationUrlPublicApi(
         organizationId: string,
         integration: string,
         opts: { refresh?: string; externalUrl?: string; onboarding?: string }
     ): Promise<{ url: string }> {
         try {
+            if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+                throw new AppError("Integration not allowed", 400);
+            }
+            const integrationProvider = this.manager.getSocialIntegration(integration);
+            if (integrationProvider?.customFields) {
+                throw new AppError("Connect this channel in the dashboard with an API key", 400);
+            }
             return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "public");
         } catch (err) {
             if (err instanceof AppError) throw err;

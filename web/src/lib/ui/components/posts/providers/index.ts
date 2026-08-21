@@ -7,6 +7,7 @@ import { threadsProvider } from '$lib/ui/components/posts/providers/threads/thre
 import { tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
 import { xProvider } from '$lib/ui/components/posts/providers/x/x.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
+import { devtoProvider } from '$lib/ui/components/posts/providers/devto/devto.provider';
 
 const DEFAULT_PROVIDER: LaunchProviderConfig = {
 	id: 'default',
@@ -38,6 +39,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 
 	// LinkedIn personal profile + company Page share composer rules
 	if (id === 'linkedin' || id === 'linkedin-page') return linkedinProvider;
+
+	if (id === 'devto') return devtoProvider;
 
 	return DEFAULT_PROVIDER;
 }

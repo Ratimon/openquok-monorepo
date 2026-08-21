@@ -265,6 +265,36 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok analytics:platform "$X_ID" -d 30',
 			description: 'Pull 30-day X analytics'
 		}
+	],
+	devto: [
+		{
+			command: discoverIntegrationCommand(['devto']),
+			description: 'Discover your Dev.to integration UUID'
+		},
+		{
+			command: 'openquok integrations:settings "$DEVTO_ID"',
+			description: 'Get Dev.to posting rules, title/tag schema, and allow-listed tools'
+		},
+		{
+			command: 'openquok posts:create --json ./examples/devto-article-title-tags.json',
+			description: 'Schedule a markdown article with title and tags'
+		},
+		{
+			command: 'openquok posts:create --json ./examples/devto-canonical.json',
+			description: 'Syndicate an article with a canonical URL'
+		},
+		{
+			command: 'openquok posts:create --json ./examples/devto-organization.json',
+			description: 'Publish to an organization with cover image settings'
+		},
+		{
+			command: 'openquok integrations:trigger "$DEVTO_ID" tags',
+			description: 'List Dev.to tags for autocomplete'
+		},
+		{
+			command: 'openquok integrations:trigger "$DEVTO_ID" organizations',
+			description: 'List organizations you can publish as'
+		}
 	]
 };
 
@@ -282,7 +312,8 @@ const KANBAN_EXAMPLE_BY_CHANNEL: Record<string, string> = {
 	youtube: 'youtube-video-title-privacy.json',
 	tiktok: 'tiktok-video-direct-post.json',
 	linkedin: 'linkedin-text-post.json',
-	x: 'x-text-only.json'
+	x: 'x-text-only.json',
+	devto: 'devto-article-title-tags.json'
 };
 
 /** Kanban feature section CLI snippet for a platform. */
@@ -308,4 +339,14 @@ openquok analytics:platform "$INTEGRATION_ID" -d 30
 
 # Per-post insights
 openquok analytics:post <post-id> -d 7`;
+}
+
+/** Canonical / syndication CLI snippet for channels without date-range analytics. */
+export function buildAgentChannelCanonicalCliCommands(providerIdentifier: string): string {
+	return `# Discover the channel, then syndicate with a canonical URL
+INTEGRATION_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="${providerIdentifier}") | .id')
+openquok integrations:settings "$INTEGRATION_ID"
+openquok integrations:trigger "$INTEGRATION_ID" tags
+openquok integrations:trigger "$INTEGRATION_ID" organizations
+openquok posts:create --json ./examples/devto-canonical.json`;
 }

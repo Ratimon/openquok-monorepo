@@ -27,7 +27,10 @@ import {
 	X_GLOBAL_AUTO_REPOST_PAYLOAD,
 	X_REPLY_CHAIN_PAYLOAD,
 	X_TEXT_ONLY_PAYLOAD,
-	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD
+	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD,
+	DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD,
+	DEVTO_CANONICAL_PAYLOAD,
+	DEVTO_ORGANIZATION_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
 
 type SkillBuilderChannelRecipe = {
@@ -62,7 +65,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	youtube: ['youtube'],
 	tiktok: ['tiktok'],
 	linkedin: ['linkedin', 'linkedin-page'],
-	x: ['x']
+	x: ['x'],
+	devto: ['devto']
 };
 
 const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
@@ -201,6 +205,26 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			commandName: 'plugs:upsert',
 			examplePayload: { ...X_GLOBAL_AUTO_PLUG_PAYLOAD }
 		}
+	],
+	devto: [
+		{
+			id: 'devto-article-title-tags',
+			label: 'Article with title and tags',
+			prompt: 'Schedule a Dev.to markdown article with title and up to four tags.',
+			examplePayload: { ...DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD }
+		},
+		{
+			id: 'devto-canonical',
+			label: 'Canonical URL syndication',
+			prompt: 'Syndicate an existing post to Dev.to with a canonical URL.',
+			examplePayload: { ...DEVTO_CANONICAL_PAYLOAD }
+		},
+		{
+			id: 'devto-organization',
+			label: 'Organization + cover',
+			prompt: 'Publish to a Dev.to organization with an optional cover image.',
+			examplePayload: { ...DEVTO_ORGANIZATION_PAYLOAD }
+		}
 	]
 };
 
@@ -211,7 +235,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	youtube: 'Video uploads — title, privacy, and tags.',
 	tiktok: 'Direct video posts with privacy controls.',
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
-	x: 'Text posts, reply threads, cross-account reposts, and global plugs.'
+	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
+	devto: 'Markdown articles with title, tags, cover, and canonical URL.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

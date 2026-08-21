@@ -1,0 +1,17 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Technical writing cadence — queue this markdown article before it stalls in drafts.",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "devto": {
+        "title": "Keep technical posts shipping",
+        "tags": [
+          { "value": "webdev", "label": "webdev" },
+          { "value": "productivity", "label": "productivity" }
+        ]
+      }
+    }
+  }
+}

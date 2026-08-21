@@ -9,7 +9,7 @@ openquok integrations:list | jq -r '.[] | {id, identifier}'
 openquok integrations:settings <integration-uuid>
 ```
 
-Meta channels today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`. LinkedIn: `linkedin`, `linkedin-page`. Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
+Meta channels today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`. LinkedIn: `linkedin`, `linkedin-page`. Dev.to: `devto` (`tags`, `organizations`). Call `integrations:trigger` only for `methodName` values listed under `output.tools`.
 
 ## Allow-listed provider tools
 
@@ -19,7 +19,20 @@ openquok integrations:settings "$TH_ID"
 openquok integrations:trigger "$TH_ID" <method-from-settings> -d '{}'
 ```
 
-Replace `<method-from-settings>` and `-d` using `output.tools[].methodName` and `dataSchema`.
+Replace `<method-from-settings>` and `-d` using `output.tools[].methodName` and `dataSchema`. Dev.to examples:
+
+```bash
+DEVTO_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="devto") | .id')
+openquok integrations:trigger "$DEVTO_ID" tags
+openquok integrations:trigger "$DEVTO_ID" organizations
+```
+
+LinkedIn `company` needs a URL payload:
+
+```bash
+LI_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="linkedin") | .id')
+openquok integrations:trigger "$LI_ID" company -d '{"url":"https://www.linkedin.com/company/example"}'
+```
 
 ## Multiple attachments
 

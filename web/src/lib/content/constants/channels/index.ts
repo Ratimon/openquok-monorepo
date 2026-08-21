@@ -7,6 +7,7 @@ import { youtubeChannel } from '$lib/content/constants/channels/youtube';
 import { tiktokChannel } from '$lib/content/constants/channels/tiktok';
 import { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 import { xChannel } from '$lib/content/constants/channels/x';
+import { devtoChannel } from '$lib/content/constants/channels/devto';
 
 export * from '$lib/content/constants/channels/types';
 export { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
@@ -17,6 +18,7 @@ export { youtubeChannel } from '$lib/content/constants/channels/youtube';
 export { tiktokChannel } from '$lib/content/constants/channels/tiktok';
 export { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 export { xChannel } from '$lib/content/constants/channels/x';
+export { devtoChannel } from '$lib/content/constants/channels/devto';
 
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
 const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
@@ -29,6 +31,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageView
 	tiktokChannel,
 	linkedinChannel,
 	xChannel,
+	devtoChannel,
 	...COMING_SOON_CHANNELS
 ];
 

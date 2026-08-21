@@ -2,7 +2,7 @@
 title: Managing Posts
 description: Create, list, delete, and reconnect Openquok posts/post group from the command line.
 order: 1
-lastUpdated: 2026-05-16
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -147,17 +147,19 @@ When channels need different copy, use <Badge text="--bodiesByIntegrationId" var
 
 ### Platform-specific settings
 
-Some providers expect extra fields (post type, subreddit, thread replies, and so on). The CLI accepts a JSON object with <Badge text="--settings" variant="param" /> and merges it into <code>providerSettingsByIntegrationId</code> for **each** integration id you passed with <Badge text="-i" variant="param" />. Deeper per-channel control lives in <Badge text="--providerSettingsByIntegrationId" variant="param" />; keys from <Badge text="--settings" variant="param" /> override the same keys from that map when both are present.
+Some providers expect extra fields (post type, article title, tags, thread replies, and so on). The CLI accepts a JSON object with <Badge text="--settings" variant="param" /> and merges it into <code>providerSettingsByIntegrationId</code> for **each** integration id you passed with <Badge text="-i" variant="param" />. Deeper per-channel control lives in <Badge text="--providerSettingsByIntegrationId" variant="param" />; keys from <Badge text="--settings" variant="param" /> override the same keys from that map when both are present.
+
+Dev.to title and tags (markdown body in <Badge text="-c" variant="param" />):
 
 ```bash
 openquok posts:create \
-  -c "Check out this discussion" \
+  -c "Queue this markdown article before it stalls in drafts." \
   -s "2026-01-15T12:00:00Z" \
-  --settings '{"subreddit":[{"value":{"subreddit":"programming","title":"My Post","type":"text"}}]}' \
+  --settings '{"title":"Keep technical posts shipping","tags":["webdev","productivity"]}' \
   -i "<integration-id>"
 ```
 
-Discover valid shapes with <a href="/docs/cli-usages/integrations"><code>openquok integrations:settings &lt;integration-id&gt;</code></a> and the <a href="/docs/cli-usages/integrations">Integrations</a> CLI page.
+Other providers use the same flag with their own keys (for example a planned subreddit payload). Discover valid shapes with <a href="/docs/cli-usages/integrations"><code>openquok integrations:settings &lt;integration-id&gt;</code></a> and the <a href="/docs/cli-usages/integrations">Integrations</a> CLI page.
 
 ### Create from a JSON file
 

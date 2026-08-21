@@ -319,6 +319,17 @@ export const ASPECT_RATIO_PRESETS: AspectRatioPreset[] = [
 		exportHeight: 1920,
 		hint: '1080×1920 — Shorts vertical format.'
 	},
+	/* Dev.to */
+	{
+		id: 'devto-cover',
+		label: 'Dev.to',
+		menuTitle: 'Cover',
+		ratioW: 1000,
+		ratioH: 420,
+		exportWidth: 1000,
+		exportHeight: 420,
+		hint: '1000×420 — Dev.to article cover.'
+	},
 	/* LinkedIn */
 	{
 		id: 'li-share',
@@ -571,6 +582,11 @@ export const ASPECT_RATIO_PLATFORM_GROUPS: readonly AspectPlatformGroup[] = [
 		presetIds: ['yt-thumbnail', 'yt-channel', 'yt-shorts', 'yt-hd']
 	},
 	{
+		id: 'devto',
+		title: 'Dev.to',
+		presetIds: ['devto-cover']
+	},
+	{
 		id: 'linkedin',
 		title: 'LinkedIn',
 		presetIds: ['li-share', 'li-banner', 'li-square']
@@ -620,6 +636,7 @@ export function aspectPlatformGroupIdForProviderIdentifier(identifier: string | 
 	if (id === 'threads') return 'instagram';
 	if (id === 'facebook') return 'facebook';
 	if (id === 'youtube') return 'youtube';
+	if (id === 'devto') return 'devto';
 	if (id === 'x' || id === 'twitter') return 'x';
 	if (id === 'linkedin') return 'linkedin';
 	return 'general';

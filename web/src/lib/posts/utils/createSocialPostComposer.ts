@@ -46,6 +46,9 @@ export function formatProviderScheduleValidationMessage(
 	if (id === 'threads') {
 		return `Threads (${label}): ${raw}`;
 	}
+	if (id === 'devto') {
+		return `Dev.to (${label}): ${raw}`;
+	}
 	return `${label}: ${raw}`;
 }
 

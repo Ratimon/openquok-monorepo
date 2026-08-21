@@ -10,6 +10,7 @@
 	import TiktokPreview from '$lib/ui/components/posts/providers/tiktok/TiktokPreview.svelte';
 	import XPreview from '$lib/ui/components/posts/providers/x/XPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
+	import DevtoPreview from '$lib/ui/components/posts/providers/devto/DevtoPreview.svelte';
 
 	type Props = {
 		channel: CreateSocialPostChannelViewModel | null;
@@ -24,6 +25,8 @@
 		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		/** Shown under the Threads header (e.g. scheduled date). */
 		previewMetaLabel?: string | null;
+		/** Per-channel provider settings used by previews that render title/cover/tags. */
+		providerSettings?: Record<string, unknown>;
 	};
 
 	let {
@@ -35,7 +38,8 @@
 		threadFinisher = null,
 		delayedEngagementReply = null,
 		previewMetaLabel = null,
-		weightedCharCount
+		weightedCharCount,
+		providerSettings = {}
 	}: Props = $props();
 
 	const identifier = $derived((channel?.identifier ?? '').toLowerCase());
@@ -121,6 +125,17 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+	/>
+{:else if identifier === 'devto'}
+	<DevtoPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
+		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else}
 	<GeneralPreviewComponent

@@ -1,8 +1,8 @@
 ---
 title: Supported social channels
-description: Social channels Openquok currently supports — Meta Threads and Instagram (Business + Standalone) — plus the per-channel settings shape behind the public API.
+description: Social channels Openquok currently supports — including Meta Threads, Instagram, and Dev.to — plus the per-channel settings shape behind the public API.
 order: 1
-lastUpdated: 2026-07-19
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -17,17 +17,20 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-Openquok currently ships with **3 social provider integrations** behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs. The provider's short identifier (for example <Badge text="threads" variant="default" /> or <Badge text="instagram-standalone" variant="default" />) is used **only** at OAuth start time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> *which* platform to authorize.
+Openquok currently ships social provider integrations behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs.
 
-## Providers (3 total)
+<strong>OAuth channels</strong> use the provider short identifier (for example <Badge text="threads" variant="default" />) at connect time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> <em>which</em> platform to authorize. <strong>Credentials channels</strong> (Dev.to) are connected in the dashboard with an API key — <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> and is not a connect URL.
 
-| Provider | Identifier | OAuth start route | Setup guide |
+## Providers
+
+| Provider | Identifier | Connect | Setup guide |
 | --- | --- | --- | --- |
 | Meta Threads | <Badge text="threads" variant="default" /> | <Badge text="GET /api/v1/public/social/threads" variant="default" /> | <a href="/docs/social-integration/threads">Threads</a> |
 | Instagram (Business, FB-linked) | <Badge text="instagram-business" variant="default" /> | <Badge text="GET /api/v1/public/social/instagram-business" variant="default" /> | <a href="/docs/social-integration/instagram">Instagram</a> |
 | Instagram (Standalone, IG Login) | <Badge text="instagram-standalone" variant="default" /> | <Badge text="GET /api/v1/public/social/instagram-standalone" variant="default" /> | <a href="/docs/social-integration/instagram">Instagram</a> |
+| Dev.to | <Badge text="devto" variant="default" /> | Dashboard API key — not <Badge text="GET /api/v1/public/social/devto" variant="default" /> | <a href="/docs/social-integration/devto">Dev.to</a> |
 
-The **Identifier** column matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a> and the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. When you reference a channel inside a post payload, use the channel's **UUID** — not its short identifier — in <Badge text="integrationIds" variant="param" /> and as the keys of <Badge text="providerSettingsByIntegrationId" variant="param" />.
+The <strong>Identifier</strong> column matches the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. For OAuth providers it also matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>. When you reference a channel inside a post payload, use the channel's <strong>UUID</strong> — not its short identifier — in <Badge text="integrationIds" variant="param" /> and as the keys of <Badge text="providerSettingsByIntegrationId" variant="param" />.
 
 <Callout type="note" title="More providers will land in the same shape">
 <p>The provider catalog is sourced from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/integrationManager.ts"><Badge text="backend/integrations/integrationManager.ts" variant="path" /></DocsExternalLink>. Re-fetching <Badge text="GET /api/v1/public/integrations" variant="default" /> is the safest way to see what's available in any given Openquok deployment.</p>
@@ -39,7 +42,7 @@ The **Identifier** column matches the <Badge text=":integration" variant="param"
 
 To make it easy to scan what each platform needs — and to keep this page maintainable as we add more providers — the rest of this section splits providers into two groups: those that **need** provider-specific fields, and those that don't. When a new provider ships, add a row to whichever table it belongs in (and an `####` field reference below if it has custom settings) — no new tabs, no per-provider sub-pages.
 
-### Platforms with custom settings (2)
+### Platforms with custom settings
 
 These providers accept (or require) a per-channel <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> object with provider-specific fields:
 
@@ -47,6 +50,7 @@ These providers accept (or require) a per-channel <Badge text="providerSettingsB
 | --- | --- | --- |
 | Instagram (Business, FB-linked) | <Badge text="instagram-business" variant="default" /> | <Badge text="post_type" variant="param" />, <Badge text="collaborators" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="graduation_strategy" variant="param" /> |
 | Instagram (Standalone, IG Login) | <Badge text="instagram-standalone" variant="default" /> | <Badge text="post_type" variant="param" />, <Badge text="collaborators" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="graduation_strategy" variant="param" /> |
+| Dev.to | <Badge text="devto" variant="default" /> | <Badge text="title" variant="param" />, <Badge text="tags" variant="param" />, <Badge text="canonical" variant="param" />, <Badge text="organization" variant="param" />, <Badge text="main_image" variant="param" /> / <Badge text="mainImage" variant="param" /> |
 
 #### Instagram (Business + Standalone)
 
@@ -60,6 +64,22 @@ Both Instagram variants accept the **same** per-channel settings; pick the varia
 | <Badge text="collaborators" variant="param" /> | array of objects | IG usernames invited as collaborators (feed posts and reels only — **not** stories). Each item carries a <Badge text="label" variant="param" /> (string) field with the username. |
 
 Instagram requires **at least one** image or video for any post with `status: "scheduled"` — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramStandaloneProvider.ts"><Badge text="instagramStandaloneProvider.ts" variant="path" /></DocsExternalLink>. Captions are capped at <Badge text="2200 chars" variant="default" />.
+
+#### Dev.to
+
+Connect in the dashboard with a personal API key. Do <strong>not</strong> call <Badge text="GET /public/social/devto" variant="path" /> — that route returns 400.
+
+The article <strong>body</strong> is markdown on the top-level <Badge text="body" variant="param" />. Title and optional fields go in <Badge text="providerSettingsByIntegrationId" variant="param" /> (flat keys or a nested <Badge text="devto" variant="default" /> bucket):
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| <Badge text="title" variant="param" /> | string | Required. At least 2 characters. |
+| <Badge text="tags" variant="param" /> | array | Up to 4 names (strings or value/label objects). |
+| <Badge text="canonical" variant="param" /> | string | Optional syndication URL (aliases <Badge text="canonical_url" variant="param" />, <Badge text="canonicalUrl" variant="param" />). |
+| <Badge text="organization" variant="param" /> | integer | Optional organization id from the <Badge text="organizations" variant="default" /> tool. |
+| <Badge text="main_image" variant="param" /> / <Badge text="mainImage" variant="param" /> | object | Optional cover with a <Badge text="path" variant="param" /> from <Badge text="POST /public/upload" variant="path" />. |
+
+List tag and organization options with <a href="/docs/apis-integrations/integration-trigger">Trigger integration tool</a> methods <Badge text="tags" variant="default" /> and <Badge text="organizations" variant="default" />. See <a href="/docs/cli-examples/devto">Dev.to CLI examples</a>.
 
 ### Platforms without custom settings (1)
 
@@ -239,5 +259,6 @@ When <Badge text="isGlobal" variant="param" /> is `false`, channels listed in <B
 <LinkCard title="Public API Overview" description="Authentication, channel groups, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Integrations APIs" description="Connect / inspect / trigger endpoints around connected channels" href="/docs/apis-integrations" />
 <LinkCard title="Threads CLI examples" description="Follow-up replies, internal plugs, and cross-account comments" href="/docs/cli-examples/threads" />
-<LinkCard title="Social integration" description="Backend env vars and Meta dashboard setup for each provider" href="/docs/social-integration" />
+<LinkCard title="Dev.to CLI examples" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
+<LinkCard title="Social integration" description="OAuth apps, API keys, and dashboard setup for each provider" href="/docs/social-integration" />
 </CardGrid>

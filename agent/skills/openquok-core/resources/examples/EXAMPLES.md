@@ -84,6 +84,14 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | --- | --- |
 | [x-cross-account-repost.json](./x-cross-account-repost.json) | Internal plug — `x.crossAccountPlugs` (repost from other X channels) |
 
+## Dev.to
+
+| File | Scenario |
+| --- | --- |
+| [devto-article-title-tags.json](./devto-article-title-tags.json) | Markdown article + title + tags |
+| [devto-canonical.json](./devto-canonical.json) | Canonical URL syndication |
+| [devto-organization.json](./devto-organization.json) | Organization id + cover `mainImage.path` |
+
 ## Multi-channel
 
 | File | Scenario |

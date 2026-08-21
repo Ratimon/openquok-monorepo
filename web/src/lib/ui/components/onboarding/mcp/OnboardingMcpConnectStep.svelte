@@ -138,7 +138,7 @@
 									width="16"
 									height="16"
 								/>
-								<span><strong class="font-medium text-base-content">triggerTool</strong> — run provider helpers (subreddits, pages, Discord channels)</span>
+								<span><strong class="font-medium text-base-content">triggerTool</strong> — Dev.to tags and organizations, LinkedIn company URLs, and other provider helpers</span>
 							</li>
 							<li class="flex gap-2">
 								<AbstractIcon

@@ -2,7 +2,7 @@
 title: Integrations
 description: Discover connected channels, fetch each provider's settings schema, and trigger allow-listed provider tools.
 order: 2
-lastUpdated: 2026-06-26
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -13,8 +13,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 The <Badge text="integrations:*" variant="default" />  wraps the <a href="/docs/apis-integrations">Integrations APIs</a>. Use it to enumerate the connected channels, inspect what each provider supports, and dispatch one-off tool calls (e.g. fetch followers, list boards).
 
-<Callout type="note" title="OAuth happens in the web UI">
-<p>Connecting a brand-new channel still goes through the web app's OAuth flow (see <a href="/docs/social-integration">Social integrations</a>). Once connected, every other operation — listing, inspecting settings, triggering provider tools, deleting — is available from the CLI.</p>
+<Callout type="note" title="Connect happens in the web UI">
+<p>Connecting a brand-new channel still goes through the web app (OAuth redirect, or an API-key form for Dev.to — see <a href="/docs/social-integration">Social integrations</a>). Once connected, every other operation — listing, inspecting settings, triggering provider tools, deleting — is available from the CLI.</p>
 </Callout>
 
 ## List connected channels
@@ -84,12 +84,13 @@ openquok integrations:settings <integration-id> \
 
 ## Trigger a provider tool
 
-The <Badge text="integrations:trigger" variant="default" /> dispatches a single allow-listed provider method on a connected channel. Pass JSON input with <Badge text="-d" variant="param" /> (alias <Badge text="--data" variant="param" />).
+The <Badge text="integrations:trigger" variant="default" /> dispatches a single allow-listed provider method on a connected channel. Pass JSON input with <Badge text="-d" variant="param" /> (alias <Badge text="--data" variant="param" />). Dev.to exposes <Badge text="tags" variant="default" /> and <Badge text="organizations" variant="default" /> (no input). LinkedIn exposes <Badge text="company" variant="default" /> with a company URL in <Badge text="-d" variant="param" />.
 
 ```bash
-openquok integrations:trigger <integration-id> getThings
-openquok integrations:trigger <integration-id> searchThings \
-  -d '{"query":"openquok"}'
+openquok integrations:trigger <integration-id> tags
+openquok integrations:trigger <integration-id> organizations
+openquok integrations:trigger <integration-id> company \
+  -d '{"url":"https://www.linkedin.com/company/example"}'
 ```
 
 The response shape is provider-specific. Most tools return a top-level <Badge text="output" variant="param" /> array of entries that expose <Badge text="id" variant="param" />, <Badge text="value" variant="param" />, and <Badge text="name" variant="param" /> fields you can feed back into <Badge text="posts:create" variant="default" /> <Badge text="--providerSettingsByIntegrationId" variant="param" />.
@@ -100,15 +101,17 @@ When working with a channel for the first time:
 
 ```bash
 INTEGRATION_ID=$(openquok integrations:list \
-  | jq -r '.[] | select(.identifier=="threads") | .id')
+  | jq -r '.[] | select(.identifier=="devto") | .id')
 
 openquok integrations:settings "$INTEGRATION_ID" | jq '{maxLength: .output.maxLength, tools: [.output.tools[].methodName]}'
 
-openquok integrations:trigger "$INTEGRATION_ID" getThings | jq '.output[0:3]'
+openquok integrations:trigger "$INTEGRATION_ID" tags | jq '.output[0:3]'
+openquok integrations:trigger "$INTEGRATION_ID" organizations
 
 openquok posts:create \
   -s "2026-01-15T12:00:00Z" \
-  -c "Hello, world!" \
+  -c "Hello from a scheduled markdown article." \
+  --settings '{"title":"Hello from OpenQuok","tags":["webdev"]}' \
   -i "$INTEGRATION_ID"
 ```
 
@@ -127,5 +130,5 @@ openquok posts:create \
 <LinkCard title="Global Plugs" description="Channel-level likes-threshold rules (plugs:catalog, plugs:upsert, …)" href="/docs/cli-usages/plugs" />
 <LinkCard title="Analytics" description="Review channel and post performance after content goes live" href="/docs/cli-usages/analytics" />
 <LinkCard title="Integrations APIs" description="Call the API for the same list, settings, and tool workflows as the CLI" href="/docs/apis-integrations" />
-<LinkCard title="Social integrations" description="Connect accounts with OAuth before you automate them from the terminal" href="/docs/social-integration" />
+<LinkCard title="Social integrations" description="Connect accounts with OAuth or an API key before you automate them from the terminal" href="/docs/social-integration" />
 </CardGrid>

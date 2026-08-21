@@ -1,8 +1,8 @@
 ---
-title: Overview - Connetions
-description: Connect social channels (Meta Threads and more) to Openquok — OAuth, backend env, and Meta dashboard settings.
+title: Overview - Connections
+description: Connect social channels to Openquok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
-lastUpdated: 2026-04-02
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -11,9 +11,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-Openquok connects **social channels** through the **backend** integration layer: OAuth flows, organization-scoped channels, and optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token. Credentials and redirect URLs are configured via **environment variables** on the backend and **Meta for Developers** (for Threads, Instagram, and other providers). See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
+Openquok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of two connect families.
 
-The flow matches common **OAuth-based social tools**: you register apps with each platform, set redirect URIs, and store client IDs and secrets in env—**never** in client-side code or the repo.
+<strong>Most</strong> channels use <strong>OAuth</strong>: you register an operator developer app, set redirect URIs, and store client IDs and secrets in backend env—**never** in client-side code or the repo. <strong>Some</strong> channels (Dev.to) use a <strong>personal API key</strong> the user pastes in Add Channel — no operator app and no OpenQuok env keys. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
 
 <Callout type="danger" title="Secrets">
 Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host’s secret store in production).
@@ -30,6 +30,7 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <LinkCard title="LinkedIn" description="Connect your personal LinkedIn profile for posts and documents" href="/docs/social-integration/linkedin" />
 <LinkCard title="LinkedIn Page" description="Connect a Company Page to post and view page insights" href="/docs/social-integration/linkedin-page" />
 <LinkCard title="X" description="Connect X (Twitter) so you can schedule posts" href="/docs/social-integration/x" />
+<LinkCard title="Dev.to" description="Connect with a personal API key and schedule markdown articles" href="/docs/social-integration/devto" />
 <LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/developer-guidelines/add-provider" />
 </CardGrid>
 

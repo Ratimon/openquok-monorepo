@@ -2,6 +2,7 @@ import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicC
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildAgentChannelAnalyticsCliCommands,
+	buildAgentChannelCanonicalCliCommands,
 	buildAgentChannelCliCommandReference,
 	buildAgentChannelKanbanCliCommands
 } from '$lib/content/utils/buildAgentChannelCliCommandReference';
@@ -18,7 +19,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	youtube: ['youtube'],
 	tiktok: ['tiktok'],
 	linkedin: ['linkedin', 'linkedin-page'],
-	x: ['x']
+	x: ['x'],
+	devto: ['devto']
 };
 
 const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -28,7 +30,8 @@ const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
 	youtube: 'youtube-bulk-scheduling',
 	tiktok: 'tiktok-bulk-scheduling',
 	linkedin: 'linkedin-bulk-scheduling',
-	x: 'x-bulk-scheduling'
+	x: 'x-bulk-scheduling',
+	devto: 'devto-bulk-scheduling'
 };
 
 const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -38,7 +41,8 @@ const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = 
 	youtube: 'youtube-insights',
 	tiktok: 'tiktok-insights',
 	linkedin: 'linkedin-insights',
-	x: 'x-insights'
+	x: 'x-insights',
+	devto: 'devto-canonical'
 };
 
 export function buildAgentChannelPageConfig(
@@ -67,12 +71,15 @@ export function buildAgentChannelPageConfig(
 		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
 		commands: buildAgentChannelCliCommandReference(channel.slug),
 		kanbanCliCommands: buildAgentChannelKanbanCliCommands(channel.slug, channel.platformLabel),
-		analyticsCliCommands: buildAgentChannelAnalyticsCliCommands(
-			channel.platformLabel,
-			providerIdentifiers
-		),
+		analyticsCliCommands:
+			channel.slug === 'devto'
+				? buildAgentChannelCanonicalCliCommands('devto')
+				: buildAgentChannelAnalyticsCliCommands(channel.platformLabel, providerIdentifiers),
 		kanbanMcpPrompts: `Schedule a ${channel.platformLabel} post for tomorrow at 9am — move to review with a note to check the CTA before it goes live`,
-		analyticsMcpPrompts: `What performed best on my ${channel.platformLabel} account over the last 30 days?
+		analyticsMcpPrompts:
+			channel.slug === 'devto'
+				? `List Dev.to tags I can use, then schedule an article with a canonical URL pointing at my original post`
+				: `What performed best on my ${channel.platformLabel} account over the last 30 days?
 Break down likes, comments, and shares for post <id>`
 	};
 }

@@ -10,6 +10,7 @@ import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-temp
 import { TIKTOK_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/tiktok/tiktokLandingMock';
 import { X_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/x/xLandingMock';
 import { YOUTUBE_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/youtube/youtubeLandingMock';
+import { DEVTO_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/devto/devtoLandingMock';
 
 function channelSlot(
 	channel: typeof FACEBOOK_LANDING_MOCK_CHANNEL
@@ -29,6 +30,7 @@ const youtubeSlot = channelSlot(YOUTUBE_LANDING_MOCK_CHANNEL);
 const tiktokSlot = channelSlot(TIKTOK_LANDING_MOCK_CHANNEL);
 const linkedinSlot = channelSlot(LINKEDIN_LANDING_MOCK_CHANNEL);
 const xSlot = channelSlot(X_LANDING_MOCK_CHANNEL);
+const devtoSlot = channelSlot(DEVTO_LANDING_MOCK_CHANNEL);
 
 /** Mixed-platform kanban cards for generic agent host landing pages. */
 export const AGENT_MULTI_PLATFORM_KANBAN_CARDS: PostKanbanCardViewModel[] = [
@@ -157,6 +159,24 @@ export const AGENT_MULTI_PLATFORM_KANBAN_CARDS: PostKanbanCardViewModel[] = [
 		isAgentEdited: true,
 		isReviewed: false,
 		tagNames: []
+	},
+	{
+		postId: 'landing-agent-kanban-devto-scheduled',
+		postGroup: 'landing-agent-kanban-group-8',
+		column: 'scheduled',
+		contentPreview: 'Markdown tutorial — title, tags, and canonical URL set for Dev.to.',
+		publishLabel: 'Jun 26, 2026',
+		publishTimeLabel: '9:00 AM',
+		relativePublishLabel: '(in 18 days)',
+		statusLabel: 'Scheduled',
+		publishDateIso: '2026-06-26T09:00:00.000Z',
+		note: 'Approved in review',
+		channelSlots: [devtoSlot],
+		hiddenChannelCount: 0,
+		primaryChannelName: DEVTO_LANDING_MOCK_CHANNEL.name,
+		isAgentEdited: true,
+		isReviewed: true,
+		tagNames: ['webdev']
 	}
 ];
 
@@ -167,5 +187,6 @@ export const AGENT_MULTI_PLATFORM_MOCK_CHANNELS = [
 	YOUTUBE_LANDING_MOCK_CHANNEL,
 	TIKTOK_LANDING_MOCK_CHANNEL,
 	LINKEDIN_LANDING_MOCK_CHANNEL,
-	X_LANDING_MOCK_CHANNEL
+	X_LANDING_MOCK_CHANNEL,
+	DEVTO_LANDING_MOCK_CHANNEL
 ];

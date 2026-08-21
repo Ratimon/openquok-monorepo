@@ -63,6 +63,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'bulk',
 	'craft',
 	'cli',
+	'Claude Code',
+	'Dev.to',
 	'openclaw',
 	'hermes',
 	'Grok Bot',

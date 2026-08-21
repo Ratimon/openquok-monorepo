@@ -539,6 +539,7 @@
 							}
 						: null}
 					previewMetaLabel={previewScheduleMetaLabel}
+					providerSettings={previewProviderSettings}
 				/>
 			</div>
 		</div>

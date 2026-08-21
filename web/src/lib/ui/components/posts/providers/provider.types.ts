@@ -66,6 +66,18 @@ export type XLaunchProviderSettings = {
 	message?: string;
 };
 
+export type DevtoTagOption = { value: string; label: string };
+
+export type DevtoOrganizationOption = { id: number; name: string; username: string };
+
+export type DevtoLaunchProviderSettings = {
+	title: string;
+	canonical?: string;
+	organization?: number;
+	tags: DevtoTagOption[];
+	mainImage?: { path: string };
+};
+
 export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */

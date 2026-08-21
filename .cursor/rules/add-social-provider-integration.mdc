@@ -1,12 +1,12 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tags
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tag (secret-admin)
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
   - backend/services/IntegrationConnectionService.ts
-  - backend/supabase/db/listing-tags/**
-  - backend/supabase/db/listings/**
+  - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
   - web/src/lib/ui/components/posts/providers/**
+  - web/src/lib/ui/components/posts/AddProvider.svelte
   - web/src/lib/ui/components/posts/SettingsAccordion.svelte
   - web/src/lib/ui/components/posts/IntegrationContinue.svelte
   - web/src/lib/integrations/continue-provider/**
@@ -14,6 +14,7 @@ globs:
   - web/src/data/social-providers.ts
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
+  - web/src/content/docs/developer-guidelines/add-provider.md
   - web/src/content/constants/publicChannelConfig.ts
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
   - web/src/content/constants/publicAgentChannelConfig.ts
@@ -62,7 +63,14 @@ alwaysApply: false
 
 # Adding a social provider
 
-Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tag** in one change. Reference implementations: **Threads** (single-step OAuth), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings). Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag + group reference: `backend/supabase/db/listing-tags/502_20260629_seed.sql`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Ship **backend + web + docs + self-host env + public channel landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases** in one change. Add the **Extensions Hub listing tag in secret-admin** (not SQL seeds). Connect is a fork of this checklist, not a separate product surface — pick **OAuth** (default) or **credentials in OpenQuok**.
+
+| Family | Operator developer app? | User action | OpenQuok env keys | Reference |
+| --- | --- | --- | --- | --- |
+| **OAuth** (default) | Yes | Redirect to the platform | `config.integrations.*` + self-host `.env.example` + docker-compose row | **Threads** (single-step), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings) |
+| **Credentials in OpenQuok** | **No** | Paste personal API key / app password into Add Channel | **None** — do not invent empty `{PROVIDER}_*` placeholders | **Dev.to (`devto`)** |
+
+Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/listing-manager/tags`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
 
 ## Identifier contract
 
@@ -70,53 +78,39 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
 
 ## Backend (required)
 
-1. **`SocialProvider` class** — `backend/integrations/providers/{id}/` implementing `social.integrations.interface.ts`: OAuth (`generateAuthUrl`, `authenticate`), `post`, `maxLength`, scopes. Split publish logic into helpers (e.g. `*GraphPublish.ts`) when non-trivial.
+1. **`SocialProvider` class** — `backend/integrations/providers/{id}/` implementing `social.integrations.interface.ts`: connect (`generateAuthUrl`, `authenticate`), `post`, `maxLength`, scopes. Split publish logic into helpers (e.g. `*GraphPublish.ts`) when non-trivial.
+
+   `generateAuthUrl` / `authenticate` are **OAuth code exchange** (default) **or credentials**:
+   - **OAuth:** `generateAuthUrl` returns a platform authorize URL; `authenticate` exchanges `code`.
+   - **Credentials:** implement `customFields()` (catalog metadata: `key`, `label`, `validation` regex, `type`). Session `getIntegrationUrl` still seeds org/state cache — `generateAuthUrl` returns a random `state` and sets `url` to that `state` (not a real redirect). `authenticate` decodes `code` as base64 JSON (e.g. `{ apiKey }`), validates against the platform, and stores the secret as `accessToken`. Reference: **Dev.to (`devto`)**.
 2. **Register** — add `new YourProvider()` in `backend/integrations/integrationManager.ts` (no new REST routes).
-3. **Config** — secrets only via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Also add the same empty keys to **`infra/self-host/.env.example`** (Social provider apps section) so self-host operators get the vars. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
+3. **Config (OAuth only)** — operator app secrets via `config.integrations.*` in `GlobalConfig.ts` + `.env.development.example`. Also add the same empty keys to **`infra/self-host/.env.example`** (Social provider apps section) so self-host operators get the vars. Redirect URI: `oauthFrontendOrigin()` + `oauthFrontendSocialCallbackPath(identifier)`.
+
+   **Credentials (`customFields()` set):** skip `GlobalConfig`, `.env.development.example`, and `infra/self-host/.env.example` — do not invent empty `{PROVIDER}_*` placeholders. Document in `web/src/content/docs/installation/docker-compose.md` that the channel needs **no** operator developer app. Session `getIntegrationUrl` still seeds cache for the dashboard form; `GET /public/social/:identifier` (`getIntegrationUrlPublicApi`) must **400** (connect this channel in the dashboard with an API key). Do not add a new public connect route.
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **Tests** — unit tests for OAuth edge cases, publish payload shaping, and connection save when behavior differs.
 
-## Extensions Hub listing tags (required for social channels)
+## Extensions Hub listing tags (required for social channels) — no DB migrations
 
-The public **Extensions Hub** (`/extensions`) filters skills and MCP listings by **tag** and **tag group**. Each social channel needs a matching `listing_tags` row and group associations so hub filters stay aligned with shipped providers.
+The public **Extensions Hub** (`/extensions`) filters skills and MCP listings by **tag**. Each social channel needs a matching `listing_tags` row so hub filters stay aligned with shipped providers.
 
-Follow **backend-migrations-naming** (`listing-tags_<YYYYMMDD>_seed.sql` under `backend/supabase/db/listing-tags/`). Re-aggregate migrations after seed changes.
+**Do not** edit `backend/supabase/db/listing-tags/**`, `backend/supabase/db/listings/**`, or re-aggregate `backend/supabase/migrations/` for a new channel tag. Create the tag in secret-admin (or hand paste-ready copy to an operator). Same CMS path as agent launches in **add-agent**.
 
-| Artifact | Path / action |
-| --- | --- |
-| Channel tag row | New `INSERT` in `backend/supabase/db/listing-tags/501_*.sql` (or a later `501`-tier seed if `501` already shipped) |
-| Group associations | `backend/supabase/db/listing-tags/502_*.sql` — append rows to `listing_tag_groups_listing_tags_association` with slug comments (see existing file) |
-| Slug + name | `slug` = `provider.identifier`; `name` = human label (e.g. `Facebook`, `X`) |
-| Description | One neutral sentence on what the channel integration covers (no third-party attribution) |
-| Stable UUID | New `d5f7c000-0000-4000-a000-…` id; never reuse or reassign ids |
+### Listing tag — Listing Manager
 
-### Tag groups (social channels only)
+1. `/secret-admin/listing-manager/tags` → **Add tag**
+2. **Name:** human label that slugs to `provider.identifier` via `stringToSlug` (punctuation is stripped — e.g. `Dev.to` → `devto`, `YouTube` → `youtube`)
+3. **Description:** one neutral sentence on what the channel integration covers (no third-party attribution)
+4. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
 
-A channel tag usually belongs to **Social platforms** plus one or more **content-type** groups. Tags may belong to multiple groups. Group ids and membership rules live in `502_*.sql` — keep the overview comment block there up to date.
+**UI gap:** Tags modal has name + description only; **`tagGroupIds` is always `[]`**. Social platforms / Videos / Photos / Text hub group membership is not editable in UI — the tag still works on listings and free tag filters.
 
-| Group | When to add the channel tag |
-| --- | --- |
-| **Social platforms** | **Always** — every social channel tag |
-| **Videos** | Video-first publish (e.g. YouTube, TikTok) |
-| **Photos** | Image-first feed workflows (e.g. Instagram, Facebook Page photos) |
-| **Text** | Text and microblog channels (e.g. Threads, LinkedIn, X) |
+Agent / MCP tags (OpenClaw, Cursor, Codex, …) are **not** part of this checklist — only add those when shipping agent or MCP catalog entries.
 
-Agent / MCP tags (OpenClaw, Cursor, Codex, …) are **not** part of this checklist — only add those when shipping agent or MCP catalog entries, not when adding a social provider.
+If the provider is live (`available: true` on the channel landing), add the tag when the integration ships — do not leave hub filters missing a channel users can connect.
 
-### Listing associations
-
-When **openquok-core** (or another seed listing) should expose every catalog tag, `backend/supabase/db/listings/502_*.sql` uses a `CROSS JOIN` on `listing_tags` — new channel tags are picked up automatically after migrations run. For other listings, update `listing_tag_slugs` and `listings_listing_tags_association` explicitly.
-
-### Seed edit checklist
-
-1. Insert `listing_tags` row (`ON CONFLICT (id) DO NOTHING`).
-2. Add association to **Social platforms** (`listing_tag_group_id` …`000002`).
-3. Add **Videos** / **Photos** / **Text** associations when the provider fits (see table above).
-4. Comment each association line with `-- {slug}` and update the group header comment listing member slugs.
-5. If the provider is live (`available: true` on the channel landing), ship the tag in the **same PR** as the integration — do not leave hub filters missing a channel users can connect.
-
-Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter.svelte` (no per-provider page changes when only seed data changes).
+Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter.svelte` (no per-provider page changes when only catalog data changes).
 
 ## Web (composer + connect)
 
@@ -127,6 +121,10 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
 4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`.
 5. **Labels** — `web/src/data/social-providers.ts` when the slug is new.
+6. **Credentials connect** (`customFields` on the catalog) — in-app form, not a platform redirect:
+   - **Add Channel** — `AddProvider.svelte` shows the provider in the normal grid and opens the credentials dialog (password input + regex from catalog). Submit: `getAuthorizeUrl` (seeds cache; returned `url` is the `state`) then `connectSocial` with that `state` and `code` = `btoa(JSON.stringify({ apiKey }))`.
+   - **Invite links** — keep filtering `customFields` providers out of invite-link copy.
+   - **Continue / refresh** — `IntegrationContinue.svelte` must **not** set `window.location.href` to a non-URL `state` string. When the catalog has `customFields`, reuse the same credentials form so `?refresh=` works without an OAuth redirect.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
 
@@ -239,10 +237,10 @@ Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChan
 
 | Artifact | Path |
 | --- | --- |
-| Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard |
+| Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard. **Credentials:** document where the **user** creates the API key (platform settings); skip operator ID/secret rows and backend env sections. **OAuth:** operator app + redirect URI as today. |
 | CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
-| Self-host env template | `infra/self-host/.env.example` — add `{PROVIDER}_*` / `{PROVIDER}_*_SECRET` (or the keys `GlobalConfig` expects) under **Social provider apps** |
-| Self-host install docs | `web/src/content/docs/installation/docker-compose.md` — add the new ID/secret pair to **Optional: Social provider apps** (and keep Related / in-section LinkCard to `/docs/social-integration`) |
+| Self-host env template | **OAuth only:** `infra/self-host/.env.example` — add `{PROVIDER}_*` / `{PROVIDER}_*_SECRET` (or the keys `GlobalConfig` expects) under **Social provider apps**. **Credentials:** no new secrets; optional one-line comment that the user pastes an API key in the dashboard. |
+| Self-host install docs | **OAuth:** add the new ID/secret pair to **Optional: Social provider apps** in `web/src/content/docs/installation/docker-compose.md`. **Credentials:** call out that the channel needs **no** operator app (keep Related / in-section LinkCard to `/docs/social-integration`). |
 | Agent skill index | `agent/skills/openquok-core/SKILL.md` — add row under **Channels** with user-intent summary + link to `{id}-examples.md` |
 | Agent per-channel file | `agent/skills/openquok-core/resources/{id}-examples.md` (slug = `provider.identifier`; e.g. `facebook`, `threads`, `instagram-business`) |
 | Agent settings hub | `agent/skills/openquok-core/resources/provider-settings.md` — update when merge semantics or cross-channel setting patterns change |
@@ -454,18 +452,21 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 ## PR self-check
 
 - Provider registered in `integrationManager.ts` and `getLaunchProviderConfig` (if composer support).
-- Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
+- **OAuth only:** Redirect URI in platform console matches `/integration/oauth/{identifier}` exactly.
+- **Credentials only:** no new env vars; docker-compose callout that there is no operator app; dashboard Add Channel / refresh connect works; `GET /public/social/{identifier}` returns 400.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
 - **`publicChannelConfig`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
+- **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
-- **Self-host:** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
+- **Self-host (OAuth):** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
+- **Self-host (credentials):** no `{PROVIDER}_*` keys; docker-compose notes that the channel uses a user API key in the dashboard.
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
 - **Best Time to Post:** `PLATFORM_WINDOWS['{identifier}']` in `benchmarkSlots.ts` (no silent `DEFAULT_WINDOWS` for a live channel); `BENCHMARK_SLOTS_LAST_REVIEWED` updated when windows change; optional `CHANNEL_HUB_DESCRIPTIONS` entry; `/tools/best-time-to-post/{slug}` resolves when channel is live; calculator platform picker and **By channel** hub include the new channel automatically.
 - **Humanizer:** live channels (`available: true`) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees).
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
-- **Listing tags:** `listing_tags.slug` matches `provider.identifier`; row in `listing-tags/501_*.sql`; **Social platforms** association (+ **Videos** / **Photos** / **Text** as appropriate) in `listing-tags/502_*.sql` with slug comments; migrations re-aggregated.
+- **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
