@@ -192,12 +192,14 @@ Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in 
 
 ### Listing tag — Listing Manager
 
-1. `/secret-admin/listing-manager/tags` → **Add tag**
+1. `/secret-admin/listing-manager/tags` → **Add tag** (or edit an existing tag)
 2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
 3. **Description:** one neutral sentence on skills/CLI for that host
-4. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
-
-**UI gap:** Tags modal has name + description only; **`tagGroupIds` is always `[]`**. Autonomous agents hub group membership is not editable in UI — tag still works on listings and free tag filters.
+4. **Tag groups:** check the groups that match the product surface in the tag modal (seeded catalog groups include **Autonomous agents**, **CLI**, **IDE**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
+   - Agent hosts (OpenClaw, Hermes, Grok Bot) → **Autonomous agents**
+   - Terminal-first MCP clients → **CLI**
+   - Editor / desktop MCP clients → **IDE**
+5. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
 
 Do **not** create a separate Extensions Hub listing row unless shipping a dedicated catalog card (OpenClaw/Hermes use tag-only).
 

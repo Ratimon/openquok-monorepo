@@ -155,6 +155,58 @@ export class ListingTagRepository {
         return { data: (data ?? []) as ListingTagGroup[] };
     }
 
+    async createTagGroup(name: string): Promise<ListingTagGroup> {
+        const { data, error } = await this.supabase
+            .from(TABLE_GROUPS)
+            .insert({ name })
+            .select("id, name")
+            .single();
+
+        if (error) {
+            if (error.message.includes("duplicate key value")) {
+                throw new ValidationError("A tag group with this name already exists.");
+            }
+            throw new DatabaseError(`Error creating tag group: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "insert",
+            });
+        }
+
+        return { id: data.id as string, name: data.name as string };
+    }
+
+    async updateTagGroup(id: string, name: string): Promise<ListingTagGroup> {
+        const { data, error } = await this.supabase
+            .from(TABLE_GROUPS)
+            .update({ name, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select("id, name")
+            .single();
+
+        if (error) {
+            if (error.message.includes("duplicate key value")) {
+                throw new ValidationError("A tag group with this name already exists.");
+            }
+            throw new DatabaseError(`Error updating tag group: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "update",
+            });
+        }
+
+        return { id: data.id as string, name: data.name as string };
+    }
+
+    async deleteTagGroup(id: string): Promise<void> {
+        const { error } = await this.supabase.from(TABLE_GROUPS).delete().eq("id", id);
+
+        if (error) {
+            throw new DatabaseError(`Error deleting tag group: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "delete",
+            });
+        }
+    }
+
     private async syncTagGroups(tagId: string, groupIds: string[]): Promise<void> {
         await this.supabase.from(TABLE_GROUP_ASSOC).delete().eq("listing_tag_id", tagId);
 

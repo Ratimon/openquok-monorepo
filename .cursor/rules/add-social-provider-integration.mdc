@@ -99,12 +99,14 @@ The public **Extensions Hub** (`/extensions`) filters skills and MCP listings by
 
 ### Listing tag — Listing Manager
 
-1. `/secret-admin/listing-manager/tags` → **Add tag**
+1. `/secret-admin/listing-manager/tags` → **Add tag** (or edit an existing tag)
 2. **Name:** human label that slugs to `provider.identifier` via `stringToSlug` (punctuation is stripped — e.g. `Dev.to` → `devto`, `YouTube` → `youtube`)
 3. **Description:** one neutral sentence on what the channel integration covers (no third-party attribution)
-4. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
-
-**UI gap:** Tags modal has name + description only; **`tagGroupIds` is always `[]`**. Social platforms / Videos / Photos / Text hub group membership is not editable in UI — the tag still works on listings and free tag filters.
+4. **Tag groups:** check the hub filter groups in the tag modal (seeded catalog groups include **Social platforms**, **Videos**, **Photos**, **Text**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
+   - Video-first channels (e.g. YouTube, TikTok) → **Videos** and usually **Social platforms**
+   - Image-first feeds (e.g. Instagram) → **Photos** and usually **Social platforms**
+   - Text / microblog channels (e.g. X, Threads, LinkedIn) → **Text** and usually **Social platforms**
+5. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
 
 Agent / MCP tags (OpenClaw, Cursor, Codex, …) are **not** part of this checklist — only add those when shipping agent or MCP catalog entries.
 

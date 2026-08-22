@@ -204,6 +204,14 @@ export const listingTagFormSchema = z.object({
 
 export type ListingTagFormSchemaType = z.infer<typeof listingTagFormSchema>;
 
+/** Form schema for create/update listing tag groups. */
+export const listingTagGroupFormSchema = z.object({
+	id: z.string().uuid('Invalid tag group id').optional(),
+	name: z.string().min(2, 'Name must be at least 2 characters')
+});
+
+export type ListingTagGroupFormSchemaType = z.infer<typeof listingTagGroupFormSchema>;
+
 /** Choice for category select: value + label (with hierarchy path). */
 export interface CategoryChoice {
 	value: string;

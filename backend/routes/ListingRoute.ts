@@ -1,5 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { listingController } from "../controllers/index";
+import { listingController, listingTagController } from "../controllers/index";
 import {
     requireFullAuthWithRoles,
     optionalAuthWithRoles,
@@ -37,6 +37,8 @@ import {
     listingTagCreateSchema,
     listingTagUpdateSchema,
     listingTagIdParamSchema,
+    listingTagGroupCreateSchema,
+    listingTagGroupIdParamSchema,
 } from "../data/schemas/listingTagSchemas";
 import { isValidUUID } from "../utils/validation/uuid";
 import { z } from "zod";
@@ -129,31 +131,53 @@ listingRouter.delete(
 );
 
 // --- Tags ---
-listingRouter.get("/tags/active-partial", listingController.getActivePartialTags);
-listingRouter.get("/tags/active-full", listingController.getActiveFullTags);
-listingRouter.get("/tags/all-full", listingController.getAllFullTags);
-listingRouter.get("/tags/groups", listingController.getAllTagGroups);
+listingRouter.get("/tags/active-partial", listingTagController.getActivePartialTags);
+listingRouter.get("/tags/active-full", listingTagController.getActiveFullTags);
+listingRouter.get("/tags/all-full", listingTagController.getAllFullTags);
+listingRouter.get("/tags/groups", listingTagController.getAllTagGroups);
+
+listingRouter.post(
+    "/tags/groups",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ body: listingTagGroupCreateSchema }),
+    listingTagController.createTagGroup
+);
+listingRouter.put(
+    "/tags/groups/:tagGroupId",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: listingTagGroupIdParamSchema, body: listingTagGroupCreateSchema }),
+    listingTagController.updateTagGroup
+);
+listingRouter.delete(
+    "/tags/groups/:tagGroupId",
+    authWithRoles,
+    requireEditor,
+    validateRequest({ params: listingTagGroupIdParamSchema }),
+    listingTagController.deleteTagGroup
+);
 
 listingRouter.post(
     "/tags",
     authWithRoles,
     requireEditor,
     validateRequest({ body: tagBodySchema }),
-    listingController.createTag
+    listingTagController.createTag
 );
 listingRouter.put(
     "/tags/:tagId",
     authWithRoles,
     requireEditor,
     validateRequest({ params: listingTagIdParamSchema, body: tagUpdateBodySchema }),
-    listingController.updateTag
+    listingTagController.updateTag
 );
 listingRouter.delete(
     "/tags/:tagId",
     authWithRoles,
     requireEditor,
     validateRequest({ params: listingTagIdParamSchema }),
-    listingController.deleteTag
+    listingTagController.deleteTag
 );
 
 // --- Creators ---

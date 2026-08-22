@@ -2,7 +2,6 @@ import { faker } from "@faker-js/faker";
 import { ListingService } from "./ListingService";
 import type { ListingRepository } from "../repositories/ListingRepository";
 import type { ListingCategoryRepository } from "../repositories/ListingCategoryRepository";
-import type { ListingTagRepository } from "../repositories/ListingTagRepository";
 import type { ConfigRepository } from "../repositories/ConfigRepository";
 import type { PublishedListingsFilterOptions, AdminListingsFilterOptions } from "../data/types/listingTypes";
 import type {
@@ -122,18 +121,6 @@ function createMockCategoryRepo(): jest.Mocked<ListingCategoryRepository> {
     } as unknown as jest.Mocked<ListingCategoryRepository>;
 }
 
-function createMockTagRepo(): jest.Mocked<ListingTagRepository> {
-    return {
-        findActivePartialTags: jest.fn(),
-        findActiveFullTags: jest.fn(),
-        findAllFullTags: jest.fn(),
-        createTag: jest.fn(),
-        updateTag: jest.fn(),
-        deleteTag: jest.fn(),
-        findAllTagGroups: jest.fn(),
-    } as unknown as jest.Mocked<ListingTagRepository>;
-}
-
 function createMockConfigRepo(
     config: Record<string, string> = {
         PRE_ADMIN_APPROVE_NEW_LISTINGS: "false",
@@ -148,13 +135,11 @@ function createMockConfigRepo(
 describe("ListingService", () => {
     let listingRepo: jest.Mocked<ListingRepository>;
     let categoryRepo: jest.Mocked<ListingCategoryRepository>;
-    let tagRepo: jest.Mocked<ListingTagRepository>;
     let configRepo: jest.Mocked<ConfigRepository>;
 
     beforeEach(() => {
         listingRepo = createMockListingRepo();
         categoryRepo = createMockCategoryRepo();
-        tagRepo = createMockTagRepo();
         configRepo = createMockConfigRepo();
     });
 
@@ -177,7 +162,7 @@ describe("ListingService", () => {
         it("returns listingsResult and countResult from repository when no cache", async () => {
             const listings: ListingLike[] = [{ ...mockListing }];
             listingRepo.findPublishedListings.mockResolvedValue({ data: listings, count: 1 });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getPublishedListings({ limit: 10 });
             expect(result.listingsResult).toEqual(listings);
             expect(result.countResult).toBe(1);
@@ -188,7 +173,7 @@ describe("ListingService", () => {
 
         it("normalizes options with defaults", async () => {
             listingRepo.findPublishedListings.mockResolvedValue({ data: [], count: 0 });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             await service.getPublishedListings({});
             expect(listingRepo.findPublishedListings).toHaveBeenCalledWith(defaultOptions);
         });
@@ -196,7 +181,7 @@ describe("ListingService", () => {
         it("uses cache key from buildPublishedListingCacheKey when cache provided", async () => {
             const payload = { listingsResult: [mockListing], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
+            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
             const options: PublishedListingsFilterOptions = {
                 limit: 5,
                 categorySlug: "ai-agents",
@@ -230,7 +215,7 @@ describe("ListingService", () => {
 
         it("returns admin listings from repository", async () => {
             listingRepo.findAdminListings.mockResolvedValue({ data: [mockListing], count: 1 });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getAdminListings({ limit: 10 });
             expect(result.listingsResult).toEqual([mockListing]);
             expect(result.countResult).toBe(1);
@@ -239,7 +224,7 @@ describe("ListingService", () => {
         it("uses cache key from buildAdminListingCacheKey when cache provided", async () => {
             const payload = { listingsResult: [mockListing], countResult: 1 };
             const getOrSet = jest.fn().mockResolvedValue(payload);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
+            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getAdminListings({ limit: 5, listingKind: "stack" });
             const expectedKey = buildAdminListingCacheKey(
                 { ...defaultAdminOptions, limit: 5, listingKind: "stack" },
@@ -252,14 +237,14 @@ describe("ListingService", () => {
 
     describe("getListingById", () => {
         it("throws ValidationError for invalid UUID", async () => {
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             await expect(service.getListingById("not-a-uuid")).rejects.toThrow(ValidationError);
             expect(listingRepo.findListingById).not.toHaveBeenCalled();
         });
 
         it("returns listing from repository when no cache", async () => {
             listingRepo.findListingById.mockResolvedValue({ data: mockListing });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getListingById(listingId);
             expect(result).toEqual(mockListing);
             expect(listingRepo.findListingById).toHaveBeenCalledWith(listingId);
@@ -270,7 +255,7 @@ describe("ListingService", () => {
         it("uses extension cache prefix by default", async () => {
             listingRepo.findPublishedListingBySlug.mockResolvedValue({ data: mockListing });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
+            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getPublishedListingBySlug(slugFromTitle);
             expect(getOrSet).toHaveBeenCalledWith(
                 `listing:published:bySlug:${slugFromTitle}`,
@@ -283,7 +268,7 @@ describe("ListingService", () => {
         it("uses stack cache prefix for stack kind", async () => {
             listingRepo.findPublishedListingBySlug.mockResolvedValue({ data: { ...mockListing, listing_kind: "stack" } });
             const getOrSet = jest.fn().mockImplementation(async (_key, factory) => factory());
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
+            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
             await service.getPublishedListingBySlug("my-stack", "stack");
             expect(getOrSet).toHaveBeenCalledWith(
                 "listing:stack:bySlug:my-stack",
@@ -306,7 +291,7 @@ describe("ListingService", () => {
                 isAdminApproved: false,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const result = await service.createListing(validCreateBody, ownerId, false);
             expect(result.id).toBe(listingId);
             expect(result.isAdminApproved).toBe(false);
@@ -326,7 +311,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingCreateBodySchemaType = {
                 ...validCreateBody,
                 listingData: { ...validCreateBody.listingData, is_admin_published: true },
@@ -349,7 +334,7 @@ describe("ListingService", () => {
                 isUserApproved: true,
             });
             const explicitOwnerId = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingCreateBodySchemaType = {
                 ...validCreateBody,
                 listingData: {
@@ -378,7 +363,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             await service.createListing(validCreateBody, ownerId, false);
             expect(listingRepo.createListing).toHaveBeenCalledWith(
                 validCreateBody.listingData,
@@ -397,7 +382,7 @@ describe("ListingService", () => {
             });
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, {
+            const service = new ListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never, configRepo);
@@ -419,7 +404,7 @@ describe("ListingService", () => {
                 isAdminApproved: true,
                 isUserApproved: true,
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const result = await service.updateListing(validUpdateBody, ownerId, true);
             expect(result.isAdminApproved).toBe(true);
             expect(listingRepo.updateListing).toHaveBeenCalledWith(
@@ -440,7 +425,7 @@ describe("ListingService", () => {
                 isAdminApproved: false,
                 isUserApproved: false,
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, undefined, configRepo);
+            const service = new ListingService(listingRepo, categoryRepo, undefined, undefined, configRepo);
             const body: ListingUpdateBodySchemaType = {
                 ...validUpdateBody,
                 listingData: { ...validUpdateBody.listingData, is_user_published: false },
@@ -460,7 +445,7 @@ describe("ListingService", () => {
         it("increments counter, records activity, and invalidates stat caches", async () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, {
+            const service = new ListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -475,7 +460,7 @@ describe("ListingService", () => {
     describe("getSkillMarkdown", () => {
         it("delegates to repository getSkillMarkdownContent", async () => {
             listingRepo.getSkillMarkdownContent.mockResolvedValue(skillContent);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getSkillMarkdown(slugFromTitle);
             expect(result).toBe(skillContent);
             expect(listingRepo.getSkillMarkdownContent).toHaveBeenCalledWith(slugFromTitle);
@@ -504,7 +489,7 @@ describe("ListingService", () => {
                     { ...secondListing, is_admin_published: true },
                 ],
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             const result = await service.getUserBookmarks(userId);
             expect(result).toHaveLength(2);
             expect(result.map((listing) => listing.id)).toEqual([listingId, secondListingId]);
@@ -515,7 +500,7 @@ describe("ListingService", () => {
             listingRepo.findBookmarkedListingsByUserId.mockResolvedValue({
                 data: [{ ...secondListing, is_admin_published: true }],
             });
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo);
+            const service = new ListingService(listingRepo, categoryRepo);
             await service.removeBookmark(listingId, userId);
             const result = await service.getUserBookmarks(userId);
             expect(result).toHaveLength(1);
@@ -526,7 +511,7 @@ describe("ListingService", () => {
         it("adds bookmark, records activity, and invalidates user bookmark cache", async () => {
             const invalidateKey = jest.fn().mockResolvedValue(undefined);
             const invalidatePattern = jest.fn().mockResolvedValue(undefined);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, undefined, {
+            const service = new ListingService(listingRepo, categoryRepo, undefined, {
                 invalidateKey,
                 invalidatePattern,
             } as never);
@@ -543,7 +528,7 @@ describe("ListingService", () => {
                 { ...secondListing, is_admin_published: true },
             ];
             const getOrSet = jest.fn().mockResolvedValue(bookmarks);
-            const service = new ListingService(listingRepo, categoryRepo, tagRepo, { getOrSet } as never);
+            const service = new ListingService(listingRepo, categoryRepo, { getOrSet } as never);
             const result = await service.getUserBookmarks(userId);
             expect(result).toEqual(bookmarks);
             expect(getOrSet).toHaveBeenCalledWith(
@@ -562,7 +547,6 @@ describe("ListingService", () => {
             const service = new ListingService(
                 listingRepo,
                 categoryRepo,
-                tagRepo,
                 undefined,
                 undefined,
                 undefined,

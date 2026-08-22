@@ -9,10 +9,6 @@ import type {
     ListingCategoryUpdateSchemaType,
 } from "../data/schemas/listingCategorySchemas";
 import type {
-    ListingTagCreateSchemaType,
-    ListingTagUpdateSchemaType,
-} from "../data/schemas/listingTagSchemas";
-import type {
     ParsedPublishedListingsQuery,
     ParsedAdminListingsQuery,
     ParsedCategoriesPaginationQuery,
@@ -349,75 +345,6 @@ export class ListingController {
     getAllCategoryGroups = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = await this.listingService.getAllCategoryGroups();
-            res.status(200).json({ success: true, data });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    // Tags
-    getActivePartialTags = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const data = await this.listingService.getActivePartialTags();
-            res.status(200).json({ success: true, data });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    getActiveFullTags = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const data = await this.listingService.getActiveFullTags();
-            res.status(200).json({ success: true, data });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    getAllFullTags = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const data = await this.listingService.getAllFullTags();
-            res.status(200).json({ success: true, data });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    createTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const body = req.body as { tagData: ListingTagCreateSchemaType; tagGroupIds?: string[] };
-            const result = await this.listingService.createTag(body.tagData, body.tagGroupIds ?? []);
-            res.status(201).json({ success: true, data: result });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    updateTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const { tagId } = req.params as { tagId: string };
-            const body = req.body as { tagData: ListingTagUpdateSchemaType; tagGroupIds?: string[] };
-            body.tagData.id = tagId;
-            const result = await this.listingService.updateTag(body.tagData, body.tagGroupIds ?? []);
-            res.status(200).json({ success: true, data: result });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    deleteTag = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const { tagId } = req.params as { tagId: string };
-            await this.listingService.deleteTag(tagId);
-            res.status(200).json({ success: true, message: "Tag deleted" });
-        } catch (err) {
-            next(err);
-        }
-    };
-
-    getAllTagGroups = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const data = await this.listingService.getAllTagGroups();
             res.status(200).json({ success: true, data });
         } catch (err) {
             next(err);

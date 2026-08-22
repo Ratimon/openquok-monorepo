@@ -9,6 +9,7 @@ import type {
 	ListingFaqItemProgrammerModel,
 	ListingFormSchemaType,
 	ListingTagFormSchemaType,
+	ListingTagGroupFormSchemaType,
 	SkillCommandProgrammerModel,
 	StackBlueprintProgrammerModel
 } from '$lib/listings/listing.types';
@@ -262,9 +263,13 @@ export interface ListingConfig {
 		updateCategory: (id: string) => string;
 		deleteCategory: (id: string) => string;
 		getAllTags: string;
+		getAllTagGroups: string;
 		createTag: string;
 		updateTag: (id: string) => string;
 		deleteTag: (id: string) => string;
+		createTagGroup: string;
+		updateTagGroup: (id: string) => string;
+		deleteTagGroup: (id: string) => string;
 		getAdminComments: string;
 		getAdminActivities: string;
 		approveComment: (id: string) => string;
@@ -388,6 +393,23 @@ export interface UpsertTagResponseDto {
 }
 
 export interface DeleteTagResponseDto {
+	success: boolean;
+	message?: string;
+}
+
+export interface GetListingTagGroupsResponseDto {
+	success: boolean;
+	data: ListingTagGroupDto[];
+	message?: string;
+}
+
+export interface UpsertTagGroupResponseDto {
+	success: boolean;
+	data: ListingTagGroupDto;
+	message?: string;
+}
+
+export interface DeleteTagGroupResponseDto {
 	success: boolean;
 	message?: string;
 }
@@ -1304,13 +1326,87 @@ export class ListingRepository {
 		}
 	}
 
-	async upsertListingTag(
-		payload: ListingTagFormSchemaType,
+	async getAllTagGroups(fetch?: typeof globalThis.fetch): Promise<ListingTagGroupProgrammerModel[]> {
+		const { data: getAllTagGroupsDto, ok } = await this.httpGateway.get<GetListingTagGroupsResponseDto>(
+			this.config.endpoints.getAllTagGroups,
+			undefined,
+			{ withCredentials: true, fetch }
+		);
+		if (ok && getAllTagGroupsDto?.success && Array.isArray(getAllTagGroupsDto.data)) {
+			return getAllTagGroupsDto.data.map((row) => this.toTagGroupPm(row));
+		}
+		return [];
+	}
+
+	async createTagGroup(
+		payload: ListingTagGroupFormSchemaType,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: createTagGroupDto, ok } = await this.httpGateway.post<UpsertTagGroupResponseDto>(
+				this.config.endpoints.createTagGroup,
+				{ name: payload.name },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && createTagGroupDto?.success && createTagGroupDto.data?.id) {
+				return { ok: true, id: createTagGroupDto.data.id };
+			}
+			return { ok: false, error: createTagGroupDto?.message ?? 'Failed to create tag group.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async updateTagGroup(
+		id: string,
+		payload: ListingTagGroupFormSchemaType,
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: updateTagGroupDto, ok } = await this.httpGateway.put<UpsertTagGroupResponseDto>(
+				this.config.endpoints.updateTagGroup(id),
+				{ name: payload.name },
+				{ withCredentials: true, fetch }
+			);
+			if (ok && updateTagGroupDto?.success) {
+				return { ok: true, id: updateTagGroupDto.data?.id ?? id };
+			}
+			return { ok: false, error: updateTagGroupDto?.message ?? 'Failed to update tag group.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async upsertListingTagGroup(
+		payload: ListingTagGroupFormSchemaType,
 		fetch?: typeof globalThis.fetch
 	): Promise<ListingUpsertProgrammerModel> {
 		const id = payload.id?.trim();
-		if (id) return this.updateTag(id, payload, [], fetch);
-		return this.createTag(payload, [], fetch);
+		if (id) return this.updateTagGroup(id, payload, fetch);
+		return this.createTagGroup(payload, fetch);
+	}
+
+	async deleteTagGroup(tagGroupId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
+		try {
+			const { data: deleteTagGroupDto, ok } = await this.httpGateway.delete<DeleteTagGroupResponseDto>(
+				this.config.endpoints.deleteTagGroup(tagGroupId),
+				{ withCredentials: true, fetch }
+			);
+			if (ok && deleteTagGroupDto?.success) return { ok: true };
+			return { ok: false, error: deleteTagGroupDto?.message ?? 'Failed to delete tag group.' };
+		} catch (err) {
+			return { ok: false, error: this.extractMessage(err) };
+		}
+	}
+
+	async upsertListingTag(
+		payload: ListingTagFormSchemaType,
+		tagGroupIds: string[] = [],
+		fetch?: typeof globalThis.fetch
+	): Promise<ListingUpsertProgrammerModel> {
+		const id = payload.id?.trim();
+		if (id) return this.updateTag(id, payload, tagGroupIds, fetch);
+		return this.createTag(payload, tagGroupIds, fetch);
 	}
 
 	async deleteTag(tagId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
@@ -1678,6 +1774,13 @@ export class ListingRepository {
 			imageUrlHero: row.image_url_hero ?? null,
 			imageUrlSmall: row.image_url_small ?? null,
 			href: row.href ?? null
+		};
+	}
+
+	private toTagGroupPm(row: ListingTagGroupDto): ListingTagGroupProgrammerModel {
+		return {
+			id: row.id,
+			name: row.name
 		};
 	}
 

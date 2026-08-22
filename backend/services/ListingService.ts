@@ -2,7 +2,6 @@ import type { ListingRepository, ListingStatisticsProgrammerModel } from "../rep
 import { LISTING_CATALOG_PUBLISHER_USERNAME } from "../repositories/ListingRepository";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { ListingCategoryRepository } from "../repositories/ListingCategoryRepository";
-import type { ListingTagRepository } from "../repositories/ListingTagRepository";
 import type { ConfigRepository } from "../repositories/ConfigRepository";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
@@ -25,11 +24,6 @@ import type {
     ListingCategoryGroup,
 } from "../data/types/listingCategoryTypes";
 import type {
-    PartialListingTag,
-    FullListingTag,
-    ListingTagGroup,
-} from "../data/types/listingTagTypes";
-import type {
     ListingCreateBodySchemaType,
     ListingUpdateBodySchemaType,
     ListingCommentCreateSchemaType,
@@ -38,10 +32,6 @@ import type {
     ListingCategoryCreateSchemaType,
     ListingCategoryUpdateSchemaType,
 } from "../data/schemas/listingCategorySchemas";
-import type {
-    ListingTagCreateSchemaType,
-    ListingTagUpdateSchemaType,
-} from "../data/schemas/listingTagSchemas";
 import {
     buildPublishedListingCacheKey,
     buildAdminListingCacheKey,
@@ -70,9 +60,6 @@ const CACHE_KEYS = {
     LISTING_CATEGORIES_ACTIVE_FULL: "listing:categories:active:full",
     LISTING_CATEGORIES_ALL_PARTIAL: "listing:categories:all:partial",
     LISTING_CATEGORIES_ALL_FULL: "listing:categories:all:full",
-    LISTING_TAGS_ACTIVE_PARTIAL: "listing:tags:active:partial",
-    LISTING_TAGS_ACTIVE_FULL: "listing:tags:active:full",
-    LISTING_TAGS_ALL_FULL: "listing:tags:all:full",
     LISTING_USER_BOOKMARKS: "listing:bookmarks:user",
     LISTING_ADMIN_COMMENTS_LIST: "listing:admin:comments:list",
     LISTING_ADMIN_ACTIVITIES_LIST: "listing:admin:activities:list",
@@ -85,7 +72,6 @@ export class ListingService {
     constructor(
         private readonly listingRepository: ListingRepository,
         private readonly listingCategoryRepository: ListingCategoryRepository,
-        private readonly listingTagRepository: ListingTagRepository,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly configRepository?: ConfigRepository,
@@ -437,60 +423,6 @@ export class ListingService {
         return data;
     }
 
-    // --- Tags ---
-
-    async getActivePartialTags(): Promise<PartialListingTag[]> {
-        const cacheKey = CACHE_KEYS.LISTING_TAGS_ACTIVE_PARTIAL;
-        const factory = async () => {
-            const { data } = await this.listingTagRepository.findActivePartialTags();
-            return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-    }
-
-    async getActiveFullTags(): Promise<FullListingTag[]> {
-        const cacheKey = CACHE_KEYS.LISTING_TAGS_ACTIVE_FULL;
-        const factory = async () => {
-            const { data } = await this.listingTagRepository.findActiveFullTags();
-            return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-    }
-
-    async getAllFullTags(): Promise<FullListingTag[]> {
-        const cacheKey = CACHE_KEYS.LISTING_TAGS_ALL_FULL;
-        const factory = async () => {
-            const { data } = await this.listingTagRepository.findAllFullTags();
-            return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-    }
-
-    async createTag(payload: ListingTagCreateSchemaType, groupIds: string[] = []): Promise<{ id: string }> {
-        const id = await this.listingTagRepository.createTag(payload, groupIds);
-        await this._invalidateTaxonomyCaches();
-        return { id };
-    }
-
-    async updateTag(payload: ListingTagUpdateSchemaType, groupIds: string[] = []): Promise<{ id: string }> {
-        const id = await this.listingTagRepository.updateTag(payload, groupIds);
-        await this._invalidateTaxonomyCaches();
-        return { id };
-    }
-
-    async deleteTag(tagId: string): Promise<void> {
-        await this.listingTagRepository.deleteTag(tagId);
-        await this._invalidateTaxonomyCaches();
-    }
-
-    async getAllTagGroups(): Promise<ListingTagGroup[]> {
-        const { data } = await this.listingTagRepository.findAllTagGroups();
-        return data;
-    }
-
     async addBookmark(listingId: string, userId: string, authUserId?: string): Promise<void> {
         await this._assertPaidAccountForBookmarks(authUserId);
         await this.listingRepository.addBookmark(userId, listingId);
@@ -708,7 +640,6 @@ export class ListingService {
     private async _invalidateTaxonomyCaches(): Promise<void> {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern("listing:categories:*");
-        await this.cacheInvalidator.invalidatePattern("listing:tags:*");
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_PUBLISHED}:*`);
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS.LISTING_ADMIN_LIST}:*`);
     }

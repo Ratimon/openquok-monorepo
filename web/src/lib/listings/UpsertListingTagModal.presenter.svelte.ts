@@ -1,4 +1,8 @@
-import type { ListingTagProgrammerModel, ListingRepository } from '$lib/listings/Listing.repository.svelte';
+import type {
+	ListingTagGroupProgrammerModel,
+	ListingTagProgrammerModel,
+	ListingRepository
+} from '$lib/listings/Listing.repository.svelte';
 import type { ListingTagFormSchemaType } from '$lib/listings/listing.types';
 
 import { stringToSlug } from '$lib/ui/helpers/common';
@@ -7,6 +11,7 @@ export function buildListingTagViewModelFromUpsert(params: {
 	id: string;
 	name: string;
 	description: string | null | undefined;
+	tagGroups: ListingTagGroupProgrammerModel[];
 }): ListingTagProgrammerModel {
 	return {
 		id: params.id,
@@ -19,7 +24,7 @@ export function buildListingTagViewModelFromUpsert(params: {
 		imageUrlHero: null,
 		imageUrlSmall: null,
 		href: null,
-		tagGroups: []
+		tagGroups: [...params.tagGroups].sort((a, b) => a.name.localeCompare(b.name))
 	};
 }
 
@@ -28,6 +33,7 @@ export class UpsertListingTagModalPresenter {
 
 	public async createListingTag(
 		input: Omit<ListingTagFormSchemaType, 'id'>,
+		tagGroupIds: string[],
 		fetch?: typeof globalThis.fetch
 	) {
 		return this.listingRepository.upsertListingTag(
@@ -35,12 +41,14 @@ export class UpsertListingTagModalPresenter {
 				name: input.name,
 				description: input.description ?? null
 			},
+			tagGroupIds,
 			fetch
 		);
 	}
 
 	public async updateListingTag(
 		input: ListingTagFormSchemaType & { id: string },
+		tagGroupIds: string[],
 		fetch?: typeof globalThis.fetch
 	) {
 		return this.listingRepository.upsertListingTag(
@@ -49,6 +57,7 @@ export class UpsertListingTagModalPresenter {
 				name: input.name,
 				description: input.description ?? null
 			},
+			tagGroupIds,
 			fetch
 		);
 	}

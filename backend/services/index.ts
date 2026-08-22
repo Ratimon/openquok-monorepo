@@ -31,6 +31,7 @@ import { RbacService } from "../guards/rbac/RbacService";
 import { FeedbackService } from "./FeedbackService";
 import { BlogService } from "./BlogService";
 import { ListingService } from "./ListingService";
+import { ListingTagService } from "./ListingTagService";
 import { ConfigService } from "./ConfigService";
 import { IntegrationManager } from "../integrations/integrationManager";
 import { RefreshIntegrationService } from "./RefreshIntegrationService";
@@ -139,12 +140,16 @@ export const blogService = new BlogService(
 export const listingService = new ListingService(
     listingRepository,
     listingCategoryRepository,
-    listingTagRepository,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     configRepository,
     subscriptionGuard,
     userRepository
+);
+export const listingTagService = new ListingTagService(
+    listingTagRepository,
+    cacheServiceConnection,
+    cacheInvalidationServiceConnection
 );
 export const userSessionService = new UserSessionService(
     organizationRepository,

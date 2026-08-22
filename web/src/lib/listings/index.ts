@@ -4,6 +4,7 @@ import { ListingRepository } from '$lib/listings/Listing.repository.svelte';
 import { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 import { UpsertListingCategoryModalPresenter } from '$lib/listings/UpsertListingCategoryModal.presenter.svelte';
 import { UpsertListingTagModalPresenter } from '$lib/listings/UpsertListingTagModal.presenter.svelte';
+import { UpsertListingTagGroupModalPresenter } from '$lib/listings/UpsertListingTagGroupModal.presenter.svelte';
 
 const listingConfig = {
 	endpoints: {
@@ -24,9 +25,13 @@ const listingConfig = {
 		updateCategory: (id: string) => `/api/v1/listings/categories/${id}`,
 		deleteCategory: (id: string) => `/api/v1/listings/categories/${id}`,
 		getAllTags: '/api/v1/listings/tags/all-full',
+		getAllTagGroups: '/api/v1/listings/tags/groups',
 		createTag: '/api/v1/listings/tags',
 		updateTag: (id: string) => `/api/v1/listings/tags/${id}`,
 		deleteTag: (id: string) => `/api/v1/listings/tags/${id}`,
+		createTagGroup: '/api/v1/listings/tags/groups',
+		updateTagGroup: (id: string) => `/api/v1/listings/tags/groups/${id}`,
+		deleteTagGroup: (id: string) => `/api/v1/listings/tags/groups/${id}`,
 		getAdminComments: '/api/v1/listings/admin/comments',
 		getAdminActivities: '/api/v1/listings/admin/activities',
 		approveComment: (id: string) => `/api/v1/listings/comments/${id}/approve`,
@@ -55,6 +60,7 @@ const listingRepository = new ListingRepository(httpGateway, listingConfig);
 const getListingPresenter = new GetListingPresenter(listingRepository);
 const upsertListingCategoryModalPresenter = new UpsertListingCategoryModalPresenter(listingRepository);
 const upsertListingTagModalPresenter = new UpsertListingTagModalPresenter(listingRepository);
+const upsertListingTagGroupModalPresenter = new UpsertListingTagGroupModalPresenter(listingRepository);
 
 const deleteListingVerificationPresenter = new ActionVerificationModalPresenter(async (data: unknown) => {
 	const d = data as { listingId: string; listingTitle: string };
@@ -84,6 +90,13 @@ const deleteListingTagVerificationPresenter = new ActionVerificationModalPresent
 	return { success: false, message: resultPm.error };
 });
 
+const deleteListingTagGroupVerificationPresenter = new ActionVerificationModalPresenter(async (data: unknown) => {
+	const d = data as { tagGroupId: string; tagGroupName: string };
+	const resultPm = await listingRepository.deleteTagGroup(d.tagGroupId);
+	if (resultPm.ok) return { success: true, message: 'Tag group deleted.' };
+	return { success: false, message: resultPm.error };
+});
+
 const deleteListingCommentVerificationPresenter = new ActionVerificationModalPresenter(async (data: unknown) => {
 	const d = data as { commentId: string };
 	const resultPm = await listingRepository.deleteComment(d.commentId);
@@ -94,6 +107,7 @@ const deleteListingCommentVerificationPresenter = new ActionVerificationModalPre
 export {
 	deleteListingCategoryVerificationPresenter,
 	deleteListingCommentVerificationPresenter,
+	deleteListingTagGroupVerificationPresenter,
 	deleteListingTagVerificationPresenter,
 	deleteListingVerificationPresenter,
 	deleteMyListingVerificationPresenter,
@@ -101,6 +115,7 @@ export {
 	listingConfig,
 	listingRepository,
 	upsertListingCategoryModalPresenter,
+	upsertListingTagGroupModalPresenter,
 	upsertListingTagModalPresenter
 };
 export type {
@@ -120,6 +135,7 @@ export type {
 	ListingFormSchemaType,
 	ListingStackFormSchemaType,
 	ListingTagFormSchemaType,
+	ListingTagGroupFormSchemaType,
 	TagChoice
 } from '$lib/listings/listing.types';
 export type {

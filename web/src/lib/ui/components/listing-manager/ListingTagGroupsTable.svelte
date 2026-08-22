@@ -1,7 +1,6 @@
 <script lang="ts">
-	import type { ListingTagViewModel } from '$lib/listings/GetListing.presenter.svelte';
 	import type { ListingTagGroupProgrammerModel } from '$lib/listings/Listing.repository.svelte';
-	import { deleteListingTagVerificationPresenter } from '$lib/listings';
+	import { deleteListingTagGroupVerificationPresenter } from '$lib/listings';
 	import { icons } from '$data/icons';
 	import ActionVerificationModal from '$lib/ui/modals/ActionVerificationModal.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -16,22 +15,21 @@
 		Header as TableHeader,
 		Row as TableRow
 	} from '$lib/ui/table';
-	import ListingTagUpsertModal from '$lib/ui/components/listing-manager/ListingTagUpsertModal.svelte';
+	import ListingTagGroupUpsertModal from '$lib/ui/components/listing-manager/ListingTagGroupUpsertModal.svelte';
 
 	type Props = {
-		tagsVm: ListingTagViewModel[];
-		allTagGroups: ListingTagGroupProgrammerModel[];
-		onTagCreated: (vm: ListingTagViewModel) => void | Promise<void>;
-		onTagUpdated: (vm: ListingTagViewModel) => void | Promise<void>;
-		onTagDeleted: (tag: ListingTagViewModel) => void | Promise<void>;
+		tagGroupsVm: ListingTagGroupProgrammerModel[];
+		onTagGroupCreated: (vm: ListingTagGroupProgrammerModel) => void | Promise<void>;
+		onTagGroupUpdated: (vm: ListingTagGroupProgrammerModel) => void | Promise<void>;
+		onTagGroupDeleted: (group: ListingTagGroupProgrammerModel) => void | Promise<void>;
 	};
 
-	let { tagsVm, allTagGroups, onTagCreated, onTagUpdated, onTagDeleted }: Props = $props();
+	let { tagGroupsVm, onTagGroupCreated, onTagGroupUpdated, onTagGroupDeleted }: Props = $props();
 
 	let pagination = $derived(
 		createPagination({
-			initialItemsPerPage: 50,
-			initialData: tagsVm,
+			initialItemsPerPage: 5,
+			initialData: tagGroupsVm,
 			searchField: 'name'
 		})
 	);
@@ -49,24 +47,16 @@
 	} = $derived(pagination);
 
 	let deleteModalOpen = $state(false);
-	let selectedToDelete = $state<ListingTagViewModel | null>(null);
+	let selectedToDelete = $state<ListingTagGroupProgrammerModel | null>(null);
 
-	function formatGroupNames(tag: ListingTagViewModel): string {
-		if (!tag.tagGroups?.length) return '—';
-		return [...tag.tagGroups]
-			.sort((a, b) => a.name.localeCompare(b.name))
-			.map((group) => group.name)
-			.join(', ');
-	}
-
-	function openDeleteModal(tag: ListingTagViewModel) {
-		selectedToDelete = tag;
+	function openDeleteModal(group: ListingTagGroupProgrammerModel) {
+		selectedToDelete = group;
 		deleteModalOpen = true;
 	}
 
 	async function handleDeleteSuccess() {
 		if (selectedToDelete) {
-			await onTagDeleted(selectedToDelete);
+			await onTagGroupDeleted(selectedToDelete);
 		}
 		deleteModalOpen = false;
 		selectedToDelete = null;
@@ -75,12 +65,11 @@
 
 <div class="mt-6 w-full">
 	<div class="flex w-full justify-between flex-wrap gap-4 items-center">
-		<ListingTagUpsertModal
-			tag={undefined}
-			{allTagGroups}
+		<ListingTagGroupUpsertModal
+			tagGroup={undefined}
 			buttonVariant="outline"
-			onTagCreated={onTagCreated}
-			onTagUpdated={onTagUpdated}
+			onTagGroupCreated={onTagGroupCreated}
+			onTagGroupUpdated={onTagGroupUpdated}
 		/>
 
 		<input
@@ -96,40 +85,33 @@
 			<TableHeader>
 				<TableRow class="text-sm">
 					<TableHead>Name</TableHead>
-					<TableHead>Description</TableHead>
-					<TableHead>Groups</TableHead>
 					<TableHead class="w-28">Edit/Delete</TableHead>
 				</TableRow>
 			</TableHeader>
 			<TableBody>
 				{#if currentData.length === 0}
 					<TableRow>
-						<TableCell colspan={4} class="py-6 text-center text-base-content/60">
-							No tags found.
+						<TableCell colspan={2} class="py-6 text-center text-base-content/60">
+							No tag groups found.
 						</TableCell>
 					</TableRow>
 				{:else}
-					{#each currentData as tag (tag.id)}
+					{#each currentData as group (group.id)}
 						<TableRow class="h-auto">
-							<TableCell class="font-medium">{tag.name}</TableCell>
-							<TableCell class="text-base-content/70">
-								{tag.description ? String(tag.description) : '—'}
-							</TableCell>
-							<TableCell class="text-base-content/70">{formatGroupNames(tag)}</TableCell>
+							<TableCell class="font-medium">{group.name}</TableCell>
 							<TableCell>
 								<div class="flex gap-2">
-									<ListingTagUpsertModal
-										{tag}
-										{allTagGroups}
+									<ListingTagGroupUpsertModal
+										tagGroup={group}
 										buttonVariant="outline"
-										{onTagCreated}
-										{onTagUpdated}
+										{onTagGroupCreated}
+										{onTagGroupUpdated}
 									/>
 									<Button
 										variant="outline"
 										size="sm"
 										type="button"
-										onclick={() => openDeleteModal(tag)}
+										onclick={() => openDeleteModal(group)}
 									>
 										Delete
 									</Button>
@@ -152,7 +134,7 @@
 			setCurrentPage={setCurrentPage}
 			{paginateFrontFF}
 			{paginateBackFF}
-			nameOfItems="tags"
+			nameOfItems="tag groups"
 			pageSizeOptions={[5, 10, 25, 50]}
 		/>
 	</CardFooter>
@@ -160,16 +142,16 @@
 
 {#if selectedToDelete}
 	<ActionVerificationModal
-		data={{ tagId: selectedToDelete.id, tagName: selectedToDelete.name }}
+		data={{ tagGroupId: selectedToDelete.id, tagGroupName: selectedToDelete.name }}
 		bind:open={deleteModalOpen}
-		executionFunction={deleteListingTagVerificationPresenter.execute}
-		status={deleteListingTagVerificationPresenter.status}
-		showToastMessage={deleteListingTagVerificationPresenter.showToastMessage}
-		toastMessage={deleteListingTagVerificationPresenter.toastMessage}
+		executionFunction={deleteListingTagGroupVerificationPresenter.execute}
+		status={deleteListingTagGroupVerificationPresenter.status}
+		showToastMessage={deleteListingTagGroupVerificationPresenter.showToastMessage}
+		toastMessage={deleteListingTagGroupVerificationPresenter.toastMessage}
 		buttonIconName={icons.Trash.name}
 		buttonText=""
-		modalTitle="Delete listing tag"
-		modalDescription={`Are you sure you want to delete "${selectedToDelete.name}"? This cannot be undone.`}
+		modalTitle="Delete tag group"
+		modalDescription={`Are you sure you want to delete "${selectedToDelete.name}"? Tags in this group will be unlinked but not deleted.`}
 		modalVerficationWithAnswer={true}
 		modalVerificationAnswer="YES"
 		onSuccess={handleDeleteSuccess}
