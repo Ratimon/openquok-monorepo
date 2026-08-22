@@ -52,8 +52,8 @@ const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 
-const appName = 'OPENQUOK';
-const appTitle = 'OPENQUOK | Agentic Social Media Scheduler';
+const appName = 'OpenQuok';
+const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
 const appDescription =
 	'OpenQuok is a social media scheduler to plan, draft, and schedule social media posts across every channel. Calendar, kanban review, and AI agents — start with a 7-day free trial.';
 const appKeywords =
@@ -113,7 +113,7 @@ export const CONFIG_SCHEMA_COMPANY: ModuleConfigSchema = {
 	LEGAL_NAME: {
 		description: "Company's legal name (all-caps brand: OPENQUOK).",
 		type: 'string',
-		default: appName,
+		default: 'OPENQUOK',
 		inputType: 'input',
 		maxInputLength: 120
 	},

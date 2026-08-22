@@ -47,9 +47,9 @@ export function openGraphForPublicPage(
 }
 
 const DEFAULT_ORIGIN = 'https://openquok.com';
-const DEFAULT_NAME = 'OPENQUOK';
-const DEFAULT_META_TITLE = 'OPENQUOK';
-const DEFAULT_META_DESCRIPTION = 'OPENQUOK web application';
+const DEFAULT_NAME = 'OpenQuok';
+const DEFAULT_META_TITLE = 'OpenQuok';
+const DEFAULT_META_DESCRIPTION = 'OpenQuok web application';
 const DEFAULT_META_KEYWORDS = 'openquok, cms, content platform';
 
 function escapeRegExp(value: string): string {

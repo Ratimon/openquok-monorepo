@@ -1,6 +1,6 @@
 ---
 title: Facebook
-description: How to configure Facebook Pages for Openquok
+description: How to configure Facebook Pages for OpenQuok
 order: 2
 lastUpdated: 2026-06-06
 ---
@@ -35,7 +35,7 @@ Instagram (Business) and Facebook can use the same developer app — you do not 
 
 | Feature | Notes |
 | --- | --- |
-| Stories | Not wired in Openquok today |
+| Stories | Not wired in OpenQuok today |
 | Automatic inbox replies | No keyword or DM automation |
 | Media on every comment type | Follow-up rows in the composer are text-only by default |
 
@@ -43,7 +43,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/facebook">CLI Examples — Faceboo
 
 ## Backend environment
 
-Openquok reads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
+OpenQuok reads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
 
 - <Badge text="FACEBOOK_APP_ID" variant="envBackend" />
 - <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" />
@@ -64,7 +64,7 @@ https://YOUR-FRONTEND-DOMAIN/integration/oauth/facebook
 <p>Substitute the hostname from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (scheme + host, no trailing slash). <code>www</code> and apex are different—register in Meta the same origin the API sends in <code>redirect_uri</code>. Align with <a href="/docs/configuration-backend">Configuration - Backend</a> and <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a>.</p>
 </Callout>
 
-After OAuth, Openquok shows a **Page picker** so you choose which Facebook Page to connect (unlike guides that assume a single implicit Page).
+After OAuth, OpenQuok shows a **Page picker** so you choose which Facebook Page to connect (unlike guides that assume a single implicit Page).
 
 ## Meta app setup (summary)
 
@@ -123,7 +123,7 @@ Add the **Facebook Page** redirect URI from the <a class="not-prose font-medium 
 
 ### Request permissions
 
-In the Meta developer app, open the permissions area where you can request **advanced access** (wording varies—for example **Use cases** → **Permissions and features**, or **App Review**). Request access for the scopes below; they match what Openquok’s Facebook Page integration asks for during OAuth.
+In the Meta developer app, open the permissions area where you can request **advanced access** (wording varies—for example **Use cases** → **Permissions and features**, or **App Review**). Request access for the scopes below; they match what OpenQuok’s Facebook Page integration asks for during OAuth.
 
 <ul class="not-prose list-disc pl-6">
 <li><Badge text="pages_show_list" variant="default" /></li>
@@ -172,7 +172,7 @@ Same root cause — the app is in Development mode. Only roles you added on the 
 
 ### No Pages in the picker
 
-During OAuth, grant access to **all Pages** you manage. Openquok also queries Business Manager owned/client Pages when <Badge text="business_management" variant="default" /> is granted. Remove the channel and reconnect if you skipped Page selection.
+During OAuth, grant access to **all Pages** you manage. OpenQuok also queries Business Manager owned/client Pages when <Badge text="business_management" variant="default" /> is granted. Remove the channel and reconnect if you skipped Page selection.
 
 ## Related
 

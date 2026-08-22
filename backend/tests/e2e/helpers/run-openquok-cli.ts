@@ -37,7 +37,7 @@ function ensureBundledCli(agentRoot: string): void {
 }
 
 /**
- * Runs the Openquok CLI bundle (`agent/dist/index.js`) with the same argv users type.
+ * Runs the OpenQuok CLI bundle (`agent/dist/index.js`) with the same argv users type.
  * Builds once via tsup if `dist/` is missing.
  */
 export async function runOpenquokCli(

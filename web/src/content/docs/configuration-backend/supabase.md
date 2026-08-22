@@ -1,6 +1,6 @@
 ---
 title: Supabase
-description: Create a Supabase project, configure dashboard settings, and wire the backend env keys for Openquok.
+description: Create a Supabase project, configure dashboard settings, and wire the backend env keys for OpenQuok.
 order: 2
 lastUpdated: 2026-05-11
 ---
@@ -18,7 +18,7 @@ Supabase configuration for this project is split between:
 
 ## API keys
 
-Openquok uses Supabase's new API key format only — the legacy JWT-based <code>anon</code> / <code>service&#95;role</code> keys are **not** accepted. Background:
+OpenQuok uses Supabase's new API key format only — the legacy JWT-based <code>anon</code> / <code>service&#95;role</code> keys are **not** accepted. Background:
 
 - <DocsExternalLink href="https://supabase.com/docs/guides/getting-started/api-keys">Understanding API keys</DocsExternalLink>
 

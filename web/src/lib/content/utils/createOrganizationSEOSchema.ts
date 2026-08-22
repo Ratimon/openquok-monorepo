@@ -47,6 +47,7 @@ export function createOrganizationSEOSchema(
 		'@type': 'Organization' as const,
 		'@id': organizationSchemaId(origin),
 		name,
+		alternateName: 'openquok',
 		url,
 		...(sameAs.length > 0 ? { sameAs } : {}),
 		...(email ? { email } : {}),

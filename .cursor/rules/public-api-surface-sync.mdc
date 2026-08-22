@@ -47,7 +47,7 @@ Reference: `backend/swagger/jsdoc/integrations.public-list.doc.ts`, `backend/swa
 
 ## 2. SDK (`sdk/`)
 
-`sdk/src/index.ts` is a thin `fetch` wrapper. Each public endpoint should be reachable from a method on the default-exported `Openquok` class.
+`sdk/src/index.ts` is a thin `fetch` wrapper. Each public endpoint should be reachable from a method on the default-exported `OpenQuok` class.
 
 - Add/rename/remove the method to match the route (same HTTP method, same URL after `${this.apiRoot}`, same header set — `Authorization: <apiKey>` and `Content-Type: application/json` for JSON bodies).
 - Put request/response shapes in `sdk/src/dtos.ts` (e.g. `PublicCreatePostDto`, `PublicPlugUpsertBodyDto`). Keep field names identical to the OpenAPI schema so downstream consumers can cast safely.
@@ -115,7 +115,7 @@ The "Public API" tab is built from `docsSidebarPublicApi`. When you add a **new 
 When you touch `backend/routes/publicApi/**`:
 
 1. **Swagger JSDoc** — add/update `backend/swagger/jsdoc/<domain>.<topic>.doc.ts` with `operationId`, `tags`, schemas, and `example`s. Register a new tag in `backend/swagger/openApiSpec.ts` if needed.
-2. **SDK** — add/update the method on `Openquok` (`sdk/src/index.ts`), DTOs (`sdk/src/dtos.ts`), and `sdk/README.md`. Run `pnpm --filter ./sdk run build`.
+2. **SDK** — add/update the method on `OpenQuok` (`sdk/src/index.ts`), DTOs (`sdk/src/dtos.ts`), and `sdk/README.md`. Run `pnpm --filter ./sdk run build`.
 3. **Agent** — only if the CLI exposes this operation: add/update `OpenquokApi` (`agent/src/api.ts`), yargs command under `agent/src/commands/`, and `web/src/content/docs/cli-usages/`. Cover new deterministic helpers with `agent/src/**/*.test.ts`; add or extend `agent/tests/e2e/**/*.e2e.test.ts` when you need a full CLI subprocess assertion (see `agent-cli.mdc`).
 4. **API reference** — add/update `web/src/content/docs/apis-<domain>/<endpoint>.md` with `openapi: '<METHOD> /path'` frontmatter, and the section `index.md` `CardGrid`.
 5. **Overview** — update `getting-started-for-public-api/` when the change affects SDK quickstart, auth examples, or cross-cutting concepts (groups, plugs, rate limits).

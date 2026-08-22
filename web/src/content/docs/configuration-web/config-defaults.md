@@ -1,6 +1,6 @@
 ---
 title: Config defaults
-description: How the Openquok web app derives default values from Vite env and fallbacks (backend URL, company, landing, navigation).
+description: How the OpenQuok web app derives default values from Vite env and fallbacks (backend URL, company, landing, navigation).
 order: 2
 lastUpdated: 2026-05-08
 ---

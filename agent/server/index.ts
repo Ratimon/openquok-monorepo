@@ -32,9 +32,9 @@ async function start() {
 
   server.listen(PORT, () => {
     // eslint-disable-next-line no-console
-    console.log(`Openquok CLI auth server running on ${SERVER_URL}`);
+    console.log(`OpenQuok CLI auth server running on ${SERVER_URL}`);
     // eslint-disable-next-line no-console
-    console.log(`OAuth callback URL (configure in Openquok OAuth App): ${deviceBrowserPath("callback")}`);
+    console.log(`OAuth callback URL (configure in OpenQuok OAuth App): ${deviceBrowserPath("callback")}`);
   });
 }
 

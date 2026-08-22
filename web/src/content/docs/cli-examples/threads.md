@@ -1,6 +1,6 @@
 ---
 title: Meta Threads
-description: Openquok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
+description: OpenQuok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
 order: 3
 lastUpdated: 2026-07-09
 ---
@@ -59,7 +59,7 @@ openquok posts:create \
 ```bash
 openquok posts:create \
   -s "2026-01-15T10:00:00Z" \
-  -c "Thread 1/3: Why we built Openquok" \
+  -c "Thread 1/3: Why we built OpenQuok" \
   -i "$THREADS_ID" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
@@ -158,7 +158,7 @@ openquok posts:create \
 
 ## Reconnect a "missing" Threads post
 
-Threads occasionally fails to return a <Badge text="release_id" variant="param" /> immediately after publish; Openquok stores it as <Badge text="missing" variant="param" /> and per-post analytics stay locked until you link the real id manually.
+Threads occasionally fails to return a <Badge text="release_id" variant="param" /> immediately after publish; OpenQuok stores it as <Badge text="missing" variant="param" /> and per-post analytics stay locked until you link the real id manually.
 
 ```bash
 POST_ID=$(openquok posts:list \

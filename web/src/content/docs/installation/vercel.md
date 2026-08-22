@@ -1,6 +1,6 @@
 ---
 title: Production - Vercel
-description: Deploy Openquok's Application on Vercel — backend, web, and CLI auth server.
+description: Deploy OpenQuok's Application on Vercel — backend, web, and CLI auth server.
 order: 2
 lastUpdated: 2026-05-08
 ---
@@ -192,7 +192,7 @@ Or both projects:
 pnpm vercel:deploy:cli-device-flow:prod
 ```
 
-Register on your Openquok OAuth app (Openquok production reference):
+Register on your OpenQuok OAuth app (OpenQuok production reference):
 
 ```text
 https://www.openquok.com/cli/device/callback
@@ -208,7 +208,7 @@ Add each domain in the Vercel project (**Settings → Domains**), create the DNS
 
 - **Backend:** <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />, <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (and ensure CORS allows the frontend origin).
 - **Web:** <Badge text="VITE_API_BASE_URL" variant="envWeb" />, <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />.
-- **CLI auth server (if deployed):** <Badge text="SERVER_URL" variant="envBackend" /> for the API host; <Badge text="BROWSER_ORIGIN" variant="envBackend" /> for browser URLs. Update the OAuth app callback when the web hostname changes (Openquok production: <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />).
+- **CLI auth server (if deployed):** <Badge text="SERVER_URL" variant="envBackend" /> for the API host; <Badge text="BROWSER_ORIGIN" variant="envBackend" /> for browser URLs. Update the OAuth app callback when the web hostname changes (OpenQuok production: <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />).
 
 ## Next steps
 

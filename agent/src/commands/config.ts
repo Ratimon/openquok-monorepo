@@ -20,7 +20,7 @@ import { runCommand } from "./utils";
 export const registerConfigCommands: RegisterCommands = (y: Argv, _ctx: CommandContext) => {
   return y.command(
     "config:show",
-    "Show resolved API and auth server URLs (hosted Openquok vs custom/self-hosted)",
+    "Show resolved API and auth server URLs (hosted OpenQuok vs custom/self-hosted)",
     (yy: Argv) =>
       yy.example("$0 config:show", "Print deployment kind and endpoints the CLI will use"),
     async () => {

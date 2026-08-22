@@ -1,4 +1,4 @@
-# Publishing the Openquok SDK to npm
+# Publishing the OpenQuok SDK to npm
 
 ## Quick Publish 
 

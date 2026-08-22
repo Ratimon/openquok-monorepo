@@ -35,7 +35,7 @@ export async function generateBlogRSSFeed(posts: BlogPostLike[]): Promise<BlogFe
         language: "en",
         favicon: `${URL.replace(/\/$/, "")}/favicon.ico`,
         copyright: `All rights reserved ${new Date().getFullYear()}, ${NAME}`,
-        generator: "Openquok Blog System",
+        generator: "OpenQuok Blog System",
         feedLinks: {
             rss2: `${blogURL}/rss.xml`,
             json: `${blogURL}/feed.json`,

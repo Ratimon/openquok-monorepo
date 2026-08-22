@@ -142,6 +142,7 @@ export const load: PageServerLoad = async ({ parent, url, fetch }) => {
 				'@type': 'SoftwareApplication',
 				'@id': `${canonical}#software`,
 				name: companyName,
+				alternateName: 'openquok',
 				description: heroDescription,
 				url: canonical,
 				applicationCategory: 'BusinessApplication',

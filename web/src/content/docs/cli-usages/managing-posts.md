@@ -1,6 +1,6 @@
 ---
 title: Managing Posts
-description: Create, list, delete, and reconnect Openquok posts/post group from the command line.
+description: Create, list, delete, and reconnect OpenQuok posts/post group from the command line.
 order: 1
 lastUpdated: 2026-08-20
 ---
@@ -23,7 +23,7 @@ The simplest case: one channel, one body, one scheduled timestamp. You can use s
 
 ```bash
 openquok posts:create \
-  -c "Hello from Openquok" \
+  -c "Hello from OpenQuok" \
   -s "2026-01-15T12:00:00Z" \
   -i "<integration-id>"
 ```

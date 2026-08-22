@@ -189,7 +189,7 @@
 						class="h-10 w-10 shrink-0"
 					/>
 					<h1 class="text-2xl font-semibold tracking-tight">
-						Openquok Scheduled Post
+						OpenQuok Scheduled Post
 					</h1>
 				</a>
 				<div class="flex items-center gap-4 text-sm text-base-content/70">

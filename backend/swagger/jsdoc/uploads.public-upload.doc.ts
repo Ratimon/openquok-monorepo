@@ -78,7 +78,7 @@
  *         description: >-
  *           File exceeds the hosted inbound body limit (~4.5 MB on Vercel) or
  *           the workspace upload size cap. Retry with the public multipart
- *           endpoints, or use `openquok upload` / `Openquok.upload()` which
+ *           endpoints, or use `openquok upload` / `OpenQuok.upload()` which
  *           switch automatically.
  */
 export {};

@@ -25,7 +25,7 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Text-only post | No | Video required |
 | Follow-up comments | No | `comments: false` on this provider |
 | Playlists / categories | No | Not implemented |
-| YouTube-native schedule | No | Openquok schedules; API publishes with privacy status |
+| YouTube-native schedule | No | OpenQuok schedules; API publishes with privacy status |
 
 ## Agent tasks
 

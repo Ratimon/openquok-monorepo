@@ -35,7 +35,7 @@ export async function load({ url, cookies, fetch }) {
 	const companyName =
 		typeof companyConfig.NAME === 'string' && companyConfig.NAME.trim()
 			? companyConfig.NAME.trim()
-			: String(getCompanyConfigDefaults().NAME ?? 'OPENQUOK');
+			: String(getCompanyConfigDefaults().NAME ?? 'OpenQuok');
 
 	const metaTags = await createMetaData({
 		companyInformation: companyInformationPm,

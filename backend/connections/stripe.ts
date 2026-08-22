@@ -12,7 +12,7 @@ export function getStripeClient(): Stripe {
     if (!stripeClient) {
         stripeClient = new Stripe(secretKey, {
             apiVersion: "2026-04-22.dahlia",
-            appInfo: { name: "Openquok", version: "1.0.0" },
+            appInfo: { name: "OpenQuok", version: "1.0.0" },
         });
     }
     return stripeClient;

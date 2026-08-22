@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-Openquok uses **Stripe** for **workspace (organization) subscriptions**. Plan limits are defined in <Badge text="openquok-common" variant="path" />.
+OpenQuok uses **Stripe** for **workspace (organization) subscriptions**. Plan limits are defined in <Badge text="openquok-common" variant="path" />.
 
 Plan enforcement (limits + feature gates) lives in the backend guards module:
 

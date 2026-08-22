@@ -1,6 +1,6 @@
 ---
 title: Auth Server Architecture
-description: How the Openquok CLI auth server works — request flow, endpoints, and Postgres state.
+description: How the OpenQuok CLI auth server works — request flow, endpoints, and Postgres state.
 order: 1
 lastUpdated: 2026-06-25
 ---
@@ -12,7 +12,7 @@ const hostedProductionFlow = `sequenceDiagram
     participant CLI
     participant Auth as cli-auth.openquok.com
     participant Web as www.openquok.com
-    participant API as Openquok API
+    participant API as OpenQuok API
 
     CLI->>Auth: POST /device/code
     Auth-->>CLI: verification_uri (points to www)
@@ -34,7 +34,7 @@ const hostedProductionFlow = `sequenceDiagram
 const deviceLoginFlow = `sequenceDiagram
     participant CLI
     participant Auth as Auth Server
-    participant Openquok as Openquok (web + API)
+    participant OpenQuok as OpenQuok (web + API)
 
     CLI->>Auth: POST /device/code
     Auth-->>CLI: device_code + user_code + verification_uri
@@ -42,10 +42,10 @@ const deviceLoginFlow = `sequenceDiagram
     Note over CLI,Auth: User opens browser (or web /cli/device/*)
     CLI->>Auth: Enters code
 
-    Auth->>Openquok: Redirect to OAuth UI
-    Openquok-->>Auth: Callback with code
-    Auth->>Openquok: Exchange for token
-    Openquok-->>Auth: access_token (stored in Postgres)
+    Auth->>OpenQuok: Redirect to OAuth UI
+    OpenQuok-->>Auth: Callback with code
+    Auth->>OpenQuok: Exchange for token
+    OpenQuok-->>Auth: access_token (stored in Postgres)
 
     CLI->>Auth: POST /device/token (poll)
     Auth-->>CLI: access_token
@@ -60,7 +60,7 @@ Environment variables and templates live under <a href="/docs/configuration-agen
 
 Browser routes on the web app: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/tree/main/web/src/routes/(public)/cli/device"><Badge text="web/src/routes/(public)/cli/device" variant="path" /></DocsExternalLink>.
 
-## Openquok hosted (Production)
+## OpenQuok hosted (Production)
 
 <Mermaid string={hostedProductionFlow} />
 
@@ -80,7 +80,7 @@ Browser routes on the web app: <DocsExternalLink href="https://github.com/Ratimo
   - Polls <Badge text="/device/token" variant="path" /> until the user finishes approval.
 
 - **Auth server** (<Badge text="agent/server" variant="path" />)
-  - Holds the OAuth **client secret** and performs the server-to-server exchange with the Openquok API.
+  - Holds the OAuth **client secret** and performs the server-to-server exchange with the OpenQuok API.
   - Stores short-lived device flow state in Postgres (not in memory).
   - Returns an API token to the CLI once approval is complete.
   - Emits browser URLs from <Badge text="BROWSER_ORIGIN" variant="envBackend" /> when configured.
@@ -89,7 +89,7 @@ Browser routes on the web app: <DocsExternalLink href="https://github.com/Ratimo
   - Serves <Badge text="/cli/device/verify" variant="path" /> and proxies to the auth server using <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" />.
   - Proxies <Badge text="/cli/device/callback" variant="path" /> so OAuth redirects stay on the trusted web origin.
 
-- **Openquok (web + API)**
+- **OpenQuok (web + API)**
   - Hosts the approval UI at <Badge text="OPENQUOK_FRONTEND_URL" variant="envBackend" /> + <Badge text="OPENQUOK_AUTHORIZE_PATH" variant="envBackend" />.
   - Exchanges the OAuth authorization code for an API access token via <Badge text="/api/v1/oauth/token" variant="path" />.
 
@@ -139,7 +139,7 @@ The auth server stores <Badge text="organization_id" variant="default" /> on the
 </Callout>
 
 <Callout type="warning" title="Platform OAuth app registration">
-<p>The OAuth app referenced by <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> must exist in the same Openquok project as the API. Its redirect URL must match <Badge text="/cli/device/callback" variant="path" /> on <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (or <Badge text="SERVER_URL" variant="envBackend" /> when browser steps run on the auth server). Register it with <Badge text="agent/server/scripts/generate-oauth-app-env.mjs" variant="path" /> or manually under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> in a workspace you control, then copy the client id and secret into the auth server env.</p>
+<p>The OAuth app referenced by <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> must exist in the same OpenQuok project as the API. Its redirect URL must match <Badge text="/cli/device/callback" variant="path" /> on <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (or <Badge text="SERVER_URL" variant="envBackend" /> when browser steps run on the auth server). Register it with <Badge text="agent/server/scripts/generate-oauth-app-env.mjs" variant="path" /> or manually under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> in a workspace you control, then copy the client id and secret into the auth server env.</p>
 </Callout>
 
 ## Workspace isolation (users do not share one workspace)
@@ -177,7 +177,7 @@ When <Badge text="BROWSER_ORIGIN" variant="envBackend" /> equals <Badge text="SE
 | `POST` | `/device/verify` | Validates code; redirects to OAuth authorize UI. |
 | `GET` | `/device/callback` | OAuth redirect target; exchanges code and stores token. |
 
-When <Badge text="BROWSER_ORIGIN" variant="envBackend" /> is the web app (Openquok production), the same behavior is exposed at:
+When <Badge text="BROWSER_ORIGIN" variant="envBackend" /> is the web app (OpenQuok production), the same behavior is exposed at:
 
 | Method | Path | Host |
 |--------|------|------|
@@ -211,7 +211,7 @@ CREATE TABLE device_requests (
 ## Next steps
 
 <CardGrid>
-<LinkCard title="CLI" description="Install the Openquok CLI and command overview" href="/docs/getting-started-for-cli" />
+<LinkCard title="CLI" description="Install the OpenQuok CLI and command overview" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="Device login, OPENQUOK_AUTH_SERVER, and programmatic tokens" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Configuration - Agent" description="Deploy the auth server: env vars, SERVER_URL, BROWSER_ORIGIN" href="/docs/configuration-agent" />
 <LinkCard title="Scaling & Postgres" description="Multi-instance notes and serverless Postgres pooling" href="/docs/configuration-agent/scaling" />

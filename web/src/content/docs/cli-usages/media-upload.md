@@ -1,6 +1,6 @@
 ---
 title: Media Upload
-description: Upload local files or mirror a public URL into the Openquok media library, then reference the returned id and path in `posts:create`.
+description: Upload local files or mirror a public URL into the OpenQuok media library, then reference the returned id and path in `posts:create`.
 order: 5
 lastUpdated: 2026-08-11
 ---

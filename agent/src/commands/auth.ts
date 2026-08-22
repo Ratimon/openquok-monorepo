@@ -42,7 +42,7 @@ function isTrustedOpenquokBrowserOrigin(verifyUrl: URL): boolean {
   return verifyUrl.pathname === "/cli/device/verify" || verifyUrl.pathname === "/device/verify";
 }
 
-/** Ensure verification_uri is from the auth server or a trusted Openquok browser origin; block HTTP downgrade outside localhost. */
+/** Ensure verification_uri is from the auth server or a trusted OpenQuok browser origin; block HTTP downgrade outside localhost. */
 function assertVerificationUriSafe(authServerBase: string, verificationUri: string): void {
   let baseUrl: URL;
   let verifyUrl: URL;
@@ -64,7 +64,7 @@ function assertVerificationUriSafe(authServerBase: string, verificationUri: stri
   if (isTrustedOpenquokBrowserOrigin(verifyUrl)) return;
 
   throw new Error(
-    `Auth server returned verification_uri on ${verifyUrl.origin}, expected ${baseUrl.origin} or a trusted Openquok browser origin; refusing to continue (misconfiguration or unexpected redirect).`
+    `Auth server returned verification_uri on ${verifyUrl.origin}, expected ${baseUrl.origin} or a trusted OpenQuok browser origin; refusing to continue (misconfiguration or unexpected redirect).`
   );
 }
 

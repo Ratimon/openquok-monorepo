@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OpenQuok');
 </script>
 
 <svelte:head>

@@ -1,4 +1,4 @@
-# Openquok CLI — command reference
+# OpenQuok CLI — command reference
 
 Agent-oriented reference for `@openquok/auto-cli` (`openquok`). Hard rules, auth, and workflows live in [SKILL.md](../SKILL.md).
 
@@ -40,7 +40,7 @@ openquok auth:logout
 - **Messaging hosts:** `--json --no-poll` then `auth:login:poll` after the user authorizes — otherwise credentials are never stored.
 - **Agents:** forward `verification_uri_complete` from stdout only — never fabricate codes or URLs.
 - **Humans with TTY:** `openquok auth:login` without `--json` is fine locally.
-- **Session start:** see Rule 0 in [SKILL.md](../SKILL.md) — run version + `auth:status` (+ `auth:workspace` when connected) via shell before the first assistant message; greet as the Openquok bot, not the host persona.
+- **Session start:** see Rule 0 in [SKILL.md](../SKILL.md) — run version + `auth:status` (+ `auth:workspace` when connected) via shell before the first assistant message; greet as the OpenQuok bot, not the host persona.
 - **Invalid or expired code:** Re-run `auth:login --json --no-poll` and `auth:login:poll` with a fresh `device_code` (~30 min).
 
 

@@ -1,6 +1,6 @@
 ---
 title: Database & migrations
-description: Supabase CLI, migrations, pg_cron notes, and type generation for Openquok.
+description: Supabase CLI, migrations, pg_cron notes, and type generation for OpenQuok.
 order: 6
 lastUpdated: 2026-05-11
 ---

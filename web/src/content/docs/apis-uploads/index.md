@@ -25,7 +25,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </Callout>
 
 <Callout type="warning" title="Hosted inbound body limit">
-<p><Badge text="POST /public/upload" variant="path" /> on OpenQuok Cloud is capped at about <strong>4.5 MB</strong> by the function gateway (HTTP 413). The application video cap is still 1 GB. For larger files use the multipart endpoints below, or call <Badge text="openquok upload" variant="default" /> / <Badge text="Openquok.upload()" variant="default" /> — both switch automatically. Do not compress a TikTok or Reels clip to 3.5 MB just to squeeze through the simple upload.</p>
+<p><Badge text="POST /public/upload" variant="path" /> on OpenQuok Cloud is capped at about <strong>4.5 MB</strong> by the function gateway (HTTP 413). The application video cap is still 1 GB. For larger files use the multipart endpoints below, or call <Badge text="openquok upload" variant="default" /> / <Badge text="OpenQuok.upload()" variant="default" /> — both switch automatically. Do not compress a TikTok or Reels clip to 3.5 MB just to squeeze through the simple upload.</p>
 </Callout>
 
 ## Constraints

@@ -7,7 +7,7 @@ import { icons } from '$data/icons';
 export const docsSidebarWidthCss = '--sidebar-width: 20rem';
 
 export const docsSite = {
-	title: 'OPENQUOK Documentation',
+	title: 'OpenQuok Documentation',
 	description: 'Developer Reference',
 	url: '',
 	social: {

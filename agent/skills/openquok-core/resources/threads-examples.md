@@ -68,7 +68,7 @@ At publish time the backend turns each stored object key into a **public `https:
 
 ## Reconnect missing post
 
-Threads sometimes omits `release_id` immediately after publish. Openquok stores `missing` until you link the real id.
+Threads sometimes omits `release_id` immediately after publish. OpenQuok stores `missing` until you link the real id.
 
 ```bash
 POST_ID=$(openquok posts:list \

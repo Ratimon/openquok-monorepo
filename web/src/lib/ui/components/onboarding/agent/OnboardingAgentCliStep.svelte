@@ -97,7 +97,7 @@
 					Install the
 					<code class={ONBOARDING_INLINE_TERMINAL_CODE_CLASS}>openquok-core</code>
 					skill for your agent that supports project skills (e.g. OpenClaw, Hermes, Grok Bot, and others). The skill
-					teaches Openquok CLI usage; run the install command below:
+					teaches OpenQuok CLI usage; run the install command below:
 				</p>
 				<CopyBlock
 					text={INSTALL_AGENT_SKILL_COMMAND}

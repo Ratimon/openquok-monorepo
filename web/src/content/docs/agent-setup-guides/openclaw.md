@@ -1,6 +1,6 @@
 ---
 title: OpenClaw
-description: Install the openquok-core skill and Openquok CLI on an OpenClaw host (eg. Telegram).
+description: Install the openquok-core skill and OpenQuok CLI on an OpenClaw host (eg. Telegram).
 order: 0
 lastUpdated: 2026-06-24
 ---
@@ -83,9 +83,9 @@ Production auth uses the API at <Badge text="https://cli-auth.openquok.com" vari
 
 ### Authenticate
 
-**Recommended:** ask the agent in chat to log in to Openquok. It sends you a sign-in link; open it on your phone, sign in if needed, and tap <strong>Authorize</strong>.
+**Recommended:** ask the agent in chat to log in to OpenQuok. It sends you a sign-in link; open it on your phone, sign in if needed, and tap <strong>Authorize</strong>.
 
-**Alternative for fully headless hosts:** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
+**Alternative for fully headless hosts:** rotate a programmatic token from the <a href="https://www.openquok.com">OpenQuok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
 ```bash
 export OPENQUOK_API_KEY=opo_your_programmatic_token
@@ -241,7 +241,7 @@ Full model list, editing, aspect ratios, and provider deep dives: <DocsExternalL
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
+<LinkCard title="Introduction to OpenQuok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="Hermes agent guide" description="Install openquok-core for Hermes" href="/docs/agent-setup-guides/hermes" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />

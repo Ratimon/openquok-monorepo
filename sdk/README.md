@@ -1,16 +1,16 @@
-<h1>Openquok NodeJS SDK</h1>
+<h1>OpenQuok NodeJS SDK</h1>
 
 - [What is it for](#what-is-it-for)
 - [Quickstart](#quickstart)
 
 >[!NOTE]
-> This package is a lightweight Node.js client for Openquok’s **programmatic API** (`/api/v1/public/*`). You authenticate using an **API key** (`opo_…`) sent as `Authorization: Bearer …` on every request. Backend reference: [`backend`](https://github.com/Ratimon/openquok-monorepo/tree/main/backend).
+> This package is a lightweight Node.js client for OpenQuok’s **programmatic API** (`/api/v1/public/*`). You authenticate using an **API key** (`opo_…`) sent as `Authorization: Bearer …` on every request. Backend reference: [`backend`](https://github.com/Ratimon/openquok-monorepo/tree/main/backend).
 
 ---
 
 ## What Is It For
 
-`@openquok/node-sdk` helps you automate Openquok's social scheduling from Node.js:
+`@openquok/node-sdk` helps you automate OpenQuok's social scheduling from Node.js:
 
 - Create/schedule posts via the programmatic API (including agent/kanban review fields)
 - List posts and flip draft ↔ scheduled (`flipPostStatus`)
@@ -50,7 +50,7 @@ const uploaded = await openquok.upload(fileBuffer, "png");
 await openquok.postAsAgent({
   scheduledAt: new Date().toISOString(),
   status: "draft",
-  body: "Hello from Openquok SDK",
+  body: "Hello from OpenQuok SDK",
   note: "Review CTA before scheduling",
   media: uploaded?.data?.id && uploaded?.data?.filePath
     ? [{ id: uploaded.data.id, path: uploaded.data.filePath }]

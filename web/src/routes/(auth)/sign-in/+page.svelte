@@ -58,7 +58,7 @@
 		return getPostSigninRedirectTarget(page.url.searchParams, accountHref);
 	}
 
-	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OpenQuok');
 	let googleOAuthNext = $derived(getRedirectURL());
 	let status = $derived(signinPresenter.status);
 	let isSigningIn = $derived(status === SigninStatus.SUBMITTING);

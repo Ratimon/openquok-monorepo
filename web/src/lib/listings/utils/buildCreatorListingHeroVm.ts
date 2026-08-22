@@ -27,7 +27,7 @@ export type CreatorListingHeroVm = {
 
 const CTA_TEXT = 'Get Started For Free';
 const CTA_HREF = '/pricing';
-const OPENQUOK_BRAND = 'OPENQUOK';
+const OPENQUOK_BRAND = 'OpenQuok';
 
 function buildingBlockIcon(extensionType: string | null | undefined): IconName {
 	if (extensionType === 'mcp') return icons.Bot.name;
@@ -40,8 +40,8 @@ function playbookIcon(): IconName {
 }
 
 /**
- * Title: Use/Run {listing} with OPENQUOK then you approve.
- * Listing name = underline; OPENQUOK + approve = white stickers.
+ * Title: Use/Run {listing} with OpenQuok then you approve.
+ * Listing name = underline; OpenQuok + approve = white stickers.
  */
 export function buildCreatorListingHeroTitleSegments(
 	kind: CreatorListingHeroKind,

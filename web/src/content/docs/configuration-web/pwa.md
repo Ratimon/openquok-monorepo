@@ -1,6 +1,6 @@
 ---
 title: PWA Metadata
-description: Configure Openquok's app name/title/description and icon metadata in web-config.json.
+description: Configure OpenQuok's app name/title/description and icon metadata in web-config.json.
 order: 3
 lastUpdated: 2026-05-08
 ---
@@ -34,7 +34,7 @@ Restart the web dev server or rebuild the web app so the updated PWA metadata is
 ```json
 {
   "appName": "openquok",
-  "appTitle": "Openquok",
+  "appTitle": "OpenQuok",
   "appDescription": "An agentic Social Scheduler Tool",
   "themeColor": "#34A7D6",
   "appleStatusBarStyle": "black-translucent",

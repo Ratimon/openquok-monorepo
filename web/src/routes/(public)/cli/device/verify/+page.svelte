@@ -11,7 +11,7 @@
 		CardFooter
 	} from '$lib/ui/card';
 
-	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
+	let companyName = $derived((page.data as App.LayoutData)?.companyNameVm ?? 'OpenQuok');
 	let prefilledCode = $derived(page.form?.userCode ?? page.data.prefilledCode ?? '');
 	let errorMessage = $derived(page.form?.error ?? null);
 	let codeInput = $state<HTMLInputElement | null>(null);
@@ -24,7 +24,7 @@
 <div class="mt-12 flex min-h-[60vh] items-start justify-center px-4">
 	<Card class="w-full max-w-md">
 		<CardHeader>
-			<CardTitle>Authorize Openquok CLI</CardTitle>
+			<CardTitle>Authorize OpenQuok CLI</CardTitle>
 			<CardDescription>
 				Enter the code shown in your terminal to link this computer to your {companyName} account.
 			</CardDescription>

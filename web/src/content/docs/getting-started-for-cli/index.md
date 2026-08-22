@@ -1,6 +1,6 @@
 ---
-title: Introduction to Openquok CLI
-description: An CLI-first tool for AI agents. Give your agents the Openquok CLI to schedule posts, manage integrations, and upload media from the terminal.
+title: Introduction to OpenQuok CLI
+description: An CLI-first tool for AI agents. Give your agents the OpenQuok CLI to schedule posts, manage integrations, and upload media from the terminal.
 order: 0
 lastUpdated: 2026-08-11
 ---
@@ -12,7 +12,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 ## Overview
 
 <Callout type="warning">
-<p>For your AI agent to work best with Openquok, install the <strong>openquok-core</strong>:</p>
+<p>For your AI agent to work best with OpenQuok, install the <strong>openquok-core</strong>:</p>
 <pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core</code></pre>
 <p>That updates agent instructions only — it does <strong>not</strong> install or upgrade the <code>openquok</code> CLI. After adding the skill, run <code>npm install -g @openquok/auto-cli@latest</code> on the same host and check <code>openquok --version</code>.</p>
 <p>On <strong>OpenClaw</strong> (Docker, Telegram), <code>cd</code> to your workspace first (often <code>/data/workspace</code>) — see <a href="/docs/agent-setup-guides/openclaw">OpenClaw agent guide</a>.</p>
@@ -20,7 +20,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 <p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/skills/openquok-core/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/skills/openquok-core/SKILL.md</code>).</p>
 </Callout>
 
-<Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the Openquok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.
+<Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the OpenQuok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.
 
 
 ## Installation
@@ -123,7 +123,7 @@ openquok integrations:list
 ```bash
 openquok posts:create \
   -s "2026-01-01T12:00:00Z" \
-  -c "Hello from Openquok" \
+  -c "Hello from OpenQuok" \
   -i "<integration-id-1>,<integration-id-2>"
 ```
 

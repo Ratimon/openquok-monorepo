@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "private": true,
-  "description": "Openquok API (Express + Supabase)",
+  "description": "OpenQuok API (Express + Supabase)",
   "type": "module",
   "main": "dist/app.js",
   "exports": {

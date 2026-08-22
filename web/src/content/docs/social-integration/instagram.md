@@ -1,6 +1,6 @@
 ---
 title: Instagram
-description: How to configure Instagram for Openquok
+description: How to configure Instagram for OpenQuok
 order: 3
 lastUpdated: 2026-06-06
 ---
@@ -13,7 +13,7 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 You can connect a **professional Instagram account** in two ways: **Instagram (Business)** uses a Facebook Page linked to that Instagram account; **Instagram (Standalone)** uses Instagram Login directly (no Facebook Page).
 
-Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app. The sections below are **Openquok-specific** URLs and envs.
+Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app. The sections below are **OpenQuok-specific** URLs and envs.
 
 <Callout type="note" title="One Meta app">
 Instagram and Facebook can use the same developer app — there is no need to create two separate apps for both products.
@@ -41,7 +41,7 @@ Media routing is automatic: one video → Reel, multiple attachments on a feed p
 
 | Feature | Notes |
 | --- | --- |
-| Story link stickers | Meta sticker APIs are not wired in Openquok |
+| Story link stickers | Meta sticker APIs are not wired in OpenQuok |
 | Automatic comment auto-reply | No inbox automation or keyword replies |
 | Collaborators on carousel | Validation rejects collaborator tags when more than one attachment is attached |
 | Media on follow-up comments | Thread reply rows are caption-only for Instagram |
@@ -51,7 +51,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/instagram">CLI Examples — Instag
 
 ## Backend environment
 
-Openquok reads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
+OpenQuok reads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
 
 
 **Instagram (Business) — Facebook Login**
@@ -149,7 +149,7 @@ Add the **Instagram (Business)** redirect URI from the <a class="not-prose font-
 
 ### Request permissions
 
-In the Meta developer app, open the permissions area where you can request **advanced access** (wording varies—for example **Use cases** → **Permissions and features**, or **App Review**). Request access for the scopes below; they match what Openquok’s Instagram (Business) integration asks for during OAuth.
+In the Meta developer app, open the permissions area where you can request **advanced access** (wording varies—for example **Use cases** → **Permissions and features**, or **App Review**). Request access for the scopes below; they match what OpenQuok’s Instagram (Business) integration asks for during OAuth.
 
 <ul class="not-prose list-disc pl-6">
 <li><Badge text="instagram_basic" variant="default" /></li>

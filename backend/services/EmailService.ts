@@ -51,7 +51,7 @@ const awsConfig = config.aws as { accessKeyId?: string; secretAccessKey?: string
 const resendConfig = config.resend as { secretKey?: string };
 
 function formatFromAddress(): string {
-    const name = basicConfig?.siteName ?? "Openquok";
+    const name = basicConfig?.siteName ?? "OpenQuok";
     const address = basicConfig?.senderEmailAddress ?? "noreply@example.com";
     return `${name} <${address}>`;
 }
@@ -206,7 +206,7 @@ export class EmailService {
 
         await this.transporter.sendMail({
             from: {
-                name: basicConfig?.siteName ?? "Openquok",
+                name: basicConfig?.siteName ?? "OpenQuok",
                 address: basicConfig?.senderEmailAddress ?? "noreply@example.com",
             },
             to: options.to,

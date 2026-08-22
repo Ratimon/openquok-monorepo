@@ -38,7 +38,7 @@ The SDK should stay in parity with `agent/src/api.ts` for shared routes, plus SD
 
 - **`oauth2-express.mjs`** mirrors the Node.js section in `web/src/content/docs/oauth2-for-apps/nodejs-example.md`.
 - OAuth token exchange: `POST /api/v1/oauth/token` body is **`grant_type`, `code`, `client_id`, `client_secret` only** — redirect URL is configured on the app, not resent at exchange.
-- Public API calls use **`Authorization: Bearer opo_…`** (or construct `new Openquok(accessToken)`).
+- Public API calls use **`Authorization: Bearer opo_…`** (or construct `new OpenQuok(accessToken)`).
 - When editing the OAuth doc example or SDK OAuth example, update **both** in the same change.
 
 ## Publishing

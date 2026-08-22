@@ -1,6 +1,6 @@
 ---
 title: Grok Bot
-description: Install the openquok-core skill and Openquok CLI on a Grok Bot cloud computer (desktop and iOS).
+description: Install the openquok-core skill and OpenQuok CLI on a Grok Bot cloud computer (desktop and iOS).
 order: 2
 lastUpdated: 2026-08-14
 ---
@@ -30,7 +30,7 @@ Download the desktop client for macOS or Windows, or install on iOS. Create a Bo
 
 <p>Official product and setup docs: <DocsExternalLink href="https://x.ai/bot">Grok Bot</DocsExternalLink> and the <DocsExternalLink href="https://docs.x.ai/grok-bot/get-started">get started guide</DocsExternalLink>.</p>
 
-### Install the global Openquok CLI
+### Install the global OpenQuok CLI
 
 Ask your Bot to run this on its cloud computer (the same shell environment it uses for terminal tools):
 
@@ -78,9 +78,9 @@ Start a <strong>new</strong> chat after install so the Bot reloads skill instruc
 
 ### Authenticate
 
-**Recommended:** ask the Bot to log in to Openquok. It runs device OAuth on its cloud computer; open the link on your phone, sign in if needed, and tap <strong>Authorize</strong>.
+**Recommended:** ask the Bot to log in to OpenQuok. It runs device OAuth on its cloud computer; open the link on your phone, sign in if needed, and tap <strong>Authorize</strong>.
 
-**Alternative for headless or scripted runs:** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
+**Alternative for headless or scripted runs:** rotate a programmatic token from the <a href="https://www.openquok.com">OpenQuok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
 ```bash
 export OPENQUOK_API_KEY=opo_your_programmatic_token
@@ -117,7 +117,7 @@ Posts should land as drafts or scheduled items in your OpenQuok workspace. Revie
 ## Troubleshooting
 
 <Callout type="warning" title="Outdated skill or CLI">
-<p>Updating the skill does <strong>not</strong> upgrade <Badge text="openquok --version" variant="default" />. Ask the Bot to run <Badge text="npm install -g @openquok/auto-cli@latest" variant="default" /> on its computer, then start a new chat so the Openquok skill re-runs its opening checks.</p>
+<p>Updating the skill does <strong>not</strong> upgrade <Badge text="openquok --version" variant="default" />. Ask the Bot to run <Badge text="npm install -g @openquok/auto-cli@latest" variant="default" /> on its computer, then start a new chat so the OpenQuok skill re-runs its opening checks.</p>
 </Callout>
 
 <Callout type="danger" title="Skill not found">
@@ -136,7 +136,7 @@ Posts should land as drafts or scheduled items in your OpenQuok workspace. Revie
 
 <CardGrid>
 <LinkCard title="Grok Bot landing" description="Schedule from desktop chat and approve on OpenQuok" href="/agents/grok-bot" />
-<LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
+<LinkCard title="Introduction to OpenQuok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="OpenClaw agent guide" description="Install openquok-core for OpenClaw" href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="Hermes Agent guide" description="Install openquok-core for Hermes Agent" href="/docs/agent-setup-guides/hermes" />

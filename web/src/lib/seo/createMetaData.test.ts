@@ -12,14 +12,14 @@ import {
 
 const companyInformation: CompanyInformationProgrammerModel = {
 	module_name: 'company_information',
-	config: { NAME: 'OPENQUOK', URL: 'https://www.openquok.com' },
+	config: { NAME: 'OpenQuok', URL: 'https://www.openquok.com' },
 	updated_at: ''
 };
 
 const marketingInformation: MarketingInformationProgrammerModel = {
 	module_name: 'marketing_information',
 	config: {
-		META_TITLE: 'OPENQUOK | Agentic Social Media Scheduler',
+		META_TITLE: 'OpenQuok | Agentic Social Media Scheduler',
 		META_DESCRIPTION: 'Plan and schedule posts.',
 		META_KEYWORDS: 'scheduler'
 	},
@@ -28,29 +28,29 @@ const marketingInformation: MarketingInformationProgrammerModel = {
 
 describe('resolveDocumentTitleTemplate', () => {
 	it('does not suffix when the title is the company name', () => {
-		expect(resolveDocumentTitleTemplate('OPENQUOK', 'OPENQUOK')).toBe('%s');
+		expect(resolveDocumentTitleTemplate('OpenQuok', 'OpenQuok')).toBe('%s');
 	});
 
 	it('does not suffix when the marketing title already starts with the company name', () => {
 		expect(
-			resolveDocumentTitleTemplate('OPENQUOK | Agentic Social Media Scheduler', 'OPENQUOK')
+			resolveDocumentTitleTemplate('OpenQuok | Agentic Social Media Scheduler', 'OpenQuok')
 		).toBe('%s');
 	});
 
 	it('suffixes page titles that do not include the company name', () => {
-		expect(resolveDocumentTitleTemplate('Sign in', 'OPENQUOK')).toBe('%s | OPENQUOK');
+		expect(resolveDocumentTitleTemplate('Sign in', 'OpenQuok')).toBe('%s | OpenQuok');
 	});
 });
 
 describe('createMetaData', () => {
-	it('does not produce OPENQUOK | … | OPENQUOK for the default marketing title', async () => {
+	it('does not produce OpenQuok | … | OpenQuok for the default marketing title', async () => {
 		const metaTags = await createMetaData({
 			companyInformation,
 			marketingInformation,
 			requestUrl: new URL('https://www.openquok.com/sign-in')
 		});
 
-		expect(metaTags.title).toBe('OPENQUOK | Agentic Social Media Scheduler');
+		expect(metaTags.title).toBe('OpenQuok | Agentic Social Media Scheduler');
 		expect(metaTags.titleTemplate).toBe('%s');
 	});
 
@@ -58,11 +58,11 @@ describe('createMetaData', () => {
 		const metaTags = await createMetaData({
 			companyInformation,
 			marketingInformation,
-			customTitle: 'OPENQUOK',
+			customTitle: 'OpenQuok',
 			requestUrl: new URL('https://www.openquok.com/')
 		});
 
-		expect(metaTags.title).toBe('OPENQUOK');
+		expect(metaTags.title).toBe('OpenQuok');
 		expect(metaTags.titleTemplate).toBe('%s');
 	});
 
@@ -75,6 +75,6 @@ describe('createMetaData', () => {
 		});
 
 		expect(metaTags.title).toBe('Sign in');
-		expect(metaTags.titleTemplate).toBe('%s | OPENQUOK');
+		expect(metaTags.titleTemplate).toBe('%s | OpenQuok');
 	});
 });

@@ -1,6 +1,6 @@
 ---
 title: Neon Postgres
-description: Create a Neon Postgres project and wire its connection string into the Openquok CLI auth server.
+description: Create a Neon Postgres project and wire its connection string into the OpenQuok CLI auth server.
 order: 2
 lastUpdated: 2026-05-09
 ---
@@ -11,7 +11,7 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 ## Overview
 
-The Openquok **CLI auth server** (<Badge text="agent/server" variant="path" />) stores short-lived OAuth device-flow state in **Postgres**. Neon is a good managed Postgres option for production deployments (including serverless hosts like Vercel).
+The OpenQuok **CLI auth server** (<Badge text="agent/server" variant="path" />) stores short-lived OAuth device-flow state in **Postgres**. Neon is a good managed Postgres option for production deployments (including serverless hosts like Vercel).
 
 ## Environment variables
 

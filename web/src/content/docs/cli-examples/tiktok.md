@@ -1,6 +1,6 @@
 ---
 title: TikTok
-description: CLI examples for TikTok publishing in Openquok
+description: CLI examples for TikTok publishing in OpenQuok
 order: 5
 lastUpdated: 2026-06-16
 ---

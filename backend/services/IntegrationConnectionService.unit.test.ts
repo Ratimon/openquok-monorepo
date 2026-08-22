@@ -1061,7 +1061,7 @@ describe("IntegrationConnectionService", () => {
             const remotePicture = "https://platform-lookaside.fbsbx.com/platform/profilepic/?asid=page-1";
             const fetchPageInformation = jest.fn().mockResolvedValue({
                 id: "page-1",
-                name: "Openquok",
+                name: "OpenQuok",
                 access_token: "page-access",
                 picture: remotePicture,
                 username: "openquok",

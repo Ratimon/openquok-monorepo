@@ -44,7 +44,7 @@
 	<div>
 		<h3 class="text-xl font-semibold text-base-content">Approved Apps</h3>
 		<p class="mt-1 text-sm text-base-content/70">
-			Applications you have authorized to access your Openquok account on your behalf.
+			Applications you have authorized to access your OpenQuok account on your behalf.
 		</p>
 	</div>
 

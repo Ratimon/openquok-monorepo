@@ -1,6 +1,6 @@
 ---
 title: Configuration - Web
-description: Getting Started to Environment variables and configuration for the Openquok's in web application.
+description: Getting Started to Environment variables and configuration for the OpenQuok's in web application.
 order: 0
 lastUpdated: 2026-05-15
 ---
@@ -30,7 +30,7 @@ Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 Maintain <Badge text="web/.env.production.local" variant="envWeb" /> from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/.env.production.example"><Badge text="web/.env.production.example" variant="envWeb" /></DocsExternalLink> and set matching production values for your deployment. Set <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> to the same canonical origin as the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> so OAuth redirect URIs stay consistent (see <a href="/docs/configuration-web/vite">Vite (SvelteKit)</a> and <a href="/docs/installation/production-deployment">Production deployment</a>).
 
-For CLI device login browser routes (<Badge text="/cli/device/*" variant="path" />), set server-only <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> to your auth server API origin (Openquok production: <Badge text="https://cli-auth.openquok.com" variant="new" />). See <a href="/docs/configuration-agent">Configuration - Agent</a>.
+For CLI device login browser routes (<Badge text="/cli/device/*" variant="path" />), set server-only <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> to your auth server API origin (OpenQuok production: <Badge text="https://cli-auth.openquok.com" variant="new" />). See <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
 ### Update PWA settings
 

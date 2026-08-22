@@ -1,6 +1,6 @@
 ---
 title: Admin Setup
-description: Getting Started to Platform admin access and post-deployment setup in Openquok.
+description: Getting Started to Platform admin access and post-deployment setup in OpenQuok.
 order: 0
 lastUpdated: 2026-05-08
 ---

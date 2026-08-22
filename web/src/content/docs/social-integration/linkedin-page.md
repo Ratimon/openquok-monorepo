@@ -1,6 +1,6 @@
 ---
 title: LinkedIn Page
-description: How to configure a LinkedIn company page for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
+description: How to configure a LinkedIn company page for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 8
 lastUpdated: 2026-06-20
 ---

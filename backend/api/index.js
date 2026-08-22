@@ -672,7 +672,7 @@ var init_GlobalConfig = __esm({
     config = {
       /** Sender identity for transactional email (Resend/SES). */
       basic: {
-        siteName: getEnv("SITE_NAME", "Openquok"),
+        siteName: getEnv("SITE_NAME", "OpenQuok"),
         senderEmailAddress: getEnv("SENDER_EMAIL_ADDRESS", "noreply@example.com")
       },
       admin: {
@@ -766,7 +766,7 @@ var init_GlobalConfig = __esm({
         enabled: getEnvBoolean("EMAIL_ENABLED", false),
         /** When true, use local SES mock (e.g. aws-ses-v2-local) for email. */
         isEmailServerOffline: getEnvBoolean("IS_EMAIL_SERVER_OFFLINE", false)
-        // fromName: getEnv("EMAIL_FROM_NAME", "Openquok"),
+        // fromName: getEnv("EMAIL_FROM_NAME", "OpenQuok"),
         // fromAddress: getEnv("EMAIL_FROM_ADDRESS", "noreply@example.com"),
       },
       /**
@@ -1025,6 +1025,12 @@ var init_GlobalConfig = __esm({
         enabled: getEnvBoolean("MCP_ENABLED", true)
       },
       integrations: {
+        /**
+         * AES-256-GCM key material for `integrations.token` / `refresh_token` at rest.
+         * Prefer a dedicated secret; falls back to SECURITY_SECRET so self-host stacks that
+         * already set one secret still encrypt. Empty disables encryption (legacy plaintext).
+         */
+        tokenEncryptionKey: getEnv("INTEGRATIONS_TOKEN_ENCRYPTION_KEY", "").trim() || getEnv("SECURITY_SECRET", "").trim(),
         threads: {
           appId: getEnvTrimmed("THREADS_APP_ID"),
           appSecret: getEnvTrimmed("THREADS_APP_SECRET")
@@ -8672,12 +8678,79 @@ var init_StorageSupabaseRepository = __esm({
     };
   }
 });
+function deriveAesKey(keyMaterial) {
+  return crypto__default.default.createHash("sha256").update(String(keyMaterial), "utf8").digest();
+}
+function isEncryptedIntegrationSecret(value) {
+  return typeof value === "string" && value.startsWith(INTEGRATION_TOKEN_CIPHER_PREFIX);
+}
+function encryptIntegrationSecret(plaintext, keyMaterial) {
+  if (plaintext == null) return null;
+  const raw = String(plaintext);
+  if (raw === "") return "";
+  if (isEncryptedIntegrationSecret(raw)) return raw;
+  const key = String(keyMaterial ?? "").trim();
+  if (!key) return raw;
+  const iv = crypto__default.default.randomBytes(IV_BYTES);
+  const cipher = crypto__default.default.createCipheriv("aes-256-gcm", deriveAesKey(key), iv);
+  const encrypted = Buffer.concat([cipher.update(raw, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  const packed = Buffer.concat([iv, encrypted, tag]);
+  return `${INTEGRATION_TOKEN_CIPHER_PREFIX}${packed.toString("base64url")}`;
+}
+function decryptIntegrationSecret(stored, keyMaterial) {
+  if (stored == null) return null;
+  const raw = String(stored);
+  if (raw === "") return "";
+  if (!isEncryptedIntegrationSecret(raw)) return raw;
+  const key = String(keyMaterial ?? "").trim();
+  if (!key) {
+    throw new Error(
+      "INTEGRATIONS_TOKEN_ENCRYPTION_KEY (or SECURITY_SECRET fallback) is required to decrypt channel tokens"
+    );
+  }
+  const packed = Buffer.from(raw.slice(INTEGRATION_TOKEN_CIPHER_PREFIX.length), "base64url");
+  if (packed.length < IV_BYTES + AUTH_TAG_BYTES + 1) {
+    throw new Error("Invalid encrypted integration secret");
+  }
+  const iv = packed.subarray(0, IV_BYTES);
+  const tag = packed.subarray(packed.length - AUTH_TAG_BYTES);
+  const ciphertext = packed.subarray(IV_BYTES, packed.length - AUTH_TAG_BYTES);
+  const decipher = crypto__default.default.createDecipheriv("aes-256-gcm", deriveAesKey(key), iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+}
+var INTEGRATION_TOKEN_CIPHER_PREFIX, IV_BYTES, AUTH_TAG_BYTES;
+var init_integrationTokenCrypto = __esm({
+  "utils/auth/integrationTokenCrypto.ts"() {
+    INTEGRATION_TOKEN_CIPHER_PREFIX = "enc:v1:";
+    IV_BYTES = 12;
+    AUTH_TAG_BYTES = 16;
+  }
+});
 
 // repositories/IntegrationRepository.ts
+function tokenEncryptionKey() {
+  const integrations = config.integrations;
+  return String(integrations?.tokenEncryptionKey ?? "").trim();
+}
+function encryptStoredSecret(value) {
+  return encryptIntegrationSecret(value ?? null, tokenEncryptionKey());
+}
+function decryptRowSecrets(row) {
+  const key = tokenEncryptionKey();
+  return {
+    ...row,
+    token: decryptIntegrationSecret(row.token, key) ?? "",
+    refresh_token: decryptIntegrationSecret(row.refresh_token, key)
+  };
+}
 var TABLE2, IntegrationRepository;
 var init_IntegrationRepository = __esm({
   "repositories/IntegrationRepository.ts"() {
+    init_GlobalConfig();
     init_InfraError();
+    init_integrationTokenCrypto();
     TABLE2 = "integrations";
     IntegrationRepository = class {
       constructor(supabase2) {
@@ -8776,7 +8849,8 @@ var init_IntegrationRepository = __esm({
           });
         }
         const rows = data ?? [];
-        return rows[0] ?? null;
+        const row = rows[0];
+        return row ? decryptRowSecrets(row) : null;
       }
       /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
       async getByIdIncludeDeleted(organizationId, id) {
@@ -8788,7 +8862,7 @@ var init_IntegrationRepository = __esm({
             resource: { type: "table", name: TABLE2 }
           });
         }
-        return data ?? null;
+        return data ? decryptRowSecrets(data) : null;
       }
       async upsertIntegration(params) {
         const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
@@ -8799,8 +8873,8 @@ var init_IntegrationRepository = __esm({
           picture: params.picture ?? null,
           provider_identifier: params.providerIdentifier,
           type: params.integrationType,
-          token: params.token,
-          refresh_token: params.refreshToken || null,
+          token: encryptStoredSecret(params.token) ?? "",
+          refresh_token: encryptStoredSecret(params.refreshToken || null),
           token_expiration: tokenExpiration,
           profile: params.profile ?? null,
           in_between_steps: params.inBetweenSteps,
@@ -8820,7 +8894,7 @@ var init_IntegrationRepository = __esm({
             resource: { type: "table", name: TABLE2 }
           });
         }
-        return data;
+        return decryptRowSecrets(data);
       }
       async disableChannel(organizationId, id) {
         const { error } = await this.supabase.from(TABLE2).update({ disabled: true, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", id);
@@ -8869,8 +8943,8 @@ var init_IntegrationRepository = __esm({
           internal_id: params.internalId,
           name: params.name,
           picture: params.picture,
-          token: params.token,
-          refresh_token: params.refreshToken || null,
+          token: encryptStoredSecret(params.token) ?? "",
+          refresh_token: encryptStoredSecret(params.refreshToken || null),
           token_expiration: tokenExpiration,
           profile: params.profile,
           in_between_steps: params.inBetweenSteps,
@@ -8885,7 +8959,7 @@ var init_IntegrationRepository = __esm({
             resource: { type: "table", name: TABLE2 }
           });
         }
-        return data;
+        return decryptRowSecrets(data);
       }
       /**
        * Sync OAuth tokens across sibling channels that share the same `root_internal_id`
@@ -8894,8 +8968,8 @@ var init_IntegrationRepository = __esm({
       async syncTokensByRootInternalId(params) {
         const tokenExpiration = params.expiresInSeconds != null && params.expiresInSeconds > 0 ? new Date(Date.now() + params.expiresInSeconds * 1e3).toISOString() : null;
         const { error } = await this.supabase.from(TABLE2).update({
-          token: params.token,
-          refresh_token: params.refreshToken || null,
+          token: encryptStoredSecret(params.token) ?? "",
+          refresh_token: encryptStoredSecret(params.refreshToken || null),
           token_expiration: tokenExpiration,
           refresh_needed: false,
           updated_at: (/* @__PURE__ */ new Date()).toISOString()
@@ -8907,6 +8981,45 @@ var init_IntegrationRepository = __esm({
             resource: { type: "table", name: TABLE2 }
           });
         }
+      }
+      /**
+       * One-shot: rewrite legacy plaintext `token` / `refresh_token` rows as AES-GCM ciphertext.
+       * No-op when `config.integrations.tokenEncryptionKey` is empty. Safe to re-run.
+       */
+      async migrateEncryptPlaintextTokensAtRest() {
+        const key = tokenEncryptionKey();
+        if (!key) {
+          return { scanned: 0, updated: 0 };
+        }
+        const { data, error } = await this.supabase.from(TABLE2).select("id, token, refresh_token").is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Failed to scan integrations for token encryption", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE2 }
+          });
+        }
+        const rows = data ?? [];
+        let updated = 0;
+        for (const row of rows) {
+          const tokenPlain = !isEncryptedIntegrationSecret(row.token);
+          const refreshPlain = row.refresh_token != null && row.refresh_token !== "" && !isEncryptedIntegrationSecret(row.refresh_token);
+          if (!tokenPlain && !refreshPlain) continue;
+          const { error: updateError } = await this.supabase.from(TABLE2).update({
+            token: encryptStoredSecret(row.token) ?? "",
+            refresh_token: encryptStoredSecret(row.refresh_token),
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          }).eq("id", row.id);
+          if (updateError) {
+            throw new DatabaseError("Failed to encrypt integration tokens at rest", {
+              cause: updateError,
+              operation: "update",
+              resource: { type: "table", name: TABLE2 }
+            });
+          }
+          updated += 1;
+        }
+        return { scanned: rows.length, updated };
       }
       /** @returns whether a row was updated */
       async softDeleteChannel(organizationId, id, internalId) {
@@ -11176,7 +11289,7 @@ var init_UserService = __esm({
   }
 });
 function formatFromAddress() {
-  const name = basicConfig?.siteName ?? "Openquok";
+  const name = basicConfig?.siteName ?? "OpenQuok";
   const address = basicConfig?.senderEmailAddress ?? "noreply@example.com";
   return `${name} <${address}>`;
 }
@@ -11307,7 +11420,7 @@ var init_EmailService = __esm({
         }
         await this.transporter.sendMail({
           from: {
-            name: basicConfig?.siteName ?? "Openquok",
+            name: basicConfig?.siteName ?? "OpenQuok",
             address: basicConfig?.senderEmailAddress ?? "noreply@example.com"
           },
           to: options2.to,
@@ -19171,6 +19284,607 @@ var init_xProvider = __esm({
   }
 });
 
+// integrations/providers/devto/resolveDevtoSettings.ts
+function isPlainObject10(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readTitle3(source) {
+  const title = source.title;
+  return typeof title === "string" ? title.trim() : "";
+}
+function readCanonical(source) {
+  const raw = source.canonical ?? source.canonical_url ?? source.canonicalUrl;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return void 0;
+}
+function readSeries(source) {
+  const raw = source.series;
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  return void 0;
+}
+function parsePositiveInt(value) {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.trunc(value);
+  }
+  if (typeof value === "string" && /^\d+$/.test(value.trim())) {
+    const n = Number.parseInt(value.trim(), 10);
+    return n > 0 ? n : void 0;
+  }
+  return void 0;
+}
+function readOrganizationId(source) {
+  const raw = source.organization ?? source.organization_id ?? source.organizationId;
+  const direct = parsePositiveInt(raw);
+  if (direct !== void 0) return direct;
+  if (isPlainObject10(raw)) {
+    return parsePositiveInt(raw.id ?? raw.value);
+  }
+  return void 0;
+}
+function tagNameFromItem(item) {
+  if (typeof item === "string") return item.trim();
+  if (!isPlainObject10(item)) return "";
+  const label = typeof item.label === "string" ? item.label.trim() : "";
+  if (label) return label;
+  if (typeof item.value === "string") return item.value.trim();
+  return "";
+}
+function normalizeTags2(raw) {
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const item of raw) {
+    const name = tagNameFromItem(item);
+    if (!name) continue;
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(name);
+    if (out.length >= DEVTO_MAX_TAGS) break;
+  }
+  return out;
+}
+function readMainImagePath(source) {
+  const main = source.main_image ?? source.mainImage;
+  if (typeof main === "string" && main.trim()) return main.trim();
+  if (isPlainObject10(main) && typeof main.path === "string" && main.path.trim()) {
+    return main.path.trim();
+  }
+  return void 0;
+}
+function resolveDevtoSettings(postDetailsSettings) {
+  if (!isPlainObject10(postDetailsSettings)) {
+    return { title: "", tags: [] };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject10(providerSettings)) {
+    const { devto: devtoBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject10(devtoBucket)) {
+      source = { ...source, ...devtoBucket };
+    }
+  } else if (isPlainObject10(postDetailsSettings.devto)) {
+    source = { ...source, ...postDetailsSettings.devto };
+  }
+  return {
+    title: readTitle3(source),
+    tags: normalizeTags2(source.tags),
+    canonical: readCanonical(source),
+    organizationId: readOrganizationId(source),
+    mainImagePath: readMainImagePath(source),
+    series: readSeries(source)
+  };
+}
+var DEVTO_MAX_TAGS, DEVTO_TITLE_MIN_LENGTH, DEVTO_MAX_LENGTH, DEVTO_SETTINGS_SCHEMA;
+var init_resolveDevtoSettings = __esm({
+  "integrations/providers/devto/resolveDevtoSettings.ts"() {
+    DEVTO_MAX_TAGS = 4;
+    DEVTO_TITLE_MIN_LENGTH = 2;
+    DEVTO_MAX_LENGTH = 1e5;
+    DEVTO_SETTINGS_SCHEMA = {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string", minLength: DEVTO_TITLE_MIN_LENGTH, description: "Article title" },
+        tags: {
+          type: "array",
+          maxItems: DEVTO_MAX_TAGS,
+          items: { type: "string" },
+          description: "Up to 4 tag names"
+        },
+        main_image: {
+          type: "object",
+          properties: { path: { type: "string" } },
+          description: "Cover image object key or public URL"
+        },
+        canonical: { type: "string", description: "Canonical URL for syndication" },
+        organization: {
+          description: "Organization id to publish under",
+          oneOf: [{ type: "integer" }, { type: "string" }]
+        },
+        series: {
+          type: "string",
+          description: "Series name; creates the series on Dev.to if missing"
+        }
+      }
+    };
+  }
+});
+
+// integrations/providers/devto/devtoPublish.ts
+function isPlainObject11(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function devtoHeaders(apiKey) {
+  return {
+    "api-key": apiKey,
+    Accept: "application/json",
+    "Content-Type": "application/json"
+  };
+}
+async function readJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+function firstErrorString(json) {
+  if (!isPlainObject11(json)) return void 0;
+  const body = json;
+  if (typeof body.error === "string" && body.error.trim()) return body.error.trim();
+  if (isPlainObject11(body.error) && typeof body.error.message === "string" && body.error.message.trim()) {
+    return body.error.message.trim();
+  }
+  const first = body.errors?.[0];
+  if (typeof first === "string" && first.trim()) return first.trim();
+  if (isPlainObject11(first) && typeof first.message === "string" && first.message.trim()) {
+    return first.message.trim();
+  }
+  if (typeof body.message === "string" && body.message.trim()) return body.message.trim();
+  return void 0;
+}
+function mapDevtoApiError(json, status) {
+  const message = firstErrorString(json);
+  if (message && /canonical url has already been taken/i.test(message)) {
+    return "This canonical URL is already used on another Dev.to article. Use a different canonical URL or omit it.";
+  }
+  if (message) return message;
+  if (status === 401 || status === 403) return "Invalid or revoked Dev.to API key";
+  return `Dev.to request failed (${status})`;
+}
+function throwIfUnauthorized(status, json) {
+  if (status === 401 || status === 403) {
+    throw new ProviderAccessTokenExpiredError(mapDevtoApiError(json, status));
+  }
+}
+function validateDevtoTitle(title) {
+  if (title.trim().length < DEVTO_TITLE_MIN_LENGTH) {
+    throw new Error("Dev.to title must be at least 2 characters");
+  }
+}
+function resolveDevtoPublicMediaUrl(path7) {
+  const raw = path7.trim();
+  if (!raw) {
+    throw new Error("Media path is empty");
+  }
+  if (raw.startsWith("http://") || raw.startsWith("https://")) {
+    return raw;
+  }
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for Dev.to (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function buildDevtoArticlePayload(settings, bodyMarkdown, mainImageUrl) {
+  validateDevtoTitle(settings.title);
+  const article = {
+    title: settings.title,
+    published: true,
+    body_markdown: typeof bodyMarkdown === "string" ? bodyMarkdown : ""
+  };
+  if (settings.tags.length > 0) article.tags = settings.tags;
+  if (settings.canonical) article.canonical_url = settings.canonical;
+  if (mainImageUrl) article.main_image = mainImageUrl;
+  if (settings.organizationId !== void 0) article.organization_id = settings.organizationId;
+  if (settings.series) article.series = settings.series;
+  return { article };
+}
+async function fetchDevtoCurrentUser(apiKey) {
+  const res = await fetch(`${DEVTO_API_BASE}/users/me`, { headers: devtoHeaders(apiKey) });
+  const json = await readJson(res);
+  if (res.status === 401 || res.status === 403 || !res.ok) {
+    throw new Error(res.status === 401 || res.status === 403 ? "Invalid API key" : mapDevtoApiError(json, res.status));
+  }
+  if (!isPlainObject11(json) || json.id == null || json.id === "") {
+    throw new Error("Invalid API key");
+  }
+  return {
+    id: String(json.id),
+    name: typeof json.name === "string" ? json.name : "",
+    username: typeof json.username === "string" ? json.username : "",
+    picture: typeof json.profile_image === "string" ? json.profile_image : ""
+  };
+}
+function mapDevtoTagOptions(rows) {
+  if (!Array.isArray(rows)) return [];
+  const out = [];
+  for (const row of rows) {
+    if (!isPlainObject11(row)) continue;
+    const name = typeof row.name === "string" ? row.name.trim() : "";
+    const id = typeof row.id === "number" && Number.isFinite(row.id) ? row.id : Number.parseInt(String(row.id ?? ""), 10);
+    if (!name || !Number.isFinite(id)) continue;
+    out.push({ value: id, label: name });
+  }
+  return out;
+}
+async function fetchDevtoTagOptions(apiKey) {
+  const res = await fetch(`${DEVTO_API_BASE}/tags?per_page=1000`, { headers: devtoHeaders(apiKey) });
+  const json = await readJson(res);
+  throwIfUnauthorized(res.status, json);
+  if (!res.ok) {
+    throw new Error(mapDevtoApiError(json, res.status));
+  }
+  return mapDevtoTagOptions(json);
+}
+function uniqueOrganizationUsernamesFromArticles(articles) {
+  if (!Array.isArray(articles)) return [];
+  const seen = /* @__PURE__ */ new Set();
+  const out = [];
+  for (const article of articles) {
+    if (!isPlainObject11(article)) continue;
+    const org = article.organization;
+    if (!isPlainObject11(org)) continue;
+    const username = typeof org.username === "string" && org.username.trim() || typeof org.slug === "string" && org.slug.trim() || "";
+    if (!username) continue;
+    const key = username.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(username);
+  }
+  return out;
+}
+function mapDevtoOrganization(json) {
+  if (!isPlainObject11(json)) return void 0;
+  const id = typeof json.id === "number" && Number.isFinite(json.id) ? json.id : Number.parseInt(String(json.id ?? ""), 10);
+  const name = typeof json.name === "string" ? json.name.trim() : "";
+  const username = typeof json.username === "string" ? json.username.trim() : "";
+  if (!Number.isFinite(id) || !username) return void 0;
+  return { id, name: name || username, username };
+}
+async function fetchDevtoOrganizationOptions(apiKey) {
+  const articles = [];
+  for (let page = 1; page <= 10; page += 1) {
+    const res = await fetch(`${DEVTO_API_BASE}/articles/me/all?page=${page}&per_page=1000`, {
+      headers: devtoHeaders(apiKey)
+    });
+    const json = await readJson(res);
+    throwIfUnauthorized(res.status, json);
+    if (!res.ok) {
+      throw new Error(mapDevtoApiError(json, res.status));
+    }
+    if (!Array.isArray(json) || json.length === 0) break;
+    articles.push(...json);
+    if (json.length < 1e3) break;
+  }
+  const usernames = uniqueOrganizationUsernamesFromArticles(articles);
+  if (usernames.length === 0) return [];
+  const settled = await Promise.allSettled(
+    usernames.map(async (username) => {
+      const res = await fetch(`${DEVTO_API_BASE}/organizations/${encodeURIComponent(username)}`, {
+        headers: devtoHeaders(apiKey)
+      });
+      const json = await readJson(res);
+      throwIfUnauthorized(res.status, json);
+      if (!res.ok) return void 0;
+      return mapDevtoOrganization(json);
+    })
+  );
+  const out = [];
+  for (const result of settled) {
+    if (result.status === "rejected") {
+      if (result.reason instanceof ProviderAccessTokenExpiredError) throw result.reason;
+      continue;
+    }
+    if (!result.value) continue;
+    out.push(result.value);
+  }
+  return out;
+}
+async function publishDevtoArticle(accessToken2, postDetails) {
+  const settings = resolveDevtoSettings(postDetails.settings);
+  const mainImageUrl = settings.mainImagePath ? resolveDevtoPublicMediaUrl(settings.mainImagePath) : void 0;
+  const payload = buildDevtoArticlePayload(settings, postDetails.message ?? "", mainImageUrl);
+  const res = await fetch(`${DEVTO_API_BASE}/articles`, {
+    method: "POST",
+    headers: devtoHeaders(accessToken2),
+    body: JSON.stringify(payload)
+  });
+  const json = await readJson(res);
+  throwIfUnauthorized(res.status, json);
+  if (!res.ok) {
+    throw new Error(mapDevtoApiError(json, res.status));
+  }
+  if (!isPlainObject11(json)) {
+    throw new Error("Dev.to publish succeeded but no article was returned");
+  }
+  const postId = json.id == null ? "" : String(json.id).trim();
+  const releaseURL = typeof json.url === "string" ? json.url.trim() : "";
+  if (!postId) {
+    throw new Error("Dev.to publish succeeded but no article id was returned");
+  }
+  return {
+    id: postDetails.id,
+    postId,
+    status: "success",
+    releaseURL
+  };
+}
+var DEVTO_API_BASE;
+var init_devtoPublish = __esm({
+  "integrations/providers/devto/devtoPublish.ts"() {
+    init_resolveDevtoSettings();
+    init_ProviderIntegrationErrors();
+    init_MediaRepository();
+    DEVTO_API_BASE = "https://dev.to/api";
+  }
+});
+function isPlainObject12(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+async function readJson2(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+function throwIfUnauthorized2(status, json) {
+  if (status === 401 || status === 403) {
+    throw new ProviderAccessTokenExpiredError(mapDevtoApiError(json, status));
+  }
+}
+function metricTotal(bucket) {
+  if (!isPlainObject12(bucket)) return 0;
+  const raw = bucket.total;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  const parsed = Number.parseInt(String(raw ?? ""), 10);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+function dayMetricTotal(day, key) {
+  if (!isPlainObject12(day)) return 0;
+  return metricTotal(day[key]);
+}
+function startDateForWindow(dateWindowDays) {
+  const days = Number.isFinite(dateWindowDays) && dateWindowDays > 0 ? Math.floor(dateWindowDays) : 7;
+  return dayjs5__default.default().subtract(days, "day").format("YYYY-MM-DD");
+}
+function mapDevtoHistoricalToAnalytics(json) {
+  if (!isPlainObject12(json)) return [];
+  const dates = Object.keys(json).filter((key) => /^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).sort((a, b) => dayjs5__default.default(a).valueOf() - dayjs5__default.default(b).valueOf());
+  if (dates.length === 0) return [];
+  const series = {
+    page_views: [],
+    reactions: [],
+    comments: []
+  };
+  for (const date of dates) {
+    const day = json[date];
+    const normalizedDate = dayjs5__default.default(date).format("YYYY-MM-DD");
+    for (const key of Object.keys(METRIC_LABELS2)) {
+      series[key].push({
+        total: String(dayMetricTotal(day, key)),
+        date: normalizedDate
+      });
+    }
+  }
+  return Object.keys(METRIC_LABELS2).map((key) => ({
+    label: METRIC_LABELS2[key],
+    percentageChange: 0,
+    data: series[key]
+  }));
+}
+function mapDevtoTotalsToAnalytics(json, date = dayjs5__default.default().format("YYYY-MM-DD")) {
+  if (!isPlainObject12(json)) return [];
+  const hasAnyMetric = Object.keys(METRIC_LABELS2).some((key) => key in json);
+  if (!hasAnyMetric) return [];
+  return Object.keys(METRIC_LABELS2).map((key) => ({
+    label: METRIC_LABELS2[key],
+    percentageChange: 0,
+    data: [{ total: String(dayMetricTotal(json, key)), date }]
+  }));
+}
+async function fetchDevtoJson(apiKey, pathWithQuery) {
+  const res = await fetch(`${DEVTO_API_BASE}${pathWithQuery}`, {
+    headers: devtoHeaders(apiKey)
+  });
+  const json = await readJson2(res);
+  throwIfUnauthorized2(res.status, json);
+  if (!res.ok) {
+    throw new Error(mapDevtoApiError(json, res.status));
+  }
+  return json;
+}
+async function fetchDevtoAccountAnalytics(apiKey, dateWindowDays) {
+  const start = startDateForWindow(dateWindowDays);
+  const json = await fetchDevtoJson(
+    apiKey,
+    `/analytics/historical?start=${encodeURIComponent(start)}`
+  );
+  return mapDevtoHistoricalToAnalytics(json);
+}
+async function fetchDevtoPostAnalytics(apiKey, articleId, dateWindowDays) {
+  const trimmed = articleId.trim();
+  if (!trimmed) {
+    throw new Error("Missing Dev.to article id for post analytics");
+  }
+  const articleQuery = `article_id=${encodeURIComponent(trimmed)}`;
+  const start = startDateForWindow(dateWindowDays);
+  const [historicalJson, totalsJson] = await Promise.all([
+    fetchDevtoJson(
+      apiKey,
+      `/analytics/historical?start=${encodeURIComponent(start)}&${articleQuery}`
+    ),
+    fetchDevtoJson(apiKey, `/analytics/totals?${articleQuery}`)
+  ]);
+  const fromHistorical = mapDevtoHistoricalToAnalytics(historicalJson);
+  if (fromHistorical.some((row) => row.data.length > 0)) {
+    return fromHistorical;
+  }
+  return mapDevtoTotalsToAnalytics(totalsJson);
+}
+var METRIC_LABELS2;
+var init_devtoAnalytics = __esm({
+  "integrations/providers/devto/devtoAnalytics.ts"() {
+    init_ProviderIntegrationErrors();
+    init_devtoPublish();
+    METRIC_LABELS2 = {
+      page_views: "Page Views",
+      reactions: "Reactions",
+      comments: "Comments"
+    };
+  }
+});
+function tokenTtlSeconds() {
+  return dayjs5__default.default().add(DEVTO_TOKEN_TTL_YEARS, "year").unix() - dayjs5__default.default().unix();
+}
+function decodeDevtoConnectCode(code) {
+  try {
+    const raw = Buffer.from(code.trim(), "base64").toString("utf8");
+    const parsed = JSON.parse(raw);
+    if (typeof parsed.apiKey === "string" && parsed.apiKey.trim().length >= 3) {
+      return parsed.apiKey.trim();
+    }
+  } catch {
+  }
+  throw new Error("Invalid API key");
+}
+function authTokenFromProfile(apiKey, profile) {
+  return {
+    id: profile.id,
+    name: profile.name,
+    accessToken: apiKey,
+    refreshToken: "",
+    expiresIn: tokenTtlSeconds(),
+    picture: profile.picture,
+    username: profile.username
+  };
+}
+var DEVTO_TOKEN_TTL_YEARS, DevToProvider;
+var init_devtoProvider = __esm({
+  "integrations/providers/devto/devtoProvider.ts"() {
+    init_resolveDevtoSettings();
+    init_devtoAnalytics();
+    init_devtoPublish();
+    init_makeId();
+    init_ProviderIntegrationErrors();
+    DEVTO_TOKEN_TTL_YEARS = 100;
+    DevToProvider = class {
+      identifier = "devto";
+      name = "Dev.to";
+      editor = "markdown";
+      isBetweenSteps = false;
+      scopes = [];
+      toolTip = "Connect with a Dev.to API key (no OAuth app)";
+      rules = "Dev.to articles are markdown. Title must be at least 2 characters. Optional cover image, up to 4 tags, organization id, canonical URL, and series name. Follow-up comments are not supported.";
+      maxLength(_additionalSettings) {
+        return DEVTO_MAX_LENGTH;
+      }
+      validateCreatePost(_input) {
+        return null;
+      }
+      async customFields() {
+        return [
+          {
+            key: "apiKey",
+            label: "API key",
+            validation: "/^.{3,}$/",
+            type: "password"
+          }
+        ];
+      }
+      tools() {
+        return [
+          {
+            methodName: "tags",
+            description: "List popular Dev.to tags as { value: id, label: name } options."
+          },
+          {
+            methodName: "organizations",
+            description: "List Dev.to organizations this API key can publish under."
+          }
+        ];
+      }
+      settingsSchema() {
+        return DEVTO_SETTINGS_SCHEMA;
+      }
+      /**
+       * Seeds session OAuth cache without a platform redirect. The returned `url` is the
+       * random `state` so the credentials form can POST it back as `state`.
+       */
+      async generateAuthUrl() {
+        const state = makeId(6);
+        const codeVerifier = makeId(10);
+        return { url: state, codeVerifier, state };
+      }
+      async authenticate(params) {
+        try {
+          const apiKey = decodeDevtoConnectCode(params.code);
+          const profile = await fetchDevtoCurrentUser(apiKey);
+          return authTokenFromProfile(apiKey, profile);
+        } catch {
+          return "Invalid API key";
+        }
+      }
+      /** API keys do not rotate; re-validate the stored key and extend expiry. */
+      async refreshToken(refreshToken) {
+        const profile = await fetchDevtoCurrentUser(refreshToken);
+        return authTokenFromProfile(refreshToken, profile);
+      }
+      async tags(token, _data, _internalId, _integration) {
+        return fetchDevtoTagOptions(token);
+      }
+      async organizations(token, _data, _internalId, _integration) {
+        return fetchDevtoOrganizationOptions(token);
+      }
+      async post(_id, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishDevtoArticle(accessToken2, postDetails[0]);
+        return [result];
+      }
+      /**
+       * Account-wide Dev.to insights (`GET /api/analytics/historical`).
+       * Scoped to the API key owner; `id` is unused.
+       */
+      async analytics(_id, accessToken2, dateWindowDays) {
+        try {
+          return await fetchDevtoAccountAnalytics(accessToken2, dateWindowDays);
+        } catch {
+          return [];
+        }
+      }
+      /**
+       * Per-article insights using Forem historical + totals (`article_id` = `release_id`).
+       */
+      async postAnalytics(_integrationId, accessToken2, releaseId, dateWindowDays) {
+        try {
+          return await fetchDevtoPostAnalytics(accessToken2, releaseId, dateWindowDays);
+        } catch (e) {
+          if (e instanceof ProviderAccessTokenExpiredError) throw e;
+          if (e instanceof Error && /Missing Dev\.to article id/i.test(e.message)) {
+            throw e;
+          }
+          return [];
+        }
+      }
+    };
+  }
+});
+
 // integrations/integrationManager.ts
 var socialIntegrationList, IntegrationManager;
 var init_integrationManager = __esm({
@@ -19184,6 +19898,7 @@ var init_integrationManager = __esm({
     init_tiktokProvider();
     init_youtubeProvider();
     init_xProvider();
+    init_devtoProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
@@ -19193,7 +19908,8 @@ var init_integrationManager = __esm({
       new LinkedInPageProvider(),
       new YoutubeProvider(),
       new TiktokProvider(),
-      new XProvider()
+      new XProvider(),
+      new DevToProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {
@@ -19695,7 +20411,7 @@ var init_RefreshIntegrationService = __esm({
         );
       }
       async refreshProcess(integration, socialProvider) {
-        const rt = integration.refresh_token;
+        const rt = integration.refresh_token?.trim() || (typeof socialProvider.customFields === "function" ? integration.token?.trim() || "" : "");
         if (!rt || !socialProvider.refreshToken) {
           await this.markRefreshFailed(integration);
           return false;
@@ -20276,8 +20992,16 @@ var init_IntegrationConnectionService = __esm({
       async publicListCustomerGroups(organizationId) {
         return this.integrations.customers(organizationId);
       }
+      /** Public OAuth URL. Providers with `customFields` must be connected in the dashboard with an API key. */
       async getIntegrationUrlPublicApi(organizationId, integration, opts) {
         try {
+          if (!this.manager.getAllowedSocialsIntegrations().includes(integration)) {
+            throw new AppError("Integration not allowed", 400);
+          }
+          const integrationProvider = this.manager.getSocialIntegration(integration);
+          if (integrationProvider?.customFields) {
+            throw new AppError("Connect this channel in the dashboard with an API key", 400);
+          }
           return await this.buildOAuthAuthorizationUrl(organizationId, integration, opts, "public");
         } catch (err) {
           if (err instanceof AppError) throw err;
@@ -24210,7 +24934,7 @@ function getStripeClient() {
   if (!stripeClient) {
     stripeClient = new Stripe2__default.default(secretKey, {
       apiVersion: "2026-04-22.dahlia",
-      appInfo: { name: "Openquok", version: "1.0.0" }
+      appInfo: { name: "OpenQuok", version: "1.0.0" }
     });
   }
   return stripeClient;
@@ -25472,7 +26196,7 @@ async function generateBlogRSSFeed(posts) {
     language: "en",
     favicon: `${URL2.replace(/\/$/, "")}/favicon.ico`,
     copyright: `All rights reserved ${(/* @__PURE__ */ new Date()).getFullYear()}, ${NAME}`,
-    generator: "Openquok Blog System",
+    generator: "OpenQuok Blog System",
     feedLinks: {
       rss2: `${blogURL}/rss.xml`,
       json: `${blogURL}/feed.json`,
@@ -32168,7 +32892,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-19T11:12:36.002Z",
+  generated: "2026-08-22T08:48:51.823Z",
   routes: [
     {
       path: "/docs",
@@ -32400,6 +33124,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/warp",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/devto",
       priority: 0.8,
       changeFreq: "monthly",
       type: "public-catalog"
@@ -32909,6 +33639,12 @@ var routes_manifest_default = {
       type: "programmatic-alternatives"
     },
     {
+      path: "/agents/grok-bot/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/grok-bot/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -32946,6 +33682,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/grok-bot/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/hermes/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -32993,6 +33735,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/openclaw/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/openclaw/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33030,6 +33778,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/openclaw/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/amp/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -33077,6 +33831,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/antigravity-cli/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/antigravity-cli/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33114,6 +33874,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/antigravity-cli/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/chatgpt/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -33161,6 +33927,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/claude-code/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/claude-code/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33198,6 +33970,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/claude-code/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/claude-cowork/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -33245,6 +34023,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/codex/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/codex/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33282,6 +34066,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/codex/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/cursor/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -33329,6 +34119,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/devin-desktop/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/devin-desktop/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33366,6 +34162,12 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/devin-desktop/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/vscode-copilot/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -33413,6 +34215,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/agents/warp/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
       path: "/agents/warp/facebook",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33455,6 +34263,12 @@ var routes_manifest_default = {
       type: "programmatic-agent-channel"
     },
     {
+      path: "/tools/photo-editor/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/photo-editor/linkedin",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33474,6 +34288,12 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/photo-editor/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
@@ -33503,6 +34323,12 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/best-time-to-post/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/best-time-to-post/linkedin",
       priority: 0.7,
       changeFreq: "monthly",
@@ -33522,6 +34348,12 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/best-time-to-post/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/devto",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"

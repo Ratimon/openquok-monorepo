@@ -29,7 +29,7 @@ export type BuildingBlockDetailComponentProps = {
 	submittingRating?: boolean;
 	onRatingSignInRequired?: () => void;
 	onRatingUpgradeRequired?: () => void;
-	/** OPENQUOK pairing band — rendered after tags, above Install. */
+	/** OpenQuok pairing band — rendered after tags, above Install. */
 	openQuokHeroVm?: CreatorListingHeroVm | null;
 };
 

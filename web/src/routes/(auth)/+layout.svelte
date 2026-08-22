@@ -42,7 +42,7 @@
 		(data as App.LayoutData)?.companyNameVm ??
 			(page.data as App.LayoutData)?.companyNameVm ??
 			publicLayoutPagePresenter.companyNameVm ??
-			'OPENQUOK'
+			'OpenQuok'
 	);
 	let companyLegalNameVm = $derived(
 		(data as App.LayoutData)?.companyLegalNameVm ??

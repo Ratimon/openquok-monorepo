@@ -565,7 +565,7 @@
 		<h1 class="text-xl font-semibold text-base-content">
 			Sign in to connect</h1>
 		<p class="mt-2 text-sm text-base-content/70">
-			Starting this connection requires an Openquok session. Sign in, then try again from your workspace.
+			Starting this connection requires an OpenQuok session. Sign in, then try again from your workspace.
 		</p>
 		<Button class="mt-6" href={signInToContinueHref}>
 			Sign in</Button>

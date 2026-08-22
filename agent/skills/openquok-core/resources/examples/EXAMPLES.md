@@ -1,4 +1,4 @@
-# Openquok CLI — JSON post examples
+# OpenQuok CLI — JSON post examples
 
 Copy-paste payloads for `openquok posts:create --json ./examples/<file>.json`. Each file uses the **POST /public/posts** shape (`scheduledAt`, `status`, `body`, `integrationIds`, optional `media`, `providerSettingsByIntegrationId`, …).
 

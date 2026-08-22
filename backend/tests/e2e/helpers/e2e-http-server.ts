@@ -3,7 +3,7 @@ import type { AddressInfo } from "node:net";
 
 import { app, ensureAppInitialized } from "../../../app";
 
-/** Listen on a random local port so the Openquok CLI can hit the same app as supertest. */
+/** Listen on a random local port so the OpenQuok CLI can hit the same app as supertest. */
 export async function startE2eHttpServer(): Promise<{
     baseUrl: string;
     close: () => Promise<void>;

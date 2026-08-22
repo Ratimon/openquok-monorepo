@@ -1,6 +1,6 @@
 ---
 title: YouTube
-description: How to configure YouTube channel for Openquok — Google Cloud OAuth, APIs, and backend env vars.
+description: How to configure YouTube channel for OpenQuok — Google Cloud OAuth, APIs, and backend env vars.
 order: 5
 lastUpdated: 2026-06-10
 ---
@@ -15,7 +15,7 @@ YouTube publishing uses **Google OAuth 2.0** with the **YouTube Data API v3** an
 
 You need a <DocsExternalLink href="https://console.cloud.google.com/">Google Cloud</DocsExternalLink> project, an OAuth **Web application** client, enabled APIs, and backend env vars <Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> and <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" />.
 
-Openquok uploads **one MP4 video**, with optional title, privacy, tags, made-for-kids flag, and custom thumbnail. After OAuth you pick which **YouTube channel** to connect (two-step flow).
+OpenQuok uploads **one MP4 video**, with optional title, privacy, tags, made-for-kids flag, and custom thumbnail. After OAuth you pick which **YouTube channel** to connect (two-step flow).
 
 <Callout type="note" title="Not Supabase login">
 <p>YouTube channel OAuth uses its own Google Cloud OAuth client (<Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> / <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" />). That is <strong>not</strong> the same credentials as Supabase Auth Google sign-in — see <a href="/docs/configuration-backend/google-oauth">Google OAuth (Supabase)</a> if you also offer Google login to your workspace.</p>
@@ -46,14 +46,14 @@ CLI walkthroughs: <a href="/docs/cli-examples/youtube">CLI Examples — YouTube<
 | --- | --- |
 | Text-only posts | A video attachment is required |
 | Follow-up comments | No threaded replies after publish |
-| Playlists or categories | Not wired in Openquok today |
-| YouTube-side scheduled publish | Openquok schedules; upload uses immediate publish with privacy status |
+| Playlists or categories | Not wired in OpenQuok today |
+| YouTube-side scheduled publish | OpenQuok schedules; upload uses immediate publish with privacy status |
 | Community posts | Not available through the public YouTube Data API |
 | Shorts-specific publish mode | Standard video upload only — no separate Shorts API or composer toggle |
 
 ## Backend environment
 
-Openquok reads YouTube credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
+OpenQuok reads YouTube credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
 
 - <Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> — OAuth **Client ID** (Web application)
 - <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" /> — OAuth **Client secret**
@@ -82,7 +82,7 @@ https://YOUR-FRONTEND-DOMAIN/integration/oauth/youtube
 https://localhost:5173/integration/oauth/youtube
 ```
 
-After OAuth, Openquok shows a **channel picker** so you choose which YouTube channel to connect.
+After OAuth, OpenQuok shows a **channel picker** so you choose which YouTube channel to connect.
 
 <Callout type="warning">
 <p>Never commit <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" /> or paste it into tickets, chat, or public screenshots. Store it only in your deployment secrets or local <Badge text="backend/.env.development.local" variant="envBackend" /> file.</p>
@@ -100,7 +100,7 @@ Google splits this into two layers. They are easy to confuse because both live i
 | **Workspace admin trust** | Mark your OAuth client as **Trusted** in <DocsExternalLink href="https://admin.google.com/">Google Admin</DocsExternalLink> | **Sometimes** — brand accounts or Workspace orgs that block third-party apps (see below) |
 | **Quota increase** | Request a higher YouTube Data API quota in Cloud Console | **Only if** you hit default daily upload/read limits |
 
-Several scopes Openquok requests are classified as **sensitive** by Google (for example <Badge text="youtube.upload" variant="default" /> and <Badge text="yt-analytics.readonly" variant="default" />). That is expected for upload and analytics. While the app stays in **Testing**, you can use those scopes with test users only — including past Google’s “unverified app” warning screen. To go **Production** for arbitrary Google users, complete <DocsExternalLink href="https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification">sensitive scope verification</DocsExternalLink> (often about a week).
+Several scopes OpenQuok requests are classified as **sensitive** by Google (for example <Badge text="youtube.upload" variant="default" /> and <Badge text="yt-analytics.readonly" variant="default" />). That is expected for upload and analytics. While the app stays in **Testing**, you can use those scopes with test users only — including past Google’s “unverified app” warning screen. To go **Production** for arbitrary Google users, complete <DocsExternalLink href="https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification">sensitive scope verification</DocsExternalLink> (often about a week).
 
 <Callout type="tip" title="Exceptions"> Verification is often not required.
 <ul>
@@ -109,11 +109,11 @@ Several scopes Openquok requests are classified as **sensitive** by Google (for 
 </ul>
 </Callout>
 
-You do **not** need a separate “request access” for **YouTube Reporting API** — Openquok does not use it.
+You do **not** need a separate “request access” for **YouTube Reporting API** — OpenQuok does not use it.
 
 ## General setup
 
-Follow <DocsExternalLink href="https://developers.google.com/youtube/registering_an_application">Obtaining authorization credentials</DocsExternalLink> for the underlying Google requirements. The steps below add Openquok redirect URIs, env vars, and the channel-picker flow.
+Follow <DocsExternalLink href="https://developers.google.com/youtube/registering_an_application">Obtaining authorization credentials</DocsExternalLink> for the underlying Google requirements. The steps below add OpenQuok redirect URIs, env vars, and the channel-picker flow.
 
 <Steps>
 
@@ -132,11 +132,11 @@ In **APIs &amp; Services → Library**, search for and enable:
 ![Enable Google APIs](/docs/_assets/social-integration/youtube/enable-google-apis.webp)
 
 - **YouTube Data API v3** — uploads, channel listing, video metadata
-- **YouTube Analytics API** — channel analytics in Openquok
+- **YouTube Analytics API** — channel analytics in OpenQuok
 
 ![Enable Youtube APIs](/docs/_assets/social-integration/youtube/enable-youtube-apis.webp)
 
-You do **not** need **YouTube Reporting API** for Openquok today.
+You do **not** need **YouTube Reporting API** for OpenQuok today.
 
 ### Configure the OAuth consent screen
 
@@ -173,11 +173,11 @@ After creation, copy **Client ID** → <Badge text="YOUTUBE_CLIENT_ID" variant="
 Restart the backend so new env vars load.
 
 
-### Connect a Youtube Channel in Openquok
+### Connect a Youtube Channel in OpenQuok
 
 In the web app, start **Connect YouTube**, sign in with Google, grant permissions, then pick the channel you manage on the callback screen.
 
-- Add the scopes Openquok requests during connect (profile, email, YouTube Data API v3, and YouTube Analytics read-only). They match <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/youtube/youtubeProvider.ts"><Badge text="backend/integrations/providers/youtube/youtubeProvider.ts" variant="path" /></DocsExternalLink>:
+- Add the scopes OpenQuok requests during connect (profile, email, YouTube Data API v3, and YouTube Analytics read-only). They match <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/youtube/youtubeProvider.ts"><Badge text="backend/integrations/providers/youtube/youtubeProvider.ts" variant="path" /></DocsExternalLink>:
 
 <ul class="not-prose list-disc pl-6">
 <li><Badge text="userinfo.profile" variant="default" /></li>
@@ -207,8 +207,8 @@ Add every Google account that will connect a YouTube channel during development.
 
 <Callout type="tip" title="Revoke OAuth">
 <ul>
-<li>Revoke Openquok under <DocsExternalLink href="https://myaccount.google.com/permissions">Google Account → Third-party apps with account access</DocsExternalLink>.</li>
-<li>This will disconnect the YouTube channel in Openquok and user can reconnect youtube again.</li>
+<li>Revoke OpenQuok under <DocsExternalLink href="https://myaccount.google.com/permissions">Google Account → Third-party apps with account access</DocsExternalLink>.</li>
+<li>This will disconnect the YouTube channel in OpenQuok and user can reconnect youtube again.</li>
 </ul>
 </Callout>
 
@@ -244,19 +244,19 @@ Save the policy.
 
 Google Workspace policy changes can take **several hours** (often around five hours) to apply. If OAuth still fails after trust is saved, wait and retry **Connect YouTube** with a test-listed account that manages the brand channel.
 
-### Reconnect in Openquok
+### Reconnect in OpenQuok
 
-After propagation, remove any stale YouTube integration in Openquok and run **Connect YouTube** again. Confirm the brand channel appears in the channel picker.
+After propagation, remove any stale YouTube integration in OpenQuok and run **Connect YouTube** again. Confirm the brand channel appears in the channel picker.
 
 </Steps>
 
-## How Openquok uses the flow
+## How OpenQuok uses the flow
 
 - **Authorize URL** is produced by the backend; the user signs in with Google and returns to the **frontend** route with an authorization <Badge text="code" variant="default" />.
 
 - The web client calls the backend **social-connect** endpoint with <Badge text="code" variant="default" />, <Badge text="state" variant="default" />, and timezone so the server can exchange the code and list channels.
 
-- After you pick a channel, Openquok stores the channel id as the integration’s internal id and keeps the user OAuth token for refresh (unlike Meta Page tokens).
+- After you pick a channel, OpenQuok stores the channel id as the integration’s internal id and keeps the user OAuth token for refresh (unlike Meta Page tokens).
 
 API prefix defaults to <Badge text="/api/v1" variant="path" /> (see <Badge text="API_PREFIX" variant="envBackend" />).
 
@@ -272,7 +272,7 @@ If Google shows an admin-blocked or unauthorized-client error, complete the <a h
 
 ### Missing permissions after OAuth
 
-Remove the channel in Openquok and reconnect. Ensure the OAuth consent screen includes YouTube upload and analytics scopes and that you clicked **Allow** for all requested access.
+Remove the channel in OpenQuok and reconnect. Ensure the OAuth consent screen includes YouTube upload and analytics scopes and that you clicked **Allow** for all requested access.
 
 ### Upload fails at publish time
 

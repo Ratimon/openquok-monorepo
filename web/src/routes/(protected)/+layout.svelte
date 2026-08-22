@@ -20,7 +20,7 @@
 
 	let { children, data }: ProtectedLayoutProps = $props();
 
-	const companyName = $derived((data as App.LayoutData)?.companyNameVm ?? 'OPENQUOK');
+	const companyName = $derived((data as App.LayoutData)?.companyNameVm ?? 'OpenQuok');
 	const currentUser = $derived(
 		(data as App.LayoutData)?.currentUser ?? authenticationRepository.currentUser ?? null
 	);

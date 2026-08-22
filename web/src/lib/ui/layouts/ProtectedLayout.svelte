@@ -65,7 +65,7 @@
 	let canSeeEditorArea = $derived(isEditor || isPlatformAdmin);
 	let canSeeAdminArea = $derived(isAdmin || isPlatformAdmin);
 
-	let companyNameVm = $derived(companyName ?? 'OPENQUOK');
+	let companyNameVm = $derived(companyName ?? 'OpenQuok');
 	let currentUserName = $derived(
 		(currentUser?.fullName ?? currentUser?.email ?? null)?.split(/\s+/)[0] ?? null
 	);

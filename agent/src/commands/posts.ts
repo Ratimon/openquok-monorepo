@@ -107,7 +107,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           .option("status", {
             type: "string",
             choices: ["draft", "scheduled"] as const,
-            describe: "draft | scheduled (Openquok API). Default: scheduled",
+            describe: "draft | scheduled (OpenQuok API). Default: scheduled",
           })
           .option("type", {
             alias: "t",
@@ -194,7 +194,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             return true;
           })
           .example(
-            '$0 posts:create -c "Hello from Openquok" -s "2026-01-01T12:00:00Z" -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
+            '$0 posts:create -c "Hello from OpenQuok" -s "2026-01-01T12:00:00Z" -i "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b"',
             "Short flags (-c -s -i) equivalent to --body --scheduledAt --integrationIds"
           )
           .example(
@@ -225,7 +225,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             '$0 posts:create -c "Hello" -s "2026-01-01T12:00:00Z" -i "$ID" --settings \'{"customField":true}\'',
             "Platform JSON merged into providerSettingsByIntegrationId for each -i"
           )
-          .example("$0 posts:create --json ./post.json", "Full payload from JSON file (Openquok POST /public/posts shape)"),
+          .example("$0 posts:create --json ./post.json", "Full payload from JSON file (OpenQuok POST /public/posts shape)"),
       async (args: any) => {
         await runCommand("posts:create", async () => {
           const api = await ctx.buildApi();

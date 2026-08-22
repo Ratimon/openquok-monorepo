@@ -1,4 +1,4 @@
-# Publishing `@openquok/auto-cli` (Openquok CLI) to npm
+# Publishing `@openquok/auto-cli` (OpenQuok CLI) to npm
 
 ## Quick publish (manual)
 

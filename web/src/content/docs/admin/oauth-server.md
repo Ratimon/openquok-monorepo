@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 ## Overview
 
-Openquok supports **OAuth applications** so third-party services (or infrastructure you operate) can run the OAuth2 authorization code flow and receive <Badge text="opo_" variant="default" /> tokens for programmatic access.
+OpenQuok supports **OAuth applications** so third-party services (or infrastructure you operate) can run the OAuth2 authorization code flow and receive <Badge text="opo_" variant="default" /> tokens for programmatic access.
 
 <Callout type="note" title="OAuth apps vs workspace programmatic token">
 <p><strong>This page</strong> covers third-party apps under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> (client ID <Badge text="oqc_" variant="default" />). For automation in <strong>your own</strong> workspace — scripts, CI, or rotating a personal token — use <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> instead. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a>.</p>
@@ -25,7 +25,7 @@ Only **workspace admins** can manage OAuth apps for their workspace. The **clien
 
 ### Open developer settings
 
-In the Openquok web app, go to:
+In the OpenQuok web app, go to:
 
 - <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" />
 
@@ -51,9 +51,9 @@ Store the secret in your server-side secret manager / env, not in the browser or
 
 The redirect URL must match the server that will receive the OAuth callback.
 
-### Hosted CLI device flow (Openquok-operated)
+### Hosted CLI device flow (OpenQuok-operated)
 
-Openquok production splits the device flow:
+OpenQuok production splits the device flow:
 
 - **CLI API:** <Badge text="https://cli-auth.openquok.com" variant="new" /> (<Badge text="SERVER_URL" variant="envBackend" />)
 - **Browser:** <Badge text="https://www.openquok.com/cli/device/verify" variant="new" /> and callback below

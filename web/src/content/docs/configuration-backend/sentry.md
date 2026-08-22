@@ -1,6 +1,6 @@
 ---
 title: Sentry
-description: Enable backend error monitoring with Sentry 's DSN for Openquok.
+description: Enable backend error monitoring with Sentry 's DSN for OpenQuok.
 order: 4
 lastUpdated: 2026-03-30
 ---

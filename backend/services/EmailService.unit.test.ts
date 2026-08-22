@@ -234,7 +234,7 @@ describe("EmailService", () => {
             );
             const body = JSON.parse((global.fetch as jest.Mock).mock.calls[0][1].body as string);
             expect(body).toEqual({
-                from: "Openquok <noreply@example.com>",
+                from: "OpenQuok <noreply@example.com>",
                 to: ["user@example.com"],
                 subject: "Re: Hello",
                 text: "Plain body",
@@ -292,7 +292,7 @@ describe("EmailService", () => {
             expect(mockSendMail).toHaveBeenCalledTimes(1);
             expect(mockSendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    from: { name: "Openquok", address: "noreply@example.com" },
+                    from: { name: "OpenQuok", address: "noreply@example.com" },
                     to: "user@example.com",
                     subject: "Re: Hello",
                     text: "Plain body",

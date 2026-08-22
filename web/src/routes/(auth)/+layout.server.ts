@@ -11,7 +11,7 @@ export async function load({ parent, url }) {
 		(typeof parentData.companyInformationPm?.config?.NAME === 'string' &&
 			parentData.companyInformationPm.config.NAME.trim()) ||
 		(typeof parentData.companyNameVm === 'string' && parentData.companyNameVm.trim()) ||
-		String(getCompanyConfigDefaults().NAME ?? 'OPENQUOK');
+		String(getCompanyConfigDefaults().NAME ?? 'OpenQuok');
 
 	const pageMetaTags = Object.freeze({
 		robots: 'noindex, nofollow',

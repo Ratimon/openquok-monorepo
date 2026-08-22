@@ -1,6 +1,6 @@
 ---
 title: LinkedIn
-description: How to configure LinkedIn personal profile for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
+description: How to configure LinkedIn personal profile for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 7
 lastUpdated: 2026-06-20
 ---

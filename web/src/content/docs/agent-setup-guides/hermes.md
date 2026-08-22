@@ -1,6 +1,6 @@
 ---
 title: Hermes Agent
-description: Install the openquok-core skill and Openquok CLI on a Hermes Agent host (Telegram, Discord, Slack, and more).
+description: Install the openquok-core skill and OpenQuok CLI on a Hermes Agent host (Telegram, Discord, Slack, and more).
 order: 1
 lastUpdated: 2026-06-24
 ---
@@ -57,7 +57,7 @@ hermes gateway setup
 
 Check status with <Badge text="hermes gateway status" variant="default" />. Messaging is optional for OpenQuok — the agent can draft and schedule from the terminal alone.
 
-### Install the global Openquok CLI
+### Install the global OpenQuok CLI
 
 In the <strong>same</strong> environment Hermes uses for shell tools:
 
@@ -114,7 +114,7 @@ openquok auth:login:poll --device-code "<device_code from stdout>"
 openquok auth:status
 ```
 
-**Alternative for fully headless hosts (VPS, Docker, Telegram bots):** rotate a programmatic token from the <a href="https://www.openquok.com">Openquok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
+**Alternative for fully headless hosts (VPS, Docker, Telegram bots):** rotate a programmatic token from the <a href="https://www.openquok.com">OpenQuok dashboard</a> (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />):
 
 ```bash
 export OPENQUOK_API_KEY=opo_your_programmatic_token
@@ -226,7 +226,7 @@ On headless hosts prefer <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> 
 ## Troubleshooting
 
 <Callout type="warning" title="Outdated skill or CLI">
-<p>Installing or updating the skill does <strong>not</strong> upgrade <Badge text="openquok --version" variant="default" />. Run both updates in the <strong>same shell environment</strong> Hermes uses for terminal tools, then start a <strong>new</strong> chat session so Hermes reloads skills and the Openquok bot runs its opening checks again.</p>
+<p>Installing or updating the skill does <strong>not</strong> upgrade <Badge text="openquok --version" variant="default" />. Run both updates in the <strong>same shell environment</strong> Hermes uses for terminal tools, then start a <strong>new</strong> chat session so Hermes reloads skills and the OpenQuok bot runs its opening checks again.</p>
 
 <p><strong>On the host (terminal)</strong></p>
 
@@ -240,7 +240,7 @@ openquok --version
 
 <blockquote><p>/new</p></blockquote>
 
-<p>Starts a fresh conversation (alias <Badge text="/reset" variant="default" />). Use this after upgrading so the Openquok skill re-reads <Badge text="openquok --version" variant="default" /> and <Badge text="auth:status" variant="default" /> on the first turn.</p>
+<p>Starts a fresh conversation (alias <Badge text="/reset" variant="default" />). Use this after upgrading so the OpenQuok skill re-reads <Badge text="openquok --version" variant="default" /> and <Badge text="auth:status" variant="default" /> on the first turn.</p>
 
 <blockquote><p>/sessions</p></blockquote>
 
@@ -266,7 +266,7 @@ openquok --version
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Introduction to Openquok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
+<LinkCard title="Introduction to OpenQuok CLI" description="General install and quick start" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="OpenClaw agent guide" description="Install openquok-core for OpenClaw " href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="CLI Examples" description="Threads and Instagram recipes" href="/docs/cli-examples" />

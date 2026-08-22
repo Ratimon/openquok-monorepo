@@ -1,6 +1,6 @@
 ---
 title: Overview - Public API
-description: Getting started to automate your Social Scheduling with Openquok's public API and Node.js SDK.
+description: Getting started to automate your Social Scheduling with OpenQuok's public API and Node.js SDK.
 order: 0
 lastUpdated: 2026-08-11
 ---
@@ -18,7 +18,7 @@ All programmatic access to <Badge text="/api/v1/public/*" variant="path" /> uses
 
 For scripts, CI, and your own integrations, use a **programmatic access token** tied to your workspace:
 
-1. In the Openquok app, go to <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+1. In the OpenQuok app, go to <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
 2. Click <Badge text="Generate / Rotate token" variant="new" />. The plaintext <Badge text="opo_…" variant="default" /> value is shown **once** — copy it immediately.
 3. Send it on every request:
 
@@ -38,7 +38,7 @@ Tokens belong to the **workspace (organization)** you selected and act with that
 
 ### OAuth2 access token (third-party apps)
 
-If you are building an app **for other Openquok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/oauth2-for-apps">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
+If you are building an app **for other OpenQuok users**, register an OAuth app under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> and use the <a href="/docs/oauth2-for-apps">OAuth2 Authorization Code flow</a>. The returned <Badge text="access_token" variant="default" /> also uses the <Badge text="opo_" variant="default" /> prefix and is sent the same way:
 
 ```bash
 curl -H "Authorization: Bearer opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations
@@ -50,7 +50,7 @@ OAuth tokens are scoped to the **organization the user authorized** — not to t
 
 | Environment | Base URL |
 | --- | --- |
-| Openquok Cloud | <Badge text="https://api.openquok.com/api/v1/public" variant="new" /> |
+| OpenQuok Cloud | <Badge text="https://api.openquok.com/api/v1/public" variant="new" /> |
 | Self-hosted | Your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> origin + <Badge text="/api/v1/public" variant="path" /> |
 
 The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Badge text="API_PREFIX" variant="envBackend" />.
@@ -63,7 +63,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 
 ## Supported social channels
 
-Openquok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <code>providerSettingsByIntegrationId</code> keyed by the channel's UUID.
+OpenQuok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <code>providerSettingsByIntegrationId</code> keyed by the channel's UUID.
 
 For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
 
@@ -80,7 +80,7 @@ Skip hand-writing JSON — open the <a href="/account/payload-wizard">Payload Wi
 ![Wizard Payload Generator](/docs/_assets/getting-started-for-public-api/wizard-payload.webp)
 
 
-It's the same post composer you already use in the Openquok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.
+It's the same post composer you already use in the OpenQuok app, but the schedule buttons are swapped for <Badge text="Copy scheduled payload" variant="new" /> and <Badge text="Copy draft payload" variant="default" />, so you can drop the result straight into a <Badge text="POST /api/v1/public/posts" variant="default" /> request body.
 
 ## Channel groups
 
@@ -142,7 +142,7 @@ Not every provider exposes plugs — Threads, X, and LinkedIn Page support globa
 
 ## Start Integrating with SDK
 
-<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around Openquok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, list channel groups, configure global plugs, and inspect connected channels from any Node.js script or backend.
+<Badge text="@openquok/node-sdk" variant="experimental" /> is a small, typed Node.js wrapper around OpenQuok's programmatic API (<Badge text="/api/v1/public" variant="default" />). Use it to schedule posts, manage post groups, upload media, list channel groups, configure global plugs, and inspect connected channels from any Node.js script or backend.
 
 
 ### Installation
@@ -182,7 +182,7 @@ const uploaded = await openquok.upload(fileBuffer, 'png');
 await openquok.post({
 	scheduledAt: new Date().toISOString(),
 	status: 'scheduled',
-	body: 'Hello from Openquok SDK',
+	body: 'Hello from OpenQuok SDK',
 	media: uploaded?.data?.id && uploaded?.data?.filePath
 		? [{ id: uploaded.data.id, path: uploaded.data.filePath }]
 		: undefined,

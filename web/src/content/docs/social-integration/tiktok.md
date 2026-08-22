@@ -1,6 +1,6 @@
 ---
 title: TikTok
-description: How to configure TikTok for Openquok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars.
+description: How to configure TikTok for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars.
 order: 6
 lastUpdated: 2026-06-18
 ---
@@ -20,7 +20,7 @@ TikTok servers fetch media from your storage via **HTTPS** URLs (“pull from UR
 CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a>.
 
 <Callout type="note">
-<p>Connecting TikTok in Openquok does not replace account warm-up. For new or barely used accounts, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> before you rely on reach or schedule heavy posting.</p>
+<p>Connecting TikTok in OpenQuok does not replace account warm-up. For new or barely used accounts, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> before you rely on reach or schedule heavy posting.</p>
 </Callout>
 
 ## Features
@@ -45,7 +45,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a
 | Feature | Notes |
 | --- | --- |
 | Mixed media (video + images) | TikTok publish requires either a single video or an image carousel |
-| Binary upload from Openquok | Openquok publishes via public HTTPS URLs; it does not stream bytes directly to TikTok |
+| Binary upload from OpenQuok | OpenQuok publishes via public HTTPS URLs; it does not stream bytes directly to TikTok |
 
 <Callout type="warning">
 <p>When your TikTok app is not audited/approved for broader access, TikTok can restrict publishing to <code>SELF_ONLY</code> (private). If you see privacy-level errors or unexpected private posts, complete the relevant TikTok review steps for your app.</p>
@@ -53,7 +53,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a
 
 ## Backend environment
 
-Openquok reads TikTok credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
+OpenQuok reads TikTok credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
 
 - <Badge text="TIKTOK_CLIENT_ID" variant="envBackend" /> — TikTok **Client key** from your TikTok app <strong>Credentials</strong> section
 - <Badge text="TIKTOK_CLIENT_SECRET" variant="envBackend" /> — TikTok **Client secret**
@@ -88,7 +88,7 @@ https://localhost:5173/integration/oauth/tiktok
 
 ## Public media URLs
 
-TikTok fetches media server-side via **HTTPS** URLs. Before you can publish reliably, ensure Openquok can resolve each attachment to a public URL and that TikTok accepts that domain.
+TikTok fetches media server-side via **HTTPS** URLs. Before you can publish reliably, ensure OpenQuok can resolve each attachment to a public URL and that TikTok accepts that domain.
 
 Choose one media storage strategy:
 
@@ -106,7 +106,7 @@ Choose one media storage strategy:
 
 ## TikTok Developer app setup
 
-Follow TikTok’s developer portal flow, then apply the Openquok-specific details below.
+Follow TikTok’s developer portal flow, then apply the OpenQuok-specific details below.
 
 <Steps>
 
@@ -132,7 +132,7 @@ Fill required app information (app name, category, description).
 
 Fill required urls (term of service, privacy policy, web urls).
 
-For Openquok-hosted deployments, register your public <strong>Terms</strong> and <strong>Privacy Policy</strong> URLs (for example <code>https://www.openquok.com/terms</code> and <code>https://www.openquok.com/privacy-policy</code>). TikTok app review requires these links to be active and visible on your official website without opening a menu.
+For OpenQuok-hosted deployments, register your public <strong>Terms</strong> and <strong>Privacy Policy</strong> URLs (for example <code>https://www.openquok.com/terms</code> and <code>https://www.openquok.com/privacy-policy</code>). TikTok app review requires these links to be active and visible on your official website without opening a menu.
 
 ![Configure App Urls](/docs/_assets/social-integration/tiktok/configure-urls.webp)
 
@@ -157,7 +157,7 @@ For production url, we can add as web url:
 ![Add Web Redirect Url](/docs/_assets/social-integration/tiktok/add-web-redirect-url.webp)
 
 <Callout type="note" title="Local redirect URI">
-<p>TikTok <strong>Web</strong> Login Kit does not accept <code>localhost</code> redirect URIs, even in Sandbox. For local Openquok, register a <strong>Desktop</strong> redirect URI (see above) or connect against your deployed frontend, for example <Badge text="https://www.openquok.com/integration/oauth/tiktok" variant="new" /> with <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> set to match.</p>
+<p>TikTok <strong>Web</strong> Login Kit does not accept <code>localhost</code> redirect URIs, even in Sandbox. For local OpenQuok, register a <strong>Desktop</strong> redirect URI (see above) or connect against your deployed frontend, for example <Badge text="https://www.openquok.com/integration/oauth/tiktok" variant="new" /> with <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> set to match.</p>
 </Callout>
 
 ![Add Desktop Redirect Url](/docs/_assets/social-integration/tiktok/add-desktop-redirect-url.webp)
@@ -208,7 +208,7 @@ In <strong>Sandbox settings</strong> → <strong>Target users</strong>, click <s
 
 <Callout type="tip" title="Revoke OAuth">
 <ul>
-<li>On mobile: TikTok → Profile → Menu → <strong>Settings and privacy</strong> → <strong>Security</strong> → <strong>Manage app permissions</strong>, then remove Openquok.</li>
+<li>On mobile: TikTok → Profile → Menu → <strong>Settings and privacy</strong> → <strong>Security</strong> → <strong>Manage app permissions</strong>, then remove OpenQuok.</li>
 </ul>
 </Callout>
 
@@ -224,7 +224,7 @@ Verify the media hostname in TikTok developer settings and ensure your public UR
 
 For unaudited developer apps, TikTok enforces **two** requirements on **direct post** (not inbox upload):
 
-1. **Post privacy** in Openquok: <code>Only me (private)</code> / <code>SELF_ONLY</code>.
+1. **Post privacy** in OpenQuok: <code>Only me (private)</code> / <code>SELF_ONLY</code>.
 2. **Account privacy** in the TikTok app: set the connected profile to <strong>Private</strong> (TikTok → Settings and privacy → Privacy → Private account) at publish time.
 
 Inbox upload (<code>UPLOAD</code>) sends media to the creator’s TikTok inbox and is not subject to the private-account rule. To publish directly to a public profile without these limits, submit your app for Content Posting API review in the TikTok developer portal.

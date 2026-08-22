@@ -1,5 +1,5 @@
 /**
- * Third-party OAuth2 Authorization Code flow + Openquok public API.
+ * Third-party OAuth2 Authorization Code flow + OpenQuok public API.
  *
  * Prerequisites:
  *   npm install express @openquok/node-sdk
@@ -17,7 +17,7 @@ const OPENQUOK_URL = process.env.OPENQUOK_FRONTEND_URL ?? "https://www.openquok.
 const API_URL = process.env.OPENQUOK_API_URL ?? "https://api.openquok.com";
 const PORT = Number(process.env.PORT ?? 3000);
 
-/** Must match the Redirect URL on your OAuth app (used by Openquok when redirecting after consent). */
+/** Must match the Redirect URL on your OAuth app (used by OpenQuok when redirecting after consent). */
 const CALLBACK_PATH = "/callback";
 
 const app = express();

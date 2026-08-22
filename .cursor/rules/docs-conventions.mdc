@@ -209,3 +209,4 @@ All of this can happen when you ask your agent something like:
 
 - Keep `title`, `description`, `order`, and `lastUpdated` on index and substantive pages when the rest of the docs do.
 - For SEO, include **“OpenQuok”** and a short product keyword such as **“social scheduler”** in the `description` where it fits naturally (especially on top-level section pages and major guides). Avoid keyword stuffing — keep it readable.
+- **Brand casing:** human-facing copy is **OpenQuok**. URLs, packages (`@openquok/…`), the `openquok` CLI, and env keys stay lowercase. Do not write **Openquok**. The SDK default class remains `Openquok` (code identifier). Legal name stays **OPENQUOK**.

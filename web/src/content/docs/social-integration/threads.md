@@ -1,6 +1,6 @@
 ---
 title: Meta Threads
-description: How to configure Meta Threads for Openquok
+description: How to configure Meta Threads for OpenQuok
 order: 4
 lastUpdated: 2026-04-12
 ---
@@ -13,7 +13,7 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 Threads publishing uses Meta’s **Threads API** behind an OAuth 2.0 flow. You need a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app with **Threads** access, valid **OAuth redirect URIs**, and backend env vars <Badge text="THREADS_APP_ID" variant="envBackend" /> and <Badge text="THREADS_APP_SECRET" variant="envBackend" />.
 
-For Meta’s product requirements and API surface, see <DocsExternalLink href="https://developers.facebook.com/docs/threads">Threads API documentation</DocsExternalLink>. The steps below add **Openquok-specific** URLs and envs.
+For Meta’s product requirements and API surface, see <DocsExternalLink href="https://developers.facebook.com/docs/threads">Threads API documentation</DocsExternalLink>. The steps below add **OpenQuok-specific** URLs and envs.
 
 <Callout type="note" title="Complex setup">
 Meta’s onboarding can take time. If something fails, double-check redirect URIs **character-for-character** and that the backend picked up new env vars after a restart.
@@ -21,7 +21,7 @@ Meta’s onboarding can take time. If something fails, double-check redirect URI
 
 ## Backend environment
 
-Openquok reads Threads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink> (populated via <Badge text="getEnv" variant="default" /> from <Badge text="backend/config/envHelper.ts" variant="path" />). Set:
+OpenQuok reads Threads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink> (populated via <Badge text="getEnv" variant="default" /> from <Badge text="backend/config/envHelper.ts" variant="path" />). Set:
 
 - <Badge text="THREADS_APP_ID" variant="envBackend" /> — **Threads App ID** from the Meta app dashboard  
 - <Badge text="THREADS_APP_SECRET" variant="envBackend" /> — **Threads App Secret** (treat as confidential)
@@ -137,11 +137,11 @@ Return to the <DocsExternalLink href="https://developers.facebook.com/apps">Meta
 
 - In the right sidebar, under **Access Token**, choose **Generate Threads Access Token**. A new window lets you pick the **Threads** account to test with—use one that accepted the tester invite earlier.
 
-- If everything is wired correctly, Meta returns a long alphanumeric access token. You do not need to store or paste it into Openquok; receiving it only confirms the app and tester setup work.
+- If everything is wired correctly, Meta returns a long alphanumeric access token. You do not need to store or paste it into OpenQuok; receiving it only confirms the app and tester setup work.
 
 </Steps>
 
-## How Openquok uses the flow
+## How OpenQuok uses the flow
 
 - **Authorize URL** is produced by the backend (session or programmatic API); the user signs in with Meta and returns to the **frontend** route with an authorization <Badge text="code" variant="default" />.
 

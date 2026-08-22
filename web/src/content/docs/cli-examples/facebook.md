@@ -1,6 +1,6 @@
 ---
 title: Facebook Page
-description: CLI examples for Facebook Page publishing in Openquok
+description: CLI examples for Facebook Page publishing in OpenQuok
 order: 1
 lastUpdated: 2026-06-06
 ---

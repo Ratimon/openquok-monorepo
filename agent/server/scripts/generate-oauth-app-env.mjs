@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Create (or rotate) an Openquok OAuth app for the CLI auth server and print env vars.
+ * Create (or rotate) an OpenQuok OAuth app for the CLI auth server and print env vars.
  *
  * Why this exists:
  * - The hosted device-flow server (agent/server) needs an OAuth client ID/secret to exchange codes.
@@ -8,7 +8,7 @@
  * - The OAuth app secret is only returned once on create/rotate.
  *
  * Auth:
- * - Openquok backend requires `Authorization: Bearer <SUPABASE_ACCESS_TOKEN>` for `/api/v1/oauth-apps/*`.
+ * - OpenQuok backend requires `Authorization: Bearer <SUPABASE_ACCESS_TOKEN>` for `/api/v1/oauth-apps/*`.
  * - Provide a token for a workspace admin user (typically you, as project owner).
  */
 
@@ -76,7 +76,7 @@ async function main() {
 
   const redirectUrl =
     readArg("redirectUrl") ?? process.env.OPENQUOK_OAUTH_REDIRECT_URL ?? "https://www.openquok.com/cli/device/callback";
-  const name = readArg("name") ?? process.env.OPENQUOK_OAUTH_APP_NAME ?? "Openquok CLI Auth Server";
+  const name = readArg("name") ?? process.env.OPENQUOK_OAUTH_APP_NAME ?? "OpenQuok CLI Auth Server";
 
   const rotate = hasFlag("rotate");
 

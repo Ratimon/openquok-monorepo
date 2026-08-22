@@ -1,4 +1,4 @@
-<h1>Openquok CLI</h1>
+<h1>OpenQuok CLI</h1>
 
 - [What is it for](#what-is-it-for)
 - [Quickstart](#quickstart)
@@ -6,7 +6,7 @@
 
 ## What Is It For
 
-`@openquok/auto-cli` is a **Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the Openquok API across the social platforms you’ve connected to Openquok (e.g. Twitter/X and Instagram, Facebook).
+`@openquok/auto-cli` is a **Programmatic CLI for the OpenQuok scheduling API** — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the OpenQuok API across the social platforms you’ve connected to OpenQuok (e.g. Twitter/X and Instagram, Facebook).
 
 - Create and schedule posts via the programmatic API
 - List posts and flip draft ↔ scheduled (`posts:status`)
@@ -16,7 +16,7 @@
 
 ## Quickstart
 
-**Programmatic CLI for the Openquok scheduling API** — designed for automation and AI agents.
+**Programmatic CLI for the OpenQuok scheduling API** — designed for automation and AI agents.
 
 This package lives in this monorepo under `agent/` and is published as `@openquok/auto-cli`.
 
@@ -82,7 +82,7 @@ openquok auth:logout
 openquok config:show
 ```
 
-- Prints resolved `api_url` and `auth_server_url`, whether you match **hosted Openquok** (`deployment`: `openquok_cloud`) or a **custom / self-hosted** setup (`deployment`: `custom`), and where each value came from (`environment`, `credentials_file`, or `default`). Does not print secrets.
+- Prints resolved `api_url` and `auth_server_url`, whether you match **hosted OpenQuok** (`deployment`: `openquok_cloud`) or a **custom / self-hosted** setup (`deployment`: `custom`), and where each value came from (`environment`, `credentials_file`, or `default`). Does not print secrets.
 
 ### Integrations
 
@@ -107,7 +107,7 @@ openquok posts:list
 openquok posts:list --start "2026-01-01T00:00:00Z" --end "2026-02-01T00:00:00Z"
 
 openquok posts:create \
-  -c "Hello from Openquok" \
+  -c "Hello from OpenQuok" \
   -s "2026-01-01T12:00:00Z" \
   -i "uuid1,uuid2"
 

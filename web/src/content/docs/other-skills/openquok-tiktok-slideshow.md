@@ -217,7 +217,7 @@ openquok analytics:platform <integration-uuid> --days 7
 
 <CardGrid>
 <LinkCard title="Other skills overview" description="How sibling skills relate to openquok-core" href="/docs/other-skills" />
-<LinkCard title="Introduction to Openquok CLI" description="Install openquok-core and authenticate" href="/docs/getting-started-for-cli" />
+<LinkCard title="Introduction to OpenQuok CLI" description="Install openquok-core and authenticate" href="/docs/getting-started-for-cli" />
 <LinkCard title="CLI Examples — TikTok" description="Photo carousel, privacy, and DIRECT_POST recipes" href="/docs/cli-examples/tiktok" />
 <LinkCard title="TikTok setup" description="OAuth, scopes, and media domain verification" href="/docs/social-integration/tiktok" />
 <LinkCard title="Media Upload" description="upload and upload-from-url before posts:create" href="/docs/cli-usages/media-upload" />

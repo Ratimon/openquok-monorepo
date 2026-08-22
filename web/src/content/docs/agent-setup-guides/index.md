@@ -1,6 +1,6 @@
 ---
 title: Agents Overview
-description: Platform-specific setup for running the Openquok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, Telegram, and similar).
+description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, Telegram, and similar).
 order: 0
 lastUpdated: 2026-05-16
 ---
@@ -16,15 +16,15 @@ Guides for wiring <Badge text="@openquok/auto-cli" variant="experimental" /> int
 For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you can skip the CLI skill and connect directly to OpenQuok HTTP streaming with your programmatic <Badge text="opo_" variant="default" /> token. See <a href="/docs/getting-started-for-mcp">MCP introduction</a>.
 
 <CardGrid>
-<LinkCard title="OpenClaw" description="Set up Openquok on an OpenClaw host and sign in from Telegram or chat" href="/docs/agent-setup-guides/openclaw" />
-<LinkCard title="Hermes Agent" description="Set up Openquok on Hermes Agent and sign in from Telegram, Discord, or Slack" href="/docs/agent-setup-guides/hermes" />
+<LinkCard title="OpenClaw" description="Set up OpenQuok on an OpenClaw host and sign in from Telegram or chat" href="/docs/agent-setup-guides/openclaw" />
+<LinkCard title="Hermes Agent" description="Set up OpenQuok on Hermes Agent and sign in from Telegram, Discord, or Slack" href="/docs/agent-setup-guides/hermes" />
 <LinkCard title="Grok Bot" description="Skills and CLI workflows for Grok Bot teammates on a shared cloud computer." href="/docs/agent-setup-guides/grok-bot" />
 </CardGrid>
 
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Introduction to Openquok CLI" description="Quick start, and overview" href="/docs/getting-started-for-cli" />
+<LinkCard title="Introduction to OpenQuok CLI" description="Quick start, and overview" href="/docs/getting-started-for-cli" />
 <LinkCard title="Other skills" description="Sibling skills (e.g. TikTok slideshow) that require openquok-core" href="/docs/other-skills" />
 <LinkCard title="MCP setup guides" description="Step-by-step Cursor, Claude Code, Codex, and other client guides" href="/docs/mcp-setup-guides" />
 <LinkCard title="MCP" description="Connect Cursor, Claude Code, and Codex without the CLI skill" href="/docs/getting-started-for-mcp" />

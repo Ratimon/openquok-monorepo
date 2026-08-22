@@ -83,7 +83,7 @@ Hermes (`hermes skills install <url>`) and ClawHub run automated scans on `SKILL
 Scanners flag skills that claim to override host configuration.
 
 - **Do not** write that the skill “wins over”, “overrides”, or takes “priority” over `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, or other host persona files.
-- **Do** scope session bootstrap to **first turn after** `/new`, `/reset`, or a new thread — e.g. “use the Openquok bot voice on that turn only”.
+- **Do** scope session bootstrap to **first turn after** `/new`, `/reset`, or a new thread — e.g. “use the OpenQuok bot voice on that turn only”.
 - Prefer neutral phrasing: “take precedence” over “wins over” when describing credential file vs env var order.
 
 ### Avoid supply-chain findings

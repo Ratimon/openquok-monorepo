@@ -21,7 +21,7 @@
 	let footerNavigationLinks = $derived(data?.footerNavigationLinks ?? page.data?.footerNavigationLinks ?? {});
 
 	let companyNameVm = $derived(
-		data?.companyNameVm ?? page.data?.companyNameVm ?? publicLayoutPagePresenter.companyNameVm ?? 'OPENQUOK'
+		data?.companyNameVm ?? page.data?.companyNameVm ?? publicLayoutPagePresenter.companyNameVm ?? 'OpenQuok'
 	);
 	let companyLegalNameVm = $derived(
 		data?.companyLegalNameVm ??

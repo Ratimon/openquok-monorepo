@@ -1,6 +1,6 @@
 ---
 title: Supported social channels
-description: Social channels Openquok currently supports — including Meta Threads, Instagram, and Dev.to — plus the per-channel settings shape behind the public API.
+description: Social channels OpenQuok currently supports — including Meta Threads, Instagram, and Dev.to — plus the per-channel settings shape behind the public API.
 order: 1
 lastUpdated: 2026-08-20
 ---
@@ -12,12 +12,12 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 ## Terminology
 
 <Callout type="note" title="Channel vs integration">
-<p>The Openquok UI/dashboard uses the term <strong>channel</strong>, while the API and SDK use <strong>integration</strong>. They refer to the same thing — a single connected social account inside a workspace.</p>
+<p>The OpenQuok UI/dashboard uses the term <strong>channel</strong>, while the API and SDK use <strong>integration</strong>. They refer to the same thing — a single connected social account inside a workspace.</p>
 </Callout>
 
 ## Overview
 
-Openquok currently ships social provider integrations behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs.
+OpenQuok currently ships social provider integrations behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs.
 
 <strong>OAuth channels</strong> use the provider short identifier (for example <Badge text="threads" variant="default" />) at connect time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> <em>which</em> platform to authorize. <strong>Credentials channels</strong> (Dev.to) are connected in the dashboard with an API key — <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> and is not a connect URL.
 
@@ -33,7 +33,7 @@ Openquok currently ships social provider integrations behind a single create-pos
 The <strong>Identifier</strong> column matches the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. For OAuth providers it also matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>. When you reference a channel inside a post payload, use the channel's <strong>UUID</strong> — not its short identifier — in <Badge text="integrationIds" variant="param" /> and as the keys of <Badge text="providerSettingsByIntegrationId" variant="param" />.
 
 <Callout type="note" title="More providers will land in the same shape">
-<p>The provider catalog is sourced from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/integrationManager.ts"><Badge text="backend/integrations/integrationManager.ts" variant="path" /></DocsExternalLink>. Re-fetching <Badge text="GET /api/v1/public/integrations" variant="default" /> is the safest way to see what's available in any given Openquok deployment.</p>
+<p>The provider catalog is sourced from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/integrationManager.ts"><Badge text="backend/integrations/integrationManager.ts" variant="path" /></DocsExternalLink>. Re-fetching <Badge text="GET /api/v1/public/integrations" variant="default" /> is the safest way to see what's available in any given OpenQuok deployment.</p>
 </Callout>
 
 ## Per-channel settings
@@ -156,7 +156,7 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
   -H "Authorization: Bearer opo_your_programmatic_token" \
   -H "Content-Type: application/json" \
   -d '{
-    "body": "Hello from the Openquok API!",
+    "body": "Hello from the OpenQuok API!",
     "scheduledAt": "2026-05-15T10:00:00.000Z",
     "status": "scheduled",
     "integrationIds": ["YOUR_THREADS_CHANNEL_UUID"],

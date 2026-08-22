@@ -1,5 +1,5 @@
 ---
-title: Welcome to Openquok
+title: Welcome to OpenQuok
 description: Social Media Manager for AI autimation & OpenClaw Agents Control.
 order: 0
 draft: true
@@ -11,9 +11,9 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 
 ## What is it for ?
 
-**Openquok** is a controlled content pipeline that sits on top of your AI tools like **OpenClaw**—turning high-volume generation into high-quality output. It collects everything your agents create, routes it through a structured approval flow, and ensures only the right content gets scheduled and published.
+**OpenQuok** is a controlled content pipeline that sits on top of your AI tools like **OpenClaw**—turning high-volume generation into high-quality output. It collects everything your agents create, routes it through a structured approval flow, and ensures only the right content gets scheduled and published.
 
-Instead of flooding a single calendar with unchecked posts, Openquok gives you a clear system: generate at scale, review in one place, and stay in control of what actually goes live.
+Instead of flooding a single calendar with unchecked posts, OpenQuok gives you a clear system: generate at scale, review in one place, and stay in control of what actually goes live.
 
 
 ## Overview
@@ -54,5 +54,5 @@ Performance feeds back into your pipeline — so next week’s content gets bett
 
 <LinkCard title="Developer Guidelines" description="Conventions for the monorepo, layering, and day-to-day development" href="/docs/developer-guidelines/" />
 
-<LinkCard title="Documentation contribution" description="Configure the docs site and contribute to OPENQUOK documentation" href="/docs/documentation-contribution/" />
+<LinkCard title="Documentation contribution" description="Configure the docs site and contribute to OpenQuok documentation" href="/docs/documentation-contribution/" />
 </CardGrid>

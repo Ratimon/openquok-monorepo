@@ -1,5 +1,5 @@
 ---
-title: Introduction to Openquok MCP
+title: Introduction to OpenQuok MCP
 description: Connect Cursor, Claude Code, Codex, and other MCP (Model Context Protocol) clients to OpenQuok.
 order: 0
 lastUpdated: 2026-06-26

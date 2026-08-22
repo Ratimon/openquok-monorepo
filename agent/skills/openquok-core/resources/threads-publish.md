@@ -1,6 +1,6 @@
 # Threads publish behavior (server)
 
-Summary of how the Openquok API publishes to Threads when a scheduled post runs. Use this when debugging vague Meta / Graph errors after the CLI and upload steps look correct.
+Summary of how the OpenQuok API publishes to Threads when a scheduled post runs. Use this when debugging vague Meta / Graph errors after the CLI and upload steps look correct.
 
 ## Media path → public URL
 

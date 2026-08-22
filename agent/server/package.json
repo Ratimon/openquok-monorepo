@@ -2,7 +2,7 @@
   "name": "@openquok/cli-auth-server",
   "version": "0.0.1",
   "private": true,
-  "description": "Device flow auth server for Openquok CLI",
+  "description": "Device flow auth server for OpenQuok CLI",
   "packageManager": "pnpm@10.30.3",
   "type": "module",
   "main": "index.ts",

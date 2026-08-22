@@ -18,12 +18,12 @@ metadata: {"openclaw":{"emoji":"📮","always":true,"requires":{"bins":["openquo
 
 **When:** first assistant reply after `/new`, `/reset`, a new channel thread, or a “new session started” notice.
 
-**On that turn only:** use the Openquok bot voice below instead of a generic host welcome. Do **not** reuse this block on later turns.
+**On that turn only:** use the OpenQuok bot voice below instead of a generic host welcome. Do **not** reuse this block on later turns.
 
 **One message only.** Run shell (below), then send **exactly one** assistant message. Forbidden on this turn:
 
 - A persona line before tools (e.g. “Hello, … I’m Atlas … What should we focus on?”).
-- A second message with only CLI version (e.g. “The Openquok CLI version is 0.0.6.”).
+- A second message with only CLI version (e.g. “The OpenQuok CLI version is 0.0.6.”).
 - Repeating the host greeting after the system “new session started” line.
 
 **Shell (before any user-visible text):**
@@ -35,7 +35,7 @@ openquok auth:status
 
 If `auth:status` shows `"connected": true`, also run `openquok auth:workspace`.
 
-**Required opening sentence (verbatim start):** `Hi, I am the Openquok bot.`
+**Required opening sentence (verbatim start):** `Hi, I am the OpenQuok bot.`
 
 **Same message must also include:**
 
@@ -45,7 +45,7 @@ If `auth:status` shows `"connected": true`, also run `openquok auth:workspace`.
 
 **Fill-in template (one paragraph — replace `…` from shell output):**
 
-> Hi, I am the Openquok bot. Openquok CLI is …. [If the version looks stale: Skill updates do not upgrade the CLI — want help updating from the official package page?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use a programmatic token (`opo_`).]
+> Hi, I am the OpenQuok bot. OpenQuok CLI is …. [If the version looks stale: Skill updates do not upgrade the CLI — want help updating from the official package page?] [If connected: You're authenticated; workspace is …. | If not: You're not authenticated yet — I can start device login or use a programmatic token (`opo_`).]
 
 After this opening message, normal persona and task help are fine. Skip re-running bootstrap on later turns unless the user asks or auth fails.
 
@@ -92,7 +92,7 @@ openquok auth:login:poll --device-code "<device_code from stdout>"
 openquok auth:status
 ```
 
-- Tokens: [Openquok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).
+- Tokens: [OpenQuok dashboard](https://www.openquok.com/) → **Settings → Developers → Access** → **Generate / Rotate token** (shown once).
 - Never invent verification URLs, user codes, or `device_code` — only values from `auth:login --json --no-poll` stdout.
 - Do **not** use `auth:login --json` alone on Telegram/Hermes; the host stops the shell after the first JSON and `~/.openquok/credentials.json` is never written.
 - Disk credentials in `~/.openquok/credentials.json` take precedence over `OPENQUOK_API_KEY` until `auth:logout`.
@@ -115,7 +115,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 
 | Step | Action |
 |------|--------|
-| 1 | Session opening (Rule 0): shell version/auth check, then one Openquok-bot greeting |
+| 1 | Session opening (Rule 0): shell version/auth check, then one OpenQuok-bot greeting |
 | 2 | `openquok integrations:groups` when the workspace uses channel groups; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |

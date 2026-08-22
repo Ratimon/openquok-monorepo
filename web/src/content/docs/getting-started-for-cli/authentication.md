@@ -1,6 +1,6 @@
 ---
 title: CLI authentication
-description: Setup OAuth2 authentication for Openquok CLI.
+description: Setup OAuth2 authentication for OpenQuok CLI.
 order: 1
 lastUpdated: 2026-05-29
 ---
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-The Openquok CLI authenticates to the programmatic API in one of two ways. Both yield a Bearer token with the <Badge text="opo_" variant="default" /> prefix:
+The OpenQuok CLI authenticates to the programmatic API in one of two ways. Both yield a Bearer token with the <Badge text="opo_" variant="default" /> prefix:
 
 - **OAuth2 device flow** (recommended) — No client ID or secret in the CLI; a small **CLI auth server** holds the OAuth client secret and completes the flow.
 - **Programmatic access token** — set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> to an <Badge text="opo_" variant="default" /> token from the dashboard for scripts and CI.
@@ -20,7 +20,7 @@ If both are present, stored OAuth2 credentials take priority over <Badge text="O
 
 ## OAuth2 (device flow)
 
-Open the sign-in link on your phone or computer, sign in to Openquok if needed, choose a workspace, and tap **Authorize**. Credentials are stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
+Open the sign-in link on your phone or computer, sign in to OpenQuok if needed, choose a workspace, and tap **Authorize**. Credentials are stored for later commands (default <Badge text="~/.openquok/credentials.json" variant="path" />).
 
 <p class="not-prose flex justify-center">
   <img src="/docs/_assets/getting-started-for-cli/oauth-mobile-login.webp" alt="OAuth mobile login" />
@@ -71,9 +71,9 @@ The CLI talks to the device-flow **API** at:
 
 That origin serves <Badge text="POST /device/code" variant="path" /> and <Badge text="POST /device/token" variant="path" />. The **browser** step uses a different URL returned in <Badge text="verification_uri" variant="default" />:
 
-- **Hosted Openquok:** <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />
+- **Hosted OpenQuok:** <Badge text="https://www.openquok.com/cli/device/verify" variant="new" />
 
-You can point the CLI API at **your own** deployed auth server (self-hosted Openquok or local development of <Badge text="agent/server" variant="path" />):
+You can point the CLI API at **your own** deployed auth server (self-hosted OpenQuok or local development of <Badge text="agent/server" variant="path" />):
 
 - **Environment variable:** set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> to the server **API origin** (no trailing slash).
 - **Per run:** pass <Badge text="--authServer" variant="default" /> to <Badge text="openquok auth:login" variant="default" />.
@@ -131,9 +131,9 @@ The CLI resolves **two origins** for every run:
 1. **API** — <Badge text="OPENQUOK_API_URL" variant="envBackend" />, then (if unset) <Badge text="apiUrl" variant="default" /> from <Badge text="~/.openquok/credentials.json" variant="path" /> after device login, then the hosted default <Badge text="https://api.openquok.com" variant="new" />.
 2. **Device-flow API** — <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> only; if unset, the default is <Badge text="https://cli-auth.openquok.com" variant="new" />.
 
-Use <Badge text="openquok config:show" variant="default" /> to print the **resolved** URLs, whether you match **hosted Openquok** (<Badge text="openquok_cloud" variant="param" />) or a **custom** setup, and whether each value came from <Badge text="environment" variant="param" />, <Badge text="credentials_file" variant="param" />, or <Badge text="default" variant="param" />.
+Use <Badge text="openquok config:show" variant="default" /> to print the **resolved** URLs, whether you match **hosted OpenQuok** (<Badge text="openquok_cloud" variant="param" />) or a **custom** setup, and whether each value came from <Badge text="environment" variant="param" />, <Badge text="credentials_file" variant="param" />, or <Badge text="default" variant="param" />.
 
-### Back to hosted Openquok (production defaults)
+### Back to hosted OpenQuok (production defaults)
 
 1. In the **current shell**, clear overrides you set for local development:
    ```bash
@@ -162,9 +162,9 @@ After device login, the CLI may persist <Badge text="apiUrl" variant="default" /
 
 ## Self-hosting the auth server
 
-You do **not** need to self-host the auth server to use the CLI with Openquok’s hosted stack — the defaults above are enough.
+You do **not** need to self-host the auth server to use the CLI with OpenQuok’s hosted stack — the defaults above are enough.
 
-If you run **your own** Openquok deployment and want a dedicated device-flow service:
+If you run **your own** OpenQuok deployment and want a dedicated device-flow service:
 
 1. Deploy <Badge text="agent/server" variant="path" /> and set <Badge text="SERVER_URL" variant="envBackend" /> to your API host.
 2. Set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin (or omit it to serve browser steps on the same host as the API).
@@ -189,7 +189,7 @@ Deploy anywhere that runs Node.js and can reach a Postgres database — Vercel, 
 
 All device-flow state lives in Postgres, so the process itself holds no state and scales horizontally. Put multiple replicas behind a load balancer when you need more throughput — see <a href="/docs/configuration-agent/scaling">Scaling & Postgres</a>.
 
-For **Vercel** (the path with the most tooling in this monorepo), use **two** projects when mirroring Openquok production:
+For **Vercel** (the path with the most tooling in this monorepo), use **two** projects when mirroring OpenQuok production:
 
 ```bash
 # Auth server API (agent/server)
