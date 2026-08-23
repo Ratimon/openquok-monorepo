@@ -4,18 +4,15 @@
 	import { afterNavigate } from '$app/navigation';
 
 	import { docsTabHref } from '$lib/docs/navigation';
-	import { url } from '$lib/utils/path';
 	import { cn } from '$lib/ui/helpers/common';
 	import { useSidebar } from '$lib/ui/sidebar-main/context.svelte';
 
 	import { icons } from '$data/icons';
 
 	import AutoBreadcrumb from '$lib/ui/components/docs/nav/DocsAutoBreadcrumb.svelte';
-	import DocsLocaleSwitcher from '$lib/ui/components/docs/DocsLocaleSwitcher.svelte';
-	import ThemeSwitcher from '$lib/ui/daisyui/ThemeSwitcher.svelte';
+	import DocsChromeIconCluster from '$lib/ui/components/docs/layout/DocsChromeIconCluster.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Tooltip from '$lib/ui/tooltip';
 	import * as Sidebar from '$lib/ui/sidebar-main/index.js';
 
 	let {
@@ -33,12 +30,6 @@
 	afterNavigate(() => {
 		sidebar.setOpenMobile(false);
 	});
-
-	/** Match docs header controls: base-200 hover, not ghost accent. */
-	const headerIconHitClass = cn(
-		'text-base-content/70 hover:bg-base-200 hover:text-base-content transition-colors outline-none',
-		'inline-flex shrink-0 items-center justify-center'
-	);
 
 	/** Discoverable mobile docs nav control (matches public header touch target) */
 	const mobileMenuHitClass = cn(
@@ -84,42 +75,6 @@
 	</Button>
 {/snippet}
 
-{#snippet headerIconCluster()}
-	<Tooltip.Provider delayDuration={200}>
-		<div class="flex shrink-0 items-center gap-1">
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					{#snippet child({ props: triggerProps })}
-						<span {...triggerProps} class="inline-flex">
-							<Button
-								variant="ghost"
-								size="icon"
-								class={headerIconHitClass}
-								href={url('/')}
-								aria-label="Home"
-							>
-								<AbstractIcon name={icons.House.name} class="size-4" width="16" height="16" />
-							</Button>
-						</span>
-					{/snippet}
-				</Tooltip.Trigger>
-				<Tooltip.Content side="bottom" sideOffset={6}>Home</Tooltip.Content>
-			</Tooltip.Root>
-			<DocsLocaleSwitcher variant="header" />
-			<Tooltip.Root>
-				<Tooltip.Trigger>
-					{#snippet child({ props: triggerProps })}
-						<span {...triggerProps} class="inline-flex">
-							<ThemeSwitcher />
-						</span>
-					{/snippet}
-				</Tooltip.Trigger>
-				<Tooltip.Content side="bottom" sideOffset={6}>Switch theme</Tooltip.Content>
-			</Tooltip.Root>
-		</div>
-	</Tooltip.Provider>
-{/snippet}
-
 <!-- z-[60]: above mobile sidebar overlay (z-50) so Menu/Close stays tappable -->
 <header class="bg-base-100 border-base-300 sticky top-0 z-[60] flex shrink-0 flex-col border-b">
 	{#if showDocsTabs}
@@ -147,7 +102,7 @@
 					{/each}
 				</nav>
 			</div>
-			{@render headerIconCluster()}
+			<DocsChromeIconCluster class="md:hidden" />
 		</div>
 	{/if}
 	<div class="flex h-14 min-h-14 flex-row items-center justify-between gap-2 px-3">
@@ -159,7 +114,7 @@
 			<AutoBreadcrumb />
 		</div>
 		{#if !showDocsTabs}
-			{@render headerIconCluster()}
+			<DocsChromeIconCluster class="md:hidden" />
 		{/if}
 	</div>
 </header>

@@ -131,6 +131,45 @@ function isContributingDocsPath(segmentOrSlug: string): boolean {
 	);
 }
 
+function trimTrailingSlash(pathname: string): string {
+	return pathname.replace(/\/$/, '') || pathname;
+}
+
+/** `/docs` and `/docs/{non-default-locale}` load the General overview without changing the URL. */
+function isGeneralDocsLandingPathname(pathname: string): boolean {
+	const path = trimTrailingSlash(pathname);
+	const parts = path.split('/').filter(Boolean);
+	if (parts[0] !== 'docs') return false;
+
+	const locales = docsConfig.i18n?.locales.map((l) => l.code) ?? [];
+	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
+	const second = parts[1];
+
+	if (!second) return true;
+	return locales.includes(second) && second !== defaultLocale && parts.length === 2;
+}
+
+/** Canonical getting-started index href for the General tab landing alias. */
+function generalDocsLandingOverviewHref(pathname: string): string {
+	const path = trimTrailingSlash(pathname);
+	return path === '/docs' ? '/docs/getting-started' : `${path}/getting-started`;
+}
+
+/** Sidebar active state: `/docs` (and locale landings) match `/docs/getting-started` Overview. */
+export function isDocsNavItemActive(pathname: string, href: string | undefined): boolean {
+	if (!href) return false;
+
+	const current = trimTrailingSlash(pathname);
+	const target = trimTrailingSlash(href);
+
+	if (isGeneralDocsLandingPathname(current)) {
+		const overviewHref = generalDocsLandingOverviewHref(current);
+		return overviewHref === target;
+	}
+
+	return current === target || current.startsWith(`${target}/`);
+}
+
 export function stripDocsLocaleFromPathname(pathname: string): string {
 	const parts = pathname.split('/').filter(Boolean);
 	if (parts[0] !== 'docs') return pathname;

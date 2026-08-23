@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	docsTabHref,
 	getDocsTabIdFromPathname,
-	getDocsTabIdFromSlug
+	getDocsTabIdFromSlug,
+	isDocsNavItemActive
 } from '$lib/docs/navigation';
 
 describe('getDocsTabIdFromPathname', () => {
@@ -54,6 +55,29 @@ describe('getDocsTabIdFromSlug', () => {
 		['mystery-page', 'general']
 	] as const)('%s → %s', (slug, tabId) => {
 		expect(getDocsTabIdFromSlug(slug)).toBe(tabId);
+	});
+});
+
+describe('isDocsNavItemActive', () => {
+	it('highlights Overview when the URL is the General tab landing alias', () => {
+		expect(isDocsNavItemActive('/docs', '/docs/getting-started')).toBe(true);
+		expect(isDocsNavItemActive('/docs/', '/docs/getting-started')).toBe(true);
+		expect(isDocsNavItemActive('/docs/es', '/docs/es/getting-started')).toBe(true);
+		expect(isDocsNavItemActive('/docs/es/', '/docs/es/getting-started')).toBe(true);
+	});
+
+	it('does not treat other General pages as the landing alias', () => {
+		expect(isDocsNavItemActive('/docs', '/docs/getting-started/quickstart')).toBe(false);
+		expect(isDocsNavItemActive('/docs', '/docs/getting-started-for-cli')).toBe(false);
+	});
+
+	it('uses prefix matching for normal docs paths', () => {
+		expect(isDocsNavItemActive('/docs/getting-started', '/docs/getting-started')).toBe(true);
+		expect(
+			isDocsNavItemActive('/docs/getting-started/quickstart', '/docs/getting-started')
+		).toBe(true);
+		expect(isDocsNavItemActive('/docs/cloud', '/docs/cloud')).toBe(true);
+		expect(isDocsNavItemActive('/docs/cloud/trial', '/docs/cloud')).toBe(true);
 	});
 });
 

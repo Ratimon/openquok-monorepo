@@ -8,7 +8,7 @@
 
 	import { cn } from '$lib/ui/helpers/common';
 	import { docsConfig } from '$lib/docs/constants';
-	import { getDocsTabIdFromPathname } from '$lib/docs/navigation';
+	import { getDocsTabIdFromPathname, isDocsNavItemActive } from '$lib/docs/navigation';
 	import { docsHttpMethodBadgeClass } from '$lib/docs/utils/openapi-docs-layout';
 
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
@@ -18,6 +18,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SocialLinks, { type SocialLink } from '$lib/ui/components/docs/nav/DocsSocialLinks.svelte';
 	import DocsSearchCommand from '$lib/ui/components/docs/search/DocsSearchCommand.svelte';
+	import DocsChromeIconCluster from '$lib/ui/components/docs/layout/DocsChromeIconCluster.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	let {
@@ -36,8 +37,7 @@
 	} = $props();
 
 	function isActive(href: string | undefined): boolean {
-		if (!href) return false;
-		return page.url.pathname === href || page.url.pathname.startsWith(href + '/');
+		return isDocsNavItemActive(page.url.pathname, href);
 	}
 
 	function sectionHasActive(section: NavItem): boolean {
@@ -119,8 +119,9 @@
 	</Sidebar.Header>
 	<Sidebar.Content>
 		<Sidebar.Group>
-			<Sidebar.GroupLabel>
-				{tabLabel}
+			<Sidebar.GroupLabel class="justify-between gap-1">
+				<span class="min-w-0 truncate">{tabLabel}</span>
+				<DocsChromeIconCluster />
 			</Sidebar.GroupLabel>
 			<Sidebar.Menu>
 				{#each navigation as section (section.title)}

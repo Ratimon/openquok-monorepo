@@ -21,8 +21,8 @@ The docs are split by how you run OpenQuok. Start with the path that matches you
 
 <CardGrid>
 <LinkCard title="Quickstart" description="Connect a channel, compose a post, and confirm it on the calendar and kanban. Applies to everyone." href="/docs/getting-started/quickstart" />
-<LinkCard title="Cloud" description="Plans, limits, 7-day trial, and Stripe billing for the hosted product" href="/docs/cloud" />
-<LinkCard title="Self-hosting" description="Install it yourself, configure providers, and run it in production" href="/docs/installation" />
+<LinkCard title="Paid Cloud" description="Plans, limits, trial, and billing for our hosted product" href="/docs/cloud" />
+<LinkCard title="Self-hosting" description="Forever free. Install by yourself, configure providers, and run it on your machie or in production" href="/docs/installation" />
 </CardGrid>
 
 ## Building on OpenQuok
