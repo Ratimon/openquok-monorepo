@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What OpenQuok is — a social scheduler with human review — and how to choose Cloud, self-hosting, or building on the API, CLI, and MCP.
+description: OpenQuok social scheduler — volume without the headache. Review before publish. Cloud, self-host, or the API, CLI, and MCP.
 order: 0
 lastUpdated: 2026-08-23
 sidebar:
@@ -11,32 +11,37 @@ sidebar:
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-OpenQuok is a social scheduler for teams that want **human approval** before content goes live. Connect channels to a workspace, compose or import drafts, pick a time, and track every post on the **calendar** and **kanban** from draft through published.
+OpenQuok is a **content scheduler** for volume without the headache. Agents draft and queue at scale; you keep quality — review and approve on the **calendar** and **kanban** before anything publishes.
 
-You can schedule by hand in the app, reuse templates and playbooks, or pipe drafts in from agents through the CLI, MCP, or public API. Everything still lands in the same review queue.
+Connect channels in a workspace. Write a post/content in the post editor, reuse templates, or send drafts from an agent. CLI, MCP, and the public API all land in the same review queue.
 
-## Pick your path
+## Choose your paths
 
-The docs are split by how you run OpenQuok. Start with the path that matches you.
+Start with the track that matches you — the product, Cloud, a self-hosted install, or free creator tools.
 
 <CardGrid>
-<LinkCard title="Quickstart" description="Connect a channel, compose a post, and confirm it on the calendar and kanban. Applies to everyone." href="/docs/getting-started/quickstart" />
-<LinkCard title="Paid Cloud" description="Plans, limits, trial, and billing for our hosted product" href="/docs/cloud" />
-<LinkCard title="Self-hosting" description="Forever free. Install by yourself, configure providers, and run it on your machie or in production" href="/docs/installation" />
+<LinkCard title="Quickstart" description="First channel, first post, then confirm it on calendar and kanban." href="/docs/getting-started/quickstart" />
+<LinkCard title="Cloud" description="Trial, plan limits, and Billing for our hosted version." href="/docs/cloud" />
+<LinkCard title="Self-hosting" description="No Cloud bill. Install by your self, run it locally or in production." href="/docs/installation" />
+<LinkCard title="Free tools" description="Creator tools — photo editor, humanizer, best time to post, and more." href="/tools" />
 </CardGrid>
 
 ## Building on OpenQuok
 
+Integrate, automate, or contribute.
+
 <CardGrid>
-<LinkCard title="Public API" description="Schedule posts, manage channels, and pull analytics over HTTP" href="/docs/getting-started-for-public-api" />
-<LinkCard title="CLI and MCP" description="Drive OpenQuok from the terminal, or connect an AI agent through MCP" href="/docs/getting-started-for-cli" />
-<LinkCard title="Contributing" description="Work on OpenQuok itself, or add a new social provider" href="/docs/developer-guidelines" />
+<LinkCard title="Public API" description="Posts, channels, and analytics over HTTP." href="/docs/getting-started-for-public-api" />
+<LinkCard title="CLI" description="Terminal commands and agent skills for a workspace." href="/docs/getting-started-for-cli" />
+<LinkCard title="MCP" description="Connect Cursor, Claude, and other MCP clients." href="/docs/getting-started-for-mcp" />
+<LinkCard title="Skill Builder" description="Compose and export SKILL.md for agents in the creative economy." href="/tools/skill-builder" />
+<LinkCard title="Maintain or work on OpenQuok" description="Code guidelines, catalog listings, and docs authoring." href="/docs/developer-guidelines" />
 </CardGrid>
 
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
-<LinkCard title="Concepts" description="Workspace, channel, post group, calendar vs kanban" href="/docs/getting-started/concepts" />
-<LinkCard title="Where things live" description="Sidebar, composer, settings, and marketing surfaces" href="/docs/getting-started/where-things-live" />
+<LinkCard title="Quickstart" description="First channel and first scheduled post." href="/docs/getting-started/quickstart" />
+<LinkCard title="Glossary" description="The concepts OpenQuok uses and defined once." href="/docs/getting-started/glossary" />
+<LinkCard title="Where things live" description="What every section of the app is for, and which ones you may not see." href="/docs/getting-started/where-things-live" />
 </CardGrid>

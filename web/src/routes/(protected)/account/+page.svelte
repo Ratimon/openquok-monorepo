@@ -739,13 +739,13 @@
 			href: hermesGuideHref,
 			external: true
 		},
-		{
-			label: 'Grok Bot agent guide',
-			description: 'Install openquok-core on Grok Bot.',
-			iconName: icons.BookOpen.name,
-			href: grokBotGuideHref,
-			external: true
-		},
+		// {
+		// 	label: 'Grok Bot agent guide',
+		// 	description: 'Install openquok-core on Grok Bot.',
+		// 	iconName: icons.BookOpen.name,
+		// 	href: grokBotGuideHref,
+		// 	external: true
+		// },
 		{
 			label: 'MCP setup guides',
 			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
@@ -1117,6 +1117,32 @@
 		onCreateWorkspace={handleCreateWorkspace}
 	/>
 
+	<MyChannelsSection
+		workspaceId={workspaceId}
+		listStatus={listStatus}
+		connectedChannelsVm={connectedChannelsVm}
+		accountSettingsWorkspaceHref={accountSettingsWorkspaceHref}
+		allowedChannelCount={allowedChannelCountVm}
+		billingHref={accountBillingHref}
+		{channelGroupSectionsVm}
+		{channelRowsUngroupedVm}
+		channelsGridPresenter={channelsGridPresenter}
+		channelsFilterPresenter={channelsFilterPresenter}
+		continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
+		onCreatePost={openCreatePost}
+		onCreatePostForGroup={openCreatePostForGroup}
+		onGoToCalendar={goToCalendar}
+		onMoveToGroup={openMoveGroupModal}
+		onEditTimeSlots={openTimeTableModal}
+		onSetDisabled={handleSetChannelDisabled}
+		onRemove={handleRemoveChannel}
+		onAddAnotherChannel={startAddAnotherChannel}
+		onOpenChannelActions={(integration) => {
+			channelActionsFor = integration;
+			channelActionsOpen = true;
+		}}
+	/>
+
 	{#if showPostKanbanBoard}
 		<PostKanbanBoard
 			channels={connectedChannelsVm}
@@ -1157,32 +1183,6 @@
 			onEditPost={openEditKanbanPostGroup}
 		/>
 	{/if}
-
-	<MyChannelsSection
-		workspaceId={workspaceId}
-		listStatus={listStatus}
-		connectedChannelsVm={connectedChannelsVm}
-		accountSettingsWorkspaceHref={accountSettingsWorkspaceHref}
-		allowedChannelCount={allowedChannelCountVm}
-		billingHref={accountBillingHref}
-		{channelGroupSectionsVm}
-		{channelRowsUngroupedVm}
-		channelsGridPresenter={channelsGridPresenter}
-		channelsFilterPresenter={channelsFilterPresenter}
-		continueSetupHref={(i) => pagePresenter.continueSetupHref(i)}
-		onCreatePost={openCreatePost}
-		onCreatePostForGroup={openCreatePostForGroup}
-		onGoToCalendar={goToCalendar}
-		onMoveToGroup={openMoveGroupModal}
-		onEditTimeSlots={openTimeTableModal}
-		onSetDisabled={handleSetChannelDisabled}
-		onRemove={handleRemoveChannel}
-		onAddAnotherChannel={startAddAnotherChannel}
-		onOpenChannelActions={(integration) => {
-			channelActionsFor = integration;
-			channelActionsOpen = true;
-		}}
-	/>
 </div>
 
 <SetPickerDialog

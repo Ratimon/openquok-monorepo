@@ -50,14 +50,25 @@
 			iconCol.appendChild(circle);
 
 			const content = document.createElement('div');
-			content.className = `grow min-w-0 ${isLast ? '' : 'pb-8'} [&_.shiki]:max-w-full [&_pre]:min-w-0`;
+			content.className = [
+				'flex min-w-0 grow flex-col gap-4',
+				isLast ? '' : 'pb-8',
+				'[&_.shiki]:max-w-full [&_pre]:min-w-0',
+				'[&_a]:font-medium [&_a]:text-primary [&_a]:underline [&_a]:decoration-primary/50 [&_a]:underline-offset-[3px] hover:[&_a]:decoration-primary',
+				'[&>p]:m-0 [&>p]:text-sm [&>p]:leading-relaxed [&>p]:text-base-content/70',
+				'[&>ol]:m-0 [&>ol]:list-decimal [&>ol]:space-y-2 [&>ol]:ps-5',
+				'[&>ul]:m-0 [&>ul]:list-disc [&>ul]:space-y-2 [&>ul]:ps-5',
+				'[&_li]:text-sm [&_li]:leading-relaxed [&_li]:text-base-content/70 [&_li]:marker:text-base-content/50',
+				'[&_strong]:text-base-content'
+			]
+				.filter(Boolean)
+				.join(' ');
 
 			for (const node of group) {
 				if (node.matches('h3, h4')) {
 					node.className = 'text-base-content m-0 text-sm font-semibold';
-				} else {
-					node.classList.add('text-sm', 'text-base-content/70');
-					node.style.marginTop = '0.25rem';
+				} else if (!node.classList.contains('docs-tabs')) {
+					node.classList.add('text-sm', 'leading-relaxed', 'text-base-content/70');
 				}
 				content.appendChild(node);
 			}

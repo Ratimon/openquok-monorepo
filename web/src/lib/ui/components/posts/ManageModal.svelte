@@ -34,6 +34,8 @@
 		onSaveDraft: () => void | Promise<void>;
 		saveDraftLabel?: string;
 		onSchedule: () => void | Promise<void>;
+		onPublishNow?: () => void | Promise<void>;
+		showPublishNow?: boolean;
 		footerVariant?: FooterVariant;
 		onSaveContentSet?: () => void | Promise<void>;
 		/**
@@ -62,6 +64,8 @@
 		onSaveDraft,
 		saveDraftLabel = 'Save as draft',
 		onSchedule,
+		onPublishNow = undefined,
+		showPublishNow = true,
 		footerVariant = 'schedulePost',
 		onSaveContentSet = undefined,
 		guestMode = false,
@@ -70,6 +74,7 @@
 
 	let guestLockOpen = $state(false);
 	let guestLockAction = $state<GuestComposerLockAction>('draft');
+	let publishNowMenuOpen = $state(false);
 
 	function openGuestLock(action: GuestComposerLockAction) {
 		guestLockAction = action;
@@ -158,24 +163,84 @@
 				{/if}
 				{saveDraftLabel}
 			</Button>
-			<Button
-				type="button"
-				variant="primary"
-				class={guestMode ? 'gap-1.5' : ''}
-				disabled={busy || (!guestMode && scheduleDisabled)}
-				onclick={() => {
-					if (guestMode) {
-						openGuestLock('schedule');
-						return;
-					}
-					void onSchedule();
-				}}
-			>
-				{#if guestMode}
-					<AbstractIcon name={icons.Lock.name} class="size-4" width="16" height="16" />
-				{/if}
-				{primaryLabel}
-			</Button>
+			{#if showPublishNow && onPublishNow && !guestMode}
+				<div
+					class="group relative"
+					role="group"
+					aria-label="Schedule post"
+					onmouseleave={() => {
+						publishNowMenuOpen = false;
+					}}
+				>
+					<div
+						class="absolute bottom-full left-0 z-20 mb-1 hidden w-full min-w-[11rem] flex-col group-hover:flex group-focus-within:flex {publishNowMenuOpen
+							? 'flex'
+							: ''}"
+					>
+						<Button
+							type="button"
+							variant="primary"
+							class="w-full shadow-md"
+							disabled={busy || scheduleDisabled}
+							onclick={() => {
+								publishNowMenuOpen = false;
+								void onPublishNow();
+							}}
+						>
+							Publish now
+						</Button>
+					</div>
+					<div class="inline-flex items-stretch overflow-hidden rounded-md">
+						<Button
+							type="button"
+							variant="primary"
+							class="rounded-r-none pr-3"
+							disabled={busy || scheduleDisabled}
+							onclick={() => void onSchedule()}
+						>
+							{primaryLabel}
+						</Button>
+						<button
+							type="button"
+							class="bg-gradient-to-r from-primary/90 to-primary/70 text-primary-content hover:from-primary/80 hover:to-primary/60 inline-flex items-center justify-center border-l border-primary-content/20 px-2 transition-colors disabled:pointer-events-none disabled:opacity-50"
+							disabled={busy || scheduleDisabled}
+							aria-label="Publish now"
+							aria-expanded={publishNowMenuOpen}
+							onclick={() => {
+								publishNowMenuOpen = !publishNowMenuOpen;
+							}}
+						>
+							<AbstractIcon
+								name={icons.ChevronDown.name}
+								class="size-4 transition-transform group-hover:rotate-180 {publishNowMenuOpen
+									? 'rotate-180'
+									: ''}"
+								width="16"
+								height="16"
+							/>
+						</button>
+					</div>
+				</div>
+			{:else}
+				<Button
+					type="button"
+					variant="primary"
+					class={guestMode ? 'gap-1.5' : ''}
+					disabled={busy || (!guestMode && scheduleDisabled)}
+					onclick={() => {
+						if (guestMode) {
+							openGuestLock('schedule');
+							return;
+						}
+						void onSchedule();
+					}}
+				>
+					{#if guestMode}
+						<AbstractIcon name={icons.Lock.name} class="size-4" width="16" height="16" />
+					{/if}
+					{primaryLabel}
+				</Button>
+			{/if}
 		{:else}
 			<Button
 				type="button"

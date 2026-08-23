@@ -102,6 +102,13 @@
 		}
 	}
 
+	async function publishNowPost() {
+		if (await presenter.publishNowPost()) {
+			open = false;
+			onScheduled?.();
+		}
+	}
+
 	let confirmDeleteOpen = $state(false);
 
 	async function confirmDelete() {
@@ -246,6 +253,7 @@
 					}}
 					onSaveDraft={saveAsDraft}
 					onSchedule={schedulePost}
+					onPublishNow={publishNowPost}
 				/>
 			</div>
 		</div>

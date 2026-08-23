@@ -1,6 +1,6 @@
 ---
-title: Concepts
-description: OpenQuok vocabulary defined once — workspace, channel, post group, calendar vs kanban, plugs, and how agents still go through review.
+title: Glossary
+description: The concepts OpenQuok uses and defined once — workspace, channel, post group, calendar vs kanban, plugs, and how agents still go through review.
 order: 2
 lastUpdated: 2026-08-23
 ---
@@ -9,7 +9,7 @@ lastUpdated: 2026-08-23
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-OpenQuok has a small vocabulary that the rest of these docs, the API, and the CLI all assume. This page defines it once.
+OpenQuok has a small vocabulary that the rest of these docs, the API, and the CLI all assume. This glossary defines it once.
 
 ## Workspace
 
@@ -65,7 +65,7 @@ Both views are the same posts. Changing a time in the composer updates both.
 | **Published** | Sent to the network. The card can link to the live post when the provider returns a URL. |
 | **Failed** | The network rejected it or the channel was disconnected. The calendar card shows <Badge text="Failed" variant="default" />. Open it for the error, then edit and schedule again. |
 
-Nothing publishes until a scheduled time arrives and the row is in a publishable state.
+Nothing publishes until a scheduled time arrives and the row is in a publishable state — except when you use <Badge text="Publish now" variant="new" /> in the composer, which queues the post for the current time.
 
 ## Plug / Auto Plugs
 

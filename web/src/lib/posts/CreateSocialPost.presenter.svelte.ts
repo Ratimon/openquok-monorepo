@@ -753,6 +753,28 @@ export class CreateSocialPostPresenter {
 	}
 
 	async schedulePost(): Promise<boolean> {
+		return this.persistScheduledPost({
+			scheduledLocal: this.scheduledLocal,
+			successMessage: this.editingPostGroup ? 'Post updated.' : 'Post scheduled.'
+		});
+	}
+
+	async publishNowPost(): Promise<boolean> {
+		const nowLocal = isoToDatetimeLocalValue(new Date().toISOString());
+		const ok = await this.persistScheduledPost({
+			scheduledLocal: nowLocal,
+			successMessage: this.editingPostGroup ? 'Post queued to publish now.' : 'Publishing now.'
+		});
+		if (ok) {
+			this.scheduledLocal = nowLocal;
+		}
+		return ok;
+	}
+
+	private async persistScheduledPost(opts: {
+		scheduledLocal: string;
+		successMessage: string;
+	}): Promise<boolean> {
 		this.persistEditorBody();
 		const workspaceId = this.workspaceIdForSession;
 		if (!workspaceId) {
@@ -797,7 +819,9 @@ export class CreateSocialPostPresenter {
 		}
 		this.busy = true;
 		try {
-			const payload = buildPostUpsertPayload(this.buildPersistInput(workspaceId, 'scheduled'));
+			const payload = buildPostUpsertPayload(
+				this.buildPersistInput(workspaceId, 'scheduled', opts.scheduledLocal)
+			);
 			const schedulePostPmResult = this.editingPostGroup
 				? await this.postsRepository.updatePostGroup(this.editingPostGroup, payload)
 				: await this.postsRepository.createPost(payload);
@@ -808,7 +832,7 @@ export class CreateSocialPostPresenter {
 				if (this.editingPostGroup) {
 					this.editingGroupStatusBeforeSave = 'scheduled';
 				}
-				toast.success(this.editingPostGroup ? 'Post updated.' : 'Post scheduled.');
+				toast.success(opts.successMessage);
 				return true;
 			}
 			toast.error(schedulePostPmResult.error);
@@ -931,7 +955,8 @@ export class CreateSocialPostPresenter {
 
 	private buildPersistInput(
 		workspaceId: string,
-		status: BuildPostUpsertPayloadInput['status']
+		status: BuildPostUpsertPayloadInput['status'],
+		scheduledLocal = this.scheduledLocal
 	): BuildPostUpsertPayloadInput {
 		return {
 			workspaceId,
@@ -943,7 +968,7 @@ export class CreateSocialPostPresenter {
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId,
 			postMediaItems: this.postMediaItemsVm,
 			selectedIds: this.selectedIds,
-			scheduledLocal: this.scheduledLocal,
+			scheduledLocal,
 			repeatInterval: this.repeatInterval,
 			selectedTagNames: this.selectedTagNames,
 			status

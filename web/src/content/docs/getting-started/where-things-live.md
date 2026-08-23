@@ -85,6 +85,6 @@ These are outside the signed-in app:
 <CardGrid>
 <LinkCard title="Overview" description="What OpenQuok is and how to pick Cloud, self-hosting, or APIs" href="/docs/getting-started" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
-<LinkCard title="Concepts" description="Workspace, channel, and calendar vs kanban terminology" href="/docs/getting-started/concepts" />
+<LinkCard title="Glossary" description="Workspace, channel, and calendar vs kanban terminology" href="/docs/getting-started/glossary" />
 <LinkCard title="Cloud" description="Trial, plans, billing, and limits" href="/docs/cloud" />
 </CardGrid>

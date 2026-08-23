@@ -34,9 +34,14 @@ export type DocsSidebarSection = {
 /** Product usage — `/docs` landing (`getting-started`). */
 export const docsSidebarGeneral: DocsSidebarSection[] = [
 	{
-		label: 'Guide',
+		label: 'Get started',
 		icon: icons.BookOpen.name,
 		autogenerate: { directory: 'getting-started' }
+	},
+	{
+		label: 'Channels',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'channels' }
 	}
 ];
 

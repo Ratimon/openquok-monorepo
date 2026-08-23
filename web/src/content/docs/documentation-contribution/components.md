@@ -2,7 +2,7 @@
 title: Built-in Components
 description: how to use documentation components in the markdown files.
 order: 4
-lastUpdated: 2026-07-05
+lastUpdated: 2026-08-23
 ---
 
 <script>
@@ -43,7 +43,7 @@ Callouts support custom titles via the `title` prop.
 
 ## Tabs
 
-Use tabs to show alternative content, like different package managers:
+Use tabs to show alternative content, like different package managers. The default <code>pills</code> variant is the boxed switcher. Use <code>variant="line"</code> for prose (for example Cloud vs self-hosting). Children of <code>TabItem</code> are not Markdown-parsed — use HTML the same way as Callout.
 
 <Tabs items={["npm", "pnpm", "yarn"]}>
 <TabItem label="npm">
@@ -65,6 +65,21 @@ pnpm add svelte-docs-starter
 ```bash
 yarn add svelte-docs-starter
 ```
+
+</TabItem>
+</Tabs>
+
+Prose tabs (Cloud vs self-hosting):
+
+<Tabs items={["Cloud", "Self-hosting"]} variant="line">
+<TabItem label="Cloud">
+
+<p>Sign up on the hosted app. New workspaces start a trial.</p>
+
+</TabItem>
+<TabItem label="Self-hosting">
+
+<p>Install your own instance, then register. The first account owns the workspace.</p>
 
 </TabItem>
 </Tabs>

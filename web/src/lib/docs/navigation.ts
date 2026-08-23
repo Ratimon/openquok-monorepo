@@ -55,7 +55,9 @@ export function getNavigation(locale?: string): NavItem[] {
 function isGeneralDocsPath(segmentOrSlug: string): boolean {
 	return (
 		segmentOrSlug === 'getting-started' ||
-		segmentOrSlug.startsWith('getting-started/')
+		segmentOrSlug.startsWith('getting-started/') ||
+		segmentOrSlug === 'channels' ||
+		segmentOrSlug.startsWith('channels/')
 	);
 }
 

@@ -276,6 +276,7 @@
 							}}
 							onSaveDraft={() => void copyProgrammaticPayload('draft')}
 							onSchedule={() => void copyProgrammaticPayload('scheduled')}
+							showPublishNow={false}
 						/>
 					</div>
 				</div>

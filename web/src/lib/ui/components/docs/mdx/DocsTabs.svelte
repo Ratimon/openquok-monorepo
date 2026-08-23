@@ -3,62 +3,65 @@
 
 	let {
 		items,
+		variant = 'pills',
 		children
 	}: {
 		items: string[];
+		/** `pills` is the boxed switcher for code samples. `line` is the underline row for prose. */
+		variant?: 'pills' | 'line';
 		children: Snippet;
 	} = $props();
 
-	/** Safe HTML id segment from tab label (labels may contain spaces). */
-	function tabId(label: string) {
-		return label.toLowerCase().replace(/\s+/g, '-');
-	}
-
-	let tabValue = $state('');
+	let selected = $state<string | undefined>();
 	let panelsEl: HTMLDivElement | undefined = $state();
 
-	$effect(() => {
-		const first = items[0] ?? '';
-		if (!items.length) return;
-		if (tabValue === '' || !items.includes(tabValue)) tabValue = first;
-	});
+	const isLine = $derived(variant === 'line');
+	const tabValue = $derived(
+		selected != null && items.includes(selected) ? selected : (items[0] ?? '')
+	);
 
-	/** Imperative show/hide — same idea as DocsCodeGroup; avoids Tabs context + Tabs.Content with MDsveX. */
 	$effect(() => {
 		if (!panelsEl) return;
-		const v = tabValue;
-		for (const el of panelsEl.querySelectorAll<HTMLElement>('[data-docs-tab-panel]')) {
-			const label = el.dataset.docsTabPanel ?? '';
-			el.classList.toggle('hidden', label !== v);
-		}
+		const panels = panelsEl.querySelectorAll<HTMLElement>('[data-docs-tab-panel]');
+		panels.forEach((panel) => {
+			panel.classList.toggle('hidden', panel.dataset.docsTabPanel !== tabValue);
+		});
 	});
+
+	function triggerClass(item: string) {
+		if (isLine) {
+			return tabValue === item
+				? '-mb-px border-b-2 border-primary px-0.5 pb-2.5 text-sm font-medium text-primary'
+				: '-mb-px border-b-2 border-transparent px-0.5 pb-2.5 text-sm font-medium text-base-content/60 hover:text-base-content';
+		}
+		return tabValue === item
+			? 'rounded-md bg-base-100 px-3 py-1.5 text-sm font-medium text-base-content shadow-sm'
+			: 'rounded-md px-3 py-1.5 text-sm font-medium text-base-content/60 hover:text-base-content';
+	}
 </script>
 
-<div class="not-prose my-6">
+<div class="docs-tabs my-6">
 	<div
+		class={isLine
+			? 'not-prose flex w-full gap-6 border-b border-base-content/15'
+			: 'not-prose mb-0 flex w-fit gap-1 rounded-lg bg-base-200/80 p-1'}
 		role="tablist"
-		class="docs-tabs-switcher inline-flex max-w-full flex-wrap gap-1 rounded-xl border-2 border-base-300 bg-base-200/60 p-1 shadow-sm"
 	>
 		{#each items as item (item)}
 			<button
 				type="button"
+				class="transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary {triggerClass(
+					item
+				)}"
 				role="tab"
-				class="min-w-0 flex-1 rounded-lg px-4 py-2.5 text-center text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100 sm:flex-none md:min-w-[10rem] {tabValue === item
-					? 'bg-primary text-primary-content shadow-md ring-2 ring-inset ring-primary-content/25'
-					: 'bg-base-content/10 text-base-content/75 hover:bg-base-content/15 hover:text-base-content'}"
 				aria-selected={tabValue === item}
-				aria-controls="{tabId(item)}-panel"
-				id="{tabId(item)}-tab"
-				tabindex={tabValue === item ? 0 : -1}
-				onclick={() => {
-					tabValue = item;
-				}}
+				onclick={() => (selected = item)}
 			>
 				{item}
 			</button>
 		{/each}
 	</div>
-	<div bind:this={panelsEl} class="tab-panels [&>div]:mt-0 [&>pre]:mt-2">
+	<div bind:this={panelsEl}>
 		{@render children()}
 	</div>
 </div>

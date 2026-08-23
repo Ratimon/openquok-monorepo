@@ -67,8 +67,12 @@ Use `autogenerate` to build sidebar sections from a directory. Attach each secti
 ```typescript
 export const docsSidebarGeneral: DocsSidebarSection[] = [
   {
-    label: 'Guide',
+    label: 'Get started',
     autogenerate: { directory: 'getting-started' }
+  },
+  {
+    label: 'Channels',
+    autogenerate: { directory: 'channels' }
   }
 ];
 ```
