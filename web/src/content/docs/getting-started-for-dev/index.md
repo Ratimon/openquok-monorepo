@@ -2,7 +2,7 @@
 title: Overview - Getting Started
 description: Getting started with OpenQuok for contributors and self-hosted social scheduler instances — architecture, quick start, and default env patterns.
 order: 0
-lastUpdated: 2026-07-26
+lastUpdated: 2026-08-22
 ---
 
 <script>
@@ -38,6 +38,8 @@ For the full operator stack (API, web, Redis, workers), use <a href="/docs/insta
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="General" description="What OpenQuok is and how to use the social scheduler" href="/docs" />
+<LinkCard title="Cloud" description="Hosted plans, trial, and billing" href="/docs/cloud" />
 <LinkCard title="Docker Compose (self-host)" description="Bring the stack up" href="/docs/installation/docker-compose" />
 <LinkCard title="Installation" description="Deploy and set up OpenQuok" href="/docs/installation" />
 </CardGrid>

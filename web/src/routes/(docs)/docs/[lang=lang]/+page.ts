@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 /** Matches default `/docs` landing when that tab is translated; otherwise localized `index.md` (slug ``). */
-const defaultLocaleLandingSlug = 'getting-started-for-cli';
+const defaultLocaleLandingSlug = 'getting-started';
 
 function landingSlugForLocale(lang: string): string {
 	if (getDoc(defaultLocaleLandingSlug, lang)) return defaultLocaleLandingSlug;

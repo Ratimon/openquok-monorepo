@@ -2,7 +2,7 @@
 title: Writing Content
 description: How to write and organize documentation content.
 order: 3
-lastUpdated: 2026-07-05
+lastUpdated: 2026-08-22
 ---
 
 ## Creating Pages
@@ -11,7 +11,8 @@ Create a new `.md` file in `src/content/docs/` to add a page. The file path dete
 
 | File Path | URL |
 |-----------|-----|
-| `docs/index.md` | `/docs` |
+| `docs/getting-started/index.md` | `/docs` (General landing; also `/docs/getting-started`) |
+| `docs/cloud/index.md` | `/docs/cloud` |
 | `docs/installation/index.md` | `/docs/installation` |
 | `docs/documentation-contribution/configuration.md` | `/docs/documentation-contribution/configuration` |
 

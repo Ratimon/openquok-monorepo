@@ -24,7 +24,7 @@ Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give t
 
 <p align="center">
   <a href="https://www.openquok.com/sign-up">Sign up</a>
-  · <a href="https://www.openquok.com/docs/apis-integrations">Public API</a>
+  · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
   · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
   · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a><br />
 </p>
@@ -114,12 +114,13 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 
 **Documentation (by audience)**
 
-- [CLI & agent users](https://www.openquok.com/docs) — `@openquok/auto-cli`, auth, commands, and examples
-- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
-- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens
+- [General](https://www.openquok.com/docs) — product overview ([`/docs/getting-started`](https://www.openquok.com/docs/getting-started)); [Quickstart](https://www.openquok.com/docs/getting-started/quickstart) for a first post
+- [Cloud](https://www.openquok.com/docs/cloud) — hosted plans, trial, and billing
+- [CLI & agent users](https://www.openquok.com/docs/getting-started-for-cli) — `@openquok/auto-cli`, auth, commands, and examples
 - [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples
-- [Contributors/Mainteners](https://www.openquok.com/docs/getting-started-for-dev) — monorepo layout, install, and local setup
+- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens; [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) for Authorization Code flow
 - [Contributing](https://www.openquok.com/docs/developer-guidelines) — repo conventions and contribution guides
+- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 
 **Self-host & setup**
 
@@ -130,7 +131,6 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 - [Installation](https://www.openquok.com/docs/installation)
 - [Social integrations](https://www.openquok.com/docs/social-integration) — connect channels (OAuth, env, provider dashboards)
 - [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup
-- [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) — Authorization Code flow for third-party apps
 - [Configuration – Backend](https://www.openquok.com/docs/configuration-backend)
 - [Configuration – Web](https://www.openquok.com/docs/configuration-web)
 - [Configuration – Workers](https://www.openquok.com/docs/configuration-worker)

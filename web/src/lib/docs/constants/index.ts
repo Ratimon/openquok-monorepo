@@ -1,10 +1,14 @@
 export {
 	docsConfig,
 	docsI18n,
-	docsSidebarLearnMore,
-	docsSidebarMerged,
-	docsSidebarPublicApi,
+	docsSidebarCloud,
 	docsSidebarCli,
+	docsSidebarContributing,
+	docsSidebarGeneral,
+	docsSidebarMerged,
+	docsSidebarMcp,
+	docsSidebarPublicApi,
+	docsSidebarSelfHosting,
 	docsSidebarWidthCss,
 	docsSite,
 	docsTabs

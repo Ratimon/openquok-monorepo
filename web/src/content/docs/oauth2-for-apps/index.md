@@ -2,7 +2,7 @@
 title: Overview - OAuth2 for apps
 description: Build third-party OpenQuok apps that act on behalf of subscribed users using OAuth2 Authorization Code flow.
 order: 0
-lastUpdated: 2026-07-05
+lastUpdated: 2026-08-22
 ---
 
 <script>
@@ -31,4 +31,11 @@ Your app redirects users to OpenQuok where they approve access, and you receive 
 <LinkCard title="Public API authentication" description="Workspace programmatic tokens (opo_) vs third-party OAuth" href="/docs/getting-started-for-public-api#authentication" />
 <LinkCard title="Admin: OAuth apps" description="Redirect URLs for hosted vs self-hosted servers and operator notes" href="/docs/admin/oauth-server" />
 <LinkCard title="Configuration - Backend" description="Backend env vars and public API surfaces" href="/docs/configuration-backend" />
+</CardGrid>
+
+## Related Section(s)
+
+<CardGrid>
+<LinkCard title="Public API" description="Programmatic tokens, SDK, and REST endpoints" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Posts APIs" description="Schedule and manage posts after you have an OAuth access token" href="/docs/apis-posts" />
 </CardGrid>

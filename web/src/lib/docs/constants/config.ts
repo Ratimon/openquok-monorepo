@@ -31,7 +31,24 @@ export type DocsSidebarSection = {
 	items?: { label: string; href: string }[];
 };
 
-/** CLI & programmatic usage — default `/docs` landing. Order: CLI → Public API → MCP → Learn more → Contributing in the header. */
+/** Product usage — `/docs` landing (`getting-started`). */
+export const docsSidebarGeneral: DocsSidebarSection[] = [
+	{
+		label: 'Guide',
+		icon: icons.BookOpen.name,
+		autogenerate: { directory: 'getting-started' }
+	}
+];
+
+/** Hosted plans, trial, and billing. */
+export const docsSidebarCloud: DocsSidebarSection[] = [
+	{
+		label: 'Cloud',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'cloud' }
+	}
+];
+
 export const docsSidebarCli: DocsSidebarSection[] = [
 	{
 		label: 'Get Started',
@@ -83,11 +100,17 @@ export const docsSidebarMcp: DocsSidebarSection[] = [
 	},
 ];
 
+/** Programmatic HTTP API plus third-party OAuth apps (`oauth2-for-apps`). */
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
 		icon: icons.Code.name,
 		autogenerate: { directory: 'getting-started-for-public-api' }
+	},
+	{
+		label: 'OAuth2 for apps',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'oauth2-for-apps' }
 	},
 	{
 		label: 'Integrations',
@@ -116,8 +139,8 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	}
 ];
 
-/** Self-hosting, OAuth app development, and deeper product setup. */
-export const docsSidebarLearnMore: DocsSidebarSection[] = [
+/** Operator install, configuration, and self-hosted deployment. Third-party app OAuth lives on Public API (`oauth2-for-apps`). */
+export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
 		icon: icons.Rocket.name,
@@ -157,11 +180,6 @@ export const docsSidebarLearnMore: DocsSidebarSection[] = [
 		label: 'Social integrations',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'social-integration' }
-	},
-	{
-		label: 'OAuth2 for apps',
-		icon: icons.Globe.name,
-		autogenerate: { directory: 'oauth2-for-apps' }
 	}
 ];
 
@@ -185,10 +203,12 @@ export const docsSidebarContributing: DocsSidebarSection[] = [
 ];
 
 export const docsTabs: DocsTabDefinition[] = [
+	{ id: 'general', label: 'General', sidebar: docsSidebarGeneral },
+	{ id: 'cloud', label: 'Cloud', sidebar: docsSidebarCloud },
+	{ id: 'self-hosting', label: 'Self-hosting', sidebar: docsSidebarSelfHosting },
 	{ id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
-	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
 	{ id: 'mcp', label: 'MCP', sidebar: docsSidebarMcp },
-	{ id: 'learn-more', label: 'Learn more', sidebar: docsSidebarLearnMore },
+	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
 	{ id: 'contributing', label: 'Contributing', sidebar: docsSidebarContributing }
 ];
 

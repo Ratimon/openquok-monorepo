@@ -2,7 +2,7 @@
 title: Overview - Public API
 description: Getting started to automate your Social Scheduling with OpenQuok's public API and Node.js SDK.
 order: 0
-lastUpdated: 2026-08-11
+lastUpdated: 2026-08-22
 ---
 
 <script>
@@ -221,6 +221,7 @@ For the full method table — posts, integrations, plugs, analytics, notificatio
 <LinkCard title="Analytics APIs" description="Platform and per-post insights backed by each provider's native analytics" href="/docs/apis-analytics" />
 <LinkCard title="Notifications APIs" description="Paginated in-app notification history scoped to your workspace" href="/docs/apis-notifications" />
 <LinkCard title="Uploads APIs" description="Upload media that you attach to scheduled posts" href="/docs/apis-uploads" />
+<LinkCard title="OAuth2 for apps" description="Authorization Code flow for third-party apps acting on behalf of users" href="/docs/oauth2-for-apps" />
 <LinkCard title="CLI" description="Same public API surface, available as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
 </CardGrid>
 

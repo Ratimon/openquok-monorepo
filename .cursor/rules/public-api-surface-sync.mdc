@@ -97,7 +97,7 @@ When new endpoints introduce **concepts** users need before reading `apis-*` pag
 
 ## 6. Sidebar config (`web/src/lib/docs/constants/config.ts`)
 
-The "Public API" tab is built from `docsSidebarPublicApi`. When you add a **new section** (new top-level `apis-<domain>/` folder), append a `DocsSidebarSection` entry:
+The "Public API" tab is built from `docsSidebarPublicApi`. Third-party app OAuth (`oauth2-for-apps`) lives on this tab, not Self-hosting. When you add a **new section** (new top-level `apis-<domain>/` folder), append a `DocsSidebarSection` entry:
 
 ```ts
 {
@@ -108,7 +108,7 @@ The "Public API" tab is built from `docsSidebarPublicApi`. When you add a **new 
 ```
 
 - Pages within the directory are auto-listed; you do not edit the sidebar when adding a new endpoint inside an existing section.
-- If you introduce a brand-new `apis-*` directory **with no prefix the navigation already recognises**, double-check `web/src/lib/docs/navigation.ts` — `getDocsTabIdFromPathname` / `getDocsTabIdFromSlug` already match anything starting with `apis-`, so a new folder named `apis-<x>` routes to the Public API tab automatically.
+- If you introduce a brand-new `apis-*` directory **with no prefix the navigation already recognises**, double-check `web/src/lib/docs/navigation.ts` — `getDocsTabIdFromPathname` / `getDocsTabIdFromSlug` already match anything starting with `apis-` (and explicitly match `oauth2-for-apps`), so a new folder named `apis-<x>` routes to the Public API tab automatically.
 
 ## Checklist for a public-API change
 

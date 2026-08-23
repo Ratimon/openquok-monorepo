@@ -6,16 +6,16 @@ export const prerender = false;
 
 export async function load() {
 	await preloadDocsRegistry(undefined);
-	const doc = getDoc('getting-started-for-cli');
-	if (!doc) throw error(404, 'CLI documentation not found');
+	const doc = getDoc('getting-started');
+	if (!doc) throw error(404, 'Documentation not found');
 
-	const { prev, next } = getPrevNext('getting-started-for-cli');
+	const { prev, next } = getPrevNext('getting-started');
 
 	return {
 		meta: doc.meta,
-		slug: 'getting-started-for-cli',
+		slug: 'getting-started',
 		prev,
 		next,
-		rawContent: await getRawContent('getting-started-for-cli')
+		rawContent: await getRawContent('getting-started')
 	};
 }

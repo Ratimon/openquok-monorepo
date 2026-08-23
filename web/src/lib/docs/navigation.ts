@@ -51,6 +51,49 @@ export function getNavigation(locale?: string): NavItem[] {
 	return generateNavigation(locale);
 }
 
+/** First path segment or full slug under `/docs` that belongs to the General tab. */
+function isGeneralDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'getting-started' ||
+		segmentOrSlug.startsWith('getting-started/')
+	);
+}
+
+function isCloudDocsPath(segmentOrSlug: string): boolean {
+	return segmentOrSlug === 'cloud' || segmentOrSlug.startsWith('cloud/');
+}
+
+function isSelfHostingDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'getting-started-for-dev' ||
+		segmentOrSlug.startsWith('getting-started-for-dev/') ||
+		segmentOrSlug === 'installation' ||
+		segmentOrSlug.startsWith('installation/') ||
+		segmentOrSlug === 'configuration-backend' ||
+		segmentOrSlug.startsWith('configuration-backend/') ||
+		segmentOrSlug === 'configuration-web' ||
+		segmentOrSlug.startsWith('configuration-web/') ||
+		segmentOrSlug === 'configuration-worker' ||
+		segmentOrSlug.startsWith('configuration-worker/') ||
+		segmentOrSlug === 'configuration-agent' ||
+		segmentOrSlug.startsWith('configuration-agent/') ||
+		segmentOrSlug === 'admin' ||
+		segmentOrSlug.startsWith('admin/') ||
+		segmentOrSlug === 'social-integration' ||
+		segmentOrSlug.startsWith('social-integration/')
+	);
+}
+
+function isPublicApiDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'getting-started-for-public-api' ||
+		segmentOrSlug.startsWith('getting-started-for-public-api/') ||
+		segmentOrSlug.startsWith('apis-') ||
+		segmentOrSlug === 'oauth2-for-apps' ||
+		segmentOrSlug.startsWith('oauth2-for-apps/')
+	);
+}
+
 /** First path segment or full slug under `/docs` that belongs to the CLI tab. */
 function isCliDocsPath(segmentOrSlug: string): boolean {
 	return (
@@ -112,29 +155,28 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 	const parts = path.split('/').filter(Boolean);
 	const rest = parts.slice(1);
 
-	if (rest.length === 0) return 'cli';
-	if (typeof rest[0] === 'string' && isMcpDocsPath(rest[0])) return 'mcp';
-	if (
-		rest[0] === 'getting-started-for-public-api' ||
-		(typeof rest[0] === 'string' && rest[0].startsWith('apis-'))
-	)
-		return 'public-api';
-	if (typeof rest[0] === 'string' && isCliDocsPath(rest[0])) return 'cli';
-	if (typeof rest[0] === 'string' && isContributingDocsPath(rest[0])) return 'contributing';
-	return 'learn-more';
+	if (rest.length === 0) return 'general';
+	const first = rest[0];
+	if (typeof first !== 'string') return 'general';
+	if (isCloudDocsPath(first)) return 'cloud';
+	if (isGeneralDocsPath(first)) return 'general';
+	if (isMcpDocsPath(first)) return 'mcp';
+	if (isPublicApiDocsPath(first)) return 'public-api';
+	if (isCliDocsPath(first)) return 'cli';
+	if (isContributingDocsPath(first)) return 'contributing';
+	if (isSelfHostingDocsPath(first)) return 'self-hosting';
+	return 'general';
 }
 
 export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
-	if (!slug || isCliDocsPath(slug)) return 'cli';
+	if (!slug || isGeneralDocsPath(slug)) return 'general';
+	if (isCloudDocsPath(slug)) return 'cloud';
+	if (isCliDocsPath(slug)) return 'cli';
 	if (isMcpDocsPath(slug)) return 'mcp';
-	if (
-		slug === 'getting-started-for-public-api' ||
-		slug.startsWith('getting-started-for-public-api/') ||
-		slug.startsWith('apis-')
-	)
-		return 'public-api';
+	if (isPublicApiDocsPath(slug)) return 'public-api';
 	if (isContributingDocsPath(slug)) return 'contributing';
-	return 'learn-more';
+	if (isSelfHostingDocsPath(slug)) return 'self-hosting';
+	return 'general';
 }
 
 export function getNavigationForPath(pathname: string, locale?: string): NavItem[] {
@@ -143,19 +185,23 @@ export function getNavigationForPath(pathname: string, locale?: string): NavItem
 	return generateNavigationFromSidebar(tab?.sidebar ?? docsSidebarMerged, locale);
 }
 
-/** Canonical URL for each docs tab (CLI home is `/docs`). */
+/** Canonical URL for each docs tab (General home is `/docs`). */
 export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 	const defaultLocale = docsConfig.i18n?.defaultLocale ?? 'en';
 	const base = locale && locale !== defaultLocale ? `/docs/${locale}` : '/docs';
 	switch (tabId) {
-		case 'cli':
+		case 'general':
 			return base;
+		case 'cloud':
+			return `${base}/cloud`;
+		case 'self-hosting':
+			return `${base}/getting-started-for-dev`;
+		case 'cli':
+			return `${base}/getting-started-for-cli`;
 		case 'public-api':
 			return `${base}/getting-started-for-public-api`;
 		case 'mcp':
 			return `${base}/getting-started-for-mcp`;
-		case 'learn-more':
-			return `${base}/getting-started-for-dev`;
 		case 'contributing':
 			return `${base}/developer-guidelines`;
 	}
