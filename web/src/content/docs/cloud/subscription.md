@@ -55,6 +55,6 @@ Billing is per **organization** (the workspaces you own). Switch workspace in th
 <CardGrid>
 <LinkCard title="Trial" description="7-day trial, then paid billing on Cloud" href="/docs/cloud/trial" />
 <LinkCard title="Limits" description="Caps that block connect, schedule, invite, or upload" href="/docs/cloud/limits" />
-<LinkCard title="Where things live" description="Where Billing, Settings, and Developers sit in the app" href="/docs/getting-started/where-things-live" />
+<LinkCard title="Tour the app" description="Where Billing, Settings, and Developers sit in the app" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Pricing" description="Plan names and included limits" href="/pricing" />
 </CardGrid>

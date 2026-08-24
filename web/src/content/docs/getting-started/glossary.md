@@ -173,7 +173,7 @@ Agent-created drafts can include a **review note** on the kanban card. Clear or 
 ## Related
 
 <CardGrid>
-<LinkCard title="Where things live" description="Sidebar, header, composer, settings, and the public site" href="/docs/getting-started/where-things-live" />
+<LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="CLI introduction" description="Terminal access for scripts and agents" href="/docs/getting-started-for-cli" />
 <LinkCard title="MCP introduction" description="Natural-language scheduling from your editor" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Supported social channels" description="Provider identifiers and API terminology" href="/docs/getting-started-for-public-api/supported-social-channels" />

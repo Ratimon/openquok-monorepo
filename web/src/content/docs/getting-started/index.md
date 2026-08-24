@@ -43,5 +43,5 @@ Integrate, automate, or contribute.
 <CardGrid>
 <LinkCard title="Quickstart" description="First channel and first scheduled post." href="/docs/getting-started/quickstart" />
 <LinkCard title="Glossary" description="The concepts OpenQuok uses and defined once." href="/docs/getting-started/glossary" />
-<LinkCard title="Where things live" description="Sidebar, header, composer, settings, and the public site after you sign in." href="/docs/getting-started/where-things-live" />
+<LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site after you sign in." href="/docs/getting-started/tour-the-app" />
 </CardGrid>

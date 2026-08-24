@@ -1,5 +1,5 @@
 ---
-title: Where things live
+title: Tour the app
 description: OpenQuok layout — sidebar pages, header, composer, settings, billing, and the public site.
 order: 3
 lastUpdated: 2026-08-24
@@ -13,13 +13,13 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 OpenQuok puts a things behind a left sidebar, and several of the most-used features are modals rather than pages. This is the map. Paths are relative to the app origin (for example <a href="/account"><Badge text="/account" variant="path" /></a> on Cloud).
 
-![Signed-in left sidebar](/docs/_assets/where-things-live/left-sidebar.webp)
+![Signed-in left sidebar](/docs/_assets/tour-the-app/left-sidebar.webp)
 
 Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
 
 You can switch between your workspaces on the header.
 
-![Work Space and Account](/docs/_assets/where-things-live/top-header.webp)
+![Work Space and Account](/docs/_assets/tour-the-app/top-header.webp)
 
 Settings and Billing sit under the account menu.
 
