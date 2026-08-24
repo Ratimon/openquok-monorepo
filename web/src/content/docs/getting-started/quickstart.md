@@ -46,7 +46,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 ![Step 2 - Connect Channel](/docs/_assets/getting-started/2-connect-channel.webp)
 
-<p>Each network uses its own connect flow — usually OAuth in the browser, sometimes an API key or credentials you paste in the dialog. See <a href="/docs/channels/connect">Connect a channel</a> for what each one means.</p>
+<p>Each network uses its own connect flow — usually OAuth in the browser, sometimes an API key or credentials you paste in the dialog. See <a href="/docs/channels">Connect a channel</a> for what each one means.</p>
 
 <Tabs items={["Cloud", "Self-hosting"]} variant="line">
 <TabItem label="Cloud">

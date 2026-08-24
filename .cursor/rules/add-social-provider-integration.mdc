@@ -127,6 +127,7 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
    - **Add Channel** — `AddProvider.svelte` shows the provider in the normal grid and opens the credentials dialog (password input + regex from catalog). Submit: `getAuthorizeUrl` (seeds cache; returned `url` is the `state`) then `connectSocial` with that `state` and `code` = `btoa(JSON.stringify({ apiKey }))`.
    - **Invite links** — keep filtering `customFields` providers out of invite-link copy.
    - **Continue / refresh** — `IntegrationContinue.svelte` must **not** set `window.location.href` to a non-URL `state` string. When the catalog has `customFields`, reuse the same credentials form so `?refresh=` works without an OAuth redirect.
+7. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth providers under the OAuth redirect tab (follow-up picker table when `isBetweenSteps`); credentials providers in the credentials table. When a new connect family ships, add a tab there before users see it in Add Channel.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
 
@@ -239,6 +240,7 @@ Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChan
 
 | Artifact | Path |
 | --- | --- |
+| Connect flows (user guide) | `web/src/content/docs/channels/connect.md` — keep the **two** (or future **four**) connection-flow tabs aligned with shipped providers. **OAuth:** list the network under the OAuth redirect tab (and the follow-up picker table when `isBetweenSteps`). **Credentials (`customFields`):** add a row to the credentials table and mention invite-link exclusion. Update when a new connect family ships (e.g. in-app dialog, browser extension). |
 | Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard. **Credentials:** document where the **user** creates the API key (platform settings); skip operator ID/secret rows and backend env sections. **OAuth:** operator app + redirect URI as today. |
 | CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
 | Self-host env template | **OAuth only:** `infra/self-host/.env.example` — add `{PROVIDER}_*` / `{PROVIDER}_*_SECRET` (or the keys `GlobalConfig` expects) under **Social provider apps**. **Credentials:** no new secrets; optional one-line comment that the user pastes an API key in the dashboard. |
@@ -463,6 +465,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
+- **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth provider listed under OAuth redirect (and follow-up picker table when `isBetweenSteps`); credentials provider row in the credentials table; invite-link note if `customFields`.
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs.
 - **Self-host (OAuth):** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Self-host (credentials):** no `{PROVIDER}_*` keys; docker-compose notes that the channel uses a user API key in the dashboard.
