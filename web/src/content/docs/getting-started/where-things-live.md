@@ -1,66 +1,83 @@
 ---
 title: Where things live
-description: Map of the OpenQuok app — sidebar pages, composer and Add Channel (not in the rail), settings, billing, and marketing surfaces.
+description: OpenQuok layout — sidebar pages, header, composer, settings, billing, and the public site.
 order: 3
-lastUpdated: 2026-08-23
+lastUpdated: 2026-08-24
 ---
 
 <script>
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-OpenQuok puts a lot behind a small left rail, and several of the most-used features are modals rather than pages. This is the map. Paths are relative to the app origin (for example <a href="/account">/account</a> on Cloud).
+## Overview
 
-## The left rail
+OpenQuok puts a things behind a left sidebar, and several of the most-used features are modals rather than pages. This is the map. Paths are relative to the app origin (for example <a href="/account"><Badge text="/account" variant="path" /></a> on Cloud).
 
-| Label | Path | Purpose |
+![Signed-in left sidebar](/docs/_assets/where-things-live/left-sidebar.webp)
+
+Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
+
+You can switch between your workspaces on the header.
+
+![Work Space and Account](/docs/_assets/where-things-live/top-header.webp)
+
+Settings and Billing sit under the account menu.
+
+## Left sidebar
+
+
+| Label | Path | What you do there |
 | --- | --- | --- |
-| <Badge text="Home" variant="default" /> | `/account` | Connected channels, **kanban board**, Getting started checklist, <Badge text="Create Post" variant="new" /> |
-| <Badge text="Calendar" variant="default" /> | `/account/calendar` | Month/week view of scheduled and published posts |
-| <Badge text="Templates" variant="default" /> | `/account/templates` | Saved composer presets (caption, media, channels) |
-| <Badge text="Playbooks" variant="default" /> | `/account/playbooks` | Browse, bookmark, and edit playbooks and building blocks |
-| <Badge text="Auto Plugs" variant="default" /> | `/account/plugs` | Global channel rules after publish |
-| <Badge text="Analytics" variant="default" /> | `/account/analytics` | Reach and engagement after posts publish (fields depend on the network) |
-| <Badge text="Media" variant="default" /> | `/account/media` | Image and video library for composer attachments. Cloud storage caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
+| <Badge text="Home" variant="default" /> | <Badge text="/account" variant="path" /> | Connected channels, Getting started checklist, kanban, <Badge text="Create Post" variant="new" /> |
+| <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
+| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — caption, media, channels, provider settings |
+| <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
+| <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global Channel-level rules that run after a post publishes |
+| <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish (fields vary by network) |
+| <Badge text="Media" variant="default" /> | <Badge text="/account/media" variant="path" /> | Image and video library for the composer. Cloud caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
 
-<Callout type="note" title="Billing on self-host">
-<p>On a self-hosted install with Stripe unset, <Badge text="Billing" variant="default" /> does not appear (or is shown as not configured). There is nothing to bill. On Cloud, Billing is limited to workspace owners.</p>
-</Callout>
 
-## Things that are not pages
+## Header
 
-These are the features people most often cannot find, because they are modals or panels rather than entries in the rail.
+The header is independent of the sidebar.
 
-| Looking for | Where it is |
+| Control | Role |
+| --- | --- |
+| Workspace switcher | Loads another workspace you belong to |
+| Docs | This documentation |
+| Notifications | Publish failures and review notes |
+| Theme | Light or dark |
+| Feedback | Send a note to the team |
+| Account menu | <Badge text="Settings" variant="default" />, <Badge text="Billing" variant="default" />, sign out |
+
+## Home, calendar, and the composer
+
+Home is where to manage channel cards, the Getting started checklist, and kanban columns for post status.
+
+The calendar is the same posts laid out by date.
+
+The post editor ( aka composer) is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" />, or <Badge text="Select a template" variant="default" />.
+
+| Action | Where it lives |
 | --- | --- |
 | <Badge text="Add Channel" variant="new" /> | Home, or the channel picker in the composer |
-| Channel reconnect / disconnect | Home, the menu on a channel card |
-| Group channels by client | Channel group controls on Home; filter Home and calendar by group |
-| The post composer | <Badge text="Create Post" variant="new" /> on Home, a day on the calendar, or **Use template** |
-| Per-network post settings | Inside the composer, next to the preview |
-| <Badge text="Payload Wizard" variant="default" /> | <a href="/account/payload-wizard">/account/payload-wizard</a> — same composer fields, copy JSON for the public API |
-| Shareable post preview | Post card action (plan-gated on Cloud) — public URL under <Badge text="/p/" variant="path" /> plus the post id |
-| Your API token | Settings → <Badge text="Developers" variant="default" /> → **Access** |
-| MCP connection snippet | Same **Access** panel |
-| Notifications | Header dock — publish failures and review notes |
+| Reconnect or disconnect a channel | Channel card menu on Home |
+| Channel groups | Group controls on Home |
+| Per-network fields | Composer, beside the preview |
+| Tags | Composer toolbar |
+| Signatures | Composer toolbar; manage the list in Settings |
+| Internal (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/getting-started/glossary">Glossary</a> |
+| Shareable preview | Post card actions. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
 
-## Settings and Billing
+## Settings
 
-Open your avatar or account menu in the header.
 
-| Destination | Path | Purpose |
-| --- | --- | --- |
-| <Badge text="Settings" variant="default" /> | `/account/settings` | Tabs via `?section=` |
-| <Badge text="Billing" variant="default" /> | `/account/billing` | Plans, Stripe checkout, and subscription (Cloud) |
-
-Settings tabs:
-
-| Tab | What it holds |
+| Tab | Purpose |
 | --- | --- |
-| **Timezone** | Workspace posting timezone (calendar and schedule times) |
-| **Workspace** | Name, team invites, roles (owner, admin, user) |
+| **Timezone** | Workspace posting timezone — calendar slots and scheduled times use this, not the browser clock |
+| **Workspace** | Name, team invites, roles |
 | **Profile** | Display name and account preferences |
-| **Developers** | <Badge text="opo_" variant="default" /> programmatic tokens, MCP snippets, OAuth apps |
+| **Developers** | <Badge text="opo_" variant="default" /> programmatic tokens, MCP connection snippets, OAuth apps |
 | **Approved Apps** | Third-party apps you granted access, and revoking them |
 | **Signatures** | Reusable sign-offs you can append in the composer |
 
@@ -70,15 +87,30 @@ Settings tabs:
 
 CLI device login does not require pasting a token — see <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
-## Marketing surfaces
+### Payload Wizard
 
-These are outside the signed-in app:
+<p><Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> is the same composer fields, then copy JSON for the public API. It is a page, not a sidebar item. Developers → <strong>Access</strong> links here.</p>
+
+## Billing
+
+<a href="/account/billing"><Badge text="/account/billing" variant="path" /></a> is also under the account menu. It is limited to workspace owners.
+
+<Callout type="note" title="Self-hosted installs">
+<p>If Stripe is unset, <Badge text="Billing" variant="default" /> is hidden or shown as not configured. There is no Cloud subscription to manage. See <a href="/docs/installation">Self-hosting</a>.</p>
+</Callout>
+
+## Public site
+
+These routes exist without signing in. On a self-hosted origin they may point at the hosted marketing site.
 
 | Surface | Path | Purpose |
 | --- | --- | --- |
-| Channel catalog | <a href="/channels">/channels</a> | Per-network landing pages and connect overview |
-| Pricing | <a href="/pricing">/pricing</a> | Plan tiers and numeric limits |
-| Documentation | <a href="/docs">/docs</a> | This Guide, Cloud, self-hosting, CLI, MCP, and API reference |
+| Channel catalog | <a href="/channels"><Badge text="/channels" variant="path" /></a> | Per-network landing pages and connect overview |
+| Playbooks hub | <a href="/playbooks"><Badge text="/playbooks" variant="path" /></a> | Public playbook catalog |
+| Building blocks | <a href="/building-blocks"><Badge text="/building-blocks" variant="path" /></a> | Skills and MCP listings |
+| Agents | <a href="/agents"><Badge text="/agents" variant="path" /></a> | How to wire Cursor, Claude, and other harnesses |
+| Pricing | <a href="/pricing"><Badge text="/pricing" variant="path" /></a> | Plan tiers and numeric limits |
+| Documentation | <a href="/docs"><Badge text="/docs" variant="path" /></a> | This Guide, Cloud, self-hosting, CLI, MCP, and API reference |
 
 ## Related
 

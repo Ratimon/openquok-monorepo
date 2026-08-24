@@ -20,7 +20,7 @@ Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/qui
 
 ### Backend local development
 
-You can work from the **monorepo root** (using scripts defined in the root `package.json` that delegate to `backend/`) or **change into `backend/`** and run the same scripts locally. Pick one style and stick with it.
+You can work from the **monorepo root** (using scripts defined in the root `package.json`) or **change into `backend/`** and run the same scripts locally. Pick one style and stick with it.
 
 <Callout type="note" title="Cron jobs">
 Some backend features rely on scheduled jobs backed by <code>pg&#95;cron</code> on Supabase.

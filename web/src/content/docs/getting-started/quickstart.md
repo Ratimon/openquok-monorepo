@@ -118,7 +118,7 @@ CLI, MCP, or API **401** errors usually mean a rotated token. Generate a new one
 
 <CardGrid>
 <LinkCard title="Glossary" description="Workspace, channel, post group, and calendar vs kanban" href="/docs/getting-started/glossary" />
-<LinkCard title="Where things live" description="What every section of the app is for" href="/docs/getting-started/where-things-live" />
+<LinkCard title="Where things live" description="Sidebar, header, composer, and settings" href="/docs/getting-started/where-things-live" />
 <LinkCard title="Cloud" description="Trial, plans, billing, and limits for the hosted product" href="/docs/cloud" />
 <LinkCard title="Self-hosting" description="Docker Compose, and configuration  guides" href="/docs/installation" />
 </CardGrid>
