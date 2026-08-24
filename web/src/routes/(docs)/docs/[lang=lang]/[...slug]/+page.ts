@@ -45,6 +45,7 @@ export const load: PageLoad = async ({ params }) => {
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: await getRawContent(params.slug, params.lang)
+		rawContent: await getRawContent(params.slug, params.lang),
+		content: await doc.loadContent()
 	};
 };

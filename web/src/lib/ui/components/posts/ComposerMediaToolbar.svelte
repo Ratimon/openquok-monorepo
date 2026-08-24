@@ -573,7 +573,7 @@
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Insert a mention at the cursor">
+		<ComposerMediaTooltip label="Insert a mention">
 			{#snippet trigger({ props })}
 				<button
 					{...props}

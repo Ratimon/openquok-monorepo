@@ -16,14 +16,24 @@
 	let prev = $derived(data.prev);
 	let next = $derived(data.next);
 	let rawContent = $derived(data.rawContent);
+	let content = $derived(data.content);
 
 	let doc = $derived(getDoc(slug, locale));
 </script>
 
 <DocsSeoHead title={meta.title} description={meta.description} />
 
-{#if doc}
-	<DocsDocRenderer meta={doc.meta} loadContent={doc.loadContent} {slug} {rawContent} locale={locale} />
-{/if}
+{#key slug}
+	{#if doc}
+		<DocsDocRenderer
+			meta={doc.meta}
+			{content}
+			loadContent={doc.loadContent}
+			{slug}
+			{rawContent}
+			{locale}
+		/>
+	{/if}
+{/key}
 <DocsFooter {prev} {next} />
 <DocsKeyboardNav {prev} {next} />

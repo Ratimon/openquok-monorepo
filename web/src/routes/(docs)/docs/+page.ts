@@ -16,6 +16,7 @@ export async function load() {
 		slug: 'getting-started',
 		prev,
 		next,
-		rawContent: await getRawContent('getting-started')
+		rawContent: await getRawContent('getting-started'),
+		content: await doc.loadContent()
 	};
 }

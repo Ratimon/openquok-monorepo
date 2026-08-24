@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 All programmatic access to <Badge text="/api/v1/public/*" variant="path" /> uses a Bearer token with the <Badge text="opo_" variant="default" /> prefix in the <Badge text="Authorization" variant="default" /> header.
 
-### Programmatic access token (your workspace)
+### Programmatic access token
 
 For scripts, CI, and your own integrations, use a **programmatic access token** tied to your workspace:
 
@@ -44,7 +44,7 @@ If you are building an app **for other OpenQuok users**, register an OAuth app u
 curl -H "Authorization: Bearer opo_your_oauth_token" https://api.openquok.com/api/v1/public/integrations
 ```
 
-OAuth tokens are scoped to the **organization the user authorized** — not to the developer who built the app — so the same endpoint returns different data depending on which token is used.
+OAuth tokens are scoped to the **organization the user authorized** — not to the developer who built the app.
 
 ## Base URL
 
@@ -63,7 +63,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 
 ## Supported social channels
 
-OpenQuok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <code>providerSettingsByIntegrationId</code> keyed by the channel's UUID.
+OpenQuok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by the channel's UUID.
 
 For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
 
@@ -89,7 +89,7 @@ Workspaces can organize connected channels into **channel groups** (the dashboar
 | Action | HTTP | SDK |
 | --- | --- | --- |
 | List groups | <Badge text="GET /public/groups" variant="path" /> | <Badge text="listGroups()" variant="default" /> |
-| List channels in a group | <Badge text="GET /public/integrations?group=" variant="path" /> | <Badge text="integrations({ group })" variant="default" /> |
+| List channels in a group | <Badge text="GET /public/integrations?group=" variant="path" /> | <Badge text="integrations()" variant="default" /> with <Badge text="group" variant="param" /> |
 
 ```bash
 # List channel groups, then filter integrations to one group

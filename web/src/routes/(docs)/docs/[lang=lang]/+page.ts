@@ -28,6 +28,7 @@ export const load: PageLoad = async ({ params }) => {
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: await getRawContent(slug, params.lang)
+		rawContent: await getRawContent(slug, params.lang),
+		content: await doc.loadContent()
 	};
 };

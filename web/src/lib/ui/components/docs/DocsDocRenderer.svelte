@@ -5,7 +5,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { setContext } from 'svelte';
+	import { onMount, setContext } from 'svelte';
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
 
@@ -27,13 +27,15 @@
 
 	let {
 		meta,
+		content,
 		loadContent,
 		slug = '',
 		rawContent = '',
 		locale
 	}: {
 		meta: DocMeta;
-		loadContent: () => Promise<Component>;
+		content?: Component;
+		loadContent?: () => Promise<Component>;
 		slug?: string;
 		rawContent?: string;
 		locale?: string;
@@ -43,6 +45,32 @@
 	let hasOpenapi = $derived(Boolean(meta.openapi?.trim()));
 	let playgroundOpen = $derived(page.url.searchParams.get('playground') === 'open');
 	let playgroundModalOpen = $state(false);
+
+	let clientContent = $state<Component | null>(null);
+	let contentLoadFailed = $state(false);
+	let resolvedContent = $derived(content ?? clientContent);
+
+	onMount(() => {
+		if (content || !browser) return;
+		const load = loadContent;
+		if (!load) {
+			contentLoadFailed = true;
+			return;
+		}
+
+		let cancelled = false;
+		void load()
+			.then((component) => {
+				if (!cancelled) clientContent = component;
+			})
+			.catch(() => {
+				if (!cancelled) contentLoadFailed = true;
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	let contentEl: HTMLDivElement | undefined = $state();
 
@@ -169,14 +197,13 @@
 	}
 
 	$effect(() => {
-		void contentEl;
+		const container = contentEl;
 		void page.url.hash;
+		if (!container) return;
 
 		const timer = setTimeout(() => {
-			if (contentEl) {
-				enhanceContent(contentEl);
-				scrollToHashFromUrl();
-			}
+			enhanceContent(container);
+			scrollToHashFromUrl();
 		}, 0);
 
 		return () => {
@@ -223,10 +250,11 @@
 
 	<DocsMobileToc />
 
-	{#await loadContent()}
-		<p class="text-base-content/60 px-1 py-10 text-sm">
-			Loading article…</p>
-	{:then Content}
+	{#if contentLoadFailed}
+		<p class="text-error px-1 py-6 text-sm">
+			Could not load this article.</p>
+	{:else if resolvedContent}
+		{@const Content = resolvedContent}
 		{#if hasOpenapi}
 			<OpenApiDocSplit operation={(meta.openapi ?? '').trim()} bind:contentEl>
 				<Content />
@@ -239,10 +267,10 @@
 				<Content />
 			</div>
 		{/if}
-	{:catch}
-		<p class="text-error px-1 py-6 text-sm">
-			Could not load this article.</p>
-	{/await}
+	{:else}
+		<p class="text-base-content/60 px-1 py-10 text-sm">
+			Loading article…</p>
+	{/if}
 
 	{#if hasOpenapi}
 		<OpenApiPlaygroundModal

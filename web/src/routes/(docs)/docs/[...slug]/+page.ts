@@ -31,6 +31,7 @@ export const load: PageLoad = async ({ params }) => {
 		slug: params.slug,
 		prev,
 		next,
-		rawContent: await getRawContent(params.slug)
+		rawContent: await getRawContent(params.slug),
+		content: await doc.loadContent()
 	};
 };

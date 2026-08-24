@@ -925,7 +925,7 @@ export class CreateSocialPostPresenter {
 			}
 			this.editingSetId = resultVm.id;
 			this.editingSetName = trimmed;
-			toast.success('Set saved.');
+			toast.success('Template saved.');
 			this.captureInitialSnapshot();
 			return true;
 		} finally {
