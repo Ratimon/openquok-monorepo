@@ -11,11 +11,16 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Open the channel
 
-After a channel is connected, day-to-day changes live on <a href="/account">Home</a>. Click the channel and the actions modal appear. If Home is in table layout, click <Badge text="Actions" variant="default" />.
+After a channel is connected, go to <a href="/account">Home</a> and click the channel and the actions modal appear. If Home is in table layout, click <Badge text="Actions" variant="default" />.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 
-You can do the same from a channel chip on the <a href="/account/calendar">calendar</a>.
+<p>You can also switch to table view (the table icon next to <strong>Connected channels</strong>), then click <Badge text="Add filters" variant="default" /> to open the smart filter. Narrow the list by social platform, connected account, group, or status, then click <Badge text="Actions" variant="default" /> on the row you want.</p>
+
+![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
+
+
+Plus, You can do the same from a channel chip on the <a href="/account/calendar">calendar</a>.
 
 ## What you can do
 

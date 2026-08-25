@@ -172,6 +172,7 @@ Agent-created drafts can include a **review note** on the kanban card. Clear or 
 ## Related
 
 <CardGrid>
+<LinkCard title="Creating posts" description="Post editor layout, flow, and Payload Wizard" href="/docs/creating-posts" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
 <LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Team" description="Workspace invites and roles" href="/docs/settings/team" />

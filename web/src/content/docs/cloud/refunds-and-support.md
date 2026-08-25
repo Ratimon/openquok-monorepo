@@ -2,7 +2,7 @@
 title: Refunds and support
 description: OpenQuok Cloud refund policy for the social scheduler — unused billing periods, how to contact support, and self-hosted billing.
 order: 5
-lastUpdated: 2026-08-22
+lastUpdated: 2026-08-25
 ---
 
 <script>
@@ -30,6 +30,7 @@ This matches the refund answer on the public FAQ / Pricing page. Legal terms on 
 - **Billing, invoices, plan changes** — workspace owners use <a href="/account/billing">Billing</a> and the Stripe portal first (cards, invoices, cancel).
 - **Product questions** — [Overview](/docs/getting-started) and [Quickstart](/docs/getting-started/quickstart).
 - **Talk to a person** — join the OpenQuok <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink> and describe the workspace, plan, and what you already tried.
+- **Email** — <a href="mailto:admin@openquok.com">admin@openquok.com</a>. Company address and phone are on <DocsExternalLink href="https://www.openquok.com/about">About</DocsExternalLink>.
 
 Do not paste programmatic tokens, Stripe secret keys, or provider app secrets into Discord or email.
 
@@ -40,4 +41,5 @@ Do not paste programmatic tokens, Stripe secret keys, or provider app secrets in
 <LinkCard title="Trial" description="7-day trial before paid billing" href="/docs/cloud/trial" />
 <LinkCard title="Cloud overview" description="Hosted vs self-host comparison" href="/docs/cloud" />
 <LinkCard title="Pricing" description="Current Cloud plans" href="/pricing" />
+<LinkCard title="About" description="Support email, phone, and company contact" href="/about" />
 </CardGrid>

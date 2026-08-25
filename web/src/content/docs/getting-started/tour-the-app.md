@@ -56,7 +56,7 @@ Home is where to manage channel cards, the Getting started checklist, and kanban
 
 The calendar is the same posts laid out by date.
 
-The post editor ( aka composer) is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" />, or <Badge text="Select a template" variant="default" />.
+The post editor (also called the composer) is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" />, or <Badge text="Select a template" variant="default" />. See <a href="/docs/creating-posts">Creating posts</a> for layout, flow, and save options.
 
 | Action | Where it lives |
 | --- | --- |
@@ -89,7 +89,7 @@ CLI device login does not require pasting a token — see <a href="/docs/getting
 
 ### Payload Wizard
 
-<p><Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> is the same composer fields, then copy JSON for the public API. It is a page, not a sidebar item. Developers → <strong>Access</strong> links here.</p>
+<p><Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> is the same editor on a full page, then copy JSON for the public API. It is a page, not a sidebar item. Developers → <strong>Access</strong> links here. See <a href="/docs/creating-posts">Creating posts</a> → Payload Wizard.</p>
 
 ## Billing
 

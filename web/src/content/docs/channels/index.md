@@ -39,6 +39,7 @@ OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Pa
 ## Related
 
 <CardGrid>
+<LinkCard title="Creating posts" description="Post editor, channels, media, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post in five steps" href="/docs/getting-started/quickstart" />
 <LinkCard title="Glossary" description="Workspace, channel groups, and calendar vs kanban" href="/docs/getting-started/glossary" />
 <LinkCard title="Tour the app" description="Where Add Channel lives on Home and in the composer" href="/docs/getting-started/tour-the-app" />

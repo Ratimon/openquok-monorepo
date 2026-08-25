@@ -76,7 +76,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 ![Step 3 - Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)
 
-<p>The preview shows how the post will look on each network. See <a href="/docs/creating-posts/writing-the-post">Writing the post</a> for the full composer tour.</p>
+<p>The preview shows how the post will look on each network. See <a href="/docs/creating-posts">Creating posts</a> for the full editor tour, or <a href="/docs/creating-posts/writing-the-post">Writing the post</a> for caption and preview details.</p>
 
 ### Schedule it
 
@@ -120,6 +120,7 @@ CLI, MCP, or API **401** errors usually mean a rotated token. Generate a new one
 <LinkCard title="Tour the app" description="Sidebar, header, composer, and settings" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Posting rules by platform" description="Character limits, media rules, and per-network settings" href="/docs/platforms" />
 <LinkCard title="Connect a channel" description="OAuth, API keys, and invite links" href="/docs/channels/connect" />
+<LinkCard title="Creating posts" description="Post editor layout, flow, templates, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Global vs per-channel" description="One caption for every channel or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
 <LinkCard title="Automations" description="CLI, MCP, public API, and future RSS or webhook flows" href="/docs/automations" />
