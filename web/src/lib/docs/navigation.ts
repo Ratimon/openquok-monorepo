@@ -57,7 +57,17 @@ function isGeneralDocsPath(segmentOrSlug: string): boolean {
 		segmentOrSlug === 'getting-started' ||
 		segmentOrSlug.startsWith('getting-started/') ||
 		segmentOrSlug === 'channels' ||
-		segmentOrSlug.startsWith('channels/')
+		segmentOrSlug.startsWith('channels/') ||
+		segmentOrSlug === 'creating-posts' ||
+		segmentOrSlug.startsWith('creating-posts/') ||
+		segmentOrSlug === 'calendar-and-posts' ||
+		segmentOrSlug.startsWith('calendar-and-posts/') ||
+		segmentOrSlug === 'settings' ||
+		segmentOrSlug.startsWith('settings/') ||
+		segmentOrSlug === 'platforms' ||
+		segmentOrSlug.startsWith('platforms/') ||
+		segmentOrSlug === 'automations' ||
+		segmentOrSlug.startsWith('automations/')
 	);
 }
 

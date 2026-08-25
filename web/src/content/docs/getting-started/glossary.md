@@ -17,7 +17,7 @@ A **workspace** is the top-level boundary you own for your data: channels, posts
 
 ![Workspace in Dashboard](/docs/_assets/glossary/workspace-dashboard.webp)
 
-The first registrant owns the workspace. Teammates join through <Badge text="Settings" variant="default" /> → <Badge text="Workspace" variant="default" />.
+<p>The first registrant owns the workspace. Teammates join through <Badge text="Settings" variant="default" /> → <Badge text="Workspace" variant="default" />. See <a href="/docs/settings/team">Team</a>.</p>
 
 ![Invite Team Member in Setting](/docs/_assets/glossary/workspace-invite.webp)
 
@@ -35,10 +35,9 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 
 ## Channel groups
 
-A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor.
+A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
-
 
 The public API names the same concept **customers**. See <a href="/docs/apis-integrations/groups">Channel groups API</a>.
 
@@ -46,13 +45,13 @@ The public API names the same concept **customers**. See <a href="/docs/apis-int
 
 Scheduling one caption to five channels creates five **posts** tied to one **post group**. Home kanban cards usually represent the group; opening a card shows each channel row.
 
-A single post can hold multiple parts — a thread on X or Threads, or timed follow-up replies where the network allows.
+<p>A single post can hold multiple parts — a thread on X or Threads, or timed follow-up replies where the network allows. See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.</p>
 
 ## Global vs per-channel
 
-**Global** mode  keeps one caption synced across every channel you selected. Click a channel avatar to focus it — the composer shows **Editing a Specific Network**.
+**Global** mode keeps one caption synced across every channel you selected. Click a channel avatar to focus it — the composer shows **Editing a Specific Network**.
 
-The editor stays locked until you click **Edit content**. That exits global mode for that channel so you can change its caption and provider settings without touching the others. **← Back to global** returns to the shared draft. Mentions and network-only fields belong on a customized channel.
+<p>The editor stays locked until you click <strong>Edit content</strong>. That exits global mode for that channel so you can change its caption and provider settings without touching the others. <strong>← Back to global</strong> returns to the shared draft. Mentions and network-only fields belong on a customized channel. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.</p>
 
 ![Exit global mode to customize one channel](/docs/_assets/glossary/exit-global-mode.webp)
 
@@ -60,9 +59,9 @@ The API mirrors this: one shared body with optional per-integration caption and 
 
 ## Provider settings
 
-Each network expects extra fields beyond the caption — a YouTube title, a Reddit subreddit, Dev.to tags, an Instagram post type. These **provider settings** sit in the composer beside the preview. Some are required; the post will not save without them.
+Each network expects extra fields beyond the caption — a YouTube title, Dev.to tags, an Instagram post type. These **provider settings** sit in the composer beside the preview. Some are required; the post will not save without them.
 
-See <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> for per-network shapes.
+<p>See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a> for limits and save-time errors. API shapes are in <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a>.</p>
 
 ## Tag
 
@@ -70,23 +69,25 @@ A **tag** is a colored workspace label you attach to a post. The color tints the
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
+<p>See <a href="/docs/creating-posts/tags">Tags</a>.</p>
+
 ## Template
 
-A **template** is a saved preset of selected channels, caption (global or per-channel), media, and provider settings, and tags. **Select a template** when you start a post instead of rebuilding the same setup.
+A **template** is a saved preset of selected channels, caption (global or per-channel), media, provider settings, and tags. **Select a template** when you start a post instead of rebuilding the same setup.
 
 ![Select a Template](/docs/_assets/glossary/select-a-template.webp)
 
-It is note that this modal will appears only if the templated is already created at <a href="/account/templates">/account/templates</a>.
+<p>Templates are created at <a href="/account/templates">/account/templates</a>. See <a href="/docs/creating-posts/templates">Templates</a>.</p>
 
 Templates are workspace-scoped. They speed up repeat workflows; they do not auto-publish on their own.
 
 ## Signature
 
-A **signature** is reusable trailing text — a CTA, hashtag block, or link line. You can append in the composer toolbar in post editor.
+A **signature** is reusable trailing text — a CTA, hashtag block, or link line. You can append it from the composer toolbar.
 
 ![Insert a Signature](/docs/_assets/glossary/insert-a-signature.webp)
 
-You can Mamnage them under <Badge text="Settings" variant="default" /> → <Badge text="Signatures" variant="default" />.
+<p>Manage them under <Badge text="Settings" variant="default" /> → <Badge text="Signatures" variant="default" />. See <a href="/docs/settings/signatures">Signatures</a>.</p>
 
 Mark one signature as default and OpenQuok inserts it into new posts automatically. You can still edit or remove it per post.
 
@@ -94,7 +95,7 @@ Mark one signature as default and OpenQuok inserts it into new posts automatical
 
 Each channel keeps **time slots**: the times of day you normally post. They drive the next-slot suggestion when you schedule in the editor and the <a href="/docs/apis-posts/find-slot">Find slot</a> public API (<Badge text="GET /public/posts/find-slot" variant="path" /> for workspace-wide, or with a channel UUID in the path for one channel).
 
-Slots are a convenience, not a lock — you can always pick another time. See <a href="/docs/channels/time-slots">Posting time slots</a> to edit them.
+Slots are a convenience, not a lock — you can always pick another time. See <a href="/docs/channels/time-slots">Posting time slots</a> to edit them. Labels follow <a href="/docs/settings/timezone">Timezone</a> in Settings.
 
 ## Calendar vs kanban
 
@@ -103,7 +104,7 @@ Slots are a convenience, not a lock — you can always pick another time. See <a
 | **Calendar** (<a href="/account/calendar">/account/calendar</a>) | What ships **by date** — busy weeks, empty days, opening the composer for a slot |
 | **Kanban** (<a href="/account">/account</a> Home) | **Status** — drafts waiting for review, scheduled items, recently published posts |
 
-Both views read the same posts. Changing a time in the composer updates both.
+Both views read the same posts. Changing a time in the composer updates both. See <a href="/docs/getting-started/tour-the-app">Tour the app</a>.
 
 ## Post states
 
@@ -118,7 +119,7 @@ Nothing publishes until a scheduled time arrives and the row is publishable — 
 
 ## Preview link
 
-Every post can expose a **preview link**. You can open the link from the post action modal on Kanban or the calendar.
+Every post can expose a **preview link**. You can open the link from the post action modal on Kanban or the calendar. See <a href="/docs/calendar-and-posts/approvals">Approvals</a> for sending links to clients and collecting comments.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
@@ -128,15 +129,13 @@ On Cloud, shareable previews require Team plan or above — see <a href="/docs/c
 
 ## Internal plug
 
-An **internal plug** is a one-time follow-up tied to a single post group — a delayed reply or a cross-channel comment after publish.Set it in the composer. You can click at <Badge text="Plug Settings" variant="default" />:
+An **internal plug** is a one-time follow-up tied to a single post group — a delayed reply or a cross-channel comment after publish. Set it in the composer at <Badge text="Plug settings" variant="default" />.
 
 ![Click Plug Setting](/docs/_assets/glossary/internal-plug-setting.webp)
 
-It is noted that this feature is only enabled for some social plarform (eg. **Thread** and **X**)
+<p>Today this is enabled for some networks only (for example <strong>Threads</strong> and <strong>X</strong>). The repost option needs at least two connected channels. See <a href="/docs/automations/plugs">Plugs</a>.</p>
 
 ![Configure Engagement](/docs/_assets/glossary/internal-plug-configure.webp)
-
-Plus, the post editor requires at least 2 connected channel for **repost** feature to be configurable.
 
 It runs once, right after that group publishes, and does not edit the original post.
 
@@ -146,11 +145,11 @@ A **global plug** is a saved channel rule at <a href="/account/plugs">/account/p
 
 ![Set up global plug](/docs/_assets/glossary/global-plug.webp)
 
-Then the worker/orchestrator re-checks on a schedule, up to three times per post.
+<p>See <a href="/docs/automations/plugs">Plugs</a>. The worker re-checks on a schedule, up to three times per post.</p>
 
 ## Building block
 
-A **building block** is one catalog you can install into an agent setup — a skill, an MCP server, or both. It ships a single capability: install steps, and docs on the <a href="/building-blocks">Building Blocks</a> hub.
+A **building block** is one catalog entry you can install into an agent setup — a skill, an MCP server, or both. It ships a single capability: install steps, and docs on the <a href="/building-blocks">Building Blocks</a> hub.
 
 Create and edit yours from <a href="/account/playbooks">/account/playbooks</a>. A block is one piece of the stack; add it when you need a specific tool or instruction set, not a full workflow.
 
@@ -173,8 +172,10 @@ Agent-created drafts can include a **review note** on the kanban card. Clear or 
 ## Related
 
 <CardGrid>
+<LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
 <LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site" href="/docs/getting-started/tour-the-app" />
+<LinkCard title="Team" description="Workspace invites and roles" href="/docs/settings/team" />
+<LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="CLI introduction" description="Terminal access for scripts and agents" href="/docs/getting-started-for-cli" />
 <LinkCard title="MCP introduction" description="Natural-language scheduling from your editor" href="/docs/getting-started-for-mcp" />
-<LinkCard title="Supported social channels" description="Provider identifiers and API terminology" href="/docs/getting-started-for-public-api/supported-social-channels" />
 </CardGrid>

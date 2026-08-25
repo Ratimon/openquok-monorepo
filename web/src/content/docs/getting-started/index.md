@@ -41,7 +41,9 @@ Integrate, automate, or contribute.
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Creating posts" description="Composer, global vs per-channel, media, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post." href="/docs/getting-started/quickstart" />
-<LinkCard title="Glossary" description="The concepts OpenQuok uses and defined once." href="/docs/getting-started/glossary" />
+<LinkCard title="Glossary" description="The concepts OpenQuok uses, defined once." href="/docs/getting-started/glossary" />
+<LinkCard title="Settings" description="Timezone, team, profile, developers, and signatures" href="/docs/settings" />
 <LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site after you sign in." href="/docs/getting-started/tour-the-app" />
 </CardGrid>

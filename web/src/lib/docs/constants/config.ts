@@ -42,6 +42,31 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		label: 'Channels',
 		icon: icons.Share2.name,
 		autogenerate: { directory: 'channels' }
+	},
+	{
+		label: 'Creating posts',
+		icon: icons.NotebookPen.name,
+		autogenerate: { directory: 'creating-posts' }
+	},
+	{
+		label: 'Calendar and posts',
+		icon: icons.CalendarClock.name,
+		autogenerate: { directory: 'calendar-and-posts' }
+	},
+	{
+		label: 'Settings',
+		icon: icons.Settings.name,
+		autogenerate: { directory: 'settings' }
+	},
+	{
+		label: 'Platforms',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'platforms' }
+	},
+	{
+		label: 'Automations',
+		icon: icons.Bot.name,
+		autogenerate: { directory: 'automations' }
 	}
 ];
 

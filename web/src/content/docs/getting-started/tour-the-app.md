@@ -30,9 +30,9 @@ Settings and Billing sit under the account menu.
 | --- | --- | --- |
 | <Badge text="Home" variant="default" /> | <Badge text="/account" variant="path" /> | Connected channels, Getting started checklist, kanban, <Badge text="Create Post" variant="new" /> |
 | <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
-| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — caption, media, channels, provider settings |
+| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/creating-posts/templates">Templates</a> |
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
-| <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global Channel-level rules that run after a post publishes |
+| <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/plugs">Plugs</a> |
 | <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish (fields vary by network) |
 | <Badge text="Media" variant="default" /> | <Badge text="/account/media" variant="path" /> | Image and video library for the composer. Cloud caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
 
@@ -62,24 +62,24 @@ The post editor ( aka composer) is a modal, not a sidebar page. Open it with <Ba
 | --- | --- |
 | <Badge text="Add Channel" variant="new" /> | Home, or the channel picker in the composer |
 | Reconnect or disconnect a channel | Channel card menu on Home |
-| Channel groups | Group controls on Home |
+| Channel groups | Group controls on Home — see <a href="/docs/channels/channel-groups">Channel groups</a> |
 | Per-network fields | Composer, beside the preview |
-| Tags | Composer toolbar |
-| Signatures | Composer toolbar; manage the list in Settings |
-| Internal (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/getting-started/glossary">Glossary</a> |
-| Shareable preview | Post card actions. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
+| Tags | Composer toolbar — see <a href="/docs/creating-posts/tags">Tags</a> |
+| Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |
+| Internal (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/plugs">Plugs</a> |
+| Shareable preview | Post card actions — see <a href="/docs/calendar-and-posts/approvals">Approvals</a>. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
 
 ## Settings
 
 
 | Tab | Purpose |
 | --- | --- |
-| **Timezone** | Workspace posting timezone — calendar slots and scheduled times use this, not the browser clock |
-| **Workspace** | Name, team invites, roles |
-| **Profile** | Display name and account preferences |
-| **Developers** | <Badge text="opo_" variant="default" /> programmatic tokens, MCP connection snippets, OAuth apps |
-| **Approved Apps** | Third-party apps you granted access, and revoking them |
-| **Signatures** | Reusable sign-offs you can append in the composer |
+| **Timezone** | Workspace posting timezone — see <a href="/docs/settings/timezone">Timezone</a> |
+| **Workspace** | Name, team invites, roles — see <a href="/docs/settings/team">Team</a> |
+| **Profile** | Display name and account preferences — see <a href="/docs/settings/profile">Profile</a> |
+| **Developers** | <Badge text="opo_" variant="default" /> programmatic tokens, MCP connection snippets, OAuth apps — see <a href="/docs/settings/developers">Developers</a> |
+| **Approved Apps** | Third-party apps you granted access — see <a href="/docs/settings/approved-apps">Approved apps</a> |
+| **Signatures** | Reusable sign-offs you can append in the composer — see <a href="/docs/settings/signatures">Signatures</a> |
 
 <Callout type="warning">
 <p>Programmatic tokens are shown <strong>once</strong> when generated. Store them in a password manager or CI secret. Rotating a token invalidates the previous value immediately.</p>
