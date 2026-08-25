@@ -124,7 +124,8 @@ The channel shows on Home with its avatar. Status badges on the channel grid sum
 ## Related
 
 <CardGrid>
-<LinkCard title="Manage a channel" description="Reconnect, disable, disconnect, and edit time slots" href="/docs/channels/manage" />
+<LinkCard title="Manage a channel" description="Reconnect, disable, or disconnect a connected account" href="/docs/channels/manage" />
+<LinkCard title="Posting time slots" description="Set usual posting hours after you connect" href="/docs/channels/time-slots" />
 <LinkCard title="Channel groups" description="Group channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />
 <LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />

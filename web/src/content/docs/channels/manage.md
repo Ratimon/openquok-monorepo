@@ -1,6 +1,6 @@
 ---
 title: Manage a channel
-description: Reconnect, disable, or remove a connected social account in OpenQuok, and set the times you usually post.
+description: Reconnect, disable, or remove a connected social account in OpenQuok.
 order: 2
 lastUpdated: 2026-08-25
 ---
@@ -26,7 +26,7 @@ You can do the same from a channel chip on the <a href="/account/calendar">calen
 | <Badge text="Refresh connection" variant="default" /> | Sign in again, or paste a new API key. Shown when the login is stale |
 | <Badge text="Copy channel ID" variant="default" /> | Copies this channel’s id. You only need it for the API, CLI, or an assistant |
 | <Badge text="Move / add to group" variant="default" /> | Puts the channel in a <a href="/docs/channels/channel-groups">channel group</a> |
-| <Badge text="Edit time slots" variant="default" /> | The times of day you usually post (see below) |
+| <Badge text="Edit time slots" variant="default" /> | The times of day you usually post — see <a href="/docs/channels/time-slots">Posting time slots</a> |
 | <Badge text="Disable channel" variant="default" /> | Stops posting without removing the connection. Use <Badge text="Enable channel" variant="default" /> to resume |
 | <Badge text="Delete channel" variant="default" /> | Removes the connection from this workspace after all posts for the channel are gone |
 
@@ -66,18 +66,11 @@ Delete is blocked while any post still references the channel (drafts, scheduled
 
 On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and delete are only about whether you still want that account in the workspace.
 
-## Usual posting times
-
-Each channel has <strong>time slots</strong> — the hours you normally post. They shape the calendar’s day view and the next-time suggestion when you schedule. They are a convenience, not a lock: you can always pick another time in the editor.
-
-<p>Open <Badge text="Edit time slots" variant="default" />. In <Badge text="Time table slots" variant="default" />, pick an hour and minutes, click <Badge text="Add" variant="new" />, then <Badge text="Save changes" variant="new" />. Keep at least one slot.</p>
-
-Times follow the workspace <Badge text="Timezone" variant="default" /> in Settings, not the clock in your browser.
-
 ## Related
 
 <CardGrid>
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
+<LinkCard title="Posting time slots" description="Usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
 <LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Cloud limits" description="What happens when a workspace hits the channel cap" href="/docs/cloud/limits" />
 <LinkCard title="Glossary" description="Channel vs integration, time slots, and calendar vs kanban" href="/docs/getting-started/glossary" />

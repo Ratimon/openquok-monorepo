@@ -92,9 +92,9 @@ Mark one signature as default and OpenQuok inserts it into new posts automatical
 
 ## Time slot
 
-Each channel keeps **time slots**: the times of day you normally post. They shape the calendar’s day view, the next-slot suggestion when you schedule, and <Badge text="GET /public/posts/find-slot" variant="path" />.
+Each channel keeps **time slots**: the times of day you normally post. They drive the next-slot suggestion when you schedule in the editor and the <a href="/docs/apis-posts/find-slot">Find slot</a> public API (<Badge text="GET /public/posts/find-slot" variant="path" /> for workspace-wide, or with a channel UUID in the path for one channel).
 
-Slots are a convenience, not a lock — you can always pick another time. Edit a channel’s slots from its card.
+Slots are a convenience, not a lock — you can always pick another time. See <a href="/docs/channels/time-slots">Posting time slots</a> to edit them.
 
 ## Calendar vs kanban
 
