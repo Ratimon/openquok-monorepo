@@ -57,7 +57,7 @@ function createMockSubscriptionRepo(): jest.Mocked<SubscriptionRepository> {
     return {
         getSubscriptionByOrganizationId: jest.fn(),
         createOrUpdateSubscription: jest.fn(),
-        softDeleteByStripeCustomerId: jest.fn(),
+        softDeleteByStripeCustomerId: jest.fn().mockResolvedValue(null),
     } as unknown as jest.Mocked<SubscriptionRepository>;
 }
 
@@ -81,7 +81,8 @@ function createService(
     mediaRepo: jest.Mocked<MediaRepository>,
     organizationRepo: jest.Mocked<
         Pick<OrganizationRepository, "findUserIdByAuthId" | "findOrganizationsByUserId">
-    >
+    >,
+    integrationService?: jest.Mocked<Pick<IntegrationService, "disableExcessActiveChannels">>
 ): SubscriptionService {
     const service = new SubscriptionService(
         subscriptionRepo,
@@ -96,6 +97,11 @@ function createService(
         { isPlatformAdmin: jest.fn().mockResolvedValue(false) } as never
     );
     service.setSubscriptionGuard(guard);
+    service.setIntegrationService(
+        (integrationService ?? {
+            disableExcessActiveChannels: jest.fn().mockResolvedValue([]),
+        }) as unknown as IntegrationService
+    );
     return service;
 }
 
@@ -366,7 +372,13 @@ describe("SubscriptionService", () => {
         it("delegates to the subscription repository", async () => {
             const row = subscriptionRow("MAX");
             (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
-            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            const integrationService = { disableExcessActiveChannels: jest.fn().mockResolvedValue([]) };
+            const service = createService(
+                subscriptionRepo,
+                mediaRepo,
+                organizationRepo,
+                integrationService
+            );
             const result = await service.createOrUpdateFromStripe({
                 organizationId,
                 isTrialing: true,
@@ -387,16 +399,68 @@ describe("SubscriptionService", () => {
                 currentPeriodStart: null,
                 currentPeriodEnd: null,
             });
+            expect(integrationService.disableExcessActiveChannels).toHaveBeenCalledWith(
+                organizationId,
+                pricing.MAX.channel_per_workspace
+            );
             expect(result).toBe(row);
+        });
+
+        it("skips active-channel enforcement when billing is disabled", async () => {
+            setBillingEnabled(false);
+            const row = subscriptionRow("MAX");
+            (subscriptionRepo.createOrUpdateSubscription as jest.Mock).mockResolvedValue(row);
+            const integrationService = { disableExcessActiveChannels: jest.fn().mockResolvedValue([]) };
+            const service = createService(
+                subscriptionRepo,
+                mediaRepo,
+                organizationRepo,
+                integrationService
+            );
+            await service.createOrUpdateFromStripe({
+                organizationId,
+                isTrialing: false,
+                identifier: "checkout-abc",
+                subscriptionTier: "MAX",
+                period: "MONTHLY",
+                channelsPerWorkspace: pricing.MAX.channel_per_workspace,
+                cancelAt: null,
+            });
+            expect(integrationService.disableExcessActiveChannels).not.toHaveBeenCalled();
         });
     });
 
     describe("deleteSubscriptionForCustomer", () => {
-        it("soft-deletes by Stripe customer id", async () => {
+        it("soft-deletes by Stripe customer id and enforces FREE active cap", async () => {
             const customerId = "cus_test";
-            const service = createService(subscriptionRepo, mediaRepo, organizationRepo);
+            (subscriptionRepo.softDeleteByStripeCustomerId as jest.Mock).mockResolvedValue(organizationId);
+            const integrationService = { disableExcessActiveChannels: jest.fn().mockResolvedValue([]) };
+            const service = createService(
+                subscriptionRepo,
+                mediaRepo,
+                organizationRepo,
+                integrationService
+            );
             await service.deleteSubscriptionForCustomer(customerId);
             expect(subscriptionRepo.softDeleteByStripeCustomerId).toHaveBeenCalledWith(customerId);
+            expect(integrationService.disableExcessActiveChannels).toHaveBeenCalledWith(
+                organizationId,
+                pricing.FREE.channel_per_workspace
+            );
+        });
+
+        it("skips active-channel enforcement when no organization matches the customer", async () => {
+            const customerId = "cus_missing";
+            (subscriptionRepo.softDeleteByStripeCustomerId as jest.Mock).mockResolvedValue(null);
+            const integrationService = { disableExcessActiveChannels: jest.fn().mockResolvedValue([]) };
+            const service = createService(
+                subscriptionRepo,
+                mediaRepo,
+                organizationRepo,
+                integrationService
+            );
+            await service.deleteSubscriptionForCustomer(customerId);
+            expect(integrationService.disableExcessActiveChannels).not.toHaveBeenCalled();
         });
     });
 

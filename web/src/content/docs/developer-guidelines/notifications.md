@@ -18,15 +18,15 @@ OpenQuok notifications have two layers:
 
 ## Where the code lives
 
-- **API entrypoint**: <code>backend/services/NotificationService.ts</code> (<code>inAppNotification</code>)
-- **Recipient + digest logic**: <code>backend/services/TransactionalNotificationEmailService.ts</code>
-- **Email HTML fragments**: <code>backend/emails/notificationTransactionalEmailHtml.ts</code>
+- **API entrypoint**: <Badge text="backend/services/NotificationService.ts" variant="path" /> (<code>inAppNotification</code>)
+- **Recipient + digest logic**: <Badge text="backend/services/TransactionalNotificationEmailService.ts" variant="path" />
+- **Email HTML fragments**: <Badge text="backend/emails/notificationTransactionalEmailHtml.ts" variant="path" />
 - **Flowcraft “send plain” + “digest flush” workflows**:
-  - <code>orchestrator/blueprints/notificationEmailBlueprint.ts</code>
-  - <code>orchestrator/nodes/notificationEmailNodes.ts</code>
-  - <code>orchestrator/activities/emailActivities.ts</code> (organization helpers; similar role to OpenQuok activities)
+  - <Badge text="orchestrator/blueprints/notificationEmailBlueprint.ts" variant="path" />
+  - <Badge text="orchestrator/nodes/notificationEmailNodes.ts" variant="path" />
+  - <Badge text="orchestrator/activities/emailActivities.ts" variant="path" /> (organization helpers; similar role to OpenQuok activities)
 - **BullMQ worker** (executes queued email sends + periodic digest flush):
-  - <code>orchestrator/worker/runNotificationEmailBullMqWorker.ts</code>
+  - <Badge text="orchestrator/worker/runNotificationEmailBullMqWorker.ts" variant="path" />
 
 ## Behavior: <code>sendEmail</code> and <code>digest</code>
 

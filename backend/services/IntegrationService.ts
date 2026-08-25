@@ -123,6 +123,24 @@ export class IntegrationService {
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
     }
 
+    /**
+     * When a workspace exceeds the active-channel cap (plan downgrade), disable the newest connections first.
+     */
+    async disableExcessActiveChannels(organizationId: string, cap: number): Promise<string[]> {
+        const active = (await this.listByOrganization(organizationId)).filter((c) => !c.disabled);
+        const excess = active.length - cap;
+        if (excess <= 0) return [];
+
+        const toDisable = active
+            .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at))
+            .slice(0, excess);
+
+        for (const row of toDisable) {
+            await this.disableChannel(organizationId, row.id);
+        }
+        return toDisable.map((r) => r.id);
+    }
+
     async softDeleteChannel(organizationId: string, integrationId: string, internalId: string) {
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
         return this.integrationRepository.softDeleteChannel(organizationId, integrationId, internalId);

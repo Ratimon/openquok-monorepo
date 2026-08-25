@@ -15,6 +15,11 @@
 	import { Separator } from '$lib/ui/separator';
 	import DeleteChannelModal from '$lib/ui/components/posts/DeleteChannelModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import {
+		ACTIVE_CHANNEL_LIMIT_TOOLTIP,
+		channelCapKey,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 
 	export type Props = {
 		open: boolean;
@@ -49,6 +54,11 @@
 
 	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
 	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
+
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
+	const enableBlockedAtActiveCap = $derived(
+		integration?.disabled && (channelCapCtx?.isActiveChannelLimitFull() ?? false)
+	);
 
 	const effectiveBusy = $derived(busy || actionBusy);
 
@@ -85,6 +95,10 @@
 
 	async function handleToggleDisabled() {
 		if (!integration) return;
+		if (integration.disabled && enableBlockedAtActiveCap) {
+			channelCapCtx?.openActiveLimitUpgradeDialog();
+			return;
+		}
 		actionBusy = true;
 		try {
 			await onSetDisabled(integration.id, !integration.disabled);
@@ -99,8 +113,8 @@
 		actionBusy = true;
 		try {
 			const ok = await onRemove(integration.id);
+			confirmRemoveOpen = false;
 			if (ok) {
-				confirmRemoveOpen = false;
 				onClose();
 			}
 		} finally {
@@ -247,7 +261,8 @@
 				<button
 					type="button"
 					class="hover:bg-base-200/60 flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-start outline-none disabled:opacity-50"
-					disabled={effectiveBusy}
+					disabled={effectiveBusy || enableBlockedAtActiveCap}
+					title={enableBlockedAtActiveCap ? ACTIVE_CHANNEL_LIMIT_TOOLTIP : undefined}
 					onclick={() => void handleToggleDisabled()}
 				>
 					<AbstractIcon
@@ -258,6 +273,11 @@
 					/>
 					{integration.disabled ? 'Enable channel' : 'Disable channel'}
 				</button>
+				{#if enableBlockedAtActiveCap}
+					<p class="px-3 text-xs leading-snug text-base-content/60">
+						{ACTIVE_CHANNEL_LIMIT_TOOLTIP}
+					</p>
+				{/if}
 
 				<Separator class="my-2" />
 

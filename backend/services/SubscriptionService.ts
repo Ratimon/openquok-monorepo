@@ -14,6 +14,7 @@ import type {
 } from "../repositories/SubscriptionRepository";
 import { config } from "../config/GlobalConfig";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
+import type { IntegrationService } from "./IntegrationService";
 
 export interface WorkspaceDriveUsage {
     used: number;
@@ -23,6 +24,7 @@ export interface WorkspaceDriveUsage {
 
 export class SubscriptionService {
     private subscriptionGuard?: SubscriptionGuardService;
+    private integrationService?: IntegrationService;
 
     constructor(
         private readonly subscriptionRepository: SubscriptionRepository,
@@ -33,6 +35,11 @@ export class SubscriptionService {
     /** Wired after {@link SubscriptionGuardService} is constructed (avoids circular init). */
     setSubscriptionGuard(guard: SubscriptionGuardService): void {
         this.subscriptionGuard = guard;
+    }
+
+    /** Wired after {@link IntegrationService} is constructed (avoids circular init). */
+    setIntegrationService(integrationService: IntegrationService): void {
+        this.integrationService = integrationService;
     }
 
     billingEnabled(): boolean {
@@ -203,7 +210,7 @@ export class SubscriptionService {
         currentPeriodStart?: string | null;
         currentPeriodEnd?: string | null;
     }): Promise<OrganizationSubscriptionRow> {
-        return this.subscriptionRepository.createOrUpdateSubscription({
+        const row = await this.subscriptionRepository.createOrUpdateSubscription({
             organizationId: params.organizationId,
             isTrialing: params.isTrialing,
             identifier: params.identifier,
@@ -214,10 +221,15 @@ export class SubscriptionService {
             currentPeriodStart: params.currentPeriodStart ?? null,
             currentPeriodEnd: params.currentPeriodEnd ?? null,
         });
+        await this.enforceActiveChannelCap(params.organizationId, params.channelsPerWorkspace);
+        return row;
     }
 
     async deleteSubscriptionForCustomer(customerId: string): Promise<void> {
-        await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
+        const organizationId = await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
+        if (organizationId) {
+            await this.enforceActiveChannelCap(organizationId, pricing.FREE.channel_per_workspace);
+        }
     }
 
     async grantPaidSubscriptionForAdmin(params: {
@@ -235,5 +247,14 @@ export class SubscriptionService {
             channelsPerWorkspace: limits.channel_per_workspace,
             cancelAt: null,
         });
+    }
+
+    /** After a cap reduction, disable newest active channels until within the active limit. */
+    private async enforceActiveChannelCap(organizationId: string, cap: number): Promise<void> {
+        if (!this.billingEnabled()) return;
+        if (!this.integrationService) {
+            throw new Error("IntegrationService is not wired on SubscriptionService");
+        }
+        await this.integrationService.disableExcessActiveChannels(organizationId, cap);
     }
 }

@@ -380,6 +380,41 @@ export class SubscriptionGuardService {
         }
     }
 
+    /**
+     * Blocks re-enabling a disabled channel when the workspace is already at the active-channel cap.
+     * Connected (non-deleted) rows still count toward the connected cap; only non-disabled rows count here.
+     */
+    async assertEnableSocialChannel(organizationId: string, authUserId?: string): Promise<void> {
+        if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+
+        const { tier, limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = resolveSessionChannelsPerWorkspace(
+            this.subscriptionService.billingEnabled(),
+            tier,
+            limits,
+            subscription
+        );
+        if (cap < 1) {
+            throw new SubscriptionError(
+                "Social channels are not included on your current plan.",
+                SubscriptionSection.CHANNEL_PER_WORKSPACE,
+                this.billingUrl()
+            );
+        }
+
+        const channels = await this.integrationService.listByOrganization(organizationId);
+        const activeCount = channels.filter((c) => !c.disabled).length;
+
+        if (activeCount >= cap) {
+            throw new SubscriptionError(
+                `Your plan allows up to ${cap} active channels per workspace. Disable another channel or upgrade to enable this one.`,
+                SubscriptionSection.CHANNEL_PER_WORKSPACE,
+                this.billingUrl()
+            );
+        }
+    }
+
     private async assertSharePostPreview(ctx: SubscriptionGuardContext): Promise<void> {
         const workspaceCtx = this.requireWorkspaceContext(ctx);
         const organizationId = workspaceCtx.organizationId;

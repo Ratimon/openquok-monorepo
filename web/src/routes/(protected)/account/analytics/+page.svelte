@@ -3,6 +3,7 @@
 
 	// --- Navigation & routing ---
 	import { goto } from '$app/navigation';
+	import { getContext } from 'svelte';
 	import { route } from '$lib/utils/path';
 
 	// --- Area presenters (singletons from composition root) ---
@@ -24,6 +25,11 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
+	import {
+		channelCapKey,
+		openChannelLimitDialogForMutation,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
@@ -34,6 +40,7 @@
 
 	/** Same singleton as exported name; shorter reads in markup (matches calendar page pattern). */
 	const analyticsPresenter = protectedAnalyticsPagePresenter;
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
 
 	// --- Routes (static, base-aware via `route`) ---
 	const accountRoot = accountPath;
@@ -73,7 +80,7 @@
 			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
-		toast.error(resultVm.error);
+		setTimeout(() => toast.error(resultVm.error), 0);
 		return false;
 	}
 
@@ -83,6 +90,7 @@
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
 		}
+		openChannelLimitDialogForMutation(resultVm.limitKind, channelCapCtx);
 		toast.error(resultVm.error);
 		return false;
 	}

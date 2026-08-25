@@ -32,13 +32,13 @@ Open your **frontend** in the browser — for example <Badge text="http://localh
 
 In the navbar, choose **Sign up** and complete registration with your email and password.
 
-Email verification applies only when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is <code>true</code> (finish the verification link your setup sends). When it is <code>false</code> (typical self-host / no email provider), new accounts are treated as verified automatically — skip the verify-signup step and continue.
+Email verification applies only when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is <code>true</code> (finish the verification link). When it is <code>false</code> (typical self-host / no email provider), new accounts are treated as verified automatically.
 
 See <a href="/docs/configuration-backend/resend">Resend / email setup</a> for both modes.
 
 ### Promote your user to platform admin
 
-The admin entry points may appear in the UI, but **secret-admin routes** require <code>is_super_admin</code> on your user.
+The admin entry points may appear in the UI, but **secret-admin routes** require <Badge text="is_super_admin" variant="param" /> on your user.
 
 Open the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> → your project → <Badge text="Table Editor" variant="path" /> → the <Badge text="users" variant="default" /> table (or the table where your app stores <Badge text="public.users" variant="path" />). Find the row for **your** account (the email you signed up with) and set <Badge text="is_super_admin" variant="envBackend" /> from <Badge text="FALSE" variant="deprecated" /> to <Badge text="TRUE" variant="new" />, then save.
 
@@ -50,9 +50,7 @@ After that, sign out and sign in again if the app caches roles, or refresh the s
 
 ### Set your public username (optional but recommended)
 
-In the app, open <Badge text="Account → Settings → Profile" variant="path" /> and set a <strong>username</strong> (e.g. <Badge text="quokka" variant="param" />). That powers your creator profile at <Badge text="/creators/&#123;username&#125;" variant="path" /> when you publish listings under your own account.
-
-Seeded catalog listings (OpenQuok Core, Bloom MCP, etc.) are owned by <Badge text="@openquok" variant="param" /> until you reassign them in <Badge text="Secret Admin → Listing Manager" variant="path" />.
+In the app, open <Badge text="Account → Settings → Profile" variant="path" /> and set a <strong>username</strong> (e.g. <Badge text="quokka" variant="param" />). That powers your creator profile at <Badge text="/creators/&#123;username&#125;" variant="path" /> when you publish your own listings.
 
 </Steps>
 

@@ -2,7 +2,7 @@
 title: Glossary
 description: OpenQuok terms in one place — workspace, channel, templates, tags, building blocks, playbooks, plugs, and how agents fit the review flow.
 order: 2
-lastUpdated: 2026-08-24
+lastUpdated: 2026-08-25
 ---
 
 <script>
@@ -31,11 +31,11 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 <p>The app says <strong>channel</strong>. The public API and the CLI say <strong>integration</strong>. They are the same object. Anywhere the API asks for an integration id, it wants the UUID of a channel.</p>
 </Callout>
 
-Disconnecting pauses new posts but keeps history. On Cloud, disconnecting frees a slot when you hit the plan’s channel cap.
+<strong>Disable</strong> pauses new posts but keeps the channel in the workspace — on Cloud it still uses a connected slot. <strong>Delete</strong> removes the channel and frees a slot once its posts are gone. See <a href="/docs/channels/manage">Manage a channel</a> and <a href="/docs/cloud/limits">Cloud limits</a>.
 
 ## Channel groups
 
-A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the composer.
+A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 

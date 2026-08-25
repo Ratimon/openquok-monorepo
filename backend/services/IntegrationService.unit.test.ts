@@ -238,6 +238,65 @@ describe("IntegrationService", () => {
         });
     });
 
+    describe("disableExcessActiveChannels", () => {
+        function channelRow(id: string, createdAt: string, disabled = false): IntegrationLike {
+            return {
+                id,
+                disabled,
+                created_at: createdAt,
+            } as IntegrationLike;
+        }
+
+        beforeEach(() => {
+            repo.getById.mockResolvedValue({ provider_identifier: "threads" } as unknown as IntegrationLike);
+        });
+
+        it("disables the newest active channels when over cap", async () => {
+            const oldest = channelRow("ch-oldest", "2020-01-01T00:00:00.000Z");
+            const middle = channelRow("ch-middle", "2024-06-01T00:00:00.000Z");
+            const newest = channelRow("ch-newest", "2026-01-01T00:00:00.000Z");
+            const alreadyDisabled = channelRow("ch-disabled", "2026-02-01T00:00:00.000Z", true);
+            repo.listByOrganization.mockResolvedValue([oldest, middle, newest, alreadyDisabled]);
+
+            const disabled = await service().disableExcessActiveChannels(orgId, 1);
+
+            expect(disabled).toEqual(["ch-newest", "ch-middle"]);
+            expect(repo.disableChannel).toHaveBeenCalledTimes(2);
+            expect(repo.disableChannel).toHaveBeenNthCalledWith(1, orgId, "ch-newest");
+            expect(repo.disableChannel).toHaveBeenNthCalledWith(2, orgId, "ch-middle");
+        });
+
+        it("returns an empty array when already within cap", async () => {
+            repo.listByOrganization.mockResolvedValue([
+                channelRow("ch-1", "2026-01-01T00:00:00.000Z"),
+                channelRow("ch-2", "2026-02-01T00:00:00.000Z"),
+            ]);
+
+            const disabled = await service().disableExcessActiveChannels(orgId, 3);
+
+            expect(disabled).toEqual([]);
+            expect(repo.disableChannel).not.toHaveBeenCalled();
+        });
+
+        it("disables the two newest channels when five active exceed a cap of three", async () => {
+            const channels = [
+                channelRow("ch-1", "2020-01-01T00:00:00.000Z"),
+                channelRow("ch-2", "2021-06-01T00:00:00.000Z"),
+                channelRow("ch-3", "2022-12-01T00:00:00.000Z"),
+                channelRow("ch-4", "2025-06-01T00:00:00.000Z"),
+                channelRow("ch-5", "2026-01-01T00:00:00.000Z"),
+            ];
+            repo.listByOrganization.mockResolvedValue(channels);
+
+            const disabled = await service().disableExcessActiveChannels(orgId, 3);
+
+            expect(disabled).toEqual(["ch-5", "ch-4"]);
+            expect(repo.disableChannel).toHaveBeenCalledTimes(2);
+            expect(repo.disableChannel).toHaveBeenNthCalledWith(1, orgId, "ch-5");
+            expect(repo.disableChannel).toHaveBeenNthCalledWith(2, orgId, "ch-4");
+        });
+    });
+
     describe("getCachedIntegrationPayload", () => {
         it("returns null when cache is not configured", async () => {
             const out = await service({ cache: undefined }).getCachedIntegrationPayload(orgId, "threads", "2026-04-01");

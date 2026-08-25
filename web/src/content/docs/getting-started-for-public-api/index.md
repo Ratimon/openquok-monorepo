@@ -63,7 +63,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 
 ## Supported social channels
 
-OpenQuok currently ships with **3 social provider integrations**: **Meta Threads** and **Instagram** in two flavors (Business and Standalone). Each connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by the channel's UUID.
+Every connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by the channel's UUID.
 
 For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
 

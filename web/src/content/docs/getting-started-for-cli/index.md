@@ -16,7 +16,6 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 <pre class="my-3 max-w-full rounded-lg bg-base-200/80 p-3 text-sm"><code>npx skills add https://github.com/Ratimon/openquok-monorepo/tree/main/agent --skill openquok-core</code></pre>
 <p>That updates agent instructions only — it does <strong>not</strong> install or upgrade the <code>openquok</code> CLI. After adding the skill, run <code>npm install -g @openquok/auto-cli@latest</code> on the same host and check <code>openquok --version</code>.</p>
 <p>On <strong>OpenClaw</strong> (Docker, Telegram), <code>cd</code> to your workspace first (often <code>/data/workspace</code>) — see <a href="/docs/agent-setup-guides/openclaw">OpenClaw agent guide</a>.</p>
-<p>On <strong>Grok Bot</strong>, ask the Bot to install the CLI on its shared cloud computer — see <a href="/docs/agent-setup-guides/grok-bot">Grok Bot agent guide</a>.</p>
 <p>Or open <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/agent/skills/openquok-core/SKILL.md">the skill on GitHub</DocsExternalLink> (<code>agent/skills/openquok-core/SKILL.md</code>).</p>
 </Callout>
 
@@ -55,12 +54,12 @@ openquok --help
 Use **OAuth2 device flow**, so you never embed client secrets in the CLI, or set a **programmatic access token** (<Badge text="opo_" variant="default" />) for CI and scripts. Full variable reference and self-hosted auth options are on <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
 <Callout type="note">
-<p>Every <Badge text="opo_" variant="default" /> token is scoped to a <strong>single workspace</strong> when it is issued — the workspace you authorize during device login, or the workspace whose programmatic token you copy from the dashboard. To run the CLI against multiple workspaces, issue or authorize a <strong>separate token per workspace</strong>.</p>
+<p>Every <Badge text="opo_" variant="default" /> token is scoped to a <strong>single workspace</strong> — the workspace you authorize during device login, or the workspace whose programmatic token you copy from the dashboard. To run the CLI against multiple workspaces, issue or authorize a <strong>separate token per workspace</strong>.</p>
 </Callout>
 
 ### Option 1: OAuth2 (Suggested)
 
-**OAuth2 (device flow)** — this will automatically open a browser with a one-time code and approval screen for you to authorize, then it stores credentials at <Badge text="~/.openquok/credentials.json" variant="path" /> as default:
+**OAuth2 (device flow)** — this will automatically open a browser with a one-time code and approval screen to authorize, then it stores credentials at <Badge text="~/.openquok/credentials.json" variant="path" /> as default:
 
 ```bash
 openquok auth:login

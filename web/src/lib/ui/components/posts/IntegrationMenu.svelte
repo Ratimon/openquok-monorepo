@@ -14,6 +14,11 @@
 	import * as Popover from '$lib/ui/popover';
 	import DeleteChannelModal from '$lib/ui/components/posts/DeleteChannelModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import {
+		ACTIVE_CHANNEL_LIMIT_TOOLTIP,
+		channelCapKey,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -54,6 +59,11 @@
 	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
 	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
 
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
+	const enableBlockedAtActiveCap = $derived(
+		integration.disabled && (channelCapCtx?.isActiveChannelLimitFull() ?? false)
+	);
+
 	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
 
 	function handleCreatePostClick() {
@@ -84,6 +94,10 @@
 	}
 
 	async function handleToggleDisabled() {
+		if (integration.disabled && enableBlockedAtActiveCap) {
+			channelCapCtx?.openActiveLimitUpgradeDialog();
+			return;
+		}
 		busy = true;
 		try {
 			await onSetDisabled(integration.id, !integration.disabled);
@@ -96,8 +110,8 @@
 		busy = true;
 		try {
 			const ok = await onRemove(integration.id);
+			confirmRemoveOpen = false;
 			if (ok) {
-				confirmRemoveOpen = false;
 				menuOpen = false;
 			}
 		} finally {
@@ -224,7 +238,7 @@
 			variant="outline"
 			size="sm"
 			class="w-full justify-start gap-2 sm:w-fit"
-			disabled={busy}
+			disabled={busy || enableBlockedAtActiveCap}
 			onclick={handleToggleDisabled}
 		>
 			<AbstractIcon
@@ -237,6 +251,11 @@
 				{integration.disabled ? 'Enable channel' : 'Disable channel'}
 			</span>
 		</Button>
+		{#if integration.disabled && enableBlockedAtActiveCap}
+			<p class="text-xs leading-snug text-base-content/60">
+				{ACTIVE_CHANNEL_LIMIT_TOOLTIP}
+			</p>
+		{/if}
 		<Button
 			type="button"
 			variant="red"

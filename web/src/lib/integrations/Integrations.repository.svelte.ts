@@ -2,7 +2,12 @@ import type { HttpGateway } from '$lib/core/HttpGateway';
 import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
 import { ApiError } from '$lib/core/HttpGateway';
+import {
+	parseChannelCapLimitKind,
+	type ChannelCapLimitKind
+} from '$lib/ui/components/channels/channelCapContext';
 import { normalizeCatalogCustomFields } from '$lib/integrations/utils/credentialsConnect';
+import { userFacingChannelDeleteError } from '$lib/integrations/utils/userFacingChannelDeleteError';
 
 export type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
@@ -299,21 +304,20 @@ export class IntegrationsRepository {
 			});
 			return { ok: true };
 		} catch (error) {
+			const status = error instanceof ApiError ? error.status : undefined;
+			let message = 'Could not remove this channel.';
 			if (
 				error instanceof ApiError &&
 				typeof error.data === 'object' &&
 				error.data !== null &&
 				('message' in error.data || 'msg' in error.data)
 			) {
-				return {
-					ok: false,
-					error: String(
-						(error.data as { message?: string; msg?: string }).message ??
-							(error.data as { message?: string; msg?: string }).msg
-					)
-				};
+				message = String(
+					(error.data as { message?: string; msg?: string }).message ??
+						(error.data as { message?: string; msg?: string }).msg
+				);
 			}
-			return { ok: false, error: 'Could not remove this channel.' };
+			return { ok: false, error: userFacingChannelDeleteError(message, status) };
 		}
 	}
 
@@ -490,7 +494,9 @@ export class IntegrationsRepository {
 		organizationId: string;
 		integrationId: string;
 		disabled: boolean;
-	}): Promise<{ ok: true } | { ok: false; error: string }> {
+	}): Promise<
+		{ ok: true } | { ok: false; error: string; limitKind?: ChannelCapLimitKind }
+	> {
 		try {
 			const url = params.disabled ? this.config.endpoints.disable : this.config.endpoints.enable;
 			await this.httpGateway.post(url, { organizationId: params.organizationId, id: params.integrationId }, {
@@ -502,15 +508,24 @@ export class IntegrationsRepository {
 				error instanceof ApiError &&
 				typeof error.data === 'object' &&
 				error.data !== null &&
-				('message' in error.data || 'msg' in error.data)
+				('message' in error.data || 'msg' in error.data || 'error' in error.data)
 			) {
-				return {
-					ok: false,
-					error: String(
-						(error.data as { message?: string; msg?: string }).message ??
-							(error.data as { message?: string; msg?: string }).msg
-					)
+				const body = error.data as {
+					message?: string;
+					msg?: string;
+					error?: { type?: string; message?: string };
 				};
+				const apiMessage = String(
+					body.message ??
+						body.msg ??
+						body.error?.message ??
+						'Could not update this channel.'
+				);
+				const limitKind =
+					body.error?.type === 'SubscriptionError'
+						? parseChannelCapLimitKind(apiMessage)
+						: undefined;
+				return { ok: false, error: apiMessage, limitKind };
 			}
 			return { ok: false, error: 'Could not update this channel.' };
 		}

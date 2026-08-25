@@ -437,6 +437,14 @@ export default class Openquok {
         return await this.json(path);
     }
 
+    /**
+     * Soft-delete a connected channel (`DELETE /public/integrations/:id`).
+     *
+     * Throws {@link OpenquokHttpError} with `status === 409` when any post row
+     * (draft, queued, published, or error) still references the channel. Delete
+     * those rows with {@link deletePost} first, or disable the channel in the
+     * workspace instead.
+     */
     async deleteIntegrationChannel(id: string) {
         return await this.json(`/public/integrations/${encodeURIComponent(id)}`, {
             method: "DELETE",

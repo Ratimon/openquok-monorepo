@@ -73,6 +73,12 @@
 	import MyChannelsSection from '$lib/ui/components/channels/MyChannelsSection.svelte';
 	import MyWorkspacesSection from '$lib/ui/components/workspaces/MyWorkspacesSection.svelte';
 	import { postsLimitKey } from '$lib/ui/components/posts/postsLimitContext';
+	import {
+		channelCapKey,
+		countActiveChannels,
+		openChannelLimitDialogForMutation,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -144,6 +150,7 @@
 	let { data }: Props = $props();
 
 	const postsLimitCtx = getContext<PostsLimitContext>(postsLimitKey);
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
 
 	// --- Layout data ---
 	let currentUser = $derived((data as App.LayoutData)?.currentUser ?? (page.data as App.LayoutData)?.currentUser ?? null);
@@ -227,6 +234,7 @@
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);
 	const connectedChannelCountVm = $derived(connectedChannelsVm.length);
+	const activeChannelCountVm = $derived(countActiveChannels(connectedChannelsVm));
 	const myWorkspacesCardsVm = $derived(pagePresenter.myWorkspacesCardsVm);
 	const myWorkspacesStatus = $derived(pagePresenter.myWorkspacesStatus);
 	const workspacesVm = $derived(workspaceSettingsPresenter.workspacesVm);
@@ -843,7 +851,8 @@
 			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
-		toast.error(resultVm.error);
+		// Same deferral as success: the confirm dialog closes after this handler returns.
+		setTimeout(() => toast.error(resultVm.error), 0);
 		return false;
 	}
 
@@ -853,6 +862,7 @@
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
 		}
+		openChannelLimitDialogForMutation(resultVm.limitKind, channelCapCtx);
 		toast.error(resultVm.error);
 		return false;
 	}
@@ -1091,6 +1101,7 @@
 		ownedWorkspaceCount={myWorkspacesOwnedCount}
 		allowedWorkspaceCount={allowedWorkspaceCountVm}
 		connectedChannelCount={connectedChannelCountVm}
+		activeChannelCount={activeChannelCountVm}
 		allowedChannelCount={allowedChannelCountVm}
 		teamMemberCount={currentWorkspaceMemberCountVm}
 		allowedTeamMemberCount={allowedMemberCountPerWorkspaceVm}

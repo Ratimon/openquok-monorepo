@@ -413,6 +413,7 @@ export class PostsService {
                 throw new AppError("One or more channels are not in this workspace", 400);
             }
         }
+        this.assertIntegrationsNotDisabled(rows, uniqueIds);
 
         if (status === "scheduled" && uniqueIds.length === 0) {
             throw new AppError("Select at least one channel to schedule", 400);
@@ -838,6 +839,17 @@ export class PostsService {
             const hasChannel = rows.some((r) => r.integration_id != null);
             if (!hasChannel) {
                 throw new AppError("Select at least one channel to schedule", 400);
+            }
+            const channelIds = [
+                ...new Set(
+                    rows
+                        .map((r) => r.integration_id)
+                        .filter((id): id is string => typeof id === "string" && Boolean(id))
+                ),
+            ];
+            if (channelIds.length > 0) {
+                const integrations = await this.integrationService.listByOrganization(input.organizationId);
+                this.assertIntegrationsNotDisabled(integrations, channelIds);
             }
             const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
                 input.organizationId,
@@ -2098,6 +2110,18 @@ export class PostsService {
                     cause: err instanceof Error ? err : null,
                 }
             );
+        }
+    }
+
+    /** Rejects create/update/schedule when any selected channel is disabled (UI parity). */
+    private assertIntegrationsNotDisabled(integrations: IntegrationLike[], integrationIds: string[]): void {
+        const disabledIds = new Set(
+            integrations.filter((r) => r.deleted_at == null && r.disabled).map((r) => r.id)
+        );
+        for (const id of integrationIds) {
+            if (disabledIds.has(id)) {
+                throw new AppError("This channel is disabled.", 400);
+            }
         }
     }
 

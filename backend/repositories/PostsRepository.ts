@@ -124,6 +124,30 @@ export class PostsRepository {
     }
 
     /**
+     * Whether any non-deleted post row references the integration (draft, queued, published, or error).
+     * Used to block channel delete until posts are removed.
+     */
+    async hasPostsForIntegration(organizationId: string, integrationId: string): Promise<boolean> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("id")
+            .eq("organization_id", organizationId)
+            .eq("integration_id", integrationId)
+            .is("deleted_at", null)
+            .limit(1)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Failed to check posts for integration: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return data != null;
+    }
+
+    /**
      * Rows that count toward the monthly post cap: active `QUEUE` rows and all `PUBLISHED` rows
      * with `publish_date` on or after `fromDate`.
      */

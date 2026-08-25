@@ -6,6 +6,7 @@ import {
     type SubscriptionTier,
 } from "openquok-common";
 import { SubscriptionError } from "../../errors/SubscriptionError";
+import type { IntegrationLike } from "../../utils/dtos/IntegrationDTO";
 import type { IntegrationService } from "../../services/IntegrationService";
 import type { OrganizationRepository } from "../../repositories/OrganizationRepository";
 import type { PostsRepository } from "../../repositories/PostsRepository";
@@ -490,6 +491,134 @@ describe("SubscriptionGuardService boolean and role gates", () => {
                 organizationId,
                 delta: 1,
             })
+        ).resolves.toBeUndefined();
+    });
+});
+
+function channelRow(disabled: boolean): IntegrationLike {
+    return {
+        id: faker.string.uuid(),
+        organization_id: organizationId,
+        internal_id: faker.string.alphanumeric(8),
+        name: "Channel",
+        picture: null,
+        provider_identifier: "threads",
+        type: "social",
+        token: "tok",
+        disabled,
+        token_expiration: null,
+        refresh_token: null,
+        profile: null,
+        deleted_at: null,
+        in_between_steps: false,
+        refresh_needed: false,
+        posting_times: "[]",
+        custom_instance_details: null,
+        additional_settings: "[]",
+        customer_id: null,
+        customer_name: null,
+        root_internal_id: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+}
+
+function createEnableChannelGuardHarness(params: {
+    workspaceTier?: SubscriptionTier;
+    billingEnabled?: boolean;
+    isPlatformAdmin?: boolean;
+    channels?: IntegrationLike[];
+}): SubscriptionGuardService {
+    const workspaceTier = params.workspaceTier ?? "SOLO";
+    const subscriptionService = {
+        billingEnabled: jest.fn().mockReturnValue(params.billingEnabled ?? true),
+        getEffectiveSubscription: jest.fn().mockResolvedValue(null),
+        resolveTier: jest.fn().mockReturnValue(workspaceTier),
+        getOwnedAccountSubscription: jest.fn(),
+        resolveOwnedWorkspaceCap: jest.fn(),
+        resolveOrganizationPlanTier: jest.fn(),
+        getWorkspaceDriveUsage: jest.fn(),
+    } as unknown as SubscriptionService;
+
+    const integrationService = {
+        listByOrganization: jest.fn().mockResolvedValue(params.channels ?? []),
+    } as unknown as IntegrationService;
+
+    const organizationRepository = {
+        findUserIdByAuthId: jest.fn().mockResolvedValue({ userId, error: null }),
+    } as unknown as OrganizationRepository;
+
+    const guard = new SubscriptionGuardService(
+        subscriptionService,
+        integrationService,
+        organizationRepository,
+        {} as PostsRepository,
+        mockRbacRepository(params.isPlatformAdmin ?? false)
+    );
+
+    jest.spyOn(guard, "getTierAndLimits").mockResolvedValue({
+        tier: workspaceTier,
+        limits: planLimitsForTier(workspaceTier),
+        subscription: null,
+    });
+
+    return guard;
+}
+
+describe("SubscriptionGuardService assertEnableSocialChannel", () => {
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it("allows enable when active count is below the cap", async () => {
+        const cap = pricing.SOLO.channel_per_workspace;
+        const channels = [
+            ...Array.from({ length: cap - 1 }, () => channelRow(false)),
+            channelRow(true),
+        ];
+        const guard = createEnableChannelGuardHarness({ workspaceTier: "SOLO", channels });
+        await expect(
+            guard.assertEnableSocialChannel(organizationId, authUserId)
+        ).resolves.toBeUndefined();
+    });
+
+    it("blocks enable when active count is at the cap", async () => {
+        const cap = pricing.SOLO.channel_per_workspace;
+        const channels = [
+            ...Array.from({ length: cap }, () => channelRow(false)),
+            channelRow(true),
+        ];
+        const guard = createEnableChannelGuardHarness({ workspaceTier: "SOLO", channels });
+        await expect(
+            guard.assertEnableSocialChannel(organizationId, authUserId)
+        ).rejects.toMatchObject({
+            section: SubscriptionSection.CHANNEL_PER_WORKSPACE,
+        });
+    });
+
+    it("skips enforcement when billing is disabled", async () => {
+        const cap = pricing.SOLO.channel_per_workspace;
+        const channels = Array.from({ length: cap + 2 }, () => channelRow(false));
+        const guard = createEnableChannelGuardHarness({
+            workspaceTier: "SOLO",
+            billingEnabled: false,
+            channels,
+        });
+        await expect(
+            guard.assertEnableSocialChannel(organizationId, authUserId)
+        ).resolves.toBeUndefined();
+    });
+
+    it("allows enable at cap when auth user is platform admin", async () => {
+        const cap = pricing.SOLO.channel_per_workspace;
+        const channels = Array.from({ length: cap }, () => channelRow(false));
+        const guard = createEnableChannelGuardHarness({
+            workspaceTier: "SOLO",
+            isPlatformAdmin: true,
+            channels,
+        });
+        await expect(
+            guard.assertEnableSocialChannel(organizationId, authUserId)
         ).resolves.toBeUndefined();
     });
 });

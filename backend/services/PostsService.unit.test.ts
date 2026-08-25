@@ -426,6 +426,34 @@ describe("PostsService", () => {
             });
         });
 
+        it("throws 400 when targeting a disabled channel", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: true,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "This channel is disabled.",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
         it("throws when status is scheduled and no channels selected", async () => {
             await expect(
                 service().createPost({
@@ -1695,6 +1723,39 @@ describe("PostsService", () => {
             expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
         });
 
+        it("throws 400 when update targets a disabled channel", async () => {
+            const postGroup = faker.string.uuid();
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({ post_group: postGroup, organization_id: orgId, integration_id: integrationId }),
+            ]);
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: true,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().updatePostGroup({
+                    postGroup,
+                    organizationId: orgId,
+                    authUserId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: new Date("2030-06-15T12:00:00.000Z").toISOString(),
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "This channel is disabled.",
+            });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+
         it("allows keeping the same scheduled slot even if repository would report it as taken", async () => {
             const postGroup = faker.string.uuid();
             const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
@@ -1890,6 +1951,33 @@ describe("PostsService", () => {
             expect(rows[0].is_agent_edited).toBe(true);
             expect(rows[0].is_reviewed).toBe(false);
             expect(integrationConnection.assertOrganizationMember).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when targeting a disabled channel", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: true,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().createPostProgrammatic({
+                    organizationId: orgId,
+                    body: "x",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "This channel is disabled.",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
         });
 
         it("stores note on create when provided", async () => {
@@ -2523,6 +2611,53 @@ describe("PostsService", () => {
     });
 
     describe("flipPostGroupStatusByPostId", () => {
+        beforeEach(() => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: false,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+        });
+
+        it("throws 400 when scheduling a post on a disabled channel", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: true,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+
+            await expect(
+                service().flipPostGroupStatusByPostId({
+                    postId,
+                    organizationId: orgId,
+                    status: "scheduled",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "This channel is disabled.",
+            });
+            expect(postsRepo.updatePostGroupState).not.toHaveBeenCalled();
+        });
+
         it("updates state in place without replacePostGroupRows (draft → scheduled)", async () => {
             const postId = faker.string.uuid();
             const postGroup = faker.string.uuid();

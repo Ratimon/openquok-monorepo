@@ -1,6 +1,7 @@
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { PostsRepository } from "../repositories/PostsRepository";
 import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
@@ -123,6 +124,7 @@ export class IntegrationConnectionService {
         private readonly manager: IntegrationManager,
         private readonly refreshIntegrationService: RefreshIntegrationService,
         private readonly storageRepository: StorageSupabaseRepository,
+        private readonly postsRepository: PostsRepository,
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly subscriptionGuard?: SubscriptionGuardService
@@ -155,6 +157,15 @@ export class IntegrationConnectionService {
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
             throw new OrganizationForbiddenError();
+        }
+    }
+
+    private async assertChannelHasNoPosts(organizationId: string, integrationId: string): Promise<void> {
+        if (await this.postsRepository.hasPostsForIntegration(organizationId, integrationId)) {
+            throw new AppError(
+                "You have to delete all the posts associated with this channel before deleting it",
+                409
+            );
         }
     }
 
@@ -376,6 +387,7 @@ export class IntegrationConnectionService {
         if (!row) {
             throw new AppError("Integration not found", 404);
         }
+        await this.assertChannelHasNoPosts(organizationId, integrationId);
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) {
             throw new AppError("Integration not found", 404);
@@ -786,6 +798,7 @@ export class IntegrationConnectionService {
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
+        await this.subscriptionGuard?.assertEnableSocialChannel(organizationId, authUserId);
         await this.integrations.enableChannel(organizationId, integrationId);
     }
 
@@ -793,6 +806,7 @@ export class IntegrationConnectionService {
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
+        await this.assertChannelHasNoPosts(organizationId, integrationId);
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) throw new AppError("Integration not found", 404);
     }

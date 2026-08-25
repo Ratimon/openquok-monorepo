@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatBytes } from '$lib/medias';
+	import { resolveChannelLimit } from '$lib/ui/components/channels/channelCapContext';
 
 	import AccountStatsRadialGrid, {
 		type AccountStatsRadialItem
@@ -11,6 +12,7 @@
 		ownedWorkspaceCount: number;
 		allowedWorkspaceCount: number | null;
 		connectedChannelCount: number;
+		activeChannelCount: number;
 		allowedChannelCount: number | null;
 		teamMemberCount: number;
 		allowedTeamMemberCount: number | null;
@@ -24,6 +26,7 @@
 		ownedWorkspaceCount,
 		allowedWorkspaceCount,
 		connectedChannelCount,
+		activeChannelCount,
 		allowedChannelCount,
 		teamMemberCount,
 		allowedTeamMemberCount,
@@ -41,6 +44,13 @@
 		return `${current} of ${allowed} used`;
 	}
 
+	const channelLimit = $derived(resolveChannelLimit(allowedChannelCount));
+
+	const channelUsageLabel = $derived.by(() => {
+		if (channelLimit == null) return countUsageLabel(connectedChannelCount, null);
+		return `${activeChannelCount} active · ${connectedChannelCount} connected of ${channelLimit}`;
+	});
+
 	const stats = $derived.by((): AccountStatsRadialItem[] => [
 		{
 			name: 'Workspaces',
@@ -49,8 +59,8 @@
 		},
 		{
 			name: 'Channels',
-			capacity: usagePercent(connectedChannelCount, allowedChannelCount),
-			usageLabel: countUsageLabel(connectedChannelCount, allowedChannelCount)
+			capacity: usagePercent(activeChannelCount, channelLimit),
+			usageLabel: channelUsageLabel
 		},
 		{
 			name: 'Team members',

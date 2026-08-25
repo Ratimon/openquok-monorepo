@@ -19,24 +19,24 @@ import { Badge, Callout, DocsExternalLink } from '$lib/ui/components/docs/mdx/in
 
 ### Integration refresh (OAuth token supervisor)
 
-- Blueprint and tick logic: <code>orchestrator/flows/refreshTokenWorkflow.ts</code>
-- Activity-style steps (timeout + retries on failure): <code>orchestrator/activities/integrationRefreshActivities.ts</code>
+- Blueprint and tick logic: <Badge text="orchestrator/flows/refreshTokenWorkflow.ts" variant="path" />
+- Activity-style steps (timeout + retries on failure): <Badge text="orchestrator/activities/integrationRefreshActivities.ts" variant="path" />
 - OAuth completion starts the supervisor from <code>RefreshIntegrationService.startRefreshWorkflow</code> (fire-and-forget).
 
 ### Notification email
 
-- Blueprint: <code>orchestrator/blueprints/notificationEmailBlueprint.ts</code> (plain send + digest flush paths).
+- Blueprint: <Badge text="orchestrator/blueprints/notificationEmailBlueprint.ts" variant="path" /> (plain send + digest flush paths).
 
 ### Scheduled social posts (calendar)
 
-- Enqueue and in-process / BullMQ entry: <code>orchestrator/flows/scheduledSocialPostWorkflow.ts</code> (blueprint <code>scheduled-social-post</code>, one publish pass per org/post group)
-- Node implementation: <code>orchestrator/nodes/scheduledSocialPostNodes.ts</code>; publish path: <code>orchestrator/activities/scheduledSocialPostActivities.ts</code>
-- If the worker is down, optional **rescan** re-lists <code>QUEUE</code> posts that should have published and re-enqueues: <code>orchestrator/flows/missingScheduledPostReconciliation.ts</code> (interval from <code>orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs</code>)
+- Enqueue and in-process / BullMQ entry: <Badge text="orchestrator/flows/scheduledSocialPostWorkflow.ts" variant="path" /> (blueprint <code>scheduled-social-post</code>, one publish pass per org/post group)
+- Node implementation: <Badge text="orchestrator/nodes/scheduledSocialPostNodes.ts" variant="path" />; publish path: <Badge text="orchestrator/activities/scheduledSocialPostActivities.ts" variant="path" />
+- If the worker is down, optional **rescan** re-lists <code>QUEUE</code> posts that should have published and re-enqueues: <Badge text="orchestrator/flows/missingScheduledPostReconciliation.ts" variant="path" /> (interval from <code>orchestratorFlows.scheduledSocialPost.missingPostRescanIntervalMs</code>)
 
 ### Shared
 
-- Barrel exports: <code>orchestrator/index.ts</code>
-- Per-flow transport, queue names, and feature flags: <code>backend/config/orchestratorFlows.ts</code> (defaults in TypeScript). Optional runtime overrides (without editing that file): <Badge text="ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT" variant="envBackend" />, <Badge text="ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT" variant="envBackend" />, and <Badge text="ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT" variant="envBackend" /> — each <code>in_process</code> or <code>bullmq</code> — merged in <code>backend/config/GlobalConfig.ts</code>.
+- Barrel exports: <Badge text="orchestrator/index.ts" variant="path" />
+- Per-flow transport, queue names, and feature flags: <Badge text="backend/config/orchestratorFlows.ts" variant="path" /> (defaults in TypeScript). Optional runtime overrides (without editing that file): <Badge text="ORCHESTRATOR_INTEGRATION_REFRESH_TRANSPORT" variant="envBackend" />, <Badge text="ORCHESTRATOR_NOTIFICATION_EMAIL_TRANSPORT" variant="envBackend" />, and <Badge text="ORCHESTRATOR_SCHEDULED_SOCIAL_POST_TRANSPORT" variant="envBackend" /> — each <code>in_process</code> or <code>bullmq</code> — merged in <Badge text="backend/config/GlobalConfig.ts" variant="path" />.
 
 ## Activity-style resilience
 
@@ -58,9 +58,9 @@ The graph uses Flowcraft’s <DocsExternalLink href="https://flowcraft.js.org/gu
 
 The default **in-process** transport **does not survive API restarts**: if the API redeploys during a sleep, the supervisor for that integration is gone until the next OAuth connect or manual trigger.
 
-With <code>transport: bullmq</code> in <code>backend/config/orchestratorFlows.ts</code>, run state and the job queue live in **Redis**, and you run a **worker process** for each flow you enable:
+With <code>transport: bullmq</code> in <Badge text="backend/config/orchestratorFlows.ts" variant="path" />, run state and the job queue live in **Redis**, and you run a **worker process** for each flow you enable:
 
-- **Integration refresh** — <code>pnpm orchestrator:dev:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <code>backend/</code>); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/installation/railway">Railway</a>.
+- **Integration refresh** — <code>pnpm orchestrator:dev:worker:integration-refresh-bullmq</code> locally (or <code>pnpm worker:integration-refresh-bullmq</code> under <Badge text="backend/" variant="path" />); **production** <code>pnpm railway:orchestrator:start:integration-refresh</code> after <code>pnpm railway:orchestrator:build</code>, on an always-on host such as <a href="/docs/installation/railway">Railway</a>.
 - **Notification email** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:notification-email</code> in production; local <code>pnpm orchestrator:dev:worker:notification-email-bullmq</code>.
 - **Scheduled social posts** (when that transport is <code>bullmq</code>) — <code>pnpm railway:orchestrator:start:scheduled-social-post</code> in production (Railway); local <code>pnpm orchestrator:dev:worker:scheduled-social-post-bullmq</code>.
 
@@ -70,24 +70,24 @@ Managed Redis (for example <DocsExternalLink href="https://redis.io/">Redis</Doc
 
 ## Configuration
 
-- **Transport, queue names, and feature flags**: <code>backend/config/orchestratorFlows.ts</code> (for example <code>integrationRefresh.enabled</code> and <code>scheduledSocialPost.missingPostRescanIntervalMs</code>). <code>GlobalConfig.ts</code> copies <code>integrationRefresh.enabled</code> into <code>config.bullmq.integrationRefresh.enabled</code> except under Jest, where it is always <code>false</code>; <code>scheduledSocialPost.enabled</code> is also forced <code>false</code> under Jest. Add future flows as sibling entries instead of per-flow keys in <code>backend/.env.development.example</code>.
+- **Transport, queue names, and feature flags**: <Badge text="backend/config/orchestratorFlows.ts" variant="path" /> (for example <code>integrationRefresh.enabled</code> and <code>scheduledSocialPost.missingPostRescanIntervalMs</code>). <Badge text="backend/config/GlobalConfig.ts" variant="path" /> copies <code>integrationRefresh.enabled</code> into <code>config.bullmq.integrationRefresh.enabled</code> except under Jest, where it is always <code>false</code>; <code>scheduledSocialPost.enabled</code> is also forced <code>false</code> under Jest. Add future flows as sibling entries instead of per-flow keys in <Badge text="backend/.env.development.example" variant="path" />.
 - **Jest**: <code>JEST_WORKER_ID</code> forces the integration-refresh supervisor off regardless of <code>integrationRefresh.enabled</code>. To test the supervisor, mock <code>config</code> or reload modules with different <code>orchestratorFlows</code> settings.
 - **Elsewhere**: toggle <code>integrationRefresh.enabled</code> and other flow flags in code for the deployment profile you want (or split config by environment in that file).
 
 
 ## Worker health and Sentry
 
-Each <code>*BullMqWorker</code> bootstraps via <code>orchestrator/worker/bootstrapOrchestratorWorker.ts</code>:
+Each <code>*BullMqWorker</code> bootstraps via <Badge text="orchestrator/worker/bootstrapOrchestratorWorker.ts" variant="path" />:
 
 - **HTTP** — <code>GET /health</code> and <code>GET /health/status</code> return JSON with <code>status</code>, <code>worker</code>, <code>redis</code>, <code>uptimeSeconds</code>, and optional BullMQ queue counts. Use these URLs for uptime monitors (Railway health checks, Better Stack, etc.). Port resolution: host <Badge text="PORT" variant="envBackend" /> when set, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>); <code>0</code> disables the listener.
-- **Sentry** — Workers import the same <code>backend/connections/sentry</code> module as the API. Set <Badge text="SENTRY_DSN" variant="envBackend" /> on worker services; uncaught errors are tagged <code>openquok.worker</code> and <code>openquok.worker.queue</code>.
+- **Sentry** — Workers import the same <Badge text="backend/connections/sentry" variant="path" /> module as the API. Set <Badge text="SENTRY_DSN" variant="envBackend" /> on worker services; uncaught errors are tagged <code>openquok.worker</code> and <code>openquok.worker.queue</code>.
 
 ## BullMQ reconciliation (Flowcraft adapter)
 
 The <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq#reconciliation">BullMQ adapter guide</DocsExternalLink> describes <code>createBullMQReconciler</code>: it scans Redis keys that hold workflow state, treats runs idle longer than a threshold as **stalled**, and **re-enqueues** the appropriate next jobs so a worker can continue. That is aimed at production reliability when jobs or workers disappear between steps.
 
 <Callout type="note">
-Each <code>*BullMqWorker</code> in <code>orchestrator/worker/</code> starts a **timer** that runs the Flowcraft adapter reconciler on the **same** Redis <code>connection</code> as the long-lived <code>adapter</code> (see <code>orchestrator/worker/flowcraftBullMqReconciliationTimer.ts</code>). Intervals and stall thresholds come from <code>config.bullmq.flowcraft</code> in <code>backend/config/GlobalConfig.ts</code> (sourced from <code>orchestratorFlows</code> defaults). <strong>Integration refresh</strong> benefits when workflow state is in Redis but <strong>no</strong> BullMQ job is driving the next <code>executeNode</code>—not when one job is still running for hours on a single worker. <strong>Scheduled social</strong> and <strong>notification email</strong> workers use the same pattern for their queues.
+Each <code>*BullMqWorker</code> in <Badge text="orchestrator/worker/" variant="path" /> starts a **timer** that runs the Flowcraft adapter reconciler on the **same** Redis <code>connection</code> as the long-lived <code>adapter</code> (see <Badge text="orchestrator/worker/flowcraftBullMqReconciliationTimer.ts" variant="path" />). Intervals and stall thresholds come from <code>config.bullmq.flowcraft</code> in <Badge text="backend/config/GlobalConfig.ts" variant="path" /> (sourced from <code>orchestratorFlows</code> defaults). <strong>Integration refresh</strong> benefits when workflow state is in Redis but <strong>no</strong> BullMQ job is driving the next <code>executeNode</code>—not when one job is still running for hours on a single worker. <strong>Scheduled social</strong> and <strong>notification email</strong> workers use the same pattern for their queues.
 </Callout>
 
 ## Clearing stale Flowcraft runs (Redis)
@@ -105,16 +105,16 @@ OpenQuok provides a helper script that deletes Flowcraft run state for a specifi
 pnpm --filter openquok-orchestrator script:clear-flowcraft-runs scheduled-social-post
 ```
 
-It loads dotenv the same way workers do (via <code>backend/config/loadBackendDotenv.cjs</code>), so it works with:
+It loads dotenv the same way workers do (via <Badge text="backend/config/loadBackendDotenv.cjs" variant="path" />), so it works with:
 
-- <code>backend/.env.development.local</code> when <code>NODE_ENV=development</code>
-- <code>backend/.env.production.local</code> when <code>NODE_ENV=production</code>
+- <Badge text="backend/.env.development.local" variant="path" /> when <code>NODE_ENV=development</code>
+- <Badge text="backend/.env.production.local" variant="path" /> when <code>NODE_ENV=production</code>
 - injected environment variables in production hosts (Railway, Fly, etc.)
 
 <Callout type="note" title="Worker env files">
-The Railway worker setup/sync scripts in the repo root (<code>railway:setup:*</code>, <code>railway:env:sync:*</code>) intentionally read from <code>orchestrator/.env.production.local</code> (see the <code>--env-file</code> flag in <code>package.json</code>), because those commands are managing <em>orchestrator</em> services.
+The Railway worker setup/sync scripts in the repo root (<code>railway:setup:*</code>, <code>railway:env:sync:*</code>) intentionally read from <Badge text="orchestrator/.env.production.local" variant="path" /> (see the <code>--env-file</code> flag in <Badge text="package.json" variant="path" />), because those commands are managing <em>orchestrator</em> services.
 
-This <code>script:clear-flowcraft-runs</code> helper is a dev/admin script that imports backend config and therefore loads dotenv via <code>backend/config/loadBackendDotenv.cjs</code>.
+This <code>script:clear-flowcraft-runs</code> helper is a dev/admin script that imports backend config and therefore loads dotenv via <Badge text="backend/config/loadBackendDotenv.cjs" variant="path" />.
 </Callout>
 
 <Callout type="warning" title="Be careful">
@@ -134,7 +134,7 @@ Also, the <code>@flowcraft/bullmq-adapter</code> version used in this repo curre
 ## Further reading
 
 - <a href="/docs/configuration-worker">Configuration - Worker</a> — env vars, production scripts, dotenv resolution
-- <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <code>railway.toml</code>
+- <a href="/docs/installation/railway">Railway Deployment</a> — persistent services, CLI, <Badge text="railway.toml" variant="path" />
 - <DocsExternalLink href="https://flowcraft.js.org/guide/fluent">Fluent API</DocsExternalLink>
 - <DocsExternalLink href="https://flowcraft.js.org/guide/pausing">Pausing and sleep nodes</DocsExternalLink> (this workflow uses an imperative delay inside <code>tick</code> because the wait length comes from the database at runtime)
 - <DocsExternalLink href="https://flowcraft.js.org/guide/adapters/bullmq">Runtime adapter: BullMQ</DocsExternalLink> (reconciliation, webhooks, worker/client setup)

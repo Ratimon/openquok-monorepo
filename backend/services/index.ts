@@ -130,6 +130,7 @@ export const subscriptionGuard = new SubscriptionGuardService(
     rbacRepository
 );
 subscriptionService.setSubscriptionGuard(subscriptionGuard);
+subscriptionService.setIntegrationService(integrationService);
 export const blogService = new BlogService(
     blogRepository,
     cacheServiceConnection,
@@ -164,6 +165,7 @@ export const integrationConnectionService = new IntegrationConnectionService(
     integrationManager,
     refreshIntegrationService,
     storageSupabaseRepository,
+    postsRepository,
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     subscriptionGuard

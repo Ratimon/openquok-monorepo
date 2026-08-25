@@ -17,6 +17,7 @@ import type {
 } from '$lib/channels/GetChannel.presenter.svelte';
 
 import { integrationOAuthCallbackPath } from '$lib/integrations/utils/oauthCallbackPath';
+import { userFacingChannelDeleteError } from '$lib/integrations/utils/userFacingChannelDeleteError';
 import { absoluteUrl, route, url } from '$lib/utils/path';
 import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 
@@ -33,7 +34,9 @@ export type {
 type HomeIntegrationsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 type ChannelGroupsLoadStatus = 'idle' | 'loading' | 'ready' | 'error';
 
-export type HomeChannelMutationViewModel = { ok: true } | { ok: false; error: string };
+export type HomeChannelMutationViewModel =
+	| { ok: true }
+	| { ok: false; error: string; limitKind?: 'active' | 'connected' };
 
 export type HomePostConnectQueryViewModel =
 	| { handled: false }
@@ -321,7 +324,7 @@ export class ProtectedHomePagePresenter {
 			await this.loadConnectedIntegrations();
 			return { ok: true };
 		}
-		return { ok: false, error: resPm.error };
+		return { ok: false, error: userFacingChannelDeleteError(resPm.error) };
 	}
 
 	async setChannelDisabled(integrationId: string, disabled: boolean): Promise<HomeChannelMutationViewModel> {
@@ -338,7 +341,7 @@ export class ProtectedHomePagePresenter {
 			await this.loadConnectedIntegrations();
 			return { ok: true };
 		}
-		return { ok: false, error: resPm.error };
+		return { ok: false, error: resPm.error, limitKind: resPm.limitKind };
 	}
 
 	async setPostingTimes(

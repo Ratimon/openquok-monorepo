@@ -15,9 +15,12 @@
  *     summary: Disconnect a channel (API key)
  *     description: >-
  *       Soft-deletes the channel row identified by `{id}`. The channel disappears
- *       from `GET /public/integrations` and stops being eligible for publishing.
- *       Use `GET /public/social/{integration}?refresh={id}` to re-link the same
- *       provider account to a fresh row.
+ *       from `GET /public/integrations` and frees a connected slot on Cloud billing.
+ *       Returns **409** while any post row (draft, queued, published, or error)
+ *       still references the channel — delete those rows first with
+ *       `DELETE /public/posts/{postId}`, or disable the channel in the workspace
+ *       instead. Use `GET /public/social/{integration}?refresh={id}` to re-link the
+ *       same provider account to a fresh row after a successful delete.
  *     parameters:
  *       - in: path
  *         name: id
@@ -46,5 +49,35 @@
  *         description: Missing or invalid API key.
  *       '404':
  *         description: Integration not found in this workspace.
+ *       '409':
+ *         description: >-
+ *           The channel still has post rows in this workspace (any state). Delete
+ *           those posts first, or disable the channel instead of deleting it.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               required: [success, message, error]
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   enum: [false]
+ *                 message:
+ *                   type: string
+ *                 error:
+ *                   type: object
+ *                   required: [type, message]
+ *                   properties:
+ *                     type:
+ *                       type: string
+ *                       example: AppError
+ *                     message:
+ *                       type: string
+ *             example:
+ *               success: false
+ *               message: You have to delete all the posts associated with this channel before deleting it
+ *               error:
+ *                 type: AppError
+ *                 message: You have to delete all the posts associated with this channel before deleting it
  */
 export {};

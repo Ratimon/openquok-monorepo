@@ -8,6 +8,7 @@
 	import SetPostingScheduleTimezone from '$lib/ui/components/SetPostingScheduleTimezone.svelte';
 	import FirstBilling from '$lib/ui/components/billing/FirstBilling.svelte';
 	import PostsLimitProvider from '$lib/ui/components/posts/PostsLimitProvider.svelte';
+	import ChannelCapProvider from '$lib/ui/components/channels/ChannelCapProvider.svelte';
 	import { protectedBillingPagePresenter } from '$lib/area-protected';
 	import { firstBillingGatePresenter, ownedAccountBillingPresenter, preloadStripe } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -92,6 +93,8 @@
 	<FirstBilling {companyName} />
 {:else}
 	<PostsLimitProvider>
-		{@render children?.()}
+		<ChannelCapProvider>
+			{@render children?.()}
+		</ChannelCapProvider>
 	</PostsLimitProvider>
 {/if}

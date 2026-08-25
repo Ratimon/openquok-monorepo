@@ -5,13 +5,30 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 
+	type ChannelLimitVariant = 'connected' | 'active';
+
 	type Props = {
 		open?: boolean;
 		upgradeHref?: string;
+		variant?: ChannelLimitVariant;
 		onOpenChange?: (open: boolean) => void;
 	};
 
-	let { open = $bindable(false), upgradeHref, onOpenChange }: Props = $props();
+	let {
+		open = $bindable(false),
+		upgradeHref,
+		variant = 'connected',
+		onOpenChange
+	}: Props = $props();
+
+	const title = $derived(
+		variant === 'active' ? 'Upgrade to enable a channel' : 'Upgrade to add a channel'
+	);
+	const description = $derived(
+		variant === 'active'
+			? 'Your current plan has reached its active channel limit for this workspace. Disable another channel or upgrade to a higher tier to enable this one.'
+			: 'Your current plan has reached its connected channel limit for this workspace. Upgrade to a higher tier to connect more channels.'
+	);
 </script>
 
 <Dialog.Root
@@ -22,10 +39,9 @@
 >
 	<Dialog.Content class="max-w-lg" showCloseButton>
 		<Dialog.Header>
-			<Dialog.Title>Upgrade to add a channel</Dialog.Title>
+			<Dialog.Title>{title}</Dialog.Title>
 			<Dialog.Description>
-				Your current plan has reached its connected channel limit for this workspace. Upgrade to a
-				higher tier to connect more channels.
+				{description}
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer>

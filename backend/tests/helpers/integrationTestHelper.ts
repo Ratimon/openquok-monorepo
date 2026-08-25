@@ -12,6 +12,16 @@ export type InsertTestSocialIntegrationOptions = {
     name?: string;
     providerIdentifier?: string;
     token?: string;
+    disabled?: boolean;
+    createdAt?: string;
+};
+
+export type SeedSocialIntegrationChannelSpec = {
+    internalId?: string;
+    integrationId?: string;
+    name?: string;
+    disabled?: boolean;
+    createdAt?: string;
 };
 
 export type SeedSocialIntegrationsOptions = {
@@ -30,6 +40,7 @@ function buildTestSocialIntegrationInsertRow(params: {
     providerIdentifier?: string;
     token?: string;
     timestamp?: string;
+    disabled?: boolean;
 }): Record<string, unknown> {
     const now = params.timestamp ?? new Date().toISOString();
     return {
@@ -41,7 +52,7 @@ function buildTestSocialIntegrationInsertRow(params: {
         provider_identifier: params.providerIdentifier ?? "threads",
         type: "social",
         token: params.token ?? "e2e-test-token",
-        disabled: false,
+        disabled: params.disabled ?? false,
         token_expiration: null,
         refresh_token: null,
         profile: null,
@@ -76,6 +87,8 @@ export async function insertTestSocialIntegration(
         name: options.name,
         providerIdentifier: options.providerIdentifier,
         token: options.token,
+        timestamp: options.createdAt,
+        disabled: options.disabled,
     });
     const { error } = await adminSupabase.from("integrations").insert(row);
     if (error) {
@@ -111,6 +124,37 @@ export async function seedSocialIntegrations(
         throw new Error(`seedSocialIntegrations failed: ${error.message}`);
     }
     return { internalIds };
+}
+
+/**
+ * Inserts social channels with per-row `created_at` and `disabled` flags (e.g. active-cap downgrade ordering).
+ */
+export async function seedSocialIntegrationsWithSpecs(
+    adminSupabase: SupabaseClient,
+    organizationId: string,
+    channels: SeedSocialIntegrationChannelSpec[]
+): Promise<{ integrationIds: string[]; internalIds: string[] }> {
+    const integrationIds: string[] = [];
+    const internalIds: string[] = [];
+    const rows = channels.map((channel, index) => {
+        const integrationId = channel.integrationId ?? faker.string.uuid();
+        const internalId = channel.internalId ?? `test-channel-spec-${index}`;
+        integrationIds.push(integrationId);
+        internalIds.push(internalId);
+        return buildTestSocialIntegrationInsertRow({
+            organizationId,
+            integrationId,
+            internalId,
+            name: channel.name ?? `Test channel ${index}`,
+            timestamp: channel.createdAt,
+            disabled: channel.disabled,
+        });
+    });
+    const { error } = await adminSupabase.from("integrations").insert(rows);
+    if (error) {
+        throw new Error(`seedSocialIntegrationsWithSpecs failed: ${error.message}`);
+    }
+    return { integrationIds, internalIds };
 }
 
 /** TTL for OAuth state keys used by `POST /integrations/social-connect/:integration`. */

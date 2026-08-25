@@ -1,6 +1,7 @@
 import type { IntegrationService } from "./IntegrationService";
 import type { PlugService } from "./PlugService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { PostsRepository } from "../repositories/PostsRepository";
 import type { UserOrganizationLike } from "../utils/dtos/OrganizationDTO";
 import type { IntegrationLike } from "../utils/dtos/IntegrationDTO";
 import type { RefreshIntegrationService } from "./RefreshIntegrationService";
@@ -122,6 +123,12 @@ function createMockPlugService(): jest.Mocked<
     };
 }
 
+function createMockPostsRepo(): jest.Mocked<Pick<PostsRepository, "hasPostsForIntegration">> {
+    return {
+        hasPostsForIntegration: jest.fn().mockResolvedValue(false),
+    };
+}
+
 function createMockOrgRepo(): jest.Mocked<Pick<OrganizationRepository, "findUserIdByAuthId" | "findMembership">> {
     return {
         findUserIdByAuthId: jest.fn(),
@@ -204,6 +211,7 @@ describe("IntegrationConnectionService", () => {
     let integrations: ReturnType<typeof createMockIntegrations>;
     let plugs: ReturnType<typeof createMockPlugService>;
     let orgRepo: ReturnType<typeof createMockOrgRepo>;
+    let postsRepo: ReturnType<typeof createMockPostsRepo>;
     let manager: ReturnType<typeof createMockManager>;
     let refresh: jest.Mocked<Pick<RefreshIntegrationService, "startRefreshWorkflow" | "refresh">>;
     let storageRepository: { uploadIntegrationProfilePicture: jest.Mock };
@@ -214,6 +222,7 @@ describe("IntegrationConnectionService", () => {
         integrations = createMockIntegrations();
         plugs = createMockPlugService();
         orgRepo = createMockOrgRepo();
+        postsRepo = createMockPostsRepo();
         cache = createMockCache();
         cacheInvalidator = { invalidateKey: jest.fn().mockResolvedValue(true) };
         refresh = {
@@ -240,6 +249,7 @@ describe("IntegrationConnectionService", () => {
             manager as unknown as IntegrationManager,
             refresh as unknown as RefreshIntegrationService,
             storageRepository as never,
+            postsRepo as unknown as PostsRepository,
             resolvedCache,
             resolvedInvalidator
         );
@@ -439,7 +449,27 @@ describe("IntegrationConnectionService", () => {
             integrations.getById.mockResolvedValue(row);
             integrations.softDeleteChannel.mockResolvedValue(true);
             await service().publicDeleteChannel(orgId, integrationId);
+            expect(postsRepo.hasPostsForIntegration).toHaveBeenCalledWith(orgId, integrationId);
             expect(integrations.softDeleteChannel).toHaveBeenCalledWith(orgId, integrationId, row.internal_id);
+        });
+
+        it("throws 409 when posts exist for the channel", async () => {
+            integrations.getById.mockResolvedValue(sampleRow());
+            postsRepo.hasPostsForIntegration.mockResolvedValue(true);
+            await expect(service().publicDeleteChannel(orgId, integrationId)).rejects.toMatchObject({
+                statusCode: 409,
+                message: "You have to delete all the posts associated with this channel before deleting it",
+            });
+            expect(integrations.softDeleteChannel).not.toHaveBeenCalled();
+        });
+
+        it("throws 404 when soft delete returns false", async () => {
+            integrations.getById.mockResolvedValue(sampleRow());
+            integrations.softDeleteChannel.mockResolvedValue(false);
+            await expect(service().publicDeleteChannel(orgId, integrationId)).rejects.toMatchObject({
+                statusCode: 404,
+            });
+            expect(postsRepo.hasPostsForIntegration).toHaveBeenCalledWith(orgId, integrationId);
         });
     });
 
@@ -733,6 +763,7 @@ describe("IntegrationConnectionService", () => {
                 manager as unknown as IntegrationManager,
                 refresh as unknown as RefreshIntegrationService,
                 storageRepository as never,
+                postsRepo as unknown as PostsRepository,
                 cache as unknown as CacheService,
                 undefined
             );
@@ -1487,14 +1518,49 @@ describe("IntegrationConnectionService", () => {
     });
 
     describe("deleteChannel", () => {
-        it("throws 404 when soft delete returns false", async () => {
+        function mockAuthorizedDeleteSetup() {
             orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
             orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+        }
+
+        it("throws 404 when integration row is missing", async () => {
+            mockAuthorizedDeleteSetup();
+            integrations.getById.mockResolvedValue(null);
+            await expect(service().deleteChannel(authUserId, orgId, integrationId)).rejects.toMatchObject({
+                statusCode: 404,
+            });
+            expect(postsRepo.hasPostsForIntegration).not.toHaveBeenCalled();
+            expect(integrations.softDeleteChannel).not.toHaveBeenCalled();
+        });
+
+        it("soft-deletes when no posts exist for the channel", async () => {
+            const row = sampleRow();
+            mockAuthorizedDeleteSetup();
+            integrations.getById.mockResolvedValue(row);
+            integrations.softDeleteChannel.mockResolvedValue(true);
+            await service().deleteChannel(authUserId, orgId, integrationId);
+            expect(postsRepo.hasPostsForIntegration).toHaveBeenCalledWith(orgId, integrationId);
+            expect(integrations.softDeleteChannel).toHaveBeenCalledWith(orgId, integrationId, row.internal_id);
+        });
+
+        it("throws 404 when soft delete returns false", async () => {
+            mockAuthorizedDeleteSetup();
             integrations.getById.mockResolvedValue(sampleRow());
             integrations.softDeleteChannel.mockResolvedValue(false);
             await expect(service().deleteChannel(authUserId, orgId, integrationId)).rejects.toMatchObject({
                 statusCode: 404,
             });
+        });
+
+        it("throws 409 when posts exist for the channel", async () => {
+            mockAuthorizedDeleteSetup();
+            integrations.getById.mockResolvedValue(sampleRow());
+            postsRepo.hasPostsForIntegration.mockResolvedValue(true);
+            await expect(service().deleteChannel(authUserId, orgId, integrationId)).rejects.toMatchObject({
+                statusCode: 409,
+                message: "You have to delete all the posts associated with this channel before deleting it",
+            });
+            expect(integrations.softDeleteChannel).not.toHaveBeenCalled();
         });
     });
 });

@@ -9,7 +9,7 @@ lastUpdated: 2026-07-05
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Improve OpenQuok by editing application code in this repository and opening a pull request. No special permissions are required — fork the repo, make your changes, run the relevant checks, and submit a PR for review.
+Improve OpenQuok's codebase by opening a pull request. No special permissions are required — fork the repo, make your changes, run the relevant checks, and submit a PR for review.
 
 ## Repository
 
@@ -134,7 +134,9 @@ Maintainers will review, suggest edits if needed, and merge when ready.
 
 ## What to contribute
 
-<p>Good first contributions include bug fixes, test coverage, provider improvements, UI polish, and documentation clarifications in code comments or README sections. Larger features (new social providers, new API surfaces) are welcome — open a <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub issue</DocsExternalLink> first if you are unsure about scope. For a new channel integration, start with <a href="/docs/developer-guidelines/add-provider">Adding a social provider</a>.</p>
+Good first contributions include bug fixes, test coverage, provider improvements, UI polish, and documentation clarifications in code comments or README sections.
+
+Larger features (new social providers, new API surfaces) are welcome — open a <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub issue</DocsExternalLink> first if you are unsure about scope. For a new channel integration, start with <a href="/docs/developer-guidelines/add-provider">Adding a social provider</a>.
 
 <Callout type="note" title="Documentation-only changes">
 <p>Edits under <Badge text="web/src/content/docs/" variant="path" /> belong in documentation-focused PRs. See <a href="/docs/documentation-contribution/submit-a-pr">Submit a pull request (docs)</a> for the docs workflow and keep code and docs in separate PRs when possible.</p>

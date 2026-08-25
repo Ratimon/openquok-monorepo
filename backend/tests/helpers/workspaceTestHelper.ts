@@ -67,6 +67,22 @@ export function stubPlanLimits(tier: PaidSubscriptionTier): jest.SpyInstance {
     }));
 }
 
+/** Stub tier limits with a custom active-channel cap snapshot (subscription `channels_per_workspace`). */
+export function stubPlanLimitsWithActiveChannelCap(
+    tier: PaidSubscriptionTier,
+    activeChannelCap: number
+): jest.SpyInstance {
+    const limits = { ...planLimitsForTier(tier), channel_per_workspace: activeChannelCap };
+    return jest.spyOn(subscriptionGuard, "getTierAndLimits").mockImplementation(async (orgId) => ({
+        tier,
+        limits,
+        subscription: {
+            ...mockSubscriptionRowForTier(tier, orgId),
+            channels_per_workspace: activeChannelCap,
+        },
+    }));
+}
+
 /** Stub owned-account subscription reads used for workspace caps and billing account context. */
 export function stubOwnedAccountSubscriptionForTier(tier: PaidSubscriptionTier): jest.SpyInstance {
     return jest

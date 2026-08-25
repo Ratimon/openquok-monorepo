@@ -17,11 +17,12 @@ Deploy workers on an **always-on** host (for example <a href="/docs/installation
 
 ## Queue dashboard (Bull Board)
 
-Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, open jobs, retry, clean, and related controls) from the **web** using <DocsExternalLink href="https://github.com/felixmosh/bull-board">Bull Board</DocsExternalLink> embedded on the <strong>Queue dashboard</strong> page. The **API** mounts the same UI under a configurable path and the **browser** loads it in an iframe so subresource and XHR calls can be authenticated (see below).
+Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, open jobs, retry, clean, and related controls) from the **web** using <DocsExternalLink href="https://github.com/felixmosh/bull-board">Bull Board</DocsExternalLink> embedded on the <strong>Queue dashboard</strong> page.
+
 
 ### Who can use it
 
-- You must be signed in and have the <strong>platform admin</strong> role; see <a href="/docs/developer-guidelines/rbac">RBAC</a> for how roles are modeled. Admin-only API routes use the same auth surface.
+- You must be the <strong>platform admin</strong> role; see <a href="/docs/developer-guidelines/rbac">RBAC</a> for how roles are modeled. Admin-only API routes use the same auth surface.
 - In the app, open the protected area: <code>/secret-admin</code> → <strong>Queue dashboard</strong> in the sidebar (or the same link on the super-admin index).
 
 
@@ -29,7 +30,7 @@ Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, o
 
 - **Redis** — Same <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />) as the API. See <a href="/docs/configuration-backend/redis">Redis cache</a> and <a href="/docs/configuration-worker/redis">Redis & queues</a>.
 - **Supabase** — <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" />, and <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> for server-side tables. Legacy JWT keys are not accepted; see <a href="/docs/configuration-backend/supabase">Supabase</a>.
-- **Storage (scheduled social post publishing)** — If you publish posts with media (for example Threads image posts), workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
+- **Storage (scheduled social post publishing)** — If you publish posts with media, workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 - **Health & errors** — Each worker exposes <code>GET /health</code> and <code>GET /health/status</code> (Redis PING + optional queue depth). Port: host <Badge text="PORT" variant="envBackend" /> on Railway, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>; set <code>0</code> to disable). Optional <Badge text="SENTRY_DSN" variant="envBackend" /> / <Badge text="SENTRY_ENABLED" variant="envBackend" /> match the API so worker crashes reach Sentry (tag <code>openquok.worker</code>).
 

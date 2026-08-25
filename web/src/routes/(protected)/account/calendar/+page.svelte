@@ -31,6 +31,11 @@
 	import Scheduler from '$lib/ui/components/calendar-scheduler/Scheduler.svelte';
 	import IntegrationMenu from '$lib/ui/components/posts/IntegrationMenu.svelte';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
+	import {
+		channelCapKey,
+		openChannelLimitDialogForMutation,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 	import { cn } from '$lib/ui/helpers/common';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
@@ -48,6 +53,7 @@
 
 	const calendarPresenter = protectedCalendarPagePresenter;
 	const postsLimitCtx = getContext<PostsLimitContext>(postsLimitKey);
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
 	const isPostsLimitFull = $derived(postsLimitCtx.isPostsLimitFull());
 
 	const postsUsedThisMonth = $derived(
@@ -333,7 +339,7 @@
 			setTimeout(() => toast.success('Channel removed.'), 0);
 			return true;
 		}
-		toast.error(resultVm.error);
+		setTimeout(() => toast.error(resultVm.error), 0);
 		return false;
 	}
 
@@ -343,6 +349,7 @@
 			toast.success(disabled ? 'Channel disabled.' : 'Channel enabled.');
 			return true;
 		}
+		openChannelLimitDialogForMutation(resultVm.limitKind, channelCapCtx);
 		toast.error(resultVm.error);
 		return false;
 	}

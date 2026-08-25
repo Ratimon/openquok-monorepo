@@ -25,8 +25,14 @@
 	import ChannelsGridLayout from '$lib/ui/components/channels/ChannelsGridLayout.svelte';
 	import {
 		channelsGridActionsKey,
-		channelsGridLimitKey,
+		channelsGridLimitKey
 	} from '$lib/ui/components/channels/channelsGridContext';
+	import {
+		channelCapKey,
+		countActiveChannels,
+		resolveChannelLimit,
+		type ChannelCapContext
+	} from '$lib/ui/components/channels/channelCapContext';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -81,6 +87,7 @@
 
 	let channelUpgradeDialogOpen = $state(false);
 
+	const channelCapCtx = getContext<ChannelCapContext | undefined>(channelCapKey);
 	const postsLimitCtx = getContext<PostsLimitContext | undefined>(postsLimitKey);
 	const isPostsLimitFull = $derived(postsLimitCtx?.isPostsLimitFull() ?? false);
 
@@ -97,25 +104,40 @@
 		addMoreChannel: (identifier) => tryAddAnotherChannel(identifier)
 	} satisfies ChannelsGridActions);
 
+	const connectedChannelCount = $derived(
+		channelCapCtx?.getConnectedChannelCount() ?? connectedChannelsVm.length
+	);
+
+	const activeChannelCount = $derived(
+		channelCapCtx?.getActiveChannelCount() ?? countActiveChannels(connectedChannelsVm)
+	);
+
+	const channelLimit = $derived(
+		channelCapCtx?.getChannelLimit() ?? resolveChannelLimit(allowedChannelCount)
+	);
+
+	const channelCountLabel = $derived.by(() => {
+		if (channelLimit == null) return null;
+		const connectedPart = `${connectedChannelCount}/${channelLimit} connected`;
+		const activePart = `${activeChannelCount}/${channelLimit} active`;
+		return `${connectedPart} · ${activePart}`;
+	});
+
+	const isChannelLimitFull = $derived(
+		channelCapCtx?.isConnectedChannelLimitFull() ??
+			(channelLimit != null && connectedChannelCount >= channelLimit)
+	);
+
+	const isActiveChannelLimitFull = $derived(
+		channelCapCtx?.isActiveChannelLimitFull() ??
+			(channelLimit != null && activeChannelCount >= channelLimit)
+	);
+
 	setContext(channelsGridLimitKey, {
 		isChannelLimitFull: () => isChannelLimitFull
 	} satisfies ChannelsGridLimitContext);
 
 	const DASHBOARD_CHANNELS_GRID_PAGE_SIZE = 25;
-
-	const connectedChannelCount = $derived(connectedChannelsVm.length);
-
-	const channelLimit = $derived(
-		allowedChannelCount != null && allowedChannelCount >= 1 ? allowedChannelCount : null
-	);
-
-	const channelCountLabel = $derived(
-		channelLimit != null ? `${connectedChannelCount}/${channelLimit}` : null
-	);
-
-	const isChannelLimitFull = $derived(
-		channelLimit != null && connectedChannelCount >= channelLimit
-	);
 
 	const showUpgradeCta = $derived(isChannelLimitFull && Boolean(billingHref));
 
@@ -292,7 +314,11 @@
 			<h2 id="connected-channels-heading" class="text-xl font-bold text-base-content">
 				Connected channels
 				{#if channelCountLabel}
-					<span class={isChannelLimitFull ? 'text-warning' : 'text-base-content/70'}>
+					<span
+						class={isChannelLimitFull || isActiveChannelLimitFull
+							? 'text-warning'
+							: 'text-base-content/70'}
+					>
 						({channelCountLabel})
 					</span>
 				{/if}
@@ -487,5 +513,9 @@
 		/>
 	{/if}
 
-	<ChannelLimitUpgradeModal bind:open={channelUpgradeDialogOpen} upgradeHref={billingHref} />
+	<ChannelLimitUpgradeModal
+		bind:open={channelUpgradeDialogOpen}
+		upgradeHref={billingHref}
+		variant="connected"
+	/>
 </section>

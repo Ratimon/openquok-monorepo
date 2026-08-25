@@ -91,7 +91,7 @@ await openquok.postAsAgent({
 | `getIntegrationSettings(id)` | `GET /public/integration-settings/:id` |
 | `triggerIntegration(id, { methodName, data? })` | `POST /public/integration-trigger/:id` |
 | `getIntegrationOAuthUrl(identifier, { refresh? })` | `GET /public/social/:identifier` |
-| `deleteIntegrationChannel(id)` | `DELETE /public/integrations/:id` |
+| `deleteIntegrationChannel(id)` | `DELETE /public/integrations/:id` — **409** when the channel still has posts; delete post rows with `deletePost` first, or disable the channel in the workspace |
 | `getIntegrationAnalytics(id, 7\|30\|90)` | `GET /public/analytics/:id` |
 | `getPostAnalytics(postId, 7\|30\|90)` | `GET /public/analytics/post/:postId` |
 | `listNotifications(page?)` | `GET /public/notifications` |
