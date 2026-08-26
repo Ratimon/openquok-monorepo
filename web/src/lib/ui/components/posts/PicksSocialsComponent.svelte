@@ -43,7 +43,7 @@
 	}
 </script>
 
-<div>
+<div class="min-w-0 w-full">
 	<p class="text-xs font-medium text-base-content/60 {guestMode ? 'mb-1' : 'mb-2'}">
 		{heading}
 	</p>
@@ -52,7 +52,7 @@
 			These chips set format and character limits. They are not your accounts.
 		</p>
 	{/if}
-	<div class="flex flex-wrap gap-3">
+	<div class="flex flex-wrap items-center gap-2">
 		{#each channels as ch (ch.id)}
 			{@const schedulable = ch.schedulable}
 			{@const selected = selectedIds.includes(ch.id)}

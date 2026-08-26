@@ -391,16 +391,18 @@
 
 <div class="grid min-h-0 min-w-0 flex-1 grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
 	<div class="flex min-h-0 min-w-0 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
-		<div class="flex items-start justify-between gap-3">
-			<PicksSocialsComponent
-				channels={socialChannels}
-				{selectedIds}
-				onToggleChannel={onToggleChannel}
-				{guestMode}
-				{isLoggedIn}
-				onConnectAccounts={() => openGuestLock('connect-channels')}
-			/>
-			<div class="relative">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+			<div class="min-w-0 w-full sm:flex-1">
+				<PicksSocialsComponent
+					channels={socialChannels}
+					{selectedIds}
+					onToggleChannel={onToggleChannel}
+					{guestMode}
+					{isLoggedIn}
+					onConnectAccounts={() => openGuestLock('connect-channels')}
+				/>
+			</div>
+			<div class="relative shrink-0 self-end sm:self-auto">
 				<div class={guestMode ? 'pointer-events-none' : ''} inert={guestMode}>
 					<SelectGroupTargeting
 						channels={socialChannels}

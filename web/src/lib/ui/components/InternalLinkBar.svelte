@@ -43,9 +43,9 @@
 	}
 </script>
 
-<div class="flex flex-wrap gap-8 text-center md:text-left">
+<div class="grid w-full grid-cols-1 gap-x-8 gap-y-10 text-left sm:grid-cols-2 xl:grid-cols-3">
 	{#each Object.keys(linkList) as category (category)}
-		<div>
+		<div class="min-w-0">
 			<h3 class="text-sm font-semibold leading-6 text-base-content">
 				{capitalize(category)}</h3>
 			<ul role="list" class="mt-6 space-y-4">
