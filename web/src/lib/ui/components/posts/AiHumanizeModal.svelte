@@ -6,9 +6,13 @@
 
 	import {
 		COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS,
-		HUMANIZE_API_DOCS_URL,
-		HUMANIZE_MODE_OPTIONS
+		HUMANIZE_API_DOCS_URL
 	} from '$lib/ai-humanize/constants/config';
+	import {
+		detectHumanizeUiLocale,
+		humanizeModeOptionsFor,
+		humanizeUiCopyFor
+	} from '$lib/ai-humanize/utils/uiLocale';
 	import { formatWriterProviderConstraintTooltip } from '$lib/ai-writer/utils';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
@@ -72,10 +76,16 @@
 	const hasSource = $derived(sourcePlainText.length > 0);
 	const showRewriteUi = $derived(phase === 'ready' || phase === 'unsupported');
 	const showEmptyState = $derived(showRewriteUi && !hasSource);
-	const selectedModeOption = $derived(
-		HUMANIZE_MODE_OPTIONS.find((option) => option.id === mode) ?? HUMANIZE_MODE_OPTIONS[0]
-	);
 	const localFallback = $derived(phase === 'unsupported' || rewriteSource === 'local');
+
+	// Presentation-only locale: Thai browsers get Thai modal labels; the
+	// rewrite behavior itself is decided per draft by detectHumanizeLocale.
+	const uiLocale = $derived(detectHumanizeUiLocale());
+	const modeOptions = $derived(humanizeModeOptionsFor(uiLocale));
+	const uiCopy = $derived(humanizeUiCopyFor(uiLocale));
+	const selectedModeOption = $derived(
+		modeOptions.find((option) => option.id === mode) ?? modeOptions[0]
+	);
 
 	$effect(() => {
 		if (!open) return;
@@ -348,10 +358,10 @@
 					<div class="flex flex-col gap-3">
 						<div>
 							<p class="mb-1.5 text-[11px] font-semibold tracking-wide text-base-content/55 uppercase">
-								Mode
+								{uiCopy.modeSection}
 							</p>
 							<div class="flex rounded-lg border border-base-300 bg-base-200/40 p-0.5" role="group">
-								{#each HUMANIZE_MODE_OPTIONS as option (option.id)}
+								{#each modeOptions as option (option.id)}
 									<button
 										type="button"
 										class={[
@@ -376,13 +386,13 @@
 						<div>
 							<div class="mb-1.5 flex items-baseline justify-between gap-2">
 								<p class="text-[11px] font-semibold tracking-wide text-primary uppercase">
-									Post draft
+									{uiCopy.draftSection}
 								</p>
 								{#if hasSource}
 									<span class="text-[11px] tabular-nums text-primary/80">
-										{sourcePlainText.length} characters
+										{sourcePlainText.length} {uiCopy.charactersSuffix}
 										{#if sourceAudit}
-											· {tellCountBefore} tells
+											· {tellCountBefore} {uiCopy.tellsSuffix}
 										{/if}
 									</span>
 								{/if}
@@ -399,15 +409,15 @@
 						<div>
 							<div class="mb-1.5 flex items-baseline justify-between gap-2">
 								<p class="text-[11px] font-semibold tracking-wide text-base-content/55 uppercase">
-									Rewrite
+									{uiCopy.rewriteSection}
 								</p>
 								{#if rewriteText}
 									<span class="text-[11px] tabular-nums text-base-content/60">
 										{#if rewriteAudit}
-											{tellCountAfter} tells
+											{tellCountAfter} {uiCopy.tellsSuffix}
 										{/if}
 										{#if localFallback}
-											{rewriteAudit ? ' · ' : ''}Local cleanup
+											{rewriteAudit ? ' · ' : ''}{uiCopy.localCleanupChip}
 										{/if}
 									</span>
 								{/if}

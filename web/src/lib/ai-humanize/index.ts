@@ -4,15 +4,20 @@ export {
 	HUMANIZE_MODES,
 	HUMANIZE_DEFAULT_MODE,
 	HUMANIZE_MODE_OPTIONS,
+	HUMANIZE_MODE_OPTIONS_TH,
+	HUMANIZE_UI_COPY,
 	HUMANIZE_REGISTER_OVERLAYS,
 	COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS,
 	COMPOSER_HUMANIZE_DEFAULTS,
-	type HumanizeMode
+	type HumanizeMode,
+	type HumanizeModeOption,
+	type HumanizeUiCopy
 } from '$lib/ai-humanize/constants/config';
 
 export {
 	COMPOSER_HUMANIZE_HUMAN_PREAMBLE,
 	COMPOSER_HUMANIZE_ROUGHEN_PREAMBLE,
+	COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT,
 	COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT,
 	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT,
 	serializeHumanizeWritingGuide,
@@ -82,6 +87,13 @@ export {
 	type HumanizeTellHit,
 	type HumanizeTellKind,
 	applyLocalHumanizeRewrite,
+	detectHumanizeLocale,
+	isThaiText,
+	thaiCharRatio,
+	detectHumanizeUiLocale,
+	humanizeModeOptionsFor,
+	humanizeUiCopyFor,
+	prefersThaiLanguage,
 	findInventedSpecifics,
 	type HumanizeInventedKind,
 	type HumanizeInventedSpecific,
