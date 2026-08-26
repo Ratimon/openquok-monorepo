@@ -106,7 +106,7 @@ Slots are a convenience, not a lock — you can always pick another time. See <a
 
 Both views read the same posts. Changing a time in the composer updates both. See <a href="/docs/getting-started/tour-the-app">Tour the app</a>.
 
-## Smart filter
+<h2 id="smart-filter">Smart filter</h2>
 
 A **smart filter** is how you narrow a table or board to the channels, posts, templates, or plugs you are working on. Plans list this as **Smart filters**.
 

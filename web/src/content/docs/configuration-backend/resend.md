@@ -40,7 +40,10 @@ Leave <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> unset so plan
 
 ## Steps (local)
 
-<Steps>
+<Steps
+	howToName="Resend Setup Steps"
+	howToDescription="Supabase email confirmations, local development email server, and Resend production setup for OpenQuok."
+>
 
 ### Configure Supabase auth email settings
 
@@ -78,7 +81,10 @@ Open the local inbox UI at <Badge text="http://localhost:8005" variant="new" />.
 
 ## Steps (production with Resend)
 
-<Steps>
+<Steps
+	howToName="Steps"
+	howToDescription="Steps: Supabase email confirmations, local development email server, self-hosted no-email mode, and Resend production setup for OpenQuok."
+>
 
 ### Verify your domain in Resend
 

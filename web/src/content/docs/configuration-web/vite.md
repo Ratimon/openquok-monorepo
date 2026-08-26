@@ -17,7 +17,10 @@ When you change values in <Badge text="web/.env.development.local" variant="envW
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="Vite Configuration Steps"
+	howToDescription="Configure VITE_* variables for the SvelteKit web app"
+>
 
 ### Copy the development env template
 

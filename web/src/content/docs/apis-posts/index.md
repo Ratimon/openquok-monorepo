@@ -24,7 +24,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </CardGrid>
 
 <Callout type="note" title="Terminology">
-<p>A <strong>post group</strong> is the multi-channel composition the workspace UI calls a <em>post</em>. The group's UUID is returned by <Badge text="POST /public/posts" variant="default" /> as <code>postGroup</code> and appears on each calendar row from <Badge text="GET /public/posts/list" variant="default" />. Full edit-mode read/update/delete for a group over HTTP is <strong>session-only</strong> (<Badge text="/posts/group/{postGroup}" variant="path" /> with a user token). A programmatic token can create groups, list rows, flip status with <Badge text="PUT /public/posts/{postId}/status" variant="default" />, and delete by row id.</p>
+<p>A <strong>post group</strong> is the multi-channel composition the workspace UI calls a <em>post</em>. The group's UUID is returned by <Badge text="POST /public/posts" variant="default" /> as <code>postGroup</code> and appears on each calendar row from <Badge text="GET /public/posts/list" variant="default" />. Full edit-mode read/update/delete for a group over HTTP is <strong>session-only</strong> (<Badge text={"/posts/group/{postGroup}"} variant="path" /> with a user token). A programmatic token can create groups, list rows, flip status with <Badge text={"PUT /public/posts/{postId}/status"} variant="default" />, and delete by row id.</p>
 </Callout>
 
 ## Typical flow

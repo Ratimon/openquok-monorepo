@@ -86,9 +86,12 @@ Prose tabs (Cloud vs self-hosting):
 
 ## Steps
 
-Use steps for sequential instructions:
+Use steps for sequential instructions. For example:
 
-<Steps>
+<Steps
+	howToName="Create a New Project"
+	howToDescription="Clone the template repository, configure docs site settings, and deploy your documentation site."
+>
 
 ### Create a new project
 

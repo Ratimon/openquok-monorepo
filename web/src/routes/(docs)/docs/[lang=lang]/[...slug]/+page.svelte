@@ -11,6 +11,7 @@
 	let { data }: Props = $props();
 
 	let meta = $derived(data.meta);
+	let howToBlocks = $derived(data.howToBlocks ?? []);
 	let slug = $derived(data.slug);
 	let locale = $derived(data.locale);
 	let prev = $derived(data.prev);
@@ -21,7 +22,7 @@
 	let doc = $derived(getDoc(slug, locale));
 </script>
 
-<DocsSeoHead title={meta.title} description={meta.description} />
+<DocsSeoHead title={meta.title} description={meta.description} {howToBlocks} />
 
 {#key slug}
 	{#if doc}

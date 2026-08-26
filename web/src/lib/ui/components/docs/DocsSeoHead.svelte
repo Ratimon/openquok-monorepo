@@ -3,20 +3,24 @@
 
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import type { DocsHowToBlock } from '$lib/docs/utils/extractDocsHowToFromRaw';
 	import {
 		buildDocsBreadcrumbListItems,
 		resolveDocsPageUrl
 	} from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
 	import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+	import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 	import { createJsonLdWithContext, SCHEMA_ORG_CONTEXT } from '$lib/seo/jsonLdSchema';
 	import { jsonLdScriptHtml } from '$lib/seo/jsonLdScriptHtml';
 
 	let {
 		title,
-		description
+		description,
+		howToBlocks = []
 	}: {
 		title: string;
 		description?: string;
+		howToBlocks?: DocsHowToBlock[];
 	} = $props();
 
 	let siteTitle = docsConfig.site.title;
@@ -26,6 +30,19 @@
 	let url = $derived(resolveDocsPageUrl(page.url.pathname, page.url));
 
 	let breadcrumbItems = $derived(buildDocsBreadcrumbListItems(page.url.pathname, page.url));
+
+	let howToSchemaNodes = $derived(
+		howToBlocks.flatMap((block, index) => {
+			const node = createHowToSEOSchema({
+				canonicalUrl: url,
+				fragmentId: howToBlocks.length === 1 ? 'howto' : `howto-${index + 1}`,
+				name: block.name,
+				description: block.description,
+				steps: block.steps
+			});
+			return Object.keys(node).length > 0 ? [createJsonLdWithContext(node)] : [];
+		})
+	);
 
 	let schemaData = $derived([
 		createJsonLdWithContext({
@@ -43,7 +60,8 @@
 			'@context': SCHEMA_ORG_CONTEXT,
 			'@type': 'BreadcrumbList',
 			itemListElement: breadcrumbItems
-		} satisfies WithContext<BreadcrumbList>
+		} satisfies WithContext<BreadcrumbList>,
+		...howToSchemaNodes
 	]);
 </script>
 

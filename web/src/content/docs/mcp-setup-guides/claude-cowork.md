@@ -20,7 +20,10 @@ Claude Cowork registers remote MCP servers at the **organization** level — eit
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Claude Cowork Setup"
+	howToDescription="Connect OpenQuok MCP to Claude Cowork via custom connectors."
+>
 
 ### Generate your token
 

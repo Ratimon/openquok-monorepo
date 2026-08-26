@@ -110,9 +110,12 @@ Every successful device login produces a **new** <Badge text="opo_…" variant="
 
 ## Workspace scoping and subscription plans
 
-Plan limits are **not** inherited from whoever operates <Badge text="cli-auth.openquok.com" variant="new" />. They are enforced on **the workspace the user selects** when approving the OAuth app.
+Plan limits are **not** inherited from whoever operates <Badge text="cli-auth.openquok.com" variant="new" />. They attach to **the workspace the user selects** when authorizing the app — not to the auth server. The steps below bind that workspace from device verification through each later public API request.
 
-<Steps>
+<Steps
+	howToName="Authorize a workspace and issue a programmatic token"
+	howToDescription="Complete device verification, select a workspace, issue a programmatic token, then enforce that workspace's plan limits on each public API request."
+>
 
 ### Device verification and OAuth UI
 
@@ -138,11 +141,13 @@ The auth server stores <Badge text="organization_id" variant="default" /> on the
 <p>The shared secret is safe, because, the client secret only proves that <strong>your auth server</strong> may exchange authorization codes for that registered OAuth app. A Solo-plan user still receives a token bound to <em>their</em> Solo workspace; Ultimate-only capabilities remain blocked by the API subscription guard for that <Badge text="organization_id" variant="default" />.</p>
 </Callout>
 
-<Callout type="warning" title="Platform OAuth app registration">
+<Callout type="warning">
 <p>The OAuth app referenced by <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> must exist in the same OpenQuok project as the API. Its redirect URL must match <Badge text="/cli/device/callback" variant="path" /> on <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (or <Badge text="SERVER_URL" variant="envBackend" /> when browser steps run on the auth server). Register it with <Badge text="agent/server/scripts/generate-oauth-app-env.mjs" variant="path" /> or manually under <Badge text="Developers" variant="default" /> → <Badge text="Apps" variant="default" /> in a workspace you control, then copy the client id and secret into the auth server env.</p>
 </Callout>
 
-## Workspace isolation (users do not share one workspace)
+## Workspace isolation
+
+Users do not share one workspace.
 
 Device login does **not** hand every CLI user the same token or the operator’s workspace.
 

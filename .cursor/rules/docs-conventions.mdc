@@ -128,14 +128,21 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 - For **ordered multi-step instructions** (deploy guides, setup flows), prefer **`Steps`** from `$lib/ui/components/docs/mdx/index.js` over Markdown `1.` / `2.` lists so the UI shows **circled step numbers** and consistent vertical rhythm.
 - **Pattern**: wrap the section in `<Steps>…</Steps>`. Each step is **`###` or `####`** (Markdown heading) plus body content (paragraphs, tables, `<Callout>`, etc.). Do **not** put numbers in the heading text — the component numbers steps automatically.
-- **Example** (see `web/src/content/docs/documentation-contribution/components.md` and `web/src/content/docs/installation/vercel.md`):
+- **HowTo JSON-LD (SEO)**: optional props on `<Steps>` emit `schema.org/HowTo` in the page head (parsed from raw markdown at SSR):
+  - **`howToName`** — procedure title (recommended; otherwise the nearest preceding **`##`** section heading is used).
+  - **`howToDescription`** — short summary for structured data (optional).
+  - Step **`name`** / **`text`** come from each `###` / `####` heading and its body (badges and MDX components are stripped to plain text for JSON-LD).
+- **Example** (see `web/src/content/docs/admin/oauth-server.md`, `web/src/content/docs/documentation-contribution/components.md`, and `web/src/content/docs/installation/vercel.md`):
 
 ```html
 <script>
 import { Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-<Steps>
+<Steps
+	howToName="Create an OAuth app"
+	howToDescription="Register a third-party OAuth application in the OpenQuok dashboard."
+>
 
 ### Create a new project
 

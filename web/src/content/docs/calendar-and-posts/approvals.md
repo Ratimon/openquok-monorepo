@@ -29,7 +29,10 @@ They do not see your workspace, other channel groups, or any other posts. No Ope
 
 ## A simple review cycle
 
-<Steps>
+<Steps
+	howToName="A Simple Review Steps"
+	howToDescription="Send a client a preview link, collect comments, and schedule — no OpenQuok login required"
+>
 
 ### Draft the week
 

@@ -35,7 +35,10 @@ The repo includes <Badge text="railway.toml" variant="path" /> at the monorepo r
 
 ## Dashboard setup
 
-<Steps>
+<Steps
+	howToName="Railway Dashboard setup"
+	howToDescription="Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI."
+>
 
 ### Create project resources
 
@@ -102,7 +105,10 @@ npm i -g @railway/cli
 
 ### Deploy a worker from your machine
 
-<Steps>
+<Steps
+	howToName="Railway CLI"
+	howToDescription="Railway CLI: Deploy long-running BullMQ worker services on Railway with the monorepo build and Railway CLI."
+>
 
 ### Authenticate and link
 

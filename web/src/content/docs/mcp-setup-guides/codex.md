@@ -20,7 +20,10 @@ Codex reads MCP servers from <Badge text="~/.codex/config.toml" variant="path" /
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName=Codex Setup"
+	howToDescription="Connect OpenQuok MCP to OpenAI Codex."
+>
 
 ### Generate your token
 

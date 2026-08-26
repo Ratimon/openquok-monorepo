@@ -22,7 +22,10 @@ Deploy the **backend** (Express), **web** (SvelteKit), and optionally the **CLI 
 
 ## Backend on Vercel
 
-<Steps>
+<Steps
+	howToName="Backend on Vercel"
+	howToDescription="Deploy OpenQuok's Application on Vercel — backend, web, and CLI auth server."
+>
 
 ### Create a new Vercel project
 
@@ -101,7 +104,10 @@ Example CLI prompts when running <code>npx vercel link</code> under <Badge text=
 
 ## Web on Vercel
 
-<Steps>
+<Steps
+	howToName="Web on Vercel"
+	howToDescription="Web on Vercel: Deploy OpenQuok's Application on Vercel — backend, web, and CLI auth server."
+>
 
 ### Create a second Vercel project
 
@@ -146,7 +152,10 @@ pnpm vercel:deploy:web:prod
 
 The device-flow helper lives under <Badge text="agent/server" variant="path" />. Create a **third** Vercel project with **Root Directory** set to <Badge text="agent/server" variant="path" />.
 
-<Steps>
+<Steps
+	howToName="CLI auth server on Vercel"
+	howToDescription="Deploy the device-flow auth server from agent/server as a separate Vercel project with matching env and callback URL."
+>
 
 ### Link the project once
 

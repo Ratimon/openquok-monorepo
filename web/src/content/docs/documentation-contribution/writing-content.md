@@ -122,7 +122,7 @@ Each top-level `- item/` becomes a row; indent with two spaces per level. Traili
 | Component | Use for |
 |-----------|---------|
 | **`Callout`** | Notes, tips, warnings (`type="note\|tip\|warning\|danger"`) — HTML body, not Markdown |
-| **`Steps`** | Numbered setup flows (`###` headings inside `<Steps>`) |
+| **`Steps`** | Numbered setup flows (`###` headings inside `<Steps>`) — add `howToName` and `howToDescription` for HowTo JSON-LD |
 | **`Tabs`** / **`TabItem`** | Alternate commands or config (npm vs pnpm, client vs server) |
 | **`Card`** / **`CardGrid`** | Feature highlights or grouped info cards |
 | **`LinkCard`** | In-site navigation cards (Related, Next steps) |

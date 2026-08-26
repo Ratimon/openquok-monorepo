@@ -22,7 +22,10 @@ Complete <strong>backend and frontend configuration</strong> and confirm a <stro
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="How to Set Up Admin Access"
+	howToDescription="Set platform admin access in Supabase."
+>
 
 ### Open the app
 

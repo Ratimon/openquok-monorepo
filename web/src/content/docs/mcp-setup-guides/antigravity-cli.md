@@ -31,7 +31,10 @@ If you used Gemini CLI, run <Badge text="agy plugin import gemini" variant="defa
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Antigravity Setup"
+	howToDescription="Connect OpenQuok MCP to Antigravity CLI via MCP"
+>
 
 ### Generate your token
 

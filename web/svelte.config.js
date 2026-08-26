@@ -10,6 +10,7 @@ import { dirname, resolve } from 'path';
 
 import { mdsvexCodeHighlighter } from './mdsvex.config.mjs';
 import { adapterVercelWithoutPrerenderDeps } from './adapter-vercel-static-docs.mjs';
+import rehypeSlug from 'rehype-slug';
 
 /**
  * Adapter selection (build-time):
@@ -53,7 +54,8 @@ const config = {
 			extensions: ['.md', '.svx'],
 			highlight: {
 				highlighter: mdsvexCodeHighlighter
-			}
+			},
+			rehypePlugins: [rehypeSlug]
 		}),
 		vitePreprocess({
 			style: {

@@ -145,7 +145,10 @@ Plan limits are edited in <Badge text="pricing.ts" variant="path" />, not in Str
 Use Test mode before going live. Complete setup in **Test mode** in the <DocsExternalLink href="https://dashboard.stripe.com/test/dashboard">Stripe Dashboard</DocsExternalLink>. Repeat with live keys only when checkout and webhooks work end-to-end.
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Stripe Setup Steps"
+	howToDescription="Complete setup in Test mode in the Stripe Dashboard."
+>
 
 ### Create API keys
 
@@ -198,7 +201,10 @@ Set <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> and <Badge text="V
 
 Stripe cannot call `localhost` directly. Use the **Stripe CLI** to forward events to your API process (default port **3000**).
 
-<Steps>
+<Steps
+	howToName="Local webhook testing"
+	howToDescription="Stripe cannot call `localhost` directly. Use the Stripe CLI to forward events to your API process (default port 3000)."
+>
 
 ### Install and log in
 
@@ -260,7 +266,10 @@ Webhook requests must use the raw JSON body for signature verification; the rout
 
 ## Production checklist
 
-<Steps>
+<Steps
+	howToName="Production checklist"
+	howToDescription="Production checklist: Configure Stripe for workspace subscriptions, media storage quotas, checkout, and webhooks in OpenQuok — including self-host with billing disabled."
+>
 
 ### Use live keys
 

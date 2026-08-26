@@ -23,7 +23,10 @@ There is no JWT auth hook; the app resolves <Badge text="public.users.id" varian
 
 ## Backend integration
 
-<Steps>
+<Steps
+	howToName="How to integrate RBAC with Backend implementation"
+	howToDescription="OpenQuok's app-level roles/permissions."
+>
 
 ### Types
 

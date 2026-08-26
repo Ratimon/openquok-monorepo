@@ -106,7 +106,10 @@ From <Badge text="agent/server" variant="path" />, run <code>pnpm dev</code> and
 
 ## Common setup steps
 
-<Steps>
+<Steps
+	howToName="Agent Setup Steps"
+	howToDescription="Deploy and configure the CLI auth server environment variables"
+>
 
 ### Start with the example env file
 

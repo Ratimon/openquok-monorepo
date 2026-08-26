@@ -70,7 +70,10 @@ After OAuth, OpenQuok shows a **Page picker** so you choose which Facebook Page 
 
 Shared with <a href="/docs/social-integration/instagram#meta-app-setup-summary">Instagram — Meta app setup</a>.
 
-<Steps>
+<Steps
+	howToName="Meta app setup"
+	howToDescription="Shared with Instagram — Meta app setup."
+>
 
 ### Create a Meta app
 
@@ -105,7 +108,10 @@ If you are deploying a public app, business verification may be required and you
 
 When you manage one or more Facebook Pages, connect through **Facebook Login for Business** (same product family as Instagram (Business), but with **Page** scopes and the **Facebook** redirect URI above).
 
-<Steps>
+<Steps
+	howToName="Facebook Page flow"
+	howToDescription="When you manage one or more Facebook Pages, connect through Facebook Login for Business (same product family as Instagram (Business), but with Page scopes and the Facebook redirect URI above)."
+>
 
 ### Add Facebook Login for Business
 

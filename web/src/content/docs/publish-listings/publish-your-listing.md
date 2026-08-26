@@ -13,7 +13,10 @@ You publish listings from your OpenQuok account. No repository access is require
 
 ## Before you start
 
-<Steps>
+<Steps
+	howToName="List Playbooks or Building block"
+	howToDescription="Add your own building block or playbook on OpenQuok."
+>
 
 ### Sign in
 
@@ -31,7 +34,10 @@ Decide whether you are sharing a single **building block** or a **playbook** sta
 
 ## Publish a building block
 
-<Steps>
+<Steps
+	howToName="Publish a building block"
+	howToDescription="Publish a building block: Add your own building block or playbook on OpenQuok — username, editor, review, and Skill Builder."
+>
 
 ### Open your Playbooks workspace
 
@@ -67,7 +73,10 @@ You can create a playbook in two ways.
 
 ### From your account
 
-<Steps>
+<Steps
+	howToName="Publish a playbook"
+	howToDescription="You can create a playbook in two ways."
+>
 
 ### Open My Playbooks
 

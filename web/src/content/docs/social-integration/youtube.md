@@ -115,7 +115,10 @@ You do **not** need a separate “request access” for **YouTube Reporting API*
 
 Follow <DocsExternalLink href="https://developers.google.com/youtube/registering_an_application">Obtaining authorization credentials</DocsExternalLink> for the underlying Google requirements. The steps below add OpenQuok redirect URIs, env vars, and the channel-picker flow.
 
-<Steps>
+<Steps
+	howToName="General Youtube Setup"
+	howToDescription="Follow Obtaining authorization credentials for the underlying Google requirements."
+>
 
 ### Open Google Cloud Console
 
@@ -224,7 +227,10 @@ or when publishers sign in through **Google Workspace** and the OAuth screen blo
 <p>For brand-managed channels, keep the OAuth app on <strong>External</strong> user type, add each connecting Google account as a <strong>test user</strong>, and complete the workspace trust steps below if your organization restricts third-party OAuth. You do not need to publish the app for an internal pilot, but Google can take several hours to propagate admin trust changes.</p>
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Brand accounts and Google Workspace"
+	howToDescription="Trust the OAuth app in Google Workspace and connect Brand-managed YouTube channels when the consent screen blocks access."
+>
 
 ### Sign in to Google Admin
 

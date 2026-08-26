@@ -22,7 +22,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Installation
 
-<Steps>
+<Steps
+	howToName="Installation for Grok Bot"
+	howToDescription="Install OpenQuok CLI on a Grok Bot (desktop and iOS)."
+>
 
 ### Install Grok Bot
 
@@ -45,7 +48,7 @@ Production auth uses the API at <Badge text="https://cli-auth.openquok.com" vari
 <p>Installing a skill or starting a new chat does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. Ask the Bot to run <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> on its computer when you need a newer CLI.</p>
 </Callout>
 
-### Install the openquok-core skill
+<h3 id="install-the-openquok-core-skill">Install the openquok-core skill</h3>
 
 The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. Grok Bot loads skills from <strong>Settings → Plugins</strong> or when you invoke <Badge text="/" variant="default" /> in chat. Choose one install path:
 

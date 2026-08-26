@@ -22,7 +22,10 @@ Official OpenAI guidance: <DocsExternalLink href="https://developers.openai.com/
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="ChatGPT Setup"
+	howToDescription="Connect OpenQuok MCP to ChatGPT via a custom connector."
+>
 
 ### Generate your token
 

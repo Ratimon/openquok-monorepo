@@ -11,7 +11,10 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 ## Quick setup from the dashboard
 
-<Steps>
+<Steps
+	howToName="MCP Client Setup"
+	howToDescription="Configure Cursor, Claude Code, Claude Cowork, ChatGPT, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming."
+>
 
 ### Generate a programmatic token
 

@@ -22,7 +22,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Installation
 
-<Steps>
+<Steps
+	howToName="Installation for Openclaw"
+	howToDescription="Install OpenQuok CLI on an OpenClaw host (eg. Telegram)."
+>
 
 ### Open the OpenClaw workspace
 
@@ -34,7 +37,7 @@ cd /data/workspace
 
 If your deployment uses a different mount path, use the directory where OpenClaw stores project files and where you want <Badge text=".agents/skills/" variant="path" /> to live.
 
-### Install the openquok-core skill
+<h3 id="install-the-openquok-core-skill">Install the openquok-core skill</h3>
 
 The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. Choose one install path from your OpenClaw workspace (e.g. <Badge text="cd /data/workspace" variant="default" /> on Docker/Railway):
 
@@ -122,7 +125,7 @@ Then open a shell in the Railway service, <code>cd /data/workspace</code>, and c
 - If the agent reports an old CLI version after you upgraded, run <Badge text="command -v openquok" variant="default" /> and <Badge text="which -a openquok" variant="default" /> — another binary may be earlier on <Badge text="PATH" variant="param" />.
 - For posting with images in chat, the user must provide a file  or a direct <code>https://</code> image URL for <Badge text="upload-from-url" variant="default" />; ask before calling <Badge text="posts:create" variant="default" /> with media.
 
-## Real World Use case: Chat model vs image generation
+<h2 id="chat-model-vs-image-generation">Real World Use case: Chat model vs image generation</h2>
 
 OpenClaw uses <strong>two separate systems</strong>:
 
@@ -231,7 +234,7 @@ Full model list, editing, aspect ratios, and provider deep dives: <DocsExternalL
 </Callout>
 
 <Callout type="warning">
-<p>If Telegram chat fails while the Control UI works, the gateway may be on an image-only model (for example <Badge text="google/gemini-3-pro-image-preview" variant="default" />). Run <Badge text="openclaw models set anthropic/claude-sonnet-4-6" variant="default" /> or <Badge text="/model" variant="default" /> in chat and pick a chat model. Use <Badge text="imageGenerationModel" variant="param" /> for pictures — see <a href="#real-world-use-case-chat-model-vs-image-generation">Chat model vs image generation</a> above.</p>
+<p>If Telegram chat fails while the Control UI works, the gateway may be on an image-only model (for example <Badge text="google/gemini-3-pro-image-preview" variant="default" />). Run <Badge text="openclaw models set anthropic/claude-sonnet-4-6" variant="default" /> or <Badge text="/model" variant="default" /> in chat and pick a chat model. Use <Badge text="imageGenerationModel" variant="param" /> for pictures — see <a href="#chat-model-vs-image-generation">Chat model vs image generation</a> above.</p>
 </Callout>
 
 ## Skill source on GitHub

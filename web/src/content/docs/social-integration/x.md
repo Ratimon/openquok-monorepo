@@ -88,7 +88,10 @@ https://localhost:5173/integration/oauth/x
 
 ## X developer app setup
 
-<Steps>
+<Steps
+	howToName="X developer app setup"
+	howToDescription="How to configure X for OpenQuok — OAuth 1.0a, backend env, and developer portal settings."
+>
 
 ### Create a project and app
 

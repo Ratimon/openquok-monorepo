@@ -17,7 +17,10 @@ The same <Badge text="REDIS_HOST" variant="envBackend" /> / <Badge text="REDIS_P
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="Redis Setup Steps"
+	howToDescription="Configure Redis variables for OpenQuok."
+>
 
 ### Create a Redis database
 

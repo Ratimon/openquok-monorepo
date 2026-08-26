@@ -22,7 +22,10 @@ Do **not** treat the self-host file as a substitute for the contributor Compose 
 
 ## Local Redis for contributors
 
-<Steps>
+<Steps
+	howToName="Local Redis Setup Steps"
+	howToDescription="Local Redis for contributors, or the self-host Compose stack."
+>
 
 ### Start Redis locally
 

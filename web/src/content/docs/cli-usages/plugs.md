@@ -58,7 +58,7 @@ openquok plugs:delete <plug-id>
 ## Related
 
 <CardGrid>
-<LinkCard title="Upsert Global Plug" description="POST /public/integration-plugs/{id} request body and response" href="/docs/apis-integrations/integration-plugs-upsert" />
+<LinkCard title="Upsert Global Plug" description="Create or update global plug rules via the public API" href="/docs/apis-integrations/integration-plugs-upsert" />
 <LinkCard title="Integrations" description="List channels and channel groups before configuring plugs" href="/docs/cli-usages/integrations" />
 <LinkCard title="Public API → Plugs" description="Internal vs global plugs, curl examples, and SDK usage" href="/docs/getting-started-for-public-api#plugs" />
 </CardGrid>

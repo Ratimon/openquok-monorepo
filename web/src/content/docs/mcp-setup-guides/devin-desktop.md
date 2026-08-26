@@ -24,7 +24,10 @@ You can edit the file directly or open it from <Badge text="Settings" variant="d
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Devin Setup"
+	howToDescription="Connect OpenQuok MCP to Devin Desktop."
+>
 
 ### Generate your token
 

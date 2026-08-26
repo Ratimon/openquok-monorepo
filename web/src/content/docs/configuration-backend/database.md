@@ -15,7 +15,10 @@ Database workflow is managed through the Supabase CLI + the migrations under <Ba
 
 ## Steps (local)
 
-<Steps>
+<Steps
+	howToName="Datbase Migration Setup Steps"
+	howToDescription="Supabase CLI, migrations, pg_cron notes, and type generation for OpenQuok."
+>
 
 ### Install and configure Supabase CLI
 

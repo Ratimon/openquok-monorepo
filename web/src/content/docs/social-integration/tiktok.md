@@ -108,7 +108,10 @@ Choose one media storage strategy:
 
 Follow TikTok’s developer portal flow, then apply the OpenQuok-specific details below.
 
-<Steps>
+<Steps
+	howToName="TikTok Developer app setup"
+	howToDescription="Follow TikTok’s developer portal flow, then apply the OpenQuok-specific details below."
+>
 
 ### Create an app in TikTok Developer
 

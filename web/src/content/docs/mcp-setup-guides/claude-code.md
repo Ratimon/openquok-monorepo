@@ -16,7 +16,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Claude Code Setup"
+	howToDescription="Add OpenQuok to Claude Code with MCP and HTTP streamable transport."
+>
 
 ### Generate your token
 

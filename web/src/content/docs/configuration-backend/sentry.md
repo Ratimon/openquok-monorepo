@@ -15,7 +15,10 @@ Sentry is optional. To enable error monitoring, set <Badge text="SENTRY_DSN" var
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="Sentry Setup Steps"
+	howToDescription="Enable backend error monitoring with Sentry 's DSN for OpenQuok."
+>
 
 ### Create a Sentry project and copy the DSN
 

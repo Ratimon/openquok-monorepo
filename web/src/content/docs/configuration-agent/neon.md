@@ -23,7 +23,10 @@ The OpenQuok **CLI auth server** (<Badge text="agent/server" variant="path" />) 
 
 ## Common setup steps
 
-<Steps>
+<Steps
+	howToName="Neon Setup Steps"
+	howToDescription="Setup a Neon project and wire its into the OpenQuok CLI auth server."
+>
 
 ### Create a Neon project
 

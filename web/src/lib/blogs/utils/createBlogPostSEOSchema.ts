@@ -1,6 +1,6 @@
 import { base } from '$app/paths';
 
-import type { FAQPage, HowTo, HowToStep, Offer, Product, Question, Thing } from 'schema-dts';
+import type { FAQPage, HowTo, Offer, Product, Question, Thing } from 'schema-dts';
 
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
@@ -16,6 +16,7 @@ import {
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/buildBlogInlineImageSrc';
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
+import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
 /** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
@@ -81,21 +82,15 @@ function createBlogPostHowToNode(params: {
 	const { canonicalUrl, postTitle, description, steps } = params;
 	if (steps.length === 0) return {};
 
-	const howToSteps: HowToStep[] = steps.map((step, index) => ({
-		'@type': 'HowToStep',
-		position: index + 1,
-		name: step.name,
-		text: stripHtmlToPlainText(prepareBlogRichTextForDisplay(step.text))
-	}));
-
-	return {
-		'@type': 'HowTo',
-		'@id': `${canonicalUrl}#howto`,
+	return createHowToSEOSchema({
+		canonicalUrl,
 		name: postTitle,
-		description: description || undefined,
-		url: canonicalUrl,
-		step: howToSteps
-	};
+		description,
+		steps: steps.map((step) => ({
+			name: step.name,
+			text: stripHtmlToPlainText(prepareBlogRichTextForDisplay(step.text))
+		}))
+	});
 }
 
 function createBlogPostProductNode(params: {

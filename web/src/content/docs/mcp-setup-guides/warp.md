@@ -16,7 +16,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Warp Setup"
+	howToDescription="Connect OpenQuok MCP to Warp terminal."
+>
 
 ### Generate your token
 

@@ -98,7 +98,10 @@ Redis and storage defaults point at Compose service DNS and the uploads volume (
 
 ## Install and start
 
-<Steps>
+<Steps
+	howToName="Start with Docker Compose"
+	howToDescription="Self-host OpenQuok with Docker Compose."
+>
 
 ### Meet system requirements
 

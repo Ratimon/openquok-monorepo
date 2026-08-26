@@ -15,7 +15,10 @@ The PWA metadata is configured in <DocsExternalLink href="https://github.com/Rat
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="PWA Configuration Steps"
+	howToDescription="Configure OpenQuok's progressive web app."
+>
 
 ### Edit `web-config.json`
 

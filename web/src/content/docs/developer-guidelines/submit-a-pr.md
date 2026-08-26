@@ -17,7 +17,10 @@ Improve OpenQuok's codebase by opening a pull request. No special permissions ar
 
 ## Workflow
 
-<Steps>
+<Steps
+	howToName="Pull Request Workflow for doc contribution"
+	howToDescription="How to fork OpenQuok, run the monorepo locally, and open a pull request on GitHub."
+>
 
 ### Fork and clone
 

@@ -20,7 +20,10 @@ VS Code reads MCP servers from <Badge text=".vscode/mcp.json" variant="path" /> 
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="VS Code and Copilot Setup"
+	howToDescription="Connect OpenQuok MCP to VS Code and GitHub Copilot via."
+>
 
 ### Generate your token
 

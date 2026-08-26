@@ -24,7 +24,10 @@ Pick **one** <Badge text="STORAGE_PROVIDER" variant="envBackend" /> value for th
 
 ## Cloudflare R2
 
-<Steps>
+<Steps
+	howToName="Cloudflare R2 Setup Steps"
+	howToDescription="Configure Cloudflare R2 or local disk for workspace media uploads."
+>
 
 <h3 id="create-account-and-open-r2">Create account and open R2</h3>
 

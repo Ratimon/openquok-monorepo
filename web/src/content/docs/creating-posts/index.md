@@ -45,7 +45,10 @@ The preview column is worth a glance. Line breaks, image crops, and titles that 
 
 ## Typical flow
 
-<Steps>
+<Steps
+	howToName="How to schedue Posts"
+	howToDescription="How to write and schedule posts in OpenQuok"
+>
 
 ### Choose channels
 

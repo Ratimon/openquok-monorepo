@@ -69,15 +69,15 @@ OpenQuok has **three main services**, **programmatic clients**, and **four exter
 - **Storage** — User media (Supabase Storage, R2, or local disk in self-host).
 - **Resend** — Transactional email when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is enabled.
 
-### Web
+<h3 id="web">Web</h3>
 
 The web app is what users see in the browser — workspace, admin, and in-app docs.
 
-### Backend API
+<h3 id="backend-api">Backend API</h3>
 
 The backend coordinates product logic: REST API for the web and public clients, Supabase migrations and RLS, and uploads.
 
-### Orchestrator
+<h3 id="orchestrator">Orchestrator</h3>
 
 Orchestrator workers run Flowcraft graphs backed by BullMQ. They handle:
 
@@ -88,7 +88,7 @@ Orchestrator workers run Flowcraft graphs backed by BullMQ. They handle:
 
 See <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>.
 
-### Programmatic clients
+<h3 id="programmatic-clients">Programmatic clients</h3>
 
 The CLI (<Badge text="openquok" variant="default" />), Node SDK, and hosted MCP server call <Badge text="/api/v1/public/*" variant="path" />. The CLI may use the device-flow auth server in <Badge text="agent/server/" variant="path" /> for login — see <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
 

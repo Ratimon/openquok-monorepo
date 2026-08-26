@@ -24,7 +24,10 @@ If your backend uses <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> p
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="Google OAuth Setup Steps"
+	howToDescription="Configure Google login with Supabase Auth for OpenQuok."
+>
 
 ### Activate Google as an Auth provider
 

@@ -48,7 +48,10 @@ Digest mode (<code>digest: true</code>) stores entries in Redis and relies on th
 
 ## Setup (local development)
 
-<Steps>
+<Steps
+	howToName="Notification Setup"
+	howToDescription="How OpenQuok creates in-app notifications and sends notification emails (immediate vs digest)"
+>
 
 ### Enable email sending
 

@@ -70,7 +70,10 @@ npm install canvas
 <p>If the TikTok account is new or barely used, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> for <strong>7–14 days</strong> before you schedule AI slideshows or scale posting. Established accounts can skip straight to channel intent.</p>
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Lightweight creator pipeline"
+	howToDescription="Research any channel, lock a character profile plus reference images, generate portrait slides, overlay text, and post via openquok-core."
+>
 
 ### Account warmup (optional)
 

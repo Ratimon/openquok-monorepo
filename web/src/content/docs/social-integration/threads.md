@@ -51,7 +51,10 @@ https://localhost:5173/integration/oauth/threads
 
 ## Meta app setup (summary)
 
-<Steps>
+<Steps
+	howToName="Meta app setup"
+	howToDescription="How to configure Meta Threads for OpenQuok"
+>
 
 ### Create a Meta app
 

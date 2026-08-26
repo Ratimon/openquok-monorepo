@@ -21,7 +21,10 @@ Only **workspace admins** can manage OAuth apps for their workspace. The **clien
 
 ## Create an OAuth app (dashboard)
 
-<Steps>
+<Steps
+	howToName="How to Create an OAuth app"
+	howToDescription="Register a third-party OAuth application in the OpenQuok dashboard"
+>
 
 ### Open developer settings
 

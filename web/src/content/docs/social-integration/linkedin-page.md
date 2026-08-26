@@ -71,7 +71,10 @@ https://localhost:5173/integration/oauth/linkedin-page
 
 ## LinkedIn developer app setup
 
-<Steps>
+<Steps
+	howToName="LinkedIn developer app setup"
+	howToDescription="How to configure a LinkedIn company page for OpenQuok"
+>
 
 ### Create an app
 

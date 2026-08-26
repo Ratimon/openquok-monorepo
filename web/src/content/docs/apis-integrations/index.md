@@ -27,7 +27,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </CardGrid>
 
 <Callout type="note">
-<p>OAuth <strong>callback</strong> exchange (the redirect that finalizes a connection) is handled internally by the web app and is intentionally <strong>not</strong> part of the public API surface — see <a href="/docs/apis-integrations/connect#after-the-redirect">Connect Channel → After the redirect</a>.</p>
+<p>OAuth <strong>callback</strong> exchange (the redirect that finalizes a connection) is handled internally by the web app and is intentionally <strong>not</strong> part of the public API surface — see <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>.</p>
 </Callout>
 
 ## Typical flow

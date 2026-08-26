@@ -201,8 +201,16 @@
 		void page.url.hash;
 		if (!container) return;
 
+		// Assign heading ids during SSR so prerender can validate in-page hash links.
+		enhanceContent(container);
+
+		if (!browser) {
+			return () => {
+				toc.clear();
+			};
+		}
+
 		const timer = setTimeout(() => {
-			enhanceContent(container);
 			scrollToHashFromUrl();
 		}, 0);
 

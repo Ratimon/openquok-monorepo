@@ -15,7 +15,10 @@ Use **DaisyUI semantic color utilities** for backgrounds, text, and borders so t
 
 ## Rules
 
-<Steps>
+<Steps
+	howToName="How to Use DaisyUI Syntax"
+	howToDescription="Use DaisyUI semantic colors so UI respects the active theme in OpenQuok."
+>
 
 ### Use semantic classes
 

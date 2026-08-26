@@ -15,7 +15,10 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 <p>Need to install first? See <a href="/docs/installation">Self-hosting</a>.</p>
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Quickstart"
+	howToDescription="OpenQuok zero to hero — five steps from a new workspace to a queued post."
+>
 
 ### Choose Cloud or Self-host options
 

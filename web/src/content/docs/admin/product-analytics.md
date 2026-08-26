@@ -17,7 +17,10 @@ The web app records **product analytics** (usage and conversion events) and **fi
 
 ## Environment variables
 
-<Steps>
+<Steps
+	howToName="How to Set Up Analytics for OpenQuok"
+	howToDescription="Configure PostHog, Meta Pixel, Google Analytics, and UTM capture on OpenQuok."
+>
 
 ### Web (<Badge text="web/.env.production.local" variant="envWeb" /> or development local)
 

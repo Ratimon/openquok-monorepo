@@ -22,7 +22,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, T
 
 ## Installation
 
-<Steps>
+<Steps
+	howToName="Installation for Hermes Agent"
+	howToDescription="Install OpenQuok CLI on a Hermes Agent host (Telegram, Discord, Slack, and more)."
+>
 
 ### Install Hermes Agent
 
@@ -72,7 +75,7 @@ Production auth uses the API at <Badge text="https://cli-auth.openquok.com" vari
 <p>Installing a skill or restarting Hermes does <strong>not</strong> change <Badge text="openquok --version" variant="default"/>. You need to update it yourself by running <Badge text="npm install -g @openquok/auto-cli@latest" variant="default"/> </p>
 </Callout>
 
-### Install the openquok-core skill
+<h3 id="install-the-openquok-core-skill">Install the openquok-core skill</h3>
 
 The skill file lives at <Badge text="agent/skills/openquok-core/SKILL.md" variant="path" /> in the monorepo. Hermes loads skills from <Badge text="~/.hermes/skills/" variant="path" />. Choose one install path:
 
@@ -139,7 +142,7 @@ openquok integrations:list
 - On Telegram, use <Badge text="auth:login --json --no-poll" variant="default" /> then <Badge text="auth:login:poll" variant="default" /> after you authorize on your phone — not <Badge text="auth:login --json" variant="default" /> alone.
 - For posting with images in chat, the user must provide a file  or an image URL for <Badge text="upload-from-url" variant="default" />.
 
-## Real World Use case: Chat model vs image generation
+<h2 id="chat-model-vs-image-generation">Real World Use case: Chat model vs image generation</h2>
 
 Hermes uses <strong>two separate systems</strong>:
 

@@ -50,7 +50,10 @@ The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is th
 
 ## Backend checklist
 
-<Steps>
+<Steps
+	howToName="How to Implement New Social Provider"
+	howToDescription="Contributor guide for implementing a new social integration in OpenQuok"
+>
 
 ### 1. Implement `SocialProvider`
 
@@ -130,7 +133,10 @@ Add unit tests beside the provider (OAuth or credentials connect, publish payloa
 
 The <strong>connect catalog</strong> is backend-driven (<Badge text="GET /integrations" variant="path" />). The <strong>composer</strong> is opt-in per provider.
 
-<Steps>
+<Steps
+	howToName="Web checklist"
+	howToDescription="Wire the connect catalog, composer preview, and optional settings UI for a new social provider."
+>
 
 ### 1. Launch provider config
 

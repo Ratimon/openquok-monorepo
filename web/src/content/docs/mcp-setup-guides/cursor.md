@@ -25,7 +25,10 @@ Cursor reads MCP servers from <Badge text=".cursor/mcp.json" variant="path" /> a
 
 ## Setup
 
-<Steps>
+<Steps
+	howToName="Cursor Setup"
+	howToDescription="Connect OpenQuok MCP to Cursor via MCP."
+>
 
 ### Generate your token
 

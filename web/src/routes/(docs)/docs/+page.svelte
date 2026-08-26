@@ -11,6 +11,7 @@
 	let { data }: Props = $props();
 
 	let meta = $derived(data.meta);
+	let howToBlocks = $derived(data.howToBlocks ?? []);
 	let slug = $derived(data.slug);
 	let prev = $derived(data.prev);
 	let next = $derived(data.next);
@@ -20,7 +21,7 @@
 	let doc = $derived(getDoc(slug));
 </script>
 
-<DocsSeoHead title={meta.title} description={meta.description} />
+<DocsSeoHead title={meta.title} description={meta.description} {howToBlocks} />
 {#key slug}
 	{#if doc}
 		<DocsDocRenderer

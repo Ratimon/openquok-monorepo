@@ -17,7 +17,10 @@ Improve OpenQuok docs by editing Markdown in this repository and opening a pull 
 
 ## Workflow
 
-<Steps>
+<Steps
+	howToName="Pull Request Workflow for code contribution"
+	howToDescription="How to fork OpenQuok, edit documentation, and open a pull request on GitHub."
+>
 
 ### Fork and clone
 

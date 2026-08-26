@@ -67,7 +67,10 @@ https://localhost:5173/integration/oauth/linkedin
 
 ## LinkedIn developer app setup
 
-<Steps>
+<Steps
+	howToName="LinkedIn developer app setup"
+	howToDescription="How to configure LinkedIn personal profile for OpenQuok"
+>
 
 ### Create an app
 

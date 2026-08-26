@@ -87,7 +87,7 @@ openquok auth:login
 openquok auth:login --authServer "https://auth.example.com"
 ```
 
-For **local** auth server development, the default API URL is <Badge text="http://localhost:3111" variant="default" />. With only the auth server running (no web proxy), the browser opens <Badge text="http://localhost:3111/device/verify" variant="default" />. To test the production-style split locally, run the web dev server, set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> on the auth server, and set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> on web — see <a href="/docs/installation/development-environment#optional-cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
+For **local** auth server development, the default API URL is <Badge text="http://localhost:3111" variant="default" />. With only the auth server running (no web proxy), the browser opens <Badge text="http://localhost:3111/device/verify" variant="default" />. To test the production-style split locally, run the web dev server, set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> on the auth server, and set <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> on web — see <a href="/docs/installation/development-environment#cli-auth-server-device-flow">Development environment</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
 <Callout type="note" title="Deploy your auth server">
 <p>Environment variables for <strong>running</strong> the auth server, OAuth client keys and the web app are documented under <a href="/docs/configuration-agent">Configuration - Agent</a> and <a href="/docs/configuration-web">Configuration - Web</a></p>

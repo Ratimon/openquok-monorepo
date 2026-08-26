@@ -61,7 +61,10 @@ If <code>curl -sS https://www.openquok.com/robots.txt</code> still shows <code>#
 
 ## Fix in Cloudflare (production)
 
-<Steps>
+<Steps
+	howToName="Cloudflare Setup to allow AI clawers"
+	howToDescription="Allow Claude, Gemini, ChatGPT, and Perplexity to discover OpenQuok public pages."
+>
 
 ### Open Security Settings → Bot traffic
 

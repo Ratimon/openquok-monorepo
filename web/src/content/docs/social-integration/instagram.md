@@ -93,7 +93,10 @@ For local HTTPS (or relay) examples, mirror the pattern used for Threads in <Doc
 
 ## Meta app setup (summary)
 
-<Steps>
+<Steps
+	howToName="Meta app setup"
+	howToDescription="Meta app setup: How to configure Instagram for OpenQuok"
+>
 
 ### Create a Meta app
 
@@ -131,7 +134,10 @@ If you are deploying public app,business verification is required and you may ne
 When your professional Instagram account is already tied to a Facebook Page, you can connect to it by setting up the Login for Business flow.
 
 
-<Steps>
+<Steps
+	howToName="Instagram (Business) flow"
+	howToDescription="When your professional Instagram account is already tied to a Facebook Page, you can connect to it by setting up the Login for Business flow."
+>
 
 ### Add Facebook Login for Business
 
@@ -187,7 +193,10 @@ Use **Instagram (Standalone)** when you prefer **Instagram Login** for a profess
 Standalone Login requires a professional Instagram account (creator or business).
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Instagram (Standalone) flow"
+	howToDescription="Use Instagram (Standalone) when you prefer Instagram Login for a professional account and do not want to route the connection through a Facebook Page or Facebook Login for Business."
+>
 
 ### Add Instagram product
 
@@ -222,7 +231,10 @@ Restart the backend. Otherwise, the backend may not pick up your new environment
 
 ## Add Role and Start testing
 
-<Steps>
+<Steps
+	howToName="Add Role and Start testing"
+	howToDescription="Add Role and Start testing: How to configure Instagram for OpenQuok"
+>
 
 ### Add People
 

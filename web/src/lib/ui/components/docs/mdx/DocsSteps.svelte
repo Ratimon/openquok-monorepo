@@ -2,9 +2,15 @@
 	import type { Snippet } from 'svelte';
 
 	let {
-		children
+		children,
+		howToName,
+		howToDescription
 	}: {
 		children: Snippet;
+		/** HowTo JSON-LD title — parsed from raw markdown at SSR; mirrored here for authoring clarity. */
+		howToName?: string;
+		/** Optional HowTo JSON-LD description. */
+		howToDescription?: string;
 	} = $props();
 
 	let el: HTMLDivElement | undefined = $state();
@@ -80,6 +86,11 @@
 	});
 </script>
 
-<div class="not-prose my-6" bind:this={el}>
+<div
+	class="not-prose my-6"
+	bind:this={el}
+	data-howto-name={howToName}
+	data-howto-description={howToDescription}
+>
 	{@render children()}
 </div>

@@ -6,6 +6,7 @@ import {
 	getRawContent,
 	preloadDocsRegistry
 } from '$lib/docs/index';
+import { buildDocsPageLoadExtras } from '$lib/docs/utils/buildDocsPageLoadExtras';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -25,13 +26,15 @@ export const load: PageLoad = async ({ params }) => {
 	if (!doc) throw error(404, `Page not found: ${params.slug}`);
 
 	const { prev, next } = getPrevNext(params.slug);
+	const rawContent = await getRawContent(params.slug);
 
 	return {
 		meta: doc.meta,
 		slug: params.slug,
 		prev,
 		next,
-		rawContent: await getRawContent(params.slug),
-		content: await doc.loadContent()
+		rawContent,
+		content: await doc.loadContent(),
+		...buildDocsPageLoadExtras(rawContent)
 	};
 };

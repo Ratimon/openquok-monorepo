@@ -20,7 +20,10 @@ Any change to environment values requires restarting your dev server or rebuildi
 
 ## Common setup steps
 
-<Steps>
+<Steps
+	howToName="Web Frontend Setup Steps"
+	howToDescription="Configuration for the OpenQuok's in web application."
+>
 
 ### Configure your web env files
 

@@ -21,7 +21,10 @@ There is no ongoing free Cloud plan. After the trial, you need an active subscri
 
 ## Start the trial
 
-<Steps>
+<Steps
+	howToName="How to Start the trial"
+	howToDescription="OpenQuok Cloud 7-day free trial — no credit card required, cancel anytime."
+>
 
 ### Create a Cloud account
 

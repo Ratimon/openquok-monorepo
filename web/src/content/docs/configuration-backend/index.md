@@ -30,7 +30,10 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 
 ## Common setup steps
 
-<Steps>
+<Steps
+	howToName="Backend Setup Steps"
+	howToDescription="Getting Started to Backend configuration"
+>
 
 ### Start with the example env file
 

@@ -330,7 +330,10 @@ Use this flow to seed **agent-edited drafts** with the CLI and exercise the **ka
 <p>The <code>posts</code> table needs <Badge text="note" variant="param" />, <Badge text="is_agent_edited" variant="param" />, and <Badge text="is_reviewed" variant="param" /> (see post migrations under <Badge text="backend/supabase/db/post/" variant="path" />).</p>
 </Callout>
 
-<Steps>
+<Steps
+	howToName="Development environment"
+	howToDescription="Run OpenQuok's agent, backend, workers and web apps locally, execute tests, database scripts, and deployment commands."
+>
 
 ### Start the API and web app
 

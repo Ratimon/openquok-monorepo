@@ -1,4 +1,5 @@
 import { getDoc, getPrevNext, getRawContent, preloadDocsRegistry } from '$lib/docs/index';
+import { buildDocsPageLoadExtras } from '$lib/docs/utils/buildDocsPageLoadExtras';
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
@@ -21,6 +22,7 @@ export const load: PageLoad = async ({ params }) => {
 	if (!doc) throw error(404, 'Documentation landing not found for locale');
 
 	const { prev, next } = getPrevNext(slug, params.lang);
+	const rawContent = await getRawContent(slug, params.lang);
 
 	return {
 		meta: doc.meta,
@@ -28,7 +30,8 @@ export const load: PageLoad = async ({ params }) => {
 		locale: params.lang,
 		prev,
 		next,
-		rawContent: await getRawContent(slug, params.lang),
-		content: await doc.loadContent()
+		rawContent,
+		content: await doc.loadContent(),
+		...buildDocsPageLoadExtras(rawContent)
 	};
 };

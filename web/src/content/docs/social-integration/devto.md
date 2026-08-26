@@ -63,7 +63,10 @@ OpenQuok uses field-level encryption at rest for provider secrets when a server 
 
 ## Create an API key
 
-<Steps>
+<Steps
+	howToName="Dev.to Setup"
+	howToDescription="Connect Dev.to to OpenQuok with a personal API key — and schedule markdown articles."
+>
 
 ### Open DEV Settings → Extensions
 

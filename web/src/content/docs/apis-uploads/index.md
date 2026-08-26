@@ -21,7 +21,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 </CardGrid>
 
 <Callout type="note" title="How uploads chain into posts">
-<p>Upload an asset first. The API returns <code>data.id</code> and <code>data.filePath</code>. Pass them as <code>media: [{ id, path }]</code> inside the <Badge text="POST /public/posts" variant="default" /> body — <code>path</code> is the post field and must be the upload <code>filePath</code>.</p>
+<p>Upload an asset first. The API returns <code>data.id</code> and <code>data.filePath</code>. Pass them as <code>media: [&#123; id, path &#125;]</code> inside the <Badge text="POST /public/posts" variant="default" /> body — <code>path</code> is the post field and must be the upload <code>filePath</code>.</p>
 </Callout>
 
 <Callout type="warning" title="Hosted inbound body limit">

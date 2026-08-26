@@ -37,7 +37,10 @@ If your Supabase project still has only <code>anon</code> / <code>service&#95;ro
 
 ## Steps
 
-<Steps>
+<Steps
+	howToName="Supabase Setup Steps"
+	howToDescription="Create a Supabase project, configure dashboard settings for OpenQuok."
+>
 
 ### Create a Supabase project
 
