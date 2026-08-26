@@ -15,7 +15,7 @@ export const X_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	group: null,
 	additionalSettings: '[]',
 	postingTimes: [{ time: 540 }],
-	editor: 'normal'
+	editor: 'html'
 };
 
 export const X_LANDING_MOCK_BODY =

@@ -5,7 +5,10 @@
 	import { onDestroy, onMount } from 'svelte';
 	import { Editor } from '@tiptap/core';
 
-	import { buildComposerEditorExtensions } from '$lib/ui/components/posts/composer-editor/buildComposerEditorExtensions';
+	import {
+		buildComposerEditorExtensions,
+		type ComposerMentionExtensionConfig
+	} from '$lib/ui/components/posts/composer-editor/buildComposerEditorExtensions';
 	import { plainTextToComposerHtml } from '$lib/ui/components/posts/composer-editor/plainTextToComposerHtml';
 	import { cn } from '$lib/ui/helpers/common';
 
@@ -18,6 +21,7 @@
 		comments?: boolean;
 		class?: string;
 		onHistoryChange?: (state: { canUndo: boolean; canRedo: boolean }) => void;
+		mentionConfig?: ComposerMentionExtensionConfig | null;
 	};
 
 	let {
@@ -28,7 +32,8 @@
 		compact = false,
 		comments = false,
 		class: className = '',
-		onHistoryChange = undefined
+		onHistoryChange = undefined,
+		mentionConfig = null
 	}: Props = $props();
 
 	let element = $state.raw<HTMLElement | undefined>();
@@ -65,7 +70,7 @@
 		const initial = plainTextToComposerHtml(content || '');
 		editor = new Editor({
 			element,
-			extensions: buildComposerEditorExtensions(mode, placeholder),
+			extensions: buildComposerEditorExtensions(mode, placeholder, mentionConfig),
 			content: initial,
 			editable: !disabled,
 			editorProps: {
@@ -201,5 +206,10 @@
 		font-size: 1rem;
 		font-weight: 600;
 		margin: 0.35rem 0 0.2rem;
+	}
+
+	:global(.social-composer-editor .ProseMirror .composer-mention) {
+		color: oklch(var(--p));
+		font-weight: 500;
 	}
 </style>

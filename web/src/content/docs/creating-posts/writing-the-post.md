@@ -17,7 +17,7 @@ The **Post Preview** column on the right shows how each selected channel will re
 
 In **Global** mode the caption box is always **Standard**: a plain **textarea** where you type or paste text and line breaks stay as you entered them.
 
-When you **unlock** a channel that needs a different editor (today, **Dev.to** uses **Markdown**), the box switches to a rich editor with links, headings, and lists. Other networks keep the Standard textarea until their catalog entry uses Plain, Markdown, or HTML.
+When you **unlock** a channel that needs a different editor (**Dev.to** uses **Markdown**; **X** uses **HTML**), the box switches to a rich editor with links, headings, and lists. Other networks keep the Standard textarea until their catalog entry uses Plain, Markdown, or HTML.
 
 See **Editor by platform** below for the full mode table and toolbar rules.
 
@@ -38,7 +38,7 @@ Each connected channel has an **editor mode** in the integration catalog. That m
 | Where you edit | Editor mode | Why |
 | --- | --- | --- |
 | **Global** (globe highlighted) | Always **Standard** (`normal`) | One shared caption cannot be Markdown on Dev.to and plain text on X at the same time |
-| **Unlocked channel** (per-channel edit) | That channel’s mode | Dev.to unlocks **Markdown**; most social channels stay **Standard** |
+| **Unlocked channel** (per-channel edit) | That channel’s mode | Dev.to unlocks **Markdown**; **X** unlocks **HTML**; most other social channels stay **Standard** |
 
 <p>Flow: stay in Global for one caption everywhere — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>. When a network needs its own body format, click its avatar, choose <strong>Edit content</strong>, then write in that channel’s editor.</p>
 
@@ -48,10 +48,10 @@ Switching focus between customized channels, or changing editor mode when you un
 
 | Mode | Caption box | Channels today |
 | --- | --- | --- |
-| **Standard** (`normal`) | Plain textarea | X, LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads, and most others |
+| **Standard** (`normal`) | Plain textarea | LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads, and most others |
 | **Plain** (`none`) | Rich editor with **no** formatting toolbar | None yet — reserved for future plain-only networks |
 | **Markdown** (`markdown`) | Rich editor (links, headings, lists); stored as HTML, published as Markdown | **Dev.to** when unlocked |
-| **HTML** (`html`) | Same rich editor as Markdown; published as sanitized HTML | None yet — reserved for future HTML-first networks |
+| **HTML** (`html`) | Same rich editor as Markdown; stored as HTML | **X** when unlocked — OpenQuok still publishes a **plain-text tweet** (formatting is stripped at publish) |
 
 <Callout type="note" title="Plain vs Standard">
 <p><strong>Plain</strong> mode still uses an internal rich editor, but bold, hashtags, and mentions are hidden so you only get plain text at publish. <strong>Standard</strong> is the familiar textarea with Unicode bold, italic, and underline — not platform-native HTML.</p>
@@ -90,9 +90,9 @@ On the **public guest composer** (Humanizer and similar tools), device upload st
 
 Behavior depends on editor mode:
 
-**Standard** (Global mode and most unlocked social channels): select text, then click **Bold**, **Italic**, or **Underline**. OpenQuok replaces the selection with **Unicode styled characters** — they look bold or italic in Post Preview, but some networks may render them as normal letters. This is not native rich text on X or LinkedIn. If a network strips styled Unicode, shorten or rephrase instead of relying on formatting.
+**Standard** (Global mode and most unlocked social channels): select text, then click **Bold**, **Italic**, or **Underline**. OpenQuok replaces the selection with **Unicode styled characters** — they look bold or italic in Post Preview, but some networks may render them as normal letters. This is not native rich text on LinkedIn. If a network strips styled Unicode, shorten or rephrase instead of relying on formatting.
 
-**Markdown** or **HTML** (for example Dev.to unlocked): the same buttons apply **real** bold, italic, and underline inside the rich editor. Use **Link** and heading/list buttons for structure. OpenQuok converts that content when you publish — check Post Preview before scheduling.
+**Markdown** or **HTML** (for example Dev.to or X unlocked): the same buttons apply **real** bold, italic, and underline inside the rich editor. Use **Link** and heading/list buttons for structure. OpenQuok converts that content when you publish — Dev.to receives Markdown; **X still receives plain text** (rich formatting is stripped). Check Post Preview before scheduling.
 
 ## Emoji and hashtags
 
@@ -106,26 +106,26 @@ A <code>count/limit</code> badge under the caption box tracks how much you have 
 
 | Mode | What the counter shows |
 | --- | --- |
-| **Global** (globe highlighted, no channel focused) | Plain character count against a **500** default limit |
+| **Global** (globe highlighted, no channel focused) | Plain character count against the **tightest limit** among your selected channels (for example **280** when X is selected). When **X** is among the selection, the count is **weighted** — links and mentions can cost more than one character |
 | **Focused channel** (per-channel edit or avatar selected in custom mode) | Count and limit for **that network** |
 | **X focused** | **Weighted** count — links and mentions can cost more than one character; limit is **280** or **4000** on verified X accounts |
 
 The text counter does **not** charge characters for attached images or video. Media limits are validated separately under the media strip.
 
 <Callout type="tip">
-<p>In Global mode the counter uses a 500-character default, not the smallest limit across your channels. If you post to X or another network, unlock it to see its real limit. Full per-network limits live in <a href="/docs/platforms">Posting rules by platform</a>.</p>
+<p>In Global mode with channels selected, the counter uses the <strong>smallest</strong> limit across those networks. With no channels selected yet, it falls back to a <strong>500</strong>-character default. Full per-network limits live in <a href="/docs/platforms">Posting rules by platform</a>.</p>
 </Callout>
 
 When one channel is over its limit, customize that channel’s caption — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
 ## Mentions
 
-OpenQuok supports <Badge text="@" variant="param" /> mentions on **X**, **LinkedIn**, and **LinkedIn Page** only, and only in **Standard** editor mode (the textarea).
+OpenQuok supports <Badge text="@" variant="param" /> mentions on **X**, **LinkedIn**, and **LinkedIn Page** when you focus and unlock a channel. In **Standard** mode (textarea), autocomplete runs as you type. In **Markdown** and **HTML** rich editors, the same search uses TipTap <Badge text="@" variant="param" /> mention suggestions.
 
-In **Global** mode the toolbar <Badge text="@" variant="param" /> button is disabled. Focus a channel, unlock it with **Edit content**, then type <Badge text="@" variant="param" /> followed by at least two characters to search accounts. Use the arrow keys and **Enter** or **Tab** to pick a row, or click the toolbar <Badge text="@" variant="param" /> button to insert <code>@</code> at the cursor. Mention search is not available in Markdown or HTML rich editors.
+In **Global** mode the toolbar <Badge text="@" variant="param" /> button is disabled. Focus a channel, unlock it with **Edit content**, then type <Badge text="@" variant="param" /> followed by at least two characters to search accounts. Use the arrow keys and **Enter** or **Tab** to pick a row, or click the toolbar <Badge text="@" variant="param" /> button to insert <code>@</code> at the cursor.
 
 <Callout type="note" title="Global mode">
-<p>Mention autocomplete only runs on a <strong>customized</strong> X, LinkedIn, or LinkedIn Page channel. Step-by-step unlock flow: <a href="/docs/creating-posts/global-vs-per-channel#what-works-per-channel-only">Global vs per-channel</a>.</p>
+<p>Mention autocomplete only runs on a <strong>customized</strong> channel that supports mentions (X, LinkedIn, or LinkedIn Page). Step-by-step unlock flow: <a href="/docs/creating-posts/global-vs-per-channel#what-works-per-channel-only">Global vs per-channel</a>.</p>
 </Callout>
 
 When a **LinkedIn** channel is focused, the LinkedIn toolbar button opens the **company mention** modal so you can tag an organization page.

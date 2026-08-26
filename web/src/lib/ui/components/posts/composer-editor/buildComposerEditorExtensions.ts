@@ -4,7 +4,13 @@ import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorM
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import StarterKit from '@tiptap/starter-kit';
 
+import {
+	buildComposerMentionExtension,
+	type ComposerMentionExtensionConfig
+} from '$lib/ui/components/posts/composer-editor/buildComposerMentionExtension';
 import { validateComposerLinkHref } from '$lib/ui/components/posts/composer-editor/validateComposerLinkHref';
+
+export type { ComposerMentionExtensionConfig };
 
 const HISTORY_DEPTH = 100;
 const HISTORY_GROUP_DELAY_MS = 100;
@@ -44,7 +50,8 @@ const richStarterKit = StarterKit.configure({
 /** TipTap extension sets for each social composer editor mode. */
 export function buildComposerEditorExtensions(
 	mode: IntegrationEditorMode,
-	placeholder = 'Write something…'
+	placeholder = 'Write something…',
+	mentionConfig: ComposerMentionExtensionConfig | null = null
 ): Extensions {
 	const placeholderExt = Placeholder.configure({ placeholder });
 	const history = historyExtension();
@@ -53,5 +60,9 @@ export function buildComposerEditorExtensions(
 		return [plainOnlyStarterKit, placeholderExt, history];
 	}
 
-	return [richStarterKit, placeholderExt, history];
+	const extensions: Extensions = [richStarterKit, placeholderExt, history];
+	const mentionExtension = mentionConfig ? buildComposerMentionExtension(mentionConfig) : null;
+	if (mentionExtension) extensions.push(mentionExtension);
+
+	return extensions;
 }

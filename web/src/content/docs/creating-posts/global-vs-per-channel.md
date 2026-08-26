@@ -84,9 +84,9 @@ Some things only make sense on one network:
 | **Provider settings** | YouTube title, Dev.to series, Instagram post type, X reply audience — open **Settings** while that channel is focused |
 | **Character limit** | The counter follows the focused channel (X uses a weighted count) |
 | **LinkedIn company mentions** | Use the LinkedIn toolbar control while that channel is focused |
-| **@ mentions** | On a customized **X**, **LinkedIn**, or **LinkedIn Page** channel, type <Badge text="@" variant="param" /> and pick from the suggestion list (or use the toolbar <Badge text="@" variant="param" /> button) |
+| **@ mentions** | On a customized **X**, **LinkedIn**, or **LinkedIn Page** channel, type <Badge text="@" variant="param" /> and pick from the suggestion list (or use the toolbar <Badge text="@" variant="param" /> button). Standard mode uses the textarea autocomplete; Markdown and HTML modes use TipTap mention suggestions. |
 
-<p>In Global mode, the toolbar <Badge text="@" variant="param" /> button is disabled — focus a channel, unlock it with <strong>Edit content</strong>, then type <Badge text="@" variant="param" /> followed by at least two characters to search X or LinkedIn accounts. Use the arrow keys and <strong>Enter</strong> or <strong>Tab</strong> to pick a row.</p>
+<p>In Global mode, the toolbar <Badge text="@" variant="param" /> button is disabled — focus a mention-capable channel, unlock it with <strong>Edit content</strong>, then type <Badge text="@" variant="param" /> followed by at least two characters to search accounts. Use the arrow keys and <strong>Enter</strong> or <strong>Tab</strong> to pick a row.</p>
 
 ## When to stay Global vs customize
 

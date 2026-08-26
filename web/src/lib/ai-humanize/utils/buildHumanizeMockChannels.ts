@@ -31,7 +31,9 @@ export function buildHumanizeMockChannels(): CreateSocialPostChannelViewModel[] 
 			unschedulableReason: null,
 			group: null,
 			postingTimes: [{ time: 540 }],
-			editor: normalizeIntegrationEditorMode(channel.slug === 'devto' ? 'markdown' : 'normal')
+			editor: normalizeIntegrationEditorMode(
+				channel.slug === 'devto' ? 'markdown' : channel.slug === 'x' ? 'html' : 'normal'
+			)
 		};
 	});
 }

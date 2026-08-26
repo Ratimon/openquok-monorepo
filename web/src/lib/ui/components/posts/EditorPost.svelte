@@ -153,6 +153,25 @@
 
 	const usesRichEditor = $derived(usesRichComposerEditor(mountedEditorMode));
 	const richTiptapEditor = $derived(richComposerEditorRef?.getEditor() ?? null);
+	const richEditorInstanceKey = $derived(
+		`${mountedEditorMode}-${focusedIntegrationId ?? 'none'}`
+	);
+	const richMentionConfig = $derived.by(() => {
+		if (
+			composerMode !== 'custom' ||
+			guestMode ||
+			!organizationId?.trim() ||
+			!focusedIntegrationId?.trim() ||
+			!providerSupportsComposerMentions(focusedProviderIdentifier)
+		) {
+			return null;
+		}
+		return {
+			organizationId: organizationId.trim(),
+			integrationId: focusedIntegrationId.trim(),
+			providerIdentifier: focusedProviderIdentifier ?? ''
+		};
+	});
 
 	$effect(() => {
 		const mode = composerEditorMode;
@@ -467,7 +486,7 @@
 			>
 				<div class="relative min-w-0">
 					{#if usesRichEditor}
-						{#key mountedEditorMode}
+						{#key richEditorInstanceKey}
 							<SocialComposerEditor
 								bind:this={richComposerEditorRef}
 								mode={mountedEditorMode}
@@ -476,6 +495,7 @@
 								placeholder={comments ? 'Write a comment…' : 'Write something…'}
 								{compact}
 								{comments}
+								mentionConfig={richMentionConfig}
 								onHistoryChange={onRichHistoryChange}
 							/>
 						{/key}
@@ -556,6 +576,10 @@
 							{mentionToolbarDisabled}
 							{mentionToolbarTooltip}
 							onMentionToolbarClick={() => {
+								if (mentionToolbarUsesAutocomplete && usesRichEditor) {
+									richComposerEditorRef?.insertAtCursor('@');
+									return;
+								}
 								if (mentionToolbarUsesAutocomplete) {
 									mentionAutocompleteRef?.insertAtSign();
 									return;

@@ -67,7 +67,6 @@ import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
-	xMaxCharactersForChannel,
 	xWeightedLength
 } from '$lib/posts/utils/xWeightedLength';
 import {
@@ -80,6 +79,12 @@ import {
 	type ComposerTextHistory,
 	type ComposerTextSnapshot
 } from '$lib/posts/utils/composerTextHistory';
+import {
+	computeSoftCharLimitAcrossSelected,
+	maxCharactersForChannel,
+	selectedIdsIncludeXChannel
+} from '$lib/posts/utils/composerCharLimit';
+import { composerBodyForEditorMode } from '$lib/posts/utils/composerBodyForEditorMode';
 import { stripComposerBodyForEditor } from '$lib/posts/utils/stripComposerBodyForEditor';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
@@ -202,9 +207,13 @@ export class CreateSocialPostPresenter {
 	);
 
 	softCharLimit = $derived.by(() => {
-		const id = (this.focusedProviderIdentifier ?? '').toLowerCase();
-		if (id === 'x') return xMaxCharactersForChannel(this.focusedChannelVm);
-		return this.providerConfig.maximumCharacters;
+		if (this.mode === 'global' && this.selectedIds.length > 0) {
+			return computeSoftCharLimitAcrossSelected({
+				selectedIds: this.selectedIds,
+				baseSocialChannelsVm: this.baseSocialChannelsVm
+			});
+		}
+		return maxCharactersForChannel(this.focusedChannelVm);
 	});
 	minimumCharacters = $derived(this.providerConfig.minimumCharacters);
 	postComment = $derived(this.providerConfig.postComment);
@@ -232,16 +241,25 @@ export class CreateSocialPostPresenter {
 		return out;
 	});
 
+	/** Plain text for character counting (always normal strip — ignores rich-editor HTML tags). */
+	charCountText = $derived(stripComposerBodyForEditor('normal', this.editorBody));
 	previewText = $derived(
 		stripComposerBodyForEditor(this.composerEditorMode, this.editorBody)
 	);
-	charCount = $derived.by(() => {
-		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') {
-			return xWeightedLength(this.previewText);
-		}
-		return this.previewText.length;
+	usesWeightedCharCount = $derived.by(() => {
+		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') return true;
+		return (
+			this.mode === 'global' &&
+			this.selectedIds.length > 0 &&
+			selectedIdsIncludeXChannel(this.selectedIds, this.baseSocialChannelsVm)
+		);
 	});
-	usesWeightedCharCount = $derived((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x');
+	charCount = $derived.by(() => {
+		if (this.usesWeightedCharCount) {
+			return xWeightedLength(this.charCountText);
+		}
+		return this.charCountText.length;
+	});
 	previewMediaItems = $derived.by((): PostMediaViewModel[] => {
 		const hasPreviewChannel =
 			(this.mode === 'custom' && this.focusedIntegrationId) ||
@@ -439,19 +457,23 @@ export class CreateSocialPostPresenter {
 	}
 
 	persistEditorBody(): void {
+		const normalized = composerBodyForEditorMode(this.composerEditorMode, this.editorBody);
 		if (this.mode === 'custom' && this.focusedIntegrationId) {
-			this.bodiesByIntegrationId = { ...this.bodiesByIntegrationId, [this.focusedIntegrationId]: this.editorBody };
+			this.bodiesByIntegrationId = {
+				...this.bodiesByIntegrationId,
+				[this.focusedIntegrationId]: normalized
+			};
 			return;
 		}
-		this.globalBody = this.editorBody;
+		this.globalBody = normalized;
 	}
 
 	loadEditorBody(): void {
-		if (this.mode === 'custom' && this.focusedIntegrationId) {
-			this.editorBody = this.bodiesByIntegrationId[this.focusedIntegrationId] ?? this.globalBody;
-			return;
-		}
-		this.editorBody = this.globalBody;
+		const raw =
+			this.mode === 'custom' && this.focusedIntegrationId
+				? (this.bodiesByIntegrationId[this.focusedIntegrationId] ?? this.globalBody)
+				: this.globalBody;
+		this.editorBody = composerBodyForEditorMode(this.composerEditorMode, raw);
 	}
 
 	persistEditorMedia(): void {
@@ -1319,7 +1341,7 @@ export class CreateSocialPostPresenter {
 				this.focusedIntegrationId = null;
 				this.editorLocked = false;
 				this.customEditingUnlocked = false;
-				this.editorBody = this.globalBody;
+				this.loadEditorBody();
 				this.loadEditorMedia();
 				return;
 			}

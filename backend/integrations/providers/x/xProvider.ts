@@ -41,7 +41,7 @@ import {
 export class XProvider implements SocialProvider {
     identifier = "x";
     name = "X";
-    editor = "normal" as const;
+    editor = "html" as const;
     isBetweenSteps = false;
 
     scopes = ["tweet.read", "tweet.write", "users.read", "offline.access"];
