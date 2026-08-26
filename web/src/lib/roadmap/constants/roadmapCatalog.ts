@@ -43,14 +43,14 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		id: 'ai-writer',
 		title: 'Free AI Writer',
 		categoryId: 'product',
-		columnId: 'in_progress',
+		columnId: 'complete',
 		priority: 1
 	},
 	{
 		id: 'ai-editor',
 		title: 'Free AI Content Editor',
 		categoryId: 'product',
-		columnId: 'in_progress',
+		columnId: 'complete',
 		priority: 1
 	},
 	{
@@ -82,6 +82,20 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 3
 	},
 	{
+		id: 'integration',
+		title: 'Integration',
+		categoryId: 'product',
+		columnId: 'planned',
+		priority: 2
+	},
+	{
+		id: 'chrome-extension-directory-submission',
+		title: 'Chrome extension for directory/profile submission',
+		categoryId: 'product',
+		columnId: 'planned',
+		priority: 2
+	},
+	{
 		id: 'facebook-provider',
 		title: 'Facebook Provider',
 		categoryId: 'integrations',
@@ -101,6 +115,13 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		categoryId: 'integrations',
 		columnId: 'in_progress',
 		priority: 1
+	},
+	{
+		id: 'bluesky-provider',
+		title: 'Bluesky Provider',
+		categoryId: 'integrations',
+		columnId: 'planned',
+		priority: 2
 	},
 	{
 		id: 'reddit-provider',
