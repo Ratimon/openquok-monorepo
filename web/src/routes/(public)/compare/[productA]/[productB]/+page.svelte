@@ -64,6 +64,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-orange-400/20 via-amber-300/16 to-yellow-300/16 text-orange-100 ring-orange-300/28'
 		},
+		'hopper-hq': {
+			heroContainerClass:
+				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35',
+			cardContainerClass:
+				'bg-linear-to-br from-blue-500/20 via-sky-400/16 to-cyan-300/16 text-blue-100 ring-blue-400/28'
+		},
 		buffer: {
 			heroContainerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35',

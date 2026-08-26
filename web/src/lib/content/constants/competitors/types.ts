@@ -6,6 +6,7 @@ import type { IconName } from '$data/icons';
 export type CompareProductSlug =
 	| 'openquok'
 	| 'hootsuite'
+	| 'hopper-hq'
 	| 'buffer'
 	| 'mixpost'
 	| 'post-bridge'

@@ -27,6 +27,7 @@ export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
 	hootsuite: 'https://www.hootsuite.com',
+	'hopper-hq': 'https://www.hopperhq.com',
 	buffer: 'https://buffer.com',
 	mixpost: 'https://mixpost.app',
 	'post-bridge': 'https://www.post-bridge.com',
@@ -37,6 +38,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
 	| 'hootsuite'
+	| 'hopper-hq'
 	| 'buffer'
 	| 'mixpost'
 	| 'post-bridge'

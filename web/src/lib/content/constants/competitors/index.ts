@@ -10,6 +10,7 @@ import type {
 } from '$lib/content/constants/competitors/types';
 import { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
+import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 import { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
@@ -27,6 +28,7 @@ export * from '$lib/content/constants/competitors/types';
 export * from '$lib/content/constants/competitors/shared';
 export { buildComparePair } from '$lib/content/constants/competitors/buildComparePair';
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
+export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
 export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
@@ -39,6 +41,7 @@ export { typefullyCompareProduct } from '$lib/content/constants/competitors/type
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
 	hootsuiteCompareProduct,
+	hopperHqCompareProduct,
 	bufferCompareProduct,
 	recurpostCompareProduct,
 	mixpostCompareProduct,
