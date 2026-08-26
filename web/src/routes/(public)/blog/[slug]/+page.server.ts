@@ -6,7 +6,6 @@ import { error } from '@sveltejs/kit';
 import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blogs/utils';
 import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
-import { CONFIG_SCHEMA_MARKETING } from '$lib/config/constants/config';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 
@@ -111,12 +110,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 	}) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical, {
-		openGraph: {
-			title: String(CONFIG_SCHEMA_MARKETING.META_TITLE.default),
-			description: String(CONFIG_SCHEMA_MARKETING.META_DESCRIPTION.default)
-		}
-	});
+	const pageMetaTags = withCanonicalMetaTags(metaTags, canonical);
 
 	const canonicalHref = canonical;
 
