@@ -94,6 +94,7 @@ export class PostsController {
                 body?: string;
                 bodiesByIntegrationId?: Record<string, string>;
                 media?: { id: string; path: string }[];
+                mediaByIntegrationId?: Record<string, { id: string; path: string }[]>;
                 integrationIds?: string[];
                 isGlobal?: boolean;
                 scheduledAt: string;
@@ -108,6 +109,7 @@ export class PostsController {
                 body: b.body ?? "",
                 bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
                 media: b.media ?? null,
+                mediaByIntegrationId: b.mediaByIntegrationId ?? null,
                 integrationIds: b.integrationIds ?? [],
                 isGlobal: b.isGlobal ?? true,
                 scheduledAtIso: b.scheduledAt,
@@ -255,6 +257,7 @@ export class PostsController {
                 body?: string;
                 bodiesByIntegrationId?: Record<string, string>;
                 media?: { id: string; path: string }[];
+                mediaByIntegrationId?: Record<string, { id: string; path: string }[]>;
                 integrationIds?: string[];
                 isGlobal?: boolean;
                 scheduledAt: string;
@@ -271,6 +274,7 @@ export class PostsController {
                 body: b.body ?? "",
                 bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
                 media: b.media ?? null,
+                mediaByIntegrationId: b.mediaByIntegrationId ?? null,
                 integrationIds: b.integrationIds ?? [],
                 isGlobal: b.isGlobal ?? true,
                 scheduledAtIso: b.scheduledAt,

@@ -123,6 +123,23 @@ export interface GetIntegrationListResponseDto {
 	[key: string]: unknown;
 }
 
+/** One @-mention suggestion from `POST /integrations/mentions`. */
+export type IntegrationMentionProgrammerModel = {
+	id: string;
+	label: string;
+	image: string;
+	doNotCache?: boolean;
+};
+
+export interface SearchIntegrationMentionsResponseDto {
+	success?: boolean;
+	data?: {
+		mentions?: IntegrationMentionProgrammerModel[] | { none: true };
+	};
+	message?: string;
+	[key: string]: unknown;
+}
+
 export interface IntegrationsConfig {
 	endpoints: {
 		catalog: string;
@@ -139,6 +156,7 @@ export interface IntegrationsConfig {
 		postingTimes: (integrationId: string) => string;
 		internalPlugs: (providerIdentifier: string) => string;
 		triggerTool: (integrationId: string) => string;
+		mentions: string;
 	};
 }
 
@@ -574,6 +592,47 @@ export class IntegrationsRepository {
 			return [];
 		} catch {
 			return [];
+		}
+	}
+
+	/** POST `/integrations/mentions` — provider @-mention autocomplete for a connected channel. */
+	public async searchIntegrationMentions(
+		organizationId: string,
+		integrationId: string,
+		query: string
+	): Promise<{ ok: true; mentions: IntegrationMentionProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const { ok, data: searchMentionsDto } =
+				await this.httpGateway.post<SearchIntegrationMentionsResponseDto>(
+					this.config.endpoints.mentions,
+					{ organizationId, integrationId, query },
+					{ withCredentials: true }
+				);
+			const mentions = searchMentionsDto?.data?.mentions;
+			if (ok && searchMentionsDto?.success === true) {
+				if (Array.isArray(mentions)) {
+					return { ok: true, mentions };
+				}
+				return { ok: true, mentions: [] };
+			}
+			const message = typeof searchMentionsDto?.message === 'string' ? searchMentionsDto.message : null;
+			return { ok: false, error: message || 'Could not search mentions.' };
+		} catch (error) {
+			if (
+				error instanceof ApiError &&
+				typeof error.data === 'object' &&
+				error.data !== null &&
+				('message' in error.data || 'msg' in error.data)
+			) {
+				return {
+					ok: false,
+					error: String(
+						(error.data as { message?: string; msg?: string }).message ??
+							(error.data as { message?: string; msg?: string }).msg
+					)
+				};
+			}
+			return { ok: false, error: 'Could not search mentions.' };
 		}
 	}
 

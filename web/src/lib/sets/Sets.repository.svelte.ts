@@ -24,6 +24,11 @@ export type SetSnapshotProgrammerModel = {
 	 * Also copied into each integration’s `providerSettings` on save.
 	 */
 	sharedFollowUpReplies?: SetSharedFollowUpReplyProgrammerModel[];
+	/** Shared attachments in global authoring mode. */
+	globalMediaItems?: PostMediaProgrammerModel[];
+	/** Per-channel attachment overrides in custom mode. */
+	mediaByIntegrationId?: Record<string, PostMediaProgrammerModel[]>;
+	/** Legacy / editor buffer alias for `globalMediaItems` on older snapshots. */
 	postMediaItems: PostMediaProgrammerModel[];
 	selectedTagNames: string[];
 	repeatInterval: RepeatIntervalKey | null;
@@ -73,6 +78,18 @@ export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null 
 		if (o.repeatInterval === null) repeatInterval = null;
 		else if (typeof o.repeatInterval === 'string') repeatInterval = o.repeatInterval as RepeatIntervalKey;
 
+		const mediaRaw = o.mediaByIntegrationId;
+		const mediaByIntegrationId =
+			mediaRaw && typeof mediaRaw === 'object' && !Array.isArray(mediaRaw)
+				? (mediaRaw as Record<string, PostMediaProgrammerModel[]>)
+				: undefined;
+		const globalMediaRaw = o.globalMediaItems;
+		const globalMediaItems = Array.isArray(globalMediaRaw)
+			? (globalMediaRaw as PostMediaProgrammerModel[])
+			: Array.isArray(o.postMediaItems)
+				? (o.postMediaItems as PostMediaProgrammerModel[])
+				: [];
+
 		return {
 			selectedIntegrationIds: ids,
 			selectedGroupId: typeof o.selectedGroupId === 'string' ? o.selectedGroupId : null,
@@ -82,7 +99,11 @@ export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null 
 			bodiesByIntegrationId,
 			providerSettingsByIntegrationId,
 			...(sharedFollowUpReplies && sharedFollowUpReplies.length > 0 ? { sharedFollowUpReplies } : {}),
-			postMediaItems: Array.isArray(o.postMediaItems) ? (o.postMediaItems as PostMediaProgrammerModel[]) : [],
+			globalMediaItems,
+			...(mediaByIntegrationId && Object.keys(mediaByIntegrationId).length > 0
+				? { mediaByIntegrationId }
+				: {}),
+			postMediaItems: globalMediaItems,
 			selectedTagNames: Array.isArray(o.selectedTagNames)
 				? o.selectedTagNames.filter((x): x is string => typeof x === 'string')
 				: [],

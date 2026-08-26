@@ -8186,6 +8186,41 @@ var init_ListingTagRepository = __esm({
         }
         return { data: data ?? [] };
       }
+      async createTagGroup(name) {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS2).insert({ name }).select("id, name").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A tag group with this name already exists.");
+          }
+          throw new DatabaseError(`Error creating tag group: ${error.message}`, {
+            cause: error,
+            operation: "insert"
+          });
+        }
+        return { id: data.id, name: data.name };
+      }
+      async updateTagGroup(id, name) {
+        const { data, error } = await this.supabase.from(TABLE_GROUPS2).update({ name, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", id).select("id, name").single();
+        if (error) {
+          if (error.message.includes("duplicate key value")) {
+            throw new ValidationError("A tag group with this name already exists.");
+          }
+          throw new DatabaseError(`Error updating tag group: ${error.message}`, {
+            cause: error,
+            operation: "update"
+          });
+        }
+        return { id: data.id, name: data.name };
+      }
+      async deleteTagGroup(id) {
+        const { error } = await this.supabase.from(TABLE_GROUPS2).delete().eq("id", id);
+        if (error) {
+          throw new DatabaseError(`Error deleting tag group: ${error.message}`, {
+            cause: error,
+            operation: "delete"
+          });
+        }
+      }
       async syncTagGroups(tagId, groupIds) {
         await this.supabase.from(TABLE_GROUP_ASSOC2).delete().eq("listing_tag_id", tagId);
         if (groupIds.length === 0) return;
@@ -9520,6 +9555,21 @@ var init_PostsRepository = __esm({
         const { data, error } = await query.limit(1).maybeSingle();
         if (error) {
           throw new DatabaseError(`Failed to check schedule slot: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        return data != null;
+      }
+      /**
+       * Whether any non-deleted post row references the integration (draft, queued, published, or error).
+       * Used to block channel delete until posts are removed.
+       */
+      async hasPostsForIntegration(organizationId, integrationId) {
+        const { data, error } = await this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("integration_id", integrationId).is("deleted_at", null).limit(1).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to check posts for integration: ${error.message}`, {
             cause: error,
             operation: "select",
             resource: { type: "table", name: TABLE_POSTS }
@@ -13307,9 +13357,6 @@ var init_ListingService = __esm({
       LISTING_CATEGORIES_ACTIVE_FULL: "listing:categories:active:full",
       LISTING_CATEGORIES_ALL_PARTIAL: "listing:categories:all:partial",
       LISTING_CATEGORIES_ALL_FULL: "listing:categories:all:full",
-      LISTING_TAGS_ACTIVE_PARTIAL: "listing:tags:active:partial",
-      LISTING_TAGS_ACTIVE_FULL: "listing:tags:active:full",
-      LISTING_TAGS_ALL_FULL: "listing:tags:all:full",
       LISTING_USER_BOOKMARKS: "listing:bookmarks:user",
       LISTING_ADMIN_COMMENTS_LIST: "listing:admin:comments:list",
       LISTING_ADMIN_ACTIVITIES_LIST: "listing:admin:activities:list",
@@ -13317,10 +13364,9 @@ var init_ListingService = __esm({
     };
     LISTING_CACHE_TTL_SEC = 300;
     ListingService = class {
-      constructor(listingRepository2, listingCategoryRepository2, listingTagRepository2, cache, cacheInvalidator, configRepository2, subscriptionGuard2, userRepository2) {
+      constructor(listingRepository2, listingCategoryRepository2, cache, cacheInvalidator, configRepository2, subscriptionGuard2, userRepository2) {
         this.listingRepository = listingRepository2;
         this.listingCategoryRepository = listingCategoryRepository2;
-        this.listingTagRepository = listingTagRepository2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
         this.configRepository = configRepository2;
@@ -13587,52 +13633,6 @@ var init_ListingService = __esm({
         const { data } = await this.listingCategoryRepository.findAllCategoryGroups();
         return data;
       }
-      // --- Tags ---
-      async getActivePartialTags() {
-        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ACTIVE_PARTIAL;
-        const factory = async () => {
-          const { data } = await this.listingTagRepository.findActivePartialTags();
-          return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-      }
-      async getActiveFullTags() {
-        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ACTIVE_FULL;
-        const factory = async () => {
-          const { data } = await this.listingTagRepository.findActiveFullTags();
-          return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-      }
-      async getAllFullTags() {
-        const cacheKey = CACHE_KEYS8.LISTING_TAGS_ALL_FULL;
-        const factory = async () => {
-          const { data } = await this.listingTagRepository.findAllFullTags();
-          return data;
-        };
-        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC);
-        return factory();
-      }
-      async createTag(payload, groupIds = []) {
-        const id = await this.listingTagRepository.createTag(payload, groupIds);
-        await this._invalidateTaxonomyCaches();
-        return { id };
-      }
-      async updateTag(payload, groupIds = []) {
-        const id = await this.listingTagRepository.updateTag(payload, groupIds);
-        await this._invalidateTaxonomyCaches();
-        return { id };
-      }
-      async deleteTag(tagId) {
-        await this.listingTagRepository.deleteTag(tagId);
-        await this._invalidateTaxonomyCaches();
-      }
-      async getAllTagGroups() {
-        const { data } = await this.listingTagRepository.findAllTagGroups();
-        return data;
-      }
       async addBookmark(listingId, userId, authUserId) {
         await this._assertPaidAccountForBookmarks(authUserId);
         await this.listingRepository.addBookmark(userId, listingId);
@@ -13812,7 +13812,6 @@ var init_ListingService = __esm({
       async _invalidateTaxonomyCaches() {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern("listing:categories:*");
-        await this.cacheInvalidator.invalidatePattern("listing:tags:*");
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_PUBLISHED}:*`);
         await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS8.LISTING_ADMIN_LIST}:*`);
       }
@@ -13868,11 +13867,106 @@ var init_ListingService = __esm({
   }
 });
 
+// services/ListingTagService.ts
+var CACHE_KEYS9, LISTING_CACHE_TTL_SEC2, ListingTagService;
+var init_ListingTagService = __esm({
+  "services/ListingTagService.ts"() {
+    init_Logger();
+    CACHE_KEYS9 = {
+      LISTING_TAGS_ACTIVE_PARTIAL: "listing:tags:active:partial",
+      LISTING_TAGS_ACTIVE_FULL: "listing:tags:active:full",
+      LISTING_TAGS_ALL_FULL: "listing:tags:all:full",
+      LISTING_TAGS_GROUPS: "listing:tags:groups",
+      LISTING_PUBLISHED: "listing:published:list",
+      LISTING_ADMIN_LIST: "listing:admin:list"
+    };
+    LISTING_CACHE_TTL_SEC2 = 300;
+    ListingTagService = class {
+      constructor(listingTagRepository2, cache, cacheInvalidator) {
+        this.listingTagRepository = listingTagRepository2;
+        this.cache = cache;
+        this.cacheInvalidator = cacheInvalidator;
+      }
+      async getActivePartialTags() {
+        const cacheKey = CACHE_KEYS9.LISTING_TAGS_ACTIVE_PARTIAL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findActivePartialTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC2);
+        return factory();
+      }
+      async getActiveFullTags() {
+        const cacheKey = CACHE_KEYS9.LISTING_TAGS_ACTIVE_FULL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findActiveFullTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC2);
+        return factory();
+      }
+      async getAllFullTags() {
+        const cacheKey = CACHE_KEYS9.LISTING_TAGS_ALL_FULL;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findAllFullTags();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC2);
+        return factory();
+      }
+      async createTag(payload, groupIds = []) {
+        const id = await this.listingTagRepository.createTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async updateTag(payload, groupIds = []) {
+        const id = await this.listingTagRepository.updateTag(payload, groupIds);
+        await this._invalidateTaxonomyCaches();
+        return { id };
+      }
+      async deleteTag(tagId) {
+        await this.listingTagRepository.deleteTag(tagId);
+        await this._invalidateTaxonomyCaches();
+      }
+      async getAllTagGroups() {
+        const cacheKey = CACHE_KEYS9.LISTING_TAGS_GROUPS;
+        const factory = async () => {
+          const { data } = await this.listingTagRepository.findAllTagGroups();
+          return data;
+        };
+        if (this.cache) return this.cache.getOrSet(cacheKey, factory, LISTING_CACHE_TTL_SEC2);
+        return factory();
+      }
+      async createTagGroup(name) {
+        const tagGroup = await this.listingTagRepository.createTagGroup(name);
+        await this._invalidateTaxonomyCaches();
+        return tagGroup;
+      }
+      async updateTagGroup(id, name) {
+        const tagGroup = await this.listingTagRepository.updateTagGroup(id, name);
+        await this._invalidateTaxonomyCaches();
+        return tagGroup;
+      }
+      async deleteTagGroup(id) {
+        await this.listingTagRepository.deleteTagGroup(id);
+        await this._invalidateTaxonomyCaches();
+      }
+      async _invalidateTaxonomyCaches() {
+        if (!this.cacheInvalidator) return;
+        await this.cacheInvalidator.invalidatePattern("listing:tags:*");
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.LISTING_PUBLISHED}:*`);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.LISTING_ADMIN_LIST}:*`);
+        logger.debug({ msg: "Invalidated listing tag taxonomy caches" });
+      }
+    };
+  }
+});
+
 // services/ConfigService.ts
-var CACHE_KEYS9, CONFIG_CACHE_TTL_SEC, ConfigService;
+var CACHE_KEYS10, CONFIG_CACHE_TTL_SEC, ConfigService;
 var init_ConfigService = __esm({
   "services/ConfigService.ts"() {
-    CACHE_KEYS9 = {
+    CACHE_KEYS10 = {
       CONFIG: "config",
       BLOG_INFORMATION: "config:module:blog:information"
     };
@@ -13884,7 +13978,7 @@ var init_ConfigService = __esm({
         this.cacheInvalidator = cacheInvalidator;
       }
       async getModuleConfig(moduleName) {
-        const cacheKey = `${CACHE_KEYS9.CONFIG}:${moduleName}`;
+        const cacheKey = `${CACHE_KEYS10.CONFIG}:${moduleName}`;
         const factory = async () => {
           const { data } = await this.configRepository.getConfigByModuleName(moduleName);
           return data.config ?? {};
@@ -13904,8 +13998,8 @@ var init_ConfigService = __esm({
       }
       async invalidateConfigRelatedCaches() {
         if (!this.cacheInvalidator) return;
-        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS9.CONFIG}:*`);
-        await this.cacheInvalidator.invalidateKey(CACHE_KEYS9.BLOG_INFORMATION);
+        await this.cacheInvalidator.invalidatePattern(`${CACHE_KEYS10.CONFIG}:*`);
+        await this.cacheInvalidator.invalidateKey(CACHE_KEYS10.BLOG_INFORMATION);
       }
     };
   }
@@ -20469,16 +20563,16 @@ var init_RefreshIntegrationService = __esm({
 
 // services/IntegrationService.ts
 function buildIntegrationDomainCacheKey(organizationId, integrationIdentifier, segment) {
-  return `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
+  return `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${integrationIdentifier}:${segment}`;
 }
 function integrationCustomersListCacheKey(organizationId) {
-  return `${CACHE_KEYS10.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS11.INTEGRATION_CUSTOMERS_LIST}:${organizationId}`;
 }
-var CACHE_KEYS10, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
+var CACHE_KEYS11, ANALYTICS_CACHE_TTL_SEC, INTEGRATION_CUSTOMERS_LIST_TTL_SEC, IntegrationService;
 var init_IntegrationService = __esm({
   "services/IntegrationService.ts"() {
     init_Logger();
-    CACHE_KEYS10 = {
+    CACHE_KEYS11 = {
       INTEGRATION: "integration",
       /** Per-org list cache key is `${INTEGRATION_CUSTOMERS_LIST}:${organizationId}`. */
       INTEGRATION_CUSTOMERS_LIST: "integration:customers:list"
@@ -20553,6 +20647,19 @@ var init_IntegrationService = __esm({
         await this.integrationRepository.enableChannel(organizationId, integrationId);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
       }
+      /**
+       * When a workspace exceeds the active-channel cap (plan downgrade), disable the newest connections first.
+       */
+      async disableExcessActiveChannels(organizationId, cap) {
+        const active = (await this.listByOrganization(organizationId)).filter((c) => !c.disabled);
+        const excess = active.length - cap;
+        if (excess <= 0) return [];
+        const toDisable = active.sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, excess);
+        for (const row of toDisable) {
+          await this.disableChannel(organizationId, row.id);
+        }
+        return toDisable.map((r) => r.id);
+      }
       async softDeleteChannel(organizationId, integrationId, internalId) {
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
         return this.integrationRepository.softDeleteChannel(organizationId, integrationId, internalId);
@@ -20563,7 +20670,7 @@ var init_IntegrationService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS10.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache",
@@ -20613,20 +20720,20 @@ var init_IntegrationService = __esm({
 
 // services/PlugService.ts
 function plugsListCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS11.PLUG_LIST}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS12.PLUG_LIST}:${organizationId}:${integrationId}`;
 }
 function plugsActivatedCacheKey(organizationId, integrationId) {
-  return `${CACHE_KEYS11.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
+  return `${CACHE_KEYS12.PLUG_ACTIVATED}:${organizationId}:${integrationId}`;
 }
 function plugRowCacheKey(plugId) {
-  return `${CACHE_KEYS11.PLUG_ROW}:${plugId}`;
+  return `${CACHE_KEYS12.PLUG_ROW}:${plugId}`;
 }
-var CACHE_KEYS11, PLUG_CACHE_TTL_SEC, PlugService;
+var CACHE_KEYS12, PLUG_CACHE_TTL_SEC, PlugService;
 var init_PlugService = __esm({
   "services/PlugService.ts"() {
     init_InfraError();
     init_Logger();
-    CACHE_KEYS11 = {
+    CACHE_KEYS12 = {
       INTEGRATION: "integration",
       PLUG_LIST: "plug:list",
       PLUG_ACTIVATED: "plug:activated",
@@ -20733,7 +20840,7 @@ var init_PlugService = __esm({
       async invalidateIntegrationDomainCacheForProvider(organizationId, providerIdentifier) {
         if (!this.cacheInvalidator) return;
         await this.cacheInvalidator.invalidatePattern(
-          `${CACHE_KEYS11.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
+          `${CACHE_KEYS12.INTEGRATION}:${organizationId}:${providerIdentifier}:*`
         );
         logger.debug({
           msg: "Invalidated integration domain cache (plug mutation)",
@@ -20792,7 +20899,7 @@ function integrationLikeToRecord(row) {
     additional_settings: row.additional_settings
   };
 }
-var CACHE_KEYS12, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
+var CACHE_KEYS13, OAUTH_STATE_TTL_SEC, IntegrationConnectionService;
 var init_IntegrationConnectionService = __esm({
   "services/IntegrationConnectionService.ts"() {
     init_dist();
@@ -20804,7 +20911,7 @@ var init_IntegrationConnectionService = __esm({
     init_allowedExternalImageHosts();
     init_providerProfilePictureFetch();
     init_Logger();
-    CACHE_KEYS12 = {
+    CACHE_KEYS13 = {
       oauth: {
         login: (state) => `login:${state}`,
         organization: (state) => `organization:${state}`,
@@ -20815,13 +20922,14 @@ var init_IntegrationConnectionService = __esm({
     };
     OAUTH_STATE_TTL_SEC = 3600;
     IntegrationConnectionService = class {
-      constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, storageRepository, cache, cacheInvalidator, subscriptionGuard2) {
+      constructor(integrations, plugs, organizationRepository2, manager, refreshIntegrationService2, storageRepository, postsRepository2, cache, cacheInvalidator, subscriptionGuard2) {
         this.integrations = integrations;
         this.plugs = plugs;
         this.organizationRepository = organizationRepository2;
         this.manager = manager;
         this.refreshIntegrationService = refreshIntegrationService2;
         this.storageRepository = storageRepository;
+        this.postsRepository = postsRepository2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
         this.subscriptionGuard = subscriptionGuard2;
@@ -20850,6 +20958,14 @@ var init_IntegrationConnectionService = __esm({
         const { membership } = await this.organizationRepository.findMembership(userId, organizationId);
         if (!membership || membership.disabled) {
           throw new OrganizationForbiddenError();
+        }
+      }
+      async assertChannelHasNoPosts(organizationId, integrationId) {
+        if (await this.postsRepository.hasPostsForIntegration(organizationId, integrationId)) {
+          throw new AppError(
+            "You have to delete all the posts associated with this channel before deleting it",
+            409
+          );
         }
       }
       async getIntegrationList(authUserId, organizationId) {
@@ -20951,15 +21067,15 @@ var init_IntegrationConnectionService = __esm({
         const { codeVerifier, state, url } = await integrationProvider.generateAuthUrl(clientInformation);
         const cache = this.requireCache();
         if (opts.refresh) {
-          await cache.set(CACHE_KEYS12.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS13.oauth.refresh(state), opts.refresh, OAUTH_STATE_TTL_SEC);
         }
         if (opts.onboarding === "true") {
-          await cache.set(CACHE_KEYS12.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS13.oauth.onboarding(state), "true", OAUTH_STATE_TTL_SEC);
         }
-        await cache.set(CACHE_KEYS12.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
-        await cache.set(CACHE_KEYS12.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS13.oauth.organization(state), organizationId, OAUTH_STATE_TTL_SEC);
+        await cache.set(CACHE_KEYS13.oauth.login(state), codeVerifier, OAUTH_STATE_TTL_SEC);
         if (clientInformation) {
-          await cache.set(CACHE_KEYS12.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
+          await cache.set(CACHE_KEYS13.oauth.external(state), JSON.stringify(clientInformation), OAUTH_STATE_TTL_SEC);
         }
         return { url };
       }
@@ -21013,6 +21129,7 @@ var init_IntegrationConnectionService = __esm({
         if (!row) {
           throw new AppError("Integration not found", 404);
         }
+        await this.assertChannelHasNoPosts(organizationId, integrationId);
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) {
           throw new AppError("Integration not found", 404);
@@ -21129,7 +21246,7 @@ var init_IntegrationConnectionService = __esm({
           throw new AppError("Integration not found", 404);
         }
         const cache = this.requireCache();
-        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS12.oauth.login(body.state));
+        const getCodeVerifier = integrationProvider.customFields ? "none" : await cache.get(CACHE_KEYS13.oauth.login(body.state));
         if (!getCodeVerifier && !integrationProvider.customFields) {
           throw new AppError(
             "Invalid OAuth state: login verifier missing for this state (expired, already used, or cache unavailable). Remove any partial channel and connect again.",
@@ -21138,9 +21255,9 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         if (!integrationProvider.customFields) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.login(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.login(body.state));
         }
-        const organizationKey = CACHE_KEYS12.oauth.organization(body.state);
+        const organizationKey = CACHE_KEYS13.oauth.organization(body.state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError("Organization not found", 400);
@@ -21148,14 +21265,14 @@ var init_IntegrationConnectionService = __esm({
         if (authUserId) {
           await this.assertOrganizationMember(authUserId, organizationId);
         }
-        const detailsRaw = await cache.get(CACHE_KEYS12.oauth.external(body.state));
+        const detailsRaw = await cache.get(CACHE_KEYS13.oauth.external(body.state));
         if (detailsRaw) {
-          await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.external(body.state));
+          await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.external(body.state));
         }
-        const refreshState = await cache.get(CACHE_KEYS12.oauth.refresh(body.state));
-        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.refresh(body.state));
-        const onboarding = await cache.get(CACHE_KEYS12.oauth.onboarding(body.state));
-        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS12.oauth.onboarding(body.state));
+        const refreshState = await cache.get(CACHE_KEYS13.oauth.refresh(body.state));
+        if (refreshState) await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.refresh(body.state));
+        const onboarding = await cache.get(CACHE_KEYS13.oauth.onboarding(body.state));
+        if (onboarding) await this.invalidateOAuthCacheKey(CACHE_KEYS13.oauth.onboarding(body.state));
         let clientInformation;
         if (detailsRaw && typeof detailsRaw === "string") {
           clientInformation = JSON.parse(detailsRaw);
@@ -21310,12 +21427,14 @@ var init_IntegrationConnectionService = __esm({
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
+        await this.subscriptionGuard?.assertEnableSocialChannel(organizationId, authUserId);
         await this.integrations.enableChannel(organizationId, integrationId);
       }
       async deleteChannel(authUserId, organizationId, integrationId) {
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
+        await this.assertChannelHasNoPosts(organizationId, integrationId);
         const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
         if (!deleted) throw new AppError("Integration not found", 404);
       }
@@ -21340,7 +21459,7 @@ var init_IntegrationConnectionService = __esm({
           );
         }
         const cache = this.requireCache();
-        const organizationKey = CACHE_KEYS12.oauth.organization(state);
+        const organizationKey = CACHE_KEYS13.oauth.organization(state);
         const organizationId = await cache.get(organizationKey);
         if (!organizationId || typeof organizationId !== "string") {
           throw new AppError(
@@ -21758,11 +21877,11 @@ function sleepMs6(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
-  return `${CACHE_KEYS13.POSTS_TAGS_LIST}:${organizationId}`;
+  return `${CACHE_KEYS14.POSTS_TAGS_LIST}:${organizationId}`;
 }
 function calendarPostsCacheKey(params) {
   const integrationKey = params.integrationIds != null && params.integrationIds.length > 0 ? [...params.integrationIds].sort().join(",") : "all";
-  return `${CACHE_KEYS13.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
+  return `${CACHE_KEYS14.POSTS_CALENDAR_LIST}:${params.organizationId}:${params.startIso}:${params.endIso}:${integrationKey}`;
 }
 async function invalidatePostsCalendarListCachesForOrganization(organizationId, cacheInvalidator, cache) {
   const pattern = `${POSTS_CALENDAR_LIST_CACHE_PREFIX}:${organizationId}:*`;
@@ -21827,7 +21946,7 @@ function socialPlatformLabelFromProviderIdentifier(integrationManager2, provider
   if (registered?.name) return registered.name;
   return id.split("-").map((w) => w.length > 0 ? w[0].toUpperCase() + w.slice(1).toLowerCase() : "").join(" ");
 }
-var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS13, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
+var DEFAULT_TAG_COLOR, POSTS_CALENDAR_LIST_CACHE_PREFIX, CACHE_KEYS14, POSTS_CACHE_TTL_SEC, POST_ANALYTICS_CACHE_TTL_SEC, PostsService;
 var init_PostsService = __esm({
   "services/PostsService.ts"() {
     init_PostDTO();
@@ -21839,7 +21958,7 @@ var init_PostsService = __esm({
     init_dist();
     DEFAULT_TAG_COLOR = "#6366f1";
     POSTS_CALENDAR_LIST_CACHE_PREFIX = "posts:calendar:list";
-    CACHE_KEYS13 = {
+    CACHE_KEYS14 = {
       POSTS: "posts",
       /** Full key = `${POSTS_GROUP}:${postGroup}` */
       POSTS_GROUP: "posts:group",
@@ -21986,6 +22105,7 @@ var init_PostsService = __esm({
             throw new AppError("One or more channels are not in this workspace", 400);
           }
         }
+        this.assertIntegrationsNotDisabled(rows, uniqueIds);
         if (status === "scheduled" && uniqueIds.length === 0) {
           throw new AppError("Select at least one channel to schedule", 400);
         }
@@ -22248,7 +22368,7 @@ var init_PostsService = __esm({
         }
         const organizationId = rows[0].organization_id;
         await this.integrationConnectionService.assertOrganizationMember(authUserId, organizationId);
-        const cacheKey = `${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -22267,7 +22387,7 @@ var init_PostsService = __esm({
         if (rows[0].organization_id !== organizationId) {
           throw new AppError("Post group does not belong to that workspace", 400);
         }
-        const cacheKey = `${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`;
+        const cacheKey = `${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`;
         const factory = async () => this.buildPostGroupDetails(postGroup, rows);
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -22317,6 +22437,15 @@ var init_PostsService = __esm({
           const hasChannel = rows.some((r) => r.integration_id != null);
           if (!hasChannel) {
             throw new AppError("Select at least one channel to schedule", 400);
+          }
+          const channelIds = [
+            ...new Set(
+              rows.map((r) => r.integration_id).filter((id) => typeof id === "string" && Boolean(id))
+            )
+          ];
+          if (channelIds.length > 0) {
+            const integrations = await this.integrationService.listByOrganization(input.organizationId);
+            this.assertIntegrationsNotDisabled(integrations, channelIds);
           }
           const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
             input.organizationId,
@@ -22455,7 +22584,7 @@ var init_PostsService = __esm({
         if (share !== "true") {
           throw new AppError("Forbidden", 403);
         }
-        const cacheKey = `${CACHE_KEYS13.POSTS_PREVIEW}:${postId}`;
+        const cacheKey = `${CACHE_KEYS14.POSTS_PREVIEW}:${postId}`;
         const factory = async () => {
           const row = await this.postsRepository.getPostById(postId);
           if (!row) {
@@ -23132,7 +23261,7 @@ var init_PostsService = __esm({
         if (postIds.length === 0) return;
         const invalidateWithInvalidator = async () => {
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
           }
         };
         if (this.cacheInvalidator) {
@@ -23150,7 +23279,7 @@ var init_PostsService = __esm({
         if (this.cache) {
           try {
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
             }
           } catch (error) {
             logger.error({
@@ -23167,9 +23296,9 @@ var init_PostsService = __esm({
       async _invalidatePostMutationCaches(params) {
         const { organizationId, postGroup, postIds } = params;
         const invalidateWithInvalidator = async () => {
-          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`);
+          await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`);
           for (const id of postIds) {
-            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
+            await this.cacheInvalidator.invalidateKey(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
           }
           await invalidatePostsCalendarListCachesForOrganization(
             organizationId,
@@ -23177,7 +23306,7 @@ var init_PostsService = __esm({
             void 0
           );
           await this.cacheInvalidator.invalidateKey(tagsListCacheKey(organizationId));
-          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS13.POSTS, postGroup);
+          await this.cacheInvalidator.invalidateEntity(CACHE_KEYS14.POSTS, postGroup);
           logger.debug({
             msg: "Invalidated post mutation caches",
             organizationId,
@@ -23200,9 +23329,9 @@ var init_PostsService = __esm({
         }
         if (this.cache) {
           try {
-            await this.cache.del(`${CACHE_KEYS13.POSTS_GROUP}:${postGroup}`);
+            await this.cache.del(`${CACHE_KEYS14.POSTS_GROUP}:${postGroup}`);
             for (const id of postIds) {
-              await this.cache.del(`${CACHE_KEYS13.POSTS_PREVIEW}:${id}`);
+              await this.cache.del(`${CACHE_KEYS14.POSTS_PREVIEW}:${id}`);
             }
             await invalidatePostsCalendarListCachesForOrganization(organizationId, void 0, this.cache);
             await this.cache.del(tagsListCacheKey(organizationId));
@@ -23299,6 +23428,17 @@ var init_PostsService = __esm({
               cause: err instanceof Error ? err : null
             }
           );
+        }
+      }
+      /** Rejects create/update/schedule when any selected channel is disabled (UI parity). */
+      assertIntegrationsNotDisabled(integrations, integrationIds) {
+        const disabledIds = new Set(
+          integrations.filter((r) => r.deleted_at == null && r.disabled).map((r) => r.id)
+        );
+        for (const id of integrationIds) {
+          if (disabledIds.has(id)) {
+            throw new AppError("This channel is disabled.", 400);
+          }
         }
       }
       async resolveTagIds(organizationId, names) {
@@ -23431,14 +23571,14 @@ var init_SignatureError = __esm({
 
 // services/SignatureService.ts
 function signaturesListCacheKey(organizationId) {
-  return `${CACHE_KEYS14.SIGNATURE_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS15.SIGNATURE_LIST_BYORGID}:${organizationId}`;
 }
-var CACHE_KEYS14, SIGNATURE_CACHE_TTL_SEC, SignatureService;
+var CACHE_KEYS15, SIGNATURE_CACHE_TTL_SEC, SignatureService;
 var init_SignatureService = __esm({
   "services/SignatureService.ts"() {
     init_SignatureError();
     init_Logger();
-    CACHE_KEYS14 = {
+    CACHE_KEYS15 = {
       SIGNATURE: "signature",
       /** Full key = `${SIGNATURE_LIST_BYORGID}:${organizationId}` */
       SIGNATURE_LIST_BYORGID: "signature:list:byOrgId"
@@ -23561,17 +23701,17 @@ var init_SetError = __esm({
 
 // services/SetsService.ts
 function setsListCacheKey(organizationId) {
-  return `${CACHE_KEYS15.SET_LIST_BYORGID}:${organizationId}`;
+  return `${CACHE_KEYS16.SET_LIST_BYORGID}:${organizationId}`;
 }
 function setByIdCacheKey(setId) {
-  return `${CACHE_KEYS15.SET_BY_SETID}:${setId}`;
+  return `${CACHE_KEYS16.SET_BY_SETID}:${setId}`;
 }
-var CACHE_KEYS15, SETS_CACHE_TTL_SEC, SetsService;
+var CACHE_KEYS16, SETS_CACHE_TTL_SEC, SetsService;
 var init_SetsService = __esm({
   "services/SetsService.ts"() {
     init_SetError();
     init_Logger();
-    CACHE_KEYS15 = {
+    CACHE_KEYS16 = {
       /** Full key = `${SET_LIST_BYORGID}:${organizationId}` */
       SET_LIST_BYORGID: "sets:list:byOrgId",
       /** Full key = `${SET_BY_SETID}:${setId}` */
@@ -24106,9 +24246,14 @@ var init_SubscriptionService = __esm({
         this.organizationRepository = organizationRepository2;
       }
       subscriptionGuard;
+      integrationService;
       /** Wired after {@link SubscriptionGuardService} is constructed (avoids circular init). */
       setSubscriptionGuard(guard) {
         this.subscriptionGuard = guard;
+      }
+      /** Wired after {@link IntegrationService} is constructed (avoids circular init). */
+      setIntegrationService(integrationService2) {
+        this.integrationService = integrationService2;
       }
       billingEnabled() {
         const stripe = config.stripe;
@@ -24226,7 +24371,7 @@ var init_SubscriptionService = __esm({
         );
       }
       async createOrUpdateFromStripe(params) {
-        return this.subscriptionRepository.createOrUpdateSubscription({
+        const row = await this.subscriptionRepository.createOrUpdateSubscription({
           organizationId: params.organizationId,
           isTrialing: params.isTrialing,
           identifier: params.identifier,
@@ -24237,9 +24382,14 @@ var init_SubscriptionService = __esm({
           currentPeriodStart: params.currentPeriodStart ?? null,
           currentPeriodEnd: params.currentPeriodEnd ?? null
         });
+        await this.enforceActiveChannelCap(params.organizationId, params.channelsPerWorkspace);
+        return row;
       }
       async deleteSubscriptionForCustomer(customerId) {
-        await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
+        const organizationId = await this.subscriptionRepository.softDeleteByStripeCustomerId(customerId);
+        if (organizationId) {
+          await this.enforceActiveChannelCap(organizationId, pricing.FREE.channel_per_workspace);
+        }
       }
       async grantPaidSubscriptionForAdmin(params) {
         const limits = pricing[params.subscriptionTier];
@@ -24252,6 +24402,14 @@ var init_SubscriptionService = __esm({
           channelsPerWorkspace: limits.channel_per_workspace,
           cancelAt: null
         });
+      }
+      /** After a cap reduction, disable newest active channels until within the active limit. */
+      async enforceActiveChannelCap(organizationId, cap) {
+        if (!this.billingEnabled()) return;
+        if (!this.integrationService) {
+          throw new Error("IntegrationService is not wired on SubscriptionService");
+        }
+        await this.integrationService.disableExcessActiveChannels(organizationId, cap);
       }
     };
   }
@@ -24750,6 +24908,37 @@ var init_SubscriptionGuardService = __esm({
         if (channels.length >= cap) {
           throw new SubscriptionError(
             `Your plan allows up to ${cap} connected channels per workspace. Disconnect a channel or upgrade to add more.`,
+            SubscriptionSection.CHANNEL_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+      }
+      /**
+       * Blocks re-enabling a disabled channel when the workspace is already at the active-channel cap.
+       * Connected (non-deleted) rows still count toward the connected cap; only non-disabled rows count here.
+       */
+      async assertEnableSocialChannel(organizationId, authUserId) {
+        if (!this.subscriptionService.billingEnabled()) return;
+        if (await this.shouldBypassBillingForAuthUser(authUserId)) return;
+        const { tier, limits, subscription } = await this.getTierAndLimits(organizationId, authUserId);
+        const cap = resolveSessionChannelsPerWorkspace(
+          this.subscriptionService.billingEnabled(),
+          tier,
+          limits,
+          subscription
+        );
+        if (cap < 1) {
+          throw new SubscriptionError(
+            "Social channels are not included on your current plan.",
+            SubscriptionSection.CHANNEL_PER_WORKSPACE,
+            this.billingUrl()
+          );
+        }
+        const channels = await this.integrationService.listByOrganization(organizationId);
+        const activeCount = channels.filter((c) => !c.disabled).length;
+        if (activeCount >= cap) {
+          throw new SubscriptionError(
+            `Your plan allows up to ${cap} active channels per workspace. Disable another channel or upgrade to enable this one.`,
             SubscriptionSection.CHANNEL_PER_WORKSPACE,
             this.billingUrl()
           );
@@ -25951,7 +26140,7 @@ var init_TrackService = __esm({
 });
 
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -25966,6 +26155,7 @@ var init_services = __esm({
     init_FeedbackService();
     init_BlogService();
     init_ListingService();
+    init_ListingTagService();
     init_ConfigService();
     init_integrationManager();
     init_RefreshIntegrationService();
@@ -26087,6 +26277,7 @@ var init_services = __esm({
       rbacRepository
     );
     subscriptionService.setSubscriptionGuard(subscriptionGuard);
+    subscriptionService.setIntegrationService(integrationService);
     blogService = new BlogService(
       blogRepository,
       cacheServiceConnection,
@@ -26097,12 +26288,16 @@ var init_services = __esm({
     listingService = new ListingService(
       listingRepository,
       listingCategoryRepository,
-      listingTagRepository,
       cacheServiceConnection,
       cacheInvalidationServiceConnection,
       configRepository,
       subscriptionGuard,
       userRepository
+    );
+    listingTagService = new ListingTagService(
+      listingTagRepository,
+      cacheServiceConnection,
+      cacheInvalidationServiceConnection
     );
     userSessionService = new UserSessionService(
       organizationRepository,
@@ -26117,6 +26312,7 @@ var init_services = __esm({
       integrationManager,
       refreshIntegrationService,
       storageSupabaseRepository,
+      postsRepository,
       cacheServiceConnection,
       cacheInvalidationServiceConnection,
       subscriptionGuard
@@ -27040,68 +27236,6 @@ var init_ListingController = __esm({
           next(err);
         }
       };
-      // Tags
-      getActivePartialTags = async (_req, res, next) => {
-        try {
-          const data = await this.listingService.getActivePartialTags();
-          res.status(200).json({ success: true, data });
-        } catch (err) {
-          next(err);
-        }
-      };
-      getActiveFullTags = async (_req, res, next) => {
-        try {
-          const data = await this.listingService.getActiveFullTags();
-          res.status(200).json({ success: true, data });
-        } catch (err) {
-          next(err);
-        }
-      };
-      getAllFullTags = async (_req, res, next) => {
-        try {
-          const data = await this.listingService.getAllFullTags();
-          res.status(200).json({ success: true, data });
-        } catch (err) {
-          next(err);
-        }
-      };
-      createTag = async (req, res, next) => {
-        try {
-          const body = req.body;
-          const result = await this.listingService.createTag(body.tagData, body.tagGroupIds ?? []);
-          res.status(201).json({ success: true, data: result });
-        } catch (err) {
-          next(err);
-        }
-      };
-      updateTag = async (req, res, next) => {
-        try {
-          const { tagId } = req.params;
-          const body = req.body;
-          body.tagData.id = tagId;
-          const result = await this.listingService.updateTag(body.tagData, body.tagGroupIds ?? []);
-          res.status(200).json({ success: true, data: result });
-        } catch (err) {
-          next(err);
-        }
-      };
-      deleteTag = async (req, res, next) => {
-        try {
-          const { tagId } = req.params;
-          await this.listingService.deleteTag(tagId);
-          res.status(200).json({ success: true, message: "Tag deleted" });
-        } catch (err) {
-          next(err);
-        }
-      };
-      getAllTagGroups = async (_req, res, next) => {
-        try {
-          const data = await this.listingService.getAllTagGroups();
-          res.status(200).json({ success: true, data });
-        } catch (err) {
-          next(err);
-        }
-      };
       getAdminListingComments = async (req, res, next) => {
         try {
           const parsedQuery = req.parsedQuery ?? {};
@@ -27392,6 +27526,202 @@ var init_ListingController = __esm({
           const { id } = req.params;
           await this.listingService.deleteOwnedListing(id, userId, authReq.user?.id);
           res.status(200).json({ success: true, message: "Listing deleted." });
+        } catch (err) {
+          next(err);
+        }
+      };
+    };
+  }
+});
+
+// utils/dtos/ListingTagGroupDTO.ts
+var ListingTagGroupDTOMapper;
+var init_ListingTagGroupDTO = __esm({
+  "utils/dtos/ListingTagGroupDTO.ts"() {
+    ListingTagGroupDTOMapper = class _ListingTagGroupDTOMapper {
+      static toDTO(group) {
+        return {
+          id: group.id,
+          name: group.name
+        };
+      }
+      static toDTOCollection(groups) {
+        return groups.map((group) => _ListingTagGroupDTOMapper.toDTO(group));
+      }
+    };
+  }
+});
+
+// utils/dtos/ListingTagDTO.ts
+function asTagGroupRef(value) {
+  if (!value || typeof value !== "object") return null;
+  const record = value;
+  const nested = record.listing_tag_groups;
+  const candidate = (Array.isArray(nested) ? nested[0] : nested) ?? record;
+  if (!candidate || typeof candidate !== "object") return null;
+  const id = candidate.id;
+  const name = candidate.name;
+  if (typeof id !== "string" || typeof name !== "string") return null;
+  return { id, name };
+}
+function unwrapTagGroups(raw) {
+  if (!Array.isArray(raw)) return [];
+  const groups = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const entry of raw) {
+    const group = asTagGroupRef(entry);
+    if (!group || seen.has(group.id)) continue;
+    seen.add(group.id);
+    groups.push(ListingTagGroupDTOMapper.toDTO(group));
+  }
+  return groups;
+}
+var ListingTagDTOMapper;
+var init_ListingTagDTO = __esm({
+  "utils/dtos/ListingTagDTO.ts"() {
+    init_ListingTagGroupDTO();
+    ListingTagDTOMapper = class _ListingTagDTOMapper {
+      static toDTO(tag) {
+        const dto = {
+          id: tag.id,
+          name: tag.name,
+          slug: tag.slug,
+          listing_tag_groups: unwrapTagGroups(tag.listing_tag_groups)
+        };
+        if ("headline" in tag) {
+          dto.headline = tag.headline ?? null;
+          dto.description = tag.description ?? null;
+          dto.image_url_hero = tag.image_url_hero ?? null;
+          dto.image_url_small = tag.image_url_small ?? null;
+          dto.href = tag.href ?? null;
+          dto.color = tag.color ?? null;
+          dto.emoji = tag.emoji ?? null;
+        }
+        return dto;
+      }
+      static toDTOCollection(tags) {
+        return tags.map((tag) => _ListingTagDTOMapper.toDTO(tag));
+      }
+    };
+  }
+});
+
+// controllers/ListingTagController.ts
+var ListingTagController;
+var init_ListingTagController = __esm({
+  "controllers/ListingTagController.ts"() {
+    init_ListingTagDTO();
+    init_ListingTagGroupDTO();
+    ListingTagController = class {
+      constructor(listingTagService2) {
+        this.listingTagService = listingTagService2;
+      }
+      getActivePartialTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingTagService.getActivePartialTags();
+          res.status(200).json({ success: true, data: ListingTagDTOMapper.toDTOCollection(data) });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getActiveFullTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingTagService.getActiveFullTags();
+          res.status(200).json({ success: true, data: ListingTagDTOMapper.toDTOCollection(data) });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllFullTags = async (_req, res, next) => {
+        try {
+          const data = await this.listingTagService.getAllFullTags();
+          res.status(200).json({ success: true, data: ListingTagDTOMapper.toDTOCollection(data) });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createTag = async (req, res, next) => {
+        try {
+          const { tagData, tagGroupIds } = req.body;
+          const result = await this.listingTagService.createTag(tagData, tagGroupIds ?? []);
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Tag created successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          const { tagData, tagGroupIds } = req.body;
+          tagData.id = tagId;
+          const result = await this.listingTagService.updateTag(tagData, tagGroupIds ?? []);
+          res.status(200).json({
+            success: true,
+            data: result,
+            message: "Tag updated successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteTag = async (req, res, next) => {
+        try {
+          const { tagId } = req.params;
+          await this.listingTagService.deleteTag(tagId);
+          res.status(200).json({ success: true, message: "Tag deleted successfully" });
+        } catch (err) {
+          next(err);
+        }
+      };
+      getAllTagGroups = async (_req, res, next) => {
+        try {
+          const tagGroups = await this.listingTagService.getAllTagGroups();
+          res.status(200).json({
+            success: true,
+            data: ListingTagGroupDTOMapper.toDTOCollection(tagGroups)
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      createTagGroup = async (req, res, next) => {
+        try {
+          const { name } = req.body;
+          const tagGroup = await this.listingTagService.createTagGroup(name);
+          const tagGroupDto = ListingTagGroupDTOMapper.toDTO(tagGroup);
+          res.status(201).json({
+            success: true,
+            data: tagGroupDto,
+            message: "Tag group created successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      updateTagGroup = async (req, res, next) => {
+        try {
+          const { tagGroupId } = req.params;
+          const { name } = req.body;
+          const tagGroup = await this.listingTagService.updateTagGroup(tagGroupId, name);
+          const tagGroupDto = ListingTagGroupDTOMapper.toDTO(tagGroup);
+          res.status(200).json({
+            success: true,
+            data: tagGroupDto,
+            message: "Tag group updated successfully"
+          });
+        } catch (err) {
+          next(err);
+        }
+      };
+      deleteTagGroup = async (req, res, next) => {
+        try {
+          const { tagGroupId } = req.params;
+          await this.listingTagService.deleteTagGroup(tagGroupId);
+          res.status(200).json({ success: true, message: "Tag group deleted successfully" });
         } catch (err) {
           next(err);
         }
@@ -31074,6 +31404,7 @@ __export(controllers_exports, {
   imageController: () => imageController,
   integrationController: () => integrationController,
   listingController: () => listingController,
+  listingTagController: () => listingTagController,
   mediaController: () => mediaController,
   notificationController: () => notificationController,
   oauthAppController: () => oauthAppController,
@@ -31092,7 +31423,7 @@ __export(controllers_exports, {
   trackController: () => trackController,
   userController: () => userController
 });
-var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
+var authController, userController, companyController, trackController, settingsController, rbacController, feedbackController, blogController, listingController, listingTagController, imageController, mediaController, billingController, stripeWebhookController, configController, emailController, integrationController, publicIntegrationController, notificationController, publicNotificationController, postsController, publicPostsController, publicAnalyticsController, oauthAppController, oauthController, approvedAppsController, thirdPartyController, signatureController, setsController, analyticsController;
 var init_controllers = __esm({
   "controllers/index.ts"() {
     init_AuthController();
@@ -31103,6 +31434,7 @@ var init_controllers = __esm({
     init_FeedbackController();
     init_BlogController();
     init_ListingController();
+    init_ListingTagController();
     init_ImageController();
     init_MediaController();
     init_BillingController();
@@ -31152,6 +31484,7 @@ var init_controllers = __esm({
     feedbackController = new FeedbackController(feedbackService);
     blogController = new BlogController(blogService);
     listingController = new ListingController(listingService);
+    listingTagController = new ListingTagController(listingTagService);
     imageController = new ImageController(storageSupabaseRepository);
     mediaController = new MediaController(
       mediaService,
@@ -32892,7 +33225,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-22T08:48:51.823Z",
+  generated: "2026-08-26T07:03:16.577Z",
   routes: [
     {
       path: "/docs",
@@ -33165,6 +33498,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33213,6 +33552,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hootsuite/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33255,6 +33600,60 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33262,6 +33661,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/mixpost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/hopper-hq",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -33315,6 +33720,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openquok/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openquok/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33358,6 +33769,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/post-bridge/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/hopper-hq",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -33411,6 +33828,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33454,6 +33877,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/recurpost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/hopper-hq",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -33507,6 +33936,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/socialclaw/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/socialclaw/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33555,6 +33990,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/typefully/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/typefully/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -33598,6 +34039,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/hopper-hq",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -34359,7 +34806,25 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/humanizer/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/humanizer/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/humanizer/threads",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
@@ -34405,6 +34870,7 @@ var PUBLIC_TOOL_CHANNEL_PATHS = [
   "/tools/best-time-to-post",
   "/tools/humanizer"
 ];
+var PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
@@ -34541,7 +35007,8 @@ function buildProgrammaticSitemapPaths(constantsDir) {
     }
   }
   for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
-    for (const channelSlug of catalog.channels) {
+    const channelSlugs = toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : catalog.channels;
+    for (const channelSlug of channelSlugs) {
       paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
     }
   }
@@ -35731,14 +36198,14 @@ var listingTagUpdateSchema = zod.z.object({
 var listingTagIdParamSchema = zod.z.object({
   tagId: zod.z.string().uuid()
 });
-zod.z.object({
+var listingTagGroupCreateSchema = zod.z.object({
   name: zod.z.string().min(1)
 });
 zod.z.object({
   id: zod.z.string().uuid(),
   name: zod.z.string().min(1)
 });
-zod.z.object({
+var listingTagGroupIdParamSchema = zod.z.object({
   tagGroupId: zod.z.string().uuid()
 });
 zod.z.array(zod.z.string().uuid()).default([]);
@@ -35819,30 +36286,51 @@ listingRouter.delete(
   validateRequest({ params: listingCategoryIdParamSchema }),
   listingController.deleteCategory
 );
-listingRouter.get("/tags/active-partial", listingController.getActivePartialTags);
-listingRouter.get("/tags/active-full", listingController.getActiveFullTags);
-listingRouter.get("/tags/all-full", listingController.getAllFullTags);
-listingRouter.get("/tags/groups", listingController.getAllTagGroups);
+listingRouter.get("/tags/active-partial", listingTagController.getActivePartialTags);
+listingRouter.get("/tags/active-full", listingTagController.getActiveFullTags);
+listingRouter.get("/tags/all-full", listingTagController.getAllFullTags);
+listingRouter.get("/tags/groups", listingTagController.getAllTagGroups);
+listingRouter.post(
+  "/tags/groups",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ body: listingTagGroupCreateSchema }),
+  listingTagController.createTagGroup
+);
+listingRouter.put(
+  "/tags/groups/:tagGroupId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingTagGroupIdParamSchema, body: listingTagGroupCreateSchema }),
+  listingTagController.updateTagGroup
+);
+listingRouter.delete(
+  "/tags/groups/:tagGroupId",
+  authWithRoles6,
+  requireEditor,
+  validateRequest({ params: listingTagGroupIdParamSchema }),
+  listingTagController.deleteTagGroup
+);
 listingRouter.post(
   "/tags",
   authWithRoles6,
   requireEditor,
   validateRequest({ body: tagBodySchema }),
-  listingController.createTag
+  listingTagController.createTag
 );
 listingRouter.put(
   "/tags/:tagId",
   authWithRoles6,
   requireEditor,
   validateRequest({ params: listingTagIdParamSchema, body: tagUpdateBodySchema }),
-  listingController.updateTag
+  listingTagController.updateTag
 );
 listingRouter.delete(
   "/tags/:tagId",
   authWithRoles6,
   requireEditor,
   validateRequest({ params: listingTagIdParamSchema }),
-  listingController.deleteTag
+  listingTagController.deleteTag
 );
 listingRouter.get("/creators", listingController.getListingCreators);
 listingRouter.get(

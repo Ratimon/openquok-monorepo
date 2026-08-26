@@ -17,7 +17,7 @@ The calendar, post editor, analytics, and templates all need at least one channe
 
 On <a href="/account">Home</a>, click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
 
-![Add Channel dialog](/docs/_assets/getting-started/2-connect-channel.webp)
+![Add Channel](/docs/_assets/getting-started/2-connect-channel.webp)
 
 Pick the network you want. OpenQuok picks the connection flow for that platform — you do not choose it yourself.
 

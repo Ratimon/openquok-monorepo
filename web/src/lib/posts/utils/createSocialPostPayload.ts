@@ -48,6 +48,8 @@ export type BuildPostUpsertPayloadInput = {
 	focusedIntegrationId: string | null;
 	editorBody: string;
 	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
 	postMediaItems: PostMediaViewModel[];
 	selectedIds: string[];
 	scheduledLocal: string;
@@ -58,15 +60,17 @@ export type BuildPostUpsertPayloadInput = {
 
 /** Session payload for create/update post group (draft or scheduled). */
 export function buildPostUpsertPayload(input: BuildPostUpsertPayloadInput): CreatePostProgrammerModel {
-	const overrides = input.mode === 'custom' ? input.bodiesByIntegrationId : undefined;
+	const bodyOverrides = input.mode === 'custom' ? input.bodiesByIntegrationId : undefined;
+	const mediaOverrides = input.mode === 'custom' ? input.mediaByIntegrationId : undefined;
 	return {
 		organizationId: input.workspaceId,
 		body: input.globalBody,
-		...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+		...(bodyOverrides ? { bodiesByIntegrationId: bodyOverrides } : {}),
 		...(Object.keys(input.providerSettingsByIntegrationId ?? {}).length
 			? { providerSettingsByIntegrationId: input.providerSettingsByIntegrationId }
 			: {}),
-		...(input.postMediaItems.length ? { media: input.postMediaItems } : {}),
+		...(input.globalMediaItems.length ? { media: input.globalMediaItems } : {}),
+		...(mediaOverrides ? { mediaByIntegrationId: mediaOverrides } : {}),
 		integrationIds: input.selectedIds,
 		isGlobal: input.mode === 'global',
 		scheduledAt: datetimeLocalToIso(input.scheduledLocal),
@@ -121,21 +125,30 @@ export function buildProgrammaticCreatePostPayloadPreview(
 	}
 
 	const body = input.mode === 'global' ? input.editorBody : input.globalBody;
-	const overrides =
+	const bodyOverrides =
 		input.mode === 'custom' && input.focusedIntegrationId
 			? { ...input.bodiesByIntegrationId, [input.focusedIntegrationId]: input.editorBody }
 			: input.mode === 'custom'
 				? input.bodiesByIntegrationId
 				: undefined;
+	const globalMedia =
+		input.mode === 'global' ? input.postMediaItems : input.globalMediaItems;
+	const mediaOverrides =
+		input.mode === 'custom' && input.focusedIntegrationId
+			? { ...input.mediaByIntegrationId, [input.focusedIntegrationId]: input.postMediaItems }
+			: input.mode === 'custom'
+				? input.mediaByIntegrationId
+				: undefined;
 
 	const sessionPayload: CreatePostProgrammerModel = {
 		organizationId: input.workspaceId,
 		body,
-		...(overrides ? { bodiesByIntegrationId: overrides } : {}),
+		...(bodyOverrides ? { bodiesByIntegrationId: bodyOverrides } : {}),
 		...(Object.keys(input.providerSettingsByIntegrationId ?? {}).length
 			? { providerSettingsByIntegrationId: input.providerSettingsByIntegrationId }
 			: {}),
-		...(input.postMediaItems.length ? { media: input.postMediaItems } : {}),
+		...(globalMedia.length ? { media: globalMedia } : {}),
+		...(mediaOverrides ? { mediaByIntegrationId: mediaOverrides } : {}),
 		integrationIds: input.selectedIds,
 		isGlobal: input.mode === 'global',
 		scheduledAt,

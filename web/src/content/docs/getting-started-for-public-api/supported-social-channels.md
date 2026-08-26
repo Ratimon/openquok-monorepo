@@ -2,7 +2,7 @@
 title: Supported social channels
 description: Social channels OpenQuok currently supports — including Meta Threads, Instagram, and Dev.to — plus the per-channel settings shape behind the public API.
 order: 1
-lastUpdated: 2026-08-20
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-OpenQuok currently ships social provider integrations behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs.
+OpenQuok currently ships social provider integrations behind a single create-post API. Each post payload identifies its target channels through the UUIDs in <Badge text="integrationIds" variant="param" />, and any per-channel tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by those same UUIDs. Customize-mode captions and attachments use <Badge text="bodiesByIntegrationId" variant="param" /> and <Badge text="mediaByIntegrationId" variant="param" /> respectively. For how the dashboard maps Global mode and per-channel content to those fields, see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
 <strong>OAuth channels</strong> use the provider short identifier (for example <Badge text="threads" variant="default" />) at connect time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> <em>which</em> platform to authorize. <strong>Credentials channels</strong> (Dev.to) are connected in the dashboard with an API key — <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> and is not a connect URL.
 
@@ -230,6 +230,27 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 ```
 
 When <Badge text="isGlobal" variant="param" /> is `false`, channels listed in <Badge text="bodiesByIntegrationId" variant="param" /> use their override; the rest fall back to the top-level <Badge text="body" variant="param" />.
+
+### Multi-channel post with per-channel media override
+
+Upload each asset first, then pass shared defaults in <Badge text="media" variant="param" /> and channel-specific lists in <Badge text="mediaByIntegrationId" variant="param" />:
+
+```json
+{
+  "body": "Same announcement everywhere.",
+  "scheduledAt": "2026-05-15T18:00:00.000Z",
+  "status": "scheduled",
+  "integrationIds": ["YOUR_THREADS_CHANNEL_UUID", "YOUR_INSTAGRAM_CHANNEL_UUID"],
+  "isGlobal": false,
+  "media": [{ "id": "img-global", "path": "FILE_PATH_FROM_UPLOAD" }],
+  "mediaByIntegrationId": {
+    "YOUR_THREADS_CHANNEL_UUID": [{ "id": "img-threads", "path": "THREADS_FILE_PATH" }],
+    "YOUR_INSTAGRAM_CHANNEL_UUID": [{ "id": "img-ig", "path": "INSTAGRAM_FILE_PATH" }]
+  }
+}
+```
+
+Channels omitted from <Badge text="mediaByIntegrationId" variant="param" /> inherit the top-level <Badge text="media" variant="param" /> array for their post row.
 
 ### Schedule a Threads post with a follow-up reply
 

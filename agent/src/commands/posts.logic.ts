@@ -73,7 +73,8 @@ export function parsePostsStatusFlag(v: unknown): "draft" | "scheduled" {
  * Load a create-post payload from disk for `posts:create --json`.
  * Root object must match `POST /public/posts` (e.g. `scheduledAt`, `status`, optional
  * `body`, `integrationIds`, `note`, `bodiesByIntegrationId`, `media`,
- * `providerSettingsByIntegrationId`, …). `organizationId` is removed if present.
+ * `mediaByIntegrationId`, `providerSettingsByIntegrationId`, …).
+ * `organizationId` is removed if present.
  */
 export function readCreatePayloadFromJsonFile(path: string): Record<string, unknown> {
   if (!fs.existsSync(path)) {

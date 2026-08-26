@@ -182,6 +182,7 @@ export type PostGroupDetailsProgrammerModel = {
 	body: string;
 	bodiesByIntegrationId: Record<string, string>;
 	media: PostMediaProgrammerModel[];
+	mediaByIntegrationId?: Record<string, PostMediaProgrammerModel[]>;
 	tagNames: string[];
 	postIds?: string[];
 	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
@@ -300,6 +301,8 @@ export type CreatePostProgrammerModel = {
 	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 	/** Image attachments (composer / R2 object keys; see `social_media` on each item when set). */
 	media?: PostMediaProgrammerModel[];
+	/** Optional per-channel media overrides (keyed by integration id). */
+	mediaByIntegrationId?: Record<string, PostMediaProgrammerModel[]>;
 	integrationIds: string[];
 	isGlobal: boolean;
 	scheduledAt: string;

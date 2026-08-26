@@ -92,6 +92,9 @@
 		 */
 		guestMode?: boolean;
 		isLoggedIn?: boolean;
+		mentionToolbarDisabled?: boolean;
+		mentionToolbarTooltip?: string;
+		onMentionToolbarClick?: () => void;
 	}
 
 	let {
@@ -122,7 +125,10 @@
 		focusedIntegrationId = null,
 		maxMediaItems = null,
 		guestMode = false,
-		isLoggedIn = false
+		isLoggedIn = false,
+		mentionToolbarDisabled = false,
+		mentionToolbarTooltip = 'Insert a mention',
+		onMentionToolbarClick = undefined
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -319,7 +325,7 @@
 	}
 
 	/** Insert a token (e.g. `#` / `@`) at the composer caret, replacing any selection. */
-	function insertAtComposerCursor(text: string) {
+	export function insertAtComposerCursor(text: string) {
 		const el = textarea;
 		if (!el || disabled || uploadBusy) return;
 		const start = el.selectionStart ?? 0;
@@ -573,15 +579,21 @@
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Insert a mention">
+		<ComposerMediaTooltip label={mentionToolbarTooltip}>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
 					type="button"
 					class={iconBtn}
-					disabled={disabled || uploadBusy || !textarea}
-					onclick={composeTooltipTriggerClick(props, () => insertAtComposerCursor('@'))}
-					aria-label="Insert mention"
+					disabled={disabled || uploadBusy || !textarea || mentionToolbarDisabled}
+					onclick={composeTooltipTriggerClick(props, () => {
+						if (onMentionToolbarClick) {
+							onMentionToolbarClick();
+							return;
+						}
+						insertAtComposerCursor('@');
+					})}
+					aria-label={mentionToolbarTooltip}
 				>
 					<AbstractIcon name={icons.AtSign.name} class="size-5" width="20" height="20" />
 				</button>

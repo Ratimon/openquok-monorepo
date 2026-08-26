@@ -52,6 +52,27 @@ export function formatProviderScheduleValidationMessage(
 	return `${label}: ${raw}`;
 }
 
+// --- Per-channel caption overrides ---
+
+/** Drop all per-channel caption overrides when the user confirms back to global authoring. */
+export function clearPerChannelBodies(): Record<string, string> {
+	return {};
+}
+
+/** Drop all per-channel media overrides when the user confirms back to global authoring. */
+export function clearPerChannelMedia(): Record<string, PostMediaViewModel[]> {
+	return {};
+}
+
+/** Resolved attachment list for one channel (override map entry or shared global list). */
+export function resolveIntegrationMedia(
+	integrationId: string,
+	globalMediaItems: PostMediaViewModel[],
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>
+): PostMediaViewModel[] {
+	return mediaByIntegrationId[integrationId] ?? globalMediaItems;
+}
+
 // --- Composer snapshot / dirty check ---
 
 export function serializeComposerSnapshot(input: ComposerSnapshotInput): string {
@@ -62,6 +83,8 @@ export function serializeComposerSnapshot(input: ComposerSnapshotInput): string 
 		globalBody: input.globalBody,
 		bodiesByIntegrationId: input.bodiesByIntegrationId,
 		editorBody: input.editorBody,
+		globalMediaItems: input.globalMediaItems,
+		mediaByIntegrationId: input.mediaByIntegrationId,
 		postMediaItems: input.postMediaItems,
 		selectedIds: input.selectedIds,
 		scheduledLocal: input.scheduledLocal,
@@ -141,7 +164,8 @@ export function computeLaunchMaxMediaItems(args: {
 export function computeScheduleValidationError(args: {
 	selectedIds: string[];
 	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
-	postMediaItems: PostMediaViewModel[];
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
 	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
 }): string | null {
 	if (!args.selectedIds.length) return null;
@@ -150,8 +174,9 @@ export function computeScheduleValidationError(args: {
 		if (!ch) continue;
 		const cfg = getLaunchProviderConfig(ch.identifier);
 		if (!cfg.checkValidity) continue;
+		const media = resolveIntegrationMedia(id, args.globalMediaItems, args.mediaByIntegrationId);
 		const res = cfg.checkValidity({
-			media: args.postMediaItems,
+			media,
 			settings: args.providerSettingsByIntegrationId[id] ?? {}
 		});
 		if (typeof res === 'string' && res.trim().length > 0) {
@@ -165,7 +190,8 @@ export function computeScheduleValidationError(args: {
 export async function computeScheduleValidationErrorAsync(args: {
 	selectedIds: string[];
 	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
-	postMediaItems: PostMediaViewModel[];
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
 	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
 }): Promise<string | null> {
 	const sync = computeScheduleValidationError(args);
@@ -176,8 +202,9 @@ export async function computeScheduleValidationErrorAsync(args: {
 		if (!ch) continue;
 		const cfg = getLaunchProviderConfig(ch.identifier);
 		if (!cfg.checkValidityAsync) continue;
+		const media = resolveIntegrationMedia(id, args.globalMediaItems, args.mediaByIntegrationId);
 		const res = await cfg.checkValidityAsync({
-			media: args.postMediaItems,
+			media,
 			settings: args.providerSettingsByIntegrationId[id] ?? {}
 		});
 		if (typeof res === 'string' && res.trim().length > 0) {

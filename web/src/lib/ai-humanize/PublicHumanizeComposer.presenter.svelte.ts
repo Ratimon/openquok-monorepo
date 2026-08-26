@@ -20,6 +20,7 @@ import {
 } from '$lib/ai-humanize/utils/buildHumanizeMockChannels';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
+	clearPerChannelBodies,
 	computeLaunchMaxMediaItems,
 	isChannelSchedulable,
 	mergeProviderSettingsPatch,
@@ -265,6 +266,7 @@ export class PublicHumanizeComposerPresenter {
 
 	backToGlobalMode(): void {
 		this.persistEditorBody();
+		this.bodiesByIntegrationId = clearPerChannelBodies();
 		this.mode = 'global';
 		this.focusedIntegrationId = null;
 		this.editorLocked = false;

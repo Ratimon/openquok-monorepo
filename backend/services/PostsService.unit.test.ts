@@ -637,6 +637,82 @@ describe("PostsService", () => {
             expect(byIntegration.get(otherIntegrationId)).toBe("body-b");
         });
 
+        it("applies mediaByIntegrationId overrides per channel when provided", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+                { id: otherIntegrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            postsRepo.insertPostGroup.mockResolvedValue([
+                socialPostRow({ integration_id: integrationId, state: "QUEUE" }),
+                socialPostRow({ integration_id: otherIntegrationId, state: "QUEUE" }),
+            ]);
+
+            const globalMedia = [{ id: "g1", path: "/global.png" }];
+            const channelAMedia = [{ id: "a1", path: "/a.png" }];
+            const channelBMedia = [{ id: "b1", path: "/b.png" }];
+
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "hi",
+                media: globalMedia,
+                mediaByIntegrationId: {
+                    [integrationId]: channelAMedia,
+                    [otherIntegrationId]: channelBMedia,
+                },
+                integrationIds: [integrationId, otherIntegrationId],
+                isGlobal: false,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+
+            const rows = postsRepo.insertPostGroup.mock.calls[0][0];
+            const parseImageItems = (image: string | null) =>
+                JSON.parse(image ?? "null").items as { id: string; path: string }[];
+            const byIntegration = new Map(rows.map((r) => [r.integration_id, parseImageItems(r.image)]));
+            expect(byIntegration.get(integrationId)).toEqual(channelAMedia);
+            expect(byIntegration.get(otherIntegrationId)).toEqual(channelBMedia);
+        });
+
+        it("falls back to shared media when mediaByIntegrationId omits a channel", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+                { id: otherIntegrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            postsRepo.insertPostGroup.mockResolvedValue([
+                socialPostRow({ integration_id: integrationId, state: "QUEUE" }),
+                socialPostRow({ integration_id: otherIntegrationId, state: "QUEUE" }),
+            ]);
+
+            const globalMedia = [{ id: "g1", path: "/global.png" }];
+            const channelAMedia = [{ id: "a1", path: "/a.png" }];
+
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "hi",
+                media: globalMedia,
+                mediaByIntegrationId: {
+                    [integrationId]: channelAMedia,
+                },
+                integrationIds: [integrationId, otherIntegrationId],
+                isGlobal: false,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+
+            const rows = postsRepo.insertPostGroup.mock.calls[0][0];
+            const parseImageItems = (image: string | null) =>
+                JSON.parse(image ?? "null").items as { id: string; path: string }[];
+            const byIntegration = new Map(rows.map((r) => [r.integration_id, parseImageItems(r.image)]));
+            expect(byIntegration.get(integrationId)).toEqual(channelAMedia);
+            expect(byIntegration.get(otherIntegrationId)).toEqual(globalMedia);
+        });
+
         it("ignores deleted integrations when validating channel ids", async () => {
             integrationService.listByOrganization.mockResolvedValue([
                 {
@@ -1126,6 +1202,47 @@ describe("PostsService", () => {
                 media: [{ id: "m1", path: "/x.png" }],
                 tagNames: expect.arrayContaining(["tag-1", "tag-2"]),
             });
+        });
+
+        it("returns mediaByIntegrationId from each post row on getPostGroup", async () => {
+            const postGroup = faker.string.uuid();
+            const publishDateIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            const imageA = JSON.stringify({ v: 1, items: [{ id: "a1", path: "/a.png" }] });
+            const imageB = JSON.stringify({ v: 1, items: [{ id: "b1", path: "/b.png" }] });
+
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({
+                    id: faker.string.uuid(),
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: integrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-a",
+                    image: imageA,
+                    settings: "{}",
+                }),
+                socialPostRow({
+                    id: faker.string.uuid(),
+                    organization_id: orgId,
+                    post_group: postGroup,
+                    integration_id: otherIntegrationId,
+                    state: "QUEUE",
+                    publish_date: publishDateIso,
+                    content: "body-b",
+                    image: imageB,
+                    settings: "{}",
+                }),
+            ]);
+            postsRepo.listTagsForPostIds.mockResolvedValue([]);
+
+            const out = await service().getPostGroup(postGroup, authUserId);
+
+            expect(out.mediaByIntegrationId).toEqual({
+                [integrationId]: [{ id: "a1", path: "/a.png" }],
+                [otherIntegrationId]: [{ id: "b1", path: "/b.png" }],
+            });
+            expect(out.media).toEqual([{ id: "a1", path: "/a.png" }]);
         });
 
         it("when you open an existing post to edit, saved channel settings and thread replies from the database come back together", async () => {

@@ -57,7 +57,24 @@ await openquok.postAsAgent({
     : undefined,
   integrationIds: ["<integration-id>"],
 });
+
+// Per-channel media (customize mode): shared `media` is the fallback for channels
+// omitted from `mediaByIntegrationId`.
+await openquok.post({
+  scheduledAt: new Date().toISOString(),
+  status: "scheduled",
+  body: "Same copy everywhere",
+  integrationIds: ["<integration-id-1>", "<integration-id-2>"],
+  isGlobal: false,
+  media: [{ id: "global", path: "uploads/fallback.png" }],
+  mediaByIntegrationId: {
+    "<integration-id-1>": [{ id: "a", path: "uploads/a.png" }],
+    "<integration-id-2>": [{ id: "b", path: "uploads/b.png" }],
+  },
+});
 ```
+
+`PublicCreatePostDto` also supports `bodiesByIntegrationId`, `providerSettingsByIntegrationId`, `tagNames`, and `repeatInterval` — see the [Create Post](https://www.openquok.com/docs/apis-posts/create) API reference.
 
 ### Methods
 

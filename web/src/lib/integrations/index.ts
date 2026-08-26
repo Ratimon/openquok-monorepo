@@ -27,14 +27,18 @@ const integrationsConfig: IntegrationsConfig = {
 		internalPlugs: (providerIdentifier: string) =>
 			`${integrationsBase}/internal-plugs/${encodeURIComponent(providerIdentifier)}`,
 		triggerTool: (integrationId: string) =>
-			`${integrationsBase}/${encodeURIComponent(integrationId)}/trigger`
+			`${integrationsBase}/${encodeURIComponent(integrationId)}/trigger`,
+		mentions: `${integrationsBase}/mentions`
 	}
 };
 
 export const integrationsRepository = new IntegrationsRepository(httpGateway, integrationsConfig);
 export const continueIntegrationPresenter = new ContinueIntegrationPresenter(integrationsRepository);
 
-export { IntegrationsRepository } from '$lib/integrations/Integrations.repository.svelte';
+export {
+	IntegrationsRepository,
+	type IntegrationMentionProgrammerModel
+} from '$lib/integrations/Integrations.repository.svelte';
 export {
 	ContinueIntegrationPresenter,
 	ContinueIntegrationStatus,

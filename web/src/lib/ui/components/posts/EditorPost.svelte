@@ -17,7 +17,9 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
+	import ComposerMentionAutocomplete from '$lib/ui/components/posts/ComposerMentionAutocomplete.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
+	import { providerSupportsComposerMentions } from '$lib/posts/utils/composerMention';
 	import { filesFromDataTransfer } from '$lib/posts/utils/composerMediaDrop';
 	import { toast } from '$lib/ui/sonner';
 
@@ -119,6 +121,8 @@
 
 	let confirmOpen = $state(false);
 	let mediaToolbarRef = $state<import('./ComposerMediaToolbar.svelte').default | undefined>();
+	let mentionAutocompleteRef =
+		$state<import('./ComposerMentionAutocomplete.svelte').default | undefined>();
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
 	let composerMedia = $state<MultiMedia | undefined>(undefined);
 	let composerDragOver = $state(false);
@@ -200,6 +204,19 @@
 		compact ? 'min-h-[4.5rem] sm:min-h-[4.5rem]' : 'min-h-[140px] sm:min-h-[180px]'
 	);
 	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && !comments);
+	const mentionToolbarDisabled = $derived(composerMode === 'global');
+	const mentionToolbarTooltip = $derived(
+		composerMode === 'global'
+			? 'Focus and unlock a channel first'
+			: 'Insert a mention'
+	);
+	const mentionToolbarUsesAutocomplete = $derived(
+		composerMode === 'custom' &&
+			!guestMode &&
+			Boolean(organizationId?.trim()) &&
+			Boolean(focusedIntegrationId?.trim()) &&
+			providerSupportsComposerMentions(focusedProviderIdentifier)
+	);
 </script>
 
 <div class="min-h-0 min-w-0 flex-1">
@@ -241,16 +258,31 @@
 			<div
 				class="border-base-300 bg-base-200 has-[textarea:focus]:border-primary has-[textarea:focus]:ring-primary/30 has-[textarea:focus]:ring-inset min-w-0 rounded-lg border has-[textarea:focus]:ring-2"
 			>
-				<textarea
-					id="composer-body"
-					bind:this={composerTextarea}
-					bind:value={body}
-					rows={textareaRows}
-					placeholder={comments ? 'Write a comment…' : 'Write something…'}
-					onpaste={onComposerPaste}
-					disabled={busy || locked || defineSetScopeOverlay}
-					class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
-				></textarea>
+				<div class="relative min-w-0">
+					<textarea
+						id="composer-body"
+						bind:this={composerTextarea}
+						bind:value={body}
+						rows={textareaRows}
+						placeholder={comments ? 'Write a comment…' : 'Write something…'}
+						onpaste={onComposerPaste}
+						oninput={() => mentionAutocompleteRef?.handleTextareaInput()}
+						onkeydown={(e) => mentionAutocompleteRef?.handleTextareaKeyDown(e)}
+						disabled={busy || locked || defineSetScopeOverlay}
+						class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
+					></textarea>
+
+					<ComposerMentionAutocomplete
+						bind:this={mentionAutocompleteRef}
+						textarea={composerTextarea}
+						{composerMode}
+						{focusedIntegrationId}
+						{focusedProviderIdentifier}
+						{organizationId}
+						disabled={busy || locked || defineSetScopeOverlay}
+						{guestMode}
+					/>
+				</div>
 
 				{#if mediaToolbarVisible && writerPresenter && summarizerPresenter && humanizePresenter}
 					<div class="min-w-0 max-w-full px-2 pb-2">
@@ -292,6 +324,15 @@
 							}}
 							onReplaceBody={(text) => {
 								body = text;
+							}}
+							{mentionToolbarDisabled}
+							{mentionToolbarTooltip}
+							onMentionToolbarClick={() => {
+								if (mentionToolbarUsesAutocomplete) {
+									mentionAutocompleteRef?.insertAtSign();
+									return;
+								}
+								mediaToolbarRef?.insertAtComposerCursor('@');
 							}}
 						/>
 					</div>

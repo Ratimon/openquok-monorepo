@@ -17,9 +17,9 @@
  *       `status: "draft"` to persist without enqueuing publishing (useful for
  *       AI / approval flows), or `status: "scheduled"` to publish at
  *       `scheduledAt`. Use `bodiesByIntegrationId` to override `body` for
- *       individual channels (customize mode); use
- *       `providerSettingsByIntegrationId` to attach Threads thread replies,
- *       Instagram post-type, etc.
+ *       individual channels (customize mode); use `mediaByIntegrationId` to
+ *       override `media` per channel; use `providerSettingsByIntegrationId` to
+ *       attach Threads thread replies, Instagram post-type, etc.
  *     requestBody:
  *       required: true
  *       content:
@@ -41,7 +41,10 @@
  *               media:
  *                 type: array
  *                 maxItems: 20
- *                 description: Media references obtained from `POST /public/upload` (`id`, `path`).
+ *                 description: >-
+ *                   Default media attachments for every channel row unless
+ *                   overridden via `mediaByIntegrationId`. References from
+ *                   `POST /public/upload` (`id`, `path`).
  *                 items:
  *                   type: object
  *                   required: [id, path]
@@ -53,6 +56,26 @@
  *                     bucket:
  *                       type: string
  *                       description: Storage bucket name (defaults to the composer media bucket).
+ *               mediaByIntegrationId:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: array
+ *                   maxItems: 20
+ *                   items:
+ *                     type: object
+ *                     required: [id, path]
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       path:
+ *                         type: string
+ *                       bucket:
+ *                         type: string
+ *                         description: Storage bucket name (defaults to the composer media bucket).
+ *                 description: >-
+ *                   Per-channel media overrides keyed by integration (channel)
+ *                   UUID. When a channel is omitted, the top-level `media` array
+ *                   is used for that row.
  *               integrationIds:
  *                 type: array
  *                 items:
@@ -105,7 +128,19 @@
  *             scheduledAt: '2026-05-14T10:00:00.000Z'
  *             status: scheduled
  *             body: 'Hello from the public API!'
- *             integrationIds: ['1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22']
+ *             integrationIds:
+ *               - 1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22
+ *               - 2a8b5e4c-1d3f-4a5b-9c0d-8e7f6a5b4c3d
+ *             media:
+ *               - id: img-global
+ *                 path: uploads/2026/05/hero.png
+ *             mediaByIntegrationId:
+ *               1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22:
+ *                 - id: img-a
+ *                   path: uploads/2026/05/channel-a.png
+ *               2a8b5e4c-1d3f-4a5b-9c0d-8e7f6a5b4c3d:
+ *                 - id: img-b
+ *                   path: uploads/2026/05/channel-b.png
  *             tagNames: ['launch-week']
  *     responses:
  *       '200':

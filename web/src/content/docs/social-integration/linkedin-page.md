@@ -2,7 +2,7 @@
 title: LinkedIn Page
 description: How to configure a LinkedIn company page for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 8
-lastUpdated: 2026-06-20
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -35,6 +35,7 @@ Page and personal channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant
 | Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
 | Page auto-repost / auto-plug | On a connected <Badge text="linkedin-page" variant="default" /> channel, open **Plugs**: **Auto repost posts** (reshare when likes reach a threshold, up to 3 times every 6 hours) and **Auto plug post** (promotional comment from the Page) |
 | Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
+| @-mention lookup | Same as personal LinkedIn — unlock the Page channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions |
 
 ### Not supported
 

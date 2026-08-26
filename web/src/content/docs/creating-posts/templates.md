@@ -9,7 +9,7 @@ lastUpdated: 2026-08-25
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Content coming soon. Open <strong>Select a template</strong> on Home or manage presets at <a href="/account/templates">/account/templates</a>. See <a href="/docs/creating-posts">Creating posts overview</a> → Starting from a template.
+Content coming soon. Open <strong>Select a template</strong> on Home or manage presets at <a href="/account/templates">/account/templates</a>. Templates can store global or per-channel captions; while you <strong>define a reusable set</strong>, per-channel editing is disabled — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> → Templates and reusable sets. See also <a href="/docs/creating-posts">Creating posts overview</a> → Starting from a template.
 
 ## Related
 

@@ -9,7 +9,7 @@ lastUpdated: 2026-08-25
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Content coming soon. The composer blocks save when a channel is missing required fields — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> for per-network **Settings**.
+Content coming soon. The composer blocks save when a channel is missing required fields. Focus a channel, open **Settings** beside the preview, and fill required provider fields — often without leaving Global mode. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> → <strong>Go back to Global</strong> and <strong>What works per-channel only</strong>.
 
 ## Related
 

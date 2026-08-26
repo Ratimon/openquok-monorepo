@@ -15,6 +15,8 @@ import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.j
 
 A **channel** is one connected social account — one X profile, one LinkedIn Page, one Threads account, and so on. You connect channels inside a **workspace**. Everything you schedule, review on the calendar, or see on Home kanban hangs off those connections.
 
+![Connected Channels](/docs/_assets/getting-started/2-connect-channel.webp)
+
 Connecting the same network twice (for example two different Instagram accounts) creates two separate channels.
 
 <Callout type="note" title="Channel vs integration">

@@ -26,6 +26,8 @@ import type {
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
 import {
+	clearPerChannelBodies,
+	clearPerChannelMedia,
 	cloneProviderSettingsByIntegrationId,
 	computeLaunchMaxMediaItems,
 	computeScheduleValidationError,
@@ -141,6 +143,8 @@ export class CreateSocialPostPresenter {
 	globalBody = $state('');
 	bodiesByIntegrationId = $state<Record<string, string>>({});
 	editorBody = $state('');
+	globalMediaItems = $state<PostMediaViewModel[]>([]);
+	mediaByIntegrationId = $state<Record<string, PostMediaViewModel[]>>({});
 
 	selectedIds = $state<string[]>([]);
 	selectedGroupId = $state<string | null>(null);
@@ -222,8 +226,14 @@ export class CreateSocialPostPresenter {
 		return this.previewText.length;
 	});
 	usesWeightedCharCount = $derived((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x');
+	previewMediaItems = $derived.by((): PostMediaViewModel[] => {
+		const hasPreviewChannel =
+			(this.mode === 'custom' && this.focusedIntegrationId) ||
+			(this.mode === 'global' && this.selectedIds.length === 1);
+		return hasPreviewChannel ? this.postMediaItemsVm : this.globalMediaItems;
+	});
 	previewMediaUrls = $derived(
-		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.postMediaItemsVm)
+		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.previewMediaItems)
 	);
 
 	primaryLabel = $derived(
@@ -238,7 +248,8 @@ export class CreateSocialPostPresenter {
 		computeScheduleValidationError({
 			selectedIds: this.selectedIds,
 			baseSocialChannelsVm: this.baseSocialChannelsVm,
-			postMediaItems: this.postMediaItemsVm,
+			globalMediaItems: this.globalMediaItems,
+			mediaByIntegrationId: this.mediaByIntegrationId,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		})
 	);
@@ -333,6 +344,7 @@ export class CreateSocialPostPresenter {
 				this.focusedIntegrationId = this.selectedIds.length ? this.selectedIds[0]! : null;
 				this.editorLocked = true;
 				this.loadEditorBody();
+				this.loadEditorMedia();
 			}
 		} else {
 			const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
@@ -396,27 +408,54 @@ export class CreateSocialPostPresenter {
 		this.editorBody = this.globalBody;
 	}
 
+	persistEditorMedia(): void {
+		if (this.mode === 'custom' && this.focusedIntegrationId) {
+			this.mediaByIntegrationId = {
+				...this.mediaByIntegrationId,
+				[this.focusedIntegrationId]: [...this.postMediaItemsVm]
+			};
+			return;
+		}
+		this.globalMediaItems = [...this.postMediaItemsVm];
+	}
+
+	loadEditorMedia(): void {
+		if (this.mode === 'custom' && this.focusedIntegrationId) {
+			this.postMediaItemsVm = [
+				...(this.mediaByIntegrationId[this.focusedIntegrationId] ?? this.globalMediaItems)
+			];
+			return;
+		}
+		this.postMediaItemsVm = [...this.globalMediaItems];
+	}
+
 	enterCustomMode(integrationId: string): void {
 		if (this.contentSetAuthoringActive) {
 			toast.message('Per-channel editing is disabled while you define a reusable set.');
 			return;
 		}
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		this.mode = 'custom';
 		this.focusedIntegrationId = integrationId;
 		this.editorLocked = !this.customEditingUnlocked;
 		this.settingsOpen = false;
 		this.loadEditorBody();
+		this.loadEditorMedia();
 	}
 
 	backToGlobalMode(): void {
 		this.persistEditorBody();
+		this.persistEditorMedia();
+		this.bodiesByIntegrationId = clearPerChannelBodies();
+		this.mediaByIntegrationId = clearPerChannelMedia();
 		this.mode = 'global';
 		this.focusedIntegrationId = null;
 		this.editorLocked = false;
 		this.customEditingUnlocked = false;
 		this.settingsOpen = false;
 		this.loadEditorBody();
+		this.loadEditorMedia();
 	}
 
 	requestCustomize(integrationId: string): void {
@@ -427,9 +466,11 @@ export class CreateSocialPostPresenter {
 		if (this.mode !== 'custom') return;
 		if (this.focusedIntegrationId === id) return;
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		this.focusedIntegrationId = id;
 		this.settingsOpen = false;
 		this.loadEditorBody();
+		this.loadEditorMedia();
 	}
 
 	updateFocusedProviderSettings(next: Record<string, unknown>): void {
@@ -713,6 +754,7 @@ export class CreateSocialPostPresenter {
 
 	async saveAsDraft(): Promise<boolean> {
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		const workspaceId = this.workspaceIdForSession;
 		if (!workspaceId) {
 			toast.error('Select a workspace.');
@@ -776,6 +818,7 @@ export class CreateSocialPostPresenter {
 		successMessage: string;
 	}): Promise<boolean> {
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		const workspaceId = this.workspaceIdForSession;
 		if (!workspaceId) {
 			toast.error('Select a workspace.');
@@ -799,7 +842,8 @@ export class CreateSocialPostPresenter {
 		const asyncValidationError = await computeScheduleValidationErrorAsync({
 			selectedIds: this.selectedIds,
 			baseSocialChannelsVm: this.baseSocialChannelsVm,
-			postMediaItems: this.postMediaItemsVm,
+			globalMediaItems: this.globalMediaItems,
+			mediaByIntegrationId: this.mediaByIntegrationId,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		});
 		if (asyncValidationError) {
@@ -864,6 +908,7 @@ export class CreateSocialPostPresenter {
 
 	buildSetSnapshot(): SetSnapshotViewModel {
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		let providerCopy = cloneProviderSettingsByIntegrationId(this.providerSettingsByIntegrationId);
 		if (this.contentSetAuthoringActive) {
 			providerCopy = syncSharedFollowUpsToProviderSettingsForSetAuthoring({
@@ -886,7 +931,11 @@ export class CreateSocialPostPresenter {
 			bodiesByIntegrationId: { ...this.bodiesByIntegrationId },
 			providerSettingsByIntegrationId: providerCopy,
 			...(shared && shared.length > 0 ? { sharedFollowUpReplies: shared } : {}),
-			postMediaItems: [...this.postMediaItemsVm],
+			globalMediaItems: [...this.globalMediaItems],
+			...(Object.keys(this.mediaByIntegrationId).length > 0
+				? { mediaByIntegrationId: { ...this.mediaByIntegrationId } }
+				: {}),
+			postMediaItems: [...this.globalMediaItems],
 			selectedTagNames: [...this.selectedTagNames],
 			repeatInterval: this.repeatInterval
 		};
@@ -903,9 +952,10 @@ export class CreateSocialPostPresenter {
 			return false;
 		}
 		this.persistEditorBody();
+		this.persistEditorMedia();
 		const plain = stripHtmlToPlainText(this.editorBody);
 		const hasText = plain.length > 0;
-		const hasMedia = this.postMediaItemsVm.length > 0;
+		const hasMedia = this.globalMediaItems.length > 0;
 		if (!hasText && !hasMedia) {
 			toast.error('Write something or attach media before saving a set.');
 			return false;
@@ -943,6 +993,8 @@ export class CreateSocialPostPresenter {
 			globalBody: this.globalBody,
 			bodiesByIntegrationId: this.bodiesByIntegrationId,
 			editorBody: this.editorBody,
+			globalMediaItems: this.globalMediaItems,
+			mediaByIntegrationId: this.mediaByIntegrationId,
 			postMediaItems: this.postMediaItemsVm,
 			selectedIds: this.selectedIds,
 			scheduledLocal: this.scheduledLocal,
@@ -966,6 +1018,8 @@ export class CreateSocialPostPresenter {
 			focusedIntegrationId: this.focusedIntegrationId,
 			editorBody: this.editorBody,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId,
+			globalMediaItems: this.globalMediaItems,
+			mediaByIntegrationId: this.mediaByIntegrationId,
 			postMediaItems: this.postMediaItemsVm,
 			selectedIds: this.selectedIds,
 			scheduledLocal,
@@ -1016,6 +1070,8 @@ export class CreateSocialPostPresenter {
 		this.globalBody = '';
 		this.bodiesByIntegrationId = {};
 		this.editorBody = '';
+		this.globalMediaItems = [];
+		this.mediaByIntegrationId = {};
 		this.postMediaItemsVm = [];
 		this.providerSettingsByIntegrationId = {};
 		this.sharedFollowUpRepliesVm = [];
@@ -1091,7 +1147,16 @@ export class CreateSocialPostPresenter {
 		} else {
 			this.sharedFollowUpRepliesVm = [];
 		}
-		this.postMediaItemsVm = Array.isArray(snapshot.postMediaItems) ? [...snapshot.postMediaItems] : [];
+		this.globalMediaItems = Array.isArray(snapshot.globalMediaItems)
+			? [...snapshot.globalMediaItems]
+			: Array.isArray(snapshot.postMediaItems)
+				? [...snapshot.postMediaItems]
+				: [];
+		this.mediaByIntegrationId = snapshot.mediaByIntegrationId
+			? Object.fromEntries(
+					Object.entries(snapshot.mediaByIntegrationId).map(([id, items]) => [id, [...items]])
+				)
+			: {};
 		this.selectedTagNames = [...(snapshot.selectedTagNames ?? [])];
 		this.repeatInterval = snapshot.repeatInterval ?? null;
 
@@ -1112,6 +1177,7 @@ export class CreateSocialPostPresenter {
 		}
 		this.settingsOpen = false;
 		this.loadEditorBody();
+		this.loadEditorMedia();
 	}
 
 	private async loadInitial(workspaceId: string, preselectScheduledAtIso?: string | null): Promise<void> {
@@ -1143,6 +1209,8 @@ export class CreateSocialPostPresenter {
 			this.globalBody = '';
 			this.bodiesByIntegrationId = {};
 			this.editorBody = '';
+			this.globalMediaItems = [];
+			this.mediaByIntegrationId = {};
 			this.postMediaItemsVm = [];
 		} finally {
 			this.busy = false;
@@ -1177,7 +1245,12 @@ export class CreateSocialPostPresenter {
 			this.lastLoadedEditKey = editKey;
 			this.repeatInterval = g.repeatInterval ?? null;
 			this.selectedTagNames = Array.isArray(g.tagNames) ? g.tagNames : [];
-			this.postMediaItemsVm = Array.isArray(g.media) ? g.media : [];
+			this.globalMediaItems = Array.isArray(g.media) ? g.media : [];
+			this.mediaByIntegrationId = g.mediaByIntegrationId
+				? Object.fromEntries(
+						Object.entries(g.mediaByIntegrationId).map(([id, items]) => [id, [...items]])
+					)
+				: {};
 			this.scheduledLocal = isoToDatetimeLocalValue(g.publishDateIso);
 
 			const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
@@ -1197,6 +1270,7 @@ export class CreateSocialPostPresenter {
 				this.editorLocked = false;
 				this.customEditingUnlocked = false;
 				this.editorBody = this.globalBody;
+				this.loadEditorMedia();
 				return;
 			}
 
@@ -1206,6 +1280,7 @@ export class CreateSocialPostPresenter {
 			this.customEditingUnlocked = false;
 			this.settingsOpen = false;
 			this.loadEditorBody();
+			this.loadEditorMedia();
 		} finally {
 			this.busy = false;
 		}

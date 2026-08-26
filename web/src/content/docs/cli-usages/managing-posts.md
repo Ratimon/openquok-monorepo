@@ -2,7 +2,7 @@
 title: Managing Posts
 description: Create, list, delete, and reconnect OpenQuok posts/post group from the command line.
 order: 1
-lastUpdated: 2026-08-20
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -39,6 +39,7 @@ openquok posts:create \
 | <Badge text="--settings" variant="param" /> | Platform-specific settings JSON; merged into each selected integration. |
 | <Badge text="-j" variant="param" /> <Badge text="--json" variant="param" /> | Path to a JSON file whose root object is the full <Badge text="POST /public/posts" variant="path" /> body (skips other flags). |
 | <Badge text="--bodiesByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is the per-channel body override. |
+| <Badge text="--mediaByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is an array of <code>{id, path}</code> media items for that channel. Channels omitted in the map inherit <Badge text="-m" variant="param" /> / root <code>media</code>. |
 | <Badge text="--providerSettingsByIntegrationId" variant="param" /> | JSON map of provider-specific settings (see <a href="/docs/cli-examples">CLI Examples</a>). |
 | <Badge text="--tagNames" variant="param" /> | Comma-separated workspace tag names. |
 | <Badge text="--repeatInterval" variant="param" /> | Backend repeat enum (e.g. <code>weekly</code>). |
@@ -79,6 +80,22 @@ openquok posts:create \
   -i "<threads-integration-id>,<instagram-integration-id>" \
   -c "Fallback body" \
   --bodiesByIntegrationId '{"<threads-integration-id>":"Threads-only caption","<instagram-integration-id>":"Instagram-only caption #photography"}'
+```
+
+### Post with different media per channel
+
+Upload assets first, then pass shared defaults with <Badge text="-m" variant="param" /> and per-channel lists with <Badge text="--mediaByIntegrationId" variant="param" />:
+
+```bash
+THREADS_MEDIA=$(openquok upload ./threads.png | jq -c '{id: .data.id, path: .data.filePath}')
+IG_MEDIA=$(openquok upload ./instagram.png | jq -c '{id: .data.id, path: .data.filePath}')
+
+openquok posts:create \
+  -s "2026-01-15T12:00:00Z" \
+  -c "Same caption everywhere" \
+  -i "<threads-integration-id>,<instagram-integration-id>" \
+  -m '[{"id":"global","path":"uploads/fallback.png"}]' \
+  --mediaByIntegrationId "{\"<threads-integration-id>\":[${THREADS_MEDIA}],\"<instagram-integration-id>\":[${IG_MEDIA}]}"
 ```
 
 ### Post and Attach media
@@ -184,6 +201,10 @@ Example <code>post.json</code> (placeholders only — replace ids and timestamps
     "<integration-id-1>": "Short version for channel A.",
     "<integration-id-2>": "Longer version for channel B."
   },
+  "media": [{ "id": "<media-id>", "path": "uploads/shared.png" }],
+  "mediaByIntegrationId": {
+    "<integration-id-1>": [{ "id": "<media-id>", "path": "uploads/channel-a.png" }]
+  },
   "providerSettingsByIntegrationId": {
     "<integration-id-1>": {
       "replies": [{ "message": "Follow-up only on this channel", "delaySeconds": 60 }]
@@ -197,7 +218,7 @@ Example <code>post.json</code> (placeholders only — replace ids and timestamps
 ```
 
 <Callout type="note" title="JSON is the public API, not provider-specific">
-<p>The file mirrors <code>PublicCreatePostDto</code> in the SDK: an <code>integrationIds</code> array, optional <code>body</code> / <code>bodiesByIntegrationId</code> / <code>media</code> / <code>providerSettingsByIntegrationId</code>, plus <code>scheduledAt</code> and <code>status</code>. There is no separate nested <code>posts</code> array keyed by provider name in this endpoint.</p>
+<p>The file mirrors <code>PublicCreatePostDto</code> in the SDK: an <code>integrationIds</code> array, optional <code>body</code> / <code>bodiesByIntegrationId</code> / <code>media</code> / <code>mediaByIntegrationId</code> / <code>providerSettingsByIntegrationId</code>, plus <code>scheduledAt</code> and <code>status</code>. There is no separate nested <code>posts</code> array keyed by provider name in this endpoint.</p>
 </Callout>
 
 ## List posts

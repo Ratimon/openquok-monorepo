@@ -2,7 +2,7 @@
 title: LinkedIn
 description: How to configure LinkedIn personal profile for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
 order: 7
-lastUpdated: 2026-06-20
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -32,6 +32,7 @@ Personal profile and Page channels use the same <Badge text="LINKEDIN_CLIENT_ID"
 | Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in per-channel composer settings — OpenQuok converts images to a PDF at publish time. Optional **Carousel document title** (default: `slides`) |
 | Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
 | Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
+| @-mention lookup | Unlock the LinkedIn channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
 
 ### Not supported
 

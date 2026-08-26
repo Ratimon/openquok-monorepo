@@ -182,6 +182,8 @@ export type CreatePostInput = {
     providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
     /** Image attachments; stored as JSON in `posts.image`. */
     media?: PostMediaItemInput[] | null;
+    /** Optional per-integration media overrides (customize mode). */
+    mediaByIntegrationId?: Record<string, PostMediaItemInput[]> | null;
     integrationIds: string[];
     isGlobal: boolean;
     scheduledAtIso: string;
@@ -217,6 +219,8 @@ export type PostGroupDetails = {
     /** Always provided for edit mode; includes all selected integrations (even if equal to body). */
     bodiesByIntegrationId: Record<string, string>;
     media: PostMediaItemInput[];
+    /** Per-integration attachments from each post row's `image` column (edit mode). */
+    mediaByIntegrationId: Record<string, PostMediaItemInput[]>;
     tagNames: string[];
     /** All post row ids in this group (for preview/debug tooling). */
     postIds?: string[];
@@ -352,6 +356,7 @@ export class PostsService {
         bodiesByIntegrationId?: Record<string, string> | null;
         providerSettingsByIntegrationId?: Record<string, Record<string, unknown>> | null;
         media?: PostMediaItemInput[] | null;
+        mediaByIntegrationId?: Record<string, PostMediaItemInput[]> | null;
         integrationIds: string[];
         isGlobal: boolean;
         scheduledAtIso: string;
@@ -381,6 +386,7 @@ export class PostsService {
             bodiesByIntegrationId,
             providerSettingsByIntegrationId,
             media,
+            mediaByIntegrationId,
             integrationIds,
             isGlobal,
             scheduledAtIso,
@@ -419,12 +425,16 @@ export class PostsService {
             throw new AppError("Select at least one channel to schedule", 400);
         }
 
-        const mediaCount = Array.isArray(media) ? media.length : 0;
+        const mediaCountForIntegration = (integrationId: string): number => {
+            const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
+            return Array.isArray(rowMedia) ? rowMedia.length : 0;
+        };
+
         for (const integrationId of uniqueIds) {
             const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
             if (!providerIdentifier) continue;
             const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
-            const message = provider?.validateCreatePost?.({ status, mediaCount });
+            const message = provider?.validateCreatePost?.({ status, mediaCount: mediaCountForIntegration(integrationId) });
             if (typeof message === "string" && message.trim().length > 0) {
                 throw new AppError(message, 400);
             }
@@ -458,10 +468,10 @@ export class PostsService {
 
         const state: PostStateDb = status === "draft" ? "DRAFT" : "QUEUE";
 
-        const imageColumn =
-            media && media.length > 0
-                ? JSON.stringify({ v: 1, items: media })
-                : null;
+        const serializeImageColumn = (items: PostMediaItemInput[] | null | undefined): string | null =>
+            items && items.length > 0 ? JSON.stringify({ v: 1, items }) : null;
+
+        const globalImageColumn = serializeImageColumn(media);
 
         const baseRow: Omit<SocialPostInsert, "integration_id"> = {
             state,
@@ -476,7 +486,7 @@ export class PostsService {
             release_id: null,
             release_url: null,
             settings: JSON.stringify(baseSettings),
-            image: imageColumn,
+            image: globalImageColumn,
             interval_in_days: intervalDays,
             error: null,
             deleted_at: null,
@@ -490,18 +500,22 @@ export class PostsService {
         if (uniqueIds.length === 0) {
             toInsert = [{ ...baseRow, integration_id: null }];
         } else {
-            toInsert = uniqueIds.map((integrationId) => ({
-                ...baseRow,
-                integration_id: integrationId,
-                content:
-                    bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string"
-                        ? bodiesByIntegrationId[integrationId]!
-                        : baseRow.content,
-                settings: JSON.stringify({
-                    ...baseSettings,
-                    providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null,
-                }),
-            }));
+            toInsert = uniqueIds.map((integrationId) => {
+                const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
+                return {
+                    ...baseRow,
+                    integration_id: integrationId,
+                    content:
+                        bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string"
+                            ? bodiesByIntegrationId[integrationId]!
+                            : baseRow.content,
+                    image: serializeImageColumn(rowMedia),
+                    settings: JSON.stringify({
+                        ...baseSettings,
+                        providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null,
+                    }),
+                };
+            });
         }
 
         if (state === "QUEUE") {
@@ -909,6 +923,12 @@ export class PostsService {
             bodiesByIntegrationId[r.integration_id] = r.content ?? "";
         }
 
+        const mediaByIntegrationId: Record<string, PostMediaItemInput[]> = {};
+        for (const r of rows) {
+            if (!r.integration_id) continue;
+            mediaByIntegrationId[r.integration_id] = parsePostImageColumn(r.image);
+        }
+
         const media = parsePostImageColumn(rows[0]!.image);
         const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
         const tagNames = tags.map((t) => t.name).filter(Boolean);
@@ -934,6 +954,7 @@ export class PostsService {
             body,
             bodiesByIntegrationId,
             media,
+            mediaByIntegrationId,
             tagNames,
             postIds: rows.map((r) => r.id),
             ...(Object.keys(providerSettingsByIntegrationId).length > 0 ? { providerSettingsByIntegrationId } : {}),
@@ -1752,6 +1773,7 @@ export class PostsService {
             body: input.body,
             bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
             media: input.media ?? null,
+            mediaByIntegrationId: input.mediaByIntegrationId ?? null,
             integrationIds: input.integrationIds,
             isGlobal: input.isGlobal,
             scheduledAtIso: input.scheduledAtIso,
@@ -1775,6 +1797,7 @@ export class PostsService {
         body: string;
         bodiesByIntegrationId?: Record<string, string> | null;
         media?: PostMediaItemInput[] | null;
+        mediaByIntegrationId?: Record<string, PostMediaItemInput[]> | null;
         integrationIds: string[];
         isGlobal: boolean;
         scheduledAtIso: string;
@@ -1797,6 +1820,7 @@ export class PostsService {
             body,
             bodiesByIntegrationId,
             media,
+            mediaByIntegrationId,
             integrationIds,
             isGlobal,
             scheduledAtIso,
@@ -1836,6 +1860,7 @@ export class PostsService {
             bodiesByIntegrationId: bodiesByIntegrationId ?? null,
             providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
             media: media ?? null,
+            mediaByIntegrationId: mediaByIntegrationId ?? null,
             integrationIds,
             isGlobal,
             scheduledAtIso,

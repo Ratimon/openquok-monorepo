@@ -29,6 +29,9 @@ export type ComposerSnapshotInput = {
 	globalBody: string;
 	bodiesByIntegrationId: Record<string, string>;
 	editorBody: string;
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
+	/** Editor buffer for the focused channel (or global list in global mode). */
 	postMediaItems: PostMediaViewModel[];
 	selectedIds: string[];
 	scheduledLocal: string;

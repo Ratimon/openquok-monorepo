@@ -93,6 +93,12 @@ export const createPostBodySchema = z.object({
     bodiesByIntegrationId: z.record(z.string().uuid(), z.string().max(50000)).optional(),
     /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
     media: z.array(mediaItemSchema).max(20).optional(),
+    /**
+     * Optional per-channel media overrides (customize mode).
+     * Keys are integration IDs; values are attachment lists for that integration's post row.
+     * When omitted for a channel, {@link media} is used for that row.
+     */
+    mediaByIntegrationId: z.record(z.string().uuid(), z.array(mediaItemSchema).max(20)).optional(),
     integrationIds: z.array(z.string().uuid()).optional(),
     isGlobal: z.boolean().optional(),
     scheduledAt: z.string().min(1, "Schedule time is required"),

@@ -2,7 +2,7 @@
 title: X (Twitter)
 description: How to configure X for OpenQuok — OAuth 1.0a, backend env, and developer portal settings.
 order: 8
-lastUpdated: 2026-06-21
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -36,7 +36,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/x">CLI Examples — X</a>.
 | Per-post analytics | Public metrics for a published tweet when the post row has a <Badge text="release_id" variant="param" /> |
 | Channel plugs | Auto-repost and auto-plug when like thresholds are met |
 | Cross-account repost plug | Repost from other connected X channels after publish (<Badge text="x-repost-post-users" variant="default" />) |
-| @-mention lookup | <Badge text="POST /integrations/mentions" variant="path" /> for connected X channels (API; composer autocomplete not wired in the web UI yet) |
+| @-mention lookup | Unlock the X channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
 | OAuth connect | **OAuth 1.0a** single-step flow; long-lived tokens (reconnect on auth errors) |
 
 ### Not supported
@@ -47,7 +47,6 @@ CLI walkthroughs: <a href="/docs/cli-examples/x">CLI Examples — X</a>.
 | Polls, quote tweets, X Articles | Not implemented |
 | Mixed image + video | One media mode per post: up to four images **or** one video |
 | Automatic token refresh | No refresh cron; reconnect the channel when X returns auth errors |
-| Composer @-mention picker | Backend mention search exists; the post editor does not show X @ suggestions yet |
 
 ## Backend environment
 

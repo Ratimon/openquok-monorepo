@@ -34,6 +34,12 @@ export type PublicCreatePostDto = {
     body?: string;
     bodiesByIntegrationId?: Record<string, string>;
     media?: PublicCreatePostMediaItemDto[];
+    /**
+     * Per-channel media overrides (customize mode).
+     * Keys are integration IDs; values are attachment lists for that channel's post row.
+     * When omitted for a channel, `media` is used for that row.
+     */
+    mediaByIntegrationId?: Record<string, PublicCreatePostMediaItemDto[]>;
     integrationIds?: string[];
     isGlobal?: boolean;
     scheduledAt: string;

@@ -13,6 +13,8 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 Most of your time in OpenQuok happens in the **post editor** — we also call it the **composer**.
 
+![Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)
+
 On Home and the calendar it opens as a modal. The same editor powers <Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> for developers who want to copy a JSON payload for the public API.
 
 ## Where to open it
@@ -56,7 +58,7 @@ Click the avatars at the top. Picking a <a href="/docs/channels/channel-groups">
 
 ### Write the post
 
-The **Global** tab is the default. What you write there goes to every selected channel. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> when one network needs different text.
+**Global** mode (globe button) is the default. What you write there goes to every selected channel. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> when one network needs different text.
 
 ### Add media (optional)
 

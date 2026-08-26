@@ -141,6 +141,11 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             type: "string",
             describe: 'JSON object: {"<integrationUuid>":"body override"}',
           })
+          .option("mediaByIntegrationId", {
+            type: "string",
+            describe:
+              'JSON object: {"<integrationUuid>":[{"id":"…","path":"…"}]} — per-channel media overrides',
+          })
           .option("providerSettingsByIntegrationId", {
             type: "string",
             describe: 'JSON object: {"<integrationUuid>":{...provider settings...}}',
@@ -210,6 +215,10 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             "Long-form flags still supported"
           )
           .example(
+            '$0 posts:create -c "Same copy" -s "2026-01-01T12:00:00Z" -i "uuid-a,uuid-b" -m \'[{"id":"g1","path":"global.png"}]\' --mediaByIntegrationId \'{"uuid-a":[{"id":"a1","path":"a.png"}],"uuid-b":[{"id":"b1","path":"b.png"}]}\'',
+            "Per-channel attachments; channels omitted in the map fall back to -m / media"
+          )
+          .example(
             '$0 posts:create -c "With media" -s "2026-01-01T12:00:00Z" -i "uuid-a" -m "uploads/2026/01/img.png"',
             "Bare paths/URLs get a client-generated media id; prefer upload JSON for production"
           )
@@ -272,6 +281,7 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
 
           const media = buildMediaFromArgs(args.media);
           const bodiesByIntegrationId = parseJsonMaybe(args.bodiesByIntegrationId, "bodiesByIntegrationId");
+          const mediaByIntegrationId = parseJsonMaybe(args.mediaByIntegrationId, "mediaByIntegrationId");
           const providerSettingsByIntegrationId = parseJsonMaybe(
             args.providerSettingsByIntegrationId,
             "providerSettingsByIntegrationId"
@@ -297,6 +307,9 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
             ...(media.length ? { media } : {}),
             ...(bodiesByIntegrationId && typeof bodiesByIntegrationId === "object"
               ? { bodiesByIntegrationId }
+              : {}),
+            ...(mediaByIntegrationId && typeof mediaByIntegrationId === "object"
+              ? { mediaByIntegrationId }
               : {}),
             ...(mergedProvider ? { providerSettingsByIntegrationId: mergedProvider } : {}),
             ...(toArrayFromCsv(args.tagNames) ? { tagNames: toArrayFromCsv(args.tagNames) } : {}),
