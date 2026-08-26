@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	planComposerMentionRichInsert,
 	type ComposerMentionRichInsertPlan
-} from '$lib/posts/utils/composerMentionRichInsert';
+} from '$lib/posts/utils/composer/mentionRichInsert';
 
 describe('planComposerMentionRichInsert', () => {
 	it('uses a mention node for X handles', () => {

@@ -14,8 +14,8 @@
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
-	import type { ComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
-	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
+	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
+	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { integrationsRepository } from '$lib/integrations';

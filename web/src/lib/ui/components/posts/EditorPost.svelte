@@ -11,7 +11,7 @@
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
-	import type { ComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
+	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
@@ -19,15 +19,17 @@
 		SocialComposerEditor,
 		usesRichComposerEditor
 	} from '$lib/ui/components/posts/composer-editor';
-	import { snapshotFromTextarea } from '$lib/posts/utils/composerTextareaSnapshot';
+	import {
+		filesFromDataTransfer,
+		providerSupportsComposerMentions,
+		snapshotFromTextarea
+	} from '$lib/posts/utils/composer';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
 	import ComposerMediaToolbar from '$lib/ui/components/posts/ComposerMediaToolbar.svelte';
 	import ComposerMentionAutocomplete from '$lib/ui/components/posts/ComposerMentionAutocomplete.svelte';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
-	import { providerSupportsComposerMentions } from '$lib/posts/utils/composerMention';
-	import { filesFromDataTransfer } from '$lib/posts/utils/composerMediaDrop';
 	import { toast } from '$lib/ui/sonner';
 
 	interface EditorPostProps {

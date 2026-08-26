@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { composerBodyForEditorMode } from '$lib/posts/utils/composerBodyForEditorMode';
+import { composerBodyForEditorMode } from '$lib/posts/utils/composer/bodyForEditorMode';
 
 describe('composerBodyForEditorMode', () => {
 	it('returns empty for blank input', () => {

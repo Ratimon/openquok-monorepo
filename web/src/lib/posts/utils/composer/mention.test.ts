@@ -6,7 +6,7 @@ import {
 	formatIntegrationMentionText,
 	providerSupportsComposerMentions,
 	replaceActiveMentionWithText
-} from '$lib/posts/utils/composerMention';
+} from '$lib/posts/utils/composer/mention';
 
 describe('providerSupportsComposerMentions', () => {
 	it('returns true for X and LinkedIn channel identifiers', () => {

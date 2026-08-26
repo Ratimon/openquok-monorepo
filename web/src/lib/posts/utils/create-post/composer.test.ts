@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { clearPerChannelBodies, clearPerChannelMedia } from '$lib/posts/utils/createSocialPostComposer';
-import { buildPostUpsertPayload } from '$lib/posts/utils/createSocialPostPayload';
+import { clearPerChannelBodies, clearPerChannelMedia } from '$lib/posts/utils/create-post/composer';
+import { buildPostUpsertPayload } from '$lib/posts/utils/create-post/payload';
 
 const basePayloadInput = {
 	workspaceId: 'org-1',

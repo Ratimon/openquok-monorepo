@@ -25,10 +25,13 @@ import {
 	isChannelSchedulable,
 	mergeProviderSettingsPatch,
 	unschedulableReason
-} from '$lib/posts/utils/createSocialPostComposer';
-import { postMediaPreviewUrls } from '$lib/posts/utils/postMediaPreviewUrls';
-import { revokeLocalMediaPreviewUrls } from '$lib/posts/utils/composerMediaDrop';
-import { xMaxCharactersForChannel, xWeightedLength } from '$lib/posts/utils/xWeightedLength';
+} from '$lib/posts/utils/create-post';
+import {
+	postMediaPreviewUrls,
+	revokeLocalMediaPreviewUrls,
+	xMaxCharactersForChannel,
+	xWeightedLength
+} from '$lib/posts/utils/composer';
 import { toast } from '$lib/ui/sonner';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 

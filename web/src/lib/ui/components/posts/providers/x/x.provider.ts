@@ -8,7 +8,7 @@ import {
 	X_STANDARD_MAX_CHARACTERS,
 	xMaxCharactersForChannel,
 	xWeightedLength
-} from '$lib/posts/utils/xWeightedLength';
+} from '$lib/posts/utils/composer/xWeightedLength';
 
 import { readXLaunchSettings } from '$lib/ui/components/posts/providers/x/xLaunchSettings';
 

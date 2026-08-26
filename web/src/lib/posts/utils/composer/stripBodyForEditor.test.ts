@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { stripComposerBodyForEditor } from '$lib/posts/utils/stripComposerBodyForEditor';
+import { stripComposerBodyForEditor } from '$lib/posts/utils/composer/stripBodyForEditor';
 
 describe('stripComposerBodyForEditor', () => {
 	it('returns empty for blank input', () => {

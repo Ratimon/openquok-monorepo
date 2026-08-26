@@ -27,34 +27,30 @@ import type {
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
 import {
+	applyThreadFollowUpRepliesToSettings,
+	buildPostUpsertPayload,
+	buildProgrammaticCreatePostPayloadPreview,
+	channelSupportsFollowUpComments,
 	clearPerChannelBodies,
 	clearPerChannelMedia,
 	cloneProviderSettingsByIntegrationId,
 	computeLaunchMaxMediaItems,
 	computeScheduleValidationError,
 	computeScheduleValidationErrorAsync,
+	getPrimaryThreadFollowUpIntegrationId,
 	isChannelSchedulable,
 	isComposerDirty,
-	mergeProviderSettingsPatch,
-	serializeComposerSnapshot,
-	unschedulableReason
-} from '$lib/posts/utils/createSocialPostComposer';
-import { migrateProviderSettingsByIntegrationIdOnLoad } from '$lib/posts/utils/createSocialPostProviderSettings';
-import {
-	applyThreadFollowUpRepliesToSettings,
-	channelSupportsFollowUpComments,
-	getPrimaryThreadFollowUpIntegrationId,
 	legacySharedRepliesFromProviderSnapshot,
 	listThreadFollowUpSupportedIntegrationIds,
+	mergeProviderSettingsPatch,
+	migrateProviderSettingsByIntegrationIdOnLoad,
+	serializeComposerSnapshot,
 	syncSharedFollowUpsToProviderSettingsForSetAuthoring,
-	threadFollowUpRepliesRawForIntegration
-} from '$lib/posts/utils/createSocialPostFollowUp';
-import {
-	buildPostUpsertPayload,
-	buildProgrammaticCreatePostPayloadPreview,
+	threadFollowUpRepliesRawForIntegration,
+	unschedulableReason,
 	validateComposerContent,
 	type BuildPostUpsertPayloadInput
-} from '$lib/posts/utils/createSocialPostPayload';
+} from '$lib/posts/utils/create-post';
 import type {
 	GetSignaturesPresenter,
 	SignatureViewModel
@@ -67,30 +63,26 @@ import type { UpsertSetPresenter } from '$lib/sets/UpsertSet.presenter.svelte';
 
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
-	xWeightedLength
-} from '$lib/posts/utils/xWeightedLength';
+	composerBodyForEditorMode,
+	computeSoftCharLimitAcrossSelected,
+	createComposerTextHistory,
+	maxCharactersForChannel,
+	selectedIdsIncludeXChannel,
+	stripComposerBodyForEditor,
+	xWeightedLength,
+	type ComposerTextHistory,
+	type ComposerTextSnapshot
+} from '$lib/posts/utils/composer';
 import {
 	datetimeLocalToIso,
 	isoToDatetimeLocalValue,
 	utcIsoToDatetimeLocalValue
 } from '$lib/utils/postingSchedulePreferences';
-import {
-	createComposerTextHistory,
-	type ComposerTextHistory,
-	type ComposerTextSnapshot
-} from '$lib/posts/utils/composerTextHistory';
-import {
-	computeSoftCharLimitAcrossSelected,
-	maxCharactersForChannel,
-	selectedIdsIncludeXChannel
-} from '$lib/posts/utils/composerCharLimit';
-import { composerBodyForEditorMode } from '$lib/posts/utils/composerBodyForEditorMode';
-import { stripComposerBodyForEditor } from '$lib/posts/utils/stripComposerBodyForEditor';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/createSocialPost.types';
-export { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/createSocialPostComposer';
+export { isChannelSchedulable, unschedulableReason } from '$lib/posts/utils/create-post';
 
 /**
  * Shared composer state for the create-post dialog: scheduling UI, repository calls,

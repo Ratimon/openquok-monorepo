@@ -1,7 +1,7 @@
 import type { Editor } from '@tiptap/core';
 import type { IntegrationMentionProgrammerModel } from '$lib/integrations';
 
-import { formatIntegrationMentionText } from '$lib/posts/utils/composerMention';
+import { formatIntegrationMentionText } from './mention';
 
 export type ComposerMentionRichInsertPlan = {
 	/** Insert a TipTap mention atom (X handles). */

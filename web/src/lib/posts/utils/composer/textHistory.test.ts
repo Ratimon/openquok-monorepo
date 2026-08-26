@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
+import { createComposerTextHistory } from '$lib/posts/utils/composer/textHistory';
 
 const empty = { text: '', selectionStart: 0, selectionEnd: 0 };
 const snap = (text: string) => ({

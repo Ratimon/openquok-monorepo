@@ -36,9 +36,10 @@ import {
 	filterKanbanCardsByReview,
 	filterKanbanCardsBySource,
 	filterKanbanCardsByTags,
-	groupKanbanCardsIntoColumns
-} from '$lib/posts/utils/postKanbanBoardCards';
-import { toPostKanbanRowsVm, withKanbanManualFinishAcknowledged } from '$lib/posts/utils/postKanbanBoard';
+	groupKanbanCardsIntoColumns,
+	toPostKanbanRowsVm,
+	withKanbanManualFinishAcknowledged
+} from '$lib/posts/utils/scheduler';
 import {
 	canMoveKanbanCard,
 	columnToApiStatus,
@@ -74,7 +75,7 @@ export {
 	POST_KANBAN_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 
-export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/postKanbanBoard';
+export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/scheduler';
 
 export class PostKanbanBoardPresenter {
 	readonly columnOptions = POST_KANBAN_COLUMNS;

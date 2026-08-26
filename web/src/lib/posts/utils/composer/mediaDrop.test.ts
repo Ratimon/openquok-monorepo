@@ -3,10 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	attachComposerMediaFromLocalFiles,
 	isComposerMediaFile,
+	postMediaPreviewUrls,
 	revokeLocalMediaPreviewUrl,
 	revokeLocalMediaPreviewUrls
-} from '$lib/posts/utils/composerMediaDrop';
-import { postMediaPreviewUrls } from '$lib/posts/utils/postMediaPreviewUrls';
+} from '$lib/posts/utils/composer/mediaDrop';
 
 afterEach(() => {
 	vi.unstubAllGlobals();

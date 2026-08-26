@@ -1,9 +1,25 @@
 import { HistoryStack } from '$lib/ui/canvas-editor/utils/historyStack';
 
-import type { ComposerTextSnapshot } from '$lib/posts/utils/composerTextareaSnapshot';
+export type ComposerTextSnapshot = {
+	text: string;
+	selectionStart: number;
+	selectionEnd: number;
+};
 
-export type { ComposerTextSnapshot } from '$lib/posts/utils/composerTextareaSnapshot';
-export { snapshotFromTextarea } from '$lib/posts/utils/composerTextareaSnapshot';
+export function snapshotFromTextarea(
+	el: HTMLTextAreaElement | null | undefined,
+	fallbackText = ''
+): ComposerTextSnapshot {
+	if (!el) {
+		const len = fallbackText.length;
+		return { text: fallbackText, selectionStart: len, selectionEnd: len };
+	}
+	return {
+		text: el.value ?? '',
+		selectionStart: el.selectionStart ?? 0,
+		selectionEnd: el.selectionEnd ?? 0
+	};
+}
 
 const DEFAULT_MAX_ENTRIES = 100;
 const DEFAULT_GROUP_DELAY_MS = 100;

@@ -5,11 +5,11 @@ import {
 	computeSoftCharLimitAcrossSelected,
 	maxCharactersForChannel,
 	selectedIdsIncludeXChannel
-} from '$lib/posts/utils/composerCharLimit';
+} from '$lib/posts/utils/composer/charLimit';
 import {
 	X_STANDARD_MAX_CHARACTERS,
 	X_VERIFIED_MAX_CHARACTERS
-} from '$lib/posts/utils/xWeightedLength';
+} from '$lib/posts/utils/composer/xWeightedLength';
 
 function channel(
 	overrides: Partial<CreateSocialPostChannelViewModel> & Pick<CreateSocialPostChannelViewModel, 'id'>

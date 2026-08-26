@@ -12,7 +12,7 @@
 		filesFromDataTransfer,
 		revokeLocalMediaPreviewUrl,
 		revokeLocalMediaPreviewUrls
-	} from '$lib/posts/utils/composerMediaDrop';
+	} from '$lib/posts/utils/composer';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 

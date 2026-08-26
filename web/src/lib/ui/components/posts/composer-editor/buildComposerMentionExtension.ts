@@ -5,9 +5,9 @@ import Mention from '@tiptap/extension-mention';
 import { integrationsRepository } from '$lib/integrations/index';
 import {
 	COMPOSER_MENTION_MIN_QUERY_LENGTH,
+	applyComposerMentionToRichEditor,
 	providerSupportsComposerMentions
-} from '$lib/posts/utils/composerMention';
-import { applyComposerMentionToRichEditor } from '$lib/posts/utils/composerMentionRichInsert';
+} from '$lib/posts/utils/composer';
 import { createComposerMentionSuggestionRenderer } from '$lib/ui/components/posts/composer-editor/composerMentionSuggestionRenderer';
 
 export type ComposerMentionExtensionConfig = {

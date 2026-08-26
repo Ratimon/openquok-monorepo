@@ -21,17 +21,15 @@ import {
 import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
 import {
 	buildCalendarEventsFromPosts,
+	deriveIntegrationFilter,
+	filterPostsByPostType,
+	filterPostsByTags,
 	labelForRange,
 	rangeForGranularity,
 	shiftRange,
 	temporalToUtcYyyyMmDd,
 	todayUtcYyyyMmDd
-} from '$lib/posts/utils/schedulerCalendar';
-import {
-	deriveIntegrationFilter,
-	filterPostsByPostType,
-	filterPostsByTags
-} from '$lib/posts/utils/schedulerFilters';
+} from '$lib/posts/utils/scheduler';
 
 export type {
 	CalendarDisplayViewModel,

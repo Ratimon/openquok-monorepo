@@ -21,7 +21,7 @@
 	import {
 		attachComposerMediaFromFiles,
 		attachComposerMediaFromLocalFiles
-	} from '$lib/posts/utils/composerMediaDrop';
+	} from '$lib/posts/utils/composer';
 	import {
 		getComposerToolbarVisibility,
 		usesRichComposerEditor,

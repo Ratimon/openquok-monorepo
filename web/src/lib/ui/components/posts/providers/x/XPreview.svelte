@@ -20,7 +20,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
-	import { xWeightedLength } from '$lib/posts/utils/xWeightedLength';
+	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
 
 	let {
 		channel,

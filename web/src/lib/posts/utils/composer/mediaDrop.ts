@@ -1,7 +1,19 @@
 import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
+
+/** Preview `src` for composer media: local blob URLs first, then public storage URLs. */
+export function postMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): string[] {
+	return items.map((m) => {
+		const local = m.localPreviewUrl?.trim();
+		if (local) return local;
+		const path = m.path.trim();
+		if (path.startsWith('blob:')) return path;
+		return publicUrlForMediaStorageKey(path);
+	});
+}
 
 /** Collect files from a drag event (`files` first, then `items` for Safari). */
 export function filesFromDataTransfer(transfer: DataTransfer | null | undefined): File[] {

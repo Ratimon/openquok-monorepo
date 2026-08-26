@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
-	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
+	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
 
 	type PlugDefinition = {
 		identifier: string;

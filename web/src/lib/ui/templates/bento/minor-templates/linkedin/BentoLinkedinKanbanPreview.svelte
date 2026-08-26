@@ -12,7 +12,7 @@
 		filterKanbanCardsByReview,
 		filterKanbanCardsBySource,
 		groupKanbanCardsIntoColumns
-	} from '$lib/posts/utils/postKanbanBoardCards';
+	} from '$lib/posts/utils/scheduler';
 
 	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';

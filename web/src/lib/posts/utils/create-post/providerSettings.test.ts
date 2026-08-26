@@ -4,7 +4,7 @@ import {
 	migrateIntegrationProviderSettingsOnLoad,
 	migrateProviderSettingsByIntegrationIdOnLoad,
 	THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME
-} from '$lib/posts/utils/createSocialPostProviderSettings';
+} from '$lib/posts/utils/create-post/providerSettings';
 
 describe('migrateIntegrationProviderSettingsOnLoad', () => {
 	it('converts enabled legacy multiAccountEngagementPlug with integration ids', () => {

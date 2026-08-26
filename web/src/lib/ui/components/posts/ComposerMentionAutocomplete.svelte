@@ -9,7 +9,7 @@
 		formatIntegrationMentionText,
 		insertTextAtTextareaCaret,
 		providerSupportsComposerMentions
-	} from '$lib/posts/utils/composerMention';
+	} from '$lib/posts/utils/composer';
 
 	type Props = {
 		textarea?: HTMLTextAreaElement | null;

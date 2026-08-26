@@ -1,5 +1,5 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
-import { xMaxCharactersForChannel } from '$lib/posts/utils/xWeightedLength';
+import { xMaxCharactersForChannel } from './xWeightedLength';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 
 type ChannelCharLimitSource = Pick<

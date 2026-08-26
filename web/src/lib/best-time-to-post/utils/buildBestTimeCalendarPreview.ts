@@ -11,7 +11,7 @@ import {
 	buildCalendarEventsFromPosts,
 	endOfIsoWeek,
 	startOfIsoWeek
-} from '$lib/posts/utils/schedulerCalendar';
+} from '$lib/posts/utils/scheduler';
 import { newDayjs } from '$lib/utils/postingSchedulePreferences';
 
 const PREVIEW_INTEGRATION_ID = 'best-time-to-post-preview';
