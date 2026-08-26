@@ -1,6 +1,6 @@
 ---
 title: Glossary
-description: OpenQuok terms in one place — workspace, channel, templates, tags, building blocks, playbooks, plugs, and how agents fit the review flow.
+description: OpenQuok terms in one place — workspace, channel, smart filters, templates, tags, building blocks, playbooks, plugs, and how agents fit the review flow.
 order: 2
 lastUpdated: 2026-08-25
 ---
@@ -35,7 +35,7 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 
 ## Channel groups
 
-A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.
+A **channel group** bundles channels — usually one client or brand. Groups filter Home and the calendar, and let you pick that bundle in the post editor. The <strong>Channel groups</strong> dropdown on those boards is part of the <a href="#smart-filter">smart filter</a>. See <a href="/docs/channels/channel-groups">Channel groups</a> for how to create groups, filter the board, and select a whole client in the composer.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 
@@ -93,7 +93,7 @@ Mark one signature as default and OpenQuok inserts it into new posts automatical
 
 ## Time slot
 
-Each channel keeps **time slots**: the times of day you normally post. They drive the next-slot suggestion when you schedule in the editor and the <a href="/docs/apis-posts/find-slot">Find slot</a> public API (<Badge text="GET /public/posts/find-slot" variant="path" /> for workspace-wide, or with a channel UUID in the path for one channel).
+Each channel keeps **time slots**: the times of day you normally post. They drive the next-slot suggestion when you schedule in the editor. Check out <a href="/docs/apis-posts/find-slot">Find slot</a>.
 
 Slots are a convenience, not a lock — you can always pick another time. See <a href="/docs/channels/time-slots">Posting time slots</a> to edit them. Labels follow <a href="/docs/settings/timezone">Timezone</a> in Settings.
 
@@ -105,6 +105,20 @@ Slots are a convenience, not a lock — you can always pick another time. See <a
 | **Kanban** (<a href="/account">/account</a> Home) | **Status** — drafts waiting for review, scheduled items, recently published posts |
 
 Both views read the same posts. Changing a time in the composer updates both. See <a href="/docs/getting-started/tour-the-app">Tour the app</a>.
+
+## Smart filter
+
+A **smart filter** is how you narrow a table or board to the channels, posts, templates, or plugs you are working on. Plans list this as **Smart filters**.
+
+<p>On <a href="/account">Home</a>, switch <strong>Connected channels</strong> to table view (the table icon), then click <Badge text="Add filters" variant="default" />. You can match social platform, connected account, group name, or status.</p>
+
+![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
+
+<p>The same <Badge text="Add filters" variant="default" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
+
+<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. Kanban also has a date range, review status, and source (Agent or Human).</p>
+
+<p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/docs/creating-posts/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 
 ## Post states
 

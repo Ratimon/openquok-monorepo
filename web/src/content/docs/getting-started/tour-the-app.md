@@ -2,7 +2,7 @@
 title: Tour the app
 description: OpenQuok layout — sidebar pages, header, composer, settings, billing, and the public site.
 order: 3
-lastUpdated: 2026-08-24
+lastUpdated: 2026-08-25
 ---
 
 <script>
@@ -11,11 +11,10 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-OpenQuok puts a things behind a left sidebar, and several of the most-used features are modals rather than pages. This is the map. Paths are relative to the app origin (for example <a href="/account"><Badge text="/account" variant="path" /></a> on Cloud).
+Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
 
 ![Signed-in left sidebar](/docs/_assets/tour-the-app/left-sidebar.webp)
 
-Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
 
 You can switch between your workspaces on the header.
 
@@ -63,6 +62,7 @@ The post editor (also called the composer) is a modal, not a sidebar page. Open 
 | <Badge text="Add Channel" variant="new" /> | Home, or the channel picker in the composer |
 | Reconnect or disconnect a channel | Channel card menu on Home |
 | Channel groups | Group controls on Home — see <a href="/docs/channels/channel-groups">Channel groups</a> |
+| Smart filters | Home table <Badge text="Add filters" variant="default" />; kanban and calendar dropdowns; Templates and Auto Plugs tables — see <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> |
 | Per-network fields | Composer, beside the preview |
 | Tags | Composer toolbar — see <a href="/docs/creating-posts/tags">Tags</a> |
 | Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |
@@ -117,6 +117,6 @@ These routes exist without signing in. On a self-hosted origin they may point at
 <CardGrid>
 <LinkCard title="Overview" description="What OpenQuok is and how to pick Cloud, self-hosting, or APIs" href="/docs/getting-started" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
-<LinkCard title="Glossary" description="Workspace, channel, and calendar vs kanban terminology" href="/docs/getting-started/glossary" />
+<LinkCard title="Glossary" description="Workspace, channel, smart filters, and calendar vs kanban terminology" href="/docs/getting-started/glossary" />
 <LinkCard title="Cloud" description="Trial, plans, billing, and limits" href="/docs/cloud" />
 </CardGrid>
