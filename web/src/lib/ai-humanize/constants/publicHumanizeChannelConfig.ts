@@ -3,7 +3,7 @@ import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize/Humanize.
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 
 import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
-import { listAvailablePublicChannels } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 import { buildHumanizeChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { route } from '$lib/utils/path';
 
@@ -67,7 +67,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Hum
 	};
 }
 
-const channelConfigs = listAvailablePublicChannels().map(buildChannelPageConfig);
+/** Sample pages follow the full catalog. Rewriting is local and does not need a live scheduler. */
+const channelConfigs = listPublicChannelsForHub().map(buildChannelPageConfig);
 const channelConfigBySlug = new Map(channelConfigs.map((config) => [config.channelSlug, config]));
 
 export function getHumanizeChannelBySlug(slug: string): HumanizeChannelPageConfig | undefined {

@@ -19,24 +19,28 @@ describe('publicHumanizeChannelConfig', () => {
 		expect(getHumanizeChannelBySlug('not-a-channel')).toBeUndefined();
 	});
 
-	it('omits channels that are not live from hub links and slug lookup', () => {
+	it('includes coming-soon catalog channels as sample Humanizer pages', () => {
 		const liveSlugs = new Set(listAvailablePublicChannels().map((channel) => channel.slug));
 		const comingSoon = listPublicChannelsForHub().filter((channel) => !liveSlugs.has(channel.slug));
 
+		expect(comingSoon.map((channel) => channel.slug)).toEqual(
+			expect.arrayContaining(['facebook', 'instagram', 'threads'])
+		);
+
 		for (const channel of comingSoon) {
-			expect(getHumanizeChannelBySlug(channel.slug)).toBeUndefined();
-			expect(listHumanizeChannelsForHub().some((item) => item.slug === channel.slug)).toBe(false);
+			expect(getHumanizeChannelBySlug(channel.slug)).toBeDefined();
+			expect(listHumanizeChannelsForHub().some((item) => item.slug === channel.slug)).toBe(true);
 		}
 	});
 
-	it('builds one hub link per live public channel', () => {
-		const live = listAvailablePublicChannels();
+	it('builds one hub link per public catalog channel', () => {
+		const catalog = listPublicChannelsForHub();
 		const hub = listHumanizeChannelsForHub();
 
-		expect(hub).toHaveLength(live.length);
+		expect(hub).toHaveLength(catalog.length);
 		expect(hub.length).toBeGreaterThan(0);
 
-		for (const channel of live) {
+		for (const channel of catalog) {
 			const link = hub.find((item) => item.slug === channel.slug);
 			expect(link).toBeDefined();
 			expect(link?.platformLabel).toBe(channel.platformLabel);

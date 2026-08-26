@@ -1,6 +1,6 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels';
 
-import { listAvailablePublicChannels } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 
 export const HUMANIZE_MOCK_CHANNEL_ID_PREFIX = 'humanize-mock-';
 
@@ -11,9 +11,10 @@ export function humanizeMockChannelId(slug: string): string {
 /**
  * Sample/preview channel chips for the public Humanizer composer.
  * Catalog icons and labels only — not the visitor's workspace accounts, and no OAuth.
+ * Includes coming-soon scheduler networks; Humanizer only rewrites text.
  */
 export function buildHumanizeMockChannels(): CreateSocialPostChannelViewModel[] {
-	return listAvailablePublicChannels().map((channel) => {
+	return listPublicChannelsForHub().map((channel) => {
 		const id = humanizeMockChannelId(channel.slug);
 		return {
 			id,

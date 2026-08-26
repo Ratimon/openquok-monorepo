@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { listAvailablePublicChannels } from '$lib/content/constants/publicChannelConfig';
+import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 import {
 	HUMANIZE_MOCK_CHANNEL_ID_PREFIX,
 	buildHumanizeMockChannels,
@@ -8,14 +8,17 @@ import {
 } from '$lib/ai-humanize/utils/buildHumanizeMockChannels';
 
 describe('buildHumanizeMockChannels', () => {
-	it('builds one schedulable mock per live public channel', () => {
-		const live = listAvailablePublicChannels();
+	it('builds one schedulable mock per public catalog channel', () => {
+		const catalog = listPublicChannelsForHub();
 		const mocks = buildHumanizeMockChannels();
 
-		expect(mocks).toHaveLength(live.length);
+		expect(mocks).toHaveLength(catalog.length);
 		expect(mocks.length).toBeGreaterThan(0);
+		expect(mocks.some((item) => item.identifier === 'facebook')).toBe(true);
+		expect(mocks.some((item) => item.identifier === 'instagram')).toBe(true);
+		expect(mocks.some((item) => item.identifier === 'threads')).toBe(true);
 
-		for (const channel of live) {
+		for (const channel of catalog) {
 			const mock = mocks.find((item) => item.identifier === channel.platformId);
 			expect(mock).toBeDefined();
 			expect(mock?.id).toBe(humanizeMockChannelId(channel.slug));

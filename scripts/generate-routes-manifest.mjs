@@ -54,6 +54,9 @@ const PUBLIC_TOOL_CHANNEL_PATHS = [
 	'/tools/humanizer'
 ];
 
+/** Humanizer rewrites locally, so coming-soon scheduler slugs still get sample pages. */
+const PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = '/tools/humanizer';
+
 const LISTING_HUB_PREFIXES = ['/playbooks', '/building-blocks'];
 
 const CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
@@ -246,7 +249,9 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 	}
 
 	for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
-		for (const channelSlug of catalog.channels) {
+		const channelSlugs =
+			toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : catalog.channels;
+		for (const channelSlug of channelSlugs) {
 			routes.push({
 				path: `${toolPrefix}/${encodeURIComponent(channelSlug)}`,
 				priority: 0.7,

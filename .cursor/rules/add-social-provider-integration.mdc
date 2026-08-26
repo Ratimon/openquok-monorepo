@@ -372,13 +372,13 @@ The tool does **not** call integration APIs or read workspace analytics. Copy on
 
 ## Programmatic Humanizer SEO (channel routes)
 
-Ship channel-specific **Humanizer** pages alongside the generic tool when a social provider is live (`available: true` on `publicChannelConfig`). Routes are **generic** — channel pages are **auto-derived** from the live channel catalog (no new `+page` files per slug). The guest composer is mocked (no OAuth, no posts repository).
+Ship channel-specific **Humanizer** pages alongside the generic tool for **every public catalog channel**, including coming-soon scheduler networks (`available: false`). Humanizer is a local rewriter, not a publisher, so sample chips and `/tools/humanizer/{slug}` pages must not wait on `available: true`. Routes are **generic** — channel pages are **auto-derived** from `listPublicChannelsForHub()` (no new `+page` files per slug). The guest composer is mocked (no OAuth, no posts repository).
 
 | Artifact | Path / URL |
 | --- | --- |
-| Generic tool | `/tools/humanizer` — Global Edit mock, all live channels selectable |
-| Channel tool | `/tools/humanizer/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` (e.g. `linkedin`, `x`) |
-| Channel catalog | `web/src/lib/ai-humanize/constants/publicHumanizeChannelConfig.ts` — built from `listAvailablePublicChannels()` |
+| Generic tool | `/tools/humanizer` — Global Edit mock, all catalog channels selectable (including coming-soon schedulers) |
+| Channel tool | `/tools/humanizer/{channelSlug}` — `{channelSlug}` matches `publicChannelConfig.slug` / `provider.identifier` (e.g. `linkedin`, `facebook`) |
+| Channel catalog | `web/src/lib/ai-humanize/constants/publicHumanizeChannelConfig.ts` — built from `listPublicChannelsForHub()` |
 | Page presenter | `web/src/lib/area-public/PublicHumanizePage.presenter.svelte.ts` — generic vs channel VM |
 | Guest composer | `web/src/lib/ai-humanize/PublicHumanizeComposer.presenter.svelte.ts` — local body/media/selection only |
 | Shared page UI | `web/src/lib/ui/templates/humanize/HumanizeToolPage.svelte` |
@@ -389,17 +389,17 @@ Ship channel-specific **Humanizer** pages alongside the generic tool when a soci
 
 ### Auto-derived (no per-provider route files)
 
-- Channel pages at `/tools/humanizer/{channelSlug}` via generic route + `publicHumanizeChannelConfig.ts` (from `listAvailablePublicChannels()`).
+- Channel pages at `/tools/humanizer/{channelSlug}` via generic route + `publicHumanizeChannelConfig.ts` (from `listPublicChannelsForHub()`).
 - Hub links and Tools card dropdown from `listHumanizeChannelsForHub()`.
 - SEO meta defaults from `platformLabel` + merged `keywords` from `publicChannelConfig`.
 - Channel FAQ tailors the “what is Humanizer” and platform items from `platformLabel`.
-- Mock channels on the composer come from `listAvailablePublicChannels()`. Channel pages **preselect + focus** the matching mock (`composerMode: 'custom'`).
+- Mock channels on the composer come from `listPublicChannelsForHub()`. Channel pages **preselect + focus** the matching mock (`composerMode: 'custom'`).
 
-Channel pages **404** when the slug is missing from `publicChannelConfig` or `available: false`.
+Channel pages **404** only when the slug is missing from `publicChannelConfig`. Do **not** 404 Humanizer pages for `available: false`.
 
 ### Manual updates when shipping a new provider
 
-Live channels appear automatically after `available: true` — no extra Humanizer route files. Optional hub blurb:
+Catalog channels appear automatically when added to `publicChannelConfig` — no extra Humanizer route files, and do not wait for `available: true`. Optional hub blurb:
 
 | Artifact | Path / action |
 | --- | --- |
@@ -472,6 +472,6 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.
 - **Photo Editor SEO:** aspect presets + platform group + `aspectPlatformGroupIdForProviderIdentifier` mapping for the new identifier; `/tools/photo-editor/{slug}` resolves when channel is live; channel page defaults to the platform’s first preset (not General); Tools hub Photo Editor card shows the new channel in the **By channel** dropdown.
 - **Best Time to Post:** `PLATFORM_WINDOWS['{identifier}']` in `benchmarkSlots.ts` (no silent `DEFAULT_WINDOWS` for a live channel); `BENCHMARK_SLOTS_LAST_REVIEWED` updated when windows change; optional `CHANNEL_HUB_DESCRIPTIONS` entry; `/tools/best-time-to-post/{slug}` resolves when channel is live; calculator platform picker and **By channel** hub include the new channel automatically.
-- **Humanizer:** live channels (`available: true`) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees).
+- **Humanizer:** all public catalog channels (including coming-soon schedulers) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees). Do not gate Humanizer samples on `available: true`.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.

@@ -43,7 +43,7 @@ const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: PLATFORM_FAQ_TITLE,
 		description:
-			'Yes. This page is Global Edit across live channels — pick a sample chip in the composer to preview that format and character limit. Those chips are not your accounts. Sign in or sign up to connect real channels in your workspace and schedule.'
+			'Yes. This page is Global Edit across sample channels — pick a sample chip in the composer to preview that format and character limit, including networks whose scheduler is still coming soon. Those chips are not your accounts. Sign in or sign up to connect real channels in your workspace and schedule.'
 	}
 ];
 
