@@ -19,6 +19,8 @@
 		organizationId?: string | null;
 		disabled?: boolean;
 		guestMode?: boolean;
+		onBeforeTextEdit?: () => void;
+		onAfterTextEdit?: () => void;
 	};
 
 	let {
@@ -28,7 +30,9 @@
 		focusedProviderIdentifier = null,
 		organizationId = null,
 		disabled = false,
-		guestMode = false
+		guestMode = false,
+		onBeforeTextEdit = undefined,
+		onAfterTextEdit = undefined
 	}: Props = $props();
 
 	const mentionEnabled = $derived(
@@ -111,8 +115,14 @@
 		const queryState = activeQuery;
 		if (!el || !queryState) return;
 		const insertText = formatIntegrationMentionText(focusedProviderIdentifier, mention);
+		onBeforeTextEdit?.();
 		applyMentionToTextarea(el, queryState.start, insertText);
+		onAfterTextEdit?.();
 		closePicker();
+	}
+
+	export function isPickerOpen(): boolean {
+		return open;
 	}
 
 	export function handleTextareaKeyDown(e: KeyboardEvent) {
@@ -142,7 +152,9 @@
 	export function insertAtSign() {
 		const el = textarea;
 		if (!el || !mentionEnabled) return;
+		onBeforeTextEdit?.();
 		insertTextAtTextareaCaret(el, '@');
+		onAfterTextEdit?.();
 		handleTextareaInput();
 	}
 

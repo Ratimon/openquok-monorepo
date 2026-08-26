@@ -6,9 +6,17 @@
 		textarea?: HTMLTextAreaElement | null;
 		disabled?: boolean;
 		class?: string;
+		onBeforeTextEdit?: () => void;
+		onAfterTextEdit?: () => void;
 	};
 
-	let { textarea = null, disabled = false, class: className = '' }: Props = $props();
+	let {
+		textarea = null,
+		disabled = false,
+		class: className = '',
+		onBeforeTextEdit = undefined,
+		onAfterTextEdit = undefined
+	}: Props = $props();
 
 	const italicMap: Record<string, string> = {
 		a: '𝘢',
@@ -96,7 +104,9 @@
 
 	function onClick() {
 		if (disabled || !textarea) return;
+		onBeforeTextEdit?.();
 		replaceTextareaSelection(textarea, applyItalicToggle);
+		onAfterTextEdit?.();
 	}
 </script>
 

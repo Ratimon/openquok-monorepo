@@ -54,6 +54,9 @@
 
 	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define Reusable Template Set' : 'Create Post');
 
+	const composerHistoryKey = $derived(presenter.composerHistoryKey());
+	const composerTextHistory = $derived(presenter.getComposerTextHistory());
+
 	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
 		{ value: 'day', label: 'Day' },
 		{ value: 'two_days', label: 'Two Days' },
@@ -224,6 +227,8 @@
 					previewProviderSettings={followUpTargetIntegrationId
 						? (presenter.providerSettingsByIntegrationId[followUpTargetIntegrationId] ?? {})
 						: {}}
+					{composerTextHistory}
+					{composerHistoryKey}
 				/>
 			</div>
 

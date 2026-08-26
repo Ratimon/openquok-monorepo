@@ -35,8 +35,8 @@ The editor is one window with three main areas and a footer bar.
 | Area | What you do there |
 | --- | --- |
 | **Top** | Pick which channels receive this post. You can select a <a href="/docs/channels/channel-groups">channel group</a> to turn on every channel in that brand at once. |
-| **Left** | Write the caption, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">threads or follow-up replies</a>. |
-| **Right** | <a href="/docs/creating-posts/writing-the-post">Post Preview</a> — a live look at how each selected channel will render the post. |
+| **Left** | <a href="/docs/creating-posts/writing-the-post">Write the caption</a>, use the toolbar, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">threads or follow-up replies</a>. |
+| **Right** | <a href="/docs/creating-posts/writing-the-post#post-preview">Post Preview</a> — a live look at how each selected channel will render the post. |
 | **Footer** | <a href="/docs/creating-posts/tags">Tags</a>, repeat schedule, date and time, and save buttons — see <a href="/docs/creating-posts/scheduling">Scheduling</a> for <Badge text="Save as draft" variant="default" />, <Badge text="Add to calendar" variant="new" />, and <Badge text="Publish now" variant="new" />. |
 
 The preview column is worth a glance. Line breaks, image crops, and titles that truncate on one network often show up there before you schedule.
@@ -48,7 +48,7 @@ The preview column is worth a glance. Line breaks, image crops, and titles that 
 ## Typical flow
 
 <Steps
-	howToName="How to schedue Posts"
+	howToName="How to schedule Posts"
 	howToDescription="How to write and schedule posts in OpenQuok"
 >
 
@@ -58,7 +58,7 @@ Click the avatars at the top. Picking a <a href="/docs/channels/channel-groups">
 
 ### Write the post
 
-**Global** mode (globe button) is the default. What you write there goes to every selected channel. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> when one network needs different text.
+**Global** mode (globe button) is the default. What you write there goes to every selected channel. See <a href="/docs/creating-posts/writing-the-post">Writing the post</a> for the caption box, toolbar, and character count, and <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a> when one network needs different text.
 
 ### Add media (optional)
 

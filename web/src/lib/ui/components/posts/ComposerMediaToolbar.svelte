@@ -38,6 +38,7 @@
 		composeTooltipTriggerClick
 	} from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
+	import ComposerHistoryButtons from '$lib/ui/components/posts/ComposerHistoryButtons.svelte';
 	import AiHumanizeModal from '$lib/ui/components/posts/AiHumanizeModal.svelte';
 	import AiSummarizeModal from '$lib/ui/components/posts/AiSummarizeModal.svelte';
 	import AiWriterModal from '$lib/ui/components/posts/AiWriterModal.svelte';
@@ -95,6 +96,12 @@
 		mentionToolbarDisabled?: boolean;
 		mentionToolbarTooltip?: string;
 		onMentionToolbarClick?: () => void;
+		onBeforeTextEdit?: () => void;
+		onAfterTextEdit?: () => void;
+		canUndoHistory?: boolean;
+		canRedoHistory?: boolean;
+		onUndoHistory?: () => void;
+		onRedoHistory?: () => void;
 	}
 
 	let {
@@ -128,7 +135,13 @@
 		isLoggedIn = false,
 		mentionToolbarDisabled = false,
 		mentionToolbarTooltip = 'Insert a mention',
-		onMentionToolbarClick = undefined
+		onMentionToolbarClick = undefined,
+		onBeforeTextEdit = undefined,
+		onAfterTextEdit = undefined,
+		canUndoHistory = false,
+		canRedoHistory = false,
+		onUndoHistory = undefined,
+		onRedoHistory = undefined
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -328,6 +341,7 @@
 	export function insertAtComposerCursor(text: string) {
 		const el = textarea;
 		if (!el || disabled || uploadBusy) return;
+		onBeforeTextEdit?.();
 		const start = el.selectionStart ?? 0;
 		const end = el.selectionEnd ?? 0;
 		const value = el.value ?? '';
@@ -336,6 +350,7 @@
 		el.focus();
 		const next = start + text.length;
 		el.setSelectionRange(next, next);
+		onAfterTextEdit?.();
 	}
 
 	const mediaGenerationFields = $derived.by(
@@ -536,32 +551,45 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
+		{#if onUndoHistory && onRedoHistory}
+			<ComposerHistoryButtons
+				canUndo={canUndoHistory}
+				canRedo={canRedoHistory}
+				{disabled}
+				{uploadBusy}
+				hasTextarea={Boolean(textarea)}
+				buttonClass={iconBtn}
+				onUndo={onUndoHistory}
+				onRedo={onRedoHistory}
+			/>
+		{/if}
+
 		<!-- 8–13: inline text styling and tokens (selection / cursor) -->
 		<ComposerMediaTooltip label="Underline the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
-					<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+					<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
 				</span>
 			{/snippet}
 		</ComposerMediaTooltip>
 		<ComposerMediaTooltip label="Italicize the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
-					<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+					<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
 				</span>
 			{/snippet}
 		</ComposerMediaTooltip>
 		<ComposerMediaTooltip label="Bold the selected text">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
-					<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+					<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
 				</span>
 			{/snippet}
 		</ComposerMediaTooltip>
 		<ComposerMediaTooltip label="Insert an emoji at the cursor">
 			{#snippet trigger({ props })}
 				<span {...props} class="inline-flex">
-					<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} />
+					<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
 				</span>
 			{/snippet}
 		</ComposerMediaTooltip>

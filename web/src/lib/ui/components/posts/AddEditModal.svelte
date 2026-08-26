@@ -13,6 +13,7 @@
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { ComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/createSocialPostProviderSettings';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
@@ -105,6 +106,8 @@
 		guestMode?: boolean;
 		/** When guestMode is true, lock dialogs send signed-in visitors to the workspace. */
 		isLoggedIn?: boolean;
+		composerTextHistory?: ComposerTextHistory;
+		composerHistoryKey?: string;
 	};
 
 	let {
@@ -162,7 +165,9 @@
 		previewProviderSettings = {},
 		contentSetAuthoringNetworkLock = false,
 		guestMode = false,
-		isLoggedIn = false
+		isLoggedIn = false,
+		composerTextHistory = undefined,
+		composerHistoryKey = 'global'
 	}: Props = $props();
 
 	let guestLockOpen = $state(false);
@@ -464,6 +469,8 @@
 				setsAuthoringNetworkLock={contentSetAuthoringNetworkLock}
 				{guestMode}
 				{isLoggedIn}
+				{composerTextHistory}
+				{composerHistoryKey}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}

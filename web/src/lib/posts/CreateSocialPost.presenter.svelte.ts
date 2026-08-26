@@ -74,6 +74,11 @@ import {
 	isoToDatetimeLocalValue,
 	utcIsoToDatetimeLocalValue
 } from '$lib/utils/postingSchedulePreferences';
+import {
+	createComposerTextHistory,
+	type ComposerTextHistory,
+	type ComposerTextSnapshot
+} from '$lib/posts/utils/composerTextHistory';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
@@ -111,6 +116,7 @@ export class CreateSocialPostPresenter {
 	private tagsVmCache: { workspaceId: string; loadedAtMs: number } | null = null;
 	private signaturesCache: { organizationId: string; items: SignatureViewModel[]; loadedAtMs: number } | null = null;
 	private readonly signaturesCacheTtlMs = 30_000;
+	private composerTextHistoryByKey = new Map<string, ComposerTextHistory>();
 
 	private clearPendingOpenFields(): void {
 		this.pendingOpen = createEmptyPendingOpenState();
@@ -391,6 +397,36 @@ export class CreateSocialPostPresenter {
 	}
 
 	// --- Editor mode & body persistence ---
+
+	composerHistoryKey(): string {
+		return this.mode === 'custom' && this.focusedIntegrationId
+			? this.focusedIntegrationId
+			: 'global';
+	}
+
+	getComposerTextHistory(): ComposerTextHistory {
+		const key = this.composerHistoryKey();
+		let history = this.composerTextHistoryByKey.get(key);
+		if (!history) {
+			history = createComposerTextHistory();
+			const text = this.editorBody;
+			history.clear({
+				text,
+				selectionStart: text.length,
+				selectionEnd: text.length
+			});
+			this.composerTextHistoryByKey.set(key, history);
+		}
+		return history;
+	}
+
+	private clearComposerTextHistories(): void {
+		this.composerTextHistoryByKey.clear();
+	}
+
+	recordComposerTextMutation(before: ComposerTextSnapshot, after: ComposerTextSnapshot): void {
+		this.getComposerTextHistory().recordMutation(before, after);
+	}
 
 	persistEditorBody(): void {
 		if (this.mode === 'custom' && this.focusedIntegrationId) {
@@ -1081,6 +1117,7 @@ export class CreateSocialPostPresenter {
 		this.repeatInterval = null;
 		this.selectedTagNames = [];
 		this.initialSnapshot = '';
+		this.clearComposerTextHistories();
 	}
 
 	private applyPreselectedIntegrationIds(preselectIntegrationIds: string[]): void {
@@ -1110,6 +1147,7 @@ export class CreateSocialPostPresenter {
 	}
 
 	private applySetSnapshot(snapshot: SetSnapshotViewModel): void {
+		this.clearComposerTextHistories();
 		const allowed = new Set(this.baseSocialChannelsVm.map((c) => c.id));
 		const ids = snapshot.selectedIntegrationIds.filter((id) => allowed.has(id));
 		const okIds = ids.filter((id) => {
@@ -1182,6 +1220,7 @@ export class CreateSocialPostPresenter {
 
 	private async loadInitial(workspaceId: string, preselectScheduledAtIso?: string | null): Promise<void> {
 		this.busy = true;
+		this.clearComposerTextHistories();
 		try {
 			if (preselectScheduledAtIso) {
 				const v = utcIsoToDatetimeLocalValue(preselectScheduledAtIso);
@@ -1219,6 +1258,7 @@ export class CreateSocialPostPresenter {
 
 	private async loadExisting(workspaceId: string, postGroup: string): Promise<void> {
 		this.busy = true;
+		this.clearComposerTextHistories();
 		try {
 			await this.ensureTagListLoaded(workspaceId);
 
@@ -1331,6 +1371,10 @@ export class CreateSocialPostPresenter {
 		const content = (sig?.content ?? '').trim();
 		if (!content) return;
 
+		this.recordComposerTextMutation(
+			{ text: '', selectionStart: 0, selectionEnd: 0 },
+			{ text: content, selectionStart: content.length, selectionEnd: content.length }
+		);
 		this.globalBody = content;
 		if (this.mode === 'custom' && this.focusedIntegrationId) {
 			this.bodiesByIntegrationId = { ...this.bodiesByIntegrationId, [this.focusedIntegrationId]: content };

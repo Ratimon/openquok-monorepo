@@ -10,9 +10,11 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { ComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
+	import { snapshotFromTextarea } from '$lib/posts/utils/composerTextareaSnapshot';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
@@ -76,6 +78,9 @@
 		 */
 		guestMode?: boolean;
 		isLoggedIn?: boolean;
+		/** Per-channel undo stack from CreateSocialPostPresenter; omit for guest / thread reply editors. */
+		composerTextHistory?: ComposerTextHistory;
+		composerHistoryKey?: string;
 	}
 
 	let {
@@ -116,8 +121,16 @@
 		scheduleValidationMessage = null,
 		setsAuthoringNetworkLock = false,
 		guestMode = false,
-		isLoggedIn = false
+		isLoggedIn = false,
+		composerTextHistory = undefined,
+		composerHistoryKey = 'global'
 	}: EditorPostProps = $props();
+
+	let applyingComposerHistory = $state(false);
+	let suppressTypingHistory = $state(false);
+	let lastComposerHistoryKey = $state<string | null>(null);
+	let historyCanUndo = $state(false);
+	let historyCanRedo = $state(false);
 
 	let confirmOpen = $state(false);
 	let mediaToolbarRef = $state<import('./ComposerMediaToolbar.svelte').default | undefined>();
@@ -217,6 +230,148 @@
 			Boolean(focusedIntegrationId?.trim()) &&
 			providerSupportsComposerMentions(focusedProviderIdentifier)
 	);
+
+	function currentTextareaSnapshot() {
+		return snapshotFromTextarea(composerTextarea, body ?? '');
+	}
+
+	function applyComposerHistorySnapshot(snap: ReturnType<typeof snapshotFromTextarea>) {
+		applyingComposerHistory = true;
+		body = snap.text;
+		queueMicrotask(() => {
+			const el = composerTextarea;
+			if (el) {
+				el.value = snap.text;
+				el.setSelectionRange(snap.selectionStart, snap.selectionEnd);
+			}
+			applyingComposerHistory = false;
+		});
+	}
+
+	function syncComposerHistoryUi() {
+		historyCanUndo = composerTextHistory?.canUndo() ?? false;
+		historyCanRedo = composerTextHistory?.canRedo() ?? false;
+	}
+
+	function recordBeforeComposerEdit() {
+		if (!composerTextHistory || comments || applyingComposerHistory) return;
+		suppressTypingHistory = true;
+		composerTextHistory.recordBeforeMutation(currentTextareaSnapshot());
+	}
+
+	function recordAfterComposerEdit() {
+		if (!composerTextHistory || comments || applyingComposerHistory) return;
+		composerTextHistory.recordAfterMutation(currentTextareaSnapshot());
+		suppressTypingHistory = false;
+		syncComposerHistoryUi();
+	}
+
+	function onComposerInput() {
+		mentionAutocompleteRef?.handleTextareaInput();
+		if (
+			!composerTextHistory ||
+			comments ||
+			applyingComposerHistory ||
+			suppressTypingHistory
+		) {
+			return;
+		}
+		composerTextHistory.recordTyping(currentTextareaSnapshot());
+		syncComposerHistoryUi();
+	}
+
+	function performComposerUndo() {
+		if (!composerTextHistory?.canUndo()) return;
+		const snap = composerTextHistory.undo();
+		if (snap) applyComposerHistorySnapshot(snap);
+		syncComposerHistoryUi();
+	}
+
+	function performComposerRedo() {
+		if (!composerTextHistory?.canRedo()) return;
+		const snap = composerTextHistory.redo();
+		if (snap) applyComposerHistorySnapshot(snap);
+		syncComposerHistoryUi();
+	}
+
+	function onComposerKeyDown(e: KeyboardEvent) {
+		if (composerTextHistory && !comments && !mentionAutocompleteRef?.isPickerOpen()) {
+			const mod = e.metaKey || e.ctrlKey;
+			if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+				if (composerTextHistory.canUndo()) {
+					e.preventDefault();
+					performComposerUndo();
+					return;
+				}
+			}
+			if (mod && (e.key.toLowerCase() === 'z' && e.shiftKey)) {
+				if (composerTextHistory.canRedo()) {
+					e.preventDefault();
+					performComposerRedo();
+					return;
+				}
+			}
+			if (mod && e.key.toLowerCase() === 'y') {
+				if (composerTextHistory.canRedo()) {
+					e.preventDefault();
+					performComposerRedo();
+					return;
+				}
+			}
+		}
+		mentionAutocompleteRef?.handleTextareaKeyDown(e);
+	}
+
+	function appendComposerBody(suffix: string) {
+		const base = body ?? '';
+		const next = `${base}${suffix}`;
+		if (!composerTextHistory || comments || applyingComposerHistory) {
+			body = next;
+			return;
+		}
+		suppressTypingHistory = true;
+		composerTextHistory.recordMutation(
+			{ text: base, selectionStart: base.length, selectionEnd: base.length },
+			{ text: next, selectionStart: next.length, selectionEnd: next.length }
+		);
+		body = next;
+		suppressTypingHistory = false;
+		syncComposerHistoryUi();
+	}
+
+	function replaceComposerBody(text: string) {
+		const previous = body ?? '';
+		if (!composerTextHistory || comments || applyingComposerHistory) {
+			body = text;
+			return;
+		}
+		suppressTypingHistory = true;
+		composerTextHistory.recordMutation(
+			{
+				text: previous,
+				selectionStart: previous.length,
+				selectionEnd: previous.length
+			},
+			{ text, selectionStart: text.length, selectionEnd: text.length }
+		);
+		body = text;
+		suppressTypingHistory = false;
+		syncComposerHistoryUi();
+	}
+
+	$effect(() => {
+		if (!composerTextHistory || comments) return;
+		const key = composerHistoryKey;
+		if (lastComposerHistoryKey === key) return;
+		lastComposerHistoryKey = key;
+		composerTextHistory.flushDebounced();
+		const snap = currentTextareaSnapshot();
+		const head = composerTextHistory.peek();
+		if (!head || head.text !== snap.text) {
+			composerTextHistory.clear(snap);
+		}
+		syncComposerHistoryUi();
+	});
 </script>
 
 <div class="min-h-0 min-w-0 flex-1">
@@ -266,8 +421,8 @@
 						rows={textareaRows}
 						placeholder={comments ? 'Write a comment…' : 'Write something…'}
 						onpaste={onComposerPaste}
-						oninput={() => mentionAutocompleteRef?.handleTextareaInput()}
-						onkeydown={(e) => mentionAutocompleteRef?.handleTextareaKeyDown(e)}
+						oninput={onComposerInput}
+						onkeydown={onComposerKeyDown}
 						disabled={busy || locked || defineSetScopeOverlay}
 						class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
 					></textarea>
@@ -281,6 +436,8 @@
 						{organizationId}
 						disabled={busy || locked || defineSetScopeOverlay}
 						{guestMode}
+						onBeforeTextEdit={recordBeforeComposerEdit}
+						onAfterTextEdit={recordAfterComposerEdit}
 					/>
 				</div>
 
@@ -312,18 +469,20 @@
 							{maxMediaItems}
 							{guestMode}
 							{isLoggedIn}
+							onBeforeTextEdit={recordBeforeComposerEdit}
+							onAfterTextEdit={recordAfterComposerEdit}
 							onInsertSignature={(sig) => {
 								const base = body ?? '';
 								const suffix = base.trim().length === 0 ? sig : `\n\n${sig}`;
-								body = `${base}${suffix}`;
+								appendComposerBody(suffix);
 							}}
 							onInsertDraft={(draft) => {
 								const base = body ?? '';
 								const suffix = base.trim().length === 0 ? draft : `\n\n${draft}`;
-								body = `${base}${suffix}`;
+								appendComposerBody(suffix);
 							}}
 							onReplaceBody={(text) => {
-								body = text;
+								replaceComposerBody(text);
 							}}
 							{mentionToolbarDisabled}
 							{mentionToolbarTooltip}
@@ -334,6 +493,10 @@
 								}
 								mediaToolbarRef?.insertAtComposerCursor('@');
 							}}
+							canUndoHistory={historyCanUndo}
+							canRedoHistory={historyCanRedo}
+							onUndoHistory={composerTextHistory ? performComposerUndo : undefined}
+							onRedoHistory={composerTextHistory ? performComposerRedo : undefined}
 						/>
 					</div>
 				{/if}

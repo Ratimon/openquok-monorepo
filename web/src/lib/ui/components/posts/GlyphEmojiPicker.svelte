@@ -8,9 +8,17 @@
 		textarea?: HTMLTextAreaElement | null;
 		disabled?: boolean;
 		class?: string;
+		onBeforeTextEdit?: () => void;
+		onAfterTextEdit?: () => void;
 	};
 
-	let { textarea = null, disabled = false, class: className = '' }: Props = $props();
+	let {
+		textarea = null,
+		disabled = false,
+		class: className = '',
+		onBeforeTextEdit = undefined,
+		onAfterTextEdit = undefined
+	}: Props = $props();
 
 	let open = $state(false);
 	let pickerReady = $state(false);
@@ -49,7 +57,9 @@
 	function onEmojiClick(e: CustomEvent<{ unicode: string }>) {
 		const emoji = e.detail?.unicode ?? '';
 		if (!emoji || !textarea) return;
+		onBeforeTextEdit?.();
 		insertAtSelection(textarea, emoji);
+		onAfterTextEdit?.();
 		close();
 	}
 
