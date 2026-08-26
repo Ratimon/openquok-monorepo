@@ -1,4 +1,4 @@
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 
 export type InstagramGraphHost = "graph.instagram.com" | "graph.facebook.com";
 
@@ -21,7 +21,7 @@ export async function publishInstagramGraphComment(params: {
     message: string;
     accessToken: string;
 }): Promise<{ commentId: string; mediaPermalink: string }> {
-    const msg = htmlToPlainText(params.message ?? "").trim();
+    const msg = stripComposerBodyForEditor("normal", params.message ?? "");
     if (!msg.length) {
         throw new Error("Instagram comment message is empty");
     }

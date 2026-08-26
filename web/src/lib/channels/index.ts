@@ -4,6 +4,9 @@ export const getChannelPresenter = new GetChannelPresenter();
 
 export { GetChannelPresenter } from '$lib/channels/GetChannel.presenter.svelte';
 
+export type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
+export { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
+
 export type {
 	CreateSocialPostChannelViewModel,
 	HomeChannelGroupViewModel,

@@ -3,7 +3,7 @@ import type { IntegrationRecord } from "../../social.integrations.interface";
 import { makeId } from "../../../utils/ids/makeId";
 import { fixLinkedInCommentary, publishLinkedInComment, type LinkedInAuthorType } from "./linkedinPublish";
 import { linkedinRestHeaders } from "./linkedinCommon";
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 
 function sleepMs(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -172,7 +172,7 @@ export async function runLinkedInAutoPlugPost(
 
     await sleepMs(2000);
 
-    const text = fixLinkedInCommentary(htmlToPlainText(fields.post ?? "").trim());
+    const text = fixLinkedInCommentary(stripComposerBodyForEditor("normal", fields.post ?? ""));
     if (text.length < 3) return false;
 
     const actor =

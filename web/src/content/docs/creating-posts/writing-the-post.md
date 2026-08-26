@@ -1,6 +1,6 @@
 ---
 title: Writing the post
-description: Write captions in the OpenQuok social scheduler — toolbar, character count, mentions, AI tools, and per-network Post Preview.
+description: Write captions in the OpenQuok social scheduler — editor modes, toolbar, character count, mentions, AI tools, and Post Preview.
 order: 2
 lastUpdated: 2026-08-26
 ---
@@ -9,13 +9,17 @@ lastUpdated: 2026-08-26
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-The **left column** of the post editor is where you write the post. A plain-text caption box sits above the composes toolbars, indluding medias, signatures, styling, and AI helpers.
+The **left column** of the post editor is where you write the post. A caption box sits above the toolbar — media, signatures, styling, AI helpers, and more.
 
 The **Post Preview** column on the right shows how each selected channel will render your caption and attachments before you save.
 
 ## The caption box
 
-The main editor is a single **textarea**. Type or paste your caption; line breaks stay as you entered them.
+In **Global** mode the caption box is always **Standard**: a plain **textarea** where you type or paste text and line breaks stay as you entered them.
+
+When you **unlock** a channel that needs a different editor (today, **Dev.to** uses **Markdown**), the box switches to a rich editor with links, headings, and lists. Other networks keep the Standard textarea until their catalog entry uses Plain, Markdown, or HTML.
+
+See **Editor by platform** below for the full mode table and toolbar rules.
 
 Network-specific link rules are checked at save time and in **Settings**; see <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.
 
@@ -23,11 +27,53 @@ Network-specific link rules are checked at save time and in **Settings**; see <a
 <p>Closing the composer without saving discards your caption and attachments. Save a <strong>draft</strong> or <strong>schedule</strong> the post before you leave — see <a href="/docs/creating-posts/scheduling">Scheduling</a> and the <a href="/docs/creating-posts">Creating posts overview</a>.</p>
 </Callout>
 
-OpenQuok keeps <strong>up to 100 undo steps</strong> in the caption box. Use <strong>Ctrl+Z</strong> / <strong>Cmd+Z</strong> to undo and <strong>Ctrl+Shift+Z</strong> / <strong>Cmd+Shift+Z</strong> (or <strong>Ctrl+Y</strong> on Windows) to redo, or use the <strong>Undo</strong> and <strong>Redo</strong> buttons on the toolbar. Undo covers typing and toolbar changes — formatting, emoji, signatures, and AI insert or replace. History is <strong>per channel caption</strong>: switching channels swaps stacks; closing the composer clears everything. Save a <strong>draft</strong> if you need to come back later.
+OpenQuok keeps <strong>up to 100 undo steps</strong> in the caption box. Use <strong>Ctrl+Z</strong> / <strong>Cmd+Z</strong> to undo and <strong>Ctrl+Shift+Z</strong> / <strong>Cmd+Shift+Z</strong> (or <strong>Ctrl+Y</strong> on Windows) to redo, or use the <strong>Undo</strong> and <strong>Redo</strong> buttons on the toolbar. Undo covers typing and toolbar changes — formatting, emoji, signatures, and AI insert or replace. History is <strong>per channel caption and editor mode</strong>: switching channels or editor modes swaps stacks; closing the composer clears everything. Save a <strong>draft</strong> if you need to come back later.
+
+## Editor by platform
+
+Each connected channel has an **editor mode** in the integration catalog. That mode controls the caption box and which toolbar buttons appear **after** you focus and unlock that channel.
+
+### Global vs per-channel
+
+| Where you edit | Editor mode | Why |
+| --- | --- | --- |
+| **Global** (globe highlighted) | Always **Standard** (`normal`) | One shared caption cannot be Markdown on Dev.to and plain text on X at the same time |
+| **Unlocked channel** (per-channel edit) | That channel’s mode | Dev.to unlocks **Markdown**; most social channels stay **Standard** |
+
+<p>Flow: stay in Global for one caption everywhere — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>. When a network needs its own body format, click its avatar, choose <strong>Edit content</strong>, then write in that channel’s editor.</p>
+
+Switching focus between customized channels, or changing editor mode when you unlock, **remounts** the caption box. **Undo history resets** on that swap (up to 100 steps still apply within one channel and mode). Save a <strong>draft</strong> if you need to preserve work before switching.
+
+### Editor modes
+
+| Mode | Caption box | Channels today |
+| --- | --- | --- |
+| **Standard** (`normal`) | Plain textarea | X, LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads, and most others |
+| **Plain** (`none`) | Rich editor with **no** formatting toolbar | None yet — reserved for future plain-only networks |
+| **Markdown** (`markdown`) | Rich editor (links, headings, lists); stored as HTML, published as Markdown | **Dev.to** when unlocked |
+| **HTML** (`html`) | Same rich editor as Markdown; published as sanitized HTML | None yet — reserved for future HTML-first networks |
+
+<Callout type="note" title="Plain vs Standard">
+<p><strong>Plain</strong> mode still uses an internal rich editor, but bold, hashtags, and mentions are hidden so you only get plain text at publish. <strong>Standard</strong> is the familiar textarea with Unicode bold, italic, and underline — not platform-native HTML.</p>
+</Callout>
+
+### Toolbar by editor mode
+
+Media, Signatures, AI, and Undo/Redo stay available in every mode. Formatting controls depend on the table below. The **LinkedIn company** button still appears only when a LinkedIn or LinkedIn Page channel is focused.
+
+| Toolbar control | Plain (`none`) | Standard (`normal`) | Markdown / HTML |
+| --- | --- | --- | --- |
+| Bold, Italic, Underline | Hidden | Yes — **Unicode** glyphs in the textarea | Yes — real formatting in the rich editor |
+| Link, Heading 1–3, bullet and numbered lists | Hidden | Hidden | Yes |
+| Emoji | Yes | Yes | Yes |
+| Hashtag, <Badge text="@" variant="param" /> mention | Hidden | Yes | Yes |
+| LinkedIn company mention | Hidden | When LinkedIn focused | When LinkedIn focused |
+
+<p>In <strong>Markdown</strong> and <strong>HTML</strong> modes, link URLs must be <code>http</code> or <code>https</code> (or a safe relative path). Invalid schemes are rejected in the composer. At publish, OpenQuok converts rich content to Markdown (Dev.to) or allowed HTML per channel rules — see <a href="/docs/platforms">Posting rules by platform</a>.</p>
 
 ## Toolbar at a glance
 
-The toolbar sits below the caption box. The same controls appear for every channel (except the LinkedIn company button, which only shows when a LinkedIn channel is focused).
+The toolbar sits below the caption box. Controls follow the **editor mode** for the channel you are editing (Global always uses Standard). See **Toolbar by editor mode** above for the full matrix; the LinkedIn company button only shows when a LinkedIn channel is focused.
 
 | Group | Buttons | Notes |
 | --- | --- | --- |
@@ -35,22 +81,24 @@ The toolbar sits below the caption box. The same controls appear for every chann
 | **Reusable text** | Signatures | Opens a modal to insert a saved sign-off |
 | **AI** | AI Writer, Summarizer, Sound more human | Chrome on-device APIs — see below |
 | **History** | Undo, Redo | Up to 100 steps; disabled when there is nothing to undo or redo |
-| **Inline styling** | Underline, Italic, Bold, Emoji, Hashtag, <Badge text="@" variant="param" /> | Bold, italic, and underline use Unicode glyphs, not platform HTML |
+| **Inline styling** | Underline, Italic, Bold, Emoji, Hashtag, <Badge text="@" variant="param" /> | Standard mode: Unicode glyphs. Markdown/HTML unlock: real bold, italic, underline plus link and list buttons |
 | **LinkedIn only** | Company mention | Shown when a LinkedIn or LinkedIn Page channel is focused |
 
 On the **public guest composer** (Humanizer and similar tools), device upload still works locally. **Media library**, **Design editor**, **Signatures**, and **LinkedIn company** show a lock badge — sign in or sign up to use workspace features.
 
 ## Text styling (bold, italic, underline)
 
-Select text in the caption box, then click **Bold**, **Italic**, or **Underline** on the toolbar. OpenQuok replaces the selection with **Unicode styled characters** — they look bold or italic in the OpenQuok preview, but some networks may render them as normal letters.
+Behavior depends on editor mode:
 
-This is not the same as native rich text on X, WordPress, or LinkedIn. If a network strips or ignores styled Unicode, shorten or rephrase the line instead of relying on formatting.
+**Standard** (Global mode and most unlocked social channels): select text, then click **Bold**, **Italic**, or **Underline**. OpenQuok replaces the selection with **Unicode styled characters** — they look bold or italic in Post Preview, but some networks may render them as normal letters. This is not native rich text on X or LinkedIn. If a network strips styled Unicode, shorten or rephrase instead of relying on formatting.
+
+**Markdown** or **HTML** (for example Dev.to unlocked): the same buttons apply **real** bold, italic, and underline inside the rich editor. Use **Link** and heading/list buttons for structure. OpenQuok converts that content when you publish — check Post Preview before scheduling.
 
 ## Emoji and hashtags
 
 Click **Emoji** to open the picker and insert at the cursor. You can also paste emoji from your system keyboard.
 
-The **Hashtag** button inserts <code>#</code> at the cursor so you can type the tag name immediately. Hashtags are plain text — no autocomplete list.
+The **Hashtag** button inserts <code>#</code> at the cursor so you can type the tag name immediately. Hashtags are plain text — no autocomplete list. The Hashtag button is hidden in **Plain** editor mode.
 
 ## Character count
 
@@ -72,9 +120,9 @@ When one channel is over its limit, customize that channel’s caption — see <
 
 ## Mentions
 
-OpenQuok supports <Badge text="@" variant="param" /> mentions on **X**, **LinkedIn**, and **LinkedIn Page** only.
+OpenQuok supports <Badge text="@" variant="param" /> mentions on **X**, **LinkedIn**, and **LinkedIn Page** only, and only in **Standard** editor mode (the textarea).
 
-In **Global** mode the toolbar <Badge text="@" variant="param" /> button is disabled. Focus a channel, unlock it with **Edit content**, then type <Badge text="@" variant="param" /> followed by at least two characters to search accounts. Use the arrow keys and **Enter** or **Tab** to pick a row, or click the toolbar <Badge text="@" variant="param" /> button to insert <code>@</code> at the cursor.
+In **Global** mode the toolbar <Badge text="@" variant="param" /> button is disabled. Focus a channel, unlock it with **Edit content**, then type <Badge text="@" variant="param" /> followed by at least two characters to search accounts. Use the arrow keys and **Enter** or **Tab** to pick a row, or click the toolbar <Badge text="@" variant="param" /> button to insert <code>@</code> at the cursor. Mention search is not available in Markdown or HTML rich editors.
 
 <Callout type="note" title="Global mode">
 <p>Mention autocomplete only runs on a <strong>customized</strong> X, LinkedIn, or LinkedIn Page channel. Step-by-step unlock flow: <a href="/docs/creating-posts/global-vs-per-channel#what-works-per-channel-only">Global vs per-channel</a>.</p>

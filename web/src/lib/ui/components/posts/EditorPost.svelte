@@ -10,10 +10,15 @@
 		StockPhotoViewModel
 	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composerTextHistory';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
+	import {
+		SocialComposerEditor,
+		usesRichComposerEditor
+	} from '$lib/ui/components/posts/composer-editor';
 	import { snapshotFromTextarea } from '$lib/posts/utils/composerTextareaSnapshot';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -81,6 +86,8 @@
 		/** Per-channel undo stack from CreateSocialPostPresenter; omit for guest / thread reply editors. */
 		composerTextHistory?: ComposerTextHistory;
 		composerHistoryKey?: string;
+		/** Global → `normal`; per-channel unlock uses the channel catalog `editor` field. */
+		composerEditorMode?: IntegrationEditorMode;
 	}
 
 	let {
@@ -123,7 +130,8 @@
 		guestMode = false,
 		isLoggedIn = false,
 		composerTextHistory = undefined,
-		composerHistoryKey = 'global'
+		composerHistoryKey = 'global',
+		composerEditorMode = 'normal'
 	}: EditorPostProps = $props();
 
 	let applyingComposerHistory = $state(false);
@@ -137,8 +145,22 @@
 	let mentionAutocompleteRef =
 		$state<import('./ComposerMentionAutocomplete.svelte').default | undefined>();
 	let composerTextarea = $state.raw<HTMLTextAreaElement | null>(null);
+	let richComposerEditorRef =
+		$state<import('$lib/ui/components/posts/composer-editor/SocialComposerEditor.svelte').default | undefined>();
+	let mountedEditorMode = $state<IntegrationEditorMode>('normal');
 	let composerMedia = $state<MultiMedia | undefined>(undefined);
 	let composerDragOver = $state(false);
+
+	const usesRichEditor = $derived(usesRichComposerEditor(mountedEditorMode));
+	const richTiptapEditor = $derived(richComposerEditorRef?.getEditor() ?? null);
+
+	$effect(() => {
+		const mode = composerEditorMode;
+		const timer = setTimeout(() => {
+			mountedEditorMode = mode;
+		}, 20);
+		return () => clearTimeout(timer);
+	});
 
 	function requestBannerRightAction() {
 		if (!onBannerRightAction) return;
@@ -249,8 +271,18 @@
 	}
 
 	function syncComposerHistoryUi() {
+		if (usesRichEditor) {
+			historyCanUndo = richComposerEditorRef?.canUndo() ?? false;
+			historyCanRedo = richComposerEditorRef?.canRedo() ?? false;
+			return;
+		}
 		historyCanUndo = composerTextHistory?.canUndo() ?? false;
 		historyCanRedo = composerTextHistory?.canRedo() ?? false;
+	}
+
+	function onRichHistoryChange(state: { canUndo: boolean; canRedo: boolean }) {
+		historyCanUndo = state.canUndo;
+		historyCanRedo = state.canRedo;
 	}
 
 	function recordBeforeComposerEdit() {
@@ -281,6 +313,12 @@
 	}
 
 	function performComposerUndo() {
+		if (usesRichEditor) {
+			if (!richComposerEditorRef?.canUndo()) return;
+			richComposerEditorRef.undo();
+			syncComposerHistoryUi();
+			return;
+		}
 		if (!composerTextHistory?.canUndo()) return;
 		const snap = composerTextHistory.undo();
 		if (snap) applyComposerHistorySnapshot(snap);
@@ -288,6 +326,12 @@
 	}
 
 	function performComposerRedo() {
+		if (usesRichEditor) {
+			if (!richComposerEditorRef?.canRedo()) return;
+			richComposerEditorRef.redo();
+			syncComposerHistoryUi();
+			return;
+		}
 		if (!composerTextHistory?.canRedo()) return;
 		const snap = composerTextHistory.redo();
 		if (snap) applyComposerHistorySnapshot(snap);
@@ -323,6 +367,10 @@
 	}
 
 	function appendComposerBody(suffix: string) {
+		if (usesRichEditor) {
+			richComposerEditorRef?.appendContent(suffix);
+			return;
+		}
 		const base = body ?? '';
 		const next = `${base}${suffix}`;
 		if (!composerTextHistory || comments || applyingComposerHistory) {
@@ -340,6 +388,10 @@
 	}
 
 	function replaceComposerBody(text: string) {
+		if (usesRichEditor) {
+			richComposerEditorRef?.replaceContent(text);
+			return;
+		}
 		const previous = body ?? '';
 		if (!composerTextHistory || comments || applyingComposerHistory) {
 			body = text;
@@ -360,7 +412,7 @@
 	}
 
 	$effect(() => {
-		if (!composerTextHistory || comments) return;
+		if (usesRichEditor || !composerTextHistory || comments) return;
 		const key = composerHistoryKey;
 		if (lastComposerHistoryKey === key) return;
 		lastComposerHistoryKey = key;
@@ -411,34 +463,49 @@
 	>
 		<div class="relative min-w-0">
 			<div
-				class="border-base-300 bg-base-200 has-[textarea:focus]:border-primary has-[textarea:focus]:ring-primary/30 has-[textarea:focus]:ring-inset min-w-0 rounded-lg border has-[textarea:focus]:ring-2"
+				class="border-base-300 bg-base-200 min-w-0 rounded-lg border has-[textarea:focus]:border-primary has-[textarea:focus]:ring-primary/30 has-[.ProseMirror-focused]:border-primary has-[.ProseMirror-focused]:ring-primary/30 has-[textarea:focus]:ring-2 has-[.ProseMirror-focused]:ring-2 has-[textarea:focus]:ring-inset has-[.ProseMirror-focused]:ring-inset"
 			>
 				<div class="relative min-w-0">
-					<textarea
-						id="composer-body"
-						bind:this={composerTextarea}
-						bind:value={body}
-						rows={textareaRows}
-						placeholder={comments ? 'Write a comment…' : 'Write something…'}
-						onpaste={onComposerPaste}
-						oninput={onComposerInput}
-						onkeydown={onComposerKeyDown}
-						disabled={busy || locked || defineSetScopeOverlay}
-						class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
-					></textarea>
+					{#if usesRichEditor}
+						{#key mountedEditorMode}
+							<SocialComposerEditor
+								bind:this={richComposerEditorRef}
+								mode={mountedEditorMode}
+								bind:content={body}
+								disabled={busy || locked || defineSetScopeOverlay}
+								placeholder={comments ? 'Write a comment…' : 'Write something…'}
+								{compact}
+								{comments}
+								onHistoryChange={onRichHistoryChange}
+							/>
+						{/key}
+					{:else}
+						<textarea
+							id="composer-body"
+							bind:this={composerTextarea}
+							bind:value={body}
+							rows={textareaRows}
+							placeholder={comments ? 'Write a comment…' : 'Write something…'}
+							onpaste={onComposerPaste}
+							oninput={onComposerInput}
+							onkeydown={onComposerKeyDown}
+							disabled={busy || locked || defineSetScopeOverlay}
+							class="max-h-[320px] w-full resize-none border-0 bg-transparent px-3 pt-2 pb-2 text-sm text-base-content placeholder:text-base-content/40 focus:outline-none sm:resize-y {textareaMinHeightClass}"
+						></textarea>
 
-					<ComposerMentionAutocomplete
-						bind:this={mentionAutocompleteRef}
-						textarea={composerTextarea}
-						{composerMode}
-						{focusedIntegrationId}
-						{focusedProviderIdentifier}
-						{organizationId}
-						disabled={busy || locked || defineSetScopeOverlay}
-						{guestMode}
-						onBeforeTextEdit={recordBeforeComposerEdit}
-						onAfterTextEdit={recordAfterComposerEdit}
-					/>
+						<ComposerMentionAutocomplete
+							bind:this={mentionAutocompleteRef}
+							textarea={composerTextarea}
+							{composerMode}
+							{focusedIntegrationId}
+							{focusedProviderIdentifier}
+							{organizationId}
+							disabled={busy || locked || defineSetScopeOverlay}
+							{guestMode}
+							onBeforeTextEdit={recordBeforeComposerEdit}
+							onAfterTextEdit={recordAfterComposerEdit}
+						/>
+					{/if}
 				</div>
 
 				{#if mediaToolbarVisible && writerPresenter && summarizerPresenter && humanizePresenter}
@@ -462,6 +529,8 @@
 							existingBody={body}
 							{softCharLimit}
 							textarea={composerTextarea}
+							tiptapEditor={richTiptapEditor}
+							{composerEditorMode}
 							{composerMode}
 							{focusedProviderIdentifier}
 							{constraintProviderIdentifiers}
@@ -495,8 +564,9 @@
 							}}
 							canUndoHistory={historyCanUndo}
 							canRedoHistory={historyCanRedo}
-							onUndoHistory={composerTextHistory ? performComposerUndo : undefined}
-							onRedoHistory={composerTextHistory ? performComposerRedo : undefined}
+							onUndoHistory={usesRichEditor || composerTextHistory ? performComposerUndo : undefined}
+							onRedoHistory={usesRichEditor || composerTextHistory ? performComposerRedo : undefined}
+							hasTextInput={usesRichEditor || Boolean(composerTextarea)}
 						/>
 					</div>
 				{/if}

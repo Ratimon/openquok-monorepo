@@ -15,7 +15,8 @@ export const DEVTO_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	schedulable: true,
 	unschedulableReason: null,
 	group: null,
-	postingTimes: [{ time: 540 }]
+	postingTimes: [{ time: 540 }],
+	editor: 'markdown'
 };
 
 export const DEVTO_LANDING_MOCK_BODY =

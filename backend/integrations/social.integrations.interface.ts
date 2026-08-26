@@ -69,6 +69,10 @@ export type PostDetails<T = unknown> = {
 export type ValidateCreatePostInput = {
     status: "draft" | "scheduled";
     mediaCount: number;
+    /** Caption after `stripComposerBodyForEditor` for this provider's editor mode. */
+    message?: string;
+    /** Raw composer storage (HTML or plain text) before editor transform. */
+    rawMessage?: string;
 };
 
 export type AnalyticsData = {

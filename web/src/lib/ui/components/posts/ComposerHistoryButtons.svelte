@@ -11,7 +11,7 @@
 		canRedo: boolean;
 		disabled?: boolean;
 		uploadBusy?: boolean;
-		hasTextarea?: boolean;
+		hasTextInput?: boolean;
 		buttonClass: string;
 		onUndo: () => void;
 		onRedo: () => void;
@@ -22,14 +22,14 @@
 		canRedo,
 		disabled = false,
 		uploadBusy = false,
-		hasTextarea = true,
+		hasTextInput = true,
 		buttonClass,
 		onUndo,
 		onRedo
 	}: Props = $props();
 
-	const undoDisabled = $derived(disabled || uploadBusy || !hasTextarea || !canUndo);
-	const redoDisabled = $derived(disabled || uploadBusy || !hasTextarea || !canRedo);
+	const undoDisabled = $derived(disabled || uploadBusy || !hasTextInput || !canUndo);
+	const redoDisabled = $derived(disabled || uploadBusy || !hasTextInput || !canRedo);
 </script>
 
 <div class="inline-flex items-center gap-1" role="group" aria-label="Undo and redo">

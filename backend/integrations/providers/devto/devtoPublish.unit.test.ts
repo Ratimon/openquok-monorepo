@@ -148,6 +148,22 @@ describe("publishDevtoArticle", () => {
         expect(body.article).toMatchObject({ title: "Hello Dev", body_markdown: "Hello", published: true });
     });
 
+    it("converts TipTap HTML composer storage to body_markdown at publish", async () => {
+        mockFetchJson(201, { id: 56, url: "https://dev.to/user/rich" });
+
+        await publishDevtoArticle("key", {
+            id: "post-2",
+            message:
+                '<p>Hello <strong>world</strong></p><p><a href="https://example.com">read more</a></p>',
+            settings: { providerSettings: { title: "Rich body" } },
+        });
+
+        const body = JSON.parse(String((global.fetch as jest.Mock).mock.calls[0][1].body));
+        expect(body.article.body_markdown).toBe(
+            "Hello **world**\n\n[read more](https://example.com)"
+        );
+    });
+
     it("maps canonical URL collisions", async () => {
         mockFetchJson(422, { error: "Canonical url has already been taken", status: 422 });
 

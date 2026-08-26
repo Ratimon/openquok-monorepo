@@ -1,4 +1,5 @@
-import type { HttpGateway } from '$lib/core/HttpGateway';
+import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
+import { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
 import { ApiError } from '$lib/core/HttpGateway';
@@ -34,7 +35,7 @@ export interface IntegrationCatalogItemProgrammerModel {
 	identifier: string;
 	name: string;
 	toolTip?: string;
-	editor?: string;
+	editor?: IntegrationEditorMode;
 	isExternal?: boolean;
 	isWeb3?: boolean;
 	isChromeExtension?: boolean;
@@ -59,7 +60,7 @@ export interface ConnectedIntegrationProgrammerModel {
 	identifier: string;
 	picture: string | null;
 	disabled: boolean;
-	editor: string;
+	editor: IntegrationEditorMode;
 	type: string;
 	inBetweenSteps: boolean;
 	refreshNeeded: boolean;
@@ -301,6 +302,7 @@ export class IntegrationsRepository {
 					const { customer, group: groupFromPayload, ...rest } = raw;
 					return {
 						...rest,
+						editor: normalizeIntegrationEditorMode(rest.editor),
 						group: groupFromPayload ?? customer ?? null
 					} satisfies ConnectedIntegrationProgrammerModel;
 				});

@@ -1,4 +1,5 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 import type { HumanizePresenter } from '$lib/ai-humanize';
 import type { SummarizerPresenter } from '$lib/ai-summarizer';
 import type { WriterPresenter } from '$lib/ai-writer';
@@ -79,6 +80,7 @@ import {
 	type ComposerTextHistory,
 	type ComposerTextSnapshot
 } from '$lib/posts/utils/composerTextHistory';
+import { stripComposerBodyForEditor } from '$lib/posts/utils/stripComposerBodyForEditor';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 import { toast } from '$lib/ui/sonner';
 
@@ -183,6 +185,12 @@ export class CreateSocialPostPresenter {
 		return this.baseSocialChannelsVm.find((c) => c.id === this.focusedIntegrationId) ?? null;
 	});
 
+	/** Global mode always uses Standard (`normal`); per-channel unlock uses the channel's `editor`. */
+	composerEditorMode = $derived.by((): IntegrationEditorMode => {
+		if (this.mode === 'global') return 'normal';
+		return this.focusedChannelVm?.editor ?? 'normal';
+	});
+
 	providerConfig = $derived(getLaunchProviderConfig(this.focusedProviderIdentifier));
 
 	launchMaxMediaItems = $derived.by((): number | null =>
@@ -224,7 +232,9 @@ export class CreateSocialPostPresenter {
 		return out;
 	});
 
-	previewText = $derived(stripHtmlToPlainText(this.editorBody));
+	previewText = $derived(
+		stripComposerBodyForEditor(this.composerEditorMode, this.editorBody)
+	);
 	charCount = $derived.by(() => {
 		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'x') {
 			return xWeightedLength(this.previewText);

@@ -1,4 +1,5 @@
 import type { PostDetails, PostResponse } from "../../social.integrations.interface";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import {
     DEVTO_TITLE_MIN_LENGTH,
     resolveDevtoSettings,
@@ -252,7 +253,8 @@ export async function fetchDevtoOrganizationOptions(apiKey: string): Promise<Dev
 export async function publishDevtoArticle(accessToken: string, postDetails: PostDetails): Promise<PostResponse> {
     const settings = resolveDevtoSettings(postDetails.settings);
     const mainImageUrl = settings.mainImagePath ? resolveDevtoPublicMediaUrl(settings.mainImagePath) : undefined;
-    const payload = buildDevtoArticlePayload(settings, postDetails.message ?? "", mainImageUrl);
+    const bodyMarkdown = stripComposerBodyForEditor("markdown", postDetails.message ?? "");
+    const payload = buildDevtoArticlePayload(settings, bodyMarkdown, mainImageUrl);
 
     const res = await fetch(`${DEVTO_API_BASE}/articles`, {
         method: "POST",

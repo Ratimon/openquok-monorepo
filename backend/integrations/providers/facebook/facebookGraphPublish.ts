@@ -1,7 +1,7 @@
 import type { PostDetails, PostResponse } from "../../social.integrations.interface";
 
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import { throwIfMetaGraphInvalidAccessToken } from "../../../errors/metaGraphTokenError";
 
 const GRAPH = "https://graph.facebook.com/v20.0";
@@ -106,7 +106,7 @@ export async function publishFacebookPagePost(
     accessToken: string,
     postDetails: PostDetails
 ): Promise<PostResponse> {
-    const message = htmlToPlainText(postDetails.message ?? "").trim();
+    const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
     const media = extractMedia(postDetails.settings).map((m) => ({
         ...m,
         path: resolvePublicMediaUrl(m.path),
@@ -175,7 +175,7 @@ export async function publishFacebookComment(
     accessToken: string,
     postDetails: PostDetails
 ): Promise<PostResponse> {
-    const message = htmlToPlainText(postDetails.message ?? "").trim();
+    const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
     const media = extractMedia(postDetails.settings);
     const enc = encodeURIComponent(accessToken);
     const body: Record<string, unknown> = { message };

@@ -1,4 +1,6 @@
 import type { ConnectedIntegrationProgrammerModel } from '$lib/integrations/Integrations.repository.svelte';
+import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
+import { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 
 /** One scheduled posting slot: minutes after midnight (0–1439), matching `integrations.posting_times` JSON. */
 export type PostingTimeSlotViewModel = { time: number };
@@ -30,6 +32,8 @@ export interface CreateSocialPostChannelViewModel {
 	additionalSettings?: string;
 	/** Parsed `posting_times` from the API (deduplicated, sorted by `time`). */
 	postingTimes: PostingTimeSlotViewModel[];
+	/** Composer caption mode for this channel (`SocialProvider.editor`). */
+	editor: IntegrationEditorMode;
 }
 
 /** Collapsible menu section on the account home (grouped by channel `type`). */
@@ -118,7 +122,8 @@ export class GetChannelPresenter {
 			unschedulableReason,
 			group: pm.group ?? null,
 			additionalSettings: pm.additionalSettings ?? '[]',
-			postingTimes: this.parsePostingTimeSlots(pm.time)
+			postingTimes: this.parsePostingTimeSlots(pm.time),
+			editor: normalizeIntegrationEditorMode(pm.editor)
 		};
 	}
 

@@ -28,6 +28,7 @@ import {
     replyChainBucketForProvider,
     repeatIntervalToDays,
 } from "../utils/dtos/PostDTO";
+import { stripComposerBodyForEditor } from "../utils/content/stripComposerBodyForEditor";
 
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
@@ -434,9 +435,21 @@ export class PostsService {
             const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
             if (!providerIdentifier) continue;
             const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
-            const message = provider?.validateCreatePost?.({ status, mediaCount: mediaCountForIntegration(integrationId) });
-            if (typeof message === "string" && message.trim().length > 0) {
-                throw new AppError(message, 400);
+            if (!provider) continue;
+
+            const rawMessage = isGlobal
+                ? body
+                : (bodiesByIntegrationId?.[integrationId] ?? body);
+            const publishMessage = stripComposerBodyForEditor(provider.editor, rawMessage);
+
+            const validationMessage = provider.validateCreatePost?.({
+                status,
+                mediaCount: mediaCountForIntegration(integrationId),
+                message: publishMessage,
+                rawMessage,
+            });
+            if (typeof validationMessage === "string" && validationMessage.trim().length > 0) {
+                throw new AppError(validationMessage, 400);
             }
         }
 

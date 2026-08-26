@@ -1,6 +1,7 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels';
 
 import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
+import { normalizeIntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 
 export const HUMANIZE_MOCK_CHANNEL_ID_PREFIX = 'humanize-mock-';
 
@@ -29,7 +30,8 @@ export function buildHumanizeMockChannels(): CreateSocialPostChannelViewModel[] 
 			schedulable: true,
 			unschedulableReason: null,
 			group: null,
-			postingTimes: [{ time: 540 }]
+			postingTimes: [{ time: 540 }],
+			editor: normalizeIntegrationEditorMode(channel.slug === 'devto' ? 'markdown' : 'normal')
 		};
 	});
 }

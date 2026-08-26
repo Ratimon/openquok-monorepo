@@ -2,7 +2,7 @@ import type { SendTweetV2Params } from "twitter-api-v2";
 
 import twitterText from "twitter-text";
 
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import type { XReplySettings } from "./xCommon";
 
 export type XResolvedSettings = {
@@ -117,7 +117,7 @@ export function resolveXSettings(settings: unknown): XResolvedSettings {
 }
 
 export function buildTweetText(message: string, _settings?: XResolvedSettings): string {
-    return htmlToPlainText(message ?? "").trim();
+    return stripComposerBodyForEditor("normal", message ?? "");
 }
 
 export function validateTweetWeightedLength(text: string, maxLength: number): void {

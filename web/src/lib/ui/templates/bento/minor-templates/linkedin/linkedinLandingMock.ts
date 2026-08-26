@@ -13,7 +13,8 @@ export const LINKEDIN_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	schedulable: true,
 	unschedulableReason: null,
 	group: null,
-	postingTimes: [{ time: 540 }]
+	postingTimes: [{ time: 540 }],
+	editor: 'normal'
 };
 
 export const LINKEDIN_LANDING_MOCK_BODY =

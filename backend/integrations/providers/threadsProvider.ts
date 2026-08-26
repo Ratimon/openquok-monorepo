@@ -18,7 +18,7 @@ import { oauthFrontendSocialCallbackPath } from "../utils/oauthFrontendCallbackP
 import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegrationErrors";
 import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
-import { htmlToPlainText } from "../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../utils/content/stripComposerBodyForEditor.js";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
 type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | ThreadsMediaItem[] };
@@ -201,9 +201,10 @@ export class ThreadsProvider implements SocialProvider {
     ): Promise<PostResponse[]> {
         if (!postDetails.length) return [];
         const [first] = postDetails;
-        const message = htmlToPlainText(first.message ?? "")
-            .trim()
-            .slice(0, this.maxLength());
+        const message = stripComposerBodyForEditor("normal", first.message ?? "").slice(
+            0,
+            this.maxLength()
+        );
         const replyToId = (lastCommentId ?? postId ?? "").trim();
 
         if (!message.length) {
@@ -238,7 +239,7 @@ export class ThreadsProvider implements SocialProvider {
         information: { message?: string; replyToParentId?: string }
     ): Promise<void> {
         const raw = typeof information?.message === "string" ? information.message : "";
-        const msg = htmlToPlainText(raw).trim();
+        const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
 
         const parent =
@@ -266,7 +267,7 @@ export class ThreadsProvider implements SocialProvider {
         information: { comment?: string }
     ): Promise<void> {
         const raw = typeof information?.comment === "string" ? information.comment : "";
-        const msg = htmlToPlainText(raw).trim();
+        const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
 
         await this.comment(
@@ -321,7 +322,7 @@ export class ThreadsProvider implements SocialProvider {
 
         await sleepMs(2000);
 
-        const text = htmlToPlainText(fields.post ?? "").slice(0, this.maxLength());
+        const text = stripComposerBodyForEditor("normal", fields.post ?? "").slice(0, this.maxLength());
         const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
 
         await sleepMs(2000);

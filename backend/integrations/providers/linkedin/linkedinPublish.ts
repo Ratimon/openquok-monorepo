@@ -3,7 +3,7 @@ import type { PostDetails, PostResponse } from "../../social.integrations.interf
 import { UploadFactory } from "../../../connections/upload/upload.factory";
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 import { storageR2Repository } from "../../../repositories/index";
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import { mediaExtFromUrlOrKey } from "../tiktok/tiktokPublishValidation";
 import { resolveLinkedInSettings } from "./linkedinSettings";
 import { linkedinRestHeaders } from "./linkedinCommon";
@@ -315,7 +315,7 @@ export async function publishLinkedInPost(
     postDetails: PostDetails,
     authorType: LinkedInAuthorType
 ): Promise<PostResponse> {
-    const message = htmlToPlainText(postDetails.message ?? "").trim();
+    const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
     const settings = resolveLinkedInSettings(postDetails.settings);
     const mediaIds = await processMediaForPost(postDetails, accessToken, authorId, authorType);
     const isPdf = Boolean(settings.post_as_images_carousel && mediaIds.length === 1);
@@ -361,7 +361,7 @@ export async function publishLinkedInComment(
     postDetails: PostDetails,
     authorType: LinkedInAuthorType
 ): Promise<PostResponse> {
-    const message = htmlToPlainText(postDetails.message ?? "").trim();
+    const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
     const actor =
         authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
 

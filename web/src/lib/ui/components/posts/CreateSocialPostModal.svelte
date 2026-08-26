@@ -229,6 +229,7 @@
 						: {}}
 					{composerTextHistory}
 					{composerHistoryKey}
+					composerEditorMode={presenter.composerEditorMode}
 				/>
 			</div>
 

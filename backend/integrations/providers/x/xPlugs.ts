@@ -2,7 +2,7 @@ import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../
 import type { IntegrationRecord } from "../../social.integrations.interface";
 import type { TwitterApi } from "twitter-api-v2";
 
-import { htmlToPlainText } from "../../../utils/content/htmlToPlain";
+import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 import { fetchXTweetLikeCount } from "./xAnalytics";
 import { withXErrorMapping } from "./xErrors";
 
@@ -100,7 +100,7 @@ export async function runXAutoPlugPost(
 
     await sleepMs(2000);
 
-    const text = htmlToPlainText(fields.post ?? "").trim();
+    const text = stripComposerBodyForEditor("normal", fields.post ?? "");
     if (text.length < 3) return false;
 
     await publishReply(text, tweetId);

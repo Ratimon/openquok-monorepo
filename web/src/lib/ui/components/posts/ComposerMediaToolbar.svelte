@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Editor as TiptapEditor } from '@tiptap/core';
 	import type { ComponentProps } from 'svelte';
 	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
 	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
@@ -10,6 +11,7 @@
 		PolotnoTemplateListPageProgrammerModel,
 		StockPhotoViewModel
 	} from '$lib/canvas';
+	import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
@@ -20,6 +22,11 @@
 		attachComposerMediaFromFiles,
 		attachComposerMediaFromLocalFiles
 	} from '$lib/posts/utils/composerMediaDrop';
+	import {
+		getComposerToolbarVisibility,
+		usesRichComposerEditor,
+		validateComposerLinkHref
+	} from '$lib/ui/components/posts/composer-editor';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -79,6 +86,9 @@
 		/** Soft character limit for AI Writer / Summarizer / Humanize sharedContext (matches editor counter). */
 		softCharLimit?: number;
 		textarea?: HTMLTextAreaElement | null;
+		tiptapEditor?: TiptapEditor | null;
+		composerEditorMode?: IntegrationEditorMode;
+		hasTextInput?: boolean;
 		class?: string;
 		composerMode?: 'global' | 'custom';
 		focusedProviderIdentifier?: string | null;
@@ -125,6 +135,9 @@
 		onReplaceBody = undefined,
 		softCharLimit = COMPOSER_WRITER_LENGTH_SHORT_MAX_CHARS,
 		textarea = null,
+		tiptapEditor = null,
+		composerEditorMode = 'normal',
+		hasTextInput = true,
 		class: className = '',
 		composerMode = 'global',
 		focusedProviderIdentifier = null,
@@ -168,8 +181,12 @@
 	const isLinkedInFocus = $derived(
 		focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page'
 	);
+	const toolbarVisibility = $derived(getComposerToolbarVisibility(composerEditorMode));
+	const isRichEditor = $derived(usesRichComposerEditor(composerEditorMode));
+	const textInputReady = $derived(hasTextInput && (Boolean(textarea) || Boolean(tiptapEditor)));
 	const showLinkedInCompany = $derived(
-		isLinkedInFocus &&
+		toolbarVisibility.linkedInCompany &&
+			isLinkedInFocus &&
 			(guestMode || (Boolean(focusedIntegrationId?.trim()) && Boolean(organizationId?.trim())))
 	);
 	const libraryTooltipLabel = $derived(
@@ -304,6 +321,13 @@
 
 	/** Prefer the composer selection when present; otherwise the full draft body. */
 	function resolveToolbarSourceBody(): string {
+		if (tiptapEditor) {
+			const { from, to } = tiptapEditor.state.selection;
+			if (from !== to) {
+				return tiptapEditor.state.doc.textBetween(from, to, '\n');
+			}
+			return stripHtmlToPlainText(tiptapEditor.getHTML());
+		}
 		const el = textarea;
 		if (
 			el &&
@@ -339,8 +363,13 @@
 
 	/** Insert a token (e.g. `#` / `@`) at the composer caret, replacing any selection. */
 	export function insertAtComposerCursor(text: string) {
+		if (disabled || uploadBusy) return;
+		if (tiptapEditor) {
+			tiptapEditor.chain().focus().insertContent(text).run();
+			return;
+		}
 		const el = textarea;
-		if (!el || disabled || uploadBusy) return;
+		if (!el) return;
 		onBeforeTextEdit?.();
 		const start = el.selectionStart ?? 0;
 		const end = el.selectionEnd ?? 0;
@@ -351,6 +380,47 @@
 		const next = start + text.length;
 		el.setSelectionRange(next, next);
 		onAfterTextEdit?.();
+	}
+
+	function toggleRichMark(mark: 'bold' | 'italic' | 'underline') {
+		if (!tiptapEditor) return;
+		const chain = tiptapEditor.chain().focus();
+		if (mark === 'bold') chain.toggleBold().run();
+		else if (mark === 'italic') chain.toggleItalic().run();
+		else chain.toggleUnderline().run();
+	}
+
+	function toggleRichHeading(level: 1 | 2 | 3) {
+		tiptapEditor?.chain().focus().toggleHeading({ level }).run();
+	}
+
+	function toggleRichBulletList() {
+		tiptapEditor?.chain().focus().toggleBulletList().run();
+	}
+
+	function toggleRichOrderedList() {
+		tiptapEditor?.chain().focus().toggleOrderedList().run();
+	}
+
+	function insertRichLink() {
+		if (!tiptapEditor) return;
+		const { href } = tiptapEditor.getAttributes('link');
+		const url = window.prompt(href ? 'Edit link URL:' : 'Enter link URL:', href || 'https://');
+		if (url === null) return;
+		if (url === '') {
+			tiptapEditor.chain().focus().extendMarkRange('link').unsetLink().run();
+			return;
+		}
+		const nextHref = validateComposerLinkHref(url);
+		if (!nextHref) {
+			toast.error('That link is not allowed. Use http(s) URLs or relative paths.');
+			return;
+		}
+		if (href) {
+			tiptapEditor.chain().focus().extendMarkRange('link').setLink({ href: nextHref }).run();
+			return;
+		}
+		tiptapEditor.chain().focus().setLink({ href: nextHref }).run();
 	}
 
 	const mediaGenerationFields = $derived.by(
@@ -551,82 +621,229 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
-		{#if onUndoHistory && onRedoHistory}
+		{#if onUndoHistory && onRedoHistory && toolbarVisibility.undoRedo}
 			<ComposerHistoryButtons
 				canUndo={canUndoHistory}
 				canRedo={canRedoHistory}
 				{disabled}
 				{uploadBusy}
-				hasTextarea={Boolean(textarea)}
+				hasTextInput={textInputReady}
 				buttonClass={iconBtn}
 				onUndo={onUndoHistory}
 				onRedo={onRedoHistory}
 			/>
 		{/if}
 
-		<!-- 8–13: inline text styling and tokens (selection / cursor) -->
-		<ComposerMediaTooltip label="Underline the selected text">
-			{#snippet trigger({ props })}
-				<span {...props} class="inline-flex">
-					<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
-				</span>
-			{/snippet}
-		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Italicize the selected text">
-			{#snippet trigger({ props })}
-				<span {...props} class="inline-flex">
-					<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
-				</span>
-			{/snippet}
-		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Bold the selected text">
-			{#snippet trigger({ props })}
-				<span {...props} class="inline-flex">
-					<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
-				</span>
-			{/snippet}
-		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Insert an emoji at the cursor">
-			{#snippet trigger({ props })}
-				<span {...props} class="inline-flex">
-					<GlyphEmojiPicker class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
-				</span>
-			{/snippet}
-		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label="Insert a hashtag at the cursor">
-			{#snippet trigger({ props })}
-				<button
-					{...props}
-					type="button"
-					class={iconBtn}
-					disabled={disabled || uploadBusy || !textarea}
-					onclick={composeTooltipTriggerClick(props, () => insertAtComposerCursor('#'))}
-					aria-label="Insert hashtag"
-				>
-					<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
-				</button>
-			{/snippet}
-		</ComposerMediaTooltip>
-		<ComposerMediaTooltip label={mentionToolbarTooltip}>
-			{#snippet trigger({ props })}
-				<button
-					{...props}
-					type="button"
-					class={iconBtn}
-					disabled={disabled || uploadBusy || !textarea || mentionToolbarDisabled}
-					onclick={composeTooltipTriggerClick(props, () => {
-						if (onMentionToolbarClick) {
-							onMentionToolbarClick();
-							return;
-						}
-						insertAtComposerCursor('@');
-					})}
-					aria-label={mentionToolbarTooltip}
-				>
-					<AbstractIcon name={icons.AtSign.name} class="size-5" width="20" height="20" />
-				</button>
-			{/snippet}
-		</ComposerMediaTooltip>
+		{#if toolbarVisibility.boldUnderline}
+			{#if isRichEditor}
+				<ComposerMediaTooltip label="Bold the selected text">
+					{#snippet trigger({ props })}
+						<button
+							{...props}
+							type="button"
+							class={iconBtn}
+							disabled={disabled || uploadBusy || !tiptapEditor}
+							onclick={composeTooltipTriggerClick(props, () => toggleRichMark('bold'))}
+							aria-label="Bold the selected text"
+						>
+							<AbstractIcon name={icons.Bold.name} class="size-5" width="20" height="20" />
+						</button>
+					{/snippet}
+				</ComposerMediaTooltip>
+				<ComposerMediaTooltip label="Italicize the selected text">
+					{#snippet trigger({ props })}
+						<button
+							{...props}
+							type="button"
+							class={iconBtn}
+							disabled={disabled || uploadBusy || !tiptapEditor}
+							onclick={composeTooltipTriggerClick(props, () => toggleRichMark('italic'))}
+							aria-label="Italicize the selected text"
+						>
+							<AbstractIcon name={icons.Italic.name} class="size-5" width="20" height="20" />
+						</button>
+					{/snippet}
+				</ComposerMediaTooltip>
+				<ComposerMediaTooltip label="Underline the selected text">
+					{#snippet trigger({ props })}
+						<button
+							{...props}
+							type="button"
+							class={iconBtn}
+							disabled={disabled || uploadBusy || !tiptapEditor}
+							onclick={composeTooltipTriggerClick(props, () => toggleRichMark('underline'))}
+							aria-label="Underline the selected text"
+						>
+							<AbstractIcon name={icons.Underline.name} class="size-5" width="20" height="20" />
+						</button>
+					{/snippet}
+				</ComposerMediaTooltip>
+			{:else}
+				<ComposerMediaTooltip label="Underline the selected text">
+					{#snippet trigger({ props })}
+						<span {...props} class="inline-flex">
+							<GlyphUText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
+						</span>
+					{/snippet}
+				</ComposerMediaTooltip>
+				<ComposerMediaTooltip label="Italicize the selected text">
+					{#snippet trigger({ props })}
+						<span {...props} class="inline-flex">
+							<GlyphItalicText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
+						</span>
+					{/snippet}
+				</ComposerMediaTooltip>
+				<ComposerMediaTooltip label="Bold the selected text">
+					{#snippet trigger({ props })}
+						<span {...props} class="inline-flex">
+							<GlyphBoldText class={iconBtn} {textarea} disabled={disabled || uploadBusy} {onBeforeTextEdit} {onAfterTextEdit} />
+						</span>
+					{/snippet}
+				</ComposerMediaTooltip>
+			{/if}
+		{/if}
+
+		{#if toolbarVisibility.linkHeadingsLists && isRichEditor}
+			<ComposerMediaTooltip label="Insert or edit a link">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, insertRichLink)}
+						aria-label="Insert or edit a link"
+					>
+						<AbstractIcon name={icons.Link.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+			<ComposerMediaTooltip label="Heading 1">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, () => toggleRichHeading(1))}
+						aria-label="Heading 1"
+					>
+						<AbstractIcon name={icons.Heading1.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+			<ComposerMediaTooltip label="Heading 2">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, () => toggleRichHeading(2))}
+						aria-label="Heading 2"
+					>
+						<AbstractIcon name={icons.Heading2.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+			<ComposerMediaTooltip label="Heading 3">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, () => toggleRichHeading(3))}
+						aria-label="Heading 3"
+					>
+						<AbstractIcon name={icons.Heading3.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+			<ComposerMediaTooltip label="Bulleted list">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, toggleRichBulletList)}
+						aria-label="Bulleted list"
+					>
+						<AbstractIcon name={icons.List.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+			<ComposerMediaTooltip label="Numbered list">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !tiptapEditor}
+						onclick={composeTooltipTriggerClick(props, toggleRichOrderedList)}
+						aria-label="Numbered list"
+					>
+						<AbstractIcon name={icons.ListOrdered.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+		{/if}
+
+		{#if toolbarVisibility.emoji}
+			<ComposerMediaTooltip label="Insert an emoji at the cursor">
+				{#snippet trigger({ props })}
+					<span {...props} class="inline-flex">
+						<GlyphEmojiPicker
+							class={iconBtn}
+							{textarea}
+							disabled={disabled || uploadBusy || !textInputReady}
+							{onBeforeTextEdit}
+							{onAfterTextEdit}
+							onInsertText={isRichEditor ? (text) => insertAtComposerCursor(text) : undefined}
+						/>
+					</span>
+				{/snippet}
+			</ComposerMediaTooltip>
+		{/if}
+		{#if toolbarVisibility.hashtag}
+			<ComposerMediaTooltip label="Insert a hashtag at the cursor">
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !textInputReady}
+						onclick={composeTooltipTriggerClick(props, () => insertAtComposerCursor('#'))}
+						aria-label="Insert hashtag"
+					>
+						<AbstractIcon name={icons.Hash.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+		{/if}
+		{#if toolbarVisibility.mention}
+			<ComposerMediaTooltip label={mentionToolbarTooltip}>
+				{#snippet trigger({ props })}
+					<button
+						{...props}
+						type="button"
+						class={iconBtn}
+						disabled={disabled || uploadBusy || !textInputReady || mentionToolbarDisabled}
+						onclick={composeTooltipTriggerClick(props, () => {
+							if (onMentionToolbarClick) {
+								onMentionToolbarClick();
+								return;
+							}
+							insertAtComposerCursor('@');
+						})}
+						aria-label={mentionToolbarTooltip}
+					>
+						<AbstractIcon name={icons.AtSign.name} class="size-5" width="20" height="20" />
+					</button>
+				{/snippet}
+			</ComposerMediaTooltip>
+		{/if}
 		{#if showLinkedInCompany}
 			<ComposerMediaTooltip label={linkedInCompanyTooltipLabel}>
 				{#snippet trigger({ props })}

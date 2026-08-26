@@ -78,7 +78,8 @@ function mockChannelForPlan(plan: TimingTestPlanViewModel): CreateSocialPostChan
 		schedulable: true,
 		unschedulableReason: null,
 		group: null,
-		postingTimes: []
+		postingTimes: [],
+		editor: 'normal'
 	};
 }
 

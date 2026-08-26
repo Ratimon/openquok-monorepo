@@ -15,7 +15,8 @@ export const INSTAGRAM_LANDING_MOCK_BUSINESS_CHANNEL: CreateSocialPostChannelVie
 	schedulable: true,
 	unschedulableReason: null,
 	group: null,
-	postingTimes: [{ time: 540 }]
+	postingTimes: [{ time: 540 }],
+	editor: 'normal'
 };
 
 export const INSTAGRAM_LANDING_MOCK_STANDALONE_CHANNEL: CreateSocialPostChannelViewModel = {
@@ -31,7 +32,8 @@ export const INSTAGRAM_LANDING_MOCK_STANDALONE_CHANNEL: CreateSocialPostChannelV
 	schedulable: true,
 	unschedulableReason: null,
 	group: null,
-	postingTimes: [{ time: 600 }]
+	postingTimes: [{ time: 600 }],
+	editor: 'normal'
 };
 
 /** Composer / kanban bentos use the Standalone channel (gradient glyph via `socialProviderIcon`). */

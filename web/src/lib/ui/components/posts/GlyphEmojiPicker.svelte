@@ -10,6 +10,7 @@
 		class?: string;
 		onBeforeTextEdit?: () => void;
 		onAfterTextEdit?: () => void;
+		onInsertText?: (text: string) => void;
 	};
 
 	let {
@@ -17,7 +18,8 @@
 		disabled = false,
 		class: className = '',
 		onBeforeTextEdit = undefined,
-		onAfterTextEdit = undefined
+		onAfterTextEdit = undefined,
+		onInsertText = undefined
 	}: Props = $props();
 
 	let open = $state(false);
@@ -56,7 +58,13 @@
 
 	function onEmojiClick(e: CustomEvent<{ unicode: string }>) {
 		const emoji = e.detail?.unicode ?? '';
-		if (!emoji || !textarea) return;
+		if (!emoji) return;
+		if (onInsertText) {
+			onInsertText(emoji);
+			close();
+			return;
+		}
+		if (!textarea) return;
 		onBeforeTextEdit?.();
 		insertAtSelection(textarea, emoji);
 		onAfterTextEdit?.();
@@ -94,7 +102,7 @@
 	<button
 		type="button"
 		class={className}
-		disabled={disabled || !textarea}
+		disabled={disabled || (!textarea && !onInsertText)}
 		onclick={onToggle}
 		aria-label="Insert emoji"
 	>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+	import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
 	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
 	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
@@ -108,6 +109,7 @@
 		isLoggedIn?: boolean;
 		composerTextHistory?: ComposerTextHistory;
 		composerHistoryKey?: string;
+		composerEditorMode?: IntegrationEditorMode;
 	};
 
 	let {
@@ -167,7 +169,8 @@
 		guestMode = false,
 		isLoggedIn = false,
 		composerTextHistory = undefined,
-		composerHistoryKey = 'global'
+		composerHistoryKey = 'global',
+		composerEditorMode = 'normal'
 	}: Props = $props();
 
 	let guestLockOpen = $state(false);
@@ -471,6 +474,7 @@
 				{isLoggedIn}
 				{composerTextHistory}
 				{composerHistoryKey}
+				{composerEditorMode}
 				locked={editorLocked}
 				lockMessage={editorLockMessage}
 				onUnlock={onEditorUnlock}
