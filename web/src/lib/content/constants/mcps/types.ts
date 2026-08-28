@@ -58,6 +58,13 @@ export type PublicMcpLandingPageViewModel = {
 	faqItems: PublicFaqItem[];
 };
 
+export type McpLandingSeedOverrides = {
+	faqItems?: PublicFaqItem[];
+	audienceCards?: AudienceCard[];
+	/** Replaces the first entry in the default MCP feature section list. */
+	firstFeatureSection?: PublicAgentFeatureSection;
+};
+
 export type McpLandingSeed = PublicMcpIntegrationViewModel & {
 	heroDescription: string;
 	metaDescription: string;
@@ -65,4 +72,6 @@ export type McpLandingSeed = PublicMcpIntegrationViewModel & {
 	workflowPhrase: string;
 	/** Plain-text steps: install client, generate token, add MCP config, verify. */
 	setupSteps: readonly [string, string, string, string];
+	/** Optional copy overrides when a client needs distinct positioning (e.g. terminal-first Warp). */
+	overrides?: McpLandingSeedOverrides;
 };

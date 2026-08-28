@@ -416,10 +416,15 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		heroDescription,
 		metaDescription,
 		workflowPhrase,
-		setupSteps
+		setupSteps,
+		overrides
 	} = seed;
 
 	const audience = buildMcpAudienceSection(label, workflowPhrase);
+	const defaultFeatureSections = buildMcpFeatureSections(label, mcpClient);
+	const featureSections = overrides?.firstFeatureSection
+		? [overrides.firstFeatureSection, ...defaultFeatureSections.slice(1)]
+		: defaultFeatureSections;
 
 	return {
 		pageType: 'mcp-client',
@@ -445,20 +450,20 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		workflowSection: buildMcpWorkflowSection(label, mcpClient, workflowPhrase),
 		audienceSubtitle: audience.audienceSubtitle,
 		audienceTitle: audience.audienceTitle,
-		audienceCards: audience.audienceCards,
+		audienceCards: overrides?.audienceCards ?? audience.audienceCards,
 		setupStepsSubtitle: 'How it works',
 		setupStepsTitle: `Five steps,to ${label} + OpenQuok`,
 		setupSteps: toSetupSteps(label, setupSteps, mcpClient),
 		skillSetupStepsSubtitle: 'How it works',
 		skillSetupStepsTitle: `Four steps,to ${label} + openquok-core`,
 		skillSetupSteps: toSkillSetupSteps(label, setupSteps[0], mcpClient),
-		featureSections: buildMcpFeatureSections(label, mcpClient),
+		featureSections,
 		listingsPreviewSection: PUBLIC_AGENT_LISTINGS_PREVIEW_SECTION,
 		comparisonSection: buildMcpComparisonSection(label, workflowPhrase),
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over MCP — authentication, verification, and scheduling posts from chat.`,
-		faqItems: buildMcpFaqItems(label)
+		faqItems: overrides?.faqItems ?? buildMcpFaqItems(label)
 	};
 }
 

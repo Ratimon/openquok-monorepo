@@ -14,7 +14,7 @@ export const PUBLIC_AGENTS_HUB = {
 	mcpHubSubtitle: 'MCP',
 	mcpHubTitle: 'Native MCP clients',
 	mcpHubDescription:
-		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent. Pick a client below for setup steps and a copy-paste MCP config.',
+		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent — Cursor and Claude Code for IDE workflows, Warp for an AI-native terminal. Pick a client below for setup steps and a copy-paste MCP config.',
 	mcpConfigTitle: 'Copy configuration',
 	mcpConfigDescription:
 		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.',
@@ -62,7 +62,7 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an MCP client?',
 				description:
-					'Choose an MCP client when OpenQuok should live inside your editor or terminal, you want focused per-session coding workflows, native MCP tool calls without installing a skill, or ticket- and PR-friendly review before anything publishes. Codex, Claude Code, and Cursor excel at deep repo work and async tasks with clear specs.'
+					'Choose an MCP client when OpenQuok should live inside your editor or terminal, you want focused per-session coding workflows, native MCP tool calls without installing a skill, or ticket- and PR-friendly review before anything publishes. Cursor, Claude Code, and Codex excel at deep repo work; Warp excels when you ship from the terminal and want in-context AI for debugging deploy failures.'
 			},
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
