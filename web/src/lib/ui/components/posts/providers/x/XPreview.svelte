@@ -11,6 +11,7 @@
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
@@ -21,6 +22,7 @@
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
+	import { readXLaunchSettings } from '$lib/ui/components/posts/providers/x/xLaunchSettings';
 
 	let {
 		channel,
@@ -30,12 +32,31 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: XPreviewProps = $props();
 
+	const settings = $derived(readXLaunchSettings(providerSettings));
 	const effectiveWeighted = $derived(weightedCharCount ?? xWeightedLength(previewText));
 	const overLimit = $derived(effectiveWeighted > maximumCharacters);
 	const handle = $derived((channel.name || '').trim() || 'username');
+	const showSettingsLabels = $derived(
+		settings.paidPartnership === true ||
+			settings.madeWithAi === true ||
+			Boolean(settings.communityUrl?.trim())
+	);
+	const communityLabel = $derived(formatCommunityLabel(settings.communityUrl));
+
+	function formatCommunityLabel(url: string | undefined): string {
+		const trimmed = url?.trim();
+		if (!trimmed) return '';
+		try {
+			const parsed = new URL(trimmed.startsWith('http') ? trimmed : `https://${trimmed}`);
+			return parsed.hostname.replace(/^www\./, '');
+		} catch {
+			return trimmed.length > 32 ? `${trimmed.slice(0, 29)}…` : trimmed;
+		}
+	}
 </script>
 
 <div class="overflow-hidden rounded-xl border border-base-300 bg-base-100 text-base-content">
@@ -89,6 +110,26 @@
 			{#if mediaUrls.length > 0}
 				<div class="mt-3 overflow-hidden rounded-2xl border border-base-300">
 					<ImageSlider class="aspect-[16/9] w-full" urls={mediaUrls} alt="" />
+				</div>
+			{/if}
+
+			{#if showSettingsLabels}
+				<div class="mt-3 flex flex-wrap gap-2">
+					{#if settings.paidPartnership}
+						<span class="rounded-full border border-base-300 px-2 py-0.5 text-[11px] font-medium text-base-content/70">
+							Paid partnership
+						</span>
+					{/if}
+					{#if settings.madeWithAi}
+						<span class="rounded-full border border-base-300 px-2 py-0.5 text-[11px] font-medium text-base-content/70">
+							Made with AI
+						</span>
+					{/if}
+					{#if communityLabel}
+						<span class="rounded-full border border-base-300 px-2 py-0.5 text-[11px] font-medium text-base-content/70">
+							Community · {communityLabel}
+						</span>
+					{/if}
 				</div>
 			{/if}
 		</div>

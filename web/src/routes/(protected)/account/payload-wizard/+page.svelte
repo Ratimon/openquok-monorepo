@@ -250,9 +250,6 @@
 									)?.identifier ?? null)
 								: null}
 							mediaUrls={composerPresenter.previewMediaUrls}
-							previewProviderSettings={composerPresenter.getPrimaryThreadFollowUpIntegrationId()
-								? (composerPresenter.providerSettingsByIntegrationId[composerPresenter.getPrimaryThreadFollowUpIntegrationId() ?? ''] ?? {})
-								: {}}
 						/>
 					</div>
 					<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">

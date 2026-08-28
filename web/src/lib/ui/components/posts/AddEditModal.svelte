@@ -15,6 +15,7 @@
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
+	import { resolvePreviewProviderSettings } from '$lib/posts/utils/composer';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
@@ -196,12 +197,20 @@
 		return integrationId ? socialChannels.find((c) => c.id === integrationId) ?? null : null;
 	});
 
+	const effectivePreviewProviderSettings = $derived(
+		resolvePreviewProviderSettings(
+			previewChannel?.id,
+			providerSettingsByIntegrationId,
+			previewProviderSettings
+		)
+	);
+
 	const previewThreadRepliesVm = $derived(
 		threadReplies.filter((r) => typeof r.message === 'string' && r.message.trim().length > 0)
 	);
 
 	const previewThreadFinisher = $derived.by(() => {
-		const threads = previewProviderSettings?.threads;
+		const threads = effectivePreviewProviderSettings?.threads;
 		if (!threads || typeof threads !== 'object') return null;
 		const t = threads as Record<string, unknown>;
 		const enabled = typeof t.enabled === 'boolean' ? t.enabled : false;
@@ -232,7 +241,7 @@
 	}
 
 	const previewDelayedEngagementReply = $derived.by(() => {
-		const threads = previewProviderSettings?.threads;
+		const threads = effectivePreviewProviderSettings?.threads;
 		if (!threads || typeof threads !== 'object') return null;
 		const ig = (threads as Record<string, unknown>).internalEngagementPlug;
 		if (!ig || typeof ig !== 'object') return null;
@@ -552,7 +561,7 @@
 							}
 						: null}
 					previewMetaLabel={previewScheduleMetaLabel}
-					providerSettings={previewProviderSettings}
+					providerSettings={effectivePreviewProviderSettings}
 				/>
 			</div>
 		</div>

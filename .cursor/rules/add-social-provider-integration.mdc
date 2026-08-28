@@ -6,6 +6,9 @@ globs:
   - backend/services/IntegrationConnectionService.ts
   - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
   - web/src/lib/ui/components/posts/providers/**
+  - web/src/lib/ui/components/posts/providers/ShowAllProviders.svelte
+  - web/src/lib/ui/components/posts/AddEditModal.svelte
+  - web/src/lib/ui/components/posts/CreateSocialPostModal.svelte
   - web/src/lib/ui/components/posts/AddProvider.svelte
   - web/src/lib/ui/components/posts/SettingsAccordion.svelte
   - web/src/lib/ui/components/posts/IntegrationContinue.svelte
@@ -15,6 +18,7 @@ globs:
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
   - web/src/content/docs/developer-guidelines/add-provider.md
+  - web/src/content/docs/creating-posts/writing-the-post.md
   - web/src/content/constants/publicChannelConfig.ts
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
   - web/src/content/constants/publicAgentChannelConfig.ts
@@ -119,9 +123,9 @@ Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter
 Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 
 1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`.
-2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`.
+2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live.
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
-4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`.
+4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`. When settings affect what users see before publish (title, tags, cover, post type, etc.), also ship **Post Preview provider settings** (below).
 5. **Labels** — `web/src/data/social-providers.ts` when the slug is new.
 6. **Credentials connect** (`customFields` on the catalog) — in-app form, not a platform redirect:
    - **Add Channel** — `AddProvider.svelte` shows the provider in the normal grid and opens the credentials dialog (password input + regex from catalog). Submit: `getAuthorizeUrl` (seeds cache; returned `url` is the `state`) then `connectSocial` with that `state` and `code` = `btoa(JSON.stringify({ apiKey }))`.
@@ -130,6 +134,35 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 7. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth providers under the OAuth redirect tab (follow-up picker table when `isBetweenSteps`); credentials providers in the credentials table. When a new connect family ships, add a tab there before users see it in Add Channel.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
+
+### Post Preview provider settings (required when compose settings exist)
+
+When a provider has compose-time settings (`{id}Settings.svelte`), the Post Preview column must read the same `providerSettings` bucket the Settings panel writes — not an empty object. The Dev.to “Untitled article” bug shipped because preview settings were wired from `followUpTargetIntegrationId` (Threads follow-up only) instead of the preview channel.
+
+| Layer | Rule |
+| --- | --- |
+| `AddEditModal.svelte` | Derive preview settings from `previewChannel.id` + `providerSettingsByIntegrationId` (`effectivePreviewProviderSettings`); pass to `ShowAllProviders`. Do not rely on parent modals passing `previewProviderSettings` from `followUpTargetIntegrationId`. |
+| Parent modals (`CreateSocialPostModal.svelte`, `payload-wizard/+page.svelte`, etc.) | Do **not** wire `previewProviderSettings` from `followUpTargetIntegrationId` — that ID is only set for Threads/Instagram follow-up replies and leaves other providers with `{}`. |
+| `ShowAllProviders.svelte` | Pass `{providerSettings}` on **every** preview branch that reads compose settings (not only Dev.to). |
+| `{id}Preview.svelte` | Accept `providerSettings` prop; use `read{Provider}LaunchSettings(providerSettings)`; render title, tags, cover, post-type hints, etc. live as the user edits Settings. |
+| Bento mocks | Pass explicit mock `providerSettings` into `ShowAllProviders` (see `BentoDevtoSettingsPreview.svelte`). |
+
+**References:** Dev.to (`title`, `tags`, `series`, `mainImage`), YouTube (`title`, `thumbnail`), TikTok photo carousel (`title`). Threads thread finisher / delayed engagement reply use the same derived settings object when the preview channel is Threads.
+
+### Writing the post — editor table (user docs)
+
+When composer support ships, update `web/src/content/docs/creating-posts/writing-the-post.md` → **Editor by platform**.
+
+Map `SocialProvider.editor` on the provider class to the **Used by** column:
+
+| `editor` | Action |
+| --- | --- |
+| `normal` | Add platform to **Standard** row if not covered by “most social channels”; otherwise no change. |
+| `markdown` | Append `**{Platform}** when unlocked` on **Markdown** row. |
+| `html` | Append on **HTML** row (note if publish strips to plain text, like X). |
+| `none` | First live Plain provider: replace “None yet” with that platform. |
+
+**Rules:** one table only (`Editor | Toolbar | Used by`); change **Toolbar** only for real toolbar exceptions; bump `lastUpdated` in the same PR; `editor` on the provider class is the source of truth.
 
 ## Public channel landing page (SEO marketing)
 
@@ -249,6 +282,7 @@ Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChan
 | Agent per-channel file | `agent/skills/openquok-core/resources/{id}-examples.md` (slug = `provider.identifier`; e.g. `facebook`, `threads`, `instagram-business`) |
 | Agent settings hub | `agent/skills/openquok-core/resources/provider-settings.md` — update when merge semantics or cross-channel setting patterns change |
 | Agent workflows | `agent/skills/openquok-core/resources/patterns.md`, `command-reference.md` |
+| Composer editor modes (user) | `web/src/content/docs/creating-posts/writing-the-post.md` — **Editor by platform** **Used by** for the provider’s `editor` |
 
 ### Agent skill file (`resources/{id}-examples.md`)
 
@@ -475,3 +509,5 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Humanizer:** all public catalog channels (including coming-soon schedulers) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees). Do not gate Humanizer samples on `available: true`.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
+- **Post Preview:** when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
+- **Writing the post:** `writing-the-post.md` **Editor by platform** table lists the new channel under the correct **Standard** / **Markdown** / **HTML** / **Plain** row; `lastUpdated` bumped.

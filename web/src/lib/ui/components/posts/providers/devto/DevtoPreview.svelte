@@ -21,6 +21,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import { readDevtoLaunchSettings } from '$lib/ui/components/posts/providers/devto/devto.provider';
+	import { renderDevtoPreviewBodyHtml } from '$lib/ui/components/posts/providers/devto/devtoPreviewBody';
 
 	let {
 		channel,
@@ -34,6 +35,7 @@
 	const settings = $derived(readDevtoLaunchSettings(providerSettings));
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
+	const bodyHtml = $derived(renderDevtoPreviewBodyHtml(cropped));
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const title = $derived(settings.title.trim() || 'Untitled article');
 	const series = $derived(settings.series?.trim() || '');
@@ -88,9 +90,12 @@
 			</p>
 		{/if}
 
-		{#if cropped.length > 0}
-			<div class="whitespace-pre-wrap text-sm leading-6 text-[#262626]">
-				{cropped}{#if overflow.length > 0}<mark class="bg-error/70 text-error-content">{overflow}</mark>{/if}
+		{#if bodyHtml}
+			<div class="devto-preview-prose text-sm leading-6 text-[#262626]">
+				{@html bodyHtml}
+				{#if overflow.length > 0}
+					<p class="mt-2 text-xs text-error">Content exceeds the character limit.</p>
+				{/if}
 			</div>
 		{:else}
 			<p class="text-sm text-[#737373]">Markdown body appears here.</p>
@@ -105,3 +110,80 @@
 		{/if}
 	</div>
 </div>
+
+<style>
+	.devto-preview-prose :global(h1) {
+		margin: 1rem 0 0.5rem;
+		font-size: 1.25rem;
+		font-weight: 700;
+		line-height: 1.35;
+	}
+
+	.devto-preview-prose :global(h2) {
+		margin: 0.875rem 0 0.375rem;
+		font-size: 1.125rem;
+		font-weight: 700;
+		line-height: 1.35;
+	}
+
+	.devto-preview-prose :global(h3) {
+		margin: 0.75rem 0 0.25rem;
+		font-size: 1rem;
+		font-weight: 600;
+		line-height: 1.35;
+	}
+
+	.devto-preview-prose :global(p) {
+		margin: 0.5rem 0;
+	}
+
+	.devto-preview-prose :global(ul),
+	.devto-preview-prose :global(ol) {
+		margin: 0.5rem 0;
+		padding-left: 1.25rem;
+	}
+
+	.devto-preview-prose :global(ul) {
+		list-style-type: disc;
+	}
+
+	.devto-preview-prose :global(ol) {
+		list-style-type: decimal;
+	}
+
+	.devto-preview-prose :global(li) {
+		margin: 0.125rem 0;
+	}
+
+	.devto-preview-prose :global(a) {
+		color: #3b49df;
+		text-decoration: underline;
+	}
+
+	.devto-preview-prose :global(blockquote) {
+		margin: 0.75rem 0;
+		padding-left: 0.75rem;
+		border-left: 3px solid #d4d4d4;
+		color: #525252;
+	}
+
+	.devto-preview-prose :global(code) {
+		border-radius: 0.25rem;
+		background: #e5e5e5;
+		padding: 0.125rem 0.25rem;
+		font-size: 0.8125rem;
+	}
+
+	.devto-preview-prose :global(pre) {
+		margin: 0.75rem 0;
+		overflow-x: auto;
+		border-radius: 0.375rem;
+		background: #e5e5e5;
+		padding: 0.75rem;
+	}
+
+	.devto-preview-prose :global(pre code) {
+		background: transparent;
+		padding: 0;
+	}
+</style>

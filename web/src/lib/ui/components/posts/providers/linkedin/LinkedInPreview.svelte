@@ -10,6 +10,7 @@
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
@@ -20,6 +21,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import { readLinkedInLaunchSettings } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 
 	let {
 		channel,
@@ -28,8 +30,16 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: LinkedInPreviewProps = $props();
+
+	const settings = $derived(readLinkedInLaunchSettings(providerSettings));
+	const carouselName = $derived(
+		settings.postAsImagesCarousel && settings.carouselName?.trim()
+			? settings.carouselName.trim()
+			: ''
+	);
 
 	const timeLabel = $derived(previewMetaLabel?.trim() || '30m');
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
@@ -61,6 +71,12 @@
 	{#if cropped.length > 0}
 		<div class="whitespace-pre-wrap px-4 pb-3 text-sm leading-relaxed">
 			{cropped}{#if overflow.length > 0}<mark class="bg-error/70 text-error-content">{overflow}</mark>{/if}
+		</div>
+	{/if}
+
+	{#if carouselName}
+		<div class="px-4 pb-2 text-xs font-semibold text-[#A3A3A3]">
+			Document · {carouselName}
 		</div>
 	{/if}
 

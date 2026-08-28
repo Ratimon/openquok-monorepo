@@ -224,9 +224,6 @@
 					}}
 					threadProviderIdentifier={followUpTargetChannel?.identifier ?? null}
 					mediaUrls={presenter.previewMediaUrls}
-					previewProviderSettings={followUpTargetIntegrationId
-						? (presenter.providerSettingsByIntegrationId[followUpTargetIntegrationId] ?? {})
-						: {}}
 					{composerTextHistory}
 					{composerHistoryKey}
 					composerEditorMode={presenter.composerEditorMode}

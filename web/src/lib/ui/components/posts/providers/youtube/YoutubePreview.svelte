@@ -10,14 +10,17 @@
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
 <script lang="ts">
 	import { icons } from '$data/icons';
+	import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import { readYoutubeLaunchSettings } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 
 	let {
 		channel,
@@ -26,21 +29,43 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: YoutubePreviewProps = $props();
 
+	const settings = $derived(readYoutubeLaunchSettings(providerSettings));
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const primaryVideo = $derived(mediaUrls[0] ?? '');
+	const title = $derived(settings.title.trim() || 'Video title');
+	const posterUrl = $derived(resolveThumbnailUrl(settings.thumbnail?.path));
+
+	function resolveThumbnailUrl(path: string | undefined): string {
+		const trimmed = path?.trim();
+		if (!trimmed) return '';
+		if (trimmed.startsWith('/') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+			return trimmed;
+		}
+		return publicUrlForMediaStorageKey(trimmed) ?? '';
+	}
 </script>
 
 <div class="overflow-hidden rounded-xl border border-base-300 bg-[#0f0f0f] text-[#f1f1f1]">
 	<div class="aspect-video bg-black">
 		{#if primaryVideo}
-			<video src={primaryVideo} class="h-full w-full object-contain" controls muted playsinline>
+			<video
+				src={primaryVideo}
+				class="h-full w-full object-contain"
+				controls
+				muted
+				playsinline
+				poster={posterUrl || undefined}
+			>
 				<track kind="captions" />
 			</video>
+		{:else if posterUrl}
+			<img src={posterUrl} alt="" class="h-full w-full object-contain" />
 		{:else}
 			<div class="flex h-full w-full items-center justify-center text-sm text-[#aaaaaa]">
 				Attach an MP4 video to preview
@@ -49,7 +74,7 @@
 	</div>
 
 	<div class="space-y-3 p-4">
-		<h3 class="text-base font-semibold leading-snug">Video title preview</h3>
+		<h3 class="text-base font-semibold leading-snug">{title}</h3>
 
 		<div class="flex items-start gap-3">
 			<IntegrationChannelPicture

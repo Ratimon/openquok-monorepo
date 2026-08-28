@@ -1080,6 +1080,8 @@ export class PostsService {
         sharePostPreviewEnabled: boolean;
         /** Signed-in viewer may post collaboration comments (workspace + account plan). */
         collaborationCommentsEnabled: boolean;
+        /** Composer provider settings for the post's channel (`settings.providerSettings`). */
+        providerSettings?: Record<string, unknown>;
     }> {
         if (share !== "true") {
             throw new AppError("Forbidden", 403);
@@ -1101,6 +1103,7 @@ export class PostsService {
             threadReplies: { id: string; message: string; delaySeconds: number }[];
             threadFinisher: { enabled: boolean; message: string } | null;
             delayedEngagementReply: { message: string; delaySeconds: number } | null;
+            providerSettings?: Record<string, unknown>;
         }> => {
             const row = await this.postsRepository.getPostById(postId);
             if (!row) {
@@ -1160,6 +1163,20 @@ export class PostsService {
                 }
             }
 
+            let providerSettings: Record<string, unknown> | undefined;
+            if (row.integration_id) {
+                const parsed = this.parsePostRowProviderSettings(row.settings);
+                const merged = await this.augmentComposerProviderSettingsFromDb(
+                    postId,
+                    row.organization_id,
+                    row.integration_id,
+                    parsed
+                );
+                if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
+                    providerSettings = merged;
+                }
+            }
+
             return {
                 id: row.id,
                 postGroup: row.post_group,
@@ -1175,6 +1192,7 @@ export class PostsService {
                 threadReplies,
                 threadFinisher,
                 delayedEngagementReply,
+                ...(providerSettings ? { providerSettings } : {}),
             };
         };
 

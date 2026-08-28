@@ -10,6 +10,7 @@
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
@@ -20,6 +21,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import { readTiktokLaunchSettings } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
 
 	let {
 		channel,
@@ -28,14 +30,45 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: TiktokPreviewProps = $props();
 
+	const settings = $derived(readTiktokLaunchSettings(providerSettings));
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const handle = $derived((channel.name || '').trim() || '@username');
 	const isCarousel = $derived(mediaUrls.length > 1);
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
+	const isPhotoPost = $derived(classifyPhotoMedia(mediaUrls));
+	const photoTitle = $derived(isPhotoPost ? settings.title.trim() : '');
+
+	const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'webp']);
+
+	function mediaExtFromPath(path: string): string {
+		const raw = path.trim();
+		if (!raw) return '';
+		try {
+			const u = new URL(raw);
+			return (u.pathname.split('.').pop() ?? '').toLowerCase();
+		} catch {
+			return (raw.split('?')[0]?.split('#')[0]?.split('.').pop() ?? '').toLowerCase();
+		}
+	}
+
+	function isMp4Url(url: string): boolean {
+		return mediaExtFromPath(url) === 'mp4';
+	}
+
+	function isImageUrl(url: string): boolean {
+		return IMAGE_EXTENSIONS.has(mediaExtFromPath(url));
+	}
+
+	function classifyPhotoMedia(urls: string[]): boolean {
+		if (urls.length === 0) return false;
+		if (urls.some(isMp4Url)) return false;
+		return urls.some(isImageUrl);
+	}
 </script>
 
 <div class="overflow-hidden rounded-xl border border-base-300 bg-black text-white">
@@ -55,6 +88,9 @@
 				<div class="min-w-0 flex-1 space-y-1">
 					<div class="truncate text-sm font-semibold">{handle}</div>
 					<div class="text-[11px] text-white/55">{timeLabel}</div>
+					{#if photoTitle}
+						<p class="line-clamp-2 text-sm font-semibold leading-5 text-white">{photoTitle}</p>
+					{/if}
 					{#if cropped.length > 0}
 						<p class="line-clamp-3 whitespace-pre-wrap text-sm leading-5 text-white/90">
 							{cropped}{#if overflow.length > 0}<mark class="bg-error/70 text-error-content">{overflow}</mark>{/if}

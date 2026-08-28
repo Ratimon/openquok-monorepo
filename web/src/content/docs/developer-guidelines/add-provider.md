@@ -2,7 +2,7 @@
 title: Adding a social provider
 description: Contributor guide for implementing a new social integration in OpenQuok
 order: 7
-lastUpdated: 2026-08-20
+lastUpdated: 2026-08-27
 ---
 
 <script>
@@ -148,6 +148,33 @@ Register it in <Badge text="getLaunchProviderConfig" variant="param" /> inside <
 
 Add a provider-specific preview Svelte component and branch in <Badge text="ShowAllProviders.svelte" variant="path" />.
 
+
+When the provider has compose-time settings (step 6), the Post Preview column must reflect them live — not show placeholders because preview received an empty settings object.
+
+| Layer | Action |
+| --- | --- |
+| <Badge text="[id]Preview.svelte" variant="path" /> | Accept a <Badge text="providerSettings" variant="param" /> prop; read it with <Badge text="read*LaunchSettings" variant="param" />; render title, tags, cover, and other fields the Settings panel writes. |
+| <Badge text="ShowAllProviders.svelte" variant="path" /> | Pass <Badge text="providerSettings" variant="param" /> on every preview branch that consumes compose settings — not only Dev.to. |
+| <Badge text="AddEditModal.svelte" variant="path" /> | Derive effective preview settings from <Badge text="previewChannel.id" variant="param" /> + <Badge text="providerSettingsByIntegrationId" variant="param" /> and pass them to <Badge text="ShowAllProviders" variant="param" />. |
+| Parent modals | Do <strong>not</strong> pass <Badge text="previewProviderSettings" variant="param" /> from <Badge text="followUpTargetIntegrationId" variant="param" /> — that ID is only set for Threads/Instagram follow-up replies and leaves other providers with an empty settings object. |
+
+<strong>References:</strong> Dev.to (<Badge text="title" variant="param" />, <Badge text="tags" variant="param" />, <Badge text="series" variant="param" />), YouTube (<Badge text="title" variant="param" />, <Badge text="thumbnail" variant="param" />), TikTok photo carousel (<Badge text="title" variant="param" />). Landing bento mocks should pass explicit mock <Badge text="providerSettings" variant="param" /> into <Badge text="ShowAllProviders" variant="param" /> (see <Badge text="BentoDevtoSettingsPreview.svelte" variant="path" />).
+
+### 2b. User docs — editor table
+
+When composer support ships, update <a href="/docs/creating-posts/writing-the-post">Writing the post</a> (<Badge text="web/src/content/docs/creating-posts/writing-the-post.md" variant="path" />) → <strong>Editor by platform</strong>.
+
+Map <Badge text="SocialProvider.editor" variant="param" /> on the provider class to the <strong>Used by</strong> column:
+
+| <Badge text="editor" variant="param" /> | Action |
+| --- | --- |
+| <Badge text="normal" variant="param" /> | Add platform to <strong>Standard</strong> row if not covered by “most social channels”; otherwise no change. |
+| <Badge text="markdown" variant="param" /> | Append the platform name when unlocked on <strong>Markdown</strong> row (e.g. <strong>Threads</strong> when unlocked). |
+| <Badge text="html" variant="param" /> | Append on <strong>HTML</strong> row (note if publish strips to plain text, like X). |
+| <Badge text="none" variant="param" /> | First live Plain provider: replace “None yet” with that platform. |
+
+<strong>Rules:</strong> one table only (<Badge text="Editor | Toolbar | Used by" variant="default" />); change <strong>Toolbar</strong> only for real toolbar exceptions; bump <Badge text="lastUpdated" variant="param" /> in the same PR; <Badge text="editor" variant="param" /> on the provider class is the source of truth.
+
 ### 3. OAuth between-steps UI
 
 Reuse <Badge text="IntegrationContinue.svelte" variant="path" /> on route <Badge text="/integration/oauth/[provider]" variant="path" />. When <Badge text="isBetweenSteps" variant="param" /> is true:
@@ -182,6 +209,7 @@ When shipping a user-facing provider, add:
 | Setup guide | <Badge text="web/src/content/docs/social-integration/[id].md" variant="path" /> |
 | Index LinkCard | <Badge text="social-integration/index.md" variant="path" /> |
 | CLI examples | <Badge text="web/src/content/docs/cli-examples/[id].md" variant="path" /> |
+| Composer editor modes | <Badge text="web/src/content/docs/creating-posts/writing-the-post.md" variant="path" /> — update **Editor by platform** **Used by** for the provider’s <Badge text="editor" variant="param" /> (`normal`, `markdown`, `html`, `none`) |
 | Agent recipes | <Badge text="agent/skills/openquok-core/resources/[id]-examples.md" variant="path" /> |
 | Identifier list | <Badge text="agent/skills/openquok-core/resources/patterns.md" variant="path" /> |
 
@@ -207,4 +235,5 @@ Before opening a PR, confirm:
 - <strong>Credentials:</strong> no new env vars; docker-compose callout that there is no operator app; dashboard Add Channel and refresh work; <Badge text="GET /public/social/[identifier]" variant="path" /> returns 400.
 - No secrets or third-party project names in comments or docs (repo neutrality rule).
 - Composer validation matches backend `validateCreatePost` / publish rules.
+- <strong>Post Preview:</strong> when compose settings ship, preview reads <Badge text="providerSettings" variant="param" /> via <Badge text="read*LaunchSettings" variant="param" />; Settings changes update preview live; <Badge text="AddEditModal.svelte" variant="path" /> derives settings from the preview channel (not <Badge text="followUpTargetIntegrationId" variant="param" />).
 - Live vs Development mode called out in docs when media visibility differs.

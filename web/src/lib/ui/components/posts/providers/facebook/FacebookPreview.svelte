@@ -11,6 +11,7 @@
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		/** When set (e.g. scheduled publish time), replaces the default "Just now" label. */
 		previewMetaLabel?: string | null;
+		providerSettings?: Record<string, unknown>;
 	};
 </script>
 
@@ -20,6 +21,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import { readFacebookLaunchSettings } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 
 	let {
 		channel,
@@ -28,12 +30,26 @@
 		mediaUrls = [],
 		threadReplies = [],
 		threadFinisher = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		providerSettings = {}
 	}: FacebookPreviewProps = $props();
 
+	const settings = $derived(readFacebookLaunchSettings(providerSettings));
+	const linkUrl = $derived(settings.url?.trim() || '');
+	const linkHost = $derived(formatLinkHost(linkUrl));
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
+
+	function formatLinkHost(url: string): string {
+		if (!url) return '';
+		try {
+			const parsed = new URL(url);
+			return parsed.hostname.replace(/^www\./, '');
+		} catch {
+			return url.length > 40 ? `${url.slice(0, 37)}…` : url;
+		}
+	}
 </script>
 
 <div class="overflow-hidden rounded-xl border border-base-300 bg-[#242526] text-[#E4E6EB]">
@@ -57,6 +73,13 @@
 	{#if cropped.length > 0}
 		<div class="whitespace-pre-wrap px-4 pb-3 text-[15px] leading-5">
 			{cropped}{#if overflow.length > 0}<mark class="bg-error/70 text-error-content">{overflow}</mark>{/if}
+		</div>
+	{/if}
+
+	{#if linkUrl}
+		<div class="mx-4 mb-3 flex items-center gap-2 rounded-lg border border-[#3E4042] bg-[#3A3B3C] px-3 py-2 text-sm text-[#E4E6EB]">
+			<AbstractIcon name={icons.Link.name} class="size-4 shrink-0 text-[#B0B3B8]" width="16" height="16" />
+			<span class="min-w-0 truncate">{linkHost || linkUrl}</span>
 		</div>
 	{/if}
 

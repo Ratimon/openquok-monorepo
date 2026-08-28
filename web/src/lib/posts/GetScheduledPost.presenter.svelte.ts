@@ -173,6 +173,8 @@ export interface PublicPreviewPostViewModel {
 	sharePostPreviewEnabled: boolean;
 	/** Signed-in viewer may post collaboration comments (workspace + account plan). */
 	collaborationCommentsEnabled: boolean;
+	/** Composer provider settings for the post's channel. */
+	providerSettings?: Record<string, unknown>;
 }
 
 /**
@@ -296,7 +298,12 @@ export class GetScheduledPostsPresenter {
 			threadFinisher: previewPostPm.threadFinisher ?? null,
 			delayedEngagementReply: previewPostPm.delayedEngagementReply ?? null,
 			sharePostPreviewEnabled: previewPostPm.sharePostPreviewEnabled === true,
-			collaborationCommentsEnabled: previewPostPm.collaborationCommentsEnabled === true
+			collaborationCommentsEnabled: previewPostPm.collaborationCommentsEnabled === true,
+			...(previewPostPm.providerSettings &&
+			typeof previewPostPm.providerSettings === 'object' &&
+			Object.keys(previewPostPm.providerSettings).length > 0
+				? { providerSettings: previewPostPm.providerSettings }
+				: {})
 		};
 		return previewPostVm;
 	}

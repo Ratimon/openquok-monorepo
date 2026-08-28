@@ -30,7 +30,7 @@
     "test:unit:integration-connection": "cross-env NODE_ENV=development jest services/IntegrationConnectionService.unit.test.ts --no-coverage",
     "test:unit:integration-service": "cross-env NODE_ENV=development jest services/IntegrationService.unit.test.ts --no-coverage",
     "test:unit:notification-service": "cross-env NODE_ENV=development jest services/NotificationService.unit.test.ts --no-coverage",
-    "test:unit:posts-service": "cross-env NODE_ENV=development jest services/PostsService.unit.test.ts --no-coverage",
+    "test:unit:posts-service": "cross-env NODE_ENV=development NODE_OPTIONS=--max-old-space-size=5120 jest services/PostsService.unit.test.ts --no-coverage --runInBand",
     "test:unit:oauth-services": "cross-env NODE_ENV=development jest services/OauthAppService.unit.test.ts services/OauthService.unit.test.ts --no-coverage",
     "test:unit:transactional-notification-email": "cross-env NODE_ENV=development jest services/TransactionalNotificationEmailService.unit.test.ts --no-coverage",
     "test:unit:refresh-token-workflow:in-process": "pnpm --filter openquok-orchestrator test:unit:refresh-token-workflow:in-process",

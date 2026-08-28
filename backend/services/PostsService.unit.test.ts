@@ -1580,6 +1580,33 @@ describe("PostsService", () => {
             expect(out.providerIdentifier).toBe("instagram-business");
         });
 
+        it("includes providerSettings from post settings JSON for the preview channel", async () => {
+            const row = socialPostRow({
+                id: postId,
+                integration_id: integrationId,
+                content: "Article body",
+                image: null,
+                settings: JSON.stringify({
+                    providerSettings: {
+                        devto: { title: "Shared article title", tags: [{ value: "a", label: "ai" }] },
+                    },
+                }),
+            });
+            postsRepo.getPostById.mockResolvedValue(row);
+            postsRepo.listThreadRepliesByPostId.mockResolvedValue([]);
+            integrationService.getById.mockResolvedValue({
+                provider_identifier: "devto",
+                name: "Dev User",
+                picture: null,
+            } as unknown as IntegrationLike);
+
+            const out = await service().getPostPreview(postId, "true");
+
+            expect(out.providerSettings).toEqual({
+                devto: { title: "Shared article title", tags: [{ value: "a", label: "ai" }] },
+            });
+        });
+
         it("uses getOrSet with preview key and TTL 300 when cache provided", async () => {
             const row = socialPostRow({
                 id: postId,

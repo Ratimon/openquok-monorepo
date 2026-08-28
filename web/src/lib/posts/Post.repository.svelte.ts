@@ -229,6 +229,8 @@ export type PostPreviewProgrammerModel = {
 	sharePostPreviewEnabled?: boolean;
 	/** When true, the signed-in viewer may post collaboration comments on this share preview. */
 	collaborationCommentsEnabled?: boolean;
+	/** Composer provider settings for the post's channel (`settings.providerSettings`). */
+	providerSettings?: Record<string, unknown>;
 };
 
 export type GetPostPreviewResponseDto = {

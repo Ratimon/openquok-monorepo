@@ -63,6 +63,7 @@
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
+		{providerSettings}
 	/>
 {:else if identifier === 'threads'}
 	<ThreadsPreview
@@ -84,6 +85,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'youtube'}
 	<YoutubePreview
@@ -94,6 +96,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'tiktok'}
 	<TiktokPreview
@@ -104,6 +107,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'linkedin' || identifier === 'linkedin-page'}
 	<LinkedInPreview
@@ -114,6 +118,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'x'}
 	<XPreview
@@ -125,6 +130,7 @@
 		{threadReplies}
 		{threadFinisher}
 		{previewMetaLabel}
+		{providerSettings}
 	/>
 {:else if identifier === 'devto'}
 	<DevtoPreview

@@ -127,6 +127,8 @@
 		data.previewMediaUrlsVm ?? publicPreviewPostByIdPagePresenter.currentPreviewMediaUrlsVm
 	);
 
+	const previewProviderSettings = $derived(previewPostVm?.providerSettings ?? {});
+
 	// /sign-in
 	const rootPathSignIn = getRootPathSignin();
 	const signInHrefBase = url(`/${rootPathSignIn}`);
@@ -217,6 +219,7 @@
 						threadFinisher={previewPostVm.threadFinisher}
 						delayedEngagementReply={previewPostVm.delayedEngagementReply}
 						previewMetaLabel={previewMetaLabel}
+						providerSettings={previewProviderSettings}
 					/>
 				</div>
 			</div>

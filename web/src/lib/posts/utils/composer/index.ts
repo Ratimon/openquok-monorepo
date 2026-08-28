@@ -1,3 +1,4 @@
+export { resolvePreviewProviderSettings } from './resolvePreviewProviderSettings';
 export { composerBodyForEditorMode } from './bodyForEditorMode';
 export { stripComposerBodyForEditor, type StripComposerBodyOptions } from './stripBodyForEditor';
 export {

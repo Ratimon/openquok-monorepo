@@ -7,6 +7,12 @@ import type {
 /** LinkedIn composer limits (matches backend `LinkedInProvider.maxLength`). */
 export const LINKEDIN_MAX_CHARACTERS = 3000;
 
+export function readLinkedInLaunchSettings(
+	settings: Record<string, unknown>
+): LinkedInLaunchProviderSettings {
+	return mergeLinkedInSettings(settings);
+}
+
 function mergeLinkedInSettings(settings: Record<string, unknown>): LinkedInLaunchProviderSettings {
 	const linkedin = (settings as { linkedin?: Partial<LinkedInLaunchProviderSettings> }).linkedin;
 	const flatCarousel = settings.post_as_images_carousel ?? settings.postAsImagesCarousel;
