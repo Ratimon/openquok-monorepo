@@ -5,12 +5,6 @@ import { buildHealthPayload } from "./workerHealthServer.js";
 const mockQuit = jest.fn().mockResolvedValue("OK");
 const mockPing = jest.fn().mockResolvedValue("PONG");
 
-jest.mock("backend/config/GlobalConfig.js", () => ({
-    config: {
-        orchestratorWorker: { healthPort: 0 },
-    },
-}));
-
 jest.mock("backend/connections/bullmq/createQueueIoredis.js", () => ({
     createQueueIoredisClient: jest.fn(() => ({
         ping: mockPing,

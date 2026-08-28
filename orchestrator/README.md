@@ -26,7 +26,7 @@ All expect **Redis** at `REDIS_*` (and optional `REDIS_BULLMQ_DB`), matching the
 | `SUPABASE_SECRET_KEY` | New secret key (`sb_secret_…`). Server-side only. Required in production for tables used by refresh, notifications, and scheduled posts. Legacy `service_role` JWT is not accepted. |
 | `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_DB`, `REDIS_BULLMQ_DB` | Match the API’s queue/cache Redis; defaults exist for local Redis. |
 | `BULLMQ_WORKER_LOCK_DURATION_MS` | Optional. Flowcraft jobs use this as BullMQ `lockDuration` (default **600000** ms = 10 min). The upstream `@flowcraft/bullmq-adapter` did not set this; BullMQ’s **30s** default can cause `Error: could not renew lock for job …` when a node runs longer (OAuth refresh, slow HTTP). |
-| `ORCHESTRATOR_WORKER_HEALTH_PORT` | Optional. HTTP port for `GET /health` and `GET /health/status` (Redis PING + queue depth). Railway/host **`PORT`** wins when set; else this var; else **3091**. Set **`0`** to disable. |
+| `ORCHESTRATOR_WORKER_HEALTH_PORT` | Optional. HTTP port for `GET /health` and `GET /health/status` (Redis PING + queue depth). Explicit value wins over host **`PORT`**; local `pnpm dev:worker:*` scripts set **`3091`** so API `PORT=3000` is unaffected. On Railway leave unset and use injected **`PORT`**. Set **`0`** to disable. Default **3091**. |
 | `SENTRY_DSN`, `SENTRY_ENABLED` | Optional. Same as the API; workers initialize Sentry on boot and report uncaught errors. Tag: `openquok.worker`. |
 
 **Integration refresh worker only**

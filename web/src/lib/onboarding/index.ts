@@ -1,4 +1,6 @@
+export { firstRunExperiencePresenter } from '$lib/onboarding/FirstRunExperience.presenter.svelte';
 export {
+	ACQUISITION_SURVEY_DONE_STORAGE_PREFIX,
 	GETTING_STARTED_NOTICE_KIND,
 	GETTING_STARTED_TIKTOK_WARMUP_KIND,
 	HOME_NOTICE_STORAGE_PREFIX,

@@ -761,6 +761,35 @@ CREATE TABLE IF NOT EXISTS public.feedback (
 COMMENT ON TABLE public.feedback IS 'User feedback (propose, report, general). Anonymous submit; list/update by app roles.';
 
 
+-- Module: acquisition, File: 101_20260828_tables.sql
+-- ---------------------------
+-- MODULE NAME: Acquisition
+-- MODULE DATE: 20260828
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.user_acquisition_responses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    source TEXT NOT NULL,
+    other_detail TEXT,
+    utm TEXT,
+    landing_url TEXT,
+    referrer TEXT,
+    organization_id UUID REFERENCES public.organizations(id) ON DELETE SET NULL,
+    subscription_id TEXT,
+    skipped BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT user_acquisition_responses_user_id_key UNIQUE (user_id)
+);
+
+COMMENT ON TABLE public.user_acquisition_responses IS 'One-time post-conversion attribution survey response per user (submit or skip).';
+COMMENT ON COLUMN public.user_acquisition_responses.source IS 'Controlled slug (e.g. search_engine, reddit, other); use other_detail when source is other.';
+COMMENT ON COLUMN public.user_acquisition_responses.skipped IS 'True when the user skipped or closed without selecting a source.';
+
+
 -- Module: blog, File: 104_20260313_tables.sql
 -- ---------------------------
 -- MODULE NAME: Blog System Tables
@@ -1425,6 +1454,20 @@ CREATE INDEX IF NOT EXISTS idx_role_permissions_permission ON public.role_permis
 -- ---------------------------
 
 CREATE INDEX IF NOT EXISTS idx_feedback_created_at ON public.feedback(created_at DESC);
+
+
+-- Module: acquisition, File: 201_20260828_indexes.sql
+-- ---------------------------
+-- MODULE NAME: Acquisition
+-- MODULE DATE: 20260828
+-- MODULE SCOPE: Indexes
+-- ---------------------------
+
+CREATE INDEX IF NOT EXISTS idx_user_acquisition_responses_created_at
+    ON public.user_acquisition_responses(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_acquisition_responses_source
+    ON public.user_acquisition_responses(source);
 
 
 -- Module: blog, File: 201_20260313_indexes.sql
@@ -3343,6 +3386,47 @@ CREATE POLICY "Super admin admins support can update feedback"
 DROP POLICY IF EXISTS "Super admin admins support can delete feedback" ON public.feedback;
 CREATE POLICY "Super admin admins support can delete feedback"
     ON public.feedback FOR DELETE TO authenticated
+    USING (
+        public.is_super_admin(auth.uid())
+        OR EXISTS (
+            SELECT 1 FROM public.users u
+            JOIN public.user_roles ur ON ur.user_id = u.id
+            WHERE u.auth_id = auth.uid() AND ur.role IN ('admin', 'support')
+        )
+    );
+
+
+-- Module: acquisition, File: 302_20260828_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Acquisition
+-- MODULE DATE: 20260828
+-- MODULE SCOPE: RLS & Grants
+-- ---------------------------
+-- Runs after user-management/300 so public.is_super_admin(uuid) exists.
+-- Authenticated users may insert their own row once. Select: super_admin or admin/support app roles.
+-- No client UPDATE/DELETE (immutable audit).
+
+BEGIN;
+
+GRANT SELECT, INSERT ON public.user_acquisition_responses TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_acquisition_responses TO service_role;
+
+ALTER TABLE public.user_acquisition_responses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can insert their own acquisition response once" ON public.user_acquisition_responses;
+CREATE POLICY "Users can insert their own acquisition response once"
+    ON public.user_acquisition_responses FOR INSERT TO authenticated
+    WITH CHECK (
+        user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        AND NOT EXISTS (
+            SELECT 1 FROM public.user_acquisition_responses existing
+            WHERE existing.user_id = (SELECT id FROM public.users WHERE auth_id = auth.uid())
+        )
+    );
+
+DROP POLICY IF EXISTS "Super admin admins support can select acquisition responses" ON public.user_acquisition_responses;
+CREATE POLICY "Super admin admins support can select acquisition responses"
+    ON public.user_acquisition_responses FOR SELECT TO authenticated
     USING (
         public.is_super_admin(auth.uid())
         OR EXISTS (

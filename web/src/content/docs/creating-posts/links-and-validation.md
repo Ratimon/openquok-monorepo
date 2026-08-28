@@ -31,7 +31,7 @@ The badge turns red when you are over the active limit. Saving a draft or schedu
 
 ## Links in the caption
 
-How links work depends on **editor mode** — see the mode table in <a href="/docs/creating-posts/writing-the-post#editor-modes">Writing the post → Editor modes</a>.
+How links work depends on **editor mode** — see the mode table in <a href="/docs/creating-posts/writing-the-post#editor-by-platform">Writing the post → Editor by platform</a>.
 
 ### Standard mode (Global and most unlocked channels)
 
@@ -95,8 +95,8 @@ When save is blocked, OpenQuok shows a **toast** (bottom of the screen). Provide
 | Message | Cause |
 | --- | --- |
 | <code>Write something or attach at least one image.</code> | Empty caption and no media |
-| <code>Please add at least {n} characters.</code> | Caption shorter than the focused provider minimum (rare today) |
-| <code>Too long for this mode ({count}/{limit}).</code> | Character count over the active limit (weighted when X applies) |
+| <code>Please add at least N characters.</code> | Caption shorter than the focused provider minimum (rare today) |
+| <code>Too long for this mode ( count/limit).</code> | Character count over the active limit (weighted when X applies) |
 
 ### Workspace and channels
 

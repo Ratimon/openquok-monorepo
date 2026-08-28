@@ -39,7 +39,7 @@ openquok posts:create \
 | <Badge text="--settings" variant="param" /> | Platform-specific settings JSON; merged into each selected integration. |
 | <Badge text="-j" variant="param" /> <Badge text="--json" variant="param" /> | Path to a JSON file whose root object is the full <Badge text="POST /public/posts" variant="path" /> body (skips other flags). |
 | <Badge text="--bodiesByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is the per-channel body override. |
-| <Badge text="--mediaByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is an array of <code>{id, path}</code> media items for that channel. Channels omitted in the map inherit <Badge text="-m" variant="param" /> / root <code>media</code>. |
+| <Badge text="--mediaByIntegrationId" variant="param" /> | JSON object keyed by integration UUID; each value is an array of <code>id</code> and <code>path</code> media items for that channel. Channels omitted in the map inherit <Badge text="-m" variant="param" /> / root <code>media</code>. |
 | <Badge text="--providerSettingsByIntegrationId" variant="param" /> | JSON map of provider-specific settings (see <a href="/docs/cli-examples">CLI Examples</a>). |
 | <Badge text="--tagNames" variant="param" /> | Comma-separated workspace tag names. |
 | <Badge text="--repeatInterval" variant="param" /> | Backend repeat enum (e.g. <code>weekly</code>). |
@@ -68,7 +68,7 @@ openquok posts:create \
   --note "Confirm CTA URL and UTM params before scheduling"
 ```
 
-See <a href="/docs/apis-posts/review-todo">Update Review Todo</a> and <a href="/docs/installation/development-environment#smoke-test-post-kanban-review-cli--web">Development environment → Kanban smoke test</a>.
+See <a href="/docs/apis-posts/review-todo">Update Review Todo</a> and <a href="/docs/installation/development-environment#smoke-test-post-kanban-review-cli-web">Development environment → Kanban smoke test</a>.
 
 ### Post for Different Body per Channel
 

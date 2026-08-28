@@ -2,6 +2,9 @@ import { clearAccountSidebarTours } from '$lib/onboarding/accountSidebarTourStor
 
 export const ONBOARDING_COMPLETED_STORAGE_KEY = 'onboarding:completed';
 
+/** Per-user acquisition survey dismiss key prefix (`{prefix}:{userId}`). Not a product tour. */
+export const ACQUISITION_SURVEY_DONE_STORAGE_PREFIX = 'acquisition-survey:done';
+
 export const HOME_NOTICE_STORAGE_PREFIX = 'home:notice';
 export const GETTING_STARTED_NOTICE_KIND = 'getting-started';
 export const GETTING_STARTED_TIKTOK_WARMUP_KIND = 'getting-started-tiktok-warmup';
@@ -46,7 +49,11 @@ export function markOnboardingCompleted(): void {
 	}
 }
 
-/** Clears onboarding completion and the Getting started panel dismiss flag for the workspace. */
+/**
+ * Clears onboarding completion, sidebar tours, and Getting started dismiss flags for the workspace.
+ * Does not clear acquisition survey keys (`ACQUISITION_SURVEY_DONE_STORAGE_PREFIX`) — the survey is
+ * not a product tour and should not reappear after "Reset product tours".
+ */
 export function resetProductTours(workspaceId: string | null): void {
 	if (typeof localStorage === 'undefined') return;
 	try {

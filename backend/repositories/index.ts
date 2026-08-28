@@ -22,6 +22,7 @@ import { SignatureRepository } from "./SignatureRepository";
 import { SetsRepository } from "./SetsRepository";
 import { OauthAppRepository } from "./OauthAppRepository";
 import { SubscriptionRepository } from "./SubscriptionRepository";
+import { AcquisitionSurveyRepository } from "./AcquisitionSurveyRepository";
 
 export const refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
 export const userRepository = new UserRepository(supabaseServiceClientConnection);
@@ -63,6 +64,7 @@ export const signatureRepository = new SignatureRepository(supabaseServiceClient
 export const setsRepository = new SetsRepository(supabaseServiceClientConnection);
 export const oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
 export const subscriptionRepository = new SubscriptionRepository(supabaseServiceClientConnection);
+export const acquisitionSurveyRepository = new AcquisitionSurveyRepository(supabaseServiceClientConnection);
 
 export { RefreshTokenRepository } from "./RefreshTokenRepository";
 export { UserRepository } from "./UserRepository";
@@ -96,3 +98,4 @@ export {
     type OrganizationBillingRow,
     type OrganizationSubscriptionRow,
 } from "./SubscriptionRepository";
+export { AcquisitionSurveyRepository, type AcquisitionSurveyRow } from "./AcquisitionSurveyRepository";

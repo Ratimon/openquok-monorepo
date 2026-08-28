@@ -1,6 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { FeedbackService } from "./FeedbackService";
 import type { FeedbackRepository } from "../repositories/FeedbackRepository";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 
 const feedbackId = faker.string.uuid();
 const url = faker.internet.url();
@@ -13,6 +14,12 @@ function createMockFeedbackRepo(): jest.Mocked<FeedbackRepository> {
         updateIsHandled: jest.fn(),
         findAll: jest.fn(),
     } as unknown as jest.Mocked<FeedbackRepository>;
+}
+
+function createMockOpsEmail(): jest.Mocked<Pick<InternalOpsEmailService, "notifyFeedbackCreated">> {
+    return {
+        notifyFeedbackCreated: jest.fn(),
+    };
 }
 
 describe("FeedbackService", () => {
@@ -69,6 +76,34 @@ describe("FeedbackService", () => {
             });
             expect(invalidateKey).toHaveBeenCalledWith("feedback:list:all");
             expect(invalidatePattern).toHaveBeenCalledWith("feedback:list:*");
+        });
+
+        it("notifies ops email after create", async () => {
+            repo.insert.mockResolvedValue(feedbackId);
+            const internalOpsEmailService = createMockOpsEmail();
+            const service = new FeedbackService(
+                repo,
+                undefined,
+                undefined,
+                internalOpsEmailService as unknown as InternalOpsEmailService
+            );
+            const payload = {
+                feedback_type: "report" as const,
+                url,
+                description,
+                email: "reporter@example.com",
+            };
+            const contextUserId = faker.string.uuid();
+
+            await service.createFeedback(payload, { userId: contextUserId });
+
+            expect(internalOpsEmailService.notifyFeedbackCreated).toHaveBeenCalledWith({
+                feedbackType: "report",
+                url,
+                description,
+                email: "reporter@example.com",
+                userId: contextUserId,
+            });
         });
     });
 

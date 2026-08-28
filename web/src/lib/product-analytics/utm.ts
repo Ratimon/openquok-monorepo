@@ -29,6 +29,24 @@ export function readStoredUtm(): string {
 	}
 }
 
+export function readStoredLandingUrl(): string {
+	if (!browser) return '';
+	try {
+		return localStorage.getItem(LANDING_URL_KEY) ?? '';
+	} catch {
+		return '';
+	}
+}
+
+export function readStoredReferrer(): string {
+	if (!browser) return '';
+	try {
+		return localStorage.getItem(REFERRER_KEY) ?? '';
+	} catch {
+		return '';
+	}
+}
+
 export function storeUtmIfEmpty(utm: string): void {
 	if (!browser || !utm) return;
 	try {

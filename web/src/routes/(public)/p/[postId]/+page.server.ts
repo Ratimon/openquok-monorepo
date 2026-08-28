@@ -1,7 +1,8 @@
 import type { PageServerLoad } from './$types';
 import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { PostCommentViewModel, PublicPreviewPostViewModel } from '$lib/posts/index';
-import { getScheduledPostsPresenter, toPublicPreviewChannelVm } from '$lib/posts/index';
+import { toPublicPreviewChannelVm } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import { getScheduledPostsPresenter } from '$lib/posts/index';
 
 import { error } from '@sveltejs/kit';
 import { publicPreviewPostByIdPagePresenter } from '$lib/area-public';

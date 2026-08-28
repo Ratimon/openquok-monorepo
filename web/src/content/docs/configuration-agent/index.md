@@ -88,7 +88,7 @@ Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/
 
 **Local (single host):** omit <Badge text="BROWSER_ORIGIN" variant="envBackend" /> (defaults to <Badge text="SERVER_URL" variant="envBackend" />). Register <Badge text="http://localhost:3111/device/callback" variant="default" /> on the OAuth app.
 
-<Callout type="warning" title="Self-hosted deployment">
+<Callout type="warning">
 <p>If you deploy your own stack, set <Badge text="SERVER_URL" variant="envBackend" />, <Badge text="BROWSER_ORIGIN" variant="envBackend" />, and the OAuth callback to <strong>your</strong> domains — do not copy OpenQuok production URLs unless those hosts are literally yours.</p>
 <p class="mt-2">See <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation → Vercel → CLI auth server on Vercel</a>.</p>
 </Callout>

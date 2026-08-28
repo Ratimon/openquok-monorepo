@@ -3,8 +3,13 @@ import type { FeedbackRepository } from "../repositories/FeedbackRepository";
 import type { FeedbackLike } from "../utils/dtos/FeedbackDTO";
 import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
+import type { InternalOpsEmailService } from "./InternalOpsEmailService";
 
 import { logger } from "../utils/Logger";
+
+export type CreateFeedbackContext = {
+    userId?: string;
+};
 
 /** Domain-scoped cache key prefixes. */
 const CACHE_KEYS = {
@@ -18,12 +23,23 @@ export class FeedbackService {
     constructor(
         private readonly feedbackRepository: FeedbackRepository,
         private readonly cache?: CacheService,
-        private readonly cacheInvalidator?: CacheInvalidationService
+        private readonly cacheInvalidator?: CacheInvalidationService,
+        private readonly internalOpsEmailService?: InternalOpsEmailService
     ) {}
 
-    async createFeedback(feedback: FeedbackSchemaType): Promise<string> {
+    async createFeedback(
+        feedback: FeedbackSchemaType,
+        context?: CreateFeedbackContext
+    ): Promise<string> {
         const feedbackId = await this.feedbackRepository.insert(feedback);
         await this._invalidateFeedbackRelatedCaches();
+        this.internalOpsEmailService?.notifyFeedbackCreated({
+            feedbackType: feedback.feedback_type,
+            url: feedback.url,
+            description: feedback.description,
+            email: feedback.email,
+            userId: context?.userId,
+        });
         return feedbackId;
     }
 

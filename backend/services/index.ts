@@ -20,6 +20,7 @@ import {
     oauthAppRepository,
     storageSupabaseRepository,
     subscriptionRepository,
+    acquisitionSurveyRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -52,6 +53,8 @@ import { UserSessionService } from "./UserSessionService";
 import { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { StripeService } from "./StripeService";
 import { TrackService } from "./TrackService";
+import { InternalOpsEmailService } from "./InternalOpsEmailService";
+import { AcquisitionSurveyService } from "./AcquisitionSurveyService";
 import { config } from "../config/GlobalConfig";
 
 export const integrationManager = new IntegrationManager();
@@ -67,6 +70,13 @@ export const emailService = new EmailService({
 });
 export const transactionalNotificationEmailService = new TransactionalNotificationEmailService(
     organizationRepository
+);
+export const companyService = new CompanyService(configRepository, cacheServiceConnection);
+export const marketingService = new MarketingService(configRepository, cacheServiceConnection);
+export const internalOpsEmailService = new InternalOpsEmailService(
+    emailService,
+    companyService,
+    transactionalNotificationEmailService
 );
 export const notificationService = new NotificationService(
     notificationRepository,
@@ -89,8 +99,6 @@ export const authenticationService = new AuthenticationService(
     userService,
     emailService
 );
-export const companyService = new CompanyService(configRepository, cacheServiceConnection);
-export const marketingService = new MarketingService(configRepository, cacheServiceConnection);
 export const rbacService = new RbacService(
     rbacRepository,
     cacheServiceConnection,
@@ -99,7 +107,8 @@ export const rbacService = new RbacService(
 export const feedbackService = new FeedbackService(
     feedbackRepository,
     cacheServiceConnection,
-    cacheInvalidationServiceConnection
+    cacheInvalidationServiceConnection,
+    internalOpsEmailService
 );
 export const configService = new ConfigService(
     configRepository,
@@ -206,6 +215,12 @@ export const stripeService = new StripeService(
     userRepository
 );
 export const trackService = new TrackService();
+export const acquisitionSurveyService = new AcquisitionSurveyService(
+    acquisitionSurveyRepository,
+    subscriptionService,
+    userService,
+    internalOpsEmailService
+);
 export const mediaService = new MediaService(mediaRepository);
 export const signatureService = new SignatureService(
     signatureRepository,
@@ -252,3 +267,5 @@ export { SubscriptionService } from "./SubscriptionService";
 export { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 export { StripeService } from "./StripeService";
 export { TrackService } from "./TrackService";
+export { InternalOpsEmailService } from "./InternalOpsEmailService";
+export { AcquisitionSurveyService } from "./AcquisitionSurveyService";

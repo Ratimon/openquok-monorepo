@@ -907,16 +907,17 @@ var init_GlobalConfig = __esm({
       },
       /**
        * Long-running BullMQ workers (`orchestrator/worker/*`): health HTTP and observability.
-       * Health port: host `PORT` (Railway) when set, else `ORCHESTRATOR_WORKER_HEALTH_PORT`, else `3091`.
-       * Set `ORCHESTRATOR_WORKER_HEALTH_PORT=0` to disable the listener.
+       * Health port: `ORCHESTRATOR_WORKER_HEALTH_PORT=0` disables; else explicit
+       * `ORCHESTRATOR_WORKER_HEALTH_PORT` (local dev worker scripts set `3091` so API `PORT` can stay `3000`);
+       * else host `PORT` (Railway); else `3091`.
        */
       orchestratorWorker: {
         healthPort: (() => {
-          const disable = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
-          if (disable === 0) return 0;
+          const configured = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
+          if (configured === 0) return 0;
+          if (configured > 0) return configured;
           const hostPort = getEnvNumber("PORT", 0);
           if (hostPort > 0) return hostPort;
-          if (disable > 0) return disable;
           return 3091;
         })()
       },
@@ -1008,6 +1009,17 @@ var init_GlobalConfig = __esm({
       marketing: {
         facebookPixelId: getEnvTrimmed("FACEBOOK_PIXEL_ID", ""),
         facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", "")
+      },
+      /**
+       * Post-conversion acquisition survey — subscriptions created before `eligibleFrom` are never prompted.
+       * ISO-8601 instant (e.g. `2026-08-28T00:00:00.000Z`).
+       */
+      acquisitionSurvey: {
+        eligibleFrom: getEnvTrimmed("ACQUISITION_SURVEY_ELIGIBLE_FROM", "2026-08-28T00:00:00.000Z")
+      },
+      /** Internal platform ops alerts (acquisition survey, feedback). Comma-separated override for SUPPORT_EMAIL. */
+      ops: {
+        alertEmail: getEnvTrimmed("OPS_ALERT_EMAIL", "")
       },
       /** Stripe billing (workspace subscriptions). */
       stripe: {
@@ -3860,7 +3872,7 @@ var init_UserController = __esm({
     init_OrganizationDTO();
     serverConfig5 = config.server;
     UserController = class {
-      constructor(userService2, authenticationService2, emailService2, userSessionService2, organizationService2, subscriptionService2, stripeService2) {
+      constructor(userService2, authenticationService2, emailService2, userSessionService2, organizationService2, subscriptionService2, stripeService2, acquisitionSurveyService2) {
         this.userService = userService2;
         this.authenticationService = authenticationService2;
         this.emailService = emailService2;
@@ -3868,6 +3880,7 @@ var init_UserController = __esm({
         this.organizationService = organizationService2;
         this.subscriptionService = subscriptionService2;
         this.stripeService = stripeService2;
+        this.acquisitionSurveyService = acquisitionSurveyService2;
       }
       /**
        * GET /users/me — profile (+ workspace session when `organizationId` query or `showorg` cookie is set).
@@ -4144,6 +4157,41 @@ var init_UserController = __esm({
         try {
           const tiers = await this.stripeService.getPackages();
           res.status(200).json({ success: true, data: tiers });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** GET /users/me/acquisition-survey — eligibility and submission status for the current user. */
+      getAcquisitionSurveyStatus = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const status = await this.acquisitionSurveyService.getStatus(authUserId);
+          res.status(200).json({ success: true, data: status });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** POST /users/me/acquisition-survey — submit or skip the one-time attribution survey. */
+      submitAcquisitionSurvey = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const body = req.body;
+          const result = await this.acquisitionSurveyService.submitSurvey(authUserId, body, {
+            userEmail: authReq.user?.email
+          });
+          res.status(201).json({
+            success: true,
+            data: result,
+            message: "Acquisition survey saved"
+          });
         } catch (error) {
           next(error);
         }
@@ -4904,7 +4952,9 @@ var init_FeedbackController = __esm({
             ...body,
             email: fromBody && fromBody.length > 0 ? fromBody : emailFromAuth && emailFromAuth.length > 0 ? emailFromAuth : void 0
           };
-          const id = await this.feedbackService.createFeedback(payload);
+          const id = await this.feedbackService.createFeedback(payload, {
+            userId: auth10.user?.id
+          });
           res.status(201).json({
             success: true,
             data: { id },
@@ -10724,8 +10774,65 @@ var init_SubscriptionRepository = __esm({
   }
 });
 
+// repositories/AcquisitionSurveyRepository.ts
+var TABLE6, COLS4, AcquisitionSurveyRepository;
+var init_AcquisitionSurveyRepository = __esm({
+  "repositories/AcquisitionSurveyRepository.ts"() {
+    init_AppError();
+    init_InfraError();
+    TABLE6 = "user_acquisition_responses";
+    COLS4 = "id, user_id, source, other_detail, utm, landing_url, referrer, organization_id, subscription_id, skipped, created_at";
+    AcquisitionSurveyRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async findByUserId(userId) {
+        const { data, error } = await this.supabase.from(TABLE6).select(COLS4).eq("user_id", userId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to load acquisition survey response", {
+            cause: error,
+            operation: "findByUserId",
+            resource: { type: "table", name: TABLE6 }
+          });
+        }
+        return data ?? null;
+      }
+      async insert(params) {
+        const { data, error } = await this.supabase.from(TABLE6).insert({
+          user_id: params.userId,
+          source: params.source,
+          other_detail: params.otherDetail ?? null,
+          utm: params.utm ?? null,
+          landing_url: params.landingUrl ?? null,
+          referrer: params.referrer ?? null,
+          organization_id: params.organizationId ?? null,
+          subscription_id: params.subscriptionId ?? null,
+          skipped: params.skipped
+        }).select("id").single();
+        if (error) {
+          if (error.code === "23505") {
+            throw new AppError("Acquisition survey already submitted", 409);
+          }
+          throw new DatabaseError("Failed to insert acquisition survey response", {
+            cause: error,
+            operation: "insert",
+            resource: { type: "table", name: TABLE6 }
+          });
+        }
+        if (!data?.id) {
+          throw new DatabaseError("Failed to insert acquisition survey response", {
+            operation: "insert",
+            resource: { type: "table", name: TABLE6 }
+          });
+        }
+        return data.id;
+      }
+    };
+  }
+});
+
 // repositories/index.ts
-var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository;
+var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository;
 var init_repositories = __esm({
   "repositories/index.ts"() {
     init_GlobalConfig();
@@ -10752,6 +10859,7 @@ var init_repositories = __esm({
     init_SetsRepository();
     init_OauthAppRepository();
     init_SubscriptionRepository();
+    init_AcquisitionSurveyRepository();
     init_RefreshTokenRepository();
     init_UserRepository();
     init_ConfigRepository();
@@ -10774,6 +10882,7 @@ var init_repositories = __esm({
     init_SetsRepository();
     init_OauthAppRepository();
     init_SubscriptionRepository();
+    init_AcquisitionSurveyRepository();
     refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
     userRepository = new UserRepository(supabaseServiceClientConnection);
     configRepository = new ConfigRepository(supabaseServiceClientConnection);
@@ -10803,6 +10912,7 @@ var init_repositories = __esm({
     setsRepository = new SetsRepository(supabaseServiceClientConnection);
     oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
     subscriptionRepository = new SubscriptionRepository(supabaseServiceClientConnection);
+    acquisitionSurveyRepository = new AcquisitionSurveyRepository(supabaseServiceClientConnection);
   }
 });
 
@@ -12299,14 +12409,22 @@ var init_FeedbackService = __esm({
     };
     FEEDBACK_CACHE_TTL_SEC = 300;
     FeedbackService = class {
-      constructor(feedbackRepository2, cache, cacheInvalidator) {
+      constructor(feedbackRepository2, cache, cacheInvalidator, internalOpsEmailService2) {
         this.feedbackRepository = feedbackRepository2;
         this.cache = cache;
         this.cacheInvalidator = cacheInvalidator;
+        this.internalOpsEmailService = internalOpsEmailService2;
       }
-      async createFeedback(feedback) {
+      async createFeedback(feedback, context) {
         const feedbackId = await this.feedbackRepository.insert(feedback);
         await this._invalidateFeedbackRelatedCaches();
+        this.internalOpsEmailService?.notifyFeedbackCreated({
+          feedbackType: feedback.feedback_type,
+          url: feedback.url,
+          description: feedback.description,
+          email: feedback.email,
+          userId: context?.userId
+        });
         return feedbackId;
       }
       async updateFeedbackIsHandled(feedbackId, isHandled) {
@@ -14015,6 +14133,107 @@ var init_htmlToPlain = __esm({
   }
 });
 
+// utils/content/stripComposerBodyForEditor.ts
+function looksLikeHtml(value) {
+  return COMPOSER_HTML_TAG_RE.test(value);
+}
+function decodeBasicHtmlEntities(text) {
+  return text.replace(/&nbsp;/gi, " ").replace(/&amp;/gi, "&").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&quot;/gi, '"').replace(/&#39;/gi, "'");
+}
+function collapseComposerWhitespace(text) {
+  return text.replace(/[ \t]+\n/g, "\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+}
+function stripDisallowedComposerHtmlTags(html) {
+  return html.replace(/<\/?([a-z][a-z0-9]*)\b[^>]*>/gi, (match, tagName) => {
+    const tag = tagName.toLowerCase();
+    return ALLOWED_COMPOSER_HTML_TAGS.has(tag) ? match : "";
+  });
+}
+function sanitizeComposerHtml(html) {
+  if (!html.trim()) return "";
+  if (!looksLikeHtml(html)) {
+    return html;
+  }
+  let out = html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "").replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "").replace(/<(iframe|object|embed|form|input|meta|link)\b[^>]*>[\s\S]*?<\/\1>/gi, "").replace(/<(iframe|object|embed|form|input|meta|link)\b[^>]*\/?>/gi, "");
+  out = stripDisallowedComposerHtmlTags(out);
+  return out.replace(/\s+href\s*=\s*(?=\s|>)/gi, "");
+}
+function htmlToMarkdown(html) {
+  if (!html.trim()) return "";
+  if (!looksLikeHtml(html)) return html.trim();
+  let s = html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "");
+  s = s.replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/<\/p>\s*<p[^>]*>/gi, "\n\n");
+  s = s.replace(/<\/div>\s*<div[^>]*>/gi, "\n\n");
+  s = s.replace(/<h([1-3])[^>]*>([\s\S]*?)<\/h\1>/gi, (_, level, inner) => {
+    const hashes = "#".repeat(Number(level));
+    return `
+
+${hashes} ${inner.trim()}
+
+`;
+  });
+  s = s.replace(/<li[^>]*>/gi, "\n- ");
+  s = s.replace(/<\/li>/gi, "");
+  s = s.replace(/<\/?[uo]l[^>]*>/gi, "\n");
+  s = s.replace(/<(?:strong|b)>([\s\S]*?)<\/(?:strong|b)>/gi, "**$1**");
+  s = s.replace(/<(?:em|i)>([\s\S]*?)<\/(?:em|i)>/gi, "*$1*");
+  s = s.replace(/<a[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, "[$2]($1)");
+  s = s.replace(/<code>([\s\S]*?)<\/code>/gi, "`$1`");
+  s = s.replace(/<\/p>/gi, "\n\n");
+  s = s.replace(/<p[^>]*>/gi, "");
+  s = s.replace(/<[^>]+>/g, "");
+  s = decodeBasicHtmlEntities(s);
+  return collapseComposerWhitespace(s);
+}
+function stripComposerBodyForEditor(editor, html, options2) {
+  const raw = typeof html === "string" ? html : "";
+  if (!raw.trim()) return "";
+  let out;
+  switch (editor) {
+    case "none":
+    case "normal":
+      out = htmlToPlainText(raw);
+      break;
+    case "markdown":
+      out = htmlToMarkdown(raw);
+      break;
+    case "html":
+      out = sanitizeComposerHtml(raw);
+      break;
+    default:
+      out = htmlToPlainText(raw);
+      break;
+  }
+  return out.trim();
+}
+var COMPOSER_HTML_TAG_RE, ALLOWED_COMPOSER_HTML_TAGS;
+var init_stripComposerBodyForEditor = __esm({
+  "utils/content/stripComposerBodyForEditor.ts"() {
+    init_htmlToPlain();
+    COMPOSER_HTML_TAG_RE = /<[a-z][\s\S]*>/i;
+    ALLOWED_COMPOSER_HTML_TAGS = /* @__PURE__ */ new Set([
+      "p",
+      "br",
+      "strong",
+      "b",
+      "em",
+      "i",
+      "u",
+      "a",
+      "h1",
+      "h2",
+      "h3",
+      "ul",
+      "ol",
+      "li",
+      "blockquote",
+      "code",
+      "pre"
+    ]);
+  }
+});
+
 // errors/ProviderIntegrationErrors.ts
 var ProviderAccessTokenExpiredError;
 var init_ProviderIntegrationErrors = __esm({
@@ -14115,7 +14334,7 @@ function readLinkFromSettings(settings) {
   return resolveFacebookLinkFromSettings(settings);
 }
 async function publishFacebookPagePost(pageId, accessToken2, postDetails) {
-  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
   const media = extractMedia(postDetails.settings).map((m) => ({
     ...m,
     path: resolvePublicMediaUrl(m.path)
@@ -14170,7 +14389,7 @@ async function publishFacebookPagePost(pageId, accessToken2, postDetails) {
   };
 }
 async function publishFacebookComment(replyToId, accessToken2, postDetails) {
-  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
   const media = extractMedia(postDetails.settings);
   const enc = encodeURIComponent(accessToken2);
   const body = { message };
@@ -14193,7 +14412,7 @@ var GRAPH;
 var init_facebookGraphPublish = __esm({
   "integrations/providers/facebook/facebookGraphPublish.ts"() {
     init_MediaRepository();
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     init_metaGraphTokenError();
     GRAPH = "https://graph.facebook.com/v20.0";
   }
@@ -14709,7 +14928,7 @@ var init_instagramInsightsAnalytics = __esm({
 
 // integrations/providers/instagram/instagramGraphComment.ts
 async function publishInstagramGraphComment(params) {
-  const msg = htmlToPlainText(params.message ?? "").trim();
+  const msg = stripComposerBodyForEditor("normal", params.message ?? "");
   if (!msg.length) {
     throw new Error("Instagram comment message is empty");
   }
@@ -14738,7 +14957,7 @@ async function publishInstagramGraphComment(params) {
 }
 var init_instagramGraphComment = __esm({
   "integrations/providers/instagram/instagramGraphComment.ts"() {
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
   }
 });
 
@@ -15615,7 +15834,7 @@ var init_threadsProvider = __esm({
     init_ProviderIntegrationErrors();
     init_metaGraphTokenError();
     init_Logger();
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     GRAPH4 = "https://graph.threads.net/v1.0";
     THREADS_GLOBAL_PLUG_CATALOG = [
       {
@@ -15726,7 +15945,10 @@ var init_threadsProvider = __esm({
       async comment(userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
-        const message = htmlToPlainText(first.message ?? "").trim().slice(0, this.maxLength());
+        const message = stripComposerBodyForEditor("normal", first.message ?? "").slice(
+          0,
+          this.maxLength()
+        );
         const replyToId = (lastCommentId ?? postId ?? "").trim();
         if (!message.length) {
           throw new Error("Threads comment message is empty");
@@ -15750,7 +15972,7 @@ var init_threadsProvider = __esm({
        */
       async threadsInternalFollowUp(acting, _original, threadId, information) {
         const raw = typeof information?.message === "string" ? information.message : "";
-        const msg = htmlToPlainText(raw).trim();
+        const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
         const parent = typeof information.replyToParentId === "string" && information.replyToParentId.trim().length > 0 ? information.replyToParentId.trim() : void 0;
         await this.comment(
@@ -15767,7 +15989,7 @@ var init_threadsProvider = __esm({
        */
       async threadsCrossAccountComment(acting, _original, threadId, information) {
         const raw = typeof information?.comment === "string" ? information.comment : "";
-        const msg = htmlToPlainText(raw).trim();
+        const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
         await this.comment(
           acting.internal_id,
@@ -15802,7 +16024,7 @@ var init_threadsProvider = __esm({
           return false;
         }
         await sleepMs2(2e3);
-        const text = htmlToPlainText(fields.post ?? "").slice(0, this.maxLength());
+        const text = stripComposerBodyForEditor("normal", fields.post ?? "").slice(0, this.maxLength());
         const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
         await sleepMs2(2e3);
         await this.publishThread(integration.internal_id, integration.token, creationId);
@@ -16768,7 +16990,7 @@ function createLinkedInPostPayload(authorId, authorType, message, mediaIds, isPd
   };
 }
 async function publishLinkedInPost(authorId, accessToken2, postDetails, authorType) {
-  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
   const settings = resolveLinkedInSettings(postDetails.settings);
   const mediaIds = await processMediaForPost(postDetails, accessToken2, authorId, authorType);
   const isPdf = Boolean(settings.post_as_images_carousel && mediaIds.length === 1);
@@ -16802,7 +17024,7 @@ async function publishLinkedInPost(authorId, accessToken2, postDetails, authorTy
   };
 }
 async function publishLinkedInComment(authorId, accessToken2, parentPostId, postDetails, authorType) {
-  const message = htmlToPlainText(postDetails.message ?? "").trim();
+  const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
   const actor = authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
   const res = await fetch(
     `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(parentPostId)}/comments`,
@@ -16837,7 +17059,7 @@ var init_linkedinPublish = __esm({
     init_upload_factory();
     init_MediaRepository();
     init_repositories();
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     init_tiktokPublishValidation();
     init_linkedinSettings();
     init_linkedinCommon();
@@ -16909,7 +17131,7 @@ async function runLinkedInAutoPlugPost(integration, postId, fields, authorType) 
   const totalLikes = await fetchLinkedInPostLikes(integration.token, postId);
   if (totalLikes < threshold) return false;
   await sleepMs3(2e3);
-  const text = fixLinkedInCommentary(htmlToPlainText(fields.post ?? "").trim());
+  const text = fixLinkedInCommentary(stripComposerBodyForEditor("normal", fields.post ?? ""));
   if (text.length < 3) return false;
   const actor = `urn:li:organization:${integration.internal_id}`;
   const res = await fetch(
@@ -16939,7 +17161,7 @@ var init_linkedinPlugs = __esm({
     init_makeId();
     init_linkedinPublish();
     init_linkedinCommon();
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     LINKEDIN_INTERNAL_PLUG_CATALOG = [
       {
         identifier: "linkedin-add-comment",
@@ -18961,7 +19183,7 @@ function resolveXSettings(settings) {
   return out;
 }
 function buildTweetText(message, _settings) {
-  return htmlToPlainText(message ?? "").trim();
+  return stripComposerBodyForEditor("normal", message ?? "");
 }
 function validateTweetWeightedLength(text, maxLength) {
   const parsed = twitterText__default.default.parseTweet(text);
@@ -19000,7 +19222,7 @@ function buildTweetPayload(text, settings, mediaIds, replyToTweetId) {
 var REPLY_SETTING_VALUES;
 var init_xPublish = __esm({
   "integrations/providers/x/xPublish.ts"() {
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     REPLY_SETTING_VALUES = /* @__PURE__ */ new Set([
       "following",
       "mentionedUsers",
@@ -19105,7 +19327,7 @@ async function runXAutoPlugPost(client, tweetId, fields, publishReply) {
   const likes = await fetchXTweetLikeCount(client, tweetId);
   if (likes < threshold) return false;
   await sleepMs5(2e3);
-  const text = htmlToPlainText(fields.post ?? "").trim();
+  const text = stripComposerBodyForEditor("normal", fields.post ?? "");
   if (text.length < 3) return false;
   await publishReply(text, tweetId);
   return true;
@@ -19121,7 +19343,7 @@ async function runXRepostPostUsersPlug(acting, _original, tweetId, _information,
 var X_GLOBAL_PLUG_CATALOG, X_INTERNAL_PLUG_CATALOG;
 var init_xPlugs = __esm({
   "integrations/providers/x/xPlugs.ts"() {
-    init_htmlToPlain();
+    init_stripComposerBodyForEditor();
     init_xAnalytics();
     init_xErrors();
     X_GLOBAL_PLUG_CATALOG = [
@@ -19192,7 +19414,7 @@ var init_xProvider = __esm({
     XProvider = class {
       identifier = "x";
       name = "X";
-      editor = "normal";
+      editor = "html";
       isBetweenSteps = false;
       scopes = ["tweet.read", "tweet.write", "users.read", "offline.access"];
       rules = "Posts support plain text with up to four images or one video. Standard accounts have a 280 weighted character limit; Verified (Premium) accounts may use up to 4000. Thread replies chain as quote-less replies. OAuth tokens are long-lived \u2014 reconnect on auth errors.";
@@ -19692,7 +19914,8 @@ async function fetchDevtoOrganizationOptions(apiKey) {
 async function publishDevtoArticle(accessToken2, postDetails) {
   const settings = resolveDevtoSettings(postDetails.settings);
   const mainImageUrl = settings.mainImagePath ? resolveDevtoPublicMediaUrl(settings.mainImagePath) : void 0;
-  const payload = buildDevtoArticlePayload(settings, postDetails.message ?? "", mainImageUrl);
+  const bodyMarkdown = stripComposerBodyForEditor("markdown", postDetails.message ?? "");
+  const payload = buildDevtoArticlePayload(settings, bodyMarkdown, mainImageUrl);
   const res = await fetch(`${DEVTO_API_BASE}/articles`, {
     method: "POST",
     headers: devtoHeaders(accessToken2),
@@ -19721,6 +19944,7 @@ async function publishDevtoArticle(accessToken2, postDetails) {
 var DEVTO_API_BASE;
 var init_devtoPublish = __esm({
   "integrations/providers/devto/devtoPublish.ts"() {
+    init_stripComposerBodyForEditor();
     init_resolveDevtoSettings();
     init_ProviderIntegrationErrors();
     init_MediaRepository();
@@ -21951,6 +22175,7 @@ var init_PostsService = __esm({
   "services/PostsService.ts"() {
     init_PostDTO();
     init_PostDTO();
+    init_stripComposerBodyForEditor();
     init_AppError();
     init_ProviderIntegrationErrors();
     init_GlobalConfig();
@@ -22077,6 +22302,7 @@ var init_PostsService = __esm({
           bodiesByIntegrationId,
           providerSettingsByIntegrationId,
           media,
+          mediaByIntegrationId,
           integrationIds,
           isGlobal,
           scheduledAtIso,
@@ -22109,14 +22335,25 @@ var init_PostsService = __esm({
         if (status === "scheduled" && uniqueIds.length === 0) {
           throw new AppError("Select at least one channel to schedule", 400);
         }
-        const mediaCount = Array.isArray(media) ? media.length : 0;
+        const mediaCountForIntegration = (integrationId) => {
+          const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
+          return Array.isArray(rowMedia) ? rowMedia.length : 0;
+        };
         for (const integrationId of uniqueIds) {
           const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
           if (!providerIdentifier) continue;
           const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
-          const message = provider?.validateCreatePost?.({ status, mediaCount });
-          if (typeof message === "string" && message.trim().length > 0) {
-            throw new AppError(message, 400);
+          if (!provider) continue;
+          const rawMessage = isGlobal ? body : bodiesByIntegrationId?.[integrationId] ?? body;
+          const publishMessage = stripComposerBodyForEditor(provider.editor, rawMessage);
+          const validationMessage = provider.validateCreatePost?.({
+            status,
+            mediaCount: mediaCountForIntegration(integrationId),
+            message: publishMessage,
+            rawMessage
+          });
+          if (typeof validationMessage === "string" && validationMessage.trim().length > 0) {
+            throw new AppError(validationMessage, 400);
           }
         }
         const scheduledDate = new Date(scheduledAtIso);
@@ -22140,7 +22377,8 @@ var init_PostsService = __esm({
         const baseSettings = { isGlobal, repeatInterval: repeatInterval ?? null };
         const intervalDays = repeatIntervalToDays(repeatInterval);
         const state = status === "draft" ? "DRAFT" : "QUEUE";
-        const imageColumn = media && media.length > 0 ? JSON.stringify({ v: 1, items: media }) : null;
+        const serializeImageColumn = (items) => items && items.length > 0 ? JSON.stringify({ v: 1, items }) : null;
+        const globalImageColumn = serializeImageColumn(media);
         const baseRow = {
           state,
           publish_date: publishIso,
@@ -22154,7 +22392,7 @@ var init_PostsService = __esm({
           release_id: null,
           release_url: null,
           settings: JSON.stringify(baseSettings),
-          image: imageColumn,
+          image: globalImageColumn,
           interval_in_days: intervalDays,
           error: null,
           deleted_at: null,
@@ -22167,15 +22405,19 @@ var init_PostsService = __esm({
         if (uniqueIds.length === 0) {
           toInsert = [{ ...baseRow, integration_id: null }];
         } else {
-          toInsert = uniqueIds.map((integrationId) => ({
-            ...baseRow,
-            integration_id: integrationId,
-            content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content,
-            settings: JSON.stringify({
-              ...baseSettings,
-              providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null
-            })
-          }));
+          toInsert = uniqueIds.map((integrationId) => {
+            const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
+            return {
+              ...baseRow,
+              integration_id: integrationId,
+              content: bodiesByIntegrationId && typeof bodiesByIntegrationId[integrationId] === "string" ? bodiesByIntegrationId[integrationId] : baseRow.content,
+              image: serializeImageColumn(rowMedia),
+              settings: JSON.stringify({
+                ...baseSettings,
+                providerSettings: providerSettingsByIntegrationId?.[integrationId] ?? null
+              })
+            };
+          });
         }
         if (state === "QUEUE") {
           await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
@@ -22496,6 +22738,11 @@ var init_PostsService = __esm({
           if (!r.integration_id) continue;
           bodiesByIntegrationId[r.integration_id] = r.content ?? "";
         }
+        const mediaByIntegrationId = {};
+        for (const r of rows) {
+          if (!r.integration_id) continue;
+          mediaByIntegrationId[r.integration_id] = parsePostImageColumn(r.image);
+        }
         const media = parsePostImageColumn(rows[0].image);
         const tags = await this.postsRepository.listTagsForPostIds(rows.map((r) => r.id));
         const tagNames = tags.map((t) => t.name).filter(Boolean);
@@ -22519,6 +22766,7 @@ var init_PostsService = __esm({
           body,
           bodiesByIntegrationId,
           media,
+          mediaByIntegrationId,
           tagNames,
           postIds: rows.map((r) => r.id),
           ...Object.keys(providerSettingsByIntegrationId).length > 0 ? { providerSettingsByIntegrationId } : {}
@@ -22638,6 +22886,19 @@ var init_PostsService = __esm({
               }));
             }
           }
+          let providerSettings;
+          if (row.integration_id) {
+            const parsed = this.parsePostRowProviderSettings(row.settings);
+            const merged = await this.augmentComposerProviderSettingsFromDb(
+              postId,
+              row.organization_id,
+              row.integration_id,
+              parsed
+            );
+            if (merged && typeof merged === "object" && Object.keys(merged).length > 0) {
+              providerSettings = merged;
+            }
+          }
           return {
             id: row.id,
             postGroup: row.post_group,
@@ -22652,7 +22913,8 @@ var init_PostsService = __esm({
             channelPictureUrl,
             threadReplies,
             threadFinisher,
-            delayedEngagementReply
+            delayedEngagementReply,
+            ...providerSettings ? { providerSettings } : {}
           };
         };
         const resolvePreviewPlanFlags = async (organizationId) => {
@@ -23133,6 +23395,7 @@ var init_PostsService = __esm({
           body: input.body,
           bodiesByIntegrationId: input.bodiesByIntegrationId ?? null,
           media: input.media ?? null,
+          mediaByIntegrationId: input.mediaByIntegrationId ?? null,
           integrationIds: input.integrationIds,
           isGlobal: input.isGlobal,
           scheduledAtIso: input.scheduledAtIso,
@@ -23157,6 +23420,7 @@ var init_PostsService = __esm({
           body,
           bodiesByIntegrationId,
           media,
+          mediaByIntegrationId,
           integrationIds,
           isGlobal,
           scheduledAtIso,
@@ -23186,6 +23450,7 @@ var init_PostsService = __esm({
           bodiesByIntegrationId: bodiesByIntegrationId ?? null,
           providerSettingsByIntegrationId: providerSettingsByIntegrationId ?? null,
           media: media ?? null,
+          mediaByIntegrationId: mediaByIntegrationId ?? null,
           integrationIds,
           isGlobal,
           scheduledAtIso,
@@ -26139,8 +26404,225 @@ var init_TrackService = __esm({
   }
 });
 
+// services/InternalOpsEmailService.ts
+function escapeHtml2(value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function textToHtml(text) {
+  return `<pre style="font-family:monospace;white-space:pre-wrap">${escapeHtml2(text)}</pre>`;
+}
+function parseRecipientList(raw) {
+  return raw.split(",").map((entry) => entry.trim()).filter(Boolean);
+}
+var DEFAULT_SUPPORT_EMAIL, InternalOpsEmailService;
+var init_InternalOpsEmailService = __esm({
+  "services/InternalOpsEmailService.ts"() {
+    init_GlobalConfig();
+    init_Logger();
+    DEFAULT_SUPPORT_EMAIL = "admin@openquok.com";
+    InternalOpsEmailService = class {
+      constructor(emailService2, companyService2, transactionalNotificationEmail) {
+        this.emailService = emailService2;
+        this.companyService = companyService2;
+        this.transactionalNotificationEmail = transactionalNotificationEmail;
+      }
+      notifyFeedbackCreated(payload) {
+        const lines = [
+          `Type: ${payload.feedbackType}`,
+          `URL: ${payload.url}`,
+          `Description: ${payload.description}`,
+          payload.email ? `Email: ${payload.email}` : null,
+          payload.userId ? `User id: ${payload.userId}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: feedback",
+          text: lines.join("\n"),
+          replyTo: payload.email
+        });
+      }
+      notifyAcquisitionSurveySubmitted(payload) {
+        const lines = [
+          payload.userEmail ? `User email: ${payload.userEmail}` : null,
+          `User id: ${payload.userId}`,
+          `Skipped: ${payload.skipped ? "yes" : "no"}`,
+          `Source: ${payload.source}`,
+          payload.otherDetail ? `Other detail: ${payload.otherDetail}` : null,
+          payload.organizationId ? `Organization id: ${payload.organizationId}` : null,
+          payload.subscriptionId ? `Subscription id: ${payload.subscriptionId}` : null,
+          payload.utm ? `UTM: ${payload.utm}` : null,
+          payload.landingUrl ? `Landing URL: ${payload.landingUrl}` : null,
+          payload.referrer ? `Referrer: ${payload.referrer}` : null
+        ].filter((line) => Boolean(line));
+        void this.sendOpsAlert({
+          subject: "OpenQuok: acquisition survey",
+          text: lines.join("\n"),
+          replyTo: payload.userEmail
+        });
+      }
+      async resolveRecipients() {
+        const override = config.ops?.alertEmail?.trim();
+        if (override) {
+          const parsed = parseRecipientList(override);
+          if (parsed.length > 0) return parsed;
+        }
+        const { SUPPORT_EMAIL: SUPPORT_EMAIL2 } = await this.companyService.getCompanyInformationByProperties([
+          "SUPPORT_EMAIL"
+        ]);
+        const supportEmail = SUPPORT_EMAIL2?.trim() || DEFAULT_SUPPORT_EMAIL;
+        return [supportEmail];
+      }
+      async sendOpsAlert(params) {
+        if (!this.emailService.isEnabled) {
+          logger.info({
+            msg: "[InternalOpsEmail] Email disabled; skipping ops alert",
+            subject: params.subject
+          });
+          return;
+        }
+        const recipients = await this.resolveRecipients();
+        if (recipients.length === 0) {
+          logger.warn({
+            msg: "[InternalOpsEmail] No ops alert recipients configured",
+            subject: params.subject
+          });
+          return;
+        }
+        const transport = config.bullmq.notificationEmail?.transport ?? "in_process";
+        const html = textToHtml(params.text);
+        const replyTo = params.replyTo?.trim() || void 0;
+        try {
+          for (const to of recipients) {
+            if (transport === "bullmq") {
+              await this.transactionalNotificationEmail.enqueueSendPlainJob({
+                to,
+                subject: params.subject,
+                html,
+                replyTo
+              });
+            } else {
+              await this.emailService.sendPlain({
+                to,
+                subject: params.subject,
+                text: params.text,
+                html,
+                replyTo
+              });
+            }
+          }
+        } catch (err) {
+          logger.warn({
+            msg: "[InternalOpsEmail] Ops alert email failed",
+            subject: params.subject,
+            error: err instanceof Error ? err.message : String(err)
+          });
+        }
+      }
+    };
+  }
+});
+
+// services/AcquisitionSurveyService.ts
+var SKIPPED_SOURCE_SLUG, AcquisitionSurveyService;
+var init_AcquisitionSurveyService = __esm({
+  "services/AcquisitionSurveyService.ts"() {
+    init_GlobalConfig();
+    init_AppError();
+    init_UserError();
+    SKIPPED_SOURCE_SLUG = "skipped";
+    AcquisitionSurveyService = class {
+      constructor(acquisitionSurveyRepository2, subscriptionService2, userService2, internalOpsEmailService2) {
+        this.acquisitionSurveyRepository = acquisitionSurveyRepository2;
+        this.subscriptionService = subscriptionService2;
+        this.userService = userService2;
+        this.internalOpsEmailService = internalOpsEmailService2;
+      }
+      async getStatus(authUserId) {
+        const userId = await this.resolveUserId(authUserId);
+        const existing = await this.acquisitionSurveyRepository.findByUserId(userId);
+        if (existing) {
+          return {
+            eligible: false,
+            submitted: true,
+            skipped: existing.skipped,
+            source: existing.skipped ? void 0 : existing.source
+          };
+        }
+        const eligible = await this.isEligibleForSurvey(authUserId);
+        return {
+          eligible,
+          submitted: false,
+          skipped: false
+        };
+      }
+      async submitSurvey(authUserId, body, options2) {
+        const userId = await this.resolveUserId(authUserId);
+        const existing = await this.acquisitionSurveyRepository.findByUserId(userId);
+        if (existing) {
+          throw new AppError("Acquisition survey already submitted", 409);
+        }
+        const eligible = await this.isEligibleForSurvey(authUserId);
+        if (!eligible) {
+          throw new AppError("Not eligible for acquisition survey", 403);
+        }
+        const skipped = body.skipped === true;
+        const ownedSubscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        const id = await this.acquisitionSurveyRepository.insert({
+          userId,
+          source: skipped ? SKIPPED_SOURCE_SLUG : body.source,
+          otherDetail: skipped ? null : body.otherDetail ?? null,
+          utm: body.utm ?? null,
+          landingUrl: body.landingUrl ?? null,
+          referrer: body.referrer ?? null,
+          organizationId: body.organizationId ?? ownedSubscription?.organization_id ?? null,
+          subscriptionId: ownedSubscription?.identifier ?? ownedSubscription?.id ?? null,
+          skipped
+        });
+        this.internalOpsEmailService.notifyAcquisitionSurveySubmitted({
+          userEmail: options2?.userEmail,
+          userId,
+          source: skipped ? SKIPPED_SOURCE_SLUG : body.source,
+          skipped,
+          otherDetail: skipped ? null : body.otherDetail ?? null,
+          organizationId: body.organizationId ?? ownedSubscription?.organization_id ?? null,
+          subscriptionId: ownedSubscription?.identifier ?? ownedSubscription?.id ?? null,
+          utm: body.utm ?? null,
+          landingUrl: body.landingUrl ?? null,
+          referrer: body.referrer ?? null
+        });
+        return { id };
+      }
+      async resolveUserId(authUserId) {
+        const profile = await this.userService.getProfile(authUserId);
+        if (!profile?.id) {
+          throw new UserNotFoundError(authUserId);
+        }
+        return profile.id;
+      }
+      async isEligibleForSurvey(authUserId) {
+        if (!this.subscriptionService.billingEnabled()) {
+          return false;
+        }
+        const ownedSubscription = await this.subscriptionService.getOwnedAccountSubscription(authUserId);
+        if (!ownedSubscription) {
+          return false;
+        }
+        const eligibleFromRaw = config.acquisitionSurvey?.eligibleFrom ?? "";
+        const eligibleFromMs = Date.parse(eligibleFromRaw);
+        if (!Number.isFinite(eligibleFromMs)) {
+          return false;
+        }
+        const subscriptionCreatedMs = Date.parse(ownedSubscription.created_at);
+        if (!Number.isFinite(subscriptionCreatedMs)) {
+          return false;
+        }
+        return subscriptionCreatedMs >= eligibleFromMs;
+      }
+    };
+  }
+});
+
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, notificationService, refreshIntegrationService, authenticationService, companyService, marketingService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -26176,6 +26658,8 @@ var init_services = __esm({
     init_SubscriptionGuardService();
     init_StripeService();
     init_TrackService();
+    init_InternalOpsEmailService();
+    init_AcquisitionSurveyService();
     init_GlobalConfig();
     init_AuthenticationService();
     init_UserService();
@@ -26203,6 +26687,8 @@ var init_services = __esm({
     init_SubscriptionGuardService();
     init_StripeService();
     init_TrackService();
+    init_InternalOpsEmailService();
+    init_AcquisitionSurveyService();
     integrationManager = new IntegrationManager();
     userService = new UserService(
       userRepository,
@@ -26215,6 +26701,13 @@ var init_services = __esm({
     });
     transactionalNotificationEmailService = new TransactionalNotificationEmailService(
       organizationRepository
+    );
+    companyService = new CompanyService(configRepository, cacheServiceConnection);
+    marketingService = new MarketingService(configRepository, cacheServiceConnection);
+    internalOpsEmailService = new InternalOpsEmailService(
+      emailService,
+      companyService,
+      transactionalNotificationEmailService
     );
     notificationService = new NotificationService(
       notificationRepository,
@@ -26236,8 +26729,6 @@ var init_services = __esm({
       userService,
       emailService
     );
-    companyService = new CompanyService(configRepository, cacheServiceConnection);
-    marketingService = new MarketingService(configRepository, cacheServiceConnection);
     rbacService = new RbacService(
       rbacRepository,
       cacheServiceConnection,
@@ -26246,7 +26737,8 @@ var init_services = __esm({
     feedbackService = new FeedbackService(
       feedbackRepository,
       cacheServiceConnection,
-      cacheInvalidationServiceConnection
+      cacheInvalidationServiceConnection,
+      internalOpsEmailService
     );
     configService = new ConfigService(
       configRepository,
@@ -26351,6 +26843,12 @@ var init_services = __esm({
       userRepository
     );
     trackService = new TrackService();
+    acquisitionSurveyService = new AcquisitionSurveyService(
+      acquisitionSurveyRepository,
+      subscriptionService,
+      userService,
+      internalOpsEmailService
+    );
     mediaService = new MediaService(mediaRepository);
     signatureService = new SignatureService(
       signatureRepository,
@@ -30307,6 +30805,7 @@ var init_PostsController = __esm({
             body: b.body ?? "",
             bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
             media: b.media ?? null,
+            mediaByIntegrationId: b.mediaByIntegrationId ?? null,
             integrationIds: b.integrationIds ?? [],
             isGlobal: b.isGlobal ?? true,
             scheduledAtIso: b.scheduledAt,
@@ -30435,6 +30934,7 @@ var init_PostsController = __esm({
             body: b.body ?? "",
             bodiesByIntegrationId: b.bodiesByIntegrationId ?? null,
             media: b.media ?? null,
+            mediaByIntegrationId: b.mediaByIntegrationId ?? null,
             integrationIds: b.integrationIds ?? [],
             isGlobal: b.isGlobal ?? true,
             scheduledAtIso: b.scheduledAt,
@@ -31475,7 +31975,8 @@ var init_controllers = __esm({
       userSessionService,
       organizationService,
       subscriptionService,
-      stripeService
+      stripeService,
+      acquisitionSurveyService
     );
     companyController = new CompanyController(companyService, marketingService);
     trackController = new TrackController(trackService);
@@ -32361,6 +32862,53 @@ var validateChangeOrganizationRequest = validateRequest({
 var validateJoinOrganizationRequest = validateRequest({
   body: joinOrganizationBodySchema
 });
+var ACQUISITION_SURVEY_SOURCE_SLUGS = [
+  "search_engine",
+  "reddit",
+  "x",
+  "chatgpt",
+  "youtube",
+  "launch_platform",
+  "openquok_blog",
+  "recommendation",
+  "tiktok",
+  "email_outreach",
+  "ads",
+  "newsletter",
+  "podcast",
+  "linkedin",
+  "other"
+];
+var acquisitionSurveySourceSchema = zod.z.enum(ACQUISITION_SURVEY_SOURCE_SLUGS);
+var submitAcquisitionSurveyBodySchema = zod.z.object({
+  source: acquisitionSurveySourceSchema.optional(),
+  skipped: zod.z.boolean().optional(),
+  otherDetail: zod.z.string().trim().max(200, "otherDetail must be at most 200 characters").optional(),
+  organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional(),
+  utm: zod.z.string().trim().max(2048).optional(),
+  landingUrl: zod.z.string().trim().max(2048).optional(),
+  referrer: zod.z.string().trim().max(2048).optional()
+}).superRefine((data, ctx) => {
+  const skipped = data.skipped === true;
+  if (skipped) return;
+  if (!data.source) {
+    ctx.addIssue({
+      code: zod.z.ZodIssueCode.custom,
+      message: "source is required when skipped is not true",
+      path: ["source"]
+    });
+  }
+  if (data.source === "other" && !data.otherDetail?.trim()) {
+    ctx.addIssue({
+      code: zod.z.ZodIssueCode.custom,
+      message: "otherDetail is required when source is other",
+      path: ["otherDetail"]
+    });
+  }
+});
+var validateSubmitAcquisitionSurveyRequest = validateRequest({
+  body: submitAcquisitionSurveyBodySchema
+});
 var approvedAppAuthorizationIdParamSchema = zod.z.object({
   id: zod.z.string().uuid("Invalid authorization id")
 });
@@ -32872,6 +33420,13 @@ userRouter.get(
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
+userRouter.get("/me/acquisition-survey", authWithRoles, userController.getAcquisitionSurveyStatus);
+userRouter.post(
+  "/me/acquisition-survey",
+  authWithRoles,
+  validateSubmitAcquisitionSurveyRequest,
+  userController.submitAcquisitionSurvey
+);
 userRouter.get("/organizations", authWithRoles, userController.listOrganizations);
 userRouter.get("/subscription/tiers", authWithRoles, userController.getSubscriptionTiers);
 userRouter.get("/subscription", authWithRoles, userController.getSubscription);
@@ -33225,7 +33780,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-26T07:03:16.577Z",
+  generated: "2026-08-28T13:02:25.347Z",
   routes: [
     {
       path: "/docs",
@@ -37261,6 +37816,12 @@ var createPostBodySchema = zod.z.object({
   bodiesByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.string().max(5e4)).optional(),
   /** Attached images (storage paths in `blog_images`); persisted as JSON in `posts.image`. */
   media: zod.z.array(mediaItemSchema).max(20).optional(),
+  /**
+   * Optional per-channel media overrides (customize mode).
+   * Keys are integration IDs; values are attachment lists for that integration's post row.
+   * When omitted for a channel, {@link media} is used for that row.
+   */
+  mediaByIntegrationId: zod.z.record(zod.z.string().uuid(), zod.z.array(mediaItemSchema).max(20)).optional(),
   integrationIds: zod.z.array(zod.z.string().uuid()).optional(),
   isGlobal: zod.z.boolean().optional(),
   scheduledAt: zod.z.string().min(1, "Schedule time is required"),

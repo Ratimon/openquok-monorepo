@@ -2,7 +2,7 @@ import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte
 import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
-import { uploadSocialPostComposerMediaFiles } from '$lib/posts';
+import { uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 
 /** Preview `src` for composer media: local blob URLs first, then public storage URLs. */
 export function postMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): string[] {

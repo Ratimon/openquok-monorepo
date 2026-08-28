@@ -323,16 +323,17 @@ export const config: ConfigObject = {
 
     /**
      * Long-running BullMQ workers (`orchestrator/worker/*`): health HTTP and observability.
-     * Health port: host `PORT` (Railway) when set, else `ORCHESTRATOR_WORKER_HEALTH_PORT`, else `3091`.
-     * Set `ORCHESTRATOR_WORKER_HEALTH_PORT=0` to disable the listener.
+     * Health port: `ORCHESTRATOR_WORKER_HEALTH_PORT=0` disables; else explicit
+     * `ORCHESTRATOR_WORKER_HEALTH_PORT` (local dev worker scripts set `3091` so API `PORT` can stay `3000`);
+     * else host `PORT` (Railway); else `3091`.
      */
     orchestratorWorker: {
         healthPort: (() => {
-            const disable = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
-            if (disable === 0) return 0;
+            const configured = getEnvNumber("ORCHESTRATOR_WORKER_HEALTH_PORT", -1);
+            if (configured === 0) return 0;
+            if (configured > 0) return configured;
             const hostPort = getEnvNumber("PORT", 0);
             if (hostPort > 0) return hostPort;
-            if (disable > 0) return disable;
             return 3091;
         })(),
     },
@@ -417,6 +418,19 @@ export const config: ConfigObject = {
     marketing: {
         facebookPixelId: getEnvTrimmed("FACEBOOK_PIXEL_ID", ""),
         facebookPixelAccessToken: getEnvTrimmed("FACEBOOK_PIXEL_ACCESS_TOKEN", ""),
+    },
+
+    /**
+     * Post-conversion acquisition survey — subscriptions created before `eligibleFrom` are never prompted.
+     * ISO-8601 instant (e.g. `2026-08-28T00:00:00.000Z`).
+     */
+    acquisitionSurvey: {
+        eligibleFrom: getEnvTrimmed("ACQUISITION_SURVEY_ELIGIBLE_FROM", "2026-08-28T00:00:00.000Z"),
+    },
+
+    /** Internal platform ops alerts (acquisition survey, feedback). Comma-separated override for SUPPORT_EMAIL. */
+    ops: {
+        alertEmail: getEnvTrimmed("OPS_ALERT_EMAIL", ""),
     },
 
     /** Stripe billing (workspace subscriptions). */

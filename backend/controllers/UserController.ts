@@ -13,6 +13,7 @@ import type { UserSessionService } from "../services/UserSessionService";
 import type { OrganizationService } from "../services/OrganizationService";
 import type { SubscriptionService } from "../services/SubscriptionService";
 import type { StripeService } from "../services/StripeService";
+import type { AcquisitionSurveyService } from "../services/AcquisitionSurveyService";
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError, UserAuthorizationError } from "../errors/UserError";
 import { ValidationError, InfraError } from "../errors/InfraError";
@@ -32,6 +33,8 @@ import type {
     ValidateChangeOrganizationRequestHandler,
     ValidateJoinOrganizationRequestHandler,
 } from "../data/schemas/userSchemas";
+import type { ValidateSubmitAcquisitionSurveyRequestHandler } from "../data/schemas/acquisitionSurveySchemas";
+import type { SubmitAcquisitionSurveyBody } from "../data/schemas/acquisitionSurveySchemas";
 
 const serverConfig = config.server as { frontendDomainUrl?: string };
 
@@ -43,7 +46,8 @@ export class UserController {
         private readonly userSessionService: UserSessionService,
         private readonly organizationService: OrganizationService,
         private readonly subscriptionService: SubscriptionService,
-        private readonly stripeService: StripeService
+        private readonly stripeService: StripeService,
+        private readonly acquisitionSurveyService: AcquisitionSurveyService
     ) {}
 
     /**
@@ -368,6 +372,49 @@ export class UserController {
         try {
             const tiers = await this.stripeService.getPackages();
             res.status(200).json({ success: true, data: tiers });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** GET /users/me/acquisition-survey — eligibility and submission status for the current user. */
+    getAcquisitionSurveyStatus = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+
+            const status = await this.acquisitionSurveyService.getStatus(authUserId);
+            res.status(200).json({ success: true, data: status });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    /** POST /users/me/acquisition-survey — submit or skip the one-time attribution survey. */
+    submitAcquisitionSurvey: ValidateSubmitAcquisitionSurveyRequestHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+
+            const body = req.body as SubmitAcquisitionSurveyBody;
+            const result = await this.acquisitionSurveyService.submitSurvey(authUserId, body, {
+                userEmail: authReq.user?.email,
+            });
+            res.status(201).json({
+                success: true,
+                data: result,
+                message: "Acquisition survey saved",
+            });
         } catch (error) {
             next(error);
         }

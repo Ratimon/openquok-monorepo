@@ -8,6 +8,10 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import AccountSidebarTourParagraph from '$lib/ui/components/onboarding/AccountSidebarTourParagraph.svelte';
+	import {
+		ONBOARDING_MODAL_DESCRIPTION_CLASS,
+		ONBOARDING_MODAL_TITLE_CLASS
+	} from '$lib/ui/components/onboarding/onboardingConstants';
 	import * as Dialog from '$lib/ui/dialog';
 
 	const ACCOUNT_SIDEBAR_TOUR_DIALOG_CLASS =
@@ -86,10 +90,10 @@
 						class="text-primary-content/90"
 					/>
 				</div>
-				<Dialog.Title class="pe-14 font-serif text-2xl font-bold tracking-tight text-primary-content">
+				<Dialog.Title class={cn(ONBOARDING_MODAL_TITLE_CLASS, 'pe-14')}>
 					{step.title}
 				</Dialog.Title>
-				<Dialog.Description class="mt-2 max-w-md text-sm leading-snug text-primary-content/90">
+				<Dialog.Description class={cn(ONBOARDING_MODAL_DESCRIPTION_CLASS, 'max-w-md')}>
 					{step.subtitle}
 				</Dialog.Description>
 			</div>

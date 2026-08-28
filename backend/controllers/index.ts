@@ -55,6 +55,7 @@ import {
     setsService,
     analyticsService,
     userSessionService,
+    acquisitionSurveyService,
 } from "../services/index";
 import { TrackController } from "./TrackController";
 import { subscriptionRepository } from "../repositories/index";
@@ -76,7 +77,8 @@ export const userController = new UserController(
     userSessionService,
     organizationService,
     subscriptionService,
-    stripeService
+    stripeService,
+    acquisitionSurveyService
 );
 export const companyController = new CompanyController(companyService, marketingService);
 export const trackController = new TrackController(trackService);

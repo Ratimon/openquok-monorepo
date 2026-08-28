@@ -9,6 +9,7 @@ import {
     validateChangeOrganizationRequest,
     validateJoinOrganizationRequest,
 } from "../data/schemas/userSchemas";
+import { validateSubmitAcquisitionSurveyRequest } from "../data/schemas/acquisitionSurveySchemas";
 import { validateApprovedAppAuthorizationIdParam } from "../data/schemas/approvedAppsSchemas";
 import {
     requireFullAuthWithRoles,
@@ -39,6 +40,13 @@ userRouter.get(
 userRouter.patch("/me", authWithRoles, validateUpdateProfileRequest, userController.updateProfile);
 userRouter.put("/me/password", authWithRoles, validateUpdatePasswordMeRequest, userController.updatePasswordMe);
 userRouter.post("/me/request-change-password", authWithRoles, userController.requestChangePasswordEmail);
+userRouter.get("/me/acquisition-survey", authWithRoles, userController.getAcquisitionSurveyStatus);
+userRouter.post(
+    "/me/acquisition-survey",
+    authWithRoles,
+    validateSubmitAcquisitionSurveyRequest,
+    userController.submitAcquisitionSurvey
+);
 
 userRouter.get("/organizations", authWithRoles, userController.listOrganizations);
 userRouter.get("/subscription/tiers", authWithRoles, userController.getSubscriptionTiers);

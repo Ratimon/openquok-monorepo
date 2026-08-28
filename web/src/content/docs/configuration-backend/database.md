@@ -2,7 +2,7 @@
 title: Database & migrations
 description: Supabase CLI, migrations, pg_cron notes, and type generation for OpenQuok.
 order: 6
-lastUpdated: 2026-05-11
+lastUpdated: 2026-08-28
 ---
 
 <script>
@@ -77,7 +77,7 @@ The `user-auth` module includes a cron job that deletes expired rows in `public.
 
 After you enable <code>pg&#95;cron</code> on Supabase Cloud, push the migrations so the cron job becomes active.
 
-When you use the “Production-linked Supabase” commands on the local development page, run these (in `backend/`):
+When you push schema to a linked production project (in `backend/`):
 
 ```bash
 pnpm db:production:migration-list
@@ -85,6 +85,10 @@ pnpm db:production:push-db:dry-run
 pnpm db:production:typegen
 pnpm db:production:push-db
 ```
+
+<Callout type="tip" title="SQL editor + migration repair">
+<p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>migration repair --linked --status applied &lt;YYYYMMDD&gt;</code> afterward so CLI history matches the remote. Full operator steps (RLS in one batch, dry-run vs push) are on <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a>.</p>
+</Callout>
 
 ## Supabase Cloud notes (pg_cron)
 

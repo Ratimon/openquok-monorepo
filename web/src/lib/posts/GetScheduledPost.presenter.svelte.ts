@@ -13,7 +13,7 @@ import type {
 } from '$lib/posts/Post.repository.svelte';
 
 import { isProfileChannelDisplayName } from '$data/social-providers';
-import { postMediaPreviewUrls } from '$lib/posts/utils/composer';
+import { postMediaPreviewUrls } from '$lib/posts/utils/composer/mediaDrop';
 
 /** Resolved channel label + avatar for a post row (kanban, calendar, modals). */
 export type PostChannelDisplayViewModel = {

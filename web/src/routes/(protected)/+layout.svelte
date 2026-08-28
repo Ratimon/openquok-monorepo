@@ -9,7 +9,9 @@
 	import FirstBilling from '$lib/ui/components/billing/FirstBilling.svelte';
 	import PostsLimitProvider from '$lib/ui/components/posts/PostsLimitProvider.svelte';
 	import ChannelCapProvider from '$lib/ui/components/channels/ChannelCapProvider.svelte';
+	import AcquisitionSurveyModal from '$lib/ui/components/onboarding/AcquisitionSurveyModal.svelte';
 	import { protectedBillingPagePresenter } from '$lib/area-protected';
+	import { acquisitionSurveyPresenter } from '$lib/acquisition';
 	import { firstBillingGatePresenter, ownedAccountBillingPresenter, preloadStripe } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { authenticationRepository } from '$lib/user-auth/index';
@@ -35,6 +37,17 @@
 			firstBillingGatePresenter.checkoutReturnInFlightFor === checkoutId
 	);
 	const currentWorkspaceId = $derived(workspaceSettingsPresenter.currentWorkspaceId);
+	const acquisitionUserId = $derived(currentUser?.id ?? null);
+	const acquisitionGateResolved = $derived(
+		firstBillingGatePresenter.hasResolvedGate(currentWorkspaceId)
+	);
+	const acquisitionGateContext = $derived({
+		isPlatformAdmin,
+		gateResolved: acquisitionGateResolved,
+		restrictFreeUser: firstBillingGatePresenter.restrictFreeUser,
+		workspaceId: currentWorkspaceId,
+		userId: acquisitionUserId
+	});
 
 	/** Hold the shell until billing gate is known — avoids flashing the free dashboard. */
 	const gatePending = $derived(
@@ -50,6 +63,8 @@
 			!checkoutBypass &&
 			!checkoutReturnInFlight
 	);
+
+	const showAppShell = $derived(!gatePending && !showFirstBilling);
 
 	$effect(() => {
 		workspaceSettingsPresenter.currentWorkspaceId;
@@ -76,10 +91,18 @@
 				if (result !== 'pending_confirmation' && subscriptionReady) {
 					firstBillingGatePresenter.markCheckoutResolved(checkoutId);
 				}
+				if (subscriptionReady) {
+					await acquisitionSurveyPresenter.evaluateEligibility(acquisitionGateContext, { force: true });
+				}
 			} finally {
 				firstBillingGatePresenter.endCheckoutReturn();
 			}
 		})();
+	});
+
+	$effect(() => {
+		if (!browser || !showAppShell) return;
+		void acquisitionSurveyPresenter.evaluateEligibility(acquisitionGateContext);
 	});
 </script>
 
@@ -97,4 +120,11 @@
 			{@render children?.()}
 		</ChannelCapProvider>
 	</PostsLimitProvider>
+	<AcquisitionSurveyModal
+		bind:open={acquisitionSurveyPresenter.acquisitionOpen}
+		isSubmitting={acquisitionSurveyPresenter.isSubmitting}
+		gateContext={acquisitionGateContext}
+		onSubmit={(source, otherDetail) =>
+			acquisitionSurveyPresenter.submit(acquisitionGateContext, source, otherDetail)}
+	/>
 {/if}

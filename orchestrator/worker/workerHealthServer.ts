@@ -1,6 +1,5 @@
 import { createServer, type Server } from "node:http";
 import { Queue } from "bullmq";
-import { config } from "backend/config/GlobalConfig.js";
 import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
 
@@ -26,15 +25,24 @@ export type WorkerHealthPayload = {
     error?: string;
 };
 
+function parseEnvPort(key: string): number | null {
+    const raw = process.env[key]?.trim();
+    if (!raw) return null;
+    const parsed = parseInt(raw, 10);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Resolved at listen time from `process.env` (after dotenv), not frozen `config` from `backend/dist`.
+ * Order: ORCHESTRATOR_WORKER_HEALTH_PORT=0 off; else explicit ORCHESTRATOR_WORKER_HEALTH_PORT;
+ * else host PORT (Railway); else 3091.
+ */
 function resolveHealthPort(): number {
-    const workerCfg = config.orchestratorWorker as { healthPort?: number } | undefined;
-    const configured = workerCfg?.healthPort;
-    if (typeof configured === "number" && configured === 0) {
-        return 0;
-    }
-    if (typeof configured === "number" && configured > 0) {
-        return configured;
-    }
+    const configured = parseEnvPort("ORCHESTRATOR_WORKER_HEALTH_PORT");
+    if (configured === 0) return 0;
+    if (configured != null && configured > 0) return configured;
+    const hostPort = parseEnvPort("PORT");
+    if (hostPort != null && hostPort > 0) return hostPort;
     return 3091;
 }
 

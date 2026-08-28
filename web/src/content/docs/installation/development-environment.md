@@ -10,35 +10,35 @@ import { Badge, Callout, Tabs, TabItem, CardGrid, LinkCard, Steps } from '$lib/u
 </script>
 
 <Callout type="warning">
-Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/quick-start">Quick start</a>) and <a href="/docs/configuration-backend">backend</a> / <a href="/docs/configuration-web">web</a> configurations are in place. The sections below assume you run commands from the <strong>repository root</strong> unless noted.
+Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/quick-start">Quick start</a>) and <a href="/docs/configuration-backend">backend</a> / <a href="/docs/configuration-web">web</a> configurations. The sections below assume you run commands from the <strong>repository root</strong> unless noted.
 </Callout>
 
-<Callout type="note" title="Development vs self-host">
+<Callout type="note">
 <p><Badge text="infra/docker-compose.yml" variant="path" /> is for <strong>contributors</strong> working on the hosted openquok.com.</p>
 <p>Those who want <strong>own self-host</strong> should use <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>.</p>
 </Callout>
 
 ### Backend local development
 
-You can work from the **monorepo root** (using scripts defined in the root `package.json`) or change into <Badge text="backend/" variant="path" /> and run the same scripts locally. Pick one.
+You can work from the **monorepo root** (as defined in the root `package.json`) or <Badge text="backend/" variant="path" />. Pick one.
 
-<Callout type="note" title="Cron jobs">
-Some backend features rely on scheduled jobs backed by <code>pg&#95;cron</code> on Supabase.
-For example, the `user-auth` module periodically removes expired rows from `public.refresh_tokens` (every Saturday at **3:30 AM GMT**).
-If you deploy to Supabase Cloud and cron is not enabled, those jobs won’t run even if migrations are pushed.
-See <a href="/docs/configuration-backend/database">Database & migrations</a> for pg_cron setup and migration-push commands.
+<Callout type="note">
+Some backend features rely on <code>pg&#95;cron</code> on Supabase.
+For example, the `user-auth` module periodically removes expired rows from `public.refresh_tokens`.
+If you deploy to Supabase and cron is not enabled, those jobs won’t run even if migrations are pushed.
+See <a href="/docs/configuration-backend/database">Database & migrations</a> for pg_cron setup.
 </Callout>
 
 <Tabs items={["Repository root", "In backend"]}>
 <TabItem label="Repository root">
 
-**Start the API** — runs the backend dev server (`tsx watch` on `app.ts` with `NODE_ENV=development`).
+**Start the API** — runs the backend dev server:
 
 ```bash
 pnpm backend:dev
 ```
 
-**Tests** — Jest unit, integration, and e2e suites for the backend package.
+**Tests** — Jest unit, integration, and e2e suites:
 
 ```bash
 pnpm backend:test:unit
@@ -46,9 +46,9 @@ pnpm backend:test:integration
 pnpm backend:test:e2e
 ```
 
-<Callout type="note" title="Smoke tests">
-<p>Some integration tests are designed to verify connectivity for third-party services (for example R2 or Redis). These tests are <strong>disabled by default</strong> to avoid accidental calls to production.</p>
-<p>To enable them, set the flags below when running the test:</p>
+<Callout type="note">
+<p>Some integration tests are designed to verify connectivity for third-party services (eg. R2 or Redis). They are <strong>disabled by default</strong> to avoid accidental calls to production.</p>
+<p>To enable them, set the flags below:</p>
 <ul>
   <li><Badge text="THIRD_PARTY_TESTS_REDIS=true" variant="envBackend" /></li>
   <li><Badge text="THIRD_PARTY_TESTS_R2=true" variant="envBackend" /></li>
@@ -60,19 +60,19 @@ pnpm backend:test:e2e
 pnpm --filter ./backend test:integration:third-parties:r2
 ```
 
-**Aggregate SQL migrations** — builds the combined migration output used by the repo (see `backend/scripts/aggregate_migrations_all.mjs`).
+**Aggregate SQL migrations** — builds the combined migration output:
 
 ```bash
 pnpm backend:db:aggregate-migrations-all
 ```
 
-**Generate TypeScript types from local Supabase** — writes generated table types for the backend (local `supabase` CLI).
+**Generate TypeScript types from local Supabase** — writes generated table types for the backend:
 
 ```bash
 pnpm backend:db:typegen
 ```
 
-**Production-linked Supabase** — there is no root alias for these; call the backend package from the root with `pnpm --filter`:
+**Production-linked Supabase** — inspect or push schema against the linked remote project (from the repo root):
 
 ```bash
 pnpm --filter ./backend db:production:migration-list
@@ -81,16 +81,20 @@ pnpm --filter ./backend db:production:typegen
 pnpm --filter ./backend db:production:push-db
 ```
 
+<Callout type="note" title="Production deploys">
+<p>For shipping schema to production (SQL editor vs <code>db push</code>, and <code>migration repair</code> after manual SQL), follow <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a>.</p>
+</Callout>
+
 </TabItem>
 <TabItem label="In backend">
 
-**Change directory** — run the following from `backend/` after installing dependencies from the repo root (`pnpm install` at the root).
+**Change directory**
 
 ```bash
 cd backend
 ```
 
-**Start the API** — same behavior as `pnpm backend:dev` from the root.
+**Start the API** — same as `pnpm backend:dev` from the root.
 
 ```bash
 pnpm dev
@@ -116,7 +120,7 @@ pnpm db:aggregate-migrations-all
 pnpm db:local:typegen
 ```
 
-**Production-linked Supabase** — generate types against the linked remote project and push schema changes.
+**Production-linked Supabase** — same commands as the repository-root tab (run from <Badge text="backend/" variant="path" />).
 
 ```bash
 pnpm db:production:migration-list
@@ -125,37 +129,41 @@ pnpm db:production:typegen
 pnpm db:production:push-db
 ```
 
+<Callout type="note" title="Production deploys">
+<p>When applying migrations via the Supabase SQL editor, use <code>migration repair</code> so local and remote history match — see <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a>.</p>
+</Callout>
+
 </TabItem>
 </Tabs>
 
 ### Frontend local development
 
 <Callout type="warning">
-Run the <strong>backend API</strong> before the web app so local pages can call your API. In a <strong>separate terminal</strong>, start the API from the repository root with <code>pnpm backend:dev</code> (or <code>cd backend</code> then <code>pnpm dev</code>), then use the commands below for the frontend.
+Run the <strong>backend API</strong> before the web app so local pages can call your API.
 </Callout>
 
-<Callout type="note" title="HTTPS on localhost">
+<Callout type="note">
 <p>The web dev server serves <strong>HTTPS</strong> at <code>https://localhost:5173</code>. Keep <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> and the backend’s <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> on that exact origin, and follow <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit) → HTTPS local development and the API base URL</a> so API calls and auth cookies stay same-origin.</p>
 </Callout>
 
-You can work from the **monorepo root** (using `web:*` and `pnpm --filter ./web …` scripts) or **change into `web/`** and run package scripts there.
+You can work from the **monorepo root** or **change into `web/`** and run package scripts there.
 
 <Tabs items={["Repository root", "In web"]}>
 <TabItem label="Repository root">
 
-**Start the SvelteKit app** — runs icon generation then the Vite dev server (`pnpm web:dev` in the root `package.json`).
+**Start the SvelteKit app** — runs icon generation then the Vite dev server:
 
 ```bash
 pnpm web:dev
 ```
 
-**Tests** — Vitest unit tests for the `web` package.
+**Tests** — Vitest unit tests:
 
 ```bash
 pnpm --filter ./web test:unit
 ```
 
-**Preview production build** — serves the last `vite build` output locally (build from `web/` first if you need a fresh bundle).
+**Preview production build** — serves the `vite build` output:
 
 ```bash
 pnpm --filter ./web preview
@@ -164,7 +172,7 @@ pnpm --filter ./web preview
 </TabItem>
 <TabItem label="In web">
 
-**Change directory** — run the following from `web/` after installing dependencies from the repo root.
+**Change directory**:
 
 ```bash
 cd web
@@ -198,14 +206,14 @@ If you use <code>CACHE_PROVIDER=redis</code>, run Redis locally or use a managed
 - Local Docker: <a href="/docs/configuration-backend/docker">Docker (local services)</a>
 - Full Redis config: <a href="/docs/configuration-backend/redis">Redis cache</a>
 
-**Workflow-style jobs** can run in the API process (Flowcraft), but the repo also ships **long-running workers** under <Badge text="orchestrator/" variant="path" /> for BullMQ-backed queues. See the worker section below if you enable BullMQ transport.
+**Workflow-style jobs** can run in the API process (Flowcraft), but the repo also ships **long-running workers** under <Badge text="orchestrator/" variant="path" />.
 
 ### Worker Processes (BullMQ)
 
 If you configure orchestrator flows to use BullMQ, the API enqueues jobs to Redis and **separate worker processes** execute them.
 
 <Callout type="note">
-Enable workers when you want long-running background work (for example scheduled social post publishing) to run outside the API process. In production, run workers on an always-on host (see <a href="/docs/configuration-worker">Configuration - Worker</a>).
+Enable workers when you want long-running background work (eg. scheduled social post publishing) to run outside the API process. In production, run workers on an always-on host (see <a href="/docs/configuration-worker">Configuration - Worker</a>).
 </Callout>
 
 **Run local Redis (BullMQ)** — quickest path is Docker Compose:
@@ -228,10 +236,12 @@ Worker env and Redis queue details live in <a href="/docs/configuration-worker/d
 
 ### CLI auth server (device flow)
 
-The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow used by <code>openquok auth:login</code>. Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
+The CLI auth server (<Badge text="agent/server" variant="path" />) implements the OAuth2 device flow.
 
-<Callout type="note" title="CLI and auth server docs">
-<p>Use <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a> to install the CLI, run <code>openquok auth:login</code>, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />. Server-side env (<Badge text="DATABASE_URL" variant="envBackend" />, <Badge text="SERVER_URL" variant="envBackend" />, OAuth keys) is covered under <a href="/docs/configuration-agent">Configuration - Agent</a>.</p>
+Most developers can use the hosted server by default, but you can run it locally for end-to-end testing.
+
+<Callout type="note">
+<p>Use <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a> to install the CLI, run <code>openquok auth:login</code>, and set <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />. Server-side env is covered under <a href="/docs/configuration-agent">Configuration - Agent</a>.</p>
 </Callout>
 
 
@@ -255,14 +265,7 @@ pnpm agent-server:dev
 
 Once running, point the CLI at it via <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> or <code>--authServer</code> — see <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 
-
 ### Running the CLI from the monorepo (unpublished)
-
-Published installs use the global <code>openquok</code> command — see <a href="/docs/getting-started-for-cli">CLI</a>. If <Badge text="@openquok/auto-cli" variant="experimental" /> is **not** installed from npm yet, three monorepo-local paths are available. Pick based on whether you want to skip the build step:
-
-<Callout type="note" title="The pnpm `--` separator">
-<p>pnpm consumes flags it recognizes (<code>--help</code>, <code>--filter</code>, <code>--recursive</code>, …) <strong>before</strong> running your script. To forward arguments to the underlying command, put a bare <code>--</code> between the pnpm script name and your arguments. Without it, <code>pnpm --filter ./agent cli --help</code> prints pnpm's help, not the CLI's.</p>
-</Callout>
 
 **Run from source (recommended for daily dev)** — uses the <code>cli</code> script (`tsx src/index.ts`); no build needed, picks up source changes on every invocation:
 
@@ -312,9 +315,9 @@ pnpm -s --filter ./agent cli -- integrations:list | jq '.[] | {id, identifier}'
 pnpm -s --filter ./agent cli -- posts:list | jq '.success, (.data.posts | type)'
 ```
 
-Every command emits machine-readable JSON on stdout, so piping into <code>jq</code> is the recommended way to assert on shape during smoke runs and CI.
+Every command emits machine-readable JSON on stdout, so piping into <code>jq</code> is the recommended way to test the CI.
 
-<Callout type="note" title="Piping to jq from pnpm">
+<Callout type="note">
 <p>When you run <code>pnpm --filter ./agent cli -- … | jq …</code>, pnpm may print script lifecycle lines (lines starting with <code>&gt;</code>) to <strong>stdout</strong> before the CLI JSON. That breaks <code>jq</code> and can surface a Node <code>EPIPE</code> after <code>jq</code> exits. Use <strong><code>pnpm -s</code></strong> (silent) for piped examples, or run without a pipe first to inspect raw output:</p>
 </Callout>
 
@@ -322,7 +325,7 @@ Every command emits machine-readable JSON on stdout, so piping into <code>jq</co
 pnpm -s --filter ./agent cli -- integrations:list
 ```
 
-### Smoke-test post kanban review (CLI + web)
+<h3 id="smoke-test-post-kanban-review-cli-web">Smoke-test post kanban review (CLI + web)</h3>
 
 Use this flow to seed **agent-edited drafts** with the CLI and exercise the **kanban review board** on the account page . The CLI always sends <Badge text="isAgent: true" variant="param" /> on <Badge text="posts:create" variant="default" />; human actions in the dashboard clear <Badge text="is_agent_edited" variant="param" /> when you mark a post reviewed or schedule it from the UI.
 
@@ -403,7 +406,7 @@ echo "INTEGRATION_ID=$INTEGRATION_ID"
 echo "SCHEDULED_AT=$SCHEDULED_AT"
 ```
 
-<Callout type="warning" title="Multiline shell commands">
+<Callout type="warning" >
 <p>Every continued line must end with <code>\</code> (no spaces after it). If you paste the <code>posts:create</code> block without backslashes, only the first line runs and yargs reports <code>scheduledAt is required</code>.</p>
 </Callout>
 
@@ -446,17 +449,17 @@ Requires Supabase E2E env (same as other backend e2e suites). See <Badge text="b
 
 </Steps>
 
-<Callout type="note" title="Iterating on yargs definitions">
+<Callout type="note">
 <p>If you're changing positional descriptions or <code>.example()</code> calls in <Badge text="agent/src/commands/" variant="path" />, run <code>pnpm --filter ./agent dev</code> — it watches the source and re-prints <code>--help</code> on every save, which is the fastest feedback loop for tweaking help text.</p>
 </Callout>
 
-<Callout type="note" title="Local auth server">
+<Callout type="note">
 <p>Run the CLI auth server (<Badge text="agent/server" variant="path" />) so <Badge text="http://localhost:3111" variant="default" /> is reachable — from the repo root, <code>pnpm agent-server:dev</code> is typical. For the simplest local loop, omit <Badge text="BROWSER_ORIGIN" variant="envBackend" />, register OAuth callback <Badge text="http://localhost:3111/device/callback" variant="default" />, and keep <Badge text="SERVER_URL=http://localhost:3111" variant="envBackend" /> — see <a href="/docs/configuration-agent#environment-variables">Configuration → Agent → Environment variables</a>. To mimic production (browser on the web dev server), set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin and <Badge text="CLI_AUTH_SERVER_URL=http://localhost:3111" variant="envBackend" /> in <Badge text="web/.env.development.local" variant="envBackend" />.</p>
 </Callout>
 
 ### Deployment
 
-For a **full production sequence** (backend env, web env, CORS), use <a href="/docs/installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** (see root <code>package.json</code>).
+For a **full production sequence**, use <a href="/docs/installation/production-deployment">Production deployment</a>. The commands below are quick references from the **repository root** .
 
 **Backend JS bundle** — runs `tsup` in `backend/` to produce the bundled API output used for deploys.
 
@@ -479,12 +482,12 @@ pnpm vercel:deploy:web
 ## Next Steps
 
 <CardGrid>
-<LinkCard title="Docker Compose (self-host)" description="Full containerized stack when you are not using pnpm for API and web" href="/docs/installation/docker-compose" />
-<LinkCard title="Production deployment" description="Full production sequence: backend and web env, CORS, Vercel deploy commands from this page" href="/docs/installation/production-deployment" />
-<LinkCard title="Configuration - Backend" description="Database migrations, pg_cron, Redis cache, and production-linked Supabase commands referenced above" href="/docs/configuration-backend" />
+<LinkCard title="Docker Compose (self-host)" description="Full containerized stack" href="/docs/installation/docker-compose" />
+<LinkCard title="Production deployment" description="Full production sequence: environment configuration and Vercel deploy commands" href="/docs/installation/production-deployment" />
+<LinkCard title="Configuration - Backend" description="Database migrations, cache, and Supabase commands referenced above" href="/docs/configuration-backend" />
 <LinkCard title="Vite & web env" description="HTTPS on localhost, Vite variables, and aligning the API base URL with the backend" href="/docs/configuration-web/vite" />
-<LinkCard title="Docker (local services)" description="Redis and Postgres via Compose—matches the optional Redis, worker, and auth-server sections" href="/docs/configuration-backend/docker" />
-<LinkCard title="Configuration - Agent" description="CLI auth server env, OAuth callbacks, and `SERVER_URL` for local device flow" href="/docs/configuration-agent" />
+<LinkCard title="Docker (local services)" description="Redis and Postgres, worker, and auth-server sections" href="/docs/configuration-backend/docker" />
+<LinkCard title="Configuration - Agent" description="CLI auth server env, and OAuth callbacks for local device flow" href="/docs/configuration-agent" />
 <LinkCard title="Configuration - Worker" description="BullMQ workers, orchestrator processes, and Redis queues beyond the API" href="/docs/configuration-worker" />
 <LinkCard title="Admin — OAuth Server" description="Create or rotate OAuth client ID and secret for the device-flow auth server" href="/docs/admin/oauth-server" />
 <LinkCard title="CLI — Managing posts" description="Managing posts via agents with CLI" />

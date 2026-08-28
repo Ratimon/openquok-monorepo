@@ -15,6 +15,12 @@ export const ONBOARDING_SCROLL_BODY_CLASS =
 export const ONBOARDING_FOOTER_CLASS =
 	'flex shrink-0 items-center gap-2 border-t border-base-300 bg-base-100 px-6 py-4';
 
+export const ONBOARDING_MODAL_TITLE_CLASS =
+	'font-serif text-2xl font-bold tracking-tight text-primary-content';
+
+export const ONBOARDING_MODAL_DESCRIPTION_CLASS =
+	'mt-2 text-sm leading-snug text-primary-content/90';
+
 export const INSTALL_CLI_COMMAND = 'npm install -g @openquok/auto-cli';
 
 export const INSTALL_AGENT_SKILL_COMMAND =

@@ -13,6 +13,8 @@ The **left column** of the post editor is where you write the post. A caption bo
 
 ![Threads Post Editor](/docs/_assets/creating-posts/editor-threads.webp)
 
+## Post Preview
+
 The **Post Preview** column on the right shows how each selected channel will render your caption and attachments before you save.
 
 ## The caption box

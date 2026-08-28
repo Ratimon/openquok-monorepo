@@ -144,7 +144,7 @@
 
 	function queueSidebarFeatureTour(): void {
 		if (!browser) return;
-		if (accountSidebarTourPresenter.onboardingBlocksTours) return;
+		if (accountSidebarTourPresenter.firstRunBlocksTours) return;
 		if (productTourResetPresenter.shouldOpenWizard) return;
 		if (!isOnboardingCompleted()) return;
 
@@ -201,7 +201,7 @@
 		void page.url.pathname;
 		void workspaceSettingsPresenter.currentWorkspaceId;
 		void productTourResetPresenter.revision;
-		void accountSidebarTourPresenter.onboardingBlocksTours;
+		void accountSidebarTourPresenter.firstRunBlocksTours;
 		scheduleSidebarFeatureTourCheck();
 	});
 

@@ -1,10 +1,10 @@
 class AccountSidebarTourPresenter {
-	/** When true, the onboarding wizard is open—defer sidebar feature tours. */
-	onboardingBlocksTours = $state(false);
+	/** When true, a blocking first-run modal is open—defer sidebar feature tours. */
+	firstRunBlocksTours = $state(false);
 
-	setOnboardingBlocksTours(block: boolean): void {
-		if (this.onboardingBlocksTours === block) return;
-		this.onboardingBlocksTours = block;
+	setFirstRunBlocksTours(block: boolean): void {
+		if (this.firstRunBlocksTours === block) return;
+		this.firstRunBlocksTours = block;
 	}
 }
 

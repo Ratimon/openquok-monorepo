@@ -23,7 +23,9 @@ export class FeedbackController {
                           ? emailFromAuth
                           : undefined,
             };
-            const id = await this.feedbackService.createFeedback(payload);
+            const id = await this.feedbackService.createFeedback(payload, {
+                userId: auth.user?.id,
+            });
             res.status(201).json({
                 success: true,
                 data: { id },

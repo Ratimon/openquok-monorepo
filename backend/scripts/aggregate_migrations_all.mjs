@@ -123,12 +123,13 @@ const aggregateMigrations = async () => {
       rbac: 11,
       config: 12,
       feedback: 13,
-      blog: 14,
-      "listing-categories": 15,
-      "listing-tags": 16,
-      listings: 17,
-      notification: 18,
-      sets: 19
+      acquisition: 14,
+      blog: 15,
+      "listing-categories": 16,
+      "listing-tags": 17,
+      listings: 18,
+      notification: 19,
+      sets: 20
     }
     const moduleOrder = (name) => (MODULE_ORDER[name] ?? 99)
 

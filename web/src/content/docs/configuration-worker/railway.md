@@ -42,7 +42,7 @@ Repo-root <Badge text="railway.toml" variant="path" /> sets build, health check,
 
 ## Stopping a worker service (Railway CLI)
 
-If you need to stop a worker that is currently consuming BullMQ jobs (for example to ensure only one worker is processing a queue during debugging), you can delete the latest deployment for that service. Service names match the <a href="/docs/installation/railway">Railway</a> setup scripts (<code>openquok-worker-*</code>):
+If you need to stop a worker that is currently consuming BullMQ jobs, you can delete the latest deployment for that service. Service names match the <a href="/docs/installation/railway">Railway</a> setup scripts (<code>openquok-worker-*</code>):
 
 ```bash
 railway down --service "openquok-worker-integration-refresh" --environment production --yes

@@ -16,11 +16,10 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				iconName: icons.House.name,
 				paragraphs: [
 					[
-						'See ',
-						{ highlight: 'connected social channels' },
-						' at a glance, open the post editor, and track posts on the ',
+						'Connect your ',
+						{ highlight: 'social channels' },
+						' and open the post editor, then track posts on the ',
 						{ highlight: 'kanban board' },
-						' from draft through published.'
 					],
 					[
 						'Use the ',

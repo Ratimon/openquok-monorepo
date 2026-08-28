@@ -23,7 +23,11 @@ export {
 	FACEBOOK_PIXEL_ID
 } from '$lib/product-analytics/constants/config';
 export { initPostHog, capturePostHogPageview, identifyPostHogUser, capturePostHogEvent } from '$lib/product-analytics/posthog.client';
-export { readStoredUtm } from '$lib/product-analytics/utm';
+export {
+	readStoredLandingUrl,
+	readStoredReferrer,
+	readStoredUtm
+} from '$lib/product-analytics/utm';
 export { default as UtmAttribution } from '$lib/product-analytics/UtmAttribution.svelte';
 export { default as PostHogPageview } from '$lib/product-analytics/PostHogPageview.svelte';
 export { default as FacebookPixel } from '$lib/product-analytics/FacebookPixel.svelte';

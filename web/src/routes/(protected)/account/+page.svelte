@@ -44,7 +44,7 @@
 		isOnboardingCompleted,
 		markOnboardingCompleted,
 		persistHomeNoticeDismissed,
-		accountSidebarTourPresenter,
+		firstRunExperiencePresenter,
 		productTourResetPresenter,
 		readHomeNoticeDismissed
 	} from '$lib/onboarding';
@@ -614,18 +614,18 @@
 	});
 
 	$effect(() => {
-		accountSidebarTourPresenter.setOnboardingBlocksTours(onboardingDialogOpen);
+		firstRunExperiencePresenter.setOnboardingModalOpen(onboardingDialogOpen);
 	});
 
 	$effect(() => {
 		if (!browser) return;
+		if (firstRunExperiencePresenter.blocksOnboarding) return;
 		if (!productTourResetPresenter.shouldOpenWizard) return;
 		const homePath = accountPath;
 		const currentPath = route(page.url.pathname);
 		if (currentPath !== homePath && currentPath !== `${homePath}/`) return;
-		accountSidebarTourPresenter.setOnboardingBlocksTours(true);
-		productTourResetPresenter.clearOpenWizardRequest();
 		onboardingDialogOpen = true;
+		productTourResetPresenter.clearOpenWizardRequest();
 	});
 
 	/** At most one home notice; no connected channels wins over upgrade and invite. */
@@ -805,6 +805,10 @@
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {
 		const w = protectedHomePagePresenter.showOnboardingWelcome;
+		if (firstRunExperiencePresenter.blocksOnboarding) {
+			prevOnboardingWelcome = w;
+			return;
+		}
 		if (w && !prevOnboardingWelcome) {
 			onboardingDialogOpen = true;
 		}
@@ -821,7 +825,17 @@
 	});
 
 	$effect(() => {
+		void firstRunExperiencePresenter.blocksOnboarding;
+		if (firstRunExperiencePresenter.blocksOnboarding) return;
+		if (protectedHomePagePresenter.showOnboardingWelcome && !onboardingDialogOpen) {
+			onboardingDialogOpen = true;
+		}
+	});
+
+	$effect(() => {
+		void firstRunExperiencePresenter.blocksOnboarding;
 		if (hasAutoOpenedOnboarding) return;
+		if (firstRunExperiencePresenter.blocksOnboarding) return;
 		if (!workspaceId) return;
 		if (!currentUser) return;
 		if (protectedHomePagePresenter.listStatus !== 'ready') return;
