@@ -27,14 +27,14 @@ openquok --help
 
 ## Publish via GitHub
 
-Match `agent/package.json` `version` to the tag (`cli-v0.0.13` → `"0.0.14"`). Commit to `main`, then tag **that** commit:
+Match `agent/package.json` `version` to the tag (`cli-v0.0.14` → `"0.0.15"`). Commit to `main`, then tag **that** commit:
 
 ```bash
 git add agent/
-git commit -m "chore(cli): release 0.0.14"
+git commit -m "chore(cli): release 0.0.15"
 git push origin main
-git tag cli-v0.0.14
-git push origin cli-v0.0.14
+git tag cli-v0.0.15
+git push origin cli-v0.0.15
 ```
 
 ### GitHub release notes
