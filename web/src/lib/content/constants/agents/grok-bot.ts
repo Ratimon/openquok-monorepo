@@ -274,7 +274,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'How do I install the openquok-core skill in Grok Bot?',
 			description:
-				'Ask the Bot to run npm install -g @openquok/auto-cli@latest on its cloud computer, or curl the openquok-core SKILL.md into /workspace/openquok-core/SKILL.md and ask it to save the file as a skill named openquok-core under Settings → Plugins. Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json. See the Grok Bot agent guide in Dev Docs for exact commands.'
+				'Ask the Bot to run npm install -g @openquok/auto-cli@latest on its cloud computer, or curl the openquok-core SKILL.md into /workspace/openquok-core/SKILL.md and ask it to save the file as a skill named openquok-core under Settings → Plugins. Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json. See the <a href="/docs/agent-setup-guides/grok-bot">Grok Bot agent guide</a> or the <a href="/blog/schedule-social-posts-from-grok-bot-with-openquok">scheduling walkthrough</a> for exact commands.'
 		},
 		{
 			title: 'Where do OpenQuok credentials live?',
@@ -299,7 +299,12 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Why use Grok Bot with CLI instead of MCP-only?',
 			description:
-				'Grok Bot supports optional Connectors and MCP, but openquok-core is CLI-first: structured JSON, media uploads, plugs, and analytics in one skill the Bot loads on demand. MCP fits point-in-time tool calls; the CLI skill fits repeatable scheduling recipes and headless runs on the shared computer. Many teams use both — MCP for ad hoc tools, openquok-core for social workflows.'
+				'Grok Bot supports optional Connectors and MCP, but openquok-core is CLI-first: structured JSON, media uploads, plugs, and analytics in one skill the Bot loads on demand. MCP fits point-in-time tool calls; the CLI skill fits repeatable scheduling recipes and headless runs on the shared computer. For editor-native MCP scheduling in the same Cursor account, see <a href="/agents/cursor">OpenQuok for Cursor</a>. Many teams use both — MCP for ad hoc tools in the IDE, openquok-core for always-on Bot workflows.'
+		},
+		{
+			title: 'How does Grok Bot relate to Cursor?',
+			description:
+				'Grok Bot ships as an always-on AI teammate inside the Cursor product family — desktop and iOS chat, a shared cloud computer per Bot, and skills via Plugins. <a href="/agents/cursor">Cursor MCP</a> is the complementary path when you want OpenQuok tools inside Agent and Composer during a coding session. Same OpenQuok workspace and approval flow either way; pick Grok Bot for messaging-first volume or Cursor MCP when you stay in the repo. Read the <a href="/blog/schedule-social-posts-from-grok-bot-with-openquok">Grok Bot scheduling walkthrough</a> for a full setup example.'
 		},
 		{
 			title: 'Is it free to start?',

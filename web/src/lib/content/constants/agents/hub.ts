@@ -57,12 +57,12 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an agent host?',
 				description:
-					'Choose an agent host when you want scheduling from messaging apps or desktop chat, persistent memory across weeks of work, parallel sessions, or model flexibility across Claude, GPT, Gemini, and local models. OpenClaw, Hermes, and Grok Bot fit when the assistant should exist beyond a single terminal session and stay reachable while you are away.'
+					'Choose an agent host when you want scheduling from messaging apps or desktop chat, persistent memory across weeks of work, parallel sessions, or model flexibility across Claude, GPT, Gemini, and local models. OpenClaw, Hermes, and <a href="/agents/grok-bot">Grok Bot</a> fit when the assistant should exist beyond a single terminal session and stay reachable while you are away.'
 			},
 			{
 				title: 'When should I choose an MCP client?',
 				description:
-					'Choose an MCP client when OpenQuok should live inside your editor or terminal, you want focused per-session coding workflows, native MCP tool calls without installing a skill, or ticket- and PR-friendly review before anything publishes. Cursor, Claude Code, and Codex excel at deep repo work; Warp excels when you ship from the terminal and want in-context AI for debugging deploy failures.'
+					'Choose an MCP client when OpenQuok should live inside your editor or terminal, you want focused per-session coding workflows, native MCP tool calls without installing a skill, or ticket- and PR-friendly review before anything publishes. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex excel at deep repo work; Warp excels when you ship from the terminal and want in-context AI for debugging deploy failures.'
 			},
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
@@ -77,12 +77,12 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'Does OpenQuok work with both paths at the same time?',
 				description:
-					'Yes. One workspace can serve an OpenClaw skill and a Cursor MCP config simultaneously — same channels, same approval flow. Use whichever interface matches where you are working: message an agent host from your phone or call OpenQuok tools from your IDE.'
+					'Yes. One workspace can serve an OpenClaw skill and a <a href="/agents/cursor">Cursor MCP</a> config simultaneously — same channels, same approval flow. Use whichever interface matches where you are working: message <a href="/agents/grok-bot">Grok Bot</a> from your phone or call OpenQuok tools from your IDE.'
 			},
 			{
 				title: 'Which path gives me persistent memory?',
 				description:
-					'Agent hosts like OpenClaw, Hermes, and Grok Bot are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like Codex CLI typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
+					'Agent hosts like OpenClaw, Hermes, and <a href="/agents/grok-bot">Grok Bot</a> are built for long-lived sessions — they remember preferences, past decisions, and project context across conversations. MCP clients like <a href="/agents/cursor">Cursor</a> typically run per-session: productive for focused coding sprints, but you start fresh when you open a new session unless the client stores its own project notes.'
 			},
 			{
 				title: 'Do I still approve posts before they publish?',

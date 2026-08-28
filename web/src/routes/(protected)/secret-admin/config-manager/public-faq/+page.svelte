@@ -26,4 +26,6 @@
 	currentConfigVm={currentPublicFaqConfigVm}
 	moduleSchema={CONFIG_SCHEMA_PUBLIC_FAQ}
 	{handleUpdateConfigByModuleName}
+	enableLoadCodeDefaults={true}
+	loadCodeDefaultsConfirmMessage="Load Public FAQ defaults from publicFaqConfig.ts? This replaces every question and answer in the form (including headers). Unsaved edits are lost until you click Save Settings to write to the database."
 />

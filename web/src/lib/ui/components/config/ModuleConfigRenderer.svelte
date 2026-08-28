@@ -3,6 +3,7 @@
 	import type { ModuleConfigViewModel } from '$lib/config/ModuleConfigRenderer.presenter.svelte';
 
 	import { buildModuleConfigFormSchema } from '$lib/config';
+	import { buildModuleConfigCodeDefaultsVm } from '$lib/config/utils/buildModuleConfigCodeDefaultsVm';
 	import { normalizeConfigStringValue } from '$lib/config/utils/normalizeConfigStringValue';
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
@@ -20,9 +21,19 @@
 			success: boolean;
 			message: string;
 		}>;
+		/** When true, show a control to fill the form from schema defaults (git-managed copy). */
+		enableLoadCodeDefaults?: boolean;
+		/** Confirm dialog body; defaults to a generic overwrite warning. */
+		loadCodeDefaultsConfirmMessage?: string;
 	};
 
-	let { currentConfigVm, moduleSchema, handleUpdateConfigByModuleName }: Props = $props();
+	let {
+		currentConfigVm,
+		moduleSchema,
+		handleUpdateConfigByModuleName,
+		enableLoadCodeDefaults = false,
+		loadCodeDefaultsConfirmMessage = 'Load defaults from the repository schema? Unsaved edits in this form will be replaced. Click Save Settings afterward to persist to the database.'
+	}: Props = $props();
 
 	type ModuleConfigInputVm = Record<string, unknown>;
 
@@ -91,6 +102,19 @@
 			form.setFieldValue(key, (defaultValues as Record<string, unknown>)[key] as unknown);
 		}
 	});
+
+	function handleLoadCodeDefaults() {
+		if (typeof window !== 'undefined' && !window.confirm(loadCodeDefaultsConfirmMessage)) {
+			return;
+		}
+
+		const codeDefaultsVm = buildModuleConfigCodeDefaultsVm(moduleSchema);
+		for (const key of Object.keys(moduleSchema)) {
+			form.setFieldValue(key, codeDefaultsVm[key] as unknown);
+		}
+
+		toast.message('Code defaults loaded into the form. Review, then Save Settings.');
+	}
 </script>
 
 <form
@@ -112,8 +136,17 @@
 		form.handleSubmit();
 	}}
 >
-	<div class="flex w-full justify-end">
-		<Button class="my-4 mr-4 w-fit" type="submit" variant="outline">
+	<div class="my-4 flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+		{#if enableLoadCodeDefaults}
+			<p class="text-sm text-base-content/70 sm:mr-auto sm:max-w-xl">
+				Loads the latest defaults from the repository schema into this form. Nothing is written
+				until you save.
+			</p>
+			<Button class="w-fit shrink-0" type="button" variant="secondary" onclick={handleLoadCodeDefaults}>
+				Load code defaults
+			</Button>
+		{/if}
+		<Button class="w-fit shrink-0" type="submit" variant="outline">
 			Save Settings
 		</Button>
 	</div>
