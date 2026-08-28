@@ -30,6 +30,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	'hopper-hq': 'https://www.hopperhq.com',
 	buffer: 'https://buffer.com',
 	mixpost: 'https://mixpost.app',
+	openpost: 'https://openpost.social',
 	'post-bridge': 'https://www.post-bridge.com',
 	postiz: 'https://postiz.com',
 	recurpost: 'https://recurpost.com',
@@ -41,6 +42,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'hopper-hq'
 	| 'buffer'
 	| 'mixpost'
+	| 'openpost'
 	| 'post-bridge'
 	| 'postiz'
 	| 'recurpost'

@@ -9,6 +9,7 @@ export type CompareProductSlug =
 	| 'hopper-hq'
 	| 'buffer'
 	| 'mixpost'
+	| 'openpost'
 	| 'post-bridge'
 	| 'postiz'
 	| 'recurpost'

@@ -67,6 +67,10 @@
 			containerClass:
 				'bg-linear-to-br from-indigo-500/30 via-violet-400/20 to-cyan-300/20 text-indigo-100 ring-indigo-400/35'
 		},
+		openpost: {
+			containerClass:
+				'bg-linear-to-br from-teal-500/30 via-cyan-400/20 to-sky-300/20 text-teal-50 ring-teal-400/35'
+		},
 		'post-bridge': {
 			containerClass:
 				'bg-linear-to-br from-rose-400/30 via-orange-300/20 to-amber-300/20 text-rose-100 ring-rose-300/35'

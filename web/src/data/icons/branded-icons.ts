@@ -55,6 +55,7 @@ export type BrandedIconName =
     | "Mixpost"
     | "Ntfy"
     | "OpenClaw"
+    | "OpenPost"
     | "OpenQuok"
     | "Pinterest"
     | "PostBridge"
@@ -485,6 +486,13 @@ export const brandedIcons = {
   <circle cx="76" cy="34" r="2.5" fill="#00e5cc"/>
 </svg>
 `
+    },
+    /** OpenPost product mark. OpenPost is a trademark of its respective owner. */
+    OpenPost: {
+        name: "OpenPost",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="6" fill="#0D9488"/><path fill="#fff" d="M8.4 7.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6zm0 1.5a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6zM13.2 7.2h-1.5v8.4h1.5a2.8 2.8 0 0 0 0-5.6V7.2zm0 1.5a1.3 1.3 0 1 1 0 2.6h0V8.7z"/>`
     },
     OpenQuok: {
         name: "OpenQuok",
