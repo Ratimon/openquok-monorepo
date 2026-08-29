@@ -26,8 +26,20 @@ export function buildBestTimeToPostChannelMetaTitle(platformLabel: string): stri
 	return `Best Time to Post on ${platformLabel}`;
 }
 
+export function buildHumanizeGenericMetaTitle(): string {
+	return 'Social Post Humanizer';
+}
+
+export function buildHumanizeGenericMetaDescription(): string {
+	return 'Humanize social posts for free in your browser. Rewrite AI drafts so they sound more natural before you copy, paste, or schedule — no account required.';
+}
+
 export function buildHumanizeChannelMetaTitle(platformLabel: string): string {
-	return `${platformLabel} Humanizer for Social Posts`;
+	return `${platformLabel} Humanizer`;
+}
+
+export function buildHumanizeChannelMetaDescription(platformLabel: string): string {
+	return `Humanize ${platformLabel} posts for free in your browser. Rewrite AI drafts so they sound more natural before you paste or schedule — no account required.`;
 }
 
 export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {

@@ -56,7 +56,7 @@ function tailorHumanizeFaqItem(
 		case WHAT_IS_HUMANIZER_FAQ_TITLE:
 			return {
 				title: item.title,
-				description: `A free browser composer that rewrites a ${platformLabel} draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. This ${channelSlug} page focuses the preview and character limit on ${platformLabel}.`
+				description: `A free browser composer that rewrites a ${platformLabel} draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. This page focuses the preview and character limit on ${platformLabel}.`
 			};
 		case ACCOUNT_FAQ_TITLE:
 			return item;

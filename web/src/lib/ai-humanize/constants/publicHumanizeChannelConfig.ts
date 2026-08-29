@@ -4,7 +4,12 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/p
 
 import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
-import { buildHumanizeChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildHumanizeChannelMetaDescription,
+	buildHumanizeChannelMetaTitle,
+	buildHumanizeGenericMetaDescription,
+	buildHumanizeGenericMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { route } from '$lib/utils/path';
 
 export type HumanizeChannelPageConfig = {
@@ -21,9 +26,8 @@ export type HumanizeChannelPageConfig = {
 };
 
 export const PUBLIC_HUMANIZE_GENERIC_CONFIG = {
-	metaTitle: 'Humanizer for Social Posts',
-	metaDescription:
-		'Rewrite a social post so it reads less machine-written. Human and Roughen modes run on-device in Chrome. Copy stays free; scheduling needs an account.',
+	metaTitle: buildHumanizeGenericMetaTitle(),
+	metaDescription: buildHumanizeGenericMetaDescription(),
 	keywords: [
 		'humanize social posts',
 		'sound more human',
@@ -52,7 +56,7 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Hum
 		icon: channel.icon,
 		focusedProviderIdentifier: channel.platformId,
 		metaTitle: buildHumanizeChannelMetaTitle(channel.platformLabel),
-		metaDescription: `Rewrite a ${channel.platformLabel} draft so it reads less machine-written. Human and Roughen run on-device in Chrome. Copy stays free; scheduling needs an account. No classifier guarantees.`,
+		metaDescription: buildHumanizeChannelMetaDescription(channel.platformLabel),
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
 			`Rewrite ${channel.platformLabel} drafts so they read less machine-written.`,

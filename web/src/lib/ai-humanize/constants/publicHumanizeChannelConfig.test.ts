@@ -57,7 +57,9 @@ describe('publicHumanizeChannelConfig', () => {
 		expect(linkedin?.metaTitle).toBe(buildHumanizeChannelMetaTitle('LinkedIn'));
 		expect(linkedin?.focusedProviderIdentifier).toBe('linkedin');
 		expect(linkedin?.metaDescription).toContain('LinkedIn');
-		expect(linkedin?.metaDescription.toLowerCase()).toContain('no classifier guarantees');
+		expect(linkedin?.metaDescription.toLowerCase()).toContain('for free');
+		expect(linkedin?.metaDescription.length).toBeLessThanOrEqual(160);
+		expect(linkedin?.metaDescription.toLowerCase()).not.toContain('no classifier guarantees');
 		expect(linkedin?.keywords.some((keyword) => keyword.toLowerCase().includes('linkedin'))).toBe(
 			true
 		);

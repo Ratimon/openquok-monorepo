@@ -75,7 +75,7 @@ export class PublicAlternativesPagePresenter {
 	 * Per-competitor pages (`/alternatives/{slug}`) use `buildDetailVm` and
 	 * `buildAlternativesDetailKeywords`. OpenQuok #1 listing body copy is set in
 	 * `buildAlternativeDetailDescription`.
-	 * eg. Best alternatives to Hootsuite”
+	 * eg. "OpenQuok is 100% open source — self-host for free or start a 7-day trial — with agent workflows, multi-workspace publishing, and analytics."
 	 */
 	buildHubVm(): AlternativesHubViewModel {
 		const entries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
