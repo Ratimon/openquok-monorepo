@@ -3,6 +3,7 @@ import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants
 import { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
 import { hermesAgent } from '$lib/content/constants/agents/hermes';
 import { openclawAgent } from '$lib/content/constants/agents/openclaw';
+import { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
 
 export * from '$lib/content/constants/agents/types';
 export * from '$lib/content/constants/agents/shared';
@@ -10,11 +11,13 @@ export { PUBLIC_AGENTS_HUB } from '$lib/content/constants/agents/hub';
 export { openclawAgent } from '$lib/content/constants/agents/openclaw';
 export { hermesAgent } from '$lib/content/constants/agents/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
+export { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
 
 export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPageViewModel[] = [
 	openclawAgent,
 	hermesAgent,
-	grokBotAgent
+	grokBotAgent,
+	thinkrailAgent
 ];
 
 const agentHostBySlug = new Map(

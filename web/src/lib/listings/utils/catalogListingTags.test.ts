@@ -9,7 +9,7 @@ import {
 } from './catalogListingTags';
 
 describe('listExpectedCatalogListingTags', () => {
-	it('includes Grok Bot from /agents and Dev.to from /channels', () => {
+	it('includes Grok Bot and ThinkRail from /agents and Dev.to from /channels', () => {
 		const tags = listExpectedCatalogListingTags();
 		const bySlug = new Map(tags.map((tag) => [tag.slug, tag]));
 
@@ -21,6 +21,15 @@ describe('listExpectedCatalogListingTags', () => {
 			groupNames: [CATALOG_LISTING_TAG_GROUP_AUTONOMOUS_AGENTS]
 		});
 		expect(grokBot?.description).toContain('Grok Bot');
+
+		const thinkrail = bySlug.get('thinkrail');
+		expect(thinkrail).toMatchObject({
+			name: 'ThinkRail',
+			slug: 'thinkrail',
+			source: 'agents',
+			groupNames: [CATALOG_LISTING_TAG_GROUP_AUTONOMOUS_AGENTS]
+		});
+		expect(thinkrail?.description).toContain('ThinkRail');
 
 		const devto = bySlug.get('devto');
 		expect(devto).toMatchObject({
@@ -45,16 +54,22 @@ describe('filterMissingCatalogListingTags', () => {
 		const missingSlugs = missing.map((tag) => tag.slug);
 
 		expect(missingSlugs).toContain('grok-bot');
+		expect(missingSlugs).toContain('thinkrail');
 		expect(missingSlugs).toContain('devto');
 		expect(missingSlugs).not.toContain('openclaw');
 		expect(missingSlugs).not.toContain('threads');
 	});
 
 	it('hides a catalog tag once a matching slug exists', () => {
-		const missing = filterMissingCatalogListingTags([{ slug: 'grok-bot' }, { slug: 'devto' }]);
+		const missing = filterMissingCatalogListingTags([
+			{ slug: 'grok-bot' },
+			{ slug: 'thinkrail' },
+			{ slug: 'devto' }
+		]);
 		const missingSlugs = missing.map((tag) => tag.slug);
 
 		expect(missingSlugs).not.toContain('grok-bot');
+		expect(missingSlugs).not.toContain('thinkrail');
 		expect(missingSlugs).not.toContain('devto');
 	});
 });

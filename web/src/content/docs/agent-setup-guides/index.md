@@ -1,8 +1,8 @@
 ---
 title: Agents Overview
-description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, Telegram, and similar).
+description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, and ThinkRail).
 order: 0
-lastUpdated: 2026-05-16
+lastUpdated: 2026-08-29
 ---
 
 <script>
@@ -19,6 +19,7 @@ For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you ca
 <LinkCard title="OpenClaw" description="Set up OpenQuok on an OpenClaw host and sign in from Telegram or chat" href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="Hermes Agent" description="Set up OpenQuok on Hermes Agent and sign in from Telegram, Discord, or Slack" href="/docs/agent-setup-guides/hermes" />
 <LinkCard title="Grok Bot" description="Skills and CLI workflows for Grok Bot teammates on a shared cloud computer." href="/docs/agent-setup-guides/grok-bot" />
+<LinkCard title="ThinkRail" description="Skills and CLI workflows for ThinkRail — worktree IDE for the pi coding agent." href="/docs/agent-setup-guides/thinkrail" />
 </CardGrid>
 
 ## Related Section(s)

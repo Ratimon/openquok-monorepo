@@ -8,12 +8,13 @@
 
 	import { ONBOARDING_INLINE_TERMINAL_CODE_CLASS } from '$lib/ui/components/onboarding/onboardingConstants';
 
-	type AgentTab = 'openclaw' | 'hermes' | 'grok-bot';
+	type AgentTab = 'openclaw' | 'hermes' | 'grok-bot' | 'thinkrail';
 
 	const OPENCLAW_OFFICIAL_DOCS_HREF = 'https://docs.openclaw.ai';
 	const HERMES_OFFICIAL_DOCS_HREF =
 		'https://hermes-agent.nousresearch.com/docs/getting-started/quickstart';
 	const GROK_BOT_OFFICIAL_DOCS_HREF = 'https://docs.x.ai/grok-bot/get-started';
+	const THINKRAIL_OFFICIAL_DOCS_HREF = 'https://thinkrail.ai/';
 
 	let agentTab = $state<AgentTab>('openclaw');
 
@@ -24,18 +25,19 @@
 <div class="px-6 py-6">
 	<h3 class="text-lg font-semibold text-base-content">Connect your AI agent</h3>
 	<p class="mt-2 max-w-3xl text-sm text-base-content/70">
-		Install OpenClaw, Hermes Agent, or Grok Bot on a host you control (or Grok Bot’s cloud computer),
+		Install OpenClaw, Hermes Agent, Grok Bot, or ThinkRail on a host you control (or Grok Bot’s cloud computer),
 		connect your chat surface, then continue to install the OpenQuok CLI and skill.
 	</p>
 
 	<div class="mt-6">
 		<Tabs.Root bind:value={agentTab} defaultValue="openclaw" class="w-full">
 			<Tabs.List
-				class="inline-flex w-full max-w-2xl flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
+				class="inline-flex w-full max-w-3xl flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
 			>
 				<Tabs.Trigger value="openclaw" class={tabTriggerClass}>OpenClaw</Tabs.Trigger>
 				<Tabs.Trigger value="hermes" class={tabTriggerClass}>Hermes Agent</Tabs.Trigger>
 				<Tabs.Trigger value="grok-bot" class={tabTriggerClass}>Grok Bot</Tabs.Trigger>
+				<Tabs.Trigger value="thinkrail" class={tabTriggerClass}>ThinkRail</Tabs.Trigger>
 			</Tabs.List>
 
 			<div class="mt-6 grid gap-8 lg:grid-cols-2 lg:items-start">
@@ -146,7 +148,7 @@
 							<SafariMockContent content="hermes-docs-overview" />
 						</SafariMock>
 					</div>
-				{:else}
+				{:else if agentTab === 'grok-bot'}
 					<div class="space-y-4">
 						<p class="text-sm text-base-content/80">
 							Grok Bot is an AI teammate on a shared cloud computer. Install the desktop or iOS app, create
@@ -194,6 +196,56 @@
 					>
 						<SafariMock class="size-full" url="x.ai/bot">
 							<SafariMockContent content="grok-bot-docs-overview" />
+						</SafariMock>
+					</div>
+				{:else}
+					<div class="space-y-4">
+						<p class="text-sm text-base-content/80">
+							ThinkRail is a worktree IDE for the pi coding agent. Install it, open a git repo, cut a
+							workspace, then add the OpenQuok skill in the next step.
+						</p>
+						<ol class="space-y-3 text-sm text-base-content/80">
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>1</span>
+								<span>Install ThinkRail (CLI or desktop) and authenticate your pi provider.</span>
+							</li>
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>2</span>
+								<span>Open a git repo and cut a worktree workspace — own branch and cwd.</span>
+							</li>
+							<li class="flex gap-3">
+								<span
+									class="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary"
+									aria-hidden="true"
+								>3</span>
+								<span>Chat in ThinkRail; run CLI commands in the worktree terminal.</span>
+							</li>
+						</ol>
+						<Button
+							variant="outline"
+							size="sm"
+							class="gap-1.5"
+							href={THINKRAIL_OFFICIAL_DOCS_HREF}
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<AbstractIcon name={icons.BookOpen.name} class="size-4" width="16" height="16" />
+							ThinkRail website
+						</Button>
+					</div>
+					<div
+						class="mx-auto w-full max-w-xl overflow-hidden"
+						role="img"
+						aria-label="ThinkRail documentation at thinkrail.ai"
+					>
+						<SafariMock class="size-full" url="thinkrail.ai">
+							<SafariMockContent content="thinkrail-docs-overview" />
 						</SafariMock>
 					</div>
 				{/if}

@@ -143,5 +143,6 @@ Posts should land as drafts or scheduled items in your OpenQuok workspace. Revie
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and self-hosted auth server" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="OpenClaw agent guide" description="Install openquok-core for OpenClaw" href="/docs/agent-setup-guides/openclaw" />
 <LinkCard title="Hermes Agent guide" description="Install openquok-core for Hermes Agent" href="/docs/agent-setup-guides/hermes" />
+<LinkCard title="ThinkRail agent guide" description="Install openquok-core in ThinkRail worktrees" href="/docs/agent-setup-guides/thinkrail" />
 <LinkCard title="Skill Builder" description="Compose channel-specific SKILL.md exports" href="/tools/skill-builder" />
 </CardGrid>

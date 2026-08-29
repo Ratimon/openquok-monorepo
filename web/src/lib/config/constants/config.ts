@@ -666,7 +666,7 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		docsPath: '/docs/agent-setup-guides',
 		title: 'Browse agent setup guides',
 		description:
-			'Platform-specific guides for OpenClaw, Hermes, Cursor, Claude Code, and other agent hosts and MCP clients.',
+			'Platform-specific guides for OpenClaw, Hermes, Grok Bot, ThinkRail, Cursor, Claude Code, and other agent hosts and MCP clients.',
 		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	channels: {

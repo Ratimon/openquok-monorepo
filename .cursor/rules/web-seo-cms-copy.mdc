@@ -62,6 +62,7 @@ When adding or rewriting a landing/pricing FAQ answer, include a first-party lin
 | Trial / plan limits / seats | `/pricing` | Pricing |
 | Schedule from CLI / agents | `/docs/getting-started-for-cli` | CLI getting started |
 | Grok Bot | `/agents/grok-bot`, `/docs/agent-setup-guides/grok-bot`, `/blog/schedule-social-posts-from-grok-bot-with-openquok` | Grok Bot integration, setup guide, walkthrough |
+| ThinkRail | `/agents/thinkrail`, `/docs/agent-setup-guides/thinkrail`, `/blog/schedule-social-posts-from-thinkrail-with-openquok` | ThinkRail integration, setup guide, walkthrough |
 | Cursor MCP | `/agents/cursor`, `/docs/mcp-setup-guides/cursor` | OpenQuok for Cursor, MCP setup guide |
 | Self-host | `/docs/installation/docker-compose`, `https://github.com/Ratimon/openquok-monorepo`, `/blog/how-to-self-host-openquok-with-cli-device-login-free-no-api-keys-on-your-agent` | Docker Compose, GitHub, device-login walkthrough |
 | Agent hosts | `/agents`, `/docs/agent-setup-guides` | Agents, agent setup guides |

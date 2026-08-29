@@ -8,6 +8,10 @@
 		GROK_BOT_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/grok-bot-messaging-channels';
 	import {
+		THINKRAIL_CORE_MESSAGING_CHANNELS,
+		THINKRAIL_EXTENSION_MESSAGING_CHANNELS
+	} from '$data/thinkrail-messaging-channels';
+	import {
 		HERMES_CORE_MESSAGING_CHANNELS,
 		HERMES_EXTENSION_MESSAGING_CHANNELS
 	} from '$data/hermes-messaging-channels';
@@ -91,6 +95,10 @@
 		'grok-bot': {
 			core: GROK_BOT_CORE_MESSAGING_CHANNELS,
 			extension: GROK_BOT_EXTENSION_MESSAGING_CHANNELS
+		},
+		thinkrail: {
+			core: THINKRAIL_CORE_MESSAGING_CHANNELS,
+			extension: THINKRAIL_EXTENSION_MESSAGING_CHANNELS
 		}
 	} as const;
 

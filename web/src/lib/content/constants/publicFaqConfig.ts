@@ -28,6 +28,7 @@ const hrefCliManagingPosts = hrefDocs('cli-usages/managing-posts');
 const hrefCliAnalytics = hrefDocs('cli-usages/analytics');
 const hrefAgentSetupGuides = hrefDocs('agent-setup-guides');
 const hrefGrokBotAgentGuide = hrefDocs('agent-setup-guides/grok-bot');
+const hrefThinkrailAgentGuide = hrefDocs('agent-setup-guides/thinkrail');
 const hrefMcpSetupGuides = hrefDocs('mcp-setup-guides');
 const hrefMcpGettingStarted = hrefDocs('getting-started-for-mcp');
 const hrefPublicApi = hrefDocs('getting-started-for-public-api');
@@ -37,6 +38,7 @@ const hrefChannelGroups = hrefDocs('apis-integrations/groups');
 const hrefCliThreads = hrefDocs('cli-examples/threads');
 const hrefCliX = hrefDocs('cli-examples/x');
 const hrefGrokBotLanding = route(getRootPathPublicAgent('grok-bot'));
+const hrefThinkrailLanding = route(getRootPathPublicAgent('thinkrail'));
 const hrefCursorLanding = route(getRootPathPublicAgent('cursor'));
 const hrefCursorMcpGuide = hrefDocs('mcp-setup-guides/cursor');
 const hrefBlogBufferAlternatives = route(
@@ -47,6 +49,9 @@ const hrefBlogSelfHost = route(
 );
 const hrefBlogGrokBot = route(
 	getRootPathPublicBlogPost('schedule-social-posts-from-grok-bot-with-openquok')
+);
+const hrefBlogThinkrail = route(
+	getRootPathPublicBlogPost('schedule-social-posts-from-thinkrail-with-openquok')
 );
 
 function faqA(href: string, label: string): string {
@@ -68,7 +73,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'How do I schedule social media posts with OpenQuok?',
 		description:
-			`Connect your channels, compose or import a draft, pick a date and time on the calendar (or kanban), and publish. You can schedule social media posts by hand, from reusable templates, or pipe drafts in from AI agents — then review everything before it goes live. Agents follow the ${faqA(hrefCliGettingStarted, 'CLI getting started')} guide. For Grok Bot, see the ${faqA(hrefGrokBotLanding, 'Grok Bot integration')}, ${faqA(hrefGrokBotAgentGuide, 'setup guide')}, or ${faqA(hrefBlogGrokBot, 'scheduling walkthrough')}. For Cursor MCP in your editor, see ${faqA(hrefCursorLanding, 'OpenQuok for Cursor')} and the ${faqA(hrefCursorMcpGuide, 'MCP setup guide')}.`
+			`Connect your channels, compose or import a draft, pick a date and time on the calendar (or kanban), and publish. You can schedule social media posts by hand, from reusable templates, or pipe drafts in from AI agents — then review everything before it goes live. Agents follow the ${faqA(hrefCliGettingStarted, 'CLI getting started')} guide. For Grok Bot, see the ${faqA(hrefGrokBotLanding, 'Grok Bot integration')}, ${faqA(hrefGrokBotAgentGuide, 'setup guide')}, or ${faqA(hrefBlogGrokBot, 'scheduling walkthrough')}. For ThinkRail, see the ${faqA(hrefThinkrailLanding, 'ThinkRail integration')}, ${faqA(hrefThinkrailAgentGuide, 'setup guide')}, or ${faqA(hrefBlogThinkrail, 'ThinkRail walkthrough')}. For Cursor MCP in your editor, see ${faqA(hrefCursorLanding, 'OpenQuok for Cursor')} and the ${faqA(hrefCursorMcpGuide, 'MCP setup guide')}.`
 	},
 	{
 		title: 'Can I self-host OpenQuok?',
@@ -108,12 +113,12 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'How do I pay for agent hosts vs MCP clients?',
 		description:
-			`OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw and Hermes are open source (BYOK or optional Nous Portal pay-as-you-go / Plus from $20/mo); ${faqA(hrefGrokBotLanding, 'Grok Bot')} requires eligible SuperGrok or Cursor plans; ${faqA(hrefCursorLanding, 'Cursor')} (editor MCP), Claude Code, and Codex bill through their own subscriptions. See ${faqA(hrefAgentSetupGuides, 'agent setup guides')} and ${faqA(hrefMcpSetupGuides, 'MCP setup guides')}. OpenQuok MCP only needs your programmatic token — no per-call fee beyond your OpenQuok plan.`
+			`OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw, Hermes, and ${faqA(hrefThinkrailLanding, 'ThinkRail')} are open source (BYOK; ThinkRail uses your pi provider); ${faqA(hrefGrokBotLanding, 'Grok Bot')} requires eligible SuperGrok or Cursor plans; ${faqA(hrefCursorLanding, 'Cursor')} (editor MCP), Claude Code, and Codex bill through their own subscriptions. See ${faqA(hrefAgentSetupGuides, 'agent setup guides')} and ${faqA(hrefMcpSetupGuides, 'MCP setup guides')}. OpenQuok MCP only needs your programmatic token — no per-call fee beyond your OpenQuok plan.`
 	},
 	{
 		title: 'What is MCP and how does OpenQuok use it?',
 		description:
-			`MCP (Model Context Protocol) is how AI assistants plug into the apps you use. Connect OpenQuok once in ${faqA(hrefCursorLanding, 'Cursor')}, Claude Code, Codex, or another MCP client and your agent can manage your social presence — list channels, read platform rules, and schedule posts — without opening the dashboard or copy-pasting between tools. For always-on desktop teammates with the openquok-core skill, see ${faqA(hrefGrokBotLanding, 'Grok Bot + OpenQuok')}. Ask in plain language, e.g. “Schedule a post to X for tomorrow at 10am.” Start with ${faqA(hrefMcpGettingStarted, 'MCP getting started')} or a client-specific ${faqA(hrefMcpSetupGuides, 'MCP setup guide')}.`
+			`MCP (Model Context Protocol) is how AI assistants plug into the apps you use. Connect OpenQuok once in ${faqA(hrefCursorLanding, 'Cursor')}, Claude Code, Codex, or another MCP client and your agent can manage your social presence — list channels, read platform rules, and schedule posts — without opening the dashboard or copy-pasting between tools. For always-on desktop teammates with the openquok-core skill, see ${faqA(hrefGrokBotLanding, 'Grok Bot + OpenQuok')}. For a worktree IDE around the pi coding agent, see ${faqA(hrefThinkrailLanding, 'ThinkRail + OpenQuok')}. Ask in plain language, e.g. “Schedule a post to X for tomorrow at 10am.” Start with ${faqA(hrefMcpGettingStarted, 'MCP getting started')} or a client-specific ${faqA(hrefMcpSetupGuides, 'MCP setup guide')}.`
 	},
 	{
 		title: 'How does MCP relate to my OAuth app?',

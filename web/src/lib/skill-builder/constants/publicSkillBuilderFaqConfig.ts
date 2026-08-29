@@ -19,12 +19,12 @@ const GENERIC_SKILL_BUILDER_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'How is a skill different from an MCP server?',
 		description:
-			'A skill is a playbook the agent reads: it tells the model what to do and which commands to run. An MCP server is a live tool connection over the Model Context Protocol (search, APIs, file ops, and more). Many setups use both — MCP for tools, SKILL.md for the recipe. OpenClaw, Hermes, and Grok Bot commonly install skills; Cursor, Claude Code, and Codex often wire MCP servers in config files.'
+			'A skill is a playbook the agent reads: it tells the model what to do and which commands to run. An MCP server is a live tool connection over the Model Context Protocol (search, APIs, file ops, and more). Many setups use both — MCP for tools, SKILL.md for the recipe. OpenClaw, Hermes, Grok Bot, and ThinkRail commonly install skills; Cursor, Claude Code, and Codex often wire MCP servers in config files.'
 	},
 	{
 		title: 'Where can I use a SKILL.md file?',
 		description:
-			'Any agent host that supports the Agent Skills format: OpenClaw, Hermes Agent, and Grok Bot (Plugins or workspace skills), Claude Code (.claude/skills/), Cursor (.cursor/skills/ or .agents/skills/), Codex (~/.agents/skills/), GitHub Copilot (.github/skills/), and others. Copy or install the exported file using your host’s layout — see OpenQuok agent setup guides for OpenClaw, Hermes, and Grok Bot, or MCP setup guides when you connect tools in Cursor or Claude Code.'
+			'Any agent host that supports the Agent Skills format: OpenClaw, Hermes Agent, Grok Bot (Plugins or workspace skills), and ThinkRail (~/.pi/agent/skills/ or .pi/skills/), Claude Code (.claude/skills/), Cursor (.cursor/skills/ or .agents/skills/), Codex (~/.agents/skills/), GitHub Copilot (.github/skills/), and others. Copy or install the exported file using your host’s layout — see OpenQuok agent setup guides for OpenClaw, Hermes, Grok Bot, and ThinkRail, or MCP setup guides when you connect tools in Cursor or Claude Code.'
 	},
 	{
 		title: 'Do I have to write SKILL.md by hand?',
@@ -64,13 +64,13 @@ function tailorSkillBuilderFaqItem(
 			return {
 				title: item.title,
 				description:
-					`A skill is a playbook the agent reads: it tells the model what to do and which commands to run — such as the ${platformLabel} posts:create recipes you compose here. An MCP server is a live tool connection over the Model Context Protocol (search, APIs, file ops, and more). Many setups use both — MCP for tools, SKILL.md for the recipe. OpenClaw, Hermes, and Grok Bot commonly install skills; Cursor, Claude Code, and Codex often wire MCP servers in config files.`
+					`A skill is a playbook the agent reads: it tells the model what to do and which commands to run — such as the ${platformLabel} posts:create recipes you compose here. An MCP server is a live tool connection over the Model Context Protocol (search, APIs, file ops, and more). Many setups use both — MCP for tools, SKILL.md for the recipe. OpenClaw, Hermes, Grok Bot, and ThinkRail commonly install skills; Cursor, Claude Code, and Codex often wire MCP servers in config files.`
 			};
 		case 'Where can I use a SKILL.md file?':
 			return {
 				title: item.title,
 				description:
-					`Any agent host that supports the Agent Skills format: OpenClaw, Hermes Agent, and Grok Bot (Plugins or workspace skills), Claude Code (.claude/skills/), Cursor (.cursor/skills/ or .agents/skills/), Codex (~/.agents/skills/), GitHub Copilot (.github/skills/), and others. Install the exported ${platformLabel} skill using your host’s layout — see OpenQuok agent setup guides for OpenClaw, Hermes, and Grok Bot, or MCP setup guides when you connect tools in Cursor or Claude Code.`
+					`Any agent host that supports the Agent Skills format: OpenClaw, Hermes Agent, Grok Bot (Plugins or workspace skills), and ThinkRail (~/.pi/agent/skills/ or .pi/skills/), Claude Code (.claude/skills/), Cursor (.cursor/skills/ or .agents/skills/), Codex (~/.agents/skills/), GitHub Copilot (.github/skills/), and others. Install the exported ${platformLabel} skill using your host’s layout — see OpenQuok agent setup guides for OpenClaw, Hermes, Grok Bot, and ThinkRail, or MCP setup guides when you connect tools in Cursor or Claude Code.`
 			};
 		case 'Do I have to write SKILL.md by hand?':
 			return {
@@ -120,7 +120,7 @@ export function buildSkillBuilderFaqSection(
 		return {
 			faqSubtitle: 'Skill Builder FAQs',
 			faqTitle: `${label} Skill builder, answered`,
-			faqDescription: `What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, Claude Code, and MCP hosts, and how to compose a ${label} skill with pre-loaded CLI steps.`,
+			faqDescription: `What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, ThinkRail, Claude Code, and MCP hosts, and how to compose a ${label} skill with pre-loaded CLI steps.`,
 			faqItems: buildChannelSkillBuilderFaqItems(slug, label)
 		};
 	}
@@ -129,7 +129,7 @@ export function buildSkillBuilderFaqSection(
 		faqSubtitle: 'Skill Builder FAQs',
 		faqTitle: 'Skill builder, answered',
 		faqDescription:
-			'What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, Claude Code, and MCP hosts, and how Skill Builder helps you compose and export one.',
+			'What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, ThinkRail, Claude Code, and MCP hosts, and how Skill Builder helps you compose and export one.',
 		faqItems: [...GENERIC_SKILL_BUILDER_FAQ_ITEMS]
 	};
 }

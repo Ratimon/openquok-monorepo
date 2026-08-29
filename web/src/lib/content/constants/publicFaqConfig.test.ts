@@ -25,9 +25,13 @@ describe('PUBLIC_FAQ_ITEMS', () => {
 		expect(html).toContain('href="/pricing"');
 		expect(html).toContain('href="/docs/mcp-setup-guides"');
 		expect(html).toContain('href="/agents/grok-bot"');
+		expect(html).toContain('href="/agents/thinkrail"');
 		expect(html).toContain('href="/agents/cursor"');
 		expect(html).toContain(
 			'href="/blog/schedule-social-posts-from-grok-bot-with-openquok"'
+		);
+		expect(html).toContain(
+			'href="/blog/schedule-social-posts-from-thinkrail-with-openquok"'
 		);
 		expect(html).toContain('href="/channels"');
 		expect(html).not.toContain('rel="nofollow"');

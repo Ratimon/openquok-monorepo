@@ -57,6 +57,21 @@ export const GROK_BOT_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'curl', label: 'curl + Plugins', command: OPENQUOK_CORE_SKILL_INSTALL_GROK_BOT_CURL }
 ];
 
+/** ThinkRail / pi: global skill directory the in-process agent discovers. */
+export const OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_GLOBAL = `mkdir -p ~/.pi/agent/skills/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o ~/.pi/agent/skills/openquok-core/SKILL.md`;
+
+/** ThinkRail: skill scoped to the active git worktree (project-local). */
+export const OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_WORKTREE = `mkdir -p .pi/skills/openquok-core
+curl -fsSL "${OPENQUOK_CORE_SKILL_RAW_URL}" \\
+  -o .pi/skills/openquok-core/SKILL.md`;
+
+export const THINKRAIL_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
+	{ id: 'global', label: 'Global (~/.pi)', command: OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_GLOBAL },
+	{ id: 'worktree', label: 'Worktree (.pi/skills)', command: OPENQUOK_CORE_SKILL_INSTALL_THINKRAIL_WORKTREE }
+];
+
 /** MCP-capable clients (Codex, Cursor, etc.): install openquok-core via npx skills add. */
 export const MCP_SKILL_INSTALL_OPTIONS: readonly SkillInstallOption[] = [
 	{ id: 'npx', label: 'npx', command: OPENQUOK_CORE_SKILL_INSTALL_NPX }

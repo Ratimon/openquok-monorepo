@@ -34,12 +34,12 @@ export const cursorMcpSeed = {
 			{
 				title: 'Do I need the CLI or openquok-core skill?',
 				description:
-					'No — Cursor connects over MCP with an opo_ token and built-in tools, which is the fastest path for editor workflows. The openquok-core skill on <a href="/agents/grok-bot">Grok Bot</a>, OpenClaw, and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.'
+					'No — Cursor connects over MCP with an opo_ token and built-in tools, which is the fastest path for editor workflows. The openquok-core skill on <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/thinkrail">ThinkRail</a>, OpenClaw, and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.'
 			},
 			{
 				title: 'Why use Cursor MCP instead of an agent host?',
 				description:
-					'<a href="/agents/grok-bot">Grok Bot</a>, OpenClaw, and Hermes fit always-on scheduling from desktop chat, Telegram, Discord, or Slack — persistent memory and parallel sessions across channels. Cursor fits when OpenQuok should live inside your editor: native MCP tool calls, focused sessions, and async tasks with clear specs. Choose Cursor when you already ship there; choose an agent host when messaging-first scale matters. Many teams use both.'
+					'<a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/thinkrail">ThinkRail</a>, OpenClaw, and Hermes fit always-on scheduling from desktop chat, a worktree IDE, Telegram, Discord, or Slack — persistent memory and parallel sessions across channels. Cursor fits when OpenQuok should live inside your editor: native MCP tool calls, focused sessions, and async tasks with clear specs. Choose Cursor when you already ship there; choose an agent host when messaging-first scale matters. Many teams use both.'
 			},
 			{
 				title: 'How do I authenticate?',

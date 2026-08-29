@@ -4,6 +4,7 @@
 	import type { McpVerifySafariMockContentId } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
 
 	import GrokBotDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/GrokBotDocsOverviewMock.svelte';
+	import ThinkRailDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/ThinkRailDocsOverviewMock.svelte';
 	import HermesDocsOverviewMock from '$lib/ui/templates/device-mocks/safari/content/HermesDocsOverviewMock.svelte';
 	import McpClientInstallMock from '$lib/ui/templates/device-mocks/safari/content/McpClientInstallMock.svelte';
 	import McpClientVerifyMock from '$lib/ui/templates/device-mocks/safari/content/McpClientVerifyMock.svelte';
@@ -34,6 +35,8 @@
 	<HermesDocsOverviewMock />
 {:else if content === 'grok-bot-docs-overview'}
 	<GrokBotDocsOverviewMock />
+{:else if content === 'thinkrail-docs-overview'}
+	<ThinkRailDocsOverviewMock />
 {:else if isMcpInstallContent(content)}
 	<McpClientInstallMock content={content} />
 {:else if isMcpVerifyContent(content)}

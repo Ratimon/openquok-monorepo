@@ -9,6 +9,10 @@ import type {
 } from '$lib/content/constants/agents/channels/types';
 import { buildAgentChannelPageConfig } from '$lib/content/constants/agents/channels/shared';
 import { grokBotAgentChannelConfigs, grokBotAgentChannelHost } from '$lib/content/constants/agents/channels/grok-bot';
+import {
+	thinkrailAgentChannelConfigs,
+	thinkrailAgentChannelHost
+} from '$lib/content/constants/agents/channels/thinkrail';
 import { hermesAgentChannelConfigs, hermesAgentChannelHost } from '$lib/content/constants/agents/channels/hermes';
 import {
 	openclawAgentChannelConfigs,
@@ -19,9 +23,13 @@ export * from '$lib/content/constants/agents/channels/types';
 export { openclawAgentChannelHost, openclawAgentChannelConfigs } from '$lib/content/constants/agents/channels/openclaw';
 export { hermesAgentChannelHost, hermesAgentChannelConfigs } from '$lib/content/constants/agents/channels/hermes';
 export { grokBotAgentChannelHost, grokBotAgentChannelConfigs } from '$lib/content/constants/agents/channels/grok-bot';
+export {
+	thinkrailAgentChannelHost,
+	thinkrailAgentChannelConfigs
+} from '$lib/content/constants/agents/channels/thinkrail';
 
 /** Agent host slugs that support `/agents/{agentSlug}/{channelSlug}` SEO pages. */
-export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = ['openclaw', 'hermes', 'grok-bot'] as const;
+export const PUBLIC_AGENT_CHANNEL_HOST_SLUGS = ['openclaw', 'hermes', 'grok-bot', 'thinkrail'] as const;
 
 export type PublicAgentChannelHostSlug = (typeof PUBLIC_AGENT_CHANNEL_HOST_SLUGS)[number];
 
@@ -31,7 +39,8 @@ const channelConfigsByHostSlug: Record<
 > = {
 	openclaw: openclawAgentChannelConfigs,
 	hermes: hermesAgentChannelConfigs,
-	'grok-bot': grokBotAgentChannelConfigs
+	'grok-bot': grokBotAgentChannelConfigs,
+	thinkrail: thinkrailAgentChannelConfigs
 };
 
 const channelConfigByHostAndSlug = new Map<string, PublicAgentChannelPageConfig>();
@@ -127,5 +136,6 @@ export function listPublicAgentChannelsForHub(
 export const AGENT_CHANNEL_HOSTS = [
 	openclawAgentChannelHost,
 	hermesAgentChannelHost,
-	grokBotAgentChannelHost
+	grokBotAgentChannelHost,
+	thinkrailAgentChannelHost
 ] as const;

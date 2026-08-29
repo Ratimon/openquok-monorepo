@@ -68,6 +68,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'openclaw',
 	'hermes',
 	'Grok Bot',
+	'ThinkRail',
 	'social media',
 	'approve',
 	'scale',

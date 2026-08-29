@@ -111,6 +111,9 @@
 	const grokBotGuideHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/grok-bot`, page.url.origin)
 	);
+	const thinkrailGuideHref = $derived(
+		hostedMarketingHref(`${publicDocsPath}/agent-setup-guides/thinkrail`, page.url.origin)
+	);
 	const mcpSetupGuidesHref = $derived(
 		hostedMarketingHref(`${publicDocsPath}/mcp-setup-guides`, page.url.origin)
 	);
@@ -133,6 +136,9 @@
 	);
 	const grokBotAgentHref = $derived(
 		hostedMarketingHref(`${publicAgentsPath}/grok-bot`, page.url.origin)
+	);
+	const thinkrailAgentHref = $derived(
+		hostedMarketingHref(`${publicAgentsPath}/thinkrail`, page.url.origin)
 	);
 
 	const pagePresenter = protectedHomePagePresenter;
@@ -755,6 +761,13 @@
 		// 	external: true
 		// },
 		{
+			label: 'ThinkRail agent guide',
+			description: 'Install openquok-core in ThinkRail worktrees.',
+			iconName: icons.BookOpen.name,
+			href: thinkrailGuideHref,
+			external: true
+		},
+		{
 			label: 'MCP setup guides',
 			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
 			iconName: icons.BookOpen.name,
@@ -799,6 +812,12 @@
 			description: 'Schedule from desktop chat on a cloud computer.',
 			iconName: icons.Bot.name,
 			href: grokBotAgentHref
+		},
+		{
+			label: 'ThinkRail + OpenQuok',
+			description: 'Schedule from a git worktree IDE.',
+			iconName: icons.Bot.name,
+			href: thinkrailAgentHref
 		}
 	]);
 

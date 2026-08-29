@@ -30,10 +30,10 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 | Kind | Examples | Landing seed | Docs section | Developer Access |
 | --- | --- | --- | --- | --- |
-| **Agent host** | OpenClaw, Hermes, Grok Bot | `web/src/lib/content/constants/agents/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
+| **Agent host** | OpenClaw, Hermes, Grok Bot, ThinkRail | `web/src/lib/content/constants/agents/{slug}.ts` | `web/src/content/docs/agent-setup-guides/` | openquok-core / CLI skill (not `MCP_CLIENTS`) |
 | **MCP client** | Cursor, ChatGPT, Warp | `web/src/lib/content/constants/mcps/{slug}.ts` | `web/src/content/docs/mcp-setup-guides/` | `getMcpClientConfig` + `MCP_CLIENTS` |
 
-Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**.
+Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**, **`thinkrail.ts`**.
 
 **Do not edit `backend/supabase/db/**`** for agent launches (no listing-tag seeds, no blog seeds, no migration re-aggregate). Catalog tags and launch blog posts go in through secret-admin UI — see **C. CMS (blog + listing tag)** below.
 
@@ -55,7 +55,7 @@ Use one **lowercase kebab-case** slug everywhere:
 
 Landing heroes (`heroTitle` is usually `Schedule social media from {label} then you approve`) pick up gradient styling via `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in **`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts`**.
 
-Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
+Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`, `'ThinkRail'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
 
 Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface that passes `landingHeroTheme` into `HeroMain`.
 
@@ -173,6 +173,12 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - Cloud computer + desktop/iOS chat; skill via **`/workspace/openquok-core/SKILL.md`** and **Settings → Plugins** (or `/` in chat).
 - Reference implementation: **`grok-bot.ts`**, **`grok-bot-messaging-channels.ts`**, **`GROK_BOT_SKILL_INSTALL_OPTIONS`**.
 
+### ThinkRail specifics (`thinkrail`)
+
+- **Not** an MCP client — no `mcps/thinkrail.ts`, no `MCP_CLIENTS`, no `mcp-setup-guides/thinkrail.md`. Do **not** add a separate `/agents/pi` host; ThinkRail is the user-facing IDE and pi runs in-process.
+- Desktop/CLI worktree IDE; skill via **`~/.pi/agent/skills/openquok-core/SKILL.md`** or worktree **`.pi/skills/openquok-core/SKILL.md`**.
+- Reference implementation: **`thinkrail.ts`**, **`thinkrail-messaging-channels.ts`**, **`THINKRAIL_SKILL_INSTALL_OPTIONS`**. Desktop-first mocks (same pattern as Grok Bot), not Telegram fallback.
+
 ### Agent host PR checklist
 
 - [ ] Icon + agent seed registered; hub lists the host
@@ -196,7 +202,7 @@ Ship code + docs in the PR; add **catalog tag** and **launch blog** yourself in 
 2. **Name:** must slug correctly (e.g. `Grok Bot` → `grok-bot` via `stringToSlug`)
 3. **Description:** one neutral sentence on skills/CLI for that host
 4. **Tag groups:** check the groups that match the product surface in the tag modal (seeded catalog groups include **Autonomous agents**, **CLI**, **IDE**). Use the **Tag groups** tab on the same page to create or rename groups when needed — do not seed groups via SQL.
-   - Agent hosts (OpenClaw, Hermes, Grok Bot) → **Autonomous agents**
+   - Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail) → **Autonomous agents**
    - Terminal-first MCP clients → **CLI**
    - Editor / desktop MCP clients → **IDE**
 5. Optional: edit **openquok-core** playbook/building-block → tags picker → add the new tag
@@ -223,4 +229,4 @@ Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff �
 - Hardcode icon name strings — use `icons.{Brand}.name`.
 - Name third-party source projects or external repo paths in seeds, docs, or comments (see **source-project-neutrality**).
 - Create or edit **`backend/supabase/db/**`** listing-tag or blog seeds for agent launches — use secret-admin (**C**).
-- Classify a desktop/cloud teammate product as an MCP client when it uses CLI + skills (Grok Bot → agent host).
+- Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail → agent host).
