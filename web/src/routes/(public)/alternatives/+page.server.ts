@@ -24,6 +24,8 @@ export async function load({ url, cookies, parent }) {
 		customTitle,
 		customDescription,
 		customSlug: getRootPathPublicAlternatives(),
+		// Hub SEO keywords from presenter — same pattern as detailVm.keywords on `/alternatives/[slug]`.
+		customTags: hubVm.keywords,
 		requestUrl: url
 	})) satisfies MetaTagsProps;
 

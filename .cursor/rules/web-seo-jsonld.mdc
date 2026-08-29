@@ -136,6 +136,8 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 | **Creator profile** | `ProfilePage` + `Person` |
 | **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
 | **Compare** | `WebPage` + `ItemList` + `SoftwareApplication` × 2 + `FAQPage` |
+| **Alternatives hub** | `CollectionPage` + `ItemList` |
+| **Alternatives detail** | `WebPage` + `ItemList` + `SoftwareApplication` × N + `FAQPage` (OpenQuok node: `isAccessibleForFree` + free `Offer`) |
 
 ## Builder notes
 

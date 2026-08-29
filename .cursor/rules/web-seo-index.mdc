@@ -91,7 +91,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 | `<title>`, meta description, OG/Twitter | `pageMetaTags` from server load |
 | `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) — path-only; strips UTM/`gclid`/`fbclid` in SSR |
 | JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
-| Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy** |
+| Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy**; alternatives/competitor copy in `PublicAlternativesPagePresenter` — see **web-seo-meta-tags** → Alternatives programmatic SEO |
 | Paginated hub grids (playbooks, building blocks, blog) | Current page items in SSR HTML + crawlable `<a href="?page=N">` links — no client-only "Show more" or infinite scroll |
 
 ## Pagination (indexable catalog grids)
@@ -136,5 +136,5 @@ Production pages are served over HTTPS. Subresources and SEO URLs loaded over pl
 
 - **Landing / pricing / about**: `/`, `/pricing`, `/about`
 - **Content**: `/blog`, `/blog/[slug]`, `/blog/topic`, `/blog/author`, `/p/[postId]`
-- **Hubs**: `/channels`, `/agents`, `/tools`, `/creators`, `/compare`, `/playbooks`, `/building-blocks`, category/tag sub-hubs
-- **Detail pages**: channel, agent, tool, creator, listing detail routes
+- **Hubs**: `/channels`, `/agents`, `/tools`, `/creators`, `/compare`, `/alternatives`, `/playbooks`, `/building-blocks`, category/tag sub-hubs
+- **Detail pages**: channel, agent, tool, creator, listing detail routes; `/alternatives/{slug}` (competitor alternative directories)

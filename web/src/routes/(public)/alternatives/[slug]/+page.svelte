@@ -169,13 +169,14 @@
 	{#if featuredListing?.isOpenQuok}
 		<section class="container mx-auto mt-12 max-w-5xl px-4">
 			<div class="rounded-3xl border border-primary/20 bg-primary/5 p-8 text-center sm:p-10">
-				<p class="text-xs font-bold tracking-wider text-primary uppercase">One-stop platform</p>
+				<p class="text-xs font-bold tracking-wider text-primary uppercase">Open source · free to self-host</p>
 				<h2 class="mt-3 text-2xl font-black tracking-tight text-base-content sm:text-3xl">
-					OpenQuok is an agentic social media scheduler
+					OpenQuok is a free, open-source social media scheduler
 				</h2>
 				<p class="mx-auto mt-4 max-w-2xl text-base text-base-content/75">
-					Connect channels, review every draft on calendar or kanban, and publish across every platform
-					from the dashboard — or pipe drafts in from AI agents via skills, MCP, and the Public API.
+					Self-host at no cost or start a 7-day hosted trial. Connect channels, review every draft on
+					calendar or kanban, and publish across every platform from the dashboard — or pipe drafts in
+					from AI agents via skills, MCP, and the Public API.
 				</p>
 				<div class="mt-6 flex justify-center">
 					<ButtonGlitchBrightness

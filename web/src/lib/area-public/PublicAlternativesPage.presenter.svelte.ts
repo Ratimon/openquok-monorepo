@@ -28,6 +28,7 @@ export type AlternativesHubEntryViewModel = {
 export type AlternativesHubViewModel = {
 	metaTitle: string;
 	metaDescription: string;
+	keywords: string[];
 	eyebrow: string;
 	title: string;
 	description: string;
@@ -64,17 +65,40 @@ export type AlternativesDetailViewModel = {
 };
 
 export class PublicAlternativesPagePresenter {
+	/**
+	 * Hub SEO for `/alternatives`. Targets free/open-source alternative intent (e.g.
+	 * "free Hootsuite alternative", "open source social media scheduler").
+	 *
+	 * - `metaTitle` / `metaDescription` / `keywords` → `createMetaData` via hub `+page.server.ts` (`customTags`)
+	 * - `title` / `description` → visible H1 and hero paragraph (SSR body copy)
+	 *
+	 * Per-competitor pages (`/alternatives/{slug}`) use `buildDetailVm` and
+	 * `buildAlternativesDetailKeywords`. OpenQuok #1 listing body copy is set in
+	 * `buildAlternativeDetailDescription`.
+	 * eg. Best alternatives to Hootsuite”
+	 */
 	buildHubVm(): AlternativesHubViewModel {
 		const entries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
 
 		return {
-			metaTitle: 'Best Social Media Scheduler Alternatives',
+			metaTitle: 'Free & Open-Source Social Media Scheduler Alternatives',
 			metaDescription:
-				'Compare the top social media management tools and discover why teams are switching to OpenQuok for scheduling, agent workflows, multi-workspace publishing, and analytics.',
+				'Compare free and open-source social media management tools. OpenQuok is 100% open source — self-host for free or start a 7-day trial — with agent workflows, multi-workspace publishing, and analytics.',
+			keywords: [
+				'free social media scheduler',
+				'open source social media scheduler',
+				'free social media management tools',
+				'open source social media management',
+				'social media scheduler alternatives',
+				'free hootsuite alternative',
+				'free buffer alternative',
+				'agent social media scheduling',
+				'multi-workspace scheduler'
+			],
 			eyebrow: 'Alternatives',
-			title: 'Find the best alternative for your needs',
+			title: 'Find a free or the best open-source alternative',
 			description:
-				'Compare the top social media management tools and discover why teams are switching to OpenQuok for scheduling, analytics, and agent-driven publishing.',
+				'Compare free and open-source social media schedulers — including OpenQuok, which you can self-host at no cost or try hosted with a 7-day trial.',
 			entries
 		};
 	}
@@ -96,20 +120,12 @@ export class PublicAlternativesPagePresenter {
 			listings.length === 1 ? '1 top alternative' : `${listings.length} top alternatives`;
 
 		return {
-			metaTitle: `Best ${targetProduct.name} Alternatives`,
-			metaDescription: `Discover the best alternatives to ${targetProduct.name} for social media scheduling, agent workflows, and multi-workspace publishing. Compare ${alternativeCountLabel} on pricing, channels, and features.`,
-			keywords: [
-				`${targetProduct.name} alternatives`,
-				`best ${targetProduct.name} alternative`,
-				`${targetProduct.name} competitor`,
-				'social media scheduler alternatives',
-				'social media management tools',
-				'agent social media scheduling',
-				'multi-workspace scheduler'
-			],
+			metaTitle: `Best Free & Open-Source ${targetProduct.name} Alternatives`,
+			metaDescription: `Compare free and open-source alternatives to ${targetProduct.name} for social media scheduling. OpenQuok ranks #1 — 100% open source, self-host for free, or start a 7-day trial. See ${alternativeCountLabel} on pricing, channels, and agent workflows.`,
+			keywords: buildAlternativesDetailKeywords(targetProduct.name),
 			eyebrow: 'Alternatives',
 			title: `${targetProduct.name} alternatives`,
-			description: `Compare the best alternatives to ${targetProduct.name} for social media management, scheduling, and agent-driven publishing.`,
+			description: `Compare free and open-source alternatives to ${targetProduct.name} for social media management, scheduling, and agent-driven publishing.`,
 			targetSlug: targetProduct.slug,
 			targetName: targetProduct.name,
 			targetIcon: targetProduct.icon,
@@ -145,7 +161,7 @@ export class PublicAlternativesPagePresenter {
 			icon: product.icon,
 			href: url(route(getRootPathPublicAlternativesTarget(product.slug))),
 			title: `${product.name} alternatives`,
-			description: `Discover the best alternatives to ${product.name} for social media management, scheduling, and analytics.`
+			description: `Discover free and open-source alternatives to ${product.name} for social media management, scheduling, and analytics.`
 		};
 	}
 
@@ -176,8 +192,28 @@ function buildAlternativeDetailDescription(
 	targetProduct: CompareProduct
 ): string {
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
-		return `${product.name} is built for ${product.comparison.builtFor}. Teams switch from ${targetProduct.name} for ${product.comparison.headline}, multi-workspace isolation, and programmatic scheduling through skills, MCP, and the Public API.`;
+		return `${product.name} is 100% open source — self-host for free or try hosted with a 7-day trial. Teams switch from ${targetProduct.name} for ${product.comparison.headline}, multi-workspace isolation, and programmatic scheduling through skills, MCP, and the Public API.`;
 	}
 
 	return `${product.name} is built for ${product.comparison.builtFor}. ${product.comparison.positioningWhenLeft.charAt(0).toUpperCase()}${product.comparison.positioningWhenLeft.slice(1)}.`;
+}
+
+function buildAlternativesDetailKeywords(competitorName: string): string[] {
+	// Per-slug meta keywords — mirrors GSC head terms for free/open-source competitor alternatives.
+	return [
+		`${competitorName} alternatives`,
+		`best ${competitorName} alternative`,
+		`free ${competitorName} alternative`,
+		`free ${competitorName} alternatives`,
+		`${competitorName} free alternative`,
+		`open source ${competitorName} alternative`,
+		`${competitorName} open source alternative`,
+		`${competitorName} competitor`,
+		'free social media scheduler',
+		'open source social media scheduler',
+		'social media scheduler alternatives',
+		'social media management tools',
+		'agent social media scheduling',
+		'multi-workspace scheduler'
+	];
 }
