@@ -134,6 +134,8 @@ function isMcpDocsPath(segmentOrSlug: string): boolean {
 
 function isContributingDocsPath(segmentOrSlug: string): boolean {
 	return (
+		segmentOrSlug === 'contribution-opportunities' ||
+		segmentOrSlug.startsWith('contribution-opportunities/') ||
 		segmentOrSlug === 'publish-listings' ||
 		segmentOrSlug.startsWith('publish-listings/') ||
 		segmentOrSlug === 'documentation-contribution' ||

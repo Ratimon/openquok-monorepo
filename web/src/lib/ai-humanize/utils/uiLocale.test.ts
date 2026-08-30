@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { HUMANIZE_UI_COPY } from '$lib/ai-humanize/constants/config';
+import { HUMANIZE_UI_COPY } from '$lib/ai-humanize/constants/locales/index';
 import {
 	browserPreferredLanguages,
 	detectHumanizeUiLocale,

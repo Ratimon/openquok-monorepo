@@ -4,7 +4,7 @@ import type { HumanizeSwapRow } from '$lib/ai-humanize/constants/writingGuide.ty
  * Thai swap table — แม็ปวลีที่ flag → คำธรรมดา หรือลบทิ้ง (string ว่าง)
  * ใช้โดย localRewrite เมื่อ locale = th
  */
-export const HUMANIZE_SWAP_TABLE_TH: readonly HumanizeSwapRow[] = [
+export const HUMANIZE_SWAP_TABLE: readonly HumanizeSwapRow[] = [
 	{ flagged: 'ปฏิวัติวงการ', instead: 'เปลี่ยนวงการ' },
 	{ flagged: 'นำพาไปสู่', instead: 'นำไปสู่' },
 	{ flagged: 'ทำหน้าที่เป็น', instead: 'เป็น' },

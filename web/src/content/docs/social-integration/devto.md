@@ -109,6 +109,6 @@ Dev.to needs <strong>no</strong> operator OAuth pair. Leave the social-app ID/se
 
 <CardGrid>
 <LinkCard title="CLI examples" description="posts:create with title, tags, series, and organization; analytics:platform and analytics:post" href="/docs/cli-examples/devto" />
-<LinkCard title="Adding a provider" description="OAuth vs credentials-in-app contributor checklist" href="/docs/developer-guidelines/add-provider" />
+<LinkCard title="Adding a provider" description="OAuth vs credentials-in-app contributor checklist" href="/docs/contribution-opportunities/add-provider" />
 <LinkCard title="Security guidelines" description="Service key rules, channel credentials at rest, and RLS" href="/docs/developer-guidelines/security" />
 </CardGrid>

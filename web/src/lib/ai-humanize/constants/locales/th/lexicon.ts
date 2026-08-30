@@ -5,7 +5,7 @@ import type { HumanizeLexiconEntry, HumanizeTier2LexiconEntry } from '$lib/ai-hu
  * Pair each tier-1 term with a plainer stand-in used by the local rewrite.
  * หมายเหตุ: ภาษาไทยไม่มีการผันคำ — match แบบ substring ตรงตัว
  */
-export const HUMANIZE_TIER1_VERBS_TH: readonly HumanizeLexiconEntry[] = [
+export const HUMANIZE_TIER1_VERBS: readonly HumanizeLexiconEntry[] = [
 	{ term: 'ปฏิวัติ', simpler: 'เปลี่ยน', group: 'verbs' },
 	{ term: 'ปฏิวัติวงการ', simpler: 'เปลี่ยนวงการ', group: 'verbs' },
 	{ term: 'ขับเคลื่อน', simpler: 'ผลักดัน', group: 'verbs' },
@@ -29,7 +29,7 @@ export const HUMANIZE_TIER1_VERBS_TH: readonly HumanizeLexiconEntry[] = [
 	{ term: 'เป็นแสงสว่างนำทาง', simpler: 'ช่วยชี้ทาง', group: 'verbs' }
 ];
 
-export const HUMANIZE_TIER1_NOUNS_TH: readonly HumanizeLexiconEntry[] = [
+export const HUMANIZE_TIER1_NOUNS: readonly HumanizeLexiconEntry[] = [
 	{ term: 'ภูมิทัศน์', simpler: 'สภาพ', group: 'nouns' },
 	{ term: 'โลกของ', simpler: 'วงการ', group: 'nouns' },
 	{ term: 'ระบบนิเวศ', simpler: 'กลุ่ม', group: 'nouns' },
@@ -44,7 +44,7 @@ export const HUMANIZE_TIER1_NOUNS_TH: readonly HumanizeLexiconEntry[] = [
 	{ term: 'คุณค่าที่ไม่อาจประเมิน', simpler: 'คุณค่า', group: 'nouns' }
 ];
 
-export const HUMANIZE_TIER1_ADJECTIVES_TH: readonly HumanizeLexiconEntry[] = [
+export const HUMANIZE_TIER1_ADJECTIVES: readonly HumanizeLexiconEntry[] = [
 	{ term: 'สำคัญอย่างยิ่ง', simpler: 'สำคัญ', group: 'adjectives' },
 	{ term: 'ราบรื่นอย่างไร้รอยต่อ', simpler: 'ง่าย', group: 'adjectives' },
 	{ term: 'ไร้รอยต่อ', simpler: 'ง่าย', group: 'adjectives' },
@@ -65,7 +65,7 @@ export const HUMANIZE_TIER1_ADJECTIVES_TH: readonly HumanizeLexiconEntry[] = [
 ];
 
 /** Stock openers/closers — ประโยคเปิด-ปิดสำเร็จรูป */
-export const HUMANIZE_TIER1_STOCK_PHRASES_TH: readonly HumanizeLexiconEntry[] = [
+export const HUMANIZE_TIER1_STOCK_PHRASES: readonly HumanizeLexiconEntry[] = [
 	{ term: 'ในยุคที่เทคโนโลยีก้าวไกล', simpler: '', group: 'stockPhrases' },
 	{ term: 'ในโลกยุคปัจจุบันที่เปลี่ยนแปลงรวดเร็ว', simpler: '', group: 'stockPhrases' },
 	{ term: 'ในยุคดิจิทัล', simpler: '', group: 'stockPhrases' },
@@ -87,7 +87,7 @@ export const HUMANIZE_TIER1_STOCK_PHRASES_TH: readonly HumanizeLexiconEntry[] = 
 ];
 
 /** Narrative clichés — สำนวนเล่าเรื่องเชยๆ */
-export const HUMANIZE_NARRATIVE_CLICHES_TH: readonly HumanizeLexiconEntry[] = [
+export const HUMANIZE_NARRATIVE_CLICHES: readonly HumanizeLexiconEntry[] = [
 	{ term: 'ไม่อาจฝืนความรู้สึกได้', simpler: '', group: 'narrativeCliches' },
 	{ term: 'หัวใจเต้นแรง', simpler: '', group: 'narrativeCliches' },
 	{ term: 'ความรู้สึกXซึ่งไหลบ่ายมา', simpler: '', group: 'narrativeCliches' },
@@ -101,7 +101,7 @@ export const HUMANIZE_NARRATIVE_CLICHES_TH: readonly HumanizeLexiconEntry[] = [
 	{ term: 'น่าดึงดูดใจ', simpler: 'น่าสนใจ', group: 'narrativeCliches' }
 ];
 
-export const HUMANIZE_TIER2_TH: readonly HumanizeTier2LexiconEntry[] = [
+export const HUMANIZE_TIER2: readonly HumanizeTier2LexiconEntry[] = [
 	{ term: 'ครอบคลุม' },
 	{ term: 'มีนัยสำคัญ' },
 	{ term: 'จำเป็น' },
@@ -112,10 +112,10 @@ export const HUMANIZE_TIER2_TH: readonly HumanizeTier2LexiconEntry[] = [
 	{ term: 'โอกาส' }
 ];
 
-export const HUMANIZE_TIER1_LEXICON_TH: readonly HumanizeLexiconEntry[] = [
-	...HUMANIZE_TIER1_VERBS_TH,
-	...HUMANIZE_TIER1_NOUNS_TH,
-	...HUMANIZE_TIER1_ADJECTIVES_TH,
-	...HUMANIZE_TIER1_STOCK_PHRASES_TH,
-	...HUMANIZE_NARRATIVE_CLICHES_TH
+export const HUMANIZE_TIER1_LEXICON: readonly HumanizeLexiconEntry[] = [
+	...HUMANIZE_TIER1_VERBS,
+	...HUMANIZE_TIER1_NOUNS,
+	...HUMANIZE_TIER1_ADJECTIVES,
+	...HUMANIZE_TIER1_STOCK_PHRASES,
+	...HUMANIZE_NARRATIVE_CLICHES
 ];

@@ -17,7 +17,7 @@ globs:
   - web/src/data/social-providers.ts
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
-  - web/src/content/docs/developer-guidelines/add-provider.md
+  - web/src/content/docs/contribution-opportunities/add-provider.md
   - web/src/content/docs/creating-posts/writing-the-post.md
   - web/src/content/constants/publicChannelConfig.ts
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
@@ -74,7 +74,7 @@ Ship **backend + web + docs + self-host env + public channel landing page + agen
 | **OAuth** (default) | Yes | Redirect to the platform | `config.integrations.*` + self-host `.env.example` + docker-compose row | **Threads** (single-step), **Instagram (Business)** (Page picker + compose settings), **Facebook Page** (Meta OAuth + link-preview settings) |
 | **Credentials in OpenQuok** | **No** | Paste personal API key / app password into Add Channel | **None** — do not invent empty `{PROVIDER}_*` placeholders | **Dev.to (`devto`)** |
 
-Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/listing-manager/tags`. Full guide: `web/src/content/docs/developer-guidelines/add-provider.md`.
+Public landing + bento references: **facebook**, **threads** in `publicChannelConfig.ts` and `web/src/lib/ui/templates/bento/minor-templates/`. Agent channel SEO references: **facebook** at `/agents/openclaw/facebook`. Photo Editor channel references: **facebook**, **instagram** at `/tools/photo-editor/{slug}`. Best Time to Post references: **tiktok**, **linkedin** at `/tools/best-time-to-post/{slug}`; benchmark tables in `web/src/lib/best-time-to-post/constants/benchmarkSlots.ts`. Humanizer references: **linkedin**, **x** at `/tools/humanizer/{slug}`; generic mocked composer at `/tools/humanizer`. Listing tag: `/secret-admin/listing-manager/tags`. Full guide: `web/src/content/docs/contribution-opportunities/add-provider.md`.
 
 ## Identifier contract
 

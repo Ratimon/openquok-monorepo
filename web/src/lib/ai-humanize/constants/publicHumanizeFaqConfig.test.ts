@@ -22,6 +22,12 @@ describe('buildHumanizeFaqSection', () => {
 		expect(accountFaq?.description.toLowerCase()).toContain('samples');
 		expect(accountFaq?.description.toLowerCase()).toContain('connect real accounts');
 		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
+
+		const contributeFaq = section.faqItems.find(
+			(item) => item.title === 'Can I contribute a new Humanizer language?'
+		);
+		expect(contributeFaq).toBeDefined();
+		expect(contributeFaq?.description).toContain('/docs/contribution-opportunities/humanizer-languages');
 	});
 
 	it('tailors platform copy when a channel slug and label are set', () => {

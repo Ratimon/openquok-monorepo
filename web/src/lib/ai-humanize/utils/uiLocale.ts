@@ -1,12 +1,14 @@
-import type { HumanizeLocale } from '$lib/ai-humanize/utils/localeDetect';
+import type { HumanizeModeOption, HumanizeUiCopy } from '$lib/ai-humanize/constants/config';
+import type { HumanizeLocale } from '$lib/ai-humanize/constants/locales/types';
 
 import {
 	HUMANIZE_MODE_OPTIONS,
-	HUMANIZE_MODE_OPTIONS_TH,
-	HUMANIZE_UI_COPY,
-	type HumanizeModeOption,
-	type HumanizeUiCopy
-} from '$lib/ai-humanize/constants/config';
+	HUMANIZE_UI_COPY as EN_UI_COPY
+} from '$lib/ai-humanize/constants/locales/en/ui';
+import {
+	HUMANIZE_MODE_OPTIONS as HUMANIZE_MODE_OPTIONS_TH,
+	HUMANIZE_UI_COPY as TH_UI_COPY
+} from '$lib/ai-humanize/constants/locales/th/ui';
 
 /**
  * UI-locale layer for the Humanize modal: picks Thai labels/copy when the
@@ -52,5 +54,5 @@ export function humanizeModeOptionsFor(locale: HumanizeLocale): readonly Humaniz
 
 /** Section/chip strings around the modal for a UI locale. */
 export function humanizeUiCopyFor(locale: HumanizeLocale): HumanizeUiCopy {
-	return HUMANIZE_UI_COPY[locale];
+	return locale === 'th' ? TH_UI_COPY : EN_UI_COPY;
 }

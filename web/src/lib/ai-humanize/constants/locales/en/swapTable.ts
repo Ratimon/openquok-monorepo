@@ -1,6 +1,6 @@
 import type { HumanizeSwapRow } from '$lib/ai-humanize/constants/writingGuide.types';
 
-import { HUMANIZE_CONCLUSION_PHRASES, HUMANIZE_KICKER_PHRASES } from '$lib/ai-humanize/constants/tells';
+import { HUMANIZE_CONCLUSION_PHRASES, HUMANIZE_KICKER_PHRASES } from '$lib/ai-humanize/constants/locales/en/tells';
 
 /**
  * Flagged → say-instead rows. Empty `instead` drops the phrase.

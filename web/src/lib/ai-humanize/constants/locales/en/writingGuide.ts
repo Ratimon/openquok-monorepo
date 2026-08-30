@@ -1,19 +1,19 @@
 import { HUMANIZE_REGISTER_OVERLAYS } from '$lib/ai-humanize/constants/config';
-import { HUMANIZE_HUMAN_MARKERS } from '$lib/ai-humanize/constants/humanMarkers';
+import { HUMANIZE_HUMAN_MARKERS } from '$lib/ai-humanize/constants/locales/en/humanMarkers';
 import {
 	HUMANIZE_TIER1_LEXICON,
 	HUMANIZE_TIER1_LEXICON_BY_GROUP,
 	HUMANIZE_TIER2_CLUSTER,
 	HUMANIZE_TIER2_LEXICON
-} from '$lib/ai-humanize/constants/lexicon';
-import { HUMANIZE_REWRITE_CONSTRAINTS } from '$lib/ai-humanize/constants/rewriteConstraints';
-import { HUMANIZE_SMOKING_GUNS } from '$lib/ai-humanize/constants/smokingGuns';
-import { HUMANIZE_SWAP_TABLE } from '$lib/ai-humanize/constants/swapTable';
+} from '$lib/ai-humanize/constants/locales/en/lexicon';
+import { HUMANIZE_REWRITE_CONSTRAINTS } from '$lib/ai-humanize/constants/locales/en/rewriteConstraints';
+import { HUMANIZE_SMOKING_GUNS } from '$lib/ai-humanize/constants/locales/en/smokingGuns';
+import { HUMANIZE_SWAP_TABLE } from '$lib/ai-humanize/constants/locales/en/swapTable';
 import {
 	HUMANIZE_BURSTINESS_LONG_MIN_WORDS,
 	HUMANIZE_BURSTINESS_SHORT_MAX_WORDS,
 	HUMANIZE_TELLS
-} from '$lib/ai-humanize/constants/tells';
+} from '$lib/ai-humanize/constants/locales/en/tells';
 
 /**
  * Single object for tests and the Rewriter context builder.

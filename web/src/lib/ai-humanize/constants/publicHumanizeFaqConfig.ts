@@ -13,6 +13,7 @@ const HUMAN_VS_ROUGHEN_FAQ_TITLE = 'What is Human vs Roughen?';
 const CHROME_FAQ_TITLE = 'Does Humanizer require Chrome?';
 const GUARANTEE_FAQ_TITLE = 'Does this guarantee a post will read as written by a person?';
 const PLATFORM_FAQ_TITLE = 'Can I humanize a post for a specific platform?';
+const CONTRIBUTE_LANGUAGE_FAQ_TITLE = 'Can I contribute a new Humanizer language?';
 
 const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
@@ -44,6 +45,11 @@ const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		title: PLATFORM_FAQ_TITLE,
 		description:
 			'Yes. This page is Global Edit across sample channels — pick a sample chip in the composer to preview that format and character limit, including networks whose scheduler is still coming soon. Those chips are not your accounts. Sign in or sign up to connect real channels in your workspace and schedule.'
+	},
+	{
+		title: CONTRIBUTE_LANGUAGE_FAQ_TITLE,
+		description:
+			'Yes. Thai is the first locale beside English. See the contributor guide <a href="/docs/contribution-opportunities/humanizer-languages">Adding a Humanizer language</a> for the locale folder layout, catalogs, tests, and PR checklist.'
 	}
 ];
 
@@ -71,6 +77,8 @@ function tailorHumanizeFaqItem(
 				title: `What's included for ${platformLabel}?`,
 				description: `This page opens with ${platformLabel} selected so the preview and soft character limit match that network. Rewrite on-device, copy the result, then sign in or sign up to connect a real ${platformLabel} account in your workspace and schedule. For another platform, pick a different sample chip in the composer.`
 			};
+		case CONTRIBUTE_LANGUAGE_FAQ_TITLE:
+			return item;
 		default:
 			return item;
 	}

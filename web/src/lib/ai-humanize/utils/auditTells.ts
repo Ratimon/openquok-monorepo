@@ -1,5 +1,5 @@
-import { HUMANIZE_TIER1_TERMS } from '$lib/ai-humanize/constants/lexicon';
-import { HUMANIZE_SMOKING_GUNS } from '$lib/ai-humanize/constants/smokingGuns';
+import { HUMANIZE_TIER1_TERMS } from '$lib/ai-humanize/constants/locales/en/lexicon';
+import { HUMANIZE_SMOKING_GUNS } from '$lib/ai-humanize/constants/locales/en/smokingGuns';
 import {
 	HUMANIZE_CONCLUSION_PHRASES,
 	HUMANIZE_COPULA_DODGE_PHRASES,
@@ -15,7 +15,7 @@ import {
 	HUMANIZE_RULE_OF_THREE_RE,
 	HUMANIZE_UNIFORM_SENTENCE_CV_MAX,
 	HUMANIZE_UNIFORM_SENTENCE_MIN_COUNT
-} from '$lib/ai-humanize/constants/tells';
+} from '$lib/ai-humanize/constants/locales/en/tells';
 
 export type HumanizeTellKind =
 	| 'emDash'

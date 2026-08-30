@@ -183,7 +183,7 @@ During OAuth, grant access to **all Pages** you manage. OpenQuok also queries Bu
 ## Related
 
 <Callout type="tip" title="Contributing">
-See <a href="/docs/developer-guidelines/add-provider">Adding a social provider</a> for the full backend + web checklist used when implementing Facebook and future channels.
+See <a href="/docs/contribution-opportunities/add-provider">Adding a social provider</a> for the full backend + web checklist used when implementing Facebook and future channels.
 </Callout>
 
 ## References

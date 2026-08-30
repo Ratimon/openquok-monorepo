@@ -139,7 +139,7 @@ Maintainers will review, suggest edits if needed, and merge when ready.
 
 Good first contributions include bug fixes, test coverage, provider improvements, UI polish, and documentation clarifications in code comments or README sections.
 
-Larger features (new social providers, new API surfaces) are welcome — open a <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub issue</DocsExternalLink> first if you are unsure about scope. For a new channel integration, start with <a href="/docs/developer-guidelines/add-provider">Adding a social provider</a>.
+Larger features (new social providers, new API surfaces) are welcome — open a <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/issues">GitHub issue</DocsExternalLink> first if you are unsure about scope. For a new channel integration, start with <a href="/docs/contribution-opportunities/add-provider">Adding a social provider</a>.
 
 <Callout type="note" title="Documentation-only changes">
 <p>Edits under <Badge text="web/src/content/docs/" variant="path" /> belong in documentation-focused PRs. See <a href="/docs/documentation-contribution/submit-a-pr">Submit a pull request (docs)</a> for the docs workflow and keep code and docs in separate PRs when possible.</p>
@@ -149,7 +149,7 @@ Larger features (new social providers, new API surfaces) are welcome — open a 
 
 <CardGrid>
 <LinkCard title="Security guidelines" description="Service key rules, RLS guidance, and SSR state management safety" href="/docs/developer-guidelines/security" />
-<LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/developer-guidelines/add-provider" />
+<LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/contribution-opportunities/add-provider" />
 <LinkCard title="Development environment" description="Local dev servers, tests, DB tasks, and deployment commands" href="/docs/installation/development-environment" />
 <LinkCard title="Submit a pull request (docs)" description="Fork the repo, edit docs, preview locally, and open a PR on GitHub" href="/docs/documentation-contribution/submit-a-pr" />
 </CardGrid>

@@ -8,8 +8,9 @@
  * mostly-English text through the Thai catalogs.
  */
 
-/** Locales supported by the rewrite engine. `en` is the original pipeline. */
-export type HumanizeLocale = 'en' | 'th';
+import type { HumanizeLocale } from '$lib/ai-humanize/constants/locales/types';
+
+export type { HumanizeLocale };
 
 /** Any code point in the Thai Unicode block. */
 const THAI_CHAR_RE = /[\u0E00-\u0E7F]/;

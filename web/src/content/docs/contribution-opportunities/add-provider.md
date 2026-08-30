@@ -1,8 +1,8 @@
 ---
 title: Adding a social provider
 description: Contributor guide for implementing a new social integration in OpenQuok
-order: 7
-lastUpdated: 2026-08-27
+order: 1
+lastUpdated: 2026-08-30
 ---
 
 <script>
@@ -10,6 +10,8 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 </script>
 
 ## Overview
+
+This guide lives under **Contribution opportunities** — scoped product work open to contributors.
 
 Our social channels are <strong>provider classes</strong> registered in the backend, exposed through existing REST routes, and optionally wired in the web. Each provider is a deliberate code change across a small, predictable set of files.
 

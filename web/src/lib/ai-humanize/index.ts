@@ -3,9 +3,6 @@ export {
 	HUMANIZE_SOFT_OPT_IN_STORAGE_KEY,
 	HUMANIZE_MODES,
 	HUMANIZE_DEFAULT_MODE,
-	HUMANIZE_MODE_OPTIONS,
-	HUMANIZE_MODE_OPTIONS_TH,
-	HUMANIZE_UI_COPY,
 	HUMANIZE_REGISTER_OVERLAYS,
 	COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS,
 	COMPOSER_HUMANIZE_DEFAULTS,
@@ -14,17 +11,24 @@ export {
 	type HumanizeUiCopy
 } from '$lib/ai-humanize/constants/config';
 
+export { HUMANIZE_MODE_OPTIONS } from '$lib/ai-humanize/constants/locales/en/ui';
+
+export { HUMANIZE_UI_COPY } from '$lib/ai-humanize/constants/locales/index';
+
 export {
 	COMPOSER_HUMANIZE_HUMAN_PREAMBLE,
 	COMPOSER_HUMANIZE_ROUGHEN_PREAMBLE,
-	COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT,
 	COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT,
 	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT,
 	serializeHumanizeWritingGuide,
 	buildHumanizeModeSharedContext
-} from '$lib/ai-humanize/constants/sharedContext';
+} from '$lib/ai-humanize/constants/locales/en/sharedContext';
 
-export { HUMANIZE_WRITING_GUIDE } from '$lib/ai-humanize/constants/writingGuide';
+export { COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT } from '$lib/ai-humanize/constants/locales/th/rewriterContext';
+
+export { HUMANIZE_MODE_OPTIONS_TH } from '$lib/ai-humanize/constants/locales/th/ui';
+
+export { HUMANIZE_WRITING_GUIDE } from '$lib/ai-humanize/constants/locales/en/writingGuide';
 export type {
 	HumanizeLexiconGroupId,
 	HumanizeMarkerEntry,
@@ -36,7 +40,7 @@ export type {
 	HumanizeTellDetectability,
 	HumanizeTellEntry,
 	HumanizeTier2LexiconEntry
-} from '$lib/ai-humanize/constants/writingGuide';
+} from '$lib/ai-humanize/constants/locales/en/writingGuide';
 
 export {
 	HUMANIZE_TIER1_LEXICON,
@@ -45,7 +49,7 @@ export {
 	HUMANIZE_TIER2_LEXICON,
 	HUMANIZE_TIER2_CLUSTER,
 	type HumanizeLexiconEntry
-} from '$lib/ai-humanize/constants/lexicon';
+} from '$lib/ai-humanize/constants/locales/en/lexicon';
 
 export {
 	PUBLIC_HUMANIZE_GENERIC_CONFIG,

@@ -215,10 +215,16 @@ export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 
 /** Repository conventions, catalog publishing, and documentation authoring. */
 export const docsSidebarContributing: DocsSidebarSection[] = [
+
 	{
 		label: 'Developer Guidelines',
 		icon: icons.FolderCode.name,
 		autogenerate: { directory: 'developer-guidelines' }
+	},
+	{
+		label: 'Contribution opportunities',
+		icon: icons.Target.name,
+		autogenerate: { directory: 'contribution-opportunities' }
 	},
 	{
 		label: 'Publish listings',

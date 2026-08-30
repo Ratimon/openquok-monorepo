@@ -22,12 +22,12 @@ Use the sidebar or jump to a guide below.
 <LinkCard title="DaisyUI theming" description="Semantic color classes, theme-safe UI tokens, and shadcn-to-DaisyUI mapping" href="/docs/developer-guidelines/daisyui-theme" />
 <LinkCard title="Notifications" description="In-app notifications + notification email (immediate vs digest), workers, and troubleshooting" href="/docs/developer-guidelines/notifications" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft integration refresh, notification email, scheduled posts—in-process or BullMQ" href="/docs/developer-guidelines/orchestrator-workflows" />
-<LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/developer-guidelines/add-provider" />
 </CardGrid>
 
 ## Related Section(s)
 
 <CardGrid>
+<LinkCard title="Contribution opportunities" description="Scoped product work open to contributors — new social providers, Humanizer locales, and more" href="/docs/contribution-opportunities" />
 <LinkCard title="Configuration - Backend" description="Supabase, env vars, and backend operational setup" href="/docs/configuration-backend" />
 <LinkCard title="Configuration - Worker" description="Worker env, Railway, and production start commands" href="/docs/configuration-worker" />
 <LinkCard title="Configuration - Web" description="Vite env vars and web configuration" href="/docs/configuration-web" />

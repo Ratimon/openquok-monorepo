@@ -10,9 +10,9 @@ import {
 } from '$lib/ai-humanize/constants/config';
 import {
 	COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT,
-	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT,
-	COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT
-} from '$lib/ai-humanize/constants/sharedContext';
+	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT
+} from '$lib/ai-humanize/constants/locales/en/sharedContext';
+import { COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT } from '$lib/ai-humanize/constants/locales/th/rewriterContext';
 import {
 	formatWriterConstraintTargetLabel,
 	normalizeWriterProviderIdentifiers,

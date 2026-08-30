@@ -27,6 +27,8 @@ describe('getDocsTabIdFromPathname', () => {
 		['/docs/getting-started-for-public-api', 'public-api'],
 		['/docs/oauth2-for-apps', 'public-api'],
 		['/docs/developer-guidelines', 'contributing'],
+		['/docs/contribution-opportunities', 'contributing'],
+		['/docs/contribution-opportunities/humanizer-languages', 'contributing'],
 		['/docs/not-a-real-section', 'general']
 	] as const)('%s → %s', (pathname, tabId) => {
 		expect(getDocsTabIdFromPathname(pathname)).toBe(tabId);
@@ -54,6 +56,8 @@ describe('getDocsTabIdFromSlug', () => {
 		['getting-started-for-public-api', 'public-api'],
 		['oauth2-for-apps', 'public-api'],
 		['developer-guidelines', 'contributing'],
+		['contribution-opportunities', 'contributing'],
+		['contribution-opportunities/humanizer-languages', 'contributing'],
 		['mystery-page', 'general']
 	] as const)('%s → %s', (slug, tabId) => {
 		expect(getDocsTabIdFromSlug(slug)).toBe(tabId);

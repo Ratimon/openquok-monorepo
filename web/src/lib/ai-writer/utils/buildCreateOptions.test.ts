@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT } from '$lib/ai-humanize/constants/sharedContext';
+import { COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT } from '$lib/ai-humanize/constants/locales/en/sharedContext';
 import {
 	buildComposerHumanizeCreateOptions,
 	toComposerRewriterCreateOptions
