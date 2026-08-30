@@ -113,7 +113,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'How do I pay for agent hosts vs MCP clients?',
 		description:
-			`OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw, Hermes, and ${faqA(hrefThinkrailLanding, 'ThinkRail')} are open source (BYOK; ThinkRail uses your pi provider); ${faqA(hrefGrokBotLanding, 'Grok Bot')} requires eligible SuperGrok or Cursor plans; ${faqA(hrefCursorLanding, 'Cursor')} (editor MCP), Claude Code, and Codex bill through their own subscriptions. See ${faqA(hrefAgentSetupGuides, 'agent setup guides')} and ${faqA(hrefMcpSetupGuides, 'MCP setup guides')}. OpenQuok MCP only needs your programmatic token — no per-call fee beyond your OpenQuok plan.`
+			`OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw, Hermes, and ${faqA(hrefThinkrailLanding, 'ThinkRail')} are open source; ${faqA(hrefGrokBotLanding, 'Grok Bot')} requires eligible SuperGrok or Cursor plans; ${faqA(hrefCursorLanding, 'Cursor')} (editor MCP), Claude Code, and Codex bill through their own subscriptions. See ${faqA(hrefAgentSetupGuides, 'agent setup guides')} and ${faqA(hrefMcpSetupGuides, 'MCP setup guides')}. OpenQuok MCP only needs your programmatic token.`
 	},
 	{
 		title: 'What is MCP and how does OpenQuok use it?',
