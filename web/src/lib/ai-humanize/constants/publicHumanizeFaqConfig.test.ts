@@ -27,7 +27,18 @@ describe('buildHumanizeFaqSection', () => {
 			(item) => item.title === 'Can I contribute a new Humanizer language?'
 		);
 		expect(contributeFaq).toBeDefined();
-		expect(contributeFaq?.description).toContain('/docs/contribution-opportunities/humanizer-languages');
+		expect(contributeFaq?.description).toContain('href="/docs/contribution-opportunities/humanizer-languages"');
+		expect(contributeFaq?.description).not.toContain('rel="nofollow"');
+
+		const platformFaq = section.faqItems.find((item) => item.title.includes('specific platform'));
+		expect(platformFaq?.description).toMatch(/href="\/channels"/);
+
+		const chromeFaq = section.faqItems.find((item) => item.title === 'Does Humanizer require Chrome?');
+		expect(chromeFaq?.description.toLowerCase()).toContain('experimental');
+		expect(chromeFaq?.description.toLowerCase()).toContain('opt in');
+		expect(chromeFaq?.description).toContain(
+			'href="/blog/how-openquok-humanizer-rewrites-a-draft-in-the-browser"'
+		);
 	});
 
 	it('tailors platform copy when a channel slug and label are set', () => {
@@ -43,9 +54,16 @@ describe('buildHumanizeFaqSection', () => {
 		expect(accountFaq?.description.toLowerCase()).toContain('samples');
 		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
 
+		const whatIsFaq = section.faqItems.find(
+			(item) => item.title === 'What is OpenQuok Humanizer?'
+		);
+		expect(whatIsFaq?.description).toMatch(/href="\/tools\/humanizer\/linkedin"/);
+		expect(whatIsFaq?.description).not.toContain('rel="nofollow"');
+
 		const platformFaq = section.faqItems.find((item) => item.title.includes('LinkedIn'));
 		expect(platformFaq?.description.toLowerCase()).toContain('connect a real linkedin');
 		expect(platformFaq?.description.toLowerCase()).toContain('sample chip');
 		expect(platformFaq?.description.toLowerCase()).not.toContain('your connected');
+		expect(platformFaq?.description).toMatch(/href="\/docs\/getting-started-for-cli"/);
 	});
 });

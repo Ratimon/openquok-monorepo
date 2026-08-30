@@ -10,11 +10,14 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
+	import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/publicToolsHubFaqConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import ChannelHubToolCard from '$lib/ui/components/tools/ChannelHubToolCard.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = { data: PageData };
@@ -119,6 +122,15 @@
 	</section>
 
 	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_TOOLS_HUB_FAQ.faqSubtitle}
+			faqTitle={PUBLIC_TOOLS_HUB_FAQ.faqTitle}
+			faqDescription={PUBLIC_TOOLS_HUB_FAQ.faqDescription}
+			faqItems={[...PUBLIC_TOOLS_HUB_FAQ.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+
 		<AccentSplitCtaBanner
 			title={toolsHubDocsBanner.title}
 			description={toolsHubDocsBanner.description}

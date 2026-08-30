@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const LINKEDIN_DOCS_PATH = '/docs/social-integration/linkedin';
+const linkedinLinks = buildChannelLandingFaqLinks('linkedin', LINKEDIN_DOCS_PATH);
 
 export const linkedinChannel = {
 	slug: 'linkedin',
@@ -88,12 +95,12 @@ export const linkedinChannel = {
 		{
 			title: 'Can you schedule LinkedIn posts with OpenQuok?',
 			description:
-				'Yes. Connect your personal profile or a company Page, write your post, and pick a time on the OpenQuok calendar. OpenQuok publishes through LinkedIn’s official API — text, images, video, and Page document carousels. Review drafts on the kanban board before anything goes live.'
+				`Yes. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect your personal profile or a company Page, write your post, and pick a time on the OpenQuok calendar. OpenQuok publishes through LinkedIn’s official API — text, images, video, and Page document carousels. Review drafts on the kanban board before anything goes live. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
 		},
 		{
 			title: 'How do I schedule posts on a LinkedIn company Page?',
 			description:
-				'Choose Connect channel → LinkedIn Page, complete OAuth, and pick the company Page you administer. Personal profile connection is a separate channel (LinkedIn) with one OAuth step. You can connect both in one workspace and target each from the composer, tailoring captions per channel when needed.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → LinkedIn Page. Complete OAuth and pick the company Page you administer. Personal profile connection is a separate channel (LinkedIn) with one OAuth step. You can connect both in one workspace and target each from the composer, tailoring captions per channel when needed. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(LINKEDIN_DOCS_PATH, 'LinkedIn')}.`
 		},
 		{
 			title: 'Can you schedule LinkedIn document carousels in OpenQuok?',
@@ -103,44 +110,44 @@ export const linkedinChannel = {
 		{
 			title: 'What is the LinkedIn character limit in OpenQuok?',
 			description:
-				'OpenQuok enforces LinkedIn’s 3,000-character cap in the composer with a live preview. When you cross-post, each destination keeps its own caption and limit — edit LinkedIn copy separately from shorter networks such as Threads.'
+				`OpenQuok enforces LinkedIn’s 3,000-character cap in the composer with a live preview. When you cross-post, each destination keeps its own caption and limit — edit LinkedIn copy separately from shorter networks such as Threads. Polish drafts in the ${faqLink(linkedinLinks.humanizer.toolChannel, 'LinkedIn humanizer tool')} before you schedule.`
 		},
 		{
 			title: 'What can I publish to LinkedIn through OpenQuok?',
 			description:
-				'Text posts, single or multi-image posts, one MP4 video per post, PDF document carousels, text follow-up comments, company mentions, and cross-account comment or reshare plugs after publish. LinkedIn Page adds account and per-post analytics plus auto-repost plugs. LinkedIn articles and direct PDF file uploads are not supported today.'
+				`Text posts, single or multi-image posts, one MP4 video per post, PDF document carousels, text follow-up comments, company mentions, and cross-account comment or reshare plugs after publish. LinkedIn Page adds account and per-post analytics plus auto-repost plugs. Browse ${faqLink(linkedinLinks.playbooksTag, 'LinkedIn playbooks')} and ${faqLink(linkedinLinks.buildingBlocksTag, 'LinkedIn building blocks')} for format ideas.`
 		},
 		{
 			title: 'How many LinkedIn posts can I queue in OpenQuok?',
 			description:
-				'Draft and schedule posts on the calendar as far ahead as you need — drag to reschedule or use recurring slots for a steady cadence. Monthly publish volume follows your workspace plan; see pricing for posts-per-month limits on each tier.'
+				`Draft and schedule posts on the calendar as far ahead as you need — drag to reschedule or use recurring slots for a steady cadence. Monthly publish volume follows your workspace plan; see ${faqLink(publicFaqHref.pricing, 'Pricing')} for posts-per-month limits on each tier.`
 		},
 		{
 			title: 'Does OpenQuok show LinkedIn Page analytics?',
 			description:
-				'Yes, for connected LinkedIn Page channels. Workspace analytics show Page views, follower gains, impressions, clicks, and engagement, plus per-post metrics on published Page content. Personal profile channels do not expose the same account-level insights API.'
+				`Yes, for connected LinkedIn Page channels. Workspace analytics show Page views, follower gains, impressions, clicks, and engagement, plus per-post metrics on published Page content. Personal profile channels do not expose the same account-level insights API. Pull metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or dashboard.`
 		},
 		{
 			title: 'Can I schedule LinkedIn from the API, CLI, or an AI agent?',
 			description:
-				'Yes. After connecting a channel, use the public API or openquok CLI with posts:create and integration IDs for linkedin or linkedin-page. Pass provider settings such as postAsImagesCarousel for document carousels. Agents can draft and queue posts; keep human approval in the dashboard when content represents your brand.'
+				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with posts:create and integration IDs for linkedin or linkedin-page. Pass provider settings such as postAsImagesCarousel for document carousels. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts; keep human approval in the dashboard when content represents your brand.`
 		},
 		{
 			title: 'Can OpenQuok auto-repost LinkedIn Page posts?',
 			description:
-				'LinkedIn Page channels support auto-repost plugs: when a post reaches a like threshold you set, OpenQuok can reshare it from the Page (up to three times every six hours). Configure under channel Plugs. This is separate from cross-posting to other networks.'
+				'Yes. On a LinkedIn Page channel, open Plugs and set a like threshold for auto-repost. OpenQuok checks published posts automatically. It reshares from the Page when likes reach your threshold. This is separate from cross-posting to other networks.'
 		},
 		{
 			title: 'Can I cross-post LinkedIn content to other channels?',
 			description:
-				'Yes. Compose once in OpenQuok and publish tailored versions to LinkedIn, Threads, X, Instagram, and other connected channels. Per-platform captions, media rules, and character limits apply separately for each destination.'
+				`Yes. Compose once in OpenQuok and publish tailored versions to LinkedIn, Threads, X, Instagram, and other connected channels. Per-platform captions, media rules, and character limits apply separately for each destination. See every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Is there a free trial for LinkedIn scheduling?',
 			description:
-				'Yes. New workspaces get a 7-day free trial — connect LinkedIn profile and Page channels, schedule posts, and explore API access before choosing a paid plan.'
+				`Yes. New workspaces get a 7-day free trial — connect LinkedIn profile and Page channels, schedule posts, and explore API access before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/linkedin',
+	docsPath: LINKEDIN_DOCS_PATH,
 	available: true
 } satisfies PublicChannelLandingPageViewModel;

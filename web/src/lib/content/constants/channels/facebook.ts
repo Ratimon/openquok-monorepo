@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const FACEBOOK_DOCS_PATH = '/docs/social-integration/facebook';
+const facebookLinks = buildChannelLandingFaqLinks('facebook', FACEBOOK_DOCS_PATH);
 
 export const facebookChannel = {
 	slug: 'facebook',
@@ -88,7 +95,7 @@ export const facebookChannel = {
 		{
 			title: 'How do I connect my Facebook Page to OpenQuok?',
 			description:
-				'Sign in to Facebook and OpenQuok in your browser, then open a workspace and choose Connect channel → Facebook Page. Complete Meta OAuth, pick the Page you manage, and OpenQuok stores the connection for scheduling and analytics.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → Facebook Page. Complete Meta OAuth and pick the Page you manage. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(FACEBOOK_DOCS_PATH, 'Facebook')}.`
 		},
 		{
 			title: 'Can I connect my personal Facebook profile?',
@@ -103,12 +110,12 @@ export const facebookChannel = {
 		{
 			title: 'How do I publish Facebook Reels from OpenQuok?',
 			description:
-				'Attach a single MP4 when composing a Facebook Page post. OpenQuok uploads it through Meta’s Page video API; Facebook surfaces eligible uploads as Reels on your Page. Caption text becomes the video description.'
+				`Attach a single MP4 when composing a Facebook Page post. OpenQuok uploads it through Meta’s Page video API; Facebook surfaces eligible uploads as Reels on your Page. Caption text becomes the video description. Size cover art in the ${faqLink(facebookLinks.photoEditor.toolChannel, 'Facebook photo editor')} before you attach media.`
 		},
 		{
 			title: 'Can I schedule Facebook posts from an AI agent or script?',
 			description:
-				'Yes. After connecting a Page, use the public API or CLI with your workspace token to create scheduled posts and Reels. Agents can draft captions and media; you keep approval control in the dashboard.'
+				`Yes. After connecting a Page, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts and Reels. Agents on ${faqLink(publicFaqHref.agents, 'OpenClaw, Hermes, Grok Bot, or ThinkRail')} can draft captions and media.`
 		},
 		{
 			title: 'Does OpenQuok support link previews on Facebook?',
@@ -123,9 +130,9 @@ export const facebookChannel = {
 		{
 			title: 'Is there a free trial for Facebook scheduling?',
 			description:
-				'Yes. New workspaces can start on OpenQuok’s free trial, connect a Facebook Page, and schedule posts and Reels during the trial period before choosing a paid plan.'
+				`Yes. New workspaces can start on OpenQuok’s free trial, connect a Facebook Page, and schedule posts and Reels during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/facebook',
+	docsPath: FACEBOOK_DOCS_PATH,
 	available: false
 } satisfies PublicChannelLandingPageViewModel;

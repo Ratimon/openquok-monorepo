@@ -3,9 +3,11 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicCreatorsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 
@@ -30,20 +32,28 @@ export async function load({ url, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'CollectionPage',
-			'@id': `${canonical}#webpage`,
-			name: metaTitle,
-			description: metaDescription,
-			url: canonical,
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: url.origin
-			}
-		}
-	]);
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
+			{
+				'@type': 'CollectionPage',
+				'@id': `${canonical}#webpage`,
+				name: metaTitle,
+				description: metaDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: url.origin
+				}
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: PUBLIC_CREATORS_HUB_FAQ.faqTitle,
+				description: PUBLIC_CREATORS_HUB_FAQ.faqDescription,
+				items: PUBLIC_CREATORS_HUB_FAQ.faqItems
+			})
+		])
+	);
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

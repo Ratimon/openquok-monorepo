@@ -1,0 +1,126 @@
+---
+description: pSEO page templates — route↔component map, section order, hero theme, guest mocks, FAQ blocks, pricing CTAs
+globs:
+  - web/src/lib/ui/templates/**
+  - web/src/routes/(public)/channels/**/+page.svelte
+  - web/src/routes/(public)/agents/**/+page.svelte
+  - web/src/routes/(public)/tools/**/+page.svelte
+  - web/src/routes/(public)/compare/**/+page.svelte
+  - web/src/routes/(public)/creators/**/+page.svelte
+  - web/src/routes/(public)/roadmap/**/+page.svelte
+  - web/src/routes/(public)/alternatives/**/+page.svelte
+  - web/src/routes/(public)/playbooks/**/+page.svelte
+  - web/src/routes/(public)/building-blocks/**/+page.svelte
+  - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
+alwaysApply: false
+---
+
+# Web SEO: pSEO templates
+
+Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelte` wrappers that only forward props (**web-conventions** §7). Catalog copy and FAQ items come from server load / constants (**web-seo-pseo**).
+
+## Template ↔ route map
+
+| Route pattern | Primary template / components |
+| --- | --- |
+| `/` | `LandingPage.svelte`, `HeroMain.svelte` |
+| `/channels` | `PublicChannelsHubGrid.svelte` + hub `PublicFaq` |
+| `/channels/{slug}` | `PublicChannelHero.svelte` or `PublicComingSoonIntegrationPage.svelte`; `HeroWithLeftMedia` / `HeroWithRightMedia` + `BentoPublicChannelFeature`; `PublicFaq` |
+| `/agents` | `PublicAgentsHubGrid.svelte` |
+| `/agents/{slug}` | `PublicAgentLandingPage.svelte` or `PublicMcpLandingPage.svelte` |
+| `/agents/{slug}/{channelSlug}` | Same agent/MCP landing template; channel-specific VM |
+| `/tools` | Tools hub cards + hub `PublicFaq` |
+| `/tools/humanizer`, `/tools/humanizer/{channelSlug}` | `HumanizeToolPage.svelte` |
+| `/tools/photo-editor`, `…/{channelSlug}` | `PhotoEditorToolPage.svelte` |
+| `/tools/skill-builder`, `…/{channelSlug}` | `SkillBuilderToolPage.svelte` |
+| `/tools/best-time-to-post`, `…/{channelSlug}` | `BestTimeToPostToolPage.svelte` |
+| `/compare`, `/compare/{a}/{b}` | Compare hub grid / detail presenter sections + `PublicFaq` |
+| `/creators`, `/creators/{userSlug}` | Creators hub / profile templates + hub `PublicFaq` on index |
+| `/roadmap` | Roadmap board + hub `PublicFaq` |
+| `/alternatives`, `/alternatives/{slug}` | `PublicAlternativesPagePresenter` patterns |
+| `/playbooks`, `/building-blocks` | Hub loaders + `Pagination.svelte` (no infinite scroll on indexable grids) |
+
+Shared chrome: `PublicArea.svelte`, `Footer.svelte` (`PUBLIC_FOOTER_LINKS` — **web-seo-pseo**).
+
+## Section order
+
+### Channel / agent channel landings
+
+1. Hero (`PublicChannelHero` or coming-soon hero).
+2. Three feature rows (`HeroWithLeftMedia` / `HeroWithRightMedia` — alternate `mediaOnRight`).
+3. Audience / who-is-for (agent pages).
+4. Listings preview (playbooks + building blocks by tag) when not coming soon.
+5. CLI or MCP command reference (agent hosts / MCP clients).
+6. **FAQ** — `<PublicFaq>` with VM `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems`.
+7. No extra bottom CTA block — pricing CTA lives in hero and feature rows only (**add-social-provider-integration**).
+
+### Tool pages (humanizer, photo editor, skill builder, best time to post)
+
+1. Breadcrumb / hub link back to `/tools`.
+2. Hero + interactive panel (composer, calculator, canvas).
+3. Channel hub grid (`*ChannelHubGrid.svelte`) when generic tool route.
+4. Docs or accent CTA banners (`AccentSplitCtaBanner`, `CenteredDarkCtaBanner`).
+5. **FAQ** — `build*FaqSection(slug, label)` or generic section from constants.
+6. Guest auth funnel on mocked workspace UI (**web-public-auth-funnel**) — sample labels, lock badges, sign-up/sign-in dialog.
+
+### Main hub indexes (`/channels`, `/tools`, `/compare`, `/creators`, `/roadmap`)
+
+1. Hero or intro copy from server load.
+2. Grid / list of child routes (crawlable `<a href>` links).
+3. **FAQ** — import from `public*HubFaqConfig.ts`; pass items to `PublicFaq`.
+
+Category/tag sub-hubs: grid + pagination only — **no** `PublicFaq` unless product adds a dedicated config.
+
+## `landingHeroTheme`
+
+`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` drives gradient highlights in `HeroMain` and agent/channel heroes.
+
+- Append new product names to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when `heroTitle` should emphasize a label (case-insensitive; multi-word phrases need the full string).
+- Rotating landing copy: `LANDING_HERO_HOURS_ROTATE_TEXTS`, `LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS`.
+
+When adding an agent host or MCP client, update highlights in the same PR as the seed (**add-agent**).
+
+## CTAs and pricing funnel
+
+| Surface | CTA pattern |
+| --- | --- |
+| Channel detail | **One label everywhere:** `Get Started For Free` → `/pricing` (via presenter `secondaryCtaText` / `secondaryCtaHref`) |
+| Tool pages | `PUBLIC_BANNER_CTA_TEXT` / sign-up paths from `centeredDarkCtaBannerCopy` and tool-specific banner copy |
+| FAQ connect answers | Prefer `publicFaqHref.signUp` and `connectChannelsGuide` over operator docs (**web-seo-pseo**) |
+
+Do not add login-dependent hero CTAs on indexable landings. FAQ and banners may link `/sign-up` and `/pricing` for trial questions.
+
+## JSON-LD in templates
+
+- **Only** `<JsonLdHead schemaData={schemaData} />` — `schemaData` from load (`$derived(data.schemaData)`).
+- **No** inline `<script type="application/ld+json">` or object literals in `+page.svelte` (**web-seo-jsonld**).
+
+## FAQ blocks
+
+```svelte
+<PublicFaq
+  faqSubtitle={faqSubtitle}
+  faqTitle={faqTitle}
+  faqDescription={faqDescription}
+  faqItems={[...faqItems]}
+/>
+```
+
+- Items: `{ title: string; description: string }` — `description` is HTML from `faqLink` helpers.
+- `FaqAccordion` runs `prepareBlogRichTextForDisplay` + `rewriteHtmlHostedMarketingHrefs` before render.
+- Hub configs: spread readonly arrays (`[...PUBLIC_CHANNELS_HUB_FAQ.faqItems]`) when passing to `PublicFaq`.
+
+## Guest mocks (tools)
+
+Public tool UIs mock workspace features without OAuth or post APIs:
+
+- `pointer-events-none` on mock shells; lock toolbars clickable (**web-public-auth-funnel**).
+- Label samples as preview — not “Connected channels”.
+- Channel-specific tool routes preselect the matching mock channel.
+
+## Related rules
+
+- Catalog constants, FAQ funnel, ASD-STE100: **web-seo-pseo**
+- SSR meta + canonical: **web-seo-meta-tags**, **web-seo-canonical**
+- Landing/pricing CMS FAQ: **web-seo-cms-copy**
+- Universal load forwarding: **web-sveltekit-universal-page-load**

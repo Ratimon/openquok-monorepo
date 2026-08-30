@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
+import { faqHrefAgent, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export const cursorMcpSeed = {
 	slug: 'cursor',
@@ -23,38 +24,31 @@ export const cursorMcpSeed = {
 		faqItems: [
 			{
 				title: 'What is OpenQuok MCP for Cursor?',
-				description:
-					'OpenQuok exposes social scheduling tools over MCP so Cursor Agent and Composer can list connected channels, read platform limits, and draft or schedule posts in natural language — you approve what publishes in your OpenQuok workspace.'
+				description: `OpenQuok exposes scheduling tools over MCP so Cursor Agent and Composer can list channels and schedule posts — you approve in your workspace. See ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup guide')}.`
 			},
 			{
 				title: 'What is Grok Bot and how does it relate to Cursor?',
-				description:
-					'Grok Bot is Cursor’s always-on AI teammate — message it from the desktop or iOS app, run skills on a shared cloud computer, and set routines while you are away. OpenQuok connects to Grok Bot through the openquok-core CLI skill, not the editor MCP socket. Use <a href="/agents/grok-bot">OpenQuok for Grok Bot</a> when messaging-first scheduling matters; use this page when OpenQuok should live inside Agent and Composer. See the <a href="/blog/schedule-social-posts-from-grok-bot-with-openquok">Grok Bot scheduling walkthrough</a> for install and auth steps.'
+				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')} is the always-on teammate; this page is OpenQuok inside Agent and Composer. Pick Grok Bot for messaging-first volume; pick Cursor when you stay in the repo. See the ${faqLink(publicFaqHref.blogGrokBot, 'Grok Bot scheduling walkthrough')}.`
 			},
 			{
 				title: 'Do I need the CLI or openquok-core skill?',
-				description:
-					'No — Cursor connects over MCP with an opo_ token and built-in tools, which is the fastest path for editor workflows. The openquok-core skill on <a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/thinkrail">ThinkRail</a>, OpenClaw, and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.'
+				description: `No — Cursor connects over MCP with an opo_ token. Use openquok-core on ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} for deeper skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 			},
 			{
 				title: 'Why use Cursor MCP instead of an agent host?',
-				description:
-					'<a href="/agents/grok-bot">Grok Bot</a>, <a href="/agents/thinkrail">ThinkRail</a>, OpenClaw, and Hermes fit always-on scheduling from desktop chat, a worktree IDE, Telegram, Discord, or Slack — persistent memory and parallel sessions across channels. Cursor fits when OpenQuok should live inside your editor: native MCP tool calls, focused sessions, and async tasks with clear specs. Choose Cursor when you already ship there; choose an agent host when messaging-first scale matters. Many teams use both.'
+				description: `${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot')}, ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail')}, ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat and messaging. Cursor fits in-repo MCP tool calls. Pick Cursor when you already ship there; pick an agent host for messaging and scale. Many teams use both.`
 			},
 			{
 				title: 'How do I authenticate?',
-				description:
-					'Create an OAuth app in Developers → Apps, generate an opo_ token under Developers → Access, then paste the MCP config with either an Authorization header or the API key in the URL path.'
+				description: `Create an OAuth app, generate an opo_ token, then paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup')}.`
 			},
 			{
 				title: 'How do I verify the connection?',
-				description:
-					'Start a fresh session in your client and ask: List my connected social media accounts. The agent should call integrationList and return your workspace channels.'
+				description: `Start a fresh Agent session and ask: List my connected social media accounts. See the ${faqLink(publicFaqHref.cursorMcpGuide, 'Cursor MCP setup guide')}.`
 			},
 			{
 				title: 'Which social platforms are supported?',
-				description:
-					'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app first.'
+				description: `YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 			}
 		]
 	}

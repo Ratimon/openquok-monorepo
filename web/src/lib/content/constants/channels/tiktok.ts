@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const TIKTOK_DOCS_PATH = '/docs/social-integration/tiktok';
+const tiktokLinks = buildChannelLandingFaqLinks('tiktok', TIKTOK_DOCS_PATH);
 
 export const tiktokChannel = {
 	slug: 'tiktok',
@@ -87,7 +94,7 @@ export const tiktokChannel = {
 		{
 			title: 'How do I connect TikTok to OpenQuok?',
 			description:
-				'Sign in to TikTok and OpenQuok in your browser, then open a workspace and choose Connect channel → TikTok. Complete TikTok OAuth, and OpenQuok stores the connection for scheduling and analytics.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → TikTok. Complete TikTok OAuth and OpenQuok stores the connection for scheduling and analytics. OpenQuok Cloud registers the TikTok app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(TIKTOK_DOCS_PATH, 'TikTok')}.`
 		},
 		{
 			title: 'Can I schedule TikTok posts from my desktop or phone browser?',
@@ -102,7 +109,7 @@ export const tiktokChannel = {
 		{
 			title: 'Does OpenQuok support TikTok carousels, not just videos?',
 			description:
-				'Yes. Schedule a single MP4 video or one or more images (JPEG, PNG, or WEBP) as a photo carousel. Add an optional carousel title, turn on auto-add music for image posts, and queue the post on the calendar.'
+				`Yes. Schedule a single MP4 video or one or more images (JPEG, PNG, or WEBP) as a photo carousel. Add an optional carousel title, turn on auto-add music for image posts, and queue the post on the calendar. Size carousel frames in the ${faqLink(tiktokLinks.photoEditor.toolChannel, 'TikTok photo editor')}.`
 		},
 		{
 			title: 'Can I add trending audio when scheduling TikTok?',
@@ -112,17 +119,17 @@ export const tiktokChannel = {
 		{
 			title: 'Can I schedule TikTok posts from an AI agent or script?',
 			description:
-				'Yes. After connecting TikTok, use the public API or CLI with your workspace token to create scheduled posts with video or image media and flat or nested tiktok provider settings.'
+				`Yes. After connecting TikTok, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts with video or image media and flat or nested tiktok provider settings. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft; you keep approval in the dashboard.`
 		},
 		{
 			title: 'Can I cross-post from TikTok to other channels eg. Facebook Reels or YouTube Shorts?',
 			description:
-				'Yes. Publish the same content to TikTok, Instagram, YouTube, and etc. from one workflow. Per-platform settings are applied separately for each destination.'
+				`Yes. Publish the same content to TikTok, Instagram, YouTube, and other connected channels from one workflow. Per-platform settings are applied separately for each destination. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Can I repeat-schedule TikTok posts on a cadence?',
 			description:
-				'Yes. Set a repeat interval from one day up to one month when scheduling. After a TikTok post publishes, OpenQuok queues the next copy on that cadence so you can recycle evergreen clips and carousels without rebuilding each post.'
+				`Yes. Set a repeat interval from one day up to one month when scheduling. After a TikTok post publishes, OpenQuok queues the next copy on that cadence so you can recycle evergreen clips and carousels without rebuilding each post. Plan timing tests with the ${faqLink(tiktokLinks.bestTimeToPost.toolChannel, 'TikTok best-time-to-post tool')}.`
 		},
 		{
 			title: 'Can my team review TikTok drafts before they publish?',
@@ -132,14 +139,14 @@ export const tiktokChannel = {
 		{
 			title: 'What TikTok analytics does OpenQuok track?',
 			description:
-				'OpenQuok pulls account-level TikTok metrics — followers, likes, and video count — plus aggregated views, likes, comments, and shares from your recent videos. Per-post analytics return views, likes, comments, and shares once the row is linked to a TikTok video id (`posts:connect` after inbox uploads).'
+				`OpenQuok pulls account-level TikTok metrics — followers, likes, and video count — plus aggregated views, likes, comments, and shares from your recent videos. Per-post analytics return views, likes, comments, and shares once the row is linked to a TikTok video id (posts:connect after inbox uploads). See the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')}.`
 		},
 		{
 			title: 'Is there a free trial for TikTok scheduling?',
 			description:
-				'Yes. New workspaces can start on OpenQuok’s free trial, connect TikTok, and schedule posts during the trial period before choosing a paid plan.'
+				`Yes. New workspaces can start on OpenQuok’s free trial, connect TikTok, and schedule posts during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/tiktok',
+	docsPath: TIKTOK_DOCS_PATH,
 	available: true
 } satisfies PublicChannelLandingPageViewModel;

@@ -2,6 +2,12 @@ import type { IconName } from '$data/icons';
 import { icons } from '$data/icons';
 
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	faqHrefAgent,
+	faqHrefDocs,
+	faqLink,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 import type {
 	FeaturesOrderedStep,
 	PublicAgentComparisonSection,
@@ -59,34 +65,32 @@ function buildMcpAudienceSection(
 	};
 }
 
-function buildMcpFaqItems(label: string): PublicFaqItem[] {
+function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
+	const mcpClientGuide = faqHrefDocs(`mcp-setup-guides/${slug}`);
 	return [
 		{
 			title: `What is OpenQuok MCP for ${label}?`,
-			description: `OpenQuok exposes social scheduling tools over MCP so ${label} can list connected channels, read platform limits, and draft or schedule posts in natural language — you approve what publishes in your OpenQuok workspace.`
+			description: `OpenQuok exposes scheduling tools over MCP so ${label} can list channels, read platform limits, and draft or schedule posts — you approve in your workspace. See ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)}.`
 		},
 		{
 			title: 'Do I need the CLI or openquok-core skill?',
-			description: `No — ${label} connects over MCP with an opo_ token and built-in tools, which is the fastest path for editor and terminal workflows. The openquok-core skill on agent hosts like OpenClaw and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.`
+			description: `No — ${label} connects over MCP with an opo_ token. Use openquok-core on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} when you need shell scripts, parallel sessions, or richer skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: `Why use ${label} MCP instead of an agent host?`,
-			description: `OpenClaw and Hermes fit always-on scheduling from Telegram, Discord, or Slack — persistent memory and parallel sessions across channels. ${label} fits when OpenQuok should live inside your editor or terminal: native MCP tool calls, focused sessions, and async tasks with clear specs. Choose ${label} when you already work there; choose an agent host when messaging-first scale matters. Many teams use both.`
+			description: `${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat from Telegram, Discord, or Slack. ${label} fits when OpenQuok should live in your editor or terminal. Pick ${label} for in-repo workflows; pick an agent host for messaging and scale. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
 		},
 		{
 			title: 'How do I authenticate?',
-			description:
-				'Create an OAuth app in Developers → Apps, generate an opo_ token under Developers → Access, then paste the MCP config with either an Authorization header or the API key in the URL path.'
+			description: `Create an OAuth app, generate an opo_ token under Developers → Access, then paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and the ${faqLink(mcpClientGuide, `${label} MCP setup`)}.`
 		},
 		{
 			title: 'How do I verify the connection?',
-			description:
-				'Start a fresh session in your client and ask: List my connected social media accounts. The agent should call integrationList and return your workspace channels.'
+			description: `Start a fresh session and ask: List my connected social media accounts. See the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)} for the verify step.`
 		},
 		{
 			title: 'Which social platforms are supported?',
-			description:
-				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app first.'
+			description: `YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 		}
 	];
 }
@@ -463,7 +467,7 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: `${label} + OpenQuok MCP, answered`,
 		faqDescription: `Connect ${label} to OpenQuok over MCP — authentication, verification, and scheduling posts from chat.`,
-		faqItems: overrides?.faqItems ?? buildMcpFaqItems(label)
+		faqItems: overrides?.faqItems ?? buildMcpFaqItems(label, slug)
 	};
 }
 

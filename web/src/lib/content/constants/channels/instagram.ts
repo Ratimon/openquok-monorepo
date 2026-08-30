@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const INSTAGRAM_DOCS_PATH = '/docs/social-integration/instagram';
+const instagramLinks = buildChannelLandingFaqLinks('instagram', INSTAGRAM_DOCS_PATH);
 
 export const instagramChannel = {
 	slug: 'instagram',
@@ -89,17 +96,17 @@ export const instagramChannel = {
 		{
 			title: 'What is the difference between Instagram Business and Standalone in OpenQuok?',
 			description:
-				'Instagram Business uses Facebook Login and is suited to accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Both share the same publish pipeline — pick the integration that matches how your account is set up in Meta.'
+				`Instagram Business uses Facebook Login and is suited to accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Both share the same publish pipeline — pick the integration that matches how your account is set up in Meta. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
 		},
 		{
 			title: 'How do I connect Instagram to OpenQuok?',
 			description:
-				'Sign in to Instagram and OpenQuok in your browser, then in your workspace choose Connect channel and select the Instagram integration that matches your account type. Complete OAuth, and if Business login requires a Page selection, pick the correct profile in the connect flow.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel. Select the Instagram integration that matches your account type. Complete OAuth and, if Business login requires a Page selection, pick the correct profile in the connect flow. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(INSTAGRAM_DOCS_PATH, 'Instagram')}.`
 		},
 		{
 			title: 'Can I schedule Instagram Reels, carousels, and Stories?',
 			description:
-				'Yes. Attach a single MP4 for a Reel, 2–10 images or videos for a carousel, or one attachment with post type set to Story. Captions can run up to 2,200 characters on feed posts and Reels.'
+				`Yes. Attach a single MP4 for a Reel, 2–10 images or videos for a carousel, or one attachment with post type set to Story. Captions can run up to 2,200 characters on feed posts and Reels. Size assets in the ${faqLink(instagramLinks.photoEditor.toolChannel, 'Instagram photo editor')}.`
 		},
 		{
 			title: 'Does OpenQuok support Trial Reels and collaborators?',
@@ -114,12 +121,12 @@ export const instagramChannel = {
 		{
 			title: 'Can I schedule Instagram posts from an AI agent or script?',
 			description:
-				'Yes. After connecting Instagram, use the public API or CLI with your workspace token. Pass integration UUIDs, media attachments, and flat or nested providerSettings for post type, trial reel, and follow-up comments.'
+				`Yes. After connecting Instagram, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token. Pass integration UUIDs, media attachments, and flat or nested providerSettings for post type, trial reel, and follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft.`
 		},
 		{
 			title: 'Can I cross-post from Instagram to Threads and other channels?',
 			description:
-				'Yes. Create & compose once in OpenQuok and publish the same idea to Instagram, Threads, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule.'
+				`Yes. Create & compose once in OpenQuok and publish the same idea to Instagram, Threads, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Does OpenQuok include an Instagram DM or comment inbox?',
@@ -129,9 +136,9 @@ export const instagramChannel = {
 		{
 			title: 'Where can I find setup steps for Meta app credentials?',
 			description:
-				'See the Instagram setup guide in OpenQuok docs for redirect URIs, Meta app configuration, and backend environment variables required for OAuth.'
+				`See the ${faqLinkSelfHostChannelSetup(INSTAGRAM_DOCS_PATH, 'Instagram')} for redirect URIs, Meta app configuration, and backend environment variables required for OAuth. Browse ${faqLink(instagramLinks.playbooksTag, 'Instagram playbooks')} for format ideas.`
 		}
 	],
-	docsPath: '/docs/social-integration/instagram',
+	docsPath: INSTAGRAM_DOCS_PATH,
 	available: false
 } satisfies PublicChannelLandingPageViewModel;

@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const THREADS_DOCS_PATH = '/docs/social-integration/threads';
+const threadsLinks = buildChannelLandingFaqLinks('threads', THREADS_DOCS_PATH);
 
 export const threadsChannel = {
 	slug: 'threads',
@@ -86,7 +93,7 @@ export const threadsChannel = {
 		{
 			title: 'How do I connect Threads to OpenQuok?',
 			description:
-				'Sign in to Threads and OpenQuok in your browser, then open a workspace, choose Connect channel → Threads, and finish Meta OAuth. OpenQuok links the Threads profile to that workspace for scheduling and analytics.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → Threads. Complete Meta OAuth and OpenQuok links the profile to that workspace. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(THREADS_DOCS_PATH, 'Threads')}.`
 		},
 		{
 			title: 'Can I schedule Threads posts with images, video, or carousels?',
@@ -96,17 +103,17 @@ export const threadsChannel = {
 		{
 			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				'Yes. our post editor shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling.'
+				`Yes. our post editor shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling. Tighten copy in the ${faqLink(threadsLinks.humanizer.toolChannel, 'Threads humanizer tool')} when you cross-post from longer networks.`
 		},
 		{
 			title: 'Can I schedule Threads from the API or CLI?',
 			description:
-				'Yes. Use integration UUIDs from your workspace in the create-post API or CLI commands. Follow-up replies and other provider settings go under providerSettingsByIntegrationId when needed.'
+				`Yes. Use integration UUIDs from your workspace in the ${faqLink(publicFaqHref.publicApi, 'create-post API')} or ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}. Follow-up replies and other provider settings go under providerSettingsByIntegrationId when needed.`
 		},
 		{
 			title: 'Can I cross-post from Threads to Instagram and other channels?',
 			description:
-				'Yes. Compose once in OpenQuok and publish the same idea to Threads, Instagram, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule.'
+				`Yes. Compose once in OpenQuok and publish the same idea to Threads, Instagram, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Can I auto-repost evergreen content on Threads?',
@@ -116,14 +123,14 @@ export const threadsChannel = {
 		{
 			title: 'Can I schedule a Threads follow-up replies in advance?',
 			description:
-				'Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live.'
+				`Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live. See ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}.`
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',
 			description:
-				'Yes. Connect Threads during the trial, schedule posts, and explore API access before upgrading to a paid plan that matches your channel and workspace limits.'
+				`Yes. Connect Threads during the trial, schedule posts, and explore API access before upgrading to a paid plan that matches your channel and workspace limits. Plan details are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/threads',
+	docsPath: THREADS_DOCS_PATH,
 	available: false
 } satisfies PublicChannelLandingPageViewModel;

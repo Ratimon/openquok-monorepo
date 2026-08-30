@@ -42,7 +42,7 @@ OpenQuok uses field-level encryption at rest for provider secrets when a server 
 | Feature | Details |
 | --- | --- |
 | Connect | Personal API key from DEV Settings → Extensions |
-| Article body | Markdown in the normal composer (no separate markdown editor) |
+| Article body | Markdown in the post editor (no separate markdown editor) |
 | Title | Required; at least <strong>2</strong> characters |
 | Tags | Up to <strong>4</strong> names |
 | Cover image | Optional; recommended <strong>1000×420</strong> |

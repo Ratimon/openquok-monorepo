@@ -57,22 +57,22 @@ export const PUBLIC_AGENTS_HUB = {
 			{
 				title: 'When should I choose an agent host?',
 				description:
-					'Choose an agent host when you want scheduling from messaging apps, desktop chat, or a worktree IDE, persistent memory across weeks of work, parallel sessions, or model flexibility across Claude, GPT, Gemini, and local models. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, and <a href="/agents/thinkrail">ThinkRail</a> fit when the assistant should exist beyond a single terminal session and stay reachable while you are away.'
+					'Choose an agent host for scheduling from chat apps, persistent memory, and parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, and <a href="/agents/thinkrail">ThinkRail</a> stay reachable while you are away.'
 			},
 			{
 				title: 'When should I choose an MCP client?',
 				description:
-					'Choose an MCP client when OpenQuok should live inside your editor or terminal, you want focused per-session coding workflows, native MCP tool calls without installing a skill, or ticket- and PR-friendly review before anything publishes. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex excel at deep repo work; Warp excels when you ship from the terminal and want in-context AI for debugging deploy failures.'
+					'Choose an MCP client when OpenQuok lives in your editor or terminal with native tool calls — no skill install. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex suit focused repo work; Warp suits terminal-first workflows.'
 			},
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
 				description:
-					'OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling. Agent hosts and MCP clients are your AI layer: OpenClaw, Hermes, and ThinkRail are open source; Grok Bot requires eligible SuperGrok or Cursor plans; Cursor, Claude Code, and Codex bill through their own subscriptions. OpenQuok MCP only needs your programmatic token.'
+					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot needs SuperGrok or Cursor. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP only needs your programmatic token.'
 			},
 			{
 				title: 'What is the MCP host vs MCP client?',
 				description:
-					'In Model Context Protocol terminology, the host is the application you interact with (for example Claude Desktop or Cursor). It creates one MCP client per connected server — each client maintains a dedicated session to an OpenQuok MCP server. In everyday conversation people often say "MCP client" to mean the whole app; on OpenQuok we use "MCP client" for Cursor, Codex, and Claude Code because that matches how developers think about their tooling.'
+					'The MCP host is the app you use — for example Cursor or Claude Desktop. It opens one MCP client session per connected server, including OpenQuok. We call Cursor, Codex, and Claude Code MCP clients because that matches how developers name their tools.'
 			},
 			{
 				title: 'Does OpenQuok work with both paths at the same time?',

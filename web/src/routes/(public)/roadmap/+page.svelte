@@ -4,9 +4,12 @@
 
 	import { page } from '$app/state';
 	import { publicRoadmapPagePresenter } from '$lib/area-public';
+	import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/publicRoadmapHubFaqConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import FeedbackDialog from '$lib/ui/components/feedback/FeedbackDialog.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import RoadmapFilters from '$lib/ui/components/roadmap/RoadmapFilters.svelte';
 	import RoadmapKanbanBoard from '$lib/ui/components/roadmap/RoadmapKanbanBoard.svelte';
@@ -75,6 +78,17 @@
 		columnOptionsVm={roadmapColumnOptionsVm ?? []}
 		{columnsVm}
 	/>
+
+	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_ROADMAP_HUB_FAQ.faqSubtitle}
+			faqTitle={PUBLIC_ROADMAP_HUB_FAQ.faqTitle}
+			faqDescription={PUBLIC_ROADMAP_HUB_FAQ.faqDescription}
+			faqItems={[...PUBLIC_ROADMAP_HUB_FAQ.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+	</div>
 </SectionOuterContainer>
 
 <FeedbackDialog

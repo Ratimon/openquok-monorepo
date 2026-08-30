@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
+import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
 	OPENCLAW_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
@@ -257,47 +258,47 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is OpenClaw?',
 			description:
-				'OpenClaw is the open-source personal AI agent. It runs locally or on your own host, connects to chat apps you already use, and takes real actions on your behalf — including drafting and scheduling social media through OpenQuok.'
+				`OpenClaw is the open-source personal AI agent. It runs locally or on your own host, connects to chat apps you already use, and takes real actions on your behalf — including drafting and scheduling social media through OpenQuok. See the ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in OpenClaw?',
 			description:
-				'From your OpenClaw workspace directory, run npx skills add on the agent package root with --skill openquok-core (add -y on headless hosts), or after ClawHub publish run clawhub install openquok-core. Install the global CLI with npm install -g @openquok/auto-cli, set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, and OpenClaw discovers the skill automatically. See the OpenClaw agent guide in Dev Docs for the exact commands.'
+				`Add openquok-core to your OpenClaw workspace, install @openquok/auto-cli, and authenticate once. See the ${faqLink(faqHrefDocs('agent-setup-guides/openclaw'), 'OpenClaw agent guide')} and ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')}.`
 		},
 		{
 			title: 'What can OpenClaw do with OpenQuok?',
 			description:
-				'OpenClaw can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, configure internal and global plugs, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, plugs:upsert, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
+				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
 		},
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app; OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',
 			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. OpenClaw handles volume; you handle quality.'
+				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
 		},
 		{
 			title: 'Does it work with other AI agents?',
 			description:
-				'Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including Claude Code, ChatGPT, and custom automation. This page focuses on OpenClaw plus the openquok-core skill; pair it with other OpenClaw skills (Bloom, RevenueCat, or your own) for richer workflows.'
+				`Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, Claude Code, ChatGPT, and custom automation. This page focuses on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} plus the openquok-core skill; pair it with other OpenClaw skills (Bloom, RevenueCat, or your own) for richer workflows. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
 		},
 		{
 			title: 'Why use OpenClaw instead of an MCP client?',
 			description:
-				'MCP clients like Codex, Claude Code, and Cursor fit focused editor and terminal sessions. OpenClaw fits always-on scheduling from Telegram, WhatsApp, or Slack — persistent memory, parallel sessions across channels, and one assistant that can run openquok-core beside your other skills. Choose OpenClaw when messaging and scale matter; choose MCP when OpenQuok should live inside a single coding workflow. Many teams use both.'
+				`${faqLink(publicFaqHref.cursorLanding, 'Cursor')} and other MCP clients fit editor sessions — see ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. OpenClaw fits always-on chat from Telegram, WhatsApp, or Slack. Pick OpenClaw for messaging and scale; pick MCP for in-repo workflows. Many teams use both.`
 		},
 		{
 			title: 'Can I run OpenClaw on Railway or another host?',
 			description:
-				'Yes. Mount a persistent workspace volume, set OPENCLAW_WORKSPACE_DIR, install openquok-core and the global CLI in the container shell, then authenticate. On headless hosts prefer OPENQUOK_API_KEY or openquok auth:login --json so the user opens verification_uri_complete on another device. Start a new chat session after upgrades so the agent reloads instructions.'
+				`Yes. Run on your own hardware or in Docker with a persistent workspace, install openquok-core, and authenticate once. See the ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host guide')}.`
 		},
 		{
 			title: 'Is it free to start?',
 			description:
-				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.'
+				`Yes. Create an OpenQuok account and start a 7-day free trial on ${faqLink(publicFaqHref.pricing, 'Pricing')}, connect your channels, install openquok-core on OpenClaw, and begin scheduling from chat.`
 		}
 	],
 } satisfies PublicAgentHostLandingPageViewModel;

@@ -6,6 +6,12 @@ import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/sha
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildChannelFaqLinks,
+	buildToolChannelFaqLinks,
+	faqHrefDocs,
+	faqLink
+} from '$lib/content/utils/publicFaqLinks';
 
 const SHARED_CHANNEL_KEYWORD_SET = new Set<string>(SHARED_CHANNEL_SEO_KEYWORDS);
 
@@ -26,6 +32,9 @@ export function buildMcpChannelLandingVm(params: {
 	const channelKeywords = channel.keywords
 		.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword))
 		.slice(0, 4);
+	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
+	const mcpClientGuide = faqHrefDocs(`mcp-setup-guides/${baseMcp.slug}`);
+	const humanizerChannelLinks = buildToolChannelFaqLinks('humanizer', channel.slug);
 
 	return {
 		...baseMcp,
@@ -83,7 +92,7 @@ export function buildMcpChannelLandingVm(params: {
 				return {
 					...item,
 					title: `How does ${clientLabel} schedule ${platformLabel} posts?`,
-					description: `Connect your ${platformLabel} account in the OpenQuok web app, add OpenQuok MCP to ${clientLabel} with an opo_ token, and ask in natural language to draft and schedule. Every post lands as a draft or scheduled item until you approve on the calendar or kanban.`
+					description: `Connect ${platformLabel} via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)}. Add OpenQuok MCP to ${clientLabel} — see the ${faqLink(mcpClientGuide, `${clientLabel} MCP setup guide`)}. Draft and schedule in natural language; you approve on the calendar or kanban.`
 				};
 			}
 			if (
@@ -93,7 +102,7 @@ export function buildMcpChannelLandingVm(params: {
 				return {
 					...item,
 					title: `What is OpenQuok MCP for ${platformLabel} on ${clientLabel}?`,
-					description: `OpenQuok exposes ${platformLabel} scheduling tools over MCP so ${clientLabel} can list your connected account, read platform limits, and draft or schedule ${platformLabel} posts in natural language — you approve what publishes in your OpenQuok workspace.`
+					description: `${clientLabel} lists your ${platformLabel} account, reads platform limits, and drafts or schedules posts over MCP — you approve in your workspace. See ${faqLink(mcpClientGuide, `${clientLabel} MCP setup`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)}.`
 				};
 			}
 			return item;

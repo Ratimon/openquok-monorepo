@@ -7,6 +7,12 @@ import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildAgentChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildAgentFaqLinks,
+	buildChannelFaqLinks,
+	buildToolChannelFaqLinks,
+	faqLink
+} from '$lib/content/utils/publicFaqLinks';
 
 const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);
 
@@ -27,6 +33,9 @@ export function buildAgentChannelLandingVm(params: {
 		agentLabel,
 		mode: 'agent-host'
 	});
+	const channelLinks = buildChannelFaqLinks(channel.slug, channel.docsPath);
+	const agentLinks = buildAgentFaqLinks(baseAgent.slug, baseAgent.docsPath);
+	const humanizerChannelLinks = buildToolChannelFaqLinks('humanizer', channel.slug);
 
 	return {
 		...baseAgent,
@@ -89,17 +98,18 @@ export function buildAgentChannelLandingVm(params: {
 				return {
 					...item,
 					title: `How does ${agentLabel} schedule ${platformLabel} posts?`,
-					description: `Connect your ${platformLabel} account in the OpenQuok web app, install openquok-core on ${agentLabel}, and message your assistant to schedule. ${agentLabel} uses integration UUIDs from openquok integrations:list to target your ${platformLabel} account. Every post lands as a draft or scheduled item until you approve on the calendar or kanban.`
+					description: `Connect your ${platformLabel} account via the ${faqLink(channelLinks.docs, `${platformLabel} setup guide`)} or the ${faqLink(channelLinks.channelLanding, `${platformLabel} channel landing`)}. Install openquok-core on ${agentLabel} with the ${faqLink(agentLinks.docs, `${agentLabel} agent guide`)}. Message your assistant to schedule — ${agentLabel} uses integration UUIDs from openquok integrations:list to target your ${platformLabel} account. Every post lands as a draft or scheduled item until you approve on the calendar or kanban. Browse ${faqLink(channelLinks.playbooksTag, `${platformLabel} playbooks`)} and ${faqLink(channelLinks.buildingBlocksTag, `${platformLabel} building blocks`)} for format ideas.`
 				};
 			}
 			if (
 				item.title === 'What can OpenClaw do with OpenQuok?' ||
 				item.title === 'What can Hermes Agent do with OpenQuok?' ||
-				item.title === 'What can Grok Bot do with OpenQuok?'
+				item.title === 'What can Grok Bot do with OpenQuok?' ||
+				item.title === 'What can ThinkRail do with OpenQuok?'
 			) {
 				const capabilities = supportsAnalytics
-					? `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse.`
-					: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, and apply per-platform settings for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, upload, and more — every command returns structured JSON for the agent to parse.`;
+					? `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, apply per-platform settings, and pull platform and post analytics for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, analytics:platform, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`
+					: `${agentLabel} can draft and schedule ${platformLabel} posts, upload images and video, and apply per-platform settings for your connected ${platformLabel} account. The openquok-core skill documents integrations:list, posts:create, posts:status, upload, and more — every command returns structured JSON for the agent to parse. See ${faqLink(agentLinks.agentChannel(channel.slug), `${agentLabel} + ${platformLabel}`)} and the ${faqLink(humanizerChannelLinks.toolChannel, `${platformLabel} humanizer tool`)} for channel-specific workflows.`;
 				return {
 					...item,
 					title: `What can ${agentLabel} do with ${platformLabel} on OpenQuok?`,

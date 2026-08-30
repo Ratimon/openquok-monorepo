@@ -22,6 +22,19 @@ alwaysApply: false
 
 Marketing copy that crawlers should index must not rely on client-only presenter state or in-component schema fallbacks alone. Visible text in the first HTML response should match what users see after hydration (see **web-seo-index** → JavaScript rendering mismatch).
 
+## CMS FAQ vs pSEO catalog FAQ
+
+Two FAQ surfaces share `faqLink` / `publicFaqHref` but differ in **where copy lives**:
+
+| Surface | Routes | Copy source | Rule |
+| --- | --- | --- | --- |
+| **Landing / pricing CMS FAQ** | `/`, `/pricing` | Secret-admin **Public FAQ** (`public_faq.ITEMS`) with git defaults in `publicFaqConfig.ts` | This file |
+| **pSEO catalog FAQ** | `/channels`, `/agents`, `/tools`, hubs, detail landings | TypeScript constants (`channels/{slug}.ts`, `public*HubFaqConfig.ts`, tool `public*FaqConfig.ts`) | **web-seo-pseo** |
+
+Channel connect funnel (sign-up first, `connectChannelsGuide` primary, `self-host` on `social-integration` links) applies to **pSEO** channel and hub FAQs — not to generic landing/pricing Q&A unless the question is about connecting a network.
+
+Template section order and `PublicFaq` wiring on programmatic routes: **web-seo-pseo-templates**.
+
 ## Load pattern (`+page.server.ts`)
 
 1. Call `configRepository.getPublicModuleConfig(...)` (stateless; safe on server).
@@ -68,7 +81,8 @@ When adding or rewriting a landing/pricing FAQ answer, include a first-party lin
 | Agent hosts | `/agents`, `/docs/agent-setup-guides` | Agents, agent setup guides |
 | MCP | `/docs/getting-started-for-mcp`, `/docs/mcp-setup-guides` | MCP getting started, MCP setup |
 | Public API / OAuth / tokens | `/docs/getting-started-for-public-api`, `/docs/oauth2-for-apps` | Public API, OAuth2 for apps |
-| Channels / official APIs | `/channels`, `/docs/social-integration` | Supported channels, channel setup guides |
+| Channels (cloud connect) | `/channels`, `/docs/channels/connect`, `/sign-up` | Supported channels, connect channels guide, sign up |
+| Channels (self-host operators) | `/docs/social-integration/{slug}` | Anchor must include **self-host** — use `faqLinkSelfHostChannelSetup` in code; in CMS HTML write “self-host {platform} setup guide” |
 | Channel groups | `/docs/apis-integrations/groups` | channel groups API |
 | Analytics | `/docs/cli-usages/analytics` | analytics CLI |
 | Threads / X comments | `/docs/cli-examples/threads`, `/docs/cli-examples/x` | Threads / X CLI examples |
@@ -93,6 +107,8 @@ Chrome Writer/Rewriter/Summarizer docs stay third-party (`nofollow` applied on d
 
 - Meta tags from CMS strings: **web-seo-meta-tags**
 - JSON-LD builders: **web-seo-jsonld**
+- pSEO catalog FAQs, funnel, ASD-STE100: **web-seo-pseo**
+- pSEO template section order: **web-seo-pseo-templates**
 - Blog FAQ HTML (same Visual editor, tool-page hrefs): **web-seo-blog**
 - Outbound `rel` / first-party GitHub: **web-seo-outbound-links**
 - Self-host marketing backlinks: **web-hosted-marketing-links**

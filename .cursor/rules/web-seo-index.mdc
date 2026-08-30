@@ -1,5 +1,5 @@
 ---
-description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy, outbound links, audits). See web-seo-*.mdc rules for detail.
+description: Index — SSR SEO for public routes (meta tags, canonical URLs, JSON-LD, CMS copy, pSEO catalogs, outbound links, audits). See web-seo-*.mdc rules for detail.
 globs:
   - web/src/routes/+page.server.ts
   - web/src/routes/+page.ts
@@ -37,6 +37,8 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Canonical URLs, query params, UTM, robots | **web-seo-canonical** |
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
+| Programmatic SEO catalogs, FAQ funnel, ASD-STE100 copy | **web-seo-pseo** |
+| pSEO template section order, CTAs, guest mocks | **web-seo-pseo-templates** |
 | Blog CMS HTML, Skill Builder / specific tool links, FAQ/HowTo fields | **web-seo-blog** |
 | Outbound `rel` / brand social / first-party GitHub | **web-seo-outbound-links** |
 | Self-host → openquok.com marketing hrefs | **web-hosted-marketing-links** |
@@ -91,7 +93,7 @@ Google separates **crawl**, **render**, and **index**. If meaningful content or 
 | `<title>`, meta description, OG/Twitter | `pageMetaTags` from server load |
 | `<link rel="canonical">` | `withCanonicalMetaTags` (see **web-seo-canonical**) — path-only; strips UTM/`gclid`/`fbclid` in SSR |
 | JSON-LD | `schemaData` + `JsonLdHead` (see **web-seo-jsonld**) |
-| Hero / FAQ / listing body copy | Server load VMs — see **web-seo-cms-copy**; alternatives/competitor copy in `PublicAlternativesPagePresenter` — see **web-seo-meta-tags** → Alternatives programmatic SEO |
+| Hero / FAQ / listing body copy | Server load VMs — landing/pricing CMS: **web-seo-cms-copy**; channel/agent/tool/hub catalogs: **web-seo-pseo** + **web-seo-pseo-templates**; alternatives/competitor copy in `PublicAlternativesPagePresenter` — see **web-seo-meta-tags** → Alternatives programmatic SEO |
 | Paginated hub grids (playbooks, building blocks, blog) | Current page items in SSR HTML + crawlable `<a href="?page=N">` links — no client-only "Show more" or infinite scroll |
 
 ## Pagination (indexable catalog grids)

@@ -1,5 +1,6 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 
+import { faqHrefAgent, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type PublicListingsHubFaqSection = {
 	faqSubtitle: string;
@@ -48,22 +49,22 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 			{
 				title: 'What is a building block in OpenQuok?',
 				description:
-					'A building block is an installable agent extension listed in the OpenQuok catalog — usually a skill (SKILL.md), an MCP server, or both. Each entry includes install commands, setup docs, and tool definitions so you can add capabilities to Claude, Cursor, Codex, OpenClaw, Hermes, and other agent hosts without writing integration code from scratch.'
+					`A building block is an installable agent extension listed in the OpenQuok catalog — usually a skill (SKILL.md), an MCP server, or both. Each entry includes install commands, setup docs, and tool definitions so you can add capabilities to Claude, Cursor, Codex, OpenClaw, Hermes, and other agent hosts without writing integration code from scratch. Browse ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')} or filter by tag on ${faqLink(publicFaqHref.agents, 'Agents')}.`
 			},
 			{
 				title: 'What is the difference between a skill and an MCP server?',
 				description:
-					'Skills package instructions and commands agents read from SKILL.md — common on OpenClaw, Hermes, and skill-based hosts. MCP servers expose tools over the Model Context Protocol for editors and terminals like Cursor, Claude Code, and Codex. Some listings ship both so you can pick the install path that matches your agent.'
+					`Skills package instructions and commands agents read from SKILL.md — common on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, ${faqLink(faqHrefAgent('hermes'), 'Hermes')}, and skill-based hosts. MCP servers expose tools over the Model Context Protocol for editors and terminals like ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, Claude Code, and Codex. Some listings ship both so you can pick the install path that matches your agent. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')} and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
 			},
 			{
 				title: 'How do I install a building block on my agent?',
 				description:
-					'Open a listing, expand the card, and copy the skill install command or MCP server config for your platform. Each entry links to a setup guide with transport details (stdio, HTTP, or SSE), auth steps, and environment variables. Official OpenQuok Core covers both paths from one listing.'
+					`Open a listing on ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}, expand the card, and copy the skill install command or MCP server config for your platform. Each entry links to a setup guide with transport details (stdio, HTTP, or SSE), auth steps, and environment variables. Official OpenQuok Core covers both paths from one listing.`
 			},
 			{
 				title: 'Can I combine multiple building blocks into one skill?',
 				description:
-					'Yes. Select building blocks on this page with Add to skill builder, then open Skill Builder to merge them into a single SKILL.md export. That workflow is useful when you want one agent skill that references several MCP tools or third-party capabilities.'
+					`Yes. Select building blocks on this page with Add to skill builder, then open ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} to merge them into a single SKILL.md export. That workflow is useful when you want one agent skill that references several MCP tools or third-party capabilities.`
 			},
 		]
 	}
@@ -96,22 +97,22 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 			{
 				title: 'What is an agent playbook?',
 				description:
-					'A playbook is a published, step-by-step workflow on OpenQuok that combines one or more building blocks — skills and MCP tools — into a sequence your agent can follow. Think of it as a reusable automation template rather than a single installable tool.'
+					`A playbook is a published, step-by-step workflow on OpenQuok that combines one or more building blocks — skills and MCP tools — into a sequence your agent can follow. Think of it as a reusable automation template rather than a single installable tool. Browse ${faqLink(publicFaqHref.playbooks, 'Playbooks')} or start from ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}.`
 			},
 			{
 				title: 'How are playbooks different from building blocks?',
 				description:
-					'Building blocks are atomic capabilities: one skill or MCP server you install on an agent. Playbooks orchestrate multiple blocks in order with context about when and why to run each step. Start with playbooks when you want a turnkey workflow; start with building blocks when you want to assemble your own.'
+					`Building blocks are atomic capabilities: one skill or MCP server you install on an agent from ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}. Playbooks compose of multiple blocks in order with context about when and why to run each step. Start with playbooks when you want a turnkey workflow; start with building blocks when you want to assemble your own in ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')}.`
 			},
 			{
 				title: 'How do I create and publish my own playbook?',
 				description:
-					'Sign in, set a public username, and submit a playbook from your account or assemble building blocks in Skill Builder first. The publish guide covers listing metadata, categories, tags, and review steps so your workflow appears in this directory.'
+					`Sign in, set a public username, and submit a playbook from your account or assemble building blocks in Skill Builder first. The ${faqLink(publicFaqHref.publishListingGuide, 'publish guide')} covers listing metadata, categories, tags, and review steps so your workflow appears in this directory. See also ${faqLink(publicFaqHref.listingTypesGuide, 'listing types explained')}.`
 			},
 			{
 				title: 'Which agents support OpenQuok playbooks?',
 				description:
-					'Any agent that can run the skills or MCP building blocks referenced in a playbook works — including OpenClaw, Hermes, Claude Code, Cursor, Codex, and other MCP clients. Open each playbook to see which building blocks it uses and follow the linked setup guides for your platform.'
+					`Any agent that can run the skills or MCP building blocks referenced in a playbook works — including ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, ${faqLink(faqHrefAgent('hermes'), 'Hermes')}, Claude Code, ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, Codex, and other MCP clients. Open each playbook to see which building blocks it uses and follow the linked ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')} or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')} for your platform.`
 			}
 		]
 	}

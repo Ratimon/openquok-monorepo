@@ -1,6 +1,11 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 
 import { BENCHMARK_SLOTS_LAST_REVIEWED } from '$lib/best-time-to-post/constants/benchmarkSlots';
+import {
+	buildToolChannelFaqLinks,
+	faqLink,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 export type BestTimeToPostFaqSection = {
 	faqSubtitle: string;
@@ -47,7 +52,7 @@ const GENERIC_BEST_TIME_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I schedule the suggested slots with OpenQuok?',
 		description:
-			'Yes. Copy the timing test plan or use the week preview as a guide, then create scheduled posts in your OpenQuok workspace calendar, CLI, or public API. This tool does not publish for you.'
+			`Yes. Copy the timing test plan or use the week preview as a guide, then create scheduled posts in your OpenQuok workspace calendar, ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, or ${faqLink(publicFaqHref.publicApi, 'Public API')}. This tool does not publish for you.`
 	},
 	{
 		title: 'Do I need an OpenQuok account?',
@@ -57,7 +62,7 @@ const GENERIC_BEST_TIME_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: PLATFORM_WINDOWS_FAQ_TITLE,
 		description:
-			'Stay on this page for any platform, or open a channel page under By channel — TikTok, Instagram, LinkedIn, X, and other live networks. Each channel page defaults the calculator to that platform’s benchmark windows.'
+			`Stay on this page for any platform, or open a channel page under By channel on ${faqLink(publicFaqHref.bestTimeToPostTool, 'Best Time to Post')} — TikTok, Instagram, LinkedIn, X, and other live networks. Each channel page defaults the calculator to that platform’s benchmark windows.`
 	}
 ];
 
@@ -66,11 +71,13 @@ function tailorBestTimeFaqItem(
 	channelSlug: string,
 	platformLabel: string
 ): PublicFaqItem {
+	const toolLinks = buildToolChannelFaqLinks('best-time-to-post', channelSlug);
+
 	switch (item.title) {
 		case EXACT_TIME_FAQ_TITLE:
 			return {
 				title: item.title,
-				description: `No. This ${platformLabel} page does not read your account analytics or predict your personal peak hour. It builds a ${platformLabel} timing test plan from that platform’s benchmark table in your audience timezone. Run the slots as controlled tests, then let ${platformLabel} and OpenQuok analytics decide your final schedule.`
+				description: `No. This ${faqLink(toolLinks.toolChannel, `${platformLabel} timing page`)} does not read your account analytics or predict your personal peak hour. It builds a ${platformLabel} timing test plan from that platform’s benchmark table in your audience timezone. Run the slots as controlled tests, then let ${platformLabel} and OpenQuok analytics decide your final schedule.`
 			};
 		case BENCHMARK_SOURCES_FAQ_TITLE:
 			return {
@@ -85,14 +92,14 @@ function tailorBestTimeFaqItem(
 		case 'Can I schedule the suggested slots with OpenQuok?':
 			return {
 				title: item.title,
-				description: `Yes. Copy the ${platformLabel} timing test plan or use the week preview as a guide, then create scheduled posts to your connected ${platformLabel} channel in OpenQuok. This tool does not publish for you.`
+				description: `Yes. Copy the ${platformLabel} timing test plan or use the week preview as a guide, then create scheduled posts to your connected ${platformLabel} channel in OpenQuok via the calendar, ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, or ${faqLink(publicFaqHref.publicApi, 'Public API')}. This tool does not publish for you.`
 			};
 		case 'Do I need an OpenQuok account?':
 			return item;
 		case PLATFORM_WINDOWS_FAQ_TITLE:
 			return {
 				title: `What's included for ${platformLabel}?`,
-				description: `This page opens with ${platformLabel} benchmark windows already selected so you are not guessing. Adjust timezone, content type, and cadence, then generate a timing test plan. For another network, pick a different channel in the By channel section.`
+				description: `This page opens with ${platformLabel} benchmark windows already selected so you are not guessing. Adjust timezone, content type, and cadence, then generate a timing test plan on ${faqLink(toolLinks.toolChannel, `${platformLabel} Best Time to Post`)}. For another network, pick a different channel in the By channel section.`
 			};
 		default:
 			return item;

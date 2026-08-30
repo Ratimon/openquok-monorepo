@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const YOUTUBE_DOCS_PATH = '/docs/social-integration/youtube';
+const youtubeLinks = buildChannelLandingFaqLinks('youtube', YOUTUBE_DOCS_PATH);
 
 export const youtubeChannel = {
 	slug: 'youtube',
@@ -99,17 +106,17 @@ export const youtubeChannel = {
 		{
 			title: 'How do I connect my YouTube channel to OpenQuok?',
 			description:
-				'Sign in to YouTube and OpenQuok in your browser, then open a workspace and choose Connect channel → YouTube. Complete Google OAuth, pick the channel you manage, and OpenQuok stores the connection for scheduling and analytics.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → YouTube. Complete Google OAuth and pick the channel you manage. OpenQuok Cloud registers the Google app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(YOUTUBE_DOCS_PATH, 'YouTube')}.`
 		},
 		{
 			title: 'What video format does OpenQuok require for YouTube?',
 			description:
-				'Each scheduled YouTube post needs exactly one MP4 attachment. Our video editor validates format before publish; attach your video file from the media library or upload via the API.'
+				`Each scheduled YouTube post needs exactly one MP4 attachment. Our video editor validates format before publish; attach your video file from the media library or upload via the ${faqLink(publicFaqHref.publicApi, 'Public API')}.`
 		},
 		{
 			title: 'Can I schedule YouTube Shorts with OpenQuok?',
 			description:
-				'Yes. Upload a vertical MP4 with the same one-video workflow as long-form uploads — add your title, description, tags, and optional thumbnail, then queue it on the calendar. YouTube classifies qualifying vertical uploads as Shorts on its side; OpenQuok uses the standard video upload API, not a separate Shorts publish mode.'
+				'Yes. Upload a vertical MP4 with the same one-video workflow as long-form uploads — add your title, description, tags, and optional thumbnail, then queue it on the calendar. YouTube classifies qualifying vertical uploads as Shorts on its side, while OpenQuok uses the standard video upload API, not a separate Shorts publish mode.'
 		},
 		{
 			title: 'Can I set the video title, privacy, and tags in OpenQuok?',
@@ -119,17 +126,17 @@ export const youtubeChannel = {
 		{
 			title: 'Does the post body become the YouTube description?',
 			description:
-				'Yes. The main post text maps to the video description on upload. Keep copy within the 5,000-character limit shown in our video editor.'
+				`Yes. The main post text maps to the video description on upload. Keep copy within the 5,000-character limit shown in our video editor. Polish long descriptions in the ${faqLink(youtubeLinks.humanizer.toolChannel, 'YouTube humanizer tool')} before you schedule.`
 		},
 		{
 			title: 'Can I schedule YouTube uploads from an AI agent or script?',
 			description:
-				'Yes. After connecting a channel, use the public API or CLI with your workspace token to create scheduled posts with one MP4 and YouTube provider settings. Agents can draft titles and descriptions; you keep approval control in the dashboard.'
+				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts with one MP4 and YouTube provider settings. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft titles and descriptions; you keep approval control in the dashboard.`
 		},
 		{
 			title: 'Can I cross-post from YouTube to other channels?',
 			description:
-				'Yes. Compose once in OpenQuok and publish the same idea to YouTube, Instagram, Threads, Facebook, and other connected channels from one workflow. Per-platform settings — such as YouTube title and privacy — are applied separately for each destination.'
+				`Yes. Compose once in OpenQuok and publish the same idea to YouTube, Instagram, Threads, Facebook, and other connected channels from one workflow. Per-platform settings — such as YouTube title and privacy — are applied separately for each destination. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Does OpenQuok support YouTube playlists or community posts?',
@@ -139,14 +146,14 @@ export const youtubeChannel = {
 		{
 			title: 'Is OpenQuok a good fit for faceless YouTube channels?',
 			description:
-				'Yes. Connect your channel once, then queue batches of MP4 uploads with titles, descriptions, tags, and thumbnails from the calendar or public API. Many faceless workflows render videos externally and use OpenQuok as the publish queue — you keep approval control before anything goes live.'
+				`Yes. Connect your channel once, then queue batches of MP4 uploads with titles, descriptions, tags, and thumbnails from the calendar or public API. Many faceless workflows render videos externally and use OpenQuok as the publish queue — you keep approval control before anything goes live. Browse ${faqLink(youtubeLinks.playbooksTag, 'YouTube playbooks')} for workflow ideas.`
 		},
 		{
 			title: 'Is there a free trial for YouTube scheduling?',
 			description:
-				'Yes. New workspaces can start on OpenQuok’s free trial, connect a YouTube channel, and schedule uploads during the trial period before choosing a paid plan.'
+				`Yes. New workspaces can start on OpenQuok’s free trial, connect a YouTube channel, and schedule uploads during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/youtube',
+	docsPath: YOUTUBE_DOCS_PATH,
 	available: true
 } satisfies PublicChannelLandingPageViewModel;

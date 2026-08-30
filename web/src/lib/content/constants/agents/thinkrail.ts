@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
+import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
 	OPENQUOK_CLI_COMMAND_REFERENCE,
 	THINKRAIL_SKILL_INSTALL_OPTIONS
@@ -264,47 +265,47 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is ThinkRail?',
 			description:
-				'ThinkRail is a worktree IDE for the pi coding agent. You open a git repo as a project, cut workspaces as git worktrees, and work across Monaco tabs, terminals, diffs, and concurrent pi chat sessions — all scoped to the active worktree.'
+				`ThinkRail is a worktree IDE for the pi coding agent. You open a git repo as a project, cut workspaces as git worktrees, and work across Monaco tabs, terminals, diffs, and concurrent pi chat sessions — all scoped to the active worktree. See the ${faqLink(publicFaqHref.thinkrailLanding, 'ThinkRail integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'How does ThinkRail relate to the pi coding agent?',
 			description:
-				'ThinkRail is a thin host: pi runs in-process and owns models, skills, compaction, and cost. ThinkRail owns the workspace, the editor, and the UI. You do not need a separate /agents/pi landing — install openquok-core where pi discovers skills, then chat from ThinkRail. A standalone pi CLI session can use the same skill files.'
+				`ThinkRail is a thin host: pi runs in-process and owns models, skills, compaction, and cost. ThinkRail owns the workspace, the editor, and the UI. Install openquok-core where pi discovers skills, then chat from ThinkRail. A standalone pi CLI session can use the same skill files — browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')} for other paths.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in ThinkRail?',
 			description:
-				'In a worktree terminal, run npm install -g @openquok/auto-cli@latest, then curl SKILL.md into ~/.pi/agent/skills/openquok-core/SKILL.md (all projects) or .pi/skills/openquok-core/SKILL.md in the worktree. Start a new chat so pi reloads skills. Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login. See the <a href="/docs/agent-setup-guides/thinkrail">ThinkRail agent guide</a> or the <a href="/blog/schedule-social-posts-from-thinkrail-with-openquok">scheduling walkthrough</a> for exact commands.'
+				`Install @openquok/auto-cli in the worktree, add openquok-core to ~/.pi or .pi/skills/, and authenticate once. See the ${faqLink(publicFaqHref.thinkrailAgentGuide, 'ThinkRail agent guide')} or the ${faqLink(publicFaqHref.blogThinkrail, 'scheduling walkthrough')}.`
 		},
 		{
 			title: 'Where do OpenQuok credentials live?',
 			description:
-				'The global CLI and auth files live on the machine that runs ThinkRail — the same environment as worktree terminals. Your OpenQuok workspace tokens never need to be pasted into chat; use OAuth device flow or a programmatic opo_ token on that computer.'
+				`The global CLI and auth files live on the machine that runs ThinkRail — the same environment as worktree terminals. Your OpenQuok workspace tokens never need to be pasted into chat; use OAuth device flow or a programmatic opo_ token on that computer. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and ${faqLink(publicFaqHref.publicApi, 'Public API')} docs for token setup.`
 		},
 		{
 			title: 'What can ThinkRail do with OpenQuok?',
 			description:
-				'The agent can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, configure internal and global plugs, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, plugs:upsert, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
+				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
 		},
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app; ThinkRail uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. ThinkRail uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does ThinkRail publish immediately or wait for approval?',
 			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. ThinkRail handles volume; you handle quality.'
+					'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. ThinkRail handles volume; you handle quality.'
 		},
 		{
 			title: 'Why use ThinkRail with CLI instead of MCP-only?',
 			description:
-				'ThinkRail is not a native OpenQuok MCP client like Cursor. Pi loads skills and can use optional MCP extensions, but openquok-core is CLI-first: structured JSON, media uploads, plugs, and analytics in one skill. MCP fits point-in-time tool calls in editors that host OpenQuok MCP; the CLI skill fits repeatable scheduling recipes in a worktree shell. For editor-native MCP scheduling, see <a href="/agents/cursor">OpenQuok for Cursor</a>. Many teams use both — MCP for ad hoc tools in another IDE, openquok-core inside ThinkRail.'
+				`openquok-core runs in the worktree shell for repeatable scheduling. MCP fits ad hoc editor tools — see ${faqLink(publicFaqHref.cursorLanding, 'OpenQuok for Cursor')} or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}. Many teams use both.`
 		},
 		{
 			title: 'Is it free to start?',
 			description:
-				'OpenQuok offers a 7-day free trial for scheduling. ThinkRail is open source; you bring your own pi provider credentials. Install ThinkRail, add openquok-core, and begin scheduling from a worktree chat.'
+				`OpenQuok offers a 7-day free trial for scheduling on ${faqLink(publicFaqHref.pricing, 'Pricing')}. ThinkRail is open source; you bring your own pi provider credentials. Install ThinkRail, add openquok-core, and begin scheduling from a worktree chat.`
 		}
 	]
 } satisfies PublicAgentHostLandingPageViewModel;

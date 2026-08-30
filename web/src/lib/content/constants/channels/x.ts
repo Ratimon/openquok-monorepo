@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const X_DOCS_PATH = '/docs/social-integration/x';
+const xLinks = buildChannelLandingFaqLinks('x', X_DOCS_PATH);
 
 export const xChannel = {
 	slug: 'x',
@@ -86,7 +93,7 @@ export const xChannel = {
 		{
 			title: 'How do I connect X to OpenQuok?',
 			description:
-				'After your workspace admin configures an X developer app and backend API keys (see the setup guide), open a workspace, choose Connect channel → X, and complete OAuth in the browser. OpenQuok stores the connection for scheduling and analytics.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → X. Complete OAuth in the browser and OpenQuok stores the connection for scheduling and analytics. OpenQuok Cloud registers the X app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(X_DOCS_PATH, 'X')}.`
 		},
 		{
 			title: 'Can I schedule X posts with images or video?',
@@ -96,7 +103,7 @@ export const xChannel = {
 		{
 			title: 'Does OpenQuok respect X character limits?',
 			description:
-				'Yes. The post editor uses weighted character counting (280 for standard accounts, 4000 when Verified is enabled on the channel). Check the preview before scheduling.'
+				`Yes. The post editor uses weighted character counting (280 for standard accounts, 4000 when Verified is enabled on the channel). Check the preview before scheduling. Tighten copy in the ${faqLink(xLinks.humanizer.toolChannel, 'X humanizer tool')} when you cross-post from longer networks.`
 		},
 		{
 			title: 'Which X settings can I control before publishing?',
@@ -106,34 +113,34 @@ export const xChannel = {
 		{
 			title: 'Can I schedule thread replies in advance?',
 			description:
-				'Yes. Add follow-up replies in the composer (or pass x.replies via the API or CLI). Each reply publishes as a quote-less reply after the delay you set once the root tweet goes live.'
+				`Yes. Add follow-up replies in the composer (or pass x.replies via the API or CLI). Each reply publishes as a quote-less reply after the delay you set once the root tweet goes live. See ${faqLink(publicFaqHref.cliX, 'X CLI examples')}.`
 		},
 		{
 			title: 'Can I cross-post from X to other channels?',
 			description:
-				'Yes. Compose once in OpenQuok and publish tailored versions to X, Threads, LinkedIn, Instagram, and other connected channels from one workflow. Per-platform captions, media rules, and character limits apply separately for each destination.'
+				`Yes. Compose once in OpenQuok and publish tailored versions to X, Threads, LinkedIn, Instagram, and other connected channels from one workflow. Per-platform captions, media rules, and character limits apply separately for each destination. Browse ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Can OpenQuok auto-repost or plug high-performing X posts?',
 			description:
-				'Yes. X channels support auto-repost and auto-plug: when a tweet hits a like threshold you set, OpenQuok can repost it or reply with a promo message (up to three times every six hours). You can also pick other connected X accounts to repost after publish. Configure plugs on the channel; recurring schedule slots help recycle evergreen tweets on a cadence.'
+				'Yes. Open channel Plugs and set a like threshold. Choose auto-repost or auto-plug with your promo reply text. OpenQuok checks published tweets automatically and reposts or replies when likes reach your threshold. You can also pick other connected X accounts to repost right after publish. Use recurring schedule slots to recycle evergreen tweets.'
 		},
 		{
 			title: 'What X analytics does OpenQuok track?',
 			description:
-				'OpenQuok pulls per-tweet metrics from the X API — impressions, likes, replies, reposts, quotes, and bookmarks — and aggregates account-level analytics for connected profiles. Per-post metrics appear once the post row is linked to a published tweet id.'
+				`OpenQuok pulls per-tweet metrics from the X API — impressions, likes, replies, reposts, quotes, and bookmarks — and aggregates account-level analytics for connected profiles. Per-post metrics appear once the post row is linked to a published tweet id. Use the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or workspace dashboard.`
 		},
 		{
 			title: 'Can I schedule X from the API, CLI, or an AI agent?',
 			description:
-				'Yes. After connecting X, use the public API or openquok CLI with integration UUIDs from your workspace. Thread replies and compose settings go under providerSettingsByIntegrationId when needed. Agents can draft and queue posts; keep human approval in the dashboard when content represents your brand.'
+				`Yes. After connecting X, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with integration UUIDs from your workspace. Thread replies and compose settings go under providerSettingsByIntegrationId when needed. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts; keep human approval in the dashboard when content represents your brand.`
 		},
 		{
 			title: 'Is X scheduling included in the free trial?',
 			description:
-				'Yes. New workspaces get a 7-day free trial — connect X, schedule posts, and explore API access before choosing a paid plan that matches your channel and workspace limits.'
+				`Yes. New workspaces get a 7-day free trial — connect X, schedule posts, and explore API access before choosing a paid plan that matches your channel and workspace limits. See ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/x',
+	docsPath: X_DOCS_PATH,
 	available: true
 } satisfies PublicChannelLandingPageViewModel;

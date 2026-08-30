@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
+import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import { getMcpVerifySafariContentId } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
 
 export const warpMcpSeed = {
@@ -73,43 +74,35 @@ export const warpMcpSeed = {
 		faqItems: [
 			{
 				title: 'What is Warp?',
-				description:
-					'Warp is a modern terminal with AI built in — not a plugin inside VS Code or Cursor. You run commands, inspect block-based output, and ask Warp AI to explain errors or fix code in the same window. Add OpenQuok MCP to list channels, upload media, and schedule social posts from that same terminal session.'
+				description: `Warp is an AI-native terminal — run commands, debug output, and schedule social posts in one window. Add OpenQuok MCP to list channels and queue drafts from the same session. See ${faqLink(faqHrefDocs('mcp-setup-guides/warp'), 'Warp MCP setup')}.`
 			},
 			{
 				title: 'How is Warp different from Cursor, Claude Code, and other MCP clients?',
-				description:
-					'Most MCP clients on OpenQuok are editor-first: Cursor, Claude Code, Codex, and VS Code Copilot live inside your IDE for deep repo work and PR-friendly sessions. Warp is terminal-first: you ship builds, debug deploy failures, and schedule social posts from one AI-native terminal. When a command fails, you ask Warp what broke — no copying stack traces into a separate chat tab. Choose Warp when your workflow already centers on the terminal; choose an IDE client when you want Agent or Composer inside the project tree.'
+				description: `Most MCP clients are editor-first — ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, Claude Code, and Codex live in your IDE. Warp is terminal-first: ship builds, debug deploys, and schedule posts without leaving the shell. Pick Warp when the terminal is home base; pick an IDE client for deep repo work. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
 			},
 			{
 				title: 'Do I need the CLI or openquok-core skill?',
-				description:
-					'No — Warp connects over MCP with an opo_ token and built-in tools, which is the fastest path for terminal workflows. The openquok-core skill on agent hosts like OpenClaw and Hermes is worth it when you want deeper customization: compose OpenQuok with other skills, run parallel sessions, automate from shell scripts, and scale into workflows MCP alone does not cover yet.'
+				description: `No — Warp connects over MCP with an opo_ token. Use openquok-core on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} when you need shell scripts, parallel sessions, or richer skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 			},
 			{
 				title: 'Why use Warp instead of an agent host like OpenClaw?',
-				description:
-					'OpenClaw and Hermes fit always-on scheduling from Telegram, Discord, or Slack — persistent memory and parallel sessions across messaging apps. Warp fits when OpenQuok should live where you already run commands: native MCP tool calls, in-terminal AI for debugging, and focused ship sessions without standing up a separate agent host. Choose Warp when the terminal is home base; choose an agent host when messaging-first scale matters. Many teams use both.'
+				description: `${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat from Telegram, Discord, or Slack. Warp fits when OpenQuok should live where you run commands. Pick Warp for terminal workflows; pick an agent host for messaging and scale. Many teams use both.`
 			},
 			{
 				title: 'How do I authenticate?',
-				description:
-					'Create an OAuth app in Developers → Apps, generate an opo_ token under Developers → Access, then paste the MCP config with either an Authorization header or the API key in the URL path.'
+				description: `Create an OAuth app, generate an opo_ token, then paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and ${faqLink(faqHrefDocs('mcp-setup-guides/warp'), 'Warp MCP setup')}.`
 			},
 			{
 				title: 'How do I verify the connection?',
-				description:
-					'Start a fresh Warp AI session and ask: List my connected social media accounts. Warp should call integrationList and return your workspace channels.'
+				description: `Start a fresh Warp AI session and ask: List my connected social media accounts. See the ${faqLink(faqHrefDocs('mcp-setup-guides/warp'), 'Warp MCP setup guide')}.`
 			},
 			{
 				title: 'Is Warp free?',
-				description:
-					'Warp is free to download for macOS, Windows, and Linux at warp.dev. Warp includes AI credits to get started; upgrade if you use AI heavily. OpenQuok MCP only needs your OpenQuok programmatic token — billing for Warp AI and OpenQuok workspaces stays separate.'
+				description: `Warp is free to download at warp.dev with AI credits to start. OpenQuok MCP only needs your programmatic token — billing stays separate. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 			},
 			{
 				title: 'Which social platforms are supported?',
-				description:
-					'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app first.'
+				description: `YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 			}
 		]
 	}

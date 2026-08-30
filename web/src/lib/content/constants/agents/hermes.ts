@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
+import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
 	HERMES_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
@@ -263,47 +264,47 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is Hermes Agent?',
 			description:
-				'Hermes Agent is an autonomous AI assistant built by Nous Research. It runs on your laptop, a VPS, or serverless hosts, connects to 20+ chat platforms, creates and improves skills from experience, and takes real actions — including drafting and scheduling social media through OpenQuok.'
+				`Hermes Agent is an autonomous AI assistant built by Nous Research. It runs on your laptop, a VPS, or serverless hosts, connects to 20+ chat platforms, creates and improves skills from experience, and takes real actions — including drafting and scheduling social media through OpenQuok. See the ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in Hermes Agent?',
 			description:
-				'Install the global CLI with npm install -g @openquok/auto-cli, then run hermes skills install with the openquok-core SKILL.md URL from the monorepo (or copy the file into ~/.hermes/skills/openquok-core/). Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json, then start a new Hermes session so the skill loads. See the Hermes agent guide in Dev Docs for exact commands.'
+				`Install @openquok/auto-cli, add openquok-core under ~/.hermes/skills/, and authenticate once. See the ${faqLink(faqHrefDocs('agent-setup-guides/hermes'), 'Hermes agent guide')} and ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')}.`
 		},
 		{
 			title: 'What can Hermes Agent do with OpenQuok?',
 			description:
-				'Hermes can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, configure internal and global plugs, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, plugs:upsert, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
+				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
 		},
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app; Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Hermes publish immediately or wait for approval?',
 			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. Hermes handles volume; you handle quality.'
+				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
 		},
 		{
 			title: 'Does it work with other AI agents?',
 			description:
-				'Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including OpenClaw, Claude Code, and custom automation. This page focuses on Hermes plus the openquok-core skill; pair it with Skills Hub workflows, MCP servers, or cron for richer pipelines.'
+				`Yes. OpenQuok is CLI-first — any agent that can run shell commands can use openquok, including ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')}, ${faqLink(publicFaqHref.cursorLanding, 'Cursor')}, and custom automation. This page focuses on ${faqLink(faqHrefAgent('hermes'), 'Hermes Agent')} plus the openquok-core skill; pair it with Skills Hub workflows, MCP servers, or cron for richer pipelines. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
 		},
 		{
 			title: 'Why use Hermes Agent instead of an MCP client?',
 			description:
-				'MCP clients like Codex, Claude Code, and Cursor fit focused editor and terminal sessions. Hermes fits always-on scheduling from Telegram, Discord, Slack, or WhatsApp — persistent memory, parallel sessions across channels, and one gateway for 20+ chat platforms. Choose Hermes when messaging and scale matter; choose MCP when OpenQuok should live inside a single coding workflow. Many teams use both.'
+				`${faqLink(publicFaqHref.cursorLanding, 'Cursor')} and other MCP clients fit editor sessions — see ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. Hermes fits always-on chat from Telegram, Discord, Slack, or WhatsApp. Pick Hermes for messaging and scale; pick MCP for in-repo workflows. Many teams use both.`
 		},
 		{
 			title: 'Can I run Hermes on a VPS or serverless host?',
 			description:
-				'Yes. Hermes supports local, Docker, SSH, Daytona, Singularity, and Modal backends. Mount a persistent ~/.hermes/ volume, install openquok-core and the global CLI in the same shell Hermes uses for tools, then authenticate. On headless hosts prefer OPENQUOK_API_KEY or openquok auth:login --json so the user opens verification_uri_complete on another device.'
+				`Yes. Run on a VPS, Docker, or serverless backend with a persistent ~/.hermes/ volume, install openquok-core, and authenticate once. See the ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host guide')}.`
 		},
 		{
 			title: 'Is it free to start?',
 			description:
-				'Yes. Create an OpenQuok account and start a 7-day free trial, connect your channels, install openquok-core on Hermes, and begin scheduling from chat.'
+				`Yes. Create an OpenQuok account and start a 7-day free trial on ${faqLink(publicFaqHref.pricing, 'Pricing')}, connect your channels, install openquok-core on Hermes, and begin scheduling from chat.`
 		}
 	],
 } satisfies PublicAgentHostLandingPageViewModel;

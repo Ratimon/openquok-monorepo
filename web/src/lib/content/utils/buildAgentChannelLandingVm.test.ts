@@ -10,6 +10,11 @@ function capabilitiesFaqDescription(faqItems: { title: string; description: stri
 		?.description;
 }
 
+function scheduleFaqDescription(faqItems: { title: string; description: string }[]) {
+	return faqItems.find((item) => item.title.startsWith('How does ') && item.title.includes(' schedule '))
+		?.description;
+}
+
 describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 	const baseAgent = getPublicAgentHostBySlug('openclaw');
 	const facebookChannel = getPublicChannelBySlug('facebook');
@@ -29,6 +34,8 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		const description = capabilitiesFaqDescription(vm.faqItems);
 		expect(description).toContain('analytics:platform');
 		expect(description).toContain('pull platform and post analytics');
+		expect(description).toMatch(/href="\/agents\/openclaw\/facebook"/);
+		expect(description).not.toContain('rel="nofollow"');
 	});
 
 	it('omits analytics claims when provider identifiers are not analytics-capable', () => {
@@ -52,5 +59,23 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		expect(description).not.toContain('pull platform and post analytics');
 		expect(description).toContain('draft and schedule');
 		expect(description).toContain('posts:create');
+	});
+
+	it('links channel-tailored schedule FAQ to channel docs and agent setup', () => {
+		expect(baseAgent).toBeDefined();
+		expect(facebookChannel).toBeDefined();
+		expect(facebookConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: facebookChannel!,
+			channelConfig: facebookConfig!
+		});
+
+		const description = scheduleFaqDescription(vm.faqItems);
+		expect(description).toMatch(/href="\/docs\/social-integration\/facebook"/);
+		expect(description).toMatch(/href="\/channels\/facebook"/);
+		expect(description).toMatch(/href="\/docs\/agent-setup-guides\/openclaw"/);
+		expect(description).not.toContain('rel="nofollow"');
 	});
 });

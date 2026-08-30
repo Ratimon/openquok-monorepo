@@ -1,7 +1,14 @@
 import { icons } from '$data/icons';
 
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelLandingFaqLinks,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
+import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+const DEVTO_DOCS_PATH = '/docs/social-integration/devto';
+const devtoLinks = buildChannelLandingFaqLinks('devto', DEVTO_DOCS_PATH);
 
 export const devtoChannel = {
 	slug: 'devto',
@@ -93,12 +100,12 @@ export const devtoChannel = {
 		{
 			title: 'How do I connect Dev.to to OpenQuok?',
 			description:
-				'Open a workspace, choose Add Channel → Dev.to, and paste an API key from DEV Settings → Extensions. OpenQuok keeps the key on the server so it can publish for you; list and connect APIs never return it. Treat the key like a password — if it leaks, rotate it in DEV Settings and reconnect. There is no operator OAuth app and no public OAuth connect URL.'
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Add Channel → Dev.to. Paste an API key from DEV Settings → Extensions. OpenQuok keeps the key on the server so it can publish for you; list and connect APIs never return it. Treat the key like a password — if it leaks, rotate it in DEV Settings and reconnect. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(DEVTO_DOCS_PATH, 'Dev.to')}.`
 		},
 		{
 			title: 'Do I write the article body as markdown?',
 			description:
-				'Yes. Use the normal composer — the body is sent as markdown. Title, tags, cover, organization, series, and canonical URL live in Dev.to settings, not in a separate markdown editor.'
+				'Yes. Use our post editor — the body is sent as markdown. Title, tags, cover, organization, series, and canonical URL live in Dev.to settings, not in a separate markdown editor.'
 		},
 		{
 			title: 'How many tags can I set on a scheduled article?',
@@ -108,7 +115,7 @@ export const devtoChannel = {
 		{
 			title: 'Can I set a cover image and organization?',
 			description:
-				'Yes. Attach an optional cover (recommended 1000×420) from the media library, and pick an organization if your account publishes for one. Personal profile is the default when no organization is selected.'
+				`Yes. Attach an optional cover (recommended 1000×420) from the media library, and pick an organization if your account publishes for one. Personal profile is the default when no organization is selected. Design covers in the ${faqLink(devtoLinks.photoEditor.toolChannel, 'Dev.to photo editor')}.`
 		},
 		{
 			title: 'Can I add an article to a Dev.to series?',
@@ -123,19 +130,19 @@ export const devtoChannel = {
 		{
 			title: 'Can I schedule Dev.to articles from an AI agent or script?',
 			description:
-				'Yes. After connecting in the dashboard, use the public API or CLI with your workspace token. Agents can draft markdown and settings; you keep approval control on the kanban board.'
+				`Yes. After connecting in the dashboard, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliDevto, 'Dev.to CLI examples')} with your workspace token. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft markdown and settings; you keep approval control on the kanban board.`
 		},
 		{
 			title: 'Does OpenQuok show Dev.to analytics?',
 			description:
-				'Yes. Workspace analytics show account-level page views, reactions, and comments over 7, 30, or 90 days, plus per-article insights for published posts. Follow-up comments on Dev.to articles are not supported today.'
+				`Yes. Workspace analytics show account-level page views, reactions, and comments over 7, 30, or 90 days, plus per-article insights for published posts. Follow-up comments on Dev.to articles are not supported today. Pull metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')}.`
 		},
 		{
 			title: 'Is there a free trial for Dev.to scheduling?',
 			description:
-				'Yes. New workspaces can start on OpenQuok’s free trial, connect Dev.to with an API key, and schedule articles during the trial period before choosing a paid plan.'
+				`Yes. New workspaces can start on OpenQuok’s free trial, connect Dev.to with an API key, and schedule articles during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		}
 	],
-	docsPath: '/docs/social-integration/devto',
+	docsPath: DEVTO_DOCS_PATH,
 	available: true
 } satisfies PublicChannelLandingPageViewModel;

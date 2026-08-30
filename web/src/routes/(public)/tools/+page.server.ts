@@ -14,9 +14,11 @@ import { listBestTimeChannelsForHub } from '$lib/best-time-to-post';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/publicToolsHubFaqConfig';
+import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
+import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { route, url } from '$lib/utils/path';
 
 export const ssr = true;
@@ -81,20 +83,28 @@ export async function load({ url: requestUrl, cookies, parent }) {
 	];
 
 	const canonical = buildCanonicalUrl(requestUrl);
-	const schemaData = createJsonLdGraph([
-		{
-			'@type': 'CollectionPage',
-			'@id': `${canonical}#webpage`,
-			name: metaTitle,
-			description: metaDescription,
-			url: canonical,
-			isPartOf: {
-				'@type': 'WebSite',
-				name: companyName,
-				url: requestUrl.origin
-			}
-		}
-	]);
+	const schemaData = createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
+			{
+				'@type': 'CollectionPage',
+				'@id': `${canonical}#webpage`,
+				name: metaTitle,
+				description: metaDescription,
+				url: canonical,
+				isPartOf: {
+					'@type': 'WebSite',
+					name: companyName,
+					url: requestUrl.origin
+				}
+			},
+			createPublicFaqSEOSchema({
+				pageUrl: `${canonical}#faq`,
+				name: PUBLIC_TOOLS_HUB_FAQ.faqTitle,
+				description: PUBLIC_TOOLS_HUB_FAQ.faqDescription,
+				items: PUBLIC_TOOLS_HUB_FAQ.faqItems
+			})
+		])
+	);
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

@@ -12,6 +12,8 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
+	import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/publicCompareHubFaqConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import { icons } from '$data/icons';
 
@@ -20,6 +22,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import StripedPattern from '$lib/ui/patterns/StripedPattern.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
@@ -206,6 +209,15 @@
 	</SimpleCardGrid>
 
 	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_COMPARE_HUB_FAQ.faqSubtitle}
+			faqTitle={PUBLIC_COMPARE_HUB_FAQ.faqTitle}
+			faqDescription={PUBLIC_COMPARE_HUB_FAQ.faqDescription}
+			faqItems={[...PUBLIC_COMPARE_HUB_FAQ.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+
 		<AccentSplitCtaBanner
 			title={compareHubDocsBanner.title}
 			description={compareHubDocsBanner.description}

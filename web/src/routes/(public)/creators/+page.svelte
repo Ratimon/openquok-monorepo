@@ -11,12 +11,15 @@
 		PUBLIC_BANNER_CTA_TEXT,
 		PUBLIC_HUB_DOCS_BANNERS
 	} from '$lib/config/constants/config';
+	import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import * as Avatar from '$lib/ui/components/avatar';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 	import { Card, CardContent, CardHeader } from '$lib/ui/card';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
+	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 
@@ -111,6 +114,15 @@
 	</section>
 
 	<div class="container mx-auto px-4">
+		<PublicFaq
+			heroTheme={landingHeroTheme}
+			faqSubtitle={PUBLIC_CREATORS_HUB_FAQ.faqSubtitle}
+			faqTitle={PUBLIC_CREATORS_HUB_FAQ.faqTitle}
+			faqDescription={PUBLIC_CREATORS_HUB_FAQ.faqDescription}
+			faqItems={[...PUBLIC_CREATORS_HUB_FAQ.faqItems]}
+			sectionClass="py-12 sm:py-16"
+		/>
+
 		<AccentSplitCtaBanner
 			title={creatorsHubDocsBanner.title}
 			description={creatorsHubDocsBanner.description}

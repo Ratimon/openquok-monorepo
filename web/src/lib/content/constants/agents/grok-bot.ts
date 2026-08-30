@@ -1,6 +1,7 @@
 import { icons } from '$data/icons';
 
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
+import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 import {
 	GROK_BOT_SKILL_INSTALL_OPTIONS,
 	OPENQUOK_CLI_COMMAND_REFERENCE
@@ -264,52 +265,52 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'What is Grok Bot?',
 			description:
-				'Grok Bot is an AI teammate product with a shared persistent cloud computer — browser, filesystem, and terminal — for each Bot you create. You message it from macOS, Windows desktop, or iOS, install skills via Settings → Plugins or / in chat, and set up routines for scheduled work.'
+				`Grok Bot is an AI teammate product with a shared persistent cloud computer — browser, filesystem, and terminal — for each Bot you create. You message it from macOS, Windows desktop, or iOS, install skills via Settings → Plugins or / in chat, and set up routines for scheduled work. See the ${faqLink(publicFaqHref.grokBotLanding, 'Grok Bot integration')} and ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: 'Which plans can use Grok Bot?',
 			description:
-				'Grok Bot requires an eligible subscription such as SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium. Sign in with your Cursor account when you install the desktop or iOS app. OpenQuok billing is separate — you still need an OpenQuok workspace and connected channels.'
+				`Grok Bot requires an eligible subscription such as SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium. Sign in with your Cursor account when you install the desktop or iOS app. OpenQuok billing is separate — you still need an OpenQuok workspace and connected channels. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 		},
 		{
 			title: 'How do I install the openquok-core skill in Grok Bot?',
 			description:
-				'Ask the Bot to run npm install -g @openquok/auto-cli@latest on its cloud computer, or curl the openquok-core SKILL.md into /workspace/openquok-core/SKILL.md and ask it to save the file as a skill named openquok-core under Settings → Plugins. Set OPENQUOK_API_KEY from Account → Settings → Developers → Access or run openquok auth:login --json. See the <a href="/docs/agent-setup-guides/grok-bot">Grok Bot agent guide</a> or the <a href="/blog/schedule-social-posts-from-grok-bot-with-openquok">scheduling walkthrough</a> for exact commands.'
+				`Install @openquok/auto-cli on the Bot cloud computer, add openquok-core as a skill, and authenticate once. See the ${faqLink(publicFaqHref.grokBotAgentGuide, 'Grok Bot agent guide')} or the ${faqLink(publicFaqHref.blogGrokBot, 'scheduling walkthrough')}.`
 		},
 		{
 			title: 'Where do OpenQuok credentials live?',
 			description:
-				'The global CLI and auth files live on the Bot shared cloud computer — the same environment where openquok-core runs shell commands. Your OpenQuok workspace tokens never need to be pasted into chat; use OAuth device flow or a programmatic opo_ token on that computer.'
+				`The global CLI and auth files live on the Bot shared cloud computer — the same environment where openquok-core runs shell commands. Your OpenQuok workspace tokens never need to be pasted into chat; use OAuth device flow or a programmatic opo_ token on that computer. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and ${faqLink(publicFaqHref.publicApi, 'Public API')} docs for token setup.`
 		},
 		{
 			title: 'What can Grok Bot do with OpenQuok?',
 			description:
-				'Grok Bot can draft and schedule posts, upload images and video, apply per-platform settings, schedule threads and follow-up comments, configure internal and global plugs, and pull platform and post analytics — across every channel connected in your workspace. The openquok-core skill documents integrations:list, posts:create, plugs:upsert, posts:status, analytics:platform, upload, and more; every command returns structured JSON for the agent to parse.'
+				`Draft and schedule posts, upload media, configure plugs, and pull analytics across your connected channels. See ${faqLink(publicFaqHref.channels, 'supported channels')} and ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}; openquok-core returns structured JSON for the agent.`
 		},
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				'YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app; Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.'
+				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Grok Bot publish immediately or wait for approval?',
 			description:
-				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items — nothing goes live on autopilot. You review on the calendar or kanban, move posts through draft and review, and approve what should publish. Grok Bot handles volume; you handle quality.'
+				'Posts created through the CLI land in your OpenQuok workspace as drafts or scheduled items. You can review on the calendar or kanban, move posts through draft and review, and approve what should publish.'
 		},
 		{
 			title: 'Why use Grok Bot with CLI instead of MCP-only?',
 			description:
-				'Grok Bot supports optional Connectors and MCP, but openquok-core is CLI-first: structured JSON, media uploads, plugs, and analytics in one skill the Bot loads on demand. MCP fits point-in-time tool calls; the CLI skill fits repeatable scheduling recipes and headless runs on the shared computer. For editor-native MCP scheduling in the same Cursor account, see <a href="/agents/cursor">OpenQuok for Cursor</a>. Many teams use both — MCP for ad hoc tools in the IDE, openquok-core for always-on Bot workflows.'
+				`openquok-core is CLI-first for repeatable Bot workflows on the shared cloud computer. MCP fits ad hoc editor tools — see ${faqLink(publicFaqHref.cursorLanding, 'OpenQuok for Cursor')} or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}. Many teams use both.`
 		},
 		{
 			title: 'How does Grok Bot relate to Cursor?',
 			description:
-				'Grok Bot ships as an always-on AI teammate inside the Cursor product family — desktop and iOS chat, a shared cloud computer per Bot, and skills via Plugins. <a href="/agents/cursor">Cursor MCP</a> is the complementary path when you want OpenQuok tools inside Agent and Composer during a coding session. Same OpenQuok workspace and approval flow either way; pick Grok Bot for messaging-first volume or Cursor MCP when you stay in the repo. Read the <a href="/blog/schedule-social-posts-from-grok-bot-with-openquok">Grok Bot scheduling walkthrough</a> for a full setup example.'
+				`Grok Bot is the always-on teammate; ${faqLink(publicFaqHref.cursorLanding, 'Cursor MCP')} is OpenQuok inside Agent and Composer. Same workspace and approval flow — pick Grok Bot for messaging-first volume or Cursor when you stay in the repo. See the ${faqLink(publicFaqHref.blogGrokBot, 'Grok Bot scheduling walkthrough')}.`
 		},
 		{
 			title: 'Is it free to start?',
 			description:
-				'OpenQuok offers a 7-day free trial for scheduling. Grok Bot access depends on your xAI or Cursor plan eligibility — install the app, create a Bot, add openquok-core, and begin scheduling from desktop chat.'
+				`OpenQuok offers a 7-day free trial for scheduling on ${faqLink(publicFaqHref.pricing, 'Pricing')}. Grok Bot access depends on your xAI or Cursor plan eligibility — install the app, create a Bot, add openquok-core, and begin scheduling from desktop chat.`
 		}
 	]
 } satisfies PublicAgentHostLandingPageViewModel;

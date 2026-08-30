@@ -1,0 +1,156 @@
+---
+description: Programmatic SEO — catalog constants, FAQ funnel links, ASD-STE100 copy, hub vs detail scope, footer inventory
+globs:
+  - web/src/lib/content/constants/**
+  - web/src/lib/content/utils/publicFaqLinks.ts
+  - web/src/lib/content/utils/publicFaqLinks.test.ts
+  - web/src/lib/content/utils/createPublicFaqSEOSchema.ts
+  - web/src/lib/content/constants/channels/**
+  - web/src/lib/content/constants/agents/**
+  - web/src/lib/content/constants/mcps/**
+  - web/src/lib/**/constants/public*FaqConfig.ts
+  - web/src/lib/**/constants/public*ChannelConfig.ts
+  - web/src/routes/(public)/channels/**
+  - web/src/routes/(public)/agents/**
+  - web/src/routes/(public)/tools/**
+  - web/src/routes/(public)/compare/**
+  - web/src/routes/(public)/creators/**
+  - web/src/routes/(public)/roadmap/**
+  - web/src/routes/(public)/alternatives/**
+  - web/src/routes/(public)/playbooks/**
+  - web/src/routes/(public)/building-blocks/**
+alwaysApply: false
+---
+
+# Web SEO: Programmatic SEO (pSEO)
+
+Programmatic routes ship **catalog constants** on the server, **SSR meta + JSON-LD** in `+page.server.ts`, and **templates** in `+page.svelte`. Section wiring and component order: **web-seo-pseo-templates**. SSR meta, canonical, and JSON-LD mechanics: **web-seo-meta-tags**, **web-seo-canonical**, **web-seo-jsonld**.
+
+Landing (`/`) and pricing FAQ copy from secret-admin config: **web-seo-cms-copy** (same `faqLink` helpers; channel connect funnel rules below apply to pSEO catalogs only).
+
+## Three-layer contract
+
+| Layer | Location | Responsibility |
+| --- | --- | --- |
+| **Constants** | `$lib/content/constants/**`, `$lib/**/constants/public*Config.ts`, `$lib/**/constants/public*FaqConfig.ts` | Hero, features, FAQ Q&A, meta strings, tool/channel recipes |
+| **Server load** | `+page.server.ts` | `createMetaData`, `buildCanonicalUrl`, `schemaData` (`createPublicFaqSEOSchema`, domain builders), VMs from presenters |
+| **Template** | `+page.svelte` | `$derived(data.*)`; `<JsonLdHead schemaData={…} />`; `<PublicFaq … />`; no inline JSON-LD |
+
+Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client nav (**web-sveltekit-universal-page-load**).
+
+## pSEO surface inventory
+
+| Surface | Hub | Detail / variants |
+| --- | --- | --- |
+| Channels | `/channels` | `/channels/{slug}` |
+| Agents / MCP | `/agents` | `/agents/{slug}`, `/agents/{slug}/{channelSlug}` |
+| Tools | `/tools` | `/tools/{tool}`, `/tools/{tool}/{channelSlug}` |
+| Compare | `/compare` | `/compare/{productA}/{productB}` |
+| Alternatives | `/alternatives` | `/alternatives/{slug}` |
+| Creators | `/creators` | `/creators/{userSlug}` |
+| Playbooks / building blocks | `/playbooks`, `/building-blocks` | Creator listing detail; category/tag sub-hubs |
+| Roadmap | `/roadmap` | — |
+
+**Hub FAQs** (main index routes): `publicToolsHubFaqConfig.ts`, `publicChannelsHubFaqConfig.ts`, `publicCompareHubFaqConfig.ts`, `publicCreatorsHubFaqConfig.ts`, `publicRoadmapHubFaqConfig.ts` — wire in hub `+page.server.ts` + `+page.svelte`.
+
+**Detail FAQs**: channel catalogs (`channels/{slug}.ts`), agent/MCP seeds, tool `public*FaqConfig.ts` builders — items live on the VM returned from the presenter.
+
+**No hub FAQ block** on category/tag index routes (`/playbooks/categories/…`, `/building-blocks/tags/…`, `/blog/topic`, etc.) unless product explicitly adds one.
+
+## FAQ answers — ASD-STE100
+
+Every pSEO FAQ answer (channel, agent, tool, hub config) must use **ASD-STE100 Simplified Technical English**:
+
+- Short sentences; one idea per sentence.
+- Active voice; second person when addressing the reader (`you`, `your workspace`).
+- Approved, plain vocabulary — avoid jargon stacks and passive spec lists.
+- **Do not** meta-comment in user-facing copy (never write “this answer uses STE100”).
+
+Questions stay plain text; answers are HTML fragments from `faqLink` / `faqLinkSelfHostChannelSetup`.
+
+## FAQ link helpers (`publicFaqLinks.ts`)
+
+| Export | Use |
+| --- | --- |
+| `faqLink(href, label)` | Root-relative `<a href="…">` — no `rel="nofollow"` on first-party paths |
+| `publicFaqHref` | Shared destinations: `signUp`, `connectChannelsGuide`, `pricing`, `channels`, `tools`, `compare`, CLI/docs hubs, etc. |
+| `faqLinkSelfHostChannelSetup(docsPath, platformLabel)` | Operator setup under `/docs/social-integration/{slug}` — anchor **must** include `self-host` |
+| `buildChannelFaqLinks`, `buildAgentFaqLinks`, `buildToolChannelFaqLinks` | Per-slug landing, tag hub, and docs hrefs |
+
+Rules for all pSEO FAQ answers:
+
+- Root-relative `href="/…"`; one or two links per destination per answer.
+- JSON-LD parity: `createPublicFaqSEOSchema` uses the same Q&A; `Answer.text` is plain text (link labels kept, tags stripped) after `prepareBlogRichTextForDisplay` — same pipeline as `FaqAccordion`.
+
+## Channel connect FAQ funnel
+
+On OpenQuok Cloud, developer apps are already registered; users **sign up** and use **Add channel** in the workspace (`/docs/channels/connect`). Self-host operator docs are allowed but **secondary** and must be labeled.
+
+| Doc path | Audience | FAQ usage |
+| --- | --- | --- |
+| `/docs/channels/connect` | End users (cloud + dashboard) | **Primary** link for “how do I connect” |
+| `/sign-up`, `/pricing` | Trial and plan limits | **Primary** CTA on connect and trial questions |
+| `/docs/social-integration/{slug}` | Self-host operators (env vars, developer apps) | **Secondary**; prose or anchor must say **self-host** |
+| `/docs/cli-examples/{slug}` | Automation | After connect, for API/CLI questions |
+
+**Priority order** in connect / OAuth FAQ answers:
+
+1. **Sign up** — `publicFaqHref.signUp` (free trial where true).
+2. **Connect in workspace** — Add channel steps or `publicFaqHref.connectChannelsGuide`.
+3. **Self-host only (optional, one sentence)** — `faqLinkSelfHostChannelSetup(docsPath, platformLabel)`.
+
+```ts
+// ❌ BAD — social-integration as primary “setup guide”
+`Follow the ${faqLink(youtubeLinks.docs, 'YouTube setup guide')}.`
+
+// ✅ GOOD — sign-up first; self-host labeled
+`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → YouTube. … For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup('/docs/social-integration/youtube', 'YouTube')}.`
+```
+
+**Forbidden:**
+
+- “Follow the {Platform} setup guide” → `social-integration` without `self-host` in the anchor.
+- Implying cloud users must register Meta/Google/TikTok developer apps or set backend env vars.
+- Bare `{Platform} setup guide` anchor text for any `/docs/social-integration/` href.
+
+`buildChannelFaqLinks(…).docs` resolves operator paths — use only with `faqLinkSelfHostChannelSetup`, not as the primary connect CTA.
+
+## Hub FAQ funnel (main hubs)
+
+| Hub | Config | Funnel-first links |
+| --- | --- | --- |
+| `/tools` | `publicToolsHubFaqConfig.ts` | Each `/tools/*` route; sign-up when scheduling |
+| `/channels` | `publicChannelsHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/channels/{slug}` — not `/docs/social-integration` as primary |
+| `/compare` | `publicCompareHubFaqConfig.ts` | `/compare/openquok/buffer`, `/pricing`, `/alternatives` |
+| `/creators` | `publicCreatorsHubFaqConfig.ts` | `/playbooks`, `/building-blocks`, sign-up to publish |
+| `/roadmap` | `publicRoadmapHubFaqConfig.ts` | Feedback on roadmap page, Discord |
+
+## Footer inventory (`PUBLIC_FOOTER_LINKS`)
+
+Sitewide footer columns in `web/src/lib/config/constants/config.ts` — keep aligned when adding hubs or tools:
+
+| Column | Examples |
+| --- | --- |
+| **Tools** | `/tools`, `/tools/skill-builder`, `/tools/photo-editor`, `/tools/humanizer`, `/tools/best-time-to-post` |
+| **Directories** | `/playbooks`, `/building-blocks`, `/creators`, category/tag index paths |
+| **Resources** | `/agents`, `/channels`, `/alternatives`, `/blog`, `/compare`, `/docs`, self-host install |
+| **Company** | `/about`, `/roadmap`, `/pricing`, Discord |
+
+New pSEO routes that should be discoverable from every page belong here or in header nav config — not only in FAQ cross-links.
+
+## PR checklist (pSEO FAQ + copy)
+
+- [ ] FAQ answers follow ASD-STE100 (short, active, one idea per sentence).
+- [ ] Connect questions: sign-up and/or connect guide before operator docs.
+- [ ] Any `/docs/social-integration/` link uses `faqLinkSelfHostChannelSetup` or anchor text containing `self-host`.
+- [ ] `publicFaqLinks.test.ts` + channel-level tests: `href="/sign-up"` or connect guide on connect FAQs; no unlabeled social-integration anchors.
+- [ ] Hub FAQ wired: constants → `createPublicFaqSEOSchema` in `+page.server.ts` → `PublicFaq` in `+page.svelte` → forward in `+page.ts`.
+- [ ] JSON-LD `Answer.text` matches visible accordion (no raw `<a>` tags).
+- [ ] Meta + canonical + JSON-LD `url` use the same `buildCanonicalUrl` (**web-seo-canonical**).
+
+## Related rules
+
+- Template section order, CTAs, guest mocks: **web-seo-pseo-templates**
+- Landing/pricing CMS FAQ (secret-admin): **web-seo-cms-copy**
+- New channel/agent/tool surfaces: **add-social-provider-integration**, **add-agent**
+- Hosted marketing href rewrite on FAQ HTML: **web-hosted-marketing-links**
