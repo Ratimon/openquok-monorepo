@@ -43,7 +43,7 @@ Callouts support custom titles via the `title` prop.
 
 ## Tabs
 
-Use tabs to show alternative content, like different package managers. The default <code>pills</code> variant is the boxed switcher. Use <code>variant="line"</code> for prose (for example Cloud vs self-hosting). Children of <code>TabItem</code> are not Markdown-parsed — use HTML the same way as Callout.
+Use tabs to show alternative content, like different package managers. The default <Badge text="pills" variant="default" /> variant is the boxed switcher. Use <Badge text='variant="line"' variant="param" /> for prose (for example Cloud vs self-hosting). Children of <Badge text="TabItem" variant="default" /> are not Markdown-parsed — use HTML the same way as Callout.
 
 <Tabs items={["npm", "pnpm", "yarn"]}>
 <TabItem label="npm">

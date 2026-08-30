@@ -6,20 +6,20 @@ lastUpdated: 2026-08-22
 ---
 
 <script>
-import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Site Configuration
 
 Edit the docs config in:
 
-- <code>web/src/lib/docs/constants/config.ts</code> — site metadata (title/description/social), <code>docsTabs</code> (one sidebar per tab), i18n
-- <code>web/src/lib/docs/constants/config.ts</code> — assembled <code>docsConfig</code> (merged sidebar, TOC defaults, optional version selector)
+-  <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — site metadata (title/description/social), <Badge text="docsTabs" variant="param" /> (one sidebar per tab), i18n
+- <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — assembled <Badge text="docsConfig" variant="param" /> (merged sidebar, TOC defaults, optional version selector)
 
-The header tab bar is <code>docsTabs</code>, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Contributing**. Operator install and configuration live on Self-hosting, not General.
+The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Contributing**.
 
-<Callout type="note" title="Landing URL">
-<p><code>/docs</code> loads the General introduction (the <code>getting-started</code> folder) without redirecting. The same page is also available at <code>/docs/getting-started</code>. Do not treat a root <code>docs/index.md</code> as the tab home.</p>
+<Callout type="note">
+<p><Badge text="/docs" variant="path" /> loads the General introduction (the <Badge text="/getting-started" variant="path" /> folder) without redirecting. The same page is also available at <Badge text="/docs/getting-started" variant="path" />. Do not treat a root <Badge text="docs/index.md" variant="path" /> as the tab home.</p>
 </Callout>
 
 ```typescript
@@ -46,23 +46,23 @@ export const docsConfig: DocsConfig = {
 
 | Tab | Sidebar constant | Tab home |
 | --- | --- | --- |
-| General | <code>docsSidebarGeneral</code> (<code>getting-started</code>) | <code>/docs</code> |
-| Cloud | <code>docsSidebarCloud</code> | <code>/docs/cloud</code> |
-| Self-hosting | <code>docsSidebarSelfHosting</code> | <code>/docs/getting-started-for-dev</code> |
-| CLI | <code>docsSidebarCli</code> | <code>/docs/getting-started-for-cli</code> |
-| MCP | <code>docsSidebarMcp</code> | <code>/docs/getting-started-for-mcp</code> |
-| Public API | <code>docsSidebarPublicApi</code> (includes <code>oauth2-for-apps</code>) | <code>/docs/getting-started-for-public-api</code> |
-| Contributing | <code>docsSidebarContributing</code> | <code>/docs/developer-guidelines</code> |
+| General | <Badge text="docsSidebarGeneral" variant="param" /> (<Badge text="getting-started" variant="path" />) | <Badge text="/docs" variant="path" /> |
+| Cloud | <Badge text="docsSidebarCloud" variant="param" /> | <Badge text="/docs/cloud" variant="path" /> |
+| Self-hosting | <Badge text="docsSidebarSelfHosting" variant="param" /> | <Badge text="/docs/getting-started-for-dev" variant="path" /> |
+| CLI | <Badge text="docsSidebarCli" variant="param" /> | <Badge text="/docs/getting-started-for-cli" variant="path" /> |
+| MCP | <Badge text="docsSidebarMcp" variant="param" /> | <Badge text="/docs/getting-started-for-mcp" variant="path" /> |
+| Public API | <Badge text="docsSidebarPublicApi" variant="param" /> (includes <Badge text="oauth2-for-apps" variant="path" />) | <Badge text="/docs/getting-started-for-public-api" variant="path" /> |
+| Contributing | <Badge text="docsSidebarContributing" variant="param" /> | <Badge text="/docs/developer-guidelines" variant="path" /> |
 
-Third-party app OAuth (<code>oauth2-for-apps</code>) belongs on Public API. Operator OAuth server setup stays under Self-hosting (<code>admin</code>).
+Third-party app OAuth (<Badge text="oauth2-for-apps" variant="path" />) belongs on Public API. Operator OAuth server setup stays under Self-hosting (<Badge text="admin" variant="path" />).
 
-Path matching lives in <code>web/src/lib/docs/navigation.ts</code>. Unknown slugs resolve to <strong>General</strong>, not Self-hosting.
+Path matching lives in <Badge text="web/src/lib/docs/navigation.ts" variant="path" />. Unknown slugs resolve to <strong>General</strong>, not Self-hosting.
 
 ## Sidebar Configuration
 
 ### Auto-generated Sections
 
-Use `autogenerate` to build sidebar sections from a directory. Attach each section to the tab that should show it:
+Use <Badge text="autogenerate" variant="param" /> to build sidebar sections from a directory. Attach each section to the tab that should show it:
 
 ```typescript
 export const docsSidebarGeneral: DocsSidebarSection[] = [
@@ -77,7 +77,7 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 ];
 ```
 
-This scans `src/content/docs/getting-started/` and creates nav items for each `.md` file.
+This scans <Badge text="src/content/docs/getting-started/" variant="path" /> and creates nav items for each `.md` file.
 
 ### Manual Sections
 

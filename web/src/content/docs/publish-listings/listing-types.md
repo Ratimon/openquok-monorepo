@@ -19,7 +19,7 @@ A **building block** is a single listing on the <a href="/building-blocks">Build
 
 - One product name, description, and install instructions
 - Tagged by category (for example social publishing, analytics, productivity)
-- Filterable as **Skills**, **MCP**, **Both**, or **Official** (first-party OpenQuok entries)
+- Filterable as **Skills**, **MCP**, **Both**, or **Official**
 
 Examples: a standalone MCP server, a skill that teaches an agent how to schedule posts, or **OpenQuok Core** which ships both a skill and MCP tools.
 
@@ -35,15 +35,15 @@ A **playbook** is a **stack** — a curated bundle of building blocks with a sha
 
 Use a playbook when you want readers to **install a whole workflow**, not hunt for pieces one by one.
 
-<Callout type="tip" title="Quick mental model">
-<p><strong>Building block</strong> = one ingredient. <strong>Playbook</strong> = the recipe that lists which ingredients to use and in what order.</p>
+<Callout type="tip">
+<p>Quick mental model: <strong>Building block</strong> = one ingredient. <strong>Playbook</strong> = the recipe that lists which ingredients to use and in what order.</p>
 </Callout>
 
 ## Skills, MCP, and Both
 
 When you create a **building block**, you choose an **extension type**. This controls what install information appears on the hub card.
 
-### Skills
+### Skills (Markdown)
 
 **Skills** are agent instructions — usually installed with a shell command that copies a `SKILL.md` (or similar) into the user's agent config.
 
@@ -55,9 +55,9 @@ Choose **Skills** when your listing is:
 
 Hub cards show the **skills install command** and a **Skill Setup Doc** link when you provide one.
 
-### MCP
+### MCP (Model Context Protocol)
 
-**MCP** (Model Context Protocol) listings expose **tools** an MCP client can call — list integrations, create posts, fetch analytics, and so on.
+**MCP** listings expose **tools** an MCP client can call — list integrations, create posts, fetch analytics, and so on.
 
 Choose **MCP** when your listing is:
 

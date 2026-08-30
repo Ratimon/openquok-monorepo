@@ -6,14 +6,18 @@ lastUpdated: 2026-07-05
 ---
 
 <script>
-import { Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Improve OpenQuok docs by editing Markdown in this repository and opening a pull request. No special permissions are required — fork the repo, make your changes, and submit a PR for review.
+Improve OpenQuok docs by editing Markdown in this repository and opening a pull request.
+
+No special permissions are required — fork the repo, make your changes, and submit a PR for review.
 
 ## Repository
 
-<p>All documentation lives in the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo">openquok-monorepo</DocsExternalLink> monorepo on GitHub. English pages are under <code>web/src/content/docs/</code>; the docs app and sidebar config live under <code>web/src/lib/docs/</code>.</p>
+All documentation lives in the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo">openquok-monorepo</DocsExternalLink> monorepo on GitHub.
+
+English pages are under - <Badge text="web/src/content/docs/" variant="path" />, and the docs app and sidebar config live under <Badge text="web/src/lib/docs/" variant="path" />.
 
 ## Workflow
 

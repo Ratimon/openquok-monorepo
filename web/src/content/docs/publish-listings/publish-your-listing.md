@@ -61,7 +61,7 @@ Add **tags** so people can filter your listing on the hub (for example social pl
 
 Click **Create** or **Update** to save. When you are ready for others to see it, turn **Publish** on and save again.
 
-<Callout type="warning" title="Admin approval">
+<Callout type="warning">
 <p>Community listings need <strong>platform admin approval</strong> before they show on <a href="/building-blocks">Building Blocks</a>. Until then, status shows as awaiting approval in your account.</p>
 </Callout>
 
@@ -105,8 +105,6 @@ Save the draft, then enable **Publish** when ready. Playbooks also require admin
 3. Preview the exported `SKILL.md` on the right.
 4. Sign in and click **Save as playbook** to open the playbook editor with your draft pre-filled.
 
-This is ideal when you want to experiment with a workflow before filling in catalog metadata.
-
 <Callout type="tip" title="Start from the hub">
 <p>On <a href="/building-blocks">Building Blocks</a>, select multiple entries and use <strong>Create playbook</strong> to jump into Skill Builder with those blocks already chosen.</p>
 </Callout>
@@ -119,7 +117,9 @@ This is ideal when you want to experiment with a workflow before filling in cata
 | **Awaiting approval** | You submitted; an admin has not approved yet |
 | **Published** | Live on the public hub and on your creator page |
 
-You can **unpublish** from your account to remove a listing from the catalog without deleting your work. **Delete** is available for drafts you no longer need.
+You can **unpublish** from your account to remove a listing from the catalog without deleting your work.
+
+**Delete** is available for drafts you no longer need.
 
 ## Manage existing listings
 

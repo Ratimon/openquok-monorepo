@@ -5,16 +5,20 @@ order: 3
 lastUpdated: 2026-08-22
 ---
 
+<script>
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
+</script>
+
 ## Creating Pages
 
 Create a new `.md` file in `src/content/docs/` to add a page. The file path determines the URL:
 
 | File Path | URL |
 |-----------|-----|
-| `docs/getting-started/index.md` | `/docs` (General landing; also `/docs/getting-started`) |
-| `docs/cloud/index.md` | `/docs/cloud` |
-| `docs/installation/index.md` | `/docs/installation` |
-| `docs/documentation-contribution/configuration.md` | `/docs/documentation-contribution/configuration` |
+| <Badge text="docs/getting-started/index.md" variant="path" /> | <Badge text="/docs" variant="path" /> (General landing; also <Badge text="/docs/getting-started" variant="path" />) |
+| <Badge text="docs/cloud/index.md" variant="path" /> | <Badge text="/docs/cloud" variant="path" /> |
+| <Badge text="docs/installation/index.md" variant="path" /> | <Badge text="/docs/installation" variant="path" /> |
+| <Badge text="docs/documentation-contribution/configuration.md" variant="path" /> | <Badge text="/docs/documentation-contribution/configuration" variant="path" /> |
 
 ## Markdown Features
 
@@ -46,7 +50,7 @@ function greet(name) {
 
 ### Svelte components in Markdown
 
-Docs pages use **MDsveX**: import built-in components from **`$lib/ui/components/docs/mdx/index.js`** in a page-level `<script>` block, then use them in the Markdown body. See **[Built-in Components](/docs/documentation-contribution/components)** for live examples of callouts, tabs, cards, badges, and OpenAPI panels.
+Docs pages use **MDsveX**: import built-in components from <Badge text="$lib/ui/components/docs/mdx/index.js" variant="path" /> in a page-level `<script>` block, then use them in the Markdown body. See **[Built-in Components](/docs/documentation-contribution/components)** for live examples of callouts, tabs, cards, badges, and OpenAPI panels.
 
 **Pattern**:
 
@@ -62,7 +66,7 @@ Conventions for callouts, **`CardGrid`** / **`LinkCard`**, **`Steps`**, **`Badge
 
 Use **`Mermaid`** for sequence diagrams, flowcharts, and other [Mermaid](https://mermaid.js.org/) syntax. Store the diagram source in a `<script>` constant (template literal), then pass it with **`string={…}`**. The component follows the docs light/dark theme automatically.
 
-Reference: **`web/src/content/docs/getting-started-for-mcp/index.md`**, **`web/src/content/docs/configuration-agent/architecture.md`**.
+Reference: <Badge text="web/src/content/docs/getting-started-for-mcp/index.md" variant="path" />, <Badge text="web/src/content/docs/configuration-agent/architecture.md" variant="path" />.
 
 ```html
 <script>
@@ -91,7 +95,7 @@ Keep diagram text in the script block — not in a fenced Markdown code block �
 
 Use **`FileTree`** for folder layouts instead of a plain **` ```text `** block when you want the styled tree UI (connectors, monospace panel). Nest items with Markdown **unordered lists** inside the component.
 
-Reference: **`web/src/content/docs/getting-started-for-dev/architecture.md`**.
+Reference: <Badge text="web/src/content/docs/getting-started-for-dev/architecture.md" variant="path" />.
 
 ```html
 <script>

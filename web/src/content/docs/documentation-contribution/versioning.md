@@ -10,9 +10,13 @@ import { Badge } from '$lib/ui/components/docs/mdx/index.js';
 
 ## Overview
 
-The template includes an optional version selector dropdown that appears in the sidebar header. It links between different deployments of your docs — one site per version.
+The template includes an optional version selector dropdown that appears in the sidebar header.
 
-This is **not** a Docusaurus-style versioning system that maintains multiple content copies in the same repo. Instead, each version is a separate deployment, and the dropdown simply navigates between them.
+It links between different deployments of your docs — one site per version.
+
+This is **not** a Docusaurus-style versioning system that maintains multiple content copies in the same repo.
+
+Instead, each version is a separate deployment, and the dropdown simply navigates between them.
 
 ## Enabling the Version Selector
 

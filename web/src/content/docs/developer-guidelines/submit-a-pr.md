@@ -9,7 +9,9 @@ lastUpdated: 2026-07-05
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Improve OpenQuok's codebase by opening a pull request. No special permissions are required — fork the repo, make your changes, run the relevant checks, and submit a PR for review.
+Improve OpenQuok's codebase by opening a pull request.
+
+No special permissions are required — fork the repo, make your changes, run the relevant checks, and submit a PR for review.
 
 ## Repository
 

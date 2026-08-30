@@ -11,8 +11,6 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-This guide lives under **Contribution opportunities** — scoped product work open to contributors.
-
 The OpenQuok **Humanizer** (<Badge text="/tools/humanizer" variant="path" />) rewrites social drafts so they read less AI-written. 
 
 Adding another language means extending the locale folder under <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/constants/locales/"><Badge text="web/src/lib/ai-humanize/constants/locales/" variant="path" /></DocsExternalLink>.
@@ -37,12 +35,6 @@ web/src/lib/ai-humanize/constants/locales/
 | Router | Branch in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/utils/localRewrite.ts"><Badge text="localRewrite.ts" variant="path" /></DocsExternalLink> so the new locale runs its cleanup function |
 | Tests | <Badge text="cd web && pnpm exec vitest run src/lib/ai-humanize" variant="path" /> |
 
-English-only modules today (do not duplicate unless the locale needs them): <Badge text="humanMarkers.ts" variant="path" />, <Badge text="registers.ts" variant="path" />, <Badge text="rewriteConstraints.ts" variant="path" />, <Badge text="writingGuide.ts" variant="path" /> under <Badge text="locales/en/" variant="path" />. Thai ships a slimmer barrel via <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/constants/locales/th/index.ts"><Badge text="th/index.ts" variant="path" /></DocsExternalLink>.
-
-<Callout type="warning" title="Out of scope for a locale PR">
-<p><Badge text="auditTells" variant="param" /> (<DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/utils/auditTells.ts"><Badge text="auditTells.ts" variant="path" /></DocsExternalLink>) still reads EN catalogs only — localized tell chips are a follow-up. Full Humanizer modal i18n beyond the strings in <Badge text="ui.ts" variant="path" /> is optional.</p>
-</Callout>
-
 ## Contributor checklist
 
 <Steps
@@ -66,7 +58,7 @@ Update <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob
 
 Thai uses a <strong>script-ratio</strong> heuristic: more than 20% of non-whitespace characters in the Thai Unicode block (<Badge text="\u0E00-\u0E7F" variant="param" />) routes to <Badge text="th" variant="param" />. Mixed Thai/English brand names stay on the Thai path without sending mostly-English posts through Thai catalogs.
 
-For a new script, prefer a measurable rule (ratio, dominant script, or a small set of locale-specific markers) and export a named threshold constant with unit tests.
+For a new script, prefer a measurable rule (ratio, dominant script, or a small set of locale-specific markers).
 
 ### Create the locale folder and catalogs
 
@@ -78,17 +70,17 @@ Add <Badge text="web/src/lib/ai-humanize/constants/locales/&lt;code&gt;/" varian
 | <Badge text="tells.ts" variant="path" /> | Opener phrases, pep-talk endings, negative parallelism patterns, etc. |
 | <Badge text="swapTable.ts" variant="path" /> | Phrase-level replacements (order matters — longer phrases first) |
 | <Badge text="smokingGuns.ts" variant="path" /> | High-confidence stock openers to strip entirely |
-| <Badge text="index.ts" variant="path" /> | Re-export the modules above (plus <Badge text="rewriterContext.ts" variant="path" /> / <Badge text="ui.ts" variant="path" />) |
+| <Badge text="index.ts" variant="path" /> | Re-export the modules. |
 
 Copy structure and naming from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/constants/locales/th/"><Badge text="locales/th/" variant="path" /></DocsExternalLink>. Entries use shared types from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/constants/writingGuide.types.ts"><Badge text="writingGuide.types.ts" variant="path" /></DocsExternalLink>.
 
-<Callout type="tip" title="Script-aware matching">
+<Callout type="warning">
 <p>English local rewrite uses word-boundary guards; Thai uses <strong>substring</strong> matching because words are not space-delimited. Match the strategy your language needs in <Badge text="localRewrite.ts" variant="path" />.</p>
 </Callout>
 
 ### Implement local rewrite + tests
 
-Add <Badge text="localRewrite.ts" variant="path" /> exporting <Badge text="applyLocalHumanizeRewriteXx()" variant="param" /> (follow the <Badge text="applyLocalHumanizeRewriteTh" variant="param" /> / <Badge text="applyLocalHumanizeRewriteEn" variant="param" /> pattern).
+Add <Badge text="localRewrite.ts" variant="path" /> exporting <Badge text="applyLocalHumanizeRewriteXx()" variant="param" />.
 
 Co-locate <Badge text="localRewrite.test.ts" variant="path" /> with realistic before/after sentences: em-dash cleanup, tier-1 swaps, swap-table rows, smoking-gun drops. Thai tests live beside the locale file; English coverage is in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/ai-humanize/utils/localRewrite.test.ts"><Badge text="utils/localRewrite.test.ts" variant="path" /></DocsExternalLink>.
 
@@ -128,7 +120,7 @@ Register in:
 cd web && pnpm exec vitest run src/lib/ai-humanize
 ```
 
-Follow <a href="/docs/developer-guidelines/submit-a-pr">Submit a pull request</a> for fork/branch workflow. Keep copy neutral — no third-party project names in code or docs.
+Follow <a href="/docs/developer-guidelines/submit-a-pr">Submit a pull request</a> here.
 
 </Steps>
 
@@ -136,12 +128,11 @@ Follow <a href="/docs/developer-guidelines/submit-a-pr">Submit a pull request</a
 
 Before opening a PR, confirm:
 
-- <Badge text="HumanizeLocale" variant="param" /> extended; detection has tests for edge cases (empty draft, mixed scripts, mostly-English with a few foreign words).
+- <Badge text="HumanizeLocale" variant="param" /> extended; detection has tests for edge cases.
 - Catalogs cover realistic AI-stock phrasing for the target language; local rewrite tests assert concrete before/after strings.
 - <Badge text="buildCreateOptions.ts" variant="path" /> sets Rewriter languages and shared context for the new locale.
-- <Badge text="ui.ts" variant="path" /> registered; browser tag mapping documented in a short comment if non-obvious.
+- <Badge text="ui.ts" variant="path" /> registered; browser tag mapping documented in a short comment.
 - <Badge text="utils/localRewrite.ts" variant="path" /> dispatches to the new cleanup function.
-- No secrets or third-party attribution in comments or docs (repo neutrality rule).
 
 ## Related
 

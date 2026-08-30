@@ -11,33 +11,33 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-This guide lives under **Contribution opportunities** — scoped product work open to contributors.
+Our social channels are <strong>provider classes</strong> registered in the backend, exposed through existing REST routes, and optionally wired in the web.
 
-Our social channels are <strong>provider classes</strong> registered in the backend, exposed through existing REST routes, and optionally wired in the web. Each provider is a deliberate code change across a small, predictable set of files.
+Connect is a fork of this checklist, not a separate product surface.
 
-Connect is a fork of this checklist, not a separate product surface. Pick one family:
+Pick one family:
 
 | Family | Operator developer app? | User action | OpenQuok env keys | Reference |
 | --- | --- | --- | --- | --- |
-| <strong>OAuth</strong> (default) | Yes | Redirect to the platform | <Badge text="config.integrations.*" variant="path" /> plus self-host <code>.env.example</code> and a docker-compose row | Threads, Instagram (Business), Facebook Page |
+| <strong>OAuth</strong> (default) | Yes | Redirect to the platform | <Badge text="config.integrations.*" variant="path" /> plus self-host <code>.env.example</code> and a docker-compose row | Threads, Instagram, Facebook Page |
 | <strong>Credentials in OpenQuok</strong> | No | Paste a personal API key into Add Channel | None — do not invent empty provider env placeholders | Dev.to (<Badge text="devto" variant="default" />) |
 
 Use <strong>Facebook</strong> (<Badge text="facebook" variant="default" />), <strong>Instagram (Business)</strong> (<Badge text="instagram-business" variant="default" />), and <strong>Threads</strong> (<Badge text="threads" variant="default" />) as OAuth references. Use <strong>Dev.to</strong> (<Badge text="devto" variant="default" />) as the credentials-in-app reference.
 
-<Callout type="note" title="Identifier contract">
-The provider <Badge text="identifier" variant="param" /> slug (kebab-case) is the contract everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/[identifier]" variant="path" /> (also used for credentials refresh), catalog entries, CLI filters, and web routing.
+<Callout type="note">
+The provider <Badge text="identifier" variant="param" /> slug (kebab-case) lives everywhere: database <Badge text="provider_identifier" variant="param" />, OAuth callback path <Badge text="/integration/oauth/[identifier]" variant="path" />, catalog entries, CLI filters, and web routing.
 </Callout>
 
 <p><strong>Convention reference:</strong> Contributors should follow the backend + web checklist in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/.cursor/rules/add-social-provider-integration.mdc"><Badge text=".cursor/rules/add-social-provider-integration.mdc" variant="path" /></DocsExternalLink> alongside this guide.</p>
 
-<strong>OAuth (typical):</strong>
+<strong>OAuth:</strong>
 
 1. Web calls <Badge text="GET /api/v1/integrations/social/:provider" variant="path" /> → `generateAuthUrl()`.
 2. User consents at the platform; browser returns to <Badge text="/integration/oauth/:provider" variant="path" />.
 3. Web calls <Badge text="POST /api/v1/integrations/social-connect/:provider" variant="path" /> → `authenticate()`.
 4. If <Badge text="isBetweenSteps" variant="param" /> is true, response includes <Badge text="pages" variant="param" />; user picks an account → <Badge text="POST /api/v1/integrations/provider/:id/connect" variant="path" /> → `fetchPageInformation()`.
 
-<strong>Credentials (typical):</strong>
+<strong>Credentials:</strong>
 
 1. Add Channel shows a catalog-driven form from <Badge text="customFields()" variant="param" /> (password input + regex). Invite-link copy excludes these providers.
 2. Web calls <Badge text="GET /api/v1/integrations/social/:provider" variant="path" /> → `generateAuthUrl()` seeds org/state cache. The returned <Badge text="url" variant="param" /> is the <Badge text="state" variant="param" /> string, not a platform redirect.
