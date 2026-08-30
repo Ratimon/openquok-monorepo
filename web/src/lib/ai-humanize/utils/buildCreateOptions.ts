@@ -10,13 +10,15 @@ import {
 } from '$lib/ai-humanize/constants/config';
 import {
 	COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT,
-	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT
+	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT,
+	COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT
 } from '$lib/ai-humanize/constants/sharedContext';
 import {
 	formatWriterConstraintTargetLabel,
 	normalizeWriterProviderIdentifiers,
 	toWriterConstraintProviders
 } from '$lib/ai-writer/utils/buildCreateOptions';
+import { detectHumanizeLocale, type HumanizeLocale } from '$lib/ai-humanize/utils/localeDetect';
 
 /** Platforms shown in the Humanize constraint strip / sharedContext target. */
 export type ComposerHumanizeConstraintProvider = ComposerWriterConstraintProvider;
@@ -50,6 +52,14 @@ export type BuildComposerHumanizeCreateOptionsInput = {
 	mode?: HumanizeMode;
 	/** Composer constraints for soft char limits / target platforms. */
 	constraints?: ComposerHumanizeDraftConstraints;
+	/** Draft text used to auto-detect the locale when `locale` is not given. */
+	text?: string;
+	/**
+	 * Force the locale layer (`'th'` switches Rewriter languages + Thai
+	 * instructions). Wins over auto-detection from `text`; defaults to the
+	 * detected locale, or `'en'` for empty drafts.
+	 */
+	locale?: HumanizeLocale;
 };
 
 export {
@@ -74,10 +84,42 @@ function baseSharedContextForMode(mode: HumanizeMode): string {
 		: COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT;
 }
 
+/**
+ * Resolves the rewrite locale for a Humanize request: explicit `locale` wins,
+ * otherwise auto-detect from the draft, defaulting to `'en'`.
+ */
+export function resolveHumanizeLocaleFromInput(
+	input: BuildComposerHumanizeCreateOptionsInput
+): HumanizeLocale {
+	if (input.locale) return input.locale;
+	const text = (input.text ?? '').trim();
+	return text ? detectHumanizeLocale(text) : 'en';
+}
+
+/** Rewriter language options for a locale; `'th'` drafts stay Thai output. */
+function rewriterLanguagesFor(locale: HumanizeLocale): {
+	expectedInputLanguages: string[];
+	expectedContextLanguages: string[];
+	outputLanguage: string;
+} {
+	return locale === 'th'
+		? {
+				expectedInputLanguages: ['th', 'en'],
+				expectedContextLanguages: ['th', 'en'],
+				outputLanguage: 'th'
+			}
+		: {
+				expectedInputLanguages: [...COMPOSER_HUMANIZE_DEFAULTS.expectedInputLanguages],
+				expectedContextLanguages: [...COMPOSER_HUMANIZE_DEFAULTS.expectedContextLanguages],
+				outputLanguage: COMPOSER_HUMANIZE_DEFAULTS.outputLanguage
+			};
+}
+
 /** Builds a constraint-aware `sharedContext` string for Rewriter.create. */
 export function buildComposerHumanizeSharedContext(
 	mode: HumanizeMode,
-	constraints: ComposerHumanizeDraftConstraints
+	constraints: ComposerHumanizeDraftConstraints,
+	locale: HumanizeLocale = 'en'
 ): string {
 	const max = Number.isFinite(constraints.maxCharacters)
 		? Math.max(1, Math.floor(constraints.maxCharacters))
@@ -85,8 +127,12 @@ export function buildComposerHumanizeSharedContext(
 	const composerMode = constraints.composerMode ?? 'global';
 	const providers = resolveConstraintProviders(constraints);
 	const target = formatWriterConstraintTargetLabel(providers, composerMode);
+	const base =
+		locale === 'th'
+			? `${baseSharedContextForMode(mode)} ${COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT}`
+			: baseSharedContextForMode(mode);
 	return (
-		`${baseSharedContextForMode(mode)} ` +
+		`${base} ` +
 		`Target: ${target}. ` +
 		`Hard limit: the entire rewrite must be at most ${max} characters (including spaces and punctuation). ` +
 		`Prefer a complete post that fits comfortably under that limit. Do not pad with filler.`
@@ -108,16 +154,15 @@ export function buildComposerHumanizeCreateOptions(
 	const max = Number.isFinite(constraints.maxCharacters)
 		? Math.max(1, Math.floor(constraints.maxCharacters))
 		: COMPOSER_HUMANIZE_LENGTH_SHORT_MAX_CHARS;
+	const locale = resolveHumanizeLocaleFromInput(input);
 
 	return {
 		mode,
 		tone: COMPOSER_HUMANIZE_DEFAULTS.tone,
 		format: COMPOSER_HUMANIZE_DEFAULTS.format,
 		length: COMPOSER_HUMANIZE_DEFAULTS.length,
-		expectedInputLanguages: [...COMPOSER_HUMANIZE_DEFAULTS.expectedInputLanguages],
-		expectedContextLanguages: [...COMPOSER_HUMANIZE_DEFAULTS.expectedContextLanguages],
-		outputLanguage: COMPOSER_HUMANIZE_DEFAULTS.outputLanguage,
-		sharedContext: buildComposerHumanizeSharedContext(mode, { ...constraints, maxCharacters: max })
+		...rewriterLanguagesFor(locale),
+		sharedContext: buildComposerHumanizeSharedContext(mode, { ...constraints, maxCharacters: max }, locale)
 	};
 }
 

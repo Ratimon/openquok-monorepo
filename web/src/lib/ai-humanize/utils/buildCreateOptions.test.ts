@@ -4,12 +4,14 @@ import { HUMANIZE_REGISTER_OVERLAYS } from '$lib/ai-humanize/constants/config';
 import { HUMANIZE_TIER1_LEXICON } from '$lib/ai-humanize/constants/lexicon';
 import {
 	COMPOSER_HUMANIZE_HUMAN_SHARED_CONTEXT,
-	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT
+	COMPOSER_HUMANIZE_ROUGHEN_SHARED_CONTEXT,
+	COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT
 } from '$lib/ai-humanize/constants/sharedContext';
 import {
 	buildComposerHumanizeCreateOptions,
 	buildComposerHumanizeSharedContext,
-	createComposerHumanizeSessionKey
+	createComposerHumanizeSessionKey,
+	resolveHumanizeLocaleFromInput
 } from '$lib/ai-humanize/utils/buildCreateOptions';
 
 describe('buildComposerHumanizeCreateOptions', () => {
@@ -86,5 +88,51 @@ describe('buildComposerHumanizeCreateOptions', () => {
 		expect(context).not.toContain(
 			HUMANIZE_REGISTER_OVERLAYS.simplifiedTechnicalEnglish.sharedContext
 		);
+	});
+});
+
+describe('buildComposerHumanizeCreateOptions — Thai locale layer', () => {
+	const TH_DRAFT = 'ในยุคดิจิทัลนี้ ธุรกิจไทยต้องปรับตัวให้เร็ว';
+
+	it('auto-detects Thai drafts and points the Rewriter at natural Thai output', () => {
+		const options = buildComposerHumanizeCreateOptions({ mode: 'human', text: TH_DRAFT });
+
+		expect(resolveHumanizeLocaleFromInput({ text: TH_DRAFT })).toBe('th');
+		expect(options.outputLanguage).toBe('th');
+		expect(options.expectedInputLanguages).toContain('th');
+		expect(options.sharedContext).toContain(COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT);
+	});
+
+	it('lets an explicit locale override beat draft auto-detection', () => {
+		const forcedTh = buildComposerHumanizeCreateOptions({
+			mode: 'human',
+			text: 'We shipped the fix.',
+			locale: 'th'
+		});
+		const forcedEn = buildComposerHumanizeCreateOptions({
+			mode: 'human',
+			text: TH_DRAFT,
+			locale: 'en'
+		});
+
+		expect(forcedTh.outputLanguage).toBe('th');
+		expect(forcedEn.outputLanguage).toBe('en');
+		expect(forcedEn.sharedContext).not.toContain(COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT);
+	});
+
+	it('keeps the default en Rewriter languages untouched', () => {
+		const options = buildComposerHumanizeCreateOptions({ mode: 'human' });
+
+		expect(options.outputLanguage).toBe('en');
+		expect(options.expectedInputLanguages).toEqual(['en']);
+		expect(options.sharedContext).not.toContain(COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT);
+		expect(resolveHumanizeLocaleFromInput({ text: '   ' })).toBe('en');
+	});
+
+	it('gives Thai sessions their own Rewriter cache key', () => {
+		const en = buildComposerHumanizeCreateOptions({ mode: 'human' });
+		const th = buildComposerHumanizeCreateOptions({ mode: 'human', text: TH_DRAFT });
+
+		expect(createComposerHumanizeSessionKey(th)).not.toBe(createComposerHumanizeSessionKey(en));
 	});
 });

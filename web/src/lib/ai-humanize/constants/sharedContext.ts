@@ -16,6 +16,13 @@ export const COMPOSER_HUMANIZE_HUMAN_PREAMBLE =
 export const COMPOSER_HUMANIZE_ROUGHEN_PREAMBLE =
 	'Rewrite the user’s social media post in a rougher, more spoken live-draft voice. Stay on one incident or point. Allow visible self-corrections, repetition, and dropped coverage. Keep the same facts the user already wrote. If you add a name, date, or price that was not in the source, mention it so the user can replace it with a real detail. Review invented details before posting.';
 
+/**
+ * Thai drafts: the rewrite must come back in natural Thai, not stiff
+ * machine-translated Thai. Names the stock AI-Thai clichés the catalogs flag.
+ */
+export const COMPOSER_HUMANIZE_TH_LANGUAGE_CONTEXT =
+	'Write the rewrite in natural Thai (ภาษาไทย) as a native writer would. Do not switch to English. Avoid stiff translated phrasing and stock AI clichés such as ในยุคดิจิทัล, ปฏิวัติวงการ, โดยสรุป, ไม่ใช่ X แต่คือ Y. Use plain everyday wording, varied sentence lengths, and normal Thai punctuation.';
+
 function uniqueJoin(values: readonly string[], separator: string): string {
 	const seen = new Set<string>();
 	const out: string[] = [];

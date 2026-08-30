@@ -19,6 +19,7 @@ export {
 	createComposerHumanizeSessionKey,
 	formatHumanizeConstraintTargetLabel,
 	normalizeHumanizeProviderIdentifiers,
+	resolveHumanizeLocaleFromInput,
 	toComposerRewriterCreateOptions,
 	toHumanizeConstraintProviders,
 	type BuildComposerHumanizeCreateOptionsInput,
@@ -37,6 +38,19 @@ export {
 	type HumanizeTellKind
 } from '$lib/ai-humanize/utils/auditTells';
 export { applyLocalHumanizeRewrite } from '$lib/ai-humanize/utils/localRewrite';
+export {
+	detectHumanizeLocale,
+	isThaiText,
+	thaiCharRatio,
+	type HumanizeLocale
+} from '$lib/ai-humanize/utils/localeDetect';
+export {
+	browserPreferredLanguages,
+	detectHumanizeUiLocale,
+	humanizeModeOptionsFor,
+	humanizeUiCopyFor,
+	prefersThaiLanguage
+} from '$lib/ai-humanize/utils/uiLocale';
 export {
 	findInventedSpecifics,
 	type HumanizeInventedKind,
