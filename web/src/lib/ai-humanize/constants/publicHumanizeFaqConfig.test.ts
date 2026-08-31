@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumanizeFaqConfig';
+import { assertNoNofollowOnFirstPartyFaqLinks } from '$lib/content/utils/publicFaqFunnel.test-utils';
 
 describe('buildHumanizeFaqSection', () => {
 	it('returns generic copy when no channel is set', () => {
@@ -17,6 +18,8 @@ describe('buildHumanizeFaqSection', () => {
 			true
 		);
 
+		assertNoNofollowOnFirstPartyFaqLinks(section.faqItems);
+
 		const accountFaq = section.faqItems.find((item) => item.title === 'Do I need an OpenQuok account?');
 		expect(accountFaq?.description.toLowerCase()).toContain('without an account');
 		expect(accountFaq?.description.toLowerCase()).toContain('samples');
@@ -28,7 +31,6 @@ describe('buildHumanizeFaqSection', () => {
 		);
 		expect(contributeFaq).toBeDefined();
 		expect(contributeFaq?.description).toContain('href="/docs/contribution-opportunities/humanizer-languages"');
-		expect(contributeFaq?.description).not.toContain('rel="nofollow"');
 
 		const platformFaq = section.faqItems.find((item) => item.title.includes('specific platform'));
 		expect(platformFaq?.description).toMatch(/href="\/channels"/);
@@ -58,7 +60,6 @@ describe('buildHumanizeFaqSection', () => {
 			(item) => item.title === 'What is OpenQuok Humanizer?'
 		);
 		expect(whatIsFaq?.description).toMatch(/href="\/tools\/humanizer\/linkedin"/);
-		expect(whatIsFaq?.description).not.toContain('rel="nofollow"');
 
 		const platformFaq = section.faqItems.find((item) => item.title.includes('LinkedIn'));
 		expect(platformFaq?.description.toLowerCase()).toContain('connect a real linkedin');

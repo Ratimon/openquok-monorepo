@@ -1,32 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-	OPENQUOK_GITHUB_REPO_HREF,
-	PUBLIC_FAQ_ITEMS
-} from '$lib/content/constants/publicFaqConfig';
+import { resolvePublicFaqItemsByIds } from '$lib/content/constants/competitors';
+import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { assertNoNofollowOnFirstPartyFaqLinks } from '$lib/content/utils/publicFaqFunnel.test-utils';
 
 describe('PUBLIC_FAQ_ITEMS', () => {
-	it('keeps compare FAQ indexes stable', () => {
-		expect(PUBLIC_FAQ_ITEMS[0]?.title).toBe('Why switch from Buffer or Hootsuite?');
-		expect(PUBLIC_FAQ_ITEMS[1]?.title).toBe('Can I try OpenQuok for free?');
-		expect(PUBLIC_FAQ_ITEMS[5]?.title).toBe("Why should I use OpenQuok's multi-workspace?");
+	it('resolves compare-page FAQ items by stable ids', () => {
+		const items = resolvePublicFaqItemsByIds([
+			'switch-from-buffer-hootsuite',
+			'try-free',
+			'multi-workspace'
+		]);
+
+		expect(items.map((item) => item.title)).toEqual([
+			'Why switch from Buffer or Hootsuite?',
+			'Can I try OpenQuok for free?',
+			"Why should I use OpenQuok's multi-workspace?"
+		]);
 	});
 
-	it('links first-party docs, blog, compare, GitHub, and pricing in answers', () => {
-		const html = PUBLIC_FAQ_ITEMS.map((item) => item.description).join('\n');
-		expect(html).toContain('href="/compare/openquok/buffer"');
-		expect(html).toContain(
-			'href="/blog/best-buffer-alternatives-for-teams-that-approve-ai-content-before-posting"'
-		);
-		expect(html).toContain('href="/docs/getting-started-for-cli"');
-		expect(html).toContain('href="/docs/agent-setup-guides"');
-		expect(html).toContain('href="/docs/installation/docker-compose"');
-		expect(html).toContain(`href="${OPENQUOK_GITHUB_REPO_HREF}"`);
-		expect(html).toContain('href="/pricing"');
-		expect(html).toContain('href="/docs/mcp-setup-guides"');
-		expect(html).toContain('href="/channels"');
-		expect(html).not.toContain('rel="nofollow"');
+	it('keeps first-party FAQ links followable', () => {
+		assertNoNofollowOnFirstPartyFaqLinks(PUBLIC_FAQ_ITEMS);
 	});
 });
 

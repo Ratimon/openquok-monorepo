@@ -63,14 +63,4 @@ describe('publicFaqLinks', () => {
 			/Unknown tool slug/
 		);
 	});
-
-	it('never emits rel="nofollow" on first-party FAQ anchors', () => {
-		const samples = [
-			faqLink(publicFaqHref.signUp, 'Sign up for free'),
-			faqLinkSelfHostChannelSetup('/docs/social-integration/youtube', 'YouTube'),
-			faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')
-		].join(' ');
-
-		expect(samples).not.toContain('rel="nofollow"');
-	});
 });
