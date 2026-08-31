@@ -88,7 +88,7 @@ You can always continue without a template and pick channels manually.
 
 | Topic | Where in the editor |
 | --- | --- |
-| Multi-part posts and timed replies | <Badge text="Add post" variant="default" /> under the caption — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
+| Multi-part posts and timed replies | <Badge text="Follow-up comments" variant="default" /> under the caption; <Badge text="Settings" variant="default" /> for finisher and plugs — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
 | Campaign labels | Footer tags — see <a href="/docs/creating-posts/tags">Tags</a> |
 | Follow-up after publish | <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/plugs">Plugs</a> |
 
