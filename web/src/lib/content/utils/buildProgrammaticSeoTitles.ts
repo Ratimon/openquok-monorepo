@@ -27,19 +27,29 @@ export function buildBestTimeToPostChannelMetaTitle(platformLabel: string): stri
 }
 
 export function buildHumanizeGenericMetaTitle(): string {
-	return 'Social Post Humanizer';
+	return 'Free AI Humanizer for Social Posts — No Sign Up';
+}
+
+/** On-page H1 — natural reader headline; SERP title uses {@link buildHumanizeGenericMetaTitle}. */
+export function buildHumanizeGenericHeroTitle(): string {
+	return 'Rewrite AI social posts';
 }
 
 export function buildHumanizeGenericMetaDescription(): string {
-	return 'Humanize social posts for free in your browser. Rewrite AI drafts so they sound more natural before you copy, paste, or schedule — no account required.';
+	return 'Free AI humanizer with no sign up. Rewrite AI-written social posts,so they sound natural — copy stays free; schedule when you connect channels.';
 }
 
 export function buildHumanizeChannelMetaTitle(platformLabel: string): string {
-	return `${platformLabel} Humanizer`;
+	return `Free ${platformLabel} AI Humanizer — No Sign Up`;
+}
+
+/** On-page H1 for `/tools/humanizer/{slug}`; SERP title uses {@link buildHumanizeChannelMetaTitle}. */
+export function buildHumanizeChannelHeroTitle(platformLabel: string): string {
+	return `Humanize ${platformLabel} posts before you publish`;
 }
 
 export function buildHumanizeChannelMetaDescription(platformLabel: string): string {
-	return `Humanize ${platformLabel} posts for free in your browser. Rewrite AI drafts so they sound more natural before you paste or schedule — no account required.`;
+	return `Free AI humanizer for ${platformLabel} posts — no sign up. Rewrite AI drafts in your browser before you paste or schedule from your workspace.`;
 }
 
 export function buildComparePairMetaTitle(left: CompareProduct, right: CompareProduct): string {

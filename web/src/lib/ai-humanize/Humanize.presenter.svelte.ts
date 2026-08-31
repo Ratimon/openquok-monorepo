@@ -52,7 +52,10 @@ export type HumanizeChannelHubLinkViewModel = {
 };
 
 export interface HumanizeToolPageViewModel {
+	/** SERP `<title>` keyword target (brand appended in `+page.server.ts`). */
 	metaTitle: string;
+	/** On-page `<h1>` — reader-facing headline, related but not identical to `metaTitle`. */
+	heroTitle: string;
 	metaDescription: string;
 	/** Set on `/tools/humanizer/{channelSlug}` programmatic SEO routes. */
 	channelSlug: string | null;

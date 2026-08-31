@@ -20,11 +20,31 @@ describe('buildHumanizeFaqSection', () => {
 
 		assertNoNofollowOnFirstPartyFaqLinks(section.faqItems);
 
-		const accountFaq = section.faqItems.find((item) => item.title === 'Do I need an OpenQuok account?');
+		const accountFaq = section.faqItems.find(
+			(item) => item.title === 'Do I need to sign up to use this free AI humanizer?'
+		);
 		expect(accountFaq?.description.toLowerCase()).toContain('without an account');
+		expect(accountFaq?.description.toLowerCase()).toContain('sign up');
 		expect(accountFaq?.description.toLowerCase()).toContain('samples');
 		expect(accountFaq?.description.toLowerCase()).toContain('connect real accounts');
 		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
+
+		const freeFaq = section.faqItems.find((item) => item.title === 'Is OpenQuok Humanizer free?');
+		expect(freeFaq?.description.toLowerCase()).toContain('no cost');
+		expect(freeFaq?.description.toLowerCase()).toContain('free ai humanizer');
+
+		const wordLimitFaq = section.faqItems.find(
+			(item) => item.title === 'Is there a word or character limit?'
+		);
+		expect(wordLimitFaq?.description).toContain('500 characters');
+		expect(wordLimitFaq?.description.toLowerCase()).toContain('no daily rewrite cap');
+
+		const languagesFaq = section.faqItems.find(
+			(item) => item.title === 'What languages does Humanizer support?'
+		);
+		expect(languagesFaq?.description.toLowerCase()).toContain('english');
+		expect(languagesFaq?.description.toLowerCase()).toContain('thai');
+		expect(languagesFaq?.description.toLowerCase()).toContain('french');
 
 		const contributeFaq = section.faqItems.find(
 			(item) => item.title === 'Can I contribute a new Humanizer language?'
@@ -52,7 +72,9 @@ describe('buildHumanizeFaqSection', () => {
 			true
 		);
 
-		const accountFaq = section.faqItems.find((item) => item.title === 'Do I need an OpenQuok account?');
+		const accountFaq = section.faqItems.find(
+			(item) => item.title === 'Do I need to sign up to use this free AI humanizer?'
+		);
 		expect(accountFaq?.description.toLowerCase()).toContain('samples');
 		expect(accountFaq?.description.toLowerCase()).not.toContain('connected channels');
 

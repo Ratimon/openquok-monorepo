@@ -18,7 +18,7 @@ export const PUBLIC_TOOLS_HUB_FAQ = {
 		{
 			title: 'What free tools does OpenQuok offer?',
 			description:
-				`OpenQuok ships browser tools for agent skills, visuals, copy, and timing tests. Use ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} to export SKILL.md, ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')} for channel-sized images, ${faqLink(publicFaqHref.humanizerTool, 'Humanizer')} to rewrite drafts on-device, and ${faqLink(publicFaqHref.bestTimeToPostTool, 'Best Time to Post')} to plan benchmark timing experiments. Integrations API docs live under ${faqLink(publicFaqHref.publicApi, 'Public API')}.`
+				`OpenQuok ships browser tools for agent skills, visuals, copy, and timing tests. Use ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} to export SKILL.md, ${faqLink(publicFaqHref.photoEditorTool, 'Photo Editor')} for channel-sized images, ${faqLink(publicFaqHref.humanizerTool, 'Humanizer')} as a free AI humanizer with no sign up, and ${faqLink(publicFaqHref.bestTimeToPostTool, 'Best Time to Post')} to plan benchmark timing experiments. Integrations API docs live under ${faqLink(publicFaqHref.publicApi, 'Public API')}.`
 		},
 		{
 			title: 'Do I need an account to use the tools?',

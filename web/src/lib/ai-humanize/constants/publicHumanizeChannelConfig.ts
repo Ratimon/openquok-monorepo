@@ -5,8 +5,10 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/p
 import { getRootPathPublicHumanizerChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { listPublicChannelsForHub } from '$lib/content/constants/publicChannelConfig';
 import {
+	buildHumanizeChannelHeroTitle,
 	buildHumanizeChannelMetaDescription,
 	buildHumanizeChannelMetaTitle,
+	buildHumanizeGenericHeroTitle,
 	buildHumanizeGenericMetaDescription,
 	buildHumanizeGenericMetaTitle
 } from '$lib/content/utils/buildProgrammaticSeoTitles';
@@ -19,6 +21,7 @@ export type HumanizeChannelPageConfig = {
 	icon: IconName;
 	focusedProviderIdentifier: string;
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Short blurb for hub cards on `/tools/humanizer`. */
 	hubDescription: string;
@@ -27,14 +30,18 @@ export type HumanizeChannelPageConfig = {
 
 export const PUBLIC_HUMANIZE_GENERIC_CONFIG = {
 	metaTitle: buildHumanizeGenericMetaTitle(),
+	heroTitle: buildHumanizeGenericHeroTitle(),
 	metaDescription: buildHumanizeGenericMetaDescription(),
 	keywords: [
-		'humanize social posts',
-		'sound more human',
-		'rewrite social media post',
-		'less machine-written',
-		'free post rewriter',
-		'on-device rewriter'
+		'ai humanizer free',
+		'free ai humanizer',
+		'ai humanizer no sign up',
+		'humanize ai text free',
+		'ai text humanizer',
+		'free ai humanizer tool',
+		'humanize social media post',
+		'ai humanizer for social posts',
+		'on-device ai rewriter'
 	] as const
 };
 
@@ -56,17 +63,19 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Hum
 		icon: channel.icon,
 		focusedProviderIdentifier: channel.platformId,
 		metaTitle: buildHumanizeChannelMetaTitle(channel.platformLabel),
+		heroTitle: buildHumanizeChannelHeroTitle(channel.platformLabel),
 		metaDescription: buildHumanizeChannelMetaDescription(channel.platformLabel),
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
 			`Rewrite ${channel.platformLabel} drafts so they read less machine-written.`,
 		keywords: [
-			`humanize ${channel.platformLabel} posts`,
-			`${channel.platformLabel} sound more human`,
-			`rewrite ${channel.platformLabel} post`,
-			'less machine-written',
-			'on-device rewriter',
-			...channel.keywords.slice(0, 4)
+			`free ${channel.platformLabel} ai humanizer`,
+			`ai humanizer ${channel.platformLabel}`,
+			`humanize ${channel.platformLabel} posts free`,
+			`rewrite ${channel.platformLabel} ai text`,
+			'ai humanizer no sign up',
+			'free ai humanizer tool',
+			...channel.keywords.slice(0, 3)
 		]
 	};
 }

@@ -45,7 +45,7 @@
 	}
 
 	type Props = {
-		metaTitle: string;
+		heroTitle: string;
 		metaDescription: string;
 		channelSlug?: string | null;
 		channelLabel?: string | null;
@@ -56,7 +56,7 @@
 	};
 
 	let {
-		metaTitle,
+		heroTitle,
 		metaDescription,
 		channelSlug = null,
 		channelLabel = null,
@@ -82,8 +82,6 @@
 	const channelsHubHref = route(getRootPathPublicChannels());
 
 	const humanizeDocsBanner = HUMANIZE_DOCS_BANNER;
-
-	const pageHeading = $derived(metaTitle);
 
 	const accentBannerTitle = $derived(
 		channelSlug && channelLabel
@@ -121,7 +119,7 @@
 
 		<header class="space-y-3">
 			<h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
-				{pageHeading}
+				{heroTitle}
 			</h1>
 			<p class="max-w-3xl text-base text-base-content/75">
 				{metaDescription}

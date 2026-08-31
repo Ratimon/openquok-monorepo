@@ -8,7 +8,7 @@
 
 	let { data }: Props = $props();
 
-	let metaTitle = $derived(data.metaTitle);
+	let heroTitle = $derived(data.heroTitle);
 	let metaDescription = $derived(data.metaDescription);
 	let schemaData = $derived(data.schemaData);
 	let channelSlug = $derived(data.channelSlug);
@@ -23,7 +23,7 @@
 
 {#key channelSlug ?? 'generic'}
 	<HumanizeToolPage
-		{metaTitle}
+		{heroTitle}
 		{metaDescription}
 		{channelSlug}
 		{channelLabel}

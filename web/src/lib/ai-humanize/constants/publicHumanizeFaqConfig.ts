@@ -15,7 +15,10 @@ export type HumanizeFaqSection = {
 };
 
 const WHAT_IS_HUMANIZER_FAQ_TITLE = 'What is OpenQuok Humanizer?';
-const ACCOUNT_FAQ_TITLE = 'Do I need an OpenQuok account?';
+const IS_FREE_FAQ_TITLE = 'Is OpenQuok Humanizer free?';
+const ACCOUNT_FAQ_TITLE = 'Do I need to sign up to use this free AI humanizer?';
+const WORD_LIMIT_FAQ_TITLE = 'Is there a word or character limit?';
+const LANGUAGES_FAQ_TITLE = 'What languages does Humanizer support?';
 const HUMAN_VS_ROUGHEN_FAQ_TITLE = 'What is Human vs Roughen?';
 const CHROME_FAQ_TITLE = 'Does Humanizer require Chrome?';
 const GUARANTEE_FAQ_TITLE = 'Does this guarantee a post will read as written by a person?';
@@ -26,12 +29,27 @@ const GENERIC_HUMANIZE_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: WHAT_IS_HUMANIZER_FAQ_TITLE,
 		description:
-			`A free browser composer on ${faqLink(publicFaqHref.humanizerTool, 'Humanizer')} that rewrites a draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. Work stays on this page until you copy it or sign in to schedule.`
+			`A free AI humanizer tool on ${faqLink(publicFaqHref.humanizerTool, 'Humanizer')} that rewrites social drafts so they read less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. Work stays on this page until you copy it or sign in to schedule.`
+	},
+	{
+		title: IS_FREE_FAQ_TITLE,
+		description:
+			'Yes. Rewrite, attach local media, and copy the result at no cost. You do not need a trial, credit card, or paid plan to use the free AI humanizer on this page. Sign in only when you want to connect real channels and schedule from your workspace.'
 	},
 	{
 		title: ACCOUNT_FAQ_TITLE,
 		description:
-			'No. You can rewrite, attach local media, and copy the result without an account. The channel chips on this page are samples for format and character limits — they are not your accounts. Sign in or sign up only when you want to connect real accounts in your workspace and schedule.'
+			'No. You can humanize AI text, attach local media, and copy the result without an account or sign up. The channel chips on this page are samples for format and character limits — they are not your accounts. Sign in or sign up only when you want to connect real accounts in your workspace and schedule.'
+	},
+	{
+		title: WORD_LIMIT_FAQ_TITLE,
+		description:
+			'Global Edit targets short social posts — about 500 characters by default. Channel pages use that network soft character limit instead. There is no daily rewrite cap on the free tool. Pick a channel chip or open a By channel page when your draft is longer.'
+	},
+	{
+		title: LANGUAGES_FAQ_TITLE,
+		description:
+			`English is the default. Humanizer also rewrites Thai drafts when enough of the text is Thai. French and other locales are not built in yet. See ${faqLink(faqHrefDocs('contribution-opportunities/humanizer-languages'), 'Adding a Humanizer language')} if you want to contribute a new locale.`
 	},
 	{
 		title: HUMAN_VS_ROUGHEN_FAQ_TITLE,
@@ -70,10 +88,18 @@ function tailorHumanizeFaqItem(
 		case WHAT_IS_HUMANIZER_FAQ_TITLE:
 			return {
 				title: item.title,
-				description: `A free browser composer that rewrites a ${platformLabel} draft so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. This ${faqLink(toolLinks.toolChannel, `${platformLabel} Humanizer page`)} focuses the preview and character limit on ${platformLabel}.`
+				description: `A free AI humanizer for ${platformLabel} drafts that rewrites text so it reads less machine-written. Human mode cleans stock phrasing; Roughen makes the voice more spoken. This ${faqLink(toolLinks.toolChannel, `${platformLabel} Humanizer page`)} focuses the preview and character limit on ${platformLabel}.`
 			};
+		case IS_FREE_FAQ_TITLE:
 		case ACCOUNT_FAQ_TITLE:
+		case WORD_LIMIT_FAQ_TITLE:
 			return item;
+		case LANGUAGES_FAQ_TITLE:
+			return {
+				title: item.title,
+				description:
+					`English is the default. Humanizer also rewrites Thai drafts when enough of the text is Thai. French and other locales are not built in yet for ${platformLabel}. See ${faqLink(faqHrefDocs('contribution-opportunities/humanizer-languages'), 'Adding a Humanizer language')} if you want to contribute a new locale.`
+			};
 		case HUMAN_VS_ROUGHEN_FAQ_TITLE:
 			return item;
 		case CHROME_FAQ_TITLE:
@@ -119,7 +145,7 @@ export function buildHumanizeFaqSection(
 		faqSubtitle: 'Humanizer FAQs',
 		faqTitle: 'Humanizer, answered',
 		faqDescription:
-			'How Human and Roughen work, when Chrome is required, and when to sign in to save or schedule a post.',
+			'Free AI humanizer questions — no sign up, word limits, languages, Human vs Roughen, and when to connect channels to schedule.',
 		faqItems: [...GENERIC_HUMANIZE_FAQ_ITEMS]
 	};
 }

@@ -2,13 +2,20 @@ import { describe, expect, it } from 'vitest';
 
 import { PublicHumanizePagePresenter } from '$lib/area-public/PublicHumanizePage.presenter.svelte';
 import { PUBLIC_HUMANIZE_GENERIC_CONFIG } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
-import { buildHumanizeChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildHumanizeChannelHeroTitle,
+	buildHumanizeChannelMetaTitle,
+	buildHumanizeGenericHeroTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 describe('PublicHumanizePagePresenter', () => {
 	it('returns generic Humanizer SEO for the public tool page', () => {
 		const presenter = new PublicHumanizePagePresenter();
 		const vm = presenter.loadHumanizeVm();
 		expect(vm.metaTitle).toBe(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle);
+		expect(vm.heroTitle).toBe(PUBLIC_HUMANIZE_GENERIC_CONFIG.heroTitle);
+		expect(vm.heroTitle).toBe(buildHumanizeGenericHeroTitle());
+		expect(vm.heroTitle).not.toBe(vm.metaTitle);
 		expect(vm.metaDescription).toBe(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaDescription);
 		expect(vm.composerMode).toBe('global');
 		expect(vm.channelSlug).toBeNull();
@@ -19,6 +26,8 @@ describe('PublicHumanizePagePresenter', () => {
 		const presenter = new PublicHumanizePagePresenter();
 		const vm = presenter.loadHumanizeVm({ channelSlug: 'facebook' });
 		expect(vm.metaTitle).toBe(buildHumanizeChannelMetaTitle('Facebook'));
+		expect(vm.heroTitle).toBe(buildHumanizeChannelHeroTitle('Facebook'));
+		expect(vm.heroTitle).not.toBe(vm.metaTitle);
 		expect(vm.metaDescription).toContain('Facebook');
 		expect(vm.composerMode).toBe('custom');
 		expect(vm.channelSlug).toBe('facebook');
@@ -30,6 +39,8 @@ describe('PublicHumanizePagePresenter', () => {
 		const presenter = new PublicHumanizePagePresenter();
 		const vm = presenter.loadHumanizeVm({ channelSlug: 'linkedin' });
 		expect(vm.metaTitle).toBe(buildHumanizeChannelMetaTitle('LinkedIn'));
+		expect(vm.heroTitle).toBe(buildHumanizeChannelHeroTitle('LinkedIn'));
+		expect(vm.heroTitle).not.toBe(vm.metaTitle);
 		expect(vm.metaDescription).toContain('LinkedIn');
 		expect(vm.composerMode).toBe('custom');
 		expect(vm.channelSlug).toBe('linkedin');

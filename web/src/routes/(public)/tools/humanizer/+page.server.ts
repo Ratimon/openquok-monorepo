@@ -41,7 +41,7 @@ export async function load({ url, cookies, parent }) {
 			{
 				'@type': 'WebApplication',
 				'@id': `${canonical}#webapp`,
-				name: toolVm.metaTitle,
+				name: toolVm.heroTitle,
 				description: toolVm.metaDescription,
 				applicationCategory: 'UtilitiesApplication',
 				url: canonical,

@@ -10,7 +10,11 @@ import {
 	listAvailablePublicChannels,
 	listPublicChannelsForHub
 } from '$lib/content/constants/publicChannelConfig';
-import { buildHumanizeChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildHumanizeChannelHeroTitle,
+	buildHumanizeChannelMetaTitle,
+	buildHumanizeGenericHeroTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { route } from '$lib/utils/path';
 
 describe('publicHumanizeChannelConfig', () => {
@@ -55,9 +59,14 @@ describe('publicHumanizeChannelConfig', () => {
 		const linkedin = getHumanizeChannelBySlug('linkedin');
 		expect(linkedin).toBeDefined();
 		expect(linkedin?.metaTitle).toBe(buildHumanizeChannelMetaTitle('LinkedIn'));
+		expect(linkedin?.heroTitle).toBe(buildHumanizeChannelHeroTitle('LinkedIn'));
+		expect(linkedin?.heroTitle).not.toBe(linkedin?.metaTitle);
+		expect(linkedin?.metaTitle.toLowerCase()).toContain('free');
+		expect(linkedin?.metaTitle.toLowerCase()).toContain('ai humanizer');
 		expect(linkedin?.focusedProviderIdentifier).toBe('linkedin');
 		expect(linkedin?.metaDescription).toContain('LinkedIn');
-		expect(linkedin?.metaDescription.toLowerCase()).toContain('for free');
+		expect(linkedin?.metaDescription.toLowerCase()).toContain('free ai humanizer');
+		expect(linkedin?.metaDescription.toLowerCase()).toContain('no sign up');
 		expect(linkedin?.metaDescription.length).toBeLessThanOrEqual(160);
 		expect(linkedin?.metaDescription.toLowerCase()).not.toContain('no classifier guarantees');
 		expect(linkedin?.keywords.some((keyword) => keyword.toLowerCase().includes('linkedin'))).toBe(
@@ -68,6 +77,14 @@ describe('publicHumanizeChannelConfig', () => {
 				.join(' ')
 				.toLowerCase()
 		).not.toMatch(/bypass|detector|homoglyph/);
-		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle).not.toBe(linkedin?.metaTitle);
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle.toLowerCase()).toContain('ai humanizer');
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle.toLowerCase()).toContain('free');
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle.toLowerCase()).toContain('no sign up');
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.heroTitle).toBe(buildHumanizeGenericHeroTitle());
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.heroTitle).not.toBe(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaTitle);
+		expect(PUBLIC_HUMANIZE_GENERIC_CONFIG.metaDescription.toLowerCase()).toContain('no sign up');
+		expect(
+			PUBLIC_HUMANIZE_GENERIC_CONFIG.keywords.some((keyword) => keyword.includes('ai humanizer free'))
+		).toBe(true);
 	});
 });
