@@ -18,7 +18,7 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Single photo | Yes | One uploaded image via `-m` |
 | Multi-photo carousel | Yes | Multiple `-m` attachments in one post |
 | Reel (MP4 video) | Yes | Single `.mp4` → Page video API; Facebook surfaces eligible uploads as Reels |
-| Follow-up comments | Yes | See [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json) |
+| Follow-up comments | Yes | `facebook.replies` — optional one image per reply (no video) |
 | Page analytics | Yes | `analytics:platform` and `analytics:post` |
 | Facebook Stories | No | Feed, photos, video/Reels, and comments only |
 | Personal profile / Groups | No | Pages you manage via Graph API only |
@@ -44,8 +44,45 @@ Flat JSON on `--settings` or inside `--providerSettingsByIntegrationId` for the 
 | --- | --- | --- |
 | `url` | `https://…` string | Text-only post with link-preview card |
 | `facebook.url` | `https://…` | Same as `url` (web composer bucket; API accepts both) |
+| `facebook.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up comments after publish (nested bucket in JSON) |
 
 **Rules:** Link `url` applies only when **no** media is attached. With `-m`, the post uses attached photos or video instead of a link card.
+
+### Follow-up comments (`facebook.replies`)
+
+Same-account comments on the main post use the **`facebook`** bucket — not `threads.replies`.
+
+Each reply row:
+
+```json
+{
+  "id": "reply-1",
+  "message": "First comment on the post",
+  "delaySeconds": 60,
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/reply.jpg" }]
+}
+```
+
+- `delaySeconds` — wait after the previous part publishes (`0` = immediately after the prior step).
+- `media` — optional. Max **one image** per reply; **no video**. Upload first (Rule 2) before referencing `id` / `path`. Omit `media` for text-only comments.
+
+Text-only recipe: [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
+
+**Follow-up with one image** (upload first, then nest under `facebook.replies`):
+
+```bash
+REPLY_MEDIA=$(openquok upload ./comment-image.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -s "2026-01-01T12:00:00Z" \
+  -c "Main post" \
+  -i "$FB_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$FB_ID" --argjson media "$REPLY_MEDIA" '
+    { ($id): { facebook: { replies: [
+      { id: "reply-1", message: "See the chart in this comment", delaySeconds: 60, media: $media }
+    ] } } }
+  ')"
+```
 
 ## Run an example
 

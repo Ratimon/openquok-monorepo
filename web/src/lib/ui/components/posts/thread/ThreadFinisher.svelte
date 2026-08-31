@@ -36,7 +36,7 @@
 			softCharLimit={softCharLimit}
 			bind:body={message}
 			busy={disabled}
-			comments={true}
+			comments={'no-media'}
 			{compact}
 		/>
 		<div class="mt-2 flex items-center justify-end">

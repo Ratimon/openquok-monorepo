@@ -5,7 +5,7 @@
   "integrationIds": ["<integration-id>"],
   "providerSettingsByIntegrationId": {
     "<integration-id>": {
-      "threads": {
+      "facebook": {
         "replies": [
           { "id": "reply-1", "message": "First comment on the post", "delaySeconds": 60 }
         ]

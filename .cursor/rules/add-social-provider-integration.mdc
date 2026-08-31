@@ -19,6 +19,11 @@ globs:
   - web/src/content/docs/cli-examples/**
   - web/src/content/docs/contribution-opportunities/add-provider.md
   - web/src/content/docs/creating-posts/writing-the-post.md
+  - web/src/content/docs/creating-posts/threads-and-comments.md
+  - web/src/lib/posts/utils/create-post/followUp.ts
+  - web/src/lib/ui/components/posts/thread/**
+  - backend/utils/dtos/PostDTO.ts
+  - orchestrator/activities/scheduledSocialPostActivities.ts
   - web/src/content/constants/publicChannelConfig.ts
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
   - web/src/content/constants/publicAgentChannelConfig.ts
@@ -93,7 +98,8 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
    **Credentials (`customFields()` set):** skip `GlobalConfig`, `.env.development.example`, and `infra/self-host/.env.example` — do not invent empty `{PROVIDER}_*` placeholders. Document in `web/src/content/docs/installation/docker-compose.md` that the channel needs **no** operator developer app. Session `getIntegrationUrl` still seeds cache for the dashboard form; `GET /public/social/:identifier` (`getIntegrationUrlPublicApi`) must **400** (connect this channel in the dashboard with an API key). Do not add a new public connect route.
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
-6. **Tests** — unit tests for OAuth edge cases, publish payload shaping, and connection save when behavior differs.
+6. **Follow-up replies (`comment`)** — when the platform API can publish a **reply or comment on the user’s own post** after the main publish (thread reply, quote-less reply, nested comment, etc.), implement `comment()` on the provider class (not only `post`). Read text from `postDetails.message` and **media from `postDetails.settings`** when the network allows attachments on replies. Unit-test comment payload shaping (text-only vs one image vs carousel) beside publish helpers. If the network **cannot** schedule same-account follow-ups, omit `comment()` and set `postComment: 'NONE'` in launch config — do not claim follow-ups on the landing page or in agent recipes.
+7. **Tests** — unit tests for OAuth edge cases, publish payload shaping, **comment / follow-up publish**, and connection save when behavior differs.
 
 ## Extensions Hub listing tags (required for social channels) — no DB migrations
 
@@ -122,7 +128,7 @@ Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter
 
 Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 
-1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`.
+1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `comments`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`. When the provider supports scheduled follow-ups, also complete **Follow-up comments / reply chains** (below) — declaring `postComment: 'COMMENT'` alone does **not** wire the composer or worker.
 2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live.
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
 4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`. When settings affect what users see before publish (title, tags, cover, post type, etc.), also ship **Post Preview provider settings** (below).
@@ -134,6 +140,61 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 7. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth providers under the OAuth redirect tab (follow-up picker table when `isBetweenSteps`); credentials providers in the credentials table. When a new connect family ships, add a tab there before users see it in Add Channel.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
+
+### Follow-up comments / reply chains (required when `comment()` ships)
+
+Multi-part posts (main caption + delayed follow-up rows) are **shared composer infrastructure** — each new provider that supports follow-ups must update **gates and buckets**, not only `{id}.provider.ts`.
+
+**Decide first**
+
+| Platform capability | Launch config | Backend | Composer / worker |
+| --- | --- | --- | --- |
+| Same-account thread / reply chain after main post | `postComment: 'POST'` (thread-style) or `'COMMENT'` / `'ALL'` | `comment()` implemented | Full checklist below |
+| Comments only on own post (not thread-style UI) | `postComment: 'COMMENT'` | `comment()` implemented | Full checklist below |
+| No scheduled follow-ups | `postComment: 'NONE'` | omit `comment()` | Skip section; landing + agent docs must not claim reply chains |
+
+**Launch config flags** (`{id}.provider.ts`)
+
+| Field | Meaning |
+| --- | --- |
+| `postComment` | Drives **Add …** button label in **Follow-up comments** (`Add more thread` / `Add comment` / `Add comment or post`). |
+| `comments` | Follow-up row media affordance: omit or `true` → media allowed on follow-up rows when composer supports it; `'no-media'` → text-only follow-ups (e.g. Instagram, LinkedIn). Does **not** limit main-post media. |
+| `checkValidity` | When reply media is restricted, validate `ctx.threadReplies` (extend `LaunchProviderCheckContext` if needed) and align with backend `comment()` rules. |
+
+**Shared web gates** (update when adding a follow-up-capable identifier)
+
+| File | Action |
+| --- | --- |
+| `web/src/lib/posts/utils/create-post/followUp.ts` | Add identifier to `channelSupportsFollowUpComments`; add bucket in `followUpBucketForChannel` (e.g. `threads`, `instagram`, `x`, `linkedin`, `facebook` — not a catch-all `threads` fallback). |
+| `backend/utils/dtos/PostDTO.ts` | Add bucket in `replyChainBucketForProvider`; ensure `extractFollowUpRepliesFromProviderSettingsObject` reads `providerSettings.{bucket}.replies`. |
+| `orchestrator/activities/scheduledSocialPostActivities.ts` | Extend `supportsFollowUps` in `maybePublishThreadsReplies`; pass **reply `settings` (with media)** into `social.comment()`, not empty `{}`. |
+| `web/src/lib/sets/SetGridTable.presenter.svelte.ts` | Extend `followUpBucketForIdentifier` when sets show follow-up columns. |
+| `web/src/lib/posts/CreateSocialPost.presenter.svelte.ts` | Toast / help text lists the new channel (do not say “Threads and Instagram only” when X / LinkedIn / Facebook are supported). |
+
+**Provider settings shape** — follow-ups live in `providerSettingsByIntegrationId[integrationId].{bucket}.replies`:
+
+```json
+{ "id": "<uuid>", "message": "…", "delaySeconds": 0, "media": [{ "id": "…", "path": "…" }] }
+```
+
+`media` is optional; persisted in `posts.settings` JSON (text also mirrored to `post_thread_replies.content`). Use the **provider’s bucket key** (`linkedin` for `linkedin` and `linkedin-page`, etc.).
+
+**Composer UI** (usually no per-provider Svelte beyond launch config)
+
+- **Follow-up comments** panel: `ThreadRepliesEditor.svelte` + `AddEditModal.svelte` (shown when `channelSupportsFollowUpComments` matches).
+- **Reorder** is global (up/down on reply rows) — no per-provider work unless you add provider-specific help text in `ThreadRepliesEditor`.
+- **Preview** — `{id}Preview.svelte`: accept `threadReplies` and render via `PreviewScheduledSocialReplies` when follow-ups are a shipped feature; pass mock reply rows in bento previews (`hideProviderHelp`, `compactEditor`, one row).
+
+**Docs & agent** (when follow-ups ship)
+
+| Artifact | Action |
+| --- | --- |
+| `web/src/content/docs/creating-posts/threads-and-comments.md` | Add row to **What each platform does** (composer yes/no, publish behavior, media on follow-ups); bump `lastUpdated`. |
+| `web/src/content/docs/creating-posts/index.md` | Cross-link if the channel is a primary follow-up example. |
+| `agent/skills/openquok-core/resources/{id}-examples.md` | Document `{bucket}.replies` in Provider settings + a recipe; add `examples/*-follow-up*.json` when CLI/API examples exist. |
+| `publicChannelConfig` / FAQ | Claim follow-ups only when composer + worker paths above are wired. |
+
+**References:** Threads (`threads.replies`, finisher, internal plug), X (`x.replies`, quote-less replies), Instagram (`instagram.replies`, text-only), Facebook (`facebook.replies`, optional one image), LinkedIn (`linkedin.replies`, text-only).
 
 ### Post Preview provider settings (required when compose settings exist)
 
@@ -276,6 +337,7 @@ Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChan
 | Connect flows (user guide) | `web/src/content/docs/channels/connect.md` — keep the **two** (or future **four**) connection-flow tabs aligned with shipped providers. **OAuth:** list the network under the OAuth redirect tab (and the follow-up picker table when `isBetweenSteps`). **Credentials (`customFields`):** add a row to the credentials table and mention invite-link exclusion. Update when a new connect family ships (e.g. in-app dialog, browser extension). |
 | Setup guide | `web/src/content/docs/social-integration/{id}.md` + `index.md` LinkCard. **Credentials:** document where the **user** creates the API key (platform settings); skip operator ID/secret rows and backend env sections. **OAuth:** operator app + redirect URI as today. |
 | CLI examples (human docs) | `web/src/content/docs/cli-examples/{id}.md` |
+| Follow-up replies (user docs) | `web/src/content/docs/creating-posts/threads-and-comments.md` — platform table when the channel supports scheduled follow-ups |
 | Self-host env template | **OAuth only:** `infra/self-host/.env.example` — add `{PROVIDER}_*` / `{PROVIDER}_*_SECRET` (or the keys `GlobalConfig` expects) under **Social provider apps**. **Credentials:** no new secrets; optional one-line comment that the user pastes an API key in the dashboard. |
 | Self-host install docs | **OAuth:** add the new ID/secret pair to **Optional: Social provider apps** in `web/src/content/docs/installation/docker-compose.md`. **Credentials:** call out that the channel needs **no** operator app (keep Related / in-section LinkCard to `/docs/social-integration`). |
 | Agent skill index | `agent/skills/openquok-core/SKILL.md` — add row under **Channels** with user-intent summary + link to `{id}-examples.md` |
@@ -510,4 +572,5 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
 - **Post Preview:** when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
+- **Follow-up comments:** when `comment()` ships — `followUp.ts` + `replyChainBucketForProvider` + orchestrator `supportsFollowUps` updated; launch `postComment` / `comments` set; `{bucket}.replies` documented in agent + CLI examples; `threads-and-comments.md` platform row; landing/bento copy matches composer (text-only vs media-on-replies); preview/bento show `threadReplies` when marketed.
 - **Writing the post:** `writing-the-post.md` **Editor by platform** table lists the new channel under the correct **Standard** / **Markdown** / **HTML** / **Plain** row; `lastUpdated` bumped.

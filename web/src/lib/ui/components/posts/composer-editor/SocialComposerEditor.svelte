@@ -41,7 +41,7 @@
 	let lastOutgoingContent = $state<string | null>(null);
 
 	const minHeightClass = $derived(
-		compact ? 'min-h-[4.5rem]' : comments ? 'min-h-[140px]' : 'min-h-[140px] sm:min-h-[180px]'
+		compact || comments ? 'min-h-[4.5rem]' : 'min-h-[140px] sm:min-h-[180px]'
 	);
 
 	function normalizeEditorHtml(html: string): string {

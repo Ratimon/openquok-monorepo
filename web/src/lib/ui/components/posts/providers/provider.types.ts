@@ -84,6 +84,8 @@ export type LaunchProviderCheckContext = {
 	media: { id: string; path: string }[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */
 	settings: Record<string, unknown>;
+	/** Follow-up reply drafts from `providerSettings.<bucket>.replies` (when validating thread parts). */
+	threadReplies?: { message?: string; media?: { id: string; path: string }[] }[];
 };
 
 export type LaunchProviderConfig = {

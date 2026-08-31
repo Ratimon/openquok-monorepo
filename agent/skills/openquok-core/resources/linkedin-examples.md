@@ -12,7 +12,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#linkedin). Settings 
 | Single / multi-image | Yes |
 | MP4 video (one attachment) | Yes |
 | Image → PDF document carousel | Yes (≥2 images, no video) |
-| Follow-up text comments | Yes |
+| Follow-up text comments | Yes — `linkedin.replies`; text only (no media on follow-ups) |
 | Cross-account comment / reshare (internal plugs) | Yes (`linkedin.crossAccountPlugs`) |
 | Account / post analytics | No (Page only) |
 
@@ -35,9 +35,25 @@ For Page document carousels and analytics, use `linkedin-page` — see [linkedin
 | --- | --- | --- |
 | `post_as_images_carousel` | `linkedin.postAsImagesCarousel` | Convert ≥2 images to PDF document (no video) |
 | `carousel_name` | `linkedin.carouselName` | PDF title (default `slides`) |
+| `linkedin.replies` | `linkedin.replies` | Text follow-up comments after publish (no `media` on reply rows) |
 | `linkedin.crossAccountPlugs` | `linkedin.crossAccountPlugs` | Cross-account comment (`linkedin-add-comment`) or reshare (`linkedin-repost-post-users`) |
 
 Flat keys work on `--settings` or inside `--providerSettingsByIntegrationId`. Prefer the nested `linkedin.*` bucket in JSON files (matches composer).
+
+### Follow-up comments (`linkedin.replies`)
+
+Same-account comments on the main post live under the **`linkedin`** bucket — including **`linkedin-page`** integrations (alias bucket, not `threads.replies`).
+
+Each reply row:
+
+```json
+{ "id": "reply-1", "message": "Follow-up comment on the post", "delaySeconds": 60 }
+```
+
+- `delaySeconds` — wait after the previous part publishes (`0` = immediately after the prior step).
+- **No `media`** — put images and video on the main post only. LinkedIn follow-ups are text-only in the composer and at publish time.
+
+Copy-paste recipe: [linkedin-follow-up-comment.json](./examples/linkedin-follow-up-comment.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
 
 Cross-account shape: [provider-settings.md](./provider-settings.md#internal-plugs). Plug catalog: [plugs.md](./plugs.md).
 

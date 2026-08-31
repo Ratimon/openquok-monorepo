@@ -35,5 +35,6 @@ export {
 	legacySharedRepliesFromProviderSnapshot,
 	listThreadFollowUpSupportedIntegrationIds,
 	syncSharedFollowUpsToProviderSettingsForSetAuthoring,
-	threadFollowUpRepliesRawForIntegration
+	threadFollowUpRepliesRawForIntegration,
+	type FollowUpProviderBucket
 } from './followUp';

@@ -73,13 +73,15 @@
 		constraintProviderIdentifiers?: readonly string[];
 		/** When set, blocks adding more main-post attachments once reached (`null` = no cap). */
 		maxMediaItems?: number | null;
-		/** When true, render in "comment" mode (no media; smaller UX). */
-		comments?: boolean;
+		/** When false, main post editor; `'no-media'` follow-up text only; `true` follow-up with media. */
+		comments?: boolean | 'no-media';
 		/** Shorter textarea for landing previews and tight layouts. */
 		compact?: boolean;
 		scheduleValidationMessage?: string | null;
 		/** Blocks per-network customization UX while defining a reusable workspace set (global authoring only). */
 		setsAuthoringNetworkLock?: boolean;
+		/** Fired when `postMediaItems` changes (use when two-way bind to an optional field is awkward). */
+		onPostMediaItemsChange?: (items: PostMediaProgrammerModel[]) => void;
 		/**
 		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
 		 */
@@ -131,6 +133,7 @@
 		setsAuthoringNetworkLock = false,
 		guestMode = false,
 		isLoggedIn = false,
+		onPostMediaItemsChange = undefined,
 		composerTextHistory = undefined,
 		composerHistoryKey = 'global',
 		composerEditorMode = 'normal'
@@ -152,6 +155,9 @@
 	let mountedEditorMode = $state<IntegrationEditorMode>('normal');
 	let composerMedia = $state<MultiMedia | undefined>(undefined);
 	let composerDragOver = $state(false);
+
+	const isCommentEditor = $derived(comments !== false);
+	const commentAllowsMedia = $derived(comments === true);
 
 	const usesRichEditor = $derived(usesRichComposerEditor(mountedEditorMode));
 	const richTiptapEditor = $derived(richComposerEditorRef?.getEditor() ?? null);
@@ -226,7 +232,7 @@
 	}
 
 	function canAcceptComposerMediaDrop(): boolean {
-		return !locked && !defineSetScopeOverlay && !comments && !busy && !mediaAtCap;
+		return !locked && !defineSetScopeOverlay && commentAllowsMedia && !busy && !mediaAtCap;
 	}
 
 	function onComposerDragOver(e: DragEvent) {
@@ -254,12 +260,14 @@
 		void composerMedia?.ingestFiles(files);
 	}
 	const textareaRows = $derived(
-		compact ? (comments ? 2 : 4) : comments ? 5 : 8
+		compact ? (isCommentEditor ? 2 : 4) : isCommentEditor ? 3 : 8
 	);
 	const textareaMinHeightClass = $derived(
-		compact ? 'min-h-[4.5rem] sm:min-h-[4.5rem]' : 'min-h-[140px] sm:min-h-[180px]'
+		compact || isCommentEditor
+			? 'min-h-[4.5rem] sm:min-h-[4.5rem]'
+			: 'min-h-[140px] sm:min-h-[180px]'
 	);
-	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && !comments);
+	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && commentAllowsMedia);
 	const mentionToolbarDisabled = $derived(composerMode === 'global');
 	const mentionToolbarTooltip = $derived(
 		composerMode === 'global'
@@ -307,13 +315,13 @@
 	}
 
 	function recordBeforeComposerEdit() {
-		if (!composerTextHistory || comments || applyingComposerHistory) return;
+		if (!composerTextHistory || isCommentEditor || applyingComposerHistory) return;
 		suppressTypingHistory = true;
 		composerTextHistory.recordBeforeMutation(currentTextareaSnapshot());
 	}
 
 	function recordAfterComposerEdit() {
-		if (!composerTextHistory || comments || applyingComposerHistory) return;
+		if (!composerTextHistory || isCommentEditor || applyingComposerHistory) return;
 		composerTextHistory.recordAfterMutation(currentTextareaSnapshot());
 		suppressTypingHistory = false;
 		syncComposerHistoryUi();
@@ -323,7 +331,7 @@
 		mentionAutocompleteRef?.handleTextareaInput();
 		if (
 			!composerTextHistory ||
-			comments ||
+			isCommentEditor ||
 			applyingComposerHistory ||
 			suppressTypingHistory
 		) {
@@ -360,7 +368,7 @@
 	}
 
 	function onComposerKeyDown(e: KeyboardEvent) {
-		if (composerTextHistory && !comments && !mentionAutocompleteRef?.isPickerOpen()) {
+		if (composerTextHistory && !isCommentEditor && !mentionAutocompleteRef?.isPickerOpen()) {
 			const mod = e.metaKey || e.ctrlKey;
 			if (mod && e.key.toLowerCase() === 'z' && !e.shiftKey) {
 				if (composerTextHistory.canUndo()) {
@@ -394,7 +402,7 @@
 		}
 		const base = body ?? '';
 		const next = `${base}${suffix}`;
-		if (!composerTextHistory || comments || applyingComposerHistory) {
+		if (!composerTextHistory || isCommentEditor || applyingComposerHistory) {
 			body = next;
 			return;
 		}
@@ -414,7 +422,7 @@
 			return;
 		}
 		const previous = body ?? '';
-		if (!composerTextHistory || comments || applyingComposerHistory) {
+		if (!composerTextHistory || isCommentEditor || applyingComposerHistory) {
 			body = text;
 			return;
 		}
@@ -433,7 +441,7 @@
 	}
 
 	$effect(() => {
-		if (usesRichEditor || !composerTextHistory || comments) return;
+		if (usesRichEditor || !composerTextHistory || isCommentEditor) return;
 		const key = composerHistoryKey;
 		if (lastComposerHistoryKey === key) return;
 		lastComposerHistoryKey = key;
@@ -444,6 +452,11 @@
 			composerTextHistory.clear(snap);
 		}
 		syncComposerHistoryUi();
+	});
+
+	$effect(() => {
+		if (!onPostMediaItemsChange) return;
+		onPostMediaItemsChange(postMediaItems);
 	});
 </script>
 
@@ -494,9 +507,9 @@
 								mode={mountedEditorMode}
 								bind:content={body}
 								disabled={busy || locked || defineSetScopeOverlay}
-								placeholder={comments ? 'Write a comment…' : 'Write something…'}
+								placeholder={isCommentEditor ? 'Write a comment…' : 'Write something…'}
 								{compact}
-								{comments}
+								comments={isCommentEditor}
 								mentionConfig={richMentionConfig}
 								onHistoryChange={onRichHistoryChange}
 							/>
@@ -507,7 +520,7 @@
 							bind:this={composerTextarea}
 							bind:value={body}
 							rows={textareaRows}
-							placeholder={comments ? 'Write a comment…' : 'Write something…'}
+							placeholder={isCommentEditor ? 'Write a comment…' : 'Write something…'}
 							onpaste={onComposerPaste}
 							oninput={onComposerInput}
 							onkeydown={onComposerKeyDown}
@@ -623,7 +636,7 @@
 				</div>
 			{/if}
 		</div>
-	{#if !locked && !defineSetScopeOverlay && !comments}
+	{#if !locked && !defineSetScopeOverlay && commentAllowsMedia}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
 			<MultiMedia
 				bind:this={composerMedia}

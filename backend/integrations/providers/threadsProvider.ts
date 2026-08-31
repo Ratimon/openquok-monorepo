@@ -188,7 +188,7 @@ export class ThreadsProvider implements SocialProvider {
      * Create a reply (comment) under a Threads post.
      *
      * Threads uses the same two-step publish flow as posting:
-     * 1) create a TEXT media container with `reply_to_id`
+     * 1) create a TEXT, IMAGE/VIDEO, or CAROUSEL media container with `reply_to_id`
      * 2) publish it via `/{threads-user-id}/threads_publish`
      */
     async comment(
@@ -207,14 +207,34 @@ export class ThreadsProvider implements SocialProvider {
         );
         const replyToId = (lastCommentId ?? postId ?? "").trim();
 
-        if (!message.length) {
+        const media = this.extractMedia(first.settings as ThreadsSettingsWithMedia).map((m) => ({
+            ...m,
+            path: this.resolvePublicMediaUrl(m.path),
+        }));
+        if (media.length > 0) {
+            logger.info({
+                msg: "[Threads] publishing comment with media (resolved public URLs)",
+                postId: first.id,
+                urls: media.map((m) => m.path),
+            });
+            for (const m of media) {
+                await this.assertUrlReachableForThreads(m.path);
+            }
+        }
+
+        if (!message.length && media.length === 0) {
             throw new Error("Threads comment message is empty");
         }
         if (!replyToId) {
             throw new Error("Threads reply_to_id is required to publish a comment");
         }
 
-        const creationId = await this.createTextContent(userId, accessToken, message, replyToId);
+        const creationId =
+            media.length === 0
+                ? await this.createTextContent(userId, accessToken, message, replyToId)
+                : media.length === 1
+                  ? await this.createSingleMediaContent(userId, accessToken, media[0], message, false, replyToId)
+                  : await this.createCarouselContent(userId, accessToken, media, message, replyToId);
 
         // goes straight to publish after create; `publishThread` polls `checkLoaded` until FINISHED.
         const { threadId, permalink } = await this.publishThread(userId, accessToken, creationId);
@@ -547,7 +567,8 @@ export class ThreadsProvider implements SocialProvider {
         accessToken: string,
         media: ThreadsMediaItem,
         message: string,
-        isCarouselItem = false
+        isCarouselItem = false,
+        replyToId?: string
     ): Promise<string> {
         const isVideo = media.path.toLowerCase().includes(".mp4");
         // Use multipart `FormData` like `createTextContent` (proven in app); Meta also accepts x-www-form-urlencoded in curl.
@@ -560,6 +581,9 @@ export class ThreadsProvider implements SocialProvider {
         }
         if (isCarouselItem) {
             form.append("is_carousel_item", "true");
+        }
+        if (!isCarouselItem && replyToId && replyToId.trim().length > 0) {
+            form.append("reply_to_id", replyToId.trim());
         }
         form.append("text", message);
         form.append("access_token", accessToken);
@@ -576,7 +600,8 @@ export class ThreadsProvider implements SocialProvider {
         userId: string,
         accessToken: string,
         media: ThreadsMediaItem[],
-        message: string
+        message: string,
+        replyToId?: string
     ): Promise<string> {
         const mediaIds: string[] = [];
         for (const item of media) {
@@ -590,6 +615,9 @@ export class ThreadsProvider implements SocialProvider {
         form.append("text", message);
         form.append("media_type", "CAROUSEL");
         form.append("children", mediaIds.join(","));
+        if (replyToId && replyToId.trim().length > 0) {
+            form.append("reply_to_id", replyToId.trim());
+        }
         form.append("access_token", accessToken);
 
         const res = await this.formPostThreads(userId, form);

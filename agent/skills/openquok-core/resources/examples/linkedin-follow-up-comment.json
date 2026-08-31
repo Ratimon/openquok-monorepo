@@ -5,7 +5,7 @@
   "integrationIds": ["<integration-id>"],
   "providerSettingsByIntegrationId": {
     "<integration-id>": {
-      "threads": {
+      "linkedin": {
         "replies": [
           { "id": "reply-1", "message": "Follow-up comment on the post", "delaySeconds": 60 }
         ]

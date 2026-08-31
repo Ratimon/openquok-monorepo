@@ -68,5 +68,6 @@ export const linkedinProvider: LaunchProviderConfig = {
 	maximumCharacters: LINKEDIN_MAX_CHARACTERS,
 	minimumCharacters: 0,
 	postComment: 'COMMENT',
+	comments: 'no-media',
 	checkValidity: checkLinkedInLaunchValidity
 };

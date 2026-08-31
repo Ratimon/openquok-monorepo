@@ -59,7 +59,7 @@
 				softCharLimit={softCharLimit}
 				bind:body={message}
 				busy={disabled}
-				comments={true}
+				comments={'no-media'}
 				{compact}
 			/>
 		</div>

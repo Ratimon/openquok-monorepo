@@ -56,7 +56,7 @@ When adding or changing publish behavior for a channel, update **backend resolve
 
 Skill content is for agents using `openquok` and the public API.
 
-- **Do** document flat API keys the backend accepts on create (`post_type`, `url`, `is_trial_reel`, …) and nested **orchestrator buckets** in `providerSettingsByIntegrationId` (`threads.replies`, `threads.internalEngagementPlug`, `instagram.replies`, `facebook.url` when nested).
+- **Do** document flat API keys the backend accepts on create (`post_type`, `url`, `is_trial_reel`, …) and nested **orchestrator buckets** in `providerSettingsByIntegrationId` (`threads.replies`, `instagram.replies`, `x.replies`, `linkedin.replies`, `facebook.replies`, finisher/plug keys, `facebook.url` when nested). Reply rows may include optional `media` (text-only on Instagram/LinkedIn). Use the provider’s bucket — not `threads.replies` for LinkedIn/Facebook JSON.
 - **Do** run `integrations:settings` for `rules`, `maxLength`, and `tools`; note that typed publish schemas may live in channel example files until `settingsSchema()` exists on the provider.
 - **Do not** document web UI, composer panels, preview components, Payload Wizard UX, or web-only camelCase composer fields (e.g. `postType`, `trialReel`). Summarize server behavior in `resources/*.md` instead of linking monorepo source.
 

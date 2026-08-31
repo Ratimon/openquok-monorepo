@@ -101,11 +101,47 @@ export function withAgentCreatePayload(payload: Record<string, unknown>): Record
   return { ...payload, isAgent: true };
 }
 
+/** Keep aligned with `replyChainBucketForProvider` in `backend/utils/dtos/PostDTO.ts`. */
+export function replyChainBucketForProvider(
+  providerIdentifier: string | null | undefined
+): "threads" | "instagram" | "x" | "linkedin" | "facebook" {
+  const id = (providerIdentifier ?? "").trim().toLowerCase();
+  if (id.startsWith("instagram")) return "instagram";
+  if (id === "x") return "x";
+  if (id === "linkedin" || id === "linkedin-page") return "linkedin";
+  if (id === "facebook") return "facebook";
+  return "threads";
+}
+
+/** Map integration UUID → provider identifier from `GET /public/integrations`. */
+export function providerIdentifierByIntegrationIdFromList(
+  integrationIds: string[],
+  integrationsList: unknown
+): Record<string, string> {
+  const map: Record<string, string> = {};
+  if (!Array.isArray(integrationsList)) return map;
+  const wanted = new Set(integrationIds);
+  for (const row of integrationsList) {
+    if (!row || typeof row !== "object") continue;
+    const id = (row as { id?: unknown }).id;
+    const identifier = (row as { identifier?: unknown }).identifier;
+    if (
+      typeof id === "string" &&
+      wanted.has(id) &&
+      typeof identifier === "string" &&
+      identifier.trim()
+    ) {
+      map[id] = identifier.trim();
+    }
+  }
+  return map;
+}
+
 /**
  * Builds `providerSettingsByIntegrationId` from CLI flags.
  * Merge order per selected integration id: (1) `--providerSettingsByIntegrationId`
  * entries, (2) `--settings` merged on top, (3) when multiple `-c` segments exist,
- * a `replies` array is merged last (overwrites an existing `replies` key).
+ * `{bucket}.replies` is merged last (overwrites an existing `replies` key on that bucket).
  */
 export function mergeProviderSettingsForIntegrations(args: {
   integrationIds: string[];
@@ -113,8 +149,16 @@ export function mergeProviderSettingsForIntegrations(args: {
   delayMs: number;
   settingsJson?: unknown;
   explicitByIntegration?: unknown;
+  providerIdentifierByIntegrationId?: Record<string, string>;
 }): Record<string, Record<string, unknown>> | undefined {
-  const { integrationIds, contentSegments, delayMs, settingsJson, explicitByIntegration } = args;
+  const {
+    integrationIds,
+    contentSegments,
+    delayMs,
+    settingsJson,
+    explicitByIntegration,
+    providerIdentifierByIntegrationId,
+  } = args;
 
   let base: Record<string, Record<string, unknown>> = {};
   if (explicitByIntegration && typeof explicitByIntegration === "object" && !Array.isArray(explicitByIntegration)) {
@@ -144,7 +188,16 @@ export function mergeProviderSettingsForIntegrations(args: {
       delaySeconds: gapSec * (idx + 1),
     }));
     for (const id of integrationIds) {
-      base[id] = { ...(base[id] ?? {}), replies };
+      const providerIdentifier = providerIdentifierByIntegrationId?.[id];
+      const bucket = replyChainBucketForProvider(providerIdentifier);
+      const existing = base[id] ?? {};
+      const existingBucket = existing[bucket];
+      const bucketSettings =
+        existingBucket && typeof existingBucket === "object" && !Array.isArray(existingBucket)
+          ? { ...(existingBucket as Record<string, unknown>) }
+          : {};
+      bucketSettings.replies = replies;
+      base[id] = { ...existing, [bucket]: bucketSettings };
     }
   }
 

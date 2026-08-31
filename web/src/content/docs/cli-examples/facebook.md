@@ -2,7 +2,7 @@
 title: Facebook Page
 description: CLI examples for Facebook Page publishing in OpenQuok
 order: 1
-lastUpdated: 2026-06-06
+lastUpdated: 2026-08-31
 ---
 
 <script>
@@ -57,15 +57,57 @@ openquok posts:create \
   -i "<facebook-page-integration-id>"
 ```
 
-## Follow-up comment
+## Scheduled follow-up comments
+
+<Badge text="providerSettings.facebook.replies[]" variant="param" /> carries follow-up replies that publish as comments on the Page post after a fixed delay. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
   -c "Main post" \
-  -c "First comment on the post" \
   -s "2026-01-01T12:00:00Z" \
-  -i "<facebook-page-integration-id>"
+  -i "<facebook-page-integration-id>" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "<facebook-page-integration-id>" '
+    {
+      ($id): {
+        facebook: {
+          replies: [
+            { message: "First comment on the post", delaySeconds: 60 }
+          ]
+        }
+      }
+    }
+  ')"
 ```
+
+### Follow-up with one image
+
+Upload first, then attach at most one image per reply row (no video):
+
+```bash
+REPLY_MEDIA=$(openquok upload ./comment-image.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -c "Main post" \
+  -s "2026-01-01T12:00:00Z" \
+  -i "<facebook-page-integration-id>" \
+  --providerSettingsByIntegrationId "$(jq -nc \
+    --arg id "<facebook-page-integration-id>" \
+    --argjson media "$REPLY_MEDIA" '
+    {
+      ($id): {
+        facebook: {
+          replies: [
+            { message: "See the chart in this comment", delaySeconds: 60, media: $media }
+          ]
+        }
+      }
+    }
+  ')"
+```
+
+<Callout type="note" title="Follow-up media limits">
+<p>Each reply supports at most <strong>one image</strong> — no video. Omit <Badge text="media" variant="param" /> for text-only comments.</p>
+</Callout>
 
 ## Resolve integration UUID
 

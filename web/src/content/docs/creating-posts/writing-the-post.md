@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 The **left column** of the post editor is where you write the post. A caption box sits above the toolbar — media, signatures, styling, AI helpers, and more.
 
-![Threads Post Editor](/docs/_assets/creating-posts/editor-threads.webp)
+![Post Editor](/docs/_assets/creating-posts/editor-post.webp)
 
 ## Post Preview
 

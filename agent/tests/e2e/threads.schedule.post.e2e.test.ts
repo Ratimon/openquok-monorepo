@@ -79,8 +79,11 @@ describe("threads posts:create (multi-segment)", () => {
     expect(media).toHaveLength(2);
     expect(media.map((m) => m.path)).toEqual([media1, media2]);
 
-    const settings = body!.providerSettingsByIntegrationId as Record<string, { replies: unknown }>;
-    expect(settings[integrationId]?.replies).toEqual([
+    const settings = body!.providerSettingsByIntegrationId as Record<
+      string,
+      { threads?: { replies: unknown } }
+    >;
+    expect(settings[integrationId]?.threads?.replies).toEqual([
       { message: cap2, delaySeconds: 5 },
       { message: cap3, delaySeconds: 10 },
     ]);
@@ -117,8 +120,11 @@ describe("threads posts:create (multi-segment)", () => {
     expect(envelope.success).toBe(true);
 
     const body = mock.getLastCreatePostBody() as Record<string, unknown>;
-    const settings = body.providerSettingsByIntegrationId as Record<string, { replies: unknown }>;
-    expect(settings[integrationId]?.replies).toEqual([
+    const settings = body.providerSettingsByIntegrationId as Record<
+      string,
+      { threads?: { replies: unknown } }
+    >;
+    expect(settings[integrationId]?.threads?.replies).toEqual([
       { message: seg2, delaySeconds: 2 },
       { message: seg3, delaySeconds: 4 },
     ]);

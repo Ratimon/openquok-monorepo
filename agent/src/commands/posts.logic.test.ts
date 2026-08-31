@@ -7,7 +7,9 @@ import {
   buildMediaFromArgs,
   mergeProviderSettingsForIntegrations,
   parsePostsStatusFlag,
+  providerIdentifierByIntegrationIdFromList,
   readCreatePayloadFromJsonFile,
+  replyChainBucketForProvider,
   resolveCreateStatus,
   toStringList,
 } from "./posts.logic";
@@ -73,6 +75,33 @@ describe("buildMediaFromArgs", () => {
   });
 });
 
+describe("replyChainBucketForProvider", () => {
+  it("maps provider identifiers to reply buckets", () => {
+    expect(replyChainBucketForProvider("threads")).toBe("threads");
+    expect(replyChainBucketForProvider("instagram-business")).toBe("instagram");
+    expect(replyChainBucketForProvider("x")).toBe("x");
+    expect(replyChainBucketForProvider("linkedin-page")).toBe("linkedin");
+    expect(replyChainBucketForProvider("facebook")).toBe("facebook");
+    expect(replyChainBucketForProvider(undefined)).toBe("threads");
+  });
+});
+
+describe("providerIdentifierByIntegrationIdFromList", () => {
+  it("maps integration ids from listIntegrations rows", () => {
+    const threadsId = "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b";
+    const linkedinId = "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e";
+    const map = providerIdentifierByIntegrationIdFromList([threadsId, linkedinId], [
+      { id: threadsId, identifier: "threads" },
+      { id: linkedinId, identifier: "linkedin-page" },
+      { id: "other", identifier: "facebook" },
+    ]);
+    expect(map).toEqual({
+      [threadsId]: "threads",
+      [linkedinId]: "linkedin-page",
+    });
+  });
+});
+
 describe("mergeProviderSettingsForIntegrations", () => {
   const intId = "4f7a1b2c-3d4e-5f60-7a8b-9c0d1e2f3a4b";
 
@@ -93,10 +122,45 @@ describe("mergeProviderSettingsForIntegrations", () => {
       delayMs: 2000,
     });
     expect(out).toBeDefined();
-    expect(out![intId]!.replies).toEqual([
-      { message: "second", delaySeconds: 2 },
-      { message: "third", delaySeconds: 4 },
-    ]);
+    expect(out![intId]!.threads).toEqual({
+      replies: [
+        { message: "second", delaySeconds: 2 },
+        { message: "third", delaySeconds: 4 },
+      ],
+    });
+  });
+
+  it("nests multi -c replies under the provider bucket per integration", () => {
+    const linkedinId = "9c0d1e2f-3a4b-5c6d-7e8f-901a2b3c4d5e";
+    const out = mergeProviderSettingsForIntegrations({
+      integrationIds: [intId, linkedinId],
+      contentSegments: ["root", "follow-up"],
+      delayMs: 5000,
+      providerIdentifierByIntegrationId: {
+        [intId]: "threads",
+        [linkedinId]: "linkedin-page",
+      },
+    });
+    expect(out![intId]!.threads).toEqual({
+      replies: [{ message: "follow-up", delaySeconds: 5 }],
+    });
+    expect(out![linkedinId]!.linkedin).toEqual({
+      replies: [{ message: "follow-up", delaySeconds: 5 }],
+    });
+  });
+
+  it("overwrites existing bucket replies when multi -c merges last", () => {
+    const out = mergeProviderSettingsForIntegrations({
+      integrationIds: [intId],
+      contentSegments: ["root", "new reply"],
+      delayMs: 5000,
+      explicitByIntegration: {
+        [intId]: { threads: { replies: [{ message: "old", delaySeconds: 1 }] } },
+      },
+    });
+    expect(out![intId]!.threads).toEqual({
+      replies: [{ message: "new reply", delaySeconds: 5 }],
+    });
   });
 
   it("merges explicit per-integration settings", () => {

@@ -16,7 +16,8 @@ import type {
 	ComposerSnapshotInput,
 	CreateSocialPostMode,
 	CreateSocialPostPendingOpenState,
-	CreateSocialPostPrepareOpenOptions
+	CreateSocialPostPrepareOpenOptions,
+	ThreadFollowUpReply
 } from '$lib/posts/createSocialPost.types';
 import { createEmptyPendingOpenState } from '$lib/posts/createSocialPost.types';
 import type {
@@ -562,7 +563,9 @@ export class CreateSocialPostPresenter {
 				return channelSupportsFollowUpComments(ch?.identifier);
 			});
 			if (!hasSupport) {
-				toast.message('Add at least one Threads or Instagram channel to use follow-up comments.');
+				toast.message(
+					'Add at least one supported channel (Threads, X, Instagram, LinkedIn, or Facebook) to use follow-up comments.'
+				);
 				return false;
 			}
 			this.sharedFollowUpRepliesVm = [
@@ -575,9 +578,13 @@ export class CreateSocialPostPresenter {
 		const targets = this.listThreadFollowUpSupportedIntegrationIds();
 		if (targets.length === 0) {
 			if (this.mode === 'custom') {
-				toast.message('Follow-up comments are supported on Threads and Instagram only.');
+				toast.message(
+					'Follow-up comments are supported on Threads, X, Instagram, LinkedIn, and Facebook.'
+				);
 			} else {
-				toast.message('Select at least one Threads or Instagram channel to add follow-up comments.');
+				toast.message(
+					'Select at least one supported channel (Threads, X, Instagram, LinkedIn, or Facebook) to add follow-up comments.'
+				);
 			}
 			return false;
 		}
@@ -619,7 +626,7 @@ export class CreateSocialPostPresenter {
 		});
 	}
 
-	getThreadFollowUpRepliesForEditor(): { id: string; message: string; delaySeconds: number }[] {
+	getThreadFollowUpRepliesForEditor(): ThreadFollowUpReply[] {
 		const pid = this.getPrimaryThreadFollowUpIntegrationId();
 		if (!pid) return [];
 		return threadFollowUpRepliesRawForIntegration({
@@ -629,7 +636,7 @@ export class CreateSocialPostPresenter {
 		});
 	}
 
-	applyThreadFollowUpReplies(next: { id: string; message: string; delaySeconds: number }[]): void {
+	applyThreadFollowUpReplies(next: ThreadFollowUpReply[]): void {
 		const targets = this.listThreadFollowUpSupportedIntegrationIds();
 		this.providerSettingsByIntegrationId = applyThreadFollowUpRepliesToSettings({
 			next,

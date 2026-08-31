@@ -14,6 +14,7 @@
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import { resolvePreviewProviderSettings } from '$lib/posts/utils/composer';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
@@ -85,8 +86,8 @@
 			integrationId: string,
 			patch: Record<string, unknown>
 		) => void;
-		threadReplies?: { id: string; message: string; delaySeconds: number }[];
-		onChangeThreadReplies?: (next: { id: string; message: string; delaySeconds: number }[]) => void;
+		threadReplies?: ThreadFollowUpReply[];
+		onChangeThreadReplies?: (next: ThreadFollowUpReply[]) => void;
 		/** Main post `datetime-local` (ManageModal); used for thread reply delay hints. */
 		scheduledPostDatetimeLocal?: string | null;
 		threadProviderIdentifier?: string | null;
@@ -534,6 +535,10 @@
 				onAddReply={onAddPost}
 				onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
 				onChangeReplies={onChangeThreadReplies}
+				{uploadUid}
+				publishDateIso={publishDateIso}
+				{organizationId}
+				{guestMode}
 			/>
 		{/if}
 

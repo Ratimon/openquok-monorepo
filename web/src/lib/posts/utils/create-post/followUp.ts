@@ -2,17 +2,28 @@ import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/Prote
 import type { CreateSocialPostMode, ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 import type { SetSharedFollowUpReplyViewModel, SetSnapshotViewModel } from '$lib/sets/GetSet.presenter.svelte';
 
+export type FollowUpProviderBucket = 'threads' | 'instagram' | 'x' | 'linkedin' | 'facebook';
+
 export function channelSupportsFollowUpComments(identifier: string | null | undefined): boolean {
 	const id = (identifier ?? '').toLowerCase();
-	return id === 'threads' || id === 'x' || id.startsWith('instagram');
+	return (
+		id === 'threads' ||
+		id === 'x' ||
+		id.startsWith('instagram') ||
+		id === 'linkedin' ||
+		id === 'linkedin-page' ||
+		id === 'facebook'
+	);
 }
 
 export function followUpBucketForChannel(
 	identifier: string | null | undefined
-): 'threads' | 'instagram' | 'x' {
+): FollowUpProviderBucket {
 	const id = (identifier ?? '').trim().toLowerCase();
 	if (id.startsWith('instagram')) return 'instagram';
 	if (id === 'x') return 'x';
+	if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
+	if (id === 'facebook') return 'facebook';
 	return 'threads';
 }
 
@@ -47,8 +58,7 @@ export function getPrimaryThreadFollowUpIntegrationId(args: {
 		return (
 			args.selectedIds.find((sid) => {
 				const ch = args.baseSocialChannelsVm.find((c) => c.id === sid);
-				const id = (ch?.identifier ?? '').trim().toLowerCase();
-				return id === 'threads' || id === 'x' || id.startsWith('instagram');
+				return channelSupportsFollowUpComments(ch?.identifier);
 			}) ?? null
 		);
 	}
@@ -119,12 +129,7 @@ export function legacySharedRepliesFromProviderSnapshot(args: {
 	for (const intId of args.okIntegrationIds) {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === intId);
 		if (!channelSupportsFollowUpComments(ch?.identifier)) continue;
-		const ident = (ch?.identifier ?? '').toLowerCase();
-		const bucket: 'threads' | 'instagram' | 'x' = ident.startsWith('instagram')
-			? 'instagram'
-			: ident === 'x'
-				? 'x'
-				: 'threads';
+		const bucket = followUpBucketForChannel(ch?.identifier);
 		const ps = args.snapshot.providerSettingsByIntegrationId?.[intId];
 		if (!ps) continue;
 		const sub = ps[bucket] as Record<string, unknown> | undefined;
@@ -133,12 +138,31 @@ export function legacySharedRepliesFromProviderSnapshot(args: {
 		return rep.map((r: unknown) => {
 			const x = r as Record<string, unknown>;
 			const id = typeof x.id === 'string' && x.id.length > 0 ? x.id : crypto.randomUUID();
+			const mediaRaw = x.media;
+			const mediaItems = Array.isArray(mediaRaw)
+				? mediaRaw
+				: typeof mediaRaw === 'object' &&
+					  mediaRaw !== null &&
+					  Array.isArray((mediaRaw as { items?: unknown }).items)
+					? ((mediaRaw as { items: unknown[] }).items as unknown[])
+					: null;
+			const media =
+				mediaItems
+					?.map((m) => {
+						const item = m as Record<string, unknown>;
+						return {
+							id: typeof item.id === 'string' ? item.id : '',
+							path: typeof item.path === 'string' ? item.path : ''
+						};
+					})
+					.filter((m) => m.id && m.path) ?? [];
 			return {
 				id,
 				message: typeof x.message === 'string' ? x.message : '',
 				delaySeconds: Number.isFinite(Number(x.delaySeconds))
 					? Math.max(0, Math.floor(Number(x.delaySeconds)))
-					: 0
+					: 0,
+				...(media.length > 0 ? { media } : {})
 			};
 		});
 	}
@@ -160,12 +184,7 @@ export function syncSharedFollowUpsToProviderSettingsForSetAuthoring(args: {
 	for (const intId of args.selectedIds) {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === intId);
 		if (!channelSupportsFollowUpComments(ch?.identifier)) continue;
-		const ident = (ch?.identifier ?? '').toLowerCase();
-		const bucket: 'threads' | 'instagram' | 'x' = ident.startsWith('instagram')
-			? 'instagram'
-			: ident === 'x'
-				? 'x'
-				: 'threads';
+		const bucket = followUpBucketForChannel(ch?.identifier);
 		const cur =
 			out[intId] && typeof out[intId] === 'object' && !Array.isArray(out[intId])
 				? { ...(out[intId] as Record<string, unknown>) }

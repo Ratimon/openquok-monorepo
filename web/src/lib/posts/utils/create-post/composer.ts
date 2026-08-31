@@ -1,6 +1,7 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { ComposerSnapshotInput } from '$lib/posts/createSocialPost.types';
 import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
+import { threadFollowUpRepliesRawForIntegration } from '$lib/posts/utils/create-post/followUp';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 import {
 	instagramMaxMediaItems,
@@ -175,9 +176,15 @@ export function computeScheduleValidationError(args: {
 		const cfg = getLaunchProviderConfig(ch.identifier);
 		if (!cfg.checkValidity) continue;
 		const media = resolveIntegrationMedia(id, args.globalMediaItems, args.mediaByIntegrationId);
+		const threadReplies = threadFollowUpRepliesRawForIntegration({
+			integrationId: id,
+			baseSocialChannelsVm: args.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+		});
 		const res = cfg.checkValidity({
 			media,
-			settings: args.providerSettingsByIntegrationId[id] ?? {}
+			settings: args.providerSettingsByIntegrationId[id] ?? {},
+			threadReplies
 		});
 		if (typeof res === 'string' && res.trim().length > 0) {
 			return formatProviderScheduleValidationMessage(ch, res);
@@ -203,9 +210,15 @@ export async function computeScheduleValidationErrorAsync(args: {
 		const cfg = getLaunchProviderConfig(ch.identifier);
 		if (!cfg.checkValidityAsync) continue;
 		const media = resolveIntegrationMedia(id, args.globalMediaItems, args.mediaByIntegrationId);
+		const threadReplies = threadFollowUpRepliesRawForIntegration({
+			integrationId: id,
+			baseSocialChannelsVm: args.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+		});
 		const res = await cfg.checkValidityAsync({
 			media,
-			settings: args.providerSettingsByIntegrationId[id] ?? {}
+			settings: args.providerSettingsByIntegrationId[id] ?? {},
+			threadReplies
 		});
 		if (typeof res === 'string' && res.trim().length > 0) {
 			return formatProviderScheduleValidationMessage(ch, res);

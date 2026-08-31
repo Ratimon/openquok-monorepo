@@ -90,7 +90,6 @@ export const xProvider: LaunchProviderConfig = {
 	maximumCharacters: X_STANDARD_MAX_CHARACTERS,
 	minimumCharacters: 0,
 	postComment: 'POST',
-	comments: 'no-media',
 	checkValidity: (ctx) => {
 		const { media, settings } = xCheckContext(ctx);
 		return checkXLaunchMediaValidity(media, settings);

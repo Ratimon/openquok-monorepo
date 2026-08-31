@@ -45,6 +45,8 @@ export type ThreadFollowUpReply = {
 	id: string;
 	message: string;
 	delaySeconds: number;
+	/** Per-reply attachments stored in `providerSettings.<bucket>.replies[].media`. */
+	media?: { id: string; path: string }[];
 };
 
 export type CreateSocialPostPendingOpenState = {

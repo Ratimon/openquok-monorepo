@@ -49,7 +49,7 @@ describe("schedulePostTool.adapter", () => {
                 providerIdentifier: "facebook",
             });
             expect(out.body).toBe("Main post");
-            expect(out.providerSettings.threads).toMatchObject({
+            expect(out.providerSettings.facebook).toMatchObject({
                 replies: [
                     expect.objectContaining({ message: "First reply" }),
                     expect.objectContaining({ message: "Second reply" }),

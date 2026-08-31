@@ -8,6 +8,8 @@ export type SetSharedFollowUpReplyProgrammerModel = {
 	id: string;
 	message: string;
 	delaySeconds: number;
+	/** Per-reply attachments mirrored into each integration’s `providerSettings` on save. */
+	media?: { id: string; path: string }[];
 };
 
 /** Persisted JSON shape for `/sets` `content` column (workspace presets). */
@@ -38,6 +40,25 @@ export function stringifySetSnapshot(snapshot: SetSnapshotProgrammerModel): stri
 	return JSON.stringify(snapshot);
 }
 
+function parseSetSharedFollowUpReplyMedia(
+	raw: unknown
+): SetSharedFollowUpReplyProgrammerModel['media'] | undefined {
+	if (raw == null) return undefined;
+	const items = Array.isArray(raw)
+		? raw
+		: typeof raw === 'object' && Array.isArray((raw as { items?: unknown }).items)
+			? ((raw as { items: unknown[] }).items as unknown[])
+			: null;
+	if (!items) return undefined;
+	const media = items
+		.map((x) => ({
+			id: typeof (x as { id?: unknown })?.id === 'string' ? (x as { id: string }).id : '',
+			path: typeof (x as { path?: unknown })?.path === 'string' ? (x as { path: string }).path : ''
+		}))
+		.filter((m) => m.id && m.path);
+	return media.length > 0 ? media : undefined;
+}
+
 export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null {
 	try {
 		const parsed = JSON.parse(raw) as unknown;
@@ -65,10 +86,12 @@ export function parseSetContent(raw: string): SetSnapshotProgrammerModel | null 
 			sharedFollowUpReplies = sfr
 				.map((r: unknown) => {
 					const x = r as Record<string, unknown>;
+					const media = parseSetSharedFollowUpReplyMedia(x.media);
 					return {
 						id: typeof x.id === 'string' ? x.id : '',
 						message: typeof x.message === 'string' ? x.message : '',
-						delaySeconds: Number.isFinite(Number(x.delaySeconds)) ? Math.max(0, Math.floor(Number(x.delaySeconds))) : 0
+						delaySeconds: Number.isFinite(Number(x.delaySeconds)) ? Math.max(0, Math.floor(Number(x.delaySeconds))) : 0,
+						...(media ? { media } : {})
 					};
 				})
 				.filter((r) => r.id && (r.message ?? '').trim().length > 0);

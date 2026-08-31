@@ -17,7 +17,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Single image or video | Yes | Upload first (Rule 2); prefer JPEG/PNG; **SVG rejected** |
 | Media carousel | Yes | Multiple `-m` items → carousel container |
 | 500-character cap | Yes | Provider trims overflow before publish |
-| Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds` |
+| Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds`; optional `media` per reply |
 | Thread finisher | Yes | `threads.enabled` + `threads.message` |
 | Delayed engagement reply (internal plug, same account) | Yes | `threads.internalEngagementPlug` |
 | Cross-account comments (internal plug) | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`) |
@@ -48,13 +48,38 @@ Use nested keys under `threads` in `--providerSettingsByIntegrationId` (matches 
 
 | Key | Shape | When |
 | --- | --- | --- |
-| `threads.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60 }]` | Follow-up replies after root post publishes |
+| `threads.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up replies after root post publishes |
 | `threads.enabled` | `true` \| `false` | Enable thread finisher (default off) |
 | `threads.message` | string | Finisher text when `enabled` is true |
 | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` | Same-account engagement reply after replies + finisher |
 | `threads.crossAccountPlugs` | `[{ "plugName": "threads-cross-account-comment", "enabled": true, "delayMs": 0, "integrationIds": ["<other-integration-id>"], "fields": { "comment": "…" } }]` | Comments from other Threads channels in the workspace |
 
 Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#internal-plugs). Full plug guide: [plugs.md](./plugs.md).
+
+### Reply media (`threads.replies[].media`)
+
+Optional on each reply row. Same shapes as the main post: flat `media[]` or `media: { "items": [...] }`. Upload first (Rule 2); the worker resolves `path` to a public `https://` URL before Meta fetches it.
+
+- One image or one video per reply (same toolbar as the main post in the web composer).
+- Omit `media` for text-only follow-ups.
+
+**Reply with image** (upload first, then nest under `threads.replies`):
+
+```bash
+REPLY_MEDIA=$(openquok upload ./thread-part-2.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -s "2026-01-01T12:00:00Z" \
+  -c "Thread 1/2: Why we built this" \
+  -i "$TH_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TH_ID" --argjson media "$REPLY_MEDIA" '
+    { ($id): { threads: { replies: [
+      { id: "reply-1", message: "Thread 2/2: The architecture", delaySeconds: 60, media: $media }
+    ] } } }
+  ')"
+```
+
+Reply chain without media: [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
 
 ## Run an example
 

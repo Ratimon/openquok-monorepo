@@ -14,7 +14,7 @@ Run `integrations:settings` for `output.maxLength` (280 or 4000 when Verified) a
 | Text-only post | Yes | Weighted 280 chars (4000 Verified) |
 | Up to 4 images | Yes | Upload first (Rule 2); JPEG/PNG/GIF |
 | One video | Yes | MP4/MOV; ≤140s UI validation |
-| Thread replies | Yes | `x.replies[]` with `delaySeconds` |
+| Thread replies | Yes | `x.replies[]` with `delaySeconds`; optional `media` (up to 4 images per reply) |
 | Thread finisher | Yes | `x.enabled` + `x.message` |
 | Who can reply | Yes | `who_can_reply_post` / `x.whoCanReplyPost` |
 | Community post | Yes | Community URL → `community_id` at publish |
@@ -43,7 +43,7 @@ Use nested keys under `x` in `--providerSettingsByIntegrationId` (matches compos
 
 | Key | Shape | When |
 | --- | --- | --- |
-| `x.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60 }]` | Follow-up replies after root tweet |
+| `x.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up replies after root tweet |
 | `x.enabled` | `true` \| `false` | Enable thread finisher |
 | `x.message` | string | Finisher text when `enabled` is true |
 | `x.whoCanReplyPost` | `following` \| `mentionedUsers` \| `subscribers` \| `verified` | Reply audience |
@@ -55,6 +55,15 @@ Use nested keys under `x` in `--providerSettingsByIntegrationId` (matches compos
 Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#internal-plugs). Full plug guide: [plugs.md](./plugs.md).
 
 Flat CLI keys (`who_can_reply_post`, `made_with_ai`, `community`, etc.) merge with the nested bucket at publish time.
+
+### Reply media (`x.replies[].media`)
+
+Optional on each reply row. Same shapes as the main post: flat `media[]` or `media: { "items": [...] }`. Upload first (Rule 2).
+
+- Up to **four images** per reply (JPEG/PNG/GIF). One video per reply when used instead of images.
+- Omit `media` for text-only follow-ups.
+
+Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
 
 ## Simple text post
 
@@ -81,6 +90,8 @@ openquok posts:create \
 
 ## Scheduled reply chain (thread)
 
+Text-only follow-up:
+
 ```bash
 openquok posts:create \
   -s "2026-01-15T10:00:00Z" \
@@ -89,6 +100,22 @@ openquok posts:create \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$X_ID" '
     { ($id): { x: { replies: [
       { message: "2/2 — payoff", delaySeconds: 90 }
+    ] } } }
+  ')"
+```
+
+Follow-up with image (upload first, then nest under `x.replies`):
+
+```bash
+REPLY_MEDIA=$(openquok upload ./payoff.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -c "1/2 — setup" \
+  -i "$X_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$X_ID" --argjson media "$REPLY_MEDIA" '
+    { ($id): { x: { replies: [
+      { id: "reply-1", message: "2/2 — payoff", delaySeconds: 90, media: $media }
     ] } } }
   ')"
 ```

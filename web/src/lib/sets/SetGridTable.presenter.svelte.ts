@@ -4,6 +4,11 @@ import type { GetSetPresenter, SetRowViewModel } from '$lib/sets/GetSet.presente
 import type { SetSnapshotProgrammerModel } from '$lib/sets/Sets.repository.svelte';
 import type { RepeatIntervalKey } from '$lib/posts';
 import type { ProtectedHomePagePresenter } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
+import {
+	channelSupportsFollowUpComments,
+	followUpBucketForChannel,
+	type FollowUpProviderBucket
+} from '$lib/posts/utils/create-post/followUp';
 
 import { tick } from 'svelte';
 import { formatDateShort } from '$lib/ui/helpers/formatters';
@@ -137,33 +142,34 @@ function repeatIntervalLabel(key: RepeatIntervalKey | null): string {
 	return labels[key] ?? key;
 }
 
-function countFollowUpRepliesInBucket(settings: Record<string, unknown>, bucket: 'threads' | 'instagram'): number {
+function countFollowUpRepliesInBucket(
+	settings: Record<string, unknown>,
+	bucket: FollowUpProviderBucket
+): number {
 	const sub = settings[bucket];
 	if (!sub || typeof sub !== 'object' || Array.isArray(sub)) return 0;
 	const replies = (sub as Record<string, unknown>).replies;
 	return Array.isArray(replies) ? replies.length : 0;
 }
 
+const FOLLOW_UP_PROVIDER_BUCKETS: readonly FollowUpProviderBucket[] = [
+	'threads',
+	'instagram',
+	'x',
+	'linkedin',
+	'facebook'
+];
+
 function countThreadsAutoReplies(
 	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>
 ): number {
 	let n = 0;
 	for (const settings of Object.values(providerSettingsByIntegrationId)) {
-		n += countFollowUpRepliesInBucket(settings, 'threads');
-		n += countFollowUpRepliesInBucket(settings, 'instagram');
+		for (const bucket of FOLLOW_UP_PROVIDER_BUCKETS) {
+			n += countFollowUpRepliesInBucket(settings, bucket);
+		}
 	}
 	return n;
-}
-
-function channelSupportsFollowUpComments(identifier: string): boolean {
-	const id = identifier.trim().toLowerCase();
-	return id === 'threads' || id.startsWith('instagram');
-}
-
-/** Matches composer bucket routing for persisted `providerSettings` (Threads vs Instagram keys). */
-function followUpBucketForIdentifier(identifier: string): 'threads' | 'instagram' {
-	const id = identifier.trim().toLowerCase();
-	return id.startsWith('instagram') ? 'instagram' : 'threads';
 }
 
 function parseFollowUpReplyMessagesFromBucket(block: unknown): string[] {
@@ -203,7 +209,7 @@ export function buildSetGridThreadsRepliesTooltipPlainText(
 		const ch = byId[id];
 		const identifier = String(ch?.identifier ?? '').trim() || 'generic';
 		if (!channelSupportsFollowUpComments(identifier)) continue;
-		const bucket = followUpBucketForIdentifier(identifier);
+		const bucket = followUpBucketForChannel(identifier);
 		const settings = snap.providerSettingsByIntegrationId[id] ?? {};
 		const messages = parseFollowUpReplyMessagesFromBucket((settings as Record<string, unknown>)[bucket]);
 		if (messages.length === 0) continue;

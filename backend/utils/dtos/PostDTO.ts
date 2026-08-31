@@ -155,23 +155,51 @@ export function parseProviderThreadsPreviewFromPostSettings(settings: string | n
 /** Where scheduled follow-up replies live in `providerSettings` (per integration). */
 export function replyChainBucketForProvider(
     providerIdentifier: string | null | undefined
-): "threads" | "instagram" | "x" {
+): "threads" | "instagram" | "x" | "linkedin" | "facebook" {
     const id = (providerIdentifier ?? "").trim().toLowerCase();
+    if (id.startsWith("instagram")) return "instagram";
     if (id === "x") return "x";
-    return id.startsWith("instagram") ? "instagram" : "threads";
+    if (id === "linkedin" || id === "linkedin-page") return "linkedin";
+    if (id === "facebook") return "facebook";
+    return "threads";
 }
 
-export type FollowUpReplyDraft = { id: string; message: string; delaySeconds: number };
+export type FollowUpReplyDraft = {
+    id: string;
+    message: string;
+    delaySeconds: number;
+    media?: PostMediaItemInput[];
+};
+
+/** Accepts flat `media[]` or worker-style `media: { items: [...] }` on follow-up reply rows. */
+function parseFollowUpReplyMedia(raw: unknown): PostMediaItemInput[] | undefined {
+    if (raw == null) return undefined;
+    const items = Array.isArray(raw)
+        ? raw
+        : typeof raw === "object" && Array.isArray((raw as { items?: unknown }).items)
+          ? ((raw as { items: unknown[] }).items as unknown[])
+          : null;
+    if (!items) return undefined;
+    const media = items
+        .map((x) => ({
+            id: typeof (x as { id?: unknown })?.id === "string" ? (x as { id: string }).id : "",
+            path: typeof (x as { path?: unknown })?.path === "string" ? (x as { path: string }).path : "",
+        }))
+        .filter((m) => m.id && m.path);
+    return media.length > 0 ? media : undefined;
+}
 
 function mapRawRepliesToFollowUpDrafts(repliesRaw: unknown): FollowUpReplyDraft[] {
     if (!Array.isArray(repliesRaw)) return [];
     return repliesRaw
         .map((r: unknown) => {
-            const o = r as { id?: unknown; message?: unknown; delaySeconds?: unknown };
+            const o = r as { id?: unknown; message?: unknown; delaySeconds?: unknown; media?: unknown };
+            const media = parseFollowUpReplyMedia(o?.media);
             return {
                 id: typeof o?.id === "string" ? o.id : "",
                 message: typeof o?.message === "string" ? o.message.trim() : "",
                 delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0,
+                ...(media ? { media } : {}),
             };
         })
         .filter((r) => r.id && r.message.length > 0)
@@ -180,7 +208,7 @@ function mapRawRepliesToFollowUpDrafts(repliesRaw: unknown): FollowUpReplyDraft[
 
 /**
  * Reads scheduled follow-up replies from `posts.settings.providerSettings` using the correct bucket
- * (`threads` vs `instagram`) for the channel.
+ * (`threads`, `instagram`, `x`, `linkedin`, or `facebook`) for the channel.
  */
 export function extractFollowUpRepliesFromProviderSettingsObject(
     providerSettings: Record<string, unknown> | null | undefined,

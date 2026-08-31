@@ -3,7 +3,7 @@ import type { AuthTokenDetails, IntegrationRecord, PostDetails, PostResponse } f
 import type { IntegrationRepository } from "backend/repositories/IntegrationRepository.js";
 import type { PlugRepository } from "backend/repositories/PlugRepository.js";
 import type { IntegrationLike } from "backend/utils/dtos/IntegrationDTO.js";
-import type { PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
+import type { FollowUpReplyDraft, PostMediaItemInput, PostThreadReplyLike, SocialPostLike } from "backend/utils/dtos/PostDTO.js";
 import type { NotificationService } from "backend/services/NotificationService.js";
 import type { NotificationEmailType } from "openquok-common";
 
@@ -768,13 +768,27 @@ async function resolveSocialProviderOrFail(
     return { ok: true, social };
 }
 
-type ThreadsReplySettings = { id: string; message: string; delaySeconds: number };
+type ThreadsReplySettings = FollowUpReplyDraft;
 
 function followUpRepliesFromStoredProviderSettings(
     providerIdentifier: string,
     settings: Record<string, unknown> | null
 ): ThreadsReplySettings[] {
     return extractFollowUpRepliesFromProviderSettingsObject(settings, providerIdentifier);
+}
+
+function followUpCommentMediaAllowed(providerIdentifier: string): boolean {
+    const pid = providerIdentifier.trim().toLowerCase();
+    return pid === "threads" || pid === "x" || pid === "facebook";
+}
+
+function buildFollowUpCommentSettings(
+    media: PostMediaItemInput[] | undefined,
+    providerIdentifier: string
+): Record<string, unknown> {
+    if (!followUpCommentMediaAllowed(providerIdentifier)) return {};
+    if (!media?.length) return {};
+    return { media: { items: media } };
 }
 
 function sleep(ms: number): Promise<void> {
@@ -856,7 +870,13 @@ async function maybePublishThreadsReplies(params: {
 }): Promise<string> {
     const { post, integration, record, social, publishedPostId, deps } = params;
     const pid = integration.provider_identifier.trim().toLowerCase();
-    const supportsFollowUps = pid === "threads" || pid === "x" || pid.startsWith("instagram");
+    const supportsFollowUps =
+        pid === "threads" ||
+        pid === "x" ||
+        pid.startsWith("instagram") ||
+        pid === "linkedin" ||
+        pid === "linkedin-page" ||
+        pid === "facebook";
     if (!supportsFollowUps) return publishedPostId;
     if (typeof social.comment !== "function") return publishedPostId;
     if (!publishedPostId) return publishedPostId;
@@ -928,7 +948,15 @@ async function maybePublishThreadsReplies(params: {
     const organizationId = post.organization_id;
     const postId = post.id;
     const ns = deps.notificationService;
-    const networkLabel = pid.startsWith("instagram") ? "Instagram" : pid === "x" ? "X" : "Threads";
+    const networkLabel = pid.startsWith("instagram")
+        ? "Instagram"
+        : pid === "x"
+          ? "X"
+          : pid === "linkedin" || pid === "linkedin-page"
+            ? "LinkedIn"
+            : pid === "facebook"
+              ? "Facebook"
+              : "Threads";
 
     let lastCommentId: string | undefined = publishedPostId;
     for (const r of replies) {
@@ -942,7 +970,13 @@ async function maybePublishThreadsReplies(params: {
                 publishedPostId,
                 lastCommentId,
                 integration.token,
-                [{ id: postId, message: r.message, settings: {} }],
+                [
+                    {
+                        id: postId,
+                        message: r.message,
+                        settings: buildFollowUpCommentSettings(r.media, integration.provider_identifier),
+                    },
+                ],
                 record
             );
             const next = firstPostResponse(res).releaseId;

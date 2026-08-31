@@ -8,6 +8,7 @@ import {
   buildMediaFromArgs,
   mergeProviderSettingsForIntegrations,
   parsePostsStatusFlag,
+  providerIdentifierByIntegrationIdFromList,
   readCreatePayloadFromJsonFile,
   withAgentCreatePayload,
   resolveCreateStatus,
@@ -290,12 +291,27 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
 
           const delayMs = typeof args.delay === "number" && !Number.isNaN(args.delay) ? args.delay : 5000;
 
+          const contentSegments = segments.length ? segments : [bodyText];
+          let providerIdentifierByIntegrationId: Record<string, string> | undefined;
+          if (contentSegments.length > 1 && integrationIds.length > 0) {
+            try {
+              const integrationsList = await api.listIntegrations();
+              providerIdentifierByIntegrationId = providerIdentifierByIntegrationIdFromList(
+                integrationIds,
+                integrationsList
+              );
+            } catch {
+              providerIdentifierByIntegrationId = undefined;
+            }
+          }
+
           const mergedProvider = mergeProviderSettingsForIntegrations({
             integrationIds,
-            contentSegments: segments.length ? segments : [bodyText],
+            contentSegments,
             delayMs,
             settingsJson: settingsParsed,
             explicitByIntegration: providerSettingsByIntegrationId,
+            providerIdentifierByIntegrationId,
           });
 
           const payload: Record<string, unknown> = {
