@@ -89,6 +89,10 @@
 		typefully: {
 			containerClass:
 				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35'
+		},
+		usebard: {
+			containerClass:
+				'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35'
 		}
 	};
 

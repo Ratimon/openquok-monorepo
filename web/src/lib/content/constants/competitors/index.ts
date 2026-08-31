@@ -20,6 +20,7 @@ import { postizCompareProduct } from '$lib/content/constants/competitors/postiz'
 import { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 import { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 import { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
+import { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
 import {
 	COMPARE_HUB_BASE_SLUG,
 	COMPARE_PRODUCT_WEBSITE_URLS
@@ -39,6 +40,7 @@ export { postizCompareProduct } from '$lib/content/constants/competitors/postiz'
 export { recurpostCompareProduct } from '$lib/content/constants/competitors/recurpost';
 export { socialclawCompareProduct } from '$lib/content/constants/competitors/socialclaw';
 export { typefullyCompareProduct } from '$lib/content/constants/competitors/typefully';
+export { usebardCompareProduct } from '$lib/content/constants/competitors/usebard';
 
 export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
@@ -51,7 +53,8 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	postBridgeCompareProduct,
 	postizCompareProduct,
 	socialclawCompareProduct,
-	typefullyCompareProduct
+	typefullyCompareProduct,
+	usebardCompareProduct
 ];
 
 const FAQ_ITEM_INDEX_BY_ID: Record<PublicFaqItemId, number> = {

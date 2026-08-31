@@ -14,7 +14,8 @@ export type CompareProductSlug =
 	| 'postiz'
 	| 'recurpost'
 	| 'socialclaw'
-	| 'typefully';
+	| 'typefully'
+	| 'usebard';
 
 /**
  * Comparison angles shared across products. When building a pair, a row is included only

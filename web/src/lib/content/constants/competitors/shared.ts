@@ -35,7 +35,8 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	postiz: 'https://postiz.com',
 	recurpost: 'https://recurpost.com',
 	socialclaw: 'https://getsocialclaw.com',
-	typefully: 'https://typefully.com'
+	typefully: 'https://typefully.com',
+	usebard: 'https://usebard.com'
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
 	| 'hootsuite'
@@ -47,7 +48,8 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'postiz'
 	| 'recurpost'
 	| 'socialclaw'
-	| 'typefully',
+	| 'typefully'
+	| 'usebard',
 	string
 >;
 

@@ -120,6 +120,12 @@
 				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',
 			cardContainerClass:
 				'bg-linear-to-br from-blue-500/20 via-indigo-400/16 to-sky-300/16 text-blue-100 ring-blue-400/28'
+		},
+		usebard: {
+			heroContainerClass:
+				'bg-linear-to-br from-purple-600/30 via-violet-500/20 to-fuchsia-400/20 text-purple-100 ring-purple-500/35',
+			cardContainerClass:
+				'bg-linear-to-br from-purple-600/20 via-violet-500/16 to-fuchsia-400/16 text-purple-100 ring-purple-500/28'
 		}
 	};
 

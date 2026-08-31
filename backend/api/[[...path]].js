@@ -33780,7 +33780,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-28T13:02:25.347Z",
+  generated: "2026-08-31T10:40:48.997Z",
   routes: [
     {
       path: "/docs",
@@ -33957,6 +33957,12 @@ var routes_manifest_default = {
       type: "public-catalog"
     },
     {
+      path: "/agents/thinkrail",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
       path: "/agents/amp",
       priority: 0.8,
       changeFreq: "monthly",
@@ -34065,6 +34071,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/openquok",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34101,6 +34113,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34114,6 +34132,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hootsuite/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34155,6 +34179,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hootsuite/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hopper-hq/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34168,6 +34198,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hopper-hq/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34209,6 +34245,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34222,6 +34264,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/mixpost/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34263,6 +34311,78 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/mixpost/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openquok/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34282,6 +34402,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openquok/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34317,6 +34443,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openquok/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34336,6 +34468,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/post-bridge/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34371,6 +34509,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34390,6 +34534,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postiz/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34425,6 +34575,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/recurpost/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34444,6 +34600,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/recurpost/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34479,6 +34641,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/recurpost/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/socialclaw/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34498,6 +34666,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/socialclaw/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34533,6 +34707,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/socialclaw/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/typefully/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34552,6 +34732,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/typefully/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34587,6 +34773,78 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/typefully/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/usebard/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/alternatives/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34606,6 +34864,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/openpost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -34636,6 +34900,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/usebard",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -34780,6 +35050,54 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/openclaw/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/thinkrail/youtube",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
