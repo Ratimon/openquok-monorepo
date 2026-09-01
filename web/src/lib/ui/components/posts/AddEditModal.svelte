@@ -14,6 +14,7 @@
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { GuestComposerLockAction } from '$lib/posts/constants/guestComposerLock';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import { resolvePreviewProviderSettings } from '$lib/posts/utils/composer';
@@ -21,9 +22,17 @@
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { integrationsRepository } from '$lib/integrations';
+	import { getMediaPresenter, mediaRepository } from '$lib/medias';
+	import {
+		composerMediaItemSupportsSettings,
+		mergeLibraryVmIntoPostMedia,
+		resolveComposerMediaLibraryItemVm
+	} from '$lib/posts/utils/composer/composerMediaSettings';
 	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
+	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
 
+	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
 	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
 	import CrossAccountPlugs from '$lib/ui/components/posts/plugs/CrossAccountPlugs.svelte';
@@ -177,6 +186,86 @@
 
 	let guestLockOpen = $state(false);
 	let guestLockAction = $state<GuestComposerLockAction>('connect-channels');
+
+	type ComposerMediaSettingsTarget = {
+		readItems: () => PostMediaProgrammerModel[];
+		writeItems: (items: PostMediaProgrammerModel[]) => void;
+		index: number;
+	};
+
+	let composerMediaSettingsOpen = $state(false);
+	let composerMediaSettingsVm = $state<MediaLibraryItemViewModel | null>(null);
+	let composerMediaSettingsTarget = $state<ComposerMediaSettingsTarget | null>(null);
+
+	function clearComposerMediaSettingsVm(): void {
+		composerMediaSettingsVm = null;
+		composerMediaSettingsTarget = null;
+	}
+
+	async function openComposerMediaSettings(target: ComposerMediaSettingsTarget): Promise<void> {
+		const orgId = organizationId?.trim();
+		if (guestMode || !orgId) return;
+		const items = target.readItems();
+		const item = items[target.index];
+		if (!item || !composerMediaItemSupportsSettings(item)) return;
+
+		try {
+			const vm = await resolveComposerMediaLibraryItemVm(orgId, item, getMediaPresenter);
+			composerMediaSettingsTarget = target;
+			composerMediaSettingsVm = vm;
+			composerMediaSettingsOpen = true;
+		} catch {
+			toast.error('Could not load media details.');
+		}
+	}
+
+	async function openComposerMediaSettingsForMain(index: number): Promise<void> {
+		await openComposerMediaSettings({
+			index,
+			readItems: () => postMediaItems,
+			writeItems: (items) => {
+				postMediaItems = items;
+			}
+		});
+	}
+
+	async function openComposerMediaSettingsForReply(
+		replyId: string,
+		index: number
+	): Promise<void> {
+		if (!onChangeThreadReplies) return;
+		await openComposerMediaSettings({
+			index,
+			readItems: () => threadReplies.find((r) => r.id === replyId)?.media ?? [],
+			writeItems: (items) => {
+				onChangeThreadReplies(
+					threadReplies.map((r) =>
+						r.id === replyId ? { ...r, media: items.length > 0 ? items : [] } : r
+					)
+				);
+			}
+		});
+	}
+
+	async function onComposerMediaSettingsSaved(): Promise<void> {
+		const orgId = organizationId?.trim();
+		const target = composerMediaSettingsTarget;
+		const vm = composerMediaSettingsVm;
+		if (!orgId || !target || !vm) return;
+
+		try {
+			const items = [...target.readItems()];
+			const current = items[target.index];
+			if (!current) return;
+			const fresh = await resolveComposerMediaLibraryItemVm(orgId, current, getMediaPresenter);
+			items[target.index] = mergeLibraryVmIntoPostMedia(current, fresh);
+			target.writeItems(items);
+		} catch {
+			toast.error('Could not refresh media details on the post.');
+		} finally {
+			clearComposerMediaSettingsVm();
+		}
+	}
 
 	function openGuestLock(action: GuestComposerLockAction) {
 		guestLockAction = action;
@@ -492,6 +581,7 @@
 				bannerRightActionLabel={editorBannerRightActionLabel}
 				onBannerRightAction={onEditorBannerRightAction ?? undefined}
 				confirmBannerRightAction={editorBannerRightActionLabel === 'Back to global'}
+				onOpenComposerMediaSettings={guestMode ? undefined : openComposerMediaSettingsForMain}
 			/>
 
 			{#if !onChangeThreadReplies}
@@ -539,6 +629,7 @@
 				publishDateIso={publishDateIso}
 				{organizationId}
 				{guestMode}
+				onOpenComposerMediaSettings={guestMode ? undefined : openComposerMediaSettingsForReply}
 			/>
 		{/if}
 
@@ -612,4 +703,33 @@
 
 {#if guestMode}
 	<SignInToComposerActionModal bind:open={guestLockOpen} action={guestLockAction} {isLoggedIn} />
+{:else if organizationId}
+	<MediaSettings
+		bind:open={composerMediaSettingsOpen}
+		mediaVm={composerMediaSettingsVm}
+		organizationId={organizationId}
+		uploadSimple={async (args) => {
+			const orgId = organizationId.trim();
+			const pm = await mediaRepository.uploadMediaSimple({
+				organizationId: orgId,
+				file: args.file,
+				filename: args.filename,
+				preventSave: args.preventSave
+			});
+			return getMediaPresenter.toUploadSimpleVm(pm);
+		}}
+		saveInformation={async (args) => {
+			const orgId = organizationId.trim();
+			const pm = await mediaRepository.saveMediaInformation({
+				organizationId: orgId,
+				id: args.id,
+				alt: args.alt,
+				thumbnail: args.thumbnail,
+				thumbnailTimestamp: args.thumbnailTimestamp
+			});
+			return getMediaPresenter.toSaveMediaInformationVm(pm);
+		}}
+		onSaved={() => void onComposerMediaSettingsSaved()}
+		onClose={clearComposerMediaSettingsVm}
+	/>
 {/if}

@@ -81,6 +81,9 @@ const mediaItemSchema = z.object({
     id: z.string().min(1).max(200),
     path: z.string().min(1).max(2000),
     bucket: z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional(),
+    alt: z.string().max(2000).nullable().optional(),
+    thumbnail: z.string().min(1).max(2000).nullable().optional(),
+    thumbnailTimestamp: z.number().finite().nonnegative().nullable().optional(),
 });
 
 export const createPostBodySchema = z.object({

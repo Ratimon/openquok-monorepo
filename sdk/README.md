@@ -74,7 +74,7 @@ await openquok.post({
 });
 ```
 
-`PublicCreatePostDto` also supports `bodiesByIntegrationId`, `providerSettingsByIntegrationId`, `tagNames`, and `repeatInterval` — see the [Create Post](https://www.openquok.com/docs/apis-posts/create) API reference.
+`PublicCreatePostDto` also supports `bodiesByIntegrationId`, `providerSettingsByIntegrationId`, `tagNames`, and `repeatInterval` — see the [Create Post](https://www.openquok.com/docs/apis-posts/create) API reference. Each `media[]` item may include optional `alt`, `thumbnail`, and `thumbnailTimestamp` (video poster metadata).
 
 ### Methods
 

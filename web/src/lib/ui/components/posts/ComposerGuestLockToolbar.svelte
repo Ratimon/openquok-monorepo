@@ -40,7 +40,7 @@
 
 <div class="pointer-events-auto space-y-2 {className}">
 	<p class="text-xs text-base-content/50">
-		Workspace tools. Sign in or sign up to use your library, design editor, and signatures.
+		Workspace tools. Sign in or sign up to use your library, Photo Editor, and signatures.
 	</p>
 	<div
 		class="border-base-300/80 bg-base-100/90 inline-flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border p-1 shadow-md backdrop-blur-md"
@@ -62,14 +62,14 @@
 					</button>
 				{/snippet}
 			</ComposerMediaTooltip>
-			<ComposerMediaTooltip label="Sign in to open the design editor">
+			<ComposerMediaTooltip label="Sign in to open the Photo Editor">
 				{#snippet trigger({ props })}
 					<button
 						{...props}
 						type="button"
 						class={iconBtn}
-						onclick={composeTooltipTriggerClick(props, () => openGuestLock('design-editor'))}
-						aria-label="Sign in to open the design editor"
+						onclick={composeTooltipTriggerClick(props, () => openGuestLock('photo-editor'))}
+						aria-label="Sign in to open the Photo Editor"
 					>
 						<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
 						<ComposerGuestLockBadge />

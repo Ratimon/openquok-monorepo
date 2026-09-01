@@ -3,6 +3,16 @@ import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
 import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 import { mediaRepository, mediaVirtualPathForComposerUpload } from '$lib/medias';
+import {
+	serializePostMediaByIntegrationForApi,
+	serializePostMediaListForApi
+} from '$lib/posts/utils/serializePostMedia';
+
+/** Prefer the workspace media row id from upload or library attach; fall back for legacy responses. */
+export function resolvePostMediaLibraryRowId(mediaId?: string | null): string {
+	const trimmed = mediaId?.trim();
+	return trimmed && trimmed.length > 0 ? trimmed : crypto.randomUUID();
+}
 
 /** One image or video attached to a social post (R2 / user media paths from `/api/v1/media/*`). */
 export type PostMediaProgrammerModel = {
@@ -15,6 +25,12 @@ export type PostMediaProgrammerModel = {
 	 * Never a storage key — do not send this on create/update payloads.
 	 */
 	localPreviewUrl?: string;
+	/** Library metadata for composer preview; persisted on schedule when set. */
+	alt?: string | null;
+	thumbnail?: string | null;
+	/** Client preview only — not sent on create/update payloads. */
+	thumbnailPublicUrl?: string | null;
+	thumbnailTimestamp?: number | null;
 };
 
 function isComposerMediaFile(file: File): boolean {
@@ -55,7 +71,11 @@ export async function uploadSocialPostComposerMediaFiles(
 		if (result.success && result.data.filePath) {
 			completedBytes += file.size;
 			options?.onProgress?.({ bytesUploaded: completedBytes, bytesTotal: totalBytes });
-			items.push({ id: crypto.randomUUID(), path: result.data.filePath, bucket: 'social_media' });
+			items.push({
+				id: resolvePostMediaLibraryRowId(result.data.id),
+				path: result.data.filePath,
+				bucket: 'social_media'
+			});
 		} else {
 			return { ok: false, message: result.message || 'Upload failed.' };
 		}
@@ -423,9 +443,14 @@ export class PostsRepository {
 		payload: CreatePostProgrammerModel
 	): Promise<PostUpsertProgrammerModel> {
 		try {
+			const wirePayload: CreatePostProgrammerModel = {
+				...payload,
+				media: serializePostMediaListForApi(payload.media),
+				mediaByIntegrationId: serializePostMediaByIntegrationForApi(payload.mediaByIntegrationId)
+			};
 			const { ok, data: dto } = await this.httpGateway.post<CreatePostResponseDto>(
 				this.config.endpoints.createPost,
-				payload,
+				wirePayload,
 				{ withCredentials: true }
 			);
 			const posts = dto?.data?.posts;
@@ -590,9 +615,14 @@ export class PostsRepository {
 	): Promise<PostUpsertProgrammerModel> {
 		try {
 			const url = `${this.config.endpoints.updatePostGroup}/${encodeURIComponent(postGroup)}`;
+			const wirePayload: UpdatePostGroupProgrammerModel = {
+				...payload,
+				media: serializePostMediaListForApi(payload.media),
+				mediaByIntegrationId: serializePostMediaByIntegrationForApi(payload.mediaByIntegrationId)
+			};
 			const { ok, data: dto } = await this.httpGateway.put<CreatePostResponseDto>(
 				url,
-				payload,
+				wirePayload,
 				{ withCredentials: true }
 			);
 			const posts = dto?.data?.posts;

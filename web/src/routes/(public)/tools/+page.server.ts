@@ -54,7 +54,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			description:
 				'Design and resize visuals for social channels in your browser. Download PNG free, or save to your cloud when signed in.',
 			href: url(route(getRootPathPublicPhotoEditor())),
-			badge: 'Design editor'
+			badge: 'Photo editor'
 		},
 		{
 			id: 'humanizer',

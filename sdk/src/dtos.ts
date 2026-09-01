@@ -28,6 +28,12 @@ export type PublicCreatePostMediaItemDto = {
      * Storage bucket name (optional).
      */
     bucket?: string;
+    /** Image alt text (max 2000 characters). */
+    alt?: string | null;
+    /** Storage path for a custom video poster frame. */
+    thumbnail?: string | null;
+    /** Seconds into the video for the poster frame (used by Instagram reel cover offset). */
+    thumbnailTimestamp?: number | null;
 };
 
 export type PublicCreatePostDto = {

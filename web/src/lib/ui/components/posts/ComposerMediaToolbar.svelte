@@ -194,8 +194,8 @@
 			? 'Sign in to attach from your media library'
 			: 'Attach images or videos from your media library'
 	);
-	const designTooltipLabel = $derived(
-		guestMode ? 'Sign in to open the design editor' : 'Open the design editor to create or edit visuals'
+	const photoEditorTooltipLabel = $derived(
+		guestMode ? 'Sign in to open the Photo Editor' : 'Open the Photo Editor to create or edit visuals'
 	);
 	const signatureTooltipLabel = $derived(
 		guestMode ? 'Sign in to insert a workspace signature' : 'Insert a saved workspace signature'
@@ -510,7 +510,7 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 		<!-- 3: design / canvas modal -->
-		<ComposerMediaTooltip label={designTooltipLabel}>
+		<ComposerMediaTooltip label={photoEditorTooltipLabel}>
 			{#snippet trigger({ props })}
 				<button
 					{...props}
@@ -519,12 +519,12 @@
 					disabled={disabled || uploadBusy || mediaAtCap}
 					onclick={composeTooltipTriggerClick(props, () => {
 						if (guestMode) {
-							openGuestLock('design-editor');
+							openGuestLock('photo-editor');
 							return;
 						}
 						designOpen = true;
 					})}
-					aria-label={designTooltipLabel}
+					aria-label={photoEditorTooltipLabel}
 				>
 					<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-base-200/45 shadow-none ring-0" />
 					{#if guestMode}

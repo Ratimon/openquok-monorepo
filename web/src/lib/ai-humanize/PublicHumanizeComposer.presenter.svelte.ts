@@ -42,7 +42,7 @@ const EMPTY_BACKGROUND_PANEL: BackgroundPanelViewModel = {
 
 const EMPTY_EXPORT_CANVAS: ExportCanvasToMediaFn = async () => ({
 	ok: false,
-	error: 'The design editor saves to a workspace. Sign in to continue.'
+	error: 'The Photo Editor saves to a workspace. Sign in to continue.'
 });
 
 export type PublicHumanizeComposerInit = {

@@ -56,6 +56,20 @@
  *                     bucket:
  *                       type: string
  *                       description: Storage bucket name (defaults to the composer media bucket).
+ *                     alt:
+ *                       type: string
+ *                       maxLength: 2000
+ *                       nullable: true
+ *                       description: Image alt text (max 2000 characters).
+ *                     thumbnail:
+ *                       type: string
+ *                       nullable: true
+ *                       description: Storage path for a custom video poster frame.
+ *                     thumbnailTimestamp:
+ *                       type: number
+ *                       minimum: 0
+ *                       nullable: true
+ *                       description: Seconds into the video for the poster frame (Instagram reel cover offset).
  *               mediaByIntegrationId:
  *                 type: object
  *                 additionalProperties:
@@ -72,6 +86,20 @@
  *                       bucket:
  *                         type: string
  *                         description: Storage bucket name (defaults to the composer media bucket).
+ *                       alt:
+ *                         type: string
+ *                         maxLength: 2000
+ *                         nullable: true
+ *                         description: Image alt text (max 2000 characters).
+ *                       thumbnail:
+ *                         type: string
+ *                         nullable: true
+ *                         description: Storage path for a custom video poster frame.
+ *                       thumbnailTimestamp:
+ *                         type: number
+ *                         minimum: 0
+ *                         nullable: true
+ *                         description: Seconds into the video for the poster frame (Instagram reel cover offset).
  *                 description: >-
  *                   Per-channel media overrides keyed by integration (channel)
  *                   UUID. When a channel is omitted, the top-level `media` array
@@ -134,6 +162,8 @@
  *             media:
  *               - id: img-global
  *                 path: uploads/2026/05/hero.png
+ *                 alt: Product launch hero
+ *                 thumbnailTimestamp: 1.5
  *             mediaByIntegrationId:
  *               1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22:
  *                 - id: img-a

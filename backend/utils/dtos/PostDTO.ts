@@ -73,7 +73,60 @@ export type RepeatIntervalKey =
 export type PostMediaItemInput = {
     id: string;
     path: string;
+    bucket?: string;
+    alt?: string | null;
+    thumbnail?: string | null;
+    thumbnailTimestamp?: number | null;
 };
+
+function parseOptionalPostMediaAlt(raw: unknown): string | null | undefined {
+    if (raw === null) return null;
+    if (typeof raw !== "string") return undefined;
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed.slice(0, 2000) : null;
+}
+
+function parseOptionalPostMediaThumbnail(raw: unknown): string | null | undefined {
+    if (raw === null) return null;
+    if (typeof raw !== "string") return undefined;
+    const trimmed = raw.trim();
+    return trimmed.length > 0 ? trimmed.slice(0, 2000) : null;
+}
+
+function parseOptionalPostMediaThumbnailTimestamp(raw: unknown): number | null | undefined {
+    if (raw === null) return null;
+    if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 0) return undefined;
+    return raw;
+}
+
+/** Parses one media item from `posts.image` JSON or follow-up reply `media`. */
+export function parsePostMediaItemFromRaw(x: unknown): PostMediaItemInput | null {
+    if (!x || typeof x !== "object") return null;
+    const o = x as Record<string, unknown>;
+    const id = typeof o.id === "string" ? o.id : "";
+    const path = typeof o.path === "string" ? o.path : "";
+    if (!id || !path) return null;
+
+    const item: PostMediaItemInput = { id, path };
+
+    const bucket = typeof o.bucket === "string" ? o.bucket.trim() : "";
+    if (bucket) item.bucket = bucket;
+
+    if ("alt" in o) {
+        const alt = parseOptionalPostMediaAlt(o.alt);
+        if (alt !== undefined) item.alt = alt;
+    }
+    if ("thumbnail" in o) {
+        const thumbnail = parseOptionalPostMediaThumbnail(o.thumbnail);
+        if (thumbnail !== undefined) item.thumbnail = thumbnail;
+    }
+    if ("thumbnailTimestamp" in o) {
+        const thumbnailTimestamp = parseOptionalPostMediaThumbnailTimestamp(o.thumbnailTimestamp);
+        if (thumbnailTimestamp !== undefined) item.thumbnailTimestamp = thumbnailTimestamp;
+    }
+
+    return item;
+}
 
 /** Maps composer repeat key to `posts.interval_in_days`. */
 export function repeatIntervalToDays(key: RepeatIntervalKey | null): number | null {
@@ -195,11 +248,8 @@ function parseFollowUpReplyMedia(raw: unknown): PostMediaItemInput[] | undefined
           : null;
     if (!items) return undefined;
     const media = items
-        .map((x) => ({
-            id: typeof (x as { id?: unknown })?.id === "string" ? (x as { id: string }).id : "",
-            path: typeof (x as { path?: unknown })?.path === "string" ? (x as { path: string }).path : "",
-        }))
-        .filter((m) => m.id && m.path);
+        .map((x) => parsePostMediaItemFromRaw(x))
+        .filter((m): m is PostMediaItemInput => m != null);
     return media.length > 0 ? media : undefined;
 }
 
@@ -300,11 +350,8 @@ export function parsePostImageColumn(image: string | null): PostMediaItemInput[]
         const o = JSON.parse(image) as { items?: unknown };
         const items = Array.isArray((o as { items?: unknown }).items) ? ((o as { items: unknown[] }).items as unknown[]) : [];
         return items
-            .map((x) => ({
-                id: typeof (x as { id?: unknown })?.id === "string" ? (x as { id: string }).id : "",
-                path: typeof (x as { path?: unknown })?.path === "string" ? (x as { path: string }).path : "",
-            }))
-            .filter((m) => m.id && m.path);
+            .map((x) => parsePostMediaItemFromRaw(x))
+            .filter((m): m is PostMediaItemInput => m != null);
     } catch {
         return [];
     }

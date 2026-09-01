@@ -41,6 +41,7 @@ export { MAX_MEDIA_UPLOAD_BYTES, MAX_MEDIA_VIDEO_UPLOAD_BYTES } from 'openquok-c
 export interface MediaUploadResponseDto {
 	success: boolean;
 	data: {
+		id?: string;
 		filePath: string;
 		publicUrl?: string;
 	};
@@ -50,6 +51,7 @@ export interface MediaUploadResponseDto {
 export interface MediaUploadProgrammerModel {
 	success: boolean;
 	data: {
+		id?: string;
 		filePath: string;
 		publicUrl?: string;
 	};

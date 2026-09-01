@@ -1,4 +1,5 @@
 import {
+    extractComposerMedia,
     normalizeInstagramCollaborators,
     resolveInstagramPublishSettings,
 } from "./instagramGraphContentPublish.js";
@@ -61,6 +62,30 @@ describe("resolveInstagramPublishSettings", () => {
             graduation_strategy: "MANUAL",
             collaborators: [],
         });
+    });
+});
+
+describe("extractComposerMedia", () => {
+    it("preserves thumbnailTimestamp on media items", () => {
+        expect(
+            extractComposerMedia({
+                media: {
+                    items: [
+                        {
+                            id: "m1",
+                            path: "social_media/org/reel.mp4",
+                            thumbnailTimestamp: 3.5,
+                        },
+                    ],
+                },
+            })
+        ).toEqual([
+            {
+                id: "m1",
+                path: "social_media/org/reel.mp4",
+                thumbnailTimestamp: 3.5,
+            },
+        ]);
     });
 });
 

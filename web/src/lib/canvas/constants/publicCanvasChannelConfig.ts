@@ -32,12 +32,11 @@ export type CanvasChannelPageConfig = {
 export const PUBLIC_CANVAS_GENERIC_CONFIG = {
 	metaTitle: 'Social Media Photo Editor',
 	metaDescription:
-		'Free design editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
+		'Free photo editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
 	defaultAspectRatioId: DEFAULT_ASPECT_RATIO_ID,
 	aspectPlatformGroupId: 'general',
 	keywords: [
 		'photo editor',
-		'design editor',
 		'canvas editor',
 		'free image editor',
 		'social media image sizes',

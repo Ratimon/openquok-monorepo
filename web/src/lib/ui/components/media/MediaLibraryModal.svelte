@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
-	import type { PostMediaProgrammerModel } from '$lib/posts';
+	import { resolvePostMediaLibraryRowId, type PostMediaProgrammerModel } from '$lib/posts';
 
 	import { icons } from '$data/icons';
 	import {
@@ -183,7 +183,7 @@
 			return;
 		}
 		const row: PostMediaProgrammerModel = {
-			id: crypto.randomUUID(),
+			id: resolvePostMediaLibraryRowId(item.id),
 			path: item.path,
 			bucket: 'social_media'
 		};

@@ -1,18 +1,40 @@
 import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
+import { isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import { uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 
+function videoPosterPreviewUrl(item: PostMediaProgrammerModel): string | null {
+	const thumb = item.thumbnail?.trim();
+	if (!thumb) return null;
+	if (thumb.startsWith('http://') || thumb.startsWith('https://')) {
+		const sep = thumb.includes('?') ? '&' : '?';
+		return item.thumbnailTimestamp != null ? `${thumb}${sep}thumbTs=${item.thumbnailTimestamp}` : thumb;
+	}
+	const base = item.thumbnailPublicUrl?.trim()
+		? item.thumbnailPublicUrl
+		: publicUrlForMediaStorageKey(thumb);
+	const sep = base.includes('?') ? '&' : '?';
+	return item.thumbnailTimestamp != null ? `${base}${sep}thumbTs=${item.thumbnailTimestamp}` : base;
+}
+
+/** Preview `src` for one composer attachment: blob URL, video poster, or storage URL. */
+export function postMediaPreviewUrl(item: PostMediaProgrammerModel): string {
+	const local = item.localPreviewUrl?.trim();
+	if (local) return local;
+	const path = item.path.trim();
+	if (path.startsWith('blob:')) return path;
+	if (isVideoMediaPath(path)) {
+		const poster = videoPosterPreviewUrl(item);
+		if (poster) return poster;
+	}
+	return publicUrlForMediaStorageKey(path);
+}
+
 /** Preview `src` for composer media: local blob URLs first, then public storage URLs. */
 export function postMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): string[] {
-	return items.map((m) => {
-		const local = m.localPreviewUrl?.trim();
-		if (local) return local;
-		const path = m.path.trim();
-		if (path.startsWith('blob:')) return path;
-		return publicUrlForMediaStorageKey(path);
-	});
+	return items.map(postMediaPreviewUrl);
 }
 
 /** Collect files from a drag event (`files` first, then `items` for Safari). */

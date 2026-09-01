@@ -82,6 +82,8 @@
 		setsAuthoringNetworkLock?: boolean;
 		/** Fired when `postMediaItems` changes (use when two-way bind to an optional field is awkward). */
 		onPostMediaItemsChange?: (items: PostMediaProgrammerModel[]) => void;
+		/** Signed-in composer: open alt / video poster settings for a strip attachment. */
+		onOpenComposerMediaSettings?: (index: number) => void;
 		/**
 		 * Public tool composer: local blob attach; library / design / signatures stay behind Sign in + Sign up.
 		 */
@@ -134,6 +136,7 @@
 		guestMode = false,
 		isLoggedIn = false,
 		onPostMediaItemsChange = undefined,
+		onOpenComposerMediaSettings = undefined,
 		composerTextHistory = undefined,
 		composerHistoryKey = 'global',
 		composerEditorMode = 'normal'
@@ -646,6 +649,7 @@
 				{publishDateIso}
 				{maxMediaItems}
 				{guestMode}
+				onOpenComposerMediaSettings={guestMode ? undefined : onOpenComposerMediaSettings}
 			/>
 		</div>
 		{#if scheduleValidationMessage}

@@ -5,11 +5,12 @@
 	import { onDestroy } from 'svelte';
 
 	import { isVideoMediaPath, publicUrlForMediaStorageKey, formatBytes } from '$lib/medias';
-	import { getScheduledPostsPresenter } from '$lib/posts';
+	import { composerMediaItemSupportsSettings } from '$lib/posts/utils/composer/composerMediaSettings';
 	import {
 		attachComposerMediaFromFiles,
 		attachComposerMediaFromLocalFiles,
 		filesFromDataTransfer,
+		postMediaPreviewUrl,
 		revokeLocalMediaPreviewUrl,
 		revokeLocalMediaPreviewUrls
 	} from '$lib/posts/utils/composer/mediaDrop';
@@ -34,6 +35,8 @@
 		maxMediaItems?: number | null;
 		/** Public tool composer: attach as local `blob:` previews, never upload. */
 		guestMode?: boolean;
+		/** Signed-in composer: open alt / video poster settings for strip item at index. */
+		onOpenComposerMediaSettings?: (index: number) => void;
 	};
 
 	let {
@@ -47,7 +50,8 @@
 		uploadUid = '',
 		publishDateIso = null,
 		maxMediaItems = null,
-		guestMode = false
+		guestMode = false,
+		onOpenComposerMediaSettings
 	}: Props = $props();
 
 	let previewUrl = $state('');
@@ -61,7 +65,10 @@
 	const noDrag = $derived(mediaAtCap);
 
 	const isLibraryMode = $derived(Boolean(mediaVm));
-	const previewUrls = $derived(getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(items));
+	const previewUrls = $derived(items.map((row) => postMediaPreviewUrl(row)));
+	const composerSettingsEnabled = $derived(
+		!guestMode && typeof onOpenComposerMediaSettings === 'function'
+	);
 	const isImage = $derived(mediaVm?.kind === 'image');
 	const isVideo = $derived(mediaVm?.kind === 'video');
 	const isPreviewable = $derived(isImage || isVideo);
@@ -303,20 +310,61 @@
 		{#if items.length > 0}
 			<div class="flex flex-wrap gap-2 px-0.5">
 				{#each items as m, index (m.id)}
+					{@const previewSrc = previewUrls[index]}
+					{@const isVideo = isVideoMediaPath(m.path)}
+					{@const videoUsesPoster = Boolean(isVideo && m.thumbnail?.trim())}
+					{@const settingsAvailable =
+						composerSettingsEnabled &&
+						composerMediaItemSupportsSettings(m) &&
+						!disabled}
 					<div
-						class="border-base-300 bg-base-200/40 relative h-11 w-11 shrink-0 overflow-hidden rounded-md border"
+						class="border-base-300 bg-base-200/40 group relative h-11 w-11 shrink-0 overflow-hidden rounded-md border"
 					>
-						{#if isVideoMediaPath(m.path)}
+						{#if settingsAvailable}
+							<button
+								type="button"
+								class="absolute inset-0 z-0 h-full w-full"
+								onclick={() => onOpenComposerMediaSettings?.(index)}
+								aria-label="Media details"
+							>
+								{#if isVideo && !videoUsesPoster}
+									<!-- svelte-ignore a11y_media_has_caption -->
+									<video
+										src={previewSrc}
+										class="h-full w-full object-cover"
+										muted
+										playsinline
+										preload="metadata"
+									></video>
+								{:else}
+									<BlobOrHrefImg
+										href={previewSrc}
+										alt={m.alt?.trim() || ''}
+										class="h-full w-full object-cover"
+										loading="lazy"
+									/>
+								{/if}
+							</button>
+						{:else if isVideo}
 							<!-- svelte-ignore a11y_media_has_caption -->
 							<video
-								src={previewUrls[index]}
+								src={previewSrc}
 								class="h-full w-full object-cover"
 								muted
 								playsinline
 								preload="metadata"
 							></video>
+						{:else}
+							<BlobOrHrefImg
+								href={previewSrc}
+								alt=""
+								class="h-full w-full object-cover"
+								loading="lazy"
+							/>
+						{/if}
+						{#if isVideo}
 							<div
-								class="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15"
+								class="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center bg-black/15"
 							>
 								<div class="rounded-full bg-black/55 p-1 text-white">
 									<AbstractIcon
@@ -327,21 +375,14 @@
 									/>
 								</div>
 							</div>
-						{:else}
-							<BlobOrHrefImg
-								href={previewUrls[index]}
-								alt=""
-								class="h-full w-full object-cover"
-								loading="lazy"
-							/>
 						{/if}
-						<div class="absolute top-0.5 left-0 flex flex-col gap-0.5">
+						<div class="absolute top-0.5 left-0 z-[2] flex flex-col gap-0.5">
 							<button
 								type="button"
 								class="bg-base-100/90 text-base-content/80 hover:text-base-content flex h-5 w-5 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm disabled:opacity-40"
 								disabled={disabled || index === 0}
 								onclick={() => move(index, index - 1)}
-								aria-label="Move earlier"
+								aria-label="Move up"
 							>
 								<AbstractIcon name={icons.ChevronUp.name} class="size-3.5" width="14" height="14" />
 							</button>
@@ -350,14 +391,28 @@
 								class="bg-base-100/90 text-base-content/80 hover:text-base-content flex h-5 w-5 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm disabled:opacity-40"
 								disabled={disabled || index === items.length - 1}
 								onclick={() => move(index, index + 1)}
-								aria-label="Move later"
+								aria-label="Move down"
 							>
 								<AbstractIcon name={icons.ChevronDown.name} class="size-3.5" width="14" height="14" />
 							</button>
 						</div>
+						{#if settingsAvailable}
+							<button
+								type="button"
+								class="bg-base-100/95 text-base-content/90 hover:text-base-content absolute bottom-0.5 right-0.5 z-[2] flex h-5 w-5 items-center justify-center rounded-full opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+								disabled={disabled}
+								onclick={(e) => {
+									e.stopPropagation();
+									onOpenComposerMediaSettings?.(index);
+								}}
+								aria-label="Media details"
+							>
+								<AbstractIcon name={icons.Settings.name} class="size-3" width="12" height="12" />
+							</button>
+						{/if}
 						<button
 							type="button"
-							class="bg-base-100/95 text-base-content/90 hover:bg-error/90 hover:text-error-content absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full shadow-sm"
+							class="bg-base-100/95 text-base-content/90 hover:bg-error/90 hover:text-error-content absolute -top-1 -right-1 z-[2] flex h-5 w-5 items-center justify-center rounded-full shadow-sm"
 							disabled={disabled}
 							onclick={() => removeAt(index)}
 							aria-label="Remove media"

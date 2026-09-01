@@ -1,5 +1,8 @@
 import type { KonvaCanvasApi } from '$lib/ui/canvas-editor/canvas/konvaCanvasApi';
-import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
+import {
+	resolvePostMediaLibraryRowId,
+	type PostMediaViewModel
+} from '$lib/posts/Post.repository.svelte';
 import type { MediaRepository } from '$lib/medias';
 
 import { downloadCanvasPng, type DownloadCanvasPngResult } from '$lib/canvas/utils/downloadCanvasPng';
@@ -132,7 +135,7 @@ export class GenerateMediaModalPresenter {
 					ok: true,
 					items: [
 						{
-							id: crypto.randomUUID(),
+							id: resolvePostMediaLibraryRowId(result.data.id),
 							path: result.data.filePath,
 							bucket: 'social_media'
 						}

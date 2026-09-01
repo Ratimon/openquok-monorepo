@@ -2,6 +2,8 @@ import {
     extractFollowUpRepliesFromPostSettingsColumn,
     extractFollowUpRepliesFromProviderSettingsObject,
     isFacebookStoryProviderSettings,
+    parsePostImageColumn,
+    parsePostMediaItemFromRaw,
     replyChainBucketForProvider,
 } from "./PostDTO";
 
@@ -149,7 +151,12 @@ describe("PostDTO follow-up buckets", () => {
                                 message: "With image",
                                 delaySeconds: 1,
                                 media: [
-                                    { id: "m1", path: "social_media/org/img.jpg" },
+                                    {
+                                        id: "m1",
+                                        path: "social_media/org/img.jpg",
+                                        alt: "Thread image",
+                                        thumbnailTimestamp: 0,
+                                    },
                                     { id: "", path: "social_media/org/skip.jpg" },
                                 ],
                             },
@@ -163,7 +170,14 @@ describe("PostDTO follow-up buckets", () => {
                     id: "t1",
                     message: "With image",
                     delaySeconds: 1,
-                    media: [{ id: "m1", path: "social_media/org/img.jpg" }],
+                    media: [
+                        {
+                            id: "m1",
+                            path: "social_media/org/img.jpg",
+                            alt: "Thread image",
+                            thumbnailTimestamp: 0,
+                        },
+                    ],
                 },
             ]);
         });
@@ -267,6 +281,59 @@ describe("PostDTO follow-up buckets", () => {
         it("returns false for feed posts and missing settings", () => {
             expect(isFacebookStoryProviderSettings({ facebook: { postType: "post" } })).toBe(false);
             expect(isFacebookStoryProviderSettings(null)).toBe(false);
+        });
+    });
+
+    describe("parsePostImageColumn", () => {
+        it("parses id and path only when optional fields are absent", () => {
+            const image = JSON.stringify({
+                v: 1,
+                items: [{ id: "m1", path: "social_media/org/photo.jpg" }],
+            });
+            expect(parsePostImageColumn(image)).toEqual([
+                { id: "m1", path: "social_media/org/photo.jpg" },
+            ]);
+        });
+
+        it("parses alt, thumbnail, and thumbnailTimestamp on media items", () => {
+            const image = JSON.stringify({
+                v: 1,
+                items: [
+                    {
+                        id: "m2",
+                        path: "social_media/org/reel.mp4",
+                        alt: "Launch reel",
+                        thumbnail: "social_media/org/reel-poster.jpg",
+                        thumbnailTimestamp: 2.5,
+                    },
+                ],
+            });
+            expect(parsePostImageColumn(image)).toEqual([
+                {
+                    id: "m2",
+                    path: "social_media/org/reel.mp4",
+                    alt: "Launch reel",
+                    thumbnail: "social_media/org/reel-poster.jpg",
+                    thumbnailTimestamp: 2.5,
+                },
+            ]);
+        });
+
+        it("normalizes blank alt and thumbnail to null when keys are present", () => {
+            const image = JSON.stringify({
+                v: 1,
+                items: [{ id: "m3", path: "social_media/org/x.png", alt: "  ", thumbnail: "" }],
+            });
+            expect(parsePostImageColumn(image)).toEqual([
+                { id: "m3", path: "social_media/org/x.png", alt: null, thumbnail: null },
+            ]);
+        });
+    });
+
+    describe("parsePostMediaItemFromRaw", () => {
+        it("returns null for invalid items", () => {
+            expect(parsePostMediaItemFromRaw(null)).toBeNull();
+            expect(parsePostMediaItemFromRaw({ id: "only-id" })).toBeNull();
         });
     });
 });

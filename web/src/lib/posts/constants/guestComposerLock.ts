@@ -2,7 +2,7 @@
 export const GUEST_COMPOSER_LOCK_ACTIONS = [
 	'media-library',
 	'signature',
-	'design-editor',
+	'photo-editor',
 	'linkedin-company',
 	'draft',
 	'schedule',
@@ -36,13 +36,13 @@ export const GUEST_COMPOSER_LOCK_COPY: Record<GuestComposerLockAction, GuestComp
 		loggedInDescription:
 			'Saved signatures belong to your workspace. Open your workspace to insert one.'
 	},
-	'design-editor': {
-		title: 'Sign in to open the design editor',
+	'photo-editor': {
+		title: 'Sign in to open the Photo Editor',
 		description:
-			'The design editor saves visuals to your workspace media library. Sign in or sign up to continue.',
-		loggedInTitle: 'Open workspace to use the design editor',
+			'The Photo Editor saves visuals to your workspace media library. Sign in or sign up to continue.',
+		loggedInTitle: 'Open workspace to use the Photo Editor',
 		loggedInDescription:
-			'The design editor saves visuals to your workspace media library. Open your workspace to continue.'
+			'The Photo Editor saves visuals to your workspace media library. Open your workspace to continue.'
 	},
 	'linkedin-company': {
 		title: 'Sign in to mention a LinkedIn company',

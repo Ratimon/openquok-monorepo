@@ -234,7 +234,7 @@ async function uploadViaMultipartForm(params: {
 				try {
 					return JSON.parse(xhr.responseText) as {
 						success?: boolean;
-						data?: { filePath?: string; publicUrl?: string };
+						data?: { id?: string; filePath?: string; publicUrl?: string };
 						message?: string;
 					};
 				} catch {
@@ -255,6 +255,7 @@ async function uploadViaMultipartForm(params: {
 				success: true,
 				data: {
 					filePath: json.data.filePath,
+					...(json.data.id ? { id: json.data.id } : {}),
 					...(json.data.publicUrl ? { publicUrl: json.data.publicUrl } : {})
 				},
 				message: json.message ?? 'Media uploaded successfully'
@@ -356,7 +357,7 @@ async function uploadViaDirectR2Multipart(params: {
 
 	const saved =
 		completed.saved && typeof completed.saved === 'object'
-			? (completed.saved as { path?: string; publicUrl?: string | null })
+			? (completed.saved as { id?: string; path?: string; publicUrl?: string | null })
 			: null;
 	const filePath = (saved?.path ?? key).trim();
 	if (!filePath) {
@@ -367,6 +368,7 @@ async function uploadViaDirectR2Multipart(params: {
 		success: true,
 		data: {
 			filePath,
+			...(saved?.id ? { id: saved.id } : {}),
 			...(saved?.publicUrl ? { publicUrl: saved.publicUrl } : {})
 		},
 		message: 'Media uploaded successfully'

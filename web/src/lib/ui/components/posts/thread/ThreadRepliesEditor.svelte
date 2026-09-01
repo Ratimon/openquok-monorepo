@@ -51,6 +51,8 @@
 		compactEditor?: boolean;
 		/** Public tool composer: local blob attach only. */
 		guestMode?: boolean;
+		/** Signed-in composer: open alt / video poster settings on a reply attachment. */
+		onOpenComposerMediaSettings?: (replyId: string, mediaIndex: number) => void;
 	};
 
 	let {
@@ -68,7 +70,8 @@
 		onChangeReplies,
 		hideProviderHelp = false,
 		compactEditor = false,
-		guestMode = false
+		guestMode = false,
+		onOpenComposerMediaSettings = undefined
 	}: Props = $props();
 
 	const id = $derived((providerIdentifier ?? '').toLowerCase());
@@ -244,6 +247,11 @@
 							{organizationId}
 							maxMediaItems={replyMaxMediaItems}
 							{guestMode}
+							onOpenComposerMediaSettings={
+								guestMode || !onOpenComposerMediaSettings
+									? undefined
+									: (mediaIndex) => onOpenComposerMediaSettings(reply.id, mediaIndex)
+							}
 						/>
 
 						<div class="{compactEditor ? 'mt-2' : 'mt-3'}">

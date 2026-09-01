@@ -170,12 +170,38 @@ export function legacySharedRepliesFromProviderSnapshot(args: {
 				mediaItems
 					?.map((m) => {
 						const item = m as Record<string, unknown>;
-						return {
-							id: typeof item.id === 'string' ? item.id : '',
-							path: typeof item.path === 'string' ? item.path : ''
-						};
+						const id = typeof item.id === 'string' ? item.id : '';
+						const path = typeof item.path === 'string' ? item.path : '';
+						if (!id || !path) return null;
+						const out: {
+							id: string;
+							path: string;
+							alt?: string | null;
+							thumbnail?: string | null;
+							thumbnailTimestamp?: number | null;
+						} = { id, path };
+						if ('alt' in item) {
+							const alt = typeof item.alt === 'string' ? item.alt.trim() : item.alt;
+							if (alt !== undefined) out.alt = alt && String(alt).length > 0 ? String(alt).slice(0, 2000) : null;
+						}
+						if ('thumbnail' in item) {
+							const thumbnail =
+								typeof item.thumbnail === 'string' ? item.thumbnail.trim() : item.thumbnail;
+							if (thumbnail !== undefined) {
+								out.thumbnail =
+									thumbnail && String(thumbnail).length > 0 ? String(thumbnail) : null;
+							}
+						}
+						if ('thumbnailTimestamp' in item) {
+							const ts = item.thumbnailTimestamp;
+							if (ts === null) out.thumbnailTimestamp = null;
+							else if (typeof ts === 'number' && Number.isFinite(ts) && ts >= 0) {
+								out.thumbnailTimestamp = ts;
+							}
+						}
+						return out;
 					})
-					.filter((m) => m.id && m.path) ?? [];
+					.filter((m): m is NonNullable<typeof m> => m != null) ?? [];
 			return {
 				id,
 				message: typeof x.message === 'string' ? x.message : '',

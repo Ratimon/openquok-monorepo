@@ -133,7 +133,7 @@ function assertInstagramSupportedMedia(pathOrUrl: string): void {
     }
 }
 
-function extractComposerMedia(settings: unknown): ComposerMediaItem[] {
+export function extractComposerMedia(settings: unknown): ComposerMediaItem[] {
     if (!settings || typeof settings !== "object") return [];
     const s = settings as { media?: { items?: unknown } | unknown[] };
     const media = s.media;

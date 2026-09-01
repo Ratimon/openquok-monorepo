@@ -32,7 +32,7 @@ export const postsRepository = new PostsRepository(httpGateway, postsConfig);
 /** Shared read-side presenter for calendar + public preview composition roots. */
 export const getScheduledPostsPresenter = new GetScheduledPostsPresenter(postsRepository);
 
-export { PostsRepository, uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
+export { PostsRepository, resolvePostMediaLibraryRowId, uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 export type {
 	CreatePostProgrammerModel,
 	LoadMissingPublishCandidatesResultProgrammerModel,
