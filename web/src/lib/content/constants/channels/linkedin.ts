@@ -5,7 +5,12 @@ import {
 	buildChannelLandingFaqLinks,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqHrefDocs,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const LINKEDIN_DOCS_PATH = '/docs/social-integration/linkedin';
 const linkedinLinks = buildChannelLandingFaqLinks('linkedin', LINKEDIN_DOCS_PATH);
@@ -17,7 +22,7 @@ export const linkedinChannel = {
 	icon: icons.LinkedInGlyph.name,
 	heroTitle: 'Show up credibly on LinkedIn when B2B buyers actually look you up',
 	heroDescription:
-		'Connect your personal profile and company Page, queue posts, slide carousels, and video on the OpenQuok calendar, and publish with review — because executives evaluate vendors at your profile, not in the scroll feed.',
+		'Connect your personal profile and company Page, queue posts, slide carousels, follow-up comments, and video on the OpenQuok calendar, and publish with review — because executives evaluate vendors at your profile, not in the scroll feed.',
 	metaTitle: 'LinkedIn Post Scheduler for B2B Teams',
 	metaDescription:
 		'Schedule LinkedIn profile and Page posts for B2B outreach. Queue thought leadership, PDF document carousels, and video through the official API — with approval before anything goes live.',
@@ -44,9 +49,9 @@ export const linkedinChannel = {
 		},
 		{
 			subtitle: 'B2B content formats',
-			title: 'Craft PDF carousels, publish to your Page, reach buyers off the feed',
+			title: 'Build PDF carousels, schedule replies, widen reach with plugs',
 			description:
-				'Posting volume alone does not win B2B deals — format and credibility matter. Attach two or more images and OpenQuok builds a LinkedIn document carousel when the post publishes. Add company mentions, and queue follow-up comments or reshares from another connected LinkedIn account after the post goes live.',
+				'Attach two or more images and OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page before publish. After go-live, use Plugs to comment or reshare from another connected LinkedIn account.',
 			bentoId: 'linkedin-compose-settings',
 			mediaOnRight: false
 		},
@@ -108,6 +113,11 @@ export const linkedinChannel = {
 				'Yes. Attach two or more images (no video), enable Post as image carousel in composer settings, and OpenQuok combines them into a PDF document share at publish time — the native carousel format LinkedIn expects. Optional carousel title defaults to slides.'
 		},
 		{
+			title: 'Can I schedule follow-up comments on LinkedIn?',
+			description:
+				`Yes. Add follow-up comment rows in the composer for LinkedIn profile or LinkedIn Page (or pass linkedin.replies or linkedin-page.replies via the API or CLI). Each comment is text only and publishes after the delay you set once the root post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+		},
+		{
 			title: 'What is the LinkedIn character limit in OpenQuok?',
 			description:
 				`OpenQuok enforces LinkedIn’s 3,000-character cap in the composer with a live preview. When you cross-post, each destination keeps its own caption and limit — edit LinkedIn copy separately from shorter networks such as Threads. Polish drafts in the ${faqLink(linkedinLinks.humanizer.toolChannel, 'LinkedIn humanizer tool')} before you schedule.`
@@ -130,7 +140,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can I schedule LinkedIn from the API, CLI, or an AI agent?',
 			description:
-				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with posts:create and integration IDs for linkedin or linkedin-page. Pass provider settings such as postAsImagesCarousel for document carousels. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts; keep human approval in the dashboard when content represents your brand.`
+				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with posts:create and integration IDs for linkedin or linkedin-page. Pass provider settings such as postAsImagesCarousel for document carousels or linkedin.replies / linkedin-page.replies for follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts.`
 		},
 		{
 			title: 'Can OpenQuok auto-repost LinkedIn Page posts?',

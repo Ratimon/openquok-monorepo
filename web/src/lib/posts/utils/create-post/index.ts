@@ -30,6 +30,7 @@ export {
 export {
 	applyThreadFollowUpRepliesToSettings,
 	channelSupportsFollowUpComments,
+	integrationSupportsFollowUpComments,
 	followUpBucketForChannel,
 	getPrimaryThreadFollowUpIntegrationId,
 	legacySharedRepliesFromProviderSnapshot,

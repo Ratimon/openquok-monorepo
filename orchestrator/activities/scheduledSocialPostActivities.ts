@@ -777,6 +777,19 @@ function followUpRepliesFromStoredProviderSettings(
     return extractFollowUpRepliesFromProviderSettingsObject(settings, providerIdentifier);
 }
 
+function isFacebookStoryProviderSettings(
+    providerSettings: Record<string, unknown> | null
+): boolean {
+    if (!providerSettings) return false;
+    const facebook = providerSettings.facebook;
+    if (facebook && typeof facebook === "object" && !Array.isArray(facebook)) {
+        const fb = facebook as Record<string, unknown>;
+        if (fb.postType === "story" || fb.post_type === "story") return true;
+    }
+    if (providerSettings.postType === "story" || providerSettings.post_type === "story") return true;
+    return false;
+}
+
 function followUpCommentMediaAllowed(providerIdentifier: string): boolean {
     const pid = providerIdentifier.trim().toLowerCase();
     return pid === "threads" || pid === "x" || pid === "facebook";
@@ -885,6 +898,15 @@ async function maybePublishThreadsReplies(params: {
     // mirrors it for QUEUE/PUBLISHED state — prefer settings when drafts exist so we never skip because the
     // DB mirror is empty, out of sync, or has unusable rows while settings still has the real copy.
     const providerSettings = parseProviderSettingsFromPostRow(post);
+    if (pid === "facebook" && isFacebookStoryProviderSettings(providerSettings)) {
+        logger.info({
+            msg: "[Orchestrator] skipping follow-up replies for Facebook Story",
+            postId: post.id,
+            organizationId: post.organization_id,
+            provider: integration.provider_identifier,
+        });
+        return publishedPostId;
+    }
     const fromSettings = followUpRepliesFromStoredProviderSettings(integration.provider_identifier, providerSettings);
 
     let fromDb: ThreadsReplySettings[] = [];

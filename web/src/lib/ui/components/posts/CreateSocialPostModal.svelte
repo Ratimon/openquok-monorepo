@@ -12,6 +12,7 @@
 	import Deletemodal from '$lib/ui/modals/DeleteModal.svelte';
 	import ManageModal from '$lib/ui/components/posts/ManageModal.svelte';
 	import SaveSetNameDialog from '$lib/ui/components/posts/SaveSetNameDialog.svelte';
+	import { integrationSupportsFollowUpComments } from '$lib/posts/utils/create-post/followUp';
 
 	interface CreateSocialPostModalProps {
 		open?: boolean;
@@ -51,6 +52,19 @@
 			? (presenter.baseSocialChannelsVm.find((c) => c.id === followUpTargetIntegrationId) ?? null)
 			: null
 	);
+
+	const threadFollowUpEditorEnabled = $derived.by(() => {
+		if (presenter.contentSetAuthoringActive) {
+			return presenter.selectedIds.some((id) => {
+				const ch = presenter.baseSocialChannelsVm.find((c) => c.id === id);
+				return integrationSupportsFollowUpComments(
+					ch?.identifier,
+					presenter.providerSettingsByIntegrationId[id]
+				);
+			});
+		}
+		return presenter.listThreadFollowUpSupportedIntegrationIds().length > 0;
+	});
 
 	const modalTitle = $derived(presenter.contentSetAuthoringActive ? 'Define Reusable Template Set' : 'Create Post');
 
@@ -215,13 +229,15 @@
 					threadReplies={presenter.contentSetAuthoringActive
 						? presenter.sharedFollowUpRepliesVm
 						: presenter.getThreadFollowUpRepliesForEditor()}
-					onChangeThreadReplies={(next) => {
-						if (presenter.contentSetAuthoringActive) {
-							presenter.setSharedFollowUpRepliesForSetAuthoring(next);
-							return;
-						}
-						presenter.applyThreadFollowUpReplies(next);
-					}}
+					onChangeThreadReplies={threadFollowUpEditorEnabled
+						? (next) => {
+								if (presenter.contentSetAuthoringActive) {
+									presenter.setSharedFollowUpRepliesForSetAuthoring(next);
+									return;
+								}
+								presenter.applyThreadFollowUpReplies(next);
+							}
+						: undefined}
 					threadProviderIdentifier={followUpTargetChannel?.identifier ?? null}
 					mediaUrls={presenter.previewMediaUrls}
 					{composerTextHistory}

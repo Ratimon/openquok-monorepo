@@ -40,16 +40,25 @@ function isImagePath(path: string | undefined | null): boolean {
 	return IMAGE_EXTENSIONS.has(mediaExtFromPath(path));
 }
 
-/** Reads Facebook link settings from per-integration provider settings. */
+function readFacebookPostType(settings: Record<string, unknown>): 'post' | 'story' {
+	const bucket = (settings as { facebook?: Partial<FacebookLaunchProviderSettings> }).facebook;
+	if (bucket?.postType === 'story') return 'story';
+	if (settings.postType === 'story' || settings.post_type === 'story') return 'story';
+	return 'post';
+}
+
+/** Reads Facebook compose settings from per-integration provider settings. */
 export function readFacebookLaunchSettings(
 	settings: Record<string, unknown>
 ): FacebookLaunchProviderSettings {
 	const bucket = (settings as { facebook?: Partial<FacebookLaunchProviderSettings> }).facebook;
+	const postType = readFacebookPostType(settings);
+
 	const nestedUrl = typeof bucket?.url === 'string' ? bucket.url.trim() : '';
-	if (nestedUrl) return { url: nestedUrl };
+	if (nestedUrl) return { postType, url: nestedUrl };
 
 	const flatUrl = typeof settings.url === 'string' ? settings.url.trim() : '';
-	return flatUrl ? { url: flatUrl } : {};
+	return flatUrl ? { postType, url: flatUrl } : { postType };
 }
 
 export function checkFacebookLinkSettingsValidity(
@@ -62,7 +71,21 @@ export function checkFacebookLinkSettingsValidity(
 }
 
 export function checkFacebookLaunchValidity(ctx: LaunchProviderCheckContext): true | string {
-	const linkCheck = checkFacebookLinkSettingsValidity(readFacebookLaunchSettings(ctx.settings));
+	const settings = readFacebookLaunchSettings(ctx.settings);
+
+	if (settings.postType === 'story') {
+		if (!ctx.media?.length) {
+			return 'Story should have at least one media';
+		}
+		for (const reply of ctx.threadReplies ?? []) {
+			if ((reply.message ?? '').trim().length > 0 || (reply.media?.length ?? 0) > 0) {
+				return 'Follow-up comments are not supported for Facebook Stories';
+			}
+		}
+		return true;
+	}
+
+	const linkCheck = checkFacebookLinkSettingsValidity(settings);
 	if (linkCheck !== true) return linkCheck;
 
 	for (const reply of ctx.threadReplies ?? []) {

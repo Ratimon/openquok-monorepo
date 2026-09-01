@@ -2,7 +2,7 @@
 title: Facebook
 description: How to configure Facebook Pages for OpenQuok
 order: 2
-lastUpdated: 2026-06-06
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -28,16 +28,19 @@ Instagram (Business) and Facebook can use the same developer app — you do not 
 | Link posts | Optional URL via <Badge text="providerSettings.url" variant="param" /> in API payloads |
 | Photo posts | Single image or multi-photo feed post |
 | Video posts | Single <Badge text=".mp4" variant="param" /> attachment published as a Page video |
-| Follow-up comments | Text replies after the root post; one image attachment per comment |
+| Stories | Set post type to Story; image or <Badge text=".mp4" variant="param" /> required; each attachment publishes as its own Story |
+| Follow-up comments | Text replies after the root post; one image attachment per comment (feed posts only — not Stories) |
 | Page analytics | Account-level and per-post insights when <Badge text="read_insights" variant="default" /> is granted |
+
+Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> (web composer) to publish to the Story surface. Link URLs are ignored for Stories.
 
 ### Not supported
 
 | Feature | Notes |
 | --- | --- |
-| Stories | Not wired in OpenQuok today |
 | Automatic inbox replies | No keyword or DM automation |
 | Media on every comment type | Follow-up rows in the composer are text-only by default |
+| Follow-up comments on Stories | Stories are not feed posts; scheduled reply chains apply to Page feed posts only |
 
 CLI walkthroughs: <a href="/docs/cli-examples/facebook">CLI Examples — Facebook</a>.
 

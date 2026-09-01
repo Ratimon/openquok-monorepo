@@ -5,7 +5,12 @@ import {
 	buildChannelLandingFaqLinks,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqHrefDocs,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const FACEBOOK_DOCS_PATH = '/docs/social-integration/facebook';
 const facebookLinks = buildChannelLandingFaqLinks('facebook', FACEBOOK_DOCS_PATH);
@@ -15,18 +20,19 @@ export const facebookChannel = {
 	platformId: 'facebook',
 	platformLabel: 'Facebook',
 	icon: icons.FacebookGlyph.name,
-	heroTitle: 'Schedule Facebook posts and Reels you approve',
+	heroTitle: 'Schedule Facebook posts, Reels, Stories, and follow-up comments you approve',
 	heroDescription:
-		'Connect a Facebook Page, queue feed posts, photos, link previews, and MP4 Reels from the OpenQuok calendar or your AI agents, and publish through the official Meta API',
-	metaTitle: 'Facebook Page Post & Reel Scheduler',
+		'Connect a Facebook Page, queue feed posts, photos, link previews, MP4 Reels, Stories, and follow-up comments from the OpenQuok calendar or your AI agents, and publish through the official Meta API',
+	metaTitle: 'Facebook Page Post, Reel & Story Scheduler',
 	metaDescription:
-		'Schedule Facebook Page posts and Reels with OpenQuok. Connect your Page, queue text, photos, and MP4 video from the calendar or API, and keep human approval in the loop.',
+		'Schedule Facebook Page posts, Reels, Stories, and follow-up comments with OpenQuok. Connect your Page, queue text, photos, MP4 video, and Stories from the calendar or API, and keep human approval in the loop.',
 	hubDescription:
-		'Page feed posts, MP4 Reels, and link-preview cards — built for Facebook Pages, not personal profiles.',
+		'Page feed posts, MP4 Reels, Stories, link-preview cards, and scheduled follow-up comments — built for Facebook Pages, not personal profiles.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Facebook post scheduler',
 		'Facebook Reel scheduler',
+		'Facebook Story scheduler',
 		'Facebook Page scheduling',
 		'schedule Facebook posts',
 		'schedule Facebook Reels',
@@ -43,10 +49,10 @@ export const facebookChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Video & links',
-			title: 'Publish Reels from MP4, link previews effortlessly, in one place',
+			subtitle: 'Media & replies',
+			title: 'Publish Reels from MP4, schedule follow-up comments, and link previews in one place',
 			description:
-				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards; photos and video posts use the media you attach.',
+				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards. Queue follow-up comments in the composer with delays.',
 			bentoId: 'facebook-video-links',
 			mediaOnRight: false
 		},
@@ -115,7 +121,7 @@ export const facebookChannel = {
 		{
 			title: 'Can I schedule Facebook posts from an AI agent or script?',
 			description:
-				`Yes. After connecting a Page, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts and Reels. Agents on ${faqLink(publicFaqHref.agents, 'OpenClaw, Hermes, Grok Bot, or ThinkRail')} can draft captions and media.`
+				`Yes. After connecting a Page, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts and Reels. Pass facebook.replies for follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'OpenClaw, Hermes, Grok Bot')} can draft captions and media.`
 		},
 		{
 			title: 'Does OpenQuok support link previews on Facebook?',
@@ -123,9 +129,14 @@ export const facebookChannel = {
 				'Yes. When you include a URL in a text-only Facebook Page post, OpenQuok passes link-preview settings supported by the integration so shared links render with the right metadata. Link URLs are ignored when photos or video are attached.'
 		},
 		{
+			title: 'Can I schedule follow-up comments on Facebook?',
+			description:
+				`Yes. Add follow-up comments in the composer (or pass facebook.replies via the API or CLI). Each comment publishes as text or with one image after the delay you set once the root post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+		},
+		{
 			title: 'Does OpenQuok support Facebook Stories?',
 			description:
-				'Not today. OpenQuok publishes Page feed posts, photos, MP4 video/Reels, and scheduled follow-up comments — not Facebook Stories.'
+				`Yes. Set post type to Story in the composer or pass ${faqLink(faqHrefDocs('cli-examples/facebook'), 'post_type: story')} via the API or CLI. Attach at least one image or MP4. Each attachment publishes as its own Story on your Page. Link URLs and follow-up comments do not apply to Stories.`
 		},
 		{
 			title: 'Is there a free trial for Facebook scheduling?',

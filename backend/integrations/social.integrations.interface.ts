@@ -73,6 +73,8 @@ export type ValidateCreatePostInput = {
     message?: string;
     /** Raw composer storage (HTML or plain text) before editor transform. */
     rawMessage?: string;
+    /** Per-integration provider settings from the composer or API (`providerSettingsByIntegrationId`). */
+    providerSettings?: unknown;
 };
 
 export type AnalyticsData = {

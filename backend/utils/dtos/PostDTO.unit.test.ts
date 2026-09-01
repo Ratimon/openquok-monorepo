@@ -1,6 +1,7 @@
 import {
     extractFollowUpRepliesFromPostSettingsColumn,
     extractFollowUpRepliesFromProviderSettingsObject,
+    isFacebookStoryProviderSettings,
     replyChainBucketForProvider,
 } from "./PostDTO";
 
@@ -247,6 +248,25 @@ describe("PostDTO follow-up buckets", () => {
                     "linkedin"
                 )
             ).toEqual([]);
+        });
+    });
+
+    describe("isFacebookStoryProviderSettings", () => {
+        it("detects facebook.postType story", () => {
+            expect(
+                isFacebookStoryProviderSettings({
+                    facebook: { postType: "story" },
+                })
+            ).toBe(true);
+        });
+
+        it("detects flat post_type story keys", () => {
+            expect(isFacebookStoryProviderSettings({ post_type: "story" })).toBe(true);
+        });
+
+        it("returns false for feed posts and missing settings", () => {
+            expect(isFacebookStoryProviderSettings({ facebook: { postType: "post" } })).toBe(false);
+            expect(isFacebookStoryProviderSettings(null)).toBe(false);
         });
     });
 });

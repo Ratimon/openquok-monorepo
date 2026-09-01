@@ -18,9 +18,9 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Single photo | Yes | One uploaded image via `-m` |
 | Multi-photo carousel | Yes | Multiple `-m` attachments in one post |
 | Reel (MP4 video) | Yes | Single `.mp4` → Page video API; Facebook surfaces eligible uploads as Reels |
-| Follow-up comments | Yes | `facebook.replies` — optional one image per reply (no video) |
+| Facebook Stories | Yes | `post_type: story` or `facebook.postType: story`; image or MP4 required; each attachment → its own Story |
+| Follow-up comments | Yes | `facebook.replies` — optional one image per reply (feed posts only; not Stories) |
 | Page analytics | Yes | `analytics:platform` and `analytics:post` |
-| Facebook Stories | No | Feed, photos, video/Reels, and comments only |
 | Personal profile / Groups | No | Pages you manage via Graph API only |
 
 ## Agent tasks
@@ -32,6 +32,7 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Post a photo | [facebook-with-image.json](./examples/facebook-with-image.json) |
 | Post multiple photos | [facebook-multi-photo.json](./examples/facebook-multi-photo.json) |
 | Publish a Reel from MP4 | [facebook-reel.json](./examples/facebook-reel.json) |
+| Publish a Story (image or MP4) | [facebook-story.json](./examples/facebook-story.json) |
 | Add a comment after the post goes live | [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json) |
 | See what the Page supports | `openquok integrations:settings "$FB_ID"` |
 | Track Page performance | [Discover integration](#discover-integration) → `analytics:platform` |
@@ -42,11 +43,13 @@ Flat JSON on `--settings` or inside `--providerSettingsByIntegrationId` for the 
 
 | Key | Values | When |
 | --- | --- | --- |
+| `post_type` / `postType` | `post` (default) or `story` | Feed/Reel vs Story surface |
+| `facebook.postType` | `post` or `story` | Same as `post_type` (web composer bucket; API accepts both) |
 | `url` | `https://…` string | Text-only post with link-preview card |
 | `facebook.url` | `https://…` | Same as `url` (web composer bucket; API accepts both) |
-| `facebook.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up comments after publish (nested bucket in JSON) |
+| `facebook.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up comments after publish (feed posts only; nested bucket in JSON) |
 
-**Rules:** Link `url` applies only when **no** media is attached. With `-m`, the post uses attached photos or video instead of a link card.
+**Rules:** Link `url` applies only when **no** media is attached and post type is `post`. With `-m`, the post uses attached photos or video instead of a link card. **Stories** require at least one image or MP4; each attachment publishes as its own Story. Follow-up `replies` are not supported for Stories.
 
 ### Follow-up comments (`facebook.replies`)
 

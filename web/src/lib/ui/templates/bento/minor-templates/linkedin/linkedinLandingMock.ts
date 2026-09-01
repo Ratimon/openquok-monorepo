@@ -26,3 +26,11 @@ export const LINKEDIN_LANDING_MOCK_CAROUSEL_NAME = 'Q2 pipeline playbook';
 
 export const LINKEDIN_LANDING_MOCK_CAROUSEL_BODY =
 	'Turn slide decks into a LinkedIn document carousel — OpenQuok builds the PDF and publishes to your Page when buyers are most likely to vet you.';
+
+export const LINKEDIN_LANDING_MOCK_THREAD_REPLIES = [
+	{
+		id: 'landing-linkedin-reply-1',
+		message: 'Comment with the deck link five minutes after publish.',
+		delaySeconds: 300
+	}
+];

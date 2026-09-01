@@ -29,6 +29,11 @@
 
 	/** Stable ref for composer `bind:` chain (`pagePresenter.createSocialPostPresenter`). */
 	const composerPresenter = pagePresenter.createSocialPostPresenter;
+
+	const threadFollowUpEditorEnabled = $derived(
+		composerPresenter.listThreadFollowUpSupportedIntegrationIds().length > 0
+	);
+
 	/** Writable ref for `bind:` (Svelte cannot bind to `const`). */
 	let createSocialPostModalPresenter = $state.raw(composerPresenter);
 
@@ -241,9 +246,11 @@
 							)}
 							settingsDisabled={composerPresenter.busy}
 							threadReplies={composerPresenter.getThreadFollowUpRepliesForEditor()}
-							onChangeThreadReplies={(next) => {
-								composerPresenter.applyThreadFollowUpReplies(next);
-							}}
+							onChangeThreadReplies={threadFollowUpEditorEnabled
+								? (next) => {
+										composerPresenter.applyThreadFollowUpReplies(next);
+									}
+								: undefined}
 							threadProviderIdentifier={composerPresenter.getPrimaryThreadFollowUpIntegrationId()
 								? (composerPresenter.baseSocialChannelsVm.find(
 										(c) => c.id === composerPresenter.getPrimaryThreadFollowUpIntegrationId()

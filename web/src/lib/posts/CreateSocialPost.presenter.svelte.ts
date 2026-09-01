@@ -32,6 +32,7 @@ import {
 	buildPostUpsertPayload,
 	buildProgrammaticCreatePostPayloadPreview,
 	channelSupportsFollowUpComments,
+	integrationSupportsFollowUpComments,
 	clearPerChannelBodies,
 	clearPerChannelMedia,
 	cloneProviderSettingsByIntegrationId,
@@ -560,7 +561,10 @@ export class CreateSocialPostPresenter {
 		if (this.contentSetAuthoringActive) {
 			const hasSupport = this.selectedIds.some((id) => {
 				const ch = this.baseSocialChannelsVm.find((c) => c.id === id);
-				return channelSupportsFollowUpComments(ch?.identifier);
+				return integrationSupportsFollowUpComments(
+					ch?.identifier,
+					this.providerSettingsByIntegrationId[id]
+				);
 			});
 			if (!hasSupport) {
 				toast.message(
@@ -612,7 +616,8 @@ export class CreateSocialPostPresenter {
 			contentSetAuthoringActive: this.contentSetAuthoringActive,
 			focusedIntegrationId: this.focusedIntegrationId,
 			selectedIds: this.selectedIds,
-			baseSocialChannelsVm: this.baseSocialChannelsVm
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		});
 	}
 

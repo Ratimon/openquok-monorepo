@@ -27,3 +27,18 @@ export const FACEBOOK_LANDING_MOCK_LINK_URL = 'https://openquok.com/docs/social-
 
 export const FACEBOOK_LANDING_MOCK_LINK_BODY =
 	'Schedule MP4 Reels to your Page, or add a URL on text-only posts for link-preview cards — tune Facebook settings per post when you customize a network.';
+
+export const FACEBOOK_LANDING_MOCK_THREAD_REPLIES = [
+	{
+		id: 'landing-facebook-reply-1',
+		message: 'Pin a follow-up comment five minutes after publish — optional image on Facebook replies.',
+		delaySeconds: 300
+	}
+];
+
+export const FACEBOOK_LANDING_MOCK_PROVIDER_SETTINGS = {
+	facebook: {
+		postType: 'post' as const,
+		url: FACEBOOK_LANDING_MOCK_LINK_URL
+	}
+};

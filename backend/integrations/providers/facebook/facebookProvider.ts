@@ -6,8 +6,10 @@ import type {
     PostDetails,
     PostResponse,
     SocialProvider,
+    ValidateCreatePostInput,
 } from "../../social.integrations.interface";
 import { publishFacebookComment, publishFacebookPagePost } from "./facebookGraphPublish";
+import { publishFacebookPageStories, readFacebookPostType } from "./facebookGraphStoryPublish";
 
 import dayjs from "dayjs";
 import { config } from "../../../config/GlobalConfig";
@@ -88,7 +90,15 @@ export class FacebookProvider implements SocialProvider {
     }
 
     rules =
-        "Facebook Page posts support text, link previews (optional URL in provider settings), photos, multi-photo posts, and MP4 videos. Follow-up comments may include one image attachment. App must be Live for media to be visible to all users.";
+        "Facebook Page posts support text, link previews (optional URL in provider settings), photos, multi-photo posts, MP4 videos, and Stories (image or MP4; each attachment publishes as its own Story). Follow-up comments may include one image attachment. App must be Live for media to be visible to all users.";
+
+    validateCreatePost(input: ValidateCreatePostInput): string | null {
+        const postType = readFacebookPostType(input.providerSettings);
+        if (postType === "story" && input.mediaCount < 1) {
+            return "Story should have at least one media";
+        }
+        return null;
+    }
 
     async post(
         pageId: string,
@@ -97,6 +107,11 @@ export class FacebookProvider implements SocialProvider {
         _integration: IntegrationRecord
     ): Promise<PostResponse[]> {
         if (!postDetails.length) return [];
+        const postType = readFacebookPostType(postDetails[0]!.settings);
+        if (postType === "story") {
+            const result = await publishFacebookPageStories(pageId, accessToken, postDetails[0]!);
+            return [result];
+        }
         const result = await publishFacebookPagePost(pageId, accessToken, postDetails[0]!);
         return [result];
     }

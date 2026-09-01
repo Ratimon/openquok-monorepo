@@ -152,6 +152,20 @@ export function parseProviderThreadsPreviewFromPostSettings(settings: string | n
     }
 }
 
+/** Whether stored per-post `providerSettings` target a Facebook Story (no follow-up comments). */
+export function isFacebookStoryProviderSettings(
+    providerSettings: Record<string, unknown> | null | undefined
+): boolean {
+    if (!providerSettings || typeof providerSettings !== "object") return false;
+    const facebook = providerSettings.facebook;
+    if (facebook && typeof facebook === "object" && !Array.isArray(facebook)) {
+        const fb = facebook as Record<string, unknown>;
+        if (fb.postType === "story" || fb.post_type === "story") return true;
+    }
+    if (providerSettings.postType === "story" || providerSettings.post_type === "story") return true;
+    return false;
+}
+
 /** Where scheduled follow-up replies live in `providerSettings` (per integration). */
 export function replyChainBucketForProvider(
     providerIdentifier: string | null | undefined

@@ -7,11 +7,13 @@
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
+	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import {
 		FACEBOOK_LANDING_MOCK_CHANNEL,
 		FACEBOOK_LANDING_MOCK_LINK_BODY,
-		FACEBOOK_LANDING_MOCK_LINK_URL,
-		FACEBOOK_LANDING_MOCK_SCHEDULED_LOCAL
+		FACEBOOK_LANDING_MOCK_PROVIDER_SETTINGS,
+		FACEBOOK_LANDING_MOCK_SCHEDULED_LOCAL,
+		FACEBOOK_LANDING_MOCK_THREAD_REPLIES
 	} from './facebookLandingMock';
 
 	type Props = {
@@ -24,7 +26,8 @@
 	const selectedIds = [FACEBOOK_LANDING_MOCK_CHANNEL.id];
 	let settingsOpen = $state(true);
 	let scheduledLocal = $state(FACEBOOK_LANDING_MOCK_SCHEDULED_LOCAL);
-	const providerSettings = { facebook: { url: FACEBOOK_LANDING_MOCK_LINK_URL } };
+	let threadReplies = $state([...FACEBOOK_LANDING_MOCK_THREAD_REPLIES]);
+	const providerSettings = FACEBOOK_LANDING_MOCK_PROVIDER_SETTINGS;
 
 	const previewMetaLabel = $derived.by(() => {
 		const ms = Date.parse(scheduledLocal);
@@ -87,11 +90,27 @@
 				</p>
 			</div>
 
+			<ThreadRepliesEditor
+				providerIdentifier={FACEBOOK_LANDING_MOCK_CHANNEL.identifier}
+				postComment="COMMENT"
+				scheduledPostDatetimeLocal={scheduledLocal}
+				disabled={true}
+				hideProviderHelp={true}
+				compactEditor={true}
+				replies={threadReplies}
+				onAddReply={noop}
+				onChangeReplies={(next) => {
+					threadReplies = next;
+				}}
+			/>
+
 			<SettingsAccordion
 				bind:open={settingsOpen}
 				channel={FACEBOOK_LANDING_MOCK_CHANNEL}
 				value={providerSettings}
 				onChange={noop}
+				disabled={true}
+				compactEditors={true}
 				embedded
 			/>
 		</div>
@@ -105,7 +124,9 @@
 					channel={FACEBOOK_LANDING_MOCK_CHANNEL}
 					previewText={FACEBOOK_LANDING_MOCK_LINK_BODY}
 					maximumCharacters={63_206}
+					threadReplies={threadReplies}
 					{previewMetaLabel}
+					{providerSettings}
 				/>
 			</div>
 		</div>

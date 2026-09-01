@@ -34,6 +34,7 @@ openquok posts:create --json ./examples/threads-text-only.json
 | [facebook-with-image.json](./facebook-with-image.json) | Single photo |
 | [facebook-link-preview.json](./facebook-link-preview.json) | Link preview (`url`) |
 | [facebook-reel.json](./facebook-reel.json) | Reel from MP4 |
+| [facebook-story.json](./facebook-story.json) | Story (`post_type: story`) |
 | [facebook-multi-photo.json](./facebook-multi-photo.json) | Multi-photo carousel |
 | [facebook-follow-up-comment.json](./facebook-follow-up-comment.json) | Follow-up comments via `replies` |
 

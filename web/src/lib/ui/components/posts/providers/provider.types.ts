@@ -14,6 +14,7 @@ export type InstagramLaunchProviderSettings = {
 };
 
 export type FacebookLaunchProviderSettings = {
+	postType: 'post' | 'story';
 	url?: string;
 };
 

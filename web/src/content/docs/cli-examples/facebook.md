@@ -2,7 +2,7 @@
 title: Facebook Page
 description: CLI examples for Facebook Page publishing in OpenQuok
 order: 1
-lastUpdated: 2026-08-31
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -56,6 +56,36 @@ openquok posts:create \
   -s "2026-01-01T12:00:00Z" \
   -i "<facebook-page-integration-id>"
 ```
+
+## Story (image or MP4)
+
+Stories require at least one attachment. Set <Badge text="post_type: story" variant="param" /> on <Badge text="--settings" variant="param" /> or inside <Badge text="providerSettingsByIntegrationId" variant="param" />. Each attachment publishes as its own Story.
+
+```bash
+test -f ./story.jpg && test -s ./story.jpg
+MEDIA=$(openquok upload ./story.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+openquok posts:create \
+  -c "" \
+  -m "$MEDIA" \
+  -s "2026-01-01T12:00:00Z" \
+  -i "<facebook-page-integration-id>" \
+  --settings '{"post_type":"story"}'
+```
+
+Nested web-composer bucket (same behavior):
+
+```bash
+openquok posts:create \
+  -c "" \
+  -m "$MEDIA" \
+  -s "2026-01-01T12:00:00Z" \
+  -i "<facebook-page-integration-id>" \
+  --providerSettingsByIntegrationId '{"<facebook-page-integration-id>":{"facebook":{"postType":"story"}}}'
+```
+
+<Callout type="note" title="Stories vs feed posts">
+<p>Link <Badge text="url" variant="param" /> and follow-up <Badge text="facebook.replies" variant="param" /> apply to feed posts only. For Stories, omit both.</p>
+</Callout>
 
 ## Scheduled follow-up comments
 
@@ -116,6 +146,16 @@ FB_ID=$(openquok integrations:list | jq -r '.[] | select(.identifier=="facebook"
 openquok integrations:settings "$FB_ID"
 openquok analytics:platform "$FB_ID" -d 30
 ```
+
+## Platform-specific settings
+
+Configure per integration in the web composer **Settings** panel, or pass flat keys on the CLI with <Badge text="--settings" variant="param" /> (merged into <Badge text="providerSettingsByIntegrationId" variant="param" />).
+
+| Setting | CLI / API key | Web composer (`facebook.*`) | Values |
+| --- | --- | --- | --- |
+| Post type | `post_type` | `postType` | `post` (feed/Reel) or `story` |
+| Link preview URL | `url` | `url` | `https://…` (text-only feed posts) |
+| Follow-up comments | `replies` (nested under `facebook`) | `replies` | `[{ "message": "…", "delaySeconds": 60 }]` (feed posts only) |
 
 <Callout type="note" title="App mode">
 If media posts appear without images for non-testers, set your Meta app to <strong>Live</strong> mode. See <a href="/docs/social-integration/facebook#troubleshooting">Facebook troubleshooting</a>.

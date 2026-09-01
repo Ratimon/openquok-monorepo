@@ -1,6 +1,7 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { CreateSocialPostMode, ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 import type { SetSharedFollowUpReplyViewModel, SetSnapshotViewModel } from '$lib/sets/GetSet.presenter.svelte';
+import { readFacebookLaunchSettings } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 
 export type FollowUpProviderBucket = 'threads' | 'instagram' | 'x' | 'linkedin' | 'facebook';
 
@@ -14,6 +15,18 @@ export function channelSupportsFollowUpComments(identifier: string | null | unde
 		id === 'linkedin-page' ||
 		id === 'facebook'
 	);
+}
+
+export function integrationSupportsFollowUpComments(
+	identifier: string | null | undefined,
+	providerSettings?: Record<string, unknown>
+): boolean {
+	if (!channelSupportsFollowUpComments(identifier)) return false;
+	const id = (identifier ?? '').toLowerCase();
+	if (id === 'facebook') {
+		return readFacebookLaunchSettings(providerSettings ?? {}).postType !== 'story';
+	}
+	return true;
 }
 
 export function followUpBucketForChannel(
@@ -33,17 +46,21 @@ export function listThreadFollowUpSupportedIntegrationIds(args: {
 	focusedIntegrationId: string | null;
 	selectedIds: string[];
 	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
+	providerSettingsByIntegrationId?: Record<string, Record<string, unknown>>;
 }): string[] {
+	const settingsById = args.providerSettingsByIntegrationId ?? {};
 	if (args.contentSetAuthoringActive) return [];
 	if (args.mode === 'custom') {
 		const fid = args.focusedIntegrationId;
 		if (!fid) return [];
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === fid);
-		return channelSupportsFollowUpComments(ch?.identifier) ? [fid] : [];
+		return integrationSupportsFollowUpComments(ch?.identifier, settingsById[fid])
+			? [fid]
+			: [];
 	}
 	return args.selectedIds.filter((sid) => {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === sid);
-		return channelSupportsFollowUpComments(ch?.identifier);
+		return integrationSupportsFollowUpComments(ch?.identifier, settingsById[sid]);
 	});
 }
 
@@ -58,7 +75,10 @@ export function getPrimaryThreadFollowUpIntegrationId(args: {
 		return (
 			args.selectedIds.find((sid) => {
 				const ch = args.baseSocialChannelsVm.find((c) => c.id === sid);
-				return channelSupportsFollowUpComments(ch?.identifier);
+				return integrationSupportsFollowUpComments(
+					ch?.identifier,
+					args.providerSettingsByIntegrationId[sid]
+				);
 			}) ?? null
 		);
 	}
@@ -183,7 +203,11 @@ export function syncSharedFollowUpsToProviderSettingsForSetAuthoring(args: {
 	const out: Record<string, Record<string, unknown>> = JSON.parse(JSON.stringify(args.base));
 	for (const intId of args.selectedIds) {
 		const ch = args.baseSocialChannelsVm.find((c) => c.id === intId);
-		if (!channelSupportsFollowUpComments(ch?.identifier)) continue;
+		const curSettings =
+			out[intId] && typeof out[intId] === 'object' && !Array.isArray(out[intId])
+				? (out[intId] as Record<string, unknown>)
+				: {};
+		if (!integrationSupportsFollowUpComments(ch?.identifier, curSettings)) continue;
 		const bucket = followUpBucketForChannel(ch?.identifier);
 		const cur =
 			out[intId] && typeof out[intId] === 'object' && !Array.isArray(out[intId])

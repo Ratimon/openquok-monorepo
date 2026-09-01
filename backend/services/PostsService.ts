@@ -447,6 +447,7 @@ export class PostsService {
                 mediaCount: mediaCountForIntegration(integrationId),
                 message: publishMessage,
                 rawMessage,
+                providerSettings: providerSettingsByIntegrationId?.[integrationId],
             });
             if (typeof validationMessage === "string" && validationMessage.trim().length > 0) {
                 throw new AppError(validationMessage, 400);

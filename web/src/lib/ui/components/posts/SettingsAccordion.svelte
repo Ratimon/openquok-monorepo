@@ -45,6 +45,7 @@
 			graduationStrategy: 'MANUAL' | 'SS_PERFORMANCE';
 		};
 		facebook: {
+			postType: 'post' | 'story';
 			url?: string;
 		};
 		youtube: {
@@ -132,6 +133,7 @@
 	let igTrialReel = $state(false);
 	let igGraduationStrategy = $state<'MANUAL' | 'SS_PERFORMANCE'>('MANUAL');
 
+	let fbPostType = $state<'post' | 'story'>('post');
 	let fbUrl = $state('');
 
 	let ytTitle = $state('');
@@ -242,11 +244,18 @@
 			igGraduationStrategy = gs === 'SS_PERFORMANCE' ? 'SS_PERFORMANCE' : 'MANUAL';
 		}
 		if (s.facebook && typeof s.facebook === 'object') {
+			const pt = (s.facebook as { postType?: unknown }).postType;
+			fbPostType = pt === 'story' ? 'story' : 'post';
 			fbUrl = typeof s.facebook.url === 'string' ? s.facebook.url : '';
 		} else if (typeof (s as { url?: unknown }).url === 'string') {
 			fbUrl = (s as { url: string }).url;
 		} else {
 			fbUrl = '';
+		}
+		const flatPostType =
+			(s as { postType?: unknown }).postType ?? (s as { post_type?: unknown }).post_type;
+		if (!(s.facebook && typeof s.facebook === 'object')) {
+			fbPostType = flatPostType === 'story' ? 'story' : 'post';
 		}
 		if (s.youtube && typeof s.youtube === 'object') {
 			ytTitle = typeof s.youtube.title === 'string' ? s.youtube.title : '';
@@ -428,7 +437,13 @@
 			};
 		} else if (identifier === 'facebook') {
 			const trimmed = fbUrl.trim();
-			next = { facebook: trimmed ? { url: trimmed } : {} };
+			next = {
+				facebook: {
+					postType: fbPostType,
+					...(trimmed && fbPostType !== 'story' ? { url: trimmed } : {}),
+					...(fbPostType === 'story' ? { replies: [] } : {})
+				}
+			};
 		} else if (identifier === 'youtube') {
 			next = {
 				youtube: {
@@ -550,7 +565,7 @@
 			bind:graduationStrategy={igGraduationStrategy}
 		/>
 	{:else if identifier === 'facebook'}
-		<FacebookSettings bind:url={fbUrl} />
+		<FacebookSettings bind:postType={fbPostType} bind:url={fbUrl} />
 	{:else if identifier === 'youtube'}
 		<YoutubeSettings
 			bind:title={ytTitle}

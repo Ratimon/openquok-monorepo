@@ -573,4 +573,44 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         expect(call[2]).toBe("li-main");
         expect(call[3]).toEqual(expect.objectContaining({ comment: "Great post!" }));
     });
+
+    it("skips follow-up comments for Facebook Story posts", async () => {
+        const integrationRepo = createIntegrationRepoMock();
+        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "facebook" }));
+
+        const comment = jest.fn().mockResolvedValue([{ postId: "comment-1" }]);
+        const manager = createPlugAwareIntegrationManager({
+            facebook: {
+                post: jest.fn().mockResolvedValue([{ postId: "story-main" }]),
+                comment,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                facebook: {
+                    postType: "story",
+                    replies: [{ id: faker.string.uuid(), message: "Should not publish", delaySeconds: 0 }],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(comment).not.toHaveBeenCalled();
+    });
 });

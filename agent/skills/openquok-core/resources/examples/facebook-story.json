@@ -1,0 +1,12 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "",
+  "integrationIds": ["<integration-id>"],
+  "media": [{ "id": "<media-id>", "path": "https://cdn.example.com/story.jpg" }],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "post_type": "story"
+    }
+  }
+}

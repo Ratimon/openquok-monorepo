@@ -7,12 +7,14 @@
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
+	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
 	import {
 		LINKEDIN_LANDING_MOCK_BODY,
 		LINKEDIN_LANDING_MOCK_CAROUSEL_BODY,
 		LINKEDIN_LANDING_MOCK_CAROUSEL_NAME,
 		LINKEDIN_LANDING_MOCK_CHANNEL,
-		LINKEDIN_LANDING_MOCK_SCHEDULED_LOCAL
+		LINKEDIN_LANDING_MOCK_SCHEDULED_LOCAL,
+		LINKEDIN_LANDING_MOCK_THREAD_REPLIES
 	} from './linkedinLandingMock';
 
 	type Props = {
@@ -25,6 +27,7 @@
 	const selectedIds = [LINKEDIN_LANDING_MOCK_CHANNEL.id];
 	let settingsOpen = $state(true);
 	let scheduledLocal = $state(LINKEDIN_LANDING_MOCK_SCHEDULED_LOCAL);
+	let threadReplies = $state([...LINKEDIN_LANDING_MOCK_THREAD_REPLIES]);
 	const providerSettings = {
 		linkedin: { postAsImagesCarousel: true, carouselName: LINKEDIN_LANDING_MOCK_CAROUSEL_NAME }
 	};
@@ -86,11 +89,27 @@
 				</p>
 			</div>
 
+			<ThreadRepliesEditor
+				providerIdentifier={LINKEDIN_LANDING_MOCK_CHANNEL.identifier}
+				postComment="COMMENT"
+				scheduledPostDatetimeLocal={scheduledLocal}
+				disabled={true}
+				hideProviderHelp={true}
+				compactEditor={true}
+				replies={threadReplies}
+				onAddReply={noop}
+				onChangeReplies={(next) => {
+					threadReplies = next;
+				}}
+			/>
+
 			<SettingsAccordion
 				bind:open={settingsOpen}
 				channel={LINKEDIN_LANDING_MOCK_CHANNEL}
 				value={providerSettings}
 				onChange={noop}
+				disabled={true}
+				compactEditors={true}
 				embedded
 			/>
 		</div>
@@ -104,7 +123,9 @@
 					channel={LINKEDIN_LANDING_MOCK_CHANNEL}
 					previewText={LINKEDIN_LANDING_MOCK_BODY}
 					maximumCharacters={3000}
+					threadReplies={threadReplies}
 					{previewMetaLabel}
+					providerSettings={providerSettings}
 				/>
 			</div>
 		</div>
