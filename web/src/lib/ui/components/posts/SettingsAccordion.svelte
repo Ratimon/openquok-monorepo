@@ -67,6 +67,10 @@
 			brand_organic_toggle: boolean;
 			video_made_with_ai: boolean;
 		};
+		'tiktok-business': {
+			music_sound_id?: string;
+			poi_id?: string;
+		};
 		linkedin: {
 			postAsImagesCarousel: boolean;
 			carouselName?: string;
@@ -152,6 +156,8 @@
 	let ttBrandContent = $state(false);
 	let ttBrandOrganic = $state(false);
 	let ttVideoMadeWithAi = $state(false);
+	let ttMusicSoundId = $state('');
+	let ttPoiId = $state('');
 
 	let liCarousel = $state(false);
 	let liCarouselName = $state('');
@@ -317,6 +323,26 @@
 			ttBrandOrganic = flat.brand_organic_toggle === true || flat.brandOrganicToggle === true;
 			ttVideoMadeWithAi = flat.video_made_with_ai === true || flat.videoMadeWithAi === true;
 		}
+		const businessBucket = (s as { 'tiktok-business'?: Record<string, unknown> })['tiktok-business'];
+		if (businessBucket && typeof businessBucket === 'object') {
+			ttMusicSoundId =
+				typeof businessBucket.music_sound_id === 'string'
+					? businessBucket.music_sound_id
+					: typeof businessBucket.musicSoundId === 'string'
+						? businessBucket.musicSoundId
+						: '';
+			ttPoiId =
+				typeof businessBucket.poi_id === 'string'
+					? businessBucket.poi_id
+					: typeof businessBucket.poiId === 'string'
+						? businessBucket.poiId
+						: typeof businessBucket.location_id === 'string'
+							? businessBucket.location_id
+							: '';
+		} else {
+			ttMusicSoundId = '';
+			ttPoiId = '';
+		}
 		if (s.linkedin && typeof s.linkedin === 'object') {
 			liCarousel = s.linkedin.postAsImagesCarousel === true;
 			liCarouselName = typeof s.linkedin.carouselName === 'string' ? s.linkedin.carouselName : '';
@@ -469,6 +495,31 @@
 					video_made_with_ai: ttVideoMadeWithAi
 				}
 			};
+		} else if (identifier === 'tiktok-business') {
+			const musicSoundId = ttMusicSoundId.trim();
+			const poiId = ttPoiId.trim();
+			next = {
+				tiktok: {
+					privacy_level: ttPrivacyLevel,
+					content_posting_method: ttPostingMethod,
+					title: ttTitle.trim(),
+					duet: ttDuet,
+					stitch: ttStitch,
+					comment: ttComment,
+					autoAddMusic: ttAutoAddMusic,
+					brand_content_toggle: ttBrandContent,
+					brand_organic_toggle: ttBrandOrganic,
+					video_made_with_ai: ttVideoMadeWithAi
+				},
+				...(musicSoundId || poiId
+					? {
+							'tiktok-business': {
+								...(musicSoundId ? { music_sound_id: musicSoundId } : {}),
+								...(poiId ? { poi_id: poiId } : {})
+							}
+						}
+					: {})
+			};
 		} else if (identifier === 'linkedin' || identifier === 'linkedin-page') {
 			const name = liCarouselName.trim();
 			const activePlugs = liCrossAccountPlugs.filter((p) => p.enabled && p.integrationIds.length > 0);
@@ -577,8 +628,9 @@
 			{uploadUid}
 			{disabled}
 		/>
-	{:else if identifier === 'tiktok'}
+	{:else if identifier === 'tiktok' || identifier === 'tiktok-business'}
 		<TiktokSettings
+			variant={identifier === 'tiktok-business' ? 'business' : 'content'}
 			bind:privacyLevel={ttPrivacyLevel}
 			bind:contentPostingMethod={ttPostingMethod}
 			bind:title={ttTitle}
@@ -589,6 +641,8 @@
 			bind:brandContentToggle={ttBrandContent}
 			bind:brandOrganicToggle={ttBrandOrganic}
 			bind:videoMadeWithAi={ttVideoMadeWithAi}
+			bind:musicSoundId={ttMusicSoundId}
+			bind:poiId={ttPoiId}
 			{disabled}
 		/>
 	{:else if identifier === 'linkedin' || identifier === 'linkedin-page'}

@@ -2,11 +2,11 @@
 title: TikTok
 description: How to configure TikTok for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars.
 order: 6
-lastUpdated: 2026-06-18
+lastUpdated: 2026-09-01
 ---
 
 <script>
-import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -14,6 +14,8 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 TikTok publishing uses **TikTok OAuth 2.0** (with PKCE).
 
 You need a TikTok Developer, with **Login Kit**, **Share Kit** and **Content Posting API**, with backend env vars <Badge text="TIKTOK_CLIENT_ID" variant="envBackend" /> and <Badge text="TIKTOK_CLIENT_SECRET" variant="envBackend" />.
+
+For **TikTok (Business)** — a separate Marketing API app, custom video covers, and commercial audio — see <a href="/docs/social-integration/tiktok-business">TikTok (Business)</a>. Do not reuse these Content API credentials there.
 
 TikTok servers fetch media from your storage via **HTTPS** URLs (“pull from URL” flow). That makes your **public media base URL** and TikTok **domain verification** critical for successful publish.
 
@@ -34,6 +36,7 @@ CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a
 | Caption length | Up to 2,000 characters (TikTok provider limit) |
 | Privacy | `PUBLIC_TO_EVERYONE`, `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR`, `SELF_ONLY` (availability depends on account) |
 | Posting method | `DIRECT_POST` (publish immediately) or `UPLOAD` (send to user inbox) |
+| Video cover (direct post) | Frame timestamp from Media details. Inbox upload has no cover field |
 | Duet / Stitch / Comments toggles | Optional per post |
 | Brand disclosure toggles | Optional per post (brand/organic) |
 | Platform analytics | Account metrics (followers, following, likes, video count) plus aggregated recent-video engagement (views, likes, comments, shares) via <Badge text="user.info.stats" variant="default" /> and <Badge text="video.list" variant="default" /> |
@@ -243,4 +246,14 @@ Confirm the attachment resolves to a public URL (no auth, no signed URLs that ex
 <li><DocsExternalLink href="https://developers.tiktok.com/doc/content-posting-api-get-started/">TikTok Content Posting API</DocsExternalLink></li>
 <li><DocsExternalLink href="https://developers.tiktok.com/doc/add-a-sandbox/">TikTok — Add a Sandbox</DocsExternalLink></li>
 </ul>
+
+## Related
+
+<CardGrid>
+<LinkCard title="TikTok (Business)" description="Separate Marketing API app — custom video covers and commercial audio" href="/docs/social-integration/tiktok-business" />
+<LinkCard title="CLI examples" description="openquok posts:create recipes for Content API TikTok" href="/docs/cli-examples/tiktok" />
+<LinkCard title="Connect a channel" description="OAuth redirect in Add Channel" href="/docs/channels/connect" />
+<LinkCard title="Media" description="Video poster, frame timestamp, and per-channel attachments" href="/docs/creating-posts/media" />
+<LinkCard title="Posting rules by platform" description="Caption caps, media rules, and Settings fields" href="/docs/platforms" />
+</CardGrid>
 

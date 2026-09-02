@@ -4,7 +4,7 @@ import { facebookProvider } from '$lib/ui/components/posts/providers/facebook/fa
 import { instagramProvider } from '$lib/ui/components/posts/providers/instagram/instagram.provider';
 import { linkedinProvider } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 import { threadsProvider } from '$lib/ui/components/posts/providers/threads/threads.provider';
-import { tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
+import { tiktokBusinessProvider, tiktokProvider } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
 import { xProvider } from '$lib/ui/components/posts/providers/x/x.provider';
 import { youtubeProvider } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 import { devtoProvider } from '$lib/ui/components/posts/providers/devto/devto.provider';
@@ -31,6 +31,8 @@ export function getLaunchProviderConfig(identifier: string | null | undefined): 
 	if (id === 'youtube') return youtubeProvider;
 
 	if (id === 'tiktok') return tiktokProvider;
+
+	if (id === 'tiktok-business') return tiktokBusinessProvider;
 
 	if (id === 'x') return xProvider;
 

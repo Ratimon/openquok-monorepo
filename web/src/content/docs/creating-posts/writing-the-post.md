@@ -2,7 +2,7 @@
 title: Writing the post
 description: Write captions in the OpenQuok social scheduler — editor modes, toolbar, character count, mentions, AI tools, and Post Preview.
 order: 2
-lastUpdated: 2026-08-27
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -43,7 +43,7 @@ Each channel has an **editor mode**. **Global** mode always uses **Standard**. F
 | Editor | Toolbar | Used by |
 | --- | --- | --- |
 | **Plain** <Badge text="none" variant="param"/> | Emoji, signatures, media, AI Writer, undo/redo | None yet — reserved for plain-text-only networks |
-| **Standard** <Badge text="normal" variant="param"/> | Bold, Italic, Underline, Emoji, Hashtag, <Badge text="@" variant="param" /> mention, signatures, media, AI Writer, undo/redo | **Global** mode; LinkedIn, Instagram, Facebook, YouTube, TikTok, Threads, and most social channels |
+| **Standard** <Badge text="normal" variant="param"/> | Bold, Italic, Underline, Emoji, Hashtag, <Badge text="@" variant="param" /> mention, signatures, media, AI Writer, undo/redo | **Global** mode; LinkedIn, Instagram, Facebook, YouTube, TikTok, TikTok (Business), Threads, and most social channels |
 | **Markdown** <Badge text="markdown" variant="param"/> | Standard tools **plus** links, Headings (H1–H3), Bullet and Numbered lists | **Dev.to** when unlocked |
 | **HTML** <Badge text="html" variant="param"/> | Same rich controls as Markdown | **X** when unlocked — tweets still publish as **plain text** |
 

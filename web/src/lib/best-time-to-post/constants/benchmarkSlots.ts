@@ -23,7 +23,7 @@ import type {
  */
 
 /** Calendar date (YYYY-MM-DD) when platform windows were last reviewed against public timing research. */
-export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-08-20';
+export const BENCHMARK_SLOTS_LAST_REVIEWED = '2026-09-01';
 
 /** Preferred local clock windows for a weekday (first entry = primary benchmark). */
 type DayWindow = {
@@ -39,6 +39,15 @@ type DayWindow = {
 const PLATFORM_WINDOWS: Record<string, readonly DayWindow[]> = {
 	// Short-form video: morning scroll, lunch, evening prime (7–9 PM local common in US surveys).
 	tiktok: [
+		{ weekday: 1, times: [{ hour: 7, minute: 0 }, { hour: 12, minute: 0 }, { hour: 19, minute: 0 }] },
+		{ weekday: 2, times: [{ hour: 20, minute: 0 }, { hour: 7, minute: 0 }, { hour: 12, minute: 0 }] },
+		{ weekday: 3, times: [{ hour: 12, minute: 0 }, { hour: 20, minute: 0 }, { hour: 7, minute: 0 }] },
+		{ weekday: 4, times: [{ hour: 20, minute: 0 }, { hour: 19, minute: 0 }, { hour: 12, minute: 0 }] },
+		{ weekday: 5, times: [{ hour: 17, minute: 0 }, { hour: 12, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 6, times: [{ hour: 10, minute: 0 }, { hour: 17, minute: 0 }, { hour: 20, minute: 0 }] },
+		{ weekday: 7, times: [{ hour: 10, minute: 0 }, { hour: 12, minute: 0 }, { hour: 20, minute: 0 }] }
+	],
+	'tiktok-business': [
 		{ weekday: 1, times: [{ hour: 7, minute: 0 }, { hour: 12, minute: 0 }, { hour: 19, minute: 0 }] },
 		{ weekday: 2, times: [{ hour: 20, minute: 0 }, { hour: 7, minute: 0 }, { hour: 12, minute: 0 }] },
 		{ weekday: 3, times: [{ hour: 12, minute: 0 }, { hour: 20, minute: 0 }, { hour: 7, minute: 0 }] },

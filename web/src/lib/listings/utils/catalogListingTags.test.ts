@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
+import { stringToSlug } from '$lib/ui/helpers/common';
 import {
 	CATALOG_LISTING_TAG_GROUP_AUTONOMOUS_AGENTS,
 	CATALOG_LISTING_TAG_GROUP_SOCIAL_PLATFORMS,
 	CATALOG_LISTING_TAG_GROUP_TEXT,
+	CATALOG_LISTING_TAG_GROUP_VIDEOS,
 	filterMissingCatalogListingTags,
 	listExpectedCatalogListingTags
 } from './catalogListingTags';
@@ -42,6 +44,23 @@ describe('listExpectedCatalogListingTags', () => {
 			CATALOG_LISTING_TAG_GROUP_TEXT
 		]);
 	});
+
+	it('uses a TikTok Business name that slugs to tiktok-business and tags Videos', () => {
+		const tags = listExpectedCatalogListingTags();
+		const tiktokBusiness = tags.find((tag) => tag.slug === 'tiktok-business');
+
+		expect(tiktokBusiness).toMatchObject({
+			name: 'TikTok Business',
+			slug: 'tiktok-business',
+			source: 'channels'
+		});
+		expect(stringToSlug(tiktokBusiness!.name)).toBe('tiktok-business');
+		expect(tiktokBusiness?.groupNames).toEqual([
+			CATALOG_LISTING_TAG_GROUP_SOCIAL_PLATFORMS,
+			CATALOG_LISTING_TAG_GROUP_VIDEOS
+		]);
+		expect(tiktokBusiness?.description).toContain('custom video covers');
+	});
 });
 
 describe('filterMissingCatalogListingTags', () => {
@@ -56,6 +75,7 @@ describe('filterMissingCatalogListingTags', () => {
 		expect(missingSlugs).toContain('grok-bot');
 		expect(missingSlugs).toContain('thinkrail');
 		expect(missingSlugs).toContain('devto');
+		expect(missingSlugs).toContain('tiktok-business');
 		expect(missingSlugs).not.toContain('openclaw');
 		expect(missingSlugs).not.toContain('threads');
 	});

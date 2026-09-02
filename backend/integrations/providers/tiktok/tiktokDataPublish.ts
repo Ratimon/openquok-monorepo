@@ -2,6 +2,7 @@ import type { PostDetails, PostResponse } from "../../social.integrations.interf
 import { resolveTiktokSettings, type TiktokResolvedPublishSettings } from "./resolveTiktokSettings";
 import {
     extractTiktokMediaFromSettings,
+    resolveTiktokVideoCoverTimestampMs,
     validateTiktokMedia,
 } from "./tiktokPublishValidation";
 import { tiktokApiPost } from "./tiktokApiClient";
@@ -22,10 +23,11 @@ function sleepMs(ms: number): Promise<void> {
 
 export function buildTiktokVideoPostInfoBody(
     settings: TiktokResolvedPublishSettings,
-    caption: string
+    caption: string,
+    videoCoverTimestampMs?: number
 ): Record<string, unknown> {
     const title = (caption || settings.title).trim();
-    return {
+    const body: Record<string, unknown> = {
         title,
         privacy_level: settings.privacy_level,
         disable_duet: !settings.duet,
@@ -35,6 +37,10 @@ export function buildTiktokVideoPostInfoBody(
         brand_organic_toggle: settings.brand_organic_toggle,
         is_aigc: settings.video_made_with_ai,
     };
+    if (videoCoverTimestampMs !== undefined) {
+        body.video_cover_timestamp_ms = videoCoverTimestampMs;
+    }
+    return body;
 }
 
 export function buildTiktokPhotoPostInfoBody(
@@ -139,7 +145,11 @@ export async function publishTiktokPost(
         } else {
             initPath = "/v2/post/publish/video/init/";
             initBody = {
-                post_info: buildTiktokVideoPostInfoBody(settings, caption),
+                post_info: buildTiktokVideoPostInfoBody(
+                    settings,
+                    caption,
+                    resolveTiktokVideoCoverTimestampMs(media)
+                ),
                 source_info: buildTiktokVideoSourceInfoBody(videoUrl),
             };
         }

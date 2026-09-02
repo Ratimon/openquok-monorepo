@@ -203,6 +203,24 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			description: 'Pull 30-day TikTok analytics'
 		}
 	],
+	'tiktok-business': [
+		{
+			command: discoverIntegrationCommand(['tiktok-business']),
+			description: 'Discover your TikTok (Business) integration UUID'
+		},
+		{
+			command: 'openquok integrations:settings "$TIKTOK_BUSINESS_ID"',
+			description: 'Get TikTok Business publish rules and caption limit'
+		},
+		{
+			command: 'openquok posts:create --json ./examples/tiktok-business-video-direct-post.json',
+			description: 'Publish a TikTok Business video with optional commercial audio'
+		},
+		{
+			command: 'openquok posts:create --json ./examples/tiktok-business-photo-carousel.json',
+			description: 'Schedule a photo carousel on TikTok (Business)'
+		}
+	],
 	linkedin: [
 		{
 			command: discoverIntegrationCommand(['linkedin', 'linkedin-page']),
@@ -323,6 +341,7 @@ const KANBAN_EXAMPLE_BY_CHANNEL: Record<string, string> = {
 	instagram: 'instagram-feed-post.json',
 	youtube: 'youtube-video-title-privacy.json',
 	tiktok: 'tiktok-video-direct-post.json',
+	'tiktok-business': 'tiktok-business-video-direct-post.json',
 	linkedin: 'linkedin-text-post.json',
 	x: 'x-text-only.json',
 	devto: 'devto-article-title-tags.json'

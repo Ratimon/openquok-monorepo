@@ -160,6 +160,23 @@ export const TIKTOK_VIDEO_DIRECT_POST_PAYLOAD = {
 	}
 } as const;
 
+export const TIKTOK_BUSINESS_VIDEO_DIRECT_POST_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Vertical clip — scheduled from the CLI.',
+	integrationIds: ['<integration-id>'],
+	media: [{ id: '<media-id>', path: 'https://cdn.example.com/clip.mp4' }],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			content_posting_method: 'DIRECT_POST',
+			comment: true,
+			duet: false,
+			stitch: false,
+			music_sound_id: '<music-sound-id>'
+		}
+	}
+} as const;
+
 export const YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD = {
 	scheduledAt: '2026-01-01T12:00:00.000Z',
 	status: 'scheduled',

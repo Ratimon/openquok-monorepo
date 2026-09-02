@@ -38,6 +38,7 @@ Full JSON body: `openquok posts:create --json ./examples/<file>.json` with `prov
 | YouTube video metadata | `title`, `type`, `selfDeclaredMadeForKids`, `tags`, `thumbnail` / `thumbnailPath` | `youtube.title`, `youtube.type`, `youtube.tags`, `youtube.thumbnail`, … |
 | LinkedIn / LinkedIn Page (main post) | `post_as_images_carousel`, `carousel_name` | `linkedin.postAsImagesCarousel`, `linkedin.carouselName`, `linkedin.crossAccountPlugs` |
 | TikTok privacy / inbox | `privacy_level`, `content_posting_method`, `title`, `comment`, `duet`, `stitch`, … | `tiktok.privacy_level`, `tiktok.content_posting_method`, … |
+| TikTok Business | same shared keys plus `music_sound_id`, `poi_id`; video `privacy_level` omitted | `tiktok-business.*` |
 | Dev.to article | `title`, `tags`, `canonical`, `organization`, `series`, `main_image` / `mainImage` | `devto.title`, `devto.tags`, `devto.canonical`, `devto.organization`, `devto.series`, `devto.mainImage` |
 
 Backend publish helpers accept **flat API keys** and **nested web buckets** where noted in each channel doc. For **scheduled follow-up replies**, always nest under the provider bucket in `--providerSettingsByIntegrationId` — that is what the worker reads at publish time (not a top-level `replies` key).
@@ -179,5 +180,6 @@ Returns `output.rules`, `output.maxLength`, `output.tools` (allow-listed `integr
 | LinkedIn | [linkedin-examples.md](./linkedin-examples.md) | `post_as_images_carousel`, `carousel_name` (≥2 images, no video), `linkedin.replies` |
 | LinkedIn Page | [linkedin-page-examples.md](./linkedin-page-examples.md) | Same carousel keys + `linkedin.replies` + Page analytics |
 | TikTok | [tiktok-examples.md](./tiktok-examples.md) | `privacy_level`, `content_posting_method`, toggles, `title` |
+| TikTok Business | [tiktok-business-examples.md](./tiktok-business-examples.md) | `content_posting_method`, `music_sound_id`, `poi_id`, photo `privacy_level` |
 | X | [x-examples.md](./x-examples.md) | `x.replies`, finisher, reply audience, community, labels, `crossAccountPlugs` |
 | Dev.to | [devto-examples.md](./devto-examples.md) | `title`, `tags`, `canonical`, `organization`, `series`, `mainImage` + analytics |

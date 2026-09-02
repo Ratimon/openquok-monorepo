@@ -813,12 +813,12 @@
 			iconName: icons.Bot.name,
 			href: grokBotAgentHref
 		},
-		{
-			label: 'ThinkRail + OpenQuok',
-			description: 'Schedule from a git worktree IDE.',
-			iconName: icons.Bot.name,
-			href: thinkrailAgentHref
-		}
+		// {
+		// 	label: 'ThinkRail + OpenQuok',
+		// 	description: 'Schedule from a git worktree IDE.',
+		// 	iconName: icons.Bot.name,
+		// 	href: thinkrailAgentHref
+		// }
 	]);
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---

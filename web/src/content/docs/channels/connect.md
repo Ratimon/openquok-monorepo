@@ -2,7 +2,7 @@
 title: Connect a channel
 description: The two ways OpenQuok connects a social account today — OAuth redirect or credentials you paste in Add Channel.
 order: 1
-lastUpdated: 2026-08-24
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -32,7 +32,7 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 <Tabs items={["OAuth redirect", "Credentials you supply"]} variant="line">
 <TabItem label="OAuth redirect">
 
-<p>The usual path: X, LinkedIn, Threads, TikTok, Instagram, Facebook Page, YouTube, and most other listed networks.</p>
+<p>The usual path: X, LinkedIn, Threads, TikTok, TikTok (Business), Instagram, Facebook Page, YouTube, and most other listed networks.</p>
 
 <ol>
 <li>Click the network in <Badge text="Add Channel" variant="new" />.</li>

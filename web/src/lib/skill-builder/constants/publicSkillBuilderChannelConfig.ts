@@ -22,6 +22,7 @@ import {
 	THREADS_GLOBAL_AUTO_PLUG_PAYLOAD,
 	THREADS_TEXT_ONLY_PAYLOAD,
 	TIKTOK_VIDEO_DIRECT_POST_PAYLOAD,
+	TIKTOK_BUSINESS_VIDEO_DIRECT_POST_PAYLOAD,
 	X_CROSS_ACCOUNT_REPOST_PAYLOAD,
 	X_GLOBAL_AUTO_PLUG_PAYLOAD,
 	X_GLOBAL_AUTO_REPOST_PAYLOAD,
@@ -65,6 +66,7 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	instagram: ['instagram-business', 'instagram-standalone', 'instagram'],
 	youtube: ['youtube'],
 	tiktok: ['tiktok'],
+	'tiktok-business': ['tiktok-business'],
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
 	devto: ['devto']
@@ -156,6 +158,14 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			examplePayload: { ...TIKTOK_VIDEO_DIRECT_POST_PAYLOAD }
 		}
 	],
+	'tiktok-business': [
+		{
+			id: 'tiktok-business-video-direct',
+			label: 'Direct video post',
+			prompt: 'Publish a TikTok Business video with optional commercial audio on direct post.',
+			examplePayload: { ...TIKTOK_BUSINESS_VIDEO_DIRECT_POST_PAYLOAD }
+		}
+	],
 	linkedin: [
 		{
 			id: 'linkedin-text',
@@ -241,6 +251,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	instagram: 'Feed image posts and scheduling settings.',
 	youtube: 'Video uploads — title, privacy, and tags.',
 	tiktok: 'Direct video posts with privacy controls.',
+	'tiktok-business': 'Business-account videos with commercial audio and custom covers.',
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
 	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
 	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.'

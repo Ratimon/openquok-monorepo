@@ -1,0 +1,17 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Carousel caption — links in bio.",
+  "integrationIds": ["<integration-id>"],
+  "media": [
+    { "id": "<media-id-1>", "path": "https://cdn.example.com/a.jpg" },
+    { "id": "<media-id-2>", "path": "https://cdn.example.com/b.jpg" }
+  ],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "title": "A short photo title",
+      "privacy_level": "PUBLIC_TO_EVERYONE",
+      "content_posting_method": "DIRECT_POST"
+    }
+  }
+}

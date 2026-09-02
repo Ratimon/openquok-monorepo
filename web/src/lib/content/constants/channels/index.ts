@@ -5,6 +5,7 @@ import { threadsChannel } from '$lib/content/constants/channels/threads';
 import { instagramChannel } from '$lib/content/constants/channels/instagram';
 import { youtubeChannel } from '$lib/content/constants/channels/youtube';
 import { tiktokChannel } from '$lib/content/constants/channels/tiktok';
+import { tiktokBusinessChannel } from '$lib/content/constants/channels/tiktok-business';
 import { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 import { xChannel } from '$lib/content/constants/channels/x';
 import { devtoChannel } from '$lib/content/constants/channels/devto';
@@ -16,6 +17,7 @@ export { threadsChannel } from '$lib/content/constants/channels/threads';
 export { instagramChannel } from '$lib/content/constants/channels/instagram';
 export { youtubeChannel } from '$lib/content/constants/channels/youtube';
 export { tiktokChannel } from '$lib/content/constants/channels/tiktok';
+export { tiktokBusinessChannel } from '$lib/content/constants/channels/tiktok-business';
 export { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 export { xChannel } from '$lib/content/constants/channels/x';
 export { devtoChannel } from '$lib/content/constants/channels/devto';
@@ -29,6 +31,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageView
 	instagramChannel,
 	youtubeChannel,
 	tiktokChannel,
+	tiktokBusinessChannel,
 	linkedinChannel,
 	xChannel,
 	devtoChannel,

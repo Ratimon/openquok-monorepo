@@ -81,7 +81,7 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 | **Instagram** | Yes | Comments on the root post | Text only |
 | **LinkedIn** | Yes | Comments on the main post | Text only |
 | **Facebook** | Yes | Comments on the main post | One image per reply (no video) |
-| **YouTube**, **TikTok**, **Dev.to**, … | No | — | — |
+| **YouTube**, **TikTok**, **TikTok (Business)**, **Dev.to**, … | No | — | — |
 
 Cross-account **plugs** on **LinkedIn** (from **Settings**) are separate from same-account follow-up comment rows — see <a href="/docs/automations/plugs">Plugs</a>.
 

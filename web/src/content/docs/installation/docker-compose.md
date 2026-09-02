@@ -2,7 +2,7 @@
 title: Self-host - Docker Compose
 description: Self-host OpenQuok with Docker Compose — env setup, Supabase, and bring-up of API, web, Redis, and BullMQ workers.
 order: 5
-lastUpdated: 2026-08-20
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -50,7 +50,8 @@ Leave these empty until you connect a channel. Fill only the pairs for networks 
 | <Badge text="INSTAGRAM_APP_ID" variant="envBackend" /> / <Badge text="INSTAGRAM_APP_SECRET" variant="envBackend" /> | Instagram |
 | <Badge text="THREADS_APP_ID" variant="envBackend" /> / <Badge text="THREADS_APP_SECRET" variant="envBackend" /> | Meta Threads |
 | <Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> / <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" /> | YouTube |
-| <Badge text="TIKTOK_CLIENT_ID" variant="envBackend" /> / <Badge text="TIKTOK_CLIENT_SECRET" variant="envBackend" /> | TikTok |
+| <Badge text="TIKTOK_CLIENT_ID" variant="envBackend" /> / <Badge text="TIKTOK_CLIENT_SECRET" variant="envBackend" /> | TikTok (Content API) |
+| <Badge text="TIKTOK_BUSINESS_CLIENT_ID" variant="envBackend" /> / <Badge text="TIKTOK_BUSINESS_CLIENT_SECRET" variant="envBackend" /> | TikTok (Business) — separate app; OAuth redirect must end with <code>/integration/oauth/tiktok-business/</code> |
 | <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> / <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" /> | LinkedIn / LinkedIn Page |
 | <Badge text="X_API_KEY" variant="envBackend" /> / <Badge text="X_API_SECRET" variant="envBackend" /> | X |
 

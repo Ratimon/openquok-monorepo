@@ -43,6 +43,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'terminal',
 	'tweets',
 	'trending audio',
+	'TikTok (Business)',
 	'channels',
 	'reels',
 	'steps',

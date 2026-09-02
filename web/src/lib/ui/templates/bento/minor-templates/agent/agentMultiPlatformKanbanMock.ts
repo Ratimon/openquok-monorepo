@@ -8,6 +8,7 @@ import { INSTAGRAM_LANDING_MOCK_BUSINESS_CHANNEL } from '$lib/ui/templates/bento
 import { LINKEDIN_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/linkedin/linkedinLandingMock';
 import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 import { TIKTOK_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/tiktok/tiktokLandingMock';
+import { TIKTOK_BUSINESS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/tiktok-business/tiktokBusinessLandingMock';
 import { X_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/x/xLandingMock';
 import { YOUTUBE_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/youtube/youtubeLandingMock';
 import { DEVTO_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/devto/devtoLandingMock';
@@ -28,6 +29,7 @@ const threadsSlot = channelSlot(THREADS_LANDING_MOCK_CHANNEL);
 const instagramSlot = channelSlot(INSTAGRAM_LANDING_MOCK_BUSINESS_CHANNEL);
 const youtubeSlot = channelSlot(YOUTUBE_LANDING_MOCK_CHANNEL);
 const tiktokSlot = channelSlot(TIKTOK_LANDING_MOCK_CHANNEL);
+const tiktokBusinessSlot = channelSlot(TIKTOK_BUSINESS_LANDING_MOCK_CHANNEL);
 const linkedinSlot = channelSlot(LINKEDIN_LANDING_MOCK_CHANNEL);
 const xSlot = channelSlot(X_LANDING_MOCK_CHANNEL);
 const devtoSlot = channelSlot(DEVTO_LANDING_MOCK_CHANNEL);
@@ -123,6 +125,24 @@ export const AGENT_MULTI_PLATFORM_KANBAN_CARDS: PostKanbanCardViewModel[] = [
 		isAgentEdited: false,
 		isReviewed: false,
 		tagNames: ['viral']
+	},
+	{
+		postId: 'landing-agent-kanban-tiktok-business-draft',
+		postGroup: 'landing-agent-kanban-group-5b',
+		column: 'draft',
+		contentPreview: 'Business clip — custom cover and commercial audio set for direct post.',
+		publishLabel: 'Jun 21, 2026',
+		publishTimeLabel: '11:00 AM',
+		relativePublishLabel: '(in 13 days)',
+		statusLabel: 'Draft',
+		publishDateIso: '2026-06-21T11:00:00.000Z',
+		note: 'Confirm cover poster before scheduling',
+		channelSlots: [tiktokBusinessSlot],
+		hiddenChannelCount: 0,
+		primaryChannelName: TIKTOK_BUSINESS_LANDING_MOCK_CHANNEL.name,
+		isAgentEdited: true,
+		isReviewed: false,
+		tagNames: ['cover']
 	},
 	{
 		postId: 'landing-agent-kanban-linkedin-scheduled',

@@ -51,6 +51,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	instagram: 'Rewrite captions for feed, Reel, and Story posts.',
 	youtube: 'Rewrite titles and descriptions before you publish.',
 	tiktok: 'Clean or roughen captions for short-video posts.',
+	'tiktok-business': 'Rewrite Business-account captions so they read less machine-written.',
 	linkedin: 'Drop stock phrasing from professional feed posts.',
 	x: 'Shorten drafts for a more conversational post.',
 	devto: 'Rewrite technical articles so they read less machine-written.'

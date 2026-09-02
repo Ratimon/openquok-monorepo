@@ -17,6 +17,12 @@
 		brandContentToggle?: boolean;
 		brandOrganicToggle?: boolean;
 		videoMadeWithAi?: boolean;
+		/** Business API: trending audio sound id (DIRECT_POST only). */
+		musicSoundId?: string;
+		/** Business API: location / POI id (DIRECT_POST only). */
+		poiId?: string;
+		/** Content API vs Business Marketing API — controls business-only fields. */
+		variant?: 'content' | 'business';
 		disabled?: boolean;
 	};
 
@@ -31,8 +37,13 @@
 		brandContentToggle = $bindable(false),
 		brandOrganicToggle = $bindable(false),
 		videoMadeWithAi = $bindable(false),
+		musicSoundId = $bindable(''),
+		poiId = $bindable(''),
+		variant = 'content',
 		disabled = false
 	}: Props = $props();
+
+	const isBusiness = $derived(variant === 'business');
 </script>
 
 <div class="space-y-4">
@@ -64,7 +75,7 @@
 		</select>
 	</div>
 
-	{#if contentPostingMethod === 'DIRECT_POST'}
+	{#if contentPostingMethod === 'DIRECT_POST' && !isBusiness}
 		<div
 			class="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs leading-relaxed text-base-content/80"
 			role="note"
@@ -73,6 +84,45 @@
 			Direct post needs <strong>Only me (private)</strong> above <em>and</em> your TikTok profile set to
 			<strong>Private</strong> in the TikTok app (Settings → Privacy). Inbox upload does not require a private
 			account. After TikTok approves Content Posting API access, you can post publicly again.
+		</div>
+	{/if}
+
+	{#if isBusiness && contentPostingMethod === 'DIRECT_POST'}
+		<div class="space-y-3">
+			<div class="text-xs font-medium text-base-content/70">Business direct post</div>
+			<div class="space-y-1">
+				<label class="text-xs font-medium text-base-content/70" for="tt-music-sound-id">
+					Trending audio sound ID (optional)
+				</label>
+				<input
+					id="tt-music-sound-id"
+					type="text"
+					class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
+					placeholder="Sound ID from TikTok Business"
+					bind:value={musicSoundId}
+					{disabled}
+				/>
+				<p class="text-xs text-base-content/50">
+					Attach commercial or trending audio on direct posts. Leave blank to use the video&apos;s original
+					sound.
+				</p>
+			</div>
+			<div class="space-y-1">
+				<label class="text-xs font-medium text-base-content/70" for="tt-poi-id">
+					Location POI ID (optional)
+				</label>
+				<input
+					id="tt-poi-id"
+					type="text"
+					class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
+					placeholder="Point-of-interest ID"
+					bind:value={poiId}
+					{disabled}
+				/>
+				<p class="text-xs text-base-content/50">
+					Tag a location on direct posts when your Business account supports it.
+				</p>
+			</div>
 		</div>
 	{/if}
 
@@ -106,15 +156,17 @@
 			<input type="checkbox" class="checkbox checkbox-primary checkbox-sm" bind:checked={comment} {disabled} />
 			Allow comments
 		</label>
-		<label class="flex items-center gap-2 text-sm text-base-content/80">
-			<input
-				type="checkbox"
-				class="checkbox checkbox-primary checkbox-sm"
-				bind:checked={autoAddMusic}
-				{disabled}
-			/>
-			Auto-add music (photo posts)
-		</label>
+		{#if !isBusiness}
+			<label class="flex items-center gap-2 text-sm text-base-content/80">
+				<input
+					type="checkbox"
+					class="checkbox checkbox-primary checkbox-sm"
+					bind:checked={autoAddMusic}
+					{disabled}
+				/>
+				Auto-add music (photo posts)
+			</label>
+		{/if}
 	</div>
 
 	<div class="space-y-2">

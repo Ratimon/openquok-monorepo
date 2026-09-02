@@ -20,6 +20,7 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	instagram: ['instagram-business', 'instagram-standalone', 'instagram'],
 	youtube: ['youtube'],
 	tiktok: ['tiktok'],
+	'tiktok-business': ['tiktok-business'],
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
 	devto: ['devto']
@@ -31,6 +32,7 @@ const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
 	instagram: 'instagram-bulk-scheduling',
 	youtube: 'youtube-bulk-scheduling',
 	tiktok: 'tiktok-bulk-scheduling',
+	'tiktok-business': 'tiktok-business-bulk-scheduling',
 	linkedin: 'linkedin-bulk-scheduling',
 	x: 'x-bulk-scheduling',
 	devto: 'devto-bulk-scheduling'
@@ -42,6 +44,7 @@ const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = 
 	instagram: 'instagram-insights',
 	youtube: 'youtube-insights',
 	tiktok: 'tiktok-insights',
+	'tiktok-business': 'tiktok-business-video-covers',
 	linkedin: 'linkedin-insights',
 	x: 'x-insights',
 	devto: 'devto-insights'

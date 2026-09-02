@@ -2,7 +2,7 @@
 title: TikTok
 description: OpenQuok MCP examples for TikTok — videos and photo carousels with privacy settings.
 order: 5
-lastUpdated: 2026-06-26
+lastUpdated: 2026-09-01
 ---
 
 <script>
@@ -59,6 +59,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 <CardGrid>
 <LinkCard title="TikTok setup" description="Developer app, redirect URI, and content posting scopes" href="/docs/social-integration/tiktok" />
+<LinkCard title="TikTok (Business) MCP examples" description="Custom covers and commercial audio on a separate channel" href="/docs/mcp-examples/tiktok-business" />
 <LinkCard title="CLI examples" description="openquok posts:create recipes for video and photo carousels" href="/docs/cli-examples/tiktok" />
 <LinkCard title="MCP overview" description="Multi-channel and bulk scheduling patterns" href="/docs/mcp-examples" />
 </CardGrid>

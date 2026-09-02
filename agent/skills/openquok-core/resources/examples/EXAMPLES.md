@@ -69,6 +69,15 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | [tiktok-upload-inbox.json](./tiktok-upload-inbox.json) | Creator inbox (`UPLOAD`) |
 | [tiktok-private-draft.json](./tiktok-private-draft.json) | Private draft (`SELF_ONLY`) |
 
+## TikTok Business
+
+Separate integration UUID (`identifier=="tiktok-business"`). Video posts omit `privacy_level`.
+
+| File | Scenario |
+| --- | --- |
+| [tiktok-business-video-direct-post.json](./tiktok-business-video-direct-post.json) | Direct publish + optional `music_sound_id` |
+| [tiktok-business-photo-carousel.json](./tiktok-business-photo-carousel.json) | Photo carousel + title + privacy |
+
 ## LinkedIn
 
 | File | Scenario |

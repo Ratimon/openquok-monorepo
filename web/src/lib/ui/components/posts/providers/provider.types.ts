@@ -51,6 +51,11 @@ export type TiktokLaunchProviderSettings = {
 	video_made_with_ai: boolean;
 };
 
+export type TiktokBusinessLaunchProviderSettings = TiktokLaunchProviderSettings & {
+	music_sound_id?: string;
+	poi_id?: string;
+};
+
 export type LinkedInLaunchProviderSettings = {
 	postAsImagesCarousel?: boolean;
 	carouselName?: string;

@@ -32,6 +32,23 @@ describe("buildTiktokVideoPostInfoBody", () => {
             is_aigc: false,
         });
     });
+
+    it("includes video_cover_timestamp_ms when a cover timestamp is provided", () => {
+        expect(buildTiktokVideoPostInfoBody(baseSettings, "caption", 1500)).toMatchObject({
+            video_cover_timestamp_ms: 1500,
+        });
+    });
+
+    it("omits video_cover_timestamp_ms when cover timestamp is undefined", () => {
+        const body = buildTiktokVideoPostInfoBody(baseSettings, "caption");
+        expect(body).not.toHaveProperty("video_cover_timestamp_ms");
+    });
+
+    it("includes video_cover_timestamp_ms when cover timestamp is zero", () => {
+        expect(buildTiktokVideoPostInfoBody(baseSettings, "caption", 0)).toMatchObject({
+            video_cover_timestamp_ms: 0,
+        });
+    });
 });
 
 describe("buildTiktokPhotoPostInfoBody", () => {

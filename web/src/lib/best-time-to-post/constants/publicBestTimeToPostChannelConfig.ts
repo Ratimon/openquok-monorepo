@@ -44,6 +44,7 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	instagram: 'Test feed, Reel, and carousel benchmark slots.',
 	youtube: 'Probe afternoon and evening publish windows.',
 	tiktok: 'Test noon and evening short-video windows.',
+	'tiktok-business': 'Test noon and evening Business-account short-video windows.',
 	linkedin: 'Probe weekday morning and lunch B2B slots.',
 	x: 'Test morning and midday conversation windows.',
 	devto: 'Probe weekday morning, lunch, and early-evening writing windows.'
