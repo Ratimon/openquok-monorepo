@@ -21,6 +21,7 @@ import {
 	getRootPathPublicPlaybooksTags
 } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
+import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicHumanizer,
@@ -51,6 +52,7 @@ const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
 const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
+const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
 
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
@@ -821,8 +823,8 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Blog Topics', href: '/blog/topic' },
 		{ label: 'Blog Authors', href: '/blog/author' },
 		{ label: 'Compare', href: publicComparePath },
+		{ label: 'Self-hosted', href: publicSelfHostingPath },
 		{ label: 'Developer Docs', href: publicDocsPath },
-		{ label: 'Self-hosted', href: publicDocsInstallationDockerComposePath },
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },

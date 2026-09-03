@@ -85,7 +85,10 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'youtube',
 	'tiktok',
 	'carousels',
-	'linkedin'
+	'linkedin',
+	'OpenQuok',
+	'alternative scheduler',
+	'free alternative scheduler'
 ] as const;
 
 const TITLE_PART_HIGHLIGHT_PHRASE = new RegExp(

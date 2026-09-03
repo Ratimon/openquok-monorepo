@@ -30,6 +30,9 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');
 		expect(publicFaqHref.humanizerTool).toBe('/tools/humanizer');
 		expect(publicFaqHref.skillBuilderTool).toBe('/tools/skill-builder');
+		expect(publicFaqHref.selfHostingLanding).toBe('/self-hosting');
+		expect(publicFaqHref.dockerCompose).toBe('/docs/installation/docker-compose');
+		expect(publicFaqHref.productionDeployment).toBe('/docs/installation/production-deployment');
 		expect(faqHrefAgent('grok-bot')).toBe('/agents/grok-bot');
 	});
 

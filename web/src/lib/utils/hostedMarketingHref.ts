@@ -14,7 +14,7 @@ import { route, url } from '$lib/utils/path';
 /** Canonical hosted marketing origin. Self-host instances backlink here. */
 export const OPENQUOK_HOSTED_WEB_ORIGIN = 'https://www.openquok.com';
 
-const EXTRA_HOSTED_MARKETING_SEGMENTS = ['pricing', 'about'] as const;
+const EXTRA_HOSTED_MARKETING_SEGMENTS = ['pricing', 'about', 'self-hosting'] as const;
 
 /** Normalized prefixes (`/docs`, `/blog`, …) for public marketing routes. */
 export const HOSTED_MARKETING_PATH_PREFIXES: readonly string[] = [

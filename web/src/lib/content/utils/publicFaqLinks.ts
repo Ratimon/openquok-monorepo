@@ -9,6 +9,7 @@ import {
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicPlaybooks, getRootPathPublicPlaybooksTag } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicBestTimeToPostChannel,
@@ -68,7 +69,9 @@ export const publicFaqHref = {
 	alternatives: route(getRootPathPublicAlternatives()),
 	playbooks: route(getRootPathPublicPlaybooks()),
 	buildingBlocks: route(getRootPathPublicBuildingBlocks()),
+	selfHostingLanding: route(getRootPathPublicSelfHosting()),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),
+	productionDeployment: faqHrefDocs('installation/production-deployment'),
 	cliGettingStarted: faqHrefDocs('getting-started-for-cli'),
 	cliManagingPosts: faqHrefDocs('cli-usages/managing-posts'),
 	cliAnalytics: faqHrefDocs('cli-usages/analytics'),

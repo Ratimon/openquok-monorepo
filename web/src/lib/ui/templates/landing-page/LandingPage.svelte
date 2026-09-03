@@ -32,6 +32,7 @@
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
 	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
 	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
+	import PublicSelfHostPricingFootnote from '$lib/ui/components/pricing/PublicSelfHostPricingFootnote.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -426,6 +427,8 @@ openquok analytics:post <post-id> -d 30`
 	secondaryCtaHref={pricingCompareHref}
 	secondaryCtaLabel="Compare all features"
 />
+
+<PublicSelfHostPricingFootnote />
 
 <div class="container mx-auto px-4">
 	<PublicFaq

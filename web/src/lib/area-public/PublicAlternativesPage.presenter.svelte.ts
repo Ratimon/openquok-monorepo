@@ -15,6 +15,7 @@ import {
 	getRootPathPublicAlternativesComparePair,
 	getRootPathPublicAlternativesTarget
 } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type AlternativesHubEntryViewModel = {
 	slug: CompareProductSlug;
@@ -66,8 +67,9 @@ export type AlternativesDetailViewModel = {
 
 export class PublicAlternativesPagePresenter {
 	/**
-	 * Hub SEO for `/alternatives`. Targets free/open-source alternative intent (e.g.
-	 * "free Hootsuite alternative", "open source social media scheduler").
+	 * Hub SEO for `/alternatives`. Targets competitor-replacement intent (e.g.
+	 * "Hootsuite alternatives", "Buffer alternatives") — not the $0 self-host path.
+	 * Free-operator positioning lives on `/self-hosting`.
 	 *
 	 * - `metaTitle` / `metaDescription` / `keywords` → `createMetaData` via hub `+page.server.ts` (`customTags`)
 	 * - `title` / `description` → visible H1 and hero paragraph (SSR body copy)
@@ -75,30 +77,30 @@ export class PublicAlternativesPagePresenter {
 	 * Per-competitor pages (`/alternatives/{slug}`) use `buildDetailVm` and
 	 * `buildAlternativesDetailKeywords`. OpenQuok #1 listing body copy is set in
 	 * `buildAlternativeDetailDescription`.
-	 * eg. "OpenQuok is 100% open source — self-host for free or start a 7-day trial — with agent workflows, multi-workspace publishing, and analytics."
 	 */
 	buildHubVm(): AlternativesHubViewModel {
 		const entries = ALTERNATIVES_TARGET_SLUGS.map((slug) => this.buildHubEntryVm(slug));
 
 		return {
-			metaTitle: 'Free & Open-Source Social Media Scheduler Alternatives',
+			metaTitle: 'Social Media Scheduler Alternatives',
 			metaDescription:
-				'Compare free and open-source social media management tools. OpenQuok is 100% open source — self-host for free or start a 7-day trial — with agent workflows, multi-workspace publishing, and analytics.',
+				'Compare Buffer, Hootsuite, Later, and other social media management tools side by side. See pricing, channels, and agent workflows — and how OpenQuok compares for multi-workspace scheduling.',
 			keywords: [
-				'free social media scheduler',
-				'open source social media scheduler',
-				'free social media management tools',
-				'open source social media management',
 				'social media scheduler alternatives',
-				'free hootsuite alternative',
-				'free buffer alternative',
+				'social media management tool alternatives',
+				'buffer alternatives',
+				'hootsuite alternatives',
+				'later alternatives',
+				'sprout social alternatives',
+				'social media management tools',
 				'agent social media scheduling',
-				'multi-workspace scheduler'
+				'multi-workspace scheduler',
+				'open source social media scheduler'
 			],
 			eyebrow: 'Alternatives',
-			title: 'Find a free or the best open-source alternative',
+			title: 'Compare social media scheduler alternatives',
 			description:
-				'Compare free and open-source social media schedulers — including OpenQuok, which you can self-host at no cost or try hosted with a 7-day trial.',
+				`Side-by-side directories for popular schedulers — pricing, channels, and agent workflows. OpenQuok is open source; for the $0 operator-run path, see ${publicFaqHref.selfHostingLanding}.`,
 			entries
 		};
 	}
@@ -120,12 +122,12 @@ export class PublicAlternativesPagePresenter {
 			listings.length === 1 ? '1 top alternative' : `${listings.length} top alternatives`;
 
 		return {
-			metaTitle: `Best Free & Open-Source ${targetProduct.name} Alternatives`,
-			metaDescription: `Compare free and open-source alternatives to ${targetProduct.name} for social media scheduling. OpenQuok ranks #1 — 100% open source, self-host for free, or start a 7-day trial. See ${alternativeCountLabel} on pricing, channels, and agent workflows.`,
+			metaTitle: `Best ${targetProduct.name} Alternatives`,
+			metaDescription: `Compare alternatives to ${targetProduct.name} for social media scheduling — pricing, channels, and agent workflows. OpenQuok ranks #1 as an open-source option; self-host for a $0 software fee or start a hosted 7-day trial. See ${alternativeCountLabel}.`,
 			keywords: buildAlternativesDetailKeywords(targetProduct.name),
 			eyebrow: 'Alternatives',
 			title: `${targetProduct.name} alternatives`,
-			description: `Compare free and open-source alternatives to ${targetProduct.name} for social media management, scheduling, and agent-driven publishing.`,
+			description: `Compare alternatives to ${targetProduct.name} for social media management, scheduling, and agent-driven publishing.`,
 			targetSlug: targetProduct.slug,
 			targetName: targetProduct.name,
 			targetIcon: targetProduct.icon,
@@ -161,7 +163,7 @@ export class PublicAlternativesPagePresenter {
 			icon: product.icon,
 			href: url(route(getRootPathPublicAlternativesTarget(product.slug))),
 			title: `${product.name} alternatives`,
-			description: `Discover free and open-source alternatives to ${product.name} for social media management, scheduling, and analytics.`
+			description: `Compare alternatives to ${product.name} for social media management, scheduling, and analytics.`
 		};
 	}
 
@@ -192,25 +194,19 @@ function buildAlternativeDetailDescription(
 	targetProduct: CompareProduct
 ): string {
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
-		return `${product.name} is 100% open source — self-host for free or try hosted with a 7-day trial. Teams switch from ${targetProduct.name} for ${product.comparison.headline}, multi-workspace isolation, and programmatic scheduling through skills, MCP, and the Public API.`;
+		return `${product.name} is 100% open source — self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}) or try hosted with a 7-day trial. Teams switch from ${targetProduct.name} for ${product.comparison.headline}, multi-workspace isolation, and programmatic scheduling through skills, MCP, and the Public API.`;
 	}
 
 	return `${product.name} is built for ${product.comparison.builtFor}. ${product.comparison.positioningWhenLeft.charAt(0).toUpperCase()}${product.comparison.positioningWhenLeft.slice(1)}.`;
 }
 
 function buildAlternativesDetailKeywords(competitorName: string): string[] {
-	// Per-slug meta keywords — mirrors GSC head terms for free/open-source competitor alternatives.
 	return [
 		`${competitorName} alternatives`,
 		`best ${competitorName} alternative`,
-		`free ${competitorName} alternative`,
-		`free ${competitorName} alternatives`,
-		`${competitorName} free alternative`,
+		`${competitorName} competitor`,
 		`open source ${competitorName} alternative`,
 		`${competitorName} open source alternative`,
-		`${competitorName} competitor`,
-		'free social media scheduler',
-		'open source social media scheduler',
 		'social media scheduler alternatives',
 		'social media management tools',
 		'agent social media scheduling',

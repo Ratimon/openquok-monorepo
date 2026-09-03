@@ -27,7 +27,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I self-host OpenQuok?',
 		description:
-			`Yes. OpenQuok is ${faqLink(OPENQUOK_GITHUB_REPO_HREF, 'open source on GitHub')}, so you can run it on your own infrastructure (eg. AWS, GCP, Hezner, or even vercel) and manage limits locally without needing a subscription. Follow the ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host guide')} or the ${faqLink(publicFaqHref.blogSelfHost, 'CLI device-login self-host walkthrough')}.`
+			`Yes. OpenQuok is a ${faqLink(publicFaqHref.selfHostingLanding, 'free alternative social media scheduler')} — ${faqLink(OPENQUOK_GITHUB_REPO_HREF, 'open source on GitHub')} with no software fee when you operate it yourself. Pick your path: hosted cloud plan, ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host')}, or ${faqLink(publicFaqHref.productionDeployment, 'production deployment on your own cloud')}. For CLI device login without API keys on the agent host, see the ${faqLink(publicFaqHref.blogSelfHost, 'CLI device-login walkthrough')}.`
 	},
 	{
 		title: 'What is the agent workspace?',
