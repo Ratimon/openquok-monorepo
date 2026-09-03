@@ -26,8 +26,11 @@
 # Vercel (local link/output)
 .vercel
 
-# Railway CLI local project link (do not commit)
-.railway
+# Railway IaC — commit .railway/railway.ts (+ README); ignore local backups
+.railway/*
+!.railway/railway.ts
+!.railway/README.md
+.railway/*.bak
 
 # OS
 .DS_Store
