@@ -1,17 +1,13 @@
 import type {
 	LaunchProviderCheckContext,
 	LaunchProviderConfig,
-	TiktokBusinessLaunchProviderSettings,
 	TiktokContentPostingMethod,
 	TiktokLaunchProviderSettings,
 	TiktokPrivacyLevel
 } from '$lib/ui/components/posts/providers/provider.types';
 
-/** TikTok Content API caption limit (matches backend `TiktokProvider.maxLength`). */
+/** TikTok caption limit (matches backend `TiktokProvider.maxLength`). */
 export const TIKTOK_MAX_CHARACTERS = 2000;
-
-/** TikTok Business caption limit (matches backend `TiktokBusinessProvider.maxLength`). */
-export const TIKTOK_BUSINESS_MAX_CHARACTERS = 2200;
 
 export const TIKTOK_PHOTO_TITLE_MAX = 90;
 export const TIKTOK_PHOTO_CAROUSEL_MAX_ITEMS = 35;
@@ -107,33 +103,6 @@ export function readTiktokLaunchSettings(
 	};
 }
 
-function readOptionalString(source: Record<string, unknown>, ...keys: string[]): string | undefined {
-	for (const key of keys) {
-		const raw = source[key];
-		if (typeof raw === 'string' && raw.trim()) return raw.trim();
-	}
-	return undefined;
-}
-
-/** Reads TikTok Business settings (shared keys + `music_sound_id` / `poi_id`). */
-export function readTiktokBusinessLaunchSettings(
-	settings: Record<string, unknown>
-): TiktokBusinessLaunchProviderSettings {
-	const businessBucket = (settings as { 'tiktok-business'?: Record<string, unknown> })['tiktok-business'];
-	const businessSource: Record<string, unknown> = {
-		...settings,
-		...(businessBucket && typeof businessBucket === 'object' ? businessBucket : {})
-	};
-	const shared = readTiktokLaunchSettings(settings);
-	const musicSoundId = readOptionalString(businessSource, 'music_sound_id', 'musicSoundId');
-	const poiId = readOptionalString(businessSource, 'poi_id', 'poiId', 'location_id', 'locationId');
-	return {
-		...shared,
-		...(musicSoundId ? { music_sound_id: musicSoundId } : {}),
-		...(poiId ? { poi_id: poiId } : {})
-	};
-}
-
 function classifyTiktokMedia(media: { path: string }[]): 'video' | 'photo' | null {
 	if (media.length === 0) return null;
 	const hasVideo = media.some((m) => isMp4Path(m.path));
@@ -201,19 +170,6 @@ export const tiktokProvider: LaunchProviderConfig = {
 	comments: false,
 	checkValidity: (ctx) => {
 		const { media, settings } = tiktokCheckContext(ctx);
-		return checkTiktokLaunchValidity(media, settings);
-	}
-};
-
-export const tiktokBusinessProvider: LaunchProviderConfig = {
-	id: 'tiktok-business',
-	maximumCharacters: TIKTOK_BUSINESS_MAX_CHARACTERS,
-	minimumCharacters: 0,
-	postComment: 'COMMENT',
-	comments: false,
-	checkValidity: (ctx) => {
-		const media = ctx.media;
-		const settings = readTiktokBusinessLaunchSettings(ctx.settings);
 		return checkTiktokLaunchValidity(media, settings);
 	}
 };

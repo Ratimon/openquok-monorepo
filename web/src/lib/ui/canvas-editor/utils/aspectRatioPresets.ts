@@ -631,7 +631,7 @@ export const DEFAULT_ASPECT_RATIO_ID = '9:16';
 export function aspectPlatformGroupIdForProviderIdentifier(identifier: string | null | undefined): string {
 	const id = (identifier ?? '').trim().toLowerCase();
 	if (!id) return 'general';
-	if (id === 'tiktok' || id === 'tiktok-business') return 'tiktok';
+	if (id === 'tiktok') return 'tiktok';
 	if (id.startsWith('instagram')) return 'instagram';
 	if (id === 'threads') return 'instagram';
 	if (id === 'facebook') return 'facebook';

@@ -10,7 +10,6 @@ import { InstagramStandaloneProvider } from "./providers/instagram/instagramStan
 import { ThreadsProvider } from "./providers/threadsProvider";
 import { LinkedInPageProvider } from "./providers/linkedin/linkedinPageProvider";
 import { LinkedInProvider } from "./providers/linkedin/linkedinProvider";
-import { TiktokBusinessProvider } from "./providers/tiktok/tiktokBusinessProvider";
 import { TiktokProvider } from "./providers/tiktok/tiktokProvider";
 import { YoutubeProvider } from "./providers/youtube/youtubeProvider";
 import { XProvider } from "./providers/x/xProvider";
@@ -25,7 +24,6 @@ const socialIntegrationList: SocialProvider[] = [
     new LinkedInPageProvider(),
     new YoutubeProvider(),
     new TiktokProvider(),
-    new TiktokBusinessProvider(),
     new XProvider(),
     new DevToProvider(),
 ];

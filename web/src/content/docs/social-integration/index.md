@@ -2,7 +2,7 @@
 title: Overview - Connections
 description: Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
-lastUpdated: 2026-09-01
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -26,8 +26,7 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <LinkCard title="Instagram" description="Connect Instagram Business or Standalone and start posting" href="/docs/social-integration/instagram" />
 <LinkCard title="Facebook Page" description="Link a Facebook Page and publish from your workspace" href="/docs/social-integration/facebook" />
 <LinkCard title="YouTube" description="Connect a YouTube channel and schedule video uploads" href="/docs/social-integration/youtube" />
-<LinkCard title="TikTok" description="Connect TikTok (Content API) and schedule content to your account" href="/docs/social-integration/tiktok" />
-<LinkCard title="TikTok (Business)" description="Connect TikTok Business for custom video covers and commercial audio" href="/docs/social-integration/tiktok-business" />
+<LinkCard title="TikTok" description="Connect TikTok and schedule content to your account" href="/docs/social-integration/tiktok" />
 <LinkCard title="LinkedIn" description="Connect your personal LinkedIn profile for posts and documents" href="/docs/social-integration/linkedin" />
 <LinkCard title="LinkedIn Page" description="Connect a Company Page to post and view page insights" href="/docs/social-integration/linkedin-page" />
 <LinkCard title="X" description="Connect X (Twitter) so you can schedule posts" href="/docs/social-integration/x" />

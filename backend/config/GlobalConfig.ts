@@ -483,11 +483,6 @@ export const config: ConfigObject = {
             clientId: getEnvTrimmed("TIKTOK_CLIENT_ID"),
             clientSecret: getEnvTrimmed("TIKTOK_CLIENT_SECRET"),
         },
-        /** TikTok Business — Marketing API organic publish (separate developer app). */
-        tiktokBusiness: {
-            clientId: getEnvTrimmed("TIKTOK_BUSINESS_CLIENT_ID"),
-            clientSecret: getEnvTrimmed("TIKTOK_BUSINESS_CLIENT_SECRET"),
-        },
         /** LinkedIn — personal profile and company Page OAuth (same developer app). */
         linkedin: {
             clientId: getEnvTrimmed("LINKEDIN_CLIENT_ID"),

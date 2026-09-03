@@ -19,9 +19,6 @@
 	import BentoTiktokBulkScheduling from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokBulkScheduling.svelte';
 	import BentoTiktokComposeSettings from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokComposeSettings.svelte';
 	import BentoTiktokInsights from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokInsights.svelte';
-	import BentoTiktokBusinessBulkScheduling from '$lib/ui/templates/bento/minor-templates/tiktok-business/BentoTiktokBusinessBulkScheduling.svelte';
-	import BentoTiktokBusinessComposeSettings from '$lib/ui/templates/bento/minor-templates/tiktok-business/BentoTiktokBusinessComposeSettings.svelte';
-	import BentoTiktokBusinessVideoCovers from '$lib/ui/templates/bento/minor-templates/tiktok-business/BentoTiktokBusinessVideoCovers.svelte';
 	import BentoYoutubeBulkScheduling from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeBulkScheduling.svelte';
 	import BentoYoutubeInsights from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeInsights.svelte';
 	import BentoYoutubeVideoSettings from '$lib/ui/templates/bento/minor-templates/youtube/BentoYoutubeVideoSettings.svelte';
@@ -78,12 +75,6 @@
 	<BentoTiktokComposeSettings {isLoggedIn} />
 {:else if bentoId === 'tiktok-insights'}
 	<BentoTiktokInsights />
-{:else if bentoId === 'tiktok-business-bulk-scheduling'}
-	<BentoTiktokBusinessBulkScheduling />
-{:else if bentoId === 'tiktok-business-compose-settings'}
-	<BentoTiktokBusinessComposeSettings {isLoggedIn} />
-{:else if bentoId === 'tiktok-business-video-covers'}
-	<BentoTiktokBusinessVideoCovers {isLoggedIn} />
 {:else if bentoId === 'linkedin-bulk-scheduling'}
 	<BentoLinkedinBulkScheduling />
 {:else if bentoId === 'linkedin-compose-settings'}

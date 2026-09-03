@@ -112,13 +112,6 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		...GLYPH_SIZE
 	},
 	{
-		id: 'tiktok-business',
-		icon: icons.TikTok.name,
-		label: 'TikTok (Business)',
-		containerClass: GLYPH_TILE,
-		...GLYPH_SIZE
-	},
-	{
 		id: 'linkedin',
 		icon: icons.LinkedInGlyph.name,
 		containerClass: GLYPH_TILE,
@@ -147,11 +140,11 @@ export const FEATURES_GRID_SOCIAL_ROWS: { offsetClass: string; platformIds: stri
 	},
 	{
 		offsetClass: 'translate-x-0',
-		platformIds: ['youtube', 'tiktok', 'tiktok-business']
+		platformIds: ['youtube', 'tiktok', 'linkedin']
 	},
 	{
 		offsetClass: '-translate-x-4 sm:-translate-x-8 md:-translate-x-12',
-		platformIds: ['x', 'instagram-standalone', 'linkedin', 'devto']
+		platformIds: ['x', 'instagram-standalone', 'devto']
 	}
 ];
 

@@ -98,7 +98,7 @@
 		{previewMetaLabel}
 		{providerSettings}
 	/>
-{:else if identifier === 'tiktok' || identifier === 'tiktok-business'}
+{:else if identifier === 'tiktok'}
 	<TiktokPreview
 		{channel}
 		{previewText}

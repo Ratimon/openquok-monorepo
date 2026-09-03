@@ -1,47 +1,10 @@
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 
-export type TiktokMediaItem = {
-    path: string;
-    bucket?: string;
-    thumbnail?: string | null;
-    thumbnailTimestamp?: number | null;
-};
-type SettingsWithMedia = { media?: { items?: unknown[] } | unknown[] };
+export type TiktokMediaItem = { path: string; bucket?: string };
+type SettingsWithMedia = { media?: { items?: TiktokMediaItem[] } | TiktokMediaItem[] };
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function parseOptionalThumbnail(raw: unknown): string | null | undefined {
-    if (raw === null) return null;
-    if (typeof raw !== "string") return undefined;
-    const trimmed = raw.trim();
-    return trimmed.length > 0 ? trimmed : null;
-}
-
-function parseOptionalThumbnailTimestamp(raw: unknown): number | null | undefined {
-    if (raw === null) return null;
-    if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 0) return undefined;
-    return raw;
-}
-
-function normalizeTiktokMediaItem(raw: unknown): TiktokMediaItem | null {
-    if (!isPlainObject(raw)) return null;
-    const path = raw.path;
-    if (typeof path !== "string" || path.length === 0) return null;
-
-    const item: TiktokMediaItem = { path };
-    const bucket = typeof raw.bucket === "string" ? raw.bucket.trim() : "";
-    if (bucket) item.bucket = bucket;
-    if ("thumbnail" in raw) {
-        const thumbnail = parseOptionalThumbnail(raw.thumbnail);
-        if (thumbnail !== undefined) item.thumbnail = thumbnail;
-    }
-    if ("thumbnailTimestamp" in raw) {
-        const thumbnailTimestamp = parseOptionalThumbnailTimestamp(raw.thumbnailTimestamp);
-        if (thumbnailTimestamp !== undefined) item.thumbnailTimestamp = thumbnailTimestamp;
-    }
-    return item;
 }
 
 export function mediaExtFromUrlOrKey(path: string): string {
@@ -59,11 +22,11 @@ export function extractTiktokMediaFromSettings(settings: unknown): TiktokMediaIt
     if (!isPlainObject(settings)) return [];
     const media = (settings as SettingsWithMedia).media;
     if (Array.isArray(media)) {
-        return media.map(normalizeTiktokMediaItem).filter((m): m is TiktokMediaItem => m !== null);
+        return media.filter((m): m is TiktokMediaItem => !!m && typeof m.path === "string" && m.path.length > 0);
     }
     const items = media?.items;
     if (Array.isArray(items)) {
-        return items.map(normalizeTiktokMediaItem).filter((m): m is TiktokMediaItem => m !== null);
+        return items.filter((m): m is TiktokMediaItem => !!m && typeof m.path === "string" && m.path.length > 0);
     }
     return [];
 }
@@ -97,13 +60,6 @@ export function classifyTiktokMedia(media: TiktokMediaItem[]): "video" | "photo"
     if (hasVideo) return media.length === 1 ? "video" : null;
     if (hasImage) return "photo";
     return null;
-}
-
-export function resolveTiktokVideoCoverTimestampMs(media: TiktokMediaItem[]): number | undefined {
-    if (media.length === 0) return undefined;
-    const ts = media[0]?.thumbnailTimestamp;
-    if (typeof ts !== "number" || !Number.isFinite(ts) || ts < 0) return undefined;
-    return Math.round(ts);
 }
 
 export function validateTiktokMedia(media: TiktokMediaItem[]): { kind: "video" | "photo"; urls: string[] } {

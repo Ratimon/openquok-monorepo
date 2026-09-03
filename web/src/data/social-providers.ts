@@ -9,7 +9,6 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'linkedin',
 	'linkedin-page',
 	'tiktok',
-	'tiktok-business',
 	'youtube',
 	'threads',
 	'x',
@@ -31,7 +30,6 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	facebook: 'Facebook Page',
 	youtube: 'YouTube',
 	tiktok: 'TikTok',
-	'tiktok-business': 'TikTok (Business)',
 	x: 'X',
 	linkedin: 'LinkedIn',
 	'linkedin-page': 'LinkedIn Page',
@@ -89,7 +87,6 @@ export function socialProviderEmoji(identifier: string): string {
 		facebook: 'ⓕ',
 		youtube: '▶️',
 		tiktok: '🎵',
-		'tiktok-business': '🎵',
 		x: '𝕏',
 		linkedin: '[in]',
 		'linkedin-page': '[in]',
@@ -141,9 +138,9 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 		labels: ['YouTube Shorts']
 	},
 	{
-		identifiers: ['tiktok', 'tiktok-business'],
+		identifiers: ['tiktok'],
 		icon: icons.TikTok.name,
-		labels: ['TikTok', 'TikTok (Business)']
+		labels: ['TikTok']
 	},
 	{
 		identifiers: ['x'],

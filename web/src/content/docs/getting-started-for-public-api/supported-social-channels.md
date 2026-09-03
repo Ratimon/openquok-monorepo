@@ -1,8 +1,8 @@
 ---
 title: Supported social channels
-description: Social channels OpenQuok currently supports — including Meta Threads, Instagram, TikTok, TikTok (Business), and Dev.to — plus the per-channel settings shape behind the public API.
+description: Social channels OpenQuok currently supports — including Meta Threads, Instagram, and Dev.to — plus the per-channel settings shape behind the public API.
 order: 1
-lastUpdated: 2026-09-01
+lastUpdated: 2026-08-26
 ---
 
 <script>
@@ -28,8 +28,6 @@ OpenQuok currently ships social provider integrations behind a single create-pos
 | Meta Threads | <Badge text="threads" variant="default" /> | <Badge text="GET /api/v1/public/social/threads" variant="default" /> | <a href="/docs/social-integration/threads">Threads</a> |
 | Instagram (Business, FB-linked) | <Badge text="instagram-business" variant="default" /> | <Badge text="GET /api/v1/public/social/instagram-business" variant="default" /> | <a href="/docs/social-integration/instagram">Instagram</a> |
 | Instagram (Standalone, IG Login) | <Badge text="instagram-standalone" variant="default" /> | <Badge text="GET /api/v1/public/social/instagram-standalone" variant="default" /> | <a href="/docs/social-integration/instagram">Instagram</a> |
-| TikTok (Content API) | <Badge text="tiktok" variant="default" /> | <Badge text="GET /api/v1/public/social/tiktok" variant="default" /> | <a href="/docs/social-integration/tiktok">TikTok</a> |
-| TikTok (Business) | <Badge text="tiktok-business" variant="default" /> | <Badge text="GET /api/v1/public/social/tiktok-business" variant="default" /> | <a href="/docs/social-integration/tiktok-business">TikTok (Business)</a> |
 | Dev.to | <Badge text="devto" variant="default" /> | Dashboard API key — not <Badge text="GET /api/v1/public/social/devto" variant="default" /> | <a href="/docs/social-integration/devto">Dev.to</a> |
 
 The <strong>Identifier</strong> column matches the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. For OAuth providers it also matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>. When you reference a channel inside a post payload, use the channel's <strong>UUID</strong> — not its short identifier — in <Badge text="integrationIds" variant="param" /> and as the keys of <Badge text="providerSettingsByIntegrationId" variant="param" />.
@@ -52,8 +50,6 @@ These providers accept (or require) a per-channel <Badge text="providerSettingsB
 | --- | --- | --- |
 | Instagram (Business, FB-linked) | <Badge text="instagram-business" variant="default" /> | <Badge text="post_type" variant="param" />, <Badge text="collaborators" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="graduation_strategy" variant="param" /> |
 | Instagram (Standalone, IG Login) | <Badge text="instagram-standalone" variant="default" /> | <Badge text="post_type" variant="param" />, <Badge text="collaborators" variant="param" />, <Badge text="is_trial_reel" variant="param" />, <Badge text="graduation_strategy" variant="param" /> |
-| TikTok (Content API) | <Badge text="tiktok" variant="default" /> | <Badge text="privacy_level" variant="param" />, <Badge text="content_posting_method" variant="param" />, <Badge text="title" variant="param" />, interaction toggles |
-| TikTok (Business) | <Badge text="tiktok-business" variant="default" /> | <Badge text="content_posting_method" variant="param" />, <Badge text="music_sound_id" variant="param" />, <Badge text="poi_id" variant="param" />, photo <Badge text="privacy_level" variant="param" /> |
 | Dev.to | <Badge text="devto" variant="default" /> | <Badge text="title" variant="param" />, <Badge text="tags" variant="param" />, <Badge text="canonical" variant="param" />, <Badge text="organization" variant="param" />, <Badge text="main_image" variant="param" /> / <Badge text="mainImage" variant="param" /> |
 
 #### Instagram (Business + Standalone)
@@ -68,19 +64,6 @@ Both Instagram variants accept the **same** per-channel settings; pick the varia
 | <Badge text="collaborators" variant="param" /> | array of objects | IG usernames invited as collaborators (feed posts and reels only — **not** stories). Each item carries a <Badge text="label" variant="param" /> (string) field with the username. |
 
 Instagram requires **at least one** image or video for any post with `status: "scheduled"` — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/instagram/instagramStandaloneProvider.ts"><Badge text="instagramStandaloneProvider.ts" variant="path" /></DocsExternalLink>. Captions are capped at <Badge text="2200 chars" variant="default" />.
-
-#### TikTok (Content API + Business)
-
-Both TikTok identifiers accept posting method, interaction toggles, and a photo <Badge text="title" variant="param" />. Connect each as its own channel.
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| <Badge text="content_posting_method" variant="param" /> | string | <Badge text="DIRECT_POST" variant="param" /> or <Badge text="UPLOAD" variant="param" /> (inbox). |
-| <Badge text="privacy_level" variant="param" /> | string | Content API: direct video and photo. Business: **photo** direct posts only — omitted on Business videos. |
-| <Badge text="music_sound_id" variant="param" /> | string | Business only. Commercial audio on direct posts. |
-| <Badge text="poi_id" variant="param" /> | string | Business only. Location on direct posts. |
-
-Captions are capped at <Badge text="2000 chars" variant="default" /> on <Badge text="tiktok" variant="default" /> and <Badge text="2200 chars" variant="default" /> on <Badge text="tiktok-business" variant="default" />. See <a href="/docs/cli-examples/tiktok">TikTok CLI examples</a> and <a href="/docs/cli-examples/tiktok-business">TikTok (Business) CLI examples</a>.
 
 #### Dev.to
 

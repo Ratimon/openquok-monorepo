@@ -19,19 +19,9 @@ export type CatalogListingTagDraftViewModel = {
 	source: CatalogListingTagSource;
 };
 
-const VIDEO_CHANNEL_SLUGS = new Set(['youtube', 'tiktok', 'tiktok-business']);
+const VIDEO_CHANNEL_SLUGS = new Set(['youtube', 'tiktok']);
 const PHOTO_CHANNEL_SLUGS = new Set(['instagram']);
 const TEXT_CHANNEL_SLUGS = new Set(['threads', 'linkedin', 'x', 'facebook', 'devto']);
-
-/** Names must slug to `channel.slug` via `stringToSlug` (parentheses become extra hyphens). */
-const CHANNEL_LISTING_TAG_NAMES: Record<string, string> = {
-	'tiktok-business': 'TikTok Business'
-};
-
-const CHANNEL_LISTING_TAG_DESCRIPTIONS: Record<string, string> = {
-	'tiktok-business':
-		'Business and Creator TikTok publish with custom video covers and commercial audio on direct posts.'
-};
 
 function uniqueGroupNames(names: string[]): string[] {
 	return [...new Set(names)];
@@ -55,11 +45,9 @@ export function listExpectedCatalogListingTags(): CatalogListingTagDraftViewMode
 	}));
 
 	const channelTags: CatalogListingTagDraftViewModel[] = listPublicChannelsForHub().map((channel) => ({
-		name: CHANNEL_LISTING_TAG_NAMES[channel.slug] ?? channel.platformLabel,
+		name: channel.platformLabel,
 		slug: channel.slug,
-		description:
-			CHANNEL_LISTING_TAG_DESCRIPTIONS[channel.slug] ??
-			`${channel.platformLabel} channel integrations and workflows.`,
+		description: `${channel.platformLabel} channel integrations and workflows.`,
 		groupNames: channelGroupNames(channel.slug),
 		source: 'channels'
 	}));

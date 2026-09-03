@@ -2,7 +2,7 @@
 title: TikTok
 description: CLI examples for TikTok publishing in OpenQuok
 order: 5
-lastUpdated: 2026-09-01
+lastUpdated: 2026-06-16
 ---
 
 <script>
@@ -121,7 +121,6 @@ openquok posts:connect "$POST_ID" -r "<tiktok-video-id>"
 
 <CardGrid>
 <LinkCard title="TikTok setup" description="TikTok developer app, OAuth redirect URI, scopes, and media domain verification" href="/docs/social-integration/tiktok" />
-<LinkCard title="TikTok (Business) CLI examples" description="Custom covers, commercial audio, and inbox upload on a separate channel" href="/docs/cli-examples/tiktok-business" />
 <LinkCard title="openquok-tiktok-slideshow" description="Locked-character slideshow pipeline that posts via openquok-core" href="/docs/other-skills/openquok-tiktok-slideshow" />
 <LinkCard title="Warm up a TikTok account" description="Step-by-step warm-up before scaling posts or slideshows" href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience" />
 <LinkCard title="Managing Posts" description="Create, list, and schedule posts with the full flag reference" href="/docs/cli-usages/managing-posts" />

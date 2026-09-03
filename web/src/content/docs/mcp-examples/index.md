@@ -2,7 +2,7 @@
 title: Overview - MCP Examples
 description: OpenQuok MCP agent workflows — prompts and  payloads, organized by social platform.
 order: 0
-lastUpdated: 2026-09-01
+lastUpdated: 2026-06-26
 ---
 
 <script>
@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what you can **ask your agent** in plain language and the <Badge text="schedulePostTool" variant="default" /> / <Badge text="triggerTool" variant="default" /> payloads the agent builds behind the scenes.
 
 <Callout type="note">
-<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong> (Content API and Business), <strong>X</strong>, and <strong>LinkedIn</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>LinkedIn</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
 
 <CardGrid>
@@ -23,7 +23,6 @@ Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what yo
 <LinkCard title="Meta Threads" description="Scheduled posts, reply chains, and provider tools" href="/docs/mcp-examples/threads" />
 <LinkCard title="YouTube" description="MP4 uploads with title, privacy, and tags" href="/docs/mcp-examples/youtube" />
 <LinkCard title="TikTok" description="Videos and photo carousels with privacy settings" href="/docs/mcp-examples/tiktok" />
-<LinkCard title="TikTok (Business)" description="Videos with custom covers and optional commercial audio" href="/docs/mcp-examples/tiktok-business" />
 <LinkCard title="LinkedIn" description="Text posts, document carousels, and first-comment chains" href="/docs/mcp-examples/linkedin" />
 <LinkCard title="X" description="Tweets, media, and multi-part threads" href="/docs/mcp-examples/x" />
 </CardGrid>

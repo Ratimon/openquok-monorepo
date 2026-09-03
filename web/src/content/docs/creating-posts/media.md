@@ -59,7 +59,7 @@ In the post editor, click a strip thumbnail or the **gear** icon on hover to ope
 
 Changes save to the **workspace media library** and on each scheduled <Badge text="media[]" variant="param" /> item for that attachment. The same **Media details** dialog is available on <a href="/account/media">/account/media</a>.
 
-At publish time, Instagram uses the video poster **timestamp** for reel cover offset. Content API TikTok uses the same timestamp on **direct** video posts. TikTok (Business) uses the stored poster image when present, otherwise the same timestamp. OpenQuok does not send alt text to Meta or X APIs.
+At publish time, Instagram uses the video poster **timestamp** for reel cover offset. OpenQuok does not send alt text to Meta or X APIs.
 
 Channel-specific visuals that are part of publish settings stay in **Settings** beside the preview — for example a **YouTube custom thumbnail** or a **Dev.to cover image**. See <a href="/docs/platforms">Posting rules by platform</a>.
 

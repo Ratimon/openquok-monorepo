@@ -17,7 +17,7 @@ Use it with <a href="/docs/creating-posts/writing-the-post">Writing the post</a>
 
 ## Every platform
 
-Connect each channel once per workspace account — see <a href="/docs/channels/connect">Connect a channel</a>. Self-hosted operators register developer apps per network — see <a href="/docs/social-integration">Social integrations</a>.
+OpenQuok registers **ten** backend identifiers across **eight** marketing slugs. Connect each channel once per workspace account — see <a href="/docs/channels/connect">Connect a channel</a>. Self-hosted operators register developer apps per network — see <a href="/docs/social-integration">Social integrations</a>.
 
 | Display name | API identifier | Connect | Self-host developer app | Character cap |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,6 @@ Connect each channel once per workspace account — see <a href="/docs/channels/
 | **LinkedIn Page** | <Badge text="linkedin-page" variant="param" /> | OAuth redirect (+ Page picker) | Yes | **3,000** |
 | **YouTube** | <Badge text="youtube" variant="param" /> | OAuth redirect (+ channel picker) | Yes | **5,000** (description) |
 | **TikTok** | <Badge text="tiktok" variant="param" /> | OAuth redirect | Yes | **2,000** |
-| **TikTok (Business)** | <Badge text="tiktok-business" variant="param" /> | OAuth redirect | Yes | **2,200** |
 | **X** | <Badge text="x" variant="param" /> | OAuth redirect | Yes | **280** or **4,000** |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Credentials in Add Channel | No | **100,000** (body) |
 
@@ -46,10 +45,9 @@ The dashboard and marketing site use short labels. APIs, CLI filters, and integr
 | **Instagram** | <Badge text="instagram-business" variant="param" /> or <Badge text="instagram-standalone" variant="param" /> |
 | **Facebook** / **Facebook Page** | <Badge text="facebook" variant="param" /> |
 | **LinkedIn Page** | <Badge text="linkedin-page" variant="param" /> |
-| **TikTok (Business)** | <Badge text="tiktok-business" variant="param" /> |
 | **Dev.to** | <Badge text="devto" variant="param" /> |
 
-Composer launch rules treat both Instagram identifiers and both LinkedIn identifiers as one family each — validation in <a href="/docs/creating-posts/media">Media</a> follows the stricter network in your selection. TikTok and TikTok (Business) share the same media rules but are separate connect options.
+Composer launch rules treat both Instagram identifiers and both LinkedIn identifiers as one family each — validation in <a href="/docs/creating-posts/media">Media</a> follows the stricter network in your selection.
 
 ## Media rules
 
@@ -63,7 +61,6 @@ Rules below come from composer <Badge text="checkValidity" variant="param" /> he
 | **Facebook Page** | Text-only OK; photos and/or video; optional link URL in Settings (text posts) |
 | **YouTube** | Exactly **one MP4** video |
 | **TikTok** | **≥1** attachment; **one MP4** <strong>or</strong> **1–35** JPEG/PNG/WEBP photos (never mixed) |
-| **TikTok (Business)** | Same media rules; PNG converted to JPEG; video cover from stored poster or frame timestamp |
 | **Threads** | Text-only OK; one attachment or a carousel |
 | **Dev.to** | Markdown body; optional **cover image** in Settings (not required on the media strip) |
 
@@ -84,7 +81,6 @@ Scheduled **follow-up replies** after the main post are supported on some networ
 | **Facebook Page** | Yes | Comments on the main post; **one image** per follow-up (no video) |
 | **YouTube** | No | — |
 | **TikTok** | No | — |
-| **TikTok (Business)** | No | — |
 | **Dev.to** | No | — |
 
 Delays, thread finisher, and cross-account plugs are documented in <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
@@ -95,7 +91,7 @@ Each channel uses a caption editor mode when you unlock it in per-channel mode. 
 
 | Editor | Used by |
 | --- | --- |
-| **Standard** | Threads, Facebook, Instagram (both), LinkedIn (both), YouTube, TikTok, TikTok (Business) |
+| **Standard** | Threads, Facebook, Instagram (both), LinkedIn (both), YouTube, TikTok |
 | **Markdown** | Dev.to |
 | **HTML** | X (published as plain text) |
 
@@ -131,25 +127,6 @@ Open **Settings** while **TikTok** is focused:
 | **Made with AI** | Video disclosure when required |
 
 TikTok does **not** support scheduled follow-up comments in the composer.
-
-### TikTok (Business)
-
-Open **Settings** while **TikTok (Business)** is focused. Connect this channel separately from Content API TikTok — two developer apps, two env pairs.
-
-| Setting | Purpose |
-| --- | --- |
-| **Content posting method** | Direct post publishes to the profile; inbox upload sends a draft to the TikTok inbox |
-| **Privacy level** | Who can view **photo** posts on direct publish. **Videos** follow the account default — OpenQuok does not send a video privacy level |
-| **Photo title** | Required for photo carousels; **≤90** characters |
-| **Duet / Stitch / Comment** | Interaction toggles on the published post |
-| **Brand content** | Organic and paid brand toggles when applicable |
-| **Made with AI** | Video disclosure when required |
-| **Trending audio sound ID** | Optional commercial audio on **direct** posts |
-| **Location POI ID** | Optional location pin on **direct** posts |
-
-Video covers use a stored poster image when you save one in Media details; otherwise OpenQuok sends the frame timestamp. See <a href="/docs/creating-posts/media">Media</a>.
-
-TikTok (Business) does **not** support scheduled follow-up comments in the composer.
 
 ### Instagram (Business and Standalone)
 
@@ -226,7 +203,6 @@ Account-level insights in the workspace **Analytics** area are available for:
 | **LinkedIn Page** | Yes |
 | **LinkedIn** (personal) | No |
 | **TikTok** | Yes |
-| **TikTok (Business)** | No |
 | **YouTube** | Yes |
 | **Threads** | Yes |
 | **X** | Yes |

@@ -2,7 +2,7 @@
 title: Overview - CLI Examples
 description: Real world end-to-end examples for the OpenQuok CLI, organized by platform-specific social network.
 order: 0
-lastUpdated: 2026-09-01
+lastUpdated: 2026-08-20
 ---
 
 <script>
@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
 
 <Callout type="note">
-<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong> (Content API and Business), <strong>X</strong>, and <strong>Dev.to</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>Dev.to</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
 
 <CardGrid>
@@ -23,7 +23,6 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="Meta Threads" description="Text and media posts, timed follow-up replies, what to do when publish metadata is incomplete, and analytics" href="/docs/cli-examples/threads" />
 <LinkCard title="YouTube" description="MP4 uploads with title, privacy, tags, thumbnail, and analytics" href="/docs/cli-examples/youtube" />
 <LinkCard title="TikTok" description="Videos and photo carousels with privacy and settings" href="/docs/cli-examples/tiktok" />
-<LinkCard title="TikTok (Business)" description="Custom covers, commercial audio, and inbox upload on Business accounts" href="/docs/cli-examples/tiktok-business" />
 <LinkCard title="X" description="Tweets, media, thread replies, finisher, and analytics" href="/docs/cli-examples/x" />
 <LinkCard title="Dev.to" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 </CardGrid>

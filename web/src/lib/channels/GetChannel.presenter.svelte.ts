@@ -69,8 +69,7 @@ const HOME_CHANNEL_ROW_ORDER: readonly string[] = [
 	'facebook',
 	'x',
 	'youtube',
-	'tiktok',
-	'tiktok-business'
+	'tiktok'
 ];
 
 type ChannelGroupAcc = WorkspaceChannelGroupViewModel & { items: CreateSocialPostChannelViewModel[] };

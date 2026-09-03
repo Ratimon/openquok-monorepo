@@ -209,7 +209,6 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | Instagram Page | `instagram-business` | same as standalone (Page-linked OAuth) | [instagram-business-examples.md](./resources/instagram-business-examples.md) |
 | YouTube | `youtube` | MP4 upload, title/privacy/tags/thumbnail, channel analytics | [youtube-examples.md](./resources/youtube-examples.md) |
 | TikTok | `tiktok` | direct publish, inbox upload (`UPLOAD`), private `SELF_ONLY` drafts, privacy, toggles, analytics | [tiktok-examples.md](./resources/tiktok-examples.md) |
-| TikTok Business | `tiktok-business` | direct publish, inbox upload, custom video cover, commercial audio / location on DIRECT_POST | [tiktok-business-examples.md](./resources/tiktok-business-examples.md) |
 | LinkedIn | `linkedin` | personal profile posts, images, video, text comments, internal plugs | [linkedin-examples.md](./resources/linkedin-examples.md) |
 | LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
 | X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |
