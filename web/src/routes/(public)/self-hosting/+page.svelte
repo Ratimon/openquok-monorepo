@@ -36,10 +36,7 @@
 			'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg'
 	};
 
-	const sectionHeroTheme: LandingHeroTheme = {
-		...landingHeroTheme,
-		parseLandingHeroTitlePartSegments: (text: string) => [{ text, highlight: false }]
-	};
+	const sectionHeroTheme = landingHeroTheme;
 
 	const startHereItems = $derived(
 		landing.startHereSection.items.map((item) => ({
@@ -70,7 +67,9 @@
 			description: item.description,
 			href: hostedMarketingHref(item.href, page.url.origin),
 			ctaLabel: item.ctaLabel,
-			iconName: item.iconName
+			iconName: item.iconName,
+			iconClass: item.iconClass,
+			iconContainerClass: item.iconContainerClass
 		}))
 	);
 </script>
@@ -158,11 +157,11 @@
 
 	<SimpleCardGrid
 		heroTheme={sectionHeroTheme}
-		headingId="self-hosting-stack-heading"
-		subtitle={landing.stackSection.subtitle}
-		title={landing.stackSection.title}
-		description={landing.stackSection.description}
-		items={stackGuideItems}
+		headingId="self-hosting-start-here-heading"
+		subtitle={landing.startHereSection.subtitle}
+		title={landing.startHereSection.title}
+		description={landing.startHereSection.description}
+		items={startHereItems}
 		getItemKey={(item) => item.id}
 		sectionClass="container mx-auto mt-20 max-w-6xl scroll-mt-24 px-4"
 		patternComponent={StripedPattern}
@@ -200,73 +199,13 @@
 		{/snippet}
 	</SimpleCardGrid>
 
-	<section
-		class="container mx-auto mt-20 max-w-5xl scroll-mt-24 px-4"
-		aria-labelledby="self-hosting-responsibilities-heading"
-	>
-		<FeaturesSectionHeader
-			heroTheme={sectionHeroTheme}
-			headingId="self-hosting-responsibilities-heading"
-			subtitle={landing.responsibilitiesSection.subtitle}
-			title={landing.responsibilitiesSection.title}
-			description={landing.responsibilitiesSection.description}
-		/>
-		<div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-			{#each landing.responsibilitiesSection.cards as card (card.id)}
-				<article class="rounded-2xl border border-base-content/10 bg-base-200/40 p-6">
-					<div class="flex items-start gap-3">
-						<div
-							class="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/20"
-						>
-							<AbstractIcon
-								name={card.iconName}
-								width="20"
-								height="20"
-								class="size-5"
-								focusable="false"
-							/>
-						</div>
-						<div class="min-w-0 space-y-2">
-							<h3 class="text-lg font-semibold text-base-content">{card.title}</h3>
-							<p class="text-sm leading-relaxed text-base-content/70">{card.description}</p>
-						</div>
-					</div>
-				</article>
-			{/each}
-		</div>
-	</section>
-
-	<section
-		class="container mx-auto mt-20 max-w-3xl scroll-mt-24 px-4"
-		aria-labelledby="self-hosting-parity-heading"
-	>
-		<FeaturesSectionHeader
-			heroTheme={sectionHeroTheme}
-			headingId="self-hosting-parity-heading"
-			subtitle={landing.paritySection.subtitle}
-			title={landing.paritySection.title}
-			description={landing.paritySection.description}
-		/>
-		<ul class="mt-8 space-y-3 text-left text-sm leading-relaxed text-base-content/80 sm:text-base">
-			{#each landing.paritySection.bullets as bullet, index (index)}
-				<li class="flex gap-3">
-					<span
-						class="mt-2 size-1.5 shrink-0 rounded-full bg-primary"
-						aria-hidden="true"
-					></span>
-					<span>{bullet}</span>
-				</li>
-			{/each}
-		</ul>
-	</section>
-
 	<SimpleCardGrid
 		heroTheme={sectionHeroTheme}
-		headingId="self-hosting-start-here-heading"
-		subtitle={landing.startHereSection.subtitle}
-		title={landing.startHereSection.title}
-		description={landing.startHereSection.description}
-		items={startHereItems}
+		headingId="self-hosting-stack-heading"
+		subtitle={landing.stackSection.subtitle}
+		title={landing.stackSection.title}
+		description={landing.stackSection.description}
+		items={stackGuideItems}
 		getItemKey={(item) => item.id}
 		sectionClass="mt-20 scroll-mt-24"
 		patternComponent={StripedPattern}

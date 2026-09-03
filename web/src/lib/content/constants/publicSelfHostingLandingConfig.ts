@@ -48,13 +48,8 @@ export type PublicSelfHostingLinkCardItem = {
 	href: string;
 	ctaLabel: string;
 	iconName: IconName;
-};
-
-export type PublicSelfHostingResponsibilityCard = {
-	id: string;
-	title: string;
-	description: string;
-	iconName: IconName;
+	iconClass?: string;
+	iconContainerClass?: string;
 };
 
 export type PublicSelfHostingStartHereItem = PublicSelfHostingLinkCardItem;
@@ -84,20 +79,14 @@ export type PublicSelfHostingLandingConfig = {
 	comparisonSection: PublicSelfHostingSectionHeader & {
 		cards: readonly PublicSelfHostingComparisonCard[];
 	};
-	stackSection: PublicSelfHostingSectionHeader & {
-		items: readonly PublicSelfHostingLinkCardItem[];
+	startHereSection: PublicSelfHostingSectionHeader & {
+		items: readonly PublicSelfHostingStartHereItem[];
 	};
 	socialIntegrationSection: PublicSelfHostingSectionHeader & {
 		items: readonly PublicSelfHostingLinkCardItem[];
 	};
-	responsibilitiesSection: PublicSelfHostingSectionHeader & {
-		cards: readonly PublicSelfHostingResponsibilityCard[];
-	};
-	paritySection: PublicSelfHostingSectionHeader & {
-		bullets: readonly string[];
-	};
-	startHereSection: PublicSelfHostingSectionHeader & {
-		items: readonly PublicSelfHostingStartHereItem[];
+	stackSection: PublicSelfHostingSectionHeader & {
+		items: readonly PublicSelfHostingLinkCardItem[];
 	};
 	faqSection: PublicSelfHostingFaqSection;
 	hostedFallbackBanner: {
@@ -105,6 +94,18 @@ export type PublicSelfHostingLandingConfig = {
 		description: string;
 		cta: PublicSelfHostingCta;
 	};
+};
+
+export type PublicSelfHostPricingFootnoteLink = {
+	id: string;
+	label: string;
+	href: string;
+};
+
+export type PublicSelfHostPricingFootnoteConfig = {
+	headline: string;
+	body: string;
+	links: readonly PublicSelfHostPricingFootnoteLink[];
 };
 
 export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
@@ -206,11 +207,184 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			}
 		]
 	},
-	stackSection: {
-		subtitle: 'Configure your stack',
-		title: 'Backend, web, workers, and CLI auth',
+	startHereSection: {
+		subtitle: 'Start here',
+		title: 'Checklist before you go live',
 		description:
-			'Set env vars and deploy each service on your instance. Open a guide when you wire that layer on self-host.',
+			'Requirements, deployment, and optional agent auth — follow these steps before you open your instance to users.',
+		items: [
+			{
+				id: 'docker-compose',
+				title: 'Docker Compose self-host guide',
+				description: 'Run OpenQuok on one server with our step-by-step Docker guide.',
+				href: publicFaqHref.dockerCompose,
+				ctaLabel: 'Open guide',
+				iconName: icons.BookOpenCheck.name
+			},
+			{
+				id: 'production-deployment',
+				title: 'Production deployment (custom cloud)',
+				description: 'Run web, API, and workers on cloud hosts you pick, such as Vercel or Railway.',
+				href: publicFaqHref.productionDeployment,
+				ctaLabel: 'Read guide',
+				iconName: icons.Columns3Cog.name
+			},
+			{
+				id: 'blog-walkthrough',
+				title: 'CLI device-login walkthrough',
+				description: 'Blog walkthrough for agent sign-in without storing API keys on the server.',
+				href: publicFaqHref.blogSelfHost,
+				ctaLabel: 'Read walkthrough',
+				iconName: icons.Terminal.name
+			},
+			{
+				id: 'system-requirements',
+				title: 'System requirements',
+				description: 'Check disk, ports, and Supabase before your first install.',
+				href: systemRequirementsHref,
+				ctaLabel: 'Check requirements',
+				iconName: icons.Gauge.name
+			},
+			{
+				id: 'self-hosting-docs',
+				title: 'Self-hosting docs overview',
+				description: 'How the pieces fit together and where to start in the docs.',
+				href: gettingStartedForDevHref,
+				ctaLabel: 'Open overview',
+				iconName: icons.BookOpen.name
+			},
+			{
+				id: 'cli-auth',
+				title: 'CLI auth and OAuth server',
+				description: 'Let agents sign in from the command line without API keys on the server.',
+				href: configurationAgentHref,
+				ctaLabel: 'Configure agents',
+				iconName: icons.Braces.name
+			},
+			{
+				id: 'social-integrations',
+				title: 'Social integrations',
+				description: 'Set up each social network your team will connect in the dashboard.',
+				href: publicFaqHref.socialIntegration,
+				ctaLabel: 'Open guides',
+				iconName: icons.Settings.name
+			}
+		]
+	},
+	socialIntegrationSection: {
+		subtitle: 'Connect channels',
+		title: 'Set up social networks',
+		description:
+			'Create developer apps and env vars for each network. Your team connects accounts in the dashboard once you finish.',
+		items: [
+			{
+				id: 'social-integration-overview',
+				title: 'Connections overview',
+				description: 'What you set up vs what your team connects in the app.',
+				href: faqHrefDocs('social-integration'),
+				ctaLabel: 'Open overview',
+				iconName: icons.Link.name,
+				iconContainerClass: 'bg-primary/10 text-primary ring-primary/20',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-threads',
+				title: 'Meta Threads',
+				description: 'Register your Meta app and connect Threads to your instance.',
+				href: faqHrefDocs('social-integration/threads'),
+				ctaLabel: 'Open guide',
+				iconName: icons.Threads.name,
+				iconContainerClass: 'bg-neutral-900 text-white ring-neutral-700/40',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-instagram',
+				title: 'Instagram',
+				description: 'Get Instagram API access and link it to OpenQuok.',
+				href: faqHrefDocs('social-integration/instagram'),
+				ctaLabel: 'Open guide',
+				iconName: icons.Instagram.name,
+				iconContainerClass:
+					'bg-gradient-to-br from-[#f09433]/25 via-[#e6683c]/25 to-[#bc1888]/25 text-pink-600 ring-pink-500/25',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-facebook',
+				title: 'Facebook Page',
+				description: 'Set up a Meta app for Facebook Page posting.',
+				href: faqHrefDocs('social-integration/facebook'),
+				ctaLabel: 'Open guide',
+				iconName: icons.Facebook.name,
+				iconContainerClass: 'bg-[#1877F2] text-white ring-[#1877F2]/30',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-youtube',
+				title: 'YouTube',
+				description: 'Turn on YouTube in Google Cloud and connect it.',
+				href: faqHrefDocs('social-integration/youtube'),
+				ctaLabel: 'Open guide',
+				iconName: icons.YouTube.name,
+				iconContainerClass: 'bg-[#FF0000] text-white ring-red-500/30',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-tiktok',
+				title: 'TikTok',
+				description: 'Register a TikTok developer app and add your callback URL.',
+				href: faqHrefDocs('social-integration/tiktok'),
+				ctaLabel: 'Open guide',
+				iconName: icons.TikTok.name,
+				iconContainerClass: 'bg-neutral-950 text-white ring-neutral-800/40',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-linkedin',
+				title: 'LinkedIn',
+				description: 'Create a LinkedIn app and connect personal profiles.',
+				href: faqHrefDocs('social-integration/linkedin'),
+				ctaLabel: 'Open guide',
+				iconName: icons.LinkedIn.name,
+				iconContainerClass: 'bg-[#0A66C2] text-white ring-[#0A66C2]/30',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-linkedin-page',
+				title: 'LinkedIn Page',
+				description: 'Set up posting to a LinkedIn Company Page.',
+				href: faqHrefDocs('social-integration/linkedin-page'),
+				ctaLabel: 'Open guide',
+				iconName: icons.LinkedIn.name,
+				iconContainerClass: 'bg-[#0A66C2] text-white ring-[#0A66C2]/30',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-x',
+				title: 'X (Twitter)',
+				description: 'Register an X developer app and add your callback URLs.',
+				href: faqHrefDocs('social-integration/x'),
+				ctaLabel: 'Open guide',
+				iconName: icons.X.name,
+				iconContainerClass: 'bg-neutral-800 text-white ring-neutral-700/40',
+				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-devto',
+				title: 'Dev.to',
+				description: 'No app needed — users add their own API key in the dashboard.',
+				href: faqHrefDocs('social-integration/devto'),
+				ctaLabel: 'Open guide',
+				iconName: icons.Devto.name,
+				iconContainerClass: 'bg-[#0a0a0a] text-white ring-neutral-800/40',
+				iconClass: 'size-5'
+			}
+		]
+	},
+	stackSection: {
+		subtitle: 'Modify further',
+		title: 'Tune each layer of your stack',
+		description:
+			'For maintainers who want to go beyond the quick start — open the guide for the backend, web, worker, or CLI piece you are changing.',
 		items: [
 			{
 				id: 'configuration-backend',
@@ -414,215 +588,6 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			}
 		]
 	},
-	socialIntegrationSection: {
-		subtitle: 'Operator channel access',
-		title: 'Register developer apps for different channels',
-		description:
-			'On self-host, you create developer apps and your own environment variables. Users connect channels in the dashboard after setup.',
-		items: [
-			{
-				id: 'social-integration-overview',
-				title: 'Connections overview',
-				description: 'OAuth apps vs user API keys — what you register as the operator.',
-				href: faqHrefDocs('social-integration'),
-				ctaLabel: 'Open overview',
-				iconName: icons.Link.name
-			},
-			{
-				id: 'social-integration-threads',
-				title: 'Meta Threads',
-				description: 'Create a Meta app, set Threads env vars, and add your OAuth callback URL.',
-				href: faqHrefDocs('social-integration/threads'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Threads.name
-			},
-			{
-				id: 'social-integration-instagram',
-				title: 'Instagram',
-				description: 'Request Instagram API access, set Meta env vars, and whitelist redirect URIs.',
-				href: faqHrefDocs('social-integration/instagram'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Instagram.name
-			},
-			{
-				id: 'social-integration-facebook',
-				title: 'Facebook Page',
-				description: 'Create a Meta app, set Facebook env vars, and add Page OAuth callbacks.',
-				href: faqHrefDocs('social-integration/facebook'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Facebook.name
-			},
-			{
-				id: 'social-integration-youtube',
-				title: 'YouTube',
-				description: 'Enable YouTube API in Google Cloud and set OAuth env vars.',
-				href: faqHrefDocs('social-integration/youtube'),
-				ctaLabel: 'Open guide',
-				iconName: icons.YouTube.name
-			},
-			{
-				id: 'social-integration-tiktok',
-				title: 'TikTok',
-				description: 'Register a TikTok developer app, set env vars, and add your redirect URI.',
-				href: faqHrefDocs('social-integration/tiktok'),
-				ctaLabel: 'Open guide',
-				iconName: icons.TikTok.name
-			},
-			{
-				id: 'social-integration-linkedin',
-				title: 'LinkedIn',
-				description: 'Create a LinkedIn developer app, set env vars, and add OAuth redirect URLs.',
-				href: faqHrefDocs('social-integration/linkedin'),
-				ctaLabel: 'Open guide',
-				iconName: icons.LinkedIn.name
-			},
-			{
-				id: 'social-integration-linkedin-page',
-				title: 'LinkedIn Page',
-				description: 'Authorize a Company Page app, set env vars, and add redirect URLs.',
-				href: faqHrefDocs('social-integration/linkedin-page'),
-				ctaLabel: 'Open guide',
-				iconName: icons.LinkedIn.name
-			},
-			{
-				id: 'social-integration-x',
-				title: 'X (Twitter)',
-				description: 'Create an X developer app, set OAuth 1.0a env vars, and add callback URLs.',
-				href: faqHrefDocs('social-integration/x'),
-				ctaLabel: 'Open guide',
-				iconName: icons.X.name
-			},
-			{
-				id: 'social-integration-devto',
-				title: 'Dev.to',
-				description: 'No operator app — users paste a personal API key in Add Channel.',
-				href: faqHrefDocs('social-integration/devto'),
-				ctaLabel: 'Open guide',
-				iconName: icons.Devto.name
-			}
-		]
-	},
-	responsibilitiesSection: {
-		subtitle: 'Operator responsibilities',
-		title: 'What you own on self-host',
-		description:
-			'OpenQuok publishes docs, source, and community channels. You operate the deployment day to day and support its users.',
-		cards: [
-			{
-				id: 'infrastructure',
-				title: 'Infrastructure and data',
-				description:
-					'You provide the server, public HTTPS origin, Supabase project, Redis volume, uploads storage, monitoring, secrets, and access controls. You decide where OpenQuok data is stored.',
-				iconName: icons.Cog.name
-			},
-			{
-				id: 'upgrades',
-				title: 'Upgrades and backups',
-				description:
-					'You track releases and security notices, schedule image rebuilds, and back up the database, uploads, and required secrets together. Test restores before you rely on them.',
-				iconName: icons.RefreshCw.name
-			},
-			{
-				id: 'provider-apps',
-				title: 'Social provider apps',
-				description:
-					'You create and maintain Meta, Google, TikTok, and other developer apps, callback URLs, and env vars for the networks you connect. Dev.to uses a user API key — no operator app.',
-				iconName: icons.Settings.name
-			},
-			{
-				id: 'support-boundary',
-				title: 'Support boundary',
-				description:
-					'OpenQuok documents the product and ships fixes in the repository. You respond to incidents on your instance, maintain privacy practices, and support your own users.',
-				iconName: icons.ShieldCheck.name
-			}
-		]
-	},
-	paritySection: {
-		subtitle: 'Same product model',
-		title: 'The deployment changes, the publishing workflow does not',
-		description:
-			'Hosted plan limits and operated services do not become part of your installation. You get the same scheduling surface teams expect from OpenQuok Cloud.',
-		bullets: [
-			'Calendar and kanban scheduling with human approval before publish',
-			'Multi-workspace channels, composer settings, and follow-up replies per network',
-			'Agent CLI, MCP tools, and Public API access from your own domain',
-			'Self-host defaults skip outbound email and Stripe billing so you can sign up locally',
-			'External Supabase for auth and Postgres; local uploads storage unless you configure otherwise',
-			'Optional CLI auth profile for device-login without API keys on agent hosts'
-		]
-	},
-	startHereSection: {
-		subtitle: 'Start here',
-		title: 'Production checklist before you expose an instance',
-		description:
-			'Review system requirements, configure Compose, and enable CLI auth only when agents need device login on your network.',
-		items: [
-			{
-				id: 'docker-compose',
-				title: 'Docker Compose self-host guide',
-				description:
-					'Copy infra/self-host/.env, fill Supabase keys, build images, and bring up API, web, Redis, and workers from the repository root.',
-				href: publicFaqHref.dockerCompose,
-				ctaLabel: 'Open guide',
-				iconName: icons.BookOpenCheck.name
-			},
-			{
-				id: 'production-deployment',
-				title: 'Production deployment (custom cloud)',
-				description:
-					'Split web, API, and workers across Vercel, Railway, or other managed hosts — env vars, scaling, and worker processes on infrastructure you control.',
-				href: publicFaqHref.productionDeployment,
-				ctaLabel: 'Read guide',
-				iconName: icons.Columns3Cog.name
-			},
-			{
-				id: 'blog-walkthrough',
-				title: 'CLI device-login walkthrough',
-				description:
-					'Blog post that walks through self-hosting with the cli profile so agents authenticate without storing API keys on the host.',
-				href: publicFaqHref.blogSelfHost,
-				ctaLabel: 'Read walkthrough',
-				iconName: icons.Terminal.name
-			},
-			{
-				id: 'system-requirements',
-				title: 'System requirements',
-				description:
-					'Confirm Docker, disk, ports, and a Supabase project before your first docker compose up --build.',
-				href: systemRequirementsHref,
-				ctaLabel: 'Check requirements',
-				iconName: icons.Gauge.name
-			},
-			{
-				id: 'self-hosting-docs',
-				title: 'Self-hosting docs overview',
-				description:
-					'Getting started for contributors and operators — architecture, quick start, and default env patterns on the Self-hosting docs tab.',
-				href: gettingStartedForDevHref,
-				ctaLabel: 'Open overview',
-				iconName: icons.BookOpen.name
-			},
-			{
-				id: 'cli-auth',
-				title: 'CLI auth and OAuth server',
-				description:
-					'Enable --profile cli, register a device callback URL, and align OPENQUOK_OAUTH_* env vars with the agent configuration docs.',
-				href: configurationAgentHref,
-				ctaLabel: 'Configure agents',
-				iconName: icons.Braces.name
-			},
-			{
-				id: 'social-integrations',
-				title: 'Social integrations (operator)',
-				description:
-					'Register Meta, Google, TikTok, and other developer apps, callback URLs, and env vars for the networks you connect on operator-run instances.',
-				href: publicFaqHref.socialIntegration,
-				ctaLabel: 'Open guides',
-				iconName: icons.Settings.name
-			}
-		]
-	},
 	faqSection: {
 		faqSubtitle: 'Self-hosting FAQ',
 		faqTitle: 'Self-host OpenQuok, answered',
@@ -647,7 +612,7 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			{
 				title: 'Is self-hosted OpenQuok the same product as hosted?',
 				description:
-					`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools. Hosted plan limits and operated OAuth apps apply only to the cloud plan on openquok.com. Operator-run Compose and production stacks skip hosted billing and use your own developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
+					`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools. Hosted plan limits apply only to the cloud plan on openquok.com. Operator-run Compose and production stacks skip hosted billing and use your own developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
 			},
 			{
 				title: 'Do I need my own Meta or Google developer apps?',
@@ -676,3 +641,31 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		}
 	}
 } satisfies PublicSelfHostingLandingConfig;
+
+/** Home pricing panel callout — three operator paths plus overview (not a plan tier). */
+export const PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG = {
+	headline: 'Self-host for $0',
+	body: 'OpenQuok charges no software fee when you run it on your own infrastructure. You still pay for servers, Supabase, and bandwidth.',
+	links: [
+		{
+			id: 'hosted-cloud',
+			label: 'Hosted cloud',
+			href: publicFaqHref.pricing
+		},
+		{
+			id: 'docker-compose',
+			label: 'Docker Compose',
+			href: publicFaqHref.dockerCompose
+		},
+		{
+			id: 'cloud-production-stack',
+			label: 'Cloud production stack',
+			href: publicFaqHref.productionDeployment
+		},
+		{
+			id: 'self-hosting-overview',
+			label: 'Self-hosting overview',
+			href: publicFaqHref.selfHostingLanding
+		}
+	]
+} satisfies PublicSelfHostPricingFootnoteConfig;

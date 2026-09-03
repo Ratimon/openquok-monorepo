@@ -9301,6 +9301,46 @@ var init_NotificationRepository = __esm({
 });
 
 // utils/dtos/PostDTO.ts
+function parseOptionalPostMediaAlt(raw) {
+  if (raw === null) return null;
+  if (typeof raw !== "string") return void 0;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 2e3) : null;
+}
+function parseOptionalPostMediaThumbnail(raw) {
+  if (raw === null) return null;
+  if (typeof raw !== "string") return void 0;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 2e3) : null;
+}
+function parseOptionalPostMediaThumbnailTimestamp(raw) {
+  if (raw === null) return null;
+  if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 0) return void 0;
+  return raw;
+}
+function parsePostMediaItemFromRaw(x) {
+  if (!x || typeof x !== "object") return null;
+  const o = x;
+  const id = typeof o.id === "string" ? o.id : "";
+  const path7 = typeof o.path === "string" ? o.path : "";
+  if (!id || !path7) return null;
+  const item = { id, path: path7 };
+  const bucket = typeof o.bucket === "string" ? o.bucket.trim() : "";
+  if (bucket) item.bucket = bucket;
+  if ("alt" in o) {
+    const alt = parseOptionalPostMediaAlt(o.alt);
+    if (alt !== void 0) item.alt = alt;
+  }
+  if ("thumbnail" in o) {
+    const thumbnail = parseOptionalPostMediaThumbnail(o.thumbnail);
+    if (thumbnail !== void 0) item.thumbnail = thumbnail;
+  }
+  if ("thumbnailTimestamp" in o) {
+    const thumbnailTimestamp = parseOptionalPostMediaThumbnailTimestamp(o.thumbnailTimestamp);
+    if (thumbnailTimestamp !== void 0) item.thumbnailTimestamp = thumbnailTimestamp;
+  }
+  return item;
+}
 function repeatIntervalToDays(key) {
   if (key == null) return null;
   const m = {
@@ -9355,17 +9395,29 @@ function parseProviderThreadsPreviewFromPostSettings(settings) {
 }
 function replyChainBucketForProvider(providerIdentifier) {
   const id = (providerIdentifier ?? "").trim().toLowerCase();
+  if (id.startsWith("instagram")) return "instagram";
   if (id === "x") return "x";
-  return id.startsWith("instagram") ? "instagram" : "threads";
+  if (id === "linkedin" || id === "linkedin-page") return "linkedin";
+  if (id === "facebook") return "facebook";
+  return "threads";
+}
+function parseFollowUpReplyMedia(raw) {
+  if (raw == null) return void 0;
+  const items = Array.isArray(raw) ? raw : typeof raw === "object" && Array.isArray(raw.items) ? raw.items : null;
+  if (!items) return void 0;
+  const media = items.map((x) => parsePostMediaItemFromRaw(x)).filter((m) => m != null);
+  return media.length > 0 ? media : void 0;
 }
 function mapRawRepliesToFollowUpDrafts(repliesRaw) {
   if (!Array.isArray(repliesRaw)) return [];
   return repliesRaw.map((r) => {
     const o = r;
+    const media = parseFollowUpReplyMedia(o?.media);
     return {
       id: typeof o?.id === "string" ? o.id : "",
       message: typeof o?.message === "string" ? o.message.trim() : "",
-      delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0
+      delaySeconds: Number.isFinite(Number(o?.delaySeconds)) ? Math.max(0, Math.floor(Number(o.delaySeconds))) : 0,
+      ...media ? { media } : {}
     };
   }).filter((r) => r.id && r.message.length > 0).slice(0, 25);
 }
@@ -9416,10 +9468,7 @@ function parsePostImageColumn(image) {
   try {
     const o = JSON.parse(image);
     const items = Array.isArray(o.items) ? o.items : [];
-    return items.map((x) => ({
-      id: typeof x?.id === "string" ? x.id : "",
-      path: typeof x?.path === "string" ? x.path : ""
-    })).filter((m) => m.id && m.path);
+    return items.map((x) => parsePostMediaItemFromRaw(x)).filter((m) => m != null);
   } catch {
     return [];
   }
@@ -14418,6 +14467,210 @@ var init_facebookGraphPublish = __esm({
   }
 });
 
+// integrations/providers/facebook/facebookGraphStoryPublish.ts
+function isPlainObject2(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function extractMedia2(settings) {
+  if (!settings || typeof settings !== "object") return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function resolvePublicMediaUrl2(path7) {
+  const raw = path7.trim();
+  if (!raw) throw new Error("Media path is empty");
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for Facebook (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+function isMp4Path2(path7) {
+  return path7.toLowerCase().includes(".mp4") || path7.toLowerCase().includes("mp4");
+}
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+async function graphPostJson2(url, body, label) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  if (json.error?.message) {
+    throw new Error(`${label}: ${json.error.message}`);
+  }
+  return json;
+}
+async function graphGetJson(url, label) {
+  const res = await fetch(url);
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  if (json.error?.message) {
+    throw new Error(`${label}: ${json.error.message}`);
+  }
+  return json;
+}
+function storyReleaseUrl(storyId) {
+  return `https://www.facebook.com/stories/${storyId}`;
+}
+function readFacebookPostType(settings) {
+  if (!isPlainObject2(settings)) return "post";
+  let source = { ...settings };
+  const providerSettings = settings.providerSettings;
+  if (isPlainObject2(providerSettings)) {
+    const { facebook: facebookBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject2(facebookBucket)) {
+      source = { ...source, ...facebookBucket };
+    }
+  } else if (isPlainObject2(settings.facebook)) {
+    source = { ...source, ...settings.facebook };
+  }
+  if (source.postType === "story" || source.post_type === "story") return "story";
+  return "post";
+}
+async function uploadStoryPhoto(pageId, accessToken2, mediaUrl) {
+  const enc = encodeURIComponent(accessToken2);
+  const photoJson = await graphPostJson2(
+    `${GRAPH2}/${pageId}/photos?access_token=${enc}`,
+    { url: mediaUrl, published: false },
+    "Facebook story photo upload"
+  );
+  const photoId = String(photoJson.id ?? "");
+  if (!photoId) {
+    throw new Error("Facebook story photo upload did not return a photo id");
+  }
+  const storyJson = await graphPostJson2(
+    `${GRAPH2}/${pageId}/photo_stories?access_token=${enc}`,
+    { photo_id: photoId },
+    "Facebook photo story publish"
+  );
+  const storyId = String(storyJson.post_id ?? storyJson.id ?? photoId);
+  return storyId;
+}
+async function startStoryVideoUpload(pageId, accessToken2) {
+  const enc = encodeURIComponent(accessToken2);
+  const startJson = await graphPostJson2(
+    `${GRAPH2}/${pageId}/video_stories?upload_phase=start&access_token=${enc}`,
+    {},
+    "Facebook video story start"
+  );
+  const videoId = String(startJson.video_id ?? "");
+  const uploadUrl = String(startJson.upload_url ?? "");
+  if (!videoId || !uploadUrl) {
+    throw new Error("Facebook video story start did not return video_id and upload_url");
+  }
+  return { videoId, uploadUrl };
+}
+async function uploadStoryVideoFile(uploadUrl, mediaUrl) {
+  const res = await fetch(uploadUrl, {
+    method: "POST",
+    body: new URLSearchParams({ file_url: mediaUrl })
+  });
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  if (json.error?.message) {
+    throw new Error(`Facebook video story file upload: ${json.error.message}`);
+  }
+  if (!res.ok && json.success !== true) {
+    throw new Error(`Facebook video story file upload failed (HTTP ${res.status})`);
+  }
+}
+function isFacebookVideoReady(status) {
+  if (!status || typeof status !== "object") return false;
+  const s = status;
+  if (s.uploading_phase === "complete" || s.uploading_phase === "upload_complete") return true;
+  if (s.processing_phase === "complete" || s.processing_phase === "ready") return true;
+  if (s.video_status === "ready" || s.video_status === "upload_complete") return true;
+  return false;
+}
+async function waitForFacebookVideoReady(videoId, accessToken2, deadlineMs) {
+  const enc = encodeURIComponent(accessToken2);
+  const deadline = Date.now() + deadlineMs;
+  while (Date.now() < deadline) {
+    const json = await graphGetJson(
+      `${GRAPH2}/${videoId}?fields=status&access_token=${enc}`,
+      "Facebook video story status"
+    );
+    if (isFacebookVideoReady(json.status)) {
+      return;
+    }
+    await sleepMs(STORY_VIDEO_POLL_INTERVAL_MS);
+  }
+  throw new Error("Facebook video story processing timed out");
+}
+async function finishStoryVideo(pageId, accessToken2, videoId) {
+  const enc = encodeURIComponent(accessToken2);
+  const finishJson = await graphPostJson2(
+    `${GRAPH2}/${pageId}/video_stories?upload_phase=finish&video_id=${encodeURIComponent(videoId)}&access_token=${enc}`,
+    {},
+    "Facebook video story finish"
+  );
+  return String(finishJson.post_id ?? finishJson.id ?? videoId);
+}
+async function publishStoryVideo(pageId, accessToken2, mediaUrl) {
+  const { videoId, uploadUrl } = await startStoryVideoUpload(pageId, accessToken2);
+  await uploadStoryVideoFile(uploadUrl, mediaUrl);
+  await waitForFacebookVideoReady(videoId, accessToken2, STORY_VIDEO_DEADLINE_MS);
+  return finishStoryVideo(pageId, accessToken2, videoId);
+}
+async function publishFacebookPageStories(pageId, accessToken2, postDetails) {
+  const media = extractMedia2(postDetails.settings).map((m) => ({
+    ...m,
+    path: resolvePublicMediaUrl2(m.path)
+  }));
+  if (media.length === 0) {
+    throw new Error("Story should have at least one media");
+  }
+  let lastStoryId = "";
+  let publishedCount = 0;
+  try {
+    for (const item of media) {
+      if (isMp4Path2(item.path)) {
+        lastStoryId = await publishStoryVideo(pageId, accessToken2, item.path);
+      } else {
+        lastStoryId = await uploadStoryPhoto(pageId, accessToken2, item.path);
+      }
+      publishedCount += 1;
+    }
+  } catch (error) {
+    if (publishedCount > 0) {
+      throw new Error(STORY_PARTIAL_PUBLISH_WARNING);
+    }
+    throw error;
+  }
+  return {
+    id: postDetails.id,
+    postId: lastStoryId,
+    status: "success",
+    releaseURL: storyReleaseUrl(lastStoryId)
+  };
+}
+var GRAPH2, STORY_VIDEO_POLL_INTERVAL_MS, STORY_VIDEO_DEADLINE_MS, STORY_PARTIAL_PUBLISH_WARNING;
+var init_facebookGraphStoryPublish = __esm({
+  "integrations/providers/facebook/facebookGraphStoryPublish.ts"() {
+    init_MediaRepository();
+    init_metaGraphTokenError();
+    GRAPH2 = "https://graph.facebook.com/v20.0";
+    STORY_VIDEO_POLL_INTERVAL_MS = 1e4;
+    STORY_VIDEO_DEADLINE_MS = 8 * 60 * 1e3;
+    STORY_PARTIAL_PUBLISH_WARNING = "Publishing may have partially completed. One or more Facebook Stories may already be live. Check your Page before retrying.";
+  }
+});
+
 // utils/ids/makeId.ts
 var makeId;
 var init_makeId = __esm({
@@ -14493,16 +14746,17 @@ function resolvePageIdFromPayload(data) {
   if (!resolved) throw new Error("Missing page selection");
   return resolved;
 }
-var GRAPH2, FacebookProvider;
+var GRAPH3, FacebookProvider;
 var init_facebookProvider = __esm({
   "integrations/providers/facebook/facebookProvider.ts"() {
     init_facebookGraphPublish();
+    init_facebookGraphStoryPublish();
     init_GlobalConfig();
     init_AppError();
     init_makeId();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
-    GRAPH2 = "https://graph.facebook.com/v20.0";
+    GRAPH3 = "https://graph.facebook.com/v20.0";
     FacebookProvider = class {
       identifier = "facebook";
       name = "Facebook Page";
@@ -14520,9 +14774,21 @@ var init_facebookProvider = __esm({
       maxLength(_additionalSettings) {
         return 63206;
       }
-      rules = "Facebook Page posts support text, link previews (optional URL in provider settings), photos, multi-photo posts, and MP4 videos. Follow-up comments may include one image attachment. App must be Live for media to be visible to all users.";
+      rules = "Facebook Page posts support text, link previews (optional URL in provider settings), photos, multi-photo posts, MP4 videos, and Stories (image or MP4; each attachment publishes as its own Story). Follow-up comments may include one image attachment. App must be Live for media to be visible to all users.";
+      validateCreatePost(input) {
+        const postType = readFacebookPostType(input.providerSettings);
+        if (postType === "story" && input.mediaCount < 1) {
+          return "Story should have at least one media";
+        }
+        return null;
+      }
       async post(pageId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
+        const postType = readFacebookPostType(postDetails[0].settings);
+        if (postType === "story") {
+          const result2 = await publishFacebookPageStories(pageId, accessToken2, postDetails[0]);
+          return [result2];
+        }
         const result = await publishFacebookPagePost(pageId, accessToken2, postDetails[0]);
         return [result];
       }
@@ -14547,14 +14813,14 @@ var init_facebookProvider = __esm({
           );
         }
         const tokenRes = await fetch(
-          `${GRAPH2}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
+          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
         );
         const extended = await tokenRes.json();
         if (!extended.access_token) {
           throw new Error(extended.error?.message ?? "Facebook token refresh failed");
         }
         const meRes = await fetch(
-          `${GRAPH2}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -14586,21 +14852,21 @@ var init_facebookProvider = __esm({
         if (!appId || !appSecret) return "Facebook OAuth is not configured";
         const redirectUri = facebookRedirectUri();
         const step1 = await fetch(
-          `${GRAPH2}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
+          `${GRAPH3}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
         );
         const shortLived = await step1.json();
         if (!shortLived.access_token) {
           return shortLived.error?.message ?? "Facebook token exchange failed";
         }
         const step2 = await fetch(
-          `${GRAPH2}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
+          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
         );
         const longLived = await step2.json();
         if (!longLived.access_token) {
           return longLived.error?.message ?? "Facebook long-lived token exchange failed";
         }
         const permRes = await fetch(
-          `${GRAPH2}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH3}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const permJson = await permRes.json();
         const permissions = (permJson.data ?? []).filter((d) => d.status === "granted").map((p) => p.permission).filter(Boolean);
@@ -14610,7 +14876,7 @@ var init_facebookProvider = __esm({
           return e instanceof Error ? e.message : "Missing OAuth permissions";
         }
         const meRes = await fetch(
-          `${GRAPH2}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -14646,23 +14912,23 @@ var init_facebookProvider = __esm({
           }
         };
         await fetchPaginated(
-          `${GRAPH2}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+          `${GRAPH3}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
         );
         try {
-          let bizUrl = `${GRAPH2}/me/businesses?access_token=${enc}`;
+          let bizUrl = `${GRAPH3}/me/businesses?access_token=${enc}`;
           while (bizUrl) {
             const bizResponse = await fetch(bizUrl);
             const bizJson = await bizResponse.json();
             for (const business of bizJson.data ?? []) {
               try {
                 await fetchPaginated(
-                  `${GRAPH2}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+                  `${GRAPH3}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
                 );
               } catch {
               }
               try {
                 await fetchPaginated(
-                  `${GRAPH2}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+                  `${GRAPH3}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
                 );
               } catch {
               }
@@ -14689,7 +14955,7 @@ var init_facebookProvider = __esm({
           return null;
         };
         const fromAccounts = await searchPaginated(
-          `${GRAPH2}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
+          `${GRAPH3}/me/accounts?fields=${fields}&limit=100&access_token=${enc}`
         );
         if (fromAccounts?.access_token) {
           return {
@@ -14701,13 +14967,13 @@ var init_facebookProvider = __esm({
           };
         }
         try {
-          let bizUrl = `${GRAPH2}/me/businesses?access_token=${enc}`;
+          let bizUrl = `${GRAPH3}/me/businesses?access_token=${enc}`;
           while (bizUrl) {
             const bizResponse = await fetch(bizUrl);
             const bizJson = await bizResponse.json();
             for (const business of bizJson.data ?? []) {
               const fromOwned = await searchPaginated(
-                `${GRAPH2}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
+                `${GRAPH3}/${business.id}/owned_pages?fields=${fields}&limit=100&access_token=${enc}`
               );
               if (fromOwned?.access_token) {
                 return {
@@ -14719,7 +14985,7 @@ var init_facebookProvider = __esm({
                 };
               }
               const fromClient = await searchPaginated(
-                `${GRAPH2}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
+                `${GRAPH3}/${business.id}/client_pages?fields=${fields}&limit=100&access_token=${enc}`
               );
               if (fromClient?.access_token) {
                 return {
@@ -14752,7 +15018,7 @@ var init_facebookProvider = __esm({
         const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
         const enc = encodeURIComponent(accessToken2);
         const res = await fetch(
-          `${GRAPH2}/${pageId}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${enc}&period=day&since=${since}&until=${until}`
+          `${GRAPH3}/${pageId}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${enc}&period=day&since=${since}&until=${until}`
         );
         const json = await res.json();
         return (json.data ?? []).map((d) => ({
@@ -14769,7 +15035,7 @@ var init_facebookProvider = __esm({
         const enc = encodeURIComponent(accessToken2);
         try {
           const res = await fetch(
-            `${GRAPH2}/${postId}/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks,post_clicks_by_type&access_token=${enc}`
+            `${GRAPH3}/${postId}/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks,post_clicks_by_type&access_token=${enc}`
           );
           const json = await res.json();
           const result = [];
@@ -15008,7 +15274,7 @@ var init_instagramGraphErrors = __esm({
 });
 
 // integrations/providers/instagram/instagramGraphContentPublish.ts
-function isPlainObject2(value) {
+function isPlainObject3(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function normalizeInstagramCollaborators(raw) {
@@ -15023,7 +15289,7 @@ function normalizeInstagramCollaborators(raw) {
       if (label) out.push({ label });
       continue;
     }
-    if (isPlainObject2(item) && typeof item.label === "string") {
+    if (isPlainObject3(item) && typeof item.label === "string") {
       const label = item.label.replace(/^@/, "").trim();
       if (label) out.push({ label });
     }
@@ -15043,18 +15309,18 @@ function readGraduationStrategy(source) {
   return g === "SS_PERFORMANCE" ? "SS_PERFORMANCE" : "MANUAL";
 }
 function resolveInstagramPublishSettings(postDetailsSettings) {
-  if (!isPlainObject2(postDetailsSettings)) {
+  if (!isPlainObject3(postDetailsSettings)) {
     return { ...DEFAULT_PUBLISH_SETTINGS };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject2(providerSettings)) {
+  if (isPlainObject3(providerSettings)) {
     const { instagram: instagramBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject2(instagramBucket)) {
+    if (isPlainObject3(instagramBucket)) {
       source = { ...source, ...instagramBucket };
     }
-  } else if (isPlainObject2(postDetailsSettings.instagram)) {
+  } else if (isPlainObject3(postDetailsSettings.instagram)) {
     source = { ...source, ...postDetailsSettings.instagram };
   }
   return {
@@ -15064,7 +15330,7 @@ function resolveInstagramPublishSettings(postDetailsSettings) {
     collaborators: normalizeInstagramCollaborators(source.collaborators)
   };
 }
-function sleepMs(ms) {
+function sleepMs2(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function mediaExtFromUrlOrKey(path7) {
@@ -15097,7 +15363,7 @@ function extractComposerMedia(settings) {
   }
   return [];
 }
-function resolvePublicMediaUrl2(path7) {
+function resolvePublicMediaUrl3(path7) {
   const raw = path7.trim();
   if (!raw) throw new Error("Media path is empty");
   assertInstagramSupportedMedia(raw);
@@ -15167,7 +15433,7 @@ async function waitForMediaContainerReady(root, creationId, accessToken2) {
     if (code && code !== "IN_PROGRESS") {
       return;
     }
-    await sleepMs(POLL_INTERVAL_MS);
+    await sleepMs2(POLL_INTERVAL_MS);
   }
   throw new Error("Instagram media processing timed out");
 }
@@ -15181,7 +15447,7 @@ async function publishInstagramGraphFeedPost(igUserId, accessToken2, first, targ
   const version = target.apiVersion ?? DEFAULT_API_VERSION;
   const root = apiRoot(target.graphHostname, version);
   const rawItems = extractComposerMedia(first.settings);
-  const medias = rawItems.map((m) => ({ ...m, path: resolvePublicMediaUrl2(String(m.path)) }));
+  const medias = rawItems.map((m) => ({ ...m, path: resolvePublicMediaUrl3(String(m.path)) }));
   if (medias.length === 0) {
     throw new Error("Instagram requires at least one image or video");
   }
@@ -15346,7 +15612,7 @@ function facebookOAuth2() {
 function instagramBusinessRedirectUri() {
   return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("instagram-business")}`;
 }
-var GRAPH3, IG_INSIGHTS_GRAPH, InstagramBusinessProvider;
+var GRAPH4, IG_INSIGHTS_GRAPH, InstagramBusinessProvider;
 var init_instagramBusinessProvider = __esm({
   "integrations/providers/instagram/instagramBusinessProvider.ts"() {
     init_instagramInsightsAnalytics();
@@ -15357,7 +15623,7 @@ var init_instagramBusinessProvider = __esm({
     init_makeId();
     init_oauthFrontendOrigin();
     init_oauthFrontendCallbackPath();
-    GRAPH3 = "https://graph.facebook.com/v20.0";
+    GRAPH4 = "https://graph.facebook.com/v20.0";
     IG_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
     InstagramBusinessProvider = class {
       identifier = "instagram-business";
@@ -15430,14 +15696,14 @@ var init_instagramBusinessProvider = __esm({
           );
         }
         const tokenRes = await fetch(
-          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
+          `${GRAPH4}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(refresh_token)}`
         );
         const extended = await tokenRes.json();
         if (!extended.access_token) {
           throw new Error(extended.error?.message ?? "Facebook token refresh failed");
         }
         const meRes = await fetch(
-          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
+          `${GRAPH4}/me?fields=id,name,picture&access_token=${encodeURIComponent(extended.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -15469,21 +15735,21 @@ var init_instagramBusinessProvider = __esm({
         if (!appId || !appSecret) return "Facebook OAuth is not configured";
         const redirectUri = instagramBusinessRedirectUri();
         const step1 = await fetch(
-          `${GRAPH3}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
+          `${GRAPH4}/oauth/access_token?client_id=${encodeURIComponent(appId)}&redirect_uri=${encodeURIComponent(redirectUri)}&grant_type=authorization_code&client_secret=${encodeURIComponent(appSecret)}&code=${encodeURIComponent(params.code)}`
         );
         const shortLived = await step1.json();
         if (!shortLived.access_token) {
           return shortLived.error?.message ?? "Facebook token exchange failed";
         }
         const step2 = await fetch(
-          `${GRAPH3}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
+          `${GRAPH4}/oauth/access_token?grant_type=fb_exchange_token&client_id=${encodeURIComponent(appId)}&client_secret=${encodeURIComponent(appSecret)}&fb_exchange_token=${encodeURIComponent(shortLived.access_token)}`
         );
         const longLived = await step2.json();
         if (!longLived.access_token) {
           return longLived.error?.message ?? "Facebook long-lived token exchange failed";
         }
         const permRes = await fetch(
-          `${GRAPH3}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH4}/me/permissions?access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const permJson = await permRes.json();
         const permissions = (permJson.data ?? []).filter((d) => d.status === "granted").map((p) => p.permission).filter(Boolean);
@@ -15493,7 +15759,7 @@ var init_instagramBusinessProvider = __esm({
           return e instanceof Error ? e.message : "Missing OAuth permissions";
         }
         const meRes = await fetch(
-          `${GRAPH3}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
+          `${GRAPH4}/me?fields=id,name,picture&access_token=${encodeURIComponent(longLived.access_token)}`
         );
         const me = await meRes.json();
         return {
@@ -15530,23 +15796,23 @@ var init_instagramBusinessProvider = __esm({
         };
         const enc = encodeURIComponent(accessToken2);
         await fetchPaginated(
-          `${GRAPH3}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+          `${GRAPH4}/me/accounts?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
         );
         try {
-          let bizUrl = `${GRAPH3}/me/businesses?access_token=${enc}`;
+          let bizUrl = `${GRAPH4}/me/businesses?access_token=${enc}`;
           while (bizUrl) {
             const bizResponse = await fetch(bizUrl);
             const bizJson = await bizResponse.json();
             for (const business of bizJson.data ?? []) {
               try {
                 await fetchPaginated(
-                  `${GRAPH3}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                  `${GRAPH4}/${business.id}/owned_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
                 );
               } catch {
               }
               try {
                 await fetchPaginated(
-                  `${GRAPH3}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
+                  `${GRAPH4}/${business.id}/client_pages?fields=id,instagram_business_account,username,name,picture.type(large)&limit=100&access_token=${enc}`
                 );
               } catch {
               }
@@ -15560,7 +15826,7 @@ var init_instagramBusinessProvider = __esm({
         for (const p of withIg) {
           const igId = p.instagram_business_account.id;
           const igRes = await fetch(
-            `${GRAPH3}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
+            `${GRAPH4}/${igId}?fields=name,profile_picture_url,username&access_token=${enc}`
           );
           const ig = await igRes.json();
           out.push({
@@ -15574,13 +15840,13 @@ var init_instagramBusinessProvider = __esm({
       }
       async fetchPageInformation(accessToken2, data) {
         const pageRes = await fetch(
-          `${GRAPH3}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH4}/${data.pageId}?fields=access_token,name,picture.type(large)&access_token=${encodeURIComponent(accessToken2)}`
         );
         const pageJson = await pageRes.json();
         const pageToken = pageJson.access_token;
         if (!pageToken) throw new Error("Could not load Page access token");
         const igRes = await fetch(
-          `${GRAPH3}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH4}/${data.id}?fields=username,name,profile_picture_url&access_token=${encodeURIComponent(accessToken2)}`
         );
         const ig = await igRes.json();
         return {
@@ -15814,7 +16080,7 @@ function assertThreadsSupportedMedia(pathOrUrl) {
     throw new Error("Threads does not support SVG uploads. Convert the image to PNG or JPEG and try again.");
   }
 }
-function sleepMs2(ms) {
+function sleepMs3(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function threadsRedirectUri() {
@@ -15823,7 +16089,7 @@ function threadsRedirectUri() {
 function threadsOAuth() {
   return config.integrations.threads;
 }
-var GRAPH4, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsProvider;
+var GRAPH5, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsProvider;
 var init_threadsProvider = __esm({
   "integrations/providers/threadsProvider.ts"() {
     init_GlobalConfig();
@@ -15835,7 +16101,7 @@ var init_threadsProvider = __esm({
     init_metaGraphTokenError();
     init_Logger();
     init_stripComposerBodyForEditor();
-    GRAPH4 = "https://graph.threads.net/v1.0";
+    GRAPH5 = "https://graph.threads.net/v1.0";
     THREADS_GLOBAL_PLUG_CATALOG = [
       {
         methodName: "autoPlugPost",
@@ -15939,7 +16205,7 @@ var init_threadsProvider = __esm({
        * Create a reply (comment) under a Threads post.
        *
        * Threads uses the same two-step publish flow as posting:
-       * 1) create a TEXT media container with `reply_to_id`
+       * 1) create a TEXT, IMAGE/VIDEO, or CAROUSEL media container with `reply_to_id`
        * 2) publish it via `/{threads-user-id}/threads_publish`
        */
       async comment(userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
@@ -15950,13 +16216,27 @@ var init_threadsProvider = __esm({
           this.maxLength()
         );
         const replyToId = (lastCommentId ?? postId ?? "").trim();
-        if (!message.length) {
+        const media = this.extractMedia(first.settings).map((m) => ({
+          ...m,
+          path: this.resolvePublicMediaUrl(m.path)
+        }));
+        if (media.length > 0) {
+          logger.info({
+            msg: "[Threads] publishing comment with media (resolved public URLs)",
+            postId: first.id,
+            urls: media.map((m) => m.path)
+          });
+          for (const m of media) {
+            await this.assertUrlReachableForThreads(m.path);
+          }
+        }
+        if (!message.length && media.length === 0) {
           throw new Error("Threads comment message is empty");
         }
         if (!replyToId) {
           throw new Error("Threads reply_to_id is required to publish a comment");
         }
-        const creationId = await this.createTextContent(userId, accessToken2, message, replyToId);
+        const creationId = media.length === 0 ? await this.createTextContent(userId, accessToken2, message, replyToId) : media.length === 1 ? await this.createSingleMediaContent(userId, accessToken2, media[0], message, false, replyToId) : await this.createCarouselContent(userId, accessToken2, media, message, replyToId);
         const { threadId, permalink } = await this.publishThread(userId, accessToken2, creationId);
         return [
           {
@@ -16007,7 +16287,7 @@ var init_threadsProvider = __esm({
         const threshold = Number(fields.likesAmount);
         if (!Number.isFinite(threshold) || threshold < 0) return false;
         const res = await fetch(
-          `${GRAPH4}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
+          `${GRAPH5}/${encodeURIComponent(threadId)}/insights?metric=likes&access_token=${encodeURIComponent(integration.token)}`
         );
         const body = await res.json();
         if (!res.ok || body.error || !body.data?.length) {
@@ -16023,10 +16303,10 @@ var init_threadsProvider = __esm({
         if (value < threshold) {
           return false;
         }
-        await sleepMs2(2e3);
+        await sleepMs3(2e3);
         const text = stripComposerBodyForEditor("normal", fields.post ?? "").slice(0, this.maxLength());
         const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
-        await sleepMs2(2e3);
+        await sleepMs3(2e3);
         await this.publishThread(integration.internal_id, integration.token, creationId);
         return true;
       }
@@ -16155,7 +16435,7 @@ var init_threadsProvider = __esm({
       async checkLoaded(creationId, accessToken2) {
         for (let i = 0; i < 40; i++) {
           const res = await fetch(
-            `${GRAPH4}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken2)}`
+            `${GRAPH5}/${encodeURIComponent(creationId)}?fields=status,error_message&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await this.readGraphJson(res);
           if (!res.ok) {
@@ -16170,15 +16450,15 @@ var init_threadsProvider = __esm({
             );
           }
           if (status === "FINISHED") {
-            await sleepMs2(2e3);
+            await sleepMs3(2e3);
             return;
           }
-          await sleepMs2(2200);
+          await sleepMs3(2200);
         }
         throw new Error("Threads media processing timed out");
       }
       async formPostThreads(userId, form) {
-        return await fetch(`${GRAPH4}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
+        return await fetch(`${GRAPH5}/${encodeURIComponent(userId)}/threads`, { method: "POST", body: form });
       }
       async createTextContent(userId, accessToken2, message, replyToId) {
         const form = new FormData();
@@ -16195,7 +16475,7 @@ var init_threadsProvider = __esm({
         }
         return json.id;
       }
-      async createSingleMediaContent(userId, accessToken2, media, message, isCarouselItem = false) {
+      async createSingleMediaContent(userId, accessToken2, media, message, isCarouselItem = false, replyToId) {
         const isVideo = media.path.toLowerCase().includes(".mp4");
         const form = new FormData();
         form.append("media_type", isVideo ? "VIDEO" : "IMAGE");
@@ -16207,6 +16487,9 @@ var init_threadsProvider = __esm({
         if (isCarouselItem) {
           form.append("is_carousel_item", "true");
         }
+        if (!isCarouselItem && replyToId && replyToId.trim().length > 0) {
+          form.append("reply_to_id", replyToId.trim());
+        }
         form.append("text", message);
         form.append("access_token", accessToken2);
         const res = await this.formPostThreads(userId, form);
@@ -16216,7 +16499,7 @@ var init_threadsProvider = __esm({
         }
         return json.id;
       }
-      async createCarouselContent(userId, accessToken2, media, message) {
+      async createCarouselContent(userId, accessToken2, media, message, replyToId) {
         const mediaIds = [];
         for (const item of media) {
           const mediaId = await this.createSingleMediaContent(userId, accessToken2, item, message, true);
@@ -16227,6 +16510,9 @@ var init_threadsProvider = __esm({
         form.append("text", message);
         form.append("media_type", "CAROUSEL");
         form.append("children", mediaIds.join(","));
+        if (replyToId && replyToId.trim().length > 0) {
+          form.append("reply_to_id", replyToId.trim());
+        }
         form.append("access_token", accessToken2);
         const res = await this.formPostThreads(userId, form);
         const json = await this.readGraphJson(res);
@@ -16240,7 +16526,7 @@ var init_threadsProvider = __esm({
         const pubForm = new FormData();
         pubForm.append("creation_id", creationId);
         pubForm.append("access_token", accessToken2);
-        const pubRes = await fetch(`${GRAPH4}/${encodeURIComponent(userId)}/threads_publish`, {
+        const pubRes = await fetch(`${GRAPH5}/${encodeURIComponent(userId)}/threads_publish`, {
           method: "POST",
           body: pubForm
         });
@@ -16249,7 +16535,7 @@ var init_threadsProvider = __esm({
           throw new Error(this.formatGraphError("Threads publish failed", pubRes, pubJson));
         }
         const infoRes = await fetch(
-          `${GRAPH4}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken2)}`
+          `${GRAPH5}/${encodeURIComponent(pubJson.id)}?fields=id,permalink&access_token=${encodeURIComponent(accessToken2)}`
         );
         const infoJson = await this.readGraphJson(infoRes);
         if (!infoRes.ok) {
@@ -16267,7 +16553,7 @@ var init_threadsProvider = __esm({
       async analytics(id, accessToken2, dateWindowDays) {
         const until = dayjs5__default.default().endOf("day").unix();
         const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
-        const url = `${GRAPH4}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
+        const url = `${GRAPH5}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
         const res = await fetch(url);
         const body = await res.json();
         if (!res.ok || body.error) {
@@ -16291,7 +16577,7 @@ var init_threadsProvider = __esm({
         const today = dayjs5__default.default().format("YYYY-MM-DD");
         try {
           const res = await fetch(
-            `${GRAPH4}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
+            `${GRAPH5}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
           );
           const json = await res.json();
           throwIfMetaGraphInvalidAccessToken(json);
@@ -16637,7 +16923,7 @@ var init_upload_factory = __esm({
 });
 
 // integrations/providers/tiktok/tiktokPublishValidation.ts
-function isPlainObject3(value) {
+function isPlainObject4(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromUrlOrKey3(path7) {
@@ -16651,7 +16937,7 @@ function mediaExtFromUrlOrKey3(path7) {
   }
 }
 function extractTiktokMediaFromSettings(settings) {
-  if (!isPlainObject3(settings)) return [];
+  if (!isPlainObject4(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -16734,7 +17020,7 @@ var init_tiktokPublishValidation = __esm({
 });
 
 // integrations/providers/linkedin/linkedinSettings.ts
-function isPlainObject4(value) {
+function isPlainObject5(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readBoolean(source, key) {
@@ -16749,7 +17035,7 @@ function readString(source, key) {
   return void 0;
 }
 function resolveLinkedInSettings(settings) {
-  if (!isPlainObject4(settings)) return {};
+  if (!isPlainObject5(settings)) return {};
   const out = {};
   const readFrom = (source) => {
     const carousel = readBoolean(source, "post_as_images_carousel") ?? readBoolean(source, "postAsImagesCarousel");
@@ -16759,15 +17045,15 @@ function resolveLinkedInSettings(settings) {
   };
   readFrom(settings);
   const providerSettings = settings.providerSettings;
-  if (isPlainObject4(providerSettings)) {
+  if (isPlainObject5(providerSettings)) {
     readFrom(providerSettings);
     const linkedin = providerSettings.linkedin;
-    if (isPlainObject4(linkedin)) {
+    if (isPlainObject5(linkedin)) {
       readFrom(linkedin);
     }
   }
   const linkedinRoot = settings.linkedin;
-  if (isPlainObject4(linkedinRoot)) {
+  if (isPlainObject5(linkedinRoot)) {
     readFrom(linkedinRoot);
   }
   return out;
@@ -16778,7 +17064,7 @@ var init_linkedinSettings = __esm({
 });
 
 // integrations/providers/linkedin/linkedinPublish.ts
-function extractMedia2(settings) {
+function extractMedia3(settings) {
   if (!settings || typeof settings !== "object") return [];
   const media = settings.media;
   if (Array.isArray(media)) {
@@ -16790,7 +17076,7 @@ function extractMedia2(settings) {
   }
   return [];
 }
-function resolvePublicMediaUrl3(path7) {
+function resolvePublicMediaUrl4(path7) {
   const raw = path7.trim();
   if (!raw) throw new Error("Media path is empty");
   if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
@@ -16802,11 +17088,11 @@ function resolvePublicMediaUrl3(path7) {
   }
   return url;
 }
-function isMp4Path2(path7) {
+function isMp4Path3(path7) {
   return path7.toLowerCase().includes(".mp4") || path7.toLowerCase().includes("mp4");
 }
 async function loadMediaBuffer(path7) {
-  const resolved = path7.startsWith("http://") || path7.startsWith("https://") ? path7 : resolvePublicMediaUrl3(path7);
+  const resolved = path7.startsWith("http://") || path7.startsWith("https://") ? path7 : resolvePublicMediaUrl4(path7);
   if (resolved.startsWith("http://") || resolved.startsWith("https://")) {
     const res = await fetch(resolved);
     if (!res.ok) {
@@ -16854,7 +17140,7 @@ function buildPostContent(isPdf, mediaIds, pdfTitle) {
   };
 }
 async function uploadLinkedInMedia(accessToken2, personOrOrgId, mediaPath, mediaBuffer, authorType) {
-  const isVideo = isMp4Path2(mediaPath);
+  const isVideo = isMp4Path3(mediaPath);
   const isPdf = mediaPath.toLowerCase().includes(".pdf");
   const endpoint = isVideo ? "videos" : isPdf ? "documents" : "images";
   const owner = authorType === "personal" ? `urn:li:person:${personOrOrgId}` : `urn:li:organization:${personOrOrgId}`;
@@ -16922,7 +17208,7 @@ async function uploadLinkedInMedia(accessToken2, personOrOrgId, mediaPath, media
   return finalOutput;
 }
 async function prepareMediaBuffer(mediaPath) {
-  if (isMp4Path2(mediaPath)) {
+  if (isMp4Path3(mediaPath)) {
     return loadMediaBuffer(mediaPath);
   }
   const sharp = (await import('sharp')).default;
@@ -16957,7 +17243,7 @@ async function convertImagesToPdfCarousel(media) {
 }
 async function processMediaForPost(postDetails, accessToken2, authorId, authorType) {
   const settings = resolveLinkedInSettings(postDetails.settings);
-  let media = extractMedia2(postDetails.settings);
+  let media = extractMedia3(postDetails.settings);
   if (settings.post_as_images_carousel) {
     if (media.length >= 2) {
       const pdfBuffer = await convertImagesToPdfCarousel(media);
@@ -17068,7 +17354,7 @@ var init_linkedinPublish = __esm({
 });
 
 // integrations/providers/linkedin/linkedinPlugs.ts
-function sleepMs3(ms) {
+function sleepMs4(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function fetchLinkedInPostLikes(accessToken2, postId) {
@@ -17130,7 +17416,7 @@ async function runLinkedInAutoPlugPost(integration, postId, fields, authorType) 
   if (!Number.isFinite(threshold) || threshold < 0) return false;
   const totalLikes = await fetchLinkedInPostLikes(integration.token, postId);
   if (totalLikes < threshold) return false;
-  await sleepMs3(2e3);
+  await sleepMs4(2e3);
   const text = fixLinkedInCommentary(stripComposerBodyForEditor("normal", fields.post ?? ""));
   if (text.length < 3) return false;
   const actor = `urn:li:organization:${integration.internal_id}`;
@@ -17706,7 +17992,7 @@ var init_tiktokApiClient = __esm({
 });
 
 // integrations/providers/tiktok/resolveTiktokSettings.ts
-function isPlainObject5(value) {
+function isPlainObject6(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyLevel(source) {
@@ -17741,7 +18027,7 @@ function readTitle(source) {
 }
 function resolveTiktokSettings(postDetailsSettings, message = "") {
   const caption = typeof message === "string" ? message.trim() : "";
-  if (!isPlainObject5(postDetailsSettings)) {
+  if (!isPlainObject6(postDetailsSettings)) {
     return {
       privacy_level: DEFAULT_PRIVACY,
       content_posting_method: DEFAULT_POSTING_METHOD,
@@ -17757,13 +18043,13 @@ function resolveTiktokSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject5(providerSettings)) {
+  if (isPlainObject6(providerSettings)) {
     const { tiktok: tiktokBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject5(tiktokBucket)) {
+    if (isPlainObject6(tiktokBucket)) {
       source = { ...source, ...tiktokBucket };
     }
-  } else if (isPlainObject5(postDetailsSettings.tiktok)) {
+  } else if (isPlainObject6(postDetailsSettings.tiktok)) {
     source = { ...source, ...postDetailsSettings.tiktok };
   }
   const explicitTitle = readTitle(source);
@@ -17795,7 +18081,7 @@ function tiktokStatusPollMs() {
 function tiktokStatusMaxPolls() {
   return process.env.JEST_WORKER_ID !== void 0 ? 5 : 360;
 }
-function sleepMs4(ms) {
+function sleepMs5(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function buildTiktokVideoPostInfoBody(settings, caption) {
@@ -17859,7 +18145,7 @@ async function pollTiktokPublishStatus(accessToken2, publishId) {
     if (status === "PUBLISH_COMPLETE" || status === "SEND_TO_USER_INBOX") {
       return { status, postId: firstPostId, failReason };
     }
-    await sleepMs4(tiktokStatusPollMs());
+    await sleepMs5(tiktokStatusPollMs());
   }
   throw new Error("TikTok publish timed out while waiting for processing to complete");
 }
@@ -18319,7 +18605,7 @@ var init_tiktokProvider = __esm({
 });
 
 // integrations/providers/youtube/resolveYoutubeSettings.ts
-function isPlainObject6(value) {
+function isPlainObject7(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readPrivacyStatus(source) {
@@ -18345,7 +18631,7 @@ function normalizeTags(raw) {
       if (label) out.push(label);
       continue;
     }
-    if (isPlainObject6(item)) {
+    if (isPlainObject7(item)) {
       const label = (typeof item.label === "string" ? item.label : typeof item.value === "string" ? item.value : "").trim();
       if (label) out.push(label);
     }
@@ -18354,7 +18640,7 @@ function normalizeTags(raw) {
 }
 function readThumbnailPath(source) {
   const thumb = source.thumbnail;
-  if (isPlainObject6(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
+  if (isPlainObject7(thumb) && typeof thumb.path === "string" && thumb.path.trim()) {
     return thumb.path.trim();
   }
   if (typeof source.thumbnailPath === "string" && source.thumbnailPath.trim()) {
@@ -18364,7 +18650,7 @@ function readThumbnailPath(source) {
 }
 function resolveYoutubeSettings(postDetailsSettings, message = "") {
   const description = typeof message === "string" ? message : "";
-  if (!isPlainObject6(postDetailsSettings)) {
+  if (!isPlainObject7(postDetailsSettings)) {
     return {
       title: "",
       description,
@@ -18375,13 +18661,13 @@ function resolveYoutubeSettings(postDetailsSettings, message = "") {
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject6(providerSettings)) {
+  if (isPlainObject7(providerSettings)) {
     const { youtube: youtubeBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject6(youtubeBucket)) {
+    if (isPlainObject7(youtubeBucket)) {
       source = { ...source, ...youtubeBucket };
     }
-  } else if (isPlainObject6(postDetailsSettings.youtube)) {
+  } else if (isPlainObject7(postDetailsSettings.youtube)) {
     source = { ...source, ...postDetailsSettings.youtube };
   }
   return {
@@ -18405,7 +18691,7 @@ function shouldSkipYoutubeThumbnail(byteLength) {
   if (byteLength == null || !Number.isFinite(byteLength)) return false;
   return byteLength > YOUTUBE_THUMBNAIL_MAX_BYTES;
 }
-function isPlainObject7(value) {
+function isPlainObject8(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromUrlOrKey4(path7) {
@@ -18419,7 +18705,7 @@ function mediaExtFromUrlOrKey4(path7) {
   }
 }
 function extractYoutubeMediaFromSettings(settings) {
-  if (!isPlainObject7(settings)) return [];
+  if (!isPlainObject8(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
@@ -19019,7 +19305,7 @@ var init_xErrors = __esm({
 });
 
 // integrations/providers/x/xMediaUpload.ts
-function isPlainObject8(value) {
+function isPlainObject9(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function mediaExtFromPath(path7) {
@@ -19070,12 +19356,12 @@ async function prepareImageBuffer(raw, path7) {
   return { buffer: jpeg, mimeType: "image/jpeg" };
 }
 function extractXMedia(settings) {
-  if (!isPlainObject8(settings)) return [];
+  if (!isPlainObject9(settings)) return [];
   const media = settings.media;
   if (Array.isArray(media)) {
     return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
   }
-  if (isPlainObject8(media) && Array.isArray(media.items)) {
+  if (isPlainObject9(media) && Array.isArray(media.items)) {
     return media.items.filter(
       (m) => !!m && typeof m.path === "string" && m.path.length > 0
     );
@@ -19114,7 +19400,7 @@ var init_xMediaUpload = __esm({
     init_MediaRepository();
   }
 });
-function isPlainObject9(value) {
+function isPlainObject10(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readString2(source, key) {
@@ -19165,19 +19451,19 @@ function mergeResolvedSettings(target, source) {
   return target;
 }
 function resolveXSettings(settings) {
-  if (!isPlainObject9(settings)) return {};
+  if (!isPlainObject10(settings)) return {};
   const out = {};
   mergeResolvedSettings(out, settings);
   const providerSettings = settings.providerSettings;
-  if (isPlainObject9(providerSettings)) {
+  if (isPlainObject10(providerSettings)) {
     mergeResolvedSettings(out, providerSettings);
     const xBucket = providerSettings.x;
-    if (isPlainObject9(xBucket)) {
+    if (isPlainObject10(xBucket)) {
       mergeResolvedSettings(out, xBucket);
     }
   }
   const xRoot = settings.x;
-  if (isPlainObject9(xRoot)) {
+  if (isPlainObject10(xRoot)) {
     mergeResolvedSettings(out, xRoot);
   }
   return out;
@@ -19309,7 +19595,7 @@ var init_xAnalytics = __esm({
 });
 
 // integrations/providers/x/xPlugs.ts
-function sleepMs5(ms) {
+function sleepMs6(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 async function runXAutoRepostPlug(client, userId, tweetId, fields) {
@@ -19317,7 +19603,7 @@ async function runXAutoRepostPlug(client, userId, tweetId, fields) {
   if (!Number.isFinite(threshold) || threshold < 0) return false;
   const likes = await fetchXTweetLikeCount(client, tweetId);
   if (likes < threshold) return false;
-  await sleepMs5(2e3);
+  await sleepMs6(2e3);
   await withXErrorMapping(() => client.v2.retweet(userId, tweetId));
   return true;
 }
@@ -19326,7 +19612,7 @@ async function runXAutoPlugPost(client, tweetId, fields, publishReply) {
   if (!Number.isFinite(threshold) || threshold < 0) return false;
   const likes = await fetchXTweetLikeCount(client, tweetId);
   if (likes < threshold) return false;
-  await sleepMs5(2e3);
+  await sleepMs6(2e3);
   const text = stripComposerBodyForEditor("normal", fields.post ?? "");
   if (text.length < 3) return false;
   await publishReply(text, tweetId);
@@ -19601,7 +19887,7 @@ var init_xProvider = __esm({
 });
 
 // integrations/providers/devto/resolveDevtoSettings.ts
-function isPlainObject10(value) {
+function isPlainObject11(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readTitle3(source) {
@@ -19632,14 +19918,14 @@ function readOrganizationId(source) {
   const raw = source.organization ?? source.organization_id ?? source.organizationId;
   const direct = parsePositiveInt(raw);
   if (direct !== void 0) return direct;
-  if (isPlainObject10(raw)) {
+  if (isPlainObject11(raw)) {
     return parsePositiveInt(raw.id ?? raw.value);
   }
   return void 0;
 }
 function tagNameFromItem(item) {
   if (typeof item === "string") return item.trim();
-  if (!isPlainObject10(item)) return "";
+  if (!isPlainObject11(item)) return "";
   const label = typeof item.label === "string" ? item.label.trim() : "";
   if (label) return label;
   if (typeof item.value === "string") return item.value.trim();
@@ -19663,24 +19949,24 @@ function normalizeTags2(raw) {
 function readMainImagePath(source) {
   const main = source.main_image ?? source.mainImage;
   if (typeof main === "string" && main.trim()) return main.trim();
-  if (isPlainObject10(main) && typeof main.path === "string" && main.path.trim()) {
+  if (isPlainObject11(main) && typeof main.path === "string" && main.path.trim()) {
     return main.path.trim();
   }
   return void 0;
 }
 function resolveDevtoSettings(postDetailsSettings) {
-  if (!isPlainObject10(postDetailsSettings)) {
+  if (!isPlainObject11(postDetailsSettings)) {
     return { title: "", tags: [] };
   }
   let source = { ...postDetailsSettings };
   const providerSettings = postDetailsSettings.providerSettings;
-  if (isPlainObject10(providerSettings)) {
+  if (isPlainObject11(providerSettings)) {
     const { devto: devtoBucket, ...flatProviderSettings } = providerSettings;
     source = { ...source, ...flatProviderSettings };
-    if (isPlainObject10(devtoBucket)) {
+    if (isPlainObject11(devtoBucket)) {
       source = { ...source, ...devtoBucket };
     }
-  } else if (isPlainObject10(postDetailsSettings.devto)) {
+  } else if (isPlainObject11(postDetailsSettings.devto)) {
     source = { ...source, ...postDetailsSettings.devto };
   }
   return {
@@ -19729,7 +20015,7 @@ var init_resolveDevtoSettings = __esm({
 });
 
 // integrations/providers/devto/devtoPublish.ts
-function isPlainObject11(value) {
+function isPlainObject12(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function devtoHeaders(apiKey) {
@@ -19747,15 +20033,15 @@ async function readJson(res) {
   }
 }
 function firstErrorString(json) {
-  if (!isPlainObject11(json)) return void 0;
+  if (!isPlainObject12(json)) return void 0;
   const body = json;
   if (typeof body.error === "string" && body.error.trim()) return body.error.trim();
-  if (isPlainObject11(body.error) && typeof body.error.message === "string" && body.error.message.trim()) {
+  if (isPlainObject12(body.error) && typeof body.error.message === "string" && body.error.message.trim()) {
     return body.error.message.trim();
   }
   const first = body.errors?.[0];
   if (typeof first === "string" && first.trim()) return first.trim();
-  if (isPlainObject11(first) && typeof first.message === "string" && first.message.trim()) {
+  if (isPlainObject12(first) && typeof first.message === "string" && first.message.trim()) {
     return first.message.trim();
   }
   if (typeof body.message === "string" && body.message.trim()) return body.message.trim();
@@ -19816,7 +20102,7 @@ async function fetchDevtoCurrentUser(apiKey) {
   if (res.status === 401 || res.status === 403 || !res.ok) {
     throw new Error(res.status === 401 || res.status === 403 ? "Invalid API key" : mapDevtoApiError(json, res.status));
   }
-  if (!isPlainObject11(json) || json.id == null || json.id === "") {
+  if (!isPlainObject12(json) || json.id == null || json.id === "") {
     throw new Error("Invalid API key");
   }
   return {
@@ -19830,7 +20116,7 @@ function mapDevtoTagOptions(rows) {
   if (!Array.isArray(rows)) return [];
   const out = [];
   for (const row of rows) {
-    if (!isPlainObject11(row)) continue;
+    if (!isPlainObject12(row)) continue;
     const name = typeof row.name === "string" ? row.name.trim() : "";
     const id = typeof row.id === "number" && Number.isFinite(row.id) ? row.id : Number.parseInt(String(row.id ?? ""), 10);
     if (!name || !Number.isFinite(id)) continue;
@@ -19852,9 +20138,9 @@ function uniqueOrganizationUsernamesFromArticles(articles) {
   const seen = /* @__PURE__ */ new Set();
   const out = [];
   for (const article of articles) {
-    if (!isPlainObject11(article)) continue;
+    if (!isPlainObject12(article)) continue;
     const org = article.organization;
-    if (!isPlainObject11(org)) continue;
+    if (!isPlainObject12(org)) continue;
     const username = typeof org.username === "string" && org.username.trim() || typeof org.slug === "string" && org.slug.trim() || "";
     if (!username) continue;
     const key = username.toLowerCase();
@@ -19865,7 +20151,7 @@ function uniqueOrganizationUsernamesFromArticles(articles) {
   return out;
 }
 function mapDevtoOrganization(json) {
-  if (!isPlainObject11(json)) return void 0;
+  if (!isPlainObject12(json)) return void 0;
   const id = typeof json.id === "number" && Number.isFinite(json.id) ? json.id : Number.parseInt(String(json.id ?? ""), 10);
   const name = typeof json.name === "string" ? json.name.trim() : "";
   const username = typeof json.username === "string" ? json.username.trim() : "";
@@ -19926,7 +20212,7 @@ async function publishDevtoArticle(accessToken2, postDetails) {
   if (!res.ok) {
     throw new Error(mapDevtoApiError(json, res.status));
   }
-  if (!isPlainObject11(json)) {
+  if (!isPlainObject12(json)) {
     throw new Error("Dev.to publish succeeded but no article was returned");
   }
   const postId = json.id == null ? "" : String(json.id).trim();
@@ -19951,7 +20237,7 @@ var init_devtoPublish = __esm({
     DEVTO_API_BASE = "https://dev.to/api";
   }
 });
-function isPlainObject12(value) {
+function isPlainObject13(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 async function readJson2(res) {
@@ -19967,14 +20253,14 @@ function throwIfUnauthorized2(status, json) {
   }
 }
 function metricTotal(bucket) {
-  if (!isPlainObject12(bucket)) return 0;
+  if (!isPlainObject13(bucket)) return 0;
   const raw = bucket.total;
   if (typeof raw === "number" && Number.isFinite(raw)) return raw;
   const parsed = Number.parseInt(String(raw ?? ""), 10);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 function dayMetricTotal(day, key) {
-  if (!isPlainObject12(day)) return 0;
+  if (!isPlainObject13(day)) return 0;
   return metricTotal(day[key]);
 }
 function startDateForWindow(dateWindowDays) {
@@ -19982,7 +20268,7 @@ function startDateForWindow(dateWindowDays) {
   return dayjs5__default.default().subtract(days, "day").format("YYYY-MM-DD");
 }
 function mapDevtoHistoricalToAnalytics(json) {
-  if (!isPlainObject12(json)) return [];
+  if (!isPlainObject13(json)) return [];
   const dates = Object.keys(json).filter((key) => /^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).sort((a, b) => dayjs5__default.default(a).valueOf() - dayjs5__default.default(b).valueOf());
   if (dates.length === 0) return [];
   const series = {
@@ -20007,7 +20293,7 @@ function mapDevtoHistoricalToAnalytics(json) {
   }));
 }
 function mapDevtoTotalsToAnalytics(json, date = dayjs5__default.default().format("YYYY-MM-DD")) {
-  if (!isPlainObject12(json)) return [];
+  if (!isPlainObject13(json)) return [];
   const hasAnyMetric = Object.keys(METRIC_LABELS2).some((key) => key in json);
   if (!hasAnyMetric) return [];
   return Object.keys(METRIC_LABELS2).map((key) => ({
@@ -20553,7 +20839,7 @@ var init_mirrorIntegrationProfilePicture = __esm({
 
 // utils/images/providerProfilePictureFetch.ts
 function facebookGraphProfilePictureUrl(objectId) {
-  return `${GRAPH5}/${encodeURIComponent(objectId.trim())}/picture?type=large`;
+  return `${GRAPH6}/${encodeURIComponent(objectId.trim())}/picture?type=large`;
 }
 async function imageFromResponse(response) {
   if (!response.ok) return null;
@@ -20632,12 +20918,12 @@ async function downloadProviderProfilePicture(params) {
       return null;
   }
 }
-var GRAPH5;
+var GRAPH6;
 var init_providerProfilePictureFetch = __esm({
   "utils/images/providerProfilePictureFetch.ts"() {
     init_allowedExternalImageHosts();
     init_externalImageFetch();
-    GRAPH5 = "https://graph.facebook.com/v20.0";
+    GRAPH6 = "https://graph.facebook.com/v20.0";
   }
 });
 
@@ -22097,7 +22383,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-function sleepMs6(ms) {
+function sleepMs7(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
@@ -22350,7 +22636,8 @@ var init_PostsService = __esm({
             status,
             mediaCount: mediaCountForIntegration(integrationId),
             message: publishMessage,
-            rawMessage
+            rawMessage,
+            providerSettings: providerSettingsByIntegrationId?.[integrationId]
           });
           if (typeof validationMessage === "string" && validationMessage.trim().length > 0) {
             throw new AppError(validationMessage, 400);
@@ -23159,7 +23446,7 @@ var init_PostsService = __esm({
           }
           integrationRow.token = refreshed.accessToken;
           if (provider?.refreshWait) {
-            await sleepMs6(1e4);
+            await sleepMs7(1e4);
           }
         }
         return integrationRow;
@@ -33780,7 +34067,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-08-31T10:40:48.997Z",
+  generated: "2026-09-03T11:47:02.748Z",
   routes: [
     {
       path: "/docs",
@@ -33904,6 +34191,12 @@ var routes_manifest_default = {
     },
     {
       path: "/roadmap",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/self-hosting",
       priority: 0.7,
       changeFreq: "monthly",
       type: "static"
@@ -38122,7 +38415,10 @@ var repeatIntervalEnum = zod.z.enum([
 var mediaItemSchema = zod.z.object({
   id: zod.z.string().min(1).max(200),
   path: zod.z.string().min(1).max(2e3),
-  bucket: zod.z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional()
+  bucket: zod.z.enum([DATABASE_NAMES.BLOG_IMAGES, COMPOSER_MEDIA_BUCKET_NAME]).optional(),
+  alt: zod.z.string().max(2e3).nullable().optional(),
+  thumbnail: zod.z.string().min(1).max(2e3).nullable().optional(),
+  thumbnailTimestamp: zod.z.number().finite().nonnegative().nullable().optional()
 });
 var createPostBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id"),
