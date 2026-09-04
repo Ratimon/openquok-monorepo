@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { icons } from '$data/icons';
-	import { CHANNEL_DELETE_HAS_POSTS_MESSAGE } from '$lib/integrations/utils/userFacingChannelDeleteError';
 	import * as Dialog from '$lib/ui/dialog';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -27,8 +26,8 @@
 		<Dialog.Header>
 			<Dialog.Title>Delete channel?</Dialog.Title>
 			<Dialog.Description>
-				This disconnects <strong>{channelName}</strong> from this workspace. You can add it again later.
-				{CHANNEL_DELETE_HAS_POSTS_MESSAGE}
+				This disconnects <strong>{channelName}</strong> from this workspace. Any posts for this channel
+				will also be deleted.
 			</Dialog.Description>
 		</Dialog.Header>
 		<Dialog.Footer class="gap-2 sm:justify-end">

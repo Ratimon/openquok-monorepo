@@ -9674,8 +9674,27 @@ var init_PostsRepository = __esm({
         return data != null;
       }
       /**
+       * Distinct `post_group` ids for non-deleted rows on this channel (draft, queued, published, or error).
+       * Used when disconnecting a channel so those groups can be soft-deleted first.
+       */
+      async listPostGroupsForIntegration(organizationId, integrationId) {
+        const { data, error } = await this.supabase.from(TABLE_POSTS).select("post_group").eq("organization_id", organizationId).eq("integration_id", integrationId).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError(`Failed to list post groups for integration: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        const groups = /* @__PURE__ */ new Set();
+        for (const row of data ?? []) {
+          const postGroup = row.post_group;
+          if (postGroup) groups.add(postGroup);
+        }
+        return [...groups];
+      }
+      /**
        * Whether any non-deleted post row references the integration (draft, queued, published, or error).
-       * Used to block channel delete until posts are removed.
        */
       async hasPostsForIntegration(organizationId, integrationId) {
         const { data, error } = await this.supabase.from(TABLE_POSTS).select("id").eq("organization_id", organizationId).eq("integration_id", integrationId).is("deleted_at", null).limit(1).maybeSingle();
@@ -21493,12 +21512,72 @@ var init_IntegrationConnectionService = __esm({
           throw new OrganizationForbiddenError();
         }
       }
-      async assertChannelHasNoPosts(organizationId, integrationId) {
-        if (await this.postsRepository.hasPostsForIntegration(organizationId, integrationId)) {
-          throw new AppError(
-            "You have to delete all the posts associated with this channel before deleting it",
-            409
-          );
+      /**
+       * Soft-delete every post group that references this channel, then soft-delete the channel.
+       * If a post-group delete fails, the channel row is left intact so the caller can retry.
+       */
+      async removeChannelAndCascadePosts(organizationId, integrationId, internalId) {
+        const postGroups = await this.postsRepository.listPostGroupsForIntegration(
+          organizationId,
+          integrationId
+        );
+        for (const postGroup of postGroups) {
+          await this.softDeletePostGroupForChannel(organizationId, postGroup);
+        }
+        return this.integrations.softDeleteChannel(organizationId, integrationId, internalId);
+      }
+      /**
+       * Soft-delete one post group (tags, rows, caches) the same way {@link PostsService} does for
+       * session and public post deletes. Empty groups are skipped so a race with another delete is not fatal.
+       */
+      async softDeletePostGroupForChannel(organizationId, postGroup) {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+          return;
+        }
+        const ids = rows.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+        await this.invalidatePostGroupCaches({ organizationId, postGroup, postIds: ids });
+      }
+      async invalidatePostGroupCaches(params) {
+        const { organizationId, postGroup, postIds } = params;
+        const calendarListPattern = `posts:calendar:list:${organizationId}:*`;
+        if (this.cacheInvalidator) {
+          try {
+            await this.cacheInvalidator.invalidateKey(`posts:group:${postGroup}`);
+            for (const id of postIds) {
+              await this.cacheInvalidator.invalidateKey(`posts:preview:${id}`);
+            }
+            await this.cacheInvalidator.invalidatePattern(calendarListPattern);
+            await this.cacheInvalidator.invalidateKey(`posts:tags:list:${organizationId}`);
+            await this.cacheInvalidator.invalidateEntity("posts", postGroup);
+          } catch (error) {
+            logger.error({
+              msg: "Error invalidating post mutation caches after channel delete",
+              organizationId,
+              postGroup,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
+          return;
+        }
+        if (this.cache) {
+          try {
+            await this.cache.del(`posts:group:${postGroup}`);
+            for (const id of postIds) {
+              await this.cache.del(`posts:preview:${id}`);
+            }
+            await this.cache.delPattern(calendarListPattern);
+            await this.cache.del(`posts:tags:list:${organizationId}`);
+          } catch (error) {
+            logger.error({
+              msg: "Error deleting post mutation cache keys after channel delete",
+              organizationId,
+              postGroup,
+              error: error instanceof Error ? error.message : String(error)
+            });
+          }
         }
       }
       async getIntegrationList(authUserId, organizationId) {
@@ -21662,8 +21741,11 @@ var init_IntegrationConnectionService = __esm({
         if (!row) {
           throw new AppError("Integration not found", 404);
         }
-        await this.assertChannelHasNoPosts(organizationId, integrationId);
-        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        const deleted = await this.removeChannelAndCascadePosts(
+          organizationId,
+          integrationId,
+          row.internal_id
+        );
         if (!deleted) {
           throw new AppError("Integration not found", 404);
         }
@@ -21967,8 +22049,11 @@ var init_IntegrationConnectionService = __esm({
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
-        await this.assertChannelHasNoPosts(organizationId, integrationId);
-        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        const deleted = await this.removeChannelAndCascadePosts(
+          organizationId,
+          integrationId,
+          row.internal_id
+        );
         if (!deleted) throw new AppError("Integration not found", 404);
       }
       /**
@@ -22149,7 +22234,10 @@ var init_IntegrationConnectionService = __esm({
             409,
             {
               errorCode: "INTEGRATION_ACCOUNT_CONFLICT",
-              metadata: { existingProviderIdentifier: existingByInternalId.provider_identifier }
+              metadata: {
+                existingProviderIdentifier: existingByInternalId.provider_identifier,
+                existingIntegrationId: existingByInternalId.id
+              }
             }
           );
         }
@@ -34118,7 +34206,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-04T07:40:12.081Z",
+  generated: "2026-09-04T11:57:04.944Z",
   routes: [
     {
       path: "/docs",

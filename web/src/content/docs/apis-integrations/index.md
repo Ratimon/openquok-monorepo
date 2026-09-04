@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="List Integrations" description="Return every connected social channel for the token's workspace" href="/docs/apis-integrations/list" />
 <LinkCard title="List Channel Groups" description="Return workspace channel groups — filter List Integrations with ?group=" href="/docs/apis-integrations/groups" />
 <LinkCard title="Connect Channel (OAuth)" description="Generate an OAuth authorization URL for a provider — the first step in connecting a new channel" href="/docs/apis-integrations/connect" />
-<LinkCard title="Delete Channel" description="Soft-delete a connected channel so it stops publishing and disappears from List Integrations" href="/docs/apis-integrations/delete" />
+<LinkCard title="Delete Channel" description="Soft-delete a connected channel and every post group that includes it" href="/docs/apis-integrations/delete" />
 <LinkCard title="Check Connection" description="Lightweight healthcheck — confirm the supplied programmatic or OAuth app token is accepted" href="/docs/apis-integrations/is-connected" />
 <LinkCard title="Channel settings & tools" description="Fetch rules, max post length, settings schema, and the allow-listed tools for a connected channel" href="/docs/apis-integrations/integration-settings" />
 <LinkCard title="Trigger a channel tool" description="Invoke an allow-listed provider method on a connected channel" href="/docs/apis-integrations/integration-trigger" />

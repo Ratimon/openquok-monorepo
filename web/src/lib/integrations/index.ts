@@ -50,6 +50,8 @@ export {
 	filterContinuePickerPages,
 	getContinueProviderConfig,
 	hasContinueProviderStep,
+	resolveAccountConflictForFilteredPages,
+	type AccountConflictViewModel,
 	type ConnectedInternalIdRef,
 	type ContinueConnectPageRow,
 	type ContinueProviderStepConfig,

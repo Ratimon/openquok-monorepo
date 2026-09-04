@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	buildAllPagesConnectedMessage,
-	filterContinuePickerPages
+	filterContinuePickerPages,
+	resolveAccountConflictForFilteredPages
 } from '$lib/integrations/continue-provider/filterContinuePickerPages';
 
 const page = { id: '17841414302190559', name: '@openquok', pictureUrl: '', pageId: '123' };
@@ -60,6 +61,33 @@ describe('filterContinuePickerPages', () => {
 
 		expect(result.pages).toEqual([]);
 		expect(result.allFilteredAsAlreadyConnected).toBe(true);
+	});
+});
+
+describe('resolveAccountConflictForFilteredPages', () => {
+	it('returns conflict metadata when a single page matches a connected integration', () => {
+		const conflict = resolveAccountConflictForFilteredPages({
+			originalPages: [page],
+			connectedIntegrations: [
+				{
+					id: 'existing-1',
+					internalId: page.id,
+					identifier: 'instagram-standalone',
+					inBetweenSteps: false
+				}
+			],
+			excludeIntegrationId: 'in-progress',
+			connectingProviderIdentifier: 'instagram-business',
+			fallbackMessage: 'Fallback'
+		});
+
+		expect(conflict).toEqual({
+			message:
+				'This Instagram account is already connected as Instagram (Standalone). Disconnect that channel, then add Instagram (Business) again.',
+			existingIntegrationId: 'existing-1',
+			existingProviderIdentifier: 'instagram-standalone',
+			accountLabel: '@openquok'
+		});
 	});
 });
 

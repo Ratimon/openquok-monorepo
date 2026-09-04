@@ -349,7 +349,16 @@ export class IntegrationsRepository {
 		id: string;
 		/** Required only for the no-auth public route when the user has no session. */
 		oauthState?: string;
-	}): Promise<{ ok: true } | { ok: false; error: string }> {
+	}): Promise<
+		| { ok: true }
+		| {
+				ok: false;
+				error: string;
+				errorCode?: string;
+				conflictIntegrationId?: string;
+				existingProviderIdentifier?: string;
+			}
+	> {
 		try {
 			const { organizationId, integrationId, pageId, id, oauthState } = params;
 			const usePublicOAuthStateRoute = Boolean(oauthState?.trim());
@@ -370,22 +379,40 @@ export class IntegrationsRepository {
 			if (ok && dto?.success === true && dto.data?.success === true) return { ok: true };
 			return { ok: false, error: 'Could not complete channel setup.' };
 		} catch (error) {
-			if (
-				error instanceof ApiError &&
-				typeof error.data === 'object' &&
-				error.data !== null &&
-				('message' in error.data || 'msg' in error.data)
-			) {
-				return {
-					ok: false,
-					error: String(
-						(error.data as { message?: string; msg?: string }).message ??
-							(error.data as { message?: string; msg?: string }).msg
-					)
-				};
-			}
-			return { ok: false, error: 'Could not complete channel setup.' };
+			const parsed = this.parseSaveProviderPageError(error);
+			return { ok: false, ...parsed };
 		}
+	}
+
+	private parseSaveProviderPageError(error: unknown): {
+		error: string;
+		errorCode?: string;
+		conflictIntegrationId?: string;
+		existingProviderIdentifier?: string;
+	} {
+		const fallback = { error: 'Could not complete channel setup.' };
+		if (!(error instanceof ApiError) || typeof error.data !== 'object' || error.data === null) {
+			return fallback;
+		}
+
+		const body = error.data as Record<string, unknown>;
+		const message = String(body.message ?? body.msg ?? fallback.error);
+		const errObj = body.error;
+		if (typeof errObj !== 'object' || errObj === null) {
+			return { error: message };
+		}
+
+		const details = errObj as Record<string, unknown>;
+		return {
+			error: message,
+			...(typeof details.errorCode === 'string' ? { errorCode: details.errorCode } : {}),
+			...(typeof details.existingIntegrationId === 'string'
+				? { conflictIntegrationId: details.existingIntegrationId }
+				: {}),
+			...(typeof details.existingProviderIdentifier === 'string'
+				? { existingProviderIdentifier: details.existingProviderIdentifier }
+				: {})
+		};
 	}
 
 	public async listChannelCustomers(organizationId: string): Promise<{ id: string; name: string }[]> {

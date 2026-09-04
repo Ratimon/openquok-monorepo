@@ -124,8 +124,35 @@ export class PostsRepository {
     }
 
     /**
+     * Distinct `post_group` ids for non-deleted rows on this channel (draft, queued, published, or error).
+     * Used when disconnecting a channel so those groups can be soft-deleted first.
+     */
+    async listPostGroupsForIntegration(organizationId: string, integrationId: string): Promise<string[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("post_group")
+            .eq("organization_id", organizationId)
+            .eq("integration_id", integrationId)
+            .is("deleted_at", null);
+
+        if (error) {
+            throw new DatabaseError(`Failed to list post groups for integration: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+
+        const groups = new Set<string>();
+        for (const row of data ?? []) {
+            const postGroup = (row as { post_group?: string | null }).post_group;
+            if (postGroup) groups.add(postGroup);
+        }
+        return [...groups];
+    }
+
+    /**
      * Whether any non-deleted post row references the integration (draft, queued, published, or error).
-     * Used to block channel delete until posts are removed.
      */
     async hasPostsForIntegration(organizationId: string, integrationId: string): Promise<boolean> {
         const { data, error } = await this.supabase

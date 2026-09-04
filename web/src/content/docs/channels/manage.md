@@ -2,7 +2,7 @@
 title: Manage a channel
 description: Reconnect, disable, or remove a connected social account in OpenQuok.
 order: 2
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-04
 ---
 
 <script>
@@ -33,7 +33,7 @@ Plus, You can do the same from a channel chip on the <a href="/account/calendar"
 | <Badge text="Move / add to group" variant="default" /> | Puts the channel in a <a href="/docs/channels/channel-groups">channel group</a> |
 | <Badge text="Edit time slots" variant="default" /> | The times of day you usually post — see <a href="/docs/channels/time-slots">Posting time slots</a> |
 | <Badge text="Disable channel" variant="default" /> | Stops posting without removing the connection. Use <Badge text="Enable channel" variant="default" /> to resume |
-| <Badge text="Delete channel" variant="default" /> | Removes the connection from this workspace after all posts for the channel are gone |
+| <Badge text="Delete channel" variant="default" /> | Removes the connection from this workspace and deletes posts for this channel |
 
 ## When the login expires
 
@@ -61,12 +61,12 @@ Posts that were already scheduled are <strong>not</strong> cancelled. They stay 
 
 After a plan downgrade, OpenQuok may auto-disable the most recently connected channels until the workspace is within the new active limit. Connected channels stay in the workspace; only their active status changes.
 
-<strong>Delete</strong> removes the connection. OpenQuok asks you to confirm, then <Badge text="Remove" variant="default" />. You can connect that account again later.
+<strong>Delete</strong> removes the connection. OpenQuok asks you to confirm, then <Badge text="Remove" variant="default" />. The confirmation dialog warns that posts for this channel will also be deleted.
 
-Delete is blocked while any post still references the channel (drafts, scheduled, published, or failed). Remove or delete those posts first, or disable the channel instead if you only want to pause posting.
+That includes sibling rows on other channels in the same post group. Already-published copies on the social network stay up. You can connect that account again later.
 
 <Callout type="note" title="Freeing a connected slot">
-<p>To free a <strong>connected</strong> slot on Cloud, delete a channel you no longer need after its posts are gone, or upgrade. Disable does not free a connected slot. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
+<p>To free a <strong>connected</strong> slot on Cloud, delete a channel you no longer need, or upgrade. Disable does not free a connected slot. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
 </Callout>
 
 On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and delete are only about whether you still want that account in the workspace.

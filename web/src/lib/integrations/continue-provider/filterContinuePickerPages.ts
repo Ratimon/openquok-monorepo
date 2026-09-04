@@ -1,4 +1,7 @@
-import type { ContinueConnectPageRow } from '$lib/integrations/continue-provider/types';
+import type {
+	AccountConflictViewModel,
+	ContinueConnectPageRow
+} from '$lib/integrations/continue-provider/types';
 
 import { socialProviderDisplayLabel } from '$data/social-providers';
 
@@ -57,4 +60,42 @@ export function buildAllPagesConnectedMessage(params: {
 	const existingLabel = socialProviderDisplayLabel(existing.identifier);
 	const connectingLabel = socialProviderDisplayLabel(params.connectingProviderIdentifier);
 	return `This Instagram account is already connected as ${existingLabel}. Disconnect that channel, then add ${connectingLabel} again.`;
+}
+
+export function resolveAccountConflictForFilteredPages(params: {
+	originalPages: ContinueConnectPageRow[];
+	connectedIntegrations: ConnectedInternalIdRef[];
+	excludeIntegrationId: string;
+	connectingProviderIdentifier: string;
+	fallbackMessage: string;
+}): AccountConflictViewModel | undefined {
+	if (params.originalPages.length !== 1) {
+		return undefined;
+	}
+
+	const page = params.originalPages[0];
+	const pageId = page?.id;
+	if (!pageId) {
+		return undefined;
+	}
+
+	const existing = params.connectedIntegrations.find(
+		(row) =>
+			row.id !== params.excludeIntegrationId && !row.inBetweenSteps && row.internalId === pageId
+	);
+	if (!existing) {
+		return undefined;
+	}
+
+	return {
+		message: buildAllPagesConnectedMessage({
+			originalPages: params.originalPages,
+			connectedIntegrations: params.connectedIntegrations,
+			connectingProviderIdentifier: params.connectingProviderIdentifier,
+			fallbackMessage: params.fallbackMessage
+		}),
+		existingIntegrationId: existing.id,
+		existingProviderIdentifier: existing.identifier,
+		accountLabel: page.name
+	};
 }

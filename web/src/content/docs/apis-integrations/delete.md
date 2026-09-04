@@ -1,7 +1,7 @@
 ---
 title: 'Delete Channel'
-description: 'Soft-delete a connected social channel when it has no post rows. Returns 409 while drafts, queued, published, or error posts still reference the channel — delete those posts first or disable the channel instead.'
+description: 'Soft-delete a connected social channel and every post group that includes it. Queued posts in those groups stop publishing; already-published copies on the social network are not removed.'
 openapi: 'DELETE /public/integrations/{id}'
 order: 4
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-04
 ---

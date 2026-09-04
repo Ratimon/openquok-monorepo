@@ -26,6 +26,13 @@ function createThenableQueryBuilder(
         return Promise.resolve(resolveValue);
     });
 
+    Object.assign(builder, {
+        then: (
+            onFulfilled?: (value: typeof resolveValue) => unknown,
+            onRejected?: (reason: unknown) => unknown
+        ) => Promise.resolve(resolveValue).then(onFulfilled, onRejected),
+    });
+
     return builder;
 }
 
@@ -80,6 +87,51 @@ describe("PostsRepository", () => {
             const repo = new PostsRepository(supabase);
 
             await expect(repo.hasPostsForIntegration(organizationId, integrationId)).rejects.toBeInstanceOf(
+                DatabaseError
+            );
+        });
+    });
+
+    describe("listPostGroupsForIntegration", () => {
+        const organizationId = "org-1";
+        const integrationId = "int-1";
+
+        it("returns distinct post_group ids for non-deleted rows", async () => {
+            const { supabase, calls } = createMockSupabase({
+                data: [{ post_group: "g1" }, { post_group: "g1" }, { post_group: "g2" }],
+                error: null,
+            });
+            const repo = new PostsRepository(supabase);
+
+            await expect(repo.listPostGroupsForIntegration(organizationId, integrationId)).resolves.toEqual([
+                "g1",
+                "g2",
+            ]);
+
+            expect(calls).toEqual([
+                { method: "from", args: ["posts"] },
+                { method: "select", args: ["post_group"] },
+                { method: "eq", args: ["organization_id", organizationId] },
+                { method: "eq", args: ["integration_id", integrationId] },
+                { method: "is", args: ["deleted_at", null] },
+            ]);
+        });
+
+        it("returns an empty list when no rows exist", async () => {
+            const { supabase } = createMockSupabase({ data: [], error: null });
+            const repo = new PostsRepository(supabase);
+
+            await expect(repo.listPostGroupsForIntegration(organizationId, integrationId)).resolves.toEqual([]);
+        });
+
+        it("throws DatabaseError when the query fails", async () => {
+            const { supabase } = createMockSupabase({
+                data: null,
+                error: { message: "connection refused" },
+            });
+            const repo = new PostsRepository(supabase);
+
+            await expect(repo.listPostGroupsForIntegration(organizationId, integrationId)).rejects.toBeInstanceOf(
                 DatabaseError
             );
         });

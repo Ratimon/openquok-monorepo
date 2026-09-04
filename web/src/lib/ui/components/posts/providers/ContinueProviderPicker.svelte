@@ -1,11 +1,13 @@
 <script lang="ts">
 	import type {
+		AccountConflictViewModel,
 		ContinueConnectPageRow,
 		ContinueProviderStepConfig
 	} from '$lib/integrations/continue-provider';
 
 	import { icons } from '$data/icons';
 
+	import { socialProviderDisplayLabel } from '$data/social-providers';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
@@ -15,14 +17,39 @@
 		config: ContinueProviderStepConfig;
 		pages: ContinueConnectPageRow[];
 		emptyStateMessage?: string;
+		accountConflict?: AccountConflictViewModel;
 		submittingId: string | null;
+		removingConflict?: boolean;
 		onSelect: (rowId: string) => void;
+		onRemoveConflict?: () => void;
 		onCancel: () => void;
 	};
 
-	let { config, pages, emptyStateMessage, submittingId, onSelect, onCancel }: Props = $props();
+	let {
+		config,
+		pages,
+		emptyStateMessage,
+		accountConflict,
+		submittingId,
+		removingConflict = false,
+		onSelect,
+		onRemoveConflict,
+		onCancel
+	}: Props = $props();
 
 	const showGoogleApiPrivacyNotice = $derived(config.addedQueryProvider === 'youtube');
+	const existingProviderLabel = $derived.by(() => {
+		const id = accountConflict?.existingProviderIdentifier;
+		return id ? socialProviderDisplayLabel(id) : 'another channel';
+	});
+	const removeConflictDescription = $derived.by(() => {
+		if (!accountConflict) return '';
+		const account = accountConflict.accountLabel?.trim();
+		if (account) {
+			return `${account} is connected as ${existingProviderLabel}. Remove that channel (and its posts), then continue setup here.`;
+		}
+		return `${accountConflict.message} Remove the existing channel (and its posts), then continue setup here.`;
+	});
 </script>
 
 <div class="mx-auto max-w-lg px-4 py-10">
@@ -67,7 +94,29 @@
 					class="rounded-lg border border-warning/40 bg-warning/10 px-4 py-4 text-sm text-base-content"
 					role="status"
 				>
-					{emptyStateMessage}
+					<p>{emptyStateMessage}</p>
+					{#if accountConflict && onRemoveConflict}
+						<p class="mt-2 text-base-content/80">{removeConflictDescription}</p>
+						<Button
+							type="button"
+							variant="ghost"
+							class="mt-4 border border-error/30 text-error hover:bg-error/10"
+							disabled={removingConflict || submittingId !== null}
+							onclick={onRemoveConflict}
+						>
+							{#if removingConflict}
+								<AbstractIcon
+									name={icons.LoaderCircle.name}
+									class="h-4 w-4 animate-spin"
+									width="16"
+									height="16"
+								/>
+								Removing…
+							{:else}
+								Remove existing channel
+							{/if}
+						</Button>
+					{/if}
 				</li>
 			{/if}
 		{/each}

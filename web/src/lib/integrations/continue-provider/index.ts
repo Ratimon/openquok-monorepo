@@ -28,10 +28,12 @@ export { linkedinPageContinueConfig } from '$lib/integrations/continue-provider/
 export { youtubeContinueConfig } from '$lib/integrations/continue-provider/youtube';
 export {
 	buildAllPagesConnectedMessage,
-	filterContinuePickerPages
+	filterContinuePickerPages,
+	resolveAccountConflictForFilteredPages
 } from '$lib/integrations/continue-provider/filterContinuePickerPages';
 export type { ConnectedInternalIdRef } from '$lib/integrations/continue-provider/filterContinuePickerPages';
 export type {
+	AccountConflictViewModel,
 	ContinueConnectPageRow,
 	ContinueProviderSaveParams,
 	ContinueProviderStepConfig,

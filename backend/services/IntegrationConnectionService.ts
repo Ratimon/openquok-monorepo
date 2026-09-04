@@ -176,12 +176,85 @@ export class IntegrationConnectionService {
         }
     }
 
-    private async assertChannelHasNoPosts(organizationId: string, integrationId: string): Promise<void> {
-        if (await this.postsRepository.hasPostsForIntegration(organizationId, integrationId)) {
-            throw new AppError(
-                "You have to delete all the posts associated with this channel before deleting it",
-                409
-            );
+    /**
+     * Soft-delete every post group that references this channel, then soft-delete the channel.
+     * If a post-group delete fails, the channel row is left intact so the caller can retry.
+     */
+    private async removeChannelAndCascadePosts(
+        organizationId: string,
+        integrationId: string,
+        internalId: string
+    ): Promise<boolean> {
+        const postGroups = await this.postsRepository.listPostGroupsForIntegration(
+            organizationId,
+            integrationId
+        );
+        for (const postGroup of postGroups) {
+            await this.softDeletePostGroupForChannel(organizationId, postGroup);
+        }
+        return this.integrations.softDeleteChannel(organizationId, integrationId, internalId);
+    }
+
+    /**
+     * Soft-delete one post group (tags, rows, caches) the same way {@link PostsService} does for
+     * session and public post deletes. Empty groups are skipped so a race with another delete is not fatal.
+     */
+    private async softDeletePostGroupForChannel(organizationId: string, postGroup: string): Promise<void> {
+        const rows = await this.postsRepository.listPostsByGroup(postGroup);
+        if (!rows.length) {
+            return;
+        }
+        const ids = rows.map((r) => r.id);
+        await this.postsRepository.deleteTagAssignmentsForPostIds(ids);
+        await this.postsRepository.softDeletePostsByGroup(postGroup);
+        await this.invalidatePostGroupCaches({ organizationId, postGroup, postIds: ids });
+    }
+
+    private async invalidatePostGroupCaches(params: {
+        organizationId: string;
+        postGroup: string;
+        postIds: string[];
+    }): Promise<void> {
+        const { organizationId, postGroup, postIds } = params;
+
+        const calendarListPattern = `posts:calendar:list:${organizationId}:*`;
+
+        if (this.cacheInvalidator) {
+            try {
+                await this.cacheInvalidator.invalidateKey(`posts:group:${postGroup}`);
+                for (const id of postIds) {
+                    await this.cacheInvalidator.invalidateKey(`posts:preview:${id}`);
+                }
+                await this.cacheInvalidator.invalidatePattern(calendarListPattern);
+                await this.cacheInvalidator.invalidateKey(`posts:tags:list:${organizationId}`);
+                await this.cacheInvalidator.invalidateEntity("posts", postGroup);
+            } catch (error) {
+                logger.error({
+                    msg: "Error invalidating post mutation caches after channel delete",
+                    organizationId,
+                    postGroup,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+            return;
+        }
+
+        if (this.cache) {
+            try {
+                await this.cache.del(`posts:group:${postGroup}`);
+                for (const id of postIds) {
+                    await this.cache.del(`posts:preview:${id}`);
+                }
+                await this.cache.delPattern(calendarListPattern);
+                await this.cache.del(`posts:tags:list:${organizationId}`);
+            } catch (error) {
+                logger.error({
+                    msg: "Error deleting post mutation cache keys after channel delete",
+                    organizationId,
+                    postGroup,
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
         }
     }
 
@@ -403,8 +476,11 @@ export class IntegrationConnectionService {
         if (!row) {
             throw new AppError("Integration not found", 404);
         }
-        await this.assertChannelHasNoPosts(organizationId, integrationId);
-        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        const deleted = await this.removeChannelAndCascadePosts(
+            organizationId,
+            integrationId,
+            row.internal_id
+        );
         if (!deleted) {
             throw new AppError("Integration not found", 404);
         }
@@ -822,8 +898,11 @@ export class IntegrationConnectionService {
         await this.assertOrganizationMember(authUserId, organizationId);
         const row = await this.integrations.getById(organizationId, integrationId);
         if (!row) throw new AppError("Integration not found", 404);
-        await this.assertChannelHasNoPosts(organizationId, integrationId);
-        const deleted = await this.integrations.softDeleteChannel(organizationId, integrationId, row.internal_id);
+        const deleted = await this.removeChannelAndCascadePosts(
+            organizationId,
+            integrationId,
+            row.internal_id
+        );
         if (!deleted) throw new AppError("Integration not found", 404);
     }
 
@@ -1050,7 +1129,10 @@ export class IntegrationConnectionService {
                 409,
                 {
                     errorCode: "INTEGRATION_ACCOUNT_CONFLICT",
-                    metadata: { existingProviderIdentifier: existingByInternalId.provider_identifier },
+                    metadata: {
+                        existingProviderIdentifier: existingByInternalId.provider_identifier,
+                        existingIntegrationId: existingByInternalId.id,
+                    },
                 }
             );
         }

@@ -29,14 +29,26 @@ export type ContinueProviderStepConfig = {
 	toSaveParams: (row: ContinueConnectPageRow) => ContinueProviderSaveParams;
 };
 
+export type AccountConflictViewModel = {
+	message: string;
+	existingIntegrationId: string;
+	existingProviderIdentifier: string;
+	/** Display name for the conflicting account (e.g. @handle). */
+	accountLabel?: string;
+};
+
 export type TwoStepPickerViewModel = {
 	provider: string;
 	organizationId: string;
 	integrationId: string;
 	oauthState: string;
 	pages: ContinueConnectPageRow[];
+	/** Unfiltered OAuth pages — used to refresh the picker after removing a conflicting channel. */
+	allPages?: ContinueConnectPageRow[];
 	/** When set, the picker shows this instead of selectable rows (e.g. all accounts already connected). */
 	emptyStateMessage?: string;
+	/** When set, offer one-click removal of the conflicting channel before continuing setup. */
+	accountConflict?: AccountConflictViewModel;
 	successReturnPath: string;
 	onboarding: boolean;
 };

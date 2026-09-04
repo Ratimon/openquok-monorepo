@@ -22,7 +22,8 @@
 		continueIntegrationPresenter,
 		filterContinuePickerPages,
 		getContinueProviderConfig,
-		integrationsRepository
+		integrationsRepository,
+		resolveAccountConflictForFilteredPages
 	} from '$lib/integrations';
 	import { workspaceSettingsPresenter } from '$lib/settings';
 	import { getRootPathSignin } from '$lib/user-auth/constants/getRootpathUserAuth';
@@ -54,6 +55,7 @@
 	/** Inline two-step provider selection — same route as OAuth callback. */
 	let twoStepPicker = $state<TwoStepPickerViewModel | null>(null);
 	let submittingPageId = $state<string | null>(null);
+	let removingConflictChannel = $state(false);
 	/**
 	 * Guard against duplicate effect runs causing multiple OAuth callback submissions.
 	 * Backend treats OAuth state as single-use (it deletes the cached state on first success path).
@@ -234,11 +236,19 @@
 						});
 
 					let emptyStateMessage: string | undefined;
+					let accountConflict: TwoStepPickerViewModel['accountConflict'];
 					if (availablePages.length === 0) {
 						if (allFilteredAsAlreadyConnected && stepConfig.allPagesConnectedMessage) {
 							emptyStateMessage = buildAllPagesConnectedMessage({
 								originalPages: pages,
 								connectedIntegrations,
+								connectingProviderIdentifier: p,
+								fallbackMessage: stepConfig.allPagesConnectedMessage
+							});
+							accountConflict = resolveAccountConflictForFilteredPages({
+								originalPages: pages,
+								connectedIntegrations,
+								excludeIntegrationId: data.id,
 								connectingProviderIdentifier: p,
 								fallbackMessage: stepConfig.allPagesConnectedMessage
 							});
@@ -254,8 +264,10 @@
 						organizationId: data.organizationId,
 						integrationId: data.id,
 						oauthState: authState,
+						allPages: pages,
 						pages: availablePages,
 						...(emptyStateMessage && { emptyStateMessage }),
+						...(accountConflict && { accountConflict }),
 						successReturnPath: returnTo,
 						onboarding: data.onboarding
 					};
@@ -313,6 +325,23 @@
 				...(authenticationRepository.isAuthenticated() ? {} : { oauthState: vm.oauthState })
 			});
 			if (!resultVm.ok) {
+				if (
+					resultVm.errorCode === 'INTEGRATION_ACCOUNT_CONFLICT' &&
+					resultVm.conflictIntegrationId
+				) {
+					twoStepPicker = {
+						...vm,
+						pages: [],
+						emptyStateMessage: resultVm.error,
+						accountConflict: {
+							message: resultVm.error,
+							existingIntegrationId: resultVm.conflictIntegrationId,
+							existingProviderIdentifier: resultVm.existingProviderIdentifier ?? '',
+							accountLabel: row.name
+						}
+					};
+					return;
+				}
 				toast.error(resultVm.error);
 				return;
 			}
@@ -331,6 +360,81 @@
 			toast.error('Could not complete setup.');
 		} finally {
 			submittingPageId = null;
+		}
+	}
+
+	async function removeConflictingChannelAndContinue() {
+		const vm = twoStepPicker;
+		const conflict = vm?.accountConflict;
+		if (!vm || !conflict) return;
+
+		removingConflictChannel = true;
+		try {
+			const del = await integrationsRepository.deleteChannel({
+				organizationId: vm.organizationId,
+				integrationId: conflict.existingIntegrationId
+			});
+			if (!del.ok) {
+				toast.error(del.error);
+				return;
+			}
+
+			toast.success('Channel removed.');
+
+			const sourcePages = vm.allPages ?? vm.pages;
+			if (sourcePages.length > 0) {
+				const connectedIntegrations = await integrationsRepository.listConnectedIntegrations(
+					vm.organizationId
+				);
+				const { pages: availablePages, allFilteredAsAlreadyConnected } = filterContinuePickerPages({
+					pages: sourcePages,
+					connectedIntegrations,
+					excludeIntegrationId: vm.integrationId
+				});
+
+				if (availablePages.length > 0) {
+					twoStepPicker = {
+						...vm,
+						allPages: sourcePages,
+						pages: availablePages,
+						emptyStateMessage: undefined,
+						accountConflict: undefined
+					};
+					return;
+				}
+
+				const stepConfig = getContinueProviderConfig(vm.provider);
+				if (allFilteredAsAlreadyConnected && stepConfig?.allPagesConnectedMessage) {
+					const emptyStateMessage = buildAllPagesConnectedMessage({
+						originalPages: sourcePages,
+						connectedIntegrations,
+						connectingProviderIdentifier: vm.provider,
+						fallbackMessage: stepConfig.allPagesConnectedMessage
+					});
+					twoStepPicker = {
+						...vm,
+						allPages: sourcePages,
+						pages: [],
+						emptyStateMessage,
+						accountConflict: resolveAccountConflictForFilteredPages({
+							originalPages: sourcePages,
+							connectedIntegrations,
+							excludeIntegrationId: vm.integrationId,
+							connectingProviderIdentifier: vm.provider,
+							fallbackMessage: stepConfig.allPagesConnectedMessage
+						})
+					};
+					return;
+				}
+			}
+
+			twoStepPicker = null;
+			lastHandledOAuthCallbackKey = null;
+			startedOAuthRedirectKey = null;
+			busy = true;
+			await startOAuthRedirect(vm.provider, vm.organizationId, vm.successReturnPath, undefined);
+		} finally {
+			removingConflictChannel = false;
 		}
 	}
 
@@ -562,8 +666,11 @@
 			config={stepConfig}
 			pages={twoStepPicker.pages}
 			emptyStateMessage={twoStepPicker.emptyStateMessage}
+			accountConflict={twoStepPicker.accountConflict}
 			submittingId={submittingPageId}
+			removingConflict={removingConflictChannel}
 			onSelect={selectContinuePage}
+			onRemoveConflict={() => void removeConflictingChannelAndContinue()}
 			onCancel={cancelContinuePicker}
 		/>
 	{/if}
