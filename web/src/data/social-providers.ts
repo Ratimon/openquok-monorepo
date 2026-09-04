@@ -5,6 +5,7 @@ import { icons } from '$data/icons';
 export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'facebook',
 	'instagram',
+	'instagram-business',
 	'instagram-standalone',
 	'linkedin',
 	'linkedin-page',

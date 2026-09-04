@@ -15,6 +15,8 @@ globs:
   - web/src/lib/integrations/continue-provider/**
   - web/src/lib/integrations/ContinueIntegration.presenter.svelte.ts
   - web/src/data/social-providers.ts
+  - web/src/lib/area-protected/ProtectedAnalyticsPage.presenter.svelte.ts
+  - web/src/routes/(protected)/account/analytics/**
   - web/src/content/docs/social-integration/**
   - web/src/content/docs/cli-examples/**
   - web/src/content/docs/contribution-opportunities/add-provider.md
@@ -100,6 +102,7 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **Follow-up replies (`comment`)** — when the platform API can publish a **reply or comment on the user’s own post** after the main publish (thread reply, quote-less reply, nested comment, etc.), implement `comment()` on the provider class (not only `post`). Read text from `postDetails.message` and **media from `postDetails.settings`** when the network allows attachments on replies. Unit-test comment payload shaping (text-only vs one image vs carousel) beside publish helpers. If the network **cannot** schedule same-account follow-ups, omit `comment()` and set `postComment: 'NONE'` in launch config — do not claim follow-ups on the landing page or in agent recipes.
 7. **Tests** — unit tests for OAuth edge cases, publish payload shaping, **comment / follow-up publish**, and connection save when behavior differs.
+8. **Platform analytics** (when `SocialProvider.analytics()` and/or `postAnalytics()` ship) — append the **exact** `provider.identifier` to `SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS` in `web/src/data/social-providers.ts` in the **same PR**. `/account/analytics` (`ProtectedAnalyticsPagePresenter`) filters `connectedChannelsVm` through that allow-list before calling `GET /api/v1/analytics/:integrationId`; a missing slug hides the channel from **Targeted channels** even when connect and publish work. Use the real catalog slug only — do **not** assume a marketing alias covers it (e.g. `instagram` does **not** include `instagram-business` or `instagram-standalone`). When multiple identifiers share one network, list **each** slug explicitly. Skip the allow-list entry only when the provider deliberately omits `analytics()` (no insights on dashboard or post statistics modal).
 
 ## Extensions Hub listing tags (required for social channels) — no DB migrations
 
@@ -132,7 +135,16 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live.
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
 4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`. When settings affect what users see before publish (title, tags, cover, post type, etc.), also ship **Post Preview provider settings** (below).
-5. **Labels** — `web/src/data/social-providers.ts` when the slug is new.
+5. **`web/src/data/social-providers.ts`** (required when the slug is new **or** when shipping platform analytics) — single catalog for display labels, icons, and the analytics allow-list:
+
+   | Export / table | When to update |
+   | --- | --- |
+   | `socialProviderDisplayNameByIdentifier` | Human label (e.g. `Instagram (Business)`) for filters, chips, docs |
+   | `SOCIAL_PROVIDER_ICON_SPECS` / `socialProviderIconByIdentifier` | Composer, calendar, and channel chips icon |
+   | **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** | **Required** when backend implements `analytics()` — must include **exact** `provider.identifier` (see Backend §8). Consumed by `ProtectedAnalyticsPagePresenter.supportedIntegrations` and `buildAgentChannelLandingVm` (`analyticsBentoId`). |
+
+   **Analytics pitfall:** `ChannelKindFilter` lists every connected channel, but only identifiers in `SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS` appear under **Targeted channels** on `/account/analytics` and receive `GET /api/v1/analytics/:integrationId`. If users can connect and publish but analytics shows “No analytics available” with only sibling channels in the chip row, check for a missing allow-list entry first.
+
 6. **Credentials connect** (`customFields` on the catalog) — in-app form, not a platform redirect:
    - **Add Channel** — `AddProvider.svelte` shows the provider in the normal grid and opens the credentials dialog (password input + regex from catalog). Submit: `getAuthorizeUrl` (seeds cache; returned `url` is the `state`) then `connectSocial` with that `state` and `code` = `btoa(JSON.stringify({ apiKey }))`.
    - **Invite links** — keep filtering `customFields` providers out of invite-link copy.
@@ -556,6 +568,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Credentials only:** no new env vars; docker-compose callout that there is no operator app; dashboard Add Channel / refresh connect works; `GET /public/social/{identifier}` returns 400.
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
+- **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
 - **`publicChannelConfig`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
 - **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
