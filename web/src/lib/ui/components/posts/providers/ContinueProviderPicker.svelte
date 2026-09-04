@@ -14,12 +14,13 @@
 	type Props = {
 		config: ContinueProviderStepConfig;
 		pages: ContinueConnectPageRow[];
+		emptyStateMessage?: string;
 		submittingId: string | null;
 		onSelect: (rowId: string) => void;
 		onCancel: () => void;
 	};
 
-	let { config, pages, submittingId, onSelect, onCancel }: Props = $props();
+	let { config, pages, emptyStateMessage, submittingId, onSelect, onCancel }: Props = $props();
 
 	const showGoogleApiPrivacyNotice = $derived(config.addedQueryProvider === 'youtube');
 </script>
@@ -60,6 +61,15 @@
 					{/if}
 				</button>
 			</li>
+		{:else}
+			{#if emptyStateMessage}
+				<li
+					class="rounded-lg border border-warning/40 bg-warning/10 px-4 py-4 text-sm text-base-content"
+					role="status"
+				>
+					{emptyStateMessage}
+				</li>
+			{/if}
 		{/each}
 	</ul>
 	{#if showGoogleApiPrivacyNotice}

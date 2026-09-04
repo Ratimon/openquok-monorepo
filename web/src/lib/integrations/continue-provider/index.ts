@@ -26,6 +26,11 @@ export { facebookContinueConfig } from '$lib/integrations/continue-provider/face
 export { instagramBusinessContinueConfig } from '$lib/integrations/continue-provider/instagram-business';
 export { linkedinPageContinueConfig } from '$lib/integrations/continue-provider/linkedin-page';
 export { youtubeContinueConfig } from '$lib/integrations/continue-provider/youtube';
+export {
+	buildAllPagesConnectedMessage,
+	filterContinuePickerPages
+} from '$lib/integrations/continue-provider/filterContinuePickerPages';
+export type { ConnectedInternalIdRef } from '$lib/integrations/continue-provider/filterContinuePickerPages';
 export type {
 	ContinueConnectPageRow,
 	ContinueProviderSaveParams,

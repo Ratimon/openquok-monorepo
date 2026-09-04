@@ -8937,6 +8937,18 @@ var init_IntegrationRepository = __esm({
         const row = rows[0];
         return row ? decryptRowSecrets(row) : null;
       }
+      /** Active (non-deleted) integration for an org by platform account id (`internal_id`). */
+      async findActiveByInternalId(organizationId, internalId) {
+        const { data, error } = await this.supabase.from(TABLE2).select("*").eq("organization_id", organizationId).eq("internal_id", internalId).is("deleted_at", null).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to find integration by internal id", {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE2 }
+          });
+        }
+        return data ? decryptRowSecrets(data) : null;
+      }
       /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
       async getByIdIncludeDeleted(organizationId, id) {
         const { data, error } = await this.supabase.from(TABLE2).select("*").eq("organization_id", organizationId).eq("id", id).maybeSingle();
@@ -21129,6 +21141,9 @@ var init_IntegrationService = __esm({
       getById(organizationId, id) {
         return this.integrationRepository.getById(organizationId, id);
       }
+      findActiveByInternalId(organizationId, internalId) {
+        return this.integrationRepository.findActiveByInternalId(organizationId, internalId);
+      }
       getByIdIncludeDeleted(organizationId, id) {
         return this.integrationRepository.getByIdIncludeDeleted(organizationId, id);
       }
@@ -21371,6 +21386,13 @@ function rootInternalId(internalId) {
   const parts = internalId.split("_");
   return parts.length > 1 ? parts.pop() ?? null : internalId;
 }
+function isPostgresUniqueViolation(err) {
+  const cause = err instanceof DatabaseError ? err.metadata.cause : err;
+  return cause?.code === "23505";
+}
+function integrationProviderLabel(manager, providerIdentifier) {
+  return manager.getSocialIntegration(providerIdentifier)?.name ?? providerIdentifier;
+}
 function postingTimesForTimezone(timezone) {
   if (timezone == null || Number.isNaN(timezone)) {
     return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
@@ -21416,6 +21438,7 @@ var init_IntegrationConnectionService = __esm({
     init_UserError();
     init_OrganizationError();
     init_AppError();
+    init_InfraError();
     init_ProviderIntegrationErrors();
     init_mirrorIntegrationProfilePicture();
     init_allowedExternalImageHosts();
@@ -22113,28 +22136,56 @@ var init_IntegrationConnectionService = __esm({
         const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
         const rootInternalId2 = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
         const expiresInSeconds = preservesUserTokenForRefresh ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
+        const targetInternalId = String(information.id);
+        const existingByInternalId = await this.integrations.findActiveByInternalId(
+          organizationId,
+          targetInternalId
+        );
+        if (existingByInternalId && existingByInternalId.id !== integrationId) {
+          const existingLabel = integrationProviderLabel(this.manager, existingByInternalId.provider_identifier);
+          const connectingLabel = integrationProviderLabel(this.manager, row.provider_identifier);
+          throw new AppError(
+            `This Instagram account is already connected as ${existingLabel}. Disconnect that channel, then add ${connectingLabel} again.`,
+            409,
+            {
+              errorCode: "INTEGRATION_ACCOUNT_CONFLICT",
+              metadata: { existingProviderIdentifier: existingByInternalId.provider_identifier }
+            }
+          );
+        }
         const storedPicture = await resolveIntegrationPictureForStorage({
           storageRepository: this.storageRepository,
           organizationId,
-          internalId: String(information.id),
+          internalId: targetInternalId,
           picture: information.picture || null,
           downloadBytes: this.downloadProfilePictureBytes(
             row.provider_identifier,
-            String(information.id),
+            targetInternalId,
             information.access_token || userAccessToken
           )
         });
-        await this.integrations.updateIntegrationById(organizationId, integrationId, {
-          internalId: String(information.id),
-          name: (information.name ?? "").trim() || information.username || row.name,
-          picture: storedPicture,
-          token: information.access_token,
-          refreshToken,
-          profile: information.username || null,
-          inBetweenSteps: false,
-          rootInternalId: rootInternalId2 ?? null,
-          expiresInSeconds
-        });
+        try {
+          await this.integrations.updateIntegrationById(organizationId, integrationId, {
+            internalId: targetInternalId,
+            name: (information.name ?? "").trim() || information.username || row.name,
+            picture: storedPicture,
+            token: information.access_token,
+            refreshToken,
+            profile: information.username || null,
+            inBetweenSteps: false,
+            rootInternalId: rootInternalId2 ?? null,
+            expiresInSeconds
+          });
+        } catch (e) {
+          if (e instanceof DatabaseError && isPostgresUniqueViolation(e)) {
+            throw new AppError(
+              "This Instagram account is already connected in this workspace. Disconnect the existing channel, then try again.",
+              409,
+              { errorCode: "INTEGRATION_ACCOUNT_CONFLICT" }
+            );
+          }
+          throw e;
+        }
         return { success: true };
       }
     };
@@ -34067,7 +34118,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-03T11:47:02.748Z",
+  generated: "2026-09-04T07:40:12.081Z",
   routes: [
     {
       path: "/docs",

@@ -740,6 +740,13 @@
 			external: true
 		},
 		{
+			label: 'Grok Bot agent guide',
+			description: 'Install openquok-core on Grok Bot.',
+			iconName: icons.BookOpen.name,
+			href: grokBotGuideHref,
+			external: true
+		},
+		{
 			label: 'OpenClaw agent guide',
 			description: 'Install openquok-core on OpenClaw.',
 			iconName: icons.BookOpen.name,
@@ -754,19 +761,12 @@
 			external: true
 		},
 		// {
-		// 	label: 'Grok Bot agent guide',
-		// 	description: 'Install openquok-core on Grok Bot.',
+		// 	label: 'ThinkRail agent guide',
+		// 	description: 'Install openquok-core in ThinkRail worktrees.',
 		// 	iconName: icons.BookOpen.name,
-		// 	href: grokBotGuideHref,
+		// 	href: thinkrailGuideHref,
 		// 	external: true
 		// },
-		{
-			label: 'ThinkRail agent guide',
-			description: 'Install openquok-core in ThinkRail worktrees.',
-			iconName: icons.BookOpen.name,
-			href: thinkrailGuideHref,
-			external: true
-		},
 		{
 			label: 'MCP setup guides',
 			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',

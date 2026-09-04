@@ -11,10 +11,12 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 ## Overview
 
-Facebook Page publishing uses Meta’s **Graph API** with **Facebook Login for Business**. You need a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app, OAuth redirect URIs, and backend env vars <Badge text="FACEBOOK_APP_ID" variant="envBackend" /> and <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" />.
+Facebook Page publishing uses Meta’s **Graph API** with **Facebook Login for Business**.
 
-<Callout type="note" title="One Meta app">
-Instagram (Business) and Facebook can use the same developer app — you do not need separate apps for both products.
+You need a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app, OAuth redirect URIs, and backend environment variables <Badge text="FACEBOOK_APP_ID" variant="envBackend" /> and <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" />.
+
+<Callout type="tip">
+Instagram (Business) and Facebook can use the same developer app.
 </Callout>
 
 
@@ -32,7 +34,7 @@ Instagram (Business) and Facebook can use the same developer app — you do not 
 | Follow-up comments | Text replies after the root post; one image attachment per comment (feed posts only — not Stories) |
 | Page analytics | Account-level and per-post insights when <Badge text="read_insights" variant="default" /> is granted |
 
-Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> (web composer) to publish to the Story surface. Link URLs are ignored for Stories.
+Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> to publish to the Story surface. Link URLs are ignored for Stories.
 
 ### Not supported
 

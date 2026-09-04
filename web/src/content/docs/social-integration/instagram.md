@@ -1,8 +1,8 @@
 ---
 title: Instagram
-description: How to configure Instagram for OpenQuok
+description: How to configure Instagram (Stand-alone and Business) for OpenQuok
 order: 3
-lastUpdated: 2026-06-06
+lastUpdated: 2026-09-04
 ---
 
 <script>
@@ -11,12 +11,84 @@ import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs
 
 ## Overview
 
-You can connect a **professional Instagram account** in two ways: **Instagram (Business)** uses a Facebook Page linked to that Instagram account; **Instagram (Standalone)** uses Instagram Login directly (no Facebook Page).
+You can connect a **professional Instagram account** in two ways:
 
-Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app. The sections below are **OpenQuok-specific** URLs and envs.
+1. **Instagram (Business)** — Facebook Login for Business; requires a Facebook Page linked to that Instagram account.
+2. **Instagram (Standalone)** — Instagram Login directly; no Facebook Page required.
 
-<Callout type="note" title="One Meta app">
-Instagram and Facebook can use the same developer app — there is no need to create two separate apps for both products.
+Both require a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app. The sections below are **OpenQuok-specific** URLs and environment variables.
+
+## One Instagram account, one connection path
+
+OpenQuok allows <strong>one</strong> connected channel per Instagram account per workspace. Pick <strong>Instagram (Business)</strong> <em>or</em> <strong>Instagram (Standalone)</strong> for each @handle — not both.
+
+<Callout type="warning">
+<p>If <strong>Instagram (Standalone)</strong> is already connected, OpenQuok rejects adding <strong>Instagram (Business)</strong> for the same @handle. Disconnect the existing channel on <a href="/account">Home</a> first, then connect.</p>
+</Callout>
+
+## Prerequisites (Instagram + Meta)
+
+Before you connect **Instagram (Business)** in OpenQuok:
+
+- Your Instagram account is **Professional** (Business or Creator), not personal.
+- A **Facebook Page** you publish from.
+- Both the Page and the Instagram account are in your Meta business portfolio.
+- The Instagram account is **linked to that Page** (not only added to the portfolio).
+
+<Callout type="note">
+Instagram (Standalone) still requires a professional account, but not a linked Facebook Page. Skip this section if you use Standalone only.
+</Callout>
+
+<Steps
+	howToName="Link Instagram to a Facebook Page"
+	howToDescription="Link a professional Instagram account to a Facebook Page in Meta before connecting Instagram (Business) in OpenQuok."
+>
+
+### Add the accounts to your business portfolio
+
+In <DocsExternalLink href="https://business.facebook.com/">Meta Business Suite</DocsExternalLink> → **Settings** → **Accounts** → **Instagram accounts** → **+ Add**:
+
+![Add an Instagram account in Meta Business Suite](/docs/_assets/social-integration/meta/add-ig-to-business-suite.webp)
+
+When this step succeeds, Meta confirms the account was added to the portfolio (for example, **@openquok was added to the business portfolio**):
+
+![Instagram account added to the business portfolio](/docs/_assets/social-integration/meta/added-ig-to-business-suite.webp)
+
+Do not forget to also add a Facebook page to <DocsExternalLink href="https://business.facebook.com/">Meta Business Suite</DocsExternalLink> → **Settings** → **Accounts** → **Pagess** -> **+ Add**:
+
+### Add a Facebook Page and Link it to the Instagram account
+
+In <DocsExternalLink href="https://business.facebook.com/">Meta Business Suite</DocsExternalLink> → **Settings** → **Accounts** → **Pagess** → **+ Add**:
+
+![Add a Facebook Page in Meta Business Suite](/docs/_assets/social-integration/meta/add-page-to-business-suite.webp)
+
+Then, connect the same professional instagram account to the **Page** you publish from: → **Settings** → **Accounts** → **Pagess** → Click your page -> **Connect Asset**:
+
+![Link a Facebook Page and Instagram Account](/docs/_assets/social-integration/meta/link-ig-page.webp)
+
+After this step, the Page should show the connected Instagram handle in **Connected Assets**.
+
+![a Facebook Page and Instagram Account linked](/docs/_assets/social-integration/meta/linked-ig-page.webp)
+
+
+Alternatiely, you may either: 
+
+- **Facebook Page** → **Settings** → **Linked accounts** → **Instagram** → connect the account. or
+
+- **Instagram app** → **Settings and activity** → **Account type and tools** → **Connect to Facebook Page** → choose your Page, or
+
+
+
+### Re-authorize Page during connect in Openquok Dashboard
+
+When OpenQuok redirects you to Meta, click **Edit settings** (not **Continue with previous settings**) so Meta includes the Page and its linked Instagram account.
+
+Select your **Facebook Page** and finish consent. OpenQuok then lists business instagram accounts.
+
+</Steps>
+
+<Callout type="note">
+Instagram and Facebook can use the same developer app — there is no need to create two separate apps.
 </Callout>
 
 ##  Features
@@ -69,7 +141,7 @@ Copy from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/b
 The frontend base URL used in OAuth redirect URIs comes from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> (default <Badge text="http://localhost:5173" variant="new" /> for local Vite). For non-HTTPS local URLs, the backend uses the same HTTPS relay pattern as other Meta integrations (see the Threads doc).
 
 
-<h2 id="oauth-redirect-uris-register-in-meta">OAuth redirect URIs (register in Meta)</h2>
+<h2 id="oauth-redirect-uris-register-in-meta">OAuth redirect URIs</h2>
 
 Meta redirects the browser to your **web app** after consent. Register these **exact** paths on top of your frontend origin (from <Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" />), for example:
 

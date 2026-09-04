@@ -166,6 +166,26 @@ export class IntegrationRepository {
         return row ? decryptRowSecrets(row) : null;
     }
 
+    /** Active (non-deleted) integration for an org by platform account id (`internal_id`). */
+    async findActiveByInternalId(organizationId: string, internalId: string): Promise<IntegrationLike | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE)
+            .select("*")
+            .eq("organization_id", organizationId)
+            .eq("internal_id", internalId)
+            .is("deleted_at", null)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to find integration by internal id", {
+                cause: error as unknown as Error,
+                operation: "select",
+                resource: { type: "table", name: TABLE },
+            });
+        }
+        return data ? decryptRowSecrets(data as IntegrationLike) : null;
+    }
+
     /** Includes soft-deleted rows — for displaying channel labels on historical posts. */
     async getByIdIncludeDeleted(organizationId: string, id: string): Promise<IntegrationLike | null> {
         const { data, error } = await this.supabase

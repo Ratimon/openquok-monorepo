@@ -8,6 +8,8 @@ export const instagramBusinessContinueConfig: ContinueProviderStepConfig = {
 		'Select the professional Instagram account linked to your Facebook Page. You can change this later by removing and re-adding the channel.',
 	emptyPagesMessage:
 		'No Instagram professional accounts were found. Link Instagram to a Facebook Page in Meta, then try again.',
+	allPagesConnectedMessage:
+		'Every Instagram account on your Pages is already connected in this workspace. Disconnect the existing Instagram channel, then add again.',
 	successToast: 'Instagram channel connected.',
 	addedQueryProvider: 'instagram-business',
 	fallbackIcon: icons.Instagram.name,

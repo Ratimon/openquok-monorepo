@@ -19,6 +19,8 @@ export type ContinueProviderStepConfig = {
 	title: string;
 	description: string;
 	emptyPagesMessage: string;
+	/** Shown when OAuth returned accounts but each one is already connected in the workspace. */
+	allPagesConnectedMessage?: string;
 	successToast: string;
 	/** Value for `?added=` on the account success redirect. */
 	addedQueryProvider: string;
@@ -33,6 +35,8 @@ export type TwoStepPickerViewModel = {
 	integrationId: string;
 	oauthState: string;
 	pages: ContinueConnectPageRow[];
+	/** When set, the picker shows this instead of selectable rows (e.g. all accounts already connected). */
+	emptyStateMessage?: string;
 	successReturnPath: string;
 	onboarding: boolean;
 };

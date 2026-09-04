@@ -7,6 +7,11 @@
 
 node_modules
 
+# Local caches and prior build output (not needed for upload; can be 1GB+)
+.pnpm-store
+**/.svelte-kit
+**/.vercel
+
 .git
 
 **/coverage

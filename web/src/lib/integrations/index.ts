@@ -45,9 +45,12 @@ export {
 	type ContinueSocialIntegrationViewModel
 } from '$lib/integrations/ContinueIntegration.presenter.svelte';
 export {
+	buildAllPagesConnectedMessage,
 	continueProviderList,
+	filterContinuePickerPages,
 	getContinueProviderConfig,
 	hasContinueProviderStep,
+	type ConnectedInternalIdRef,
 	type ContinueConnectPageRow,
 	type ContinueProviderStepConfig,
 	type TwoStepPickerViewModel

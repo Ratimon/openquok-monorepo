@@ -18,7 +18,9 @@
 		timezoneOffsetMinutes
 	} from '$lib/integrations/utils/credentialsConnect';
 	import {
+		buildAllPagesConnectedMessage,
 		continueIntegrationPresenter,
+		filterContinuePickerPages,
 		getContinueProviderConfig,
 		integrationsRepository
 	} from '$lib/integrations';
@@ -220,12 +222,40 @@
 						await goto(accountUrl, { replaceState: true });
 						return;
 					}
+
+					const connectedIntegrations = await integrationsRepository.listConnectedIntegrations(
+						data.organizationId
+					);
+					const { pages: availablePages, allFilteredAsAlreadyConnected } =
+						filterContinuePickerPages({
+							pages,
+							connectedIntegrations,
+							excludeIntegrationId: data.id
+						});
+
+					let emptyStateMessage: string | undefined;
+					if (availablePages.length === 0) {
+						if (allFilteredAsAlreadyConnected && stepConfig.allPagesConnectedMessage) {
+							emptyStateMessage = buildAllPagesConnectedMessage({
+								originalPages: pages,
+								connectedIntegrations,
+								connectingProviderIdentifier: p,
+								fallbackMessage: stepConfig.allPagesConnectedMessage
+							});
+						} else {
+							toast.error(stepConfig.emptyPagesMessage);
+							await goto(accountUrl, { replaceState: true });
+							return;
+						}
+					}
+
 					twoStepPicker = {
 						provider: p,
 						organizationId: data.organizationId,
 						integrationId: data.id,
 						oauthState: authState,
-						pages,
+						pages: availablePages,
+						...(emptyStateMessage && { emptyStateMessage }),
 						successReturnPath: returnTo,
 						onboarding: data.onboarding
 					};
@@ -531,6 +561,7 @@
 		<ContinueProviderPicker
 			config={stepConfig}
 			pages={twoStepPicker.pages}
+			emptyStateMessage={twoStepPicker.emptyStateMessage}
 			submittingId={submittingPageId}
 			onSelect={selectContinuePage}
 			onCancel={cancelContinuePicker}

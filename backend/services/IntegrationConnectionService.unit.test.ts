@@ -77,6 +77,7 @@ function createMockIntegrations(): jest.Mocked<Pick<
     IntegrationService,
     | "listByOrganization"
     | "getById"
+    | "findActiveByInternalId"
     | "upsertIntegration"
     | "updateIntegrationById"
     | "setPostingTimes"
@@ -91,6 +92,7 @@ function createMockIntegrations(): jest.Mocked<Pick<
     return {
         listByOrganization: jest.fn(),
         getById: jest.fn(),
+        findActiveByInternalId: jest.fn().mockResolvedValue(null),
         upsertIntegration: jest.fn(),
         updateIntegrationById: jest.fn(),
         setPostingTimes: jest.fn(),
@@ -1019,6 +1021,69 @@ describe("IntegrationConnectionService", () => {
                     id: "ig1",
                 })
             ).rejects.toMatchObject({ statusCode: 400, message: "Graph exploded" });
+        });
+
+        it("throws 409 when another channel already owns the selected Instagram internal_id", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            integrations.getById.mockResolvedValue(
+                sampleRow({
+                    id: integrationId,
+                    in_between_steps: true,
+                    provider_identifier: "instagram-business",
+                    token: "fb-user-access",
+                    internal_id: "fb-user-id",
+                })
+            );
+            const existingStandaloneId = faker.string.uuid();
+            integrations.findActiveByInternalId.mockResolvedValue(
+                sampleRow({
+                    id: existingStandaloneId,
+                    provider_identifier: "instagram-standalone",
+                    internal_id: "ig-99",
+                    in_between_steps: false,
+                })
+            );
+            manager.getSocialIntegration.mockImplementation((id: string) => {
+                if (id === "instagram-business") {
+                    return createMockProvider({
+                        identifier: "instagram-business",
+                        name: "Instagram (Business)",
+                        fetchPageInformation: jest.fn().mockResolvedValue({
+                            id: "ig-99",
+                            name: "OpenQuok",
+                            access_token: "page-access",
+                            picture: "https://pic",
+                            username: "openquok",
+                        }),
+                    });
+                }
+                if (id === "instagram-standalone") {
+                    return createMockProvider({
+                        identifier: "instagram-standalone",
+                        name: "Instagram (Standalone)",
+                    });
+                }
+                return undefined;
+            });
+
+            await expect(
+                service().saveProviderPage(authUserId, orgId, integrationId, {
+                    organizationId: orgId,
+                    pageId: "page-1",
+                    id: "ig-99",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 409,
+                message:
+                    "This Instagram account is already connected as Instagram (Standalone). Disconnect that channel, then add Instagram (Business) again.",
+                metadata: {
+                    errorCode: "INTEGRATION_ACCOUNT_CONFLICT",
+                    existingProviderIdentifier: "instagram-standalone",
+                },
+            });
+
+            expect(integrations.updateIntegrationById).not.toHaveBeenCalled();
         });
 
         it("updates Instagram (Business) with page token and preserves FB user token in refresh_token", async () => {

@@ -24,6 +24,7 @@ import { IntegrationManager } from "../integrations/integrationManager";
 import { UserNotFoundError } from "../errors/UserError";
 import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
+import { DatabaseError } from "../errors/InfraError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
 import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
 import { isExternalCdnProfilePictureUrl } from "../utils/images/allowedExternalImageHosts";
@@ -49,6 +50,21 @@ const OAUTH_STATE_TTL_SEC = 3600;
 function rootInternalId(internalId: string): string | null {
     const parts = internalId.split("_");
     return parts.length > 1 ? (parts.pop() ?? null) : internalId;
+}
+
+function isPostgresUniqueViolation(err: unknown): boolean {
+    const cause =
+        err instanceof DatabaseError
+            ? (err.metadata.cause as { code?: string } | undefined)
+            : (err as { code?: string } | undefined);
+    return cause?.code === "23505";
+}
+
+function integrationProviderLabel(
+    manager: IntegrationManager,
+    providerIdentifier: string
+): string {
+    return manager.getSocialIntegration(providerIdentifier)?.name ?? providerIdentifier;
 }
 
 /**
@@ -1021,29 +1037,58 @@ export class IntegrationConnectionService {
             ? dayjs().add(59, "days").unix() - dayjs().unix()
             : undefined;
 
+        const targetInternalId = String(information.id);
+        const existingByInternalId = await this.integrations.findActiveByInternalId(
+            organizationId,
+            targetInternalId
+        );
+        if (existingByInternalId && existingByInternalId.id !== integrationId) {
+            const existingLabel = integrationProviderLabel(this.manager, existingByInternalId.provider_identifier);
+            const connectingLabel = integrationProviderLabel(this.manager, row.provider_identifier);
+            throw new AppError(
+                `This Instagram account is already connected as ${existingLabel}. Disconnect that channel, then add ${connectingLabel} again.`,
+                409,
+                {
+                    errorCode: "INTEGRATION_ACCOUNT_CONFLICT",
+                    metadata: { existingProviderIdentifier: existingByInternalId.provider_identifier },
+                }
+            );
+        }
+
         const storedPicture = await resolveIntegrationPictureForStorage({
             storageRepository: this.storageRepository,
             organizationId,
-            internalId: String(information.id),
+            internalId: targetInternalId,
             picture: information.picture || null,
             downloadBytes: this.downloadProfilePictureBytes(
                 row.provider_identifier,
-                String(information.id),
+                targetInternalId,
                 information.access_token || userAccessToken
             ),
         });
 
-        await this.integrations.updateIntegrationById(organizationId, integrationId, {
-            internalId: String(information.id),
-            name: (information.name ?? "").trim() || information.username || row.name,
-            picture: storedPicture,
-            token: information.access_token,
-            refreshToken,
-            profile: information.username || null,
-            inBetweenSteps: false,
-            rootInternalId: rootInternalId ?? null,
-            expiresInSeconds,
-        });
+        try {
+            await this.integrations.updateIntegrationById(organizationId, integrationId, {
+                internalId: targetInternalId,
+                name: (information.name ?? "").trim() || information.username || row.name,
+                picture: storedPicture,
+                token: information.access_token,
+                refreshToken,
+                profile: information.username || null,
+                inBetweenSteps: false,
+                rootInternalId: rootInternalId ?? null,
+                expiresInSeconds,
+            });
+        } catch (e) {
+            if (e instanceof DatabaseError && isPostgresUniqueViolation(e)) {
+                throw new AppError(
+                    "This Instagram account is already connected in this workspace. Disconnect the existing channel, then try again.",
+                    409,
+                    { errorCode: "INTEGRATION_ACCOUNT_CONFLICT" }
+                );
+            }
+            throw e;
+        }
 
         return { success: true };
     }

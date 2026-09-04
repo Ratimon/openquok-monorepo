@@ -615,7 +615,7 @@
 				<h2>
 					4. Your rights regarding your information</h2>
 
-				<h3>
+				<h3 id="user-data-deletion">
 					4.1 Services information</h3>
 				<p>
 					When using our services, you may access, update, or correct most of your account information

@@ -82,6 +82,10 @@ export class IntegrationService {
         return this.integrationRepository.getById(organizationId, id);
     }
 
+    findActiveByInternalId(organizationId: string, internalId: string) {
+        return this.integrationRepository.findActiveByInternalId(organizationId, internalId);
+    }
+
     getByIdIncludeDeleted(organizationId: string, id: string) {
         return this.integrationRepository.getByIdIncludeDeleted(organizationId, id);
     }

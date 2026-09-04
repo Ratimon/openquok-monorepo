@@ -263,7 +263,7 @@ openquok analytics:post <post-id> -d 30`
 			iconClass: 'text-emerald-400',
 			title: 'Agentic',
 			description:
-				'Model-agnostic: use the assistant agents and models that work best for you. Our CLI lets them draft and schedule posts from the AI tools you already use.',
+				'Model-agnostic: use the assistant agents and models that work best or you already use.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -271,7 +271,7 @@ openquok analytics:post <post-id> -d 30`
 			iconClass: 'text-lime-400',
 			title: 'Developers',
 			description:
-				'Fully open source: use OAuth, our SDK, and API to build your own content OS without have to write your own APIs. Connect once, publish everywhere.',
+				'Fully open source: use OAuth, our SDK, and API to build your own content OS without writing your own APIs.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -279,7 +279,7 @@ openquok analytics:post <post-id> -d 30`
 			iconClass: 'text-rose-400',
 			title: 'Scaling Team',
 			description:
-				'Reuse the viral formats that already work for you. Connect more social channels, and scale — automate, approve, and publish everywhere.',
+				'Reuse the viral formats that already work for you. Connect more social channels, and scale.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	];
