@@ -59,6 +59,7 @@ export type BrandedIconName =
     | "OpenQuok"
     | "Pinterest"
     | "PostBridge"
+    | "PostPeer"
     | "Postiz"
     | "QQ"
     | "RecurPost"
@@ -516,6 +517,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<path fill="currentColor" d="M3 19h18v2H3v-2zm2-9h4v9H5v-9zm6 0h4v9h-4v-9zm6 0h4v9h-4v-9zM12 3l9 5.5H3L12 3z"/>`
+    },
+    /** PostPeer product mark. PostPeer is a trademark of its respective owner. */
+    PostPeer: {
+        name: "PostPeer",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="5" fill="#F87171"/><path fill="#fff" d="M12 5.5c-2.8 0-5 2.2-5 5s2.2 5 5 5c.8 0 1.5-.2 2.1-.5V19h2.4V10.5c0-2.8-2.2-5-5-5zm0 2.2c1.5 0 2.8 1.3 2.8 2.8S13.5 13.3 12 13.3s-2.8-1.3-2.8-2.8S10.5 7.7 12 7.7z"/>`
     },
     /** Postiz product mark. Postiz is a trademark of its respective owner. */
     Postiz: {

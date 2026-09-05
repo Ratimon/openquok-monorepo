@@ -11,6 +11,7 @@ export type CompareProductSlug =
 	| 'mixpost'
 	| 'openpost'
 	| 'post-bridge'
+	| 'postpeer'
 	| 'postiz'
 	| 'recurpost'
 	| 'socialclaw'
