@@ -102,7 +102,7 @@ export class InstagramBusinessProvider implements SocialProvider {
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
             graphHost: "graph.facebook.com",
-            apiVersion: "v20.0",
+            apiVersion: "v21.0",
             mediaId: postId,
             lastCommentId,
             message: first.message ?? "",

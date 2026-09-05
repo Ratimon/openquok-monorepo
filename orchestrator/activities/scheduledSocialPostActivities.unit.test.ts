@@ -613,4 +613,51 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
 
         expect(comment).not.toHaveBeenCalled();
     });
+
+    it("publishes instagram-business follow-up comments from providerSettings", async () => {
+        const integrationRepo = createIntegrationRepoMock();
+        integrationRepo.getById.mockResolvedValue(minimalIntegration({ provider_identifier: "instagram-business" }));
+
+        const comment = jest.fn().mockResolvedValue([{ postId: "ig-comment-1" }]);
+        const manager = createPlugAwareIntegrationManager({
+            "instagram-business": {
+                post: jest.fn().mockResolvedValue([{ postId: "ig-media-1" }]),
+                comment,
+            },
+        });
+
+        const refreshService: Pick<RefreshIntegrationService, "refresh"> = { refresh: jest.fn().mockResolvedValue(false) };
+
+        const settingsJson = JSON.stringify({
+            providerSettings: {
+                instagram: {
+                    replies: [{ id: faker.string.uuid(), message: "Link in comments", delaySeconds: 0 }],
+                },
+            },
+        });
+
+        const publish = createPublishScheduledGroupHandler({
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    integration_id: integrationId,
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
+            integrationRepository: integrationRepo,
+            integrationManager: manager,
+            refreshService,
+        });
+
+        await publish({ organizationId: orgId, postGroup });
+
+        expect(comment).toHaveBeenCalledTimes(1);
+        expect(comment).toHaveBeenCalledWith(
+            "int-internal",
+            "ig-media-1",
+            "ig-media-1",
+            "tok",
+            [expect.objectContaining({ message: "Link in comments" })],
+            expect.any(Object)
+        );
+    });
 });

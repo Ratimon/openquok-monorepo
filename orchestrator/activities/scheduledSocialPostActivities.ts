@@ -808,6 +808,9 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Instagram media can take a moment after publish before comments are accepted. */
+const INSTAGRAM_COMMENT_SETTLE_MS = 2_000;
+
 async function maybePublishThreadsThreadFinisher(params: {
     post: SocialPostLike;
     integration: IntegrationLike;
@@ -966,6 +969,10 @@ async function maybePublishThreadsReplies(params: {
                     : "posts.settings"
                 : "post_thread_replies",
     });
+
+    if (pid.startsWith("instagram")) {
+        await sleep(INSTAGRAM_COMMENT_SETTLE_MS);
+    }
 
     const organizationId = post.organization_id;
     const postId = post.id;

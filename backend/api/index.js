@@ -15223,41 +15223,6 @@ var init_instagramInsightsAnalytics = __esm({
   }
 });
 
-// integrations/providers/instagram/instagramGraphComment.ts
-async function publishInstagramGraphComment(params) {
-  const msg = stripComposerBodyForEditor("normal", params.message ?? "");
-  if (!msg.length) {
-    throw new Error("Instagram comment message is empty");
-  }
-  const mediaId = params.mediaId.trim();
-  if (!mediaId) {
-    throw new Error("Instagram media id is required to publish a comment");
-  }
-  const base = `https://${params.graphHost}/${params.apiVersion}`;
-  const token = encodeURIComponent(params.accessToken);
-  const last = (params.lastCommentId ?? "").trim();
-  const parentIsMedia = !last || last === mediaId;
-  const createUrl = parentIsMedia ? `${base}/${encodeURIComponent(mediaId)}/comments?message=${encodeURIComponent(msg)}&access_token=${token}` : `${base}/${encodeURIComponent(last)}/replies?message=${encodeURIComponent(msg)}&access_token=${token}`;
-  const createRes = await fetch(createUrl, { method: "POST" });
-  const createBody = await createRes.json();
-  if (!createBody.id) {
-    throw new Error(createBody.error?.message ?? "Instagram comment failed");
-  }
-  const permRes = await fetch(
-    `${base}/${encodeURIComponent(mediaId)}?fields=permalink&access_token=${token}`
-  );
-  const permJson = await permRes.json();
-  if (permJson.error?.message && !permJson.permalink) {
-    return { commentId: createBody.id, mediaPermalink: "" };
-  }
-  return { commentId: createBody.id, mediaPermalink: typeof permJson.permalink === "string" ? permJson.permalink : "" };
-}
-var init_instagramGraphComment = __esm({
-  "integrations/providers/instagram/instagramGraphComment.ts"() {
-    init_stripComposerBodyForEditor();
-  }
-});
-
 // integrations/providers/instagram/instagramGraphErrors.ts
 function humanizeInstagramGraphError(raw) {
   const body = raw || "";
@@ -15301,6 +15266,72 @@ function humanizeInstagramGraphError(raw) {
 }
 var init_instagramGraphErrors = __esm({
   "integrations/providers/instagram/instagramGraphErrors.ts"() {
+  }
+});
+
+// integrations/providers/instagram/instagramGraphComment.ts
+async function graphPostForm(url, params) {
+  const body = new URLSearchParams(params);
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  return json;
+}
+async function graphGet(url) {
+  const res = await fetch(url);
+  const json = await res.json();
+  throwIfMetaGraphInvalidAccessToken(json);
+  return json;
+}
+function graphErrorMessage(json, fallback) {
+  const raw = json.error?.message?.trim();
+  if (!raw) return fallback;
+  return humanizeInstagramGraphError(raw);
+}
+async function publishInstagramGraphComment(params) {
+  const msg = stripComposerBodyForEditor("normal", params.message ?? "");
+  if (!msg.length) {
+    throw new Error("Instagram comment message is empty");
+  }
+  const mediaId = params.mediaId.trim();
+  if (!mediaId) {
+    throw new Error("Instagram media id is required to publish a comment");
+  }
+  const accessToken2 = params.accessToken.trim();
+  if (!accessToken2) {
+    throw new Error("Instagram access token is required to publish a comment");
+  }
+  const base = `https://${params.graphHost}/${params.apiVersion}`;
+  const last = (params.lastCommentId ?? "").trim();
+  const parentIsMedia = !last || last === mediaId;
+  const createPath = parentIsMedia ? `${base}/${encodeURIComponent(mediaId)}/comments` : `${base}/${encodeURIComponent(last)}/replies`;
+  const createBody = await graphPostForm(createPath, {
+    message: msg,
+    access_token: accessToken2
+  });
+  if (!createBody.id) {
+    throw new Error(graphErrorMessage(createBody, "Instagram comment failed"));
+  }
+  const permJson = await graphGet(
+    `${base}/${encodeURIComponent(mediaId)}?fields=permalink&access_token=${encodeURIComponent(accessToken2)}`
+  );
+  if (permJson.error?.message && !permJson.permalink) {
+    return { commentId: createBody.id, mediaPermalink: "" };
+  }
+  return {
+    commentId: createBody.id,
+    mediaPermalink: typeof permJson.permalink === "string" ? permJson.permalink : ""
+  };
+}
+var init_instagramGraphComment = __esm({
+  "integrations/providers/instagram/instagramGraphComment.ts"() {
+    init_metaGraphTokenError();
+    init_stripComposerBodyForEditor();
+    init_instagramGraphErrors();
   }
 });
 
@@ -15697,7 +15728,7 @@ var init_instagramBusinessProvider = __esm({
         const [first] = postDetails;
         const { commentId, mediaPermalink } = await publishInstagramGraphComment({
           graphHost: "graph.facebook.com",
-          apiVersion: "v20.0",
+          apiVersion: "v21.0",
           mediaId: postId,
           lastCommentId,
           message: first.message ?? "",
@@ -34208,7 +34239,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-05T12:11:16.073Z",
+  generated: "2026-09-05T18:23:22.620Z",
   routes: [
     {
       path: "/docs",
