@@ -232,12 +232,14 @@
 	class="doc-content mx-auto min-w-0 w-full {hasOpenapi ? 'max-w-[min(100%,85rem)]' : 'max-w-4xl'}"
 	data-pagefind-body
 >
-	<header class="mb-8">
-		<div class="mb-2 flex flex-col gap-4 sm:mb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+	<header class="mb-8 w-full min-w-0">
+		<div
+			class="mb-2 flex w-full min-w-0 flex-col gap-4 sm:mb-0 sm:flex-row sm:items-start sm:justify-between sm:gap-6"
+		>
 			<h1 class="text-base-content min-w-0 flex-1 text-3xl font-bold tracking-tight">
 				{meta.title}
 			</h1>
-			<div class="shrink-0 self-start sm:pt-0.5">
+			<div class="max-w-full shrink-0 self-start sm:pt-0.5">
 				<DocsCopyButton {rawContent} {slug} {locale} />
 			</div>
 		</div>

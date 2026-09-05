@@ -96,7 +96,8 @@
 	}
 </script>
 
-<DropdownMenu.Root>
+<div class="max-w-full min-w-0">
+	<DropdownMenu.Root>
 	<div
 		class="border-primary/25 bg-gradient-to-r from-primary via-primary/90 to-primary/70 text-primary-content hover:border-primary/35 inline-flex shrink-0 items-stretch overflow-hidden rounded-lg border text-sm shadow-sm transition-colors"
 	>
@@ -126,7 +127,15 @@
 		</DropdownMenu.Trigger>
 	</div>
 
-	<DropdownMenu.Content class="min-w-[min(100vw-2rem,20rem)] p-1" align="end" sideOffset={6}>
+	<DropdownMenu.Content
+		class="w-[min(20rem,calc(100dvw-1.5rem))] p-1"
+		align="end"
+		side="bottom"
+		sideOffset={6}
+		collisionPadding={12}
+		strategy="fixed"
+		preventScroll={false}
+	>
 		<DropdownMenu.Item class="cursor-pointer p-0" onclick={() => void copyMarkdown()}>
 			<div class="flex w-full items-start gap-3 px-2 py-2.5">
 				<span
@@ -199,4 +208,5 @@
 			</div>
 		</DropdownMenu.Item>
 	</DropdownMenu.Content>
-</DropdownMenu.Root>
+	</DropdownMenu.Root>
+</div>

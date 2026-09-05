@@ -8,6 +8,7 @@
 		ref = $bindable(null),
 		sideOffset = 4,
 		portalProps,
+		preventScroll = false,
 		class: className,
 		...restProps
 	}: DropdownMenuPrimitive.ContentProps & {
@@ -25,5 +26,6 @@
 			className
 		)}
 		{...restProps}
+		{preventScroll}
 	/>
 </DropdownMenuPortal>
