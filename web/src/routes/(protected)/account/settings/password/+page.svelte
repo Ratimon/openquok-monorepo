@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { createForm } from '@tanstack/svelte-form';
-	import { toast } from '$lib/ui/sonner';
+
+	import { icons } from '$data/icons';
 	import {
 		accountChangePasswordFormSchema,
 		editorAccountSettingsPresenter,
@@ -10,6 +11,7 @@
 	import { getRootPathAccount } from '$lib/area-protected/getRootPathProtectedArea';
 	import { absoluteUrl, route } from '$lib/utils/path';
 	import * as Field from '$lib/ui/field';
+	import { toast } from '$lib/ui/sonner';
 	import {
 		Card,
 		CardHeader,
@@ -18,7 +20,11 @@
 		CardContent,
 		CardFooter
 	} from '$lib/ui/card';
+
+	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+
+	let showPassword = $state(false);
 
 	const isPresenterSubmitting = $derived(editorAccountSettingsPresenter.status === UpdateProfileStatus.UPDATING);
 
@@ -93,10 +99,26 @@
 				<form.Field name="newPassword">
 					{#snippet children(field)}
 						<div>
-							<Field.Label field={field} for="new-password">New password</Field.Label>
+							<div class="flex items-center justify-between">
+								<Field.Label field={field} for="new-password">New password</Field.Label>
+								<button
+									type="button"
+									class="text-xs text-primary hover:underline"
+									onclick={() => (showPassword = !showPassword)}
+									aria-label={showPassword ? 'Hide password' : 'Show password'}
+								>
+									<AbstractIcon
+										name={icons.Eye.name}
+										width="20"
+										height="20"
+										focusable="false"
+										class={showPassword ? 'opacity-50' : ''}
+									/>
+								</button>
+							</div>
 							<input
 								id="new-password"
-								type="password"
+								type={showPassword ? 'text' : 'password'}
 								value={field.state.value}
 								onblur={field.handleBlur}
 								oninput={(e) => field.handleChange(e.currentTarget.value)}
@@ -115,10 +137,26 @@
 				<form.Field name="confirmPassword">
 					{#snippet children(field)}
 						<div>
-							<Field.Label field={field} for="confirm-password">Confirm new password</Field.Label>
+							<div class="flex items-center justify-between">
+								<Field.Label field={field} for="confirm-password">Confirm new password</Field.Label>
+								<button
+									type="button"
+									class="text-xs text-primary hover:underline"
+									onclick={() => (showPassword = !showPassword)}
+									aria-label={showPassword ? 'Hide confirm password' : 'Show confirm password'}
+								>
+									<AbstractIcon
+										name={icons.Eye.name}
+										width="20"
+										height="20"
+										focusable="false"
+										class={showPassword ? 'opacity-50' : ''}
+									/>
+								</button>
+							</div>
 							<input
 								id="confirm-password"
-								type="password"
+								type={showPassword ? 'text' : 'password'}
 								value={field.state.value}
 								onblur={field.handleBlur}
 								oninput={(e) => field.handleChange(e.currentTarget.value)}
