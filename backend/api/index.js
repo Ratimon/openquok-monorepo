@@ -33150,7 +33150,7 @@ var validateRequest = (schemas) => (req, _res, next) => {
 var emailRequirements = zod.z.string().email({ message: "Please enter a valid email." }).trim();
 var passwordRequirements = zod.z.string().min(8, { message: "Password must be at least 8 characters long." }).max(72, { message: "Password must be at most 72 characters long." }).trim();
 var fullNameRequirements = zod.z.string().min(2, { message: "Full name must be at least 2 characters long." }).max(100, { message: "Full name must be at most 100 characters long." }).trim();
-var codeRequirements = zod.z.string().min(6, { message: "Code must be at least 6 characters long." }).max(6, { message: "Code must be at most 6 characters long." }).trim();
+var codeRequirements = zod.z.string().min(6, { message: "Code must be at least 6 characters long." }).max(64, { message: "Code must be at most 64 characters long." }).trim();
 var tokenRequirements = zod.z.string().regex(/^[a-f0-9]{64}$/i, { message: "Token must be a 32-byte hex string." });
 var SignUpFormSchema = zod.z.object({
   email: emailRequirements,

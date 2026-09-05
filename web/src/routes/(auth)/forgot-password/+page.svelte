@@ -205,10 +205,11 @@
 				<CardHeader>
 					<CardTitle>
 						<h1 class="text-xl font-semibold leading-none tracking-tight">
-							Enter your code</h1>
+							Enter your code
+						</h1>
 					</CardTitle>
 					<CardDescription>
-						Enter the 6-digit code from the email we sent to {email}.
+						Enter the code from the email we sent to {email}.
 					</CardDescription>
 				</CardHeader>
 				<CardContent class="grid gap-4">

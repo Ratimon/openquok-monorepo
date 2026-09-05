@@ -22,7 +22,7 @@ const fullNameRequirements = z
 const codeRequirements = z
     .string()
     .min(6, { message: "Code must be at least 6 characters long." })
-    .max(6, { message: "Code must be at most 6 characters long." })
+    .max(64, { message: "Code must be at most 64 characters long." })
     .trim();
 
 // Token (32-byte hex, e.g. from EmailService.generateVerificationToken)

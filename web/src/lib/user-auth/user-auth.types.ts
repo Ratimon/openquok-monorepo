@@ -3,12 +3,12 @@ import { z } from 'zod';
 /** Forgot / reset password: email step. */
 export const resetPasswordEmailSchema = z.string().email('Please enter a valid email.').trim();
 
-/** Forgot / reset password: 6-digit OTP from email. */
+/** Forgot / reset password: OTP from email (Supabase recovery codes are 6–8 digits). */
 export const resetPasswordCodeSchema = z
 	.string()
-	.min(6, 'Code must be 6 characters.')
-	.max(6, 'Code must be 6 characters.')
-	.regex(/^\d+$/, 'Code must be 6 digits.')
+	.min(6, 'Code must be at least 6 characters.')
+	.max(8, 'Code must be at most 8 characters.')
+	.regex(/^\d+$/, 'Code must be digits only.')
 	.trim();
 
 export const signinFormSchema = z.object({
