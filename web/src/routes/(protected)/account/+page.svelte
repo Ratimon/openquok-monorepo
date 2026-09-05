@@ -732,13 +732,13 @@
 			href: cliDocsHref,
 			external: true
 		},
-		{
-			label: 'Authentication guide',
-			description: 'OAuth device login and programmatic tokens.',
-			iconName: icons.Lock.name,
-			href: cliAuthDocsHref,
-			external: true
-		},
+		// {
+		// 	label: 'Authentication guide',
+		// 	description: 'OAuth device login and programmatic tokens.',
+		// 	iconName: icons.Lock.name,
+		// 	href: cliAuthDocsHref,
+		// 	external: true
+		// },
 		{
 			label: 'Grok Bot agent guide',
 			description: 'Install openquok-core on Grok Bot.',

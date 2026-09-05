@@ -160,7 +160,8 @@
 	let composerDragOver = $state(false);
 
 	const isCommentEditor = $derived(comments !== false);
-	const commentAllowsMedia = $derived(comments === true);
+	/** Main post (`false`) and media follow-ups (`true`); text-only follow-ups (`no-media`) hide media chrome. */
+	const composerAllowsMedia = $derived(comments !== 'no-media');
 
 	const usesRichEditor = $derived(usesRichComposerEditor(mountedEditorMode));
 	const richTiptapEditor = $derived(richComposerEditorRef?.getEditor() ?? null);
@@ -235,7 +236,7 @@
 	}
 
 	function canAcceptComposerMediaDrop(): boolean {
-		return !locked && !defineSetScopeOverlay && commentAllowsMedia && !busy && !mediaAtCap;
+		return !locked && !defineSetScopeOverlay && composerAllowsMedia && !busy && !mediaAtCap;
 	}
 
 	function onComposerDragOver(e: DragEvent) {
@@ -270,7 +271,7 @@
 			? 'min-h-[4.5rem] sm:min-h-[4.5rem]'
 			: 'min-h-[140px] sm:min-h-[180px]'
 	);
-	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && commentAllowsMedia);
+	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && composerAllowsMedia);
 	const mentionToolbarDisabled = $derived(composerMode === 'global');
 	const mentionToolbarTooltip = $derived(
 		composerMode === 'global'
@@ -639,7 +640,7 @@
 				</div>
 			{/if}
 		</div>
-	{#if !locked && !defineSetScopeOverlay && commentAllowsMedia}
+	{#if !locked && !defineSetScopeOverlay && composerAllowsMedia}
 		<div class="mt-2 border-t border-base-300/80 pt-2">
 			<MultiMedia
 				bind:this={composerMedia}

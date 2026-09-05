@@ -172,7 +172,7 @@
 				<span class="text-base-content/90 font-medium">
 					Instagram:
 				</span>
-				Each item is published as a comment on your post (chained as replies when the network supports it).
+				Each item is published as a comment on your post.
 			</p>
 		{/if}
 
