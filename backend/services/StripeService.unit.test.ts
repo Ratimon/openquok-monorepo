@@ -614,6 +614,7 @@ describe("StripeService", () => {
                 expect.objectContaining({
                     mode: "subscription",
                     customer: customerId,
+                    allow_promotion_codes: true,
                     subscription_data: expect.objectContaining({
                         // trial_period_days is in days - eg 7 days
                         trial_period_days: 7,

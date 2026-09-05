@@ -468,6 +468,7 @@ export class StripeService {
                 mode: "subscription",
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
+                allow_promotion_codes: true,
                 success_url: `${frontend}/account?checkout=${uniqueId}`,
                 cancel_url: `${frontend}/account/billing`,
                 subscription_data: {
@@ -950,6 +951,7 @@ export class StripeService {
                 mode: "subscription",
                 customer,
                 line_items: [{ price: priceId, quantity: 1 }],
+                allow_promotion_codes: true,
                 return_url: `${frontend}/account?checkout=${uniqueId}`,
                 subscription_data: {
                     ...(params.allowTrial ? { trial_period_days: 7 } : {}),

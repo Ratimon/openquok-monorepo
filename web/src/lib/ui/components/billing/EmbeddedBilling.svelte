@@ -160,29 +160,43 @@
 		const trimmed = (code ?? couponCode).trim();
 		if (!trimmed || !actions) return;
 		couponApplying = true;
-		const result = await actions.applyPromotionCode(trimmed);
-		if (result.type === 'error') {
-			toast.error(result.error.message);
-		} else {
-			appliedCoupon = trimmed;
-			couponCode = '';
-			showCouponInput = false;
-			toast.success('Coupon applied.');
+		try {
+			const result = await actions.applyPromotionCode(trimmed);
+			if (result.type === 'error') {
+				toast.error(result.error.message);
+			} else {
+				appliedCoupon = trimmed;
+				couponCode = '';
+				showCouponInput = false;
+				toast.success('Coupon applied.');
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Could not apply that coupon code.';
+			toast.error(message);
+		} finally {
+			couponApplying = false;
 		}
-		couponApplying = false;
 	}
 
 	async function removeCoupon(): Promise<void> {
 		if (!actions) return;
 		couponApplying = true;
-		const result = await actions.removePromotionCode();
-		if (result.type === 'error') {
-			toast.error(result.error.message);
-		} else {
-			appliedCoupon = null;
-			toast.success('Coupon removed.');
+		try {
+			const result = await actions.removePromotionCode();
+			if (result.type === 'error') {
+				toast.error(result.error.message);
+			} else {
+				appliedCoupon = null;
+				toast.success('Coupon removed.');
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Could not remove the coupon code.';
+			toast.error(message);
+		} finally {
+			couponApplying = false;
 		}
-		couponApplying = false;
 	}
 
 	$effect(() => {

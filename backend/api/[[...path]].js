@@ -26182,6 +26182,7 @@ var init_StripeService = __esm({
             mode: "subscription",
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
+            allow_promotion_codes: true,
             success_url: `${frontend}/account?checkout=${uniqueId}`,
             cancel_url: `${frontend}/account/billing`,
             subscription_data: {
@@ -26553,6 +26554,7 @@ var init_StripeService = __esm({
             mode: "subscription",
             customer,
             line_items: [{ price: priceId, quantity: 1 }],
+            allow_promotion_codes: true,
             return_url: `${frontend}/account?checkout=${uniqueId}`,
             subscription_data: {
               ...params.allowTrial ? { trial_period_days: 7 } : {},
@@ -34206,7 +34208,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-04T11:57:04.944Z",
+  generated: "2026-09-05T11:15:04.645Z",
   routes: [
     {
       path: "/docs",
@@ -34527,6 +34529,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34588,6 +34596,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hootsuite/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34659,6 +34673,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hopper-hq/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34720,6 +34740,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/mixpost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34791,6 +34817,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openpost/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openpost/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34852,6 +34884,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openquok/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34923,6 +34961,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34989,6 +35033,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35008,6 +35058,78 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postiz/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/usebard",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35056,6 +35178,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/recurpost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35127,6 +35255,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/socialclaw/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/socialclaw/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35188,6 +35322,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/typefully/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35259,6 +35399,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/usebard/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/usebard/recurpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35314,6 +35460,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/postpeer",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
