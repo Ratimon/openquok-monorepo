@@ -13,7 +13,7 @@ var zod = require('zod');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var YAML = require('yaml');
-var dayjs5 = require('dayjs');
+var dayjs6 = require('dayjs');
 var fs = require('fs/promises');
 var path3 = require('path');
 var stream = require('stream');
@@ -66,7 +66,7 @@ var IORedis__default = /*#__PURE__*/_interopDefault(IORedis);
 var crypto__default = /*#__PURE__*/_interopDefault(crypto);
 var nodemailer__default = /*#__PURE__*/_interopDefault(nodemailer);
 var YAML__default = /*#__PURE__*/_interopDefault(YAML);
-var dayjs5__default = /*#__PURE__*/_interopDefault(dayjs5);
+var dayjs6__default = /*#__PURE__*/_interopDefault(dayjs6);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var path3__default = /*#__PURE__*/_interopDefault(path3);
 var twitterText__default = /*#__PURE__*/_interopDefault(twitterText);
@@ -14701,6 +14701,109 @@ var init_facebookGraphStoryPublish = __esm({
     STORY_PARTIAL_PUBLISH_WARNING = "Publishing may have partially completed. One or more Facebook Stories may already be live. Check your Page before retrying.";
   }
 });
+function facebookPageAnalyticsMetricLabel(metricName) {
+  switch (metricName) {
+    case "page_total_media_view_unique":
+      return "Page views";
+    case "page_media_view":
+      return "Content views";
+    case "page_post_engagements":
+      return "Posts Engagement";
+    case "page_daily_follows":
+      return "Page followers";
+    case "page_video_views":
+      return "Videos views";
+    default:
+      return metricName;
+  }
+}
+function mapFacebookPageInsightsResponse(json) {
+  if (json.error) {
+    throw new Error(json.error.message ?? "Facebook Page insights request failed");
+  }
+  const byMetric = /* @__PURE__ */ new Map();
+  for (const d of json.data ?? []) {
+    const metricName = d.name ?? "";
+    if (!metricName || byMetric.has(metricName)) continue;
+    byMetric.set(metricName, {
+      label: facebookPageAnalyticsMetricLabel(metricName),
+      percentageChange: 0,
+      data: (d.values ?? []).map((v) => ({
+        total: String(v.value ?? 0),
+        date: dayjs6__default.default(v.end_time).format("YYYY-MM-DD")
+      }))
+    });
+  }
+  return [...byMetric.values()];
+}
+function mapFacebookPostInsightsResponse(json, today) {
+  if (json.error) {
+    throw new Error(json.error.message ?? "Facebook post insights request failed");
+  }
+  const byMetric = /* @__PURE__ */ new Map();
+  for (const metric of json.data ?? []) {
+    const metricName = metric.name ?? "";
+    if (!metricName || byMetric.has(metricName)) continue;
+    const value = metric.values?.[0]?.value;
+    if (value === void 0) continue;
+    let label = "";
+    let total = "";
+    switch (metricName) {
+      case "post_total_media_view_unique":
+        label = "Views";
+        total = String(value);
+        break;
+      case "post_clicks":
+        label = "Clicks";
+        total = String(value);
+        break;
+      case "post_clicks_by_type":
+        if (typeof value === "object") {
+          label = "Clicks by Type";
+          total = String(Object.values(value).reduce((sum, v) => sum + Number(v), 0));
+        }
+        break;
+      case "post_reactions_by_type_total":
+        if (typeof value === "object") {
+          label = "Reactions";
+          total = String(Object.values(value).reduce((sum, v) => sum + Number(v), 0));
+        }
+        break;
+    }
+    if (label) {
+      byMetric.set(metricName, { label, percentageChange: 0, data: [{ total, date: today }] });
+    }
+  }
+  return dedupeAnalyticsDataByLabel([...byMetric.values()]);
+}
+function dedupeAnalyticsDataByLabel(rows) {
+  const byLabel = /* @__PURE__ */ new Map();
+  for (const row of rows) {
+    const key = row.label.trim();
+    if (!key || byLabel.has(key)) continue;
+    byLabel.set(key, row);
+  }
+  return [...byLabel.values()];
+}
+var FACEBOOK_INSIGHTS_GRAPH, FACEBOOK_PAGE_ANALYTICS_METRICS, FACEBOOK_POST_ANALYTICS_METRICS;
+var init_facebookInsightsAnalytics = __esm({
+  "integrations/providers/facebook/facebookInsightsAnalytics.ts"() {
+    FACEBOOK_INSIGHTS_GRAPH = "https://graph.facebook.com/v21.0";
+    FACEBOOK_PAGE_ANALYTICS_METRICS = [
+      "page_total_media_view_unique",
+      "page_media_view",
+      "page_post_engagements",
+      "page_daily_follows",
+      "page_video_views"
+    ].join(",");
+    FACEBOOK_POST_ANALYTICS_METRICS = [
+      "post_total_media_view_unique",
+      "post_reactions_by_type_total",
+      "post_clicks",
+      "post_clicks_by_type"
+    ].join(",");
+  }
+});
 
 // utils/ids/makeId.ts
 var makeId;
@@ -14782,6 +14885,7 @@ var init_facebookProvider = __esm({
   "integrations/providers/facebook/facebookProvider.ts"() {
     init_facebookGraphPublish();
     init_facebookGraphStoryPublish();
+    init_facebookInsightsAnalytics();
     init_GlobalConfig();
     init_AppError();
     init_makeId();
@@ -14859,7 +14963,7 @@ var init_facebookProvider = __esm({
           name: me.name ?? "",
           accessToken: extended.access_token,
           refreshToken: extended.access_token,
-          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -14915,7 +15019,7 @@ var init_facebookProvider = __esm({
           name: me.name ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -15045,70 +15149,23 @@ var init_facebookProvider = __esm({
         };
       }
       async analytics(pageId, accessToken2, dateWindowDays) {
-        const until = dayjs5__default.default().endOf("day").unix();
-        const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+        const until = dayjs6__default.default().endOf("day").unix();
+        const since = dayjs6__default.default().subtract(dateWindowDays, "day").unix();
         const enc = encodeURIComponent(accessToken2);
         const res = await fetch(
-          `${GRAPH3}/${pageId}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${enc}&period=day&since=${since}&until=${until}`
+          `${FACEBOOK_INSIGHTS_GRAPH}/${pageId}/insights?metric=${FACEBOOK_PAGE_ANALYTICS_METRICS}&access_token=${enc}&period=day&since=${since}&until=${until}`
         );
         const json = await res.json();
-        return (json.data ?? []).map((d) => ({
-          label: d.name === "page_impressions_unique" ? "Page Impressions" : d.name === "page_post_engagements" ? "Posts Engagement" : d.name === "page_daily_follows" ? "Page followers" : d.name === "page_video_views" ? "Videos views" : "Posts Impressions",
-          percentageChange: 0,
-          data: (d.values ?? []).map((v) => ({
-            total: String(v.value ?? 0),
-            date: dayjs5__default.default(v.end_time).format("YYYY-MM-DD")
-          }))
-        }));
+        return mapFacebookPageInsightsResponse(json);
       }
       async postAnalytics(_integrationId, accessToken2, postId, _fromDate) {
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const today = dayjs6__default.default().format("YYYY-MM-DD");
         const enc = encodeURIComponent(accessToken2);
-        try {
-          const res = await fetch(
-            `${GRAPH3}/${postId}/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks,post_clicks_by_type&access_token=${enc}`
-          );
-          const json = await res.json();
-          const result = [];
-          for (const metric of json.data ?? []) {
-            const value = metric.values?.[0]?.value;
-            if (value === void 0) continue;
-            let label = "";
-            let total = "";
-            switch (metric.name) {
-              case "post_impressions_unique":
-                label = "Impressions";
-                total = String(value);
-                break;
-              case "post_clicks":
-                label = "Clicks";
-                total = String(value);
-                break;
-              case "post_clicks_by_type":
-                if (typeof value === "object") {
-                  label = "Clicks by Type";
-                  total = String(
-                    Object.values(value).reduce((sum, v) => sum + Number(v), 0)
-                  );
-                }
-                break;
-              case "post_reactions_by_type_total":
-                if (typeof value === "object") {
-                  label = "Reactions";
-                  total = String(
-                    Object.values(value).reduce((sum, v) => sum + Number(v), 0)
-                  );
-                }
-                break;
-            }
-            if (label) {
-              result.push({ label, percentageChange: 0, data: [{ total, date: today }] });
-            }
-          }
-          return result;
-        } catch {
-          return [];
-        }
+        const res = await fetch(
+          `${FACEBOOK_INSIGHTS_GRAPH}/${postId}/insights?metric=${FACEBOOK_POST_ANALYTICS_METRICS}&access_token=${enc}`
+        );
+        const json = await res.json();
+        return mapFacebookPostInsightsResponse(json, today);
       }
     };
   }
@@ -15142,8 +15199,8 @@ function metricTitle(name) {
   }
 }
 async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken2, dateWindowDays) {
-  const until = dayjs5__default.default().endOf("day").unix();
-  const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+  const until = dayjs6__default.default().endOf("day").unix();
+  const since = dayjs6__default.default().subtract(dateWindowDays, "day").unix();
   const enc = encodeURIComponent(accessToken2);
   const res1 = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(igUserId)}/insights?metric=follower_count,reach&access_token=${enc}&period=day&since=${since}&until=${until}`
@@ -15159,8 +15216,8 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   if (!res2.ok || json2.error) {
     return [];
   }
-  const today = dayjs5__default.default().format("YYYY-MM-DD");
-  const tomorrow = dayjs5__default.default().add(1, "day").format("YYYY-MM-DD");
+  const today = dayjs6__default.default().format("YYYY-MM-DD");
+  const tomorrow = dayjs6__default.default().add(1, "day").format("YYYY-MM-DD");
   const analytics = [];
   for (const d of json1.data ?? []) {
     const name = d.name ?? "";
@@ -15171,7 +15228,7 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
       percentageChange: 0,
       data: (d.values ?? []).map((v) => ({
         total: String(v.value ?? 0),
-        date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+        date: v.end_time ? dayjs6__default.default(v.end_time).format("YYYY-MM-DD") : today
       }))
     });
   }
@@ -15193,7 +15250,7 @@ async function fetchInstagramAccountInsights(graphBaseUrl, igUserId, accessToken
   return analytics;
 }
 async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken2) {
-  const today = dayjs5__default.default().format("YYYY-MM-DD");
+  const today = dayjs6__default.default().format("YYYY-MM-DD");
   const enc = encodeURIComponent(accessToken2);
   const res = await fetch(
     `${graphBaseUrl}/${encodeURIComponent(mediaId)}/insights?metric=views,reach,saved,likes,comments,shares&access_token=${enc}`
@@ -15204,11 +15261,13 @@ async function fetchInstagramMediaInsights(graphBaseUrl, mediaId, accessToken2) 
     return [];
   }
   const result = [];
+  const seenLabels = /* @__PURE__ */ new Set();
   for (const metric of json.data) {
     const value = metric.values?.[0]?.value;
     if (value === void 0) continue;
     const label = metricTitle(metric.name ?? "");
-    if (!label) continue;
+    if (!label || seenLabels.has(label)) continue;
+    seenLabels.add(label);
     result.push({
       label,
       percentageChange: 0,
@@ -15773,7 +15832,7 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: extended.access_token,
           refreshToken: extended.access_token,
-          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: extended.expires_in != null && extended.expires_in > 0 ? extended.expires_in : dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -15829,7 +15888,7 @@ var init_instagramBusinessProvider = __esm({
           name: me.name ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix(),
           picture: me.picture?.data?.url ?? "",
           username: ""
         };
@@ -16053,7 +16112,7 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: body.access_token,
           refreshToken: body.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(58, "days").unix() - dayjs6__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
@@ -16110,7 +16169,7 @@ var init_instagramStandaloneProvider = __esm({
           name: me.name ?? me.username ?? "",
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(58, "days").unix() - dayjs6__default.default().unix(),
           picture: me.profile_picture_url ?? "",
           username: me.username ?? ""
         };
@@ -16386,7 +16445,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: access_token,
           refreshToken: access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(58, "days").unix() - dayjs6__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -16421,7 +16480,7 @@ var init_threadsProvider = __esm({
           name,
           accessToken: longLived.access_token,
           refreshToken: longLived.access_token,
-          expiresIn: dayjs5__default.default().add(58, "days").unix() - dayjs5__default.default().unix(),
+          expiresIn: dayjs6__default.default().add(58, "days").unix() - dayjs6__default.default().unix(),
           picture: picture || "",
           username: username || ""
         };
@@ -16613,21 +16672,21 @@ var init_threadsProvider = __esm({
        * Account insights for the analytics dashboard (`threads_manage_insights`).
        */
       async analytics(id, accessToken2, dateWindowDays) {
-        const until = dayjs5__default.default().endOf("day").unix();
-        const since = dayjs5__default.default().subtract(dateWindowDays, "day").unix();
+        const until = dayjs6__default.default().endOf("day").unix();
+        const since = dayjs6__default.default().subtract(dateWindowDays, "day").unix();
         const url = `${GRAPH5}/${encodeURIComponent(id)}/threads_insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}&period=day&since=${since}&until=${until}`;
         const res = await fetch(url);
         const body = await res.json();
         if (!res.ok || body.error) {
           return [];
         }
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const today = dayjs6__default.default().format("YYYY-MM-DD");
         const rows = body.data?.map((d) => ({
           label: this.capitalizeMetric(d.name ?? ""),
           percentageChange: 0,
           data: d.total_value ? [{ total: String(d.total_value.value ?? 0), date: today }] : (d.values ?? []).map((v) => ({
             total: String(v.value ?? 0),
-            date: v.end_time ? dayjs5__default.default(v.end_time).format("YYYY-MM-DD") : today
+            date: v.end_time ? dayjs6__default.default(v.end_time).format("YYYY-MM-DD") : today
           }))
         })) ?? [];
         return rows.filter((r) => r.label.length > 0);
@@ -16636,7 +16695,7 @@ var init_threadsProvider = __esm({
        * Per-thread insights for post statistics (`threads_manage_insights`).
        */
       async postAnalytics(_integrationId, accessToken2, threadMediaOrPostId, _fromDate) {
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const today = dayjs6__default.default().format("YYYY-MM-DD");
         try {
           const res = await fetch(
             `${GRAPH5}/${encodeURIComponent(threadMediaOrPostId)}/insights?metric=views,likes,replies,reposts,quotes&access_token=${encodeURIComponent(accessToken2)}`
@@ -16754,11 +16813,11 @@ var init_linkedinCommon = __esm({
   }
 });
 function formatStatDate(ms) {
-  return dayjs5__default.default(ms ?? Date.now()).format("YYYY-MM-DD");
+  return dayjs6__default.default(ms ?? Date.now()).format("YYYY-MM-DD");
 }
 async function fetchLinkedInPageAnalytics(organizationId, accessToken2, dateWindowDays) {
-  const endDate = dayjs5__default.default().unix() * 1e3;
-  const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
+  const endDate = dayjs6__default.default().unix() * 1e3;
+  const startDate = dayjs6__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
   const orgUrn = encodeURIComponent(`urn:li:organization:${organizationId}`);
   const interval = `(timeRange:(start:${startDate},end:${endDate}),timeGranularityType:DAY)`;
   const headers = linkedinRestHeaders(accessToken2);
@@ -16818,8 +16877,8 @@ async function fetchLinkedInPageAnalytics(organizationId, accessToken2, dateWind
   }));
 }
 async function fetchLinkedInPostAnalytics(organizationId, accessToken2, releaseId, dateWindowDays) {
-  const endDate = dayjs5__default.default().unix() * 1e3;
-  const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
+  const endDate = dayjs6__default.default().unix() * 1e3;
+  const startDate = dayjs6__default.default().subtract(dateWindowDays, "day").unix() * 1e3;
   const orgUrn = encodeURIComponent(`urn:li:organization:${organizationId}`);
   const interval = `(timeRange:(start:${startDate},end:${endDate}),timeGranularityType:DAY)`;
   const headers = linkedinRestHeaders(accessToken2);
@@ -16858,7 +16917,7 @@ async function fetchLinkedInPostAnalytics(organizationId, accessToken2, releaseI
     analytics.Engagement.push({ total: String(s.engagement ?? 0), date });
   }
   if (Object.values(analytics).every((arr) => arr.length === 0) && socialActions) {
-    const today = dayjs5__default.default().format("YYYY-MM-DD");
+    const today = dayjs6__default.default().format("YYYY-MM-DD");
     analytics.Likes.push({ total: String(socialActions.likesSummary?.totalLikes ?? 0), date: today });
     analytics.Comments.push({
       total: String(socialActions.commentsSummary?.totalFirstLevelComments ?? 0),
@@ -18413,7 +18472,7 @@ function buildTiktokPostAnalyticsRows(metrics, today) {
   return rows;
 }
 function tiktokAnalyticsToday() {
-  return dayjs5__default.default().format("YYYY-MM-DD");
+  return dayjs6__default.default().format("YYYY-MM-DD");
 }
 var RECENT_VIDEO_LIST_MAX;
 var init_tiktokVideoApi = __esm({
@@ -18484,7 +18543,7 @@ function authDetailsFromTokenResponse(token, profile, fallbackRefresh) {
     name: profile.name,
     accessToken: token.access_token ?? "",
     refreshToken: token.refresh_token ?? fallbackRefresh ?? "",
-    expiresIn: typeof token.expires_in === "number" && token.expires_in > 0 ? token.expires_in : dayjs5__default.default().add(23, "hours").unix() - dayjs5__default.default().unix(),
+    expiresIn: typeof token.expires_in === "number" && token.expires_in > 0 ? token.expires_in : dayjs6__default.default().add(23, "hours").unix() - dayjs6__default.default().unix(),
     picture: profile.picture,
     username: profile.username
   };
@@ -19034,7 +19093,7 @@ var init_youtubeProvider = __esm({
           name: profile.name,
           accessToken: credentials.access_token,
           refreshToken: credentials.refresh_token ?? refreshToken,
-          expiresIn: credentials.expiry_date != null ? Math.max(0, Math.floor((credentials.expiry_date - Date.now()) / 1e3)) : dayjs5__default.default().add(55, "minutes").unix() - dayjs5__default.default().unix(),
+          expiresIn: credentials.expiry_date != null ? Math.max(0, Math.floor((credentials.expiry_date - Date.now()) / 1e3)) : dayjs6__default.default().add(55, "minutes").unix() - dayjs6__default.default().unix(),
           picture: profile.picture,
           username: profile.username
         };
@@ -19086,7 +19145,7 @@ var init_youtubeProvider = __esm({
           name: profile.name,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token ?? "",
-          expiresIn: tokens.expiry_date != null ? Math.max(0, Math.floor((tokens.expiry_date - Date.now()) / 1e3)) : dayjs5__default.default().add(55, "minutes").unix() - dayjs5__default.default().unix(),
+          expiresIn: tokens.expiry_date != null ? Math.max(0, Math.floor((tokens.expiry_date - Date.now()) / 1e3)) : dayjs6__default.default().add(55, "minutes").unix() - dayjs6__default.default().unix(),
           picture: profile.picture,
           username: profile.username
         };
@@ -19153,8 +19212,8 @@ var init_youtubeProvider = __esm({
         const oauth2 = new googleapis.google.auth.OAuth2();
         oauth2.setCredentials({ access_token: accessToken2 });
         const analytics = googleapis.google.youtubeAnalytics({ version: "v2", auth: oauth2 });
-        const endDate = dayjs5__default.default().format("YYYY-MM-DD");
-        const startDate = dayjs5__default.default().subtract(dateWindowDays, "day").format("YYYY-MM-DD");
+        const endDate = dayjs6__default.default().format("YYYY-MM-DD");
+        const startDate = dayjs6__default.default().subtract(dateWindowDays, "day").format("YYYY-MM-DD");
         try {
           const res = await analytics.reports.query({
             ids: `channel==${channelId}`,
@@ -19194,7 +19253,7 @@ var init_youtubeProvider = __esm({
         if (!trimmedVideoId) {
           throw new Error("Missing YouTube video id for post analytics");
         }
-        const today = dayjs5__default.default().format("YYYY-MM-DD");
+        const today = dayjs6__default.default().format("YYYY-MM-DD");
         const oauth2 = createOAuth2Client();
         oauth2.setCredentials({ access_token: accessToken2 });
         const youtube = googleapis.google.youtube({ version: "v3", auth: oauth2 });
@@ -19583,12 +19642,12 @@ function xAnalyticsDisabled() {
   return config.integrations.x?.disableAnalytics === true;
 }
 function formatDateFromIso(iso) {
-  if (!iso) return dayjs5__default.default().format("YYYY-MM-DD");
-  return dayjs5__default.default(iso).format("YYYY-MM-DD");
+  if (!iso) return dayjs6__default.default().format("YYYY-MM-DD");
+  return dayjs6__default.default(iso).format("YYYY-MM-DD");
 }
 async function fetchXAccountAnalytics(client, userId, dateWindowDays) {
   if (xAnalyticsDisabled()) return [];
-  const since = dayjs5__default.default().subtract(dateWindowDays, "day").toISOString();
+  const since = dayjs6__default.default().subtract(dateWindowDays, "day").toISOString();
   const timeline = await client.v2.userTimeline(userId, {
     max_results: 100,
     start_time: since,
@@ -20327,11 +20386,11 @@ function dayMetricTotal(day, key) {
 }
 function startDateForWindow(dateWindowDays) {
   const days = Number.isFinite(dateWindowDays) && dateWindowDays > 0 ? Math.floor(dateWindowDays) : 7;
-  return dayjs5__default.default().subtract(days, "day").format("YYYY-MM-DD");
+  return dayjs6__default.default().subtract(days, "day").format("YYYY-MM-DD");
 }
 function mapDevtoHistoricalToAnalytics(json) {
   if (!isPlainObject13(json)) return [];
-  const dates = Object.keys(json).filter((key) => /^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).sort((a, b) => dayjs5__default.default(a).valueOf() - dayjs5__default.default(b).valueOf());
+  const dates = Object.keys(json).filter((key) => /^\d{4}-\d{1,2}-\d{1,2}$/.test(key)).sort((a, b) => dayjs6__default.default(a).valueOf() - dayjs6__default.default(b).valueOf());
   if (dates.length === 0) return [];
   const series = {
     page_views: [],
@@ -20340,7 +20399,7 @@ function mapDevtoHistoricalToAnalytics(json) {
   };
   for (const date of dates) {
     const day = json[date];
-    const normalizedDate = dayjs5__default.default(date).format("YYYY-MM-DD");
+    const normalizedDate = dayjs6__default.default(date).format("YYYY-MM-DD");
     for (const key of Object.keys(METRIC_LABELS2)) {
       series[key].push({
         total: String(dayMetricTotal(day, key)),
@@ -20354,7 +20413,7 @@ function mapDevtoHistoricalToAnalytics(json) {
     data: series[key]
   }));
 }
-function mapDevtoTotalsToAnalytics(json, date = dayjs5__default.default().format("YYYY-MM-DD")) {
+function mapDevtoTotalsToAnalytics(json, date = dayjs6__default.default().format("YYYY-MM-DD")) {
   if (!isPlainObject13(json)) return [];
   const hasAnyMetric = Object.keys(METRIC_LABELS2).some((key) => key in json);
   if (!hasAnyMetric) return [];
@@ -20416,7 +20475,7 @@ var init_devtoAnalytics = __esm({
   }
 });
 function tokenTtlSeconds() {
-  return dayjs5__default.default().add(DEVTO_TOKEN_TTL_YEARS, "year").unix() - dayjs5__default.default().unix();
+  return dayjs6__default.default().add(DEVTO_TOKEN_TTL_YEARS, "year").unix() - dayjs6__default.default().unix();
 }
 function decodeDevtoConnectCode(code) {
   try {
@@ -22251,7 +22310,7 @@ var init_IntegrationConnectionService = __esm({
         const preservesUserTokenForRefresh = row.provider_identifier === "instagram-business" || row.provider_identifier === "facebook";
         const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
         const rootInternalId2 = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
-        const expiresInSeconds = preservesUserTokenForRefresh ? dayjs5__default.default().add(59, "days").unix() - dayjs5__default.default().unix() : void 0;
+        const expiresInSeconds = preservesUserTokenForRefresh ? dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix() : void 0;
         const targetInternalId = String(information.id);
         const existingByInternalId = await this.integrations.findActiveByInternalId(
           organizationId,
@@ -23594,8 +23653,8 @@ var init_PostsService = __esm({
        * On failed refresh, soft-deletes the channel.
        */
       async ensureFreshSocialToken(integrationRow, organizationId, options2) {
-        const exp = integrationRow.token_expiration ? dayjs5__default.default(integrationRow.token_expiration) : null;
-        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs5__default.default());
+        const exp = integrationRow.token_expiration ? dayjs6__default.default(integrationRow.token_expiration) : null;
+        const expired = !exp || !exp.isValid() || exp.isBefore(dayjs6__default.default());
         const provider = options2?.provider ?? this.integrationManager.getSocialIntegration(integrationRow.provider_identifier);
         if (options2?.force || expired) {
           const refreshed = await this.refreshIntegrationService.refresh(integrationRow);
@@ -24573,8 +24632,8 @@ var init_AnalyticsService = __esm({
         if (!provider?.analytics) {
           return [];
         }
-        const exp = row.token_expiration ? dayjs5__default.default(row.token_expiration) : null;
-        if (exp && exp.isValid() && exp.isBefore(dayjs5__default.default())) {
+        const exp = row.token_expiration ? dayjs6__default.default(row.token_expiration) : null;
+        if (exp && exp.isValid() && exp.isBefore(dayjs6__default.default())) {
           const refreshed = await this.refreshIntegrationService.refresh(row);
           if (!refreshed || !refreshed.accessToken) {
             return [];
@@ -24586,11 +24645,18 @@ var init_AnalyticsService = __esm({
           integrationId,
           String(date)
         );
-        if (cached2) {
+        if (cached2 != null && cached2.length > 0) {
           return cached2;
         }
         const data = await provider.analytics(row.internal_id, row.token, date).catch(() => []);
-        await this.integrations.setCachedIntegrationPayload(organizationId, integrationId, String(date), data);
+        if (data.length > 0) {
+          await this.integrations.setCachedIntegrationPayload(
+            organizationId,
+            integrationId,
+            String(date),
+            data
+          );
+        }
         return data;
       }
     };
@@ -25345,8 +25411,8 @@ function computePostsBillingMonthStart(params) {
   const { subscription, organizationCreatedAt, now } = params;
   const clock = now ?? /* @__PURE__ */ new Date();
   const anchorIso = subscription?.current_period_start ?? subscription?.created_at ?? organizationCreatedAt;
-  const anchor = dayjs5__default.default(anchorIso);
-  const current = dayjs5__default.default(clock);
+  const anchor = dayjs6__default.default(anchorIso);
+  const current = dayjs6__default.default(clock);
   if (subscription?.period === "MONTHLY" && subscription.current_period_start) {
     return anchor.toDate();
   }
@@ -34239,7 +34305,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-05T18:23:22.620Z",
+  generated: "2026-09-06T00:41:16.311Z",
   routes: [
     {
       path: "/docs",

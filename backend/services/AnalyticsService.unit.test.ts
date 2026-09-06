@@ -153,6 +153,28 @@ describe("AnalyticsService", () => {
             expect(mocks.integrations.setCachedIntegrationPayload).not.toHaveBeenCalled();
         });
 
+        it("refetches when cache contains an empty array (stale failed analytics)", async () => {
+            const row = createIntegrationRow();
+            mocks.integrations.getById.mockResolvedValue(row);
+            const analyticsFn = jest.fn().mockResolvedValue(sampleAnalytics);
+            mocks.manager.getSocialIntegration.mockReturnValue({
+                identifier: "threads",
+                analytics: analyticsFn,
+            } as unknown as SocialProvider);
+            mocks.integrations.getCachedIntegrationPayload.mockResolvedValue([]);
+
+            const out = await service(mocks).getIntegrationAnalytics(baseParams());
+
+            expect(out).toEqual(sampleAnalytics);
+            expect(analyticsFn).toHaveBeenCalledWith(row.internal_id, row.token, dateWindowDays);
+            expect(mocks.integrations.setCachedIntegrationPayload).toHaveBeenCalledWith(
+                organizationId,
+                integrationId,
+                String(dateWindowDays),
+                sampleAnalytics
+            );
+        });
+
         it("calls provider.analytics and caches result on cache miss", async () => {
             const row = createIntegrationRow();
             mocks.integrations.getById.mockResolvedValue(row);
@@ -230,12 +252,7 @@ describe("AnalyticsService", () => {
             const out = await service(mocks).getIntegrationAnalytics(baseParams());
 
             expect(out).toEqual([]);
-            expect(mocks.integrations.setCachedIntegrationPayload).toHaveBeenCalledWith(
-                organizationId,
-                integrationId,
-                String(dateWindowDays),
-                []
-            );
+            expect(mocks.integrations.setCachedIntegrationPayload).not.toHaveBeenCalled();
         });
     });
 

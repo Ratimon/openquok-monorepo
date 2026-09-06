@@ -10,6 +10,13 @@ import type {
 } from "../../social.integrations.interface";
 import { publishFacebookComment, publishFacebookPagePost } from "./facebookGraphPublish";
 import { publishFacebookPageStories, readFacebookPostType } from "./facebookGraphStoryPublish";
+import {
+    FACEBOOK_INSIGHTS_GRAPH,
+    FACEBOOK_PAGE_ANALYTICS_METRICS,
+    FACEBOOK_POST_ANALYTICS_METRICS,
+    mapFacebookPageInsightsResponse,
+    mapFacebookPostInsightsResponse,
+} from "./facebookInsightsAnalytics";
 
 import dayjs from "dayjs";
 import { config } from "../../../config/GlobalConfig";
@@ -429,27 +436,14 @@ export class FacebookProvider implements SocialProvider {
         const enc = encodeURIComponent(accessToken);
 
         const res = await fetch(
-            `${GRAPH}/${pageId}/insights?metric=page_impressions_unique,page_posts_impressions_unique,page_post_engagements,page_daily_follows,page_video_views&access_token=${enc}&period=day&since=${since}&until=${until}`
+            `${FACEBOOK_INSIGHTS_GRAPH}/${pageId}/insights?metric=${FACEBOOK_PAGE_ANALYTICS_METRICS}&access_token=${enc}&period=day&since=${since}&until=${until}`
         );
-        const json = (await res.json()) as { data?: Array<{ name?: string; values?: Array<{ value?: number; end_time?: string }> }> };
+        const json = (await res.json()) as {
+            data?: Array<{ name?: string; values?: Array<{ value?: number; end_time?: string }> }>;
+            error?: { message?: string };
+        };
 
-        return (json.data ?? []).map((d) => ({
-            label:
-                d.name === "page_impressions_unique"
-                    ? "Page Impressions"
-                    : d.name === "page_post_engagements"
-                      ? "Posts Engagement"
-                      : d.name === "page_daily_follows"
-                        ? "Page followers"
-                        : d.name === "page_video_views"
-                          ? "Videos views"
-                          : "Posts Impressions",
-            percentageChange: 0,
-            data: (d.values ?? []).map((v) => ({
-                total: String(v.value ?? 0),
-                date: dayjs(v.end_time).format("YYYY-MM-DD"),
-            })),
-        }));
+        return mapFacebookPageInsightsResponse(json);
     }
 
     async postAnalytics(
@@ -461,56 +455,14 @@ export class FacebookProvider implements SocialProvider {
         const today = dayjs().format("YYYY-MM-DD");
         const enc = encodeURIComponent(accessToken);
 
-        try {
-            const res = await fetch(
-                `${GRAPH}/${postId}/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks,post_clicks_by_type&access_token=${enc}`
-            );
-            const json = (await res.json()) as {
-                data?: Array<{ name?: string; values?: Array<{ value?: number | Record<string, number> }> }>;
-            };
+        const res = await fetch(
+            `${FACEBOOK_INSIGHTS_GRAPH}/${postId}/insights?metric=${FACEBOOK_POST_ANALYTICS_METRICS}&access_token=${enc}`
+        );
+        const json = (await res.json()) as {
+            data?: Array<{ name?: string; values?: Array<{ value?: number | Record<string, number> }> }>;
+            error?: { message?: string };
+        };
 
-            const result: AnalyticsData[] = [];
-            for (const metric of json.data ?? []) {
-                const value = metric.values?.[0]?.value;
-                if (value === undefined) continue;
-
-                let label = "";
-                let total = "";
-
-                switch (metric.name) {
-                    case "post_impressions_unique":
-                        label = "Impressions";
-                        total = String(value);
-                        break;
-                    case "post_clicks":
-                        label = "Clicks";
-                        total = String(value);
-                        break;
-                    case "post_clicks_by_type":
-                        if (typeof value === "object") {
-                            label = "Clicks by Type";
-                            total = String(
-                                Object.values(value).reduce((sum, v) => sum + Number(v), 0)
-                            );
-                        }
-                        break;
-                    case "post_reactions_by_type_total":
-                        if (typeof value === "object") {
-                            label = "Reactions";
-                            total = String(
-                                Object.values(value).reduce((sum, v) => sum + Number(v), 0)
-                            );
-                        }
-                        break;
-                }
-
-                if (label) {
-                    result.push({ label, percentageChange: 0, data: [{ total, date: today }] });
-                }
-            }
-            return result;
-        } catch {
-            return [];
-        }
+        return mapFacebookPostInsightsResponse(json, today);
     }
 }

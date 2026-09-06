@@ -48,7 +48,7 @@
 	</div>
 {:else}
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-		{#each seriesVm as item, index (item.label)}
+		{#each seriesVm as item, index (index)}
 			<AnalyticsCard
 				seriesVm={item}
 				total={totals[index]}

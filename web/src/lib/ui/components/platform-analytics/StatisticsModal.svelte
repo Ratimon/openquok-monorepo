@@ -42,16 +42,23 @@
 		loading = true;
 		error = null;
 		showMissing = false;
-		const postStatisticsVm = await loadPostAnalytics({
-			organizationId,
-			postId,
-			date: dateWindowDays
-		});
-		loading = false;
-		error = postStatisticsVm.error ?? null;
-		showMissing = postStatisticsVm.missing === true;
-		seriesVm = postStatisticsVm.seriesVm;
-		totals = postStatisticsVm.totalsVm;
+		try {
+			const postStatisticsVm = await loadPostAnalytics({
+				organizationId,
+				postId,
+				date: dateWindowDays
+			});
+			error = postStatisticsVm.error ?? null;
+			showMissing = postStatisticsVm.missing === true;
+			seriesVm = postStatisticsVm.seriesVm;
+			totals = postStatisticsVm.totalsVm;
+		} catch (e) {
+			error = e instanceof Error ? e.message : 'Failed to load analytics.';
+			seriesVm = [];
+			totals = [];
+		} finally {
+			loading = false;
+		}
 	}
 
 	$effect(() => {
@@ -135,7 +142,7 @@
 					Post analytics</h3>
 
 				<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-					{#each seriesVm as item, index (item.label)}
+					{#each seriesVm as item, index (index)}
 						<AnalyticsCard seriesVm={item} total={totals[index] ?? '—'} {index} />
 					{/each}
 				</div>

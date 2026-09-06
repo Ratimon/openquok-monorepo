@@ -135,11 +135,13 @@ export async function fetchInstagramMediaInsights(
     }
 
     const result: AnalyticsData[] = [];
+    const seenLabels = new Set<string>();
     for (const metric of json.data) {
         const value = metric.values?.[0]?.value;
         if (value === undefined) continue;
         const label = metricTitle(metric.name ?? "");
-        if (!label) continue;
+        if (!label || seenLabels.has(label)) continue;
+        seenLabels.add(label);
         result.push({
             label,
             percentageChange: 0,

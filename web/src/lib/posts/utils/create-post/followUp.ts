@@ -141,6 +141,57 @@ export function applyThreadFollowUpRepliesToSettings(args: {
 	return merged;
 }
 
+type FollowUpSelectionContext = {
+	mode: CreateSocialPostMode;
+	contentSetAuthoringActive: boolean;
+	selectedIds: string[];
+	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
+	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+};
+
+/**
+ * In global mode, mirror the canonical follow-up program onto every selected channel that supports
+ * comments (Facebook + Instagram buckets, etc.). Fixes drift when a channel is selected after
+ * replies were authored, or when only the primary channel's bucket was updated.
+ */
+export function syncThreadFollowUpRepliesAcrossSelectedChannels(
+	args: FollowUpSelectionContext
+): Record<string, Record<string, unknown>> {
+	if (args.contentSetAuthoringActive || args.mode === 'custom') {
+		return args.providerSettingsByIntegrationId;
+	}
+	const supportedIds = listThreadFollowUpSupportedIntegrationIds({
+		...args,
+		focusedIntegrationId: null
+	});
+	if (supportedIds.length === 0) return args.providerSettingsByIntegrationId;
+
+	const primaryId = getPrimaryThreadFollowUpIntegrationId({
+		contentSetAuthoringActive: false,
+		selectedIds: args.selectedIds,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		supportedIntegrationIds: supportedIds,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (!primaryId) return args.providerSettingsByIntegrationId;
+
+	const replies = threadFollowUpRepliesRawForIntegration({
+		integrationId: primaryId,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (!replies.some((r) => (r.message ?? '').trim().length > 0)) {
+		return args.providerSettingsByIntegrationId;
+	}
+
+	return applyThreadFollowUpRepliesToSettings({
+		next: replies,
+		targetIntegrationIds: supportedIds,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+}
+
 export function legacySharedRepliesFromProviderSnapshot(args: {
 	snapshot: SetSnapshotViewModel;
 	okIntegrationIds: string[];

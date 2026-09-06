@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	integrationSupportsFollowUpComments,
-	listThreadFollowUpSupportedIntegrationIds
+	listThreadFollowUpSupportedIntegrationIds,
+	syncThreadFollowUpRepliesAcrossSelectedChannels
 } from '$lib/posts/utils/create-post/followUp';
 
 describe('integrationSupportsFollowUpComments', () => {
@@ -57,5 +58,43 @@ describe('listThreadFollowUpSupportedIntegrationIds', () => {
 				}
 			})
 		).toEqual(['fb-1']);
+	});
+});
+
+describe('syncThreadFollowUpRepliesAcrossSelectedChannels', () => {
+	const channels = [
+		{ id: 'fb-1', identifier: 'facebook', name: 'Page', picture: null },
+		{ id: 'ig-1', identifier: 'instagram-business', name: 'IG', picture: null }
+	];
+	const replies = [{ id: 'r1', message: 'Follow-up comment', delaySeconds: 0 }];
+
+	it('copies Facebook replies to Instagram when IG is added later', () => {
+		const providerSettings = {
+			'fb-1': { facebook: { postType: 'post', replies } },
+			'ig-1': { instagram: {} }
+		};
+		const synced = syncThreadFollowUpRepliesAcrossSelectedChannels({
+			mode: 'global',
+			contentSetAuthoringActive: false,
+			selectedIds: ['fb-1', 'ig-1'],
+			baseSocialChannelsVm: channels,
+			providerSettingsByIntegrationId: providerSettings
+		});
+		expect(synced['ig-1']?.instagram).toEqual({ replies });
+	});
+
+	it('no-ops in custom mode', () => {
+		const providerSettings = {
+			'fb-1': { facebook: { postType: 'post', replies } },
+			'ig-1': { instagram: {} }
+		};
+		const synced = syncThreadFollowUpRepliesAcrossSelectedChannels({
+			mode: 'custom',
+			contentSetAuthoringActive: false,
+			selectedIds: ['fb-1', 'ig-1'],
+			baseSocialChannelsVm: channels,
+			providerSettingsByIntegrationId: providerSettings
+		});
+		expect(synced).toEqual(providerSettings);
 	});
 });

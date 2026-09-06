@@ -74,13 +74,20 @@ export class AnalyticsService {
             integrationId,
             String(date)
         );
-        if (cached) {
+        if (cached != null && cached.length > 0) {
             return cached as AnalyticsData[];
         }
 
         const data = await provider.analytics(row.internal_id, row.token, date).catch(() => []);
 
-        await this.integrations.setCachedIntegrationPayload(organizationId, integrationId, String(date), data as unknown[]);
+        if (data.length > 0) {
+            await this.integrations.setCachedIntegrationPayload(
+                organizationId,
+                integrationId,
+                String(date),
+                data as unknown[]
+            );
+        }
         return data;
     }
 }

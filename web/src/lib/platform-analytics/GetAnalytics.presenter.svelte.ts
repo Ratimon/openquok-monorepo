@@ -95,7 +95,7 @@ export class GetAnalyticsPresenter {
 		if (!('data' in postAnalyticsPm) || !Array.isArray(postAnalyticsPm.data)) {
 			return { seriesVm: [], totalsVm: [] };
 		}
-		const seriesVm = mapAnalyticsSeriesVm(postAnalyticsPm.data);
+		const seriesVm = mergeAnalyticsSeriesVm([mapAnalyticsSeriesVm(postAnalyticsPm.data)]);
 		const totalsVm = formatAnalyticsSeriesTotalsVm(seriesVm);
 		return { seriesVm, totalsVm };
 	}

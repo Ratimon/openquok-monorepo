@@ -48,6 +48,7 @@ import {
 	migrateProviderSettingsByIntegrationIdOnLoad,
 	serializeComposerSnapshot,
 	syncSharedFollowUpsToProviderSettingsForSetAuthoring,
+	syncThreadFollowUpRepliesAcrossSelectedChannels,
 	threadFollowUpRepliesRawForIntegration,
 	unschedulableReason,
 	validateComposerContent,
@@ -381,6 +382,7 @@ export class CreateSocialPostPresenter {
 				return;
 			}
 			this.selectedIds = [...this.selectedIds, id];
+			this.syncFollowUpRepliesAcrossSelectedChannels();
 		}
 	}
 
@@ -414,6 +416,7 @@ export class CreateSocialPostPresenter {
 		const ids = this.baseSocialChannelsVm.filter((c) => c.group?.id === groupId).map((c) => c.id);
 		this.selectedIds = ids;
 		if (ids.length) {
+			this.syncFollowUpRepliesAcrossSelectedChannels();
 			toast.success('Group channels selected');
 		}
 	}
@@ -518,6 +521,7 @@ export class CreateSocialPostPresenter {
 		this.settingsOpen = false;
 		this.loadEditorBody();
 		this.loadEditorMedia();
+		this.syncFollowUpRepliesAcrossSelectedChannels();
 	}
 
 	requestCustomize(integrationId: string): void {
@@ -646,6 +650,18 @@ export class CreateSocialPostPresenter {
 		this.providerSettingsByIntegrationId = applyThreadFollowUpRepliesToSettings({
 			next,
 			targetIntegrationIds: targets,
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
+		});
+	}
+
+	/** Global mode: copy follow-up replies onto every selected channel (FB + IG buckets). */
+	private syncFollowUpRepliesAcrossSelectedChannels(): void {
+		if (this.contentSetAuthoringActive || this.mode === 'custom') return;
+		this.providerSettingsByIntegrationId = syncThreadFollowUpRepliesAcrossSelectedChannels({
+			mode: this.mode,
+			contentSetAuthoringActive: this.contentSetAuthoringActive,
+			selectedIds: this.selectedIds,
 			baseSocialChannelsVm: this.baseSocialChannelsVm,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
 		});
@@ -827,6 +843,7 @@ export class CreateSocialPostPresenter {
 	async saveAsDraft(): Promise<boolean> {
 		this.persistEditorBody();
 		this.persistEditorMedia();
+		this.syncFollowUpRepliesAcrossSelectedChannels();
 		const workspaceId = this.workspaceIdForSession;
 		if (!workspaceId) {
 			toast.error('Select a workspace.');
@@ -891,6 +908,7 @@ export class CreateSocialPostPresenter {
 	}): Promise<boolean> {
 		this.persistEditorBody();
 		this.persistEditorMedia();
+		this.syncFollowUpRepliesAcrossSelectedChannels();
 		const workspaceId = this.workspaceIdForSession;
 		if (!workspaceId) {
 			toast.error('Select a workspace.');

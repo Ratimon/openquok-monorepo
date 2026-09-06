@@ -34,10 +34,9 @@
 		onDismiss: () => void;
 		checklistItems: ChecklistItem[];
 		automationLinks: ResourceLink[];
-		exploreLinks: ResourceLink[];
 	};
 
-	let { onDismiss, checklistItems, automationLinks, exploreLinks }: Props = $props();
+	let { onDismiss, checklistItems, automationLinks }: Props = $props();
 </script>
 
 <section class="mb-6 overflow-hidden rounded-lg border border-base-300 bg-base-100 shadow-sm">
@@ -172,36 +171,5 @@
 			</ul>
 		</div>
 
-		<div class="px-5 py-5">
-			<h3 class="text-sm font-semibold text-base-content">Explore the dashboard</h3>
-			<p class="mt-1 text-sm text-base-content/65">Calendar, plugs, templates, and more.</p>
-			<ul class="mt-4 space-y-1">
-				{#each exploreLinks as link (link.href)}
-					{#if link.href}
-						{@const marketing = hostedMarketingAnchorAttrs(link.href, page.url.origin)}
-						<li>
-							<a
-								href={marketing.href}
-								target={marketing.target}
-								rel={marketing.rel}
-								class="flex items-start gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-base-200/70"
-							>
-								<span
-									class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-base-200 text-base-content/75"
-								>
-									<AbstractIcon name={link.iconName} class="size-4" width="16" height="16" />
-								</span>
-								<span class="min-w-0">
-									<span class="block text-sm font-medium text-base-content">{link.label}</span>
-									{#if link.description}
-										<span class="mt-0.5 block text-xs text-base-content/60">{link.description}</span>
-									{/if}
-								</span>
-							</a>
-						</li>
-					{/if}
-				{/each}
-			</ul>
-		</div>
 	</div>
 </section>
