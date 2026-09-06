@@ -36,6 +36,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'agent hosts',
 	'agent-native',
 	'checklist',
+	'per-platform',
+	'workspace',
 	'cloud',
 	'dockerized',
 	'modify further',

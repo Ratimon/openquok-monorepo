@@ -383,7 +383,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_1_TITLE: {
 		description: 'Headline for the first secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Multi agent, multi platforms, minimal hallucinations',
+		default: 'Connect once, manage many platforms, minimal hallucinations',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -398,14 +398,14 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_2_SUBTITLE: {
 		description: 'Tag above the second secondary hero section',
 		type: 'string',
-		default: 'Post scheduler + smart filters',
+		default: 'Per-network Post Editor',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_2_TITLE: {
 		description: 'Headline for the second secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Schedule social media posts ahead, find any draft effortlessly',
+		default: 'One draft, then craft with per-platform settings quickly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -413,21 +413,21 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the second secondary hero section',
 		type: 'string',
 		default:
-			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Use OpenQuok as your social media planning tool — queue posts ahead and surface the right drafts without scrolling an endless AI queue.',
+			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
 	FEATURE_3_SUBTITLE: {
 		description: 'Tag above the third secondary hero section',
 		type: 'string',
-		default: 'Per-network Post Editor',
+		default: 'Calendar + smart filters',
 		inputType: 'input',
 		maxInputLength: 60
 	},
 	FEATURE_3_TITLE: {
 		description: 'Headline for the third secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'One draft, then craft for each platform, with per-network settings quickly',
+		default: 'Plan weeks ahead, find any post effortlessly',
 		inputType: 'input',
 		maxInputLength: 100
 	},
@@ -435,7 +435,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the third secondary hero section',
 		type: 'string',
 		default:
-			'Write once in global mode, then customize any connected account — Facebook link previews, Threads replies, Instagram post types, and more — without losing your shared copy.',
+			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

@@ -776,50 +776,6 @@
 		}
 	]);
 
-	// const gettingStartedExploreLinks = $derived([
-	// 	{
-	// 		label: 'Calendar',
-	// 		description: 'Plan and review scheduled posts.',
-	// 		iconName: icons.CalendarClock.name,
-	// 		href: calendarPath
-	// 	},
-	// 	{
-	// 		label: 'Auto Plugs',
-	// 		description: 'Automate follow-ups on supported channels.',
-	// 		iconName: icons.Sparkles.name,
-	// 		href: plugsPath
-	// 	},
-	// 	{
-	// 		label: 'Templates',
-	// 		description: 'Reusable layouts for faster composing.',
-	// 		iconName: icons.LayoutTemplate.name,
-	// 		href: templatesPath
-	// 	},
-	// 	{
-	// 		label: 'OpenClaw + OpenQuok',
-	// 		description: 'Schedule from chat on your own devices.',
-	// 		iconName: icons.Bot.name,
-	// 		href: openclawAgentHref
-	// 	},
-	// 	{
-	// 		label: 'Hermes + OpenQuok',
-	// 		description: 'Agent automation with messaging gateways.',
-	// 		iconName: icons.Bot.name,
-	// 		href: hermesAgentHref
-	// 	},
-	// 	{
-	// 		label: 'Grok Bot + OpenQuok',
-	// 		description: 'Schedule from desktop chat on a cloud computer.',
-	// 		iconName: icons.Bot.name,
-	// 		href: grokBotAgentHref
-	// 	},
-	// 	{
-	// 		label: 'ThinkRail + OpenQuok',
-	// 		description: 'Schedule from a git worktree IDE.',
-	// 		iconName: icons.Bot.name,
-	// 		href: thinkrailAgentHref
-	// 	}
-	// ]);
 
 	// --- Onboarding visibility (welcome flag + first-empty-workspace auto-open) ---
 	$effect(() => {

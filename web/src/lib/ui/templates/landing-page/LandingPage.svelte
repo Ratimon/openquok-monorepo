@@ -346,24 +346,24 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature2Subtitle}
 	landingTitle={feature2Title}
 	landingDescription={feature2Description}
-	imageSrc="/landing/2-calendar-filters.mp4"
-	imageAlt="Calendar with smart filters for scheduled posts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
-/>
+>
+	{#snippet leftMedia()}
+		<BentoLandingComposeSettings {isLoggedIn} />
+	{/snippet}
+</HeroWithLeftMedia>
 
 <HeroWithRightMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
 	landingDescription={feature3Description}
+	imageSrc="/landing/2-calendar-filters.mp4"
+	imageAlt="Calendar with smart filters for scheduled posts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
->
-	{#snippet rightMedia()}
-		<BentoLandingComposeSettings {isLoggedIn} />
-	{/snippet}
-</HeroWithRightMedia>
+/>
 
 <HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
