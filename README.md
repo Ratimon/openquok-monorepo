@@ -114,7 +114,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 
 **Documentation (by audience)**
 
-- [General](https://www.openquok.com/docs) — product overview ([`/docs/getting-started`](https://www.openquok.com/docs/getting-started)); [Quickstart](https://www.openquok.com/docs/getting-started/quickstart) for a first post
+- [Product overview](https://www.openquok.com/docs) — [Quickstart](https://www.openquok.com/docs/getting-started/quickstart) for a first post
 - [Cloud](https://www.openquok.com/docs/cloud) — hosted plans, trial, and billing
 - [CLI & agent users](https://www.openquok.com/docs/getting-started-for-cli) — `@openquok/auto-cli`, auth, commands, and examples
 - [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples

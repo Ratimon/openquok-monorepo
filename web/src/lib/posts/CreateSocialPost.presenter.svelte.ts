@@ -49,6 +49,7 @@ import {
 	serializeComposerSnapshot,
 	syncSharedFollowUpsToProviderSettingsForSetAuthoring,
 	syncThreadFollowUpRepliesAcrossSelectedChannels,
+	syncThreadFollowUpRepliesToFocusedChannel,
 	threadFollowUpRepliesRawForIntegration,
 	unschedulableReason,
 	validateComposerContent,
@@ -255,12 +256,7 @@ export class CreateSocialPostPresenter {
 		}
 		return this.charCountText.length;
 	});
-	previewMediaItems = $derived.by((): PostMediaViewModel[] => {
-		const hasPreviewChannel =
-			(this.mode === 'custom' && this.focusedIntegrationId) ||
-			(this.mode === 'global' && this.selectedIds.length === 1);
-		return hasPreviewChannel ? this.postMediaItemsVm : this.globalMediaItems;
-	});
+	previewMediaItems = $derived(this.postMediaItemsVm);
 	previewMediaUrls = $derived(
 		this.scheduledPostsPresenter.toPostMediaPreviewUrlsVm(this.previewMediaItems)
 	);
@@ -371,6 +367,7 @@ export class CreateSocialPostPresenter {
 			this.selectedIds = this.selectedIds.filter((x) => x !== id);
 			if (this.mode === 'custom' && this.focusedIntegrationId === id) {
 				this.focusedIntegrationId = this.selectedIds.length ? this.selectedIds[0]! : null;
+				this.customEditingUnlocked = false;
 				this.editorLocked = true;
 				this.loadEditorBody();
 				this.loadEditorMedia();
@@ -501,9 +498,12 @@ export class CreateSocialPostPresenter {
 		}
 		this.persistEditorBody();
 		this.persistEditorMedia();
+		this.syncFollowUpRepliesAcrossSelectedChannels();
 		this.mode = 'custom';
 		this.focusedIntegrationId = integrationId;
-		this.editorLocked = !this.customEditingUnlocked;
+		this.customEditingUnlocked = false;
+		this.editorLocked = true;
+		this.syncFollowUpRepliesToFocusedChannel();
 		this.settingsOpen = false;
 		this.loadEditorBody();
 		this.loadEditorMedia();
@@ -534,7 +534,10 @@ export class CreateSocialPostPresenter {
 		this.persistEditorBody();
 		this.persistEditorMedia();
 		this.focusedIntegrationId = id;
+		this.customEditingUnlocked = false;
+		this.editorLocked = true;
 		this.settingsOpen = false;
+		this.syncFollowUpRepliesToFocusedChannel();
 		this.loadEditorBody();
 		this.loadEditorMedia();
 	}
@@ -661,6 +664,17 @@ export class CreateSocialPostPresenter {
 		this.providerSettingsByIntegrationId = syncThreadFollowUpRepliesAcrossSelectedChannels({
 			mode: this.mode,
 			contentSetAuthoringActive: this.contentSetAuthoringActive,
+			selectedIds: this.selectedIds,
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
+		});
+	}
+
+	/** Custom mode: inherit global follow-up program when focusing a channel that has none yet. */
+	private syncFollowUpRepliesToFocusedChannel(): void {
+		if (this.contentSetAuthoringActive || this.mode !== 'custom' || !this.focusedIntegrationId) return;
+		this.providerSettingsByIntegrationId = syncThreadFollowUpRepliesToFocusedChannel({
+			focusedIntegrationId: this.focusedIntegrationId,
 			selectedIds: this.selectedIds,
 			baseSocialChannelsVm: this.baseSocialChannelsVm,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId

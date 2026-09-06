@@ -37,6 +37,7 @@ export {
 	listThreadFollowUpSupportedIntegrationIds,
 	syncSharedFollowUpsToProviderSettingsForSetAuthoring,
 	syncThreadFollowUpRepliesAcrossSelectedChannels,
+	syncThreadFollowUpRepliesToFocusedChannel,
 	threadFollowUpRepliesRawForIntegration,
 	type FollowUpProviderBucket
 } from './followUp';

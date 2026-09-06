@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	integrationSupportsFollowUpComments,
 	listThreadFollowUpSupportedIntegrationIds,
-	syncThreadFollowUpRepliesAcrossSelectedChannels
+	syncThreadFollowUpRepliesAcrossSelectedChannels,
+	syncThreadFollowUpRepliesToFocusedChannel
 } from '$lib/posts/utils/create-post/followUp';
 
 describe('integrationSupportsFollowUpComments', () => {
@@ -91,6 +92,43 @@ describe('syncThreadFollowUpRepliesAcrossSelectedChannels', () => {
 		const synced = syncThreadFollowUpRepliesAcrossSelectedChannels({
 			mode: 'custom',
 			contentSetAuthoringActive: false,
+			selectedIds: ['fb-1', 'ig-1'],
+			baseSocialChannelsVm: channels,
+			providerSettingsByIntegrationId: providerSettings
+		});
+		expect(synced).toEqual(providerSettings);
+	});
+});
+
+describe('syncThreadFollowUpRepliesToFocusedChannel', () => {
+	const channels = [
+		{ id: 'fb-1', identifier: 'facebook', name: 'Page', picture: null },
+		{ id: 'ig-1', identifier: 'instagram-business', name: 'IG', picture: null }
+	];
+	const replies = [{ id: 'r1', message: 'Follow-up comment', delaySeconds: 0 }];
+
+	it('copies canonical Facebook replies onto focused Instagram when IG bucket is empty', () => {
+		const providerSettings = {
+			'fb-1': { facebook: { postType: 'post', replies } },
+			'ig-1': { instagram: {} }
+		};
+		const synced = syncThreadFollowUpRepliesToFocusedChannel({
+			focusedIntegrationId: 'ig-1',
+			selectedIds: ['fb-1', 'ig-1'],
+			baseSocialChannelsVm: channels,
+			providerSettingsByIntegrationId: providerSettings
+		});
+		expect(synced['ig-1']?.instagram).toEqual({ replies });
+	});
+
+	it('does not overwrite focused channel replies that already have content', () => {
+		const igReplies = [{ id: 'r2', message: 'IG-only comment', delaySeconds: 0 }];
+		const providerSettings = {
+			'fb-1': { facebook: { postType: 'post', replies } },
+			'ig-1': { instagram: { replies: igReplies } }
+		};
+		const synced = syncThreadFollowUpRepliesToFocusedChannel({
+			focusedIntegrationId: 'ig-1',
 			selectedIds: ['fb-1', 'ig-1'],
 			baseSocialChannelsVm: channels,
 			providerSettingsByIntegrationId: providerSettings

@@ -192,6 +192,63 @@ export function syncThreadFollowUpRepliesAcrossSelectedChannels(
 	});
 }
 
+/**
+ * Custom mode: when focusing a channel with no follow-up rows yet, copy the canonical program from
+ * another selected channel (e.g. Facebook → Instagram Business).
+ */
+export function syncThreadFollowUpRepliesToFocusedChannel(args: {
+	focusedIntegrationId: string;
+	selectedIds: string[];
+	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
+	providerSettingsByIntegrationId: Record<string, Record<string, unknown>>;
+}): Record<string, Record<string, unknown>> {
+	const supportedIds = listThreadFollowUpSupportedIntegrationIds({
+		mode: 'global',
+		contentSetAuthoringActive: false,
+		focusedIntegrationId: null,
+		selectedIds: args.selectedIds,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (!supportedIds.includes(args.focusedIntegrationId)) {
+		return args.providerSettingsByIntegrationId;
+	}
+
+	const focusedReplies = threadFollowUpRepliesRawForIntegration({
+		integrationId: args.focusedIntegrationId,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (focusedReplies.some((r) => (r.message ?? '').trim().length > 0)) {
+		return args.providerSettingsByIntegrationId;
+	}
+
+	const primaryId = getPrimaryThreadFollowUpIntegrationId({
+		contentSetAuthoringActive: false,
+		selectedIds: args.selectedIds,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		supportedIntegrationIds: supportedIds,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (!primaryId) return args.providerSettingsByIntegrationId;
+
+	const canonicalReplies = threadFollowUpRepliesRawForIntegration({
+		integrationId: primaryId,
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+	if (!canonicalReplies.some((r) => (r.message ?? '').trim().length > 0)) {
+		return args.providerSettingsByIntegrationId;
+	}
+
+	return applyThreadFollowUpRepliesToSettings({
+		next: canonicalReplies,
+		targetIntegrationIds: [args.focusedIntegrationId],
+		baseSocialChannelsVm: args.baseSocialChannelsVm,
+		providerSettingsByIntegrationId: args.providerSettingsByIntegrationId
+	});
+}
+
 export function legacySharedRepliesFromProviderSnapshot(args: {
 	snapshot: SetSnapshotViewModel;
 	okIntegrationIds: string[];

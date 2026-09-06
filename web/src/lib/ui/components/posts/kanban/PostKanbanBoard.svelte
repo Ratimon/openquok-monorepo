@@ -198,8 +198,8 @@
 				On-going Tasks
 			</h2>
 			<p class="mt-1 text-sm text-base-content/70">
-				Review AI-generated and manual posts before they go live. Drag between Drafted and Scheduled;
-				double-click post text to edit content, the menu for more actions, or double-click the review note.
+				Review AI-generated and manual posts. Drag between Drafted and Scheduled;
+				double-click post to edit content, the menu for more actions, or double-click the review note.
 			</p>
 		</div>
 		<KanbanBoardFilters
