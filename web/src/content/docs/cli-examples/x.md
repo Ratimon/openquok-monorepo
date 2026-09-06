@@ -74,6 +74,34 @@ openquok posts:create \
   ')"
 ```
 
+### Follow-up reply with images
+
+Upload first, then attach up to four images per reply row on <Badge text="x.replies[]" variant="param" />:
+
+```bash
+REPLY_MEDIA=$(openquok upload ./payoff.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -c "1/2 — setup" \
+  -i "$X_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$X_ID" --argjson media "$REPLY_MEDIA" '
+    {
+      ($id): {
+        x: {
+          replies: [
+            { message: "2/2 — payoff", delaySeconds: 90, media: $media }
+          ]
+        }
+      }
+    }
+  ')"
+```
+
+<Callout type="note" title="Reply media limits">
+<p>Each <Badge text="replies[]" variant="param" /> row supports up to <strong>four images</strong> (same cap as the main tweet). Omit <Badge text="media" variant="param" /> for text-only follow-ups.</p>
+</Callout>
+
 ### Thread finisher
 
 Enable a closing reply with <Badge text="x.enabled" variant="param" /> and <Badge text="x.message" variant="param" />:

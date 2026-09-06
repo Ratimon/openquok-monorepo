@@ -34,6 +34,7 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Publish a Reel from MP4 | [facebook-reel.json](./examples/facebook-reel.json) |
 | Publish a Story (image or MP4) | [facebook-story.json](./examples/facebook-story.json) |
 | Add a comment after the post goes live | [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json) |
+| Add a comment with one image after publish | [facebook-follow-up-comment-with-image.json](./examples/facebook-follow-up-comment-with-image.json) |
 | See what the Page supports | `openquok integrations:settings "$FB_ID"` |
 | Track Page performance | [Discover integration](#discover-integration) → `analytics:platform` |
 
@@ -69,7 +70,7 @@ Each reply row:
 - `delaySeconds` — wait after the previous part publishes (`0` = immediately after the prior step).
 - `media` — optional. Max **one image** per reply; **no video**. Upload first (Rule 2) before referencing `id` / `path`. Omit `media` for text-only comments.
 
-Text-only recipe: [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
+Text-only recipe: [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json). With one image on a reply row: [facebook-follow-up-comment-with-image.json](./examples/facebook-follow-up-comment-with-image.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
 
 **Follow-up with one image** (upload first, then nest under `facebook.replies`):
 

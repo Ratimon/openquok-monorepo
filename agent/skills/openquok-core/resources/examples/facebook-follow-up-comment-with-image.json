@@ -1,0 +1,20 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Main post",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "facebook": {
+        "replies": [
+          {
+            "id": "reply-1",
+            "message": "See the chart in this comment",
+            "delaySeconds": 60,
+            "media": [{ "id": "<reply-media-id>", "path": "https://cdn.example.com/comment-image.jpg" }]
+          }
+        ]
+      }
+    }
+  }
+}

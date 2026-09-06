@@ -43,7 +43,34 @@ export const FACEBOOK_FOLLOW_UP_COMMENT_PAYLOAD = {
 	status: 'scheduled',
 	body: 'Main post',
 	integrationIds: ['<integration-id>'],
-	replies: [{ id: 'reply-1', message: 'First comment on the post', delaySeconds: 60 }]
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			facebook: {
+				replies: [{ id: 'reply-1', message: 'First comment on the post', delaySeconds: 60 }]
+			}
+		}
+	}
+} as const;
+
+export const FACEBOOK_FOLLOW_UP_COMMENT_WITH_IMAGE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Main post',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			facebook: {
+				replies: [
+					{
+						id: 'reply-1',
+						message: 'See the chart in this comment',
+						delaySeconds: 60,
+						media: [{ id: '<reply-media-id>', path: 'https://cdn.example.com/comment-image.jpg' }]
+					}
+				]
+			}
+		}
+	}
 } as const;
 
 export const THREADS_TEXT_ONLY_PAYLOAD = {
@@ -64,6 +91,27 @@ export const THREADS_FOLLOW_UP_REPLIES_PAYLOAD = {
 				replies: [
 					{ id: 'reply-1', message: 'Thread 2/3: The architecture', delaySeconds: 60 },
 					{ id: 'reply-2', message: 'Thread 3/3: What is next', delaySeconds: 120 }
+				]
+			}
+		}
+	}
+} as const;
+
+export const THREADS_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Thread 1/2: Why we built this',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			threads: {
+				replies: [
+					{
+						id: 'reply-1',
+						message: 'Thread 2/2: Architecture diagram',
+						delaySeconds: 60,
+						media: [{ id: '<reply-media-id>', path: 'https://cdn.example.com/reply.jpg' }]
+					}
 				]
 			}
 		}
@@ -191,6 +239,27 @@ export const X_REPLY_CHAIN_PAYLOAD = {
 		'<integration-id>': {
 			x: {
 				replies: [{ id: 'reply-1', message: 'Details in the thread below.', delaySeconds: 60 }]
+			}
+		}
+	}
+} as const;
+
+export const X_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: '1/2 — setup',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			x: {
+				replies: [
+					{
+						id: 'reply-1',
+						message: '2/2 — payoff',
+						delaySeconds: 90,
+						media: [{ id: '<reply-media-id>', path: 'https://cdn.example.com/payoff.jpg' }]
+					}
+				]
 			}
 		}
 	}

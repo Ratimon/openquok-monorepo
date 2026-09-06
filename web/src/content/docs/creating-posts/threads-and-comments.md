@@ -148,13 +148,19 @@ Outside the dashboard, follow-ups live in <Badge text="providerSettingsByIntegra
 | LinkedIn | <Badge text="linkedin.replies" variant="param" /> |
 | Facebook | <Badge text="facebook.replies" variant="param" /> |
 
-Each entry uses <Badge text="message" variant="param" /> and <Badge text="delaySeconds" variant="param" />. On networks that allow reply media, add <Badge text="media" variant="param" /> (flat array or <Badge text="media.items" variant="param" /> — same shapes as the main post). Copy-paste recipes:
+Each entry uses <Badge text="message" variant="param" /> and <Badge text="delaySeconds" variant="param" />. On networks that allow reply media, add <Badge text="media" variant="param" /> (flat array or <Badge text="media.items" variant="param" /> — same shapes as the main post). Upload reply files with <Badge text="openquok upload" variant="default" /> before <Badge text="posts:create" variant="default" />; main-post <Badge text="-m" variant="param" /> does not attach to follow-up rows automatically.
+
+Copy-paste recipes:
 
 <ul>
-<li><a href="/docs/cli-examples/threads">CLI examples — Threads</a></li>
-<li><a href="/docs/cli-examples/x">CLI examples — X</a></li>
-<li><a href="/docs/cli-examples/instagram">CLI examples — Instagram</a></li>
+<li><a href="/docs/cli-examples/threads">CLI examples — Threads</a> — text and media on <Badge text="threads.replies[]" variant="param" /></li>
+<li><a href="/docs/cli-examples/x">CLI examples — X</a> — up to four images per <Badge text="x.replies[]" variant="param" /> row</li>
+<li><a href="/docs/cli-examples/facebook">CLI examples — Facebook</a> — one image per <Badge text="facebook.replies[]" variant="param" /> row</li>
+<li><a href="/docs/cli-examples/instagram">CLI examples — Instagram</a> — text-only <Badge text="instagram.replies[]" variant="param" /></li>
+<li><a href="/docs/cli-examples/linkedin">CLI examples — LinkedIn</a> — text-only <Badge text="linkedin.replies[]" variant="param" /></li>
 </ul>
+
+Agent JSON examples (replace placeholders, then <Badge text="openquok posts:create --json …" variant="default" />): <Badge text="threads-follow-up-reply-with-image.json" variant="path" />, <Badge text="x-follow-up-reply-with-image.json" variant="path" />, and <Badge text="facebook-follow-up-comment-with-image.json" variant="path" /> in <Badge text="agent/skills/openquok-core/resources/examples/" variant="path" />.
 
 See <a href="/docs/cli-usages/managing-posts">Managing posts</a> and <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> for request shapes.
 

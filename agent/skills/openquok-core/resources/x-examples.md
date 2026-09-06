@@ -30,7 +30,8 @@ Run `integrations:settings` for `output.maxLength` (280 or 4000 when Verified) a
 | --- | --- |
 | Post text only | [Simple text post](#simple-text-post) |
 | Post with images | [Post with images](#post-with-images) |
-| Schedule a reply chain | [Scheduled reply chain](#scheduled-reply-chain-thread) |
+| Schedule a reply chain | [x-follow-up-replies.json](./examples/x-follow-up-replies.json) |
+| Attach images on a follow-up reply | [x-follow-up-reply-with-image.json](./examples/x-follow-up-reply-with-image.json) |
 | End with a finisher reply | [Thread finisher](#thread-finisher) |
 | Restrict who can reply | [Compose settings](#compose-settings-reply-audience-community-labels) |
 | Repost from other X channels (internal plug) | [x-cross-account-repost.json](./examples/x-cross-account-repost.json) |
@@ -103,6 +104,8 @@ openquok posts:create \
     ] } } }
   ')"
 ```
+
+JSON recipes: [x-follow-up-replies.json](./examples/x-follow-up-replies.json) (text only), [x-follow-up-reply-with-image.json](./examples/x-follow-up-reply-with-image.json).
 
 Follow-up with image (upload first, then nest under `x.replies`):
 

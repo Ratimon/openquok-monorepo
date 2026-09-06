@@ -34,6 +34,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Post with image or video | [threads-with-image.json](./examples/threads-with-image.json) |
 | Post a carousel | [threads-media-carousel.json](./examples/threads-media-carousel.json) |
 | Schedule a reply chain / thread | [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json) |
+| Attach an image or video on a follow-up reply | [threads-follow-up-reply-with-image.json](./examples/threads-follow-up-reply-with-image.json) |
 | End with a “thanks for reading” reply | [threads-thread-finisher.json](./examples/threads-thread-finisher.json) |
 | Schedule a delayed engagement comment (internal plug) | [threads-engagement-plug.json](./examples/threads-engagement-plug.json) |
 | Comment from other Threads channels (internal plug) | [threads-cross-account-plug.json](./examples/threads-cross-account-plug.json) |
@@ -79,7 +80,7 @@ openquok posts:create \
   ')"
 ```
 
-Reply chain without media: [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
+Reply chain without media: [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json). With media on a reply row: [threads-follow-up-reply-with-image.json](./examples/threads-follow-up-reply-with-image.json). Mechanics: [provider-settings.md](./provider-settings.md#scheduled-follow-up-replies).
 
 ## Run an example
 

@@ -1,0 +1,20 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "1/2 — setup",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "x": {
+        "replies": [
+          {
+            "id": "reply-1",
+            "message": "2/2 — payoff",
+            "delaySeconds": 90,
+            "media": [{ "id": "<reply-media-id>", "path": "https://cdn.example.com/payoff.jpg" }]
+          }
+        ]
+      }
+    }
+  }
+}

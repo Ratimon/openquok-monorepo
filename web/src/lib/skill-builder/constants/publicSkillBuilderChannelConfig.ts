@@ -10,6 +10,7 @@ import { route } from '$lib/utils/path';
 import { buildSkillBuilderChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	FACEBOOK_FOLLOW_UP_COMMENT_PAYLOAD,
+	FACEBOOK_FOLLOW_UP_COMMENT_WITH_IMAGE_PAYLOAD,
 	FACEBOOK_LINK_PREVIEW_PAYLOAD,
 	FACEBOOK_MULTI_PHOTO_PAYLOAD,
 	FACEBOOK_REEL_PAYLOAD,
@@ -18,6 +19,7 @@ import {
 	LINKEDIN_PAGE_GLOBAL_AUTO_PLUG_PAYLOAD,
 	LINKEDIN_TEXT_POST_PAYLOAD,
 	THREADS_FOLLOW_UP_REPLIES_PAYLOAD,
+	THREADS_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD,
 	THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD,
 	THREADS_GLOBAL_AUTO_PLUG_PAYLOAD,
 	THREADS_TEXT_ONLY_PAYLOAD,
@@ -26,6 +28,7 @@ import {
 	X_GLOBAL_AUTO_PLUG_PAYLOAD,
 	X_GLOBAL_AUTO_REPOST_PAYLOAD,
 	X_REPLY_CHAIN_PAYLOAD,
+	X_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD,
 	X_TEXT_ONLY_PAYLOAD,
 	YOUTUBE_VIDEO_TITLE_PRIVACY_PAYLOAD,
 	DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD,
@@ -99,8 +102,15 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 		{
 			id: 'facebook-follow-up-comment',
 			label: 'Follow-up comment',
-			prompt: 'Schedule the Page post and a follow-up comment using the replies array.',
+			prompt: 'Schedule the Page post and a follow-up comment using facebook.replies.',
 			examplePayload: { ...FACEBOOK_FOLLOW_UP_COMMENT_PAYLOAD }
+		},
+		{
+			id: 'facebook-follow-up-comment-with-image',
+			label: 'Follow-up comment with image',
+			prompt:
+				'Upload the comment image first, then attach media on one facebook.replies row (one image max, no video).',
+			examplePayload: { ...FACEBOOK_FOLLOW_UP_COMMENT_WITH_IMAGE_PAYLOAD }
 		}
 	],
 	threads: [
@@ -115,6 +125,13 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			label: 'Reply chain',
 			prompt: 'Schedule a root post and follow-up replies under threads.replies.',
 			examplePayload: { ...THREADS_FOLLOW_UP_REPLIES_PAYLOAD }
+		},
+		{
+			id: 'threads-follow-up-reply-with-image',
+			label: 'Reply with image',
+			prompt:
+				'Upload reply media first, then nest media on a threads.replies row (images or video).',
+			examplePayload: { ...THREADS_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD }
 		},
 		{
 			id: 'threads-cross-account-comment',
@@ -184,6 +201,13 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			label: 'Reply chain',
 			prompt: 'Schedule a root post and follow-up replies under x.replies.',
 			examplePayload: { ...X_REPLY_CHAIN_PAYLOAD }
+		},
+		{
+			id: 'x-follow-up-reply-with-image',
+			label: 'Reply with image',
+			prompt:
+				'Upload reply images first, then attach media on an x.replies row (up to four images per reply).',
+			examplePayload: { ...X_FOLLOW_UP_REPLY_WITH_IMAGE_PAYLOAD }
 		},
 		{
 			id: 'x-cross-account-repost',

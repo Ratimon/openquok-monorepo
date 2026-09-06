@@ -71,7 +71,7 @@ Each reply row:
 - `delaySeconds` — wait **after the previous part** publishes (0 = immediately after the prior step).
 - `media` — optional. Flat `media[]` or `media: { "items": [...] }` (same shapes as the main post). Omit on Instagram and LinkedIn. Upload first (Rule 2) before referencing `id` / `path`.
 
-Examples: [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json), [x-examples.md](./x-examples.md#scheduled-reply-chain-thread), [instagram-follow-up-comments.json](./examples/instagram-follow-up-comments.json), [linkedin-follow-up-comment.json](./examples/linkedin-follow-up-comment.json), [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json).
+Examples: [threads-follow-up-replies.json](./examples/threads-follow-up-replies.json), [threads-follow-up-reply-with-image.json](./examples/threads-follow-up-reply-with-image.json), [x-follow-up-replies.json](./examples/x-follow-up-replies.json), [x-follow-up-reply-with-image.json](./examples/x-follow-up-reply-with-image.json), [x-examples.md](./x-examples.md#scheduled-reply-chain-thread), [instagram-follow-up-comments.json](./examples/instagram-follow-up-comments.json), [linkedin-follow-up-comment.json](./examples/linkedin-follow-up-comment.json), [facebook-follow-up-comment.json](./examples/facebook-follow-up-comment.json), [facebook-follow-up-comment-with-image.json](./examples/facebook-follow-up-comment-with-image.json).
 
 ## Internal plugs
 

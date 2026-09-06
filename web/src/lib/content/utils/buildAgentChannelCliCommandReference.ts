@@ -88,6 +88,10 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			'facebook-follow-up-comment.json',
 			'Schedule a Page post and a follow-up comment'
 		),
+		postsCreateJsonCommand(
+			'facebook-follow-up-comment-with-image.json',
+			'Schedule a Page post and a follow-up comment with one image'
+		),
 		{
 			command: 'openquok analytics:platform "$FB_ID" -d 30',
 			description: 'Pull 30-day Page analytics'
@@ -114,6 +118,10 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok posts:create --json ./examples/threads-follow-up-replies.json',
 			description: 'Schedule a root post and follow-up replies'
 		},
+		postsCreateJsonCommand(
+			'threads-follow-up-reply-with-image.json',
+			'Schedule a follow-up reply with image or video on threads.replies'
+		),
 		postsCreateJsonCommand(
 			'threads-cross-account-plug.json',
 			'Comment from another Threads channel after publish (crossAccountPlugs)'
@@ -246,6 +254,11 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			description: 'Get X posting rules and character limits'
 		},
 		postsCreateJsonCommand('x-text-only.json', 'Schedule a text-only post on X'),
+		postsCreateJsonCommand('x-follow-up-replies.json', 'Schedule a root post and quote-less reply chain'),
+		postsCreateJsonCommand(
+			'x-follow-up-reply-with-image.json',
+			'Schedule a follow-up reply with images on x.replies'
+		),
 		postsCreateJsonCommand(
 			'x-cross-account-repost.json',
 			'Repost from another X channel after publish (crossAccountPlugs)'

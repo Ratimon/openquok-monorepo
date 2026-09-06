@@ -64,14 +64,44 @@ openquok posts:create \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
       ($id): {
-        replies: [
-          { message: "Thread 2/3: The architecture", delaySeconds: 60 },
-          { message: "Thread 3/3: What is next",      delaySeconds: 120 }
-        ]
+        threads: {
+          replies: [
+            { message: "Thread 2/3: The architecture", delaySeconds: 60 },
+            { message: "Thread 3/3: What is next",      delaySeconds: 120 }
+          ]
+        }
       }
     }
   ')"
 ```
+
+### Follow-up reply with image or video
+
+Upload the reply attachment first, then nest `media` on the matching `replies[]` row (same `{ id, path }` shape as the main post). Threads supports images and video on follow-ups:
+
+```bash
+REPLY_MEDIA=$(openquok upload ./thread-slide.jpg | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
+
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -c "Thread 1/2: Why we built OpenQuok" \
+  -i "$THREADS_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc \
+    --arg id "$THREADS_ID" \
+    --argjson media "$REPLY_MEDIA" '
+    {
+      ($id): {
+        threads: {
+          replies: [
+            { message: "Thread 2/2: Architecture diagram", delaySeconds: 60, media: $media }
+          ]
+        }
+      }
+    }
+  ')"
+```
+
+JSON recipe: <Badge text="threads-follow-up-reply-with-image.json" variant="path" /> in the agent skill examples folder (`agent/skills/openquok-core/resources/examples/`).
 
 ### Add a "finisher" reply
 
@@ -85,11 +115,13 @@ openquok posts:create \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "$THREADS_ID" '
     {
       ($id): {
-        enabled: true,
-        message: "Thanks for reading — like and follow for more!",
-        replies: [
-          { message: "Thread 2/2: The punchline", delaySeconds: 30 }
-        ]
+        threads: {
+          enabled: true,
+          message: "Thanks for reading — like and follow for more!",
+          replies: [
+            { message: "Thread 2/2: The punchline", delaySeconds: 30 }
+          ]
+        }
       }
     }
   ')"
