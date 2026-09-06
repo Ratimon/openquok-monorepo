@@ -24,6 +24,7 @@
 	} from '$lib/posts/utils/composer/mediaDrop';
 	import {
 		getComposerToolbarVisibility,
+		getFollowUpCommentToolbarVisibility,
 		usesRichComposerEditor,
 		validateComposerLinkHref
 	} from '$lib/ui/components/posts/composer-editor';
@@ -112,6 +113,10 @@
 		canRedoHistory?: boolean;
 		onUndoHistory?: () => void;
 		onRedoHistory?: () => void;
+		/** Main post vs follow-up reply — limits which toolbar actions are shown. */
+		toolbarContext?: 'main-post' | 'follow-up-comment';
+		/** Follow-up replies: hide attach buttons when the network is text-only. */
+		allowMediaAttach?: boolean;
 	}
 
 	let {
@@ -154,7 +159,9 @@
 		canUndoHistory = false,
 		canRedoHistory = false,
 		onUndoHistory = undefined,
-		onRedoHistory = undefined
+		onRedoHistory = undefined,
+		toolbarContext = 'main-post',
+		allowMediaAttach = true
 	}: ComposerMediaToolbarProps = $props();
 
 	type MediaGenerationProps = ComponentProps<typeof MediaGenerationModal>;
@@ -181,7 +188,12 @@
 	const isLinkedInFocus = $derived(
 		focusedProviderIdentifier === 'linkedin' || focusedProviderIdentifier === 'linkedin-page'
 	);
-	const toolbarVisibility = $derived(getComposerToolbarVisibility(composerEditorMode));
+	const toolbarVisibility = $derived(
+		toolbarContext === 'follow-up-comment'
+			? getFollowUpCommentToolbarVisibility()
+			: getComposerToolbarVisibility(composerEditorMode)
+	);
+	const showMediaAttach = $derived(toolbarContext === 'main-post' || allowMediaAttach);
 	const isRichEditor = $derived(usesRichComposerEditor(composerEditorMode));
 	const textInputReady = $derived(hasTextInput && (Boolean(textarea) || Boolean(tiptapEditor)));
 	const showLinkedInCompany = $derived(
@@ -449,9 +461,10 @@
 <div
 	class="border-base-300/80 bg-base-100/90 inline-flex max-w-full min-w-0 flex-wrap items-center gap-1 rounded-xl border p-1 shadow-md backdrop-blur-md {className}"
 	role="toolbar"
-	aria-label="Post media"
+	aria-label={toolbarContext === 'follow-up-comment' ? 'Reply tools' : 'Post media'}
 >
 	<Tooltip.Provider delayDuration={200}>
+		{#if showMediaAttach}
 		<!-- 1: add media from disk -->
 		<ComposerMediaTooltip
 			label={guestMode
@@ -534,6 +547,8 @@
 			{/snippet}
 		</ComposerMediaTooltip>
 
+		{/if}
+		{#if toolbarVisibility.signatures}
 		<!-- 4: signatures modal -->
 		<ComposerMediaTooltip label={signatureTooltipLabel}>
 			{#snippet trigger({ props })}
@@ -570,7 +585,9 @@
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
+		{/if}
 
+		{#if toolbarVisibility.ai}
 		<!-- 5: AI Writer (Chrome on-device Writer API) -->
 		<ComposerMediaTooltip label="Draft with AI Writer">
 			{#snippet trigger({ props })}
@@ -620,6 +637,7 @@
 				</button>
 			{/snippet}
 		</ComposerMediaTooltip>
+		{/if}
 
 		{#if onUndoHistory && onRedoHistory && toolbarVisibility.undoRedo}
 			<ComposerHistoryButtons

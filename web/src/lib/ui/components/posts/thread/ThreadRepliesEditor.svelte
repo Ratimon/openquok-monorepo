@@ -1,7 +1,18 @@
 <script lang="ts">
+	import type { HumanizePresenter } from '$lib/ai-humanize/Humanize.presenter.svelte';
+	import type { SummarizerPresenter } from '$lib/ai-summarizer/Summarizer.presenter.svelte';
+	import type { WriterPresenter } from '$lib/ai-writer/Writer.presenter.svelte';
+	import type {
+		BackgroundPanelViewModel,
+		DesignTemplateProgrammerModel,
+		ExportCanvasToMediaFn,
+		PolotnoTemplateListPageProgrammerModel,
+		StockPhotoViewModel
+	} from '$lib/canvas';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 	import type { PostCommentMode } from '$lib/ui/components/posts/AddPostButton.svelte';
 	import type { LaunchProviderCommentsMode } from '$lib/ui/components/posts/providers/provider.types';
+	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { icons } from '$data/icons';
 	import { channelSupportsFollowUpComments } from '$lib/posts/utils/create-post/followUp';
@@ -35,6 +46,23 @@
 		publishDateIso?: string | null;
 		/** Current workspace for org-scoped signatures in the toolbar. */
 		organizationId?: string | null;
+		loadSignaturesVmForComposer?: FetchSignaturesForComposerFn;
+		stockPhotosVm?: readonly StockPhotoViewModel[];
+		designTemplatesVm?: readonly DesignTemplateProgrammerModel[];
+		fetchPolotnoTemplateListPage?: (
+			params: { query: string; page: number },
+			signal?: AbortSignal
+		) => Promise<PolotnoTemplateListPageProgrammerModel>;
+		backgroundPanelVm?: BackgroundPanelViewModel;
+		exportCanvasToMedia?: ExportCanvasToMediaFn;
+		writerPresenter?: WriterPresenter;
+		summarizerPresenter?: SummarizerPresenter;
+		humanizePresenter?: HumanizePresenter;
+		/** Channel integration id for @mention autocomplete on replies. */
+		threadIntegrationId?: string | null;
+		/** Unique provider identifiers for AI constraint strip. */
+		constraintProviderIdentifiers?: readonly string[];
+		isLoggedIn?: boolean;
 		/** When true, disable editing. */
 		disabled?: boolean;
 		/** Bound list of thread replies. */
@@ -63,6 +91,21 @@
 		uploadUid = '',
 		publishDateIso = null,
 		organizationId = null,
+		loadSignaturesVmForComposer = undefined,
+		stockPhotosVm = [],
+		designTemplatesVm = [],
+		fetchPolotnoTemplateListPage = async () => ({ items: [], page: 1, totalPages: 1 }),
+		backgroundPanelVm = {
+			fetchPolotnoUnsplashPagePm: async () => ({ items: [], page: 1, totalPages: 1 }),
+			triggerPolotnoUnsplashDownloadPm: () => {}
+		},
+		exportCanvasToMedia = async () => ({ ok: false, error: 'Export is not configured.' }),
+		writerPresenter = undefined,
+		summarizerPresenter = undefined,
+		humanizePresenter = undefined,
+		threadIntegrationId = null,
+		constraintProviderIdentifiers = [],
+		isLoggedIn = false,
 		disabled = false,
 		replies,
 		onAddReply,
@@ -245,8 +288,22 @@
 							{uploadUid}
 							{publishDateIso}
 							{organizationId}
+							{loadSignaturesVmForComposer}
+							{stockPhotosVm}
+							{designTemplatesVm}
+							{fetchPolotnoTemplateListPage}
+							{backgroundPanelVm}
+							{exportCanvasToMedia}
+							{writerPresenter}
+							{summarizerPresenter}
+							{humanizePresenter}
+							composerMode="custom"
+							focusedProviderIdentifier={providerIdentifier}
+							focusedIntegrationId={threadIntegrationId}
+							{constraintProviderIdentifiers}
 							maxMediaItems={replyMaxMediaItems}
 							{guestMode}
+							{isLoggedIn}
 							onOpenComposerMediaSettings={
 								guestMode || !onOpenComposerMediaSettings
 									? undefined

@@ -100,6 +100,8 @@
 		/** Main post `datetime-local` (ManageModal); used for thread reply delay hints. */
 		scheduledPostDatetimeLocal?: string | null;
 		threadProviderIdentifier?: string | null;
+		/** Integration id for follow-up reply @mentions and toolbar context. */
+		threadIntegrationId?: string | null;
 		settingsDisabled?: boolean;
 		postMediaItems?: PostMediaProgrammerModel[];
 		uploadUid?: string;
@@ -167,6 +169,7 @@
 		onChangeThreadReplies = undefined,
 		scheduledPostDatetimeLocal = null,
 		threadProviderIdentifier = null,
+		threadIntegrationId = null,
 		settingsDisabled = false,
 		postMediaItems = $bindable([]),
 		uploadUid = '',
@@ -628,7 +631,19 @@
 				{uploadUid}
 				publishDateIso={publishDateIso}
 				{organizationId}
+				{loadSignaturesVmForComposer}
+				{stockPhotosVm}
+				{designTemplatesVm}
+				{fetchPolotnoTemplateListPage}
+				{backgroundPanelVm}
+				{exportCanvasToMedia}
+				{writerPresenter}
+				{summarizerPresenter}
+				{humanizePresenter}
+				threadIntegrationId={threadIntegrationId}
+				{constraintProviderIdentifiers}
 				{guestMode}
+				{isLoggedIn}
 				onOpenComposerMediaSettings={guestMode ? undefined : openComposerMediaSettingsForReply}
 			/>
 		{/if}

@@ -1,6 +1,7 @@
 export { buildComposerEditorExtensions } from '$lib/ui/components/posts/composer-editor/buildComposerEditorExtensions';
 export {
 	getComposerToolbarVisibility,
+	getFollowUpCommentToolbarVisibility,
 	usesRichComposerEditor,
 	type ComposerToolbarVisibility
 } from '$lib/ui/components/posts/composer-editor/composerToolbarVisibility';

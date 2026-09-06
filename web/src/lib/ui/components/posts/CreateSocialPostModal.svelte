@@ -239,6 +239,7 @@
 							}
 						: undefined}
 					threadProviderIdentifier={followUpTargetChannel?.identifier ?? null}
+					threadIntegrationId={followUpTargetIntegrationId}
 					mediaUrls={presenter.previewMediaUrls}
 					{composerTextHistory}
 					{composerHistoryKey}

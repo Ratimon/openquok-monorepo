@@ -2,7 +2,7 @@
 title: Threads and comments
 description: Follow-up replies after the main post, what each network does with them, and delays between parts in the OpenQuok social scheduler.
 order: 3
-lastUpdated: 2026-09-01
+lastUpdated: 2026-09-06
 ---
 
 <script>
@@ -13,7 +13,6 @@ A post can have more than one part: a **main post** (caption plus <a href="/docs
 
 What the extra parts become depends on the network — a thread reply, a comment on your own post, or nothing at all.
 
-
 ![Threads Post Editor](/docs/_assets/creating-posts/editor-threads.webp)
 
 ## Where in the composer
@@ -21,7 +20,7 @@ What the extra parts become depends on the network — a thread reply, a comment
 | Area | What you do there |
 | --- | --- |
 | **Main caption + media** | Write the post that publishes first — see <a href="/docs/creating-posts/writing-the-post">Writing the post</a> and <a href="/docs/creating-posts/media">Media</a> |
-| **Follow-up comments** | Replies below the caption when at least one supported channel is selected — text and, on some networks, media |
+| **Follow-up comments** | Replies below the caption when at least one supported channel is selected — each row has its own text field, **reply toolbar**, optional media (network-dependent), and **Delay** |
 | **Settings** (purple accordion) | Thread finisher, delayed same-account engagement (Threads), and cross-account plugs |
 
 The **Follow-up comments** panel appears when your selection includes **Threads**, **X**, **Instagram**, **LinkedIn**, or **Facebook**.
@@ -38,15 +37,29 @@ The button label follows the focused channel:
 | **Add comment** | Follow-ups publish as comments on the main post (e.g. Instagram). |
 | **Add comment or post** | The channel or platform supports both styles. |
 
-Each reply row has its own text field, a **Delay** control, and row actions:
+Each reply row has its own text field, a **reply toolbar** under the text area, a **Delay** control, and row actions:
 
 | Control | What it does |
 | --- | --- |
+| **Reply toolbar** | Attach media (when the network allows), AI Writer / Summarize / Sound more human, emoji, hashtag, and mention — see below |
 | **Up / down** (chevrons) | Swap a reply with the one above or below — publish order follows the list |
 | **Remove** | Delete that row |
 
+### Reply toolbar
+
+Each follow-up row includes a toolbar, but limited to actions that work on replies:
+
+| Tool | Follow-up replies |
+| --- | --- |
+| Attach from device, media library, Photo Editor | **Threads**, **X**, and **Facebook** only (Facebook: one image per reply, no video) |
+| AI Writer, Summarize, Sound more human | All networks with follow-ups in the composer |
+| Emoji, hashtag, mention | All networks with follow-ups in the composer |
+| Signatures, bold / italic / underline, links, headings, lists | Not shown — replies publish as plain text (plus optional media where allowed) |
+
+You can still drag and drop images or videos onto a reply when that network supports reply media. **Instagram** and **LinkedIn** follow-ups stay **text only** — the attach buttons are hidden on those rows.
+
 <Callout type="note">
-<p><strong>Media on follow-ups</strong> depends on the connected channel. <strong>Threads</strong>, <strong>X</strong>, and <strong>Facebook</strong> show the same attach toolbar as the main post (Facebook allows one image per reply, no video). <strong>Instagram</strong> and <strong>LinkedIn</strong> follow-ups are <strong>text only</strong>.</p>
+<p><strong>Media on follow-ups</strong> depends on the connected channel. <strong>Threads</strong> and <strong>X</strong> support images and video on replies. <strong>Facebook</strong> allows <strong>one image</strong> per reply (no video). <strong>Instagram</strong> and <strong>LinkedIn</strong> follow-ups are <strong>text only</strong>.</p>
 </Callout>
 
 ## Delays between parts
@@ -76,11 +89,11 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 
 | Network | Follow-ups in composer | How they publish | Media on follow-ups |
 | --- | --- | --- | --- |
-| **Threads** | Yes | Same-account replies in order | Images and video (same toolbar as the main post) |
+| **Threads** | Yes | Same-account replies in order | Images and video |
 | **X** | Yes | Quote-less replies on the root tweet | Up to four images per reply |
 | **Instagram** | Yes | Comments on the root post | Text only |
 | **LinkedIn** | Yes | Comments on the main post | Text only |
-| **Facebook** | Yes | Comments on the main post | One image per reply (no video) |
+| **Facebook** | Yes | Comments on the main post | One image per reply via reply toolbar (no video) |
 | **YouTube**, **TikTok**, **Dev.to**, … | No | — | — |
 
 Cross-account **plugs** on **LinkedIn** (from **Settings**) are separate from same-account follow-up comment rows — see <a href="/docs/automations/plugs">Plugs</a>.

@@ -271,7 +271,8 @@
 			? 'min-h-[4.5rem] sm:min-h-[4.5rem]'
 			: 'min-h-[140px] sm:min-h-[180px]'
 	);
-	const mediaToolbarVisible = $derived(!locked && !defineSetScopeOverlay && composerAllowsMedia);
+	const composerToolbarVisible = $derived(!locked && !defineSetScopeOverlay);
+	const mediaToolbarVisible = $derived(composerToolbarVisible && composerAllowsMedia);
 	const mentionToolbarDisabled = $derived(composerMode === 'global');
 	const mentionToolbarTooltip = $derived(
 		composerMode === 'global'
@@ -547,7 +548,7 @@
 					{/if}
 				</div>
 
-				{#if mediaToolbarVisible && writerPresenter && summarizerPresenter && humanizePresenter}
+				{#if composerToolbarVisible && writerPresenter && summarizerPresenter && humanizePresenter}
 					<div class="min-w-0 max-w-full px-2 pb-2">
 						<ComposerMediaToolbar
 							bind:this={mediaToolbarRef}
@@ -577,6 +578,8 @@
 							{maxMediaItems}
 							{guestMode}
 							{isLoggedIn}
+							toolbarContext={isCommentEditor ? 'follow-up-comment' : 'main-post'}
+							allowMediaAttach={composerAllowsMedia}
 							onBeforeTextEdit={recordBeforeComposerEdit}
 							onAfterTextEdit={recordAfterComposerEdit}
 							onInsertSignature={(sig) => {

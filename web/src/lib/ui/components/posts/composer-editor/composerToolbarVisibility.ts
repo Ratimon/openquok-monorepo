@@ -61,3 +61,18 @@ export function getComposerToolbarVisibility(
 export function usesRichComposerEditor(mode: IntegrationEditorMode): boolean {
 	return mode !== 'normal';
 }
+
+/** Follow-up replies are plain text (+ optional image on some networks) — no rich formatting or signatures. */
+export function getFollowUpCommentToolbarVisibility(): ComposerToolbarVisibility {
+	return {
+		signatures: false,
+		ai: true,
+		undoRedo: false,
+		boldUnderline: false,
+		linkHeadingsLists: false,
+		emoji: true,
+		hashtag: true,
+		mention: true,
+		linkedInCompany: false
+	};
+}
