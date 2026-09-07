@@ -2,7 +2,7 @@
 title: Meta Threads
 description: How to configure Meta Threads for OpenQuok
 order: 4
-lastUpdated: 2026-04-12
+lastUpdated: 2026-09-08
 ---
 
 <script>
@@ -81,12 +81,26 @@ You can skip **adding business details** and **connecting a business portfolio**
 
 On your app dashboard, Select **Access the Threads API** to customize the API access.
 
-Add **products/scopes** including <Badge text="threads_basic" variant="default" /> and <Badge text="threads_content_publish" variant="default" />.
+Add these **permissions** under **Access the Threads API** (OpenQuok requests them at connect time):
+
+<ul class="list-disc pl-6">
+<li><Badge text="threads_basic" variant="default" /> — profile and account basics</li>
+<li><Badge text="threads_content_publish" variant="default" /> — publish posts and replies</li>
+<li><Badge text="threads_manage_replies" variant="default" /> — same-account follow-up replies and comments</li>
+<li><Badge text="threads_manage_insights" variant="default" /> — channel and post analytics</li>
+<li><Badge text="threads_keyword_search" variant="default" /> — keyword search preflight for <strong>cross-account</strong> comments (see below)</li>
+</ul>
 
 ![Step 4 - Scope a Meta App](/docs/_assets/social-integration/meta/threads/scope-api-access.webp)
 
 <Callout type="tip">
 Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-started">Threads API get started</DocsExternalLink> for current requirements.
+</Callout>
+
+<Callout type="note">
+<p>OpenQuok uses <Badge text="threads_keyword_search" variant="default" /> when a <strong>different</strong> Threads channel comments on another channel's root post. Meta requires the acting account to find that post via <DocsExternalLink href="https://developers.facebook.com/docs/threads/keyword-search/">keyword search</DocsExternalLink> immediately before publishing the reply.</p>
+<p>After you add this permission in the Meta app, <strong>reconnect every Threads channel</strong> in OpenQuok so stored tokens include the new scope. Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_keyword_search" variant="default" /> (screencast: search a keyword from the root post → show results → publish a cross-account comment). Until Advanced Access is approved, keyword search only returns the acting user's own posts — cross-account plugs against another account's public thread will not work in production.</p>
+<p>Remove <Badge text="threads_read_replies" variant="deprecated" /> from your Meta app if it is still enabled — OpenQuok does not use it.</p>
 </Callout>
 
 

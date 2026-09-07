@@ -2,7 +2,7 @@
 title: Threads and comments
 description: Follow-up replies after the main post, what each network does with them, and delays between parts in the OpenQuok social scheduler.
 order: 3
-lastUpdated: 2026-09-06
+lastUpdated: 2026-09-08
 ---
 
 <script>
@@ -115,6 +115,11 @@ CLI and API users set finisher fields under <Badge text="threads.enabled" varian
 **Settings** can schedule **cross-account plugs** — comments from another connected channel after publish (supported on **Threads**, **X**, and **LinkedIn**).
 
 See <a href="/docs/automations/plugs">Plugs</a> for the concept. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
+
+<Callout type="warning">
+<p>When a <strong>different</strong> Threads channel comments on the publisher's root post, Meta requires a keyword-search step first. Every acting channel needs the <Badge text="threads_keyword_search" variant="default" /> OAuth scope — enable it in your Meta app and <strong>reconnect</strong> those integrations after deploy.</p>
+<p>The root post should include searchable text (avoid emoji-only captions). Allow at least about <strong>one minute</strong> of delay on the plug so Meta can index the post before the comment runs. Cross-account comments on another account's public thread also require Meta <strong>App Review</strong> for Advanced Access on <Badge text="threads_keyword_search" variant="default" />.</p>
+</Callout>
 
 ## Multi-channel and Global mode
 

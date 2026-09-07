@@ -331,7 +331,12 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         });
 
         const publish = createPublishScheduledGroupHandler({
-            postsRepository: basePostsRepo(minimalPost({ settings: settingsJson })) as unknown as ScheduledPostsRepository,
+            postsRepository: basePostsRepo(
+                minimalPost({
+                    content: "<p>Launch day is here</p>",
+                    settings: settingsJson,
+                })
+            ) as unknown as ScheduledPostsRepository,
             integrationRepository: integrationRepo,
             integrationManager: manager,
             refreshService,
@@ -348,6 +353,7 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         expect(call[3]).toEqual(
             expect.objectContaining({
                 comment: "Nice thread!",
+                rootPostSearchText: "Launch day is here",
                 replyToParentId: "release-main",
             })
         );

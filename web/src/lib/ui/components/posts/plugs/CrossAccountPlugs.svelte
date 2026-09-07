@@ -69,10 +69,20 @@
 			(ch) => allowed.includes(ch.identifier) && ch.id !== currentChannel.id
 		);
 	}
+
+	const showThreadsCrossAccountHint = $derived(currentChannel.identifier === 'threads');
 </script>
 
 {#if plugs.length}
 	<div class="space-y-4 {compact ? 'mt-4' : 'mt-6'}">
+		{#if showThreadsCrossAccountHint}
+			<p class="text-xs text-base-content/55">
+				Cross-account comments search Meta with your root post text before replying. Requires the
+				<code class="text-[0.7rem]">threads_keyword_search</code> scope (reconnect acting channels
+				after adding it), a text-based root caption, and a delay of about one minute or more so Meta
+				can index the post.
+			</p>
+		{/if}
 		{#each plugs as def (def.identifier)}
 			{@const state = plugState(def.identifier)}
 			{@const accounts = eligibleChannels(def)}

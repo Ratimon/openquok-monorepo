@@ -27,11 +27,11 @@ OpenQuok uses Supabase's new API key format only — the legacy JWT-based <code>
 | Public / client-side | <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" /> | <code>sb&#95;publishable&#95;…</code> |
 | Server-side (elevated) | <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> | <code>sb&#95;secret&#95;…</code> |
 
-<Callout type="warning" title="Never expose the secret key to the client">
+<Callout type="warning">Never expose the secret key to the client.
 <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> bypasses Row Level Security and must only live in backend environment variables (server processes, workers, CI secret stores). See <a href="/docs/developer-guidelines/security">Security guidelines</a>.
 </Callout>
 
-<Callout type="note" title="Already on legacy keys?">
+<Callout type="note">
 If your Supabase project still has only <code>anon</code> / <code>service&#95;role</code> JWT keys, open <strong>Settings → API Keys</strong> in the Dashboard and create a <strong>Publishable key</strong> plus one or more <strong>Secret keys</strong>, then update your env vars to the new names.
 </Callout>
 
@@ -90,8 +90,8 @@ If you use email confirmation or third-party providers, configure them in the Su
 
 Some modules use a cron job (via <code>pg&#95;cron</code>) on Supabase Cloud.
 
-<Callout type="warning" title="Supabase Cloud requires enabling cron integration">
-Enable cron via the Supabase Dashboard (Integrations → Cron) before running migrations that depend on it.
+<Callout type="warning">
+Enable cron via the Supabase Dashboard (Integrations → Cron) before running migrations.
 </Callout>
 
 If you need to enable it manually, Supabase’s docs show the required SQL and grants.

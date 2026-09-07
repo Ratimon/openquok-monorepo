@@ -20,7 +20,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds`; optional `media` per reply |
 | Thread finisher | Yes | `threads.enabled` + `threads.message` |
 | Delayed engagement reply (internal plug, same account) | Yes | `threads.internalEngagementPlug` |
-| Cross-account comments (internal plug) | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`) |
+| Cross-account comments (internal plug) | Yes | `threads.crossAccountPlugs` (`threads-cross-account-comment`); cross-account path uses keyword search (`threads_keyword_search`) |
 | Global plugs (likes threshold → auto reply) | Yes — `plugs:*` CLI or web **Account → Plugs** | See [plugs.md](./plugs.md) |
 | Missing `release_id` recovery | Yes | `posts:missing` → `posts:connect` |
 | Channel / post analytics | Yes | `analytics:platform`, `analytics:post` |
@@ -53,7 +53,14 @@ Use nested keys under `threads` in `--providerSettingsByIntegrationId` (matches 
 | `threads.enabled` | `true` \| `false` | Enable thread finisher (default off) |
 | `threads.message` | string | Finisher text when `enabled` is true |
 | `threads.internalEngagementPlug` | `{ "enabled": true, "message": "…", "delaySeconds": 300 }` | Same-account engagement reply after replies + finisher |
-| `threads.crossAccountPlugs` | `[{ "plugName": "threads-cross-account-comment", "enabled": true, "delayMs": 0, "integrationIds": ["<other-integration-id>"], "fields": { "comment": "…" } }]` | Comments from other Threads channels in the workspace |
+| `threads.crossAccountPlugs` | `[{ "plugName": "threads-cross-account-comment", "enabled": true, "delayMs": 60000, "integrationIds": ["<other-integration-id>"], "fields": { "comment": "…" } }]` | Comments from other Threads channels in the workspace |
+
+**Cross-account keyword search:** When the acting channel differs from the publisher, OpenQuok searches Meta with text from the root post before commenting. Requirements:
+
+- **`threads_keyword_search`** on every acting channel (Meta app + reconnect after adding the scope).
+- **Text-based root post** — not emoji-only; search uses the publisher's caption.
+- **`delayMs` ≥ 60000** recommended so Meta can index the post (immediate `0` may fail on fresh posts).
+- **Advanced Access** via Meta App Review for cross-account comments on another user's public thread; until approved, search only returns the acting user's own posts.
 
 Cross-account shape and plug ids: [provider-settings.md](./provider-settings.md#internal-plugs). Full plug guide: [plugs.md](./plugs.md).
 

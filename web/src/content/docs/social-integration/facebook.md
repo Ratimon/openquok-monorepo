@@ -140,10 +140,15 @@ In the Meta developer app, open the permissions area where you can request **adv
 <li><Badge text="pages_show_list" variant="default" /></li>
 <li><Badge text="business_management" variant="default" /></li>
 <li><Badge text="pages_manage_posts" variant="default" /></li>
+<li><Badge text="pages_read_user_content" variant="default" /></li>
 <li><Badge text="pages_manage_engagement" variant="default" /></li>
 <li><Badge text="pages_read_engagement" variant="default" /></li>
 <li><Badge text="read_insights" variant="default" /></li>
 </ul>
+
+<Callout type="note">
+<p><Badge text="pages_read_user_content" variant="default" /> is required in the same App Review submission as <Badge text="pages_manage_engagement" variant="default" /> (Meta policy). OpenQuok requests it for compliance; we use <Badge text="pages_manage_engagement" variant="default" /> only to <strong>create</strong> follow-up comments the user schedules—we do not moderate or delete visitor comments on the Page.</p>
+</Callout>
 
 ![Step 3 - Set permissions](/docs/_assets/social-integration/meta/set-permissions.webp)
 

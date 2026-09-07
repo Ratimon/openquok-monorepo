@@ -8,6 +8,7 @@ import type { NotificationService } from "backend/services/NotificationService.j
 import type { NotificationEmailType } from "openquok-common";
 
 import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
+import { stripComposerBodyForEditor } from "backend/utils/content/stripComposerBodyForEditor.js";
 import { convertPostMediaPngToJpeg } from "backend/integrations/utils/convertPostMediaToJpeg.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
@@ -357,6 +358,8 @@ async function collectGlobalPlugTodos(
     return out;
 }
 
+const THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME = "threads-cross-account-comment";
+
 async function processInternalPlug(
     deps: ScheduledSocialPostPlugPipelineDeps,
     input: {
@@ -366,6 +369,8 @@ async function processInternalPlug(
         integrationId: string;
         originalIntegrationId: string;
         information: Record<string, unknown>;
+        /** Plain caption from the published root post (Threads keyword-search preflight). */
+        rootPostSearchText?: string;
         /** Network id the internal reply should attach under (linear thread after replies + finisher). */
         threadsReplyParentId: string;
     }
@@ -384,13 +389,21 @@ async function processInternalPlug(
     const fn = (social as unknown as Record<string, unknown>)[meta.methodName];
     if (typeof fn !== "function") return;
 
+    const information =
+        input.plugName === THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME
+            ? {
+                  ...input.information,
+                  rootPostSearchText: input.rootPostSearchText ?? "",
+              }
+            : input.information;
+
     await (fn as (this: typeof social, ...args: unknown[]) => Promise<unknown>).call(
         social,
         integrationRowToRecord(acting),
         integrationRowToRecord(original),
         input.networkPostId,
         {
-            ...input.information,
+            ...information,
             replyToParentId: input.threadsReplyParentId,
         }
     );
@@ -482,6 +495,8 @@ async function runPostPublishPlugPipeline(
         providerIdentifier: string;
         postIntegrationId: string;
         providerSettings: Record<string, unknown> | null;
+        /** Plain caption from the published root post (Threads keyword-search preflight). */
+        rootPostSearchText?: string;
         /** Latest published Threads id (root, last reply, or finisher) for `reply_to_id` on internal plug. */
         threadsInternalReplyParentId: string;
     }
@@ -549,6 +564,7 @@ async function runPostPublishPlugPipeline(
                     integrationId: todo.integrationId,
                     originalIntegrationId: todo.originalIntegrationId,
                     information: todo.information,
+                    rootPostSearchText: params.rootPostSearchText,
                     threadsReplyParentId: params.threadsInternalReplyParentId,
                 });
             } catch (err) {
@@ -1446,6 +1462,7 @@ async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContex
     const organizationId = post.organization_id;
     const providerSettings = parseProviderSettingsFromPostRow(post);
     const threadsInternalReplyParentId = ctx.threadsReplyTipAfterComments ?? releaseId;
+    const rootPostSearchText = stripComposerBodyForEditor("normal", post.content ?? "");
 
     await runPostPublishPlugPipeline(deps.plugPipeline, {
         organizationId,
@@ -1453,6 +1470,7 @@ async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContex
         providerIdentifier: intRow.provider_identifier,
         postIntegrationId: post.integration_id,
         providerSettings,
+        rootPostSearchText,
         threadsInternalReplyParentId,
     });
 }

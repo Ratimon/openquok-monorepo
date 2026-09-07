@@ -19,6 +19,7 @@ import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegratio
 import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
 import { stripComposerBodyForEditor } from "../../utils/content/stripComposerBodyForEditor.js";
+import { assertThreadDiscoverableViaKeywordSearch } from "./threads/threadsKeywordSearch.js";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
 type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | ThreadsMediaItem[] };
@@ -126,6 +127,7 @@ export class ThreadsProvider implements SocialProvider {
         "threads_content_publish",
         "threads_manage_replies",
         "threads_manage_insights",
+        "threads_keyword_search",
     ];
 
     globalPlugCatalog(): GlobalPlugCatalogEntryDto[] {
@@ -279,20 +281,44 @@ export class ThreadsProvider implements SocialProvider {
 
     /**
      * Internal plug: comment from another Threads channel in the workspace.
+     *
+     * Cross-account replies require a keyword-search preflight (`threads_keyword_search`) so Meta
+     * allows `reply_to_id` on another user's root thread.
      */
     async threadsCrossAccountComment(
         acting: IntegrationRecord,
-        _original: IntegrationRecord,
+        original: IntegrationRecord,
         threadId: string,
-        information: { comment?: string }
+        information: { comment?: string; rootPostSearchText?: string }
     ): Promise<void> {
         const raw = typeof information?.comment === "string" ? information.comment : "";
         const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
 
+        const trimmedThreadId = threadId.trim();
+        const sameAccount = acting.internal_id === original.internal_id;
+
+        if (!sameAccount) {
+            const searchText =
+                typeof information?.rootPostSearchText === "string"
+                    ? information.rootPostSearchText.trim()
+                    : "";
+            if (!searchText.length) {
+                throw new Error(
+                    "Threads cross-account comment requires rootPostSearchText from the publisher's root post for keyword search preflight."
+                );
+            }
+
+            await assertThreadDiscoverableViaKeywordSearch(
+                acting.token,
+                searchText,
+                trimmedThreadId
+            );
+        }
+
         await this.comment(
             acting.internal_id,
-            threadId.trim(),
+            trimmedThreadId,
             undefined,
             acting.token,
             [{ id: "threads-cross-account-plug", message: msg, settings: {} }],

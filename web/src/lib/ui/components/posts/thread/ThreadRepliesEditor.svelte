@@ -202,8 +202,8 @@
 				<span class="font-medium text-base-content/90">
 					Threads timing:
 				</span>
-				Each reply runs after your chosen delay; Meta may take a few seconds before the reply appears on the network.
-				The “≈” line uses your scheduled main post time plus your delays only.
+				Each reply runs after chosen delay; It takes a few seconds before the reply appears.
+				The “≈” line uses your scheduled main post time plus your delays.
 			</p>
 		{:else if id === 'x' && !hideProviderHelp}
 			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
