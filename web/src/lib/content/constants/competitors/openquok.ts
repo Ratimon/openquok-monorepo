@@ -96,7 +96,10 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		reusable_signatures: { kind: 'included' },
 		smart_filter: { kind: 'included' },
 		post_delays: { kind: 'included' },
-		post_comments: { kind: 'included' },
+		post_comments: {
+			kind: 'text',
+			text: 'Threads, X, IG, LinkedIn, Facebook — reply toolbar; media on Threads, X, FB'
+		},
 		cross_posting: { kind: 'included' },
 		internal_plugs: { kind: 'included' },
 		global_plugs: { kind: 'included' },
@@ -179,7 +182,7 @@ export const openquokCompareProduct: CompareProduct = {
 			},
 			publishing_control: {
 				strength:
-					'Every agent draft lands as draft or scheduled — you approve before anything goes live'
+					'Every agent draft lands as draft or scheduled — follow-up threads and comments from 5s delays with per-reply toolbar (media + AI where supported)'
 			}
 		}
 	}

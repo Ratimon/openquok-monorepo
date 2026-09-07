@@ -71,7 +71,7 @@ Edit <Badge text="backend/.env.development.local" variant="envBackend" /> (or yo
 # Cache (memory or redis; used for module_configs etc.)
 # -----------------------------------------------------------------------------
 CACHE_PROVIDER=redis
-CACHE_DEFAULT_TTL=300
+CACHE_DEFAULT_TTL=900
 CACHE_LOG_HITS=true
 CACHE_LOG_MISSES=true
 CACHE_CHECK_PERIOD=60

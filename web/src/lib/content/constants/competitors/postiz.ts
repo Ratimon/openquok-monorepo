@@ -72,7 +72,10 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	reusable_signatures: { kind: 'included' },
 	smart_filter: { kind: 'excluded' },
 	post_delays: { kind: 'included' },
-	post_comments: { kind: 'included' },
+	post_comments: {
+		kind: 'text',
+		text: 'Thread/comment parts on most networks; IG/Kick/Twitch comments no media'
+	},
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'included' },
 	global_plugs: { kind: 'included' },
@@ -121,7 +124,8 @@ export const postizCompareProduct: CompareProduct = {
 			},
 			publishing_control: {
 				strength: 'Visual calendar with per-channel previews before you schedule across networks',
-				weakness: 'Smart Agent and auto actions lean toward generation and autopilot over explicit draft approval'
+				weakness:
+					'Follow-up delays start at 1 minute — no sub-minute thread pacing; comment media blocked on Instagram and some networks'
 			}
 		}
 	}
