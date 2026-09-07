@@ -70,6 +70,32 @@ function resolveOrderKey(
     return allowlist.has(key) ? key : fallback;
 }
 
+type PublishedBlogPostsListFilterOptions = Pick<
+    PublishedBlogPostsFilterOptions,
+    "topicId" | "searchTerm" | "skipId" | "authorId"
+>;
+
+/** Applies shared list filters for published blog post queries (count + paginated select). */
+function applyPublishedBlogPostsListFilters<Q extends { eq: Function; textSearch: Function; not: Function }>(
+    query: Q,
+    { topicId, searchTerm, skipId, authorId }: PublishedBlogPostsListFilterOptions
+): Q {
+    let next = query;
+    if (topicId && topicId !== "all") {
+        next = next.eq("topic_id", topicId) as Q;
+    }
+    if (searchTerm) {
+        next = next.textSearch("fts", searchTerm.replace(/\s+/g, "+")) as Q;
+    }
+    if (skipId) {
+        next = next.not("id", "eq", skipId) as Q;
+    }
+    if (authorId) {
+        next = next.eq("user_id", authorId) as Q;
+    }
+    return next;
+}
+
 /** Select for blog topic list: id, name, slug, description, parent_id, and nested parent topic. */
 const SELECT_BLOG_TOPIC = `
   id,
@@ -165,26 +191,16 @@ export class BlogRepository {
             authorId,
         } = options;
 
-        let query = this.supabase
-            .from(TABLE_NAME_BLOG_POSTS)
-            .select(SELECT_BLOG_POST, { count: "exact" })
-            .match({
-                is_user_published: true,
-                is_admin_approved: true,
-            });
-
-        if (topicId && topicId !== "all") {
-            query = query.eq("topic_id", topicId);
-        }
-        if (searchTerm) {
-            query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
-        }
-        if (skipId) {
-            query = query.not("id", "eq", skipId);
-        }
-        if (authorId) {
-            query = query.eq("user_id", authorId);
-        }
+        let query = applyPublishedBlogPostsListFilters(
+            this.supabase
+                .from(TABLE_NAME_BLOG_POSTS)
+                .select(SELECT_BLOG_POST, { count: "exact" })
+                .match({
+                    is_user_published: true,
+                    is_admin_approved: true,
+                }),
+            { topicId, searchTerm, skipId, authorId }
+        );
 
         const orderKey = resolveOrderKey(sortByKey ?? undefined, "published_at", ALLOWED_PUBLISHED_POST_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
@@ -198,6 +214,30 @@ export class BlogRepository {
         const { data, error, count } = await query;
 
         if (error) {
+            if ((error as { code?: string }).code === "PGRST103") {
+                // Offset past the last row (e.g. stale ?page= on /blog) — return an empty page, not 500.
+                const { count: totalCount, error: countError } = await applyPublishedBlogPostsListFilters(
+                    this.supabase
+                        .from(TABLE_NAME_BLOG_POSTS)
+                        .select("id", { count: "exact", head: true })
+                        .match({
+                            is_user_published: true,
+                            is_admin_approved: true,
+                        }),
+                    { topicId, searchTerm, skipId, authorId }
+                );
+
+                if (countError) {
+                    throw new DatabaseError(`Error counting published blog posts: ${countError.message}`, {
+                        cause: countError as unknown as Error,
+                        operation: "count",
+                        resource: { type: "table", name: TABLE_NAME_BLOG_POSTS },
+                    });
+                }
+
+                return { data: [], count: totalCount ?? 0 };
+            }
+
             const cause = error as unknown as Error;
             const detail = cause?.message ? `: ${cause.message}` : "";
             throw new DatabaseError(`Error fetching published blog posts${detail}`, {
