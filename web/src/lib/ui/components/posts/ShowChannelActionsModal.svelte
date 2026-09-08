@@ -62,6 +62,8 @@
 
 	const effectiveBusy = $derived(busy || actionBusy);
 
+	const reconnectTooltip = 'Channel disconnected, click to reconnect.';
+
 	function handleCreatePost() {
 		if (!integration || !onCreatePost) return;
 		const run = () => {
@@ -131,27 +133,71 @@
 					Channel actions
 				</div>
 				<div class="mt-2 flex items-center gap-3">
-					<div class="relative h-10 w-10 shrink-0">
-						<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
-							<IntegrationChannelPicture
-								profilePictureUrl={integration.picture}
-								alt=""
-								class="h-10 w-10 object-cover"
-								fallbackIcon={socialProviderIcon(integration.identifier)}
-							/>
-						</div>
-						<span
-							class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
-							aria-hidden="true"
+					{#if integration.refreshNeeded && workspaceId}
+						<a
+							href={continueSetupHref(integration)}
+							class="relative h-10 w-10 shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary"
+							title={reconnectTooltip}
+							aria-label={reconnectTooltip}
+							onclick={() => onClose()}
 						>
-							<AbstractIcon
-								name={socialProviderIcon(integration.identifier)}
-								class="size-3.5"
-								width="14"
-								height="14"
-							/>
-						</span>
-					</div>
+							<div class="relative h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+								<IntegrationChannelPicture
+									profilePictureUrl={integration.picture}
+									alt=""
+									class="h-10 w-10 object-cover"
+									fallbackIcon={socialProviderIcon(integration.identifier)}
+								/>
+								<div
+									class="absolute inset-0 z-[1] rounded-full bg-base-content/45"
+									aria-hidden="true"
+								></div>
+								<div
+									class="absolute inset-0 z-[2] flex items-center justify-center"
+									aria-hidden="true"
+								>
+									<span
+										class="flex size-5 items-center justify-center rounded-full bg-error text-[11px] font-bold leading-none text-error-content shadow-sm"
+									>
+										!
+									</span>
+								</div>
+							</div>
+							<span
+								class="absolute -bottom-0.5 -right-0.5 z-[3] flex size-5 items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
+								aria-hidden="true"
+							>
+								<AbstractIcon
+									name={socialProviderIcon(integration.identifier)}
+									class="size-3.5"
+									width="14"
+									height="14"
+								/>
+							</span>
+						</a>
+					{:else}
+						<div class="relative h-10 w-10 shrink-0">
+							<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+								<IntegrationChannelPicture
+									profilePictureUrl={integration.picture}
+									alt=""
+									class="h-10 w-10 object-cover"
+									fallbackIcon={socialProviderIcon(integration.identifier)}
+								/>
+							</div>
+							<span
+								class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
+								aria-hidden="true"
+							>
+								<AbstractIcon
+									name={socialProviderIcon(integration.identifier)}
+									class="size-3.5"
+									width="14"
+									height="14"
+								/>
+							</span>
+						</div>
+					{/if}
 					<div class="min-w-0 flex-1">
 						<div class="truncate text-sm font-medium text-base-content">
 							{integration.name}
@@ -218,7 +264,7 @@
 						onclick={() => onClose()}
 					>
 						<AbstractIcon name={icons.RefreshCw.name} class="size-4 shrink-0" width="16" height="16" />
-						Refresh connection
+						Reconnect channel
 					</a>
 				{/if}
 

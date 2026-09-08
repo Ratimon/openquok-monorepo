@@ -19,6 +19,7 @@
 		getRootPathAnalytics,
 		getRootPathMedia,
 		getRootPathPlaybooksHub,
+		protectedHomePagePresenter,
 		protectedLayoutPagePresenter
 	} from '$lib/area-protected';
 	import { route } from '$lib/utils/path';
@@ -215,6 +216,22 @@
 		if (currentPath !== homePath && currentPath !== `${homePath}/`) {
 			void goto(homePath);
 		}
+	});
+
+	/** Workers may update channel state; refetch lists after tab focus (throttled). */
+	let lastChannelListVisibilityRefetchMs = 0;
+	$effect(() => {
+		if (!browser) return;
+		const onVisibility = () => {
+			if (document.visibilityState !== 'visible') return;
+			if (!workspaceSettingsPresenter.currentWorkspaceId) return;
+			const now = Date.now();
+			if (now - lastChannelListVisibilityRefetchMs < 45_000) return;
+			lastChannelListVisibilityRefetchMs = now;
+			void protectedHomePagePresenter.loadHomeLists();
+		};
+		document.addEventListener('visibilitychange', onVisibility);
+		return () => document.removeEventListener('visibilitychange', onVisibility);
 	});
 </script>
 

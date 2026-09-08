@@ -117,6 +117,11 @@ export class IntegrationService {
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
     }
 
+    async setRefreshNeeded(organizationId: string, integrationId: string, needed: boolean): Promise<void> {
+        await this.integrationRepository.setRefreshNeeded(organizationId, integrationId, needed);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+    }
+
     async disableChannel(organizationId: string, integrationId: string): Promise<void> {
         await this.integrationRepository.disableChannel(organizationId, integrationId);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);

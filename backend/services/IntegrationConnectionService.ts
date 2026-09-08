@@ -692,8 +692,31 @@ export class IntegrationConnectionService {
             throw new AppError((authResult as { error: string }).error, 400, { errorCode: "INTEGRATION_OAUTH_ERROR" });
         }
 
+        let resolvedAuth = authResult as AuthTokenDetails;
+        let oauthUserId: string | null = null;
+
+        if (refreshState && integrationProvider.reConnect) {
+            oauthUserId = String(resolvedAuth.id);
+            try {
+                const reconnected = await integrationProvider.reConnect(
+                    oauthUserId,
+                    refreshState,
+                    resolvedAuth.accessToken
+                );
+                resolvedAuth = {
+                    ...resolvedAuth,
+                    ...reconnected,
+                    refreshToken: resolvedAuth.refreshToken ?? resolvedAuth.accessToken,
+                };
+            } catch (err) {
+                const message =
+                    err instanceof Error ? err.message : "Please refresh the channel that needs to be refreshed";
+                throw new AppError(message, 400);
+            }
+        }
+
         const { accessToken, expiresIn, refreshToken, id, name, picture, username, additionalSettings } =
-            authResult as AuthTokenDetails;
+            resolvedAuth;
 
         if (!id) {
             throw new AppError("Invalid API key", 400);
@@ -727,8 +750,11 @@ export class IntegrationConnectionService {
             scope: "workspaceWithReconnect",
             organizationId,
             authUserId: authUserId ?? undefined,
-            reconnectInternalId: String(id),
+            reconnectInternalId: refreshState ?? String(id),
         });
+
+        const preservesUserTokenOnReconnect =
+            refreshState && (integration === "facebook" || integration === "instagram-business");
 
         const row = await this.integrations.upsertIntegration({
             organizationId,
@@ -741,13 +767,17 @@ export class IntegrationConnectionService {
             refreshToken: refreshToken ?? "",
             expiresInSeconds: expiresIn,
             profile: username || null,
-            inBetweenSteps: integrationProvider.isBetweenSteps ?? false,
+            inBetweenSteps: refreshState ? false : (integrationProvider.isBetweenSteps ?? false),
             additionalSettingsJson: additionalSettings?.length
                 ? JSON.stringify(additionalSettings)
                 : "[]",
             customInstanceDetails: undefined,
             postingTimesJson: postingTimes,
-            rootInternalId: rootInternalId(String(id)),
+            rootInternalId:
+                preservesUserTokenOnReconnect && oauthUserId
+                    ? oauthUserId
+                    : rootInternalId(String(id)),
+            clearRefreshNeeded: Boolean(refreshState),
         });
 
         if (integrationProvider.oneTimeToken) {
@@ -771,6 +801,8 @@ export class IntegrationConnectionService {
                     });
             }
         }
+
+        await this.integrations.setRefreshNeeded(organizationId, row.id, false);
 
         void this.refreshIntegrationService
             .startRefreshWorkflow(organizationId, row.id, integrationProvider)
@@ -810,7 +842,7 @@ export class IntegrationConnectionService {
             type: row.type,
             disabled: row.disabled,
             inBetweenSteps: row.in_between_steps,
-            refreshNeeded: row.refresh_needed,
+            refreshNeeded: false,
             onboarding: onboarding === "true",
             pages,
         };
@@ -1111,7 +1143,9 @@ export class IntegrationConnectionService {
         const preservesUserTokenForRefresh =
             row.provider_identifier === "instagram-business" || row.provider_identifier === "facebook";
         const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
-        const rootInternalId = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
+        const rootInternalId = preservesUserTokenForRefresh
+            ? row.root_internal_id?.trim() || priorInternalId
+            : row.root_internal_id;
         const expiresInSeconds = preservesUserTokenForRefresh
             ? dayjs().add(59, "days").unix() - dayjs().unix()
             : undefined;

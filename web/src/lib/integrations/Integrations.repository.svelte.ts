@@ -303,6 +303,7 @@ export class IntegrationsRepository {
 					return {
 						...rest,
 						editor: normalizeIntegrationEditorMode(rest.editor),
+						refreshNeeded: Boolean(rest.refreshNeeded),
 						group: groupFromPayload ?? customer ?? null
 					} satisfies ConnectedIntegrationProgrammerModel;
 				});

@@ -100,7 +100,7 @@ describe("RefreshIntegrationService", () => {
                 refreshToken: "",
             })
         );
-        expect(integrationRepository.setRefreshNeeded).not.toHaveBeenCalled();
+        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalledWith("org-1", "int-1", false);
     });
 
     it("uses refresh_token when present", async () => {
@@ -139,6 +139,77 @@ describe("RefreshIntegrationService", () => {
 
         expect(result).toBe(false);
         expect(refreshTokenFn).not.toHaveBeenCalled();
-        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalled();
+        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalledWith("org-1", "int-1", true);
+        expect(integrationRepository.upsertIntegration).not.toHaveBeenCalled();
+    });
+
+    it("marks refresh failed when reConnect throws after a successful token refresh", async () => {
+        const reConnectFn = jest.fn(async () => {
+            throw new Error("page token exchange failed");
+        });
+        const row = sampleIntegration({
+            provider_identifier: "facebook",
+            refresh_token: "oauth-refresh",
+            root_internal_id: "root-1",
+            internal_id: "page-1",
+        });
+        integrationManager.getSocialIntegration.mockReturnValue({
+            identifier: "facebook",
+            refreshToken: refreshTokenFn,
+            reConnect: reConnectFn,
+        } as Partial<SocialProvider> as SocialProvider);
+
+        const result = await service.refresh(row);
+
+        expect(result).toBe(false);
+        expect(refreshTokenFn).toHaveBeenCalledWith("oauth-refresh");
+        expect(reConnectFn).toHaveBeenCalledWith("root-1", "page-1", "oauth-refresh");
+        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalledWith("org-1", "int-1", true);
+        expect(integrationRepository.upsertIntegration).not.toHaveBeenCalled();
+    });
+
+    it("clears refresh_needed after full success including reConnect", async () => {
+        const reConnectFn = jest.fn(async () => ({
+            id: "page-1",
+            name: "My Page",
+            accessToken: "page-access",
+            username: "mypage",
+        }));
+        const row = sampleIntegration({
+            provider_identifier: "facebook",
+            refresh_token: "oauth-refresh",
+            root_internal_id: "root-1",
+            internal_id: "page-1",
+            refresh_needed: true,
+        });
+        integrationManager.getSocialIntegration.mockReturnValue({
+            identifier: "facebook",
+            refreshToken: refreshTokenFn,
+            reConnect: reConnectFn,
+        } as Partial<SocialProvider> as SocialProvider);
+
+        const result = await service.refresh(row);
+
+        expect(result).toMatchObject({ accessToken: "page-access" });
+        expect(reConnectFn).toHaveBeenCalledWith("root-1", "page-1", "oauth-refresh");
+        expect(integrationRepository.upsertIntegration).toHaveBeenCalled();
+        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalledWith("org-1", "int-1", false);
+    });
+
+    it("marks refresh failed when refreshProcess throws unexpectedly", async () => {
+        const throwingRefreshToken = jest.fn(() => {
+            throw new Error("network error");
+        });
+        const row = sampleIntegration({ refresh_token: "oauth-refresh" });
+        integrationManager.getSocialIntegration.mockReturnValue({
+            identifier: "threads",
+            refreshToken: throwingRefreshToken,
+        } as Partial<SocialProvider> as SocialProvider);
+
+        const result = await service.refresh(row);
+
+        expect(result).toBe(false);
+        expect(integrationRepository.setRefreshNeeded).toHaveBeenCalledWith("org-1", "int-1", true);
+        expect(integrationRepository.upsertIntegration).not.toHaveBeenCalled();
     });
 });

@@ -66,6 +66,19 @@
 
 	const hasAvatarPhoto = $derived(Boolean(integration.picture?.trim()));
 
+	const reconnectTooltip = 'Channel disconnected, click to reconnect.';
+	const reconnectHref = $derived(
+		integration.refreshNeeded && workspaceId ? continueSetupHref(integration) : null
+	);
+
+	function handleReconnectRowClick(event: MouseEvent) {
+		if (!reconnectHref) return;
+		const target = event.target as HTMLElement;
+		if (target.closest('[data-channel-menu-chevron]')) return;
+		event.preventDefault();
+		window.location.href = reconnectHref;
+	}
+
 	function handleCreatePostClick() {
 		if (!onCreatePost) return;
 		const run = () => {
@@ -184,7 +197,7 @@
 			>
 				<AbstractIcon name={icons.RefreshCw.name} class="size-4 shrink-0" width="16" height="16" />
 				<span class="min-w-0 text-start text-xs leading-tight">
-					Refresh connection
+					Reconnect channel
 				</span>
 			</Button>
 		{/if}
@@ -273,28 +286,39 @@
 	</div>
 {/snippet}
 
+{#snippet refreshNeededAvatarOverlay()}
+	{#if integration.refreshNeeded}
+		<div
+			class="absolute inset-0 z-[1] rounded-full bg-base-content/45"
+			aria-hidden="true"
+		></div>
+		<div
+			class="absolute inset-0 z-[2] flex items-center justify-center"
+			aria-hidden="true"
+		>
+			<span
+				class="flex size-5 items-center justify-center rounded-full bg-error text-[11px] font-bold leading-none text-error-content shadow-sm"
+			>
+				!
+			</span>
+		</div>
+	{/if}
+{/snippet}
+
 {#snippet channelTriggerBody()}
 	{#if showProviderBadge && hasAvatarPhoto}
 		<div class="relative h-8 w-8 shrink-0">
-			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+			<div class="relative h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 				<IntegrationChannelPicture
 					profilePictureUrl={integration.picture}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
 				/>
+				{@render refreshNeededAvatarOverlay()}
 			</div>
-			{#if integration.refreshNeeded}
-				<span
-					class="absolute -top-0.5 -right-0.5 z-[2] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-warning text-warning-content shadow-sm"
-					aria-label="Refresh needed"
-					title="Refresh needed"
-				>
-					<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
-				</span>
-			{/if}
 			<span
-				class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
+				class="absolute -bottom-0.5 -right-0.5 z-[3] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-base-100 shadow-sm"
 				aria-hidden="true"
 			>
 				<AbstractIcon
@@ -307,23 +331,15 @@
 		</div>
 	{:else}
 		<div class="relative h-8 w-8 shrink-0">
-			<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
+			<div class="relative h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 				<IntegrationChannelPicture
 					profilePictureUrl={integration.picture}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
 				/>
+				{@render refreshNeededAvatarOverlay()}
 			</div>
-			{#if integration.refreshNeeded}
-				<span
-					class="absolute -top-0.5 -right-0.5 z-[2] flex size-[14px] items-center justify-center rounded-full border border-base-300 bg-warning text-warning-content shadow-sm"
-					aria-label="Refresh needed"
-					title="Refresh needed"
-				>
-					<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
-				</span>
-			{/if}
 		</div>
 	{/if}
 	<div class="min-w-0 text-start">
@@ -338,17 +354,25 @@
 	>
 		<Popover.Root bind:open={menuOpen}>
 			<Popover.Trigger
-				class="flex max-w-[min(100%,14rem)] min-w-0 flex-1 items-center gap-2 rounded-none border-0 bg-transparent px-2 py-1.5 text-start outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100"
+				class={cn(
+					'flex max-w-[min(100%,14rem)] min-w-0 flex-1 items-center gap-2 rounded-none border-0 bg-transparent px-2 py-1.5 text-start outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100',
+					reconnectHref && 'cursor-pointer'
+				)}
+				title={reconnectHref ? reconnectTooltip : undefined}
+				aria-label={reconnectHref ? reconnectTooltip : undefined}
+				onclick={handleReconnectRowClick}
 			>
 				{@render channelTriggerBody()}
-				<AbstractIcon
-					name={icons.ChevronDown.name}
-					class="size-4 shrink-0 text-base-content/50 transition-transform duration-200 {menuOpen
-						? 'rotate-180'
-						: ''}"
-					width="16"
-					height="16"
-				/>
+				<span class="shrink-0" data-channel-menu-chevron>
+					<AbstractIcon
+						name={icons.ChevronDown.name}
+						class="size-4 text-base-content/50 transition-transform duration-200 {menuOpen
+							? 'rotate-180'
+							: ''}"
+						width="16"
+						height="16"
+					/>
+				</span>
 			</Popover.Trigger>
 			<Popover.Content align="start" side="bottom" class="w-72 p-3">
 				{@render channelActionBody()}
@@ -375,23 +399,44 @@
 			<a
 				href={continueSetupHref(integration)}
 				class="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border border-base-300 bg-base-100 px-2 py-1 text-xs font-medium text-base-content shadow-sm hover:bg-base-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-				aria-label="Refresh connection for {integration.name}"
-				title="Refresh connection"
+				aria-label="Reconnect channel for {integration.name}"
+				title={reconnectTooltip}
 			>
 				<AbstractIcon name={icons.RefreshCw.name} class="size-3.5 shrink-0" width="14" height="14" />
-				<span class="hidden sm:inline">Refresh</span>
+				<span class="hidden sm:inline">Reconnect</span>
 			</a>
 		{/if}
 		<Collapsible.Collapsible bind:open={menuOpen} class="w-full">
-			<Collapsible.CollapsibleTrigger class="rounded-lg px-3 py-3">
+			<Collapsible.CollapsibleTrigger
+				class="rounded-lg px-3 py-3"
+				title={reconnectHref ? reconnectTooltip : undefined}
+				aria-label={reconnectHref ? reconnectTooltip : undefined}
+				onclick={handleReconnectRowClick}
+			>
 				<div class="flex min-w-0 flex-1 items-center gap-3">
-					<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md">
+					<div class="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
 						<IntegrationChannelPicture
 							profilePictureUrl={integration.picture}
 							alt=""
 							class="h-full w-full object-cover"
 							fallbackIcon={providerIcon(integration.identifier)}
 						/>
+						{#if integration.refreshNeeded}
+							<div
+								class="absolute inset-0 z-[1] bg-base-content/45"
+								aria-hidden="true"
+							></div>
+							<div
+								class="absolute inset-0 z-[2] flex items-center justify-center"
+								aria-hidden="true"
+							>
+								<span
+									class="flex size-6 items-center justify-center rounded-full bg-error text-xs font-bold leading-none text-error-content shadow-sm"
+								>
+									!
+								</span>
+							</div>
+						{/if}
 					</div>
 					<div class="min-w-0 text-start">
 						<div class="truncate font-medium text-base-content">
@@ -400,12 +445,14 @@
 							{integration.identifier}</div>
 					</div>
 				</div>
-				<AbstractIcon
-					name={icons.ChevronDown.name}
-					class="size-4 shrink-0 transition-transform duration-200 {menuOpen ? 'rotate-180' : ''}"
-					width="16"
-					height="16"
-				/>
+				<span class="shrink-0" data-channel-menu-chevron>
+					<AbstractIcon
+						name={icons.ChevronDown.name}
+						class="size-4 transition-transform duration-200 {menuOpen ? 'rotate-180' : ''}"
+						width="16"
+						height="16"
+					/>
+				</span>
 			</Collapsible.CollapsibleTrigger>
 			<Collapsible.CollapsibleContent class="border-t border-base-300">
 				<div class="flex flex-col gap-2 px-3 py-3">

@@ -25,7 +25,21 @@ export class RefreshIntegrationService {
             return false;
         }
 
-        const refresh = await this.refreshProcess(integration, socialProvider);
+        let refresh: AuthTokenDetails | false;
+        try {
+            refresh = await this.refreshProcess(integration, socialProvider);
+        } catch (err) {
+            logger.warn({
+                msg: "Integration token refresh threw unexpectedly",
+                integrationId: integration.id,
+                organizationId: integration.organization_id,
+                provider: integration.provider_identifier,
+                error: err instanceof Error ? err.message : String(err),
+            });
+            await this.markRefreshFailed(integration);
+            return false;
+        }
+
         if (!refresh) {
             return false;
         }
@@ -87,6 +101,8 @@ export class RefreshIntegrationService {
                 });
         }
 
+        await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, false);
+
         return refresh;
     }
 
@@ -137,16 +153,28 @@ export class RefreshIntegrationService {
             return refresh;
         }
 
-        const reConnect = await socialProvider.reConnect(
-            integration.root_internal_id,
-            integration.internal_id,
-            refresh.accessToken
-        );
+        try {
+            const reConnect = await socialProvider.reConnect(
+                integration.root_internal_id,
+                integration.internal_id,
+                refresh.accessToken
+            );
 
-        return {
-            ...refresh,
-            ...reConnect,
-        };
+            return {
+                ...refresh,
+                ...reConnect,
+            };
+        } catch (err) {
+            logger.warn({
+                msg: "Integration reConnect failed after token refresh",
+                integrationId: integration.id,
+                organizationId: integration.organization_id,
+                provider: integration.provider_identifier,
+                error: err instanceof Error ? err.message : String(err),
+            });
+            await this.markRefreshFailed(integration);
+            return false;
+        }
     }
 
     private async markRefreshFailed(integration: IntegrationLike): Promise<void> {

@@ -221,6 +221,8 @@ export class IntegrationRepository {
         customInstanceDetails?: string | null;
         postingTimesJson: string;
         rootInternalId: string | null;
+        /** When true, clears `refresh_needed` on insert/update. Default false preserves the existing flag. */
+        clearRefreshNeeded?: boolean;
     }): Promise<IntegrationLike> {
         const tokenExpiration =
             params.expiresInSeconds != null && params.expiresInSeconds > 0
@@ -239,7 +241,7 @@ export class IntegrationRepository {
             token_expiration: tokenExpiration,
             profile: params.profile ?? null,
             in_between_steps: params.inBetweenSteps,
-            refresh_needed: false,
+            ...(params.clearRefreshNeeded ? { refresh_needed: false } : {}),
             deleted_at: null,
             posting_times: params.postingTimesJson,
             custom_instance_details: params.customInstanceDetails ?? null,
@@ -404,7 +406,6 @@ export class IntegrationRepository {
                 token: encryptStoredSecret(params.token) ?? "",
                 refresh_token: encryptStoredSecret(params.refreshToken || null),
                 token_expiration: tokenExpiration,
-                refresh_needed: false,
                 updated_at: new Date().toISOString(),
             })
             .eq("organization_id", params.organizationId)

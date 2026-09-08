@@ -80,6 +80,7 @@ function createMockIntegrations(): jest.Mocked<Pick<
     | "findActiveByInternalId"
     | "upsertIntegration"
     | "updateIntegrationById"
+    | "setRefreshNeeded"
     | "setPostingTimes"
     | "disableChannel"
     | "enableChannel"
@@ -95,6 +96,7 @@ function createMockIntegrations(): jest.Mocked<Pick<
         findActiveByInternalId: jest.fn().mockResolvedValue(null),
         upsertIntegration: jest.fn(),
         updateIntegrationById: jest.fn(),
+        setRefreshNeeded: jest.fn().mockResolvedValue(undefined),
         setPostingTimes: jest.fn(),
         disableChannel: jest.fn(),
         enableChannel: jest.fn(),
@@ -953,6 +955,95 @@ describe("IntegrationConnectionService", () => {
 
             expect(betweenProvider.pages).not.toHaveBeenCalled();
             expect(out.pages).toEqual([]);
+            expect(integrations.setRefreshNeeded).toHaveBeenCalledWith(orgId, expect.any(String), false);
+            expect(out.refreshNeeded).toBe(false);
+        });
+
+        it("resolves page token via reConnect when refresh internal id differs from OAuth user id", async () => {
+            const reConnect = jest.fn().mockResolvedValue({
+                id: "page-1",
+                name: "OpenQuok",
+                accessToken: "page-access",
+                picture: "https://pic",
+                username: "openquok",
+            });
+            const betweenProvider = createMockProvider({
+                identifier: "facebook",
+                name: "Facebook Page",
+                isBetweenSteps: true,
+                reConnect,
+                authenticate: jest.fn().mockResolvedValue({
+                    id: "fb-user",
+                    accessToken: "user-access",
+                    expiresIn: 3600,
+                    refreshToken: "user-refresh",
+                    name: "Name",
+                    username: "user",
+                    additionalSettings: [],
+                }),
+                pages: jest.fn().mockResolvedValue([{ id: "page-1", name: "OpenQuok", pictureUrl: "" }]),
+            });
+            manager.getAllowedSocialsIntegrations.mockReturnValue(["facebook"]);
+            manager.getSocialIntegration.mockReturnValue(betweenProvider);
+
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return "verifier";
+                if (key === "organization:st") return orgId;
+                if (key === "refresh:st") return "page-1";
+                return null;
+            });
+            integrations.upsertIntegration.mockResolvedValue(
+                sampleRow({
+                    id: "conn-row",
+                    provider_identifier: "facebook",
+                    internal_id: "page-1",
+                    in_between_steps: false,
+                })
+            );
+
+            const out = await service().connectSocialMedia(authUserId, "facebook", {
+                state: "st",
+                code: "c",
+                timezone: "0",
+            });
+
+            expect(reConnect).toHaveBeenCalledWith("fb-user", "page-1", "user-access");
+            expect(integrations.upsertIntegration).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    internalId: "page-1",
+                    token: "page-access",
+                    refreshToken: "user-refresh",
+                    inBetweenSteps: false,
+                    rootInternalId: "fb-user",
+                    clearRefreshNeeded: true,
+                })
+            );
+            expect(betweenProvider.pages).not.toHaveBeenCalled();
+            expect(out.inBetweenSteps).toBe(false);
+            expect(out.pages).toEqual([]);
+        });
+
+        it("clears refresh_needed after successful OAuth connect", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            cache.get.mockImplementation(async (key: string) => {
+                if (key === "login:st") return "verifier";
+                if (key === "organization:st") return orgId;
+                return null;
+            });
+            const row = sampleRow({ id: "conn-row", refresh_needed: true });
+            integrations.upsertIntegration.mockResolvedValue(row);
+
+            const out = await service().connectSocialMedia(authUserId, "threads", {
+                state: "st",
+                code: "c",
+                timezone: "0",
+            });
+
+            expect(integrations.setRefreshNeeded).toHaveBeenCalledWith(orgId, row.id, false);
+            expect(out.refreshNeeded).toBe(false);
         });
     });
 
@@ -1235,6 +1326,52 @@ describe("IntegrationConnectionService", () => {
                 expect.objectContaining({
                     internalId: "page-1",
                     picture: `integration-profiles/${orgId}/page-1.jpg`,
+                })
+            );
+        });
+
+        it("preserves root_internal_id when reconnect completes Facebook page selection", async () => {
+            orgRepo.findUserIdByAuthId.mockResolvedValue(mockFindUserIdByAuthIdResult(userId));
+            orgRepo.findMembership.mockResolvedValue(mockFindMembershipResult(activeMembershipRow()));
+            integrations.getById.mockResolvedValue(
+                sampleRow({
+                    in_between_steps: true,
+                    provider_identifier: "facebook",
+                    token: "fb-user-access",
+                    internal_id: "page-1",
+                    refresh_token: "ignored-for-this-path",
+                    root_internal_id: "fb-user-id",
+                })
+            );
+            const fetchPageInformation = jest.fn().mockResolvedValue({
+                id: "page-1",
+                name: "OpenQuok",
+                access_token: "page-access",
+                picture: "https://pic",
+                username: "openquok",
+            });
+            manager.getSocialIntegration.mockReturnValue(
+                createMockProvider({
+                    identifier: "facebook",
+                    name: "Facebook Page",
+                    fetchPageInformation,
+                })
+            );
+            integrations.updateIntegrationById.mockResolvedValue(sampleRow());
+
+            await service().saveProviderPage(authUserId, orgId, integrationId, {
+                organizationId: orgId,
+                pageId: "page-1",
+                id: "page-1",
+            });
+
+            expect(integrations.updateIntegrationById).toHaveBeenCalledWith(
+                orgId,
+                integrationId,
+                expect.objectContaining({
+                    internalId: "page-1",
+                    refreshToken: "fb-user-access",
+                    rootInternalId: "fb-user-id",
                 })
             );
         });
@@ -1688,6 +1825,4 @@ describe("IntegrationConnectionService", () => {
             expect(integrations.softDeleteChannel).not.toHaveBeenCalled();
         });
     });
-});
-
 });

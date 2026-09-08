@@ -8999,7 +8999,7 @@ var init_IntegrationRepository = __esm({
           token_expiration: tokenExpiration,
           profile: params.profile ?? null,
           in_between_steps: params.inBetweenSteps,
-          refresh_needed: false,
+          ...params.clearRefreshNeeded ? { refresh_needed: false } : {},
           deleted_at: null,
           posting_times: params.postingTimesJson,
           custom_instance_details: params.customInstanceDetails ?? null,
@@ -9092,7 +9092,6 @@ var init_IntegrationRepository = __esm({
           token: encryptStoredSecret(params.token) ?? "",
           refresh_token: encryptStoredSecret(params.refreshToken || null),
           token_expiration: tokenExpiration,
-          refresh_needed: false,
           updated_at: (/* @__PURE__ */ new Date()).toISOString()
         }).eq("organization_id", params.organizationId).eq("root_internal_id", params.rootInternalId).neq("id", params.excludeIntegrationId).is("deleted_at", null);
         if (error) {
@@ -16237,7 +16236,7 @@ function threadsOAuth() {
 }
 var GRAPH5, THREADS_GLOBAL_PLUG_CATALOG, THREADS_INTERNAL_PLUG_CATALOG, ThreadsProvider;
 var init_threadsProvider = __esm({
-  "integrations/providers/threadsProvider.ts"() {
+  "integrations/providers/threads/threadsProvider.ts"() {
     init_GlobalConfig();
     init_makeId();
     init_MediaRepository();
@@ -21104,7 +21103,20 @@ var init_RefreshIntegrationService = __esm({
         if (!socialProvider) {
           return false;
         }
-        const refresh = await this.refreshProcess(integration, socialProvider);
+        let refresh;
+        try {
+          refresh = await this.refreshProcess(integration, socialProvider);
+        } catch (err) {
+          logger.warn({
+            msg: "Integration token refresh threw unexpectedly",
+            integrationId: integration.id,
+            organizationId: integration.organization_id,
+            provider: integration.provider_identifier,
+            error: err instanceof Error ? err.message : String(err)
+          });
+          await this.markRefreshFailed(integration);
+          return false;
+        }
         if (!refresh) {
           return false;
         }
@@ -21152,6 +21164,7 @@ var init_RefreshIntegrationService = __esm({
             });
           });
         }
+        await this.integrationRepository.setRefreshNeeded(integration.organization_id, integration.id, false);
         return refresh;
       }
       async startRefreshWorkflow(organizationId, integrationId, integration) {
@@ -21185,15 +21198,27 @@ var init_RefreshIntegrationService = __esm({
         if (!socialProvider.reConnect || !integration.root_internal_id || integration.root_internal_id === integration.internal_id) {
           return refresh;
         }
-        const reConnect = await socialProvider.reConnect(
-          integration.root_internal_id,
-          integration.internal_id,
-          refresh.accessToken
-        );
-        return {
-          ...refresh,
-          ...reConnect
-        };
+        try {
+          const reConnect = await socialProvider.reConnect(
+            integration.root_internal_id,
+            integration.internal_id,
+            refresh.accessToken
+          );
+          return {
+            ...refresh,
+            ...reConnect
+          };
+        } catch (err) {
+          logger.warn({
+            msg: "Integration reConnect failed after token refresh",
+            integrationId: integration.id,
+            organizationId: integration.organization_id,
+            provider: integration.provider_identifier,
+            error: err instanceof Error ? err.message : String(err)
+          });
+          await this.markRefreshFailed(integration);
+          return false;
+        }
       }
       async markRefreshFailed(integration) {
         const shouldNotify = !integration.refresh_needed;
@@ -21307,6 +21332,10 @@ var init_IntegrationService = __esm({
       }
       async setPostingTimes(organizationId, integrationId, json) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+      }
+      async setRefreshNeeded(organizationId, integrationId, needed) {
+        await this.integrationRepository.setRefreshNeeded(organizationId, integrationId, needed);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
       }
       async disableChannel(organizationId, integrationId) {
@@ -22022,7 +22051,27 @@ var init_IntegrationConnectionService = __esm({
         if ("error" in authResult && !("accessToken" in authResult)) {
           throw new AppError(authResult.error, 400, { errorCode: "INTEGRATION_OAUTH_ERROR" });
         }
-        const { accessToken: accessToken2, expiresIn, refreshToken, id, name, picture, username, additionalSettings } = authResult;
+        let resolvedAuth = authResult;
+        let oauthUserId = null;
+        if (refreshState && integrationProvider.reConnect) {
+          oauthUserId = String(resolvedAuth.id);
+          try {
+            const reconnected = await integrationProvider.reConnect(
+              oauthUserId,
+              refreshState,
+              resolvedAuth.accessToken
+            );
+            resolvedAuth = {
+              ...resolvedAuth,
+              ...reconnected,
+              refreshToken: resolvedAuth.refreshToken ?? resolvedAuth.accessToken
+            };
+          } catch (err) {
+            const message = err instanceof Error ? err.message : "Please refresh the channel that needs to be refreshed";
+            throw new AppError(message, 400);
+          }
+        }
+        const { accessToken: accessToken2, expiresIn, refreshToken, id, name, picture, username, additionalSettings } = resolvedAuth;
         if (!id) {
           throw new AppError("Invalid API key", 400);
         }
@@ -22050,8 +22099,9 @@ var init_IntegrationConnectionService = __esm({
           scope: "workspaceWithReconnect",
           organizationId,
           authUserId: authUserId ?? void 0,
-          reconnectInternalId: String(id)
+          reconnectInternalId: refreshState ?? String(id)
         });
+        const preservesUserTokenOnReconnect = refreshState && (integration === "facebook" || integration === "instagram-business");
         const row = await this.integrations.upsertIntegration({
           organizationId,
           internalId: String(id),
@@ -22063,11 +22113,12 @@ var init_IntegrationConnectionService = __esm({
           refreshToken: refreshToken ?? "",
           expiresInSeconds: expiresIn,
           profile: username || null,
-          inBetweenSteps: integrationProvider.isBetweenSteps ?? false,
+          inBetweenSteps: refreshState ? false : integrationProvider.isBetweenSteps ?? false,
           additionalSettingsJson: additionalSettings?.length ? JSON.stringify(additionalSettings) : "[]",
           customInstanceDetails: void 0,
           postingTimesJson: postingTimes,
-          rootInternalId: rootInternalId(String(id))
+          rootInternalId: preservesUserTokenOnReconnect && oauthUserId ? oauthUserId : rootInternalId(String(id)),
+          clearRefreshNeeded: Boolean(refreshState)
         });
         if (integrationProvider.oneTimeToken) {
           const root = row.root_internal_id ?? rootInternalId(String(id));
@@ -22088,6 +22139,7 @@ var init_IntegrationConnectionService = __esm({
             });
           }
         }
+        await this.integrations.setRefreshNeeded(organizationId, row.id, false);
         void this.refreshIntegrationService.startRefreshWorkflow(organizationId, row.id, integrationProvider).catch((err) => {
           logger.debug({
             msg: "startRefreshWorkflow failed",
@@ -22119,7 +22171,7 @@ var init_IntegrationConnectionService = __esm({
           type: row.type,
           disabled: row.disabled,
           inBetweenSteps: row.in_between_steps,
-          refreshNeeded: row.refresh_needed,
+          refreshNeeded: false,
           onboarding: onboarding === "true",
           pages
         };
@@ -22345,7 +22397,7 @@ var init_IntegrationConnectionService = __esm({
         }
         const preservesUserTokenForRefresh = row.provider_identifier === "instagram-business" || row.provider_identifier === "facebook";
         const refreshToken = preservesUserTokenForRefresh ? userAccessToken : row.refresh_token || "";
-        const rootInternalId2 = preservesUserTokenForRefresh ? priorInternalId : row.root_internal_id;
+        const rootInternalId2 = preservesUserTokenForRefresh ? row.root_internal_id?.trim() || priorInternalId : row.root_internal_id;
         const expiresInSeconds = preservesUserTokenForRefresh ? dayjs6__default.default().add(59, "days").unix() - dayjs6__default.default().unix() : void 0;
         const targetInternalId = String(information.id);
         const existingByInternalId = await this.integrations.findActiveByInternalId(
@@ -34396,7 +34448,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-08T01:34:41.194Z",
+  generated: "2026-09-08T07:10:01.141Z",
   routes: [
     {
       path: "/docs",

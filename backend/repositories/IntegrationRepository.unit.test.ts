@@ -81,4 +81,138 @@ describe("IntegrationRepository token encrypt-at-rest", () => {
         expect(out.token).toBe("plain-access");
         expect(out.refresh_token).toBe("plain-refresh");
     });
+
+    it("omits refresh_needed from upsert payload by default", async () => {
+        singleMock.mockResolvedValue({
+            data: {
+                id: "int-1",
+                organization_id: "org-1",
+                internal_id: "u1",
+                name: "Ada",
+                picture: null,
+                provider_identifier: "devto",
+                type: "article",
+                token: encryptIntegrationSecret("plain-access", key),
+                refresh_token: null,
+                token_expiration: null,
+                profile: null,
+                in_between_steps: false,
+                refresh_needed: true,
+                deleted_at: null,
+                posting_times: "[]",
+                custom_instance_details: null,
+                additional_settings: "[]",
+                root_internal_id: null,
+            },
+            error: null,
+        });
+
+        await repo.upsertIntegration({
+            organizationId: "org-1",
+            internalId: "u1",
+            name: "Ada",
+            providerIdentifier: "devto",
+            integrationType: "article",
+            token: "plain-access",
+            refreshToken: "",
+            inBetweenSteps: false,
+            additionalSettingsJson: "[]",
+            postingTimesJson: "[]",
+            rootInternalId: null,
+        });
+
+        const written = upsertMock.mock.calls[0][0] as Record<string, unknown>;
+        expect(written).not.toHaveProperty("refresh_needed");
+    });
+
+    it("clears refresh_needed on upsert when clearRefreshNeeded is true", async () => {
+        singleMock.mockResolvedValue({
+            data: {
+                id: "int-1",
+                organization_id: "org-1",
+                internal_id: "u1",
+                name: "Ada",
+                picture: null,
+                provider_identifier: "devto",
+                type: "article",
+                token: encryptIntegrationSecret("plain-access", key),
+                refresh_token: null,
+                token_expiration: null,
+                profile: null,
+                in_between_steps: false,
+                refresh_needed: false,
+                deleted_at: null,
+                posting_times: "[]",
+                custom_instance_details: null,
+                additional_settings: "[]",
+                root_internal_id: null,
+            },
+            error: null,
+        });
+
+        await repo.upsertIntegration({
+            organizationId: "org-1",
+            internalId: "u1",
+            name: "Ada",
+            providerIdentifier: "devto",
+            integrationType: "article",
+            token: "plain-access",
+            refreshToken: "",
+            inBetweenSteps: false,
+            additionalSettingsJson: "[]",
+            postingTimesJson: "[]",
+            rootInternalId: null,
+            clearRefreshNeeded: true,
+        });
+
+        const written = upsertMock.mock.calls[0][0] as Record<string, unknown>;
+        expect(written.refresh_needed).toBe(false);
+    });
+});
+
+describe("IntegrationRepository syncTokensByRootInternalId", () => {
+    const key = "repo-unit-token-encryption-key";
+    let integrationsCfg: { tokenEncryptionKey?: string };
+    let updateMock: jest.Mock;
+    let neqMock: jest.Mock;
+    let isMock: jest.Mock;
+    let eqChain: jest.Mock;
+    let fromMock: jest.Mock;
+    let repo: IntegrationRepository;
+
+    beforeEach(() => {
+        integrationsCfg = config.integrations as { tokenEncryptionKey?: string };
+        integrationsCfg.tokenEncryptionKey = key;
+
+        isMock = jest.fn().mockResolvedValue({ error: null });
+        neqMock = jest.fn(() => ({ is: isMock }));
+        const secondEqMock = jest.fn(() => ({ neq: neqMock }));
+        eqChain = jest.fn(() => ({ eq: secondEqMock }));
+        updateMock = jest.fn(() => ({ eq: eqChain }));
+        fromMock = jest.fn(() => ({ update: updateMock }));
+
+        const supabase = { from: fromMock } as unknown as SupabaseClient;
+        repo = new IntegrationRepository(supabase);
+    });
+
+    afterEach(() => {
+        integrationsCfg.tokenEncryptionKey = "";
+    });
+
+    it("does not update refresh_needed when syncing sibling tokens", async () => {
+        await repo.syncTokensByRootInternalId({
+            organizationId: "org-1",
+            excludeIntegrationId: "int-primary",
+            rootInternalId: "root-1",
+            token: "new-access",
+            refreshToken: "new-refresh",
+            expiresInSeconds: 3600,
+        });
+
+        const written = updateMock.mock.calls[0][0] as Record<string, unknown>;
+        expect(written).not.toHaveProperty("refresh_needed");
+        expect(written.token).toBeDefined();
+        expect(written.refresh_token).toBeDefined();
+        expect(written.token_expiration).toBeDefined();
+    });
 });
