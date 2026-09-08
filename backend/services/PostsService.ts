@@ -29,6 +29,7 @@ import {
     repeatIntervalToDays,
 } from "../utils/dtos/PostDTO";
 import { stripComposerBodyForEditor } from "../utils/content/stripComposerBodyForEditor";
+import { resolvePublishIntegrationIds } from "../utils/posts/crossAccountPublishChannels";
 
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
@@ -422,16 +423,34 @@ export class PostsService {
         }
         this.assertIntegrationsNotDisabled(rows, uniqueIds);
 
-        if (status === "scheduled" && uniqueIds.length === 0) {
-            throw new AppError("Select at least one channel to schedule", 400);
-        }
-
         const mediaCountForIntegration = (integrationId: string): number => {
             const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
             return Array.isArray(rowMedia) ? rowMedia.length : 0;
         };
 
-        for (const integrationId of uniqueIds) {
+        const publishMessageForIntegration = (integrationId: string): string => {
+            const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
+            const provider = providerIdentifier
+                ? this.integrationManager.getSocialIntegration(providerIdentifier)
+                : null;
+            const rawMessage = isGlobal
+                ? body
+                : (bodiesByIntegrationId?.[integrationId] ?? body);
+            return stripComposerBodyForEditor(provider?.editor ?? "normal", rawMessage);
+        };
+
+        const publishIntegrationIds = resolvePublishIntegrationIds({
+            integrationIds: uniqueIds,
+            providerSettingsByIntegrationId,
+            publishMessageForIntegration,
+            mediaCountForIntegration,
+        });
+
+        if (status === "scheduled" && publishIntegrationIds.length === 0) {
+            throw new AppError("Select at least one channel to schedule", 400);
+        }
+
+        for (const integrationId of publishIntegrationIds) {
             const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
             if (!providerIdentifier) continue;
             const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
@@ -440,7 +459,7 @@ export class PostsService {
             const rawMessage = isGlobal
                 ? body
                 : (bodiesByIntegrationId?.[integrationId] ?? body);
-            const publishMessage = stripComposerBodyForEditor(provider.editor, rawMessage);
+            const publishMessage = publishMessageForIntegration(integrationId);
 
             const validationMessage = provider.validateCreatePost?.({
                 status,
@@ -511,10 +530,10 @@ export class PostsService {
         };
 
         let toInsert: SocialPostInsert[];
-        if (uniqueIds.length === 0) {
+        if (publishIntegrationIds.length === 0) {
             toInsert = [{ ...baseRow, integration_id: null }];
         } else {
-            toInsert = uniqueIds.map((integrationId) => {
+            toInsert = publishIntegrationIds.map((integrationId) => {
                 const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
                 return {
                     ...baseRow,

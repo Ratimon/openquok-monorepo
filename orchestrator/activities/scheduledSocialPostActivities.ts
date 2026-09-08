@@ -8,8 +8,8 @@ import type { NotificationService } from "backend/services/NotificationService.j
 import type { NotificationEmailType } from "openquok-common";
 
 import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
-import { stripComposerBodyForEditor } from "backend/utils/content/stripComposerBodyForEditor.js";
 import { convertPostMediaPngToJpeg } from "backend/integrations/utils/convertPostMediaToJpeg.js";
+import { stripComposerBodyForEditor } from "backend/utils/content/stripComposerBodyForEditor.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
 import { logger } from "backend/utils/Logger.js";
 import { RefreshIntegrationService } from "backend/services/RefreshIntegrationService.js";
@@ -92,6 +92,9 @@ function isNonRefreshablePublishError(message: string): boolean {
     if (m.includes("tiktok does not support")) return true;
     if (m.includes("cannot build a public media url for tiktok")) return true;
     if (m.includes("verify your media domain")) return true;
+    // Empty caption / validation — token refresh cannot fix.
+    if (m.includes("the parameter text is required")) return true;
+    if (m.includes("text is required")) return true;
     return false;
 }
 
@@ -151,6 +154,17 @@ function integrationRowToRecord(row: IntegrationLike): IntegrationRecord {
         deleted_at: row.deleted_at,
         additional_settings: row.additional_settings,
     } as IntegrationRecord;
+}
+
+function postDetailsHasPublishableContent(details: PostDetails): boolean {
+    const message = stripComposerBodyForEditor("normal", details.message ?? "").trim();
+    if (message.length > 0) return true;
+    const settings = details.settings;
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)) return false;
+    const media = (settings as { media?: unknown }).media;
+    if (!media || typeof media !== "object" || Array.isArray(media)) return false;
+    const items = (media as { items?: unknown }).items;
+    return Array.isArray(items) && items.length > 0;
 }
 
 function postRowToPostDetails(row: SocialPostLike): PostDetails {
@@ -358,8 +372,6 @@ async function collectGlobalPlugTodos(
     return out;
 }
 
-const THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME = "threads-cross-account-comment";
-
 async function processInternalPlug(
     deps: ScheduledSocialPostPlugPipelineDeps,
     input: {
@@ -369,8 +381,6 @@ async function processInternalPlug(
         integrationId: string;
         originalIntegrationId: string;
         information: Record<string, unknown>;
-        /** Plain caption from the published root post (Threads keyword-search preflight). */
-        rootPostSearchText?: string;
         /** Network id the internal reply should attach under (linear thread after replies + finisher). */
         threadsReplyParentId: string;
     }
@@ -389,21 +399,13 @@ async function processInternalPlug(
     const fn = (social as unknown as Record<string, unknown>)[meta.methodName];
     if (typeof fn !== "function") return;
 
-    const information =
-        input.plugName === THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME
-            ? {
-                  ...input.information,
-                  rootPostSearchText: input.rootPostSearchText ?? "",
-              }
-            : input.information;
-
     await (fn as (this: typeof social, ...args: unknown[]) => Promise<unknown>).call(
         social,
         integrationRowToRecord(acting),
         integrationRowToRecord(original),
         input.networkPostId,
         {
-            ...information,
+            ...input.information,
             replyToParentId: input.threadsReplyParentId,
         }
     );
@@ -495,8 +497,6 @@ async function runPostPublishPlugPipeline(
         providerIdentifier: string;
         postIntegrationId: string;
         providerSettings: Record<string, unknown> | null;
-        /** Plain caption from the published root post (Threads keyword-search preflight). */
-        rootPostSearchText?: string;
         /** Latest published Threads id (root, last reply, or finisher) for `reply_to_id` on internal plug. */
         threadsInternalReplyParentId: string;
     }
@@ -564,7 +564,6 @@ async function runPostPublishPlugPipeline(
                     integrationId: todo.integrationId,
                     originalIntegrationId: todo.originalIntegrationId,
                     information: todo.information,
-                    rootPostSearchText: params.rootPostSearchText,
                     threadsReplyParentId: params.threadsInternalReplyParentId,
                 });
             } catch (err) {
@@ -1261,6 +1260,20 @@ async function publishRootForRow(
         postDetails = [await convertPostMediaPngToJpeg(postDetails[0]!, organizationId)];
     }
 
+    if (!postDetailsHasPublishableContent(postDetails[0]!)) {
+        const errText = "No caption or media for this channel.";
+        await deps.postsRepository.markPostState(postId, "ERROR", errText);
+        logger.warn({
+            msg: "[Orchestrator] skipped root publish — empty caption and no media",
+            postId,
+            organizationId,
+            integrationId: post.integration_id,
+            channelName: intRow.name || "channel",
+            provider: intRow.provider_identifier,
+        });
+        return null;
+    }
+
     for (let attempt = 0; attempt < PUBLISH_ATTEMPTS; attempt++) {
         const record = integrationRowToRecord(intRow);
         try {
@@ -1462,7 +1475,6 @@ async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContex
     const organizationId = post.organization_id;
     const providerSettings = parseProviderSettingsFromPostRow(post);
     const threadsInternalReplyParentId = ctx.threadsReplyTipAfterComments ?? releaseId;
-    const rootPostSearchText = stripComposerBodyForEditor("normal", post.content ?? "");
 
     await runPostPublishPlugPipeline(deps.plugPipeline, {
         organizationId,
@@ -1470,7 +1482,6 @@ async function runFollowUpsPlugPhase(deps: PublishDeps, ctx: PublishedRootContex
         providerIdentifier: intRow.provider_identifier,
         postIntegrationId: post.integration_id,
         providerSettings,
-        rootPostSearchText,
         threadsInternalReplyParentId,
     });
 }

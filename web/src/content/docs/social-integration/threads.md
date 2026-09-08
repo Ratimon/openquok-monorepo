@@ -88,7 +88,7 @@ Add these **permissions** under **Access the Threads API** (OpenQuok requests th
 <li><Badge text="threads_content_publish" variant="default" /> — publish posts and replies</li>
 <li><Badge text="threads_manage_replies" variant="default" /> — same-account follow-up replies and comments</li>
 <li><Badge text="threads_manage_insights" variant="default" /> — channel and post analytics</li>
-<li><Badge text="threads_keyword_search" variant="default" /> — keyword search preflight for <strong>cross-account</strong> comments (see below)</li>
+<li><Badge text="threads_manage_mentions" variant="default" /> — cross-account comments on posts that mention the acting account (see below)</li>
 </ul>
 
 ![Step 4 - Scope a Meta App](/docs/_assets/social-integration/meta/threads/scope-api-access.webp)
@@ -98,8 +98,8 @@ Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-
 </Callout>
 
 <Callout type="note">
-<p>OpenQuok uses <Badge text="threads_keyword_search" variant="default" /> when a <strong>different</strong> Threads channel comments on another channel's root post. Meta requires the acting account to find that post via <DocsExternalLink href="https://developers.facebook.com/docs/threads/keyword-search/">keyword search</DocsExternalLink> immediately before publishing the reply.</p>
-<p>After you add this permission in the Meta app, <strong>reconnect every Threads channel</strong> in OpenQuok so stored tokens include the new scope. Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_keyword_search" variant="default" /> (screencast: search a keyword from the root post → show results → publish a cross-account comment). Until Advanced Access is approved, keyword search only returns the acting user's own posts — cross-account plugs against another account's public thread will not work in production.</p>
+<p>OpenQuok uses <Badge text="threads_manage_mentions" variant="default" /> when a <strong>different</strong> Threads channel comments on another channel's root post. The acting channel's OAuth token must include this scope (reconnect after adding it in your Meta app). Meta documents this permission for mention-related reply flows; OpenQuok does not require <code>@mention</code>s in the root caption for the API call.</p>
+<p>After you add this permission in the Meta app, <strong>reconnect every Threads channel</strong> in OpenQuok so stored tokens include the new scope. Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> (screencast: OAuth grant including the scope → publish a root post → another workspace channel comments). Until Advanced Access is approved, cross-account replies involving non-tester accounts may still fail in production.</p>
 <p>Remove <Badge text="threads_read_replies" variant="deprecated" /> from your Meta app if it is still enabled — OpenQuok does not use it.</p>
 </Callout>
 

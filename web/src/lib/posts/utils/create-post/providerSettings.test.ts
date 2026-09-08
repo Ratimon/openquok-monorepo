@@ -24,7 +24,7 @@ describe('migrateIntegrationProviderSettingsOnLoad', () => {
 				{
 					plugName: THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
 					enabled: true,
-					delayMs: 0,
+					delayMs: 120000,
 					integrationIds: ['b-id', 'c-id'],
 					fields: { comment: '' }
 				}
@@ -65,6 +65,27 @@ describe('migrateIntegrationProviderSettingsOnLoad', () => {
 		expect(result.threads).toEqual({ crossAccountPlugs: [existing] });
 	});
 
+	it('normalizes zero delay on existing threads cross-account plugs', () => {
+		const result = migrateIntegrationProviderSettingsOnLoad({
+			threads: {
+				crossAccountPlugs: [
+					{
+						plugName: THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
+						enabled: true,
+						delayMs: 0,
+						integrationIds: ['b-id'],
+						fields: { comment: 'Hi' }
+					}
+				]
+			}
+		});
+
+		expect(
+			(result.threads as { crossAccountPlugs: Array<{ delayMs: number }> }).crossAccountPlugs[0]
+				?.delayMs
+		).toBe(120000);
+	});
+
 	it('leaves unrelated provider buckets unchanged', () => {
 		const result = migrateIntegrationProviderSettingsOnLoad({
 			linkedin: { crossAccountPlugs: [] },
@@ -93,7 +114,7 @@ describe('migrateProviderSettingsByIntegrationIdOnLoad', () => {
 				{
 					plugName: THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
 					enabled: true,
-					delayMs: 0,
+					delayMs: 120000,
 					integrationIds: ['b-id'],
 					fields: { comment: '' }
 				}

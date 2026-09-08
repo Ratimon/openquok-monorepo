@@ -6287,6 +6287,22 @@ function resolveOrderKey(candidate, fallback, allowlist) {
   if (!key) return fallback;
   return allowlist.has(key) ? key : fallback;
 }
+function applyPublishedBlogPostsListFilters(query, { topicId, searchTerm, skipId, authorId }) {
+  let next = query;
+  if (topicId && topicId !== "all") {
+    next = next.eq("topic_id", topicId);
+  }
+  if (searchTerm) {
+    next = next.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
+  }
+  if (skipId) {
+    next = next.not("id", "eq", skipId);
+  }
+  if (authorId) {
+    next = next.eq("user_id", authorId);
+  }
+  return next;
+}
 var RPC_GET_PUBLISHED_BLOG_AUTHORS, RPC_GET_ACTIVE_BLOG_TOPICS, TABLE_NAME_BLOG_POSTS, TABLE_NAME_BLOG_TOPICS, TABLE_NAME_BLOG_COMMENTS, TABLE_NAME_BLOG_ACTIVITIES, ALLOWED_PUBLISHED_POST_SORT_KEYS, ALLOWED_ADMIN_POST_SORT_KEYS, ALLOWED_ADMIN_COMMENT_SORT_KEYS, ALLOWED_ADMIN_ACTIVITY_SORT_KEYS, SELECT_BLOG_TOPIC, SELECT_BLOG_POST, SELECT_BLOG_COMMENT, SELECT_BLOG_COMMENT_ADMIN, SELECT_BLOG_ACTIVITY, BlogRepository;
 var init_BlogRepository = __esm({
   "repositories/BlogRepository.ts"() {
@@ -6402,22 +6418,13 @@ var init_BlogRepository = __esm({
           range,
           authorId
         } = options2;
-        let query = this.supabase.from(TABLE_NAME_BLOG_POSTS).select(SELECT_BLOG_POST, { count: "exact" }).match({
-          is_user_published: true,
-          is_admin_approved: true
-        });
-        if (topicId && topicId !== "all") {
-          query = query.eq("topic_id", topicId);
-        }
-        if (searchTerm) {
-          query = query.textSearch("fts", searchTerm.replace(/\s+/g, "+"));
-        }
-        if (skipId) {
-          query = query.not("id", "eq", skipId);
-        }
-        if (authorId) {
-          query = query.eq("user_id", authorId);
-        }
+        let query = applyPublishedBlogPostsListFilters(
+          this.supabase.from(TABLE_NAME_BLOG_POSTS).select(SELECT_BLOG_POST, { count: "exact" }).match({
+            is_user_published: true,
+            is_admin_approved: true
+          }),
+          { topicId, searchTerm, skipId, authorId }
+        );
         const orderKey = resolveOrderKey(sortByKey ?? void 0, "published_at", ALLOWED_PUBLISHED_POST_SORT_KEYS);
         query = query.order(orderKey, { ascending: sortByOrder ?? false });
         if (range) {
@@ -6427,6 +6434,23 @@ var init_BlogRepository = __esm({
         }
         const { data, error, count } = await query;
         if (error) {
+          if (error.code === "PGRST103") {
+            const { count: totalCount, error: countError } = await applyPublishedBlogPostsListFilters(
+              this.supabase.from(TABLE_NAME_BLOG_POSTS).select("id", { count: "exact", head: true }).match({
+                is_user_published: true,
+                is_admin_approved: true
+              }),
+              { topicId, searchTerm, skipId, authorId }
+            );
+            if (countError) {
+              throw new DatabaseError(`Error counting published blog posts: ${countError.message}`, {
+                cause: countError,
+                operation: "count",
+                resource: { type: "table", name: TABLE_NAME_BLOG_POSTS }
+              });
+            }
+            return { data: [], count: totalCount ?? 0 };
+          }
           const cause = error;
           const detail = cause?.message ? `: ${cause.message}` : "";
           throw new DatabaseError(`Error fetching published blog posts${detail}`, {
@@ -14902,6 +14926,7 @@ var init_facebookProvider = __esm({
         "pages_show_list",
         "business_management",
         "pages_manage_posts",
+        "pages_read_user_content",
         "pages_manage_engagement",
         "pages_read_engagement",
         "read_insights"
@@ -16282,7 +16307,8 @@ var init_threadsProvider = __esm({
         "threads_basic",
         "threads_content_publish",
         "threads_manage_replies",
-        "threads_manage_insights"
+        "threads_manage_insights",
+        "threads_manage_mentions"
       ];
       globalPlugCatalog() {
         return THREADS_GLOBAL_PLUG_CATALOG;
@@ -16292,6 +16318,13 @@ var init_threadsProvider = __esm({
       }
       maxLength(_additionalSettings) {
         return 500;
+      }
+      validateCreatePost(input) {
+        if (input.status !== "scheduled") return null;
+        const message = (input.message ?? "").trim();
+        if (message.length > 0) return null;
+        if (input.mediaCount > 0) return null;
+        return "Threads requires a caption or at least one image or video.";
       }
       async post(userId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
@@ -16387,6 +16420,9 @@ var init_threadsProvider = __esm({
       }
       /**
        * Internal plug: comment from another Threads channel in the workspace.
+       *
+       * Cross-account replies require `threads_manage_mentions` so Meta allows `reply_to_id`
+       * on another user's root thread.
        */
       async threadsCrossAccountComment(acting, _original, threadId, information) {
         const raw = typeof information?.comment === "string" ? information.comment : "";
@@ -22612,6 +22648,48 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
+
+// utils/posts/crossAccountPublishChannels.ts
+function collectCrossAccountActingIntegrationIds(providerSettingsByIntegrationId) {
+  const acting = /* @__PURE__ */ new Set();
+  if (!providerSettingsByIntegrationId) return acting;
+  for (const [publisherId, settings] of Object.entries(providerSettingsByIntegrationId)) {
+    if (!settings || typeof settings !== "object") continue;
+    for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
+      const bucketSettings = settings[bucket];
+      if (!bucketSettings || typeof bucketSettings !== "object") continue;
+      const plugs = bucketSettings.crossAccountPlugs;
+      if (!Array.isArray(plugs)) continue;
+      for (const plug of plugs) {
+        if (!plug || typeof plug !== "object") continue;
+        const row = plug;
+        if (row.enabled !== true || !Array.isArray(row.integrationIds)) continue;
+        for (const id of row.integrationIds) {
+          if (typeof id === "string" && id.trim() && id !== publisherId) {
+            acting.add(id);
+          }
+        }
+      }
+    }
+  }
+  return acting;
+}
+function resolvePublishIntegrationIds(input) {
+  const uniqueIds = [...new Set(input.integrationIds)];
+  const actingIds = collectCrossAccountActingIntegrationIds(input.providerSettingsByIntegrationId);
+  return uniqueIds.filter((integrationId) => {
+    const hasContent = input.publishMessageForIntegration(integrationId).trim().length > 0 || input.mediaCountForIntegration(integrationId) > 0;
+    if (hasContent) return true;
+    if (actingIds.has(integrationId)) return false;
+    return true;
+  });
+}
+var CROSS_ACCOUNT_PLUG_BUCKETS;
+var init_crossAccountPublishChannels = __esm({
+  "utils/posts/crossAccountPublishChannels.ts"() {
+    CROSS_ACCOUNT_PLUG_BUCKETS = ["threads", "x", "linkedin"];
+  }
+});
 function sleepMs7(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -22691,6 +22769,7 @@ var init_PostsService = __esm({
     init_PostDTO();
     init_PostDTO();
     init_stripComposerBodyForEditor();
+    init_crossAccountPublishChannels();
     init_AppError();
     init_ProviderIntegrationErrors();
     init_GlobalConfig();
@@ -22847,20 +22926,32 @@ var init_PostsService = __esm({
           }
         }
         this.assertIntegrationsNotDisabled(rows, uniqueIds);
-        if (status === "scheduled" && uniqueIds.length === 0) {
-          throw new AppError("Select at least one channel to schedule", 400);
-        }
         const mediaCountForIntegration = (integrationId) => {
           const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
           return Array.isArray(rowMedia) ? rowMedia.length : 0;
         };
-        for (const integrationId of uniqueIds) {
+        const publishMessageForIntegration = (integrationId) => {
+          const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
+          const provider = providerIdentifier ? this.integrationManager.getSocialIntegration(providerIdentifier) : null;
+          const rawMessage = isGlobal ? body : bodiesByIntegrationId?.[integrationId] ?? body;
+          return stripComposerBodyForEditor(provider?.editor ?? "normal", rawMessage);
+        };
+        const publishIntegrationIds = resolvePublishIntegrationIds({
+          integrationIds: uniqueIds,
+          providerSettingsByIntegrationId,
+          publishMessageForIntegration,
+          mediaCountForIntegration
+        });
+        if (status === "scheduled" && publishIntegrationIds.length === 0) {
+          throw new AppError("Select at least one channel to schedule", 400);
+        }
+        for (const integrationId of publishIntegrationIds) {
           const providerIdentifier = providerByIntegrationId.get(integrationId) ?? "";
           if (!providerIdentifier) continue;
           const provider = this.integrationManager.getSocialIntegration(providerIdentifier);
           if (!provider) continue;
           const rawMessage = isGlobal ? body : bodiesByIntegrationId?.[integrationId] ?? body;
-          const publishMessage = stripComposerBodyForEditor(provider.editor, rawMessage);
+          const publishMessage = publishMessageForIntegration(integrationId);
           const validationMessage = provider.validateCreatePost?.({
             status,
             mediaCount: mediaCountForIntegration(integrationId),
@@ -22918,10 +23009,10 @@ var init_PostsService = __esm({
           is_reviewed: reviewIsReviewed
         };
         let toInsert;
-        if (uniqueIds.length === 0) {
+        if (publishIntegrationIds.length === 0) {
           toInsert = [{ ...baseRow, integration_id: null }];
         } else {
-          toInsert = uniqueIds.map((integrationId) => {
+          toInsert = publishIntegrationIds.map((integrationId) => {
             const rowMedia = mediaByIntegrationId?.[integrationId] ?? media;
             return {
               ...baseRow,
@@ -34305,7 +34396,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-06T00:41:16.311Z",
+  generated: "2026-09-08T01:34:41.194Z",
   routes: [
     {
       path: "/docs",

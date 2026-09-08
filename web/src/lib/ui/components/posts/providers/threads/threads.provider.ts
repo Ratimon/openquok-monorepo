@@ -6,4 +6,3 @@ export const threadsProvider: LaunchProviderConfig = {
 	minimumCharacters: 0,
 	postComment: 'POST'
 };
-

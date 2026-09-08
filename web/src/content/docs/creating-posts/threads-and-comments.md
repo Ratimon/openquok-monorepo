@@ -117,8 +117,8 @@ CLI and API users set finisher fields under <Badge text="threads.enabled" varian
 See <a href="/docs/automations/plugs">Plugs</a> for the concept. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
 
 <Callout type="warning">
-<p>When a <strong>different</strong> Threads channel comments on the publisher's root post, Meta requires a keyword-search step first. Every acting channel needs the <Badge text="threads_keyword_search" variant="default" /> OAuth scope — enable it in your Meta app and <strong>reconnect</strong> those integrations after deploy.</p>
-<p>The root post should include searchable text (avoid emoji-only captions). Allow at least about <strong>one minute</strong> of delay on the plug so Meta can index the post before the comment runs. Cross-account comments on another account's public thread also require Meta <strong>App Review</strong> for Advanced Access on <Badge text="threads_keyword_search" variant="default" />.</p>
+<p>When a <strong>different</strong> Threads channel comments on the publisher's root post, every acting channel needs the <Badge text="threads_manage_mentions" variant="default" /> OAuth scope — enable it in your Meta app and <strong>reconnect</strong> those integrations after deploy.</p>
+<p>Meta's allowed usage for <Badge text="threads_manage_mentions" variant="default" /> includes replying when the acting account is <strong>@mentioned</strong>. OpenQuok does not add mentions automatically — the API call uses the acting channel's token with that scope. Cross-account comments also require Meta <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> — until approved, replies involving non-tester accounts may fail in production.</p>
 </Callout>
 
 ## Multi-channel and Global mode

@@ -353,7 +353,6 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
         expect(call[3]).toEqual(
             expect.objectContaining({
                 comment: "Nice thread!",
-                rootPostSearchText: "Launch day is here",
                 replyToParentId: "release-main",
             })
         );

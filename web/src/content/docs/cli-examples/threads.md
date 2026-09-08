@@ -16,7 +16,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Provider identifier | <Badge text="threads" variant="default" /> |
 | Max content length | 500 characters |
 | Required attachments | None — text-only posts publish |
-| OAuth scopes | <code>threads_basic</code>, <code>threads_content_publish</code>, <code>threads_manage_replies</code>, <code>threads_manage_insights</code>, <code>threads_keyword_search</code> |
+| OAuth scopes | <code>threads_basic</code>, <code>threads_content_publish</code>, <code>threads_manage_replies</code>, <code>threads_manage_insights</code>, <code>threads_manage_mentions</code> |
 | OAuth setup | <a href="/docs/social-integration/threads">Meta Threads</a> |
 
 ```bash
@@ -173,7 +173,7 @@ openquok posts:create \
             {
               plugName: "threads-cross-account-comment",
               enabled: true,
-              delayMs: 3600000,
+              delayMs: 120000,
               integrationIds: [$other],
               fields: { comment: "Great thread — sharing from our other account." }
             }
@@ -185,13 +185,13 @@ openquok posts:create \
 ```
 
 <Callout type="note" title="Same account vs cross-account">
-<p><Badge text="threads.internalEngagementPlug" variant="param" /> (above) runs a delayed reply from the <strong>publishing</strong> channel. <Badge text="threads.crossAccountPlugs" variant="param" /> runs actions from <strong>other</strong> connected channels. <Badge text="delayMs" variant="param" /> is in milliseconds (<code>0</code> = immediately; <code>3600000</code> = one hour).</p>
+<p><Badge text="threads.internalEngagementPlug" variant="param" /> (above) runs a delayed reply from the <strong>publishing</strong> channel. <Badge text="threads.crossAccountPlugs" variant="param" /> runs actions from <strong>other</strong> connected channels. <Badge text="delayMs" variant="param" /> is in milliseconds (<code>120000</code> = two minutes; <code>300000</code> = five minutes; the web composer defaults to two minutes for Threads).</p>
 </Callout>
 
-<Callout type="warning" title="Keyword search preflight (cross-account only)">
-<p>When the acting channel is <strong>not</strong> the publisher, OpenQuok calls Meta's keyword search API with text from the root post before publishing the comment. That requires the <Badge text="threads_keyword_search" variant="default" /> OAuth scope on every acting channel — add it in your Meta app, then <strong>reconnect</strong> those Threads integrations.</p>
-<p>Use a <strong>text-based root post</strong> (not emoji-only) so search can match it. Meta may take a minute or more to index a new post — prefer <Badge text="delayMs" variant="param" /> of at least <code>60000</code> (one minute) on cross-account plugs rather than <code>0</code>.</p>
-<p>Cross-account comments against <strong>another account's</strong> public thread also need <strong>Advanced Access</strong> for <Badge text="threads_keyword_search" variant="default" /> via Meta App Review. Until that is approved, keyword search only returns the acting user's own posts.</p>
+<Callout type="warning" title="Mentions scope (cross-account only)">
+<p>When the acting channel is <strong>not</strong> the publisher, OpenQuok publishes the comment using the <Badge text="threads_manage_mentions" variant="default" /> OAuth scope. Add it in your Meta app, then <strong>reconnect</strong> every acting Threads integration so stored tokens include the new scope.</p>
+<p>Meta's allowed usage is replying to posts where the acting account is <strong>@mentioned</strong>. OpenQuok calls the reply API with the acting channel's <Badge text="threads_manage_mentions" variant="default" /> token and does not modify the root caption. Use a short <Badge text="delayMs" variant="param" /> (for example <code>120000</code>) so the root post is fully live before the comment runs.</p>
+<p>Cross-account comments also need <strong>Advanced Access</strong> for <Badge text="threads_manage_mentions" variant="default" /> via Meta App Review (screencast: OAuth grant including the scope → publish → other workspace channel comments). Until that is approved, replies involving non-tester accounts may fail in production.</p>
 </Callout>
 
 ## Reconnect a "missing" Threads post

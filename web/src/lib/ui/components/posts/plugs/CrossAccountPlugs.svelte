@@ -1,6 +1,11 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
+	import {
+		GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS,
+		THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS,
+		THREADS_CROSS_ACCOUNT_DELAY_OPTIONS
+	} from '$lib/posts/utils/create-post';
 
 	type PlugDefinition = {
 		identifier: string;
@@ -33,22 +38,22 @@
 		compact = false
 	}: Props = $props();
 
-	const delayOptions = [
-		{ label: 'Immediately', ms: 0 },
-		{ label: '1 hour', ms: 3600000 },
-		{ label: '2 hours', ms: 7200000 },
-		{ label: '3 hours', ms: 10800000 },
-		{ label: '8 hours', ms: 28800000 },
-		{ label: '12 hours', ms: 43200000 },
-		{ label: '24 hours', ms: 86400000 }
-	] as const;
+	const isThreadsPublisher = $derived((currentChannel.identifier ?? '').toLowerCase() === 'threads');
+
+	const delayOptions = $derived(
+		isThreadsPublisher ? THREADS_CROSS_ACCOUNT_DELAY_OPTIONS : GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS
+	);
+
+	const defaultDelayMs = $derived(
+		isThreadsPublisher ? THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS : 0
+	);
 
 	function plugState(identifier: string): CrossAccountPlugState {
 		return (
 			value.find((p) => p.plugName === identifier) ?? {
 				plugName: identifier,
 				enabled: false,
-				delayMs: 0,
+				delayMs: defaultDelayMs,
 				integrationIds: [],
 				fields: {}
 			}
@@ -70,17 +75,15 @@
 		);
 	}
 
-	const showThreadsCrossAccountHint = $derived(currentChannel.identifier === 'threads');
+	const showThreadsCrossAccountHint = $derived(isThreadsPublisher);
 </script>
 
 {#if plugs.length}
 	<div class="space-y-4 {compact ? 'mt-4' : 'mt-6'}">
 		{#if showThreadsCrossAccountHint}
 			<p class="text-xs text-base-content/55">
-				Cross-account comments search Meta with your root post text before replying. Requires the
-				<code class="text-[0.7rem]">threads_keyword_search</code> scope (reconnect acting channels
-				after adding it), a text-based root caption, and a delay of about one minute or more so Meta
-				can index the post.
+				Comments run from the selected channel after the delay. If they fail, reconnect those
+				channels under Channels.
 			</p>
 		{/if}
 		{#each plugs as def (def.identifier)}
@@ -98,10 +101,16 @@
 							class="toggle toggle-primary"
 							checked={state.enabled}
 							disabled={disabled || !accounts.length}
-							onchange={(e) =>
+							onchange={(e) => {
+								const checked = (e.currentTarget as HTMLInputElement).checked;
+								const current = plugState(def.identifier);
 								updatePlug(def.identifier, {
-									enabled: (e.currentTarget as HTMLInputElement).checked
-								})}
+									enabled: checked,
+									...(checked && isThreadsPublisher && current.delayMs === 0
+										? { delayMs: defaultDelayMs }
+										: {})
+								});
+							}}
 						/>
 					</label>
 				</div>
@@ -114,7 +123,7 @@
 							<span class="mb-1 block text-xs font-medium text-base-content/70">Delay</span>
 							<select
 								class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm"
-								value={state.delayMs}
+								value={isThreadsPublisher && state.delayMs === 0 ? defaultDelayMs : state.delayMs}
 								disabled={disabled}
 								onchange={(e) =>
 									updatePlug(def.identifier, {
@@ -179,7 +188,18 @@
 												const ids = new Set(state.integrationIds);
 												if (checked) ids.add(ch.id);
 												else ids.delete(ch.id);
-												updatePlug(def.identifier, { integrationIds: [...ids] });
+												const patch: Partial<CrossAccountPlugState> = {
+													integrationIds: [...ids]
+												};
+												if (
+													isThreadsPublisher &&
+													state.enabled &&
+													state.delayMs === 0 &&
+													ids.size > 0
+												) {
+													patch.delayMs = defaultDelayMs;
+												}
+												updatePlug(def.identifier, patch);
 											}}
 										/>
 										<span>{ch.name}</span>

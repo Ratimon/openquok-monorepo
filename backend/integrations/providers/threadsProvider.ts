@@ -6,6 +6,7 @@ import type {
     PostDetails,
     PostResponse,
     SocialProvider,
+    ValidateCreatePostInput,
 } from "../social.integrations.interface";
 import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../../utils/dtos/PlugDTO";
 
@@ -19,7 +20,6 @@ import { ProviderAccessTokenExpiredError } from "../../errors/ProviderIntegratio
 import { throwIfMetaGraphInvalidAccessToken } from "../../errors/metaGraphTokenError";
 import { logger } from "../../utils/Logger";
 import { stripComposerBodyForEditor } from "../../utils/content/stripComposerBodyForEditor.js";
-import { assertThreadDiscoverableViaKeywordSearch } from "./threads/threadsKeywordSearch.js";
 
 type ThreadsMediaItem = { path: string; bucket?: string };
 type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | ThreadsMediaItem[] };
@@ -127,7 +127,7 @@ export class ThreadsProvider implements SocialProvider {
         "threads_content_publish",
         "threads_manage_replies",
         "threads_manage_insights",
-        "threads_keyword_search",
+        "threads_manage_mentions",
     ];
 
     globalPlugCatalog(): GlobalPlugCatalogEntryDto[] {
@@ -140,6 +140,14 @@ export class ThreadsProvider implements SocialProvider {
 
     maxLength(_additionalSettings?: unknown): number {
         return 500;
+    }
+
+    validateCreatePost(input: ValidateCreatePostInput): string | null {
+        if (input.status !== "scheduled") return null;
+        const message = (input.message ?? "").trim();
+        if (message.length > 0) return null;
+        if (input.mediaCount > 0) return null;
+        return "Threads requires a caption or at least one image or video.";
     }
 
     async post(
@@ -282,43 +290,22 @@ export class ThreadsProvider implements SocialProvider {
     /**
      * Internal plug: comment from another Threads channel in the workspace.
      *
-     * Cross-account replies require a keyword-search preflight (`threads_keyword_search`) so Meta
-     * allows `reply_to_id` on another user's root thread.
+     * Cross-account replies require `threads_manage_mentions` so Meta allows `reply_to_id`
+     * on another user's root thread.
      */
     async threadsCrossAccountComment(
         acting: IntegrationRecord,
-        original: IntegrationRecord,
+        _original: IntegrationRecord,
         threadId: string,
-        information: { comment?: string; rootPostSearchText?: string }
+        information: { comment?: string }
     ): Promise<void> {
         const raw = typeof information?.comment === "string" ? information.comment : "";
         const msg = stripComposerBodyForEditor("normal", raw);
         if (!msg.length || !threadId.trim()) return;
 
-        const trimmedThreadId = threadId.trim();
-        const sameAccount = acting.internal_id === original.internal_id;
-
-        if (!sameAccount) {
-            const searchText =
-                typeof information?.rootPostSearchText === "string"
-                    ? information.rootPostSearchText.trim()
-                    : "";
-            if (!searchText.length) {
-                throw new Error(
-                    "Threads cross-account comment requires rootPostSearchText from the publisher's root post for keyword search preflight."
-                );
-            }
-
-            await assertThreadDiscoverableViaKeywordSearch(
-                acting.token,
-                searchText,
-                trimmedThreadId
-            );
-        }
-
         await this.comment(
             acting.internal_id,
-            trimmedThreadId,
+            threadId.trim(),
             undefined,
             acting.token,
             [{ id: "threads-cross-account-plug", message: msg, settings: {} }],

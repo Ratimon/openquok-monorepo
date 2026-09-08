@@ -130,7 +130,7 @@ export const THREADS_CROSS_ACCOUNT_PLUG_PAYLOAD = {
 					{
 						plugName: 'threads-cross-account-comment',
 						enabled: true,
-						delayMs: 3600000,
+						delayMs: 120000,
 						integrationIds: ['<integration-id-2>'],
 						fields: {
 							comment: 'Great thread — sharing from our other account.'

@@ -9,6 +9,30 @@ export type CrossAccountPlugState = {
 
 export const THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME = 'threads-cross-account-comment';
 
+/** Default delay before cross-account Threads comments (gives Meta time before the reply runs). */
+export const THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS = 2 * 60 * 1000;
+
+export const THREADS_CROSS_ACCOUNT_DELAY_OPTIONS = [
+	{ label: '2 minutes', ms: THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS },
+	{ label: '5 minutes', ms: 5 * 60 * 1000 },
+	{ label: '1 hour', ms: 3600000 },
+	{ label: '2 hours', ms: 7200000 },
+	{ label: '3 hours', ms: 10800000 },
+	{ label: '8 hours', ms: 28800000 },
+	{ label: '12 hours', ms: 43200000 },
+	{ label: '24 hours', ms: 86400000 }
+] as const;
+
+export const GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS = [
+	{ label: 'Immediately', ms: 0 },
+	{ label: '1 hour', ms: 3600000 },
+	{ label: '2 hours', ms: 7200000 },
+	{ label: '3 hours', ms: 10800000 },
+	{ label: '8 hours', ms: 28800000 },
+	{ label: '12 hours', ms: 43200000 },
+	{ label: '24 hours', ms: 86400000 }
+] as const;
+
 function isPlainSettingsObject(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -47,22 +71,26 @@ export function migrateIntegrationProviderSettingsOnLoad(
 	const threads = settings.threads;
 	if (!isPlainSettingsObject(threads)) return { ...settings };
 
-	const legacy = threads.multiAccountEngagementPlug;
-	if (!isPlainSettingsObject(legacy)) return { ...settings };
+	const normalizedThreads = normalizeThreadsCrossAccountPlugs(threads);
 
-	const { multiAccountEngagementPlug: _legacy, ...threadsWithoutLegacy } = threads;
+	const legacy = normalizedThreads.multiAccountEngagementPlug;
+	if (!isPlainSettingsObject(legacy)) {
+		return { ...settings, threads: normalizedThreads };
+	}
+
+	const { multiAccountEngagementPlug: _legacy, ...threadsWithoutLegacy } = normalizedThreads;
 	const nextThreads: Record<string, unknown> = { ...threadsWithoutLegacy };
 
 	if (legacy.enabled === true) {
 		const integrationIds = stringIds(legacy.integrationIds);
 		if (integrationIds.length > 0) {
-			const existing = crossAccountPlugsFromThreadsBucket(threads);
+			const existing = crossAccountPlugsFromThreadsBucket(nextThreads);
 			const hasPlug = existing.some((p) => p.plugName === THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME);
 			if (!hasPlug) {
 				const migrated: CrossAccountPlugState = {
 					plugName: THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
 					enabled: true,
-					delayMs: 0,
+					delayMs: THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS,
 					integrationIds,
 					fields: { comment: '' }
 				};
@@ -73,8 +101,19 @@ export function migrateIntegrationProviderSettingsOnLoad(
 
 	return {
 		...settings,
-		threads: nextThreads
+		threads: normalizeThreadsCrossAccountPlugs(nextThreads)
 	};
+}
+
+function normalizeThreadsCrossAccountPlugs(threads: Record<string, unknown>): Record<string, unknown> {
+	const plugs = crossAccountPlugsFromThreadsBucket(threads);
+	if (!plugs.length) return threads;
+	const normalized = plugs.map((plug) =>
+		plug.plugName === THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME && plug.delayMs === 0
+			? { ...plug, delayMs: THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS }
+			: plug
+	);
+	return { ...threads, crossAccountPlugs: normalized };
 }
 
 /** Apply per-integration load migrations across the composer provider-settings map. */

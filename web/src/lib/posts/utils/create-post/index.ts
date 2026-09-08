@@ -23,6 +23,9 @@ export {
 } from './payload';
 export {
 	THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
+	THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS,
+	THREADS_CROSS_ACCOUNT_DELAY_OPTIONS,
+	GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS,
 	migrateIntegrationProviderSettingsOnLoad,
 	migrateProviderSettingsByIntegrationIdOnLoad,
 	type CrossAccountPlugState
