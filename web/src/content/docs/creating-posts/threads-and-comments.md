@@ -87,22 +87,22 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 
 ## What each platform does
 
-| Network | Follow-ups in composer | How they publish | Media on follow-ups |
-| --- | --- | --- | --- |
-| **Threads** | Yes | Same-account replies in order | Images and video |
-| **X** | Yes | Quote-less replies on the root tweet | Up to four images per reply |
-| **Instagram** | Yes | Comments on the root post | Text only |
-| **LinkedIn** | Yes | Comments on the main post | Text only |
-| **Facebook** | Yes | Comments on the main post | One image per reply via reply toolbar (no video) |
-| **YouTube**, **TikTok**, **Dev.to**, … | No | — | — |
+| Network | Comments / replies | How they publish | Media on follow-ups | Cross-account plugs |
+| --- | --- | --- | --- | --- |
+| **Threads** | Yes | Same-account replies in order | Images and video | Comment from other Threads channels |
+| **X** | Yes | Quote-less replies on the root tweet | Up to four images per reply | Repost from other X channels |
+| **Instagram** | Yes | Comments on the root post | Text only | No |
+| **LinkedIn** | Yes | Comments on the main post | Text only | Comment or reshare from other LinkedIn channels |
+| **Facebook** | Yes | Comments on the main post | One image per reply via reply toolbar (no video) | No |
+| **YouTube**, **TikTok**, **Dev.to**, … | No | — | — | No |
 
-Cross-account **plugs** on **LinkedIn** (from **Settings**) are separate from same-account follow-up comment rows — see <a href="/docs/automations/plugs">Plugs</a>.
+Cross-account **plugs** (from **Settings**) are separate from same-account follow-up comment rows. **Threads**, **X**, and **LinkedIn** support them — see <a href="/docs/automations/plugs">Plugs</a> and <a href="#cross-account-plugs">Cross-account plugs</a> below.
 
 Per-network caps on the main post still apply. See <a href="/docs/platforms">Posting rules by platform</a>.
 
 ## Thread finisher
 
-For **Threads** and **X**, open **Settings** while that channel is focused. Enable **Thread finisher** to post a closing message after all scheduled replies.
+For **Threads** and **X**, open **Settings** while that channel is focused. Enable **Thread finisher** to post a closing message after all replies.
 
 The default message is <Badge text="That's a wrap!" variant="param" /> — edit it in Settings. The finisher runs once at the end of the reply chain, not between every reply.
 
@@ -113,6 +113,8 @@ CLI and API users set finisher fields under <Badge text="threads.enabled" varian
 ## Cross-account plugs
 
 **Settings** can schedule **cross-account plugs** — comments from another connected channel after publish (supported on **Threads**, **X**, and **LinkedIn**).
+
+![How to setup cross-account plug](/docs/_assets/creating-posts/plug-settings.webp)
 
 See <a href="/docs/automations/plugs">Plugs</a> for the concept. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
 

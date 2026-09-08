@@ -98,9 +98,7 @@ Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-
 </Callout>
 
 <Callout type="note">
-<p>OpenQuok uses <Badge text="threads_manage_mentions" variant="default" /> when a <strong>different</strong> Threads channel comments on another channel's root post. The acting channel's OAuth token must include this scope (reconnect after adding it in your Meta app). Meta documents this permission for mention-related reply flows; OpenQuok does not require <code>@mention</code>s in the root caption for the API call.</p>
-<p>After you add this permission in the Meta app, <strong>reconnect every Threads channel</strong> in OpenQuok so stored tokens include the new scope. Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> (screencast: OAuth grant including the scope → publish a root post → another workspace channel comments). Until Advanced Access is approved, cross-account replies involving non-tester accounts may still fail in production.</p>
-<p>Remove <Badge text="threads_read_replies" variant="deprecated" /> from your Meta app if it is still enabled — OpenQuok does not use it.</p>
+<p>OpenQuok uses <Badge text="threads_manage_mentions" variant="default" /> when a <strong>different</strong> Threads channel comments.Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> (screencast: OAuth grant including the scope → publish a root post → another workspace channel comments).</p>
 </Callout>
 
 
@@ -148,13 +146,13 @@ In **Threads** (app or <DocsExternalLink href="https://www.threads.net">threads.
 
 Return to the <DocsExternalLink href="https://developers.facebook.com/apps">Meta developer portal</DocsExternalLink>. In the sidebar, open **Testing**, then open **Graph API Explorer**.
 
-- In the header, open the **API selector** (app / API version dropdown) and switch it to the **Threads** endpoint Meta lists—for example **threads.net** with **v1.0** (labels vary by dashboard version).
+- In the header, open the **API selector** (app / API version dropdown) and switch it to the **Threads** endpoint Meta lists. In this case it is for example **threads.net** with **v1.0** (labels vary by dashboard version).
 
 ![Step 9 - Graph Api Explorer](/docs/_assets/social-integration/meta/threads/graph-api-explorer.webp)
 
 - In the right sidebar, under **Access Token**, choose **Generate Threads Access Token**. A new window lets you pick the **Threads** account to test with—use one that accepted the tester invite earlier.
 
-- If everything is wired correctly, Meta returns a long alphanumeric access token. You do not need to store or paste it into OpenQuok; receiving it only confirms the app and tester setup work.
+- If everything is wired correctly, Meta returns a long alphanumeric access token.This is just only confirms that the tester setup work.
 
 </Steps>
 

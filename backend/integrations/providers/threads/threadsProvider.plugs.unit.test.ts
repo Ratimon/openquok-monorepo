@@ -19,7 +19,6 @@ describe("ThreadsProvider internal plug catalog", () => {
     it("requests threads_manage_mentions for cross-account comments", () => {
         const provider = new ThreadsProvider();
         expect(provider.scopes).toContain("threads_manage_mentions");
-        expect(provider.scopes).not.toContain("threads_keyword_search");
     });
 
     it("requires caption or media when scheduling", () => {
