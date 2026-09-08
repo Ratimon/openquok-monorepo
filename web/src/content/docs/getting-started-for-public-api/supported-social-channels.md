@@ -89,7 +89,7 @@ These providers don't need a <Badge text="providerSettingsByIntegrationId" varia
 | --- | --- |
 | Meta Threads | <Badge text="threads" variant="default" /> |
 
-Threads is hard-capped at <Badge text="500 chars" variant="default" /> per item — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/threadsProvider.ts"><Badge text="backend/integrations/providers/threadsProvider.ts" variant="path" /></DocsExternalLink>.
+Threads is hard-capped at <Badge text="500 chars" variant="default" /> per item — see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/providers/threads/threadsProvider.ts"><Badge text="backend/integrations/providers/threads/threadsProvider.ts" variant="path" /></DocsExternalLink>.
 
 ### Cross-provider features
 

@@ -7,7 +7,7 @@ import type {
 import { FacebookProvider } from "./providers/facebook/facebookProvider";
 import { InstagramBusinessProvider } from "./providers/instagram/instagramBusinessProvider";
 import { InstagramStandaloneProvider } from "./providers/instagram/instagramStandaloneProvider";
-import { ThreadsProvider } from "./providers/threadsProvider";
+import { ThreadsProvider } from "./providers/threads/threadsProvider";
 import { LinkedInPageProvider } from "./providers/linkedin/linkedinPageProvider";
 import { LinkedInProvider } from "./providers/linkedin/linkedinProvider";
 import { TiktokProvider } from "./providers/tiktok/tiktokProvider";

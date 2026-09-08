@@ -1,5 +1,5 @@
 import { describe, expect, it, jest, afterEach } from "@jest/globals";
-import type { IntegrationRecord } from "../social.integrations.interface";
+import type { IntegrationRecord } from "../../social.integrations.interface";
 import { ThreadsProvider } from "./threadsProvider";
 
 describe("ThreadsProvider internal plug catalog", () => {
@@ -27,7 +27,7 @@ describe("ThreadsProvider internal plug catalog", () => {
         expect(provider.validateCreatePost?.({ status: "draft", mediaCount: 0, message: "" })).toBeNull();
         expect(
             provider.validateCreatePost?.({ status: "scheduled", mediaCount: 0, message: "   " })
-        ).toMatch(/caption or media/i);
+        ).toMatch(/caption or at least one image or video/i);
         expect(
             provider.validateCreatePost?.({ status: "scheduled", mediaCount: 1, message: "" })
         ).toBeNull();

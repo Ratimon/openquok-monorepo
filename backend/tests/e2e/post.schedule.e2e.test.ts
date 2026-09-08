@@ -15,7 +15,7 @@ import { prepareSoloWorkspace, restoreSoloWorkspaceSpies } from "../helpers/work
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
 import { createPublishScheduledGroupHandler } from "openquok-orchestrator/activities/scheduledSocialPostActivities.js";
 import { IntegrationManager } from "../../integrations/integrationManager.js";
-import { ThreadsProvider } from "../../integrations/providers/threadsProvider.js";
+import { ThreadsProvider } from "../../integrations/providers/threads/threadsProvider.js";
 import { integrationRepository, postsRepository } from "../../repositories/index.js";
 
 jest.mock("openquok-orchestrator", () => ({
