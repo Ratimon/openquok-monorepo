@@ -15,12 +15,17 @@ export async function load({ url, cookies, parent }) {
 		companyConfig?.NAME ?? (CONFIG_SCHEMA_COMPANY.NAME.default as string);
 	const companyUrl =
 		companyConfig?.URL ?? (CONFIG_SCHEMA_COMPANY.URL.default as string);
+	const legalName =
+		companyConfig?.LEGAL_NAME ?? (CONFIG_SCHEMA_COMPANY.LEGAL_NAME.default as string);
+	const companyAddress =
+		companyConfig?.COMPANY_ADDRESS ?? (CONFIG_SCHEMA_COMPANY.COMPANY_ADDRESS.default as string);
 	const supportEmail =
-		(companyConfig?.SUPPORT_EMAIL as string | undefined) ?? companyUrl;
+		(companyConfig?.SUPPORT_EMAIL as string | undefined) ??
+		(CONFIG_SCHEMA_COMPANY.SUPPORT_EMAIL.default as string);
 
 	const title = 'Privacy Policy';
 	const description =
-		'How we collect, use, and protect personal information—including Google and YouTube user data, connected social channels, and how to request deletion.';
+		'How we collect, use, and protect personal information—including Meta, Google, TikTok, and other connected social channels, subprocessors, and how to request deletion.';
 
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = Object.freeze({
@@ -37,6 +42,8 @@ export async function load({ url, cookies, parent }) {
 		companyInformationPm,
 		companyName,
 		companyUrl,
+		legalName,
+		companyAddress,
 		supportEmail
 	};
 }

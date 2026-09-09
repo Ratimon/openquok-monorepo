@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated June 17, 2026</SectionDescription>
+			<SectionDescription>Last updated September 8, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -182,9 +182,9 @@
 				<h2>8. Third-party platforms and integrations</h2>
 				<p>
 					A core function of the Services is to publish Your Content to third-party social and
-					messaging platforms you connect (for example Facebook, Instagram, Threads, TikTok, and YouTube,
-					where available). You authenticate those accounts and authorize us to act on your behalf
-					within the scopes you grant.
+					messaging platforms you connect (for example Facebook Page, Instagram, Threads, TikTok, and
+					YouTube, where available). You authenticate those accounts and authorize us to act on your
+					behalf within the scopes you grant.
 				</p>
 				<p>
 					Your use of each platform through the Services is also governed by that platform’s terms and
@@ -214,8 +214,51 @@
 						for how we handle Google user data.
 					</li>
 					<li>
-						<strong>Meta platforms</strong> (Facebook, Instagram, Threads) — Meta’s terms and platform
-						policies apply to content published through those APIs.
+						<strong>Meta platforms</strong> (Facebook Page, Instagram, Threads) — your use is
+						governed by the
+						<a
+							href="https://www.facebook.com/legal/terms"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Meta Terms of Service
+						</a>,
+						<a
+							href="https://developers.facebook.com/terms"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Meta Platform Terms
+						</a>
+						(where applicable), and the
+						<a
+							href="https://www.facebook.com/privacy/policy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Meta Privacy Policy
+						</a>.
+						<ul>
+							<li>
+								<strong>Facebook Page</strong> and <strong>Instagram (Business)</strong> — connected
+								through Facebook Login for Business; you select the Page or Instagram account during
+								setup.
+							</li>
+							<li>
+								<strong>Instagram (Standalone)</strong> — connected through Instagram Login (no
+								Facebook Page required).
+							</li>
+							<li>
+								<strong>Threads</strong> — connected through Threads OAuth (separate from Facebook
+								Login).
+							</li>
+						</ul>
+						See our
+						<a href="/privacy-policy#meta-api-services" class="link link-hover">Privacy Policy</a>
+						for how we handle Meta Platform Data and the OAuth scopes requested for each channel type.
 					</li>
 					<li>
 						<strong>TikTok</strong> — by connecting TikTok you agree to the
@@ -374,8 +417,11 @@
 
 				<h2>19. General</h2>
 				<p>
-					These Terms, together with the Privacy Policy and any plan-specific or order-form terms you
-					accept, are the entire agreement between you and {companyName} regarding the Services. If
+					These Terms, together with the
+					<a href="/privacy-policy" class="link link-hover">Privacy Policy</a>,
+					<a href="/cookie-policy" class="link link-hover">Cookie Policy</a>, and any plan-specific or
+					order-form terms you accept, are the entire agreement between you and {companyName}
+					regarding the Services. If
 					any provision is invalid or unenforceable, the remainder stays in effect. Our failure to
 					enforce a provision is not a waiver. You may not assign these Terms without our written
 					consent; we may assign them to an affiliate or in connection with a merger, acquisition, or

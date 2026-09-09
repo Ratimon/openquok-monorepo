@@ -19,6 +19,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			companyInformationPm: unknown;
 			companyName: string;
 			companyUrl: string;
+			legalName: string;
+			companyAddress: string;
 			supportEmail: string;
 		};
 
@@ -32,6 +34,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			companyInformationPm: serverData.companyInformationPm,
 			companyName: serverData.companyName,
 			companyUrl: serverData.companyUrl,
+			legalName: serverData.legalName,
+			companyAddress: serverData.companyAddress,
 			supportEmail: serverData.supportEmail
 		};
 	}

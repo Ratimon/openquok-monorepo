@@ -25,7 +25,7 @@ export async function load({ url, cookies, parent }) {
 
 	const title = 'Terms & Conditions';
 	const description =
-		'Terms governing use of our social scheduling platform, connected channels, workspaces, billing, and integrations—including YouTube API Services.';
+		'Terms governing use of our social scheduling platform, connected channels, workspaces, billing, and integrations—including Meta, YouTube, and TikTok APIs.';
 
 	const canonical = buildCanonicalUrl(url);
 	const pageMetaTags = Object.freeze({

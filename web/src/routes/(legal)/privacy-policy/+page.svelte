@@ -15,10 +15,15 @@
 	} & PageData;
 
 	let { data }: Props = $props();
-	let { companyName, companyUrl, supportEmail } = $derived(data);
+	let { companyName, companyUrl, legalName, companyAddress, supportEmail } = $derived(data);
 
 	let supportContactHref = $derived(
 		supportEmail.includes('@') ? `mailto:${supportEmail}` : supportEmail
+	);
+	let trimmedLegalName = $derived((legalName ?? '').trim());
+	let trimmedCompanyAddress = $derived((companyAddress ?? '').trim());
+	let showLegalNameInContact = $derived(
+		Boolean(trimmedLegalName) && trimmedLegalName !== companyName
 	);
 </script>
 
@@ -32,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Privacy Policy for {companyName}</SectionTitle>
-			<SectionDescription>Last updated June 15, 2026</SectionDescription>
+			<SectionDescription>Last updated September 8, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -69,6 +74,33 @@
 					</a>. Our site’s <code>/robots.txt</code> explicitly allows the Meta-related user agents
 					listed there so they are not blocked from public pages.
 				</p>
+
+				<h2>Who we are (data controller)</h2>
+				<p>
+					{#if showLegalNameInContact}
+						<strong>{trimmedLegalName}</strong> (trading as <strong>{companyName}</strong>) is the
+						<strong>data controller</strong> for personal information described in this policy,
+						except where we act as a processor on behalf of your organization as described in
+						<a href="#gdpr-roles" class="link link-hover">Section 9</a>.
+					{:else}
+						<strong>{companyName}</strong> is the <strong>data controller</strong> for personal
+						information described in this policy, except where we act as a processor on behalf of
+						your organization as described in
+						<a href="#gdpr-roles" class="link link-hover">Section 9</a>.
+					{/if}
+					We determine the purposes and means of processing account, billing, security, marketing
+					(where applicable), and service-usage data. When you connect third-party social platforms,
+					we also process Platform Data (for example OAuth tokens, profile identifiers, usernames,
+					profile pictures, publish records, and analytics) strictly to provide the services you
+					request.
+				</p>
+				{#if trimmedCompanyAddress}
+					<p>
+						Registered address:
+						<strong>{showLegalNameInContact ? trimmedLegalName : companyName}</strong>,
+						<span class="whitespace-pre-line">{trimmedCompanyAddress}</span>
+					</p>
+				{/if}
 
 				<h2>
 					1. Our services and third-party platforms</h2>
@@ -327,6 +359,113 @@
 						workspace integrations settings, or in the TikTok mobile app under
 						<strong>Settings and privacy</strong> → <strong>Security</strong> →
 						<strong>Manage app permissions</strong>.
+					</li>
+					<li id="meta-api-services">
+						<strong>Meta platforms (Facebook Page, Instagram, Threads):</strong> When you connect a
+						Facebook Page, Instagram account (business or standalone), or Threads profile, the
+						services use Meta’s official APIs. We receive and store OAuth access tokens (encrypted at
+						rest), granted permission scopes, platform user or page identifiers, usernames, display
+						names, profile pictures, and content or analytics needed to provide the services—for
+						example scheduling and publishing posts and stories, follow-up comments or replies,
+						cross-account engagement plugs you configure (where supported), and channel or post-level
+						insights returned by Meta.
+						<ul>
+							<li>
+								<strong>Facebook Page OAuth scopes:</strong> When you connect a Facebook Page via
+								Facebook Login for Business, we request scopes needed to list Pages you manage,
+								publish and schedule Page posts (including stories where supported), read and manage
+								comments and engagement, and show Page insights. These include
+								<code>pages_show_list</code>, <code>business_management</code>,
+								<code>pages_manage_posts</code>, <code>pages_read_user_content</code>,
+								<code>pages_manage_engagement</code>, <code>pages_read_engagement</code>, and
+								<code>read_insights</code> (shown on the Meta authorization screen when you approve
+								the connection). After OAuth, you choose which Page to connect in our product.
+							</li>
+							<li>
+								<strong>Instagram (Business) OAuth scopes:</strong> When you connect an Instagram
+								account linked to a Facebook Page, we use Facebook Login for Business and request
+								scopes needed to identify the account, publish and schedule content, manage comments,
+								and show insights. These include <code>instagram_basic</code>,
+								<code>pages_show_list</code>, <code>pages_read_engagement</code>,
+								<code>business_management</code>, <code>instagram_content_publish</code>,
+								<code>instagram_manage_comments</code>, and
+								<code>instagram_manage_insights</code>.
+							</li>
+							<li>
+								<strong>Instagram (Standalone) OAuth scopes:</strong> When you connect via Instagram
+								Login (no Facebook Page required), we request
+								<code>instagram_business_basic</code>,
+								<code>instagram_business_content_publish</code>,
+								<code>instagram_business_manage_comments</code>, and
+								<code>instagram_business_manage_insights</code>.
+							</li>
+							<li>
+								<strong>Threads OAuth scopes:</strong> When you connect Threads, we use Threads
+								OAuth (not Facebook Login) and request scopes needed to identify your profile,
+								publish and schedule content, manage same-account replies, show analytics, and (when
+								you use cross-account comment plugs) publish comments from other Threads channels
+								in the same workspace. These include <code>threads_basic</code>,
+								<code>threads_content_publish</code>, <code>threads_manage_replies</code>,
+								<code>threads_manage_insights</code>, and <code>threads_manage_mentions</code>.
+							</li>
+							<li>
+								<strong>How we use Meta Platform Data:</strong> We use it only to provide and improve
+								user-facing features you see in {companyName}—for example connecting a channel,
+								displaying profile or Page metadata in the product, scheduling and publishing content,
+								follow-up comments or replies, cross-account plugs you enable (Threads, X, LinkedIn),
+								and analytics dashboards. We do not use Meta Platform Data for advertising,
+								retargeting, credit decisions, or selling data to third parties.
+							</li>
+							<li>
+								<strong>How we store Meta Platform Data:</strong> OAuth tokens are encrypted at rest
+								and kept while the connection is active (see Section 8). Schedules, publish records,
+								and analytics we retrieve are stored so you can manage content across sessions.
+							</li>
+							<li>
+								<strong>How we share Meta Platform Data:</strong> We transmit content and metadata to
+								Meta when you publish or take other actions through the services. We may process or
+								store Meta Platform Data using infrastructure sub-processors (see Section 5.2)
+								strictly to operate the services. We do not transfer Meta Platform Data to advertising
+								platforms, data brokers, or other third parties except as described here or with your
+								consent.
+							</li>
+							<li>
+								<strong>How you connect each Meta channel:</strong> Facebook Page and Instagram
+								(Business) use <strong>Facebook Login for Business</strong> (
+								<strong>Add Channel → Facebook Page</strong> or
+								<strong>Instagram (Business)</strong>). Instagram (Standalone) uses
+								<strong>Instagram Login</strong> (
+								<strong>Add Channel → Instagram (Standalone)</strong>). Threads uses
+								<strong>Threads OAuth</strong> (
+								<strong>Add Channel → Threads</strong>) and does not require Facebook Login.
+							</li>
+							<li>
+								<strong>Human access:</strong> Our personnel do not read the content of your Meta
+								platform data except when you ask us to investigate a specific issue you report,
+								when necessary for security, when required by law, or when the data is aggregated for
+								internal operations in line with applicable privacy requirements.
+							</li>
+						</ul>
+						Your use of those features is also subject to the
+						<a
+							href="https://www.facebook.com/legal/terms"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Meta Terms of Service
+						</a>
+						and the
+						<a
+							href="https://www.facebook.com/privacy/policy"
+							class="link link-hover"
+							rel="noopener noreferrer"
+							target="_blank"
+						>
+							Meta Privacy Policy
+						</a>. You can revoke {companyName}'s access at any time by disconnecting the channel
+						from your workspace integrations settings or through Meta’s app permissions for your
+						account.
 					</li>
 					<li>
 						<strong>Location you choose to share:</strong> If you provide a specific location (for
@@ -713,6 +852,42 @@
 					content strictly to what is needed to deliver the services.
 				</p>
 				<p>
+					<strong>Infrastructure sub-processors</strong> that may process Platform Data (including Meta,
+					Google, TikTok, and other connected-platform OAuth tokens, identifiers, profile metadata,
+					publish records, and analytics) on our behalf include:
+				</p>
+				<ul>
+					<li>
+						<strong>Supabase, Inc.</strong> — application database and authentication (stores
+						encrypted OAuth tokens, connected account identifiers, usernames, profile metadata, publish
+						records, and analytics retrieved from platform APIs).
+					</li>
+					<li>
+						<strong>Cloudflare, Inc.</strong> — object storage (R2) for customer-uploaded media
+						published to connected platforms via public URLs.
+					</li>
+					<li>
+						<strong>Redis Ltd. (Redis Cloud)</strong> — caching and background job queues; may
+						temporarily hold integration-related or analytics-related data processed by our API and
+						workers.
+					</li>
+					<li>
+						<strong>Railway Corporation</strong> — hosting for our backend API and background workers
+						that call platform APIs and process responses.
+					</li>
+					<li>
+						<strong>Vercel, Inc.</strong> — hosting for our customer-facing web application (OAuth
+						redirect pages and product UI; access tokens are handled by our backend, not stored in the
+						browser).
+					</li>
+				</ul>
+				<p>
+					Payment card data is handled by PCI-certified payment processors (for example Stripe); we do
+					not store full card numbers on our own systems. We do not use Sentry or similar error
+					monitoring in production configurations that would receive Platform Data unless we disclose
+					that change in an updated policy.
+				</p>
+				<p>
 					If you purchase through an authorized reseller or partner, we may exchange information with
 					that party as needed to support your purchase, onboarding, and ongoing use of the services.
 				</p>
@@ -744,6 +919,16 @@
 				</p>
 				<p>
 					We encourage you to review the privacy policy of any Platform you connect, including the
+					<a
+						href="https://www.facebook.com/privacy/policy"
+						class="link link-hover"
+						rel="noopener noreferrer"
+						target="_blank"
+					>
+						Meta Privacy Policy
+					</a>
+					for Facebook Page, Instagram, and Threads integrations (see also
+					<a href="#meta-api-services" class="link link-hover">Meta platforms</a> above), the
 					<a
 						href="https://policies.google.com/privacy"
 						class="link link-hover"
@@ -792,6 +977,33 @@
 					legal claims. For governmental access requests concerning you or your organization, we will
 					seek to redirect the request to you or notify you where we are not legally prohibited from
 					doing so.
+				</p>
+				<p>
+					Our policies and processes for requests from public authorities for personal information
+					include:
+				</p>
+				<ul>
+					<li>
+						<strong>Required review of legality</strong> — we assess whether a request has a valid legal
+						basis before disclosing data.
+					</li>
+					<li>
+						<strong>Challenging unlawful requests</strong> — we may challenge or narrow requests we
+						consider unlawful or overbroad.
+					</li>
+					<li>
+						<strong>Data minimization</strong> — we disclose only the minimum information reasonably
+						necessary to comply with a valid request.
+					</li>
+					<li>
+						<strong>Documentation</strong> — we maintain records of significant requests, our responses,
+						and the legal reasoning involved, where appropriate.
+					</li>
+				</ul>
+				<p>
+					We have not provided personal information to public authorities in response to national
+					security requests in the past twelve (12) months, except where prohibited by law from
+					disclosing that fact.
 				</p>
 				<p>
 					We may also disclose information to investigate or address illegal activity, fraud, threats
@@ -1071,9 +1283,20 @@
 				<h2>
 					13. Contact</h2>
 				<p>
-					For questions about this Privacy Policy or our data practices, contact us at
+					For questions about this Privacy Policy, data-protection requests, or subprocessors, contact
+					us at
 					<a href={supportContactHref} class="link link-hover">{supportEmail}</a>.
 				</p>
+				{#if trimmedCompanyAddress}
+					<p>You may also contact us by post at:</p>
+					<ul>
+						<li>
+							<strong>{showLegalNameInContact ? trimmedLegalName : companyName}</strong>
+							<br />
+							<span class="whitespace-pre-line">{trimmedCompanyAddress}</span>
+						</li>
+					</ul>
+				{/if}
 			</SubSectionInnerContainer>
 		</SubSectionOuterContainer>
 	</div>
