@@ -38,20 +38,21 @@
 			busy={disabled}
 			comments={'no-media'}
 			{compact}
-		/>
-		<div class="mt-2 flex items-center justify-end">
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				disabled={!enabled || disabled}
-				onclick={() =>
-					(message =
-						"That's a wrap!\n\nIf you enjoyed this thread:\n\n1. Follow me for more\n2. Share the post below")}
-			>
-				Reset
-			</Button>
-		</div>
+		>
+			{#snippet footerEnd()}
+				<Button
+					type="button"
+					variant="outline"
+					size="sm"
+					disabled={!enabled || disabled}
+					onclick={() =>
+						(message =
+							"That's a wrap!\n\nIf you enjoyed this thread:\n\n1. Follow me for more\n2. Share the post below")}
+				>
+					Reset
+				</Button>
+			{/snippet}
+		</EditorPost>
 	</div>
 </div>
 

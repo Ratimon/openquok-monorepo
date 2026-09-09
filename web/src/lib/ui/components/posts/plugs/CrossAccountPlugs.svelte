@@ -79,7 +79,7 @@
 </script>
 
 {#if plugs.length}
-	<div class="space-y-4 {compact ? 'mt-4' : 'mt-6'}">
+	<div class="{compact ? 'mt-2 space-y-2' : 'mt-6 space-y-4'}">
 		{#if showThreadsCrossAccountHint}
 			<p class="text-xs text-base-content/55">
 				Comments run from the selected channel after the delay.
@@ -88,7 +88,7 @@
 		{#each plugs as def (def.identifier)}
 			{@const state = plugState(def.identifier)}
 			{@const accounts = eligibleChannels(def)}
-			<div class="border-base-300 bg-base-200/30 rounded-lg border p-4">
+			<div class="border-base-300 bg-base-200/30 rounded-lg border {compact ? 'p-3' : 'p-4'}">
 				<div class="flex items-center justify-between gap-3">
 					<div>
 						<div class="text-sm font-medium text-base-content/85">{def.title}</div>
@@ -114,7 +114,9 @@
 					</label>
 				</div>
 
-				<div class="mt-3 space-y-3 {state.enabled ? '' : 'pointer-events-none opacity-40'}">
+				<div
+					class="{compact ? 'mt-2 space-y-2' : 'mt-3 space-y-3'} {state.enabled ? '' : 'pointer-events-none opacity-40'}"
+				>
 					{#if !accounts.length}
 						<p class="text-xs text-base-content/55">Connect another channel to use this.</p>
 					{:else}
@@ -142,7 +144,7 @@
 								</span>
 								{#if field.type === 'textarea'}
 									<textarea
-										class="border-base-300 bg-base-100 min-h-[72px] w-full rounded-md border px-3 py-2 text-sm"
+										class="border-base-300 bg-base-100 w-full rounded-md border px-3 py-2 text-sm {compact ? 'min-h-[56px]' : 'min-h-[72px]'}"
 										placeholder={field.placeholder}
 										disabled={disabled}
 										value={state.fields[field.name] ?? ''}

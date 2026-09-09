@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
 
 	import GeneralPreviewComponent from '$lib/ui/components/posts/GeneralPreviewComponent.svelte';
 	import FacebookPreview from '$lib/ui/components/posts/providers/facebook/FacebookPreview.svelte';
@@ -27,6 +28,7 @@
 		previewMetaLabel?: string | null;
 		/** Per-channel provider settings used by previews that render title/cover/tags. */
 		providerSettings?: Record<string, unknown>;
+		crossAccountPlugs?: CrossAccountPlugPreviewItem[];
 	};
 
 	let {
@@ -39,7 +41,8 @@
 		delayedEngagementReply = null,
 		previewMetaLabel = null,
 		weightedCharCount,
-		providerSettings = {}
+		providerSettings = {},
+		crossAccountPlugs = []
 	}: Props = $props();
 
 	const identifier = $derived((channel?.identifier ?? '').toLowerCase());
@@ -75,6 +78,7 @@
 		{threadFinisher}
 		{delayedEngagementReply}
 		{previewMetaLabel}
+		{crossAccountPlugs}
 	/>
 {:else if identifier === 'facebook'}
 	<FacebookPreview
@@ -119,6 +123,7 @@
 		{threadFinisher}
 		{previewMetaLabel}
 		{providerSettings}
+		{crossAccountPlugs}
 	/>
 {:else if identifier === 'x'}
 	<XPreview
@@ -131,6 +136,7 @@
 		{threadFinisher}
 		{previewMetaLabel}
 		{providerSettings}
+		{crossAccountPlugs}
 	/>
 {:else if identifier === 'devto'}
 	<DevtoPreview

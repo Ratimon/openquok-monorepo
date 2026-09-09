@@ -12,6 +12,7 @@
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
 		providerSettings?: Record<string, unknown>;
+		crossAccountPlugs?: CrossAccountPlugPreviewItem[];
 	};
 </script>
 
@@ -20,6 +21,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
+	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
 	import { readXLaunchSettings } from '$lib/ui/components/posts/providers/x/xLaunchSettings';
@@ -33,7 +36,8 @@
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
-		providerSettings = {}
+		providerSettings = {},
+		crossAccountPlugs = []
 	}: XPreviewProps = $props();
 
 	const settings = $derived(readXLaunchSettings(providerSettings));
@@ -135,7 +139,7 @@
 		</div>
 	</div>
 
-	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim())}
+	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim()) || crossAccountPlugs.length > 0}
 		<div class="px-4 pb-4">
 			<PreviewScheduledSocialReplies
 				replies={threadReplies}
@@ -144,6 +148,7 @@
 				replyActor={{ displayName: channel.name, picture: channel.picture }}
 				threadContinuesFromRoot={true}
 			/>
+			<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="x" />
 		</div>
 	{/if}
 </div>

@@ -119,6 +119,8 @@
 		compactEditors?: boolean;
 		/** Static internal-plug catalog for landing mocks (skips API fetch when set). */
 		crossAccountPlugDefinitionsOverride?: CrossAccountPlugDefinition[];
+		/** Landing cross-account bento: only render cross-account plug controls. */
+		panelScope?: 'full' | 'crossAccountPlugsOnly';
 	};
 
 	let {
@@ -132,7 +134,8 @@
 		disabled = false,
 		embedded = false,
 		compactEditors = false,
-		crossAccountPlugDefinitionsOverride = undefined
+		crossAccountPlugDefinitionsOverride = undefined,
+		panelScope = 'full'
 	}: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
@@ -544,19 +547,21 @@
 
 {#snippet settingsPanelBody()}
 	{#if identifier === 'threads'}
-		<ThreadFinisher
-			bind:enabled={threadsEnabled}
-			bind:message={threadsMessage}
-			{disabled}
-			compact={compactEditors}
-		/>
-		<SameAccountEngagementPlug
-			bind:enabled={igPlugEnabled}
-			bind:delaySeconds={igPlugDelaySeconds}
-			bind:message={igPlugMessage}
-			{disabled}
-			compact={compactEditors}
-		/>
+		{#if panelScope !== 'crossAccountPlugsOnly'}
+			<ThreadFinisher
+				bind:enabled={threadsEnabled}
+				bind:message={threadsMessage}
+				{disabled}
+				compact={compactEditors}
+			/>
+			<SameAccountEngagementPlug
+				bind:enabled={igPlugEnabled}
+				bind:delaySeconds={igPlugDelaySeconds}
+				bind:message={igPlugMessage}
+				{disabled}
+				compact={compactEditors}
+			/>
+		{/if}
 		<CrossAccountPlugs
 			currentChannel={channel}
 			allChannels={allChannels}
@@ -600,11 +605,13 @@
 			{disabled}
 		/>
 	{:else if identifier === 'linkedin' || identifier === 'linkedin-page'}
-		<LinkedInSettings
-			bind:postAsImagesCarousel={liCarousel}
-			bind:carouselName={liCarouselName}
-			showCarousel={true}
-		/>
+		{#if panelScope !== 'crossAccountPlugsOnly'}
+			<LinkedInSettings
+				bind:postAsImagesCarousel={liCarousel}
+				bind:carouselName={liCarouselName}
+				showCarousel={true}
+			/>
+		{/if}
 		<CrossAccountPlugs
 			currentChannel={channel}
 			allChannels={allChannels}
@@ -614,19 +621,21 @@
 			compact={compactEditors}
 		/>
 	{:else if identifier === 'x'}
-		<XSettings
-			bind:whoCanReplyPost={xWhoCanReply}
-			bind:communityUrl={xCommunityUrl}
-			bind:madeWithAi={xMadeWithAi}
-			bind:paidPartnership={xPaidPartnership}
-		/>
-		<ThreadFinisher
-			bind:enabled={xFinisherEnabled}
-			bind:message={xFinisherMessage}
-			{disabled}
-			compact={compactEditors}
-			softCharLimit={280}
-		/>
+		{#if panelScope !== 'crossAccountPlugsOnly'}
+			<XSettings
+				bind:whoCanReplyPost={xWhoCanReply}
+				bind:communityUrl={xCommunityUrl}
+				bind:madeWithAi={xMadeWithAi}
+				bind:paidPartnership={xPaidPartnership}
+			/>
+			<ThreadFinisher
+				bind:enabled={xFinisherEnabled}
+				bind:message={xFinisherMessage}
+				{disabled}
+				compact={compactEditors}
+				softCharLimit={280}
+			/>
+		{/if}
 		<CrossAccountPlugs
 			currentChannel={channel}
 			allChannels={allChannels}

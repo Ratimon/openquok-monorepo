@@ -1,11 +1,16 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
+import {
+	LANDING_MOCK_BRAND_PROFILE,
+	LANDING_MOCK_CROSS_ACCOUNT_COMMENT,
+	LANDING_MOCK_PERSONAL_PROFILE
+} from '$lib/ui/templates/bento/minor-templates/landing/landingMockProfiles';
 
 export const LINKEDIN_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-linkedin-page',
 	internalId: 'landing-mock-linkedin-page-internal',
 	name: 'OpenQuok Company',
 	identifier: 'linkedin-page',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_BRAND_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -23,7 +28,7 @@ export const LINKEDIN_LANDING_MOCK_ACTING_CHANNEL: CreateSocialPostChannelViewMo
 	internalId: 'landing-mock-linkedin-internal',
 	name: 'OpenQuok',
 	identifier: 'linkedin',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_PERSONAL_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -98,7 +103,7 @@ export const LINKEDIN_LANDING_MOCK_PROVIDER_SETTINGS = {
 				delayMs: 0,
 				integrationIds: [LINKEDIN_LANDING_MOCK_ACTING_CHANNEL.id],
 				fields: {
-					comment: 'Worth a look — sharing the Q2 playbook from our team account.'
+					comment: LANDING_MOCK_CROSS_ACCOUNT_COMMENT
 				}
 			},
 			{

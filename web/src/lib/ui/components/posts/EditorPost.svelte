@@ -13,6 +13,7 @@
 	import type { IntegrationEditorMode } from '$lib/integrations/integrationEditorMode';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
+	import type { Snippet } from 'svelte';
 
 	import { icons } from '$data/icons';
 	import {
@@ -77,6 +78,8 @@
 		comments?: boolean | 'no-media';
 		/** Shorter textarea for landing previews and tight layouts. */
 		compact?: boolean;
+		/** Renders beside the character counter (e.g. Reset / Example text). */
+		footerEnd?: Snippet;
 		scheduleValidationMessage?: string | null;
 		/** Blocks per-network customization UX while defining a reusable workspace set (global authoring only). */
 		setsAuthoringNetworkLock?: boolean;
@@ -131,6 +134,7 @@
 		maxMediaItems = null,
 		comments = false,
 		compact = false,
+		footerEnd,
 		scheduleValidationMessage = null,
 		setsAuthoringNetworkLock = false,
 		guestMode = false,
@@ -267,9 +271,13 @@
 		compact ? (isCommentEditor ? 2 : 4) : isCommentEditor ? 3 : 8
 	);
 	const textareaMinHeightClass = $derived(
-		compact || isCommentEditor
-			? 'min-h-[4.5rem] sm:min-h-[4.5rem]'
-			: 'min-h-[140px] sm:min-h-[180px]'
+		compact
+			? isCommentEditor
+				? 'min-h-[3.25rem] sm:min-h-[3.25rem]'
+				: 'min-h-[4rem] sm:min-h-[4rem]'
+			: isCommentEditor
+				? 'min-h-[4.5rem] sm:min-h-[4.5rem]'
+				: 'min-h-[140px] sm:min-h-[180px]'
 	);
 	const composerToolbarVisible = $derived(!locked && !defineSetScopeOverlay);
 	const mediaToolbarVisible = $derived(composerToolbarVisible && composerAllowsMedia);
@@ -663,7 +671,11 @@
 		{/if}
 	{/if}
 	</div>
-	<div class="mt-2 flex flex-wrap items-center justify-end gap-2 border-t border-base-300/80 pt-2">
+	<div
+		class="mt-1.5 flex flex-wrap items-center justify-end gap-2 {footerEnd
+			? ''
+			: 'border-t border-base-300/80 pt-2'}"
+	>
 		<div
 			class="rounded border px-2 py-0.5 text-xs font-medium {charCount > softCharLimit
 				? 'border-error/60 bg-error/10 text-error'
@@ -671,6 +683,7 @@
 		>
 			{charCount}/{softCharLimit}
 		</div>
+		{@render footerEnd?.()}
 	</div>
 </div>
 

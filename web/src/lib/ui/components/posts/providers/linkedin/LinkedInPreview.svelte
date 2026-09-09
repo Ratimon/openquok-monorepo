@@ -11,6 +11,7 @@
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
 		providerSettings?: Record<string, unknown>;
+		crossAccountPlugs?: CrossAccountPlugPreviewItem[];
 	};
 </script>
 
@@ -20,6 +21,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
+	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { readLinkedInLaunchSettings } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 
@@ -31,7 +34,8 @@
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
-		providerSettings = {}
+		providerSettings = {},
+		crossAccountPlugs = []
 	}: LinkedInPreviewProps = $props();
 
 	const settings = $derived(readLinkedInLaunchSettings(providerSettings));
@@ -102,5 +106,6 @@
 
 	<div class="px-4 pb-4">
 		<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="general" />
+		<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="linkedin" />
 	</div>
 </div>

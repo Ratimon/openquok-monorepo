@@ -1,12 +1,18 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
 import { THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS } from '$lib/posts/utils/create-post';
+import {
+	LANDING_MOCK_BRAND_PROFILE,
+	LANDING_MOCK_CROSS_ACCOUNT_COMMENT,
+	LANDING_MOCK_PERSONAL_PROFILE
+} from '$lib/ui/templates/bento/minor-templates/landing/landingMockProfiles';
 
+/** Company Threads profile — publishes the main thread in landing mocks. */
 export const THREADS_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-threads',
 	internalId: 'landing-mock-threads-internal',
-	name: 'OpenQuok',
+	name: 'OpenQuok Brand',
 	identifier: 'threads',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_BRAND_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -18,13 +24,13 @@ export const THREADS_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	editor: 'normal'
 };
 
-/** Second connected Threads profile — acting account for cross-account comment preview. */
+/** Personal Threads profile — cross-account comment after the company thread. */
 export const THREADS_LANDING_MOCK_ACTING_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-threads-brand',
 	internalId: 'landing-mock-threads-brand-internal',
-	name: 'OpenQuok Brand',
+	name: 'OpenQuok',
 	identifier: 'threads',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_PERSONAL_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -59,12 +65,12 @@ export const THREADS_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS = [
 ];
 
 export const THREADS_LANDING_MOCK_BODY =
-	'Attach media and queue one follow-up reply after publish.';
+	'Ship the company thread — a personal profile can comment after publish.';
 
 /** `datetime-local` value for the mock schedule footer (Friday 9:00 AM). */
 export const THREADS_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
-export const THREADS_LANDING_MOCK_MEDIA_URLS = ['/landing/social-profile.webp'];
+export const THREADS_LANDING_MOCK_MEDIA_URLS = [LANDING_MOCK_BRAND_PROFILE];
 
 export const THREADS_LANDING_MOCK_THREAD_REPLIES = [
 	{
@@ -76,8 +82,8 @@ export const THREADS_LANDING_MOCK_THREAD_REPLIES = [
 
 export const THREADS_LANDING_MOCK_PROVIDER_SETTINGS = {
 	threads: {
-		enabled: true,
-		message: "That's a wrap — thanks for reading.",
+		enabled: false,
+		message: '',
 		internalEngagementPlug: {
 			enabled: false,
 			delaySeconds: 120,
@@ -92,7 +98,7 @@ export const THREADS_LANDING_MOCK_PROVIDER_SETTINGS = {
 				delayMs: THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS,
 				integrationIds: [THREADS_LANDING_MOCK_ACTING_CHANNEL.id],
 				fields: {
-					comment: 'Great thread — sharing from our other account.'
+					comment: LANDING_MOCK_CROSS_ACCOUNT_COMMENT
 				}
 			}
 		]

@@ -34,7 +34,11 @@
 		<Switch bind:checked={enabled} disabled={disabled} />
 	</div>
 
-	<div class="mt-4 space-y-3 {enabled ? '' : 'opacity-40 pointer-events-none'}">
+	<div
+		class="{compact ? 'mt-2 space-y-2' : 'mt-4 space-y-3'} {enabled
+			? ''
+			: 'opacity-40 pointer-events-none'}"
+	>
 		<label class="block">
 			<span class="mb-1 block text-xs font-medium text-base-content/70">Delay before reply (seconds)</span>
 			<input
@@ -42,15 +46,16 @@
 				min="0"
 				max="86400"
 				step="30"
-				class="border-base-300 bg-base-100 text-base-content w-full rounded-md border px-3 py-2 text-sm"
+				class="border-base-300 bg-base-100 text-base-content w-full rounded-md border px-3 {compact
+					? 'py-1.5 text-sm'
+					: 'py-2 text-sm'}"
 				bind:value={delaySeconds}
 				disabled={disabled || !enabled}
 			/>
 		</label>
 
 		<div>
-			<div class="mb-1 text-xs font-medium text-base-content/70">
-				Reply message</div>
+			<div class="mb-1 text-xs font-medium text-base-content/70">Reply message</div>
 			<EditorPost
 				charCount={charCount}
 				softCharLimit={softCharLimit}
@@ -58,18 +63,19 @@
 				busy={disabled}
 				comments={'no-media'}
 				{compact}
-			/>
-		</div>
-		<div class="flex justify-end">
-			<Button
-				type="button"
-				variant="outline"
-				size="sm"
-				disabled={!enabled || disabled}
-				onclick={() => (message = 'Thanks for reading — replies welcome!')}
 			>
-				Example text
-			</Button>
+				{#snippet footerEnd()}
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={!enabled || disabled}
+						onclick={() => (message = 'Thanks for reading — replies welcome!')}
+					>
+						Example text
+					</Button>
+				{/snippet}
+			</EditorPost>
 		</div>
 	</div>
 </div>

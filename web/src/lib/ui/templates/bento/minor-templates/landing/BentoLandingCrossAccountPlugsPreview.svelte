@@ -43,7 +43,7 @@
 
 <div class="bg-base-100 text-base-content">
 	<Tabs.Root bind:value={activeTab} class="w-full">
-		<div class="border-b border-base-300 px-4 py-3" aria-label="Cross-account plug platforms">
+		<div class="border-b border-base-300 px-3 py-2" aria-label="Cross-account plug platforms">
 			<Tabs.List
 				class="inline-flex w-full max-w-full flex-wrap gap-1 rounded-xl border-2 border-base-content/15 bg-base-200/60 p-1 shadow-sm !border-solid"
 			>
@@ -60,15 +60,15 @@
 		</div>
 
 		<Tabs.Content value="threads" class="mt-0">
-			<BentoThreadsComposerPreview {isLoggedIn} variant="settings" />
+			<BentoThreadsComposerPreview {isLoggedIn} variant="settings" crossAccountPlugsPreview={true} />
 		</Tabs.Content>
 
 		<Tabs.Content value="x" class="mt-0">
-			<BentoXComposerPreview {isLoggedIn} variant="settings" />
+			<BentoXComposerPreview {isLoggedIn} variant="settings" crossAccountPlugsPreview={true} />
 		</Tabs.Content>
 
 		<Tabs.Content value="linkedin" class="mt-0">
-			<BentoLinkedinSettingsPreview {isLoggedIn} variant="settings" />
+			<BentoLinkedinSettingsPreview {isLoggedIn} variant="settings" crossAccountPlugsPreview={true} />
 		</Tabs.Content>
 	</Tabs.Root>
 </div>

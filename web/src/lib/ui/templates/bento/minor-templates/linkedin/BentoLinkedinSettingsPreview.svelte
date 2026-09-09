@@ -8,6 +8,7 @@
 	import SettingsAccordion from '$lib/ui/components/posts/SettingsAccordion.svelte';
 	import ShowAllProviders from '$lib/ui/components/posts/providers/ShowAllProviders.svelte';
 	import ThreadRepliesEditor from '$lib/ui/components/posts/thread/ThreadRepliesEditor.svelte';
+	import { buildCrossAccountPlugPreviewItems } from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import {
 		LINKEDIN_LANDING_MOCK_BODY,
 		LINKEDIN_LANDING_MOCK_CAROUSEL_BODY,
@@ -24,9 +25,10 @@
 	type Props = {
 		isLoggedIn?: boolean;
 		variant?: Variant;
+		crossAccountPlugsPreview?: boolean;
 	};
 
-	let { isLoggedIn, variant = 'compose' }: Props = $props();
+	let { isLoggedIn, variant = 'compose', crossAccountPlugsPreview = false }: Props = $props();
 
 	const mockChannels = LINKEDIN_LANDING_MOCK_CHANNELS;
 	const selectedIds = [LINKEDIN_LANDING_MOCK_CHANNEL.id];
@@ -46,33 +48,51 @@
 		});
 	});
 
+	const previewThreadReplies = $derived(crossAccountPlugsPreview ? [] : threadReplies);
+	const crossAccountPreviewItems = $derived(
+		crossAccountPlugsPreview
+			? buildCrossAccountPlugPreviewItems(
+					mockChannels,
+					providerSettings.linkedin.crossAccountPlugs,
+					LINKEDIN_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS
+				)
+			: []
+	);
+
 	function noop() {}
 </script>
 
 <div class="pointer-events-none select-none bg-base-100 text-base-content">
-	<div class="flex items-start justify-between border-b border-base-300 px-4 py-3">
-		<div class="text-lg font-semibold">Create Post</div>
+	<div
+		class="flex items-start justify-between border-b border-base-300 px-4 {crossAccountPlugsPreview
+			? 'py-2'
+			: 'py-3'}"
+	>
+		<div class="{crossAccountPlugsPreview ? 'text-base' : 'text-lg'} font-semibold">Create Post</div>
 		<div class="rounded-md p-2 text-base-content/70">
 			<AbstractIcon name={icons.X2.name} class="size-5" width="20" height="20" />
 		</div>
 	</div>
 
 	<div class="grid grid-cols-1 divide-y divide-base-300 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
-		<div class="flex flex-col gap-4 p-4">
+		<div class="flex flex-col {crossAccountPlugsPreview ? 'gap-2 p-3' : 'gap-4 p-4'}">
 			<PicksSocialsComponent
 				channels={mockChannels}
 				{selectedIds}
 				onToggleChannel={noop}
 				guestMode={true}
+				hideGuestHelper={crossAccountPlugsPreview}
 				{isLoggedIn}
 			/>
 
-			<div class="text-base-content/70 flex flex-wrap items-center justify-between gap-2 text-xs">
-				<span class="inline-flex items-center gap-2 font-medium">
-					<span class="bg-primary/70 inline-block h-2 w-2 rounded-full"></span>
-					Editing a Specific Network
-				</span>
-			</div>
+			{#if !crossAccountPlugsPreview}
+				<div class="text-base-content/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+					<span class="inline-flex items-center gap-2 font-medium">
+						<span class="bg-primary/70 inline-block h-2 w-2 rounded-full"></span>
+						Editing a Specific Network
+					</span>
+				</div>
+			{/if}
 
 			{#if variant === 'compose'}
 				<ComposerGuestLockToolbar {isLoggedIn} showLinkedInCompany={true} />
@@ -115,6 +135,7 @@
 					onChange={noop}
 					disabled={true}
 					compactEditors={true}
+					panelScope={crossAccountPlugsPreview ? 'crossAccountPlugsOnly' : 'full'}
 					crossAccountPlugDefinitionsOverride={LINKEDIN_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS}
 					embedded
 				/>
@@ -125,14 +146,15 @@
 			<div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
 				<div class="text-base font-medium text-base-content/90">Post Preview</div>
 			</div>
-			<div class="p-4">
+			<div class="{crossAccountPlugsPreview ? 'p-3' : 'p-4'}">
 				<ShowAllProviders
 					channel={LINKEDIN_LANDING_MOCK_CHANNEL}
 					previewText={LINKEDIN_LANDING_MOCK_BODY}
 					maximumCharacters={3000}
-					threadReplies={threadReplies}
+					threadReplies={previewThreadReplies}
 					{previewMetaLabel}
 					providerSettings={providerSettings}
+					crossAccountPlugs={crossAccountPreviewItems}
 				/>
 			</div>
 		</div>

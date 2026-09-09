@@ -15,6 +15,8 @@
 		selectedIds: string[];
 		onToggleChannel: (id: string) => void;
 		guestMode?: boolean;
+		/** Hide guest-mode helper copy (landing cross-account bento). */
+		hideGuestHelper?: boolean;
 		isLoggedIn?: boolean;
 		onConnectAccounts?: () => void;
 	};
@@ -24,6 +26,7 @@
 		selectedIds,
 		onToggleChannel,
 		guestMode = false,
+		hideGuestHelper = false,
 		isLoggedIn: isLoggedInProp,
 		onConnectAccounts
 	}: Props = $props();
@@ -47,7 +50,7 @@
 	<p class="text-xs font-medium text-base-content/60 {guestMode ? 'mb-1' : 'mb-2'}">
 		{heading}
 	</p>
-	{#if guestMode}
+	{#if guestMode && !hideGuestHelper}
 		<p class="mb-2 text-xs text-base-content/50">
 			These chips set format and character limits. They are not your accounts.
 		</p>

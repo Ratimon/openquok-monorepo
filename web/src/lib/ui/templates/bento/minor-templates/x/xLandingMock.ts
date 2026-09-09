@@ -1,11 +1,16 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/channels/GetChannel.presenter.svelte';
+import {
+	LANDING_MOCK_BRAND_PROFILE,
+	LANDING_MOCK_PERSONAL_PROFILE
+} from '$lib/ui/templates/bento/minor-templates/landing/landingMockProfiles';
 
+/** Company X profile — publishes the main post in landing mocks. */
 export const X_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-x',
 	internalId: 'landing-mock-x-internal',
-	name: 'OpenQuok',
+	name: 'OpenQuok Brand',
 	identifier: 'x',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_BRAND_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -18,13 +23,13 @@ export const X_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	editor: 'html'
 };
 
-/** Second connected X profile — acting account for cross-account repost preview. */
+/** Personal X profile — cross-account repost after the company post. */
 export const X_LANDING_MOCK_ACTING_CHANNEL: CreateSocialPostChannelViewModel = {
 	id: 'landing-mock-x-brand',
 	internalId: 'landing-mock-x-brand-internal',
-	name: 'OpenQuok Brand',
+	name: 'OpenQuok',
 	identifier: 'x',
-	picture: '/landing/social-profile.webp',
+	picture: LANDING_MOCK_PERSONAL_PROFILE,
 	type: 'social',
 	disabled: false,
 	inBetweenSteps: false,
@@ -55,11 +60,11 @@ export const X_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS = [
 ];
 
 export const X_LANDING_MOCK_BODY =
-	'Ship the launch tweet, then queue one follow-up reply with a delay.';
+	'Ship the company launch post — a personal profile can repost after publish.';
 
 export const X_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
-export const X_LANDING_MOCK_MEDIA_URLS = ['/landing/social-profile.webp'];
+export const X_LANDING_MOCK_MEDIA_URLS = [LANDING_MOCK_BRAND_PROFILE];
 
 export const X_LANDING_MOCK_THREAD_REPLIES = [
 	{
@@ -75,8 +80,8 @@ export const X_LANDING_MOCK_PROVIDER_SETTINGS = {
 		communityUrl: '',
 		madeWithAi: false,
 		paidPartnership: false,
-		enabled: true,
-		message: "That's a wrap — thanks for reading.",
+		enabled: false,
+		message: '',
 		crossAccountPlugs: [
 			{
 				plugName: 'x-repost-post-users',

@@ -14,6 +14,7 @@
 		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		/** Optional subtitle under the name row (e.g. scheduled date). */
 		previewMetaLabel?: string | null;
+		crossAccountPlugs?: CrossAccountPlugPreviewItem[];
 	};
 </script>
 
@@ -22,6 +23,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
+	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import ThreadsReplyEngagementMock from './ThreadsReplyEngagementMock.svelte';
 
@@ -33,7 +36,8 @@
 		threadReplies = [],
 		threadFinisher = null,
 		delayedEngagementReply = null,
-		previewMetaLabel = null
+		previewMetaLabel = null,
+		crossAccountPlugs = []
 	}: ThreadsPreviewProps = $props();
 
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
@@ -113,7 +117,7 @@
 		</div>
 	</div>
 
-	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim()) || delayedEngagementReply}
+	{#if threadReplies.length > 0 || (threadFinisher?.enabled && (threadFinisher.message ?? '').trim()) || delayedEngagementReply || crossAccountPlugs.length > 0}
 		<div class="px-4 pb-4">
 			<PreviewScheduledSocialReplies
 				replies={threadReplies}
@@ -121,6 +125,11 @@
 				{delayedEngagementReply}
 				variant="threads"
 				replyActor={{ displayName: channel.name, picture: channel.picture }}
+				threadContinuesFromRoot={crossAccountPlugs.length === 0}
+			/>
+			<PreviewCrossAccountPlugs
+				items={crossAccountPlugs}
+				variant="threads"
 				threadContinuesFromRoot={true}
 			/>
 		</div>
