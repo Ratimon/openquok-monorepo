@@ -51,9 +51,9 @@ export const tiktokChannel = {
 		},
 		{
 			subtitle: 'TikTok settings',
-			title: 'Set privacy, inbox upload, and interaction toggles per post',
+			title: 'Set privacy, inbox upload to manually select trending audio, and AI Labeling',
 			description:
-				'Pick privacy, comments, duet, and stitch before scheduling. Choose direct publish or send to your TikTok inbox — queue carousels and clips, then pick trending audio in the app and publish in about a minute a day.',
+				'Set privacy, comments, duet, and stitch before you schedule. Dont act like bot by useing inbox upload to queue carousels and clips then pick trending audio in the TikTok app. Flag AI-generated content so TikTok applies the right label and encourages good visibility.',
 			bentoId: 'tiktok-settings',
 			mediaOnRight: true
 		},

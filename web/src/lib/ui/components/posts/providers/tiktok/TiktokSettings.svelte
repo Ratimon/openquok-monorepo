@@ -88,7 +88,7 @@
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			Used for carousels; video posts use the caption as description.
+			Used for carousels as description.
 		</p>
 	</div>
 
@@ -151,7 +151,7 @@
 			<span>
 				<span class="block">Disclose AI-generated content</span>
 				<span class="mt-0.5 block text-xs text-base-content/50">
-					Add this label to tell viewers the post was generated or edited with AI.
+					Tell viewers the post was made with AI.
 				</span>
 			</span>
 		</label>
@@ -160,7 +160,7 @@
 			role="note"
 		>
 			<strong class="font-medium text-base-content">Required disclosure.</strong>
-			If this post was generated or edited with AI and you do not label it, TikTok may keep it
+			If you do not label it, TikTok may keep it
 			out of distribution (including For You).
 		</div>
 	</div>
