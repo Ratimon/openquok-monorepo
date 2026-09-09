@@ -8,8 +8,7 @@ import {
 	publicBlogPagePresenter,
 	publicBlogTopicPagePresenter
 } from '$lib/area-public/index';
-import { parseBlogPublicListPagination } from '$lib/blogs/utils/blogPublicListPagination';
-import { createBlogIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
+import { createBlogIndexSEOSchema, parseBlogPublicListPagination } from '$lib/blogs/utils';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 

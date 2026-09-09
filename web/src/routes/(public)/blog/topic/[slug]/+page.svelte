@@ -21,7 +21,7 @@
 	import {
 		BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS,
 		buildBlogPublicListUrl
-	} from '$lib/blogs/utils/blogPublicListPagination';
+	} from '$lib/blogs/utils';
 	import { url } from '$lib/utils/path';
 
 	// /blog

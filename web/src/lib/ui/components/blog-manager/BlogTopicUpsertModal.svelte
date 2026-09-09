@@ -3,7 +3,7 @@
 	import { blogTopicFormSchema } from '$lib/blogs/blog.types';
 	import { upsertBlogTopicModalPresenter } from '$lib/blogs';
 	import { buildBlogTopicViewModelFromUpsert } from '$lib/blogs/utils';
-	import { createSortedTopicChoices } from '$lib/blogs/utils/parentPathCreator';
+	import { createSortedTopicChoices } from '$lib/blogs/utils';
 
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';

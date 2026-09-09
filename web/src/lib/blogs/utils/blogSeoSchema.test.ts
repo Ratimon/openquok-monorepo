@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 import { BLOG_SEO_TOPIC_IDS_PRODUCT } from '$lib/blogs/constants/blogSeoSchemaTopics';
-import { createBlogPostSEOSchema } from '$lib/blogs/utils/createBlogPostSEOSchema';
+import { createBlogPostSEOSchema } from '$lib/blogs/utils/blogSeoSchema';
 
 function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPostBySlugPublicViewModel {
 	return {

@@ -5,7 +5,7 @@
 		isBlogTopicEligibleForHowTo,
 		isBlogTopicEligibleForProduct
 	} from '$lib/blogs/constants/blogSeoSchemaTopics';
-	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
+	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';

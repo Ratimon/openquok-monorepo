@@ -2,8 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogAuthorByIdentifierPagePresenter } from '$lib/area-public/index';
-import { parseBlogPublicListPagination } from '$lib/blogs/utils/blogPublicListPagination';
-import { createBlogAuthorSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
+import { createBlogAuthorSEOSchema, parseBlogPublicListPagination } from '$lib/blogs/utils';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 

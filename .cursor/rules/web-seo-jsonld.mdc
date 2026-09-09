@@ -10,8 +10,7 @@ globs:
   - web/src/lib/ui/components/seo/JsonLdHead.svelte
   - web/src/lib/ui/components/docs/DocsSeoHead.svelte
   - web/src/lib/content/utils/create*SEOSchema.ts
-  - web/src/lib/blogs/utils/createBlogPostSEOSchema.ts
-  - web/src/lib/blogs/utils/createBlogHubSEOSchema.ts
+  - web/src/lib/blogs/utils/blogSeoSchema.ts
   - web/src/lib/posts/utils/createPostSEOSchema.ts
   - web/src/lib/listings/utils/listingSchema.ts
   - web/src/lib/listings/utils/create*SeoSchema.ts
@@ -111,8 +110,8 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
 | `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
 | `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
-| `createBlogPostSEOSchema` | `$lib/blogs/utils/createBlogPostSEOSchema.ts` | `JsonLdGraphSchema` |
-| Blog hub builders | `$lib/blogs/utils/createBlogHubSEOSchema.ts` | `Blog`, `CollectionPage`, `ItemList`, `ProfilePage`, `BreadcrumbList` for `/blog`, `/blog/topic`, `/blog/author` |
+| `createBlogPostSEOSchema` | `$lib/blogs/utils/blogSeoSchema.ts` | `JsonLdGraphSchema` |
+| Blog hub builders | `$lib/blogs/utils/blogSeoSchema.ts` | `Blog`, `CollectionPage`, `ItemList`, `ProfilePage`, `BreadcrumbList` for `/blog`, `/blog/topic`, `/blog/author` |
 | `createPostSEOSchema` | `$lib/posts/utils/createPostSEOSchema.ts` | `JsonLdGraphSchema` |
 | `createListingSEOSchema` | `$lib/listings/utils/listingSchema.ts` | `JsonLdGraphSchema` |
 | `mergeListingSchemaIntoGraph` | `$lib/listings/utils/listingSchema.ts` | `Thing[]` |

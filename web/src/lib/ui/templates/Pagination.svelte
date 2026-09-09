@@ -1,9 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { cn } from '$lib/ui/helpers/common';
-	import {
-		BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS
-	} from '$lib/blogs/utils/blogPublicListPagination';
+	import { BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS } from '$lib/blogs/utils';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';

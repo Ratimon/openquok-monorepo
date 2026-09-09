@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogTopicPagePresenter } from '$lib/area-public/index';
-import { createBlogTopicsIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
+import { createBlogTopicsIndexSEOSchema } from '$lib/blogs/utils';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 

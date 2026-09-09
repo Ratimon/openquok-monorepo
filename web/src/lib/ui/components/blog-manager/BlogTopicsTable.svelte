@@ -16,7 +16,7 @@
 		Row as TableRow
 	} from '$lib/ui/table';
 	import BlogTopicUpsertModal from '$lib/ui/components/blog-manager/BlogTopicUpsertModal.svelte';
-	import { createSortedTopicChoices } from '$lib/blogs/utils/parentPathCreator';
+	import { createSortedTopicChoices } from '$lib/blogs/utils';
 
 	type Props = {
 		topicsVm: BlogTopicViewModel[];

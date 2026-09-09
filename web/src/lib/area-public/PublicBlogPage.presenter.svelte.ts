@@ -1,6 +1,6 @@
 import type { PublicBlogOverviewVm, BlogPostPublicViewModel, BlogTopicPublicViewModel } from '$lib/blogs/index';
 import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
-import { BLOG_PUBLIC_LIST_DEFAULT_PAGE_SIZE } from '$lib/blogs/utils/blogPublicListPagination';
+import { BLOG_PUBLIC_LIST_DEFAULT_PAGE_SIZE } from '$lib/blogs/utils';
 
 export class PublicBlogPagePresenter {
 	public postsVm: BlogPostPublicViewModel[] = $state([]);

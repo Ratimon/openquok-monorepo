@@ -1,6 +1,6 @@
 import type { Answer, FAQPage, Question } from 'schema-dts';
 
-import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
+import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 import {
 	PUBLIC_FAQ_ITEMS,
 	type PublicFaqItem

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { icons } from '$data/icons';
-	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/prepareBlogContentForDisplay';
+	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 	import { rewriteHtmlHostedMarketingHrefs } from '$lib/utils/hostedMarketingHref';
 	import * as Accordion from '$lib/ui/accordion';
 
