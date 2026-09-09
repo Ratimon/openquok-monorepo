@@ -32,6 +32,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	mixpost: 'https://mixpost.app',
 	openpost: 'https://openpo.st',
 	'post-bridge': 'https://www.post-bridge.com',
+	postfast: 'https://postfa.st',
 	postpeer: 'https://www.postpeer.dev',
 	postiz: 'https://postiz.com',
 	recurpost: 'https://recurpost.com',
@@ -46,6 +47,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'mixpost'
 	| 'openpost'
 	| 'post-bridge'
+	| 'postfast'
 	| 'postpeer'
 	| 'postiz'
 	| 'recurpost'

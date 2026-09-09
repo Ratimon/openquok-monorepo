@@ -59,6 +59,7 @@ export type BrandedIconName =
     | "OpenQuok"
     | "Pinterest"
     | "PostBridge"
+    | "PostFast"
     | "PostPeer"
     | "Postiz"
     | "QQ"
@@ -517,6 +518,13 @@ export const brandedIcons = {
         box: 24,
         fill: true,
         svg: `<path fill="currentColor" d="M3 19h18v2H3v-2zm2-9h4v9H5v-9zm6 0h4v9h-4v-9zm6 0h4v9h-4v-9zM12 3l9 5.5H3L12 3z"/>`
+    },
+    /** PostFast product mark. PostFast is a trademark of its respective owner. */
+    PostFast: {
+        name: "PostFast",
+        box: 24,
+        fill: true,
+        svg: `<rect x="3" y="2" width="4" height="4" fill="#3B82F6"/><rect x="9" y="2" width="4" height="4" fill="#3B82F6"/><rect x="3" y="8" width="4" height="4" fill="#3B82F6"/><rect x="9" y="8" width="4" height="4" fill="#3B82F6"/><rect x="15" y="8" width="4" height="4" fill="#111827"/><rect x="3" y="14" width="4" height="4" fill="#3B82F6"/><rect x="15" y="14" width="4" height="4" fill="#3B82F6"/><rect x="3" y="6" width="4" height="2" fill="#3B82F6"/><rect x="3" y="12" width="4" height="2" fill="#3B82F6"/><rect x="7" y="3" width="2" height="2" fill="#3B82F6"/><rect x="7" y="9" width="2" height="2" fill="#3B82F6"/><rect x="10" y="6" width="2" height="2" fill="#3B82F6"/><rect x="13" y="9" width="2" height="2" fill="#111827"/><rect x="10" y="12" width="2" height="2" fill="#111827"/>`
     },
     /** PostPeer product mark. PostPeer is a trademark of its respective owner. */
     PostPeer: {

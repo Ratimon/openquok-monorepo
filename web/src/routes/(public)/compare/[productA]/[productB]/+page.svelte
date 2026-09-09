@@ -100,6 +100,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-rose-400/20 via-orange-300/16 to-amber-300/16 text-rose-100 ring-rose-300/28'
 		},
+		postfast: {
+			heroContainerClass:
+				'bg-linear-to-br from-blue-600/30 via-blue-400/20 to-cyan-300/20 text-blue-50 ring-blue-500/35',
+			cardContainerClass:
+				'bg-linear-to-br from-blue-600/20 via-blue-400/16 to-cyan-300/16 text-blue-50 ring-blue-500/28'
+		},
 		postpeer: {
 			heroContainerClass:
 				'bg-linear-to-br from-red-400/30 via-rose-300/20 to-orange-300/20 text-red-50 ring-red-300/35',
