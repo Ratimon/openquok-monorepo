@@ -77,7 +77,8 @@ export class NotificationController {
             const data = await this.notificationService.getNotificationsPaginated(
                 authUserId,
                 opts.organizationId as string,
-                opts.page ?? 0
+                opts.page ?? 0,
+                opts.limit ?? 10
             );
             res.status(200).json({ success: true, data, message: "Notifications page loaded" });
         } catch (error) {

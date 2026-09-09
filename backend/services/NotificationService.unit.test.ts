@@ -185,7 +185,7 @@ describe("NotificationService", () => {
     });
 
     describe("getNotificationsPaginated", () => {
-        it("returns batch with page and limit 100", async () => {
+        it("returns batch with page and requested limit", async () => {
             stubActiveMember(orgRepo);
             const page = 2;
             const batch = {
@@ -195,10 +195,24 @@ describe("NotificationService", () => {
             };
             notificationRepo.listPaginated.mockResolvedValue(batch);
 
-            const result = await service().getNotificationsPaginated(authUserId, organizationId, page);
+            const result = await service().getNotificationsPaginated(authUserId, organizationId, page, 20);
 
-            expect(result).toEqual({ ...batch, page, limit: 100 });
-            expect(notificationRepo.listPaginated).toHaveBeenCalledWith(organizationId, page, 100);
+            expect(result).toEqual({ ...batch, page, limit: 20 });
+            expect(notificationRepo.listPaginated).toHaveBeenCalledWith(organizationId, page, 20);
+        });
+
+        it("defaults limit to 10 when omitted", async () => {
+            stubActiveMember(orgRepo);
+            notificationRepo.listPaginated.mockResolvedValue({
+                notifications: [],
+                total: 0,
+                hasMore: false,
+            });
+
+            const result = await service().getNotificationsPaginated(authUserId, organizationId, 0);
+
+            expect(result.limit).toBe(10);
+            expect(notificationRepo.listPaginated).toHaveBeenCalledWith(organizationId, 0, 10);
         });
     });
 

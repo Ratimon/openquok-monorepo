@@ -147,7 +147,7 @@
 			</div>
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content
-			class="flex max-h-[min(70vh,24rem)] w-[min(100vw-2rem,22rem)] flex-col gap-0 overflow-hidden p-0"
+			class="flex max-h-[min(75vh,32rem)] w-[min(100vw-2rem,32rem)] flex-col gap-0 overflow-hidden p-0"
 			align="center"
 			side="top"
 			sideOffset={8}
@@ -156,6 +156,14 @@
 				previewItemsVm={notificationsPreview.items}
 				previewLoading={notificationsPreview.loading}
 				previewEmptyMessage={notificationsPreview.emptyMessage}
+				totalItems={notificationsPreview.total}
+				currentPage={notificationsPreview.currentPage}
+				itemsPerPage={notificationsPreview.itemsPerPage}
+				totalPages={notificationsPreview.totalPages}
+				setCurrentPage={notificationsPreview.setCurrentPage}
+				setItemsPerPage={notificationsPreview.setItemsPerPage}
+				paginateToFirstPage={notificationsPreview.paginateToFirstPage}
+				paginateToLastPage={notificationsPreview.paginateToLastPage}
 				footerHref={notificationsPreview.footerHref}
 				footerLabel={notificationsPreview.footerLabel}
 			/>

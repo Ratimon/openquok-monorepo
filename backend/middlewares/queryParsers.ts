@@ -235,16 +235,26 @@ const notificationPageParser = (value: string | string[] | undefined): number =>
     return n;
 };
 
-/** Notifications paginated query (`organizationId`, `page` default 0). Expect Zod validation on the route before this runs. */
+const notificationLimitParser = (value: string | string[] | undefined): number => {
+    const n = QueryParsers.number(value);
+    if (n === undefined || n < 1) {
+        return 10;
+    }
+    return Math.min(n, 100);
+};
+
+/** Notifications paginated query (`organizationId`, `page` default 0, `limit` default 10). Expect Zod validation on the route before this runs. */
 export interface ParsedNotificationPaginatedQuery extends Record<string, unknown> {
     organizationId: string | null;
     page: number;
+    limit: number;
 }
 
 export function createNotificationPaginatedQueryParser(): RequestHandler {
     return createQueryParser<ParsedNotificationPaginatedQuery>({
         organizationId: QueryParsers.string,
         page: notificationPageParser,
+        limit: notificationLimitParser,
     });
 }
 

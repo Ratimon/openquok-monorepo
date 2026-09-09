@@ -45,7 +45,7 @@
 			{/if}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content
-			class="flex max-h-[min(70vh,24rem)] w-[min(100vw-2rem,22rem)] flex-col gap-0 overflow-hidden p-0"
+			class="flex max-h-[min(75vh,32rem)] w-[min(100vw-2rem,32rem)] flex-col gap-0 overflow-hidden p-0"
 			align="center"
 			side="top"
 			sideOffset={8}
@@ -54,6 +54,14 @@
 				previewItemsVm={preview.items}
 				previewLoading={preview.loading}
 				previewEmptyMessage={preview.emptyMessage}
+				totalItems={preview.total}
+				currentPage={preview.currentPage}
+				itemsPerPage={preview.itemsPerPage}
+				totalPages={preview.totalPages}
+				setCurrentPage={preview.setCurrentPage}
+				setItemsPerPage={preview.setItemsPerPage}
+				paginateToFirstPage={preview.paginateToFirstPage}
+				paginateToLastPage={preview.paginateToLastPage}
 				footerHref={preview.footerHref}
 				footerLabel={preview.footerLabel}
 			/>

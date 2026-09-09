@@ -54,11 +54,16 @@ export class NotificationService {
         };
     }
 
-    async getNotificationsPaginated(authUserId: string, organizationId: string, page: number) {
+    async getNotificationsPaginated(
+        authUserId: string,
+        organizationId: string,
+        page: number,
+        limit = 10
+    ) {
         await this.requireActiveMember(authUserId, organizationId);
-        const limit = 100;
-        const batch = await this.notificationRepository.listPaginated(organizationId, page, limit);
-        return { ...batch, page, limit };
+        const pageSize = Math.min(Math.max(limit, 1), 100);
+        const batch = await this.notificationRepository.listPaginated(organizationId, page, pageSize);
+        return { ...batch, page, limit: pageSize };
     }
 
     /**

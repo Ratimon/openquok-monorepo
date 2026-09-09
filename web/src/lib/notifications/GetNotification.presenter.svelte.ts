@@ -39,9 +39,10 @@ export class GetNotificationPresenter {
 
 	async loadPaginatedNotifications(
 		organizationId: string,
-		page: number
+		page: number,
+		limit = 10
 	): Promise<NotificationsPaginatedSliceViewModel> {
-		const paginated = await this.notificationRepository.getPaginated(organizationId, page);
+		const paginated = await this.notificationRepository.getPaginated(organizationId, page, limit);
 		return {
 			notifications: paginated.notifications.map((row) => this.rowToNotificationItemViewModel(row)),
 			total: paginated.total,

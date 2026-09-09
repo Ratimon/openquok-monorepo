@@ -85,14 +85,7 @@
 		{ label: 'Exit admin area', href: accountHref, iconName: icons.LogOut.name }
 	];
 
-	const notificationsDockPreview = $derived({
-		items: protectedLayoutPagePresenter.notificationPreviewVm,
-		loading: protectedLayoutPagePresenter.notificationPreviewLoading,
-		emptyMessage: protectedLayoutPagePresenter.notificationPreviewEmptyMessage,
-		onOpen: () => {
-			void protectedLayoutPagePresenter.loadNotificationPreview();
-		}
-	});
+	const notificationsDockPreview = $derived(protectedLayoutPagePresenter.getNotificationsDockPreview());
 
 	function refreshDockBadge() {
 		if (!browser) return;

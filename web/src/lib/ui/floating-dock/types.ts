@@ -7,6 +7,14 @@ export interface DockNotificationsPreview {
 	loading: boolean;
 	emptyMessage: string | null;
 	onOpen: () => void | Promise<void>;
+	total: number;
+	currentPage: number;
+	itemsPerPage: number;
+	totalPages: number;
+	setCurrentPage: (page: number) => void;
+	setItemsPerPage: (size: number) => void;
+	paginateToFirstPage: () => void;
+	paginateToLastPage: () => void;
 	/** Optional footer link under the list */
 	footerHref?: string;
 	footerLabel?: string;

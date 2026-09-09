@@ -112,11 +112,12 @@ export class NotificationRepository {
 
 	public async getPaginated(
 		organizationId: string,
-		page: number
+		page: number,
+		limit = 10
 	): Promise<NotificationsPaginatedProgrammerModel> {
 		const { data: paginatedDto, ok } = await this.httpGateway.get<PaginatedResponseDto>(
 			this.config.endpoints.paginated,
-			{ organizationId, page },
+			{ organizationId, page, limit },
 			{}
 		);
 		if (!ok || !paginatedDto?.success || paginatedDto.data == null) {

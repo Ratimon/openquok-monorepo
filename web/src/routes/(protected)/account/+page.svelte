@@ -965,7 +965,7 @@
 					onDismiss={dismissNoChannelsNotice}
 				>
 					<p class="text-base-content/90">
-						This workspace has no connected channels yet. Go through the
+						This workspace has no connected channels yet. Check
 						<button
 							type="button"
 							class="link link-primary font-medium"
