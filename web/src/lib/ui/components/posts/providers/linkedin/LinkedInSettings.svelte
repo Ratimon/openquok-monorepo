@@ -21,7 +21,7 @@
 				class="checkbox checkbox-primary checkbox-sm"
 				bind:checked={postAsImagesCarousel}
 			/>
-			Post as image carousel (PDF document on LinkedIn)
+			Post as image carousel or PDF
 		</label>
 
 		{#if postAsImagesCarousel}

@@ -52,7 +52,7 @@
 			bind:value={communityUrl}
 		/>
 		<p class="text-xs text-base-content/50">
-			Post into an X community when the URL is valid.
+			Post into an X community.
 		</p>
 	</div>
 

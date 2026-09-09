@@ -28,11 +28,8 @@
 	<div class="flex items-center justify-between gap-3">
 		<div>
 			<div class="text-sm font-medium text-base-content/80">
-				Delayed reply
+				Delayed reply (internal plug)
 			</div>
-			<p class="mt-1 text-xs text-base-content/55">
-				Same account — schedules extra reply (internal plug).
-			</p>
 		</div>
 		<Switch bind:checked={enabled} disabled={disabled} />
 	</div>

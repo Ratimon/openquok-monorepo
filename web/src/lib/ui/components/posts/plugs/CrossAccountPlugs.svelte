@@ -82,8 +82,7 @@
 	<div class="space-y-4 {compact ? 'mt-4' : 'mt-6'}">
 		{#if showThreadsCrossAccountHint}
 			<p class="text-xs text-base-content/55">
-				Comments run from the selected channel after the delay. If they fail, reconnect those
-				channels under Channels.
+				Comments run from the selected channel after the delay.
 			</p>
 		{/if}
 		{#each plugs as def (def.identifier)}

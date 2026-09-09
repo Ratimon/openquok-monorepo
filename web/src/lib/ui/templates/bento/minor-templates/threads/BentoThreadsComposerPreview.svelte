@@ -11,6 +11,8 @@
 	import {
 		THREADS_LANDING_MOCK_BODY,
 		THREADS_LANDING_MOCK_CHANNEL,
+		THREADS_LANDING_MOCK_CHANNELS,
+		THREADS_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS,
 		THREADS_LANDING_MOCK_MEDIA_URLS,
 		THREADS_LANDING_MOCK_PROVIDER_SETTINGS,
 		THREADS_LANDING_MOCK_SCHEDULED_LOCAL,
@@ -26,7 +28,7 @@
 
 	let { isLoggedIn, variant = 'compose' }: Props = $props();
 
-	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
+	const mockChannels = THREADS_LANDING_MOCK_CHANNELS;
 	const selectedIds = [THREADS_LANDING_MOCK_CHANNEL.id];
 	let settingsOpen = $state(true);
 	let scheduledLocal = $state(THREADS_LANDING_MOCK_SCHEDULED_LOCAL);
@@ -117,10 +119,12 @@
 				<SettingsAccordion
 					bind:open={settingsOpen}
 					channel={THREADS_LANDING_MOCK_CHANNEL}
+					allChannels={mockChannels}
 					value={providerSettings}
 					onChange={noop}
 					disabled={true}
 					compactEditors={true}
+					crossAccountPlugDefinitionsOverride={THREADS_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS}
 					embedded
 				/>
 			{/if}

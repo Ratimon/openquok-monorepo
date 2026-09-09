@@ -43,7 +43,7 @@ export const X_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS = [
 	{
 		identifier: 'x-repost-post-users',
 		title: 'Add re-posters',
-		description: 'Choose other X channels to repost this post after it goes live.',
+		description: 'Choose other X channels to repost this post.',
 		pickIntegration: ['x'],
 		fields: [] as Array<{
 			name: string;

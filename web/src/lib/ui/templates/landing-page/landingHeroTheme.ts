@@ -64,6 +64,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'plan',
 	'plans',
 	'plugs',
+	'profiles',
 	'perfect plan',
 	'best fit',
 	'questions',

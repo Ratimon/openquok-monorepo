@@ -63,7 +63,7 @@ export const X_INTERNAL_PLUG_CATALOG: InternalPlugCatalogEntryDto[] = [
         identifier: "x-repost-post-users",
         methodName: "repostPostUsers",
         title: "Add re-posters",
-        description: "Choose other X channels to repost this post after it goes live.",
+        description: "Choose other X channels to repost after publish.",
         pickIntegration: ["x"],
         fields: [],
     },

@@ -8,9 +8,12 @@
 	import { createForm } from '@tanstack/svelte-form';
 	import { toast } from '$lib/ui/sonner';
 
+	import { getModuleConfigSchemaDrift } from '$lib/config/utils/getModuleConfigSchemaDrift';
+
 	import { cn } from '$lib/ui/helpers/common';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DynamicFormField from '$lib/ui/components/config/DynamicFormField.svelte';
+	import ModuleConfigSchemaDriftBanner from '$lib/ui/components/config/ModuleConfigSchemaDriftBanner.svelte';
 
 	type Props = {
 		currentConfigVm: ModuleConfigViewModel;
@@ -25,6 +28,11 @@
 		enableLoadCodeDefaults?: boolean;
 		/** Confirm dialog body; defaults to a generic overwrite warning. */
 		loadCodeDefaultsConfirmMessage?: string;
+		/** When set with `revisionConfigKey`, shows a drift banner until stored config matches. */
+		codeRevision?: string;
+		revisionConfigKey?: string;
+		/** Label in the drift banner (e.g. "Landing page"). */
+		moduleLabel?: string;
 	};
 
 	let {
@@ -32,12 +40,22 @@
 		moduleSchema,
 		handleUpdateConfigByModuleName,
 		enableLoadCodeDefaults = false,
-		loadCodeDefaultsConfirmMessage = 'Load defaults from the repository schema? Unsaved edits in this form will be replaced. Click Save Settings afterward to persist to the database.'
+		loadCodeDefaultsConfirmMessage = 'Load defaults from the repository schema? Unsaved edits in this form will be replaced. Click Save Settings afterward to persist to the database.',
+		codeRevision,
+		revisionConfigKey,
+		moduleLabel = 'Module'
 	}: Props = $props();
 
 	type ModuleConfigInputVm = Record<string, unknown>;
 
 	const ModuleFormSchema = $derived.by(() => buildModuleConfigFormSchema(moduleSchema));
+
+	const schemaDrift = $derived(
+		getModuleConfigSchemaDrift(moduleSchema, currentConfigVm, {
+			revisionConfigKey,
+			codeRevision
+		})
+	);
 
 	let defaultValues = $derived.by(() =>
 		Object.fromEntries(
@@ -116,6 +134,14 @@
 		toast.message('Code defaults loaded into the form. Review, then Save Settings.');
 	}
 </script>
+
+{#if codeRevision && revisionConfigKey}
+	<ModuleConfigSchemaDriftBanner
+		drift={schemaDrift}
+		{moduleLabel}
+		{revisionConfigKey}
+	/>
+{/if}
 
 <form
 	onsubmit={(e) => {

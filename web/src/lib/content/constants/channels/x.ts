@@ -40,7 +40,7 @@ export const xChannel = {
 	featureSections: [
 		{
 			subtitle: 'Bulk scheduling',
-			title: 'Queue X posts, batch drafts on the calendar, weeks ahead',
+			title: 'Schedule X posts, batch drafts on the calendar, weeks ahead',
 			description:
 				'Schedule tweets and media onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
 			bentoId: 'x-bulk-scheduling',
@@ -48,17 +48,17 @@ export const xChannel = {
 		},
 		{
 			subtitle: 'Post editor',
-			title: 'Queue thread replies on X, keep the conversation on schedule, before go-live',
+			title: 'Schedule thread replies on X, keep the conversation, on schedule',
 			description:
 				'A strong tweet deserves a conversation — not another tab open on X. Add follow-up replies in the composer with delays, preview text and media before you schedule, and chain the full thread from one draft.',
 			bentoId: 'x-post-editor',
 			mediaOnRight: false
 		},
 		{
-			subtitle: 'Reply rules & cross-account repost',
-			title: 'Set who can reply per tweet, repost from other X profiles, in channel Settings',
+			subtitle: 'Reply rules & Cross-posting',
+			title: 'Set reply rules per tweet, close threads with a finisher, repost from other profiles',
 			description:
-				'In custom mode, open the purple Settings accordion on your publishing X channel. Choose reply rules and disclosure labels, then enable Add re-posters to pick other connected profiles and a delay. OpenQuok publishes the root tweet first, then reposts from each acting account — not reply comments from another account.',
+				'In custom mode, open the Settings accordion. Choose who can reply, enable Thread finisher for a closing line after your replies, and turn on Add re-posters to pick other connected profiles and a delay. OpenQuok publishes the main thread first, then reposts from each account.',
 			bentoId: 'x-settings',
 			mediaOnRight: true
 		},

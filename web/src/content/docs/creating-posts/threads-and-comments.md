@@ -104,7 +104,7 @@ Per-network caps on the main post still apply. See <a href="/docs/platforms">Pos
 
 For **Threads** and **X**, open **Settings** while that channel is focused. Enable **Thread finisher** to post a closing message after all replies.
 
-The default message is <Badge text="That's a wrap!" variant="param" /> — edit it in Settings. The finisher runs once at the end of the reply chain, not between every reply.
+The default message is <Badge text="That's a wrap!" variant="param" /> You can edit it. The finisher runs at the end of the thread, not between every reply.
 
 On **Threads only**, Settings also offer a **delayed engagement reply** — one extra same-account comment after the finisher.
 
@@ -118,14 +118,9 @@ CLI and API users set finisher fields under <Badge text="threads.enabled" varian
 
 See <a href="/docs/automations/plugs">Plugs</a> for the concept. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
 
-<Callout type="warning">
-<p>When a <strong>different</strong> Threads channel comments on the publisher's root post, every acting channel needs the <Badge text="threads_manage_mentions" variant="default" /> OAuth scope — enable it in your Meta app and <strong>reconnect</strong> those integrations after deploy.</p>
-<p>Meta's allowed usage for <Badge text="threads_manage_mentions" variant="default" /> includes replying when the acting account is <strong>@mentioned</strong>. OpenQuok does not add mentions automatically — the API call uses the acting channel's token with that scope. Cross-account comments also require Meta <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> — until approved, replies involving non-tester accounts may fail in production.</p>
-</Callout>
-
 ## Multi-channel and Global mode
 
-In **Global** mode, one follow-up program is copied to every selected **Threads**, **X**, **Instagram**, **LinkedIn**, and **Facebook** channel. The same reply text, delays, and media (where the network allows it) apply to each supported bucket.
+In **Global** mode, one follow-up program is copied to every selected **Threads**, **X**, **Instagram**, **LinkedIn**, and **Facebook** channel. The same reply text, delays, and media (where the network allows it) apply to each supported network.
 
 When only one network should differ, focus that channel and customize — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>. In per-channel mode, follow-ups edit only while a supported channel is focused.
 
@@ -140,7 +135,6 @@ A safe pattern when several supported networks are selected together:
 <ul>
 <li>Put must-have media on the <strong>main post</strong> so <strong>Instagram</strong> and <strong>LinkedIn</strong> still publish correctly (their follow-ups are text only)</li>
 <li>Use reply-level media only on <strong>Threads</strong>, <strong>X</strong>, or <strong>Facebook</strong> when that channel is focused and the extra attachment is intentional</li>
-<li>Keep follow-ups short; detach or customize a channel when tone or length must differ</li>
 </ul>
 
 ## Agents, CLI, and API

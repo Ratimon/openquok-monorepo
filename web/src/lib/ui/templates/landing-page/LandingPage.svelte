@@ -25,6 +25,7 @@
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
 	import BentoLandingComposeSettings from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingComposeSettings.svelte';
+	import BentoLandingCrossAccountPlugs from '$lib/ui/templates/bento/minor-templates/landing/BentoLandingCrossAccountPlugs.svelte';
 	import PublicAgentFeatureSection from '$lib/ui/templates/landing-page/PublicAgentFeatureSection.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
@@ -190,10 +191,23 @@
 			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_7_DESCRIPTION.default)
 	);
 
-	const feature7Section = $derived<FeatureSectionConfig>({
-		subtitle: feature7Subtitle,
-		title: feature7Title,
-		description: feature7Description,
+	const feature8Subtitle = $derived(
+		landingPageConfigVm.FEATURE_8_SUBTITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_SUBTITLE.default)
+	);
+	const feature8Title = $derived(
+		landingPageConfigVm.FEATURE_8_TITLE ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_TITLE.default)
+	);
+	const feature8Description = $derived(
+		landingPageConfigVm.FEATURE_8_DESCRIPTION ||
+			String(CONFIG_SCHEMA_LANDING_PAGE.FEATURE_8_DESCRIPTION.default)
+	);
+
+	const feature8Section = $derived<FeatureSectionConfig>({
+		subtitle: feature8Subtitle,
+		title: feature8Title,
+		description: feature8Description,
 		parallelMocks: [
 			{
 				deviceMock: 'desktop',
@@ -207,7 +221,7 @@
 			}
 		],
 		imageAlt: 'Parallel OpenQuok agent sessions on desktop and mobile',
-		mediaOnRight: true,
+		mediaOnRight: false,
 		cliCommandsTitle: 'Parallel CLI sessions',
 		cliCommands: `# Session A — draft + schedule
 openquok posts:create -c "…" -s "…" -t draft -i "<uuid>"
@@ -341,8 +355,6 @@ openquok analytics:post <post-id> -d 30`
 	{/snippet}
 </HeroWithRightMedia>
 
-<!--  -->
-
 <HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature2Subtitle}
@@ -361,19 +373,21 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature3Subtitle}
 	landingTitle={feature3Title}
 	landingDescription={feature3Description}
-	imageSrc="/landing/2-calendar-filters.mp4"
-	imageAlt="Calendar with smart filters for scheduled posts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
-/>
+>
+	{#snippet rightMedia()}
+		<BentoLandingCrossAccountPlugs {isLoggedIn} />
+	{/snippet}
+</HeroWithRightMedia>
 
 <HeroWithLeftMedia
 	heroTheme={landingHeroTheme}
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
 	landingDescription={feature4Description}
-	imageSrc="/landing/3-kanban-filters.mp4"
-	imageAlt="Kanban board for reviewing AI-generated drafts"
+	imageSrc="/landing/2-calendar-filters.mp4"
+	imageAlt="Calendar with smart filters for scheduled posts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />
@@ -383,8 +397,8 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
 	landingDescription={feature5Description}
-	imageSrc="/landing/4-file-manager.mp4"
-	imageAlt="Workspace-scoped file manager for media assets"
+	imageSrc="/landing/3-kanban-filters.mp4"
+	imageAlt="Kanban board for reviewing AI-generated drafts"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />
@@ -394,6 +408,17 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature6Subtitle}
 	landingTitle={feature6Title}
 	landingDescription={feature6Description}
+	imageSrc="/landing/4-file-manager.mp4"
+	imageAlt="Workspace-scoped file manager for media assets"
+	ctaText={secondaryCtaText}
+	ctaHref={secondaryCtaHref}
+/>
+
+<HeroWithRightMedia
+	heroTheme={landingHeroTheme}
+	landingSubtitle={feature7Subtitle}
+	landingTitle={feature7Title}
+	landingDescription={feature7Description}
 	imageSrc="/landing/5-analytics.mp4"
 	imageAlt="Analytics dashboard across social channels"
 	ctaText={secondaryCtaText}
@@ -401,8 +426,8 @@ openquok analytics:post <post-id> -d 30`
 />
 
 <PublicAgentFeatureSection
-	section={feature7Section}
-	index={6}
+	section={feature8Section}
+	index={7}
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />

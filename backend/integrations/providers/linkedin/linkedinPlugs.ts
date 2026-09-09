@@ -30,7 +30,7 @@ export const LINKEDIN_INTERNAL_PLUG_CATALOG: InternalPlugCatalogEntryDto[] = [
         identifier: "linkedin-repost-post-users",
         methodName: "repostPostUsers",
         title: "Add re-posters",
-        description: "Choose other LinkedIn channels to reshare this post after it goes live.",
+        description: "Choose other LinkedIn channels to reshare this post.",
         pickIntegration: ["linkedin", "linkedin-page"],
         fields: [],
     },
