@@ -1,12 +1,13 @@
 import type { PublicBlogOverviewVm, BlogPostPublicViewModel, BlogTopicPublicViewModel } from '$lib/blogs/index';
 import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
+import { BLOG_PUBLIC_LIST_DEFAULT_PAGE_SIZE } from '$lib/blogs/utils/blogPublicListPagination';
 
 export class PublicBlogPagePresenter {
 	public postsVm: BlogPostPublicViewModel[] = $state([]);
 	public countVm: number = $state(0);
 	public topicsVm: BlogTopicPublicViewModel[] = $state([]);
 	public pageVm: number = $state(1);
-	public itemsPerPageVm: number = $state(4);
+	public itemsPerPageVm: number = $state(BLOG_PUBLIC_LIST_DEFAULT_PAGE_SIZE);
 	public topicIdVm: string | null = $state(null);
 
 	constructor(private readonly getBlogPresenter: GetBlogPresenter) {}

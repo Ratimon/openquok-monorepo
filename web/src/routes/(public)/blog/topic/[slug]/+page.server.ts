@@ -2,6 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { publicBlogTopicBySlugPagePresenter } from '$lib/area-public/index';
+import { parseBlogPublicListPagination } from '$lib/blogs/utils/blogPublicListPagination';
 import { createBlogTopicSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -19,15 +20,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 	const { CONFIG_SCHEMA_COMPANY, CONFIG_SCHEMA_MARKETING } = await import('$lib/config/constants/config');
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const rawPage = url.searchParams.get('page');
-	const pageSanitized = rawPage?.replace(/\D/g, '') ?? '';
-	const pageParsed = pageSanitized ? parseInt(pageSanitized, 10) : 1;
-	const page = Number.isFinite(pageParsed) && pageParsed > 0 ? pageParsed : 1;
-
-	const rawIpp = url.searchParams.get('ipp');
-	const ippSanitized = rawIpp?.replace(/\D/g, '') ?? '';
-	const ippParsed = ippSanitized ? parseInt(ippSanitized, 10) : 4;
-	const itemsPerPage = Math.min(100, Math.max(1, Number.isFinite(ippParsed) ? ippParsed : 4));
+	const { page, itemsPerPage } = parseBlogPublicListPagination(url.searchParams);
 
 	const { topic, posts, count, topicsNav, page: listPage, itemsPerPage: ipp } =
 		await publicBlogTopicBySlugPagePresenter.loadDataForTopicBySlugStateless({

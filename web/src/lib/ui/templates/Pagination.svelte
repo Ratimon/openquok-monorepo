@@ -1,6 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { cn } from '$lib/ui/helpers/common';
+	import {
+		BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS
+	} from '$lib/blogs/utils/blogPublicListPagination';
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -24,7 +27,7 @@
 		totalPages,
 		buildListUrl,
 		nameOfItems = 'posts',
-		pageSizeOptions = [4, 13, 31]
+		pageSizeOptions = [...BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS]
 	}: Props = $props();
 
 	let lowerBound = $derived(

@@ -8,6 +8,7 @@ import {
 	publicBlogPagePresenter,
 	publicBlogTopicPagePresenter
 } from '$lib/area-public/index';
+import { parseBlogPublicListPagination } from '$lib/blogs/utils/blogPublicListPagination';
 import { createBlogIndexSEOSchema } from '$lib/blogs/utils/createBlogHubSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -49,16 +50,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		}
 	});
 
-	// Extract and validate query params for SSR.
-	const rawPage = url.searchParams.get('page');
-	const pageSanitized = rawPage?.replace(/\D/g, '') ?? '';
-	const pageParsed = pageSanitized ? parseInt(pageSanitized, 10) : 1;
-	const page = Number.isFinite(pageParsed) && pageParsed > 0 ? pageParsed : 1;
-
-	const rawIpp = url.searchParams.get('ipp');
-	const ippSanitized = rawIpp?.replace(/\D/g, '') ?? '';
-	const ippParsed = ippSanitized ? parseInt(ippSanitized, 10) : 4;
-	const itemsPerPage = Math.min(100, Math.max(1, Number.isFinite(ippParsed) ? ippParsed : 4));
+	const { page, itemsPerPage } = parseBlogPublicListPagination(url.searchParams);
 
 	const topicRaw = url.searchParams.get('topic');
 	let topicId: string | null = null;

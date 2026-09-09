@@ -18,6 +18,10 @@
 	import SubSectionInnerContainer from '$lib/ui/layouts/SubSectionInnerContainer.svelte';
 	import SubSectionOuterContainer from '$lib/ui/layouts/SubSectionOuterContainer.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
+	import {
+		BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS,
+		buildBlogPublicListUrl
+	} from '$lib/blogs/utils/blogPublicListPagination';
 	import { url } from '$lib/utils/path';
 
 	// /blog
@@ -52,22 +56,7 @@
 	let listPage = $derived(data.page);
 
 	function buildListUrl(overrides: Record<string, string | null | undefined>): string {
-		const sp = new URLSearchParams(page.url.searchParams);
-		for (const [key, val] of Object.entries(overrides)) {
-			if (val === null || val === undefined || val === '') {
-				sp.delete(key);
-			} else {
-				sp.set(key, val);
-			}
-		}
-		if (sp.get('page') === '1') {
-			sp.delete('page');
-		}
-		if (sp.get('ipp') === '4') {
-			sp.delete('ipp');
-		}
-		const q = sp.toString();
-		return `${page.url.pathname}${q ? `?${q}` : ''}`;
+		return buildBlogPublicListUrl(page.url.pathname, page.url.searchParams, overrides);
 	}
 
 	function postHref(slug: string): string {
@@ -137,7 +126,7 @@
 									totalPages={totalPages}
 									{buildListUrl}
 									nameOfItems="posts"
-									pageSizeOptions={[4, 13, 31]}
+									pageSizeOptions={[...BLOG_PUBLIC_LIST_PAGE_SIZE_OPTIONS]}
 								/>
 							{/if}
 						</div>
