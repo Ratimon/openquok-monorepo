@@ -2,7 +2,9 @@ export {
 	buildBlogInlineImageSrc,
 	extractBlogImageStoragePathFromImageSrc,
 	extractBlogImageStoragePathsFromHtml,
-	normalizeBlogInlineImagesInHtml
+	extractBlogInlineImagesFromHtml,
+	normalizeBlogInlineImagesInHtml,
+	type BlogInlineImageFromHtml
 } from '$lib/blogs/utils/blogImages';
 export {
 	isExternalBlogHref,

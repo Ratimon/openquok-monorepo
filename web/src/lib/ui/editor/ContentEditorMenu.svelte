@@ -6,15 +6,19 @@
 	import { normalizeContentEditorLinkHref } from '$lib/ui/editor/normalizeContentEditorLinkHref';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import ContentEditorImageAltDialog from '$lib/ui/editor/ContentEditorImageAltDialog.svelte';
 	import ContentEditorMenuButton from '$lib/ui/editor/ContentEditorMenuButton.svelte';
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
 
 	type Props = {
 		editor: TiptapEditor;
-		onInsertLocalImagePreview: (file: File) => void;
+		onInsertLocalImagePreview: (file: File, alt?: string) => void;
 	};
 
 	let { editor, onInsertLocalImagePreview }: Props = $props();
+
+	let altDialogOpen = $state(false);
+	let imageAlt = $derived(editor.getAttributes('image').alt ?? '');
 
 	function handleLinkClick() {
 		const { href } = editor.getAttributes('link');
@@ -35,6 +39,15 @@
 		const nextHref = normalizeContentEditorLinkHref(url);
 		if (!nextHref) return;
 		editor.chain().focus().setLink({ href: nextHref }).run();
+	}
+
+	function handleAltEditConfirm(alt: string) {
+		editor.chain().focus().updateAttributes('image', { alt }).run();
+		altDialogOpen = false;
+	}
+
+	function handleAltEditCancel() {
+		altDialogOpen = false;
 	}
 </script>
 
@@ -91,6 +104,16 @@
 	<ContentEditorMenuButton
 		editor={editor}
 		disabled={!editor.isActive('image')}
+		onClick={() => (altDialogOpen = true)}
+		name="image"
+		title="Edit alt text"
+	>
+		<AbstractIcon name={icons.TextSearch.name} width="18" height="18" />
+	</ContentEditorMenuButton>
+
+	<ContentEditorMenuButton
+		editor={editor}
+		disabled={!editor.isActive('image')}
 		onClick={() => editor.chain().focus().deleteSelection().run()}
 		name="image"
 	>
@@ -117,4 +140,12 @@
 		<AbstractIcon name={icons.Undo2.name} width="18" height="18" />
 	</ContentEditorMenuButton>
 </div>
+
+<ContentEditorImageAltDialog
+	bind:open={altDialogOpen}
+	mode="edit"
+	initialAlt={imageAlt}
+	onConfirm={handleAltEditConfirm}
+	onCancel={handleAltEditCancel}
+/>
 

@@ -6,6 +6,7 @@ import type {
 	CollectionPage,
 	FAQPage,
 	HowTo,
+	ImageObject,
 	ItemList,
 	Offer,
 	Person,
@@ -35,7 +36,7 @@ import {
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
-import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
+import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
@@ -495,6 +496,39 @@ function createBlogPostProductNode(params: {
 	} satisfies Product;
 }
 
+function normalizeBlogImageStoragePath(path: string): string {
+	return path.replace(/^\/+/, '').trim();
+}
+
+function createBlogInlineImageObjectNodes(params: {
+	html: string;
+	canonicalUrl: string;
+	postTitle: string;
+	heroStoragePath?: string | null;
+}): Record<string, unknown>[] {
+	const { html, canonicalUrl, postTitle, heroStoragePath } = params;
+	const heroKey = heroStoragePath ? normalizeBlogImageStoragePath(heroStoragePath) : '';
+
+	return extractBlogInlineImagesFromHtml(html).flatMap((img) => {
+		const storagePath = normalizeBlogImageStoragePath(img.storagePath);
+		if (!storagePath || (heroKey && storagePath === heroKey)) return [];
+
+		const src = buildBlogInlineImageSrc(storagePath);
+		const caption = img.alt.trim();
+
+		const node = {
+			'@type': 'ImageObject',
+			'@id': `${canonicalUrl}#inline-image-${img.index + 1}`,
+			url: src,
+			contentUrl: src,
+			encodingFormat: guessImageMimeFromFilename(storagePath),
+			...(caption ? { caption } : { name: `Illustration in ${postTitle}` })
+		} satisfies ImageObject;
+
+		return [node];
+	});
+}
+
 export type CreateBlogPostSEOSchemaParams = {
 	post: BlogPostBySlugPublicViewModel;
 	comments?: BlogPostCommentViewModel[];
@@ -558,25 +592,37 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		};
 	}
 
-	let image: Record<string, unknown> | undefined;
+	let heroImage: Record<string, unknown> | undefined;
 	if (heroUrl && post.heroImageFilename) {
 		const mime = guessImageMimeFromFilename(post.heroImageFilename);
-		image = {
+		const heroCaption = post.title.trim();
+		heroImage = {
 			'@type': 'ImageObject',
 			contentUrl: heroUrl,
 			url: heroUrl,
 			name: `Featured image for blog post: ${post.title}`,
+			...(heroCaption ? { caption: heroCaption } : {}),
 			width: '1200',
 			height: '630',
 			encodingFormat: mime
 		};
 		if (publishedAt) {
-			image.datePublished = new Date(publishedAt).toISOString();
+			heroImage.datePublished = new Date(publishedAt).toISOString();
 		}
 		if (authorName) {
-			image.author = authorName;
+			heroImage.author = authorName;
 		}
 	}
+
+	const imageNodes: Record<string, unknown>[] = [
+		...(heroImage ? [heroImage] : []),
+		...createBlogInlineImageObjectNodes({
+			html: post.content ?? '',
+			canonicalUrl,
+			postTitle: post.title,
+			heroStoragePath: post.heroImageFilename
+		})
+	];
 
 	const interactionStatistic: Record<string, unknown>[] = [];
 	if (post.likeCount != null && post.likeCount > 0) {
@@ -618,8 +664,10 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		}
 	};
 
-	if (image) {
-		blogPosting.image = image;
+	if (imageNodes.length === 1) {
+		blogPosting.image = imageNodes[0];
+	} else if (imageNodes.length > 1) {
+		blogPosting.image = imageNodes;
 	}
 	if (interactionStatistic.length) {
 		blogPosting.interactionStatistic = interactionStatistic;

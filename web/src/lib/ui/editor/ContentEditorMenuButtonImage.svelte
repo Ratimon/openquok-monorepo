@@ -4,30 +4,30 @@
 
 	import { MAX_IMAGE_UPLOAD_BYTES } from '$lib/core/Image.repository.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import * as Dialog from '$lib/ui/dialog';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 
+	import ContentEditorImageAltDialog from '$lib/ui/editor/ContentEditorImageAltDialog.svelte';
+
 	type Props = {
 		editor: TiptapEditor;
-		onInsertLocalImagePreview: (file: File) => void;
+		onInsertLocalImagePreview: (file: File, alt?: string) => void;
 		children: Snippet;
 	};
 
 	let { editor, onInsertLocalImagePreview, children }: Props = $props();
 
-	let open = $state(false);
+	let altDialogOpen = $state(false);
 	let selectedFile: File | null = $state(null);
 	let fileInput: HTMLInputElement | null = $state(null);
 
-	function resetDialog() {
+	function resetSelection() {
 		selectedFile = null;
 		if (fileInput) fileInput.value = '';
 	}
 
-	function closeDialog() {
-		open = false;
-		resetDialog();
+	function openFilePicker() {
+		fileInput?.click();
 	}
 
 	function onFileChange(e: Event) {
@@ -47,78 +47,52 @@
 		}
 
 		selectedFile = file;
+		altDialogOpen = true;
 	}
 
-	function insertSelectedFileAsPreview() {
+	function handleAltConfirm(alt: string) {
 		if (!selectedFile) {
 			toast.error('Please choose an image file first.');
 			return;
 		}
-		onInsertLocalImagePreview(selectedFile);
-		closeDialog();
+		onInsertLocalImagePreview(selectedFile, alt);
+		altDialogOpen = false;
+		resetSelection();
+	}
+
+	function handleAltCancel() {
+		altDialogOpen = false;
+		resetSelection();
 	}
 </script>
-<Dialog.Root
-	bind:open
-	onOpenChange={(isOpen) => {
-		if (!isOpen) resetDialog();
-	}}
->
-	<Button
-		type="button"
-		variant="outline"
-		class={cn(
-			'group border-r border-base-300 p-2 first-of-type:rounded-l-md last-of-type:rounded-r-md last-of-type:border-r-0 disabled:cursor-not-allowed disabled:hover:bg-base-200',
-			editor.isActive('image')
-				? 'bg-base-content text-base-100 hover:bg-base-100 hover:text-base-content'
-				: 'bg-base-100 text-base-content hover:bg-base-content hover:text-base-100'
-		)}
-		title="Image"
-		onclick={() => (open = true)}
-	>
-		{@render children()}
-	</Button>
-	<Dialog.Content class="sm:max-w-md">
-		<Dialog.Header>
-			<Dialog.Title>
-				Add image
-			</Dialog.Title>
-		<Dialog.Description>
-			Upload to blog storage.
-		</Dialog.Description>
-		</Dialog.Header>
 
-		<div class="w-full space-y-3 pt-1">
-			<input
-				bind:this={fileInput}
-				type="file"
-				accept="image/*"
-				class="file-input file-input-bordered w-full"
-				onchange={onFileChange}
-			/>
-			{#if selectedFile}
-				<p class="text-xs text-base-content/70">
-					Selected: {selectedFile.name}
-				</p>
-			{/if}
-			<p class="text-xs text-base-content/70">
-				This inserts a local preview now. The file uploads only when you click Update/Create.
-			</p>
-			<div class="flex justify-end gap-2">
-				<Button
-					type="button"
-					variant="ghost"
-					onclick={() => closeDialog()}
-				>
-					Cancel
-				</Button>
-				<Button
-					type="button"
-					onclick={insertSelectedFileAsPreview}
-				>
-					Insert preview
-				</Button>
-			</div>
-		</div>
-	</Dialog.Content>
-</Dialog.Root>
+<input
+	bind:this={fileInput}
+	type="file"
+	accept="image/*"
+	class="hidden"
+	onchange={onFileChange}
+/>
+
+<Button
+	type="button"
+	variant="outline"
+	class={cn(
+		'group border-r border-base-300 p-2 first-of-type:rounded-l-md last-of-type:rounded-r-md last-of-type:border-r-0 disabled:cursor-not-allowed disabled:hover:bg-base-200',
+		editor.isActive('image')
+			? 'bg-base-content text-base-100 hover:bg-base-100 hover:text-base-content'
+			: 'bg-base-100 text-base-content hover:bg-base-content hover:text-base-100'
+	)}
+	title="Image"
+	onclick={openFilePicker}
+>
+	{@render children()}
+</Button>
+
+<ContentEditorImageAltDialog
+	bind:open={altDialogOpen}
+	mode="insert"
+	selectedFilename={selectedFile?.name}
+	onConfirm={handleAltConfirm}
+	onCancel={handleAltCancel}
+/>

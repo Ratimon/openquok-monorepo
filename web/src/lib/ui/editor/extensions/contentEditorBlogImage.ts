@@ -1,5 +1,10 @@
 import { Image } from '@tiptap/extension-image';
 
+/** Editor-only hint when `alt` is empty (decorative images may omit alt intentionally). */
+function syncMissingAltBadge(badge: HTMLElement, alt: string | null | undefined) {
+	badge.hidden = Boolean((alt ?? '').trim());
+}
+
 /**
  * Blog/content editor image: visible preview + inline remove control.
  * Serialized HTML stays a plain `<img>` (attrs only); the wrapper exists only in the editor node view.
@@ -56,7 +61,14 @@ export const ContentEditorBlogImage = Image.extend({
 				editor.commands.focus();
 			});
 
+			const missingAltBadge = document.createElement('span');
+			missingAltBadge.className = 'content-editor-image-missing-alt';
+			missingAltBadge.textContent = 'Missing alt text';
+			missingAltBadge.setAttribute('aria-hidden', 'true');
+			syncMissingAltBadge(missingAltBadge, node.attrs.alt);
+
 			wrap.appendChild(img);
+			wrap.appendChild(missingAltBadge);
 			wrap.appendChild(btn);
 
 			return {
@@ -68,6 +80,7 @@ export const ContentEditorBlogImage = Image.extend({
 						img.src = nextSrc;
 					}
 					img.alt = updated.attrs.alt ?? '';
+					syncMissingAltBadge(missingAltBadge, updated.attrs.alt);
 					if (updated.attrs.title) {
 						img.title = String(updated.attrs.title);
 					} else {

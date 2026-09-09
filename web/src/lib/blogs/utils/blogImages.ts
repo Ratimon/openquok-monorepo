@@ -110,6 +110,58 @@ export function extractBlogImageStoragePathsFromHtml(html: string): Set<string> 
 	return keys;
 }
 
+/** Clears `alt` when it looks like a bare image filename (e.g. `photo.webp`). */
+function normalizeBlogInlineImageAlt(alt: string): string {
+	const trimmed = alt.trim();
+	if (trimmed && /\.(webp|png|jpe?g|gif|svg)$/i.test(trimmed)) {
+		return '';
+	}
+	return trimmed;
+}
+
+function readHtmlAttribute(tag: string, attributeName: string): string | null {
+	const re = new RegExp(`\\s${attributeName}\\s*=\\s*["']([^"']*)["']`, 'i');
+	const match = tag.match(re);
+	return match ? match[1] : null;
+}
+
+export type BlogInlineImageFromHtml = {
+	storagePath: string;
+	alt: string;
+	index: number;
+};
+
+/**
+ * Ordered inline `blog_images` references in HTML body (SSR-safe regex; no `document`).
+ * Skips external URLs, blob previews, and other non-`blog_images` `<img>` tags.
+ */
+export function extractBlogInlineImagesFromHtml(html: string): BlogInlineImageFromHtml[] {
+	const images: BlogInlineImageFromHtml[] = [];
+	if (!html.trim()) return images;
+
+	const imgTagRE = /<img\b[^>]*>/gi;
+	let match: RegExpExecArray | null;
+	let index = 0;
+
+	while ((match = imgTagRE.exec(html)) !== null) {
+		const tag = match[0];
+		const rawAttr = (readHtmlAttribute(tag, 'data-storage-path') ?? '').trim();
+		const fromAttr =
+			rawAttr && rawAttr !== 'null' && rawAttr !== 'undefined'
+				? decodeURIComponent(rawAttr.replace(/^\/+/, ''))
+				: '';
+		const src = (readHtmlAttribute(tag, 'src') ?? '').trim();
+		const storagePath = fromAttr || (src ? extractBlogImageStoragePathFromImageSrc(src) : null);
+		if (!storagePath) continue;
+
+		const alt = normalizeBlogInlineImageAlt(readHtmlAttribute(tag, 'alt') ?? '');
+		images.push({ storagePath, alt, index });
+		index += 1;
+	}
+
+	return images;
+}
+
 /**
  * Ensures each blog inline `<img>` has `data-storage-path` and a working `src` for the current env.
  * No-ops when `document` is unavailable (SSR).
@@ -131,10 +183,8 @@ export function normalizeBlogInlineImagesInHtml(html: string): string {
 		img.setAttribute('data-storage-path', path);
 		img.setAttribute('src', buildBlogInlineImageSrc(path));
 
-		const alt = (img.getAttribute('alt') ?? '').trim();
-		if (alt && /\.(webp|png|jpe?g|gif|svg)$/i.test(alt)) {
-			img.setAttribute('alt', '');
-		}
+		const alt = normalizeBlogInlineImageAlt(img.getAttribute('alt') ?? '');
+		img.setAttribute('alt', alt);
 	}
 
 	return doc.innerHTML;

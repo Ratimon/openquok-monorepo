@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
 import { BLOG_SEO_TOPIC_IDS_PRODUCT } from '$lib/blogs/constants/blogSeoSchemaTopics';
+import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
 import { createBlogPostSEOSchema } from '$lib/blogs/utils/blogSeoSchema';
 
 function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPostBySlugPublicViewModel {
@@ -44,6 +45,137 @@ function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPo
 		...overrides
 	};
 }
+
+function findBlogPosting(schema: ReturnType<typeof createBlogPostSEOSchema>): Record<string, unknown> | undefined {
+	return schema['@graph'].find(
+		(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'BlogPosting'
+	) as Record<string, unknown> | undefined;
+}
+
+function graphNodeTypes(schema: ReturnType<typeof createBlogPostSEOSchema>): unknown[] {
+	return schema['@graph'].map((node) =>
+		typeof node === 'object' && node !== null && '@type' in node ? node['@type'] : undefined
+	);
+}
+
+const POST_CANONICAL_URL = 'https://www.openquok.com/blog/platforms-are-adding-ai-labels';
+
+function createPostSchema(overrides?: Partial<BlogPostBySlugPublicViewModel>) {
+	return createBlogPostSEOSchema({
+		post: productPost(overrides),
+		canonicalUrl: POST_CANONICAL_URL,
+		companyName: 'OpenQuok',
+		companySiteUrl: 'https://www.openquok.com',
+		requestUrl: new URL(POST_CANONICAL_URL)
+	});
+}
+
+describe('createBlogPostSEOSchema hero image', () => {
+	it('includes caption matching post title on hero ImageObject', () => {
+		const schema = createPostSchema({
+			heroImageFilename: 'blog_images/hero.webp'
+		});
+
+		expect(findBlogPosting(schema)?.image).toMatchObject({
+			'@type': 'ImageObject',
+			name: 'Featured image for blog post: Platforms are adding AI labels',
+			caption: 'Platforms are adding AI labels'
+		});
+	});
+});
+
+describe('createBlogPostSEOSchema inline images', () => {
+	it('sets BlogPosting.image to an array of hero plus inline ImageObjects', () => {
+		const storagePath = 'user-1/setup.png';
+		const schema = createPostSchema({
+			heroImageFilename: 'blog_images/hero.webp',
+			content: `<p><img data-storage-path="${storagePath}" alt="Token setup screenshot" /></p>`
+		});
+
+		const image = findBlogPosting(schema)?.image as Record<string, unknown>[];
+		expect(image).toHaveLength(2);
+		expect(image[0]).toMatchObject({
+			'@type': 'ImageObject',
+			name: 'Featured image for blog post: Platforms are adding AI labels',
+			caption: 'Platforms are adding AI labels'
+		});
+		expect(image[1]).toMatchObject({
+			'@type': 'ImageObject',
+			'@id': `${POST_CANONICAL_URL}#inline-image-1`,
+			caption: 'Token setup screenshot',
+			contentUrl: buildBlogInlineImageSrc(storagePath),
+			url: buildBlogInlineImageSrc(storagePath),
+			encodingFormat: 'image/png'
+		});
+		expect(image[1]).not.toHaveProperty('name');
+		expect(graphNodeTypes(schema)).not.toContain('ImageObject');
+	});
+
+	it('omits BlogPosting.image when there is no hero and no blog inline images', () => {
+		const schema = createPostSchema({
+			heroImageFilename: null,
+			content: '<p>Body</p><img src="https://cdn.example.com/photo.png" alt="External" />'
+		});
+
+		expect(findBlogPosting(schema)).not.toHaveProperty('image');
+	});
+
+	it('skips inline images that duplicate the hero storage path', () => {
+		const schema = createPostSchema({
+			heroImageFilename: 'blog_images/hero.webp',
+			content: [
+				'<img data-storage-path="blog_images/hero.webp" alt="Same as hero" />',
+				'<img data-storage-path="user-1/chart.png" alt="Chart of results" />'
+			].join('')
+		});
+
+		const image = findBlogPosting(schema)?.image as Record<string, unknown>[];
+		expect(image).toHaveLength(2);
+		expect(image[0]).toMatchObject({
+			'@type': 'ImageObject',
+			name: 'Featured image for blog post: Platforms are adding AI labels'
+		});
+		expect(image[1]).toMatchObject({
+			'@type': 'ImageObject',
+			'@id': `${POST_CANONICAL_URL}#inline-image-2`,
+			caption: 'Chart of results',
+			contentUrl: buildBlogInlineImageSrc('user-1/chart.png')
+		});
+	});
+
+	it('keeps a single hero ImageObject when the body only repeats the hero path', () => {
+		const schema = createPostSchema({
+			heroImageFilename: 'blog_images/hero.webp',
+			content: '<img data-storage-path="blog_images/hero.webp" alt="Same as hero" />'
+		});
+
+		const image = findBlogPosting(schema)?.image;
+		expect(Array.isArray(image)).toBe(false);
+		expect(image).toMatchObject({
+			'@type': 'ImageObject',
+			name: 'Featured image for blog post: Platforms are adding AI labels',
+			caption: 'Platforms are adding AI labels'
+		});
+	});
+
+	it('uses a name fallback when an inline image has empty alt', () => {
+		const storagePath = 'user-1/diagram.webp';
+		const schema = createPostSchema({
+			heroImageFilename: 'blog_images/hero.webp',
+			content: `<img data-storage-path="${storagePath}" alt="" />`
+		});
+
+		const image = findBlogPosting(schema)?.image as Record<string, unknown>[];
+		expect(image).toHaveLength(2);
+		expect(image[1]).toMatchObject({
+			'@type': 'ImageObject',
+			'@id': `${POST_CANONICAL_URL}#inline-image-1`,
+			name: 'Illustration in Platforms are adding AI labels',
+			contentUrl: buildBlogInlineImageSrc(storagePath)
+		});
+		expect(image[1]).not.toHaveProperty('caption');
+	});
+});
 
 describe('createBlogPostSEOSchema product node', () => {
 	it('includes a free Offer so Google Product snippets validate', () => {

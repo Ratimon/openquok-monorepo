@@ -154,7 +154,7 @@
 		return normalizeBlogContentLinks(next);
 	}
 
-	function insertLocalImagePreview(file: File): void {
+	function insertLocalImagePreview(file: File, alt?: string): void {
 		if (!editor) return;
 		const blobUrl = URL.createObjectURL(file);
 		pendingInlineImageFiles.set(blobUrl, file);
@@ -163,7 +163,7 @@
 			.focus()
 			.insertContent({
 				type: 'image',
-				attrs: { src: blobUrl, alt: '', storagePath: null }
+				attrs: { src: blobUrl, alt: alt?.trim() ?? '', storagePath: null }
 			})
 			.run();
 	}
@@ -213,7 +213,6 @@
 			const uploadedSrc = buildBlogInlineImageSrc(uploadPm.data.filePath);
 			img.setAttribute('src', uploadedSrc);
 			img.setAttribute('data-storage-path', uploadPm.data.filePath);
-			img.setAttribute('alt', '');
 			pendingInlineImageFiles.delete(src);
 			URL.revokeObjectURL(src);
 		}
@@ -401,6 +400,27 @@
 	:global(.content-editor .content-editor-image-delete:focus-visible) {
 		outline: 2px solid oklch(var(--p));
 		outline-offset: 2px;
+	}
+
+	:global(.content-editor .content-editor-image-missing-alt) {
+		position: absolute;
+		bottom: 0.25rem;
+		left: 0.25rem;
+		z-index: 2;
+		max-width: calc(100% - 0.5rem);
+		padding: 0.125rem 0.5rem;
+		border-radius: 9999px;
+		border: 1px solid oklch(var(--wa) / 0.55);
+		background: oklch(var(--b1) / 0.92);
+		color: oklch(var(--wa));
+		font-size: 0.6875rem;
+		font-weight: 600;
+		line-height: 1.25;
+		letter-spacing: 0.01em;
+		pointer-events: none;
+		box-shadow:
+			0 0 0 1px oklch(var(--bc) / 0.08),
+			0 2px 8px rgb(0 0 0 / 0.25);
 	}
 
 	/* Ensure lists display with markers in the editor */
