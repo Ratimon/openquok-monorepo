@@ -49,12 +49,20 @@ export const facebookChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Media & replies',
-			title: 'Publish Reels from MP4, schedule follow-up comments, and link previews in one place',
+			subtitle: 'Post editor',
+			title: 'Publish Reels from MP4, schedule follow-up comments, add link previews',
 			description:
-				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards. Queue follow-up comments in the composer with delays.',
-			bentoId: 'facebook-video-links',
+				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards, and queue follow-up comments in the composer with delays.',
+			bentoId: 'facebook-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Facebook settings',
+			title: 'Switch post type, publish Stories, tune Page options per post',
+			description:
+				'Set post type to feed, Reel, or Story before publish. Attach images or MP4 for Stories, and tune Page-specific options from channel settings — from the dashboard or via provider Settings in the API.',
+			bentoId: 'facebook-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -62,7 +70,7 @@ export const facebookChannel = {
 			description:
 				'Track post-level impressions, reactions, and clicks — plus Page-level video views — from connected Facebook Pages inside OpenQuok analytics, so you can schedule more of what already works.',
 			bentoId: 'facebook-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for Facebook Pages',

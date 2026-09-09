@@ -96,7 +96,7 @@
 	function parseTagOptions(output: unknown): DevtoTagOption[] {
 		if (!Array.isArray(output)) return [];
 		const out: DevtoTagOption[] = [];
-		const seen = new Set<string>();
+		const seen: Record<string, true> = {};
 		for (const item of output) {
 			if (!item || typeof item !== 'object') continue;
 			const rec = item as { value?: unknown; label?: unknown };
@@ -108,8 +108,8 @@
 						: '';
 			if (!label) continue;
 			const key = label.toLowerCase();
-			if (seen.has(key)) continue;
-			seen.add(key);
+			if (seen[key]) continue;
+			seen[key] = true;
 			const value = typeof rec.value === 'string' && rec.value.trim() ? rec.value.trim() : label;
 			out.push({ value, label });
 		}
@@ -119,13 +119,13 @@
 	function parseOrganizations(output: unknown): DevtoOrganizationOption[] {
 		if (!Array.isArray(output)) return [];
 		const out: DevtoOrganizationOption[] = [];
-		const seen = new Set<number>();
+		const seen: Record<number, true> = {};
 		for (const item of output) {
 			if (!item || typeof item !== 'object') continue;
 			const rec = item as { id?: unknown; name?: unknown; username?: unknown };
 			const id = typeof rec.id === 'number' ? rec.id : Number(rec.id);
-			if (!Number.isFinite(id) || id <= 0 || seen.has(id)) continue;
-			seen.add(id);
+			if (!Number.isFinite(id) || id <= 0 || seen[id]) continue;
+			seen[id] = true;
 			out.push({
 				id,
 				name: typeof rec.name === 'string' ? rec.name : String(id),
@@ -209,7 +209,7 @@
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			If this article already lives on your blog, paste that URL. Dev.to will treat it as the
+			If this article already lives, paste that URL. Dev.to treat it as the
 			original and point readers there. Leave blank for a first-party Dev.to post.
 		</p>
 	</div>
@@ -243,7 +243,7 @@
 			{disabled}
 		/>
 		<p class="text-xs text-base-content/50">
-			Free-text series name. Dev.to creates the series if it does not already exist.
+			Free-text series name. Dev.to creates the series if not exist.
 		</p>
 	</div>
 

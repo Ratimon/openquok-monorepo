@@ -91,6 +91,19 @@
 		};
 	};
 
+	type CrossAccountPlugDefinition = {
+		identifier: string;
+		title: string;
+		description: string;
+		pickIntegration?: string[];
+		fields?: Array<{
+			name: string;
+			description: string;
+			type: string;
+			placeholder: string;
+		}>;
+	};
+
 	type Props = {
 		open?: boolean;
 		channel: CreateSocialPostChannelViewModel;
@@ -104,6 +117,8 @@
 		embedded?: boolean;
 		/** Shorter nested editors for landing previews. */
 		compactEditors?: boolean;
+		/** Static internal-plug catalog for landing mocks (skips API fetch when set). */
+		crossAccountPlugDefinitionsOverride?: CrossAccountPlugDefinition[];
 	};
 
 	let {
@@ -116,7 +131,8 @@
 		uploadUid = '',
 		disabled = false,
 		embedded = false,
-		compactEditors = false
+		compactEditors = false,
+		crossAccountPlugDefinitionsOverride = undefined
 	}: Props = $props();
 
 	const identifier = $derived((channel.identifier ?? '').toLowerCase());
@@ -173,19 +189,6 @@
 	let dtTags = $state<DevtoTagOption[]>([]);
 	let dtMainImage = $state<{ path: string } | undefined>(undefined);
 
-	type CrossAccountPlugDefinition = {
-		identifier: string;
-		title: string;
-		description: string;
-		pickIntegration?: string[];
-		fields?: Array<{
-			name: string;
-			description: string;
-			type: string;
-			placeholder: string;
-		}>;
-	};
-
 	let crossAccountPlugDefs = $state<CrossAccountPlugDefinition[]>([]);
 
 	const crossAccountDefsProviderKey = $derived.by(() => {
@@ -196,6 +199,11 @@
 	});
 
 	$effect(() => {
+		const override = crossAccountPlugDefinitionsOverride;
+		if (override) {
+			crossAccountPlugDefs = override;
+			return;
+		}
 		const providerKey = crossAccountDefsProviderKey;
 		const orgId = organizationId;
 		if (!providerKey || !orgId) {

@@ -3,7 +3,7 @@
 
 	import BentoCard from '$lib/ui/templates/bento/BentoCard.svelte';
 	import BentoGridOneCol from '$lib/ui/templates/bento/BentoGridOneCol.svelte';
-	import BentoXComposerPreview from '$lib/ui/templates/bento/minor-templates/x/BentoXComposerPreview.svelte';
+	import BentoThreadsComposerPreview from '$lib/ui/templates/bento/minor-templates/threads/BentoThreadsComposerPreview.svelte';
 
 	type Props = {
 		class?: string;
@@ -16,7 +16,7 @@
 <BentoGridOneCol class={cn('auto-rows-[minmax(22rem,auto)]', className)}>
 	<BentoCard
 		class="col-span-1 overflow-hidden shadow-2xl ring-1 ring-base-content/10"
-		background={BentoXComposerPreview}
-		backgroundProps={{ isLoggedIn }}
+		background={BentoThreadsComposerPreview}
+		backgroundProps={{ isLoggedIn, variant: 'settings' }}
 	/>
 </BentoGridOneCol>

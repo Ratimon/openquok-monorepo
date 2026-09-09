@@ -3,7 +3,7 @@
 
 	import BentoCard from '$lib/ui/templates/bento/BentoCard.svelte';
 	import BentoGridOneCol from '$lib/ui/templates/bento/BentoGridOneCol.svelte';
-	import BentoTiktokComposerPreview from '$lib/ui/templates/bento/minor-templates/tiktok/BentoTiktokComposerPreview.svelte';
+	import BentoLinkedinSettingsPreview from '$lib/ui/templates/bento/minor-templates/linkedin/BentoLinkedinSettingsPreview.svelte';
 
 	type Props = {
 		class?: string;
@@ -16,7 +16,7 @@
 <BentoGridOneCol class={cn('auto-rows-[minmax(22rem,auto)]', className)}>
 	<BentoCard
 		class="col-span-1 overflow-hidden shadow-2xl ring-1 ring-base-content/10"
-		background={BentoTiktokComposerPreview}
-		backgroundProps={{ isLoggedIn }}
+		background={BentoLinkedinSettingsPreview}
+		backgroundProps={{ isLoggedIn, variant: 'settings' }}
 	/>
 </BentoGridOneCol>

@@ -27,6 +27,7 @@ globs:
   - backend/utils/dtos/PostDTO.ts
   - orchestrator/activities/scheduledSocialPostActivities.ts
   - web/src/content/constants/publicChannelConfig.ts
+  - web/src/lib/content/constants/channels/**
   - web/src/content/constants/publicChannelFeatureBentoConfig.ts
   - web/src/content/constants/publicAgentChannelConfig.ts
   - web/src/content/utils/buildAgentChannelLandingVm.ts
@@ -243,7 +244,7 @@ Routes and UI are **generic** — adding a channel is a **catalog entry only** (
 
 | Artifact | Path / URL |
 | --- | --- |
-| Content catalog | `web/src/lib/content/constants/publicChannelConfig.ts` |
+| Content catalog | `web/src/lib/content/constants/channels/{slug}.ts` (re-exported via `publicChannelConfig.ts`) |
 | Route helpers | `web/src/lib/area-public/constants/getRootPathPublicChannels.ts` (`channels`, `channels/{slug}`) |
 | Hub route | `/channels` — `web/src/routes/(public)/channels/+page.server.ts` lists `listPublicChannelsForHub()` |
 | Detail route | `/channels/{slug}` — `web/src/routes/(public)/channels/[slug]/+page.server.ts` resolves `getPublicChannelBySlug(slug)` (404 when missing); `available: false` renders a coming-soon hero plus the full landing sections below |
@@ -256,7 +257,7 @@ Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/co
 
 ### Catalog entry (`PublicChannelLandingPageViewModel`)
 
-Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LANDING_PAGES` (before or instead of a coming-soon stub).
+Add a constant in `channels/{slug}.ts` and register it in `channels/index.ts` (re-exported as `PUBLIC_CHANNEL_LANDING_PAGES` via `publicChannelConfig.ts`).
 
 | Field | Rule |
 | --- | --- |
@@ -265,7 +266,7 @@ Add a constant in `publicChannelConfig.ts` and append it to `PUBLIC_CHANNEL_LAND
 | `icon` | `icons.{Provider}.name` from `$data/icons` |
 | `heroTitle`, `heroDescription` | Platform-specific H1 and lead copy |
 | `metaTitle`, `metaDescription`, `keywords` | SEO; title becomes `{metaTitle} \| {companyName}` on the page |
-| `featureSections` | **3 sections** typical: subtitle, title, description, `bentoId` (preferred), `mediaOnRight` (alternate left/right). See **Feature bento showcases** below — do **not** ship go-live pages with generic `/landing/*.mp4` placeholders when the provider has a bento set. |
+| `featureSections` | **3–4 sections** typical: subtitle, title, description, `bentoId` (preferred), `mediaOnRight` (alternate left/right). Each **`title` needs ≥3 comma-separated phrases** (see **Feature section titles** below). See **Feature bento showcases** — do **not** ship go-live pages with generic `/landing/*.mp4` placeholders when the provider has a bento set. |
 | `faqSubtitle`, `faqTitle`, `faqDescription`, `faqItems` | Channel-specific FAQ; JSON-LD `FAQPage` is generated in `+page.server.ts` |
 | `docsPath` | Setup guide path, e.g. `/docs/social-integration/{id}` — must match the doc you ship |
 | `available` | `true` when Skill Builder / Photo Editor channel routes and live hero CTAs should ship; `false` for **Soon** badges on hub/nav and a coming-soon hero on `/channels/{slug}` and `/agents/{agentSlug}/{slug}` (full landing sections still render) |
@@ -287,10 +288,25 @@ Write `heroTitle`, `heroDescription`, `featureSections`, `audienceCards`, and FA
 **`featureSections` pattern:**
 
 - **`subtitle`** — user problem or job-to-be-done (e.g. `Trending audio`, `Bulk scheduling`), not an internal label (`Compose settings`).
-- **`title`** — outcome in **three comma-separated phrases**; `HeroWithLeftMedia` / `HeroWithRightMedia` split on `,` into separate lines. Each phrase must read cleanly on its own line — do not break mid-thought (e.g. `…TikTok, add the sound…` renders as `,add` on the next line).
+- **`title`** — see **Feature section titles** below.
 - **`description`** — problem → how OpenQuok helps → result; mention shipped workflow steps the bento shows.
 
-**Reference:** TikTok `featureSections[1]` in `publicChannelConfig.ts` — inbox drafts + manual trending audio for algorithm reach; bento still shows composer settings, but copy sells the user problem.
+**Reference:** TikTok `featureSections[1]` in `channels/tiktok.ts` — inbox drafts + manual trending audio for algorithm reach; bento still shows composer settings, but copy sells the user problem.
+
+### Feature section titles (comma parts)
+
+`HeroWithLeftMedia` / `HeroWithRightMedia` split `featureSections[].title` on commas into separate lines (`landingHeroTheme.ts`). **Every section title needs at least three comma-separated phrases** — fewer parts skip the pink accent line and often look flat.
+
+Pattern: `{lead with platform name}, {middle with a highlight word}, {closing phrase}`
+
+| Comma parts | Hero styling |
+| --- | --- |
+| 1–2 | Plain + partial gradient only |
+| 3+ | Plain first line → emerald/lime/amber middle → fuchsia/rose/orange accent on last |
+
+Each phrase must read cleanly on its own line — do not break mid-thought (e.g. `…TikTok, add the sound…` renders as `,add` on the next line). Reuse words from `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in `landingHeroTheme.ts` where natural (`plugs`, `track`, `threads`, `carousels`, `linkedin`, …) for white pill highlights.
+
+Apply on **add and update** — when editing any `channels/{slug}.ts` feature row, keep all section titles at 3+ parts.
 
 **Audience cards** — who they are + what pain is solved (e.g. founders shipping product while TikTok runs), not role labels with feature lists.
 
@@ -306,7 +322,7 @@ Each live `/channels/{slug}` page renders three feature rows via `HeroWithLeftMe
 | --- | --- |
 | Bento ID union | Add `{slug}-…` literals to `web/src/lib/content/constants/publicChannelFeatureBentoConfig.ts` |
 | Router component | Branch in `web/src/lib/ui/templates/bento/minor-templates/BentoPublicChannelFeature.svelte` |
-| Catalog wiring | Set `bentoId` (not `imageSrc`) on each of the three `featureSections` in `publicChannelConfig.ts` |
+| Catalog wiring | Set `bentoId` (not `imageSrc`) on each `featureSections` row in `channels/{slug}.ts` |
 | Mock data | `web/src/lib/ui/templates/bento/minor-templates/{slug}/{slug}LandingMock.ts` (+ optional `{slug}LandingKanbanMock.ts`, `{slug}LandingAnalyticsMock.ts`) |
 | Preview panels | Reuse **real** product UI read-only: kanban (`KanbanBoardFilters` + `KanbanColumn`), composer (`PicksSocialsComponent`, `ShowAllProviders`, `SettingsAccordion` with `embedded`, provider settings), analytics (`RenderAnalyticsGrid` + metric seeds matching backend `analytics()`) |
 | Wrappers | `Bento{Provider}{Feature}.svelte` → `BentoCard` + `BentoGridOneCol` (mirror `BentoFacebookBulkScheduling.svelte`, `BentoThreadsMediaReplies.svelte`) |
@@ -569,9 +585,9 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - `providerSettings` shape documented for CLI (`providerSettingsByIntegrationId`) and resolved in backend publish code.
 - Unit tests added/updated for non-trivial paths.
 - **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
-- **`publicChannelConfig`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **three `featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live.
+- **`channels/{slug}.ts`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **`featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live; **each `featureSections[].title` has ≥3 comma-separated phrases**.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
-- **Landing page:** hero + 3 feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); feature `title` uses three comma-separated phrases; CTAs are only `Get Started For Free` → `/pricing`.
+- **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); CTAs are only `Get Started For Free` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth provider listed under OAuth redirect (and follow-up picker table when `isBetweenSteps`); credentials provider row in the credentials table; invite-link note if `customFields`.

@@ -17,7 +17,7 @@ export const tiktokChannel = {
 	icon: icons.TikTok.name,
 	heroTitle: 'Schedule TikTok videos and carousels you approve',
 	heroDescription:
-		'Connect a TikTok account, queue vertical videos or image carousels on the calendar, set privacy and posting method, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
+		'Connect a TikTok account, schedule vertical videos or image carousels on the calendar, set privacy and posting method, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
 	metaTitle: 'TikTok Video & Photo Scheduler',
 	metaDescription:
 		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account, queue MP4 or image posts with privacy and interaction settings, and publish from one workspace.',
@@ -42,12 +42,20 @@ export const tiktokChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Trending audio',
-			title: 'Queue carousels to your TikTok inbox, pick trending audio in the app, publish quickly',
+			subtitle: 'Post editor',
+			title: 'Schedule vertical videos and photo carousels, review before publish, from one draft',
 			description:
-				'Trending tracks lift reach, but schedulers cannot attach them — and posts with a manual sound pick often get more views from TikTok. Queue carousels and clips to your inbox, choose trending audio in the app, and publish in about a minute a day without rebuilding every post by hand.',
-			bentoId: 'tiktok-compose-settings',
+				'Attach a single MP4 or one or more images for a carousel, write your caption, and schedule onto the calendar. Review agent and human drafts on the kanban board before TikTok publishes from your connected account.',
+			bentoId: 'tiktok-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'TikTok settings',
+			title: 'Set privacy, inbox upload, and interaction toggles per post',
+			description:
+				'Pick privacy, comments, duet, and stitch before scheduling. Choose direct publish or send to your TikTok inbox — queue carousels and clips, then pick trending audio in the app and publish in about a minute a day.',
+			bentoId: 'tiktok-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -55,7 +63,7 @@ export const tiktokChannel = {
 			description:
 				'Track followers, likes, video counts, and recent video engagement from connected TikTok accounts inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'tiktok-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for TikTok creators',

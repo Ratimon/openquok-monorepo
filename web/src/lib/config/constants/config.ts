@@ -383,7 +383,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_1_TITLE: {
 		description: 'Headline for the first secondary hero section (comma separates accent phrase)',
 		type: 'string',
-		default: 'Connect once, manage many platforms, minimal hallucinations',
+		default: 'Connect once, automate social platforms, via chat, minimal hallucinations',
 		inputType: 'input',
 		maxInputLength: 100
 	},

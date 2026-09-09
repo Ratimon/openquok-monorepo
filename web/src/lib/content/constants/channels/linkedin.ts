@@ -48,12 +48,20 @@ export const linkedinChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'B2B content formats',
-			title: 'Build PDF carousels, schedule replies, widen reach with plugs',
+			subtitle: 'Post editor',
+			title: 'Build PDF carousels on LinkedIn, schedule follow-up comments, before publish goes live',
 			description:
-				'Attach two or more images and OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page before publish. After go-live, use Plugs to comment or reshare from another connected LinkedIn account.',
-			bentoId: 'linkedin-compose-settings',
+				'Attach two or more images and OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page with delays — all from the same composer draft you review on the kanban board.',
+			bentoId: 'linkedin-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Cross-account plugs',
+			title: 'Comment your company page or reshare from another LinkedIn account, widen reach with plugs, after publish goes live',
+			description:
+				'After go-live, widen reach without switching accounts. Enable cross-account comment or reshare plugs on the publishing channel, pick other connected profiles in your workspace, and set delays so engagement lands when buyers are online.',
+			bentoId: 'linkedin-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Outcomes over vanity',
@@ -61,7 +69,7 @@ export const linkedinChannel = {
 			description:
 				'Likes do not always mean pipeline — many buyers read without engaging. OpenQuok surfaces Page impressions, follower growth, and clicks so you can schedule more of what shows up when prospects compare vendors.',
 			bentoId: 'linkedin-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for B2B go-to-market',
@@ -116,6 +124,11 @@ export const linkedinChannel = {
 			title: 'Can I schedule follow-up comments on LinkedIn?',
 			description:
 				`Yes. Add follow-up comment rows in the composer for LinkedIn profile or LinkedIn Page (or pass linkedin.replies or linkedin-page.replies via the API or CLI). Each comment is text only and publishes after the delay you set once the root post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+		},
+		{
+			title: 'Can another LinkedIn account comment on or reshare my scheduled post?',
+			description:
+				`Yes. Open Settings on the publishing LinkedIn profile or Page channel. Enable Add comments by a different account for cross-account comments, or Add re-posters to reshare from another connected LinkedIn channel after publish. Set comment text, acting channels, and delay. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(faqHrefDocs('cli-examples/linkedin'), 'LinkedIn CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'What is the LinkedIn character limit in OpenQuok?',

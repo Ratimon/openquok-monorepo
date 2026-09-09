@@ -15,7 +15,7 @@ const ANALYTICS_SECTION_SUBTITLE = 'Analytics';
 const CHANNEL_COMPOSE_FEATURE_INDEX = 1;
 
 /** Insights row on `/channels/{slug}` — reused for the agent channel Analytics slot. */
-const CHANNEL_INSIGHTS_FEATURE_INDEX = 2;
+const CHANNEL_INSIGHTS_FEATURE_INDEX = 3;
 
 function mergeChannelFeatureIntoAgentSection(
 	agentSection: PublicAgentFeatureSection,

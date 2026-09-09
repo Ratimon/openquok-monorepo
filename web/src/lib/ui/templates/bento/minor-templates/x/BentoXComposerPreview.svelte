@@ -11,19 +11,24 @@
 	import {
 		X_LANDING_MOCK_BODY,
 		X_LANDING_MOCK_CHANNEL,
+		X_LANDING_MOCK_CHANNELS,
+		X_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS,
 		X_LANDING_MOCK_MEDIA_URLS,
 		X_LANDING_MOCK_PROVIDER_SETTINGS,
 		X_LANDING_MOCK_SCHEDULED_LOCAL,
 		X_LANDING_MOCK_THREAD_REPLIES
 	} from '$lib/ui/templates/bento/minor-templates/x/xLandingMock';
 
+	type Variant = 'compose' | 'settings';
+
 	type Props = {
 		isLoggedIn?: boolean;
+		variant?: Variant;
 	};
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, variant = 'compose' }: Props = $props();
 
-	const mockChannels = [X_LANDING_MOCK_CHANNEL];
+	const mockChannels = X_LANDING_MOCK_CHANNELS;
 	const selectedIds = [X_LANDING_MOCK_CHANNEL.id];
 	let settingsOpen = $state(true);
 	let scheduledLocal = $state(X_LANDING_MOCK_SCHEDULED_LOCAL);
@@ -74,46 +79,50 @@
 				</span>
 			</div>
 
-			<ComposerGuestLockToolbar {isLoggedIn} />
+			{#if variant === 'compose'}
+				<ComposerGuestLockToolbar {isLoggedIn} />
 
-			<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
-				<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-x-mock-body">
-					Post body
-				</label>
-				<textarea
-					id="landing-x-mock-body"
-					readonly
-					rows="3"
-					class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
-					value={X_LANDING_MOCK_BODY}
-				></textarea>
-				<p class="mt-2 text-xs text-base-content/50">{X_LANDING_MOCK_BODY.length} / 280</p>
-			</div>
+				<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
+					<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-x-mock-body">
+						Post body
+					</label>
+					<textarea
+						id="landing-x-mock-body"
+						readonly
+						rows="3"
+						class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
+						value={X_LANDING_MOCK_BODY}
+					></textarea>
+					<p class="mt-2 text-xs text-base-content/50">{X_LANDING_MOCK_BODY.length} / 280</p>
+				</div>
 
-			<ThreadRepliesEditor
-				providerIdentifier="x"
-				postComment="POST"
-				replySoftCharLimit={280}
-				scheduledPostDatetimeLocal={scheduledLocal}
-				disabled={true}
-				hideProviderHelp={true}
-				compactEditor={true}
-				replies={threadReplies}
-				onAddReply={noop}
-				onChangeReplies={(next) => {
-					threadReplies = next;
-				}}
-			/>
-
-			<SettingsAccordion
-				bind:open={settingsOpen}
-				channel={X_LANDING_MOCK_CHANNEL}
-				value={providerSettings}
-				onChange={noop}
-				disabled={true}
-				compactEditors={true}
-				embedded
-			/>
+				<ThreadRepliesEditor
+					providerIdentifier="x"
+					postComment="POST"
+					replySoftCharLimit={280}
+					scheduledPostDatetimeLocal={scheduledLocal}
+					disabled={true}
+					hideProviderHelp={true}
+					compactEditor={true}
+					replies={threadReplies}
+					onAddReply={noop}
+					onChangeReplies={(next) => {
+						threadReplies = next;
+					}}
+				/>
+			{:else}
+				<SettingsAccordion
+					bind:open={settingsOpen}
+					channel={X_LANDING_MOCK_CHANNEL}
+					allChannels={mockChannels}
+					value={providerSettings}
+					onChange={noop}
+					disabled={true}
+					compactEditors={true}
+					crossAccountPlugDefinitionsOverride={X_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS}
+					embedded
+				/>
+			{/if}
 		</div>
 
 		<div class="bg-base-200/20">
@@ -134,5 +143,7 @@
 		</div>
 	</div>
 
-	<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{#if variant === 'compose'}
+		<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{/if}
 </div>

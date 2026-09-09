@@ -17,6 +17,6 @@
 	<BentoCard
 		class="col-span-1 overflow-hidden shadow-2xl ring-1 ring-base-content/10"
 		background={BentoDevtoSettingsPreview}
-		backgroundProps={{ isLoggedIn }}
+		backgroundProps={{ isLoggedIn, variant: 'compose' }}
 	/>
 </BentoGridOneCol>

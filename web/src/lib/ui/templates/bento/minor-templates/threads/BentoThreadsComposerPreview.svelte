@@ -17,11 +17,14 @@
 		THREADS_LANDING_MOCK_THREAD_REPLIES
 	} from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 
+	type Variant = 'compose' | 'settings';
+
 	type Props = {
 		isLoggedIn?: boolean;
+		variant?: Variant;
 	};
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, variant = 'compose' }: Props = $props();
 
 	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
 	const selectedIds = [THREADS_LANDING_MOCK_CHANNEL.id];
@@ -78,47 +81,49 @@
 				</span>
 			</div>
 
-			<ComposerGuestLockToolbar {isLoggedIn} />
+			{#if variant === 'compose'}
+				<ComposerGuestLockToolbar {isLoggedIn} />
 
-			<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
-				<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-threads-mock-body">
-					Post body
-				</label>
-				<textarea
-					id="landing-threads-mock-body"
-					readonly
-					rows="3"
-					class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
-					value={THREADS_LANDING_MOCK_BODY}
-				></textarea>
-				<p class="mt-2 text-xs text-base-content/50">
-					{THREADS_LANDING_MOCK_BODY.length} / 500
-				</p>
-			</div>
+				<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
+					<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-threads-mock-body">
+						Post body
+					</label>
+					<textarea
+						id="landing-threads-mock-body"
+						readonly
+						rows="3"
+						class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
+						value={THREADS_LANDING_MOCK_BODY}
+					></textarea>
+					<p class="mt-2 text-xs text-base-content/50">
+						{THREADS_LANDING_MOCK_BODY.length} / 500
+					</p>
+				</div>
 
-			<ThreadRepliesEditor
-				providerIdentifier="threads"
-				postComment="POST"
-				scheduledPostDatetimeLocal={scheduledLocal}
-				disabled={true}
-				hideProviderHelp={true}
-				compactEditor={true}
-				replies={threadReplies}
-				onAddReply={noop}
-				onChangeReplies={(next) => {
-					threadReplies = next;
-				}}
-			/>
-
-			<SettingsAccordion
-				bind:open={settingsOpen}
-				channel={THREADS_LANDING_MOCK_CHANNEL}
-				value={providerSettings}
-				onChange={noop}
-				disabled={true}
-				compactEditors={true}
-				embedded
-			/>
+				<ThreadRepliesEditor
+					providerIdentifier="threads"
+					postComment="POST"
+					scheduledPostDatetimeLocal={scheduledLocal}
+					disabled={true}
+					hideProviderHelp={true}
+					compactEditor={true}
+					replies={threadReplies}
+					onAddReply={noop}
+					onChangeReplies={(next) => {
+						threadReplies = next;
+					}}
+				/>
+			{:else}
+				<SettingsAccordion
+					bind:open={settingsOpen}
+					channel={THREADS_LANDING_MOCK_CHANNEL}
+					value={providerSettings}
+					onChange={noop}
+					disabled={true}
+					compactEditors={true}
+					embedded
+				/>
+			{/if}
 		</div>
 
 		<div class="bg-base-200/20">
@@ -139,5 +144,7 @@
 		</div>
 	</div>
 
-	<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{#if variant === 'compose'}
+		<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{/if}
 </div>

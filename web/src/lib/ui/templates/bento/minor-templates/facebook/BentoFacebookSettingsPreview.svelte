@@ -16,11 +16,14 @@
 		FACEBOOK_LANDING_MOCK_THREAD_REPLIES
 	} from './facebookLandingMock';
 
+	type Variant = 'compose' | 'settings';
+
 	type Props = {
 		isLoggedIn?: boolean;
+		variant?: Variant;
 	};
 
-	let { isLoggedIn }: Props = $props();
+	let { isLoggedIn, variant = 'compose' }: Props = $props();
 
 	const mockChannels = [FACEBOOK_LANDING_MOCK_CHANNEL];
 	const selectedIds = [FACEBOOK_LANDING_MOCK_CHANNEL.id];
@@ -72,47 +75,49 @@
 				</span>
 			</div>
 
-			<ComposerGuestLockToolbar {isLoggedIn} />
+			{#if variant === 'compose'}
+				<ComposerGuestLockToolbar {isLoggedIn} />
 
-			<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
-				<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-mock-link-body">
-					Post body
-				</label>
-				<textarea
-					id="landing-mock-link-body"
-					readonly
-					rows="4"
-					class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
-					value={FACEBOOK_LANDING_MOCK_LINK_BODY}
-				></textarea>
-				<p class="mt-2 text-xs text-base-content/50">
-					{FACEBOOK_LANDING_MOCK_LINK_BODY.length} / 63,206
-				</p>
-			</div>
+				<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
+					<label class="mb-2 block text-xs font-medium text-base-content/60" for="landing-mock-link-body">
+						Post body
+					</label>
+					<textarea
+						id="landing-mock-link-body"
+						readonly
+						rows="4"
+						class="textarea textarea-bordered w-full resize-none text-sm leading-relaxed"
+						value={FACEBOOK_LANDING_MOCK_LINK_BODY}
+					></textarea>
+					<p class="mt-2 text-xs text-base-content/50">
+						{FACEBOOK_LANDING_MOCK_LINK_BODY.length} / 63,206
+					</p>
+				</div>
 
-			<ThreadRepliesEditor
-				providerIdentifier={FACEBOOK_LANDING_MOCK_CHANNEL.identifier}
-				postComment="COMMENT"
-				scheduledPostDatetimeLocal={scheduledLocal}
-				disabled={true}
-				hideProviderHelp={true}
-				compactEditor={true}
-				replies={threadReplies}
-				onAddReply={noop}
-				onChangeReplies={(next) => {
-					threadReplies = next;
-				}}
-			/>
-
-			<SettingsAccordion
-				bind:open={settingsOpen}
-				channel={FACEBOOK_LANDING_MOCK_CHANNEL}
-				value={providerSettings}
-				onChange={noop}
-				disabled={true}
-				compactEditors={true}
-				embedded
-			/>
+				<ThreadRepliesEditor
+					providerIdentifier={FACEBOOK_LANDING_MOCK_CHANNEL.identifier}
+					postComment="COMMENT"
+					scheduledPostDatetimeLocal={scheduledLocal}
+					disabled={true}
+					hideProviderHelp={true}
+					compactEditor={true}
+					replies={threadReplies}
+					onAddReply={noop}
+					onChangeReplies={(next) => {
+						threadReplies = next;
+					}}
+				/>
+			{:else}
+				<SettingsAccordion
+					bind:open={settingsOpen}
+					channel={FACEBOOK_LANDING_MOCK_CHANNEL}
+					value={providerSettings}
+					onChange={noop}
+					disabled={true}
+					compactEditors={true}
+					embedded
+				/>
+			{/if}
 		</div>
 
 		<div class="bg-base-200/20">
@@ -132,5 +137,7 @@
 		</div>
 	</div>
 
-	<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{#if variant === 'compose'}
+		<ComposerGuestLockFooter bind:scheduledLocal {isLoggedIn} />
+	{/if}
 </div>

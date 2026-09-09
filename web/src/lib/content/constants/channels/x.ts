@@ -5,7 +5,12 @@ import {
 	buildChannelLandingFaqLinks,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqHrefDocs,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const X_DOCS_PATH = '/docs/social-integration/x';
 const xLinks = buildChannelLandingFaqLinks('x', X_DOCS_PATH);
@@ -42,12 +47,20 @@ export const xChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Thread momentum',
-			title: 'Set who can reply, queue thread replies, widen reach with plugs',
+			subtitle: 'Post editor',
+			title: 'Queue thread replies on X, keep the conversation on schedule, before go-live',
 			description:
-				'A strong tweet deserves a conversation — not another tab open on X. Set reply rules and disclosure labels when you schedule, queue timed thread replies before the post goes live, and use internal plugs so your other connected X accounts repost automatically and more followers see the thread.',
-			bentoId: 'x-compose-settings',
+				'A strong tweet deserves a conversation — not another tab open on X. Add follow-up replies in the composer with delays, preview text and media before you schedule, and chain the full thread from one draft.',
+			bentoId: 'x-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Reply rules & cross-account repost',
+			title: 'Set who can reply per tweet, repost from other X profiles, in channel Settings',
+			description:
+				'In custom mode, open the purple Settings accordion on your publishing X channel. Choose reply rules and disclosure labels, then enable Add re-posters to pick other connected profiles and a delay. OpenQuok publishes the root tweet first, then reposts from each acting account — not reply comments from another account.',
+			bentoId: 'x-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -55,7 +68,7 @@ export const xChannel = {
 			description:
 				'Track likes, replies, reposts, quotes, and impressions from connected X profiles inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'x-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for X',
@@ -114,6 +127,11 @@ export const xChannel = {
 			title: 'Can I schedule thread replies in advance?',
 			description:
 				`Yes. Add follow-up replies in the composer (or pass x.replies via the API or CLI). Each reply publishes as a quote-less reply after the delay you set once the root tweet goes live. See ${faqLink(publicFaqHref.cliX, 'X CLI examples')}.`
+		},
+		{
+			title: 'Can another X account repost my scheduled post?',
+			description:
+				`Yes. Open channel Settings on the publishing X account, enable Add re-posters, select other connected X profiles in your workspace, and set a delay. OpenQuok publishes the root tweet first, then reposts from each acting account. X cross-account plugs repost — they do not post reply comments from another account. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(publicFaqHref.cliX, 'X CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'Can I cross-post from X to other channels?',

@@ -44,12 +44,20 @@ export const instagramChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Compose & settings',
-			title: 'Automate trial Reels, follow-up comments and collaborators tags, in one place',
+			subtitle: 'Post editor',
+			title: 'Compose feed posts and Reels, queue follow-up comments, before publish goes live',
 			description:
-				'Switch between feed/Reel and Story, tag up to three collaborators on single-media posts, enable Trial Reels, and queue text-only follow-up comments — from the composer or via providerSettings in the API.',
-			bentoId: 'instagram-compose-settings',
+				'Switch between feed/Reel and Story in the composer, attach photos, carousels, or MP4 Reels, and queue text-only follow-up comments with delays — from the dashboard or via provider Settings in the API.',
+			bentoId: 'instagram-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Instagram settings',
+			title: 'Enable Trial Reels, tag collaborators, tune per-post options',
+			description:
+				'Tag up to three collaborators on single-media feed or Reel posts, enable Trial Reels with manual or performance-based graduation, and set post-type options before anything goes live — without leaving channel settings.',
+			bentoId: 'instagram-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -57,7 +65,7 @@ export const instagramChannel = {
 			description:
 				'Track reach, views, likes, saves, and comments from connected Instagram accounts inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'instagram-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for Instagram Business & Standalone',

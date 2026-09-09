@@ -46,12 +46,20 @@ export const youtubeChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Video settings',
-			title: 'Setup & Automate, title, privacy, tags, and thumbnail for every upload, in one place',
+			subtitle: 'Post editor',
+			title: 'Attach MP4 uploads, write descriptions, queue videos and Shorts',
 			description:
-				'Attach a single MP4 — long-form or Short — write the video description as your post body, and tune YouTube-specific settings: title, public or unlisted privacy, made-for-kids, tags, and an optional custom thumbnail before publish.',
-			bentoId: 'youtube-video-settings',
+				'Attach a single MP4 — long-form or Short — and write the video description as your post body. Preview the upload, schedule onto the calendar, and review drafts on the kanban board before anything goes live.',
+			bentoId: 'youtube-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'YouTube settings',
+			title: 'Set title, privacy, tags, and thumbnail for every upload',
+			description:
+				'Tune YouTube-specific settings per video: title, public or unlisted privacy, made-for-kids, tags, and an optional custom thumbnail. Pass the same fields via provider Settings when you schedule from the API or CLI.',
+			bentoId: 'youtube-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -59,7 +67,7 @@ export const youtubeChannel = {
 			description:
 				'Track views, watch time, average view duration, subscribers gained, and likes from connected YouTube channels inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'youtube-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for YouTube channels',
@@ -121,7 +129,7 @@ export const youtubeChannel = {
 		{
 			title: 'Can I set the video title, privacy, and tags in OpenQuok?',
 			description:
-				'Yes. Use YouTube settings in our video editor (or pass flat keys or a youtube bucket via providerSettings in the API). Title, privacy (public, unlisted, or private), made-for-kids, tags, and an optional custom thumbnail are supported.'
+				'Yes. Use YouTube settings in our video editor (or pass flat keys or a youtube bucket via provider Settings in the API). Title, privacy (public, unlisted, or private), made-for-kids, tags, and an optional custom thumbnail are supported.'
 		},
 		{
 			title: 'Does the post body become the YouTube description?',

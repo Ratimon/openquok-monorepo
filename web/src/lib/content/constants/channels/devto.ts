@@ -48,12 +48,20 @@ export const devtoChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Article settings',
-			title: 'Craft tags and series, tune cover and org, approve before publish',
+			subtitle: 'Post editor',
+			title: 'Write markdown articles in Dev.to, review drafts on the kanban board, before you approve',
 			description:
-				'Write the body as markdown in the usual editor. Tune Dev.to settings per article — title, up to four tags, series name, optional cover (1000×420), organization, and canonical URL — then approve on the kanban board before anything goes live.',
-			bentoId: 'devto-article-settings',
+				'Write the body as markdown in the usual editor, preview formatting, and schedule onto the calendar. Review agent and human drafts on the kanban board before anything goes live on DEV Community.',
+			bentoId: 'devto-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Article settings',
+			title: 'Craft tags and series, tune cover, and canonical URL',
+			description:
+				'Tune Dev.to settings per article — title, up to four tags, series name, optional cover (1000×420), organization, and canonical URL for syndication. Pass the same fields via provider Settings when you schedule from the API or CLI.',
+			bentoId: 'devto-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Dev.to insights',
@@ -61,7 +69,7 @@ export const devtoChannel = {
 			description:
 				'Track page views, reactions, and comments from your connected DEV Community account over 7, 30, or 90 days inside OpenQuok analytics — plus per-article insights once a post is published — so you can schedule more of what already works.',
 			bentoId: 'devto-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for technical writers',

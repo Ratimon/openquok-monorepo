@@ -18,6 +18,42 @@ export const X_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	editor: 'html'
 };
 
+/** Second connected X profile — acting account for cross-account repost preview. */
+export const X_LANDING_MOCK_ACTING_CHANNEL: CreateSocialPostChannelViewModel = {
+	id: 'landing-mock-x-brand',
+	internalId: 'landing-mock-x-brand-internal',
+	name: 'OpenQuok Brand',
+	identifier: 'x',
+	picture: '/landing/social-profile.webp',
+	type: 'social',
+	disabled: false,
+	inBetweenSteps: false,
+	refreshNeeded: false,
+	schedulable: true,
+	unschedulableReason: null,
+	group: null,
+	additionalSettings: '[]',
+	postingTimes: [{ time: 540 }],
+	editor: 'html'
+};
+
+export const X_LANDING_MOCK_CHANNELS = [X_LANDING_MOCK_CHANNEL, X_LANDING_MOCK_ACTING_CHANNEL];
+
+export const X_LANDING_MOCK_CROSS_ACCOUNT_PLUG_DEFS = [
+	{
+		identifier: 'x-repost-post-users',
+		title: 'Add re-posters',
+		description: 'Choose other X channels to repost this post after it goes live.',
+		pickIntegration: ['x'],
+		fields: [] as Array<{
+			name: string;
+			description: string;
+			type: string;
+			placeholder: string;
+		}>
+	}
+];
+
 export const X_LANDING_MOCK_BODY =
 	'Ship the launch tweet, then queue one follow-up reply with a delay.';
 
@@ -40,6 +76,15 @@ export const X_LANDING_MOCK_PROVIDER_SETTINGS = {
 		madeWithAi: false,
 		paidPartnership: false,
 		enabled: true,
-		message: "That's a wrap — thanks for reading."
+		message: "That's a wrap — thanks for reading.",
+		crossAccountPlugs: [
+			{
+				plugName: 'x-repost-post-users',
+				enabled: true,
+				delayMs: 0,
+				integrationIds: [X_LANDING_MOCK_ACTING_CHANNEL.id],
+				fields: {}
+			}
+		]
 	}
 };

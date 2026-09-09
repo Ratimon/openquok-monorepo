@@ -5,7 +5,12 @@ import {
 	buildChannelLandingFaqLinks,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqHrefDocs,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const THREADS_DOCS_PATH = '/docs/social-integration/threads';
 const threadsLinks = buildChannelLandingFaqLinks('threads', THREADS_DOCS_PATH);
@@ -42,12 +47,20 @@ export const threadsChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Media & replies',
-			title: 'Attach image or video, schedule follow-up replies, in one place',
+			subtitle: 'Post editor',
+			title: 'Attach media to Threads posts, queue follow-up replies with delays, before go-live',
 			description:
-				'Create post within Threads\'s 500-character limit, attach a single image, carousel or video, and queue replies with delays before the thread goes live.',
-			bentoId: 'threads-media-replies',
+				'Compose within Threads\'s 500-character limit, attach a single image, carousel, or video, and queue same-account follow-up replies before the root post goes live — preview the full thread from one draft.',
+			bentoId: 'threads-post-editor',
 			mediaOnRight: false
+		},
+		{
+			subtitle: 'Cross-account plugs',
+			title: 'Let another Threads profile comment, widen reach with plugs, after your post publishes',
+			description:
+				'Enable the cross-account comment plug on the publishing channel, select another connected Threads profile in your workspace, and set comment text plus delay. OpenQuok publishes the main thread first, then posts the acting-account comment.',
+			bentoId: 'threads-settings',
+			mediaOnRight: true
 		},
 		{
 			subtitle: 'Insights',
@@ -55,7 +68,7 @@ export const threadsChannel = {
 			description:
 				'Track views, likes, replies, reposts, and quotes from connected Threads profiles inside OpenQuok analytics — so you can schedule more of what already works.',
 			bentoId: 'threads-insights',
-			mediaOnRight: true
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for Meta Threads',
@@ -121,9 +134,14 @@ export const threadsChannel = {
 				'OpenQuok includes auto-repost and recurring schedule slots, so you can recycle evergreen Threads posts on intervals from one day up to one month. Combine it with the media library to keep reusing your best-performing images, videos, and captions without rebuilding posts from scratch.'
 		},
 		{
-			title: 'Can I schedule a Threads follow-up replies in advance?',
+			title: 'Can I schedule Threads follow-up replies in advance?',
 			description:
 				`Yes. Add follow-up replies in the composer (or pass threads.replies via the API or CLI). Each reply publishes from the same account after the delay you set once the main post goes live. See ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}.`
+		},
+		{
+			title: 'Can another Threads account comment on my scheduled post?',
+			description:
+				`Yes. Open channel Settings on the publishing Threads channel, enable Add comments by other accounts, select another connected Threads profile, and set comment text plus delay. OpenQuok publishes the main thread first, then posts the cross-account comment from the acting account. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',
