@@ -11,7 +11,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import MultiMedia from '$lib/ui/components/media/MultiMedia.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 
 	type Props = {
 		mediaItemsVm: MediaLibraryItemViewModel[];
@@ -227,7 +227,7 @@
 </div>
 
 {#if deleteTarget}
-	<DeleteModal
+	<AbstractModal
 		bind:open={deleteConfirmOpen}
 		title="Are you sure?"
 		description={deleteConfirmationCopy(deleteTarget)}

@@ -23,7 +23,7 @@
 	import ComposerMediaTooltip from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import { Shimmer } from '$lib/ui/components/ai-elements/shimmer';
 	import * as Dialog from '$lib/ui/dialog';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	const SUMMARIZER_TYPES: { value: ComposerSummarizerType; label: string }[] = [
@@ -489,7 +489,7 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<DeleteModal
+<AbstractModal
 	bind:open={replaceConfirmOpen}
 	title="Replace post with summary?"
 	description="The summary will replace the existing composer body. Closing AI Summarize clears this result — you won't get the summary back here."

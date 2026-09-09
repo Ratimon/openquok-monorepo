@@ -22,7 +22,7 @@
 		FinishTrial
 	} from '$lib/ui/components/billing';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 
 	const pagePresenter = protectedBillingPagePresenter;
 
@@ -341,7 +341,7 @@
 		/>
 	{/if}
 
-	<DeleteModal
+	<AbstractModal
 		bind:open={showCancelConfirmDialog}
 		title="Cancel subscription"
 		description={cancelConfirmDescription}
@@ -354,7 +354,7 @@
 		}}
 	/>
 
-	<DeleteModal
+	<AbstractModal
 		bind:open={showSubscribeConfirmDialog}
 		title="Change plan"
 		description={subscribeConfirmDescription}
@@ -369,7 +369,7 @@
 		}}
 	/>
 
-	<DeleteModal
+	<AbstractModal
 		bind:open={showPaymentPortalDialog}
 		title="Payment method required"
 		description="We could not charge your card for this plan change. Update your payment method in the billing portal, then try again."

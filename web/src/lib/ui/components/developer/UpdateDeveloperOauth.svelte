@@ -18,7 +18,7 @@
 	import * as Dialog from '$lib/ui/dialog';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 
 	type Props = {
 		loadForbidden: boolean;
@@ -544,7 +544,7 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<DeleteModal
+<AbstractModal
 	bind:open={confirmRotateOpen}
 	title="Rotate client secret?"
 	description="This generates a new client secret and invalidates the old one. Integrations using the old secret will stop working until you update them."
@@ -554,7 +554,7 @@
 	onCancel={() => onCancelRotateConfirm()}
 />
 
-<DeleteModal
+<AbstractModal
 	bind:open={confirmDeleteOpen}
 	title="Delete OAuth app?"
 	description="This deletes the OAuth app and revokes tokens issued to users. This cannot be undone."

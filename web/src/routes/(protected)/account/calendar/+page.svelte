@@ -40,7 +40,7 @@
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
 	import SetPickerDialog from '$lib/ui/components/posts/SetPickerDialog.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import MoveChannelGroupModal from '$lib/ui/components/posts/MoveChannelGroupModal.svelte';
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import StatisticsModal from '$lib/ui/components/platform-analytics/StatisticsModal.svelte';
@@ -548,7 +548,7 @@
 	}}
 />
 
-<DeleteModal
+<AbstractModal
 	bind:open={actionsDeleteConfirmOpen}
 	title="Are you sure?"
 	description="Are you sure you want to delete this post?"

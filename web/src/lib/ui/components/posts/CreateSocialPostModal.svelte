@@ -9,7 +9,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AddEditModal from './AddEditModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
-	import Deletemodal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import ManageModal from '$lib/ui/components/posts/ManageModal.svelte';
 	import SaveSetNameDialog from '$lib/ui/components/posts/SaveSetNameDialog.svelte';
 	import { integrationSupportsFollowUpComments } from '$lib/posts/utils/create-post/followUp';
@@ -289,13 +289,13 @@
 />
 
 
-<Deletemodal
+<AbstractModal
 	bind:open={presenter.confirmCloseOpen}
 	onConfirm={confirmClose}
 	onCancel={() => (presenter.confirmCloseOpen = false)}
 />
 
-<Deletemodal
+<AbstractModal
 	bind:open={confirmDeleteOpen}
 	title="Are you sure?"
 	description="Are you sure you want to delete this post?"

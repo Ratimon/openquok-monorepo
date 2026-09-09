@@ -14,6 +14,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import DynamicFormField from '$lib/ui/components/config/DynamicFormField.svelte';
 	import ModuleConfigSchemaDriftBanner from '$lib/ui/components/config/ModuleConfigSchemaDriftBanner.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 
 	type Props = {
 		currentConfigVm: ModuleConfigViewModel;
@@ -56,6 +57,8 @@
 			codeRevision
 		})
 	);
+
+	let loadCodeDefaultsConfirmOpen = $state(false);
 
 	let defaultValues = $derived.by(() =>
 		Object.fromEntries(
@@ -121,11 +124,7 @@
 		}
 	});
 
-	function handleLoadCodeDefaults() {
-		if (typeof window !== 'undefined' && !window.confirm(loadCodeDefaultsConfirmMessage)) {
-			return;
-		}
-
+	function applyCodeDefaults() {
 		const codeDefaultsVm = buildModuleConfigCodeDefaultsVm(moduleSchema);
 		for (const key of Object.keys(moduleSchema)) {
 			form.setFieldValue(key, codeDefaultsVm[key] as unknown);
@@ -134,6 +133,26 @@
 		toast.message('Code defaults loaded into the form. Review, then Save Settings.');
 	}
 </script>
+
+{#if enableLoadCodeDefaults}
+	<AbstractModal
+		bind:open={loadCodeDefaultsConfirmOpen}
+		title="Load code defaults?"
+		description={loadCodeDefaultsConfirmMessage}
+		confirmLabel="Load defaults"
+		cancelLabel="Cancel"
+		confirmVariant="primary"
+		cancelFirst={true}
+		contentClass="max-w-md"
+		onConfirm={() => {
+			loadCodeDefaultsConfirmOpen = false;
+			applyCodeDefaults();
+		}}
+		onCancel={() => {
+			loadCodeDefaultsConfirmOpen = false;
+		}}
+	/>
+{/if}
 
 {#if codeRevision && revisionConfigKey}
 	<ModuleConfigSchemaDriftBanner
@@ -168,7 +187,14 @@
 				Loads the latest defaults from the repository schema into this form. Nothing is written
 				until you save.
 			</p>
-			<Button class="w-fit shrink-0" type="button" variant="secondary" onclick={handleLoadCodeDefaults}>
+			<Button
+				class="w-fit shrink-0"
+				type="button"
+				variant="secondary"
+				onclick={() => {
+					loadCodeDefaultsConfirmOpen = true;
+				}}
+			>
 				Load code defaults
 			</Button>
 		{/if}

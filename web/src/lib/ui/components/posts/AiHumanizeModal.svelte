@@ -25,7 +25,7 @@
 	import ComposerMediaTooltip from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import { Shimmer } from '$lib/ui/components/ai-elements/shimmer';
 	import * as Dialog from '$lib/ui/dialog';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
@@ -526,7 +526,7 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<DeleteModal
+<AbstractModal
 	bind:open={replaceConfirmOpen}
 	title="Replace post with rewrite?"
 	description="The rewrite will replace the existing composer body. Closing Sound more human clears this result — you won't get the rewrite back here."

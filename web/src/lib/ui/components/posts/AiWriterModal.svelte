@@ -26,7 +26,7 @@
 	import { Shimmer } from '$lib/ui/components/ai-elements/shimmer';
 	import { Suggestion, Suggestions } from '$lib/ui/components/ai-elements/suggestion';
 	import * as Dialog from '$lib/ui/dialog';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import * as Tooltip from '$lib/ui/tooltip';
 
 	type Props = {
@@ -535,7 +535,7 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<DeleteModal
+<AbstractModal
 	bind:open={insertConfirmOpen}
 	title="Insert draft into the post?"
 	description="The draft will be added to the composer. Closing AI Writer clears this conversation — you won't get the prompt or draft back here."

@@ -65,7 +65,7 @@
 	import TimeTable from '$lib/ui/components/posts/TimeTable.svelte';
 	import ShowChannelActionsModal from '$lib/ui/components/posts/ShowChannelActionsModal.svelte';
 	import ShowPostActionsModal from '$lib/ui/components/posts/ShowPostActionsModal.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import PostKanbanBoard from '$lib/ui/components/posts/kanban/PostKanbanBoard.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import AccountGettingStartedSection from '$lib/ui/components/home/AccountGettingStartedSection.svelte';
@@ -1215,7 +1215,7 @@
 	onPreview={() => void previewKanbanPostGroup()}
 />
 
-<DeleteModal
+<AbstractModal
 	bind:open={kanbanDeleteConfirmOpen}
 	title="Are you sure?"
 	description="Are you sure you want to delete this post?"

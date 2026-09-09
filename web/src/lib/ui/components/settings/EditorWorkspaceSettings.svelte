@@ -22,7 +22,7 @@
 	import TeamMembersLimitUpgradeModal from '$lib/ui/components/workspaces/TeamMembersLimitUpgradeModal.svelte';
 	import WorkspaceLimitUpgradeModal from '$lib/ui/components/workspaces/WorkspaceLimitUpgradeModal.svelte';
 	import UpdateWorkspaceModal from '$lib/ui/components/settings/UpdateWorkspaceModal.svelte';
-	import DeleteModal from '$lib/ui/modals/DeleteModal.svelte';
+	import AbstractModal from '$lib/ui/modals/AbstractModal.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';
 	import * as Field from '$lib/ui/field';
@@ -934,7 +934,7 @@
 />
 
 {#if deleteWorkspaceTarget}
-	<DeleteModal
+	<AbstractModal
 		bind:open={deleteWorkspaceConfirmOpen}
 		title="Delete workspace?"
 		description="This permanently deletes the workspace for all members. Posts, channels, media, and settings in this workspace cannot be recovered."
