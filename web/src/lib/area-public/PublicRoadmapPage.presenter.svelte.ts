@@ -21,11 +21,19 @@ export type RoadmapHubLoadViewModel = {
 	roadmapCategories: readonly RoadmapCategoryOptionViewModel[];
 	metaTitle: string;
 	metaDescription: string;
+	keywords: readonly string[];
 };
 
 const ROADMAP_META_TITLE = 'Roadmap';
 const ROADMAP_META_DESCRIPTION =
 	'See what we are planning, building, and shipping next for OpenQuok. Share feedback to help us prioritize.';
+const ROADMAP_META_KEYWORDS = [
+	'OpenQuok product roadmap',
+	'social media scheduler roadmap',
+	'agent scheduling feature requests',
+	'OpenQuok upcoming features',
+	'social media scheduling product updates'
+] as const;
 
 export class PublicRoadmapPagePresenter {
 	selectedCategoryIds = $state<RoadmapCategoryId[]>([]);
@@ -39,7 +47,8 @@ export class PublicRoadmapPagePresenter {
 			roadmapColumnOptionsVm: ROADMAP_COLUMNS,
 			roadmapCategories: ROADMAP_CATEGORIES,
 			metaTitle: ROADMAP_META_TITLE,
-			metaDescription: ROADMAP_META_DESCRIPTION
+			metaDescription: ROADMAP_META_DESCRIPTION,
+			keywords: ROADMAP_META_KEYWORDS
 		};
 	}
 

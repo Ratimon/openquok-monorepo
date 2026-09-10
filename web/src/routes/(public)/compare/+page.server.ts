@@ -25,6 +25,7 @@ export async function load({ url, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
+		customTags: [...hubVm.keywords],
 		customSlug: getRootPathPublicCompare(),
 		requestUrl: url
 	})) satisfies MetaTagsProps;

@@ -64,7 +64,12 @@ export async function load({ url, params, fetch, cookies, parent }) {
 			minutes ? `${minutes} minute read.` : ''
 		}`.trim();
 
-	const keywords = ['blog', topicName, ...(currentPostVm.title?.split(' ') ?? []), authorName].filter(Boolean);
+	const keywords = [
+		'OpenQuok blog',
+		topicName,
+		authorName,
+		`${topicName} social media scheduling`
+	].filter((keyword) => typeof keyword === 'string' && keyword.trim().length > 0);
 
 	let ogImageUrl = '';
 	if (currentPostVm.heroImageFilename) {

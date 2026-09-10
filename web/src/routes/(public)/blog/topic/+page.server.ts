@@ -26,7 +26,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
-		customTags: ['blog', 'topics', 'categories'],
+		customTags: ['OpenQuok blog topics', 'social media marketing articles', 'scheduling guides'],
 		customSlug,
 		requestUrl: url
 	}) satisfies MetaTagsProps;

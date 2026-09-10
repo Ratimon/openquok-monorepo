@@ -10,6 +10,7 @@ import {
 	getRootPathPublicCreatorPlaybook
 } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
@@ -69,6 +70,11 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle,
 		customDescription,
+		customTags: [
+			playbookVm.title,
+			'social media scheduling playbook',
+			...PUBLIC_PLAYBOOKS_HUB.seoKeywords.slice(0, 4)
+		],
 		customSlug: getRootPathPublicCreatorPlaybook(ownerUsername, playbookVm.slug),
 		requestUrl: url
 	})) satisfies MetaTagsProps;

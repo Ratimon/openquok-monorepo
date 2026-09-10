@@ -3,7 +3,10 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { publicCreatorsPagePresenter } from '$lib/area-public';
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
+import {
+	PUBLIC_CREATORS_HUB_FAQ,
+	PUBLIC_CREATORS_HUB_SEO_KEYWORDS
+} from '$lib/content/constants/publicCreatorsHubFaqConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -27,6 +30,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${metaTitle} | ${companyName}`,
 		customDescription: metaDescription,
+		customTags: [...PUBLIC_CREATORS_HUB_SEO_KEYWORDS],
 		customSlug: getRootPathPublicCreators(),
 		requestUrl: url
 	})) satisfies MetaTagsProps;

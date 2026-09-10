@@ -55,12 +55,10 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 		: `Preview this scheduled post in ${companyName}, a social media scheduler and content calendar.`;
 
 	const keywords = [
-		...(postVm ? [postSnippet] : []),
-		...(platformLabel ? [platformLabel.toLowerCase()] : []),
+		...(platformLabel ? [`${platformLabel} scheduled post preview`] : []),
 		'social media scheduler',
-		'social media scheduling',
-		'scheduled post',
-		'post preview'
+		'scheduled post preview',
+		'content calendar preview'
 	].filter((t) => typeof t === 'string' && t.trim().length > 0);
 
 	const firstMediaPath =

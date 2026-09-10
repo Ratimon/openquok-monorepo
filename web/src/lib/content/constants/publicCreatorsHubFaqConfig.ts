@@ -9,6 +9,14 @@ export type PublicCreatorsHubFaqSection = {
 	faqItems: readonly PublicFaqItem[];
 };
 
+export const PUBLIC_CREATORS_HUB_SEO_KEYWORDS = [
+	'OpenQuok community creators',
+	'social media scheduling playbooks',
+	'agent skills and MCP publishers',
+	'publish building blocks OpenQuok',
+	'creator playbook directory'
+] as const;
+
 export const PUBLIC_CREATORS_HUB_FAQ = {
 	faqSubtitle: 'Creators FAQ',
 	faqTitle: 'Community Creators, answered',

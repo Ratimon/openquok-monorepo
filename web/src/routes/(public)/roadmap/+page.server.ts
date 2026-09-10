@@ -21,6 +21,7 @@ export async function load({ url, cookies, parent }) {
 	const {
 		metaTitle: customTitle,
 		metaDescription: customDescription,
+		keywords,
 		roadmapItems,
 		roadmapColumnOptionsVm,
 		roadmapCategories
@@ -31,6 +32,7 @@ export async function load({ url, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
+		customTags: [...keywords],
 		customSlug: 'roadmap',
 		requestUrl: url
 	})) satisfies MetaTagsProps;

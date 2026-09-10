@@ -46,6 +46,15 @@ type SkillBuilderChannelRecipe = {
 	commandName?: string;
 };
 
+export const PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS = [
+	'social media skill builder',
+	'SKILL.md generator',
+	'openquok CLI skill builder',
+	'agent workflow skill export',
+	'MCP tools skill builder',
+	'schedule social media posts skill'
+] as const;
+
 export type SkillBuilderChannelPageConfig = {
 	/** URL segment under `/tools/skill-builder/` — matches `publicChannelConfig.slug`. */
 	channelSlug: string;

@@ -11,6 +11,7 @@ import {
 	createCategoryTermSetSchema,
 	createCollectionPageSchema
 } from '$lib/listings/utils/createPlaybooksSeoSchema';
+import { PUBLIC_PLAYBOOKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
@@ -24,9 +25,9 @@ export async function load({ url, fetch, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = 'Playbook Categories';
+	const customTitle = 'Social Media Playbook Categories';
 	const customDescription =
-		'Browse all playbook categories — agent workflows grouped by topic and use case.';
+		'Browse playbook categories for social media scheduling — marketing workflows grouped by topic, platform, and content format.';
 	const customSlug = getRootPathPublicPlaybooksCategories();
 
 	const metaTags = await createMetaData({
@@ -34,7 +35,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
-		customTags: ['playbooks', 'categories', 'agent workflows', 'automation'],
+		customTags: [...PUBLIC_PLAYBOOKS_HUB.seoKeywords],
 		customSlug,
 		requestUrl: url
 	}) satisfies MetaTagsProps;

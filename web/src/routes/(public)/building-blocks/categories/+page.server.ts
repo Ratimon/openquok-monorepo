@@ -13,6 +13,7 @@ import {
 	createCategoryTermSetSchema,
 	createCollectionPageSchema
 } from '$lib/listings/utils/createBuildingBlocksSeoSchema';
+import { PUBLIC_BUILDING_BLOCKS_HUB } from '$lib/listings/constants/publicListingsHubConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
@@ -26,9 +27,9 @@ export async function load({ url, fetch, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const customTitle = 'Building Block Categories';
+	const customTitle = 'Social Scheduling Building Block Categories';
 	const customDescription =
-		'Browse all building block categories — skills and MCP servers grouped by topic.';
+		'Browse building block categories for social media scheduling — skills and MCP servers grouped by platform, topic, and marketing use case.';
 	const customSlug = getRootPathPublicBuildingBlocksCategories();
 
 	const metaTags = await createMetaData({
@@ -36,7 +37,7 @@ export async function load({ url, fetch, cookies, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${customTitle} | ${companyName}`,
 		customDescription,
-		customTags: ['building blocks', 'categories', 'agent skills', 'MCP servers'],
+		customTags: [...PUBLIC_BUILDING_BLOCKS_HUB.seoKeywords],
 		customSlug,
 		requestUrl: url
 	}) satisfies MetaTagsProps;

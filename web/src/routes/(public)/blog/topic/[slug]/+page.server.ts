@@ -47,7 +47,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 			marketingInformation: marketingInformationPm,
 			customTitle: `${topic.name} | ${companyName}`,
 			customDescription,
-			customTags: [topic.name],
+			customTags: [topic.name, 'OpenQuok blog', `${topic.name} social media scheduling`],
 			customSlug: `${getRootPathPublicBlog()}/topic/${topicSlug}`,
 			requestUrl: url
 		});

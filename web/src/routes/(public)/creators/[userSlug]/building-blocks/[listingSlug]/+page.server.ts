@@ -81,8 +81,16 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		customImages,
 		customTags: [
 			buildingBlockVm.title,
-			buildingBlockVm.category?.name ?? 'building blocks',
-			buildingBlockVm.extensionType ?? 'building block'
+			buildingBlockVm.category?.name
+				? `${buildingBlockVm.category.name} building block`
+				: 'OpenQuok building block',
+			buildingBlockVm.extensionType === 'mcp'
+				? 'MCP server for social scheduling'
+				: buildingBlockVm.extensionType === 'both'
+					? 'skill and MCP for social scheduling'
+					: buildingBlockVm.extensionType === 'skills'
+						? 'agent skill for social scheduling'
+						: 'social media scheduling building block'
 		].filter(Boolean),
 		requestUrl: url
 	})) satisfies MetaTagsProps;

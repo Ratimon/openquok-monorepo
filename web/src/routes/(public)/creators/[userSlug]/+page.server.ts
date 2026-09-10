@@ -43,7 +43,7 @@ export async function load({ url, params, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${displayName} | ${companyName}`,
 		customDescription,
-		customTags: [displayName],
+		customTags: [displayName, 'OpenQuok creator', 'social media scheduling playbooks'],
 		customSlug: getRootPathPublicCreator(creator.username ?? userSlug),
 		requestUrl: url
 	})) satisfies MetaTagsProps;

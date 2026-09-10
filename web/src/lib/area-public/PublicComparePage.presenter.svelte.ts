@@ -60,6 +60,7 @@ export type CompareHubProductOptionViewModel = {
 export type CompareHubViewModel = {
 	metaTitle: string;
 	metaDescription: string;
+	keywords: string[];
 	eyebrow: string;
 	title: string;
 	description: string;
@@ -99,6 +100,7 @@ export class PublicComparePagePresenter {
 		return {
 			metaTitle: hubSeo.metaTitle,
 			metaDescription: hubSeo.metaDescription,
+			keywords: [...hubSeo.keywords],
 			eyebrow: hubSeo.eyebrow,
 			title: hubSeo.title,
 			description: hubSeo.description,
@@ -180,10 +182,22 @@ export class PublicComparePagePresenter {
 type CompareHubSeoCopy = {
 	metaTitle: string;
 	metaDescription: string;
+	keywords: string[];
 	eyebrow: string;
 	title: string;
 	description: string;
 };
+
+const COMPARE_HUB_KEYWORDS = [
+	'social media scheduler comparison',
+	'compare social media scheduling tools',
+	'buffer vs hootsuite alternative',
+	'agent social media scheduling',
+	'multi-workspace social media scheduler',
+	'social media management tool comparison',
+	'programmatic social media scheduling',
+	'open source social media scheduler'
+] as const;
 
 function buildCompareHubSeoCopy(
 	baseProduct: NonNullable<ReturnType<typeof getCompareProduct>>,
@@ -197,6 +211,7 @@ function buildCompareHubSeoCopy(
 			metaTitle: buildCompareHubMetaTitle(baseProduct.name, true),
 			metaDescription:
 				'Compare the top social media scheduling tools side by side — pricing, channels, workspaces, and agent integrations. See why teams are switching to OpenQuok.',
+			keywords: [...COMPARE_HUB_KEYWORDS],
 			eyebrow: 'Compare',
 			title: `${baseProduct.name} vs. the rest`,
 			description:
@@ -207,6 +222,11 @@ function buildCompareHubSeoCopy(
 	return {
 		metaTitle: buildCompareHubMetaTitle(baseProduct.name, false),
 		metaDescription: `Discover the best alternatives to ${baseProduct.name} for social media scheduling, agent workflows, and multi-workspace publishing. Compare top tools side by side on pricing, channels, and features.`,
+		keywords: [
+			`${baseProduct.name} alternatives comparison`,
+			`best ${baseProduct.name} alternative`,
+			...COMPARE_HUB_KEYWORDS
+		],
 		eyebrow: 'Alternatives',
 		title: `Best ${baseProduct.name} alternatives`,
 		description:

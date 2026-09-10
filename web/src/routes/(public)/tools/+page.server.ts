@@ -28,13 +28,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const { metaTitle, metaDescription } = publicToolsPagePresenter.getToolsIndexVm();
+	const { metaTitle, metaDescription, keywords } = publicToolsPagePresenter.getToolsIndexVm();
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
 		marketingInformation: marketingInformationPm,
 		customTitle: `${metaTitle} | ${companyName}`,
 		customDescription: metaDescription,
+		customTags: [...keywords],
 		customSlug: getRootPathPublicTools(),
 		requestUrl
 	})) satisfies MetaTagsProps;

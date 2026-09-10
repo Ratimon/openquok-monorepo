@@ -5,7 +5,10 @@ import type { WebApplication } from 'schema-dts';
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import { getRootPathPublicSkillBuilder } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
-import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
+import {
+	listSkillBuilderChannelsForHub,
+	PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS
+} from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -32,6 +35,7 @@ export async function load({ url, cookies, fetch, parent }) {
 		marketingInformation: marketingInformationPm,
 		customTitle: `${builderVm.metaTitle} | ${companyName}`,
 		customDescription: builderVm.metaDescription,
+		customTags: [...PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS],
 		customSlug: getRootPathPublicSkillBuilder(),
 		requestUrl: url
 	})) satisfies MetaTagsProps;
