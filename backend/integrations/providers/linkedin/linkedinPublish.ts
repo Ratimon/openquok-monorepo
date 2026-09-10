@@ -7,6 +7,11 @@ import { stripComposerBodyForEditor } from "../../../utils/content/stripComposer
 import { mediaExtFromUrlOrKey } from "../tiktok/tiktokPublishValidation";
 import { resolveLinkedInSettings } from "./linkedinSettings";
 import { linkedinRestHeaders } from "./linkedinCommon";
+import {
+    linkedInActivityUrnFromPostUrn,
+    linkedInRestSocialActionCommentsUrl,
+    normalizeLinkedInPostUrnForSocialAction,
+} from "./linkedinUrn";
 
 type MediaItem = { path: string; bucket?: string };
 type SettingsWithMedia = { media?: { items?: MediaItem[] } | MediaItem[] };
@@ -364,33 +369,34 @@ export async function publishLinkedInComment(
     const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
     const actor =
         authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
+    const pathUrn = normalizeLinkedInPostUrnForSocialAction(parentPostId);
+    const objectUrn = linkedInActivityUrnFromPostUrn(pathUrn);
 
-    const res = await fetch(
-        `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(parentPostId)}/comments`,
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                actor,
-                object: parentPostId,
-                message: { text: fixLinkedInCommentary(message) },
-            }),
-        }
-    );
+    const res = await fetch(linkedInRestSocialActionCommentsUrl(pathUrn), {
+        method: "POST",
+        headers: {
+            ...linkedinRestHeaders(accessToken),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            actor,
+            object: objectUrn,
+            message: { text: fixLinkedInCommentary(message) },
+        }),
+    });
 
-    const json = (await res.json()) as { object?: string; message?: string };
-    if (!res.ok) {
-        throw new Error(json.message ?? `LinkedIn comment failed (HTTP ${res.status})`);
+    if (res.status !== 201 && res.status !== 200) {
+        const errJson = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(errJson.message ?? `LinkedIn comment failed (HTTP ${res.status})`);
     }
 
-    const commentId = json.object ?? "";
+    const commentId = res.headers.get("x-restli-id") ?? "";
     return {
         id: postDetails.id,
         postId: commentId,
         status: "posted",
-        releaseURL: `https://www.linkedin.com/embed/feed/update/${commentId}`,
+        releaseURL: commentId
+            ? `https://www.linkedin.com/embed/feed/update/${commentId}`
+            : `https://www.linkedin.com/feed/update/${pathUrn}`,
     };
 }

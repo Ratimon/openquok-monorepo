@@ -1,10 +1,45 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	activeCrossAccountPlugs,
+	buildCrossAccountPlugsProviderPatch,
 	migrateIntegrationProviderSettingsOnLoad,
 	migrateProviderSettingsByIntegrationIdOnLoad,
-	THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME
+	THREADS_CROSS_ACCOUNT_COMMENT_PLUG_NAME,
+	type CrossAccountPlugState
 } from '$lib/posts/utils/create-post/providerSettings';
+
+describe('buildCrossAccountPlugsProviderPatch', () => {
+	it('persists enabled plugs with acting channels', () => {
+		const plugs: CrossAccountPlugState[] = [
+			{
+				plugName: 'linkedin-add-comment',
+				enabled: true,
+				delayMs: 0,
+				integrationIds: ['page-id'],
+				fields: { comment: 'Huge milestone for us.' }
+			},
+			{
+				plugName: 'linkedin-repost-post-users',
+				enabled: false,
+				delayMs: 0,
+				integrationIds: ['page-id'],
+				fields: {}
+			}
+		];
+
+		expect(buildCrossAccountPlugsProviderPatch('linkedin', plugs)).toEqual({
+			linkedin: {
+				crossAccountPlugs: [plugs[0]]
+			}
+		});
+		expect(activeCrossAccountPlugs(plugs)).toEqual([plugs[0]]);
+	});
+
+	it('returns an empty linkedin bucket when no plugs are active', () => {
+		expect(buildCrossAccountPlugsProviderPatch('linkedin', [])).toEqual({ linkedin: {} });
+	});
+});
 
 describe('migrateIntegrationProviderSettingsOnLoad', () => {
 	it('converts enabled legacy multiAccountEngagementPlug with integration ids', () => {

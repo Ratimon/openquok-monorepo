@@ -22,6 +22,10 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import {
+		formatLinkedInEngagementSummary,
+		summarizeScheduledSocialPreviewEngagement
+	} from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { readLinkedInLaunchSettings } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
@@ -49,6 +53,22 @@
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const isPage = $derived(channel.identifier === 'linkedin-page');
+
+	const engagementSummary = $derived(
+		formatLinkedInEngagementSummary(
+			summarizeScheduledSocialPreviewEngagement({
+				threadReplyCount: threadReplies.length,
+				threadFinisher,
+				crossAccountPlugs
+			})
+		)
+	);
+
+	const hasScheduledFollowUps = $derived(
+		threadReplies.length > 0 ||
+			(threadFinisher?.enabled === true && (threadFinisher.message ?? '').trim().length > 0) ||
+			crossAccountPlugs.length > 0
+	);
 </script>
 
 <div class="overflow-hidden rounded-xl border border-[#383A3D] bg-[#1B1F23] text-[#E9E9E9]">
@@ -57,7 +77,7 @@
 			profilePictureUrl={channel.picture}
 			fallbackIcon={icons.LinkedInGlyph.name}
 			alt={channel.name}
-			class="h-12 w-12 shrink-0 rounded-full bg-base-200 object-cover"
+			class="h-12 w-12 min-h-12 min-w-12 max-h-12 max-w-12 shrink-0 rounded-full bg-base-200"
 		/>
 		<div class="min-w-0 flex-1">
 			<div class="truncate text-sm font-semibold leading-5">{channel.name || 'LinkedIn profile'}</div>
@@ -85,15 +105,20 @@
 	{/if}
 
 	{#if mediaUrls.length > 0}
-		<div class="max-h-[280px] overflow-hidden border-y border-[#383A3D]">
-			<ImageSlider class="h-full w-full" urls={mediaUrls} showSlideCounter={mediaUrls.length > 1} />
+		<div class="overflow-hidden border-y border-[#383A3D]">
+			<ImageSlider
+				class="aspect-[1.91/1] max-h-[280px] w-full"
+				urls={mediaUrls}
+				showSlideCounter={mediaUrls.length > 1}
+			/>
 		</div>
 	{/if}
 
-	<div class="flex items-center justify-between px-4 py-2 text-xs text-[#A3A3A3]">
-		<span>88 reactions</span>
-		<span>4 comments · 8 reposts</span>
-	</div>
+	{#if engagementSummary}
+		<div class="flex items-center justify-end px-4 py-2 text-xs text-[#A3A3A3]">
+			<span>{engagementSummary}</span>
+		</div>
+	{/if}
 
 	<div
 		class="grid grid-cols-4 gap-1 border-t border-[#383A3D] px-4 py-2 text-center text-xs font-semibold text-[#A3A3A3]"
@@ -104,8 +129,10 @@
 		<div class="rounded-md py-2">Send</div>
 	</div>
 
-	<div class="px-4 pb-4">
-		<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="general" />
-		<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="linkedin" />
-	</div>
+	{#if hasScheduledFollowUps}
+		<div class="px-4 pb-4">
+			<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="general" />
+			<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="linkedin" />
+		</div>
+	{/if}
 </div>

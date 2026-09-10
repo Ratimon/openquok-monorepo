@@ -26,8 +26,11 @@ export {
 	THREADS_CROSS_ACCOUNT_DEFAULT_DELAY_MS,
 	THREADS_CROSS_ACCOUNT_DELAY_OPTIONS,
 	GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS,
+	activeCrossAccountPlugs,
+	buildCrossAccountPlugsProviderPatch,
 	migrateIntegrationProviderSettingsOnLoad,
 	migrateProviderSettingsByIntegrationIdOnLoad,
+	type CrossAccountPlugSettingsBucket,
 	type CrossAccountPlugState
 } from './providerSettings';
 export {

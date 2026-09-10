@@ -6,12 +6,10 @@
 	type Props = {
 		src: string | null;
 		alt?: string;
-		/** Tailwind / layout classes for the image (object-cover, rounded, size). */
-		class?: string;
 		fallbackIcon: IconName;
 	};
 
-	let { src, alt = '', class: className = '', fallbackIcon }: Props = $props();
+	let { src, alt = '', fallbackIcon }: Props = $props();
 
 	let failedSrc = $state<string | null>(null);
 	let showPicture = $derived(Boolean(src?.trim()) && failedSrc !== src);
@@ -21,14 +19,14 @@
 	<img
 		src={src!}
 		{alt}
-		class={className}
+		class="block h-full w-full object-cover"
 		referrerpolicy="no-referrer"
 		onerror={() => {
 			failedSrc = src ?? null;
 		}}
 	/>
 {:else}
-	<div class="grid h-full w-full place-items-center bg-base-300/80 {className}">
-		<AbstractIcon name={fallbackIcon} class="h-1/2 w-1/2 max-h-8 max-w-8 opacity-60" width="32" height="32" />
+	<div class="grid h-full w-full place-items-center bg-base-300/80">
+		<AbstractIcon name={fallbackIcon} class="size-1/2 max-h-8 max-w-8 opacity-60" width="32" height="32" />
 	</div>
 {/if}

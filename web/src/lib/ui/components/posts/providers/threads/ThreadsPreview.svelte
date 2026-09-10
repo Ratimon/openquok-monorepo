@@ -24,6 +24,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import { summarizeScheduledSocialPreviewEngagement } from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import ThreadsReplyEngagementMock from './ThreadsReplyEngagementMock.svelte';
@@ -44,7 +45,14 @@
 	const overflow = $derived(previewText.slice(maximumCharacters));
 
 	const handle = $derived((channel.name || '').trim() || 'username');
-	const replyCount = $derived(threadReplies.length);
+	const previewEngagement = $derived(
+		summarizeScheduledSocialPreviewEngagement({
+			threadReplyCount: threadReplies.length,
+			threadFinisher,
+			delayedEngagementReply,
+			crossAccountPlugs
+		})
+	);
 </script>
 
 <div class="rounded-xl border border-base-300 bg-base-100 text-base-content overflow-hidden">
@@ -113,7 +121,11 @@
 				</div>
 			{/if}
 
-			<ThreadsReplyEngagementMock class="mt-3" commentCount={replyCount} />
+			<ThreadsReplyEngagementMock
+				class="mt-3"
+				commentCount={previewEngagement.totalCommentCount}
+				repostCount={previewEngagement.repostCount}
+			/>
 		</div>
 	</div>
 

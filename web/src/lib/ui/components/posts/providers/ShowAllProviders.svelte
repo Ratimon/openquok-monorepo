@@ -2,6 +2,7 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 	import type { PublicPreviewThreadReplyViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import { buildCrossAccountPlugPreviewFromProviderSettings } from '$lib/ui/components/preview/crossAccountPlugPreview';
 
 	import GeneralPreviewComponent from '$lib/ui/components/posts/GeneralPreviewComponent.svelte';
 	import FacebookPreview from '$lib/ui/components/posts/providers/facebook/FacebookPreview.svelte';
@@ -48,6 +49,16 @@
 	const identifier = $derived((channel?.identifier ?? '').toLowerCase());
 	/** Ensures children always receive a number (avoids `undefined` vs optional-default edge cases). */
 	const maxChars = $derived(maximumCharacters ?? 10_000);
+
+	const effectiveCrossAccountPlugs = $derived.by(() => {
+		if (crossAccountPlugs.length > 0) return crossAccountPlugs;
+		if (!channel) return [];
+		return buildCrossAccountPlugPreviewFromProviderSettings({
+			channelIdentifier: channel.identifier,
+			channels: [channel],
+			providerSettings
+		});
+	});
 </script>
 {#if !channel}
 	<GeneralPreviewComponent
@@ -78,7 +89,7 @@
 		{threadFinisher}
 		{delayedEngagementReply}
 		{previewMetaLabel}
-		{crossAccountPlugs}
+		crossAccountPlugs={effectiveCrossAccountPlugs}
 	/>
 {:else if identifier === 'facebook'}
 	<FacebookPreview
@@ -123,7 +134,7 @@
 		{threadFinisher}
 		{previewMetaLabel}
 		{providerSettings}
-		{crossAccountPlugs}
+		crossAccountPlugs={effectiveCrossAccountPlugs}
 	/>
 {:else if identifier === 'x'}
 	<XPreview
@@ -136,7 +147,7 @@
 		{threadFinisher}
 		{previewMetaLabel}
 		{providerSettings}
-		{crossAccountPlugs}
+		crossAccountPlugs={effectiveCrossAccountPlugs}
 	/>
 {:else if identifier === 'devto'}
 	<DevtoPreview

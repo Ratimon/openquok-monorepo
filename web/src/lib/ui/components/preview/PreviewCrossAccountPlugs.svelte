@@ -18,12 +18,12 @@
 </script>
 
 {#if items.length > 0}
-	<div class={variant === 'threads' ? 'pt-2' : 'mt-4 border-t border-base-300 pt-4'}>
-		{#if variant !== 'threads'}
+	<div class={variant === 'threads' ? 'pt-2' : variant === 'linkedin' ? 'pt-3' : 'mt-4 border-t border-base-300 pt-4'}>
+		{#if variant === 'x'}
 			<div class="mb-2 text-xs font-semibold uppercase tracking-wide text-base-content/50">
 				Cross-account plugs
 			</div>
-		{:else}
+		{:else if variant === 'threads'}
 			<span class="sr-only">Cross-account plugs</span>
 		{/if}
 
@@ -132,40 +132,63 @@
 				{/each}
 			</ul>
 		{:else}
-			<ul class="flex flex-col gap-2">
+			<span class="sr-only">Cross-account plugs</span>
+			<ul class="flex flex-col">
 				{#each items as item (item.id)}
-					<li class="rounded-md border border-base-300/80 bg-base-200/20 px-3 py-2.5">
-						<div class="flex items-start gap-2">
-							{#if item.actorPicture?.trim()}
-								<IntegrationChannelPicture
-									profilePictureUrl={item.actorPicture}
-									fallbackIcon={icons.LinkedInGlyph.name}
-									alt={item.actorName}
-									class="h-8 w-8 shrink-0 rounded-full bg-base-200 object-cover"
+					<li class="flex gap-2 border-t border-[#383A3D] py-3 first:border-t-0 first:pt-0">
+						{#if item.actorPicture?.trim()}
+							<IntegrationChannelPicture
+								profilePictureUrl={item.actorPicture}
+								fallbackIcon={icons.User1.name}
+								alt={item.actorName}
+								class="h-12 w-12 min-h-12 min-w-12 max-h-12 max-w-12 shrink-0 rounded-[4px] bg-[#38434F]"
+							/>
+						{:else}
+							<span
+								class="inline-flex h-12 w-12 min-h-12 min-w-12 max-h-12 max-w-12 shrink-0 items-center justify-center rounded-[4px] bg-[#38434F]"
+							>
+								<AbstractIcon
+									name={icons.User1.name}
+									class="size-6 text-[#A3A3A3]"
+									width="24"
+									height="24"
 								/>
-							{:else}
-								<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200">
+							</span>
+						{/if}
+						<div class="min-w-0 flex-1">
+							<div class="flex items-start justify-between gap-2">
+								<div class="min-w-0">
+									<div class="truncate text-[14px] font-semibold leading-5 text-[#E9E9E9]">
+										{item.actorName}
+									</div>
+									<div class="truncate text-xs leading-4 text-[#A3A3A3]">
+										{item.kind === 'comment' ? 'Comment' : 'Reshare'} ·
+										{formatCrossAccountPlugDelayLabel(item.delayMs)}
+									</div>
+								</div>
+								<div class="flex shrink-0 items-center gap-1 text-xs text-[#A3A3A3]">
+									<span>Scheduled</span>
 									<AbstractIcon
-										name={icons.LinkedInGlyph.name}
-										class="size-4 text-base-content/60"
+										name={icons.MoreHorizontal.name}
+										class="size-4"
 										width="16"
 										height="16"
 									/>
-								</span>
-							{/if}
-							<div class="min-w-0 flex-1">
-								<div class="text-sm font-semibold text-base-content">{item.actorName}</div>
-								<div class="text-[11px] text-base-content/50">
-									{item.kind === 'comment' ? 'Comment' : 'Reshare'} ·
-									{formatCrossAccountPlugDelayLabel(item.delayMs)}
 								</div>
-								{#if item.kind === 'comment'}
-									<p class="mt-1 whitespace-pre-wrap text-sm text-base-content/90">
-										{item.message || 'Comment from the selected channel after publish.'}
-									</p>
-								{:else}
-									<p class="mt-1 text-sm text-base-content/70">Reshared this post from another channel.</p>
-								{/if}
+							</div>
+							{#if item.kind === 'comment'}
+								<p class="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[#E9E9E9]">
+									{item.message || 'Comment from the selected channel after publish.'}
+								</p>
+							{:else}
+								<p class="mt-1 text-sm leading-relaxed text-[#A3A3A3]">
+									Reshared this post from another channel.
+								</p>
+							{/if}
+							<div class="mt-2 flex items-center gap-1 text-xs font-semibold text-[#A3A3A3]">
+								<span>Like</span>
+								<span aria-hidden="true">|</span>
+								<span>Reply</span>
 							</div>
 						</div>
 					</li>

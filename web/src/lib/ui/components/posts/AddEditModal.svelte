@@ -18,7 +18,11 @@
 	import type { ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import { resolvePreviewProviderSettings } from '$lib/posts/utils/composer';
-	import type { CrossAccountPlugState } from '$lib/posts/utils/create-post';
+	import {
+		activeCrossAccountPlugs,
+		buildCrossAccountPlugsProviderPatch,
+		type CrossAccountPlugState
+	} from '$lib/posts/utils/create-post';
 	import type { FetchSignaturesForComposerFn } from '$lib/signatures';
 
 	import { integrationsRepository } from '$lib/integrations';
@@ -31,6 +35,12 @@
 	import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
 	import { toast } from '$lib/ui/sonner';
 	import * as Dialog from '$lib/ui/dialog';
+
+	import {
+		buildCrossAccountPlugPreviewItems,
+		crossAccountPlugsFromProviderSettings,
+		crossAccountSettingsBucketForIdentifier
+	} from '$lib/ui/components/preview/crossAccountPlugPreview';
 
 	import MediaSettings from '$lib/ui/components/media/MediaSettings.svelte';
 	import AddPostButton from '$lib/ui/components/posts/AddPostButton.svelte';
@@ -414,12 +424,32 @@
 		}>;
 	};
 
-	function crossAccountSettingsBucket(identifier: string): 'threads' | 'x' | 'linkedin' | null {
-		const id = (identifier ?? '').toLowerCase();
-		if (id === 'threads') return 'threads';
-		if (id === 'x') return 'x';
-		if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
-		return null;
+	function crossAccountSettingsBucket(identifier: string) {
+		return crossAccountSettingsBucketForIdentifier(identifier);
+	}
+
+	function syncPlugDialogSettingsToParent(force = false): void {
+		const integrationId = plugSettingsIntegrationId;
+		if (!integrationId || !onUpdateProviderSettingsForIntegration) return;
+		const ch = socialChannels.find((c) => c.id === integrationId);
+		const bucket = ch ? crossAccountSettingsBucket(ch.identifier ?? '') : null;
+		if (!bucket) return;
+
+		const active = activeCrossAccountPlugs(plugDialogCrossAccountPlugs);
+		const sig = JSON.stringify(active);
+		if (!force && sig === plugDialogLastEmittedSig) return;
+		plugDialogLastEmittedSig = sig;
+		onUpdateProviderSettingsForIntegration(
+			integrationId,
+			buildCrossAccountPlugsProviderPatch(bucket, plugDialogCrossAccountPlugs)
+		);
+	}
+
+	function handlePlugSettingsOpenChange(nextOpen: boolean): void {
+		if (!nextOpen) {
+			syncPlugDialogSettingsToParent(true);
+		}
+		plugSettingsOpen = nextOpen;
 	}
 
 	function crossAccountDefsProviderKey(identifier: string): string | null {
@@ -450,12 +480,7 @@
 			plugDialogLastLoadedSig = '';
 			return;
 		}
-		const bucketSettings = settings[bucket];
-		const plugs = Array.isArray(
-			(bucketSettings as { crossAccountPlugs?: unknown } | undefined)?.crossAccountPlugs
-		)
-			? ((bucketSettings as { crossAccountPlugs: CrossAccountPlugState[] }).crossAccountPlugs ?? [])
-			: [];
+		const plugs = crossAccountPlugsFromProviderSettings(settings, bucket);
 		const sig = JSON.stringify(plugs);
 		if (sig === plugDialogLastLoadedSig) return;
 		plugDialogLastLoadedSig = sig;
@@ -483,19 +508,19 @@
 	});
 
 	$effect(() => {
-		const integrationId = plugSettingsIntegrationId;
-		const open = plugSettingsOpen;
-		if (!open || !integrationId || !onUpdateProviderSettingsForIntegration) return;
-		const ch = socialChannels.find((c) => c.id === integrationId);
-		const bucket = ch ? crossAccountSettingsBucket(ch.identifier ?? '') : null;
-		if (!bucket) return;
-		const active = plugDialogCrossAccountPlugs.filter((p) => p.enabled && p.integrationIds.length > 0);
-		const sig = JSON.stringify(active);
-		if (sig === plugDialogLastEmittedSig) return;
-		plugDialogLastEmittedSig = sig;
-		onUpdateProviderSettingsForIntegration(integrationId, {
-			[bucket]: active.length ? { crossAccountPlugs: active } : {}
-		});
+		plugDialogCrossAccountPlugs;
+		syncPlugDialogSettingsToParent();
+	});
+
+	const previewCrossAccountPlugs = $derived.by(() => {
+		const ch = previewChannel;
+		if (!ch) return [];
+		const bucket = crossAccountSettingsBucket(ch.identifier ?? '');
+		if (!bucket) return [];
+		const plugs = crossAccountPlugsFromProviderSettings(effectivePreviewProviderSettings, bucket);
+		const defs =
+			ch.id === plugSettingsIntegrationId && plugDialogDefs.length ? plugDialogDefs : [];
+		return buildCrossAccountPlugPreviewItems(socialChannels, plugs, defs);
 	});
 </script>
 
@@ -592,7 +617,7 @@
 					<AddPostButton
 						onclick={onAddPost}
 						postComment={postComment}
-						onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
+						onOpenPlugSettings={canShowPlugSettings ? () => handlePlugSettingsOpenChange(true) : undefined}
 						disabled={busy || editorLocked}
 					/>
 				</div>
@@ -626,7 +651,7 @@
 				disabled={busy}
 				replies={threadReplies}
 				onAddReply={onAddPost}
-				onOpenPlugSettings={canShowPlugSettings ? () => (plugSettingsOpen = true) : undefined}
+				onOpenPlugSettings={canShowPlugSettings ? () => handlePlugSettingsOpenChange(true) : undefined}
 				onChangeReplies={onChangeThreadReplies}
 				{uploadUid}
 				publishDateIso={publishDateIso}
@@ -673,13 +698,14 @@
 						: null}
 					previewMetaLabel={previewScheduleMetaLabel}
 					providerSettings={effectivePreviewProviderSettings}
+					crossAccountPlugs={previewCrossAccountPlugs}
 				/>
 			</div>
 		</div>
 	</div>
 </div>
 
-<Dialog.Root bind:open={plugSettingsOpen}>
+<Dialog.Root open={plugSettingsOpen} onOpenChange={handlePlugSettingsOpenChange}>
 	<Dialog.Content class="max-h-[min(90vh,760px)] max-w-[calc(100%-2rem)] overflow-y-auto sm:max-w-2xl">
 		<Dialog.Header>
 			<Dialog.Title class="text-lg">Plug settings</Dialog.Title>

@@ -22,6 +22,10 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
+	import {
+		formatEngagementCountLabel,
+		summarizeScheduledSocialPreviewEngagement
+	} from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
@@ -50,6 +54,24 @@
 			Boolean(settings.communityUrl?.trim())
 	);
 	const communityLabel = $derived(formatCommunityLabel(settings.communityUrl));
+
+	const previewEngagement = $derived(
+		summarizeScheduledSocialPreviewEngagement({
+			threadReplyCount: threadReplies.length,
+			threadFinisher,
+			crossAccountPlugs
+		})
+	);
+
+	const scheduledRepostLabel = $derived(
+		previewEngagement.repostCount > 0
+			? formatEngagementCountLabel(
+					previewEngagement.repostCount,
+					'scheduled repost',
+					'scheduled reposts'
+				)
+			: null
+	);
 
 	function formatCommunityLabel(url: string | undefined): string {
 		const trimmed = url?.trim();
@@ -115,6 +137,12 @@
 				<div class="mt-3 overflow-hidden rounded-2xl border border-base-300">
 					<ImageSlider class="aspect-[16/9] w-full" urls={mediaUrls} alt="" />
 				</div>
+			{/if}
+
+			{#if scheduledRepostLabel}
+				<p class="mt-3 text-[13px] leading-4 text-base-content/55">
+					{scheduledRepostLabel} from other connected accounts after publish
+				</p>
 			{/if}
 
 			{#if showSettingsLabels}

@@ -78,4 +78,7 @@
 	});
 </script>
 
-<ImageWithFallback src={resolvedSrc} {fallbackIcon} class={className} {alt} />
+<!-- Fixed-size shell: prevents flex min-width:auto from expanding on wide logos/images. -->
+<div class="inline-flex flex-none overflow-hidden {className}">
+	<ImageWithFallback src={resolvedSrc} {fallbackIcon} {alt} />
+</div>

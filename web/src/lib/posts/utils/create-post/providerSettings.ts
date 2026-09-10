@@ -1,3 +1,5 @@
+export type CrossAccountPlugSettingsBucket = 'threads' | 'x' | 'linkedin';
+
 /** Persisted cross-account plug row (threads, x, linkedin buckets). */
 export type CrossAccountPlugState = {
 	plugName: string;
@@ -22,6 +24,25 @@ export const THREADS_CROSS_ACCOUNT_DELAY_OPTIONS = [
 	{ label: '12 hours', ms: 43200000 },
 	{ label: '24 hours', ms: 86400000 }
 ] as const;
+
+/** Enabled cross-account plugs with at least one acting channel selected. */
+export function activeCrossAccountPlugs(
+	plugs: CrossAccountPlugState[] | undefined
+): CrossAccountPlugState[] {
+	if (!plugs?.length) return [];
+	return plugs.filter((plug) => plug.enabled && plug.integrationIds.length > 0);
+}
+
+/** Provider-settings patch for `mergeProviderSettingsPatch` (plug dialog + settings accordion). */
+export function buildCrossAccountPlugsProviderPatch(
+	bucket: CrossAccountPlugSettingsBucket,
+	plugs: CrossAccountPlugState[] | undefined
+): Record<string, unknown> {
+	const active = activeCrossAccountPlugs(plugs);
+	return {
+		[bucket]: active.length ? { crossAccountPlugs: active } : {}
+	};
+}
 
 export const GENERIC_CROSS_ACCOUNT_DELAY_OPTIONS = [
 	{ label: 'Immediately', ms: 0 },

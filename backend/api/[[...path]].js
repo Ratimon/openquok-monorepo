@@ -17309,6 +17309,43 @@ var init_linkedinSettings = __esm({
   }
 });
 
+// integrations/providers/linkedin/linkedinUrn.ts
+function normalizeLinkedInPostUrnForSocialAction(postUrn) {
+  const trimmed = postUrn.trim();
+  if (/^urn:li:(share|ugcPost):/.test(trimmed)) return trimmed;
+  const activityMatch = trimmed.match(/^urn:li:activity:(\d+)$/);
+  if (activityMatch?.[1]) return `urn:li:share:${activityMatch[1]}`;
+  return trimmed;
+}
+function linkedInActivityUrnFromPostUrn(postUrn) {
+  const normalized = normalizeLinkedInPostUrnForSocialAction(postUrn);
+  const match = normalized.match(/^urn:li:(?:share|ugcPost|activity):(\d+)$/);
+  if (match?.[1]) return `urn:li:activity:${match[1]}`;
+  return normalized;
+}
+function encodeLinkedInUrnForRestPath(urn) {
+  return encodeURIComponent(urn.trim());
+}
+function linkedInReshareParentCandidates(postUrn) {
+  const normalized = normalizeLinkedInPostUrnForSocialAction(postUrn);
+  const match = normalized.match(/^urn:li:(?:share|ugcPost):(\d+)$/);
+  if (!match?.[1]) return [normalized];
+  const id = match[1];
+  const share = `urn:li:share:${id}`;
+  const ugcPost = `urn:li:ugcPost:${id}`;
+  if (normalized === share) return [share, ugcPost];
+  if (normalized === ugcPost) return [ugcPost, share];
+  return [normalized];
+}
+function linkedInRestSocialActionCommentsUrl(postUrn) {
+  const pathUrn = normalizeLinkedInPostUrnForSocialAction(postUrn);
+  return `https://api.linkedin.com/rest/socialActions/${encodeLinkedInUrnForRestPath(pathUrn)}/comments`;
+}
+var init_linkedinUrn = __esm({
+  "integrations/providers/linkedin/linkedinUrn.ts"() {
+  }
+});
+
 // integrations/providers/linkedin/linkedinPublish.ts
 function extractMedia3(settings) {
   if (!settings || typeof settings !== "object") return [];
@@ -17558,31 +17595,30 @@ async function publishLinkedInPost(authorId, accessToken2, postDetails, authorTy
 async function publishLinkedInComment(authorId, accessToken2, parentPostId, postDetails, authorType) {
   const message = stripComposerBodyForEditor("normal", postDetails.message ?? "");
   const actor = authorType === "personal" ? `urn:li:person:${authorId}` : `urn:li:organization:${authorId}`;
-  const res = await fetch(
-    `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(parentPostId)}/comments`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken2}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        actor,
-        object: parentPostId,
-        message: { text: fixLinkedInCommentary(message) }
-      })
-    }
-  );
-  const json = await res.json();
-  if (!res.ok) {
-    throw new Error(json.message ?? `LinkedIn comment failed (HTTP ${res.status})`);
+  const pathUrn = normalizeLinkedInPostUrnForSocialAction(parentPostId);
+  const objectUrn = linkedInActivityUrnFromPostUrn(pathUrn);
+  const res = await fetch(linkedInRestSocialActionCommentsUrl(pathUrn), {
+    method: "POST",
+    headers: {
+      ...linkedinRestHeaders(accessToken2),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      actor,
+      object: objectUrn,
+      message: { text: fixLinkedInCommentary(message) }
+    })
+  });
+  if (res.status !== 201 && res.status !== 200) {
+    const errJson = await res.json().catch(() => ({}));
+    throw new Error(errJson.message ?? `LinkedIn comment failed (HTTP ${res.status})`);
   }
-  const commentId = json.object ?? "";
+  const commentId = res.headers.get("x-restli-id") ?? "";
   return {
     id: postDetails.id,
     postId: commentId,
     status: "posted",
-    releaseURL: `https://www.linkedin.com/embed/feed/update/${commentId}`
+    releaseURL: commentId ? `https://www.linkedin.com/embed/feed/update/${commentId}` : `https://www.linkedin.com/feed/update/${pathUrn}`
   };
 }
 var CHUNK_BYTES;
@@ -17595,6 +17631,7 @@ var init_linkedinPublish = __esm({
     init_tiktokPublishValidation();
     init_linkedinSettings();
     init_linkedinCommon();
+    init_linkedinUrn();
     CHUNK_BYTES = 2 * 1024 * 1024;
   }
 });
@@ -17619,32 +17656,36 @@ async function fetchLinkedInPostLikes(accessToken2, postId) {
 }
 async function linkedInResharePost(integration, postId, authorType) {
   const author = authorType === "personal" ? `urn:li:person:${integration.internal_id}` : `urn:li:organization:${integration.internal_id}`;
-  const res = await fetch("https://api.linkedin.com/rest/posts", {
-    method: "POST",
-    headers: {
-      ...linkedinRestHeaders(integration.token),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      author,
-      commentary: "",
-      visibility: "PUBLIC",
-      distribution: {
-        feedDistribution: "MAIN_FEED",
-        targetEntities: [],
-        thirdPartyDistributionChannels: []
+  const parentCandidates = linkedInReshareParentCandidates(postId);
+  let lastError = null;
+  for (const parent of parentCandidates) {
+    const res = await fetch("https://api.linkedin.com/rest/posts", {
+      method: "POST",
+      headers: {
+        ...linkedinRestHeaders(integration.token),
+        "Content-Type": "application/json"
       },
-      lifecycleState: "PUBLISHED",
-      isReshareDisabledByAuthor: false,
-      reshareContext: {
-        parent: postId
-      }
-    })
-  });
-  if (!res.ok) {
+      body: JSON.stringify({
+        author,
+        commentary: "",
+        visibility: "PUBLIC",
+        distribution: {
+          feedDistribution: "MAIN_FEED",
+          targetEntities: [],
+          thirdPartyDistributionChannels: []
+        },
+        lifecycleState: "PUBLISHED",
+        isReshareDisabledByAuthor: false,
+        reshareContext: {
+          parent
+        }
+      })
+    });
+    if (res.ok) return;
     const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.message ?? `LinkedIn reshare failed (HTTP ${res.status})`);
+    lastError = new Error(errJson.message ?? `LinkedIn reshare failed (HTTP ${res.status})`);
   }
+  throw lastError ?? new Error("LinkedIn reshare failed");
 }
 async function runLinkedInAddCommentPlug(acting, postId, information, authorType) {
   const comment = typeof information.comment === "string" ? information.comment.trim() : "";
@@ -17666,22 +17707,21 @@ async function runLinkedInAutoPlugPost(integration, postId, fields, authorType) 
   const text = fixLinkedInCommentary(stripComposerBodyForEditor("normal", fields.post ?? ""));
   if (text.length < 3) return false;
   const actor = `urn:li:organization:${integration.internal_id}`;
-  const res = await fetch(
-    `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postId)}/comments`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${integration.token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        actor,
-        object: postId,
-        message: { text }
-      })
-    }
-  );
-  if (!res.ok) {
+  const pathUrn = normalizeLinkedInPostUrnForSocialAction(postId);
+  const objectUrn = linkedInActivityUrnFromPostUrn(pathUrn);
+  const res = await fetch(linkedInRestSocialActionCommentsUrl(pathUrn), {
+    method: "POST",
+    headers: {
+      ...linkedinRestHeaders(integration.token),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      actor,
+      object: objectUrn,
+      message: { text }
+    })
+  });
+  if (res.status !== 201 && res.status !== 200) {
     const json = await res.json().catch(() => ({}));
     throw new Error(json.message ?? `LinkedIn auto plug comment failed (HTTP ${res.status})`);
   }
@@ -17693,6 +17733,7 @@ var init_linkedinPlugs = __esm({
     init_makeId();
     init_linkedinPublish();
     init_linkedinCommon();
+    init_linkedinUrn();
     init_stripComposerBodyForEditor();
     LINKEDIN_INTERNAL_PLUG_CATALOG = [
       {
@@ -35212,7 +35253,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-10T10:30:53.124Z",
+  generated: "2026-09-10T14:44:59.336Z",
   routes: [
     {
       path: "/docs",

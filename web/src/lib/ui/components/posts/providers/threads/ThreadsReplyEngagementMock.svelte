@@ -5,10 +5,12 @@
 	type Props = {
 		/** Optional reply count next to the comment icon (main post uses total scheduled replies). */
 		commentCount?: number;
+		/** Optional repost count next to the repost icon (cross-account repost plugs). */
+		repostCount?: number;
 		class?: string;
 	};
 
-	let { commentCount = 0, class: className = '' }: Props = $props();
+	let { commentCount = 0, repostCount = 0, class: className = '' }: Props = $props();
 </script>
 
 <div
@@ -26,8 +28,13 @@
 			</span>
 		{/if}
 	</span>
-	<span class="inline-flex items-center rounded-full p-1.5 text-base-content/85">
+	<span class="inline-flex items-center gap-1.5 rounded-full p-1.5 text-base-content/85">
 		<AbstractIcon name={icons.ThreadsActionRepost.name} class="size-[22px]" width="22" height="22" />
+		{#if repostCount > 0}
+			<span class="min-w-[1ch] text-[14px] leading-none tabular-nums text-base-content/80">
+				{repostCount}
+			</span>
+		{/if}
 	</span>
 	<span class="inline-flex items-center rounded-full p-1.5 text-base-content/85">
 		<AbstractIcon name={icons.ThreadsActionSend.name} class="size-[22px]" width="22" height="22" />

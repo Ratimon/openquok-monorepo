@@ -3,6 +3,12 @@ import type { IntegrationRecord } from "../../social.integrations.interface";
 import { makeId } from "../../../utils/ids/makeId";
 import { fixLinkedInCommentary, publishLinkedInComment, type LinkedInAuthorType } from "./linkedinPublish";
 import { linkedinRestHeaders } from "./linkedinCommon";
+import {
+    linkedInActivityUrnFromPostUrn,
+    linkedInReshareParentCandidates,
+    linkedInRestSocialActionCommentsUrl,
+    normalizeLinkedInPostUrnForSocialAction,
+} from "./linkedinUrn";
 import { stripComposerBodyForEditor } from "../../../utils/content/stripComposerBodyForEditor.js";
 
 function sleepMs(ms: number): Promise<void> {
@@ -111,33 +117,40 @@ export async function linkedInResharePost(
             ? `urn:li:person:${integration.internal_id}`
             : `urn:li:organization:${integration.internal_id}`;
 
-    const res = await fetch("https://api.linkedin.com/rest/posts", {
-        method: "POST",
-        headers: {
-            ...linkedinRestHeaders(integration.token),
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            author,
-            commentary: "",
-            visibility: "PUBLIC",
-            distribution: {
-                feedDistribution: "MAIN_FEED",
-                targetEntities: [],
-                thirdPartyDistributionChannels: [],
-            },
-            lifecycleState: "PUBLISHED",
-            isReshareDisabledByAuthor: false,
-            reshareContext: {
-                parent: postId,
-            },
-        }),
-    });
+    const parentCandidates = linkedInReshareParentCandidates(postId);
+    let lastError: Error | null = null;
 
-    if (!res.ok) {
+    for (const parent of parentCandidates) {
+        const res = await fetch("https://api.linkedin.com/rest/posts", {
+            method: "POST",
+            headers: {
+                ...linkedinRestHeaders(integration.token),
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                author,
+                commentary: "",
+                visibility: "PUBLIC",
+                distribution: {
+                    feedDistribution: "MAIN_FEED",
+                    targetEntities: [],
+                    thirdPartyDistributionChannels: [],
+                },
+                lifecycleState: "PUBLISHED",
+                isReshareDisabledByAuthor: false,
+                reshareContext: {
+                    parent,
+                },
+            }),
+        });
+
+        if (res.ok) return;
+
         const errJson = (await res.json().catch(() => ({}))) as { message?: string };
-        throw new Error(errJson.message ?? `LinkedIn reshare failed (HTTP ${res.status})`);
+        lastError = new Error(errJson.message ?? `LinkedIn reshare failed (HTTP ${res.status})`);
     }
+
+    throw lastError ?? new Error("LinkedIn reshare failed");
 }
 
 export async function runLinkedInAddCommentPlug(
@@ -179,24 +192,23 @@ export async function runLinkedInAutoPlugPost(
         authorType === "personal"
             ? `urn:li:person:${integration.internal_id}`
             : `urn:li:organization:${integration.internal_id}`;
+    const pathUrn = normalizeLinkedInPostUrnForSocialAction(postId);
+    const objectUrn = linkedInActivityUrnFromPostUrn(pathUrn);
 
-    const res = await fetch(
-        `https://api.linkedin.com/v2/socialActions/${encodeURIComponent(postId)}/comments`,
-        {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${integration.token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                actor,
-                object: postId,
-                message: { text },
-            }),
-        }
-    );
+    const res = await fetch(linkedInRestSocialActionCommentsUrl(pathUrn), {
+        method: "POST",
+        headers: {
+            ...linkedinRestHeaders(integration.token),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            actor,
+            object: objectUrn,
+            message: { text },
+        }),
+    });
 
-    if (!res.ok) {
+    if (res.status !== 201 && res.status !== 200) {
         const json = (await res.json().catch(() => ({}))) as { message?: string };
         throw new Error(json.message ?? `LinkedIn auto plug comment failed (HTTP ${res.status})`);
     }
