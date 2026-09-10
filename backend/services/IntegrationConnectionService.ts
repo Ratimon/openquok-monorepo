@@ -33,6 +33,10 @@ import {
     facebookGraphProfilePictureUrl,
 } from "../utils/images/providerProfilePictureFetch";
 import { logger } from "../utils/Logger";
+import {
+    isVerifiedFromAdditionalSettings,
+    parseAdditionalSettings,
+} from "../utils/integrations/additionalSettings";
 
 /** Domain-scoped cache key builders for short-lived OAuth state (`login:`, `organization:`, `refresh:`, etc.). */
 const CACHE_KEYS = {
@@ -86,26 +90,6 @@ function postingTimesForTimezone(timezone?: number): string {
         return JSON.stringify([{ time: 120 }, { time: 400 }, { time: 700 }]);
     }
     return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
-}
-
-/** `integrations.additional_settings` is a JSON-encoded array; defensive parse so a malformed value doesn't 500. */
-function parseAdditionalSettings(raw: string | null | undefined): Array<Record<string, unknown>> {
-    if (!raw) return [];
-    try {
-        const parsed: unknown = JSON.parse(raw);
-        return Array.isArray(parsed) ? (parsed as Array<Record<string, unknown>>) : [];
-    } catch {
-        return [];
-    }
-}
-
-/**
- * Some providers (e.g. X paid tier) gate higher limits behind a "Verified" toggle stored in
- * `additional_settings`. Mirrors upstream `additionalSettings.find(p => p.title === 'Verified')?.value`.
- */
-function isVerifiedFromAdditionalSettings(settings: Array<Record<string, unknown>>): boolean {
-    const verified = settings.find((s) => s?.title === "Verified")?.value;
-    return verified === true;
 }
 
 function integrationLikeToRecord(row: IntegrationLike): IntegrationRecord {

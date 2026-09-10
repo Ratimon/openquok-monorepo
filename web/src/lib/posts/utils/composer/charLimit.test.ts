@@ -4,7 +4,8 @@ import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/Prote
 import {
 	computeSoftCharLimitAcrossSelected,
 	maxCharactersForChannel,
-	selectedIdsIncludeXChannel
+	selectedIdsIncludeXChannel,
+	validateScheduledCaptionsForChannels
 } from '$lib/posts/utils/composer/charLimit';
 import {
 	X_STANDARD_MAX_CHARACTERS,
@@ -86,5 +87,65 @@ describe('selectedIdsIncludeXChannel', () => {
 
 	it('is false when X is not selected', () => {
 		expect(selectedIdsIncludeXChannel(['li-1'], channels)).toBe(false);
+	});
+});
+
+describe('validateScheduledCaptionsForChannels', () => {
+	const channels = [
+		channel({ id: 'th-1', identifier: 'threads', name: 'Threads' }),
+		channel({ id: 'li-1', identifier: 'linkedin', name: 'LinkedIn' })
+	];
+
+	it('returns null when every custom-mode body is within its channel cap', () => {
+		expect(
+			validateScheduledCaptionsForChannels({
+				mode: 'custom',
+				selectedIds: ['th-1', 'li-1'],
+				baseSocialChannelsVm: channels,
+				globalBody: 'shared',
+				bodiesByIntegrationId: {
+					'th-1': 'a'.repeat(500),
+					'li-1': 'b'.repeat(3000)
+				}
+			})
+		).toBeNull();
+	});
+
+	it('rejects a non-focused channel body that exceeds its cap in custom mode', () => {
+		const error = validateScheduledCaptionsForChannels({
+			mode: 'custom',
+			selectedIds: ['th-1', 'li-1'],
+			baseSocialChannelsVm: channels,
+			globalBody: 'short',
+			bodiesByIntegrationId: {
+				'th-1': 'ok',
+				'li-1': 'b'.repeat(3001)
+			}
+		});
+		expect(error).toBe('LinkedIn caption exceeds 3000 characters (3001/3000).');
+	});
+
+	it('falls back to globalBody for channels without a custom override', () => {
+		const error = validateScheduledCaptionsForChannels({
+			mode: 'custom',
+			selectedIds: ['th-1', 'li-1'],
+			baseSocialChannelsVm: channels,
+			globalBody: 'a'.repeat(501),
+			bodiesByIntegrationId: {
+				'li-1': 'fine'
+			}
+		});
+		expect(error).toBe('Threads caption exceeds 500 characters (501/500).');
+	});
+
+	it('validates global mode against each selected channel limit', () => {
+		const error = validateScheduledCaptionsForChannels({
+			mode: 'global',
+			selectedIds: ['th-1'],
+			baseSocialChannelsVm: channels,
+			globalBody: 'a'.repeat(501),
+			bodiesByIntegrationId: {}
+		});
+		expect(error).toBe('Threads caption exceeds 500 characters (501/500).');
 	});
 });

@@ -539,6 +539,180 @@ describe("PostsService", () => {
             });
         });
 
+        it("throws 400 when scheduling a Threads caption over 500 characters", async () => {
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "a".repeat(501),
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Threads caption exceeds 500 characters (501/500).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("allows a draft Threads caption over 500 characters", async () => {
+            const inserted = [socialPostRow({ state: "DRAFT", integration_id: integrationId })];
+            postsRepo.insertPostGroup.mockResolvedValue(inserted);
+            const out = await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "a".repeat(501),
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "draft",
+            });
+            expect(postsRepo.insertPostGroup).toHaveBeenCalledTimes(1);
+            expect(out.posts).toEqual(inserted);
+        });
+
+        it("throws 400 when a scheduled Threads follow-up reply exceeds 500 characters", async () => {
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "ok",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                    providerSettingsByIntegrationId: {
+                        [integrationId]: {
+                            threads: {
+                                replies: [{ id: "r1", message: "a".repeat(501), delaySeconds: 0 }],
+                            },
+                        },
+                    },
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Threads follow-up reply exceeds 500 characters (501/500).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when a scheduled Threads delayed engagement exceeds 500 characters", async () => {
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "ok",
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                    providerSettingsByIntegrationId: {
+                        [integrationId]: {
+                            threads: {
+                                enabled: true,
+                                message: "wrap",
+                                internalEngagementPlug: {
+                                    enabled: true,
+                                    message: "a".repeat(501),
+                                },
+                            },
+                        },
+                    },
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Threads delayed engagement exceeds 500 characters (501/500).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when scheduling an X caption over 280 weighted characters", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "x" } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "a".repeat(281),
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "X caption exceeds 280 characters (281/280).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("allows 281 weighted characters on a verified X account", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    provider_identifier: "x",
+                    additional_settings: JSON.stringify([{ title: "Verified", value: true }]),
+                } as unknown as IntegrationLike,
+            ]);
+            postsRepo.insertPostGroup.mockResolvedValue([
+                socialPostRow({ state: "QUEUE", integration_id: integrationId }),
+            ]);
+            await service().createPost({
+                organizationId: orgId,
+                authUserId,
+                body: "a".repeat(281),
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "scheduled",
+            });
+            expect(postsRepo.insertPostGroup).toHaveBeenCalledTimes(1);
+        });
+
+        it("throws 400 when a verified X caption exceeds 4000 weighted characters", async () => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    provider_identifier: "x",
+                    additional_settings: JSON.stringify([{ title: "Verified", value: true }]),
+                } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().createPost({
+                    organizationId: orgId,
+                    authUserId,
+                    body: "a".repeat(4001),
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "X caption exceeds 4000 characters (4001/4000).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
         it("creates a single draft row with null integration when no channels", async () => {
             const inserted = [socialPostRow({ state: "DRAFT", integration_id: null })];
             postsRepo.insertPostGroup.mockResolvedValue(inserted);
@@ -1900,6 +2074,41 @@ describe("PostsService", () => {
             expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
         });
 
+        it("throws 400 when rescheduling with a Threads caption over 500 characters", async () => {
+            const postGroup = faker.string.uuid();
+            const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
+            postsRepo.listPostsByGroup.mockResolvedValue([
+                socialPostRow({
+                    post_group: postGroup,
+                    organization_id: orgId,
+                    integration_id: integrationId,
+                    state: "QUEUE",
+                    publish_date: "2030-06-15T12:00:00+00:00",
+                }),
+            ]);
+            integrationService.listByOrganization.mockResolvedValue([
+                { id: integrationId, deleted_at: null, provider_identifier: "threads" } as unknown as IntegrationLike,
+            ]);
+            await expect(
+                service().updatePostGroup({
+                    postGroup,
+                    organizationId: orgId,
+                    authUserId,
+                    body: "a".repeat(501),
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Threads caption exceeds 500 characters (501/500).",
+            });
+            expect(postsRepo.softDeletePostsByGroup).not.toHaveBeenCalled();
+        });
+
         it("allows keeping the same scheduled slot even if repository would report it as taken", async () => {
             const postGroup = faker.string.uuid();
             const scheduledAtIso = new Date("2030-06-15T12:00:00.000Z").toISOString();
@@ -2122,6 +2331,42 @@ describe("PostsService", () => {
                 message: "This channel is disabled.",
             });
             expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when scheduling a Threads caption over 500 characters", async () => {
+            await expect(
+                service().createPostProgrammatic({
+                    organizationId: orgId,
+                    body: "a".repeat(501),
+                    integrationIds: [integrationId],
+                    isGlobal: true,
+                    scheduledAtIso: scheduledIso,
+                    repeatInterval: null,
+                    tagNames: [],
+                    status: "scheduled",
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Threads caption exceeds 500 characters (501/500).",
+            });
+            expect(postsRepo.insertPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("allows a draft Threads caption over 500 characters", async () => {
+            postsRepo.insertPostGroup.mockResolvedValue([
+                socialPostRow({ state: "DRAFT", integration_id: integrationId }),
+            ]);
+            await service().createPostProgrammatic({
+                organizationId: orgId,
+                body: "a".repeat(501),
+                integrationIds: [integrationId],
+                isGlobal: true,
+                scheduledAtIso: scheduledIso,
+                repeatInterval: null,
+                tagNames: [],
+                status: "draft",
+            });
+            expect(postsRepo.insertPostGroup).toHaveBeenCalledTimes(1);
         });
 
         it("stores note on create when provided", async () => {

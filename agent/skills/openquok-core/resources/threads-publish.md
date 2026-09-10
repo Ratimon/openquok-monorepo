@@ -31,3 +31,5 @@ Summary of how the OpenQuok API publishes to Threads when a scheduled post runs.
 ## Limits
 
 - Max post text length: **500** characters (provider default).
+- **Scheduled posts** — OpenQuok rejects create/update when the main caption or any secondary text (follow-up `threads.replies[].message`, thread finisher, `internalEngagementPlug.message`, cross-account plug `fields.comment`) exceeds 500 characters. The API returns **400** with a message such as `Threads caption exceeds 500 characters (523/500).`
+- **Drafts** — programmatic create with `status: draft` (CLI `-t draft`, public API, MCP) may store captions longer than 500 characters. Tighten copy before scheduling; publish still enforces the Meta limit.

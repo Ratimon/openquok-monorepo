@@ -16,7 +16,7 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#threads).
 | Text-only post | Yes | No attachment required |
 | Single image or video | Yes | Upload first (Rule 2); prefer JPEG/PNG; **SVG rejected** |
 | Media carousel | Yes | Multiple `-m` items → carousel container |
-| 500-character cap | Yes | Provider trims overflow before publish |
+| 500-character cap | Yes | **Hard limit** on schedule — main caption, `threads.replies[].message`, finisher, plugs; `posts:create -t schedule` returns **400** when over 500; drafts may exceed via API/CLI |
 | Scheduled follow-up replies | Yes | `threads.replies[]` with `delaySeconds`; optional `media` per reply |
 | Thread finisher | Yes | `threads.enabled` + `threads.message` |
 | Delayed engagement reply (internal plug, same account) | Yes | `threads.internalEngagementPlug` |

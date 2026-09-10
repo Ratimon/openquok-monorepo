@@ -29,6 +29,7 @@ import {
     repeatIntervalToDays,
 } from "../utils/dtos/PostDTO";
 import { stripComposerBodyForEditor } from "../utils/content/stripComposerBodyForEditor";
+import { validateScheduledCaptionsForIntegration } from "../utils/content/validateProviderCaptionLength";
 import { resolvePublishIntegrationIds } from "../utils/posts/crossAccountPublishChannels";
 
 import { AppError } from "../errors/AppError";
@@ -414,6 +415,7 @@ export class PostsService {
         const rows = await this.integrationService.listByOrganization(organizationId);
         const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
         const providerByIntegrationId = new Map(rows.map((r) => [r.id, (r.provider_identifier ?? "").toLowerCase()]));
+        const integrationRowById = new Map(rows.map((r) => [r.id, r]));
 
         const uniqueIds = [...new Set(integrationIds)];
         for (const id of uniqueIds) {
@@ -460,6 +462,19 @@ export class PostsService {
                 ? body
                 : (bodiesByIntegrationId?.[integrationId] ?? body);
             const publishMessage = publishMessageForIntegration(integrationId);
+
+            if (status === "scheduled") {
+                const captionError = validateScheduledCaptionsForIntegration({
+                    providerIdentifier,
+                    provider,
+                    additionalSettings: integrationRowById.get(integrationId)?.additional_settings,
+                    mainMessage: publishMessage,
+                    providerSettings: providerSettingsByIntegrationId?.[integrationId],
+                });
+                if (captionError) {
+                    throw new AppError(captionError, 400);
+                }
+            }
 
             const validationMessage = provider.validateCreatePost?.({
                 status,

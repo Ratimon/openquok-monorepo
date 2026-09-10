@@ -116,7 +116,7 @@ export const threadsChannel = {
 		{
 			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				`Yes. our post editor shows the 500-character cap and the Threads provider trims overflow before publish. Check the preview so hooks and links fit before scheduling. Tighten copy in the ${faqLink(threadsLinks.humanizer.toolChannel, 'Threads humanizer tool')} when you cross-post from longer networks.`
+				`Yes. The post editor shows the 500-character cap and blocks over-limit text when you schedule from the dashboard. Scheduled posts via the API or CLI are rejected with a clear error when the main caption or any follow-up reply exceeds 500 characters. Drafts saved programmatically may hold longer copy until you shorten it before scheduling. Tighten copy in the ${faqLink(threadsLinks.humanizer.toolChannel, 'Threads humanizer tool')} when you cross-post from longer networks.`
 		},
 		{
 			title: 'Can I schedule Threads from the API or CLI?',

@@ -2,7 +2,7 @@
 title: Overview
 description: Posting rules for the OpenQuok social scheduler — character limits, media requirements, follow-ups, and per-network settings for every shipped channel.
 order: 0
-lastUpdated: 2026-09-01
+lastUpdated: 2026-09-10
 sidebar:
   label: Overview
 ---
@@ -35,6 +35,14 @@ OpenQuok registers **ten** backend identifiers across **eight** marketing slugs.
 <Callout type="note">
 <p><strong>X</strong> uses a <strong>280</strong>-character cap on standard accounts. Verified accounts connected through OpenQuok can post up to <strong>4,000</strong> characters. The composer counter is <strong>weighted</strong> — links and mentions can cost more than one character. See <a href="/docs/creating-posts/writing-the-post#character-count">Character count</a>.</p>
 </Callout>
+
+## Character limits
+
+Scheduled posts are validated server-side against each channel's cap (see the table above). This includes main post text, follow-up replies, thread finisher, or plug comments.
+
+- **Dashboard** — the post editor blocks over-limit captions when you schedule, while drafts may still save longer copy.
+- **API, CLI, and MCP** — <Badge text="-t schedule" variant="param" /> / <Badge text="status: scheduled" variant="param" /> enforces the same caps; <Badge text="-t draft" variant="param" /> / <Badge text="status: draft" variant="param" /> may store longer text until you shorten it before scheduling.
+- **X** — weighted counting applies on schedule (same rules as the composer counter).
 
 ## Names that differ
 

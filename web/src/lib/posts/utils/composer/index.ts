@@ -4,7 +4,8 @@ export { stripComposerBodyForEditor, type StripComposerBodyOptions } from './str
 export {
 	computeSoftCharLimitAcrossSelected,
 	maxCharactersForChannel,
-	selectedIdsIncludeXChannel
+	selectedIdsIncludeXChannel,
+	validateScheduledCaptionsForChannels
 } from './charLimit';
 export {
 	createComposerTextHistory,

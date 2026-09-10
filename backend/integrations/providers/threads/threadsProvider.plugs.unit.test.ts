@@ -1,6 +1,22 @@
 import { describe, expect, it, jest, afterEach } from "@jest/globals";
 import type { IntegrationRecord } from "../../social.integrations.interface";
-import { ThreadsProvider } from "./threadsProvider";
+import { mapThreadsGraphBodyError, ThreadsProvider } from "./threadsProvider";
+
+describe("mapThreadsGraphBodyError", () => {
+    it("maps Meta 500-character text validation errors", () => {
+        expect(mapThreadsGraphBodyError("text must be at most 500 characters")).toBe(
+            "Threads text exceeds the 500 character limit."
+        );
+        expect(
+            mapThreadsGraphBodyError("Parameter text: text must be at most 500 characters")
+        ).toBe("Threads text exceeds the 500 character limit.");
+    });
+
+    it("returns null for unrelated Graph errors", () => {
+        expect(mapThreadsGraphBodyError("An unknown error occurred")).toBeNull();
+        expect(mapThreadsGraphBodyError("Invalid OAuth access token")).toBeNull();
+    });
+});
 
 describe("ThreadsProvider internal plug catalog", () => {
     it("exposes same-account follow-up and cross-account comment plugs", () => {

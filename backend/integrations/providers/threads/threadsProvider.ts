@@ -26,6 +26,15 @@ type ThreadsSettingsWithMedia = { media?: { items?: ThreadsMediaItem[] } | Threa
 
 const GRAPH = "https://graph.threads.net/v1.0";
 
+/** Maps known Meta Graph body validation errors to clearer publish messages. */
+export function mapThreadsGraphBodyError(message: string): string | null {
+    const normalized = message.trim().toLowerCase();
+    if (normalized.includes("text must be at most 500 characters")) {
+        return "Threads text exceeds the 500 character limit.";
+    }
+    return null;
+}
+
 function mediaExtFromUrlOrKey(path: string): string {
     const raw = String(path || "").trim();
     if (!raw) return "";
@@ -211,10 +220,7 @@ export class ThreadsProvider implements SocialProvider {
     ): Promise<PostResponse[]> {
         if (!postDetails.length) return [];
         const [first] = postDetails;
-        const message = stripComposerBodyForEditor("normal", first.message ?? "").slice(
-            0,
-            this.maxLength()
-        );
+        const message = stripComposerBodyForEditor("normal", first.message ?? "");
         const replyToId = (lastCommentId ?? postId ?? "").trim();
 
         const media = this.extractMedia(first.settings as ThreadsSettingsWithMedia).map((m) => ({
@@ -355,7 +361,7 @@ export class ThreadsProvider implements SocialProvider {
 
         await sleepMs(2000);
 
-        const text = stripComposerBodyForEditor("normal", fields.post ?? "").slice(0, this.maxLength());
+        const text = stripComposerBodyForEditor("normal", fields.post ?? "");
         const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
 
         await sleepMs(2000);
@@ -494,6 +500,10 @@ export class ThreadsProvider implements SocialProvider {
             _nonJsonBody?: string;
         };
         if (b?.error?.message) {
+            const mapped = mapThreadsGraphBodyError(b.error.message);
+            if (mapped) {
+                return `${prefix}: ${mapped}`;
+            }
             const extra = [b.error.error_user_msg, b.error.error_user_title].filter(Boolean).join(" — ");
             const base = `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
             if (b.error.message === "An unknown error occurred" || b.error.message.toLowerCase().includes("unknown")) {

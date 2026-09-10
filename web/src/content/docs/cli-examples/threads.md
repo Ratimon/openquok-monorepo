@@ -2,7 +2,7 @@
 title: Meta Threads
 description: OpenQuok CLI examples for Meta Threads — single posts, reply chains, the reconciliation flow, and per-post analytics.
 order: 3
-lastUpdated: 2026-09-08
+lastUpdated: 2026-09-10
 ---
 
 <script>
@@ -48,8 +48,8 @@ openquok posts:create \
   -m "$MEDIA"
 ```
 
-<Callout type="tip" title="500-character truncation is silent">
-<p>The Threads provider trims content to its 500-character ceiling before publishing. Inspect the rendered preview via the web UI, or check the row's <code>content</code> after publish with <a href="/docs/cli-usages/managing-posts">`openquok posts:list`</a> to confirm the result.</p>
+<Callout type="note">
+<p>Threads caps every caption at <strong>500</strong> characters — main post, follow-up <Badge text="threads.replies[].message" variant="param" />, thread finisher, engagement plug, and cross-account comment text. <Badge text="posts:create" variant="default" /> with <Badge text="-t schedule" variant="param" /> returns <strong>400</strong> when any of those fields exceed the cap (for example <code>Threads caption exceeds 500 characters (523/500).</code>). Use <Badge text="-t draft" variant="param" /> to save longer copy programmatically.</p>
 </Callout>
 
 ## Scheduled reply chain (thread + follow-ups)

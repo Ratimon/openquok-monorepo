@@ -73,6 +73,7 @@ import {
 	maxCharactersForChannel,
 	selectedIdsIncludeXChannel,
 	stripComposerBodyForEditor,
+	validateScheduledCaptionsForChannels,
 	xWeightedLength,
 	type ComposerTextHistory,
 	type ComposerTextSnapshot
@@ -963,6 +964,17 @@ export class CreateSocialPostPresenter {
 		});
 		if (!content.ok) {
 			toast.error(content.error);
+			return false;
+		}
+		const captionLengthError = validateScheduledCaptionsForChannels({
+			mode: this.mode,
+			selectedIds: this.selectedIds,
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			globalBody: this.globalBody,
+			bodiesByIntegrationId: this.bodiesByIntegrationId
+		});
+		if (captionLengthError) {
+			toast.error(captionLengthError);
 			return false;
 		}
 		this.busy = true;

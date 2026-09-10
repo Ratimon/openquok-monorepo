@@ -9,6 +9,10 @@ import type {
     ValidateCreatePostInput,
 } from "../../social.integrations.interface";
 import type { GlobalPlugCatalogEntryDto, InternalPlugCatalogEntryDto } from "../../../utils/dtos/PlugDTO";
+import {
+    isVerifiedFromAdditionalSettings,
+    parseAdditionalSettings,
+} from "../../../utils/integrations/additionalSettings";
 
 import { TwitterApi } from "twitter-api-v2";
 import { makeId } from "../../../utils/ids/makeId";
@@ -294,12 +298,6 @@ export class XProvider implements SocialProvider {
     private readVerifiedFromIntegration(integration: IntegrationRecord): boolean {
         const raw = (integration as IntegrationRecord & { additional_settings?: string | null })
             .additional_settings;
-        if (!raw?.trim()) return false;
-        try {
-            const parsed = JSON.parse(raw) as Array<{ title?: string; value?: unknown }>;
-            return parsed.find((s) => s.title === "Verified")?.value === true;
-        } catch {
-            return false;
-        }
+        return isVerifiedFromAdditionalSettings(parseAdditionalSettings(raw));
     }
 }
