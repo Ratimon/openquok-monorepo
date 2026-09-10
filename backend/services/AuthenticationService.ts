@@ -312,10 +312,10 @@ export class AuthenticationService {
             throw new AuthValidationError("Old token, new token, and user ID are required for token rotation");
         }
         try {
-            await this.refreshTokenRepository.revokeToken(oldToken, newToken);
-            return await this.refreshTokenRepository.createToken({
+            return await this.refreshTokenRepository.rotateToken({
+                oldToken,
                 userId: options.userId,
-                token: newToken,
+                newToken,
                 ipAddress: options.ipAddress,
                 userAgent: options.userAgent,
             });

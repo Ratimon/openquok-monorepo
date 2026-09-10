@@ -14,6 +14,11 @@ import { logger } from "../utils/Logger";
 
 const TABLE_NAME = "refresh_tokens";
 
+function isUniqueViolation(error: unknown): boolean {
+    const pgError = error as { code?: string; message?: string };
+    return pgError.code === "23505" || pgError.message?.includes("duplicate key") === true;
+}
+
 export class RefreshTokenRepository {
     constructor(private readonly supabase: SupabaseClient) {}
 
@@ -50,6 +55,25 @@ export class RefreshTokenRepository {
         } as never);
 
         if (error) {
+            // Concurrent refresh requests can both succeed at Supabase and race to persist the same
+            // rotated refresh token. Treat an existing row for the same user as success (idempotent).
+            if (isUniqueViolation(error)) {
+                const existing = await this._findTokenRow(tokenValue);
+                if (existing && existing.user_id === userId) {
+                    logger.debug({
+                        msg: "Refresh token already stored; treating create as idempotent",
+                        userId,
+                    });
+                    return {
+                        id: existing.id,
+                        userId: existing.user_id,
+                        token: existing.token,
+                        createdAt: existing.created_at,
+                        expiresAt: existing.expires_at,
+                    };
+                }
+            }
+
             throw new DatabaseError(`Failed to create refresh token: ${(error as { message?: string }).message ?? error}`, {
                 cause: error as unknown as Error,
                 operation: "createToken",
@@ -61,6 +85,71 @@ export class RefreshTokenRepository {
             id,
             userId,
             token: tokenValue,
+            createdAt: new Date().toISOString(),
+            expiresAt: expiresAt.toISOString(),
+        };
+    }
+
+    /** Atomically revoke the old refresh token and insert the new one.
+     *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
+    async rotateToken({
+        oldToken,
+        userId,
+        newToken,
+        expiresIn = 60 * 60 * 24 * 7,
+        ipAddress = null,
+        userAgent = null,
+    }: {
+        oldToken: string;
+        userId: string;
+        newToken: string;
+        expiresIn?: number;
+        ipAddress?: string | null;
+        userAgent?: string | null;
+    }) {
+        this._validateId(userId, "userId");
+        if (!oldToken || typeof oldToken !== "string") {
+            throw new ValidationError("Old token is required and must be a string");
+        }
+        if (!newToken || typeof newToken !== "string") {
+            throw new ValidationError("New token is required and must be a string");
+        }
+
+        const id = uuidv4();
+        const expiresAt = new Date();
+        expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
+
+        logger.debug({ msg: "Rotating refresh token", userId });
+
+        const { data: rowId, error } = await this.supabase.rpc("internal_rotate_refresh_token" as never, {
+            p_old_token: oldToken,
+            p_new_id: id,
+            p_user_id: userId,
+            p_new_token: newToken,
+            p_expires_at: expiresAt.toISOString(),
+            p_ip_address: ipAddress,
+            p_user_agent: userAgent,
+        } as never);
+
+        if (error) {
+            throw new DatabaseError(`Failed to rotate refresh token: ${(error as { message?: string }).message ?? error}`, {
+                cause: error as unknown as Error,
+                operation: "rotateToken",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+
+        if (!rowId) {
+            throw new DatabaseError("Failed to rotate refresh token: RPC returned no row id", {
+                operation: "rotateToken",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+
+        return {
+            id: rowId,
+            userId,
+            token: newToken,
             createdAt: new Date().toISOString(),
             expiresAt: expiresAt.toISOString(),
         };
@@ -162,6 +251,24 @@ export class RefreshTokenRepository {
             revokedAt: data.revoked_at,
             replacedBy: data.replaced_by,
         };
+    }
+
+    private async _findTokenRow(token: string) {
+        const { data, error } = await this.supabase
+            .from(TABLE_NAME)
+            .select("id, user_id, token, created_at, expires_at")
+            .eq("token", token)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError(`Failed to load refresh token: ${error.message}`, {
+                cause: error as unknown as Error,
+                operation: "findTokenRow",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+
+        return data;
     }
 
     _generateToken(): string {

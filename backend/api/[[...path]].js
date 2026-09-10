@@ -5225,6 +5225,10 @@ var init_BlogDTO = __esm({
     };
   }
 });
+function isUniqueViolation(error) {
+  const pgError = error;
+  return pgError.code === "23505" || pgError.message?.includes("duplicate key") === true;
+}
 var TABLE_NAME, RefreshTokenRepository;
 var init_RefreshTokenRepository = __esm({
   "repositories/RefreshTokenRepository.ts"() {
@@ -5260,6 +5264,22 @@ var init_RefreshTokenRepository = __esm({
           p_user_agent: userAgent
         });
         if (error) {
+          if (isUniqueViolation(error)) {
+            const existing = await this._findTokenRow(tokenValue);
+            if (existing && existing.user_id === userId) {
+              logger.debug({
+                msg: "Refresh token already stored; treating create as idempotent",
+                userId
+              });
+              return {
+                id: existing.id,
+                userId: existing.user_id,
+                token: existing.token,
+                createdAt: existing.created_at,
+                expiresAt: existing.expires_at
+              };
+            }
+          }
           throw new DatabaseError(`Failed to create refresh token: ${error.message ?? error}`, {
             cause: error,
             operation: "createToken",
@@ -5270,6 +5290,57 @@ var init_RefreshTokenRepository = __esm({
           id,
           userId,
           token: tokenValue,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          expiresAt: expiresAt.toISOString()
+        };
+      }
+      /** Atomically revoke the old refresh token and insert the new one.
+       *  Uses a SECURITY DEFINER RPC function to bypass RLS. */
+      async rotateToken({
+        oldToken,
+        userId,
+        newToken,
+        expiresIn = 60 * 60 * 24 * 7,
+        ipAddress = null,
+        userAgent = null
+      }) {
+        this._validateId(userId, "userId");
+        if (!oldToken || typeof oldToken !== "string") {
+          throw new ValidationError("Old token is required and must be a string");
+        }
+        if (!newToken || typeof newToken !== "string") {
+          throw new ValidationError("New token is required and must be a string");
+        }
+        const id = uuid.v4();
+        const expiresAt = /* @__PURE__ */ new Date();
+        expiresAt.setSeconds(expiresAt.getSeconds() + expiresIn);
+        logger.debug({ msg: "Rotating refresh token", userId });
+        const { data: rowId, error } = await this.supabase.rpc("internal_rotate_refresh_token", {
+          p_old_token: oldToken,
+          p_new_id: id,
+          p_user_id: userId,
+          p_new_token: newToken,
+          p_expires_at: expiresAt.toISOString(),
+          p_ip_address: ipAddress,
+          p_user_agent: userAgent
+        });
+        if (error) {
+          throw new DatabaseError(`Failed to rotate refresh token: ${error.message ?? error}`, {
+            cause: error,
+            operation: "rotateToken",
+            resource: { type: "table", name: TABLE_NAME }
+          });
+        }
+        if (!rowId) {
+          throw new DatabaseError("Failed to rotate refresh token: RPC returned no row id", {
+            operation: "rotateToken",
+            resource: { type: "table", name: TABLE_NAME }
+          });
+        }
+        return {
+          id: rowId,
+          userId,
+          token: newToken,
           createdAt: (/* @__PURE__ */ new Date()).toISOString(),
           expiresAt: expiresAt.toISOString()
         };
@@ -5342,6 +5413,17 @@ var init_RefreshTokenRepository = __esm({
           revokedAt: data.revoked_at,
           replacedBy: data.replaced_by
         };
+      }
+      async _findTokenRow(token) {
+        const { data, error } = await this.supabase.from(TABLE_NAME).select("id, user_id, token, created_at, expires_at").eq("token", token).maybeSingle();
+        if (error) {
+          throw new DatabaseError(`Failed to load refresh token: ${error.message}`, {
+            cause: error,
+            operation: "findTokenRow",
+            resource: { type: "table", name: TABLE_NAME }
+          });
+        }
+        return data;
       }
       _generateToken() {
         return crypto.randomBytes(40).toString("hex");
@@ -11238,10 +11320,10 @@ var init_AuthenticationService = __esm({
           throw new AuthValidationError("Old token, new token, and user ID are required for token rotation");
         }
         try {
-          await this.refreshTokenRepository.revokeToken(oldToken, newToken);
-          return await this.refreshTokenRepository.createToken({
+          return await this.refreshTokenRepository.rotateToken({
+            oldToken,
             userId: options2.userId,
-            token: newToken,
+            newToken,
             ipAddress: options2.ipAddress,
             userAgent: options2.userAgent
           });
@@ -34602,7 +34684,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-10T04:43:52.334Z",
+  generated: "2026-09-10T08:34:54.518Z",
   routes: [
     {
       path: "/docs",

@@ -1561,6 +1561,18 @@ export type Database = {
         }
         Returns: string
       }
+      internal_rotate_refresh_token: {
+        Args: {
+          p_expires_at: string
+          p_new_id: string
+          p_new_token: string
+          p_old_token: string
+          p_ip_address?: string
+          p_user_agent?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       internal_find_full_user_by_email: {
         Args: { p_email: string }
         Returns: {
