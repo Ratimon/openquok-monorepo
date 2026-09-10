@@ -98,7 +98,7 @@ Follow <DocsExternalLink href="https://developers.facebook.com/docs/threads/get-
 </Callout>
 
 <Callout type="note">
-<p>OpenQuok uses <Badge text="threads_manage_mentions" variant="default" /> when a <strong>different</strong> Threads channel comments.Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> (screencast: OAuth grant including the scope → publish a root post → another workspace channel comments).</p>
+<p>OpenQuok uses <Badge text="threads_manage_mentions" variant="default" /> when a <strong>different</strong> Threads channel comments.Submit a separate <strong>App Review</strong> for Advanced Access on <Badge text="threads_manage_mentions" variant="default" /> (screencast: OAuth grant including the scope → publish a main thread → another workspace channel comments).</p>
 </Callout>
 
 

@@ -3,9 +3,17 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const YOUTUBE_DOCS_PATH = '/docs/social-integration/youtube';
 const youtubeLinks = buildChannelLandingFaqLinks('youtube', YOUTUBE_DOCS_PATH);
@@ -34,7 +42,8 @@ export const youtubeChannel = {
 		'YouTube API scheduler',
 		'YouTube upload automation',
 		'YouTube channel scheduling',
-		'faceless YouTube scheduler'
+		'faceless YouTube scheduler',
+		...buildChannelMcpSeoKeywords('YouTube')
 	],
 	featureSections: [
 		{
@@ -78,7 +87,7 @@ export const youtubeChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Creators & educators',
 			description:
-				'Queue long-form uploads, Shorts, and tutorials on a calendar instead of manual YouTube Studio publishing. Set privacy and tags per video before it goes live.',
+				'Queue uploads, Shorts, and tutorials on a calendar. Set privacy and tags before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -86,7 +95,7 @@ export const youtubeChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch product demos, launch videos, and Shorts ahead of time. Review drafts, attach thumbnails, and keep one workflow consistent across the team.',
+				'Batch demos, launch videos, and Shorts. Review drafts and thumbnails in one workflow.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -94,7 +103,7 @@ export const youtubeChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies & developers',
 			description:
-				'Manage client YouTube channels in separate workspaces. Schedule uploads from the dashboard or pipe drafts via the public API while you keep approval control.',
+				'Manage client channels in separate workspaces. Schedule via dashboard, API, or MCP.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -102,7 +111,7 @@ export const youtubeChannel = {
 			iconClass: 'text-violet-400',
 			title: 'Faceless channels',
 			description:
-				'Batch voiceover, and footage on a calendar. Pipe finished videos through the public API, set title and tags per upload, and publish without opening YouTube Studio.',
+				'Batch voiceover and footage on a calendar. Pipe finished videos via API without YouTube Studio.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -137,9 +146,13 @@ export const youtubeChannel = {
 				`Yes. The main post text maps to the video description on upload. Keep copy within the 5,000-character limit shown in our video editor. Polish long descriptions in the ${faqLink(youtubeLinks.humanizer.toolChannel, 'YouTube humanizer tool')} before you schedule.`
 		},
 		{
-			title: 'Can I schedule YouTube uploads from an AI agent or script?',
-			description:
-				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts with one MP4 and YouTube provider settings. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft titles and descriptions; you keep approval control in the dashboard.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('YouTube uploads'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect a YouTube channel in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliYoutube,
+				cliExamplesLabel: 'YouTube CLI examples',
+				suffix: 'Attach one MP4 and YouTube provider settings per scheduled upload.'
+			})
 		},
 		{
 			title: 'Can I cross-post from YouTube to other channels?',
@@ -158,8 +171,10 @@ export const youtubeChannel = {
 		},
 		{
 			title: 'Is there a free trial for YouTube scheduling?',
-			description:
-				`Yes. New workspaces can start on OpenQuok’s free trial, connect a YouTube channel, and schedule uploads during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect a YouTube channel in our web dashboard',
+				activityPhrase: 'schedule uploads, and explore API access'
+			})
 		}
 	],
 	docsPath: YOUTUBE_DOCS_PATH,

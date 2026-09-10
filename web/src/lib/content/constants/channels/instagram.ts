@@ -3,9 +3,16 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const INSTAGRAM_DOCS_PATH = '/docs/social-integration/instagram';
 const instagramLinks = buildChannelLandingFaqLinks('instagram', INSTAGRAM_DOCS_PATH);
@@ -32,7 +39,8 @@ export const instagramChannel = {
 		'Instagram carousel scheduler',
 		'Instagram Business scheduling',
 		'Instagram content calendar',
-		'Instagram API scheduler'
+		'Instagram API scheduler',
+		...buildChannelMcpSeoKeywords('Instagram')
 	],
 	featureSections: [
 		{
@@ -76,7 +84,7 @@ export const instagramChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Brands & creators',
 			description:
-				'Queue feed posts, Reels, and Stories from one calendar — whether you connect via Facebook-linked Business login or Instagram Standalone.',
+				'Queue feed posts, Reels, and Stories from one calendar. Connect via Business or Standalone login.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -84,7 +92,7 @@ export const instagramChannel = {
 			iconClass: 'text-lime-400',
 			title: 'E-commerce teams',
 			description:
-				'Batch product carousels and launch Reels ahead of time. Set post type, collaborators, and follow-up comments per post without leaving the composer.',
+				'Batch carousels and launch Reels ahead of time. Set post type and collaborators before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -92,7 +100,7 @@ export const instagramChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies & developers',
 			description:
-				'Separate client Instagram accounts into workspaces, schedule at scale from the dashboard or public API, and track per-account insights without mixing brands.',
+				'Pipe Instagram drafts via dashboard, API, or MCP. Separate client accounts per workspace.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -124,12 +132,17 @@ export const instagramChannel = {
 		{
 			title: 'Can I schedule text follow-up comments on Instagram?',
 			description:
-				'Yes. Add follow-up comment rows in the composer (or pass instagram.replies via the API). Each comment publishes as text after the delay you set once the root post goes live.'
+				'Yes. Add follow-up comment in the post editor (or pass instagram.replies via the API). Each comment publishes as text after the delay you set once the main post goes live.'
 		},
 		{
-			title: 'Can I schedule Instagram posts from an AI agent or script?',
-			description:
-				`Yes. After connecting Instagram, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token. Pass integration UUIDs, media attachments, and flat or nested providerSettings for post type, trial reel, and follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('Instagram posts'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect Instagram in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliInstagram,
+				cliExamplesLabel: 'Instagram CLI examples',
+				suffix:
+					'Pass providerSettings for post type, trial reel, collaborators, and follow-up comments.'
+			})
 		},
 		{
 			title: 'Can I cross-post from Instagram to Threads and other channels?',

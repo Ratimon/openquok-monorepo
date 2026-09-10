@@ -54,7 +54,7 @@ openquok posts:create \
 
 ## Scheduled reply chain (thread + follow-ups)
 
-<Badge text="providerSettings.threads.replies[]" variant="param" /> carries follow-up replies that publish from the same account a fixed number of seconds after the root post. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.threads.replies[]" variant="param" /> carries follow-up replies that publish from the same account a fixed number of seconds after the main thread. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
@@ -190,7 +190,7 @@ openquok posts:create \
 
 <Callout type="warning" title="Mentions scope (cross-account only)">
 <p>When the acting channel is <strong>not</strong> the publisher, OpenQuok publishes the comment using the <Badge text="threads_manage_mentions" variant="default" /> OAuth scope. Add it in your Meta app, then <strong>reconnect</strong> every acting Threads integration so stored tokens include the new scope.</p>
-<p>Meta's allowed usage is replying to posts where the acting account is <strong>@mentioned</strong>. OpenQuok calls the reply API with the acting channel's <Badge text="threads_manage_mentions" variant="default" /> token and does not modify the root caption. Use a short <Badge text="delayMs" variant="param" /> (for example <code>120000</code>) so the root post is fully live before the comment runs.</p>
+<p>Meta's allowed usage is replying to posts where the acting account is <strong>@mentioned</strong>. OpenQuok calls the reply API with the acting channel's <Badge text="threads_manage_mentions" variant="default" /> token and does not modify the root caption. Use a short <Badge text="delayMs" variant="param" /> (for example <code>120000</code>) so the main thread is fully live before the comment runs.</p>
 <p>Cross-account comments also need <strong>Advanced Access</strong> for <Badge text="threads_manage_mentions" variant="default" /> via Meta App Review (screencast: OAuth grant including the scope → publish → other workspace channel comments). Until that is approved, replies involving non-tester accounts may fail in production.</p>
 </Callout>
 

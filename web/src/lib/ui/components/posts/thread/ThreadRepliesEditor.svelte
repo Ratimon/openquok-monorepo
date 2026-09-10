@@ -208,7 +208,7 @@
 		{:else if id === 'x' && !hideProviderHelp}
 			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
 				<span class="font-medium text-base-content/90">X timing:</span>
-				Each reply publishes as a quote-less reply after your chosen delay once the root post goes live.
+				Each reply publishes as a quote-less reply after your chosen delay once the main thread goes live.
 			</p>
 		{:else if id.startsWith('instagram') && !hideProviderHelp}
 			<p class="text-base-content/75 mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug">

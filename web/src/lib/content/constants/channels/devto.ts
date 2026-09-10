@@ -3,9 +3,17 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const DEVTO_DOCS_PATH = '/docs/social-integration/devto';
 const devtoLinks = buildChannelLandingFaqLinks('devto', DEVTO_DOCS_PATH);
@@ -36,7 +44,8 @@ export const devtoChannel = {
 		'DEV Community API key',
 		'technical blog scheduler',
 		'markdown article scheduler',
-		'canonical URL syndication'
+		'canonical URL syndication',
+		...buildChannelMcpSeoKeywords('Dev.to')
 	],
 	featureSections: [
 		{
@@ -80,7 +89,7 @@ export const devtoChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Engineers & indie hackers',
 			description:
-				'Ship changelogs and tutorials from the calendar instead of waiting until you remember to paste into the Dev.to editor.',
+				'Ship changelogs and tutorials from the calendar, not the Dev.to editor.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -88,7 +97,7 @@ export const devtoChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Developer relations',
 			description:
-				'Batch docs, release notes, and how-tos with consistent tags, series, and covers. Review drafts on the kanban board before publish.',
+				'Batch docs and release notes with tags, series, and covers. Review on kanban before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -96,7 +105,7 @@ export const devtoChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies & technical blogs',
 			description:
-				'Connect client Dev.to accounts with an API key in the dashboard. Pipe markdown drafts from agents via the API while approvers sign off in the workspace.',
+				'Connect client accounts with an API key. Pipe markdown drafts via API or MCP.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -136,9 +145,13 @@ export const devtoChannel = {
 				'Yes. Set Canonical URL in Dev.to settings (or pass canonical in providerSettings). OpenQuok sends that URL with the article so Dev.to can point at the original.'
 		},
 		{
-			title: 'Can I schedule Dev.to articles from an AI agent or script?',
-			description:
-				`Yes. After connecting in the dashboard, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliDevto, 'Dev.to CLI examples')} with your workspace token. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft markdown and settings; you keep approval control on the kanban board.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('Dev.to articles'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect Dev.to in our web dashboard with an API key',
+				cliExamplesHref: publicFaqHref.cliDevto,
+				cliExamplesLabel: 'Dev.to CLI examples',
+				suffix: 'Pass title, tags, series, cover, and canonical URL in provider settings.'
+			})
 		},
 		{
 			title: 'Does OpenQuok show Dev.to analytics?',
@@ -147,8 +160,10 @@ export const devtoChannel = {
 		},
 		{
 			title: 'Is there a free trial for Dev.to scheduling?',
-			description:
-				`Yes. New workspaces can start on OpenQuok’s free trial, connect Dev.to with an API key, and schedule articles during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect Dev.to in our web dashboard with an API key',
+				activityPhrase: 'schedule articles, and explore API access'
+			})
 		}
 	],
 	docsPath: DEVTO_DOCS_PATH,

@@ -3,9 +3,13 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
@@ -37,7 +41,8 @@ export const facebookChannel = {
 		'schedule Facebook posts',
 		'schedule Facebook Reels',
 		'Facebook content calendar',
-		'Meta Graph API scheduler'
+		'Meta Graph API scheduler',
+		...buildChannelMcpSeoKeywords('Facebook')
 	],
 	featureSections: [
 		{
@@ -81,7 +86,7 @@ export const facebookChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Page owners',
 			description:
-				'Schedule feed posts, photos, and MP4 Reels on your Facebook Page without living in Meta Business Suite. Publish content through the official Graph API.',
+				'Schedule Page posts, Reels, and Stories without living in Business Suite. Publish through the official Graph API.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -89,7 +94,7 @@ export const facebookChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch weeks of Page content, and review everything before it goes live — from the dashboard or your existing workflows.',
+				'Batch weeks of Page content and review drafts before anything goes live.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -97,7 +102,7 @@ export const facebookChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies',
 			description:
-				'Manage multiple Facebook Pages. Connect each Page once, schedule at scale, and track Page insights without mixing brands.',
+				'Manage multiple Facebook Pages in one workspace. Schedule at scale and track insights per brand.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -127,9 +132,13 @@ export const facebookChannel = {
 				`Attach a single MP4 when composing a Facebook Page post. OpenQuok uploads it through Meta’s Page video API; Facebook surfaces eligible uploads as Reels on your Page. Caption text becomes the video description. Size cover art in the ${faqLink(facebookLinks.photoEditor.toolChannel, 'Facebook photo editor')} before you attach media.`
 		},
 		{
-			title: 'Can I schedule Facebook posts from an AI agent or script?',
-			description:
-				`Yes. After connecting a Page, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts and Reels. Pass facebook.replies for follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'OpenClaw, Hermes, Grok Bot')} can draft captions and media.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('Facebook posts'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect a Facebook Page in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliFacebook,
+				cliExamplesLabel: 'Facebook CLI examples',
+				suffix: 'Pass facebook.replies for follow-up comments on scheduled posts and Reels.'
+			})
 		},
 		{
 			title: 'Does OpenQuok support link previews on Facebook?',
@@ -139,7 +148,7 @@ export const facebookChannel = {
 		{
 			title: 'Can I schedule follow-up comments on Facebook?',
 			description:
-				`Yes. Add follow-up comments in the composer (or pass facebook.replies via the API or CLI). Each comment publishes as text or with one image after the delay you set once the root post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+				`Yes. Add follow-up comments in the composer (or pass facebook.replies via the API or CLI). Each comment publishes as text or with one image after the delay you set once the main post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
 		},
 		{
 			title: 'Does OpenQuok support Facebook Stories?',
@@ -148,8 +157,10 @@ export const facebookChannel = {
 		},
 		{
 			title: 'Is there a free trial for Facebook scheduling?',
-			description:
-				`Yes. New workspaces can start on OpenQuok’s free trial, connect a Facebook Page, and schedule posts and Reels during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect a Facebook Page in our web dashboard',
+				activityPhrase: 'schedule posts and Reels, and explore API access'
+			})
 		}
 	],
 	docsPath: FACEBOOK_DOCS_PATH,

@@ -27,6 +27,9 @@ export const grokBotAgent = {
 		'xAI Grok Bot',
 		'Grok Bot CLI posting',
 		'agentic social media',
+		'agentic social media scheduler',
+		'schedule social media via MCP',
+		'Grok Bot MCP and CLI scheduling',
 		'OpenQuok Grok Bot integration'
 	],
 	heroTitle: 'Schedule social media from Grok Bot then you approve',
@@ -51,7 +54,7 @@ export const grokBotAgent = {
 			iconClass: 'text-neutral-300',
 			title: 'Cursor & xAI subscribers',
 			description:
-				'Eligible on SuperGrok Heavy, Cursor Ultra, or Cursor Teams Premium. Sign in with your Cursor account, create a Bot, and schedule social posts without leaving chat.',
+				'Create a Bot on SuperGrok or Cursor plans. Schedule social posts without leaving chat.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -59,7 +62,7 @@ export const grokBotAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Desktop-first operators',
 			description:
-				'Each Bot gets a persistent cloud computer — browser, files, and shell. Install the global CLI there once, then message the Bot to run openquok commands on demand.',
+				'Each Bot gets a cloud computer — install the CLI once, then message it to run openquok.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -67,7 +70,7 @@ export const grokBotAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Founders & small teams',
 			description:
-				'Keep human approval on the calendar while your Bot handles volume. Skills load via Settings → Plugins or / in chat — no always-on MCP bloat.',
+				'Keep approval on the calendar while your Bot handles volume. Load skills via Plugins — no MCP bloat.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -290,7 +293,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Grok Bot publish immediately or wait for approval?',

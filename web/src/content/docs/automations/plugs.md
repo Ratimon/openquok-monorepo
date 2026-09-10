@@ -94,9 +94,9 @@ Use <Badge text="openquok plugs:catalog" variant="default" />, <Badge text="plug
 <p>Global plugs read <strong>like counts</strong> from the network API. If analytics are disabled or unavailable for a channel (for example <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> on self-hosted X), threshold rules may not fire.</p>
 </Callout>
 
-## Internal plugs (composer)
+## Internal plugs (Post editor)
 
-Internal plugs attach to **one** scheduled post. OpenQuok runs them after the root post is live and after any same-account follow-up replies you configured in **Follow-up comments**.
+Internal plugs attach to **one** scheduled post. OpenQuok runs them after the main thread is live and after any same-account follow-up replies you configured in **Follow-up comments**.
 
 You can configure them in two places:
 

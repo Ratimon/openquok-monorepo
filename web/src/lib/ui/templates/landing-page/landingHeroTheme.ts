@@ -80,10 +80,12 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'youtube',
 	'agents',
 	'Dev.to',
+	'X'
 	'editor',
 	'hermes',
 	'prompt',
 	'repost',
+	'replies',
 	'series',
 	'Shorts',
 	'tiktok',

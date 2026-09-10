@@ -28,7 +28,7 @@ Personal profile and Page channels use the same <Badge text="LINKEDIN_CLIENT_ID"
 | Text posts | Up to 3,000 characters |
 | Images | Multi-image posts |
 | MP4 video | One attachment per post |
-| Follow-up text comments | Text-only replies after the root post |
+| Follow-up text comments | Text-only replies after the main post |
 | Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in per-channel composer settings — OpenQuok converts images to a PDF at publish time. Optional **Carousel document title** (default: `slides`) |
 | Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
 | Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |

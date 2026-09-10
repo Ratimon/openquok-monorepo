@@ -79,6 +79,7 @@ export const publicFaqHref = {
 	grokBotAgentGuide: faqHrefDocs('agent-setup-guides/grok-bot'),
 	thinkrailAgentGuide: faqHrefDocs('agent-setup-guides/thinkrail'),
 	mcpSetupGuides: faqHrefDocs('mcp-setup-guides'),
+	cliSetupGuides: faqHrefDocs('getting-started-for-cli'),
 	mcpGettingStarted: faqHrefDocs('getting-started-for-mcp'),
 	publicApi: faqHrefDocs('getting-started-for-public-api'),
 	oauthApps: faqHrefDocs('oauth2-for-apps'),
@@ -86,6 +87,11 @@ export const publicFaqHref = {
 	channelGroups: faqHrefDocs('apis-integrations/groups'),
 	cliThreads: faqHrefDocs('cli-examples/threads'),
 	cliX: faqHrefDocs('cli-examples/x'),
+	cliFacebook: faqHrefDocs('cli-examples/facebook'),
+	cliInstagram: faqHrefDocs('cli-examples/instagram'),
+	cliTiktok: faqHrefDocs('cli-examples/tiktok'),
+	cliLinkedin: faqHrefDocs('cli-examples/linkedin'),
+	cliYoutube: faqHrefDocs('cli-examples/youtube'),
 	cliDevto: faqHrefDocs('cli-examples/devto'),
 	humanizerTool: route(getRootPathPublicHumanizer()),
 	skillBuilderTool: route(getRootPathPublicSkillBuilder()),
@@ -109,6 +115,32 @@ export const publicFaqHref = {
 		'how-openquok-humanizer-rewrites-a-draft-in-the-browser'
 	)
 } as const;
+
+/** FAQ title for programmatic scheduling (MCP, API, CLI) on channel landing pages. */
+export function buildChannelProgrammaticSchedulingFaqTitle(schedulingTarget: string): string {
+	return `Can I schedule ${schedulingTarget} from MCP, the API, or CLI?`;
+}
+
+/** FAQ answer with MCP, CLI setup, public API, and per-platform CLI example links. */
+export function buildChannelProgrammaticSchedulingFaqDescription(params: {
+	connectPhrase: string;
+	cliExamplesHref: string;
+	cliExamplesLabel: string;
+	suffix?: string;
+}): string {
+	const { connectPhrase, cliExamplesHref, cliExamplesLabel, suffix } = params;
+	const base = `${connectPhrase}, then follow ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')} (ask your assistant in chat to list integrations and queue posts), ${faqLink(publicFaqHref.cliSetupGuides, 'CLI setup guides')}, the ${faqLink(publicFaqHref.publicApi, 'create-post API')}, or ${faqLink(cliExamplesHref, cliExamplesLabel)}.`;
+	return suffix ? `Yes. ${base} ${suffix}` : `Yes. ${base}`;
+}
+
+/** FAQ answer for cloud free trial plus self-host option on channel landing pages. */
+export function buildChannelFreeTrialFaqDescription(params: {
+	connectPhrase: string;
+	activityPhrase?: string;
+}): string {
+	const activityPhrase = params.activityPhrase ?? 'schedule posts, and explore API access';
+	return `Yes. ${params.connectPhrase}, ${activityPhrase} during the cloud free trial before upgrading to a paid plan that matches your channel and workspace limits. Plan details are on ${faqLink(publicFaqHref.pricing, 'Pricing')} for a free tier, or ${faqLink(publicFaqHref.selfHostingLanding, 'self-host OpenQuok')} you run yourself.`;
+}
 
 export type ChannelFaqLinks = {
 	docs: string;

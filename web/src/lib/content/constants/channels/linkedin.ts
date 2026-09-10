@@ -3,9 +3,13 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
@@ -36,7 +40,8 @@ export const linkedinChannel = {
 		'LinkedIn content calendar',
 		'B2B LinkedIn marketing',
 		'LinkedIn document carousel scheduler',
-		'B2B social scheduling'
+		'B2B social scheduling',
+		...buildChannelMcpSeoKeywords('LinkedIn')
 	],
 	featureSections: [
 		{
@@ -80,7 +85,7 @@ export const linkedinChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Founders & sales leaders',
 			description:
-				'Your profile is a sales asset, not an online resume. Keep personal and company Page content aligned and scheduled while you run deals.',
+				'Keep your profile and company Page active while you run deals. Schedule from one calendar.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -88,7 +93,7 @@ export const linkedinChannel = {
 			iconClass: 'text-lime-400',
 			title: 'B2B marketing teams',
 			description:
-				'Batch Page announcements, slide carousels, and executive posts on one calendar. Review drafts on the kanban board before publish.',
+				'Batch announcements, carousels, and exec posts. Review drafts on the kanban before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -96,7 +101,7 @@ export const linkedinChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies & RevOps',
 			description:
-				'Manage client profile and Page channels in separate workspaces. Pipe LinkedIn drafts from agents or CRM automations via the API while approvers sign off in the dashboard.',
+				'Pipe LinkedIn drafts via API or MCP. Manage client profiles and Pages in separate workspaces.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -123,7 +128,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can I schedule follow-up comments on LinkedIn?',
 			description:
-				`Yes. Add follow-up comment rows in the composer for LinkedIn profile or LinkedIn Page (or pass linkedin.replies or linkedin-page.replies via the API or CLI). Each comment is text only and publishes after the delay you set once the root post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+				`Yes. Add follow-up comment rows in the composer for LinkedIn profile or LinkedIn Page (or pass linkedin.replies or linkedin-page.replies via the API or CLI). Each comment is text only and publishes after the delay you set once the main post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
 		},
 		{
 			title: 'Can another LinkedIn account comment on or reshare my scheduled post?',
@@ -151,9 +156,14 @@ export const linkedinChannel = {
 				`Yes, for connected LinkedIn Page channels. Workspace analytics show Page views, follower gains, impressions, clicks, and engagement, plus per-post metrics on published Page content. Personal profile channels do not expose the same account-level insights API. Pull metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or dashboard.`
 		},
 		{
-			title: 'Can I schedule LinkedIn from the API, CLI, or an AI agent?',
-			description:
-				`Yes. After connecting a channel, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with posts:create and integration IDs for linkedin or linkedin-page. Pass provider settings such as postAsImagesCarousel for document carousels or linkedin.replies / linkedin-page.replies for follow-up comments. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('LinkedIn posts'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect LinkedIn profile or Page channels in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliLinkedin,
+				cliExamplesLabel: 'LinkedIn CLI examples',
+				suffix:
+					'Pass postAsImagesCarousel for document carousels or linkedin.replies / linkedin-page.replies for follow-up comments.'
+			})
 		},
 		{
 			title: 'Can OpenQuok auto-repost LinkedIn Page posts?',
@@ -167,8 +177,9 @@ export const linkedinChannel = {
 		},
 		{
 			title: 'Is there a free trial for LinkedIn scheduling?',
-			description:
-				`Yes. New workspaces get a 7-day free trial — connect LinkedIn profile and Page channels, schedule posts, and explore API access before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect LinkedIn profile and Page channels in our web dashboard'
+			})
 		}
 	],
 	docsPath: LINKEDIN_DOCS_PATH,

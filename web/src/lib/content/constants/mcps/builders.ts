@@ -43,14 +43,14 @@ function buildMcpAudienceSection(
 				iconName: icons.CustomizedDrawnLaptop.name,
 				iconClass: 'text-sky-400',
 				title: 'IDE & workflow users',
-				description: `Stay in ${workflowPhrase} — Schedule social posts from your agent without opening another dashboard.`,
+				description: `Stay in ${workflowPhrase}. Schedule posts from your agent without opening another dashboard.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
 				iconName: icons.CustomizedDrawnRobot.name,
 				iconClass: 'text-cyan-400',
 				title: 'Developers & builders',
-				description: `Connect OpenQuok over MCP with a programmatic token — ${label} lists channels and schedules posts with structured tools.`,
+				description: `Connect OpenQuok over MCP with a programmatic token. ${label} lists channels and schedules with structured tools.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
@@ -58,7 +58,7 @@ function buildMcpAudienceSection(
 				iconClass: 'text-teal-400',
 				title: 'Startup founders',
 				description:
-					'Schedule across Facebook, Instagram, Threads, YouTube, and TikTok from one workspace — you approve on the calendar or kanban before anything goes live.',
+					'Schedule across Facebook, Instagram, Threads, YouTube, and TikTok. You approve on the calendar before publish.',
 				containerClass: 'h-full min-h-[18rem]'
 			}
 		]
@@ -90,7 +90,7 @@ function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
 		},
 		{
 			title: 'Which social platforms are supported?',
-			description: `YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+			description: `YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 		}
 	];
 }
@@ -443,9 +443,13 @@ export function buildMcpLandingPage(seed: McpLandingSeed): PublicMcpLandingPageV
 		hubDescription,
 		keywords: [
 			`${label} MCP`,
+			`${label} MCP social media scheduler`,
+			`schedule social media via ${label}`,
 			'OpenQuok MCP',
 			'MCP social media scheduler',
+			'schedule posts via MCP',
 			'agentic social media',
+			'agentic social media scheduler',
 			'programmatic token MCP'
 		],
 		heroTitle: `Schedule social media from ${label} then you approve`,

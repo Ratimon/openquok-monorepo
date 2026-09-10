@@ -31,7 +31,7 @@ Instagram (Business) and Facebook can use the same developer app.
 | Photo posts | Single image or multi-photo feed post |
 | Video posts | Single <Badge text=".mp4" variant="param" /> attachment published as a Page video |
 | Stories | Set post type to Story; image or <Badge text=".mp4" variant="param" /> required; each attachment publishes as its own Story |
-| Follow-up comments | Text replies after the root post; one image attachment per comment (feed posts only — not Stories) |
+| Follow-up comments | Text replies after the main post; one image attachment per comment (feed posts only — not Stories) |
 | Page analytics | Account-level and per-post insights when <Badge text="read_insights" variant="default" /> is granted |
 
 Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> to publish to the Story surface. Link URLs are ignored for Stories.

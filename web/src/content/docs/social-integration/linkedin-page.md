@@ -28,7 +28,7 @@ Page and personal channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant
 | Text posts | Up to 3,000 characters |
 | Images | Multi-image posts |
 | MP4 video | One attachment per post |
-| Follow-up text comments | Text-only replies after the root post |
+| Follow-up text comments | Text-only replies after the main post |
 | Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in composer settings — OpenQuok combines images into a PDF document share at publish time. Optional **Carousel document title** (default: `slides`). LinkedIn is the only OpenQuok provider with document-carousel posts |
 | Account analytics | Page-level insights |
 | Per-post analytics | Engagement metrics on published posts |

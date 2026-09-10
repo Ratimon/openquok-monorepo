@@ -3,9 +3,13 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
@@ -35,7 +39,8 @@ export const xChannel = {
 		'schedule X posts',
 		'X content calendar',
 		'X thread scheduler',
-		'X API scheduler'
+		'X API scheduler',
+		...buildChannelMcpSeoKeywords('X')
 	],
 	featureSections: [
 		{
@@ -79,7 +84,7 @@ export const xChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Creators & founders',
 			description:
-				'Stay visible on X without living in the app. Queue tweets, images, and thread chains on the calendar while you ship product.',
+				'Stay visible on X without living in the app. Ask your agent to schedule tweets and threads while you ship product.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -87,7 +92,7 @@ export const xChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Social managers',
 			description:
-				'Batch a week of posts in one sitting, control reply settings per tweet, and track engagement alongside your other channels.',
+				'Batch a week of X posts, control reply settings per tweet, and track engagement with your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -95,7 +100,7 @@ export const xChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers & agents',
 			description:
-				'Pipe X drafts from your backend via the public API or CLI — including thread replies under providerSettings — while you keep approval control in the dashboard.',
+				'Pipe X drafts from your backend via the public API, CLI, or MCP. Configure thread replies and reply settings per post.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -149,14 +154,20 @@ export const xChannel = {
 				`OpenQuok pulls per-tweet metrics from the X API — impressions, likes, replies, reposts, quotes, and bookmarks — and aggregates account-level analytics for connected profiles. Per-post metrics appear once the post row is linked to a published tweet id. Use the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or workspace dashboard.`
 		},
 		{
-			title: 'Can I schedule X from the API, CLI, or an AI agent?',
-			description:
-				`Yes. After connecting X, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with integration UUIDs from your workspace. Thread replies and compose settings go under providerSettingsByIntegrationId when needed. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft and queue posts; keep human approval in the dashboard when content represents your brand.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('X posts'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect X in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliX,
+				cliExamplesLabel: 'X CLI examples',
+				suffix:
+					'Thread replies and X-specific settings can also be configured by asking agent in chat.'
+			})
 		},
 		{
 			title: 'Is X scheduling included in the free trial?',
-			description:
-				`Yes. New workspaces get a 7-day free trial — connect X, schedule posts, and explore API access before choosing a paid plan that matches your channel and workspace limits. See ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect X in our web dashboard'
+			})
 		}
 	],
 	docsPath: X_DOCS_PATH,

@@ -50,7 +50,7 @@ openquok posts:create \
 ```bash
 openquok posts:create \
   -i "<integration-id>" \
-  -c "Root post — details in the first comment." \
+  -c "Main post — details in the first comment." \
   -t schedule \
   -s "2026-06-20T14:00:00.000Z" \
   --providerSettingsByIntegrationId "$(jq -nc --arg id "<integration-id>" '

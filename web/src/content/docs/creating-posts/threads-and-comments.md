@@ -90,8 +90,8 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 | Network | Comments / replies | How they publish | Media on follow-ups | Cross-account plugs |
 | --- | --- | --- | --- | --- |
 | **Threads** | Yes | Same-account replies in order | Images and video | Comment from other Threads channels |
-| **X** | Yes | Quote-less replies on the root tweet | Up to four images per reply | Repost from other X channels |
-| **Instagram** | Yes | Comments on the root post | Text only | No |
+| **X** | Yes | Quote-less replies on the main tweet | Up to four images per reply | Repost from other X channels |
+| **Instagram** | Yes | Comments on the main post | Text only | No |
 | **LinkedIn** | Yes | Comments on the main post | Text only | Comment or reshare from other LinkedIn channels |
 | **Facebook** | Yes | Comments on the main post | One image per reply via reply toolbar (no video) | No |
 | **YouTube**, **TikTok**, **Dev.to**, … | No | — | — | No |

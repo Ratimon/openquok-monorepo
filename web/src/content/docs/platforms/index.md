@@ -84,7 +84,7 @@ Scheduled **follow-up replies** after the main post are supported on some networ
 | --- | --- | --- |
 | **Threads** | Yes | Same-account thread replies; media on follow-ups |
 | **X** | Yes | Quote-less replies; media on follow-ups |
-| **Instagram** (both) | Yes | Comments on the root post; **text only** on follow-ups |
+| **Instagram** (both) | Yes | Comments on the main post; **text only** on follow-ups |
 | **LinkedIn** / **LinkedIn Page** | Yes | Comments on the main post; **text only** on follow-ups |
 | **Facebook Page** | Yes | Comments on the main post; **one image** per follow-up (no video) |
 | **YouTube** | No | — |

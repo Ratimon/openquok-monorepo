@@ -27,6 +27,9 @@ export const thinkrailAgent = {
 		'openquok-core skill',
 		'ThinkRail CLI posting',
 		'worktree IDE social posts',
+		'agentic social media scheduler',
+		'schedule social media via MCP',
+		'ThinkRail MCP and CLI scheduling',
 		'OpenQuok ThinkRail integration'
 	],
 	heroTitle: 'Schedule social media from ThinkRail then you approve',
@@ -51,7 +54,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Worktree-first operators',
 			description:
-				'Each workspace is a real git worktree — own branch, files, terminals, and chats. Install the CLI once, drop openquok-core into ~/.pi or .pi/skills, and schedule without mixing drafts into main.',
+				'Each workspace is a git worktree with its own branch and terminals. Install openquok-core and schedule without mixing drafts.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -59,7 +62,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-neutral-300',
 			title: 'Pi coding agent users',
 			description:
-				'ThinkRail is a thin host: pi owns models, skills, and cost. OpenQuok stays CLI-first so you reuse the same recipes in ThinkRail, a pi CLI session, or another skill host.',
+				'Pi owns models and skills in ThinkRail. OpenQuok stays CLI-first across worktrees and pi sessions.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -67,7 +70,7 @@ export const thinkrailAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Founders & small teams',
 			description:
-				'Keep human approval on the calendar while the agent handles volume from a dedicated worktree. Specs stay beside the code; social drafts stay behind OpenQuok review.',
+				'Keep approval on the calendar while the agent handles volume from a dedicated worktree.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -290,7 +293,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. ThinkRail uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. ThinkRail uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does ThinkRail publish immediately or wait for approval?',

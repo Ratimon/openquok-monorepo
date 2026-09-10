@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildAgentFaqLinks,
 	buildChannelFaqLinks,
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
 	buildToolChannelFaqLinks,
 	faqHrefAgent,
 	faqLink,
@@ -27,6 +30,7 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.pricing).toBe('/pricing');
 		expect(publicFaqHref.channels).toBe('/channels');
 		expect(publicFaqHref.cliGettingStarted).toBe('/docs/getting-started-for-cli');
+		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.compareOpenquokBuffer).toBe('/compare/openquok/buffer');
 		expect(publicFaqHref.humanizerTool).toBe('/tools/humanizer');
 		expect(publicFaqHref.skillBuilderTool).toBe('/tools/skill-builder');
@@ -65,5 +69,40 @@ describe('publicFaqLinks', () => {
 		expect(() => buildToolChannelFaqLinks('unknown-tool', 'linkedin')).toThrow(
 			/Unknown tool slug/
 		);
+	});
+
+	it('builds programmatic scheduling FAQ title and answer with MCP, CLI, API, and examples links', () => {
+		expect(buildChannelProgrammaticSchedulingFaqTitle('Threads')).toBe(
+			'Can I schedule Threads from MCP, the API, or CLI?'
+		);
+		expect(buildChannelProgrammaticSchedulingFaqDescription({
+			connectPhrase: 'Connect Threads in our web dashboard',
+			cliExamplesHref: publicFaqHref.cliThreads,
+			cliExamplesLabel: 'Threads CLI examples',
+			suffix: 'Follow-up replies and Thread-specific settings can also be configured by asking agent in chat.'
+		})).toContain('href="/docs/mcp-setup-guides"');
+		expect(
+			buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect Threads in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliThreads,
+				cliExamplesLabel: 'Threads CLI examples'
+			})
+		).toContain('href="/docs/getting-started-for-cli"');
+		expect(
+			buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect Threads in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliThreads,
+				cliExamplesLabel: 'Threads CLI examples'
+			})
+		).toContain('href="/docs/cli-examples/threads"');
+	});
+
+	it('builds free trial FAQ answer with self-hosting and pricing links', () => {
+		const description = buildChannelFreeTrialFaqDescription({
+			connectPhrase: 'Connect Threads in our web dashboard'
+		});
+		expect(description).toContain('href="/self-hosting"');
+		expect(description).toContain('href="/pricing"');
+		expect(description).toContain('cloud free trial');
 	});
 });

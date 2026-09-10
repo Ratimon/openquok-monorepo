@@ -123,7 +123,7 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 		{
 			id: 'threads-follow-up-replies',
 			label: 'Reply chain',
-			prompt: 'Schedule a root post and follow-up replies under threads.replies.',
+			prompt: 'Schedule a main thread and follow-up replies under threads.replies.',
 			examplePayload: { ...THREADS_FOLLOW_UP_REPLIES_PAYLOAD }
 		},
 		{
@@ -199,7 +199,7 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 		{
 			id: 'x-reply-chain',
 			label: 'Reply chain',
-			prompt: 'Schedule a root post and follow-up replies under x.replies.',
+			prompt: 'Schedule a main thread and follow-up replies under x.replies.',
 			examplePayload: { ...X_REPLY_CHAIN_PAYLOAD }
 		},
 		{

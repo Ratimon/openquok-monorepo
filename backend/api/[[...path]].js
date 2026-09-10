@@ -16208,6 +16208,13 @@ var init_instagramStandaloneProvider = __esm({
     };
   }
 });
+function mapThreadsGraphBodyError(message) {
+  const normalized = message.trim().toLowerCase();
+  if (normalized.includes("text must be at most 500 characters")) {
+    return "Threads text exceeds the 500 character limit.";
+  }
+  return null;
+}
 function mediaExtFromUrlOrKey2(path7) {
   const raw = String(path7 || "").trim();
   if (!raw) return "";
@@ -16364,10 +16371,7 @@ var init_threadsProvider = __esm({
       async comment(userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
         if (!postDetails.length) return [];
         const [first] = postDetails;
-        const message = stripComposerBodyForEditor("normal", first.message ?? "").slice(
-          0,
-          this.maxLength()
-        );
+        const message = stripComposerBodyForEditor("normal", first.message ?? "");
         const replyToId = (lastCommentId ?? postId ?? "").trim();
         const media = this.extractMedia(first.settings).map((m) => ({
           ...m,
@@ -16460,7 +16464,7 @@ var init_threadsProvider = __esm({
           return false;
         }
         await sleepMs3(2e3);
-        const text = stripComposerBodyForEditor("normal", fields.post ?? "").slice(0, this.maxLength());
+        const text = stripComposerBodyForEditor("normal", fields.post ?? "");
         const creationId = await this.createTextContent(integration.internal_id, integration.token, text, threadId.trim());
         await sleepMs3(2e3);
         await this.publishThread(integration.internal_id, integration.token, creationId);
@@ -16564,6 +16568,10 @@ var init_threadsProvider = __esm({
       formatGraphError(prefix, res, body) {
         const b = body;
         if (b?.error?.message) {
+          const mapped = mapThreadsGraphBodyError(b.error.message);
+          if (mapped) {
+            return `${prefix}: ${mapped}`;
+          }
           const extra = [b.error.error_user_msg, b.error.error_user_title].filter(Boolean).join(" \u2014 ");
           const base = `${prefix}: ${b.error.message}${extra ? ` (${extra})` : ""}`;
           if (b.error.message === "An unknown error occurred" || b.error.message.toLowerCase().includes("unknown")) {
@@ -17624,7 +17632,7 @@ var init_linkedinPlugs = __esm({
         identifier: "linkedin-repost-post-users",
         methodName: "repostPostUsers",
         title: "Add re-posters",
-        description: "Choose other LinkedIn channels to reshare this post after it goes live.",
+        description: "Choose other LinkedIn channels to reshare this post.",
         pickIntegration: ["linkedin", "linkedin-page"],
         fields: []
       }
@@ -19337,6 +19345,25 @@ var init_youtubeProvider = __esm({
     };
   }
 });
+
+// utils/integrations/additionalSettings.ts
+function parseAdditionalSettings(raw) {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+function isVerifiedFromAdditionalSettings(settings) {
+  const verified = settings.find((s) => s?.title === "Verified")?.value;
+  return verified === true;
+}
+var init_additionalSettings = __esm({
+  "utils/integrations/additionalSettings.ts"() {
+  }
+});
 function xRedirectUri() {
   return `${oauthFrontendOrigin()}${oauthFrontendSocialCallbackPath("x")}`;
 }
@@ -19836,7 +19863,7 @@ var init_xPlugs = __esm({
         identifier: "x-repost-post-users",
         methodName: "repostPostUsers",
         title: "Add re-posters",
-        description: "Choose other X channels to repost this post after it goes live.",
+        description: "Choose other X channels to repost after publish.",
         pickIntegration: ["x"],
         fields: []
       }
@@ -19846,6 +19873,7 @@ var init_xPlugs = __esm({
 var XProvider;
 var init_xProvider = __esm({
   "integrations/providers/x/xProvider.ts"() {
+    init_additionalSettings();
     init_makeId();
     init_xCommon();
     init_xErrors();
@@ -20030,13 +20058,7 @@ var init_xProvider = __esm({
       }
       readVerifiedFromIntegration(integration) {
         const raw = integration.additional_settings;
-        if (!raw?.trim()) return false;
-        try {
-          const parsed = JSON.parse(raw);
-          return parsed.find((s) => s.title === "Verified")?.value === true;
-        } catch {
-          return false;
-        }
+        return isVerifiedFromAdditionalSettings(parseAdditionalSettings(raw));
       }
     };
   }
@@ -21573,19 +21595,6 @@ function postingTimesForTimezone(timezone) {
   }
   return JSON.stringify([{ time: 560 - timezone }, { time: 850 - timezone }, { time: 1140 - timezone }]);
 }
-function parseAdditionalSettings(raw) {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-function isVerifiedFromAdditionalSettings(settings) {
-  const verified = settings.find((s) => s?.title === "Verified")?.value;
-  return verified === true;
-}
 function integrationLikeToRecord(row) {
   return {
     id: row.id,
@@ -21618,6 +21627,7 @@ var init_IntegrationConnectionService = __esm({
     init_allowedExternalImageHosts();
     init_providerProfilePictureFetch();
     init_Logger();
+    init_additionalSettings();
     CACHE_KEYS13 = {
       oauth: {
         login: (state) => `login:${state}`,
@@ -22540,11 +22550,11 @@ var init_NotificationService = __esm({
           notifications
         };
       }
-      async getNotificationsPaginated(authUserId, organizationId, page) {
+      async getNotificationsPaginated(authUserId, organizationId, page, limit = 10) {
         await this.requireActiveMember(authUserId, organizationId);
-        const limit = 100;
-        const batch = await this.notificationRepository.listPaginated(organizationId, page, limit);
-        return { ...batch, page, limit };
+        const pageSize = Math.min(Math.max(limit, 1), 100);
+        const batch = await this.notificationRepository.listPaginated(organizationId, page, pageSize);
+        return { ...batch, page, limit: pageSize };
       }
       /**
        * Programmatic paginated notifications (`GET {api.prefix}/public/notifications`).
@@ -22700,6 +22710,127 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
+function isPlainObject14(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function providerCaptionDisplayName(providerIdentifier) {
+  const id = providerIdentifier.trim().toLowerCase();
+  switch (id) {
+    case "threads":
+      return "Threads";
+    case "x":
+      return "X";
+    case "linkedin":
+      return "LinkedIn";
+    case "linkedin-page":
+      return "LinkedIn Page";
+    case "instagram":
+    case "instagram-business":
+    case "instagram-standalone":
+      return "Instagram";
+    case "facebook":
+      return "Facebook";
+    case "tiktok":
+      return "TikTok";
+    case "youtube":
+      return "YouTube";
+    case "devto":
+      return "Dev.to";
+    default:
+      return providerIdentifier.trim() || "Channel";
+  }
+}
+function pushCaptionText(out, text, label) {
+  if (typeof text !== "string") return;
+  if (!text.trim()) return;
+  out.push({ text, label });
+}
+function measureProviderCaptionLength(providerIdentifier, strippedText) {
+  const text = typeof strippedText === "string" ? strippedText : "";
+  if (providerIdentifier.trim().toLowerCase() === "x") {
+    return twitterText__default.default.parseTweet(text).weightedLength;
+  }
+  return text.length;
+}
+function resolveProviderMaxLength(provider, additionalSettingsJson) {
+  const verified = isVerifiedFromAdditionalSettings(parseAdditionalSettings(additionalSettingsJson));
+  return provider.maxLength(verified);
+}
+function validateProviderCaptionLength(input) {
+  const stripped = stripComposerBodyForEditor(input.provider.editor ?? "normal", input.message ?? "");
+  if (!stripped) return null;
+  const used = measureProviderCaptionLength(input.providerIdentifier, stripped);
+  const max = resolveProviderMaxLength(input.provider, input.additionalSettings);
+  if (used <= max) return null;
+  const label = (input.label ?? `${input.provider.name} caption`).trim() || `${input.provider.name} caption`;
+  return `${label} exceeds ${max} characters (${used}/${max}).`;
+}
+function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSettings, displayName = providerCaptionDisplayName(providerIdentifier)) {
+  const out = [];
+  if (!providerSettings || typeof providerSettings !== "object") return out;
+  const replies = extractFollowUpRepliesFromProviderSettingsObject(providerSettings, providerIdentifier);
+  for (const reply of replies) {
+    pushCaptionText(out, reply.message, `${displayName} follow-up reply`);
+  }
+  const id = providerIdentifier.trim().toLowerCase();
+  if (id === "threads") {
+    const threads = isPlainObject14(providerSettings.threads) ? providerSettings.threads : null;
+    if (threads) {
+      if (threads.enabled === true) {
+        pushCaptionText(out, threads.message, `${displayName} thread finisher`);
+      }
+      const engagement = isPlainObject14(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
+      if (engagement?.enabled === true) {
+        pushCaptionText(out, engagement.message, `${displayName} delayed engagement`);
+      }
+    }
+  }
+  for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
+    const bucketSettings = providerSettings[bucket];
+    if (!isPlainObject14(bucketSettings)) continue;
+    const plugs = bucketSettings.crossAccountPlugs;
+    if (!Array.isArray(plugs)) continue;
+    for (const plug of plugs) {
+      if (!isPlainObject14(plug)) continue;
+      const fields = isPlainObject14(plug.fields) ? plug.fields : null;
+      pushCaptionText(out, fields?.comment, `${displayName} cross-account plug comment`);
+    }
+  }
+  return out;
+}
+function validateScheduledCaptionsForIntegration(input) {
+  const { providerIdentifier, provider, additionalSettings, mainMessage, providerSettings } = input;
+  const shared = { providerIdentifier, provider, additionalSettings };
+  const mainError = validateProviderCaptionLength({
+    ...shared,
+    message: mainMessage,
+    label: `${provider.name} caption`
+  });
+  if (mainError) return mainError;
+  const secondaries = collectCaptionTextsFromProviderSettings(
+    providerIdentifier,
+    providerSettings,
+    provider.name
+  );
+  for (const { text, label } of secondaries) {
+    const error = validateProviderCaptionLength({
+      ...shared,
+      message: text,
+      label
+    });
+    if (error) return error;
+  }
+  return null;
+}
+var CROSS_ACCOUNT_PLUG_BUCKETS;
+var init_validateProviderCaptionLength = __esm({
+  "utils/content/validateProviderCaptionLength.ts"() {
+    init_PostDTO();
+    init_additionalSettings();
+    init_stripComposerBodyForEditor();
+    CROSS_ACCOUNT_PLUG_BUCKETS = ["threads", "x", "linkedin"];
+  }
+});
 
 // utils/posts/crossAccountPublishChannels.ts
 function collectCrossAccountActingIntegrationIds(providerSettingsByIntegrationId) {
@@ -22707,7 +22838,7 @@ function collectCrossAccountActingIntegrationIds(providerSettingsByIntegrationId
   if (!providerSettingsByIntegrationId) return acting;
   for (const [publisherId, settings] of Object.entries(providerSettingsByIntegrationId)) {
     if (!settings || typeof settings !== "object") continue;
-    for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
+    for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS2) {
       const bucketSettings = settings[bucket];
       if (!bucketSettings || typeof bucketSettings !== "object") continue;
       const plugs = bucketSettings.crossAccountPlugs;
@@ -22736,10 +22867,10 @@ function resolvePublishIntegrationIds(input) {
     return true;
   });
 }
-var CROSS_ACCOUNT_PLUG_BUCKETS;
+var CROSS_ACCOUNT_PLUG_BUCKETS2;
 var init_crossAccountPublishChannels = __esm({
   "utils/posts/crossAccountPublishChannels.ts"() {
-    CROSS_ACCOUNT_PLUG_BUCKETS = ["threads", "x", "linkedin"];
+    CROSS_ACCOUNT_PLUG_BUCKETS2 = ["threads", "x", "linkedin"];
   }
 });
 function sleepMs7(ms) {
@@ -22821,6 +22952,7 @@ var init_PostsService = __esm({
     init_PostDTO();
     init_PostDTO();
     init_stripComposerBodyForEditor();
+    init_validateProviderCaptionLength();
     init_crossAccountPublishChannels();
     init_AppError();
     init_ProviderIntegrationErrors();
@@ -22971,6 +23103,7 @@ var init_PostsService = __esm({
         const rows = await this.integrationService.listByOrganization(organizationId);
         const allowed = new Set(rows.filter((r) => r.deleted_at == null).map((r) => r.id));
         const providerByIntegrationId = new Map(rows.map((r) => [r.id, (r.provider_identifier ?? "").toLowerCase()]));
+        const integrationRowById = new Map(rows.map((r) => [r.id, r]));
         const uniqueIds = [...new Set(integrationIds)];
         for (const id of uniqueIds) {
           if (!allowed.has(id)) {
@@ -23004,6 +23137,18 @@ var init_PostsService = __esm({
           if (!provider) continue;
           const rawMessage = isGlobal ? body : bodiesByIntegrationId?.[integrationId] ?? body;
           const publishMessage = publishMessageForIntegration(integrationId);
+          if (status === "scheduled") {
+            const captionError = validateScheduledCaptionsForIntegration({
+              providerIdentifier,
+              provider,
+              additionalSettings: integrationRowById.get(integrationId)?.additional_settings,
+              mainMessage: publishMessage,
+              providerSettings: providerSettingsByIntegrationId?.[integrationId]
+            });
+            if (captionError) {
+              throw new AppError(captionError, 400);
+            }
+          }
           const validationMessage = provider.validateCreatePost?.({
             status,
             mediaCount: mediaCountForIntegration(integrationId),
@@ -31349,7 +31494,8 @@ var init_NotificationController = __esm({
           const data = await this.notificationService.getNotificationsPaginated(
             authUserId,
             opts.organizationId,
-            opts.page ?? 0
+            opts.page ?? 0,
+            opts.limit ?? 10
           );
           res.status(200).json({ success: true, data, message: "Notifications page loaded" });
         } catch (error) {
@@ -34268,10 +34414,18 @@ var notificationPageParser = (value) => {
   }
   return n;
 };
+var notificationLimitParser = (value) => {
+  const n = QueryParsers.number(value);
+  if (n === void 0 || n < 1) {
+    return 10;
+  }
+  return Math.min(n, 100);
+};
 function createNotificationPaginatedQueryParser() {
   return createQueryParser({
     organizationId: QueryParsers.string,
-    page: notificationPageParser
+    page: notificationPageParser,
+    limit: notificationLimitParser
   });
 }
 var publishedListingsRules = combineParsers(
@@ -34448,7 +34602,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-08T08:45:46.176Z",
+  generated: "2026-09-10T04:43:52.334Z",
   routes: [
     {
       path: "/docs",
@@ -34709,6 +34863,12 @@ var routes_manifest_default = {
       type: "public-catalog"
     },
     {
+      path: "/channels/threads",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
       path: "/channels/tiktok",
       priority: 0.8,
       changeFreq: "monthly",
@@ -34758,6 +34918,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/buffer/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34835,6 +35001,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hootsuite/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -34902,6 +35074,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hopper-hq/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hopper-hq/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -34979,6 +35157,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/mixpost/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35046,6 +35230,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openpost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35123,6 +35313,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openquok/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openquok/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35195,6 +35391,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35226,6 +35428,84 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/post-bridge/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/usebard",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35268,6 +35548,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postiz/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35345,6 +35631,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postpeer/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postpeer/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35412,6 +35704,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/recurpost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35489,6 +35787,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/socialclaw/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/socialclaw/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35556,6 +35860,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/typefully/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35633,6 +35943,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/usebard/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/usebard/postiz",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35694,6 +36010,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/postfast",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -36419,6 +36741,12 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/photo-editor/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/photo-editor/tiktok",
       priority: 0.7,
       changeFreq: "monthly",
@@ -36449,6 +36777,12 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/skill-builder/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/skill-builder/tiktok",
       priority: 0.7,
       changeFreq: "monthly",
@@ -36474,6 +36808,12 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/best-time-to-post/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/threads",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
@@ -39178,7 +39518,8 @@ var validateNotificationOrganizationQuery = validateRequest({
   query: notificationOrganizationQuerySchema
 });
 var notificationPaginatedQuerySchema = notificationOrganizationQuerySchema.extend({
-  page: zod.z.coerce.number().int().min(0).default(0)
+  page: zod.z.coerce.number().int().min(0).default(0),
+  limit: zod.z.coerce.number().int().min(1).max(100).default(10)
 });
 var validateNotificationPaginatedQuery = validateRequest({
   query: notificationPaginatedQuerySchema

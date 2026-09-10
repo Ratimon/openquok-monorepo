@@ -11,6 +11,11 @@ export const SHARED_CHANNEL_SEO_KEYWORDS = [
 	'schedule social media posts'
 ] as const;
 
+/** Long-tail MCP phrases for channel, agent×channel, and MCP×channel landing pages. */
+export function buildChannelMcpSeoKeywords(platformLabel: string): readonly [string, string] {
+	return [`${platformLabel} MCP scheduler`, `schedule ${platformLabel} via MCP`];
+}
+
 export type ChannelLandingFaqLinks = ChannelFaqLinks & {
 	humanizer: ToolChannelFaqLinks;
 	skillBuilder: ToolChannelFaqLinks;

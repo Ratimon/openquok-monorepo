@@ -105,7 +105,7 @@ Both **Instagram (Business)** and **Instagram (Standalone)** use the same Conten
 | Story | Set post type to Story; one attachment (max 60 seconds for video) |
 | Trial Reel | Optional trial audience before full publish; graduation **Manual** or **Auto (performance)** |
 | Collaborators | Up to 3 public usernames on feed/Reel posts with **single** media |
-| Text follow-up comments | Schedule comment replies after the root post (text-only on Instagram) |
+| Text follow-up comments | Schedule comment replies after the main post (text-only on Instagram) |
 
 Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, <Badge text="post_type: story" variant="param" /> → Story surface.
 

@@ -137,8 +137,8 @@ Each <Badge text="socialPost" variant="param" /> entry:
 }
 ```
 
-<Callout type="tip" title="Thread platforms">
-<p>On <Badge text="threads" variant="default" /> and <Badge text="x" variant="default" />, the first <Badge text="postsAndComments" variant="param" /> string is the root post; remaining strings map to reply chains. On other providers, extra strings map to provider-specific reply buckets.</p>
+<Callout type="tip">
+<p>On <Badge text="threads" variant="default" /> and <Badge text="x" variant="default" />, the first <Badge text="postsAndComments" variant="param" /> string is the main thread; remaining strings map to reply chains. On other providers, extra strings map to provider-specific reply buckets.</p>
 </Callout>
 
 ### Example input

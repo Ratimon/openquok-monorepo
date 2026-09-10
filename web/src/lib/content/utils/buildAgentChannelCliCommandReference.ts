@@ -116,7 +116,7 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 		},
 		{
 			command: 'openquok posts:create --json ./examples/threads-follow-up-replies.json',
-			description: 'Schedule a root post and follow-up replies'
+			description: 'Schedule a post and follow-up replies'
 		},
 		postsCreateJsonCommand(
 			'threads-follow-up-reply-with-image.json',
@@ -254,7 +254,7 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			description: 'Get X posting rules and character limits'
 		},
 		postsCreateJsonCommand('x-text-only.json', 'Schedule a text-only post on X'),
-		postsCreateJsonCommand('x-follow-up-replies.json', 'Schedule a root post and quote-less reply chain'),
+		postsCreateJsonCommand('x-follow-up-replies.json', 'Schedule a post and quote-less reply chain'),
 		postsCreateJsonCommand(
 			'x-follow-up-reply-with-image.json',
 			'Schedule a follow-up reply with images on x.replies'

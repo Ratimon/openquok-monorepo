@@ -116,7 +116,7 @@ openquok posts:create \
 
 ## Scheduled reply chain
 
-<Badge text="providerSettings.instagram.replies[]" variant="param" /> carries follow-up replies that publish from the same account after the root post. Pass them on <Badge text="posts:create" variant="param" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.instagram.replies[]" variant="param" /> carries follow-up replies that publish from the same account after the main post. Pass them on <Badge text="posts:create" variant="param" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
@@ -141,7 +141,7 @@ openquok posts:create \
 ```
 
 <Callout type="note" title="Reply chain limits">
-<p>The provider caps reply chains at 25 entries and silently drops any reply whose <Badge text="message" variant="param" /> is empty after trimming. <Badge text="delaySeconds" variant="param" /> is floored to a non-negative integer; the first reply is gated on the root post's <Badge text="release_id" variant="param" /> resolving (not <Badge text="missing" variant="default" />).</p>
+<p>The provider caps reply chains at 25 entries and silently drops any reply whose <Badge text="message" variant="param" /> is empty after trimming. <Badge text="delaySeconds" variant="param" /> is floored to a non-negative integer; the first reply is gated on the main post's <Badge text="release_id" variant="param" /> resolving (not <Badge text="missing" variant="default" />).</p>
 </Callout>
 
 ## Cross-post to Threads in a single command

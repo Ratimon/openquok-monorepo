@@ -3,9 +3,13 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
 	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
@@ -22,10 +26,10 @@ export const threadsChannel = {
 	icon: icons.Threads.name,
 	heroTitle: 'Schedule Threads posts, media, and follow-up replies you approve',
 	heroDescription:
-		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, or CLI.',
+		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, CLI, or MCP chat in Cursor and other assistants.',
 	metaTitle: 'Threads Post Scheduler',
 	metaDescription:
-		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media, chain follow-up replies, and publish from the dashboard, API, or CLI.',
+		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media, chain follow-up replies, and publish from the dashboard, API, CLI, or MCP — ask your assistant in chat to schedule while you approve on the calendar.',
 	hubDescription:
 		'500-character posts with media and scheduled follow-up reply chains — conversation-first text on Meta Threads.',
 	keywords: [
@@ -35,7 +39,9 @@ export const threadsChannel = {
 		'Meta Threads scheduling',
 		'Threads content calendar',
 		'Threads API scheduler',
-		'Threads reply scheduler'
+		'Threads reply scheduler',
+		...buildChannelMcpSeoKeywords('Threads'),
+		'Meta Threads MCP'
 	],
 	featureSections: [
 		{
@@ -50,7 +56,7 @@ export const threadsChannel = {
 			subtitle: 'Post editor',
 			title: 'Attach media to Threads posts, queue follow-up replies with delays, before go-live',
 			description:
-				'Compose within Threads\'s 500-character limit, attach a single image, carousel, or video, and queue same-account follow-up replies before the root post goes live — preview the full thread from one draft.',
+				'Compose within Threads\'s 500-character limit, attach a single image, carousel, or video, and queue same-account follow-up replies before the main thread goes live — preview the full thread from one draft.',
 			bentoId: 'threads-post-editor',
 			mediaOnRight: false
 		},
@@ -79,7 +85,7 @@ export const threadsChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Creators & founders',
 			description:
-				'Stay consistent on Threads without daily manual posting. Queue text, images, and reply chains on the calendar while you focus on building.',
+				'Stay consistent on Threads without daily manual posting. Ask agent to schedule, reply and reposts while you focus on building.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -87,7 +93,7 @@ export const threadsChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Social managers',
 			description:
-				'Batch a week of Threads in one sitting, review drafts before they publish, and track views and engagement alongside your other channels.',
+				'Batch a week of Threads, review drafts before they publish, and track engagement alongside your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -95,7 +101,7 @@ export const threadsChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers & agents',
 			description:
-				'Pipe Threads drafts from your backend via the public API or CLI — including follow-up replies under providerSettings — while you keep approval control in the dashboard.',
+				'Pipe Threads drafts from your backend via the public API, CLI, or MCP. You can configure Thread-specific setting eg. follow-up replies.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -116,17 +122,22 @@ export const threadsChannel = {
 		{
 			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				`Yes. The post editor shows the 500-character cap and blocks over-limit text when you schedule from the dashboard. Scheduled posts via the API or CLI are rejected with a clear error when the main caption or any follow-up reply exceeds 500 characters. Drafts saved programmatically may hold longer copy until you shorten it before scheduling. Tighten copy in the ${faqLink(threadsLinks.humanizer.toolChannel, 'Threads humanizer tool')} when you cross-post from longer networks.`
+				`Yes. The post editor shows the 500-character cap and prevent from publishing from the dashboard. Scheduled posts via the API or CLI are rejected with an error when the main caption or any follow-up reply exceeds 500 characters. However, Saving as drafts can save longer copy.`
 		},
 		{
-			title: 'Can I schedule Threads from the API or CLI?',
-			description:
-				`Yes. Use integration UUIDs from your workspace in the ${faqLink(publicFaqHref.publicApi, 'create-post API')} or ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}. Follow-up replies and other provider settings go under providerSettingsByIntegrationId when needed.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('Threads'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect Threads in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliThreads,
+				cliExamplesLabel: 'Threads CLI examples',
+				suffix:
+					'Follow-up replies and Thread-specific settings can also be configured by asking agent in chat.'
+			})
 		},
 		{
 			title: 'Can I cross-post from Threads to Instagram and other channels?',
 			description:
-				`Yes. Compose once in OpenQuok and publish the same idea to Threads, Instagram, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
+				`Yes. Write once in OpenQuok and publish the same idea to Threads, Instagram, X, LinkedIn, TikTok, YouTube, and other connected channels from one workflow. Per-platform captions, aspect ratios, and character limits are applied separately, so each destination gets tailored copy from a single schedule. See ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 		},
 		{
 			title: 'Can I auto-repost evergreen content on Threads?',
@@ -145,10 +156,11 @@ export const threadsChannel = {
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',
-			description:
-				`Yes. Connect Threads during the trial, schedule posts, and explore API access before upgrading to a paid plan that matches your channel and workspace limits. Plan details are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect Threads in our web dashboard'
+			})
 		}
 	],
 	docsPath: THREADS_DOCS_PATH,
-	available: false
+	available: true
 } satisfies PublicChannelLandingPageViewModel;

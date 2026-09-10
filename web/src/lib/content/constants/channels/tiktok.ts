@@ -3,9 +3,17 @@ import { icons } from '$data/icons';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
 import {
 	buildChannelLandingFaqLinks,
+	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
-import { faqLink, faqLinkSelfHostChannelSetup, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	buildChannelFreeTrialFaqDescription,
+	buildChannelProgrammaticSchedulingFaqDescription,
+	buildChannelProgrammaticSchedulingFaqTitle,
+	faqLink,
+	faqLinkSelfHostChannelSetup,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 const TIKTOK_DOCS_PATH = '/docs/social-integration/tiktok';
 const tiktokLinks = buildChannelLandingFaqLinks('tiktok', TIKTOK_DOCS_PATH);
@@ -30,7 +38,8 @@ export const tiktokChannel = {
 		'TikTok content calendar',
 		'TikTok API scheduler',
 		'TikTok photo carousel scheduler',
-		'schedule TikTok posts'
+		'schedule TikTok posts',
+		...buildChannelMcpSeoKeywords('TikTok')
 	],
 	featureSections: [
 		{
@@ -74,15 +83,15 @@ export const tiktokChannel = {
 			iconClass: 'text-rose-400',
 			title: 'App & SaaS Founders',
 			description:
-				'Ship your product while TikTok grows. Queue ai-generated carousels as inbox drafts on the calendar — add trending audio and publish in about a minute a day.',
+				'Ship product while TikTok runs. Queue carousels as inbox drafts and add trending audio before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
 			iconName: icons.CustomizedDrawnLaptop.name,
 			iconClass: 'text-lime-400',
-			title: 'Ticktoker',
+			title: 'TikTok creators',
 			description:
-				'Batch a week of TikTok content in one sitting, review drafts before they publish, and track follower growth alongside your other channels.',
+				'Batch a week of TikTok content, review drafts before publish, and track growth with your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -90,7 +99,7 @@ export const tiktokChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers & agents',
 			description:
-				'Pipe TikTok drafts from your backend via the public API or CLI — including privacy and posting-method settings — while you keep approval control in the dashboard.',
+				'Pipe TikTok drafts via API, CLI, or MCP. Set privacy and posting method per video.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -125,9 +134,14 @@ export const tiktokChannel = {
 				'Not through direct publish. TikTok’s API does not let third-party schedulers attach trending sounds to clips. Use the inbox upload method to queue carousels or videos to your TikTok inbox, then pick trending audio and publish inside the TikTok app in about a minute.'
 		},
 		{
-			title: 'Can I schedule TikTok posts from an AI agent or script?',
-			description:
-				`Yes. After connecting TikTok, use the ${faqLink(publicFaqHref.publicApi, 'Public API')} or ${faqLink(publicFaqHref.cliGettingStarted, 'openquok CLI')} with your workspace token to create scheduled posts with video or image media and flat or nested tiktok provider settings. Agents on ${faqLink(publicFaqHref.agents, 'agent hosts')} can draft; you keep approval in the dashboard.`
+			title: buildChannelProgrammaticSchedulingFaqTitle('TikTok posts'),
+			description: buildChannelProgrammaticSchedulingFaqDescription({
+				connectPhrase: 'Connect TikTok in our web dashboard',
+				cliExamplesHref: publicFaqHref.cliTiktok,
+				cliExamplesLabel: 'TikTok CLI examples',
+				suffix:
+					'Pass flat or nested tiktok provider settings for privacy, posting method, and media.'
+			})
 		},
 		{
 			title: 'Can I cross-post from TikTok to other channels eg. Facebook Reels or YouTube Shorts?',
@@ -151,8 +165,9 @@ export const tiktokChannel = {
 		},
 		{
 			title: 'Is there a free trial for TikTok scheduling?',
-			description:
-				`Yes. New workspaces can start on OpenQuok’s free trial, connect TikTok, and schedule posts during the trial period before choosing a paid plan. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			description: buildChannelFreeTrialFaqDescription({
+				connectPhrase: 'Connect TikTok in our web dashboard'
+			})
 		}
 	],
 	docsPath: TIKTOK_DOCS_PATH,

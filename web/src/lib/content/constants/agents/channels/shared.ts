@@ -1,6 +1,9 @@
 import type { PublicChannelFeatureBentoId } from '$lib/content/constants/publicChannelFeatureBentoConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelMcpSeoKeywords,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
 import {
 	buildAgentChannelAnalyticsCliCommands,
 	buildAgentChannelCliCommandReference,
@@ -68,6 +71,7 @@ export function buildAgentChannelPageConfig(
 			...host.extraKeywords(channel.platformLabel),
 			'openquok-core skill',
 			'agent social media',
+			...buildChannelMcpSeoKeywords(channel.platformLabel),
 			// Prefer channel-specific SEO nouns (posts / series / analytics) over shared generics.
 			...channel.keywords.filter((keyword) => !SHARED_CHANNEL_KEYWORD_SET.has(keyword)).slice(0, 4)
 		],

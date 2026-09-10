@@ -1,7 +1,10 @@
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
 import type { PublicMcpLandingPageViewModel } from '$lib/content/constants/publicMcpConfig';
-import { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
+import {
+	buildChannelMcpSeoKeywords,
+	SHARED_CHANNEL_SEO_KEYWORDS
+} from '$lib/content/constants/channels/shared';
 
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
@@ -45,9 +48,10 @@ export function buildMcpChannelLandingVm(params: {
 		keywords: [
 			`${clientLabel} ${platformLabel} MCP`,
 			`${clientLabel} MCP`,
-			`${platformLabel} MCP scheduler`,
+			...buildChannelMcpSeoKeywords(platformLabel),
 			'OpenQuok MCP',
 			'MCP social media scheduler',
+			'schedule posts via MCP',
 			...channelKeywords
 		],
 		heroTitle: `Schedule ${platformLabel} from ${clientLabel} then you approve`,

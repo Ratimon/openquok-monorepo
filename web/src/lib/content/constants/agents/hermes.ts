@@ -26,6 +26,9 @@ export const hermesAgent = {
 		'Nous Research Hermes',
 		'Hermes CLI posting',
 		'agentic social media',
+		'agentic social media scheduler',
+		'schedule social media via MCP',
+		'Hermes Agent MCP and CLI scheduling',
 		'OpenQuok Hermes integration'
 	],
 	heroTitle: 'Schedule social media from Hermes then you approve',
@@ -49,7 +52,7 @@ export const hermesAgent = {
 			iconClass: 'text-violet-400',
 			title: 'Always-on operators',
 			description:
-				'Run Hermes on a VPS, Docker, SSH, Daytona, or Modal and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
+				'Run Hermes on a VPS or Docker and message from chat. Schedule posts without opening another dashboard.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -57,7 +60,7 @@ export const hermesAgent = {
 			iconClass: 'text-indigo-400',
 			title: 'Developers & builders',
 			description:
-				'Open standard skills, MCP servers, and a terminal toolset — add openquok-core and let Hermes schedule posts with structured JSON.',
+				'Add openquok-core plus MCP servers. Let Hermes schedule posts with structured JSON.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -65,7 +68,7 @@ export const hermesAgent = {
 			iconClass: 'text-fuchsia-400',
 			title: 'Startup founders',
 			description:
-				'Model-agnostic routing across 30+ providers keeps your stack lean — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
+				'Keep approval on the calendar while Hermes handles volume from Telegram, Discord, or Slack.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -279,7 +282,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Hermes uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Hermes publish immediately or wait for approval?',

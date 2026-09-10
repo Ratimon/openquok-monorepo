@@ -25,6 +25,9 @@ export const openclawAgent = {
 		'AI agent social scheduler',
 		'OpenClaw CLI posting',
 		'agentic social media',
+		'agentic social media scheduler',
+		'schedule social media via MCP',
+		'OpenClaw MCP and CLI scheduling',
 		'OpenQuok OpenClaw integration'
 	],
 	heroTitle: 'Schedule social media from OpenClaw then you approve',
@@ -48,7 +51,7 @@ export const openclawAgent = {
 			iconClass: 'text-emerald-400',
 			title: 'Personal AI users',
 			description:
-				'Run OpenClaw on your machine or in a container and message it from the chat apps you already use. Schedule social posts without opening another dashboard.',
+				'Run OpenClaw on your machine and message it from chat. Schedule posts without opening another dashboard.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -56,7 +59,7 @@ export const openclawAgent = {
 			iconClass: 'text-lime-400',
 			title: 'Developers & builders',
 			description:
-				'Fully open source — add openquok-core plus any other skills you want, and let OpenClaw schedule posts with structured JSON.',
+				'Add openquok-core and other skills. Let OpenClaw schedule posts with structured JSON.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -64,7 +67,7 @@ export const openclawAgent = {
 			iconClass: 'text-rose-400',
 			title: 'Startup founders',
 			description:
-				'Our model-agnostic approach keeps your stack lean and flexible — pick the agent and model that fit today, swap when you need to, and schedule across every channel from one workspace.',
+				'Keep approval on the calendar while OpenClaw handles volume from Telegram, WhatsApp, or Slack.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],
@@ -273,7 +276,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. OpenClaw uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does OpenClaw publish immediately or wait for approval?',

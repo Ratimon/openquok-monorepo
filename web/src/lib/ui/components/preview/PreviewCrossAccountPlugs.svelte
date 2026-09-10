@@ -10,7 +10,7 @@
 	type Props = {
 		items: CrossAccountPlugPreviewItem[];
 		variant: 'threads' | 'x' | 'linkedin';
-		/** Threads: connect the vertical thread line from the root post avatar. */
+		/** Threads: connect the vertical thread line from the main post avatar. */
 		threadContinuesFromRoot?: boolean;
 	};
 

@@ -15,12 +15,12 @@
 		delayedEngagementReply?: { message: string; delaySeconds: number } | null;
 		variant: 'threads' | 'instagram' | 'general';
 		/**
-		 * Threads-only: same account as the root post (avatar + name per reply).
+		 * Threads-only: same account as the main post (avatar + name per reply).
 		 * When omitted with variant `threads`, falls back to the simple list (no avatars).
 		 */
 		replyActor?: { displayName: string; picture: string | null } | null;
 		/**
-		 * Threads-only: draw a short vertical segment above the first reply to continue the thread line from the root post avatar.
+		 * Threads-only: draw a short vertical segment above the first reply to continue the thread line from the main post avatar.
 		 */
 		threadContinuesFromRoot?: boolean;
 	};

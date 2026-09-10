@@ -29,7 +29,7 @@ export const warpMcpSeed = {
 				iconClass: 'text-violet-400',
 				title: 'Vibecoders & shippers',
 				description:
-					'When a build or deploy fails, ask Warp AI about the error right in the terminal — no copy-pasting stack traces into another chat window.',
+					'Ask Warp AI about build errors in the terminal — no copy-pasting stack traces into another chat.',
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
@@ -37,7 +37,7 @@ export const warpMcpSeed = {
 				iconClass: 'text-fuchsia-400',
 				title: 'Terminal-first developers',
 				description:
-					'Block-based output, a built-in editor, and natural-language commands — fix code and run OpenQuok MCP tools without jumping to a separate IDE.',
+					'Fix code and run OpenQuok MCP tools in one window — no separate IDE.',
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
@@ -45,7 +45,7 @@ export const warpMcpSeed = {
 				iconClass: 'text-teal-400',
 				title: 'Startup founders',
 				description:
-					'Schedule across Facebook, Instagram, Threads, YouTube, and TikTok from the same terminal where you ship — approve on the calendar or kanban before anything goes live.',
+					'Schedule across channels from the same terminal where you ship. Approve on the calendar before publish.',
 				containerClass: 'h-full min-h-[18rem]'
 			}
 		],
@@ -102,7 +102,7 @@ export const warpMcpSeed = {
 			},
 			{
 				title: 'Which social platforms are supported?',
-				description: `YouTube, TikTok, LinkedIn, and X are available today. Facebook, Instagram, and Threads are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+				description: `YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 			}
 		]
 	}
