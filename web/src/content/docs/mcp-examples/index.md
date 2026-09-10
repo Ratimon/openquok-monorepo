@@ -1,8 +1,8 @@
 ---
 title: Overview - MCP Examples
-description: OpenQuok MCP agent workflows — prompts and  payloads, organized by social platform.
+description: OpenQuok MCP agent workflows — prompts and payloads for scheduling, post management, analytics, plugs, and per-platform recipes.
 order: 0
-lastUpdated: 2026-06-26
+lastUpdated: 2026-09-10
 ---
 
 <script>
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## What is in this section
 
-Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what you can **ask your agent** in plain language and the <Badge text="schedulePostTool" variant="default" /> / <Badge text="triggerTool" variant="default" /> payloads the agent builds behind the scenes.
+Copy-pasteable recipes for AI agents using OpenQuok MCP. Each page shows what you can **ask your agent** in plain language and the tool payloads the agent builds behind the scenes — <Badge text="schedulePostTool" variant="default" />, <Badge text="postsList" variant="default" />, <Badge text="analyticsPost" variant="default" />, <Badge text="plugsUpsert" variant="default" />, and more.
 
 <Callout type="note">
 <p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>LinkedIn</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
@@ -79,6 +79,31 @@ Each item in <Badge text="socialPost" variant="param" /> is an independent post 
 
 Repeat with different <Badge text="date" variant="param" /> values (or ask the agent to batch multiple entries in one <Badge text="schedulePostTool" variant="default" /> call).
 
+## List and manage posts
+
+> Show me all scheduled posts for the next two weeks.
+
+The agent calls <Badge text="postsList" variant="default" /> with <Badge text="start" variant="param" /> and <Badge text="end" variant="param" /> ISO timestamps. Use <Badge text="postsStatus" variant="default" /> to flip a row between draft and scheduled, <Badge text="postsDelete" variant="default" /> to remove it, or <Badge text="postsReviewTodo" variant="default" /> to set a kanban review note.
+
+> Find a free slot on my Threads channel next week.
+
+The agent calls <Badge text="postsFindSlot" variant="default" /> with the channel UUID, then passes the returned <Badge text="date" variant="param" /> into <Badge text="schedulePostTool" variant="default" />.
+
+## Per-post analytics
+
+> How did my Threads post from last Tuesday perform over the last 30 days?
+
+1. Call <Badge text="postsList" variant="default" /> to find the <Badge text="postId" variant="param" />.
+2. Call <Badge text="analyticsPost" variant="default" /> with <Badge text="days: 30" variant="param" />.
+
+If <Badge text="release_id" variant="param" /> is <Badge text="missing" variant="default" />, call <Badge text="postsMissing" variant="default" /> then <Badge text="postsConnect" variant="default" /> before analytics will return data.
+
+## Global plugs
+
+> Create a global plug on my X channel that auto-replies when a post hits 50 likes.
+
+See <a href="/docs/mcp-examples/threads">MCP examples — Threads</a>, <a href="/docs/mcp-examples/x">X</a>, and <a href="/docs/mcp-examples/linkedin">LinkedIn</a> for <Badge text="plugsCatalog" variant="default" /> → <Badge text="plugsUpsert" variant="default" /> walkthroughs. Global plugs are supported on Threads, X, and LinkedIn Page only. Cross-account comments on create use <Badge text="schedulePostTool.settings" variant="param" /> instead — see <a href="/docs/mcp-examples/threads">Threads cross-account example</a>.
+
 ## Conventions used in these pages
 
 - Replace <Badge text="&lt;integration-id&gt;" variant="param" /> (and suffixed variants like <Badge text="&lt;threads-integration-id&gt;" variant="param" />) with UUIDs from <Badge text="integrationList" variant="default" />.
@@ -96,8 +121,8 @@ Repeat with different <Badge text="date" variant="param" /> values (or ask the a
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="MCP introduction" description="Endpoints, authentication, and the five v1 tools" href="/docs/getting-started-for-mcp" />
-<LinkCard title="Tools reference" description="Full input tables for schedulePostTool and triggerTool" href="/docs/mcp-references/tools" />
+<LinkCard title="MCP introduction" description="Endpoints, authentication, and list → schedule → manage workflows" href="/docs/getting-started-for-mcp" />
+<LinkCard title="Tools reference" description="Full input tables for every MCP tool" href="/docs/mcp-references/tools" />
 <LinkCard title="Client setup" description="Connect Cursor, Claude Code, or Codex to OpenQuok MCP" href="/docs/getting-started-for-mcp/setup" />
 <LinkCard title="CLI examples" description="The same workflows with the openquok CLI" href="/docs/cli-examples" />
 </CardGrid>

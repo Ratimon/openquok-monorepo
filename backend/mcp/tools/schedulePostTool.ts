@@ -13,8 +13,21 @@ import {
 
 const socialPostSchema = z.object({
     integration: z.string(),
-    postsAndComments: z.array(z.string()).optional(),
-    settings: z.record(z.unknown()).optional(),
+    postsAndComments: z
+        .array(z.string())
+        .optional()
+        .describe(
+            "Post body; extra strings are same-account reply chains (threads/x) or provider comment chains — not cross-account plugs."
+        ),
+    settings: z
+        .record(z.unknown())
+        .optional()
+        .describe(
+            "Provider compose settings on the publishing channel (same keys as REST providerSettingsByIntegrationId). " +
+                "Use threads.internalEngagementPlug for same-account engagement replies; " +
+                "threads.crossAccountPlugs, x.crossAccountPlugs, or linkedin.crossAccountPlugs for cross-account comments/reposts " +
+                "(acting channel UUIDs from integrationList)."
+        ),
     attachments: z.array(z.string()).optional(),
 });
 
@@ -30,7 +43,12 @@ export function registerSchedulePostTool(
         "schedulePostTool",
         {
             description:
-                "Create or schedule social posts across connected channels. Supports draft, schedule, and publish-now modes.",
+                "Create or schedule social posts across connected channels (draft, schedule, publish-now). " +
+                "Per socialPost entry: publishing channel UUID, postsAndComments (first string is the main body; " +
+                "additional strings are same-account reply chains only), optional settings (REST providerSettingsByIntegrationId), " +
+                "optional attachments (public HTTPS URLs). Put cross-account comments/reposts in settings on the publisher — " +
+                "threads.crossAccountPlugs, threads.internalEngagementPlug, x.crossAccountPlugs, linkedin.crossAccountPlugs — " +
+                "with acting channel UUIDs from integrationList, not extra postsAndComments strings.",
             inputSchema: {
                 type: z.enum(["draft", "schedule", "now"]).describe("draft | schedule | now"),
                 date: z.string().optional().describe("ISO-8601 time when type is schedule"),

@@ -90,6 +90,47 @@ describe("schedulePostTool.adapter", () => {
                 url: "https://example.com",
             });
         });
+
+        it("keeps threads.crossAccountPlugs when merging reply buckets", () => {
+            const actingIntegrationId = faker.string.uuid();
+            const crossAccountPlugs = [
+                {
+                    plugName: "threads-cross-account-comment",
+                    enabled: true,
+                    delayMs: 120_000,
+                    integrationIds: [actingIntegrationId],
+                    fields: { comment: "Great thread!" },
+                },
+            ];
+            const merged = mergeProviderSettings(
+                {
+                    threads: {
+                        crossAccountPlugs,
+                        internalEngagementPlug: {
+                            enabled: true,
+                            message: "Questions?",
+                            delaySeconds: 300,
+                        },
+                    },
+                },
+                {
+                    threads: {
+                        replies: [{ id: "r1", message: "Same-account reply", delaySeconds: 0 }],
+                    },
+                }
+            );
+            expect(merged).toEqual({
+                threads: {
+                    crossAccountPlugs,
+                    internalEngagementPlug: {
+                        enabled: true,
+                        message: "Questions?",
+                        delaySeconds: 300,
+                    },
+                    replies: [{ id: "r1", message: "Same-account reply", delaySeconds: 0 }],
+                },
+            });
+        });
     });
 
     describe("mapSchedulePostToolInput", () => {
@@ -135,6 +176,98 @@ describe("schedulePostTool.adapter", () => {
                 }),
             });
             expect(mapped.createInput.isAgent).toBe(true);
+        });
+
+        it("preserves threads plugs and reply chains in provider settings", () => {
+            const actingIntegrationId = faker.string.uuid();
+            const crossAccountPlugs = [
+                {
+                    plugName: "threads-cross-account-comment",
+                    enabled: true,
+                    delayMs: 120_000,
+                    integrationIds: [actingIntegrationId],
+                    fields: { comment: "Sharing from our other account." },
+                },
+            ];
+
+            const mapped = mapSchedulePostToolInput({
+                input: {
+                    type: "schedule",
+                    date: "2026-06-25T12:00:00.000Z",
+                    socialPost: [
+                        {
+                            integration: threadsIntegrationId,
+                            postsAndComments: ["Main thread", "Same-account follow-up"],
+                            settings: {
+                                threads: {
+                                    crossAccountPlugs,
+                                    internalEngagementPlug: {
+                                        enabled: true,
+                                        message: "Reply here with questions.",
+                                        delaySeconds: 300,
+                                    },
+                                },
+                            },
+                        },
+                    ],
+                },
+                integrationProviderById: {
+                    [threadsIntegrationId]: "threads",
+                },
+                mediaByIntegrationId: {},
+            });
+
+            expect(mapped.createInput.providerSettingsByIntegrationId?.[threadsIntegrationId]).toMatchObject({
+                threads: {
+                    crossAccountPlugs,
+                    internalEngagementPlug: {
+                        enabled: true,
+                        message: "Reply here with questions.",
+                        delaySeconds: 300,
+                    },
+                    replies: [expect.objectContaining({ message: "Same-account follow-up" })],
+                },
+            });
+        });
+
+        it("preserves x.crossAccountPlugs when mapping reply chains", () => {
+            const xIntegrationId = faker.string.uuid();
+            const actingIntegrationId = faker.string.uuid();
+            const crossAccountPlugs = [
+                {
+                    plugName: "x-repost-post-users",
+                    enabled: true,
+                    delayMs: 0,
+                    integrationIds: [actingIntegrationId],
+                    fields: {},
+                },
+            ];
+
+            const mapped = mapSchedulePostToolInput({
+                input: {
+                    type: "draft",
+                    socialPost: [
+                        {
+                            integration: xIntegrationId,
+                            postsAndComments: ["Root tweet", "Thread reply"],
+                            settings: {
+                                x: { crossAccountPlugs },
+                            },
+                        },
+                    ],
+                },
+                integrationProviderById: {
+                    [xIntegrationId]: "x",
+                },
+                mediaByIntegrationId: {},
+            });
+
+            expect(mapped.createInput.providerSettingsByIntegrationId?.[xIntegrationId]).toEqual({
+                x: {
+                    crossAccountPlugs,
+                    replies: [expect.objectContaining({ message: "Thread reply" })],
+                },
+            });
         });
     });
 

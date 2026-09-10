@@ -86,7 +86,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'youtube',
 	'agents',
 	'Dev.to',
-	'X'
+	'X',
 	'editor',
 	'hermes',
 	'prompt',

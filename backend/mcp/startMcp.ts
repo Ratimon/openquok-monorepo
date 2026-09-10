@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { config } from "../config/GlobalConfig";
 import { organizationRepository } from "../repositories/index";
 import {
+    analyticsService,
     integrationConnectionService,
     integrationManager,
     oauthAppService,
@@ -28,6 +29,7 @@ const mcpServerDeps = {
     integrationConnectionService,
     integrationManager,
     postsService,
+    analyticsService,
     mediaUploadDeps: {
         mediaService,
         subscriptionService,

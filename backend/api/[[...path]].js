@@ -32973,6 +32973,84 @@ var init_context = __esm({
   }
 });
 
+// mcp/tools/mcpJsonResult.ts
+function mcpJsonResult(data) {
+  return {
+    content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+    structuredContent: data
+  };
+}
+var init_mcpJsonResult = __esm({
+  "mcp/tools/mcpJsonResult.ts"() {
+  }
+});
+function registerAnalyticsPlatformTool(server2, deps) {
+  server2.registerTool(
+    "analyticsPlatform",
+    {
+      description: "Platform-level metrics for a connected channel. days must be 7, 30, or 90.",
+      inputSchema: {
+        integrationId: zod.z.string().describe("Connected channel id from integrationList"),
+        days: daysSchema.describe("Lookback window in days: 7, 30, or 90")
+      }
+    },
+    async ({ integrationId, days }) => {
+      const channelId = integrationId?.trim();
+      if (!channelId) {
+        throw new Error("integrationId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.analyticsService.getIntegrationAnalyticsProgrammatic({
+        organizationId,
+        integrationId: channelId,
+        date: days
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var daysSchema;
+var init_analyticsPlatform = __esm({
+  "mcp/tools/analyticsPlatform.ts"() {
+    init_context();
+    init_mcpJsonResult();
+    daysSchema = zod.z.union([zod.z.literal(7), zod.z.literal(30), zod.z.literal(90)]);
+  }
+});
+function registerAnalyticsPostTool(server2, deps) {
+  server2.registerTool(
+    "analyticsPost",
+    {
+      description: "Per-post metrics for a published post row. days must be 7, 30, or 90. Empty for drafts.",
+      inputSchema: {
+        postId: zod.z.string().describe("Published post row id"),
+        days: daysSchema2.describe("Lookback window in days: 7, 30, or 90")
+      }
+    },
+    async ({ postId, days }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.postsService.checkPostAnalyticsProgrammatic({
+        organizationId,
+        postId: id,
+        dateWindowDays: days
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var daysSchema2;
+var init_analyticsPost = __esm({
+  "mcp/tools/analyticsPost.ts"() {
+    init_context();
+    init_mcpJsonResult();
+    daysSchema2 = zod.z.union([zod.z.literal(7), zod.z.literal(30), zod.z.literal(90)]);
+  }
+});
+
 // mcp/tools/groupList.ts
 function registerGroupListTool(server2, deps) {
   server2.registerTool(
@@ -33062,53 +33140,392 @@ var init_integrationSchema = __esm({
   "mcp/tools/integrationSchema.ts"() {
   }
 });
-function registerTriggerTool(server2, deps) {
+function registerPlugsActivateTool(server2, deps) {
   server2.registerTool(
-    "triggerTool",
+    "plugsActivate",
     {
-      description: "Invoke an allow-listed provider method on a connected channel (same as POST /public/integration-trigger/:id).",
+      description: "Enable or disable a saved global plug rule.",
       inputSchema: {
-        integration: zod.z.string().optional().describe("Connected channel id (alias: integrationId)"),
-        integrationId: zod.z.string().optional().describe("Connected channel id from integrationList"),
-        methodName: zod.z.string().describe("Provider tool method name from integrationSchema"),
-        data: zod.z.record(zod.z.unknown()).optional().describe("Payload passed to the provider method"),
-        dataSchema: zod.z.array(
-          zod.z.object({
-            key: zod.z.string().describe("Parameter name"),
-            value: zod.z.string().describe("Parameter value")
-          })
-        ).optional().describe("Key-value parameters (alternative to data)")
+        plugId: zod.z.string().describe("Plug row id from plugsList"),
+        activated: zod.z.boolean().describe("true to enable, false to disable")
       }
     },
-    async ({ integration, integrationId, methodName, data, dataSchema }) => {
-      const channelId = (integration ?? integrationId)?.trim();
-      if (!channelId) {
-        throw new Error("integration or integrationId is required");
-      }
-      let payload = data ?? {};
-      if (dataSchema?.length) {
-        payload = dataSchema.reduce((acc, entry) => {
-          acc[entry.key] = entry.value;
-          return acc;
-        }, {});
+    async ({ plugId, activated }) => {
+      const id = plugId?.trim();
+      if (!id) {
+        throw new Error("plugId is required");
       }
       const { organizationId } = getMcpContext();
-      const result = await deps.integrationConnectionService.triggerIntegrationTool(
+      const data = await deps.integrationConnectionService.publicSetIntegrationPlugActivated(
         organizationId,
-        channelId,
-        methodName,
-        payload
+        id,
+        activated
       );
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-        structuredContent: result
-      };
+      return mcpJsonResult(data);
     }
   );
 }
-var init_triggerTool = __esm({
-  "mcp/tools/triggerTool.ts"() {
+var init_plugsActivate = __esm({
+  "mcp/tools/plugsActivate.ts"() {
     init_context();
+    init_mcpJsonResult();
+  }
+});
+
+// mcp/tools/plugsCatalog.ts
+function registerPlugsCatalogTool(server2, deps) {
+  server2.registerTool(
+    "plugsCatalog",
+    {
+      description: "List global plug types and field names per provider (like-threshold auto-reply/repost rules)."
+    },
+    async () => {
+      const data = deps.integrationConnectionService.getPlugCatalog();
+      return mcpJsonResult(data);
+    }
+  );
+}
+var init_plugsCatalog = __esm({
+  "mcp/tools/plugsCatalog.ts"() {
+    init_mcpJsonResult();
+  }
+});
+function registerPlugsDeleteTool(server2, deps) {
+  server2.registerTool(
+    "plugsDelete",
+    {
+      description: "Delete a saved global plug rule.",
+      inputSchema: {
+        plugId: zod.z.string().describe("Plug row id from plugsList")
+      }
+    },
+    async ({ plugId }) => {
+      const id = plugId?.trim();
+      if (!id) {
+        throw new Error("plugId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.integrationConnectionService.publicDeleteIntegrationPlug(organizationId, id);
+      return mcpJsonResult(data);
+    }
+  );
+}
+var init_plugsDelete = __esm({
+  "mcp/tools/plugsDelete.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPlugsListTool(server2, deps) {
+  server2.registerTool(
+    "plugsList",
+    {
+      description: "List saved global plug rules on a connected channel.",
+      inputSchema: {
+        integrationId: zod.z.string().describe("Connected channel id from integrationList")
+      }
+    },
+    async ({ integrationId }) => {
+      const channelId = integrationId?.trim();
+      if (!channelId) {
+        throw new Error("integrationId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const plugs = await deps.integrationConnectionService.publicListIntegrationPlugs(
+        organizationId,
+        channelId
+      );
+      return mcpJsonResult({ plugs });
+    }
+  );
+}
+var init_plugsList = __esm({
+  "mcp/tools/plugsList.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPlugsUpsertTool(server2, deps) {
+  server2.registerTool(
+    "plugsUpsert",
+    {
+      description: "Create or update a global plug rule on a connected channel (func + fields).",
+      inputSchema: {
+        integrationId: zod.z.string().describe("Connected channel id from integrationList"),
+        func: zod.z.string().describe("Plug function name from plugsCatalog"),
+        fields: zod.z.array(plugFieldSchema).describe("Plug field values"),
+        plugId: zod.z.string().optional().describe("Existing plug row id to update")
+      }
+    },
+    async ({ integrationId, func, fields, plugId }) => {
+      const channelId = integrationId?.trim();
+      const funcName = func?.trim();
+      if (!channelId) {
+        throw new Error("integrationId is required");
+      }
+      if (!funcName) {
+        throw new Error("func is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.integrationConnectionService.publicUpsertIntegrationPlug(
+        organizationId,
+        channelId,
+        {
+          func: funcName,
+          fields,
+          plugId: plugId?.trim() || void 0
+        }
+      );
+      return mcpJsonResult(data);
+    }
+  );
+}
+var plugFieldSchema;
+var init_plugsUpsert = __esm({
+  "mcp/tools/plugsUpsert.ts"() {
+    init_context();
+    init_mcpJsonResult();
+    plugFieldSchema = zod.z.object({
+      name: zod.z.string().min(1),
+      value: zod.z.string()
+    });
+  }
+});
+function registerPostsConnectTool(server2, deps) {
+  server2.registerTool(
+    "postsConnect",
+    {
+      description: "Link a post row to a provider release_id for per-post analytics.",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id"),
+        releaseId: zod.z.string().describe("Provider release id from postsMissing candidates")
+      }
+    },
+    async ({ postId, releaseId }) => {
+      const id = postId?.trim();
+      const release = releaseId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      if (!release) {
+        throw new Error("releaseId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const data = await deps.postsService.updatePostReleaseIdProgrammatic({
+        organizationId,
+        postId: id,
+        releaseId: release
+      });
+      return mcpJsonResult({ success: true, data });
+    }
+  );
+}
+var init_postsConnect = __esm({
+  "mcp/tools/postsConnect.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPostsDeleteTool(server2, deps) {
+  server2.registerTool(
+    "postsDelete",
+    {
+      description: "Delete a post row by id.",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id to delete")
+      }
+    },
+    async ({ postId }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const result = await deps.postsService.deletePostByIdProgrammatic(id, organizationId);
+      return mcpJsonResult({ success: true, data: result });
+    }
+  );
+}
+var init_postsDelete = __esm({
+  "mcp/tools/postsDelete.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPostsFindSlotTool(server2, deps) {
+  server2.registerTool(
+    "postsFindSlot",
+    {
+      description: "Suggest a free schedule slot for the workspace or a specific connected channel.",
+      inputSchema: {
+        integrationId: zod.z.string().optional().describe("Connected channel id from integrationList; omit to consider all channels")
+      }
+    },
+    async ({ integrationId }) => {
+      const { organizationId } = getMcpContext();
+      const channelId = typeof integrationId === "string" && integrationId.trim() ? integrationId.trim() : null;
+      const date = await deps.postsService.findFreeSlotProgrammatic(organizationId, channelId);
+      return mcpJsonResult({ success: true, data: { date } });
+    }
+  );
+}
+var init_postsFindSlot = __esm({
+  "mcp/tools/postsFindSlot.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function localCalendarDaysFromNowIso(dayDelta) {
+  const d = /* @__PURE__ */ new Date();
+  d.setDate(d.getDate() + dayDelta);
+  return d.toISOString();
+}
+function registerPostsListTool(server2, deps) {
+  server2.registerTool(
+    "postsList",
+    {
+      description: "List posts in a date window for the workspace (optional integration ids or channel group). Default window matches the public list API.",
+      inputSchema: {
+        start: zod.z.string().optional().describe("Start ISO timestamp. Default: 30 local calendar days before today."),
+        end: zod.z.string().optional().describe("End ISO timestamp. Default: 30 local calendar days after today."),
+        integrationIds: zod.z.array(zod.z.string()).optional().describe("Optional connected channel ids to filter by"),
+        customerGroupId: zod.z.string().optional().describe("Optional channel group id from groupList")
+      }
+    },
+    async ({ start, end, integrationIds, customerGroupId }) => {
+      const { organizationId } = getMcpContext();
+      const startIso = typeof start === "string" && start.trim() ? start.trim() : localCalendarDaysFromNowIso(-30);
+      const endIso = typeof end === "string" && end.trim() ? end.trim() : localCalendarDaysFromNowIso(30);
+      const integrationIdsNorm = integrationIds?.map((id) => id.trim()).filter(Boolean).length ? integrationIds.map((id) => id.trim()).filter(Boolean) : null;
+      const groupId = typeof customerGroupId === "string" && customerGroupId.trim() ? customerGroupId.trim() : void 0;
+      const rows = await deps.postsService.listPostsForCalendarProgrammatic({
+        organizationId,
+        startIso,
+        endIso,
+        integrationIds: integrationIdsNorm,
+        customerGroupId: groupId
+      });
+      return mcpJsonResult({
+        success: true,
+        data: { posts: PostDTOMapper.toDTOCollection(rows) }
+      });
+    }
+  );
+}
+var init_postsList = __esm({
+  "mcp/tools/postsList.ts"() {
+    init_PostDTO();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPostsMissingTool(server2, deps) {
+  server2.registerTool(
+    "postsMissing",
+    {
+      description: "List provider candidates when a published post is missing release_id (needed before per-post analytics).",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id with release_id missing")
+      }
+    },
+    async ({ postId }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const items = await deps.postsService.getMissingPublishCandidatesProgrammatic({
+        organizationId,
+        postId: id
+      });
+      return mcpJsonResult({ success: true, data: { items } });
+    }
+  );
+}
+var init_postsMissing = __esm({
+  "mcp/tools/postsMissing.ts"() {
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPostsReviewTodoTool(server2, deps) {
+  server2.registerTool(
+    "postsReviewTodo",
+    {
+      description: "Set or update the review-todo note on a post row.",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id"),
+        note: zod.z.string().nullable().optional().describe("Kanban review note"),
+        isReviewed: zod.z.boolean().optional().describe("Mark the review todo as complete"),
+        kanbanManualFinishAcknowledged: zod.z.boolean().optional().describe("Acknowledge manual kanban finish for the post group")
+      }
+    },
+    async ({ postId, note, isReviewed, kanbanManualFinishAcknowledged }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const { organizationId } = getMcpContext();
+      const rows = await deps.postsService.updatePostReviewTodoProgrammatic({
+        organizationId,
+        postId: id,
+        note,
+        isReviewed,
+        isAgent: true,
+        kanbanManualFinishAcknowledged
+      });
+      return mcpJsonResult({
+        success: true,
+        data: { posts: PostDTOMapper.toDTOCollection(rows) }
+      });
+    }
+  );
+}
+var init_postsReviewTodo = __esm({
+  "mcp/tools/postsReviewTodo.ts"() {
+    init_PostDTO();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
+function registerPostsStatusTool(server2, deps) {
+  server2.registerTool(
+    "postsStatus",
+    {
+      description: "Flip a post row between draft and scheduled at the stored publish time.",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id from postsList or schedulePostTool"),
+        status: zod.z.enum(["draft", "schedule", "scheduled"]).describe("draft | schedule | scheduled (schedule and scheduled both mean scheduled)")
+      }
+    },
+    async ({ postId, status }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const normalizedStatus = status === "draft" ? "draft" : "scheduled";
+      const result = await deps.postsService.flipPostGroupStatusByPostIdProgrammatic(
+        id,
+        organizationId,
+        normalizedStatus,
+        publicUserId
+      );
+      return mcpJsonResult({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    }
+  );
+}
+var init_postsStatus = __esm({
+  "mcp/tools/postsStatus.ts"() {
+    init_PostDTO();
+    init_context();
+    init_mcpJsonResult();
   }
 });
 
@@ -33328,7 +33745,7 @@ function registerSchedulePostTool(server2, deps) {
   server2.registerTool(
     "schedulePostTool",
     {
-      description: "Create or schedule social posts across connected channels. Supports draft, schedule, and publish-now modes.",
+      description: "Create or schedule social posts across connected channels (draft, schedule, publish-now). Per socialPost entry: publishing channel UUID, postsAndComments (first string is the main body; additional strings are same-account reply chains only), optional settings (REST providerSettingsByIntegrationId), optional attachments (public HTTPS URLs). Put cross-account comments/reposts in settings on the publisher \u2014 threads.crossAccountPlugs, threads.internalEngagementPlug, x.crossAccountPlugs, linkedin.crossAccountPlugs \u2014 with acting channel UUIDs from integrationList, not extra postsAndComments strings.",
       inputSchema: {
         type: zod.z.enum(["draft", "schedule", "now"]).describe("draft | schedule | now"),
         date: zod.z.string().optional().describe("ISO-8601 time when type is schedule"),
@@ -33381,17 +33798,97 @@ var init_schedulePostTool = __esm({
     init_schedulePostTool_adapter();
     socialPostSchema = zod.z.object({
       integration: zod.z.string(),
-      postsAndComments: zod.z.array(zod.z.string()).optional(),
-      settings: zod.z.record(zod.z.unknown()).optional(),
+      postsAndComments: zod.z.array(zod.z.string()).optional().describe(
+        "Post body; extra strings are same-account reply chains (threads/x) or provider comment chains \u2014 not cross-account plugs."
+      ),
+      settings: zod.z.record(zod.z.unknown()).optional().describe(
+        "Provider compose settings on the publishing channel (same keys as REST providerSettingsByIntegrationId). Use threads.internalEngagementPlug for same-account engagement replies; threads.crossAccountPlugs, x.crossAccountPlugs, or linkedin.crossAccountPlugs for cross-account comments/reposts (acting channel UUIDs from integrationList)."
+      ),
       attachments: zod.z.array(zod.z.string()).optional()
     });
+  }
+});
+function registerTriggerTool(server2, deps) {
+  server2.registerTool(
+    "triggerTool",
+    {
+      description: "Invoke an allow-listed provider method on a connected channel (same as POST /public/integration-trigger/:id).",
+      inputSchema: {
+        integration: zod.z.string().optional().describe("Connected channel id (alias: integrationId)"),
+        integrationId: zod.z.string().optional().describe("Connected channel id from integrationList"),
+        methodName: zod.z.string().describe("Provider tool method name from integrationSchema"),
+        data: zod.z.record(zod.z.unknown()).optional().describe("Payload passed to the provider method"),
+        dataSchema: zod.z.array(
+          zod.z.object({
+            key: zod.z.string().describe("Parameter name"),
+            value: zod.z.string().describe("Parameter value")
+          })
+        ).optional().describe("Key-value parameters (alternative to data)")
+      }
+    },
+    async ({ integration, integrationId, methodName, data, dataSchema }) => {
+      const channelId = (integration ?? integrationId)?.trim();
+      if (!channelId) {
+        throw new Error("integration or integrationId is required");
+      }
+      let payload = data ?? {};
+      if (dataSchema?.length) {
+        payload = dataSchema.reduce((acc, entry) => {
+          acc[entry.key] = entry.value;
+          return acc;
+        }, {});
+      }
+      const { organizationId } = getMcpContext();
+      const result = await deps.integrationConnectionService.triggerIntegrationTool(
+        organizationId,
+        channelId,
+        methodName,
+        payload
+      );
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        structuredContent: result
+      };
+    }
+  );
+}
+var init_triggerTool = __esm({
+  "mcp/tools/triggerTool.ts"() {
+    init_context();
+  }
+});
+function registerUploadFromUrlTool(server2, deps) {
+  server2.registerTool(
+    "uploadFromUrl",
+    {
+      description: "Fetch a public HTTPS image or video URL into workspace media and return id and path for schedulePostTool.",
+      inputSchema: {
+        url: zod.z.string().describe("Public http(s) URL to fetch and store as workspace media")
+      }
+    },
+    async ({ url }) => {
+      const trimmed = url?.trim();
+      if (!trimmed) {
+        throw new Error("url is required");
+      }
+      const { organizationId } = getMcpContext();
+      const saved = await uploadProgrammaticMediaFromUrl(organizationId, trimmed, deps.mediaUploadDeps);
+      return mcpJsonResult(saved);
+    }
+  );
+}
+var init_uploadFromUrl = __esm({
+  "mcp/tools/uploadFromUrl.ts"() {
+    init_uploadProgrammaticMediaFromUrl();
+    init_context();
+    init_mcpJsonResult();
   }
 });
 function createMcpServer(deps) {
   const server2 = new mcp_js.McpServer(
     { name: "openquok", version: "1.0.0" },
     {
-      instructions: "OpenQuok MCP tools schedule and manage social posts for the authenticated workspace. Call groupList when channels are grouped, integrationList to discover connected channels, integrationSchema for platform rules, then schedulePostTool to draft or schedule content."
+      instructions: "OpenQuok MCP tools schedule and manage social posts for the authenticated workspace. Call groupList when channels are grouped, integrationList to discover connected channels, integrationSchema for platform rules, then schedulePostTool to draft or schedule content. Use postsList, postsStatus, and related tools to manage posts; analyticsPlatform and analyticsPost for metrics; plugsCatalog through plugsDelete for global plug rules; uploadFromUrl for remote media."
     }
   );
   registerGroupListTool(server2, deps);
@@ -33399,15 +33896,45 @@ function createMcpServer(deps) {
   registerIntegrationSchemaTool(server2, deps);
   registerTriggerTool(server2, deps);
   registerSchedulePostTool(server2, deps);
+  registerUploadFromUrlTool(server2, deps);
+  registerPostsListTool(server2, deps);
+  registerPostsFindSlotTool(server2, deps);
+  registerPostsStatusTool(server2, deps);
+  registerPostsReviewTodoTool(server2, deps);
+  registerPostsDeleteTool(server2, deps);
+  registerPostsMissingTool(server2, deps);
+  registerPostsConnectTool(server2, deps);
+  registerAnalyticsPlatformTool(server2, deps);
+  registerAnalyticsPostTool(server2, deps);
+  registerPlugsCatalogTool(server2, deps);
+  registerPlugsListTool(server2, deps);
+  registerPlugsUpsertTool(server2, deps);
+  registerPlugsActivateTool(server2, deps);
+  registerPlugsDeleteTool(server2, deps);
   return server2;
 }
 var init_createMcpServer = __esm({
   "mcp/createMcpServer.ts"() {
+    init_analyticsPlatform();
+    init_analyticsPost();
     init_groupList();
     init_integrationList();
     init_integrationSchema();
-    init_triggerTool();
+    init_plugsActivate();
+    init_plugsCatalog();
+    init_plugsDelete();
+    init_plugsList();
+    init_plugsUpsert();
+    init_postsConnect();
+    init_postsDelete();
+    init_postsFindSlot();
+    init_postsList();
+    init_postsMissing();
+    init_postsReviewTodo();
+    init_postsStatus();
     init_schedulePostTool();
+    init_triggerTool();
+    init_uploadFromUrl();
   }
 });
 
@@ -33526,6 +34053,7 @@ var init_startMcp = __esm({
       integrationConnectionService,
       integrationManager,
       postsService,
+      analyticsService,
       mediaUploadDeps: {
         mediaService,
         subscriptionService,
@@ -34684,7 +35212,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-10T08:34:54.518Z",
+  generated: "2026-09-10T10:30:53.124Z",
   routes: [
     {
       path: "/docs",

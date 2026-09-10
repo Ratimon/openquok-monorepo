@@ -19,6 +19,12 @@
 		getSchemaTypeForExtensionCategory,
 		type ListingSchemaType
 	} from '$lib/listings/constants/listingSchemaTypes';
+	import {
+		OPENQUOK_CORE_LISTING_SLUG,
+		OPENQUOK_CORE_MCP_LISTING_CONTENT,
+		OPENQUOK_CORE_MCP_LISTING_DESCRIPTION,
+		OPENQUOK_CORE_MCP_LISTING_TOOLS
+	} from '$lib/listings/constants/openquokCoreMcpListingCms';
 	import { collectFormErrorMessages } from '$lib/listings/utils/listingForm';
 	import { arraysEqual } from '$lib/ui/helpers/common';
 	import { createForm } from '@tanstack/svelte-form';
@@ -204,8 +210,12 @@
 	);
 
 	let skillCommandsJson = $derived(initialSkillCommandsJson);
-	let mcpToolsJson = $derived(initialMcpToolsJson);
+	let mcpToolsJson = $state('');
 	let mcpServerConfigJson = $derived(initialMcpServerConfigJson);
+
+	$effect(() => {
+		mcpToolsJson = initialMcpToolsJson;
+	});
 
 	const extensionTypeOptions = [
 		{ value: 'skills', label: 'Skills' },
@@ -409,6 +419,17 @@
 		} else {
 			field.handleChange(current.filter((id) => id !== tagId));
 		}
+	}
+
+	const showOpenquokCoreMcpCatalogApply = $derived(
+		isPlatformAdmin && slugDisplay === OPENQUOK_CORE_LISTING_SLUG && listingKind === 'extension'
+	);
+
+	function applyOpenquokCoreMcpCatalog() {
+		form.setFieldValue('description_mcp', OPENQUOK_CORE_MCP_LISTING_DESCRIPTION);
+		form.setFieldValue('content_mcp', OPENQUOK_CORE_MCP_LISTING_CONTENT);
+		mcpToolsJson = JSON.stringify(OPENQUOK_CORE_MCP_LISTING_TOOLS, null, 2);
+		toast.success('Applied OpenQuok Core MCP catalog fields. Save to persist.');
 	}
 
 	function applyGithubPreview(
@@ -1275,12 +1296,27 @@
 						</form.Field>
 
 						<div class="flex flex-col gap-2">
-							<Field.Label>MCP tools (JSON array)</Field.Label>
-							<Field.Description>
-								Powers the building blocks hub MCP tools table and Skill Builder command library. Each item
-								needs <code class="text-xs">name</code> and
-								<code class="text-xs">description</code>.
-							</Field.Description>
+							<div class="flex flex-wrap items-start justify-between gap-2">
+								<div class="flex flex-col gap-1">
+									<Field.Label>MCP tools (JSON array)</Field.Label>
+									<Field.Description>
+										Powers the building blocks hub MCP tools table and Skill Builder command library. Each
+										item needs <code class="text-xs">name</code> and
+										<code class="text-xs">description</code>.
+									</Field.Description>
+								</div>
+								{#if showOpenquokCoreMcpCatalogApply}
+									<Button
+										type="button"
+										variant="outline"
+										size="sm"
+										disabled={isSubmitting}
+										onclick={applyOpenquokCoreMcpCatalog}
+									>
+										Apply OpenQuok Core MCP catalog
+									</Button>
+								{/if}
+							</div>
 							<Textarea
 								bind:value={mcpToolsJson}
 								rows={6}
