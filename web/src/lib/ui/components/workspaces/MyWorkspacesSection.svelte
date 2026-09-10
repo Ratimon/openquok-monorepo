@@ -123,10 +123,9 @@
 				>
 					<p class="font-medium text-base-content">One workspace = one context</p>
 					<p class="mt-1 text-base-content/90">
-						Workspaces exist to keep agent and automation context focused. Connecting many social
-						channels or packing one workspace with lots of skills and tasks can cause context rot
-						and hallucinations. Use separate workspaces for different brands, clients, or focus
-						areas when things get crowded.
+						Workspaces exist to keep the context focused. Connecting too many social
+						channels or installing too many skills can cause context rot and hallucinations.
+						Use separate workspaces for different brands, or clients.
 					</p>
 				</HomeAccountNoticeBanner>
 

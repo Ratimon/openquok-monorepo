@@ -462,7 +462,7 @@
 				No channels yet
 			</h3>
 			<p class="text-sm text-base-content/70">
-				Connect your social accounts to start scheduling, publishing, and analyzing — all in one place.
+				Connect your social accounts to start scheduling, and analyzing — all in one place.
 			</p>
 			<p class="text-sm text-base-content/70">
 				Use <span class="font-medium text-base-content">Add Channel</span> above to connect one.

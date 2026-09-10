@@ -678,7 +678,7 @@
 						<strong>Content and connected Platforms:</strong> To use content and related information
 						that you send, receive, synchronize, or curate through connected Platforms—including
 						messages, posts, comments, images, promotional or campaign material, and other assets
-						you upload or manage in the services—to provide scheduling, publishing, engagement, and
+						you upload or manage in the services—to provide scheduling, engagement, and
 						related product capabilities you request.
 					</li>
 					<li>

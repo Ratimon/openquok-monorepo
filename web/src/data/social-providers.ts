@@ -77,6 +77,15 @@ export function isProfileChannelDisplayName(name: string, identifier: string): b
 	return !isSocialProviderPlatformLabel(name, identifier);
 }
 
+/** Formats integration profile username (`display` from the API) for chip tooltips. */
+export function formatSocialProfileHandle(display: string | null | undefined): string | null {
+	const raw = display?.trim();
+	if (!raw) return null;
+	const handle = raw.replace(/^@+/, '').trim();
+	if (!handle) return null;
+	return `@${handle}`;
+}
+
 /** Single grapheme for plain-text tooltips / summaries by integration `identifier`. */
 export function socialProviderEmoji(identifier: string): string {
 	const key = identifier.trim();

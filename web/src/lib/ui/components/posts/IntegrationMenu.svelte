@@ -7,11 +7,13 @@
 	import { copyToClipboard } from '$lib/utils/clipboard';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
+	import { formatSocialProfileHandle } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Collapsible from '$lib/ui/collapsible';
 	import * as Popover from '$lib/ui/popover';
+	import * as Tooltip from '$lib/ui/tooltip';
 	import DeleteChannelModal from '$lib/ui/components/posts/DeleteChannelModal.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import {
@@ -70,6 +72,8 @@
 	const reconnectHref = $derived(
 		integration.refreshNeeded && workspaceId ? continueSetupHref(integration) : null
 	);
+	const chipHandleTooltip = $derived(formatSocialProfileHandle(integration.display));
+	const chipHoverTooltip = $derived(reconnectHref ? reconnectTooltip : chipHandleTooltip);
 
 	function handleReconnectRowClick(event: MouseEvent) {
 		if (!reconnectHref) return;
@@ -348,32 +352,49 @@
 	</div>
 {/snippet}
 
+{#snippet chipPopoverTrigger(tooltipProps: Record<string, unknown> = {})}
+	{@const { class: tooltipClass, ...tooltipRest } = tooltipProps}
+	<Popover.Trigger
+		{...tooltipRest}
+		class={cn(
+			'flex max-w-[min(100%,14rem)] min-w-0 flex-1 items-center gap-2 rounded-none border-0 bg-transparent px-2 py-1.5 text-start outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100',
+			String(tooltipClass ?? ''),
+			reconnectHref && 'cursor-pointer'
+		)}
+		aria-label={chipHoverTooltip ?? integration.name}
+		onclick={handleReconnectRowClick}
+	>
+		{@render channelTriggerBody()}
+		<span class="shrink-0" data-channel-menu-chevron>
+			<AbstractIcon
+				name={icons.ChevronDown.name}
+				class="size-4 text-base-content/50 transition-transform duration-200 {menuOpen
+					? 'rotate-180'
+					: ''}"
+				width="16"
+				height="16"
+			/>
+		</span>
+	</Popover.Trigger>
+{/snippet}
+
 {#if variant === 'chip'}
 	<div
 		class="inline-flex max-w-full items-stretch overflow-hidden rounded-full border border-base-300 bg-base-100 text-base-content shadow-sm"
 	>
 		<Popover.Root bind:open={menuOpen}>
-			<Popover.Trigger
-				class={cn(
-					'flex max-w-[min(100%,14rem)] min-w-0 flex-1 items-center gap-2 rounded-none border-0 bg-transparent px-2 py-1.5 text-start outline-none hover:bg-base-200/60 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-100',
-					reconnectHref && 'cursor-pointer'
-				)}
-				title={reconnectHref ? reconnectTooltip : undefined}
-				aria-label={reconnectHref ? reconnectTooltip : undefined}
-				onclick={handleReconnectRowClick}
-			>
-				{@render channelTriggerBody()}
-				<span class="shrink-0" data-channel-menu-chevron>
-					<AbstractIcon
-						name={icons.ChevronDown.name}
-						class="size-4 text-base-content/50 transition-transform duration-200 {menuOpen
-							? 'rotate-180'
-							: ''}"
-						width="16"
-						height="16"
-					/>
-				</span>
-			</Popover.Trigger>
+			{#if chipHoverTooltip}
+				<Tooltip.Root>
+					<Tooltip.Trigger>
+						{#snippet child({ props: tooltipProps })}
+							{@render chipPopoverTrigger(tooltipProps)}
+						{/snippet}
+					</Tooltip.Trigger>
+					<Tooltip.Content side="top" sideOffset={6}>{chipHoverTooltip}</Tooltip.Content>
+				</Tooltip.Root>
+			{:else}
+				{@render chipPopoverTrigger()}
+			{/if}
 			<Popover.Content align="start" side="bottom" class="w-72 p-3">
 				{@render channelActionBody()}
 			</Popover.Content>

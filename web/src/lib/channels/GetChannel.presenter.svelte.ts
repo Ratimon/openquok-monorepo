@@ -16,6 +16,8 @@ export interface CreateSocialPostChannelViewModel {
 	internalId: string;
 	name: string;
 	identifier: string;
+	/** Profile username / handle from the API (`display`), e.g. `RATi_MOn` for X. */
+	display?: string | null;
 	/** Raw provider/profile picture URL from the API (may be a Meta or LinkedIn CDN URL). */
 	picture: string | null;
 	type: string;
@@ -113,6 +115,7 @@ export class GetChannelPresenter {
 			internalId: pm.internalId,
 			name: pm.name,
 			identifier: pm.identifier,
+			display: pm.display ?? null,
 			picture: pm.picture,
 			type: pm.type,
 			disabled,

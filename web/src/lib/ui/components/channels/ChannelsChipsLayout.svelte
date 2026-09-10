@@ -69,10 +69,12 @@
 {#if channelGroupSectionsVm.length > 0}
 	<div class="mt-4 space-y-2">
 		<h4 class="text-sm font-semibold text-base-content/80">
-			Grouped accounts/channels
+			Grouped channels
 		</h4>
 		{#each channelGroupSectionsVm as group (group.id)}
-			<details class="rounded-lg border border-base-300 bg-base-200/40" bind:open={groupDetailsOpen[group.id]}>
+			<details class="rounded-lg border border-base-300 bg-base-200/40"
+				bind:open={groupDetailsOpen[group.id]}
+			>
 				<summary
 					class="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5 marker:hidden [&::-webkit-details-marker]:hidden"
 				>
@@ -144,7 +146,7 @@
 	<div class="mt-4 space-y-2">
 		<div class="flex flex-wrap items-center justify-between gap-2">
 			<h4 class="text-sm font-semibold text-base-content/80">
-				Ungrouped accounts/channels
+				Ungrouped channels
 			</h4>
 			<div class="flex flex-wrap items-center justify-end gap-2">
 				<Button
