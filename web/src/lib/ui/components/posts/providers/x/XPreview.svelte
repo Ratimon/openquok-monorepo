@@ -26,8 +26,8 @@
 		formatEngagementCountLabel,
 		summarizeScheduledSocialPreviewEngagement
 	} from '$lib/ui/components/preview/crossAccountPlugPreview';
-	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import XCrossAccountPlugsPreview from '$lib/ui/components/posts/providers/x/XCrossAccountPlugsPreview.svelte';
 	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
 	import { readXLaunchSettings } from '$lib/ui/components/posts/providers/x/xLaunchSettings';
 
@@ -176,7 +176,7 @@
 				replyActor={{ displayName: channel.name, picture: channel.picture }}
 				threadContinuesFromRoot={true}
 			/>
-			<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="x" />
+			<XCrossAccountPlugsPreview items={crossAccountPlugs} />
 		</div>
 	{/if}
 </div>

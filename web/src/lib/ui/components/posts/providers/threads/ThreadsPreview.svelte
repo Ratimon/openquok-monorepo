@@ -25,8 +25,8 @@
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import type { CrossAccountPlugPreviewItem } from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import { summarizeScheduledSocialPreviewEngagement } from '$lib/ui/components/preview/crossAccountPlugPreview';
-	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import ThreadsCrossAccountPlugsPreview from '$lib/ui/components/posts/providers/threads/ThreadsCrossAccountPlugsPreview.svelte';
 	import ThreadsReplyEngagementMock from './ThreadsReplyEngagementMock.svelte';
 
 	let {
@@ -139,9 +139,8 @@
 				replyActor={{ displayName: channel.name, picture: channel.picture }}
 				threadContinuesFromRoot={crossAccountPlugs.length === 0}
 			/>
-			<PreviewCrossAccountPlugs
+			<ThreadsCrossAccountPlugsPreview
 				items={crossAccountPlugs}
-				variant="threads"
 				threadContinuesFromRoot={true}
 			/>
 		</div>

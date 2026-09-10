@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tag (secret-admin)
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + cross-account plug preview + docs + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tag (secret-admin)
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -23,6 +23,8 @@ globs:
   - web/src/content/docs/creating-posts/writing-the-post.md
   - web/src/content/docs/creating-posts/threads-and-comments.md
   - web/src/lib/posts/utils/create-post/followUp.ts
+  - web/src/lib/posts/utils/create-post/providerSettings.ts
+  - web/src/lib/ui/components/preview/crossAccountPlugPreview.ts
   - web/src/lib/ui/components/posts/thread/**
   - backend/utils/dtos/PostDTO.ts
   - orchestrator/activities/scheduledSocialPostActivities.ts
@@ -102,8 +104,9 @@ Use one kebab-case slug everywhere: `provider.identifier`, DB `provider_identifi
 4. **Between-steps OAuth** — when `isBetweenSteps: true`: implement `pages()` + `fetchPageInformation()`; extend `IntegrationConnectionService.saveProviderPageForOrganization` / `preservesUserTokenForRefresh` if user token must stay in `refresh_token` (Meta Page pattern).
 5. **Provider settings at publish** — read from `postDetails.settings.providerSettings`. Accept **flat CLI keys** and **nested web buckets** (e.g. `providerSettings.url` and `providerSettings.facebook.url`). Export a resolver + unit tests beside publish helpers.
 6. **Follow-up replies (`comment`)** — when the platform API can publish a **reply or comment on the user’s own post** after the main publish (thread reply, quote-less reply, nested comment, etc.), implement `comment()` on the provider class (not only `post`). Read text from `postDetails.message` and **media from `postDetails.settings`** when the network allows attachments on replies. Unit-test comment payload shaping (text-only vs one image vs carousel) beside publish helpers. If the network **cannot** schedule same-account follow-ups, omit `comment()` and set `postComment: 'NONE'` in launch config — do not claim follow-ups on the landing page or in agent recipes.
-7. **Tests** — unit tests for OAuth edge cases, publish payload shaping, **comment / follow-up publish**, and connection save when behavior differs.
+7. **Tests** — unit tests for OAuth edge cases, publish payload shaping, **comment / follow-up publish**, **cross-account plug publish**, and connection save when behavior differs.
 8. **Platform analytics** (when `SocialProvider.analytics()` and/or `postAnalytics()` ship) — append the **exact** `provider.identifier` to `SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS` in `web/src/data/social-providers.ts` in the **same PR**. `/account/analytics` (`ProtectedAnalyticsPagePresenter`) filters `connectedChannelsVm` through that allow-list before calling `GET /api/v1/analytics/:integrationId`; a missing slug hides the channel from **Targeted channels** even when connect and publish work. Use the real catalog slug only — do **not** assume a marketing alias covers it (e.g. `instagram` does **not** include `instagram-business` or `instagram-standalone`). When multiple identifiers share one network, list **each** slug explicitly. Skip the allow-list entry only when the provider deliberately omits `analytics()` (no insights on dashboard or post statistics modal).
+9. **Cross-account internal plugs** — when another connected channel can **comment on or repost** the published post after the main publish, ship `internalPlugCatalog()` entries and orchestrator plug handlers (not only same-account `comment()`). Persist enabled rows on the **publishing** channel in `providerSettings.{bucket}.crossAccountPlugs` (`enabled`, `plugName`, `delayMs`, `integrationIds`, `fields`). Unit-test plug payload shaping and platform API edge cases (URN normalization, permission errors) beside publish helpers. Skip this item when the network has no cross-account plug story — do not add empty catalog entries or preview UI.
 
 ## Extensions Hub listing tags (required for social channels) — no DB migrations
 
@@ -133,7 +136,7 @@ Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter
 Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 
 1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `comments`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`. When the provider supports scheduled follow-ups, also complete **Follow-up comments / reply chains** (below) — declaring `postComment: 'COMMENT'` alone does **not** wire the composer or worker.
-2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live.
+2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live. When cross-account internal plugs ship, also wire **Cross-account plug preview** (below).
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
 4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`. When settings affect what users see before publish (title, tags, cover, post type, etc.), also ship **Post Preview provider settings** (below).
 5. **`web/src/data/social-providers.ts`** (required when the slug is new **or** when shipping platform analytics) — single catalog for display labels, icons, and the analytics allow-list:
@@ -222,6 +225,73 @@ When a provider has compose-time settings (`{id}Settings.svelte`), the Post Prev
 | Bento mocks | Pass explicit mock `providerSettings` into `ShowAllProviders` (see `BentoDevtoSettingsPreview.svelte`). |
 
 **References:** Dev.to (`title`, `tags`, `series`, `mainImage`), YouTube (`title`, `thumbnail`), TikTok photo carousel (`title`). Threads thread finisher / delayed engagement reply use the same derived settings object when the preview channel is Threads.
+
+### Cross-account plug preview (required when `internalPlugCatalog()` includes cross-account plugs)
+
+Cross-account plugs let a **publishing** channel schedule comments or reposts from **other connected channels** after the main post goes live. Composer preview must show those acting channels with platform-native styling — not a shared generic block.
+
+**Decide first**
+
+| Platform capability | Backend | Composer preview |
+| --- | --- | --- |
+| Cross-account comment from selected channels | `internalPlugCatalog()` + orchestrator plug handler | `{id}CrossAccountPlugsPreview.svelte` + dynamic comment counts in `{id}Preview.svelte` |
+| Cross-account repost only (no comment plug) | Same | Preview shows repost rows; comment counts stay follow-up-only |
+| No cross-account plugs | Omit catalog entries | Skip this section; landing/bento must not claim cross-account engagement |
+
+**Shared helpers** — `web/src/lib/ui/components/preview/crossAccountPlugPreview.ts`
+
+| Export | Use |
+| --- | --- |
+| `buildCrossAccountPlugPreviewItems` | Composer + bento mocks: channels + `crossAccountPlugs` + plug defs → preview rows |
+| `buildCrossAccountPlugPreviewFromProviderSettings` | Public preview when only `providerSettings` is available |
+| `crossAccountSettingsBucketForIdentifier` | Map `provider.identifier` → settings bucket (`threads`, `x`, `linkedin` for `linkedin-page`) |
+| `summarizeScheduledSocialPreviewEngagement` | Drive comment/repost counts in `{id}Preview.svelte` from follow-ups + cross-account rows |
+| `formatCrossAccountPlugDelayLabel` / `formatLinkedInEngagementSummary` | Platform-specific preview copy |
+
+**Shared web gates** (update when adding a cross-account-capable identifier)
+
+| File | Action |
+| --- | --- |
+| `web/src/lib/posts/utils/create-post/providerSettings.ts` | Extend `CrossAccountPlugSettingsBucket`; wire `buildCrossAccountPlugsProviderPatch` bucket |
+| `crossAccountPlugPreview.ts` | Extend `crossAccountSettingsBucketForIdentifier` |
+| `AddEditModal.svelte` | Build `previewCrossAccountPlugs` via `buildCrossAccountPlugPreviewItems`; flush plug dialog settings on close (`syncPlugDialogSettingsToParent`) so publish persists `crossAccountPlugs` |
+| `ShowAllProviders.svelte` | Pass `crossAccountPlugs` into preview branches; derive from `providerSettings` when prop empty (public `/p/[postId]`) |
+| `{id}Preview.svelte` | Accept optional `crossAccountPlugs`; call `summarizeScheduledSocialPreviewEngagement`; render `{id}CrossAccountPlugsPreview` below follow-ups when rows exist |
+| `{id}CrossAccountPlugsPreview.svelte` | **New per provider** under `providers/{id}/` — platform-native layout for `CrossAccountPlugPreviewItem[]` |
+
+**Provider settings shape** — cross-account plugs live on the **publishing** channel bucket:
+
+```json
+{
+  "threads": {
+    "crossAccountPlugs": [
+      {
+        "plugName": "threads-cross-account-comment",
+        "enabled": true,
+        "delayMs": 120000,
+        "integrationIds": ["<acting-channel-id>"],
+        "fields": { "comment": "…" }
+      }
+    ]
+  }
+}
+```
+
+Use the provider’s bucket key (`linkedin` for both `linkedin` and `linkedin-page`). X repost plugs omit `fields.comment`; comment plugs require non-empty caption validation in `validateProviderCaptionLength`.
+
+**Platform preview component** (`{Provider}CrossAccountPlugsPreview.svelte`)
+
+- Place beside `{id}Preview.svelte` in `web/src/lib/ui/components/posts/providers/{id}/`.
+- Props: `items: CrossAccountPlugPreviewItem[]` only — keep platform chrome inside the component.
+- Use `IntegrationChannelPicture` for avatars with **fixed** flex constraints (`h-12 w-12` + matching `min-*` / `max-*` / `shrink-0`) so profile images do not blow out the layout.
+- Map `item.kind` (`comment` \| `repost`) to network-appropriate labels and body copy.
+- Do **not** reintroduce a shared `PreviewCrossAccountPlugs.svelte`; styling diverges per network (Threads thread continuation, LinkedIn comment card, X repost row).
+
+**References:** `ThreadsCrossAccountPlugsPreview.svelte`, `LinkedInCrossAccountPlugsPreview.svelte`, `XCrossAccountPlugsPreview.svelte`.
+
+**Bento / landing** — when marketing cross-account plugs, pass mock `crossAccountPlugs` in `{slug}LandingMock.ts` and wire composer bento previews with `crossAccountPlugsPreview={true}` + `buildCrossAccountPlugPreviewItems` (see `BentoThreadsComposerPreview.svelte`, `BentoLandingCrossAccountPlugsPreview.svelte`).
+
+**Docs & agent** — document `{bucket}.crossAccountPlugs` in `resources/{id}-examples.md` **Provider settings** and MCP/CLI examples when the catalog ships cross-account plugs.
 
 ### Writing the post — editor table (user docs)
 
@@ -602,4 +672,5 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
 - **Post Preview:** when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
 - **Follow-up comments:** when `comment()` ships — `followUp.ts` + `replyChainBucketForProvider` + orchestrator `supportsFollowUps` updated; launch `postComment` / `comments` set; `{bucket}.replies` documented in agent + CLI examples; `threads-and-comments.md` platform row; landing/bento copy matches composer (text-only vs media-on-replies); preview/bento show `threadReplies` when marketed.
+- **Cross-account plugs:** when `internalPlugCatalog()` ships cross-account entries — orchestrator plug handlers + `{bucket}.crossAccountPlugs` persistence; extend `CrossAccountPlugSettingsBucket` + `crossAccountSettingsBucketForIdentifier`; `{Provider}CrossAccountPlugsPreview.svelte` wired from `{id}Preview.svelte`; `ShowAllProviders` passes/derives `crossAccountPlugs`; dynamic engagement counts in preview; plug dialog settings flush on close; bento mocks when marketed; agent/MCP docs for `{bucket}.crossAccountPlugs`.
 - **Writing the post:** `writing-the-post.md` **Editor by platform** table lists the new channel under the correct **Standard** / **Markdown** / **HTML** / **Plain** row; `lastUpdated` bumped.

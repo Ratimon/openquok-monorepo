@@ -26,8 +26,8 @@
 		formatLinkedInEngagementSummary,
 		summarizeScheduledSocialPreviewEngagement
 	} from '$lib/ui/components/preview/crossAccountPlugPreview';
-	import PreviewCrossAccountPlugs from '$lib/ui/components/preview/PreviewCrossAccountPlugs.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import LinkedInCrossAccountPlugsPreview from '$lib/ui/components/posts/providers/linkedin/LinkedInCrossAccountPlugsPreview.svelte';
 	import { readLinkedInLaunchSettings } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 
 	let {
@@ -132,7 +132,7 @@
 	{#if hasScheduledFollowUps}
 		<div class="px-4 pb-4">
 			<PreviewScheduledSocialReplies replies={threadReplies} {threadFinisher} variant="general" />
-			<PreviewCrossAccountPlugs items={crossAccountPlugs} variant="linkedin" />
+			<LinkedInCrossAccountPlugsPreview items={crossAccountPlugs} />
 		</div>
 	{/if}
 </div>
