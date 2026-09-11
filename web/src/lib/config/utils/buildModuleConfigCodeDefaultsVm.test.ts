@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { CONFIG_SCHEMA_PUBLIC_FAQ } from '$lib/config/constants/config';
 import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';
+import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 import { buildModuleConfigCodeDefaultsVm } from '$lib/config/utils/buildModuleConfigCodeDefaultsVm';
 
@@ -16,8 +17,10 @@ describe('buildModuleConfigCodeDefaultsVm', () => {
 		expect((vm.ITEMS as { question: string }[])[2]?.question).toBe(
 			'How do I schedule social media posts with OpenQuok?'
 		);
-		expect(
-			String((vm.ITEMS as { answer: string }[])[2]?.answer)
-		).toContain('href="/agents/grok-bot"');
+
+		const scheduleAnswer = String((vm.ITEMS as { answer: string }[])[2]?.answer);
+		expect(scheduleAnswer).toContain(`href="${publicFaqHref.cliGettingStarted}"`);
+		expect(scheduleAnswer).toContain(`href="${publicFaqHref.agentSetupGuides}"`);
+		expect(scheduleAnswer).toContain(`href="${publicFaqHref.mcpSetupGuides}"`);
 	});
 });
