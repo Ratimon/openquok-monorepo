@@ -433,8 +433,7 @@
 				</AlertTitle>
 				<AlertDescription class="leading-relaxed text-base-content/80">
 					You can connect more than one channel per platform. Before you use
-					<span class="font-semibold text-base-content">Add Channel</span> or
-					<span class="font-semibold text-base-content">Add more</span> for a different login,
+					<span class="font-semibold text-base-content">Add Channel</span> for a different login,
 					sign out of that service in your browser. Otherwise the channel may be reused for the last connected channel.
 				</AlertDescription>
 			</div>

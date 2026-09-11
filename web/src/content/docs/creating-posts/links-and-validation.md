@@ -1,7 +1,7 @@
 ---
 title: Links and validation
 description: Link rules, character limits, and save-time checks in the OpenQuok post composer before you schedule or publish.
-order: 7
+order: 8
 lastUpdated: 2026-08-26
 ---
 

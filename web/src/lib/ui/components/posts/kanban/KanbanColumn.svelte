@@ -7,12 +7,11 @@
 	import type { KanbanCardDragPayload } from './kanbanDnd';
 
 	import KanbanColumnDropZone from './KanbanColumnDropZone.svelte';
+	import { Pagination } from '$lib/ui/pagination';
 	import KanbanColumnShell from '$lib/ui/components/kanban-board/KanbanColumnShell.svelte';
 	import KanbanPostCard from './KanbanPostCard.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
 
-	/** Cards per column page — sized so review + note fit without clipping. */
-	const KANBAN_COLUMN_PAGE_SIZE = 4;
+	const DEFAULT_KANBAN_COLUMN_PAGE_SIZE = 4;
 
 	type Props = {
 		columnId: PostKanbanColumnId;
@@ -53,21 +52,14 @@
 		postsLimitFull = false
 	}: Props = $props();
 
-	let pageIndex = $state(0);
+	let itemsPerPage = $state(DEFAULT_KANBAN_COLUMN_PAGE_SIZE);
+	let currentPage = $state(1);
 	let scrollViewport = $state<HTMLDivElement | null>(null);
 
-	const pageCount = $derived(Math.max(1, Math.ceil(cardsVm.length / KANBAN_COLUMN_PAGE_SIZE)));
-	const safePageIndex = $derived(Math.min(pageIndex, pageCount - 1));
-	const pageStart = $derived(safePageIndex * KANBAN_COLUMN_PAGE_SIZE);
-	const visibleCardsVm = $derived(
-		cardsVm.slice(pageStart, pageStart + KANBAN_COLUMN_PAGE_SIZE)
-	);
-	const showPagination = $derived(cardsVm.length > KANBAN_COLUMN_PAGE_SIZE);
-	const rangeLabel = $derived(
-		cardsVm.length === 0
-			? ''
-			: `${pageStart + 1}–${Math.min(pageStart + KANBAN_COLUMN_PAGE_SIZE, cardsVm.length)} of ${cardsVm.length}`
-	);
+	const totalPages = $derived(Math.max(1, Math.ceil(cardsVm.length / itemsPerPage)));
+	const safeCurrentPage = $derived(Math.min(currentPage, totalPages));
+	const pageStart = $derived((safeCurrentPage - 1) * itemsPerPage);
+	const visibleCardsVm = $derived(cardsVm.slice(pageStart, pageStart + itemsPerPage));
 
 	const countLabel = $derived(
 		countVm.visible === countVm.total
@@ -87,23 +79,32 @@
 
 	$effect(() => {
 		cardsVm;
-		pageIndex = 0;
+		currentPage = 1;
 	});
 
 	$effect(() => {
-		if (pageIndex !== safePageIndex) {
-			pageIndex = safePageIndex;
+		if (currentPage !== safeCurrentPage) {
+			currentPage = safeCurrentPage;
 		}
 	});
 
-	function goToPrevPage() {
-		pageIndex = Math.max(0, safePageIndex - 1);
+	function setItemsPerPage(size: number) {
+		itemsPerPage = size;
+		currentPage = 1;
 		scrollViewport?.scrollTo({ top: 0, behavior: 'smooth' });
 	}
 
-	function goToNextPage() {
-		pageIndex = Math.min(pageCount - 1, safePageIndex + 1);
+	function setCurrentPage(page: number) {
+		currentPage = page;
 		scrollViewport?.scrollTo({ top: 0, behavior: 'smooth' });
+	}
+
+	function paginateToFirstPage() {
+		setCurrentPage(1);
+	}
+
+	function paginateToLastPage() {
+		setCurrentPage(totalPages);
 	}
 </script>
 
@@ -144,40 +145,20 @@
 	</KanbanColumnDropZone>
 
 	{#snippet footer()}
-		{#if showPagination}
-			<footer
-				class="mt-2 flex shrink-0 items-center justify-between gap-2 border-t border-base-300 pt-2"
-				aria-label="Column pagination"
-			>
-				<span class="text-[10px] tabular-nums text-base-content/60">{rangeLabel}</span>
-				<div class="flex items-center gap-1">
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						class="h-7 min-h-7 px-2"
-						disabled={safePageIndex <= 0}
-						aria-label="Previous page"
-						onclick={goToPrevPage}
-					>
-						Prev
-					</Button>
-					<span class="text-[10px] tabular-nums text-base-content/50">
-						{safePageIndex + 1}/{pageCount}
-					</span>
-					<Button
-						type="button"
-						variant="ghost"
-						size="sm"
-						class="h-7 min-h-7 px-2"
-						disabled={safePageIndex >= pageCount - 1}
-						aria-label="Next page"
-						onclick={goToNextPage}
-					>
-						Next
-					</Button>
-				</div>
-			</footer>
-		{/if}
+		<Pagination
+			compact
+			class="border-t border-base-300 pt-2"
+			pageSizeSelectId={`kanban-${columnId}-page-size`}
+			{itemsPerPage}
+			totalItems={cardsVm.length}
+			currentPage={safeCurrentPage}
+			{totalPages}
+			{setItemsPerPage}
+			setCurrentPage={setCurrentPage}
+			paginateBackFF={paginateToFirstPage}
+			paginateFrontFF={paginateToLastPage}
+			nameOfItems="posts"
+			pageSizeOptions={[2, 4, 6, 8, 10]}
+		/>
 	{/snippet}
 </KanbanColumnShell>

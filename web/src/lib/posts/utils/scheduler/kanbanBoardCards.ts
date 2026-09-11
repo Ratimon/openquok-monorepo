@@ -12,16 +12,18 @@ import type {
 	PostKanbanColumnId,
 	PostKanbanColumnsViewModel,
 	PostKanbanRowViewModel,
+	PostKanbanPastTimeFilter,
 	PostKanbanReviewFilter,
 	PostKanbanSourceFilter,
-	PostKanbanTimeFilter
+	PostKanbanUpcomingTimeFilter
 } from '$lib/posts/postKanbanBoard.types';
 import {
 	formatKanbanPublishScheduleLabel,
 	formatKanbanRelativePublishLabel,
 	isKanbanManualFinishAcknowledged,
 	kanbanColumnStatusLabel,
-	matchesKanbanTimeFilter,
+	matchesKanbanPastTimeFilter,
+	matchesKanbanUpcomingTimeFilter,
 	resolveTiktokManualFinish,
 	stateToKanbanColumn
 } from './kanbanBoard';
@@ -86,14 +88,22 @@ export function filterKanbanCardsByReview(
 	return cardsVm.filter((card) => card.isReviewed);
 }
 
-export function filterKanbanCardsByTime(
+export function filterKanbanCardsByUpcomingTime(
 	cardsVm: readonly PostKanbanCardViewModel[],
-	timeFilter: PostKanbanTimeFilter
+	upcomingTimeFilter: PostKanbanUpcomingTimeFilter
 ): PostKanbanCardViewModel[] {
 	return cardsVm.filter(
 		(card) =>
-			card.needsManualFinishInApp || matchesKanbanTimeFilter(card.publishDateIso, timeFilter)
+			card.needsManualFinishInApp ||
+			matchesKanbanUpcomingTimeFilter(card.publishDateIso, upcomingTimeFilter)
 	);
+}
+
+export function filterKanbanCardsByPastTime(
+	cardsVm: readonly PostKanbanCardViewModel[],
+	pastTimeFilter: PostKanbanPastTimeFilter
+): PostKanbanCardViewModel[] {
+	return cardsVm.filter((card) => matchesKanbanPastTimeFilter(card.publishDateIso, pastTimeFilter));
 }
 
 export function groupKanbanCardsIntoColumns(
@@ -126,17 +136,20 @@ export function buildKanbanColumnCounts(
 	};
 }
 
-/** Drafts always show; scheduled and published respect the active time filter. */
+/** Drafted and scheduled respect the upcoming filter; published respects the past filter. */
 export function buildKanbanColumnsWithTimeFilter(
 	cardsVm: readonly PostKanbanCardViewModel[],
-	timeFilter: PostKanbanTimeFilter
+	upcomingTimeFilter: PostKanbanUpcomingTimeFilter,
+	pastTimeFilter: PostKanbanPastTimeFilter
 ): PostKanbanColumnsViewModel {
-	const allColumns = groupKanbanCardsIntoColumns(cardsVm);
-	const timeFiltered = groupKanbanCardsIntoColumns(filterKanbanCardsByTime(cardsVm, timeFilter));
+	const upcomingColumns = groupKanbanCardsIntoColumns(
+		filterKanbanCardsByUpcomingTime(cardsVm, upcomingTimeFilter)
+	);
+	const pastColumns = groupKanbanCardsIntoColumns(filterKanbanCardsByPastTime(cardsVm, pastTimeFilter));
 	return {
-		draft: allColumns.draft,
-		scheduled: timeFiltered.scheduled,
-		published: timeFiltered.published
+		draft: upcomingColumns.draft,
+		scheduled: upcomingColumns.scheduled,
+		published: pastColumns.published
 	};
 }
 

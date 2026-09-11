@@ -14,10 +14,12 @@
 		PostKanbanMoveCardResultViewModel,
 		PostKanbanReviewFilter,
 		PostKanbanReviewFilterOptionViewModel,
+		PostKanbanPastTimeFilter,
+		PostKanbanPastTimeFilterOptionViewModel,
 		PostKanbanSourceFilter,
 		PostKanbanSourceFilterOptionViewModel,
-		PostKanbanTimeFilter,
-		PostKanbanTimeFilterOptionViewModel
+		PostKanbanUpcomingTimeFilter,
+		PostKanbanUpcomingTimeFilterOptionViewModel
 	} from '$lib/posts/PostKanbanBoard.presenter.svelte';
 	import type { KanbanCardDragPayload } from '$lib/ui/components/posts/kanban/kanbanDnd';
 
@@ -32,6 +34,7 @@
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
 	import KanbanBoardFilters from './KanbanBoardFilters.svelte';
+	import KanbanColumnTimeFilterRow from './KanbanColumnTimeFilterRow.svelte';
 	import KanbanBoardLayout from '$lib/ui/components/kanban-board/KanbanBoardLayout.svelte';
 	import KanbanColumn from './KanbanColumn.svelte';
 	import { postsLimitKey, type PostsLimitContext } from '$lib/ui/components/posts/postsLimitContext';
@@ -59,10 +62,12 @@
 		columnOptions: readonly PostKanbanColumnOptionViewModel[];
 		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
 		reviewFilterOptions: readonly PostKanbanReviewFilterOptionViewModel[];
-		timeFilterOptions: readonly PostKanbanTimeFilterOptionViewModel[];
+		upcomingTimeFilterOptions: readonly PostKanbanUpcomingTimeFilterOptionViewModel[];
+		pastTimeFilterOptions: readonly PostKanbanPastTimeFilterOptionViewModel[];
 		sourceFilter: PostKanbanSourceFilter;
 		reviewFilter: PostKanbanReviewFilter;
-		timeFilter: PostKanbanTimeFilter;
+		upcomingTimeFilter: PostKanbanUpcomingTimeFilter;
+		pastTimeFilter: PostKanbanPastTimeFilter;
 		status: 'idle' | 'loading' | 'ready' | 'error';
 		error: string | null;
 		movingPostGroup: string | null;
@@ -75,7 +80,8 @@
 		onTagFilterChange: (next: PostTagFilterVm) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
 		onReviewFilterChange: (next: PostKanbanReviewFilter) => void;
-		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
+		onUpcomingTimeFilterChange: (next: PostKanbanUpcomingTimeFilter) => void;
+		onPastTimeFilterChange: (next: PostKanbanPastTimeFilter) => void;
 		onMoveCardToColumn: (
 			payload: KanbanCardDragPayload,
 			targetColumn: PostKanbanColumnId
@@ -102,10 +108,12 @@
 		columnOptions,
 		sourceFilterOptions,
 		reviewFilterOptions,
-		timeFilterOptions,
+		upcomingTimeFilterOptions,
+		pastTimeFilterOptions,
 		sourceFilter,
 		reviewFilter,
-		timeFilter,
+		upcomingTimeFilter,
+		pastTimeFilter,
 		status,
 		error,
 		movingPostGroup,
@@ -117,7 +125,8 @@
 		onTagFilterChange,
 		onSourceFilterChange,
 		onReviewFilterChange,
-		onTimeFilterChange,
+		onUpcomingTimeFilterChange,
+		onPastTimeFilterChange,
 		onMoveCardToColumn,
 		onToggleReviewed,
 		onNoteChange,
@@ -212,17 +221,13 @@
 			{selectedTagNames}
 			{tagsVm}
 			{kanbanPosts}
-			{timeFilterOptions}
-			{timeFilter}
 			{sourceFilterOptions}
 			{sourceFilter}
 			{reviewFilterOptions}
 			{reviewFilter}
-			{calendarHref}
 			{onGroupFilterChange}
 			{onSocialPlatformFilterChange}
 			{onTagFilterChange}
-			{onTimeFilterChange}
 			{onSourceFilterChange}
 			{onReviewFilterChange}
 		/>
@@ -293,7 +298,17 @@
 	{:else if status === 'error' && error}
 		<p class="mt-4 text-sm text-error">{error}</p>
 	{:else}
-		<KanbanBoardLayout class="mt-4">
+		<div class="mt-4 flex flex-col gap-2">
+			<KanbanColumnTimeFilterRow
+				{upcomingTimeFilterOptions}
+				{upcomingTimeFilter}
+				{pastTimeFilterOptions}
+				{pastTimeFilter}
+				{calendarHref}
+				{onUpcomingTimeFilterChange}
+				{onPastTimeFilterChange}
+			/>
+			<KanbanBoardLayout>
 			{#each columnOptions as col (col.id)}
 				<KanbanColumn
 					columnId={col.id}
@@ -314,6 +329,7 @@
 					{onNoteChange}
 				/>
 			{/each}
-		</KanbanBoardLayout>
+			</KanbanBoardLayout>
+		</div>
 	{/if}
 </section>

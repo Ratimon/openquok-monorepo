@@ -21,23 +21,38 @@ export type PostKanbanColumnOptionViewModel = (typeof POST_KANBAN_COLUMNS)[numbe
 
 export type PostKanbanSourceFilter = 'all' | 'agent' | 'human';
 
-export type PostKanbanTimeFilter = 'all-upcoming' | 'next-week' | 'next-30-days' | 'past';
+/** Time window for drafted and scheduled columns. */
+export type PostKanbanUpcomingTimeFilter = 'all-upcoming' | 'next-week' | 'next-30-days';
+
+/** Time window for the published column. */
+export type PostKanbanPastTimeFilter = 'all-past' | 'past-week' | 'past-30-days';
 
 export type PostKanbanColumnCountViewModel = {
 	visible: number;
 	total: number;
 };
 
-export type PostKanbanTimeFilterOptionViewModel = {
-	id: PostKanbanTimeFilter;
+export type PostKanbanUpcomingTimeFilterOptionViewModel = {
+	id: PostKanbanUpcomingTimeFilter;
 	label: string;
 };
 
-export const POST_KANBAN_TIME_FILTER_OPTIONS: PostKanbanTimeFilterOptionViewModel[] = [
-	{ id: 'all-upcoming', label: 'All Upcoming' },
-	{ id: 'next-week', label: 'Next Week' },
-	{ id: 'next-30-days', label: 'Next 30 Days' },
-	{ id: 'past', label: 'Past posts' }
+export type PostKanbanPastTimeFilterOptionViewModel = {
+	id: PostKanbanPastTimeFilter;
+	label: string;
+};
+
+export const POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS: PostKanbanUpcomingTimeFilterOptionViewModel[] =
+	[
+		{ id: 'all-upcoming', label: 'All Upcoming' },
+		{ id: 'next-week', label: 'Next Week' },
+		{ id: 'next-30-days', label: 'Next 30 Days' }
+	];
+
+export const POST_KANBAN_PAST_TIME_FILTER_OPTIONS: PostKanbanPastTimeFilterOptionViewModel[] = [
+	{ id: 'all-past', label: 'All Past' },
+	{ id: 'past-week', label: 'Past Week' },
+	{ id: 'past-30-days', label: 'Past 30 Days' }
 ];
 
 export type PostKanbanChannelSlotViewModel = {

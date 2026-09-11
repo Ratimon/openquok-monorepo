@@ -24,7 +24,7 @@ On Home and the calendar it opens as a modal. The same editor powers <Badge text
 | <Badge text="Create Post" variant="new" /> | <a href="/account">Home</a> |
 | Click a day or empty slot | <a href="/account/calendar">Calendar</a> |
 | <Badge text="Select a template" variant="default" /> | Home — restores a saved <a href="/docs/creating-posts/templates">template</a> |
-| Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a> |
+| Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/creating-posts/kanban">Kanban board</a> and <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a> |
 
 You need at least one connected channel before the editor is useful. See <a href="/docs/channels/connect">Connect a channel</a>.
 
@@ -117,6 +117,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Media" description="Device upload, library, Design Media, limits, and per-channel lists" href="/docs/creating-posts/media" />
 <LinkCard title="AI generation" description="Draft posts with agents, MCP, and the public API" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Scheduling" description="Pick a publish time and save as draft or scheduled" href="/docs/creating-posts/scheduling" />
+<LinkCard title="Kanban board" description="Review drafts, drag to schedule, filters, and pagination on Home" href="/docs/creating-posts/kanban" />
 <LinkCard title="Links and validation" description="Link previews, character limits, and save-time errors" href="/docs/creating-posts/links-and-validation" />
 <LinkCard title="Tags" description="Colored labels on posts for campaigns and filters" href="/docs/creating-posts/tags" />
 <LinkCard title="Templates" description="Saved composer presets for repeat workflows" href="/docs/creating-posts/templates" />

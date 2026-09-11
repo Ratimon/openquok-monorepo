@@ -98,13 +98,16 @@ export type {
 	PostKanbanReviewFilterOptionViewModel,
 	PostKanbanSourceFilter,
 	PostKanbanSourceFilterOptionViewModel,
-	PostKanbanTimeFilter,
-	PostKanbanTimeFilterOptionViewModel
+	PostKanbanPastTimeFilter,
+	PostKanbanPastTimeFilterOptionViewModel,
+	PostKanbanUpcomingTimeFilter,
+	PostKanbanUpcomingTimeFilterOptionViewModel
 } from '$lib/posts/postKanbanBoard.types';
 export {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
 	POST_KANBAN_REVIEW_FILTER_OPTIONS,
-	POST_KANBAN_TIME_FILTER_OPTIONS
+	POST_KANBAN_PAST_TIME_FILTER_OPTIONS,
+	POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 export { socialProviderIcon, socialProviderIconByIdentifier } from '$data/social-providers';

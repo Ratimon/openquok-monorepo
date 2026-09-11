@@ -1,7 +1,7 @@
 ---
 title: Tags
 description: Colored labels on posts — filter Home and the calendar by campaign, client, or content type.
-order: 8
+order: 9
 lastUpdated: 2026-08-25
 ---
 
@@ -16,6 +16,7 @@ Content coming soon. Tags live in the composer footer — see the <a href="/docs
 <CardGrid>
 <LinkCard title="Creating posts overview" description="Editor layout, flow, and save options" href="/docs/creating-posts" />
 <LinkCard title="Scheduling" description="Save as draft or add to calendar" href="/docs/creating-posts/scheduling" />
+<LinkCard title="Kanban board" description="Review queue, filters, and drag to schedule on Home" href="/docs/creating-posts/kanban" />
 <LinkCard title="Templates" description="Saved presets including tags" href="/docs/creating-posts/templates" />
 <LinkCard title="Glossary" description="Tags and post groups defined" href="/docs/getting-started/glossary" />
 </CardGrid>

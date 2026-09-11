@@ -6,14 +6,10 @@
 		PostKanbanReviewFilterOptionViewModel,
 		PostKanbanSourceFilter,
 		PostKanbanSourceFilterOptionViewModel,
-		PostKanbanTimeFilter,
-		PostKanbanTimeFilterOptionViewModel,
 		PostTagFilterVm,
 		PostTagViewModel,
 		SocialPlatformFilterVm
 	} from '$lib/posts';
-
-	import { icons } from '$data/icons';
 
 	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
@@ -31,17 +27,13 @@
 		selectedTagNames: string[];
 		tagsVm: PostTagViewModel[];
 		kanbanPosts: readonly Pick<CalendarPostRowViewModel, 'tagNames'>[];
-		timeFilterOptions: readonly PostKanbanTimeFilterOptionViewModel[];
-		timeFilter: PostKanbanTimeFilter;
 		sourceFilterOptions: readonly PostKanbanSourceFilterOptionViewModel[];
 		sourceFilter: PostKanbanSourceFilter;
 		reviewFilterOptions: readonly PostKanbanReviewFilterOptionViewModel[];
 		reviewFilter: PostKanbanReviewFilter;
-		calendarHref: string;
 		onGroupFilterChange: (next: { allGroups: boolean; selectedGroupIds: string[] }) => void;
 		onSocialPlatformFilterChange: (next: SocialPlatformFilterVm) => void;
 		onTagFilterChange: (next: PostTagFilterVm) => void;
-		onTimeFilterChange: (next: PostKanbanTimeFilter) => void;
 		onSourceFilterChange: (next: PostKanbanSourceFilter) => void;
 		onReviewFilterChange: (next: PostKanbanReviewFilter) => void;
 	};
@@ -56,17 +48,13 @@
 		selectedTagNames,
 		tagsVm,
 		kanbanPosts,
-		timeFilterOptions,
-		timeFilter,
 		sourceFilterOptions,
 		sourceFilter,
 		reviewFilterOptions,
 		reviewFilter,
-		calendarHref,
 		onGroupFilterChange,
 		onSocialPlatformFilterChange,
 		onTagFilterChange,
-		onTimeFilterChange,
 		onSourceFilterChange,
 		onReviewFilterChange
 	}: Props = $props();
@@ -108,78 +96,42 @@
 		/>
 	</div>
 
-	<div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-		<div class="flex max-w-full flex-wrap items-center gap-2">
-			<div
-				class="inline-flex max-w-full overflow-x-auto rounded-lg border border-base-300 bg-base-100"
-				role="group"
-				aria-label="Filter by publish date"
-			>
-				{#each timeFilterOptions as opt (opt.id)}
-					<Button
-						type="button"
-						variant={timeFilter === opt.id ? 'secondary' : 'ghost'}
-						size="sm"
-						class="shrink-0 rounded-none px-3"
-						aria-pressed={timeFilter === opt.id}
-						onclick={() => onTimeFilterChange(opt.id)}
-					>
+	<div class="flex max-w-full flex-wrap items-center justify-start gap-2">
+		<div
+			class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
+			role="group"
+			aria-label="Filter by review status"
+		>
+			{#each reviewFilterOptions as opt (opt.id)}
+				<Button
+					type="button"
+					variant={reviewFilter === opt.id ? 'secondary' : 'ghost'}
+					size="sm"
+					class="rounded-none px-3"
+					aria-pressed={reviewFilter === opt.id}
+					onclick={() => onReviewFilterChange(opt.id)}
+				>
+					<span class="inline-flex items-center gap-1.5">
+						{#if opt.iconName}
+							<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5">
+								<AbstractIcon
+									name={opt.iconName}
+									class="size-3"
+									width="12"
+									height="12"
+								/>
+							</span>
+						{/if}
 						{opt.label}
-					</Button>
-				{/each}
-			</div>
-			<Button
-				href={calendarHref}
-				variant="outline"
-				size="sm"
-				class="shrink-0 gap-1.5"
-				aria-label="Open calendar view"
-			>
-				<AbstractIcon
-					name={icons.CalendarClock.name}
-					class="size-4"
-					width="16"
-					height="16"
-				/>
-				Calendar
-			</Button>
+					</span>
+				</Button>
+			{/each}
 		</div>
-		<div class="flex max-w-full flex-wrap items-center justify-end gap-2">
-			<div
-				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
-				role="group"
-				aria-label="Filter by review status"
-			>
-				{#each reviewFilterOptions as opt (opt.id)}
-					<Button
-						type="button"
-						variant={reviewFilter === opt.id ? 'secondary' : 'ghost'}
-						size="sm"
-						class="rounded-none px-3"
-						aria-pressed={reviewFilter === opt.id}
-						onclick={() => onReviewFilterChange(opt.id)}
-					>
-						<span class="inline-flex items-center gap-1.5">
-							{#if opt.iconName}
-								<span class="badge badge-secondary badge-xs shrink-0 border-0 p-0.5">
-									<AbstractIcon
-										name={opt.iconName}
-										class="size-3"
-										width="12"
-										height="12"
-									/>
-								</span>
-							{/if}
-							{opt.label}
-						</span>
-					</Button>
-				{/each}
-			</div>
-			<div
-				class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
-				role="group"
-				aria-label="Filter by source"
-			>
+		<div
+			class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
+			role="group"
+			aria-label="Filter by source"
+		>
 			{#each sourceFilterOptions as opt (opt.id)}
 				<Button
 					type="button"
@@ -204,7 +156,6 @@
 					</span>
 				</Button>
 			{/each}
-			</div>
 		</div>
 	</div>
 </div>

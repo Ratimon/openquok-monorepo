@@ -219,10 +219,12 @@
 	const postKanbanColumnOptions = $derived(postKanbanBoard.columnOptions);
 	const postKanbanSourceFilterOptions = $derived(postKanbanBoard.sourceFilterOptions);
 	const postKanbanReviewFilterOptions = $derived(postKanbanBoard.reviewFilterOptions);
-	const postKanbanTimeFilterOptions = $derived(postKanbanBoard.timeFilterOptions);
+	const postKanbanUpcomingTimeFilterOptions = $derived(postKanbanBoard.upcomingTimeFilterOptions);
+	const postKanbanPastTimeFilterOptions = $derived(postKanbanBoard.pastTimeFilterOptions);
 	const postKanbanSourceFilter = $derived(postKanbanBoard.sourceFilter);
 	const postKanbanReviewFilter = $derived(postKanbanBoard.reviewFilter);
-	const postKanbanTimeFilter = $derived(postKanbanBoard.timeFilter);
+	const postKanbanUpcomingTimeFilter = $derived(postKanbanBoard.upcomingTimeFilter);
+	const postKanbanPastTimeFilter = $derived(postKanbanBoard.pastTimeFilter);
 	const postKanbanAllGroups = $derived(postKanbanBoard.allGroups);
 	const postKanbanSelectedGroupIds = $derived(postKanbanBoard.selectedGroupIds);
 	const postKanbanAllSocialPlatforms = $derived(postKanbanBoard.allSocialPlatforms);
@@ -1158,10 +1160,12 @@
 			columnOptions={postKanbanColumnOptions}
 			sourceFilterOptions={postKanbanSourceFilterOptions}
 			reviewFilterOptions={postKanbanReviewFilterOptions}
-			timeFilterOptions={postKanbanTimeFilterOptions}
+			upcomingTimeFilterOptions={postKanbanUpcomingTimeFilterOptions}
+			pastTimeFilterOptions={postKanbanPastTimeFilterOptions}
 			sourceFilter={postKanbanSourceFilter}
 			reviewFilter={postKanbanReviewFilter}
-			timeFilter={postKanbanTimeFilter}
+			upcomingTimeFilter={postKanbanUpcomingTimeFilter}
+			pastTimeFilter={postKanbanPastTimeFilter}
 			status={postKanbanStatus}
 			error={postKanbanError}
 			movingPostGroup={postKanbanMovingPostGroup}
@@ -1174,7 +1178,8 @@
 			onTagFilterChange={(next) => postKanbanBoard.setTagFilter(next)}
 			onSourceFilterChange={(next) => postKanbanBoard.setSourceFilter(next)}
 			onReviewFilterChange={(next) => postKanbanBoard.setReviewFilter(next)}
-			onTimeFilterChange={(next) => postKanbanBoard.setTimeFilter(next)}
+			onUpcomingTimeFilterChange={(next) => postKanbanBoard.setUpcomingTimeFilter(next)}
+			onPastTimeFilterChange={(next) => postKanbanBoard.setPastTimeFilter(next)}
 			onMoveCardToColumn={handleKanbanMoveCardToColumn}
 			onToggleReviewed={(id, checked) => void postKanbanBoard.toggleReviewed(id, checked)}
 			onNoteChange={(id, note) => void postKanbanBoard.updateNote(id, note)}

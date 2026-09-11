@@ -11,7 +11,9 @@ sidebar:
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-OpenQuok is a **content scheduler** for volume without the headache. Agents draft and queue at scale; you keep quality — review and approve on the **calendar** and **kanban** before anything publishes.
+OpenQuok is a **social scheduler** for volume without the headache. Agents draft and queue at scale, while you keep quality. You can review and approve on the **calendar** and **kanban** before anything publishes.
+
+![Save hours scheduling social media at scale](/docs/_assets/getting-started/landing-page-hero.webp)
 
 Connect channels in a workspace. Write a post/content in the post editor, reuse templates, or send drafts from an agent. CLI, MCP, and the public API all land in the same review queue.
 

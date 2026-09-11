@@ -22,7 +22,8 @@ export {
 	formatKanbanRelativePublishLabel,
 	isKanbanManualFinishAcknowledged,
 	kanbanColumnStatusLabel,
-	matchesKanbanTimeFilter,
+	matchesKanbanPastTimeFilter,
+	matchesKanbanUpcomingTimeFilter,
 	resolveTiktokManualFinish,
 	stateToKanbanColumn,
 	toPostKanbanRowVm,
@@ -40,6 +41,7 @@ export {
 	filterKanbanCardsByReview,
 	filterKanbanCardsBySource,
 	filterKanbanCardsByTags,
-	filterKanbanCardsByTime,
+	filterKanbanCardsByPastTime,
+	filterKanbanCardsByUpcomingTime,
 	groupKanbanCardsIntoColumns
 } from './kanbanBoardCards';

@@ -13,7 +13,8 @@ import {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
 	POST_KANBAN_REVIEW_FILTER_OPTIONS,
-	POST_KANBAN_TIME_FILTER_OPTIONS,
+	POST_KANBAN_PAST_TIME_FILTER_OPTIONS,
+	POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS,
 	type PostKanbanReviewFilter,
 	type PostKanbanCardViewModel,
 	type PostKanbanChannelSlotViewModel,
@@ -23,9 +24,10 @@ import {
 	type PostKanbanCopyPostGroupJsonResultViewModel,
 	type PostKanbanDeletePostGroupResultViewModel,
 	type PostKanbanMoveCardResultViewModel,
+	type PostKanbanPastTimeFilter,
 	type PostKanbanRowViewModel,
 	type PostKanbanSourceFilter,
-	type PostKanbanTimeFilter
+	type PostKanbanUpcomingTimeFilter
 } from '$lib/posts/postKanbanBoard.types';
 import {
 	buildKanbanCardsVm,
@@ -62,17 +64,20 @@ export type {
 	PostKanbanRowViewModel,
 	PostKanbanReviewFilter,
 	PostKanbanReviewFilterOptionViewModel,
+	PostKanbanPastTimeFilter,
+	PostKanbanPastTimeFilterOptionViewModel,
 	PostKanbanSourceFilter,
 	PostKanbanSourceFilterOptionViewModel,
-	PostKanbanTimeFilter,
-	PostKanbanTimeFilterOptionViewModel
+	PostKanbanUpcomingTimeFilter,
+	PostKanbanUpcomingTimeFilterOptionViewModel
 } from '$lib/posts/postKanbanBoard.types';
 
 export {
 	POST_KANBAN_COLUMNS,
 	POST_KANBAN_SOURCE_FILTER_OPTIONS,
 	POST_KANBAN_REVIEW_FILTER_OPTIONS,
-	POST_KANBAN_TIME_FILTER_OPTIONS
+	POST_KANBAN_PAST_TIME_FILTER_OPTIONS,
+	POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS
 } from '$lib/posts/postKanbanBoard.types';
 
 export { formatKanbanRelativePublishLabel } from '$lib/posts/utils/scheduler';
@@ -81,11 +86,13 @@ export class PostKanbanBoardPresenter {
 	readonly columnOptions = POST_KANBAN_COLUMNS;
 	readonly sourceFilterOptions = POST_KANBAN_SOURCE_FILTER_OPTIONS;
 	readonly reviewFilterOptions = POST_KANBAN_REVIEW_FILTER_OPTIONS;
-	readonly timeFilterOptions = POST_KANBAN_TIME_FILTER_OPTIONS;
+	readonly upcomingTimeFilterOptions = POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS;
+	readonly pastTimeFilterOptions = POST_KANBAN_PAST_TIME_FILTER_OPTIONS;
 
 	sourceFilter = $state<PostKanbanSourceFilter>('all');
 	reviewFilter = $state<PostKanbanReviewFilter>('all');
-	timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
+	upcomingTimeFilter = $state<PostKanbanUpcomingTimeFilter>('all-upcoming');
+	pastTimeFilter = $state<PostKanbanPastTimeFilter>('all-past');
 	allGroups = $state(true);
 	selectedGroupIds = $state<string[]>([]);
 	allSocialPlatforms = $state(true);
@@ -117,12 +124,20 @@ export class PostKanbanBoardPresenter {
 	});
 
 	columnsVm = $derived.by((): PostKanbanColumnsViewModel =>
-		buildKanbanColumnsWithTimeFilter(this.filteredCardsVm, this.timeFilter)
+		buildKanbanColumnsWithTimeFilter(
+			this.filteredCardsVm,
+			this.upcomingTimeFilter,
+			this.pastTimeFilter
+		)
 	);
 
 	columnCountsVm = $derived.by((): PostKanbanColumnCountsViewModel =>
 		buildKanbanColumnCounts(
-			buildKanbanColumnsWithTimeFilter(this.filteredCardsVm, this.timeFilter),
+			buildKanbanColumnsWithTimeFilter(
+				this.filteredCardsVm,
+				this.upcomingTimeFilter,
+				this.pastTimeFilter
+			),
 			groupKanbanCardsIntoColumns(this.filteredCardsVm)
 		)
 	);
@@ -206,8 +221,12 @@ export class PostKanbanBoardPresenter {
 		this.reviewFilter = next;
 	}
 
-	setTimeFilter(next: PostKanbanTimeFilter) {
-		this.timeFilter = next;
+	setUpcomingTimeFilter(next: PostKanbanUpcomingTimeFilter) {
+		this.upcomingTimeFilter = next;
+	}
+
+	setPastTimeFilter(next: PostKanbanPastTimeFilter) {
+		this.pastTimeFilter = next;
 	}
 
 	async load(organizationId: string | null | undefined): Promise<void> {

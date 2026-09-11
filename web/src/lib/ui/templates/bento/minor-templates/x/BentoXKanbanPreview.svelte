@@ -1,10 +1,11 @@
 <script lang="ts">
-	import type { PostKanbanReviewFilter, PostKanbanSourceFilter, PostKanbanTimeFilter } from '$lib/posts/postKanbanBoard.types';
+	import type { PostKanbanPastTimeFilter, PostKanbanReviewFilter, PostKanbanSourceFilter, PostKanbanUpcomingTimeFilter } from '$lib/posts/postKanbanBoard.types';
 	import {
 		POST_KANBAN_COLUMNS,
 		POST_KANBAN_REVIEW_FILTER_OPTIONS,
 		POST_KANBAN_SOURCE_FILTER_OPTIONS,
-		POST_KANBAN_TIME_FILTER_OPTIONS
+		POST_KANBAN_PAST_TIME_FILTER_OPTIONS,
+		POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS
 	} from '$lib/posts/postKanbanBoard.types';
 	import {
 		buildKanbanColumnCounts,
@@ -14,6 +15,7 @@
 		groupKanbanCardsIntoColumns
 	} from '$lib/posts/utils/scheduler';
 
+	import KanbanColumnTimeFilterRow from '$lib/ui/components/posts/kanban/KanbanColumnTimeFilterRow.svelte';
 	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
 	import { X_LANDING_KANBAN_CARDS } from '$lib/ui/templates/bento/minor-templates/x/xLandingKanbanMock';
@@ -24,12 +26,13 @@
 
 	let sourceFilter = $state<PostKanbanSourceFilter>('all');
 	let reviewFilter = $state<PostKanbanReviewFilter>('all');
-	let timeFilter = $state<PostKanbanTimeFilter>('all-upcoming');
+	let upcomingTimeFilter = $state<PostKanbanUpcomingTimeFilter>('all-upcoming');
+	let pastTimeFilter = $state<PostKanbanPastTimeFilter>('all-past');
 
 	const filteredCards = $derived(
 		filterKanbanCardsByReview(filterKanbanCardsBySource(X_LANDING_KANBAN_CARDS, sourceFilter), reviewFilter)
 	);
-	const columnsVm = $derived(buildKanbanColumnsWithTimeFilter(filteredCards, timeFilter));
+	const columnsVm = $derived(buildKanbanColumnsWithTimeFilter(filteredCards, upcomingTimeFilter, pastTimeFilter));
 	const columnCountsVm = $derived(
 		buildKanbanColumnCounts(columnsVm, groupKanbanCardsIntoColumns(filteredCards))
 	);
@@ -45,7 +48,7 @@
 		</p>
 	</div>
 
-	<div class="pointer-events-auto px-4 py-3">
+	<div class="pointer-events-auto flex flex-col gap-2 px-4 py-3">
 		<KanbanBoardFilters
 			channels={mockChannels}
 			allGroups={true}
@@ -56,24 +59,31 @@
 			selectedTagNames={[]}
 			tagsVm={[]}
 			{kanbanPosts}
-			timeFilterOptions={POST_KANBAN_TIME_FILTER_OPTIONS}
-			{timeFilter}
 			sourceFilterOptions={POST_KANBAN_SOURCE_FILTER_OPTIONS}
 			{sourceFilter}
 			reviewFilterOptions={POST_KANBAN_REVIEW_FILTER_OPTIONS}
 			{reviewFilter}
-			calendarHref="/account/calendar"
 			onGroupFilterChange={noop}
 			onSocialPlatformFilterChange={noop}
 			onTagFilterChange={noop}
-			onTimeFilterChange={(next) => {
-				timeFilter = next;
-			}}
 			onSourceFilterChange={(next) => {
 				sourceFilter = next;
 			}}
 			onReviewFilterChange={(next) => {
 				reviewFilter = next;
+			}}
+		/>
+		<KanbanColumnTimeFilterRow
+			upcomingTimeFilterOptions={POST_KANBAN_UPCOMING_TIME_FILTER_OPTIONS}
+			pastTimeFilterOptions={POST_KANBAN_PAST_TIME_FILTER_OPTIONS}
+			{upcomingTimeFilter}
+			{pastTimeFilter}
+			calendarHref="/account/calendar"
+			onUpcomingTimeFilterChange={(next) => {
+				upcomingTimeFilter = next;
+			}}
+			onPastTimeFilterChange={(next) => {
+				pastTimeFilter = next;
 			}}
 		/>
 	</div>

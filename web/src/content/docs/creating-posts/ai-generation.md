@@ -18,5 +18,6 @@ Content coming soon. Agent and API drafts land in the same Home and calendar que
 <LinkCard title="MCP introduction" description="Schedule from Cursor, Claude, and other clients" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Public API" description="POST /public/posts and Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Scheduling" description="Move drafts to scheduled" href="/docs/creating-posts/scheduling" />
+<LinkCard title="Kanban board" description="Review agent drafts and filter by source" href="/docs/creating-posts/kanban" />
 <LinkCard title="CLI" description="openquok posts:create and related commands" href="/docs/getting-started-for-cli" />
 </CardGrid>

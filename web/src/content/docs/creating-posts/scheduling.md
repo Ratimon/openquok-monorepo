@@ -15,6 +15,7 @@ Content coming soon. See the <a href="/docs/creating-posts">Creating posts overv
 
 <CardGrid>
 <LinkCard title="Creating posts overview" description="Editor layout, flow, and save options" href="/docs/creating-posts" />
+<LinkCard title="Kanban board" description="Draft, scheduled, and published columns" href="/docs/creating-posts/kanban" />
 <LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/calendar-and-posts/moving-posts" />
 <LinkCard title="Posting time slots" description="Usual hours per channel" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Workspace posting timezone" href="/docs/settings/timezone" />

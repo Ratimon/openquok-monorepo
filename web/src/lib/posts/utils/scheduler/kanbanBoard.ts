@@ -1,5 +1,10 @@
 import type { PostRowProgrammerModel } from '$lib/posts/Post.repository.svelte';
-import type { PostKanbanColumnId, PostKanbanRowViewModel, PostKanbanTimeFilter } from '$lib/posts/postKanbanBoard.types';
+import type {
+	PostKanbanColumnId,
+	PostKanbanPastTimeFilter,
+	PostKanbanRowViewModel,
+	PostKanbanUpcomingTimeFilter
+} from '$lib/posts/postKanbanBoard.types';
 import { readTiktokLaunchSettings } from '$lib/ui/components/posts/providers/tiktok/tiktok.provider';
 import dayjs from 'dayjs';
 
@@ -198,9 +203,9 @@ function isPastPublishDate(publishDateIso: string, nowMs = Date.now()): boolean 
 	return ms < nowMs;
 }
 
-export function matchesKanbanTimeFilter(
+export function matchesKanbanUpcomingTimeFilter(
 	publishDateIso: string,
-	filter: PostKanbanTimeFilter,
+	filter: PostKanbanUpcomingTimeFilter,
 	nowMs = Date.now()
 ): boolean {
 	const ms = parsePublishMs(publishDateIso);
@@ -217,8 +222,27 @@ export function matchesKanbanTimeFilter(
 		if (!Number.isFinite(ms) || ms < nowMs) return false;
 		return ms < now.add(30, 'day').endOf('day').valueOf();
 	}
-	if (filter === 'past') {
+	return true;
+}
+
+export function matchesKanbanPastTimeFilter(
+	publishDateIso: string,
+	filter: PostKanbanPastTimeFilter,
+	nowMs = Date.now()
+): boolean {
+	const ms = parsePublishMs(publishDateIso);
+	const now = dayjs(nowMs);
+
+	if (filter === 'all-past') {
 		return isPastPublishDate(publishDateIso, nowMs);
+	}
+	if (filter === 'past-week') {
+		if (!Number.isFinite(ms) || ms >= nowMs) return false;
+		return ms >= now.subtract(7, 'day').startOf('day').valueOf();
+	}
+	if (filter === 'past-30-days') {
+		if (!Number.isFinite(ms) || ms >= nowMs) return false;
+		return ms >= now.subtract(30, 'day').startOf('day').valueOf();
 	}
 	return true;
 }

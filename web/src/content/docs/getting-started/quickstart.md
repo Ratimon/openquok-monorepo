@@ -27,7 +27,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 
 <p>Sign up, confirm your email, and open the app. New workspaces start a <a href="/docs/cloud/trial">7-day trial</a> (no credit card required). Plan caps still apply during the trial — see <a href="/pricing">Pricing</a>.</p>
 
-<p>You land on <Badge text="Home" variant="default" /> at <a href="/account">/account</a>. Your first workspace is created automatically. You can create and switch your workspaces to prevent mixing things.</p>
+<p>You land on <Badge text="Home" variant="default" /> at <a href="/account">/account</a>. Your first workspace is created automatically. You can create and switch your workspaces as needed.</p>
 
 </TabItem>
 <TabItem label="Self-hosting">
@@ -92,6 +92,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 | <Badge text="Publish now" variant="new" /> | Publishes immediately — hover the schedule button or open its menu to find it. |
 
 <p>If a channel is missing a required field, save is blocked until you fix that channel’s settings. See <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.</p>
+
 
 ### Confirm it
 

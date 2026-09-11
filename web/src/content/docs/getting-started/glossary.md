@@ -116,7 +116,7 @@ A **smart filter** is how you narrow a table or board to the channels, posts, te
 
 <p>The same <Badge text="Add filters" variant="default" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
 
-<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. Kanban also has a date range, review status, and source (Agent or Human).</p>
+<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/creating-posts/kanban">Kanban board</a>.</p>
 
 <p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/docs/creating-posts/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 
