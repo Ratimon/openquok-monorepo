@@ -78,7 +78,10 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	},
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'included' },
-	cross_account_plugs: { kind: 'excluded' },
+	cross_account_plugs: {
+		kind: 'text',
+		text: 'X repost & LinkedIn comment/reshare; not Threads'
+	},
 	global_plugs: { kind: 'included' },
 	group_management: { kind: 'included' },
 	dark_light_mode: { kind: 'included' },

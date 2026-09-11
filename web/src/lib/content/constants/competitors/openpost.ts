@@ -77,7 +77,10 @@ const OPENPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
 	cross_account_plugs: { kind: 'excluded' },
-	global_plugs: { kind: 'excluded' },
+	global_plugs: {
+		kind: 'text',
+		text: 'Auto Repost with likes/comments/reposts/views gates (X, Mastodon, Bluesky, LinkedIn)'
+	},
 	group_management: { kind: 'text', text: 'Social Sets' },
 	dark_light_mode: { kind: 'included' },
 	community: { kind: 'excluded' }
