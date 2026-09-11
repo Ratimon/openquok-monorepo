@@ -127,8 +127,11 @@ export interface PublicBlogOverviewVm {
 export class GetBlogPresenter {
 	constructor(private readonly blogRepository: BlogRepository) {}
 
-	public async loadAdminPosts(fetch?: typeof globalThis.fetch): Promise<BlogPostViewModel[]> {
-		const postsPm = await this.blogRepository.getAdminBlogPosts(fetch);
+	public async loadAdminPosts(
+		params?: { limit?: number },
+		fetch?: typeof globalThis.fetch
+	): Promise<BlogPostViewModel[]> {
+		const postsPm = await this.blogRepository.getAdminBlogPosts({ limit: params?.limit ?? 100 }, fetch);
 		return postsPm.map((post: BlogPostProgrammerModel): BlogPostViewModel => this.toBlogPostVm(post));
 	}
 

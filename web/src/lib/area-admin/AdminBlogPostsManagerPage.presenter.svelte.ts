@@ -22,7 +22,7 @@ export class AdminBlogPostsManagerPagePresenter {
 	public async loadAllPosts(fetch?: typeof globalThis.fetch): Promise<BlogPostViewModel[]> {
 		this.loading = true;
 		try {
-			const posts = await this.getBlogPresenter.loadAdminPosts(fetch);
+			const posts = await this.getBlogPresenter.loadAdminPosts({ limit: 100 }, fetch);
 			this.allPostsToManageVm = posts;
 			return this.allPostsToManageVm;
 		} finally {

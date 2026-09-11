@@ -397,10 +397,20 @@ export class BlogRepository {
 		private readonly config: BlogConfig
 	) {}
 
-	async getAdminBlogPosts(fetch?: typeof globalThis.fetch): Promise<BlogPostProgrammerModel[]> {
+	/**
+	 * Admin list of all posts (editor+). Server caps `limit` (max 100).
+	 */
+	async getAdminBlogPosts(
+		params?: { limit?: number },
+		fetch?: typeof globalThis.fetch
+	): Promise<BlogPostProgrammerModel[]> {
+		const query: Record<string, string | number> = {
+			limit: params?.limit ?? 100
+		};
+
 		const { data: dto, ok } = await this.httpGateway.get<GetAdminBlogPostsResponseDto>(
 			this.config.endpoints.getAdminPosts,
-			undefined,
+			query,
 			{ withCredentials: true, fetch }
 		);
 		if (ok && dto?.success && Array.isArray(dto.data?.postsResult)) {
