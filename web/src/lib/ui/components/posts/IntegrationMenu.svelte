@@ -384,14 +384,16 @@
 	>
 		<Popover.Root bind:open={menuOpen}>
 			{#if chipHoverTooltip}
-				<Tooltip.Root>
-					<Tooltip.Trigger>
-						{#snippet child({ props: tooltipProps })}
-							{@render chipPopoverTrigger(tooltipProps)}
-						{/snippet}
-					</Tooltip.Trigger>
-					<Tooltip.Content side="top" sideOffset={6}>{chipHoverTooltip}</Tooltip.Content>
-				</Tooltip.Root>
+				<Tooltip.Provider delayDuration={200}>
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							{#snippet child({ props: tooltipProps })}
+								{@render chipPopoverTrigger(tooltipProps)}
+							{/snippet}
+						</Tooltip.Trigger>
+						<Tooltip.Content side="top" sideOffset={6}>{chipHoverTooltip}</Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 			{:else}
 				{@render chipPopoverTrigger()}
 			{/if}
