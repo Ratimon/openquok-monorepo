@@ -1,6 +1,6 @@
 ---
 title: Internal plugs
-description: Schedule a same-account follow-up on one OpenQuok post after it publishes.
+description: Schedule a same-account delayed engagement reply after Follow-up comments on one OpenQuok post.
 order: 2
 lastUpdated: 2026-09-11
 ---
@@ -9,7 +9,7 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once per post. It runs after the main post publishes. It also waits for same-account <a href="/docs/creating-posts/threads-and-comments">follow-up replies</a> and the thread finisher.
+An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once per post. It runs after the main post publishes. It also waits for <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher.
 
 Today the shipped internal plug is the **Threads delayed engagement reply**.
 
@@ -77,7 +77,7 @@ Set <Badge text="threads.internalEngagementPlug" variant="param" /> on the publi
 <LinkCard title="Plugs overview" description="Internal, cross-account, and global plugs compared" href="/docs/automations/plugs" />
 <LinkCard title="Cross-account plugs" description="Other connected channels comment, repost, or reshare" href="/docs/automations/cross-account-plugs" />
 <LinkCard title="Global plugs" description="Channel rules when likes reach a threshold" href="/docs/automations/global-plugs" />
-<LinkCard title="Threads and comments" description="Follow-up replies and thread finisher in the composer" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Follow-up comments and thread finisher in the composer" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="CLI examples — Threads" description="internalEngagementPlug field shape" href="/docs/cli-examples/threads" />
 <LinkCard title="Glossary — Internal plug" description="Short definition for the term" href="/docs/getting-started/glossary#internal-plug" />
 </CardGrid>

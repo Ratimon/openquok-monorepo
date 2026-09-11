@@ -80,7 +80,7 @@ Common optional members:
 | <Badge text="pages()" variant="param" /> | Between-steps account list |
 | <Badge text="fetchPageInformation()" variant="param" /> | Finalize Page/token after picker |
 | <Badge text="refreshToken" variant="param" /> + <Badge text="reConnect" variant="param" /> | Long-lived token refresh (set <Badge text="refreshCron: true" variant="param" />) |
-| <Badge text="comment" variant="param" /> | Thread / follow-up replies |
+| <Badge text="comment" variant="param" /> | Thread replies / Follow-up comments |
 | <Badge text="analytics" variant="param" /> / <Badge text="postAnalytics" variant="param" /> | Insights dashboards |
 | <Badge text="validateCreatePost" variant="param" /> | Server-side schedule validation |
 | <Badge text="globalPlugCatalog" variant="param" /> / <Badge text="internalPlugCatalog" variant="param" /> | Channel or post-compose plugs |
@@ -158,7 +158,7 @@ When the provider has compose-time settings (step 6), the Post Preview column mu
 | <Badge text="[id]Preview.svelte" variant="path" /> | Accept a <Badge text="providerSettings" variant="param" /> prop; read it with <Badge text="read*LaunchSettings" variant="param" />; render title, tags, cover, and other fields the Settings panel writes. |
 | <Badge text="ShowAllProviders.svelte" variant="path" /> | Pass <Badge text="providerSettings" variant="param" /> on every preview branch that consumes compose settings — not only Dev.to. |
 | <Badge text="AddEditModal.svelte" variant="path" /> | Derive effective preview settings from <Badge text="previewChannel.id" variant="param" /> + <Badge text="providerSettingsByIntegrationId" variant="param" /> and pass them to <Badge text="ShowAllProviders" variant="param" />. |
-| Parent modals | Do <strong>not</strong> pass <Badge text="previewProviderSettings" variant="param" /> from <Badge text="followUpTargetIntegrationId" variant="param" /> — that ID is only set for Threads/Instagram follow-up replies and leaves other providers with an empty settings object. |
+| Parent modals | Do <strong>not</strong> pass <Badge text="previewProviderSettings" variant="param" /> from <Badge text="followUpTargetIntegrationId" variant="param" /> — that ID is only set for Threads/Instagram Follow-up comments and leaves other providers with an empty settings object. |
 
 <strong>References:</strong> Dev.to (<Badge text="title" variant="param" />, <Badge text="tags" variant="param" />, <Badge text="series" variant="param" />), YouTube (<Badge text="title" variant="param" />, <Badge text="thumbnail" variant="param" />), TikTok photo carousel (<Badge text="title" variant="param" />). Landing bento mocks should pass explicit mock <Badge text="providerSettings" variant="param" /> into <Badge text="ShowAllProviders" variant="param" /> (see <Badge text="BentoDevtoSettingsPreview.svelte" variant="path" />).
 

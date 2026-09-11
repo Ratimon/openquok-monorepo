@@ -86,7 +86,7 @@ Add these **permissions** under **Access the Threads API** (OpenQuok requests th
 <ul class="list-disc pl-6">
 <li><Badge text="threads_basic" variant="default" /> — profile and account basics</li>
 <li><Badge text="threads_content_publish" variant="default" /> — publish posts and replies</li>
-<li><Badge text="threads_manage_replies" variant="default" /> — same-account follow-up replies and comments</li>
+<li><Badge text="threads_manage_replies" variant="default" /> — same-account Follow-up comments (thread replies and comments)</li>
 <li><Badge text="threads_manage_insights" variant="default" /> — channel and post analytics</li>
 <li><Badge text="threads_manage_mentions" variant="default" /> — cross-account comments on posts that mention the acting account (see below)</li>
 </ul>

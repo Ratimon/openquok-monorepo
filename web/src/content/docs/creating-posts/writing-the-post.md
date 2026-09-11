@@ -111,7 +111,7 @@ You can try our <a href="/tools/humanizer">Humanizer</a> tool without sign up. S
 
 ## Thread reply boxes
 
-Supported networks (Threads, X, Instagram) can add delayed **follow-up reply** fields — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
+Supported networks (Threads, X, Instagram) can add delayed **Follow-up comments** — thread replies or comments — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
 
 ## Related
 
@@ -120,7 +120,7 @@ Supported networks (Threads, X, Instagram) can add delayed **follow-up reply** f
 <LinkCard title="Global vs per-channel" description="One caption or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Media" description="Attach images and video in the composer" href="/docs/creating-posts/media" />
 <LinkCard title="Links and validation" description="Link previews and save-time errors" href="/docs/creating-posts/links-and-validation" />
-<LinkCard title="Threads and comments" description="Multi-part posts and follow-up replies" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="AI generation" description="Draft posts with agents, MCP, and the API" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Posting rules by platform" description="Per-network character and media limits" href="/docs/platforms" />
 <LinkCard title="Signatures" description="Reusable sign-offs from Settings" href="/docs/settings/signatures" />

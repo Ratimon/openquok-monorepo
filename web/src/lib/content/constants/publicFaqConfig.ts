@@ -127,7 +127,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'What are OpenQuok plugs?',
 		description:
-			`A plug runs after your post goes live. It does not change your scheduled caption. ${faqLink(faqHrefDocs('automations/internal-plugs'), 'Internal plugs')} add same-account follow-ups on one post. ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} use other connected channels to comment, repost, or reshare. ${faqLink(faqHrefDocs('automations/global-plugs'), 'Global plugs')} are channel rules when likes on a live post reach your threshold. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} to compare all three.`
+			`A plug runs after your post goes live. It does not change your scheduled caption. ${faqLink(faqHrefDocs('automations/internal-plugs'), 'Internal plugs')} add a same-account delayed engagement reply on one post. ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} use other connected channels to comment, repost, or reshare. ${faqLink(faqHrefDocs('automations/global-plugs'), 'Global plugs')} are channel rules when likes on a live post reach your threshold. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} to compare all three.`
 	},
 	{
 		title: 'Which social platforms support plugs?',

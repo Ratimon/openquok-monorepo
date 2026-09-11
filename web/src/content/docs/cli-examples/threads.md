@@ -54,7 +54,7 @@ openquok posts:create \
 
 ## Scheduled reply chain (thread + follow-ups)
 
-<Badge text="providerSettings.threads.replies[]" variant="param" /> carries follow-up replies that publish from the same account a fixed number of seconds after the main thread. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.threads.replies[]" variant="param" /> carries follow-up comments that are published from the same account a fixed number of seconds after the main thread. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
@@ -75,7 +75,7 @@ openquok posts:create \
   ')"
 ```
 
-### Follow-up reply with image or video
+### Thread reply with image or video
 
 Upload the reply attachment first, then nest `media` on the matching `replies[]` row (same `{ id, path }` shape as the main post). Threads supports images and video on follow-ups:
 

@@ -45,7 +45,7 @@ The public API names the same concept **customers**. See <a href="/docs/apis-int
 
 Scheduling one caption to five channels creates five **posts** tied to one **post group**. Home kanban cards usually represent the group; opening a card shows each channel row.
 
-<p>A single post can hold multiple parts — a thread on X or Threads, or timed follow-up replies where the network allows. See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.</p>
+<p>A single post can hold multiple parts — a thread on X or Threads, or timed <Badge text="Follow-up comments" variant="default" /> (thread replies or comments) where the network allows. See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.</p>
 
 ## Global vs per-channel
 
@@ -141,15 +141,23 @@ Share it so someone without an OpenQuok account can read the post and leave comm
 
 On Cloud, shareable previews require Team plan or above — see <a href="/docs/cloud/limits">Cloud limits</a>.
 
+## Follow-up comments
+
+<p><Badge text="Follow-up comments" variant="default" /> is the composer panel for parts that publish after the main post. On <strong>Threads</strong> and <strong>X</strong>, those parts are <strong>thread replies</strong>. On <strong>Instagram</strong>, <strong>LinkedIn</strong>, and <strong>Facebook</strong>, they are <strong>comments</strong> on your own post.</p>
+
+<p>See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> for delays, media, and per-network rules.</p>
+
+Follow-up comments are not plugs — they are separate from <a href="/docs/automations/internal-plugs">internal plugs</a>, <a href="/docs/automations/cross-account-plugs">cross-account plugs</a>, and <a href="/docs/automations/global-plugs">global plugs</a>.
+
 ## Internal plug
 
-An **internal plug** is a same-account follow-up on one scheduled post — for example a delayed Threads engagement reply after publish. Enable it in the composer <Badge text="Settings" variant="default" /> accordion on the publishing channel.
+An **internal plug** is a same-account delayed engagement reply on one scheduled post — for example a delayed Threads engagement reply after publish. Enable it in the composer <Badge text="Settings" variant="default" /> accordion on the publishing channel.
 
 ![Click Plug Setting](/docs/_assets/glossary/internal-plug-setting.webp)
 
 <p>Today this ships on <strong>Threads</strong> only. See <a href="/docs/automations/internal-plugs">Internal plugs</a>.</p>
 
-It runs once per post, after the main post and same-account follow-up replies, and does not edit the original post.
+It runs once per post, after the main post, <Badge text="Follow-up comments" variant="default" />, and the thread finisher, and does not edit the original post.
 
 <h2 id="cross-account-plug">Cross-account plug</h2>
 

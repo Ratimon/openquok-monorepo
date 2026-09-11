@@ -54,7 +54,7 @@ openquok posts:create \
 
 ## Scheduled reply chain (thread)
 
-<Badge text="providerSettings.x.replies[]" variant="param" /> carries follow-up replies that publish as quote-less replies after the root tweet:
+<Badge text="providerSettings.x.replies[]" variant="param" /> carries follow-up comments that are published as quote-less replies after the root tweet:
 
 ```bash
 openquok posts:create \
@@ -74,7 +74,7 @@ openquok posts:create \
   ')"
 ```
 
-### Follow-up reply with images
+### Thread reply with images
 
 Upload first, then attach up to four images per reply row on <Badge text="x.replies[]" variant="param" />:
 

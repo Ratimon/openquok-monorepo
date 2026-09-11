@@ -38,7 +38,7 @@ OpenQuok registers **ten** backend identifiers across **eight** marketing slugs.
 
 ## Character limits
 
-Scheduled posts are validated server-side against each channel's cap (see the table above). This includes main post text, follow-up replies, thread finisher, or plug comments.
+Scheduled posts are validated server-side against each channel's cap (see the table above). This includes main post text, follow-up comments, thread finisher, or plug comments.
 
 - **Dashboard** — the post editor blocks over-limit captions when you schedule, while drafts may still save longer copy.
 - **API, CLI, and MCP** — <Badge text="-t schedule" variant="param" /> / <Badge text="status: scheduled" variant="param" /> enforces the same caps; <Badge text="-t draft" variant="param" /> / <Badge text="status: draft" variant="param" /> may store longer text until you shorten it before scheduling.
@@ -78,9 +78,9 @@ Rules below come from composer <Badge text="checkValidity" variant="param" /> he
 
 ## Threads and comments
 
-Scheduled **follow-up replies** after the main post are supported on some networks only.
+Scheduled **Follow-up comments** after the main post are supported on some networks only.
 
-| Network | Follow-ups in composer | Notes |
+| Network | Follow-up comments | Notes |
 | --- | --- | --- |
 | **Threads** | Yes | Same-account thread replies; media on follow-ups |
 | **X** | Yes | Quote-less replies; media on follow-ups |
@@ -225,7 +225,7 @@ Per-post metrics follow the same split — **LinkedIn Page** includes post-level
 <LinkCard title="Media" description="Attach images and video — upload limits and per-channel lists" href="/docs/creating-posts/media" />
 <LinkCard title="Connect a channel" description="OAuth redirect and credentials flows" href="/docs/channels/connect" />
 <LinkCard title="Social integrations" description="Operator developer apps and backend env for self-hosting" href="/docs/social-integration" />
-<LinkCard title="Threads and comments" description="Follow-up replies, delays, and thread finisher" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Follow-up comments, delays, and thread finisher" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Writing the post" description="Editor modes, toolbar, and character count" href="/docs/creating-posts/writing-the-post" />
 <LinkCard title="Supported social channels" description="Public API identifier and payload reference" href="/docs/getting-started-for-public-api/supported-social-channels" />
 <LinkCard title="CLI examples" description="Copy-paste openquok recipes by network" href="/docs/cli-examples" />

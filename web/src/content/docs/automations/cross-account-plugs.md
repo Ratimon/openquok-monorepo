@@ -25,7 +25,7 @@ You need at least **two** connected channels on that network. The publishing cha
 | **X** | Repost the published tweet | <Badge text="Add re-posters" variant="default" /> — pick other X profiles and a delay |
 | **LinkedIn** / **LinkedIn Page** | Comment on the post, or reshare it | <Badge text="Add comments by a different account" variant="default" /> or <Badge text="Add re-posters" variant="default" /> |
 
-Same-account follow-ups stay in the <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> panel. A same-account Threads delayed reply is an <a href="/docs/automations/internal-plugs">internal plug</a>.
+<a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> stay in the composer panel. A same-account Threads delayed reply is an <a href="/docs/automations/internal-plugs">internal plug</a>.
 
 ## Delays
 
@@ -72,7 +72,7 @@ List acting channel UUIDs in <Badge text="integrationIds" variant="param" />. Do
 <LinkCard title="Plugs overview" description="Internal, cross-account, and global plugs compared" href="/docs/automations/plugs" />
 <LinkCard title="Internal plugs" description="Same-account delayed engagement on one post" href="/docs/automations/internal-plugs" />
 <LinkCard title="Global plugs" description="Channel rules when likes reach a threshold" href="/docs/automations/global-plugs" />
-<LinkCard title="Threads and comments" description="Follow-up replies and where Settings lives" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Follow-up comments and where Settings lives" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="CLI examples — Threads" description="threads.crossAccountPlugs field shape" href="/docs/cli-examples/threads" />
 <LinkCard title="CLI examples — X" description="x.crossAccountPlugs field shape" href="/docs/cli-examples/x" />
 <LinkCard title="CLI examples — LinkedIn" description="linkedin.crossAccountPlugs field shape" href="/docs/cli-examples/linkedin" />

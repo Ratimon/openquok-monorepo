@@ -134,7 +134,7 @@ See <a href="/docs/getting-started-for-public-api/supported-social-channels">Sup
 <LinkCard title="Writing the post" description="Captions, toolbar, and per-network previews" href="/docs/creating-posts/writing-the-post" />
 <LinkCard title="Media" description="Attach images and video in the composer" href="/docs/creating-posts/media" />
 <LinkCard title="Links and validation" description="Character limits and save-time errors" href="/docs/creating-posts/links-and-validation" />
-<LinkCard title="Threads and comments" description="Multi-part posts and follow-up replies" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Templates" description="Saved composer presets" href="/docs/creating-posts/templates" />
 <LinkCard title="Posting rules by platform" description="Per-network fields and media rules" href="/docs/platforms" />
 <LinkCard title="Glossary" description="Global mode and provider settings defined" href="/docs/getting-started/glossary" />

@@ -116,7 +116,7 @@ openquok posts:create \
 
 ## Scheduled reply chain
 
-<Badge text="providerSettings.instagram.replies[]" variant="param" /> carries follow-up replies that publish from the same account after the main post. Pass them on <Badge text="posts:create" variant="param" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.instagram.replies[]" variant="param" /> carries follow-up comments that are published from the same account after the main post. Pass them on <Badge text="posts:create" variant="param" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \

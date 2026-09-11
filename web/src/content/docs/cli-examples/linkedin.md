@@ -45,7 +45,7 @@ openquok posts:create \
 
 ## Scheduled follow-up comments
 
-<Badge text="providerSettings.linkedin.replies[]" variant="param" /> carries follow-up replies that publish as comments on the main post after a fixed delay. Use the <Badge text="linkedin" variant="default" /> bucket for both personal and Page integrations (<Badge text="linkedin-page" variant="default" /> maps to the same bucket). Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.linkedin.replies[]" variant="param" /> carries follow-up comments that are published on the main post after a fixed delay. Use the <Badge text="linkedin" variant="default" /> bucket for both personal and Page integrations (<Badge text="linkedin-page" variant="default" /> maps to the same bucket). Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \

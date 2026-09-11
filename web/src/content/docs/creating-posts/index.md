@@ -35,7 +35,7 @@ The editor is one window with three main areas and a footer bar.
 | Area | What you do there |
 | --- | --- |
 | **Top** | Pick which channels receive this post. You can select a <a href="/docs/channels/channel-groups">channel group</a> to turn on every channel in that brand at once. |
-| **Left** | <a href="/docs/creating-posts/writing-the-post">Write the caption</a>, use the toolbar, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">threads or follow-up replies</a>. |
+| **Left** | <a href="/docs/creating-posts/writing-the-post">Write the caption</a>, use the toolbar, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">thread replies or follow-up comments</a>. |
 | **Right** | <a href="/docs/creating-posts/writing-the-post#post-preview">Post Preview</a> — a live look at how each selected channel will render the post. |
 | **Footer** | <a href="/docs/creating-posts/tags">Tags</a>, repeat schedule, date and time, and save buttons — see <a href="/docs/creating-posts/scheduling">Scheduling</a> for <Badge text="Save as draft" variant="default" />, <Badge text="Add to calendar" variant="new" />, and <Badge text="Publish now" variant="new" />. |
 
@@ -114,7 +114,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <CardGrid>
 <LinkCard title="Global vs per-channel" description="One caption for every channel or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Writing the post" description="Captions, the toolbar, and per-network previews in detail" href="/docs/creating-posts/writing-the-post" />
-<LinkCard title="Threads and comments" description="Multi-part posts and follow-up replies" href="/docs/creating-posts/threads-and-comments" />
+<LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Media" description="Device upload, library, Design Media, limits, and per-channel lists" href="/docs/creating-posts/media" />
 <LinkCard title="AI generation" description="Draft posts with agents, MCP, and the public API" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Scheduling" description="Pick a publish time and save as draft or scheduled" href="/docs/creating-posts/scheduling" />

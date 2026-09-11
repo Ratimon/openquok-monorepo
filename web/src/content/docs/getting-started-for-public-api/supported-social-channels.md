@@ -95,16 +95,16 @@ Threads is hard-capped at <Badge text="500 chars" variant="default" /> per item 
 
 Some optional features apply across **multiple** providers without being a "platform setting" of any one of them. They live on the same <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> object, but their shape is the same wherever they're supported.
 
-#### Follow-up replies
+#### Follow-up comments
 
-Both Threads and Instagram support an optional **follow-up reply / comment** chain that is posted from the same channel after the original goes live. The bucket key on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> differs per platform, but the item shape is identical (see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/posts/CreateSocialPost.presenter.svelte.ts"><Badge text="CreateSocialPost.presenter.svelte.ts" variant="path" /></DocsExternalLink>).
+Both Threads and Instagram support optional **Follow-up comments** — thread replies or comments posted from the same channel after the original goes live. The bucket key on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> differs per platform, but the item shape is identical (see <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/lib/posts/CreateSocialPost.presenter.svelte.ts"><Badge text="CreateSocialPost.presenter.svelte.ts" variant="path" /></DocsExternalLink>).
 
 | Provider | Bucket key | Item shape |
 | --- | --- | --- |
 | Meta Threads | <Badge text="threads.replies" variant="param" /> | array of objects with <Badge text="message" variant="param" /> (string) and <Badge text="delaySeconds" variant="param" /> (number) — replies on the original thread |
 | Instagram (Business + Standalone) | <Badge text="instagram.replies" variant="param" /> | array of objects with <Badge text="message" variant="param" /> (string) and <Badge text="delaySeconds" variant="param" /> (number) — comments threaded under the published media |
 
-See [Schedule a Threads post with a follow-up reply](#schedule-a-threads-post-with-a-follow-up-reply) below for the exact JSON.
+See [Schedule a Threads post with follow-up comments](#schedule-a-threads-post-with-follow-up-comments) below for the exact JSON.
 
 #### Internal plugs
 
@@ -112,7 +112,7 @@ See [Schedule a Threads post with a follow-up reply](#schedule-a-threads-post-wi
 
 | Provider | Bucket / plug id | What it does |
 | --- | --- | --- |
-| Meta Threads | <Badge text="threads.internalEngagementPlug" variant="param" /> | Same-account reply after follow-up replies complete |
+| Meta Threads | <Badge text="threads.internalEngagementPlug" variant="param" /> | Same-account reply after Follow-up comments complete |
 
 Example — same-account Threads engagement plug on create:
 
@@ -149,7 +149,7 @@ Each entry in <Badge text="crossAccountPlugs" variant="param" /> needs <Badge te
 </Callout>
 
 <Callout type="note" title="Discover the exact shape with the Payload Wizard">
-<p>Rather than memorizing field names, fill out a real post in the <a href="/account/payload-wizard">Payload Wizard</a>, click <strong>Copy scheduled payload</strong>, and inspect the <Badge text="providerSettingsByIntegrationId" variant="param" /> object — it is always the source of truth for what the backend currently accepts (and the cleanest way to spot the difference between platform-specific settings and cross-provider features like follow-up replies).</p>
+<p>Rather than memorizing field names, fill out a real post in the <a href="/account/payload-wizard">Payload Wizard</a>, click <strong>Copy scheduled payload</strong>, and inspect the <Badge text="providerSettingsByIntegrationId" variant="param" /> object — it is always the source of truth for what the backend currently accepts (and the cleanest way to spot the difference between platform-specific settings and cross-provider features like Follow-up comments).</p>
 </Callout>
 
 ## Quick examples
@@ -259,7 +259,7 @@ Upload each asset first, then pass shared defaults in <Badge text="media" varian
 
 Channels omitted from <Badge text="mediaByIntegrationId" variant="param" /> inherit the top-level <Badge text="media" variant="param" /> array for their post row.
 
-### Schedule a Threads post with a follow-up reply
+### Schedule a Threads post with follow-up comments
 
 ```json
 {
@@ -286,7 +286,7 @@ Channels omitted from <Badge text="mediaByIntegrationId" variant="param" /> inhe
 <CardGrid>
 <LinkCard title="Public API Overview" description="Authentication, channel groups, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Integrations APIs" description="Connect / inspect / trigger endpoints around connected channels" href="/docs/apis-integrations" />
-<LinkCard title="Threads CLI examples" description="Follow-up replies, internal plugs, and cross-account comments" href="/docs/cli-examples/threads" />
+<LinkCard title="Threads CLI examples" description="Follow-up comments, internal plugs, and cross-account comments" href="/docs/cli-examples/threads" />
 <LinkCard title="Dev.to CLI examples" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
 <LinkCard title="Social integration" description="OAuth apps, API keys, and dashboard setup for each provider" href="/docs/social-integration" />
 </CardGrid>

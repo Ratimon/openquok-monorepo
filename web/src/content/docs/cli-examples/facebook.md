@@ -89,7 +89,7 @@ openquok posts:create \
 
 ## Scheduled follow-up comments
 
-<Badge text="providerSettings.facebook.replies[]" variant="param" /> carries follow-up replies that publish as comments on the Page post after a fixed delay. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
+<Badge text="providerSettings.facebook.replies[]" variant="param" /> carries follow-up comments that are published on the Page's post after a fixed delay. Pass them on <Badge text="posts:create" variant="default" /> with <Badge text="--providerSettingsByIntegrationId" variant="param" />:
 
 ```bash
 openquok posts:create \
