@@ -163,6 +163,36 @@ export function extractBlogInlineImagesFromHtml(html: string): BlogInlineImageFr
 }
 
 /**
+ * Removes TipTap blog-editor chrome (wrapper, delete button, alt input, legacy badge) from HTML.
+ * Keeps the inner `<img>` when a wrapper is found. SSR-safe no-op without `document`.
+ */
+export function stripContentEditorMarkupFromBlogHtml(html: string): string {
+	if (typeof document === 'undefined' || !html.trim()) return html;
+
+	const doc = document.createElement('div');
+	doc.innerHTML = html;
+
+	for (const wrap of Array.from(doc.querySelectorAll('.content-editor-image-wrap'))) {
+		const img = wrap.querySelector('img');
+		if (img) {
+			wrap.replaceWith(img.cloneNode(true));
+		} else {
+			wrap.remove();
+		}
+	}
+
+	for (const el of Array.from(
+		doc.querySelectorAll(
+			'.content-editor-image-missing-alt, .content-editor-image-delete, .content-editor-image-alt-field, .content-editor-image-alt-label, .content-editor-image-alt-input, .content-editor-image-media'
+		)
+	)) {
+		el.remove();
+	}
+
+	return doc.innerHTML;
+}
+
+/**
  * Ensures each blog inline `<img>` has `data-storage-path` and a working `src` for the current env.
  * No-ops when `document` is unavailable (SSR).
  */
@@ -170,7 +200,7 @@ export function normalizeBlogInlineImagesInHtml(html: string): string {
 	if (typeof document === 'undefined' || !html.trim()) return html;
 
 	const doc = document.createElement('div');
-	doc.innerHTML = html;
+	doc.innerHTML = stripContentEditorMarkupFromBlogHtml(html);
 
 	for (const img of Array.from(doc.querySelectorAll('img'))) {
 		const rawAttr = (img.getAttribute('data-storage-path') ?? '').trim();

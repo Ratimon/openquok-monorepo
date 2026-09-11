@@ -4,6 +4,7 @@ export {
 	extractBlogImageStoragePathsFromHtml,
 	extractBlogInlineImagesFromHtml,
 	normalizeBlogInlineImagesInHtml,
+	stripContentEditorMarkupFromBlogHtml,
 	type BlogInlineImageFromHtml
 } from '$lib/blogs/utils/blogImages';
 export {

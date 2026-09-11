@@ -10,14 +10,19 @@
 		buildBlogInlineImageSrc,
 		normalizeBlogContentLinks,
 		normalizeBlogInlineImagesInHtml,
-		prepareBlogContentForDisplay
+		prepareBlogContentForDisplay,
+		stripContentEditorMarkupFromBlogHtml
 	} from '$lib/blogs/utils';
 	import { imageRepository } from '$lib/core/index';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 
 	import ContentEditorMenu from '$lib/ui/editor/ContentEditorMenu.svelte';
-	import { ContentEditorBlogImage } from '$lib/ui/editor/extensions/contentEditorBlogImage';
+	import {
+		ContentEditorBlogImage,
+		flushPendingBlogImageAlts,
+		isBlogImageAltEditing
+	} from '$lib/ui/editor/extensions/contentEditorBlogImage';
 
 	let element: HTMLElement;
 	let editor = $state<TiptapEditor>();
@@ -101,12 +106,14 @@
 					return true;
 				}
 			},
-			onUpdate: ({ editor }) => {
+			onUpdate: () => {
 				handleUpdate();
 			},
-			onTransaction: () => {
-				// force re-render so `editor.isActive` works as expected
-				editor = editor;
+			onTransaction: ({ transaction }) => {
+				// Re-render toolbar active states; skip while typing alt (selection noise only).
+				if (transaction.docChanged || (transaction.selectionSet && !isBlogImageAltEditing())) {
+					editor = editor;
+				}
 			}
 		});
 
@@ -114,6 +121,23 @@
 		currentContent = content || '';
 		currentLength = editor.getText().length;
 	});
+
+	function isBlogImageAltInputFocused(): boolean {
+		return isBlogImageAltEditing();
+	}
+
+	function collectBlobSrcsFromEditorDoc(): Set<string> {
+		const blobSrcs = new Set<string>();
+		if (!editor) return blobSrcs;
+
+		editor.state.doc.descendants((node) => {
+			if (node.type.name !== 'image') return;
+			const src = String(node.attrs.src ?? '').trim();
+			if (src.startsWith('blob:')) blobSrcs.add(src);
+		});
+
+		return blobSrcs;
+	}
 
 	function collectBlobSrcsFromHtml(html: string): Set<string> {
 		const blobSrcs = new Set<string>();
@@ -129,6 +153,9 @@
 
 	function cleanupRemovedPendingBlobUrls(currentHtml: string): void {
 		const stillUsed = collectBlobSrcsFromHtml(currentHtml);
+		for (const src of collectBlobSrcsFromEditorDoc()) {
+			stillUsed.add(src);
+		}
 		for (const [blobUrl] of pendingInlineImageFiles) {
 			if (!stillUsed.has(blobUrl)) {
 				pendingInlineImageFiles.delete(blobUrl);
@@ -139,10 +166,10 @@
 
 	function sanitizeContentForPersistence(html: string): string {
 		if (!html.trim()) return html;
-		let next = html;
+		let next = stripContentEditorMarkupFromBlogHtml(html);
 		if (typeof document !== 'undefined') {
 			const doc = document.createElement('div');
-			doc.innerHTML = html;
+			doc.innerHTML = next;
 			for (const img of Array.from(doc.querySelectorAll('img'))) {
 				const storagePath = (img.getAttribute('data-storage-path') ?? '').trim();
 				if (storagePath && storagePath !== 'null' && storagePath !== 'undefined') {
@@ -175,6 +202,7 @@
 	export function getCurrentContent(): string {
 		if (!editor) return currentContent;
 		if (outputType === 'html') {
+			flushPendingBlogImageAlts();
 			return sanitizeContentForPersistence(editor.getHTML());
 		}
 		return editor.getText();
@@ -186,6 +214,7 @@
 	 */
 	export async function commitPendingInlineImages(): Promise<boolean> {
 		if (!editor || pendingInlineImageFiles.size === 0) return true;
+		flushPendingBlogImageAlts();
 		if (!userId) {
 			toast.error('Cannot upload content images: user id is missing.');
 			return false;
@@ -274,6 +303,8 @@
 	// Watch for content prop changes and update editor
 	$effect(() => {
 		if (editor && content !== undefined) {
+			if (isBlogImageAltInputFocused()) return;
+
 			if (content === lastOutgoingContent) {
 				lastOutgoingContent = null;
 				return;
@@ -357,10 +388,19 @@
 
 	:global(.content-editor .content-editor-image-wrap) {
 		position: relative;
-		display: block;
-		width: fit-content;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		width: 100%;
 		max-width: 100%;
 		margin: 0.5rem auto;
+	}
+
+	:global(.content-editor .content-editor-image-media) {
+		position: relative;
+		width: fit-content;
+		max-width: 100%;
+		margin-inline: auto;
 	}
 
 	:global(.content-editor .content-editor-image-delete) {
@@ -402,25 +442,38 @@
 		outline-offset: 2px;
 	}
 
-	:global(.content-editor .content-editor-image-missing-alt) {
-		position: absolute;
-		bottom: 0.25rem;
-		left: 0.25rem;
-		z-index: 2;
-		max-width: calc(100% - 0.5rem);
-		padding: 0.125rem 0.5rem;
-		border-radius: 9999px;
-		border: 1px solid oklch(var(--wa) / 0.55);
-		background: oklch(var(--b1) / 0.92);
-		color: oklch(var(--wa));
-		font-size: 0.6875rem;
+	:global(.content-editor .content-editor-image-alt-field) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		width: 100%;
+	}
+
+	:global(.content-editor .content-editor-image-alt-label) {
+		font-size: 0.75rem;
 		font-weight: 600;
 		line-height: 1.25;
-		letter-spacing: 0.01em;
-		pointer-events: none;
-		box-shadow:
-			0 0 0 1px oklch(var(--bc) / 0.08),
-			0 2px 8px rgb(0 0 0 / 0.25);
+		color: oklch(var(--bc) / 0.75);
+	}
+
+	:global(.content-editor .content-editor-image-alt-input) {
+		width: 100%;
+		padding: 0.375rem 0.5rem;
+		border-radius: 0.375rem;
+		border: 1px solid oklch(var(--bc) / 0.18);
+		background: oklch(var(--b1));
+		color: oklch(var(--bc));
+		font-size: 0.75rem;
+		line-height: 1.25;
+	}
+
+	:global(.content-editor .content-editor-image-alt-input::placeholder) {
+		color: oklch(var(--bc) / 0.45);
+	}
+
+	:global(.content-editor .content-editor-image-alt-input:focus-visible) {
+		outline: 2px solid oklch(var(--p));
+		outline-offset: 1px;
 	}
 
 	/* Ensure lists display with markers in the editor */

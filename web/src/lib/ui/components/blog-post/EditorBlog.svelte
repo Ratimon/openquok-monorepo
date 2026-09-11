@@ -506,8 +506,8 @@
 							<Field.Label>Content</Field.Label>
 							<Field.Description>
 								Main post body. Use the toolbar for headings, lists, and links. Prefer Visual mode;
-								HTML source is for edits. Inline images support alt text via the toolbar when an
-								image is selected; HTML source mode can also set alt manually. External links get
+								HTML source is for edits. Each inline image has an alt text field under the preview;
+								you can also use the toolbar alt button when an image is selected. External links get
 								nofollow on save; internal paths stay followable.
 							</Field.Description>
 							<div class="flex items-center gap-2">

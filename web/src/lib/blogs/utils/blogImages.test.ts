@@ -5,7 +5,8 @@ import {
 	buildBlogInlineImageSrc,
 	extractBlogImageStoragePathFromImageSrc,
 	extractBlogInlineImagesFromHtml,
-	normalizeBlogInlineImagesInHtml
+	normalizeBlogInlineImagesInHtml,
+	stripContentEditorMarkupFromBlogHtml
 } from '$lib/blogs/utils/blogImages';
 
 type Parse5Element = {
@@ -31,6 +32,117 @@ function findElements(root: Parse5Node, tagName: string): Parse5Element[] {
 	return matches;
 }
 
+function classMatches(node: Parse5Element, selector: string): boolean {
+	if (!selector.startsWith('.')) return false;
+	const className = selector.slice(1);
+	const classAttr = node.attrs?.find((entry) => entry.name === 'class')?.value ?? '';
+	return classAttr.split(/\s+/).includes(className);
+}
+
+function findElementsBySelector(root: Parse5Node, selector: string): Parse5Element[] {
+	const selectors = selector.split(',').map((part) => part.trim());
+	const matches: Parse5Element[] = [];
+	const walk = (node: Parse5Node) => {
+		if ('tagName' in node && selectors.some((sel) => classMatches(node, sel))) {
+			matches.push(node);
+		}
+		for (const child of node.childNodes ?? []) {
+			walk(child);
+		}
+	};
+	walk(root);
+	return matches;
+}
+
+function removeNode(node: Parse5Element, root: Parse5Node): void {
+	const walk = (parent: Parse5Node) => {
+		const children = parent.childNodes ?? [];
+		const index = children.indexOf(node);
+		if (index !== -1) {
+			children.splice(index, 1);
+			return true;
+		}
+		for (const child of children) {
+			if ('childNodes' in child && walk(child)) return true;
+		}
+		return false;
+	};
+	walk(root);
+}
+
+function replaceNode(node: Parse5Element, root: Parse5Node, replacement: Parse5Element): void {
+	const walk = (parent: Parse5Node) => {
+		const children = parent.childNodes ?? [];
+		const index = children.indexOf(node);
+		if (index !== -1) {
+			children.splice(index, 1, replacement);
+			return true;
+		}
+		for (const child of children) {
+			if ('childNodes' in child && walk(child)) return true;
+		}
+		return false;
+	};
+	walk(root);
+}
+
+function cloneElement(node: Parse5Element): Parse5Element {
+	return {
+		nodeName: node.nodeName,
+		tagName: node.tagName,
+		attrs: node.attrs?.map((attr) => ({ ...attr })),
+		childNodes: node.childNodes?.map((child) =>
+			'tagName' in child ? cloneElement(child) : { ...child }
+		)
+	};
+}
+
+function findElementsIn(root: Parse5Element, tagName: string): Parse5Element[] {
+	const matches: Parse5Element[] = [];
+	const walk = (current: Parse5Node) => {
+		if ('tagName' in current && current.tagName === tagName) {
+			matches.push(current);
+		}
+		for (const child of current.childNodes ?? []) {
+			walk(child);
+		}
+	};
+	walk(root);
+	return matches;
+}
+
+function createElementWrapper(node: Parse5Element, root: Parse5Node) {
+	return {
+		getAttribute(name: string) {
+			const attr = node.attrs?.find((entry) => entry.name === name);
+			return attr?.value ?? null;
+		},
+		setAttribute(name: string, value: string) {
+			node.attrs ??= [];
+			const existing = node.attrs.find((entry) => entry.name === name);
+			if (existing) {
+				existing.value = value;
+				return;
+			}
+			node.attrs.push({ name, value });
+		},
+		querySelector(selector: string) {
+			if (selector !== 'img') return null;
+			const imgNode = findElementsIn(node, 'img')[0];
+			if (!imgNode) return null;
+			return {
+				cloneNode: () => cloneElement(imgNode)
+			};
+		},
+		replaceWith(replacement: Parse5Element) {
+			replaceNode(node, root, replacement);
+		},
+		remove() {
+			removeNode(node, root);
+		}
+	};
+}
+
 function createParse5DocumentStub() {
 	return {
 		createElement(tagName: string) {
@@ -48,23 +160,13 @@ function createParse5DocumentStub() {
 					return serialize(root);
 				},
 				querySelectorAll(selector: string) {
-					if (selector !== 'img') return [];
+					if (selector === 'img') {
+						return findElements(root, 'img').map((node) => createElementWrapper(node, root));
+					}
 
-					return findElements(root, 'img').map((node) => ({
-						getAttribute(name: string) {
-							const attr = node.attrs?.find((entry) => entry.name === name);
-							return attr?.value ?? null;
-						},
-						setAttribute(name: string, value: string) {
-							node.attrs ??= [];
-							const existing = node.attrs.find((entry) => entry.name === name);
-							if (existing) {
-								existing.value = value;
-								return;
-							}
-							node.attrs.push({ name, value });
-						}
-					}));
+					return findElementsBySelector(root, selector).map((node) =>
+						createElementWrapper(node, root)
+					);
 				}
 			};
 		}
@@ -209,5 +311,27 @@ describe('normalizeBlogInlineImagesInHtml', () => {
 		expect(normalized).toContain('alt="Diagram of the workflow"');
 		expect(normalized).toContain(`data-storage-path="${storagePath}"`);
 		expect(normalized).toContain(`src="${src}"`);
+	});
+});
+
+describe('stripContentEditorMarkupFromBlogHtml', () => {
+	beforeEach(() => {
+		vi.stubGlobal('document', createParse5DocumentStub());
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	it('unwraps editor image chrome and keeps the img tag', () => {
+		const storagePath = 'user-1/hero.webp';
+		const html = `<div class="content-editor-image-wrap"><div class="content-editor-image-media"><img class="content-editor-image-img" src="blob:preview" data-storage-path="${storagePath}" alt="Setup screen"></div><span class="content-editor-image-missing-alt">Missing alt text</span><input class="content-editor-image-alt-input" value="Setup screen"><button class="content-editor-image-delete">×</button></div>`;
+
+		const stripped = stripContentEditorMarkupFromBlogHtml(html);
+
+		expect(stripped).toContain(`alt="Setup screen"`);
+		expect(stripped).toContain(`data-storage-path="${storagePath}"`);
+		expect(stripped).not.toContain('Missing alt text');
+		expect(stripped).not.toContain('content-editor-image-wrap');
 	});
 });
