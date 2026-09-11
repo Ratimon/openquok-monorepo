@@ -28,7 +28,7 @@ describe('publicHumanizeChannelConfig', () => {
 		const comingSoon = listPublicChannelsForHub().filter((channel) => !liveSlugs.has(channel.slug));
 
 		expect(comingSoon.map((channel) => channel.slug)).toEqual(
-			expect.arrayContaining(['facebook', 'instagram', 'threads'])
+			expect.arrayContaining(['facebook', 'instagram'])
 		);
 
 		for (const channel of comingSoon) {

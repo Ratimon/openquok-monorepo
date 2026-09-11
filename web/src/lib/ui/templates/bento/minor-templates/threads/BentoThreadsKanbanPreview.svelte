@@ -18,11 +18,12 @@
 	import KanbanColumnTimeFilterRow from '$lib/ui/components/posts/kanban/KanbanColumnTimeFilterRow.svelte';
 	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
-	import { THREADS_LANDING_KANBAN_CARDS } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingKanbanMock';
+	import { getThreadsLandingKanbanCards } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingKanbanMock';
 	import { THREADS_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/threads/threadsLandingMock';
 
 	const mockChannels = [THREADS_LANDING_MOCK_CHANNEL];
-	const kanbanPosts = THREADS_LANDING_KANBAN_CARDS.map((card) => ({ tagNames: card.tagNames }));
+	const landingKanbanCards = getThreadsLandingKanbanCards();
+	const kanbanPosts = landingKanbanCards.map((card) => ({ tagNames: card.tagNames }));
 
 	let sourceFilter = $state<PostKanbanSourceFilter>('all');
 	let reviewFilter = $state<PostKanbanReviewFilter>('all');
@@ -31,7 +32,7 @@
 
 	const filteredCards = $derived(
 		filterKanbanCardsByReview(
-			filterKanbanCardsBySource(THREADS_LANDING_KANBAN_CARDS, sourceFilter),
+			filterKanbanCardsBySource(landingKanbanCards, sourceFilter),
 			reviewFilter
 		)
 	);

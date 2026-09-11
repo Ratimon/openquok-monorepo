@@ -3,6 +3,7 @@ import type {
 	PostKanbanChannelSlotViewModel
 } from '$lib/posts/postKanbanBoard.types';
 
+import { applyLandingKanbanMockSchedule } from '$lib/ui/templates/bento/minor-templates/landing/landingKanbanMockSchedule';
 import { X_LANDING_MOCK_CHANNEL } from './xLandingMock';
 
 const xChannelSlot: PostKanbanChannelSlotViewModel = {
@@ -12,41 +13,92 @@ const xChannelSlot: PostKanbanChannelSlotViewModel = {
 	identifier: X_LANDING_MOCK_CHANNEL.identifier
 };
 
-export const X_LANDING_KANBAN_CARDS: PostKanbanCardViewModel[] = [
-	{
-		postId: 'landing-x-kanban-draft-agent',
-		postGroup: 'landing-x-kanban-group-1',
-		column: 'draft',
-		contentPreview: 'Agent draft — launch tweet with scheduled thread reply.',
-		publishLabel: 'Jun 12, 2026',
-		publishTimeLabel: '9:00 AM',
-		relativePublishLabel: '(in 4 days)',
-		statusLabel: 'Draft',
-		publishDateIso: '2026-06-12T09:00:00.000Z',
-		note: 'Review reply chain before scheduling',
-		channelSlots: [xChannelSlot],
-		hiddenChannelCount: 0,
-		primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
-		isAgentEdited: true,
-		isReviewed: false,
-		tagNames: ['launch']
-	},
-	{
-		postId: 'landing-x-kanban-scheduled-human',
-		postGroup: 'landing-x-kanban-group-2',
-		column: 'scheduled',
-		contentPreview: 'Weekly product update with image attachment.',
-		publishLabel: 'Jun 14, 2026',
-		publishTimeLabel: '2:00 PM',
-		relativePublishLabel: '(in 6 days)',
-		statusLabel: 'Scheduled',
-		publishDateIso: '2026-06-14T14:00:00.000Z',
-		note: '',
-		channelSlots: [xChannelSlot],
-		hiddenChannelCount: 0,
-		primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
-		isAgentEdited: false,
-		isReviewed: true,
-		tagNames: ['product']
-	}
-];
+export function getXLandingKanbanCards(): PostKanbanCardViewModel[] {
+	return [
+		applyLandingKanbanMockSchedule(
+			{
+				postId: 'landing-x-kanban-draft-agent',
+				postGroup: 'landing-x-kanban-group-1',
+				column: 'draft',
+				contentPreview: 'Agent draft — launch tweet with scheduled thread reply.',
+				note: 'Review reply chain before scheduling',
+				channelSlots: [xChannelSlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: true,
+				isReviewed: false,
+				tagNames: ['launch']
+			},
+			2,
+			{ hour: 9 }
+		),
+		applyLandingKanbanMockSchedule(
+			{
+				postId: 'landing-x-kanban-scheduled-human',
+				postGroup: 'landing-x-kanban-group-2',
+				column: 'scheduled',
+				contentPreview: 'Weekly product update with image attachment.',
+				note: null,
+				channelSlots: [xChannelSlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: false,
+				isReviewed: true,
+				tagNames: ['product']
+			},
+			4,
+			{ hour: 14 }
+		),
+		applyLandingKanbanMockSchedule(
+			{
+				postId: 'landing-x-kanban-draft-human',
+				postGroup: 'landing-x-kanban-group-3',
+				column: 'draft',
+				contentPreview: 'Text-only tweet — quote-less follow-up queued in composer.',
+				note: 'Trim hook to 280 characters',
+				channelSlots: [xChannelSlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: false,
+				isReviewed: false,
+				tagNames: []
+			},
+			6,
+			{ hour: 11 }
+		),
+		applyLandingKanbanMockSchedule(
+			{
+				postId: 'landing-x-kanban-scheduled-agent',
+				postGroup: 'landing-x-kanban-group-4',
+				column: 'scheduled',
+				contentPreview: 'Agent batch — four tweets queued for next week.',
+				note: 'Approved in review',
+				channelSlots: [xChannelSlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: true,
+				isReviewed: true,
+				tagNames: ['kol-1']
+			},
+			10,
+			{ hour: 8 }
+		),
+		applyLandingKanbanMockSchedule(
+			{
+				postId: 'landing-x-kanban-published',
+				postGroup: 'landing-x-kanban-group-5',
+				column: 'published',
+				contentPreview: 'Shipped launch tweet — thread replies already live.',
+				note: null,
+				channelSlots: [xChannelSlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: X_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: false,
+				isReviewed: true,
+				tagNames: ['launch']
+			},
+			-2,
+			{ hour: 16 }
+		)
+	];
+}

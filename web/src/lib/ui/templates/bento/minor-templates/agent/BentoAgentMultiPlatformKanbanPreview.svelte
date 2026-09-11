@@ -19,11 +19,12 @@
 	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
 	import {
-		AGENT_MULTI_PLATFORM_KANBAN_CARDS,
+		getAgentMultiPlatformKanbanCards,
 		AGENT_MULTI_PLATFORM_MOCK_CHANNELS
 	} from './agentMultiPlatformKanbanMock';
 
-	const kanbanPosts = AGENT_MULTI_PLATFORM_KANBAN_CARDS.map((card) => ({ tagNames: card.tagNames }));
+	const landingKanbanCards = getAgentMultiPlatformKanbanCards();
+	const kanbanPosts = landingKanbanCards.map((card) => ({ tagNames: card.tagNames }));
 
 	let sourceFilter = $state<PostKanbanSourceFilter>('all');
 	let reviewFilter = $state<PostKanbanReviewFilter>('all');
@@ -32,7 +33,7 @@
 
 	const filteredCards = $derived(
 		filterKanbanCardsByReview(
-			filterKanbanCardsBySource(AGENT_MULTI_PLATFORM_KANBAN_CARDS, sourceFilter),
+			filterKanbanCardsBySource(landingKanbanCards, sourceFilter),
 			reviewFilter
 		)
 	);

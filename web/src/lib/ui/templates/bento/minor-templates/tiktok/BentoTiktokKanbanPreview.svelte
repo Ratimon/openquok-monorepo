@@ -18,11 +18,12 @@
 	import KanbanColumnTimeFilterRow from '$lib/ui/components/posts/kanban/KanbanColumnTimeFilterRow.svelte';
 	import KanbanBoardFilters from '$lib/ui/components/posts/kanban/KanbanBoardFilters.svelte';
 	import KanbanColumn from '$lib/ui/components/posts/kanban/KanbanColumn.svelte';
-	import { TIKTOK_LANDING_KANBAN_CARDS } from './tiktokLandingKanbanMock';
+	import { getTiktokLandingKanbanCards } from './tiktokLandingKanbanMock';
 	import { TIKTOK_LANDING_MOCK_CHANNEL } from './tiktokLandingMock';
 
 	const mockChannels = [TIKTOK_LANDING_MOCK_CHANNEL];
-	const kanbanPosts = TIKTOK_LANDING_KANBAN_CARDS.map((card) => ({ tagNames: card.tagNames }));
+	const landingKanbanCards = getTiktokLandingKanbanCards();
+	const kanbanPosts = landingKanbanCards.map((card) => ({ tagNames: card.tagNames }));
 
 	let sourceFilter = $state<PostKanbanSourceFilter>('all');
 	let reviewFilter = $state<PostKanbanReviewFilter>('all');
@@ -31,7 +32,7 @@
 
 	const filteredCards = $derived(
 		filterKanbanCardsByReview(
-			filterKanbanCardsBySource(TIKTOK_LANDING_KANBAN_CARDS, sourceFilter),
+			filterKanbanCardsBySource(landingKanbanCards, sourceFilter),
 			reviewFilter
 		)
 	);
