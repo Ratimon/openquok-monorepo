@@ -96,7 +96,7 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 | **Facebook** | Yes | Comments on the main post | One image per reply via reply toolbar (no video) | No |
 | **YouTube**, **TikTok**, **Dev.to**, … | No | — | — | No |
 
-Cross-account **plugs** (from **Settings**) are separate from same-account follow-up comment rows. **Threads**, **X**, and **LinkedIn** support them — see <a href="/docs/automations/plugs">Plugs</a> and <a href="#cross-account-plugs">Cross-account plugs</a> below.
+Cross-account **plugs** (from **Plug settings**) are separate from same-account follow-up comments. **Threads**, **X**, and **LinkedIn** support them — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> and <a href="#cross-account-plugs">below</a>.
 
 Per-network caps on the main post still apply. See <a href="/docs/platforms">Posting rules by platform</a>.
 
@@ -116,7 +116,7 @@ CLI and API users set finisher fields under <Badge text="threads.enabled" varian
 
 ![How to setup cross-account plug](/docs/_assets/creating-posts/plug-settings.webp)
 
-See <a href="/docs/automations/plugs">Plugs</a> for the concept. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
+See <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> for setup steps. OpenQuok runs plugs after the main post (and after in-thread replies when configured).
 
 ## Multi-channel and Global mode
 
@@ -173,7 +173,8 @@ See <a href="/docs/cli-usages/managing-posts">Managing posts</a> and <a href="/d
 <LinkCard title="Global vs per-channel" description="Customize copy per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Media" description="Attach images and video on the main post" href="/docs/creating-posts/media" />
 <LinkCard title="Links and validation" description="Character limits and save-time errors" href="/docs/creating-posts/links-and-validation" />
-<LinkCard title="Plugs" description="Follow-up after publish" href="/docs/automations/plugs" />
+<LinkCard title="Internal plugs" description="Same-account delayed engagement on one post" href="/docs/automations/internal-plugs" />
+<LinkCard title="Cross-account plugs" description="Other connected channels comment, repost, or reshare" href="/docs/automations/cross-account-plugs" />
 <LinkCard title="CLI examples — Threads" description="Reply chains and thread finisher" href="/docs/cli-examples/threads" />
 <LinkCard title="CLI examples — X" description="Reply chains on X" href="/docs/cli-examples/x" />
 <LinkCard title="Posting rules by platform" description="Per-network limits and settings" href="/docs/platforms" />

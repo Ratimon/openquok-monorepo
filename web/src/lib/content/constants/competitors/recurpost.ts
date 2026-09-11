@@ -70,6 +70,7 @@ const RECURPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	post_comments: { kind: 'text', text: 'First comment on new posts' },
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
+	cross_account_plugs: { kind: 'excluded' },
 	global_plugs: { kind: 'excluded' },
 	group_management: { kind: 'text', text: 'Client workspaces on Agency+' },
 	dark_light_mode: { kind: 'excluded' },

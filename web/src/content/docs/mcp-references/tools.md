@@ -395,7 +395,7 @@ Per-post metrics for a published post row. Returns empty data for drafts.
 
 ## Global plugs
 
-Global plugs are channel-level rules that fire when a published post's likes cross a threshold. Internal (per-post) plugs — same-account engagement replies and cross-account comments — are set on <Badge text="schedulePostTool.settings" variant="param" /> instead. See <a href="/docs/automations/plugs">Plugs</a> and MCP examples for <a href="/docs/mcp-examples/threads">Threads</a>, <a href="/docs/mcp-examples/x">X</a>, and <a href="/docs/mcp-examples/linkedin">LinkedIn</a>.
+Global plugs are channel-level rules that fire when a published post's likes cross a threshold. Per-post plugs are set on <Badge text="schedulePostTool.settings" variant="param" /> instead — <a href="/docs/automations/internal-plugs">internal plugs</a> for same-account engagement and <a href="/docs/automations/cross-account-plugs">cross-account plugs</a> for comments or reposts from other connected channels. See <a href="/docs/automations/global-plugs">Global plugs</a> and MCP examples for <a href="/docs/mcp-examples/threads">Threads</a>, <a href="/docs/mcp-examples/x">X</a>, and <a href="/docs/mcp-examples/linkedin">LinkedIn</a>.
 
 ### plugsCatalog
 

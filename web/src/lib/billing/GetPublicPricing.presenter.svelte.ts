@@ -156,6 +156,7 @@ function compareCellForRow(
 		case 'post_comments':
 		case 'cross_posting':
 		case 'internal_plugs':
+		case 'cross_account_plugs':
 		case 'global_plugs':
 		case 'group_management':
 		case 'dark_light_mode':

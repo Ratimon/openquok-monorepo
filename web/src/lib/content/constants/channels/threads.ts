@@ -152,7 +152,7 @@ export const threadsChannel = {
 		{
 			title: 'Can another Threads account comment on my scheduled post?',
 			description:
-				`Yes. Open channel Settings on the publishing Threads channel, enable Add comments by other accounts, select another connected Threads profile, and set comment text plus delay. OpenQuok publishes the main thread first, then posts the cross-account comment from the acting account. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')} for crossAccountPlugs.`
+				`Yes. Open channel Settings on the publishing Threads channel, enable Add comments by other accounts, select another connected Threads profile, and set comment text plus delay. OpenQuok publishes the main thread first, then posts the cross-account comment from the acting account. See ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} or ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'Is Threads scheduling included in the free trial?',

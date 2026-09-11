@@ -74,6 +74,7 @@ const POSTPEER_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 	post_comments: { kind: 'excluded' },
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
+	cross_account_plugs: { kind: 'excluded' },
 	global_plugs: { kind: 'excluded' },
 	group_management: { kind: 'excluded' },
 	dark_light_mode: { kind: 'excluded' },

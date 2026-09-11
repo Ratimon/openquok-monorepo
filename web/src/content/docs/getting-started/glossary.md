@@ -143,15 +143,21 @@ On Cloud, shareable previews require Team plan or above — see <a href="/docs/c
 
 ## Internal plug
 
-An **internal plug** is a one-time follow-up tied to a single post group — a delayed reply or a cross-channel comment after publish. Set it in the composer at <Badge text="Plug settings" variant="default" />.
+An **internal plug** is a same-account follow-up on one scheduled post — for example a delayed Threads engagement reply after publish. Enable it in the composer <Badge text="Settings" variant="default" /> accordion on the publishing channel.
 
 ![Click Plug Setting](/docs/_assets/glossary/internal-plug-setting.webp)
 
-<p>Today this is enabled for some networks only (for example <strong>Threads</strong> and <strong>X</strong>). The repost option needs at least two connected channels. See <a href="/docs/automations/plugs">Plugs</a>.</p>
+<p>Today this ships on <strong>Threads</strong> only. See <a href="/docs/automations/internal-plugs">Internal plugs</a>.</p>
+
+It runs once per post, after the main post and same-account follow-up replies, and does not edit the original post.
+
+<h2 id="cross-account-plug">Cross-account plug</h2>
+
+A **cross-account plug** lets another connected channel comment, repost, or reshare your post after publish. Set it in the composer at <Badge text="Plug settings" variant="default" />.
 
 ![Configure Engagement](/docs/_assets/glossary/internal-plug-configure.webp)
 
-It runs once, right after that group publishes, and does not edit the original post.
+<p><strong>Threads</strong>, <strong>X</strong>, and <strong>LinkedIn</strong> support cross-account plugs. You need at least two connected channels on that network. See <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>.</p>
 
 ## Global plug
 
@@ -159,7 +165,7 @@ A **global plug** is a saved channel rule at <a href="/account/plugs">/account/p
 
 ![Set up global plug](/docs/_assets/glossary/global-plug.webp)
 
-<p>See <a href="/docs/automations/plugs">Plugs</a>. The worker re-checks on a schedule, up to three times per post.</p>
+<p>See <a href="/docs/automations/global-plugs">Global plugs</a>. The worker re-checks on a schedule, up to three times per post.</p>
 
 ## Building block
 

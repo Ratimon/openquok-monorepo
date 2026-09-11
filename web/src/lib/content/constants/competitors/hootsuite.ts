@@ -71,6 +71,7 @@ const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	post_comments: { kind: 'included' },
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
+	cross_account_plugs: { kind: 'excluded' },
 	global_plugs: { kind: 'excluded' },
 	group_management: { kind: 'included' },
 	dark_light_mode: { kind: 'excluded' },

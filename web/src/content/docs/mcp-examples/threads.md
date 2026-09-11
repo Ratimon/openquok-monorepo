@@ -163,7 +163,9 @@ Call <Badge text="plugsActivate" variant="default" /> with <Badge text="activate
 <CardGrid>
 <LinkCard title="Meta Threads setup" description="Configure the Meta app, OAuth redirects, scopes, and tester roles" href="/docs/social-integration/threads" />
 <LinkCard title="CLI examples" description="openquok posts:create recipes for Threads reply chains and analytics" href="/docs/cli-examples/threads" />
-<LinkCard title="Plugs (user guide)" description="Internal vs global plugs, platform support, and dashboard setup" href="/docs/automations/plugs" />
+<LinkCard title="Internal plugs" description="Same-account delayed engagement on one post" href="/docs/automations/internal-plugs" />
+<LinkCard title="Cross-account plugs" description="Other connected channels comment after publish" href="/docs/automations/cross-account-plugs" />
+<LinkCard title="Global plugs" description="Channel rules when likes reach a threshold" href="/docs/automations/global-plugs" />
 <LinkCard title="Tools reference — Global plugs" description="plugsCatalog, plugsList, plugsUpsert, plugsActivate, plugsDelete" href="/docs/mcp-references/tools#global-plugs" />
 <LinkCard title="MCP tools reference" description="schedulePostTool and triggerTool input shapes" href="/docs/mcp-references/tools" />
 </CardGrid>

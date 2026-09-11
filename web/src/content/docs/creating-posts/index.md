@@ -90,7 +90,8 @@ You can always continue without a template and pick channels manually.
 | --- | --- |
 | Multi-part posts and timed replies | <Badge text="Follow-up comments" variant="default" /> under the caption; <Badge text="Settings" variant="default" /> for finisher and plugs — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
 | Campaign labels | Footer tags — see <a href="/docs/creating-posts/tags">Tags</a> |
-| Follow-up after publish | <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/plugs">Plugs</a> |
+| Same-account delayed reply | <Badge text="Settings" variant="default" /> accordion — see <a href="/docs/automations/internal-plugs">Internal plugs</a> |
+| Cross-channel after publish | <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> |
 
 ## AI and automation
 

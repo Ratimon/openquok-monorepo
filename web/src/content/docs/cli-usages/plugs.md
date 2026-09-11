@@ -13,8 +13,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 The <Badge text="plugs:*" variant="default" /> commands wrap the global plug endpoints under <a href="/docs/apis-integrations">Integrations APIs</a>. Use them to manage <strong>channel-level</strong> rules that fire when a published post crosses a likes threshold.
 
-<Callout type="note" title="Internal vs global plugs">
-<p><strong>Internal plugs</strong> (same-account replies, cross-account comments on create) are set on <Badge text="posts:create" variant="default" /> via <Badge text="providerSettingsByIntegrationId" variant="param" /> — not these commands. See <a href="/docs/getting-started-for-public-api#plugs">Public API → Plugs</a> and <a href="/docs/cli-examples/threads">Threads CLI examples</a>.</p>
+<Callout type="note" title="Per-post vs global plugs">
+<p><strong>Internal plugs</strong> (same-account engagement) and <strong>cross-account plugs</strong> (comments or reposts from other connected channels) are set on <Badge text="posts:create" variant="default" /> via <Badge text="providerSettingsByIntegrationId" variant="param" /> — not these commands. See <a href="/docs/automations/internal-plugs">Internal plugs</a>, <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>, <a href="/docs/getting-started-for-public-api#plugs">Public API → Plugs</a>, and <a href="/docs/cli-examples/threads">Threads CLI examples</a>. <strong>Global plugs</strong> (this page) are channel-level rules at <a href="/docs/automations/global-plugs">/account/plugs</a>.</p>
 </Callout>
 
 ## Plug catalog

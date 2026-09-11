@@ -133,7 +133,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can another LinkedIn account comment on or reshare my scheduled post?',
 			description:
-				`Yes. Open Settings on the publishing LinkedIn profile or Page channel. Enable Add comments by a different account for cross-account comments, or Add re-posters to reshare from another connected LinkedIn channel after publish. Set comment text, acting channels, and delay. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(faqHrefDocs('cli-examples/linkedin'), 'LinkedIn CLI examples')} for crossAccountPlugs.`
+				`Yes. Open Settings on the publishing LinkedIn profile or Page channel. Enable Add comments by a different account for cross-account comments, or Add re-posters to reshare from another connected LinkedIn channel after publish. Set comment text, acting channels, and delay. See ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} or ${faqLink(faqHrefDocs('cli-examples/linkedin'), 'LinkedIn CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'What is the LinkedIn character limit in OpenQuok?',

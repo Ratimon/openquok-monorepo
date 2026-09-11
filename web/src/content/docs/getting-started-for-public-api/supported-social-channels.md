@@ -108,14 +108,11 @@ See [Schedule a Threads post with a follow-up reply](#schedule-a-threads-post-wi
 
 #### Internal plugs
 
-**Internal plugs** boost engagement after publish — from the same channel or from other connected channels in the workspace. Configure them on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> when you call <Badge text="POST /public/posts" variant="path" /> (or <Badge text="openquok posts:create" variant="default" />).
+**Internal plugs** are same-account follow-ups on one post after publish. Configure them on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> when you call <Badge text="POST /public/posts" variant="path" /> (or <Badge text="openquok posts:create" variant="default" />). See <a href="/docs/automations/internal-plugs">Internal plugs</a>.
 
 | Provider | Bucket / plug id | What it does |
 | --- | --- | --- |
 | Meta Threads | <Badge text="threads.internalEngagementPlug" variant="param" /> | Same-account reply after follow-up replies complete |
-| Meta Threads | <Badge text="threads-cross-account-comment" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Comment from other Threads channels |
-| X | <Badge text="x-repost-post-users" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Repost from other X channels |
-| LinkedIn / LinkedIn Page | <Badge text="linkedin-add-comment" variant="param" />, <Badge text="linkedin-repost-post-users" variant="param" /> | Cross-account comment or reshare |
 
 Example — same-account Threads engagement plug on create:
 
@@ -135,7 +132,17 @@ Example — same-account Threads engagement plug on create:
 }
 ```
 
-For cross-account plugs, each entry in <Badge text="crossAccountPlugs" variant="param" /> needs <Badge text="plugName" variant="param" />, <Badge text="integrationIds" variant="param" /> (acting channels — not the publisher), and plug-specific <Badge text="fields" variant="param" />. See <a href="/docs/cli-examples/threads">Threads CLI examples</a> and <a href="/docs/cli-examples/x">X CLI examples</a>.
+#### Cross-account plugs
+
+**Cross-account plugs** let other connected channels in your workspace comment, repost, or reshare after publish. Use the same <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> object on create. See <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>.
+
+| Provider | Bucket / plug id | What it does |
+| --- | --- | --- |
+| Meta Threads | <Badge text="threads-cross-account-comment" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Comment from other Threads channels |
+| X | <Badge text="x-repost-post-users" variant="param" /> via <Badge text="crossAccountPlugs" variant="param" /> | Repost from other X channels |
+| LinkedIn / LinkedIn Page | <Badge text="linkedin-add-comment" variant="param" />, <Badge text="linkedin-repost-post-users" variant="param" /> | Cross-account comment or reshare |
+
+Each entry in <Badge text="crossAccountPlugs" variant="param" /> needs <Badge text="plugName" variant="param" />, <Badge text="integrationIds" variant="param" /> (acting channels — not the publisher), and plug-specific <Badge text="fields" variant="param" />. See <a href="/docs/cli-examples/threads">Threads CLI examples</a> and <a href="/docs/cli-examples/x">X CLI examples</a>.
 
 <Callout type="note" title="Global plugs are separate">
 <p><strong>Global plugs</strong> (auto-repost or auto-reply when likes cross a threshold) are channel-level rules — not part of the create-post payload. Configure them with <Badge text="GET /public/plug-catalog" variant="path" /> and <Badge text="POST /public/integration-plugs/:id" variant="path" />, or via <Badge text="openquok plugs:*" variant="default" /> commands. See <a href="/docs/getting-started-for-public-api#plugs">Public API → Plugs</a>.</p>

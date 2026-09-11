@@ -113,9 +113,12 @@ The same <Badge text="group" variant="param" /> filter is available on <Badge te
 | Type | Scope | Configure via |
 | --- | --- | --- |
 | **Internal plugs** | Per post (compose time) | <Badge text="providerSettingsByIntegrationId" variant="param" /> on <Badge text="POST /public/posts" variant="path" /> |
+| **Cross-account plugs** | Per post (compose time) | <Badge text="providerSettingsByIntegrationId" variant="param" /> on <Badge text="POST /public/posts" variant="path" /> |
 | **Global plugs** | Per channel (account rules) | Plug endpoints below |
 
-**Internal plugs** run once after publish — for example a same-account Threads reply or a cross-account comment from another connected channel. Set them in the create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#internal-plugs">Supported social channels → Internal plugs</a> and the <a href="/docs/cli-examples/threads">Threads CLI examples</a>.
+**Internal plugs** run once after publish — for example a same-account Threads delayed engagement reply. Set them in the create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#internal-plugs">Supported social channels → Internal plugs</a> and <a href="/docs/automations/internal-plugs">Internal plugs</a>.
+
+**Cross-account plugs** let another connected channel comment, repost, or reshare after publish. Set them in the same create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#cross-account-plugs">Supported social channels → Cross-account plugs</a>, <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>, and the <a href="/docs/cli-examples/threads">Threads CLI examples</a>.
 
 **Global plugs** are saved rules on a channel (e.g. auto-repost when likes ≥ 100). The orchestrator re-checks every 6 hours, up to 3 times per post.
 

@@ -31,7 +31,7 @@ Settings and Billing sit under the account menu.
 | <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
 | <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/creating-posts/templates">Templates</a> |
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
-| <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/plugs">Plugs</a> |
+| <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/global-plugs">Global plugs</a> |
 | <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish (fields vary by network) |
 | <Badge text="Media" variant="default" /> | <Badge text="/account/media" variant="path" /> | Image and video library for the composer. Cloud caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
 
@@ -66,7 +66,8 @@ The post editor (also called the composer) is a modal, not a sidebar page. Open 
 | Per-network fields | Composer, beside the preview |
 | Tags | Composer toolbar — see <a href="/docs/creating-posts/tags">Tags</a> |
 | Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |
-| Internal (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/plugs">Plugs</a> |
+| Internal (per-post) plugs | Composer <Badge text="Settings" variant="default" /> accordion — see <a href="/docs/automations/internal-plugs">Internal plugs</a> |
+| Cross-account (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> |
 | Shareable preview | Post card actions — see <a href="/docs/calendar-and-posts/approvals">Approvals</a>. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
 
 ## Settings

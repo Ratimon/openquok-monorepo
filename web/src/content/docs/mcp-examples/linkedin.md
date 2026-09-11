@@ -187,7 +187,8 @@ Call <Badge text="plugsActivate" variant="default" /> with <Badge text="activate
 <CardGrid>
 <LinkCard title="LinkedIn setup" description="Developer app, OAuth scopes, and Page vs personal accounts" href="/docs/social-integration/linkedin" />
 <LinkCard title="CLI examples" description="openquok posts:create and analytics for LinkedIn" href="/docs/cli-examples/linkedin" />
-<LinkCard title="Plugs (user guide)" description="Internal vs global plugs, platform support, and dashboard setup" href="/docs/automations/plugs" />
+<LinkCard title="Cross-account plugs" description="Other connected LinkedIn channels comment or reshare" href="/docs/automations/cross-account-plugs" />
+<LinkCard title="Global plugs" description="Channel rules when likes reach a threshold" href="/docs/automations/global-plugs" />
 <LinkCard title="Tools reference — Global plugs" description="plugsCatalog, plugsList, plugsUpsert, plugsActivate, plugsDelete" href="/docs/mcp-references/tools#global-plugs" />
 <LinkCard title="MCP overview" description="Cross-platform scheduling and rate limits" href="/docs/mcp-examples" />
 </CardGrid>

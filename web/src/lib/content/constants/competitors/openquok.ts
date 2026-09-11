@@ -102,6 +102,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		},
 		cross_posting: { kind: 'included' },
 		internal_plugs: { kind: 'included' },
+		cross_account_plugs: { kind: 'included' },
 		global_plugs: { kind: 'included' },
 		group_management: { kind: 'included' },
 		dark_light_mode: { kind: 'included' },

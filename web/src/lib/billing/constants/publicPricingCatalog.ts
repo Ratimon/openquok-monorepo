@@ -100,6 +100,7 @@ export type PublicPricingCompareRowId =
 	| 'post_comments'
 	| 'cross_posting'
 	| 'internal_plugs'
+	| 'cross_account_plugs'
 	| 'global_plugs'
 	| 'group_management'
 	| 'dark_light_mode'
@@ -253,12 +254,19 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 	{
 		id: 'internal_plugs',
 		label: 'Internal plugs',
-		tooltip: 'Boost engagement using other connected accounts (Only available for plug based social platform eg. Threads).'
+		tooltip:
+			'Same-account per-post engagement after publish (e.g. Threads delayed engagement reply on the publishing channel).'
+	},
+	{
+		id: 'cross_account_plugs',
+		label: 'Cross-account plugs',
+		tooltip:
+			'Other connected channels comment, repost, or reshare after publish (Threads, X, LinkedIn).'
 	},
 	{
 		id: 'global_plugs',
 		label: 'Global plugs',
-		tooltip: 'Mannage Trigger replies at scale when posts hit engagement thresholds (eg. 100 likes).'
+		tooltip: 'Manage trigger replies at scale when posts hit engagement thresholds (e.g. 100 likes).'
 	},
 	{
 		id: 'group_management',

@@ -59,6 +59,7 @@ const TYPEFULLY_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	post_comments: { kind: 'text', text: 'Draft comments & LinkedIn first comment' },
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
+	cross_account_plugs: { kind: 'text', text: 'Automatic Plug & Auto-RT (engagement)' },
 	global_plugs: { kind: 'text', text: 'Automatic Plug & Auto-RT (engagement)' },
 	group_management: { kind: 'text', text: 'Social sets (one identity across platforms)' },
 	dark_light_mode: { kind: 'included' },

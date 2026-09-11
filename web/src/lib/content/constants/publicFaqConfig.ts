@@ -1,4 +1,9 @@
-import { faqLink, OPENQUOK_GITHUB_REPO_HREF, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+import {
+	faqHrefDocs,
+	faqLink,
+	OPENQUOK_GITHUB_REPO_HREF,
+	publicFaqHref
+} from '$lib/content/utils/publicFaqLinks';
 
 export type PublicFaqItem = {
 	title: string;
@@ -118,6 +123,16 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		title: 'Can I schedule comments or threads',
 		description:
 			`Yes. You can schedule follow-up comments to help drive engagement. On platforms like X and Threads, you can also schedule full threads, while on LinkedIn and Facebook scheduled comments are posted as replies to your main post. See ${faqLink(publicFaqHref.cliX, 'X CLI examples')} and ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}.`
+	},
+	{
+		title: 'What are OpenQuok plugs?',
+		description:
+			`A plug runs after your post goes live. It does not change your scheduled caption. ${faqLink(faqHrefDocs('automations/internal-plugs'), 'Internal plugs')} add same-account follow-ups on one post. ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} use other connected channels to comment, repost, or reshare. ${faqLink(faqHrefDocs('automations/global-plugs'), 'Global plugs')} are channel rules when likes on a live post reach your threshold. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} to compare all three.`
+	},
+	{
+		title: 'Which social platforms support plugs?',
+		description:
+			`Support depends on the network and plug type. Internal plugs add a same-account follow-up on one post. Threads supports internal plugs today. Cross-account plugs use another connected channel in your workspace. Threads, X, and LinkedIn support cross-account plugs. On X, the acting channel reposts — it does not reply from another account. Global plugs are channel rules when likes on a live post reach your threshold. X and LinkedIn Page support auto-repost and auto-reply. Threads supports auto-reply only. Instagram, Facebook, YouTube, TikTok, and Dev.to do not support cross-account or global plugs yet. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} for the full table by network.`
 	},
 	{
 		title: 'What is the delay feature between posts?',

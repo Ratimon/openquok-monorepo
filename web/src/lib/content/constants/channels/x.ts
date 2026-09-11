@@ -136,7 +136,7 @@ export const xChannel = {
 		{
 			title: 'Can another X account repost my scheduled post?',
 			description:
-				`Yes. Open channel Settings on the publishing X account, enable Add re-posters, select other connected X profiles in your workspace, and set a delay. OpenQuok publishes the root tweet first, then reposts from each acting account. X cross-account plugs repost — they do not post reply comments from another account. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')} or ${faqLink(publicFaqHref.cliX, 'X CLI examples')} for crossAccountPlugs.`
+				`Yes. Open channel Settings on the publishing X account, enable Add re-posters, select other connected X profiles in your workspace, and set a delay. OpenQuok publishes the root tweet first, then reposts from each acting account. X cross-account plugs repost — they do not post reply comments from another account. See ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} or ${faqLink(publicFaqHref.cliX, 'X CLI examples')} for crossAccountPlugs.`
 		},
 		{
 			title: 'Can I cross-post from X to other channels?',

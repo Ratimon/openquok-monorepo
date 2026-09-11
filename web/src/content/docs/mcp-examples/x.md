@@ -182,7 +182,8 @@ Call <Badge text="plugsActivate" variant="default" /> with <Badge text="activate
 <CardGrid>
 <LinkCard title="X setup" description="OAuth 1.0a Native App credentials and callback URLs" href="/docs/social-integration/x" />
 <LinkCard title="CLI examples" description="openquok posts:create recipes for threads and analytics" href="/docs/cli-examples/x" />
-<LinkCard title="Plugs (user guide)" description="Internal vs global plugs, platform support, and dashboard setup" href="/docs/automations/plugs" />
+<LinkCard title="Cross-account plugs" description="Other connected X accounts repost after publish" href="/docs/automations/cross-account-plugs" />
+<LinkCard title="Global plugs" description="Channel rules when likes reach a threshold" href="/docs/automations/global-plugs" />
 <LinkCard title="Tools reference — Global plugs" description="plugsCatalog, plugsList, plugsUpsert, plugsActivate, plugsDelete" href="/docs/mcp-references/tools#global-plugs" />
 <LinkCard title="MCP overview" description="Bulk schedule and multi-channel workflows" href="/docs/mcp-examples" />
 </CardGrid>

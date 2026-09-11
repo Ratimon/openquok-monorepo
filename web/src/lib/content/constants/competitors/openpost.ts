@@ -76,6 +76,7 @@ const OPENPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 	post_comments: { kind: 'included' },
 	cross_posting: { kind: 'included' },
 	internal_plugs: { kind: 'excluded' },
+	cross_account_plugs: { kind: 'excluded' },
 	global_plugs: { kind: 'excluded' },
 	group_management: { kind: 'text', text: 'Social Sets' },
 	dark_light_mode: { kind: 'included' },
