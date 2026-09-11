@@ -1,6 +1,6 @@
 ---
 title: Global plugs
-description: Set channel rules that run when likes on a published OpenQuok post reach your threshold.
+description: Channel rules at Auto Plugs that run when likes on a published post reach your threshold.
 order: 4
 lastUpdated: 2026-09-11
 ---
@@ -9,15 +9,13 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-A **global plug** is a **channel** rule. It is not a setting on one post. You save it at <a href="/account/plugs">Account → Auto Plugs</a>. It applies to posts that publish **after** you save.
+A **global plug** is a **channel** rule at <a href="/account/plugs">Account → Auto Plugs</a>. It watches **likes** on posts that already published. When the count reaches your threshold, OpenQuok runs the rule. If the threshold is never met, the worker stops after **three checks**.
 
-An <a href="/docs/automations/internal-plugs">internal plug</a> and a <a href="/docs/automations/cross-account-plugs">cross-account plug</a> attach to **one** scheduled post in the composer.
-
-Global plugs watch **likes** on posts that already published from that channel. When the count reaches your number, OpenQuok runs the rule. If the post never reaches the threshold, the plug stops after three checks.
+For one scheduled post, use an <a href="/docs/automations/internal-plugs">internal plug</a> or a <a href="/docs/automations/cross-account-plugs">cross-account plug</a> in the post editor instead.
 
 ![Set up global plug](/docs/_assets/glossary/global-plug.webp)
 
-## The two global rules
+## The two global Rules
 
 | Rule | What it publishes |
 | --- | --- |
@@ -26,9 +24,9 @@ Global plugs watch **likes** on posts that already published from that channel. 
 
 Use **auto plug post** for a promo link or CTA after the post proves it resonates.
 
-The worker checks every **6 hours**, up to **3 times** per published post.
+The worker checks every **6 hours**, up to **3 times** per published post. New rules apply to posts published **after** you save.
 
-## Which channels support which rule
+## Supported channels
 
 The <a href="/account/plugs">Auto Plugs</a> page lists only channels that support at least one global rule today:
 
@@ -54,7 +52,7 @@ Each rule has an on/off switch in the add or edit dialog.
 
 ### Set the likes threshold
 
-Enter **Amount of likes**. Set a number your posts can realistically reach. A threshold that is too high means the plug never runs.
+Enter **Amount of likes**. Choose a count your channel usually reaches within a few days — the worker only checks three times.
 
 ### Add follow-up content (auto plug only)
 

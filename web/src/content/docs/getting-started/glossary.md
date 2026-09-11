@@ -41,7 +41,7 @@ A **channel group** bundles channels — usually one client or brand. Groups fil
 
 The public API names the same concept **customers**. See <a href="/docs/apis-integrations/groups">Channel groups API</a>.
 
-## Post and post group
+<h2 id="post-group">Post and post group</h2>
 
 Scheduling one caption to five channels creates five **posts** tied to one **post group**. Home kanban cards usually represent the group; opening a card shows each channel row.
 

@@ -1,6 +1,6 @@
 ---
 title: Internal plugs
-description: Schedule a same-account delayed engagement reply after Follow-up comments on one OpenQuok post.
+description: Schedule a same-account delayed engagement reply after Follow-up comments on one post.
 order: 2
 lastUpdated: 2026-09-11
 ---
@@ -9,9 +9,7 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once per post. It runs after the main post publishes. It also waits for <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher.
-
-Today the shipped internal plug is the **Threads delayed engagement reply**.
+An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once after the main post publishes, once <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher finish. Today only **Threads** ships an internal plug — the **Threads delayed engagement reply**.
 
 ## Where in the post editor
 
@@ -28,7 +26,6 @@ Internal plugs are **not** follow-up comment rows.
 | Compare | **Follow-up comments** | **Internal plug** |
 | --- | --- | --- |
 | Where | **Follow-up comments** panel | Purple <Badge text="Settings" variant="default" /> accordion |
-| Channel | Same as the publisher | Same as the publisher |
 | When | During the reply chain | After follow-ups and the thread finisher finish |
 | How many | One or more rows | One delayed engagement reply |
 | Networks | Threads, X, Instagram, LinkedIn, Facebook | Threads |
@@ -37,11 +34,9 @@ For comments or reposts from **other** connected channels, use <a href="/docs/au
 
 ## Threads delayed engagement reply
 
-OpenQuok posts one extra reply from the **same** Threads account. The reply runs after follow-up rows and the thread finisher complete.
+OpenQuok posts one extra reply from the **same** Threads account after follow-up rows and the thread finisher complete.
 
-Set **Delay before reply (seconds)**. The default is 120 seconds. Set **Reply message** for the comment text.
-
-Use it for a CTA or a prompt that should land after the thread. Do not add it as another follow-up row.
+Set **Delay before reply (seconds)**. The default is 120 seconds. Set **Reply message** for the comment text. Use it for a CTA or prompt that should land after the thread — not as another follow-up row.
 
 <Callout type="note" title="Same account only">
 <p>This plug publishes from the <strong>publishing</strong> Threads channel. To comment from another connected Threads profile, use <a href="/docs/automations/cross-account-plugs">cross-account plugs</a>.</p>

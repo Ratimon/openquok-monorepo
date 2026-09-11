@@ -426,7 +426,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 	FEATURE_3_SUBTITLE: {
 		description: 'Tag above the third secondary hero section',
 		type: 'string',
-		default: 'Cross-account plugs',
+		default: 'Cross-account & Internal & Global plugs',
 		inputType: 'input',
 		maxInputLength: 60
 	},
