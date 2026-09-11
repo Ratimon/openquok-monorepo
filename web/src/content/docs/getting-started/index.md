@@ -22,7 +22,7 @@ Connect channels in a workspace. Write a post/content in the post editor, reuse 
 Start with the track that matches you — the product, Cloud, a self-hosted install, or free creator tools.
 
 <CardGrid>
-<LinkCard title="Quickstart" description="First channel, first post, then confirm it on calendar and kanban." href="/docs/getting-started/quickstart" />
+<LinkCard title="Quickstart" description="First channel, first post, then approve it on calendar or kanban." href="/docs/getting-started/quickstart" />
 <LinkCard title="Cloud" description="Trial, plan limits, and Billing for our hosted version." href="/docs/cloud" />
 <LinkCard title="Self-hosting" description="No Cloud bill. Install by your self, run it locally or in production." href="/docs/installation" />
 <LinkCard title="Free tools" description="Creator tools — photo editor, humanizer, best time to post, and more." href="/tools" />
@@ -33,10 +33,10 @@ Start with the track that matches you — the product, Cloud, a self-hosted inst
 Integrate, automate, or contribute.
 
 <CardGrid>
-<LinkCard title="Public API" description="Posts, channels, and analytics over HTTP." href="/docs/getting-started-for-public-api" />
-<LinkCard title="CLI" description="Terminal commands and agent skills for a workspace." href="/docs/getting-started-for-cli" />
 <LinkCard title="MCP" description="Connect Cursor, Claude, and other MCP clients." href="/docs/getting-started-for-mcp" />
+<LinkCard title="CLI" description="Terminal commands and agent skills for a workspace." href="/docs/getting-started-for-cli" />
 <LinkCard title="Skill Builder" description="Compose and export SKILL.md for agents in the creative economy." href="/tools/skill-builder" />
+<LinkCard title="Public API" description="Posts, channels, and analytics over HTTP." href="/docs/getting-started-for-public-api" />
 <LinkCard title="Maintain or work on OpenQuok" description="Code guidelines, catalog listings, and docs authoring." href="/docs/developer-guidelines" />
 </CardGrid>
 

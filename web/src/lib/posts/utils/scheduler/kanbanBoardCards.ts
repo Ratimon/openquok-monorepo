@@ -92,10 +92,8 @@ export function filterKanbanCardsByUpcomingTime(
 	cardsVm: readonly PostKanbanCardViewModel[],
 	upcomingTimeFilter: PostKanbanUpcomingTimeFilter
 ): PostKanbanCardViewModel[] {
-	return cardsVm.filter(
-		(card) =>
-			card.needsManualFinishInApp ||
-			matchesKanbanUpcomingTimeFilter(card.publishDateIso, upcomingTimeFilter)
+	return cardsVm.filter((card) =>
+		matchesKanbanUpcomingTimeFilter(card.publishDateIso, upcomingTimeFilter)
 	);
 }
 
@@ -221,7 +219,7 @@ function resolveKanbanCardPlacement(groupRows: PostKanbanRowViewModel[]): {
 			const manualFinish = resolveTiktokManualFinish(row);
 			const acknowledged = isKanbanManualFinishAcknowledged(row.settings);
 			const effectiveManualFinish = manualFinish && !acknowledged ? manualFinish : null;
-			const column = stateToKanbanColumn(row.state, effectiveManualFinish);
+			const column = stateToKanbanColumn(row.state, effectiveManualFinish, row.publishDate);
 			return column ? { column, manualFinish: effectiveManualFinish } : null;
 		})
 		.filter((p): p is NonNullable<typeof p> => p !== null);

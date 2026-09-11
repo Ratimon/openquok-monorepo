@@ -23,7 +23,8 @@ const postsConfig: PostsConfig = {
 		missingPublishCandidates: (postId: string) => `${base}/${encodeURIComponent(postId)}/missing`,
 		updatePostReleaseId: (postId: string) => `${base}/${encodeURIComponent(postId)}/release-id`,
 		updatePostReviewTodo: (postId: string) => `${base}/${encodeURIComponent(postId)}/review-todo`,
-		flipPostStatus: (postId: string) => `${base}/${encodeURIComponent(postId)}/status`
+		flipPostStatus: (postId: string) => `${base}/${encodeURIComponent(postId)}/status`,
+		publishPostNow: (postId: string) => `${base}/${encodeURIComponent(postId)}/publish-now`
 	}
 };
 

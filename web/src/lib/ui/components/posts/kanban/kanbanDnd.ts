@@ -57,7 +57,7 @@ export type KanbanCardMoveContext = Pick<
 	'needsManualFinishInApp' | 'isReviewed'
 >;
 
-/** Draft ↔ scheduled; reviewed manual-finish posts may move scheduled → published. */
+/** Draft ↔ scheduled; draft/scheduled → published (publish now); reviewed manual-finish → published. */
 export function canMoveKanbanCard(
 	source: PostKanbanColumnId,
 	target: PostKanbanColumnId,
@@ -66,11 +66,10 @@ export function canMoveKanbanCard(
 	if (source === target) return false;
 	if (source === 'published') return false;
 	if (target === 'published') {
-		return (
-			source === 'scheduled' &&
-			ctx?.needsManualFinishInApp === true &&
-			ctx?.isReviewed === true
-		);
+		if (ctx?.needsManualFinishInApp) {
+			return source === 'scheduled' && ctx.isReviewed === true;
+		}
+		return source === 'draft' || source === 'scheduled';
 	}
 	if (ctx?.needsManualFinishInApp && source === 'scheduled') return false;
 	return (
@@ -87,10 +86,15 @@ export function kanbanMoveBlockedMessage(
 		return 'Published posts cannot be moved on the board.';
 	}
 	if (target === 'published') {
-		if (ctx?.needsManualFinishInApp && !ctx?.isReviewed) {
-			return 'Mark this post as reviewed before moving it to Published.';
+		if (ctx?.needsManualFinishInApp) {
+			if (!ctx.isReviewed) {
+				return 'Mark this post as reviewed before moving it to Published.';
+			}
+			return 'Only reviewed inbox or private-draft posts can be moved to Published.';
 		}
-		return 'Only reviewed inbox or private-draft posts can be moved to Published.';
+		if (source !== 'draft' && source !== 'scheduled') {
+			return 'Only draft or scheduled posts can be published from the board.';
+		}
 	}
 	return 'This column change is not allowed.';
 }

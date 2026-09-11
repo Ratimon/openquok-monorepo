@@ -274,6 +274,41 @@ export class PostKanbanBoardPresenter {
 	}
 
 	async toggleReviewed(postId: string, isReviewed: boolean): Promise<void> {
+		const card = this.cardsVm.find((c) => c.postId === postId);
+		if (isReviewed && card?.needsManualFinishInApp && card.column === 'published') {
+			const org = this.organizationId;
+			if (!org) return;
+
+			const prevRows = this.listVm.filter((r) => r.postGroup === card.postGroup);
+			this.listVm = this.listVm.map((r) =>
+				r.postGroup === card.postGroup
+					? {
+							...r,
+							settings: withKanbanManualFinishAcknowledged(r.settings),
+							isReviewed: true,
+							isAgentEdited: false
+						}
+					: r
+			);
+			this.rebuildCardsVm();
+
+			const resultPm = await this.postsRepository.updatePostReviewTodo({
+				organizationId: org,
+				postId,
+				isReviewed: true,
+				kanbanManualFinishAcknowledged: true
+			});
+
+			if (!resultPm.ok) {
+				this.replacePostGroupRows(card.postGroup, prevRows);
+				this.error = resultPm.error;
+				return;
+			}
+
+			this.replacePostGroupRows(card.postGroup, toPostKanbanRowsVm(resultPm.posts));
+			return;
+		}
+
 		await this.updatePostReviewField(postId, { isReviewed }, { isReviewed });
 	}
 
@@ -301,6 +336,7 @@ export class PostKanbanBoardPresenter {
 		const rowCount = this.listVm.filter((r) => r.postGroup === payload.postGroup).length;
 		if (rowCount < 1) return 0;
 		if (payload.sourceColumn === 'draft' && targetColumn === 'scheduled') return rowCount;
+		if (payload.sourceColumn === 'draft' && targetColumn === 'published') return rowCount;
 		if (payload.sourceColumn === 'scheduled' && targetColumn === 'draft') return -rowCount;
 		return 0;
 	}
@@ -329,6 +365,35 @@ export class PostKanbanBoardPresenter {
 		const postId = cardVm?.postId ?? payload.postId;
 		if (!postId) {
 			return { ok: false, error: 'Could not find post to move.' };
+		}
+
+		if (targetColumn === 'published' && !payload.needsManualFinishInApp) {
+			const publishIso = new Date().toISOString();
+			const prevRows = this.listVm.filter((r) => r.postGroup === payload.postGroup);
+
+			this.movingPostGroup = payload.postGroup;
+			this.patchPostGroup(postId, {
+				state: 'QUEUE',
+				publishDate: publishIso,
+				isAgentEdited: false
+			});
+
+			const resultPm = await this.postsRepository.publishPostNow({
+				organizationId: org,
+				postId
+			});
+			this.movingPostGroup = null;
+
+			if (!resultPm.ok) {
+				this.replacePostGroupRows(payload.postGroup, prevRows);
+				return { ok: false, error: resultPm.error };
+			}
+			this.replacePostGroupRows(payload.postGroup, toPostKanbanRowsVm(resultPm.posts));
+			return {
+				ok: true,
+				targetColumn: 'scheduled',
+				successMessage: 'Post queued to publish now.'
+			};
 		}
 
 		if (targetColumn === 'published' && payload.needsManualFinishInApp) {

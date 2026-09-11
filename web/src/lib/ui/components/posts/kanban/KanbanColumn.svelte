@@ -69,7 +69,9 @@
 
 	const dropHint = $derived(
 		columnId === 'published'
-			? 'Published posts stay in this column'
+			? postsLimitFull
+				? 'Monthly post limit reached — upgrade to publish more'
+				: 'Drop draft or scheduled posts here to publish now'
 			: columnId === 'draft'
 				? 'Drop here to move back to draft'
 				: postsLimitFull

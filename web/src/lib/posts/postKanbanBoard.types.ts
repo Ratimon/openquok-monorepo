@@ -99,7 +99,7 @@ export type PostKanbanCopyPostGroupJsonResultViewModel =
 	| { ok: false; error: string };
 
 export type PostKanbanMoveCardResultViewModel =
-	| { ok: true; targetColumn: PostKanbanColumnId }
+	| { ok: true; targetColumn: PostKanbanColumnId; successMessage?: string }
 	| { ok: false; error: string };
 
 export type PostKanbanSourceFilterOptionViewModel = {

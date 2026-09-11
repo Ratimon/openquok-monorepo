@@ -353,6 +353,38 @@ export class PostsController {
         }
     };
 
+    /** PUT /posts/:postId/publish-now — queue the post group for immediate publish (kanban drag to Published). */
+    publishPostNow = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as { organizationId: string };
+            const result = await this.postsService.publishPostGroupNowByPostId({
+                postId,
+                organizationId: body.organizationId,
+                authUserId,
+                skipMembershipCheck: false,
+            });
+            const posts = await this.postsService.toPostDtosWithChannelMetadata(
+                body.organizationId,
+                result.posts
+            );
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** PUT /posts/:postId/status — flip draft ↔ scheduled at the stored publish time (kanban / CLI parity). */
     flipPostStatus = async (req: Request, res: Response, next: NextFunction) => {
         try {

@@ -719,6 +719,36 @@ export class PostsRepository {
     }
 
     /**
+     * Updates publish time and state for every row in the post group (keeps siblings in sync).
+     */
+    async updatePostGroupPublishSchedule(
+        postGroup: string,
+        organizationId: string,
+        fields: { publishDateIso: string; state: PostStateDb }
+    ): Promise<SocialPostLike[]> {
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update({
+                publish_date: fields.publishDateIso,
+                state: fields.state,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("post_group", postGroup)
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .select("*");
+
+        if (error) {
+            throw new DatabaseError(`Failed to update post group publish schedule: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
+    }
+
+    /**
      * Updates kanban review fields for every row in the post group (keeps siblings in sync).
      */
     async updatePostGroupReviewFields(

@@ -30,8 +30,8 @@
 
 	const schedulingBlocked = $derived(
 		postsLimitFull &&
-			columnId === 'scheduled' &&
-			activeDrag?.sourceColumn === 'draft'
+			activeDrag?.sourceColumn === 'draft' &&
+			(columnId === 'scheduled' || columnId === 'published')
 	);
 
 	const isHighlighted = $derived((dropActive || isDragOver) && !schedulingBlocked);
@@ -59,7 +59,9 @@
 			return;
 		}
 		const blocked =
-			postsLimitFull && columnId === 'scheduled' && payload.sourceColumn === 'draft';
+			postsLimitFull &&
+			payload.sourceColumn === 'draft' &&
+			(columnId === 'scheduled' || columnId === 'published');
 		if (blocked) {
 			e.preventDefault();
 			e.stopPropagation();

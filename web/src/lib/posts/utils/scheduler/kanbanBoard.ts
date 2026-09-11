@@ -122,12 +122,17 @@ function parsePublishMs(publishDateIso: string): number {
 
 export function stateToKanbanColumn(
 	state: string,
-	manualFinish?: TiktokManualFinishViewModel | null
+	manualFinish?: TiktokManualFinishViewModel | null,
+	publishDateIso?: string,
+	nowMs = Date.now()
 ): PostKanbanColumnId | null {
 	if (state === 'DRAFT') return 'draft';
 	if (state === 'QUEUE') return 'scheduled';
 	if (state === 'PUBLISHED') {
-		return manualFinish ? 'scheduled' : 'published';
+		if (manualFinish) {
+			return isUpcomingPublishDate(publishDateIso ?? '', nowMs) ? 'scheduled' : 'published';
+		}
+		return 'published';
 	}
 	return null;
 }

@@ -15,7 +15,7 @@ These are the words the Guide, app, public API, and CLI use for the same things.
 
 A **workspace** is the top-level boundary you own for your data: channels, posts, media, tags, templates, teammates, and settings. You can belong to several; the header switcher loads another workspace’s data when you change.
 
-![Workspace in Dashboard](/docs/_assets/glossary/workspace-dashboard.webp)
+![Workspace in Dashboard](/docs/_assets/getting-started/1-workspace-dashboard.webp)
 
 <p>The first registrant owns the workspace. Teammates join through <Badge text="Settings" variant="default" /> → <Badge text="Workspace" variant="default" />. See <a href="/docs/settings/team">Team</a>.</p>
 
@@ -110,11 +110,11 @@ Both views read the same posts. Changing a time in the composer updates both. Se
 
 A **smart filter** is how you narrow a table or board to the channels, posts, templates, or plugs you are working on. Plans list this as **Smart filters**.
 
-<p>On <a href="/account">Home</a>, switch <strong>Connected channels</strong> to table view (the table icon), then click <Badge text="Add filters" variant="default" />. You can match social platform, connected account, group name, or status.</p>
+<p>On <a href="/account">Home</a>, switch <strong>Connected channels</strong> to table view (<Badge text="the table icon" variant="param" />), then click <Badge text="Add filters" variant="param" />. You can match social platform, connected account, group name, or status.</p>
 
 ![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
 
-<p>The same <Badge text="Add filters" variant="default" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
+<p>The same <Badge text="Add filters" variant="param" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
 
 <p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/creating-posts/kanban">Kanban board</a>.</p>
 

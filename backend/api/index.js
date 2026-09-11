@@ -10196,6 +10196,24 @@ var init_PostsRepository = __esm({
         return data ?? [];
       }
       /**
+       * Updates publish time and state for every row in the post group (keeps siblings in sync).
+       */
+      async updatePostGroupPublishSchedule(postGroup, organizationId, fields) {
+        const { data, error } = await this.supabase.from(TABLE_POSTS).update({
+          publish_date: fields.publishDateIso,
+          state: fields.state,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("post_group", postGroup).eq("organization_id", organizationId).is("deleted_at", null).select("*");
+        if (error) {
+          throw new DatabaseError(`Failed to update post group publish schedule: ${error.message}`, {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        return data ?? [];
+      }
+      /**
        * Updates kanban review fields for every row in the post group (keeps siblings in sync).
        */
       async updatePostGroupReviewFields(postGroup, organizationId, fields) {
@@ -23653,6 +23671,71 @@ var init_PostsService = __esm({
         });
         return { postGroup: post.post_group, posts: updated };
       }
+      /**
+       * Session/UI publish-now (`PUT {api.prefix}/posts/:postId/publish-now`).
+       * Sets publish time to now, moves the group to queue, and enqueues orchestration.
+       */
+      async publishPostGroupNowByPostId(input) {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+          throw new AppError("Post not found", 404);
+        }
+        const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+        if (!rows.length) {
+          throw new AppError("Post group not found", 404);
+        }
+        if (rows.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+          throw new AppError("Cannot publish now for a published or failed post", 400);
+        }
+        const hasChannel = rows.some((r) => r.integration_id != null);
+        if (!hasChannel) {
+          throw new AppError("Select at least one channel to schedule", 400);
+        }
+        const channelIds = [
+          ...new Set(
+            rows.map((r) => r.integration_id).filter((id) => typeof id === "string" && Boolean(id))
+          )
+        ];
+        if (channelIds.length > 0) {
+          const integrations = await this.integrationService.listByOrganization(input.organizationId);
+          this.assertIntegrationsNotDisabled(integrations, channelIds);
+        }
+        const publishIso = (/* @__PURE__ */ new Date()).toISOString();
+        const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+          input.organizationId,
+          publishIso,
+          post.post_group
+        );
+        if (taken) {
+          throw new AppError("That time slot is already taken; pick another.", 409);
+        }
+        const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+        if (draftRows.length > 0) {
+          await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+            scope: "workspaceWithDelta",
+            organizationId: input.organizationId,
+            authUserId: input.authUserId ?? void 0,
+            publicUserId: input.publicUserId ?? void 0,
+            delta: draftRows.length
+          });
+        }
+        let updated = await this.postsRepository.updatePostGroupPublishSchedule(post.post_group, input.organizationId, {
+          publishDateIso: publishIso,
+          state: "QUEUE"
+        });
+        if (input.authUserId && !input.skipMembershipCheck) {
+          updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            isAgentEdited: false
+          });
+        }
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, "scheduled");
+        await this._invalidatePostMutationCaches({
+          organizationId: input.organizationId,
+          postGroup: post.post_group,
+          postIds: updated.map((p) => p.id)
+        });
+        return { postGroup: post.post_group, posts: updated };
+      }
       async buildPostGroupDetails(postGroup, rows) {
         const organizationId = rows[0].organization_id;
         const { isGlobal, repeatInterval } = parsePostSettingsJson(rows[0].settings);
@@ -24167,20 +24250,12 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== input.organizationId) {
           throw new AppError("Post not found", 404);
         }
-        let rows;
-        if (input.kanbanManualFinishAcknowledged === true) {
-          rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
-            post.post_group,
-            input.organizationId,
-            true
-          );
-        } else {
-          rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-            ...input.note !== void 0 ? { note: input.note } : {},
-            ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
-            isAgentEdited: false
-          });
-        }
+        const rows = await this.applyPostGroupReviewTodoUpdate(post.post_group, input.organizationId, {
+          note: input.note,
+          isReviewed: input.isReviewed,
+          kanbanManualFinishAcknowledged: input.kanbanManualFinishAcknowledged,
+          isAgentEdited: false
+        });
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup: post.post_group,
@@ -24197,26 +24272,36 @@ var init_PostsService = __esm({
         if (!post || post.organization_id !== input.organizationId) {
           throw new AppError("Post not found", 404);
         }
-        let rows;
-        if (input.kanbanManualFinishAcknowledged === true) {
-          rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
-            post.post_group,
-            input.organizationId,
-            true
-          );
-        } else {
-          rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-            ...input.note !== void 0 ? { note: input.note } : {},
-            ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
-            isAgentEdited: input.isAgent === true
-          });
-        }
+        const rows = await this.applyPostGroupReviewTodoUpdate(post.post_group, input.organizationId, {
+          note: input.note,
+          isReviewed: input.isReviewed,
+          kanbanManualFinishAcknowledged: input.kanbanManualFinishAcknowledged,
+          isAgentEdited: input.isAgent === true
+        });
         await this._invalidatePostMutationCaches({
           organizationId: input.organizationId,
           postGroup: post.post_group,
           postIds: rows.map((r) => r.id)
         });
         return rows;
+      }
+      async applyPostGroupReviewTodoUpdate(postGroup, organizationId, input) {
+        let rows;
+        if (input.kanbanManualFinishAcknowledged === true) {
+          rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+            postGroup,
+            organizationId,
+            true
+          );
+        }
+        if (input.note !== void 0 || input.isReviewed !== void 0 || input.kanbanManualFinishAcknowledged !== true) {
+          rows = await this.postsRepository.updatePostGroupReviewFields(postGroup, organizationId, {
+            ...input.note !== void 0 ? { note: input.note } : {},
+            ...input.isReviewed !== void 0 ? { isReviewed: input.isReviewed } : {},
+            isAgentEdited: input.isAgentEdited
+          });
+        }
+        return rows ?? [];
       }
       /**
        * Programmatic candidates for `GET {api.prefix}/public/posts/:postId/missing` (org API key auth).
@@ -31945,6 +32030,37 @@ var init_PostsController = __esm({
           next(error);
         }
       };
+      /** PUT /posts/:postId/publish-now — queue the post group for immediate publish (kanban drag to Published). */
+      publishPostNow = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const postId = req.params.postId;
+          const body = req.body;
+          const result = await this.postsService.publishPostGroupNowByPostId({
+            postId,
+            organizationId: body.organizationId,
+            authUserId,
+            skipMembershipCheck: false
+          });
+          const posts = await this.postsService.toPostDtosWithChannelMetadata(
+            body.organizationId,
+            result.posts
+          );
+          res.status(200).json({
+            success: true,
+            data: {
+              postGroup: result.postGroup,
+              posts
+            }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
       /** PUT /posts/:postId/status — flip draft ↔ scheduled at the stored publish time (kanban / CLI parity). */
       flipPostStatus = async (req, res, next) => {
         try {
@@ -35253,7 +35369,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-10T14:44:59.336Z",
+  generated: "2026-09-11T11:19:10.053Z",
   routes: [
     {
       path: "/docs",
@@ -40036,6 +40152,13 @@ var validateFlipPostStatus = validateRequest({
   params: postIdParamsSchema,
   body: flipPostStatusBodySchema
 });
+var publishPostNowBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id")
+});
+var validatePublishPostNow = validateRequest({
+  params: postIdParamsSchema,
+  body: publishPostNowBodySchema
+});
 
 // routes/publicApi/PostRoutes.ts
 init_repositories();
@@ -40235,6 +40358,7 @@ postRouter.put("/group/:postGroup", auth4, validateUpdatePostGroupBody, postsCon
 postRouter.delete("/group/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 postRouter.get("/:postId/missing", auth4, validatePostMissingQuery, postsController.getMissingPublishCandidates);
 postRouter.put("/:postId/release-id", auth4, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
+postRouter.put("/:postId/publish-now", auth4, validatePublishPostNow, postsController.publishPostNow);
 postRouter.put("/:postId/status", auth4, validateFlipPostStatus, postsController.flipPostStatus);
 postRouter.put("/:postId/review-todo", auth4, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
 postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);

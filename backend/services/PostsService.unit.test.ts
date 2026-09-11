@@ -6,7 +6,9 @@ import type CacheInvalidationService from "../connections/cache/CacheInvalidatio
 import type { IntegrationConnectionService } from "./IntegrationConnectionService";
 import type { IntegrationService } from "./IntegrationService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
+import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { IntegrationManager } from "../integrations/integrationManager";
+import { SubscriptionSection } from "openquok-common";
 
 import { faker } from "@faker-js/faker";
 import { PostsService } from "./PostsService";
@@ -85,6 +87,7 @@ type PostsRepoMock = jest.Mocked<
         | "hasQueueSlotTaken"
         | "hasQueueSlotTakenExcludingPostGroup"
         | "updatePostGroupState"
+        | "updatePostGroupPublishSchedule"
         | "listTagsByOrganization"
         | "insertTag"
         | "findTagByOrgAndName"
@@ -105,6 +108,7 @@ type PostsRepoMock = jest.Mocked<
         | "listThreadRepliesByPostId"
         | "updateReleaseIdIfMissing"
         | "updatePostGroupReviewFields"
+        | "updatePostGroupKanbanManualFinishAcknowledged"
     >
 >;
 
@@ -113,6 +117,7 @@ function createPostsRepoMock(): PostsRepoMock {
         hasQueueSlotTaken: jest.fn(),
         hasQueueSlotTakenExcludingPostGroup: jest.fn(),
         updatePostGroupState: jest.fn(),
+        updatePostGroupPublishSchedule: jest.fn(),
         listTagsByOrganization: jest.fn(),
         insertTag: jest.fn(),
         findTagByOrgAndName: jest.fn(),
@@ -133,6 +138,7 @@ function createPostsRepoMock(): PostsRepoMock {
         listThreadRepliesByPostId: jest.fn().mockResolvedValue([]),
         updateReleaseIdIfMissing: jest.fn(),
         updatePostGroupReviewFields: jest.fn(),
+        updatePostGroupKanbanManualFinishAcknowledged: jest.fn(),
     };
 }
 
@@ -208,7 +214,8 @@ describe("PostsService", () => {
         cache?: { getOrSet?: CacheService["getOrSet"] },
         cacheInvalidator?: Partial<
             jest.Mocked<Pick<CacheInvalidationService, "invalidateKey" | "invalidatePattern" | "invalidateEntity">>
-        >
+        >,
+        subscriptionGuard?: Pick<SubscriptionGuardService, "assert">
     ): PostsService {
         return new PostsService(
             postsRepo as unknown as PostsRepository,
@@ -218,7 +225,8 @@ describe("PostsService", () => {
             sharedIntegrationManager,
             { refresh: jest.fn().mockResolvedValue(false) } as never,
             cache as never,
-            cacheInvalidator as never
+            cacheInvalidator as never,
+            subscriptionGuard as never
         );
     }
 
@@ -2470,6 +2478,47 @@ describe("PostsService", () => {
             });
             expect(out).toEqual(updated);
         });
+
+        it("persists reviewed flag when acknowledging manual-finish on the kanban", async () => {
+            const post = socialPostRow({
+                id: postId,
+                organization_id: orgId,
+                post_group: postGroup,
+                is_agent_edited: true,
+                is_reviewed: false,
+            });
+            const acked = [socialPostRow({ id: postId, post_group: postGroup, is_agent_edited: false })];
+            const reviewed = [
+                socialPostRow({
+                    id: postId,
+                    post_group: postGroup,
+                    is_agent_edited: false,
+                    is_reviewed: true,
+                }),
+            ];
+            postsRepo.getPostById.mockResolvedValue(post);
+            postsRepo.updatePostGroupKanbanManualFinishAcknowledged.mockResolvedValue(acked);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue(reviewed);
+
+            const out = await service().updatePostReviewTodo({
+                organizationId: orgId,
+                authUserId,
+                postId,
+                isReviewed: true,
+                kanbanManualFinishAcknowledged: true,
+            });
+
+            expect(postsRepo.updatePostGroupKanbanManualFinishAcknowledged).toHaveBeenCalledWith(
+                postGroup,
+                orgId,
+                true
+            );
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                isReviewed: true,
+                isAgentEdited: false,
+            });
+            expect(out).toEqual(reviewed);
+        });
     });
 
     describe("updatePostReviewTodoProgrammatic", () => {
@@ -3137,6 +3186,163 @@ describe("PostsService", () => {
 
             expect(out.posts).toEqual([queuedRow]);
             expect(postsRepo.updatePostGroupState).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("publishPostGroupNowByPostId", () => {
+        const publishNowIso = "2026-09-11T09:00:00.000Z";
+
+        beforeEach(() => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date(publishNowIso));
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: false,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it("updates publish time and state to QUEUE (draft → publish now)", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                integration_id: integrationId,
+                is_agent_edited: true,
+            });
+            const queuedRow = {
+                ...draftRow,
+                state: "QUEUE" as const,
+                publish_date: publishNowIso,
+                is_agent_edited: false,
+            };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.updatePostGroupPublishSchedule.mockResolvedValue([{ ...draftRow, state: "QUEUE", publish_date: publishNowIso }]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([queuedRow]);
+
+            const out = await service().publishPostGroupNowByPostId({
+                postId,
+                organizationId: orgId,
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.postGroup).toBe(postGroup);
+            expect(out.posts).toEqual([queuedRow]);
+            expect(postsRepo.updatePostGroupPublishSchedule).toHaveBeenCalledWith(postGroup, orgId, {
+                publishDateIso: publishNowIso,
+                state: "QUEUE",
+            });
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                isAgentEdited: false,
+            });
+            expect(postsRepo.hasQueueSlotTakenExcludingPostGroup).toHaveBeenCalledWith(
+                orgId,
+                publishNowIso,
+                postGroup
+            );
+        });
+
+        it("throws 400 when the group is already published", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publishedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "PUBLISHED",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(publishedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([publishedRow]);
+
+            await expect(
+                service().publishPostGroupNowByPostId({
+                    postId,
+                    organizationId: orgId,
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Cannot publish now for a published or failed post",
+            });
+            expect(postsRepo.updatePostGroupPublishSchedule).not.toHaveBeenCalled();
+        });
+
+        it("asserts POSTS_PER_MONTH when publishing draft rows", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                integration_id: integrationId,
+            });
+            const subscriptionGuard = { assert: jest.fn().mockResolvedValue(undefined) };
+
+            const queuedRow = { ...draftRow, state: "QUEUE" as const, publish_date: publishNowIso };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.updatePostGroupPublishSchedule.mockResolvedValue([queuedRow]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([queuedRow]);
+
+            await service(undefined, undefined, subscriptionGuard).publishPostGroupNowByPostId({
+                postId,
+                organizationId: orgId,
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(subscriptionGuard.assert).toHaveBeenCalledWith(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId: orgId,
+                authUserId,
+                publicUserId: undefined,
+                delta: 1,
+            });
+        });
+
+        it("throws 409 when the publish-now slot is already taken", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(true);
+
+            await expect(
+                service().publishPostGroupNowByPostId({
+                    postId,
+                    organizationId: orgId,
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 409,
+                message: "That time slot is already taken; pick another.",
+            });
+            expect(postsRepo.updatePostGroupPublishSchedule).not.toHaveBeenCalled();
         });
     });
 });

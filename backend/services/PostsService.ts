@@ -953,6 +953,87 @@ export class PostsService {
         return { postGroup: post.post_group, posts: updated };
     }
 
+    /**
+     * Session/UI publish-now (`PUT {api.prefix}/posts/:postId/publish-now`).
+     * Sets publish time to now, moves the group to queue, and enqueues orchestration.
+     */
+    async publishPostGroupNowByPostId(input: {
+        postId: string;
+        organizationId: string;
+        authUserId: string | null;
+        /** Token owner `public.users.id` when called via programmatic/MCP (no auth UUID). */
+        publicUserId?: string | null;
+        skipMembershipCheck: boolean;
+    }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+
+        if (rows.some((r) => r.state === "PUBLISHED" || r.state === "ERROR")) {
+            throw new AppError("Cannot publish now for a published or failed post", 400);
+        }
+
+        const hasChannel = rows.some((r) => r.integration_id != null);
+        if (!hasChannel) {
+            throw new AppError("Select at least one channel to schedule", 400);
+        }
+        const channelIds = [
+            ...new Set(
+                rows
+                    .map((r) => r.integration_id)
+                    .filter((id): id is string => typeof id === "string" && Boolean(id))
+            ),
+        ];
+        if (channelIds.length > 0) {
+            const integrations = await this.integrationService.listByOrganization(input.organizationId);
+            this.assertIntegrationsNotDisabled(integrations, channelIds);
+        }
+
+        const publishIso = new Date().toISOString();
+        const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+            input.organizationId,
+            publishIso,
+            post.post_group
+        );
+        if (taken) {
+            throw new AppError("That time slot is already taken; pick another.", 409);
+        }
+
+        const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+        if (draftRows.length > 0) {
+            await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                scope: "workspaceWithDelta",
+                organizationId: input.organizationId,
+                authUserId: input.authUserId ?? undefined,
+                publicUserId: input.publicUserId ?? undefined,
+                delta: draftRows.length,
+            });
+        }
+
+        let updated = await this.postsRepository.updatePostGroupPublishSchedule(post.post_group, input.organizationId, {
+            publishDateIso: publishIso,
+            state: "QUEUE",
+        });
+        if (input.authUserId && !input.skipMembershipCheck) {
+            updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+                isAgentEdited: false,
+            });
+        }
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, "scheduled");
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup: post.post_group,
+            postIds: updated.map((p) => p.id),
+        });
+        return { postGroup: post.post_group, posts: updated };
+    }
+
     private async buildPostGroupDetails(postGroup: string, rows: SocialPostLike[]): Promise<PostGroupDetails> {
         const organizationId = rows[0]!.organization_id;
 
@@ -1645,20 +1726,12 @@ export class PostsService {
         if (!post || post.organization_id !== input.organizationId) {
             throw new AppError("Post not found", 404);
         }
-        let rows: SocialPostLike[];
-        if (input.kanbanManualFinishAcknowledged === true) {
-            rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
-                post.post_group,
-                input.organizationId,
-                true
-            );
-        } else {
-            rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-                ...(input.note !== undefined ? { note: input.note } : {}),
-                ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
-                isAgentEdited: false,
-            });
-        }
+        const rows = await this.applyPostGroupReviewTodoUpdate(post.post_group, input.organizationId, {
+            note: input.note,
+            isReviewed: input.isReviewed,
+            kanbanManualFinishAcknowledged: input.kanbanManualFinishAcknowledged,
+            isAgentEdited: false,
+        });
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup: post.post_group,
@@ -1683,26 +1756,50 @@ export class PostsService {
         if (!post || post.organization_id !== input.organizationId) {
             throw new AppError("Post not found", 404);
         }
-        let rows: SocialPostLike[];
-        if (input.kanbanManualFinishAcknowledged === true) {
-            rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
-                post.post_group,
-                input.organizationId,
-                true
-            );
-        } else {
-            rows = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
-                ...(input.note !== undefined ? { note: input.note } : {}),
-                ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
-                isAgentEdited: input.isAgent === true,
-            });
-        }
+        const rows = await this.applyPostGroupReviewTodoUpdate(post.post_group, input.organizationId, {
+            note: input.note,
+            isReviewed: input.isReviewed,
+            kanbanManualFinishAcknowledged: input.kanbanManualFinishAcknowledged,
+            isAgentEdited: input.isAgent === true,
+        });
         await this._invalidatePostMutationCaches({
             organizationId: input.organizationId,
             postGroup: post.post_group,
             postIds: rows.map((r) => r.id),
         });
         return rows;
+    }
+
+    private async applyPostGroupReviewTodoUpdate(
+        postGroup: string,
+        organizationId: string,
+        input: {
+            note?: string | null;
+            isReviewed?: boolean;
+            kanbanManualFinishAcknowledged?: boolean;
+            isAgentEdited: boolean;
+        }
+    ): Promise<SocialPostLike[]> {
+        let rows: SocialPostLike[] | undefined;
+        if (input.kanbanManualFinishAcknowledged === true) {
+            rows = await this.postsRepository.updatePostGroupKanbanManualFinishAcknowledged(
+                postGroup,
+                organizationId,
+                true
+            );
+        }
+        if (
+            input.note !== undefined ||
+            input.isReviewed !== undefined ||
+            input.kanbanManualFinishAcknowledged !== true
+        ) {
+            rows = await this.postsRepository.updatePostGroupReviewFields(postGroup, organizationId, {
+                ...(input.note !== undefined ? { note: input.note } : {}),
+                ...(input.isReviewed !== undefined ? { isReviewed: input.isReviewed } : {}),
+                isAgentEdited: input.isAgentEdited,
+            });
+        }
+        return rows ?? [];
     }
 
     /**

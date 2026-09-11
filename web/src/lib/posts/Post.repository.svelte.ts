@@ -355,6 +355,7 @@ export interface PostsConfig {
 		updatePostReleaseId: (postId: string) => string;
 		updatePostReviewTodo: (postId: string) => string;
 		flipPostStatus: (postId: string) => string;
+		publishPostNow: (postId: string) => string;
 	};
 }
 
@@ -704,6 +705,25 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not update post status.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not update post status.');
+		}
+	}
+
+	async publishPostNow(params: {
+		postId: string;
+		organizationId: string;
+	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const { ok, data: dto } = await this.httpGateway.put<ListPostsResponseDto>(
+				this.config.endpoints.publishPostNow(params.postId),
+				{ organizationId: params.organizationId },
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
+				return { ok: true, posts: dto.data.posts.map(normalizePostRowFromApi) };
+			}
+			return { ok: false, error: 'Could not publish post now.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not publish post now.');
 		}
 	}
 

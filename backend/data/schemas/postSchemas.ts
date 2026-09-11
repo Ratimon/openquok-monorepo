@@ -208,3 +208,12 @@ export const validateFlipPostStatus: RequestHandler = validateRequest({
     params: postIdParamsSchema,
     body: flipPostStatusBodySchema,
 });
+
+export const publishPostNowBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+});
+
+export const validatePublishPostNow: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: publishPostNowBodySchema,
+});

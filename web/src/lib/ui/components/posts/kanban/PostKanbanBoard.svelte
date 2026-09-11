@@ -30,6 +30,7 @@
 	import { icons } from '$data/icons';
 
 	import { Alert, AlertDescription, AlertTitle } from '$lib/ui/alert';
+	import * as Dialog from '$lib/ui/dialog';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import HomeAccountNoticeBanner from '$lib/ui/components/home/HomeAccountNoticeBanner.svelte';
@@ -157,6 +158,11 @@
 
 	let dragOverColumnId = $state<PostKanbanColumnId | null>(null);
 	let activeDrag = $state<KanbanCardDragPayload | null>(null);
+	let publishConfirmOpen = $state(false);
+	let pendingPublishDrop = $state<{
+		payload: KanbanCardDragPayload;
+		targetColumn: PostKanbanColumnId;
+	} | null>(null);
 
 	function handleDragOverColumn(columnId: PostKanbanColumnId | null) {
 		dragOverColumnId = columnId;
@@ -177,9 +183,48 @@
 	): boolean {
 		return (
 			isPostsLimitFull &&
-			targetColumn === 'scheduled' &&
-			payload.sourceColumn === 'draft'
+			payload.sourceColumn === 'draft' &&
+			(targetColumn === 'scheduled' || targetColumn === 'published')
 		);
+	}
+
+	function isPublishNowDrop(
+		payload: KanbanCardDragPayload,
+		targetColumn: PostKanbanColumnId
+	): boolean {
+		return targetColumn === 'published' && !payload.needsManualFinishInApp;
+	}
+
+	function clearPendingPublishDrop() {
+		pendingPublishDrop = null;
+	}
+
+	function cancelPublishConfirm() {
+		publishConfirmOpen = false;
+		clearPendingPublishDrop();
+	}
+
+	async function executeMoveCard(
+		payload: KanbanCardDragPayload,
+		targetColumn: PostKanbanColumnId
+	): Promise<void> {
+		const result = await onMoveCardToColumn(payload, targetColumn);
+		if (result.ok) {
+			toast.success(
+				result.successMessage ??
+					`Post moved to ${moveTargetColumnLabel(result.targetColumn)}.`
+			);
+		} else {
+			toast.error(result.error);
+		}
+	}
+
+	async function confirmPublishNow() {
+		const pending = pendingPublishDrop;
+		if (!pending) return;
+		publishConfirmOpen = false;
+		clearPendingPublishDrop();
+		await executeMoveCard(pending.payload, pending.targetColumn);
 	}
 
 	async function handleDropOnColumn(columnId: PostKanbanColumnId, payload: KanbanCardDragPayload) {
@@ -191,12 +236,13 @@
 			return;
 		}
 
-		const result = await onMoveCardToColumn(payload, columnId);
-		if (result.ok) {
-			toast.success(`Post moved to ${moveTargetColumnLabel(result.targetColumn)}.`);
-		} else {
-			toast.error(result.error);
+		if (isPublishNowDrop(payload, columnId)) {
+			pendingPublishDrop = { payload, targetColumn: columnId };
+			publishConfirmOpen = true;
+			return;
 		}
+
+		await executeMoveCard(payload, columnId);
 	}
 </script>
 
@@ -278,7 +324,8 @@
 					Monthly post limit reached
 				</AlertTitle>
 				<AlertDescription class="leading-relaxed text-base-content/80">
-					You cannot drag more posts into Scheduled until you upgrade or your billing month resets.
+					You cannot drag more draft posts into Scheduled or Published until you upgrade or your
+					billing month resets.
 					{#if billingHref}
 						<button
 							type="button"
@@ -333,3 +380,21 @@
 		</div>
 	{/if}
 </section>
+
+<Dialog.Root bind:open={publishConfirmOpen}>
+	<Dialog.Content class="max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Publish now?</Dialog.Title>
+			<Dialog.Description>
+				This post will be queued to publish immediately. It stays in <strong>Scheduled</strong> until
+				the network confirms it went live.
+			</Dialog.Description>
+		</Dialog.Header>
+		<Dialog.Footer class="gap-2 sm:justify-end">
+			<Button type="button" variant="ghost" onclick={cancelPublishConfirm}>Cancel</Button>
+			<Button type="button" variant="primary" onclick={() => void confirmPublishNow()}>
+				Publish now
+			</Button>
+		</Dialog.Footer>
+	</Dialog.Content>
+</Dialog.Root>
