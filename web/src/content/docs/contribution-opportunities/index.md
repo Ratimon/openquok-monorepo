@@ -1,8 +1,8 @@
 ---
 title: Overview - Contribution opportunities
-description: Feature-sized OpenQuok contribution tasks for external contributors — social providers, Humanizer locales, and scoped product work.
+description: Feature-sized OpenQuok contribution tasks for external contributors — social providers, Humanizer locales, docs translations, and scoped product work.
 order: 0
-lastUpdated: 2026-08-30
+lastUpdated: 2026-09-12
 ---
 
 <script>
@@ -11,13 +11,14 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 ## Contribution opportunities
 
-This section lists **feature-sized contribution opportunities** — scoped product work that external contributors can pick up without owning day-to-day repo conventions. For engineering standards (RBAC, security, PR workflow), see [Developer guidelines](/docs/developer-guidelines). For MDX authoring and docs site structure, see [Documentation contribution](/docs/documentation-contribution).
+This section lists **feature-sized contribution opportunities** — scoped product work that external contributors can pick up without owning day-to-day repo conventions. For engineering standards (RBAC, security, PR workflow), see [Developer guidelines](/docs/developer-guidelines). For MDX authoring and docs site structure, see [Documentation contribution](/docs/documentation-contribution). To translate pages into Spanish or other locales, see [Translating documentation](/docs/contribution-opportunities/translate-documentation).
 
 Use the sidebar or jump to a guide below.
 
 <CardGrid>
 <LinkCard title="Adding a social provider" description="Contributor checklist for new social integrations" href="/docs/contribution-opportunities/add-provider" />
 <LinkCard title="Adding a Humanizer language" description="Locale folders, catalogs, local rewrite, UI copy, and tests" href="/docs/contribution-opportunities/humanizer-languages" />
+<LinkCard title="Translating documentation" description="Locale folders, mirrored paths, Markdown authoring, and Spanish examples under docs-es" href="/docs/contribution-opportunities/translate-documentation" />
 </CardGrid>
 
 ## Related Section(s)
