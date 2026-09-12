@@ -4,6 +4,7 @@
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
+	import { classifyComposerPreviewMediaMode } from '$lib/posts/utils/composer/mediaDrop';
 	import { readFacebookLaunchSettings } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
@@ -14,6 +15,7 @@
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		/** When set (e.g. scheduled publish time), replaces the default "Just now" label. */
@@ -26,6 +28,7 @@
 		previewText,
 		maximumCharacters = 63_206,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
@@ -40,7 +43,19 @@
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const isCarousel = $derived(mediaUrls.length > 1);
+
+	/**
+	 * Facebook Page feed / Story layout (composer preview approximation).
+	 * Feed: max-w 340px · media 1.91:1 · photos letterbox (dark) · videos cover.
+	 * Story: max-w 292px · media 9:16 · photos letterbox (black) · videos cover.
+	 */
 	const mediaAspectClass = $derived(isStory ? 'aspect-[9/16]' : 'aspect-[1.91/1]');
+	const frameMaxWidthClass = $derived(isStory ? 'max-w-[292px]' : 'max-w-[340px]');
+	const mediaMode = $derived(classifyComposerPreviewMediaMode(mediaUrls, mediaStoragePaths));
+	const isVideo = $derived(mediaMode === 'video');
+	const sliderVariant = $derived<'default' | 'instagram-story' | 'letterbox-dark'>(
+		isVideo ? 'default' : isStory ? 'instagram-story' : 'letterbox-dark'
+	);
 
 	function formatLinkHost(url: string): string {
 		if (!url) return '';
@@ -54,7 +69,8 @@
 </script>
 
 {#if isStory}
-	<div class="overflow-hidden rounded-xl border border-base-300 bg-[#242526] text-[#E4E6EB]">
+	<!-- Layout: story branch — max-w-[292px] · aspect-[9/16] -->
+	<div class="mx-auto w-full {frameMaxWidthClass} overflow-hidden rounded-xl border border-base-300 bg-[#242526] text-[#E4E6EB]">
 		<div class="flex items-center gap-3 px-4 py-3">
 			<IntegrationChannelPicture
 				profilePictureUrl={channel.picture}
@@ -77,11 +93,15 @@
 
 		{#if mediaUrls.length > 0}
 			<div class="overflow-hidden bg-[#18191A]">
-				<ImageSlider
-					class="{mediaAspectClass} w-full"
-					urls={mediaUrls}
-					showSlideCounter={isCarousel}
-				/>
+				<div class="relative w-full {mediaAspectClass}">
+					<ImageSlider
+						class="absolute inset-0 h-full w-full"
+						urls={mediaUrls}
+						storagePaths={mediaStoragePaths}
+						showSlideCounter={isCarousel}
+						variant={sliderVariant}
+					/>
+				</div>
 			</div>
 		{:else}
 			<div class="{mediaAspectClass} w-full bg-[#18191A]"></div>
@@ -94,7 +114,8 @@
 		{/if}
 	</div>
 {:else}
-	<div class="overflow-hidden rounded-xl border border-base-300 bg-[#242526] text-[#E4E6EB]">
+	<!-- Layout: feed branch — max-w-[340px] · aspect-[1.91/1] -->
+	<div class="mx-auto w-full {frameMaxWidthClass} overflow-hidden rounded-xl border border-base-300 bg-[#242526] text-[#E4E6EB]">
 		<div class="flex gap-3 p-4">
 			<IntegrationChannelPicture
 				profilePictureUrl={channel.picture}
@@ -126,8 +147,16 @@
 		{/if}
 
 		{#if mediaUrls.length > 0}
-			<div class="{mediaAspectClass} border-y border-[#3E4042]">
-				<ImageSlider class="h-full w-full" urls={mediaUrls} showSlideCounter={mediaUrls.length > 1} />
+			<div class="overflow-hidden border-y border-[#3E4042] bg-[#18191A]">
+				<div class="relative w-full {mediaAspectClass}">
+					<ImageSlider
+						class="absolute inset-0 h-full w-full"
+						urls={mediaUrls}
+						storagePaths={mediaStoragePaths}
+						showSlideCounter={mediaUrls.length > 1}
+						variant={sliderVariant}
+					/>
+				</div>
 			</div>
 		{/if}
 

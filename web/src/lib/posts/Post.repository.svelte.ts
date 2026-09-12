@@ -30,6 +30,11 @@ export type PostMediaProgrammerModel = {
 	thumbnail?: string | null;
 	/** Client preview only — not sent on create/update payloads. */
 	thumbnailPublicUrl?: string | null;
+	/**
+	 * Session-only `blob:` poster after frame capture (same pattern as `localPreviewUrl`).
+	 * Not sent on create/update payloads.
+	 */
+	thumbnailLocalPreviewUrl?: string | null;
 	thumbnailTimestamp?: number | null;
 	/** Client preview only — from upload/list APIs; not sent on create/update payloads. */
 	publicUrl?: string | null;

@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	applyComposerMediaDetailsSave,
 	composerMediaItemSupportsSettings,
-	isGuestOnlyComposerMedia
+	composerMediaPlaybackUrl,
+	isGuestOnlyComposerMedia,
+	mergeLibraryVmIntoPostMedia
 } from '$lib/posts/utils/composer/composerMediaSettings';
 
 describe('isGuestOnlyComposerMedia', () => {
@@ -25,6 +28,109 @@ describe('isGuestOnlyComposerMedia', () => {
 				publicUrl: 'https://cdn.example/photo.jpg'
 			})
 		).toBe(false);
+	});
+});
+
+describe('composerMediaPlaybackUrl', () => {
+	it('prefers local blob over API public URL for thumbnail scrubbing', () => {
+		expect(
+			composerMediaPlaybackUrl({
+				id: '1',
+				path: 'org/clip.mp4',
+				localPreviewUrl: 'blob:http://localhost/video',
+				publicUrl: 'https://cdn.example/clip.mp4'
+			})
+		).toBe('blob:http://localhost/video');
+	});
+});
+
+describe('applyComposerMediaDetailsSave', () => {
+	it('stores session poster blob and public URL from save patch', () => {
+		expect(
+			applyComposerMediaDetailsSave(
+				{
+					id: '1',
+					path: 'org/clip.mp4',
+					localPreviewUrl: 'blob:http://localhost/video'
+				},
+				{
+					alt: 'demo',
+					thumbnail: 'org/poster.jpg',
+					thumbnailPublicUrl: 'https://cdn.example/poster.jpg',
+					thumbnailLocalPreviewUrl: 'blob:http://localhost/poster',
+					thumbnailTimestamp: 1200
+				}
+			)
+		).toMatchObject({
+			alt: 'demo',
+			thumbnail: 'org/poster.jpg',
+			thumbnailPublicUrl: 'https://cdn.example/poster.jpg',
+			thumbnailLocalPreviewUrl: 'blob:http://localhost/poster',
+			thumbnailTimestamp: 1200,
+			localPreviewUrl: 'blob:http://localhost/video'
+		});
+	});
+});
+
+describe('mergeLibraryVmIntoPostMedia', () => {
+	it('does not persist blob URLs as publicUrl', () => {
+		expect(
+			mergeLibraryVmIntoPostMedia(
+				{
+					id: '1',
+					path: 'org/clip.mp4',
+					localPreviewUrl: 'blob:http://localhost/video',
+					publicUrl: 'https://cdn.example/clip.mp4'
+				},
+				{
+					id: 'lib-1',
+					path: 'org/clip.mp4',
+					name: 'clip.mp4',
+					size: 0,
+					lastModified: null,
+					publicUrl: 'blob:http://localhost/video',
+					kind: 'video',
+					alt: null,
+					thumbnail: 'org/poster.jpg',
+					thumbnailPublicUrl: 'https://cdn.example/poster.jpg',
+					thumbnailTimestamp: 1000
+				}
+			)
+		).toMatchObject({
+			thumbnail: 'org/poster.jpg',
+			thumbnailPublicUrl: 'https://cdn.example/poster.jpg',
+			publicUrl: 'https://cdn.example/clip.mp4'
+		});
+	});
+
+	it('keeps session poster blob when library refresh omits it', () => {
+		expect(
+			mergeLibraryVmIntoPostMedia(
+				{
+					id: '1',
+					path: 'org/clip.mp4',
+					thumbnail: 'org/poster.jpg',
+					thumbnailLocalPreviewUrl: 'blob:http://localhost/poster',
+					thumbnailPublicUrl: 'https://cdn.example/poster.jpg'
+				},
+				{
+					id: 'lib-1',
+					path: 'org/clip.mp4',
+					name: 'clip.mp4',
+					size: 0,
+					lastModified: null,
+					publicUrl: 'https://cdn.example/clip.mp4',
+					kind: 'video',
+					alt: null,
+					thumbnail: 'org/poster.jpg',
+					thumbnailPublicUrl: null,
+					thumbnailTimestamp: 1000
+				}
+			)
+		).toMatchObject({
+			thumbnailLocalPreviewUrl: 'blob:http://localhost/poster',
+			thumbnailPublicUrl: 'https://cdn.example/poster.jpg'
+		});
 	});
 });
 

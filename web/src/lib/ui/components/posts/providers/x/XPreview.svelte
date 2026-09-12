@@ -8,6 +8,7 @@
 		maximumCharacters?: number;
 		weightedCharCount?: number;
 		mediaUrls?: string[];
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
@@ -29,6 +30,7 @@
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import XCrossAccountPlugsPreview from '$lib/ui/components/posts/providers/x/XCrossAccountPlugsPreview.svelte';
 	import { xWeightedLength } from '$lib/posts/utils/composer/xWeightedLength';
+	import { classifyComposerPreviewMediaMode } from '$lib/posts/utils/composer/mediaDrop';
 	import { readXLaunchSettings } from '$lib/ui/components/posts/providers/x/xLaunchSettings';
 
 	let {
@@ -37,6 +39,7 @@
 		maximumCharacters = 280,
 		weightedCharCount,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
@@ -73,6 +76,14 @@
 			: null
 	);
 
+	/**
+	 * X post layout (composer preview approximation).
+	 * max-w 340px card · media 16:9 rounded tile · photos letterbox (light bg) · videos cover.
+	 */
+	const mediaMode = $derived(classifyComposerPreviewMediaMode(mediaUrls, mediaStoragePaths));
+	const isVideo = $derived(mediaMode === 'video');
+	const sliderVariant = $derived<'default' | 'instagram'>(isVideo ? 'default' : 'instagram');
+
 	function formatCommunityLabel(url: string | undefined): string {
 		const trimmed = url?.trim();
 		if (!trimmed) return '';
@@ -85,7 +96,8 @@
 	}
 </script>
 
-<div class="overflow-hidden rounded-xl border border-base-300 bg-base-100 text-base-content">
+<!-- Layout: max-w-[340px] · aspect-video media — see layout comment above -->
+<div class="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-base-300 bg-base-100 text-base-content">
 	<div class="flex gap-3 p-4">
 		<div class="relative h-10 w-10 shrink-0">
 			{#if channel.picture?.trim()}
@@ -134,8 +146,16 @@
 			</div>
 
 			{#if mediaUrls.length > 0}
-				<div class="mt-3 overflow-hidden rounded-2xl border border-base-300">
-					<ImageSlider class="aspect-[16/9] w-full" urls={mediaUrls} alt="" />
+				<div class="mt-3 overflow-hidden rounded-2xl border border-base-300 bg-base-200">
+					<div class="relative aspect-video w-full">
+						<ImageSlider
+							class="absolute inset-0 h-full w-full"
+							urls={mediaUrls}
+							storagePaths={mediaStoragePaths}
+							alt=""
+							variant={sliderVariant}
+						/>
+					</div>
 				</div>
 			{/if}
 

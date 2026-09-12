@@ -21,3 +21,21 @@ export function isImageMediaPath(path: string): boolean {
 	const ext = path.split('.').pop()?.toLowerCase() ?? '';
 	return ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'avif'].includes(ext);
 }
+
+const VIDEO_PREVIEW_URL_RE = /\.(mp4|webm|mov|m4v|mpeg)(\?|#|$)/i;
+
+/**
+ * Whether a composer preview URL should render as `<video>` (not `<img>`).
+ * `blob:` preview URLs have no extension — pass the parallel storage `path` when available.
+ */
+export function isVideoPreviewSource(
+	previewUrl: string,
+	storagePath?: string | null
+): boolean {
+	const url = previewUrl.trim();
+	if (!url) return false;
+	if (VIDEO_PREVIEW_URL_RE.test(url)) return true;
+	const path = storagePath?.trim();
+	if (!path || path.startsWith('blob:')) return false;
+	return isVideoMediaPath(path);
+}

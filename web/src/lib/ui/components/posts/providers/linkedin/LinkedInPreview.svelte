@@ -7,6 +7,7 @@
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
@@ -28,6 +29,7 @@
 	} from '$lib/ui/components/preview/crossAccountPlugPreview';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import LinkedInCrossAccountPlugsPreview from '$lib/ui/components/posts/providers/linkedin/LinkedInCrossAccountPlugsPreview.svelte';
+	import { classifyComposerPreviewMediaMode } from '$lib/posts/utils/composer/mediaDrop';
 	import { readLinkedInLaunchSettings } from '$lib/ui/components/posts/providers/linkedin/linkedin.provider';
 
 	let {
@@ -35,6 +37,7 @@
 		previewText,
 		maximumCharacters = 3000,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
@@ -69,9 +72,17 @@
 			(threadFinisher?.enabled === true && (threadFinisher.message ?? '').trim().length > 0) ||
 			crossAccountPlugs.length > 0
 	);
+	/**
+	 * LinkedIn feed post layout (composer preview approximation).
+	 * max-w 340px card · media 1.91:1 · photos letterbox (dark bg) · videos cover.
+	 */
+	const mediaMode = $derived(classifyComposerPreviewMediaMode(mediaUrls, mediaStoragePaths));
+	const isVideo = $derived(mediaMode === 'video');
+	const sliderVariant = $derived<'default' | 'letterbox-dark'>(isVideo ? 'default' : 'letterbox-dark');
 </script>
 
-<div class="overflow-hidden rounded-xl border border-[#383A3D] bg-[#1B1F23] text-[#E9E9E9]">
+<!-- Layout: max-w-[340px] · aspect-[1.91/1] media — see layout comment above -->
+<div class="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-[#383A3D] bg-[#1B1F23] text-[#E9E9E9]">
 	<div class="flex gap-3 p-4">
 		<IntegrationChannelPicture
 			profilePictureUrl={channel.picture}
@@ -105,12 +116,16 @@
 	{/if}
 
 	{#if mediaUrls.length > 0}
-		<div class="overflow-hidden border-y border-[#383A3D]">
-			<ImageSlider
-				class="aspect-[1.91/1] max-h-[280px] w-full"
-				urls={mediaUrls}
-				showSlideCounter={mediaUrls.length > 1}
-			/>
+		<div class="overflow-hidden border-y border-[#383A3D] bg-[#18191A]">
+			<div class="relative aspect-[1.91/1] w-full">
+				<ImageSlider
+					class="absolute inset-0 h-full w-full"
+					urls={mediaUrls}
+					storagePaths={mediaStoragePaths}
+					showSlideCounter={mediaUrls.length > 1}
+					variant={sliderVariant}
+				/>
+			</div>
 		</div>
 	{/if}
 

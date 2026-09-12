@@ -29,7 +29,10 @@
 	import { integrationsRepository } from '$lib/integrations';
 	import { getMediaPresenter, mediaRepository } from '$lib/medias';
 	import {
+		applyComposerMediaDetailsSave,
 		composerMediaItemSupportsSettings,
+		composerMediaPlaybackUrl,
+		type ComposerMediaDetailsSavePatch,
 		mergeLibraryVmIntoPostMedia,
 		resolveComposerMediaLibraryItemVm
 	} from '$lib/posts/utils/composer/composerMediaSettings';
@@ -209,10 +212,12 @@
 
 	let composerMediaSettingsOpen = $state(false);
 	let composerMediaSettingsVm = $state<MediaLibraryItemViewModel | null>(null);
+	let composerMediaSettingsPlaybackUrl = $state<string | null>(null);
 	let composerMediaSettingsTarget = $state<ComposerMediaSettingsTarget | null>(null);
 
 	function clearComposerMediaSettingsVm(): void {
 		composerMediaSettingsVm = null;
+		composerMediaSettingsPlaybackUrl = null;
 		composerMediaSettingsTarget = null;
 	}
 
@@ -227,6 +232,7 @@
 			const vm = await resolveComposerMediaLibraryItemVm(orgId, item, getMediaPresenter);
 			composerMediaSettingsTarget = target;
 			composerMediaSettingsVm = vm;
+			composerMediaSettingsPlaybackUrl = composerMediaPlaybackUrl(item);
 			composerMediaSettingsOpen = true;
 		} catch {
 			toast.error('Could not load media details.');
@@ -261,18 +267,18 @@
 		});
 	}
 
-	async function onComposerMediaSettingsSaved(): Promise<void> {
+	async function onComposerMediaSettingsSaved(patch: ComposerMediaDetailsSavePatch): Promise<void> {
 		const orgId = organizationId?.trim();
 		const target = composerMediaSettingsTarget;
-		const vm = composerMediaSettingsVm;
-		if (!orgId || !target || !vm) return;
+		if (!orgId || !target) return;
 
 		try {
 			const items = [...target.readItems()];
 			const current = items[target.index];
 			if (!current) return;
-			const fresh = await resolveComposerMediaLibraryItemVm(orgId, current, getMediaPresenter);
-			items[target.index] = mergeLibraryVmIntoPostMedia(current, fresh);
+			const saved = applyComposerMediaDetailsSave(current, patch);
+			const fresh = await resolveComposerMediaLibraryItemVm(orgId, saved, getMediaPresenter);
+			items[target.index] = mergeLibraryVmIntoPostMedia(saved, fresh);
 			target.writeItems(items);
 		} catch {
 			toast.error('Could not refresh media details on the post.');
@@ -763,6 +769,7 @@
 	<MediaSettings
 		bind:open={composerMediaSettingsOpen}
 		mediaVm={composerMediaSettingsVm}
+		playbackUrl={composerMediaSettingsPlaybackUrl}
 		organizationId={organizationId}
 		uploadSimple={async (args) => {
 			const orgId = organizationId.trim();
@@ -785,7 +792,7 @@
 			});
 			return getMediaPresenter.toSaveMediaInformationVm(pm);
 		}}
-		onSaved={() => void onComposerMediaSettingsSaved()}
+		onSaved={(patch) => void onComposerMediaSettingsSaved(patch)}
 		onClose={clearComposerMediaSettingsVm}
 	/>
 {/if}

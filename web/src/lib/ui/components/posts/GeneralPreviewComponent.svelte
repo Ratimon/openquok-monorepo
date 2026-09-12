@@ -15,6 +15,8 @@
 		title?: string;
 		showVerified?: boolean;
 		mediaUrls?: string[];
+		/** Parallel storage paths for extension-less composer `blob:` preview URLs. */
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 	};
@@ -26,6 +28,7 @@
 		title = 'Global Edit',
 		showVerified = true,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null
 	}: Props = $props();
@@ -33,9 +36,13 @@
 	const cropped = $derived(previewText.slice(0, maximumCharacters));
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const firstMediaUrl = $derived((mediaUrls?.[0] ?? '').trim());
+	const firstStoragePath = $derived((mediaStoragePaths?.[0] ?? '').trim());
+
+	/** Global Edit: neutral multi-channel preview · max-w 340px · first attachment 16:9 contain. */
 </script>
 
-<div class="w-full p-4 sm:p-6">
+<!-- Layout: max-w-[340px] generic card — see layout comment above -->
+<div class="mx-auto w-full max-w-[340px] p-4 sm:p-6">
 	<div class="relative flex h-full w-full flex-col">
 		<div class="relative flex gap-3 pb-3">
 			<div class="flex h-10 min-h-10 w-10 min-w-10 shrink-0 flex-col items-center">
@@ -95,7 +102,12 @@
 		{#if mediaUrls.length > 0}
 			<div class="mt-3 w-full overflow-hidden rounded-lg border border-base-300/80">
 				<div class="aspect-[16/9] w-full bg-base-200">
-					<VideoOrImage src={firstMediaUrl} autoplay={true} isContain={true} />
+					<VideoOrImage
+						src={firstMediaUrl}
+						storagePath={firstStoragePath}
+						autoplay={true}
+						isContain={true}
+					/>
 				</div>
 			</div>
 		{/if}

@@ -7,6 +7,7 @@
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
@@ -19,6 +20,7 @@
 	import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { readYoutubeLaunchSettings } from '$lib/ui/components/posts/providers/youtube/youtube.provider';
 
@@ -27,6 +29,7 @@
 		previewText,
 		maximumCharacters = 5000,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
 		previewMetaLabel = null,
@@ -38,8 +41,11 @@
 	const overflow = $derived(previewText.slice(maximumCharacters));
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
 	const primaryVideo = $derived(mediaUrls[0] ?? '');
+	const primaryStoragePath = $derived(mediaStoragePaths[0] ?? '');
 	const title = $derived(settings.title.trim() || 'Video title');
 	const posterUrl = $derived(resolveThumbnailUrl(settings.thumbnail?.path));
+
+	/** YouTube watch layout: max-w 340px · player 16:9 contain · title + channel row below. */
 
 	function resolveThumbnailUrl(path: string | undefined): string {
 		const trimmed = path?.trim();
@@ -51,19 +57,20 @@
 	}
 </script>
 
-<div class="overflow-hidden rounded-xl border border-base-300 bg-[#0f0f0f] text-[#f1f1f1]">
-	<div class="aspect-video bg-black">
+<!-- Layout: max-w-[340px] · aspect-video player — see layout comment above -->
+<div class="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-base-300 bg-[#0f0f0f] text-[#f1f1f1]">
+	<div class="relative aspect-video bg-black">
 		{#if primaryVideo}
-			<video
-				src={primaryVideo}
-				class="h-full w-full object-contain"
-				controls
-				muted
-				playsinline
-				poster={posterUrl || undefined}
-			>
-				<track kind="captions" />
-			</video>
+			<div class="absolute inset-0 flex items-center justify-center">
+				<VideoOrImage
+					src={primaryVideo}
+					storagePath={primaryStoragePath}
+					autoplay={true}
+					fit="contain"
+					videoClass="max-h-full max-w-full"
+					imageClass="max-h-full max-w-full"
+				/>
+			</div>
 		{:else if posterUrl}
 			<img src={posterUrl} alt="" class="h-full w-full object-contain" />
 		{:else}

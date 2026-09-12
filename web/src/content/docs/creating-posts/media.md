@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 The composer attaches **images and video** below the caption. Use the **toolbar** to add files and the **drag & drop** to review thumbnails.
 
-![Post editor with media toolbar and media drag&drop](/docs/_assets/creating-posts/editor-media.webp)
+![Post editor with attached media and preview ](/docs/_assets/creating-posts/editor-media.webp)
 
 In **Global** mode, one attachment list is copied to every channel selected. You can unlock that channel — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
@@ -20,9 +20,11 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 | Method | What happens |
 | --- | --- |
 | **Add media** | First toolbar button opens a device picker. Choose one or more images or videos. Files upload to your workspace. |
-| **Drag and drop** | Drop images or videos onto the area. Same upload rules as **Add media**. |
+| **Drag and drop** | Drop images or videos onto the area below toolbar. |
 | **Media library** | Second toolbar button — attach files already stored at <a href="/account/media">/account/media</a>. See <a href="/docs/getting-started/tour-the-app">Tour the app</a> for where the library lives in the sidebar. |
 | **Design Media** | Canvas toolbar button — open the **Photo Editor**, create or edit a visual, then choose **Use this media** to attach the export. Same canvas as the public <a href="/tools/photo-editor">Photo Editor</a> tool. |
+
+![Media toolbar with modal and drag&drop ](/docs/_assets/creating-posts/editor-media-modal.webp)
 
 <Callout type="note">
 <p>Sign in to attach from the <strong>media library</strong> or <strong>Design Media</strong>. The public Photo Editor tool can export without a workspace.</p>
@@ -42,20 +44,28 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 
 The post editor accepts images and videos only. The media library, CLI, and Uploads API also accept audio and PDF.
 
-Platform rules are stricter than these and vary a lot: YouTube wants exactly one video, Instagram needs at least one attachment, and TikTok does not mix photos and video. See <a href="/docs/platforms">Posting rules by platform</a>. The **Post Preview** column and the validation under the media strip warn you before save.
+Platform rules vary by platform: YouTube wants exactly one video, Instagram needs at least one attachment, and TikTok does not mix photos and video. See <a href="/docs/platforms">Posting rules by platform</a>. The **Post Preview** column and the validation under the media strip warn you before save.
 
 ## Reorder and remove
 
-Each thumbnail has **Move up** and **Move down** chevrons and a **Remove** control. Order in the strip is **publish order** — the first file is the lead attachment.
+Each thumbnail has **Move up** and **Move down** chevrons and a **X** to detach. The Order is **publish order**.
+
+![Move or Reorder Attached medias](/docs/_assets/creating-posts/dropped-media-reorder.webp)
+
 
 ## Media settings
 
 In the post editor, click a strip thumbnail or the **gear** icon (bottom-right of each thumbnail) to open **Media details**.
 
+![Edit Alt-test and Select Thumbnail](/docs/_assets/creating-posts/dropped-media-details.webp)
+
 | Field | What you can set |
 | --- | --- |
-| **Alt text** | Up to **2000** characters. Describes the image for accessibility( eg. SEO) and preview. |
+| **Alt text** | Up to **2000** characters. Describes the image for accessibility(for SEO) and preview. |
 | **Video poster** | Choose **Create thumbnail**, drag the slider to the frame you want, then **Use current frame as thumbnail**. That image is the video cover. **Clear thumbnail** removes it. |
+
+
+![Select Timeframe for Video Thumbnail](/docs/_assets/creating-posts/dropped-video-timeframe.webp)
 
 Changes save to the **workspace media library**. The same **Media details** dialog is available on <a href="/account/media">/account/media</a>.
 

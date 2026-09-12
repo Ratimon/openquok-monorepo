@@ -1,13 +1,15 @@
 import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte';
 import type { MediaUploadProgress } from '$lib/medias/utils/mediaUpload';
 
-import { isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
+import { isVideoMediaPath, isVideoPreviewSource } from '$lib/medias/utils/mediaDisplay';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 import { uploadSocialPostComposerMediaFiles } from '$lib/posts/Post.repository.svelte';
 
 function videoPosterPreviewUrl(item: PostMediaProgrammerModel): string | null {
 	const thumb = item.thumbnail?.trim();
 	if (!thumb) return null;
+	const localPoster = item.thumbnailLocalPreviewUrl?.trim();
+	if (localPoster) return localPoster;
 	if (thumb.startsWith('http://') || thumb.startsWith('https://')) {
 		const sep = thumb.includes('?') ? '&' : '?';
 		return item.thumbnailTimestamp != null ? `${thumb}${sep}thumbTs=${item.thumbnailTimestamp}` : thumb;
@@ -17,6 +19,22 @@ function videoPosterPreviewUrl(item: PostMediaProgrammerModel): string | null {
 		: publicUrlForMediaStorageKey(thumb);
 	const sep = base.includes('?') ? '&' : '?';
 	return item.thumbnailTimestamp != null ? `${base}${sep}thumbTs=${item.thumbnailTimestamp}` : base;
+}
+
+/** Poster image URL for a video attachment (composer strip / library grid). */
+export function postMediaVideoPosterUrl(item: PostMediaProgrammerModel): string | null {
+	if (!isVideoMediaPath(item.path.trim())) return null;
+	return videoPosterPreviewUrl(item);
+}
+
+/**
+ * Media-strip thumbnail: saved video poster when set; otherwise same as {@link postMediaPreviewUrl}.
+ * Post Preview keeps {@link postMediaPreviewUrl} so videos still play from `localPreviewUrl`.
+ */
+export function postMediaStripPreviewUrl(item: PostMediaProgrammerModel): string {
+	const poster = postMediaVideoPosterUrl(item);
+	if (poster) return poster;
+	return postMediaPreviewUrl(item);
 }
 
 /** Preview `src` for one composer attachment: blob URL, video poster, or storage URL. */
@@ -37,6 +55,22 @@ export function postMediaPreviewUrl(item: PostMediaProgrammerModel): string {
 /** Preview `src` for composer media: local blob URLs first, then public storage URLs. */
 export function postMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): string[] {
 	return items.map(postMediaPreviewUrl);
+}
+
+export type ComposerPreviewMediaMode = 'empty' | 'video' | 'photo';
+
+/** Photo vs video for composer previews — prefer storage paths when URLs are extension-less `blob:`. */
+export function classifyComposerPreviewMediaMode(
+	urls: readonly string[],
+	storagePaths?: readonly string[]
+): ComposerPreviewMediaMode {
+	if (urls.length === 0) return 'empty';
+	for (let i = 0; i < urls.length; i++) {
+		if (isVideoPreviewSource(urls[i] ?? '', storagePaths?.[i])) {
+			return 'video';
+		}
+	}
+	return 'photo';
 }
 
 /** Collect files from a drag event (`files` first, then `items` for Safari). */
@@ -158,5 +192,6 @@ export function revokeLocalMediaPreviewUrl(previewUrl: string | null | undefined
 export function revokeLocalMediaPreviewUrls(items: readonly PostMediaProgrammerModel[]): void {
 	for (const item of items) {
 		revokeLocalMediaPreviewUrl(item.localPreviewUrl);
+		revokeLocalMediaPreviewUrl(item.thumbnailLocalPreviewUrl);
 	}
 }

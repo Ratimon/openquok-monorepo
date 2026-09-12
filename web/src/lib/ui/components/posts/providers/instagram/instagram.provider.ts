@@ -5,6 +5,8 @@ import type {
 	LaunchProviderConfig,
 } from '$lib/ui/components/posts/providers/provider.types';
 
+import { isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
+
 function isMp4Path(path: string | undefined | null): boolean {
 	if (!path) return false;
 	return path.toLowerCase().includes('mp4');
@@ -12,6 +14,49 @@ function isMp4Path(path: string | undefined | null): boolean {
 
 /** Instagram carousel supports up to 10 items; stories and trial reels allow one. */
 export const INSTAGRAM_CAROUSEL_MAX_ITEMS = 10;
+
+export type InstagramPreviewMediaMode = 'empty' | 'video' | 'photo';
+
+function mediaExtFromPath(path: string): string {
+	const raw = path.trim();
+	if (!raw) return '';
+	try {
+		const u = new URL(raw);
+		return (u.pathname.split('.').pop() ?? '').toLowerCase();
+	} catch {
+		return (raw.split('?')[0]?.split('#')[0]?.split('.').pop() ?? '').toLowerCase();
+	}
+}
+
+function isVideoStorageOrPreviewPath(path: string | undefined | null): boolean {
+	if (!path?.trim()) return false;
+	const trimmed = path.trim();
+	if (trimmed.startsWith('blob:')) return false;
+	return isVideoMediaPath(trimmed) || mediaExtFromPath(trimmed) === 'mp4';
+}
+
+/**
+ * Instagram preview fit: photos letterbox inside feed (4:5) or story (9:16) frames;
+ * videos fill the frame. Prefer storage paths — composer `blob:` URLs have no extension.
+ */
+export function classifyInstagramPreviewMediaMode(
+	urls: readonly string[],
+	storagePaths?: readonly string[]
+): InstagramPreviewMediaMode {
+	if (urls.length === 0) return 'empty';
+
+	for (let i = 0; i < urls.length; i++) {
+		const storagePath = storagePaths?.[i]?.trim();
+		if (storagePath && isVideoStorageOrPreviewPath(storagePath)) {
+			return 'video';
+		}
+		if (isVideoStorageOrPreviewPath(urls[i])) {
+			return 'video';
+		}
+	}
+
+	return 'photo';
+}
 
 export function readInstagramLaunchSettings(
 	settings: Record<string, unknown>

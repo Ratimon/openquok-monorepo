@@ -8,6 +8,7 @@
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		previewMetaLabel?: string | null;
@@ -20,6 +21,7 @@
 	import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
 	import { readDevtoLaunchSettings } from '$lib/ui/components/posts/providers/devto/devto.provider';
 	import { renderDevtoPreviewBodyHtml } from '$lib/ui/components/posts/providers/devto/devtoPreviewBody';
 
@@ -28,6 +30,7 @@
 		previewText,
 		maximumCharacters = 100_000,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		previewMetaLabel = null,
 		providerSettings = {}
 	}: DevtoPreviewProps = $props();
@@ -40,7 +43,12 @@
 	const title = $derived(settings.title.trim() || 'Untitled article');
 	const series = $derived(settings.series?.trim() || '');
 	const coverUrl = $derived(resolveCoverUrl(settings, mediaUrls));
+	const coverStoragePath = $derived(
+		settings.mainImage?.path?.trim() || mediaStoragePaths[0] || ''
+	);
 	const tags = $derived(settings.tags.map((t) => t.label).filter(Boolean));
+
+	/** Dev.to article card: max-w 340px · cover 1000:420 contain · title + markdown body. */
 
 	function resolveCoverUrl(
 		next: DevtoLaunchProviderSettings,
@@ -58,10 +66,20 @@
 	}
 </script>
 
-<div class="overflow-hidden rounded-xl border border-base-300 bg-[#f5f5f5] text-[#171717]">
+<!-- Layout: max-w-[340px] · aspect-[1000/420] cover — see layout comment above -->
+<div class="mx-auto w-full max-w-[340px] overflow-hidden rounded-xl border border-base-300 bg-[#f5f5f5] text-[#171717]">
 	{#if coverUrl}
-		<div class="aspect-[1000/420] bg-[#d4d4d4]">
-			<img src={coverUrl} alt="" class="h-full w-full object-cover" />
+		<div class="relative aspect-[1000/420] bg-[#d4d4d4]">
+			<div class="absolute inset-0 flex items-center justify-center">
+				<VideoOrImage
+					src={coverUrl}
+					storagePath={coverStoragePath}
+					autoplay={true}
+					fit="contain"
+					imageClass="max-h-full max-w-full"
+					videoClass="max-h-full max-w-full"
+				/>
+			</div>
 		</div>
 	{/if}
 

@@ -6,6 +6,8 @@
 	} from '$lib/medias/GetMedia.presenter.svelte';
 
 	import { publicUrlForMediaStorageKey } from '$lib/medias';
+	import type { ComposerMediaDetailsSavePatch } from '$lib/posts/utils/composer/composerMediaSettings';
+	import { revokeLocalMediaPreviewUrl } from '$lib/posts/utils/composer/mediaDrop';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
 
@@ -16,8 +18,10 @@
 	type Props = {
 		open?: boolean;
 		mediaVm: MediaLibraryItemViewModel | null;
+		/** Composer: prefer blob / API public URL over library storage URL for thumbnail scrubbing. */
+		playbackUrl?: string | null;
 		organizationId: string;
-		onSaved?: () => void;
+		onSaved?: (patch: ComposerMediaDetailsSavePatch) => void;
 		onClose?: () => void;
 		uploadSimple: (params: {
 			file: Blob;
@@ -35,6 +39,7 @@
 	let {
 		open = $bindable(false),
 		mediaVm,
+		playbackUrl = null,
 		organizationId,
 		onSaved,
 		onClose,
@@ -47,6 +52,8 @@
 	/** From upload-simple `publicUrl` after capture (matches server; avoids wrong `/uploads` when using R2). */
 	let newThumbnailPublicUrl = $state<string | null>(null);
 	let newThumbnailTimestamp = $state<number | null>(null);
+	/** Session blob for the last captured frame — survives save for composer strip preview. */
+	let capturedThumbnailLocalUrl = $state<string | null>(null);
 	/** User chose Clear; save should persist removal unless they capture a new frame. */
 	let thumbnailExplicitlyCleared = $state(false);
 	/** Browse vs in-editor (scrub + capture) for video posters. */
@@ -62,6 +69,7 @@
 	let durationSec = $state(0);
 	let currentTimeSec = $state(0);
 	let videoReady = $state(false);
+	let videoLoadFailed = $state(false);
 
 	const isVideo = $derived(mediaVm?.kind === 'video');
 
@@ -108,6 +116,8 @@
 			newThumbnailPath = null;
 			newThumbnailPublicUrl = null;
 			newThumbnailTimestamp = null;
+			revokeLocalMediaPreviewUrl(capturedThumbnailLocalUrl);
+			capturedThumbnailLocalUrl = null;
 			thumbnailExplicitlyCleared = false;
 			thumbnailEditorOpen = false;
 		}
@@ -119,13 +129,20 @@
 			durationSec = 0;
 			currentTimeSec = 0;
 			videoReady = false;
+			videoLoadFailed = false;
 			return;
 		}
 
-		videoPreviewUrl = mediaVm.publicUrl?.trim()
-			? mediaVm.publicUrl
-			: publicUrlForMediaStorageKey(mediaVm.path);
+		videoLoadFailed = false;
+		videoReady = false;
+		const preferred = playbackUrl?.trim() || mediaVm.publicUrl?.trim();
+		videoPreviewUrl = preferred || publicUrlForMediaStorageKey(mediaVm.path);
 	});
+
+	function onVideoError(): void {
+		videoLoadFailed = true;
+		videoReady = false;
+	}
 
 	$effect(() => {
 		if (!open || !mediaVm) {
@@ -202,6 +219,8 @@
 				toast.error('Could not encode the frame.');
 				return;
 			}
+			revokeLocalMediaPreviewUrl(capturedThumbnailLocalUrl);
+			capturedThumbnailLocalUrl = URL.createObjectURL(blob);
 			const up = await uploadSimple({
 				file: blob,
 				filename: 'thumbnail.jpg',
@@ -235,8 +254,25 @@
 		newThumbnailPath = null;
 		newThumbnailPublicUrl = null;
 		newThumbnailTimestamp = null;
+		revokeLocalMediaPreviewUrl(capturedThumbnailLocalUrl);
+		capturedThumbnailLocalUrl = null;
 		thumbnailExplicitlyCleared = true;
 		thumbnailEditorOpen = false;
+	}
+
+	function resolveThumbnailPublicUrlForSave(
+		thumbOut: string | null,
+		isVideoItem: boolean
+	): string | null {
+		if (!isVideoItem || !thumbOut) return null;
+		if (newThumbnailPath && thumbOut === newThumbnailPath && newThumbnailPublicUrl?.trim()) {
+			return newThumbnailPublicUrl.trim();
+		}
+		if (mediaVm?.thumbnail && thumbOut === mediaVm.thumbnail && mediaVm.thumbnailPublicUrl?.trim()) {
+			return mediaVm.thumbnailPublicUrl.trim();
+		}
+		if (thumbOut.startsWith('http://') || thumbOut.startsWith('https://')) return thumbOut;
+		return publicUrlForMediaStorageKey(thumbOut) || null;
 	}
 
 	async function save(): Promise<void> {
@@ -270,9 +306,21 @@
 				toast.error(result.message);
 				return;
 			}
+			const thumbPublicOut = resolveThumbnailPublicUrlForSave(thumbOut, isVideo);
+			const posterLocalOut =
+				isVideo && thumbOut && capturedThumbnailLocalUrl?.trim()
+					? capturedThumbnailLocalUrl
+					: null;
+
 			toast.success('Media details saved.');
 			open = false;
-			onSaved?.();
+			onSaved?.({
+				alt: altText.trim() || null,
+				thumbnail: thumbOut,
+				thumbnailPublicUrl: thumbPublicOut,
+				thumbnailLocalPreviewUrl: posterLocalOut,
+				thumbnailTimestamp: tsOut
+			});
 			onClose?.();
 		} finally {
 			saving = false;
@@ -366,19 +414,31 @@
 									Back
 								</button>
 
-								{#if videoPreviewUrl}
-									<!-- svelte-ignore a11y_media_has_caption -->
-									<video
-										bind:this={videoEl}
-										src={videoPreviewUrl}
-										crossorigin={videoCrossOriginForCapture ?? undefined}
-										class="bg-base-200 max-h-48 w-full rounded-lg object-contain"
-										muted
-										playsinline
-										preload="metadata"
-										onloadedmetadata={onVideoMeta}
-										ontimeupdate={onVideoTime}
-									></video>
+								{#if videoPreviewUrl && !videoLoadFailed}
+									{#key videoPreviewUrl}
+										<!-- svelte-ignore a11y_media_has_caption -->
+										<video
+											bind:this={videoEl}
+											src={videoPreviewUrl}
+											crossorigin={videoCrossOriginForCapture ?? undefined}
+											class="bg-base-200 max-h-48 w-full rounded-lg object-contain"
+											muted
+											playsinline
+											preload="auto"
+											onloadedmetadata={onVideoMeta}
+											ontimeupdate={onVideoTime}
+											onerror={onVideoError}
+										></video>
+									{/key}
+								{:else if videoLoadFailed}
+									<div
+										class="bg-base-200 text-base-content/70 flex min-h-32 flex-col items-center justify-center gap-1 rounded-lg px-4 text-center text-sm"
+									>
+										<p>Could not load this video for frame capture.</p>
+										<p class="text-xs text-base-content/55">
+											On localhost, re-attach the file or check storage CORS if the preview URL is remote.
+										</p>
+									</div>
 								{:else}
 									<div class="bg-base-200 text-base-content/60 flex min-h-32 items-center justify-center rounded-lg text-sm">
 										Loading video…

@@ -488,7 +488,9 @@
 	organizationId={organizationId}
 	uploadSimple={(args) => p.uploadMediaSimple(args)}
 	saveInformation={(args) => p.saveMediaInformation(args)}
-	onSaved={() => p.reloadFromFirstPage()}
+	onSaved={() => {
+		p.reloadFromFirstPage();
+	}}
 	onClose={() => p.clearSettingsMediaVm()}
 />
 

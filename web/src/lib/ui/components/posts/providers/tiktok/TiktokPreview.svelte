@@ -46,13 +46,18 @@
 	const handle = $derived((channel.name || '').trim() || '@username');
 	const isCarousel = $derived(mediaUrls.length > 1);
 	const timeLabel = $derived(previewMetaLabel?.trim() || 'Just now');
+
+	/**
+	 * TikTok For You layout (composer preview approximation).
+	 * max-w 292px phone frame · media 9:16 · photo carousels letterbox (black) · videos cover.
+	 */
 	const mediaMode = $derived(classifyTiktokPreviewMediaMode(mediaUrls, mediaStoragePaths));
 	const isPhotoPost = $derived(mediaMode === 'photo');
 	const photoTitle = $derived(isPhotoPost ? settings.title.trim() : '');
 	const sliderVariant = $derived<'default' | 'tiktok'>(isPhotoPost ? 'tiktok' : 'default');
 </script>
 
-<!-- Phone-width 9:16 frame — fits the composer preview column without scrolling -->
+<!-- Layout: max-w-[292px] · aspect-[9/16] — see mediaMode comment above -->
 <div class="mx-auto w-full max-w-[292px] text-white">
 	<div class="overflow-hidden rounded-2xl border border-base-300 bg-black shadow-lg">
 		<div class="relative aspect-[9/16] w-full bg-black">
@@ -60,6 +65,7 @@
 				<ImageSlider
 					class="h-full w-full"
 					urls={mediaUrls}
+					storagePaths={mediaStoragePaths}
 					alt=""
 					showSlideCounter={isCarousel}
 					variant={sliderVariant}

@@ -4,6 +4,15 @@ import type { PostMediaProgrammerModel } from '$lib/posts/Post.repository.svelte
 
 import { isImageMediaPath, isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
 import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
+import { revokeLocalMediaPreviewUrl } from '$lib/posts/utils/composer/mediaDrop';
+
+export type ComposerMediaDetailsSavePatch = {
+	alt: string | null;
+	thumbnail: string | null;
+	thumbnailPublicUrl: string | null;
+	thumbnailLocalPreviewUrl: string | null;
+	thumbnailTimestamp: number | null;
+};
 
 function fileNameFromPath(path: string): string {
 	const segment = path.split('/').pop() ?? path;
@@ -16,6 +25,15 @@ function mediaKindFromPath(path: string): MediaLibraryItemViewModel['kind'] {
 	return 'other';
 }
 
+/** URL that plays in-browser during compose (blob first — storage URLs may 404 on localhost). */
+export function composerMediaPlaybackUrl(item: PostMediaProgrammerModel): string {
+	const local = item.localPreviewUrl?.trim();
+	if (local) return local;
+	const apiPublic = item.publicUrl?.trim();
+	if (apiPublic) return apiPublic;
+	return publicUrlForMediaStorageKey(item.path.trim());
+}
+
 export function postMediaToLibraryItemVm(item: PostMediaProgrammerModel): MediaLibraryItemViewModel {
 	const path = item.path.trim();
 	return {
@@ -24,15 +42,34 @@ export function postMediaToLibraryItemVm(item: PostMediaProgrammerModel): MediaL
 		name: fileNameFromPath(path),
 		size: 0,
 		lastModified: null,
-		publicUrl:
-			item.localPreviewUrl?.trim() ||
-			item.publicUrl?.trim() ||
-			publicUrlForMediaStorageKey(path),
+		publicUrl: composerMediaPlaybackUrl(item),
 		kind: mediaKindFromPath(path),
 		alt: item.alt ?? null,
 		thumbnail: item.thumbnail ?? null,
 		thumbnailPublicUrl: item.thumbnailPublicUrl ?? null,
+		thumbnailLocalPreviewUrl: item.thumbnailLocalPreviewUrl ?? null,
 		thumbnailTimestamp: item.thumbnailTimestamp ?? null
+	};
+}
+
+export function applyComposerMediaDetailsSave(
+	item: PostMediaProgrammerModel,
+	patch: ComposerMediaDetailsSavePatch
+): PostMediaProgrammerModel {
+	if (
+		item.thumbnailLocalPreviewUrl?.trim() &&
+		item.thumbnailLocalPreviewUrl !== patch.thumbnailLocalPreviewUrl
+	) {
+		revokeLocalMediaPreviewUrl(item.thumbnailLocalPreviewUrl);
+	}
+
+	return {
+		...item,
+		alt: patch.alt,
+		thumbnail: patch.thumbnail,
+		thumbnailTimestamp: patch.thumbnailTimestamp,
+		thumbnailPublicUrl: patch.thumbnailPublicUrl,
+		thumbnailLocalPreviewUrl: patch.thumbnailLocalPreviewUrl
 	};
 }
 
@@ -40,14 +77,20 @@ export function mergeLibraryVmIntoPostMedia(
 	item: PostMediaProgrammerModel,
 	lib: MediaLibraryItemViewModel
 ): PostMediaProgrammerModel {
+	const thumbnailPublicUrl =
+		lib.thumbnailPublicUrl?.trim() || item.thumbnailPublicUrl?.trim() || null;
+
 	return {
 		...item,
 		id: lib.id,
-		alt: lib.alt ?? null,
-		thumbnail: lib.thumbnail ?? null,
-		thumbnailPublicUrl: lib.thumbnailPublicUrl ?? null,
-		thumbnailTimestamp: lib.thumbnailTimestamp ?? null,
-		...(lib.publicUrl?.trim() ? { publicUrl: lib.publicUrl.trim() } : {})
+		alt: lib.alt ?? item.alt ?? null,
+		thumbnail: lib.thumbnail ?? item.thumbnail ?? null,
+		thumbnailPublicUrl,
+		thumbnailTimestamp: lib.thumbnailTimestamp ?? item.thumbnailTimestamp ?? null,
+		thumbnailLocalPreviewUrl: item.thumbnailLocalPreviewUrl ?? null,
+		...(lib.publicUrl?.trim() && !lib.publicUrl.trim().startsWith('blob:')
+			? { publicUrl: lib.publicUrl.trim() }
+			: {})
 	};
 }
 
@@ -73,10 +116,13 @@ export async function resolveComposerMediaLibraryItemVm(
 	const match = browse.images.find((row) => row.path === item.path);
 	if (!match) return base;
 
+	const playbackUrl = composerMediaPlaybackUrl(item);
 	return {
 		...base,
 		...match,
-		id: match.id
+		id: match.id,
+		// Library browse may return a storage URL that does not load on localhost; keep compose playback.
+		publicUrl: playbackUrl.startsWith('blob:') ? playbackUrl : match.publicUrl?.trim() || playbackUrl
 	};
 }
 

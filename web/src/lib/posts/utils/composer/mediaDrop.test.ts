@@ -2,7 +2,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
 	attachComposerMediaFromLocalFiles,
+	classifyComposerPreviewMediaMode,
 	isComposerMediaFile,
+	postMediaPreviewUrl,
+	postMediaStripPreviewUrl,
 	postMediaPreviewUrls,
 	revokeLocalMediaPreviewUrl,
 	revokeLocalMediaPreviewUrls
@@ -70,6 +73,60 @@ describe('postMediaPreviewUrls', () => {
 				}
 			])
 		).toEqual(['https://cdn.example/org/shot.png']);
+	});
+});
+
+describe('postMediaStripPreviewUrl', () => {
+	it('prefers saved video poster over local blob preview', () => {
+		expect(
+			postMediaStripPreviewUrl({
+				id: '1',
+				path: 'org/clip.mp4',
+				localPreviewUrl: 'blob:http://localhost/video',
+				thumbnail: 'org/poster.jpg',
+				thumbnailLocalPreviewUrl: 'blob:http://localhost/poster',
+				thumbnailPublicUrl: 'https://cdn.example/org/poster.jpg'
+			})
+		).toBe('blob:http://localhost/poster');
+		expect(
+			postMediaStripPreviewUrl({
+				id: '1',
+				path: 'org/clip.mp4',
+				localPreviewUrl: 'blob:http://localhost/video',
+				thumbnail: 'org/poster.jpg',
+				thumbnailPublicUrl: 'https://cdn.example/org/poster.jpg'
+			})
+		).toBe('https://cdn.example/org/poster.jpg');
+		expect(
+			postMediaPreviewUrl({
+				id: '1',
+				path: 'org/clip.mp4',
+				localPreviewUrl: 'blob:http://localhost/video',
+				thumbnail: 'org/poster.jpg',
+				thumbnailPublicUrl: 'https://cdn.example/org/poster.jpg'
+			})
+		).toBe('blob:http://localhost/video');
+	});
+});
+
+describe('classifyComposerPreviewMediaMode', () => {
+	it('classifies blob video from storage path', () => {
+		expect(
+			classifyComposerPreviewMediaMode(
+				['blob:http://localhost/abc'],
+				['org/uuid/clip.mp4']
+			)
+		).toBe('video');
+		expect(
+			classifyComposerPreviewMediaMode(
+				['blob:http://localhost/abc'],
+				['org/uuid/shot.png']
+			)
+		).toBe('photo');
+	});
+
+	it('returns empty when there is no media', () => {
+		expect(classifyComposerPreviewMediaMode([])).toBe('empty');
 	});
 });
 

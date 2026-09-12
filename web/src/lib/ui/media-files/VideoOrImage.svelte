@@ -1,9 +1,10 @@
 <script lang="ts">
+	import { isVideoPreviewSource } from '$lib/medias/utils/mediaDisplay';
 	import { cn } from '$lib/ui/helpers/common';
 
 	type MediaFit = 'cover' | 'contain' | 'none';
 
-	const VIDEO_URL_RE = /\.(mp4|webm)(\?|#|$)/i;
+	const VIDEO_URL_RE = /\.(mp4|webm|mov|m4v|mpeg)(\?|#|$)/i;
 
 	function siblingVideoSrc(url: string, fromExt: string, toExt: string): string {
 		const match = url.match(new RegExp(`\\.${fromExt}(\\?|#|$)`, 'i'));
@@ -14,6 +15,7 @@
 
 	let {
 		src,
+		storagePath,
 		autoplay,
 		isContain = false,
 		fit,
@@ -25,6 +27,8 @@
 		decoding
 	}: {
 		src: string;
+		/** Composer storage path (or local filename) when `src` is an extension-less `blob:` URL. */
+		storagePath?: string;
 		autoplay: boolean;
 		isContain?: boolean;
 		fit?: MediaFit;
@@ -36,7 +40,8 @@
 		decoding?: 'async' | 'sync' | 'auto';
 	} = $props();
 
-	const isVideo = $derived(typeof src === 'string' && VIDEO_URL_RE.test(src));
+	const isVideo = $derived(isVideoPreviewSource(src, storagePath));
+	const extensionlessVideo = $derived(isVideo && !VIDEO_URL_RE.test(src));
 
 	const mp4Src = $derived(
 		!isVideo
@@ -82,11 +87,15 @@
 			class={videoClassResolved}
 			aria-label={alt || undefined}
 		>
-			{#if webmSrc}
-				<source src={webmSrc} type="video/webm" />
-			{/if}
-			{#if mp4Src}
-				<source src={mp4Src} type="video/mp4" />
+			{#if extensionlessVideo}
+				<source {src} />
+			{:else}
+				{#if webmSrc}
+					<source src={webmSrc} type="video/webm" />
+				{/if}
+				{#if mp4Src}
+					<source src={mp4Src} type="video/mp4" />
+				{/if}
 			{/if}
 		</video>
 	{:else}

@@ -67,6 +67,7 @@
 	<GeneralPreviewComponent
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		title="Global Edit"
 		{threadReplies}
@@ -77,6 +78,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -87,6 +89,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -99,6 +102,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -110,6 +114,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -133,6 +138,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -145,6 +151,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{weightedCharCount}
 		{threadReplies}
@@ -158,6 +165,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}
@@ -168,6 +176,7 @@
 	<GeneralPreviewComponent
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{channel}
 		showVerified={false}

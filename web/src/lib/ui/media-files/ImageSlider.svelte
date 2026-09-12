@@ -6,29 +6,50 @@
 	type Props = {
 		class?: string;
 		urls: string[];
+		/** Parallel storage paths for extension-less composer `blob:` preview URLs. */
+		storagePaths?: string[];
 		alt?: string;
 		/** Instagram-style `1/N` badge in the top-right corner. */
 		showSlideCounter?: boolean;
-		/** TikTok photo carousel: dots above caption safe zone, counter below top tabs. */
-		variant?: 'default' | 'tiktok';
+		/**
+		 * Photo letterbox inside a fixed aspect frame (`contain`; videos use `default` / cover).
+		 * `tiktok` — TikTok 9:16 black · `instagram` — IG feed / Threads / X light bg
+		 * `instagram-story` — IG / Facebook story black · `letterbox-dark` — Facebook / LinkedIn feed
+		 */
+		variant?: 'default' | 'tiktok' | 'instagram' | 'instagram-story' | 'letterbox-dark';
 	};
 
 	let {
 		class: className = '',
 		urls,
+		storagePaths = [],
 		alt = '',
 		showSlideCounter = false,
 		variant = 'default'
 	}: Props = $props();
 
 	const isTiktok = $derived(variant === 'tiktok');
-	const mediaFit = $derived<'cover' | 'contain'>(isTiktok ? 'contain' : 'cover');
+	const usesContainFrame = $derived(
+		variant === 'tiktok' ||
+			variant === 'instagram' ||
+			variant === 'instagram-story' ||
+			variant === 'letterbox-dark'
+	);
+	const letterboxClass = $derived(
+		variant === 'tiktok' || variant === 'instagram-story'
+			? 'bg-black'
+			: variant === 'letterbox-dark'
+				? 'bg-[#18191A]'
+				: 'bg-base-100'
+	);
+	const mediaFit = $derived<'cover' | 'contain'>(usesContainFrame ? 'contain' : 'cover');
 
 	let show = $state(0);
 
 	const canGoPrevious = $derived(show > 0);
 	const canGoNext = $derived(show < urls.length - 1);
 	const currentUrl = $derived(urls[show] ?? '');
+	const currentStoragePath = $derived(storagePaths[show] ?? '');
 
 	function goToPrevious() {
 		if (!canGoPrevious) return;
@@ -49,11 +70,17 @@
 <div class={`relative overflow-hidden ${className}`}>
 	{#if currentUrl}
 		<div
-			class={isTiktok
-				? 'absolute inset-0 flex items-center justify-center bg-black'
+			class={usesContainFrame
+				? `absolute inset-0 flex items-center justify-center ${letterboxClass}`
 				: 'absolute inset-0'}
 		>
-			<VideoOrImage src={currentUrl} {alt} autoplay={true} fit={mediaFit} />
+			<VideoOrImage
+				src={currentUrl}
+				storagePath={currentStoragePath}
+				{alt}
+				autoplay={true}
+				fit={mediaFit}
+			/>
 		</div>
 	{/if}
 

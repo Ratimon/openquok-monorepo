@@ -8,7 +8,7 @@
 		attachComposerMediaFromFiles,
 		attachComposerMediaFromLocalFiles,
 		filesFromDataTransfer,
-		postMediaPreviewUrl,
+		postMediaStripPreviewUrl,
 		revokeLocalMediaPreviewUrl
 	} from '$lib/posts/utils/composer/mediaDrop';
 	import { icons } from '$data/icons';
@@ -62,7 +62,7 @@
 	const noDrag = $derived(mediaAtCap);
 
 	const isLibraryMode = $derived(Boolean(mediaVm));
-	const previewUrls = $derived(items.map((row) => postMediaPreviewUrl(row)));
+	const previewUrls = $derived(items.map((row) => postMediaStripPreviewUrl(row)));
 	const composerSettingsEnabled = $derived(
 		!guestMode && typeof onOpenComposerMediaSettings === 'function'
 	);
@@ -86,6 +86,7 @@
 	function removeAt(index: number) {
 		const row = items[index];
 		revokeLocalMediaPreviewUrl(row?.localPreviewUrl);
+		revokeLocalMediaPreviewUrl(row?.thumbnailLocalPreviewUrl);
 		items = items.filter((_, i) => i !== index);
 	}
 

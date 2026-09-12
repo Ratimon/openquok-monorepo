@@ -25,6 +25,9 @@ globs:
   - web/src/lib/posts/utils/create-post/followUp.ts
   - web/src/lib/posts/utils/create-post/providerSettings.ts
   - web/src/lib/posts/utils/composer/mediaDrop.ts
+  - web/src/lib/posts/utils/composer/composerMediaSettings.ts
+  - web/src/lib/ui/components/media/MultiMedia.svelte
+  - web/src/lib/ui/components/posts/CreateSocialPostModal.svelte
   - web/src/lib/ui/media-files/ImageSlider.svelte
   - web/src/lib/ui/media-files/VideoOrImage.svelte
   - web/src/routes/(public)/p/[postId]/**
@@ -165,29 +168,79 @@ Keep composer validation aligned with backend publish rules (`checkValidity` ↔
 
 Post Preview is **not one shared mock** — each network has its own `{id}Preview.svelte` under `web/src/lib/ui/components/posts/providers/{id}/`. `ShowAllProviders.svelte` routes by `channel.identifier` (Instagram uses `startsWith('instagram')`; unknown identifiers fall back to `GeneralPreviewComponent`).
 
+Fixing preview layout for **one** provider (e.g. TikTok, then Instagram) does **not** fix siblings. Ship or refresh preview layout **per provider** using the checklist below.
+
 | Layer | Shared vs per-channel |
 | --- | --- |
-| Preview media URLs | **Shared** — `postMediaPreviewUrl` / `postMediaPreviewUrls` in `web/src/lib/posts/utils/composer/mediaDrop.ts`; composer passes `previewMediaUrls`; public `/p/[postId]` uses the same helper via `GetScheduledPost.presenter` |
-| Preview chrome + layout | **Per-channel** — aspect ratio, carousel vs single, platform header/actions, story vs feed modes live in `{id}Preview.svelte` |
-| Media rendering helpers | **Shared building blocks** — `ImageSlider.svelte`, `VideoOrImage.svelte`, `PreviewScheduledSocialReplies.svelte`; add a `variant` or prop when one platform needs different fit (e.g. TikTok `variant="tiktok"` for letterboxed photo carousels) |
-| Extra preview props | **Per-channel wiring** — add props on `{id}Preview.svelte` and pass them only from that branch in `ShowAllProviders.svelte` (and from `AddEditModal` / `/p/[postId]` when needed). Example: TikTok `mediaStoragePaths` parallel to `mediaUrls` so blob previews can classify photo vs video by storage-path extension |
+| Preview media URLs | **Shared** — `postMediaPreviewUrl` / `postMediaPreviewUrls` in `web/src/lib/posts/utils/composer/mediaDrop.ts`; `AddEditModal` derives `effectivePreviewMediaUrls` from `postMediaItems`; public `/p/[postId]` uses the same helper via `GetScheduledPost.presenter` |
+| Preview chrome + layout | **Per-channel** — phone-width frame, aspect ratio, carousel vs single, platform header/actions, story vs feed modes live in `{id}Preview.svelte` |
+| Media rendering helpers | **Shared building blocks** — `ImageSlider.svelte`, `VideoOrImage.svelte`, `PreviewScheduledSocialReplies.svelte`; add an `ImageSlider` `variant` when a platform needs letterboxing (see table below) |
+| Extra preview props | **Per-channel wiring** — add props on `{id}Preview.svelte` and pass them only from that branch in `ShowAllProviders.svelte`. `mediaStoragePaths` (parallel to `mediaUrls`) is required when the preview must classify photo vs video during compose (`blob:` URLs have no extension) |
 
-**When adding a provider**
+#### Preview layout status (update when you ship a fix)
+
+| Provider | Phone frame | Letterbox / fit | `mediaStoragePaths` | `classify*PreviewMediaMode` | Notes |
+| --- | --- | --- | --- | --- | --- |
+| **TikTok** | `max-w-[292px]`, 9:16 | `variant="tiktok"` (photos, contain, black) | Yes | `classifyTiktokPreviewMediaMode` | Reference implementation |
+| **Instagram** | feed `max-w-[340px]` 4:5; story `max-w-[292px]` 9:16 | `instagram` / `instagram-story` (photos, contain); videos `cover` | Yes | `classifyInstagramPreviewMediaMode` | Story vs feed from `readInstagramLaunchSettings` |
+| **Facebook** | feed `max-w-[340px]`; story `max-w-[292px]` | `letterbox-dark` / `instagram-story` (photos); videos `cover` | Yes | `classifyComposerPreviewMediaMode` | Feed 1.91:1 / story 9:16 |
+| **Threads** | `max-w-[340px]`, 4:3 | `instagram` (photos, contain); videos `cover` | Yes | `classifyComposerPreviewMediaMode` | |
+| **X** | `max-w-[340px]`, 16:9 | `instagram` (photos, contain); videos `cover` | Yes | `classifyComposerPreviewMediaMode` | |
+| **LinkedIn** | `max-w-[340px]`, 1.91:1 | `letterbox-dark` (photos); videos `cover` | Yes | `classifyComposerPreviewMediaMode` | |
+| **YouTube** | `max-w-[340px]`, 16:9 | `VideoOrImage` `contain` | Yes | `VideoOrImage` + storage path | Title + thumbnail from settings |
+| **Dev.to** | `max-w-[340px]`, cover 1000:420 | `contain` on cover | Yes | `VideoOrImage` + storage path | Settings-driven cover |
+| **Global Edit** | `max-w-[340px]` | `VideoOrImage` + storage path | Yes | `isVideoPreviewSource` | `GeneralPreviewComponent` |
+
+When users report “preview too large” or “wrong crop” on a provider **not** in the shipped rows above, apply the **Preview layout fix checklist** for that provider in the same PR — do not only document the gap.
+
+#### `ImageSlider` variants (`web/src/lib/ui/media-files/ImageSlider.svelte`)
+
+| `variant` | Fit | Letterbox background | Use when |
+| --- | --- | --- | --- |
+| `default` | `cover` | — | Videos filling the frame; providers not yet on letterbox path |
+| `tiktok` | `contain` | black | TikTok photo carousels in 9:16 |
+| `instagram` | `contain` | `bg-base-100` | Instagram **feed** photos in 4:5 |
+| `instagram-story` | `contain` | black | Instagram **story** photos in 9:16 |
+| `letterbox-dark` | `contain` | `bg-[#18191A]` | Facebook feed, LinkedIn feed photos |
+
+Add a new variant when a platform needs a distinct letterbox background or carousel chrome — do not overload `default` with per-platform conditionals. Shared photo/video classification for most feed-style networks: `classifyComposerPreviewMediaMode` in `mediaDrop.ts` (TikTok/Instagram keep provider-specific helpers when carousel chrome differs).
+
+#### Photo vs video during compose (`blob:` URLs)
+
+Composer preview URLs are often `blob:` (no file extension). **Never** classify media type from `mediaUrls` alone when storage paths exist.
+
+1. Export `classify{Provider}PreviewMediaMode(urls, storagePaths?)` from `{id}.provider.ts` (return at least `'empty' | 'video' | 'photo'`).
+2. Prefer `storagePaths[i]` for extension checks; fall back to public URL extension only when path is missing.
+3. Unit-test blob URL + storage path pairs in `{id}.provider.test.ts` (mirror `tiktok.provider.test.ts`, `instagram.provider.test.ts`).
+4. Pass `mediaStoragePaths` from `AddEditModal` → `ShowAllProviders` → `{id}Preview` (and ensure `/p/[postId]` passes the same paths).
+
+#### Preview layout fix checklist (per provider)
+
+Use when adding a provider **or** when preview media overflows the column, crops oddly, or breaks after channel switch.
+
+1. **Frame** — wrap `{id}Preview.svelte` in `mx-auto w-full max-w-[…px]` so the preview column does not stretch media to full width. Typical caps: **340px** feed cards, **292px** 9:16 story/Reels-style frames.
+2. **Aspect** — fixed media region: `relative` + `aspect-[4/5]` (IG feed), `aspect-[9/16]` (story/TikTok), `aspect-[1.91/1]` (Facebook/LinkedIn link), `aspect-video` (X), etc. Put `ImageSlider` in `absolute inset-0 h-full w-full` inside that box.
+3. **Fit** — photos: letterbox with the correct `ImageSlider` `variant`; videos: `variant="default"` (`cover`) unless the network letterboxes video too.
+4. **Classification** — add `classify{Provider}PreviewMediaMode` + tests; wire `mediaStoragePaths` on the `ShowAllProviders` branch.
+5. **Settings-driven modes** — if compose settings change aspect (e.g. Instagram `postType: 'story'`), branch layout and `variant` in `{id}Preview.svelte` using `read{Provider}LaunchSettings`.
+6. **Public preview** — confirm `/p/[postId]` passes `mediaStoragePaths` into `ShowAllProviders` so shared links match the composer.
+7. **Regression** — upload a tall portrait + a landscape image in the composer; switch Global ↔ per-network focus; confirm preview media still loads (`postMediaPreviewUrl` keeps `localPreviewUrl` until remove; do not revoke blobs on `MultiMedia` unmount).
+
+**When adding a provider (minimum)**
 
 1. Create `{id}Preview.svelte` with network-native layout (match real feed/story/article chrome where practical).
-2. Add an `{:else if identifier === '{id}'}` branch in `ShowAllProviders.svelte` — pass only the props that preview needs (`providerSettings`, `threadReplies`, `crossAccountPlugs`, `mediaStoragePaths`, `delayedEngagementReply`, etc.).
-3. Reuse `ImageSlider` / `VideoOrImage` with the aspect class your network uses (`aspect-[4/5]` feed, `aspect-[9/16]` story, `aspect-video`, …). Default `ImageSlider` uses `object-cover`; use `fit="contain"` or a slider `variant` when the platform letterboxes non-native aspect ratios.
-4. Unit-test preview-only helpers in `{id}.provider.ts` (e.g. `classifyTiktokPreviewMediaMode`) — not the Svelte file unless behavior is complex.
-5. Wire the same `mediaUrls` (+ any extra paths) on public preview (`web/src/routes/(public)/p/[postId]/`) so scheduled-post links match the composer.
-6. Bento composer mocks — use real `ShowAllProviders` + mock channel VM with matching `identifier` (see `BentoThreadsComposerPreview.svelte`, `BentoFacebookSettingsPreview.svelte`).
+2. Add an `{:else if identifier === '{id}'}` (or `startsWith`) branch in `ShowAllProviders.svelte` — pass only the props that preview needs (`providerSettings`, `threadReplies`, `crossAccountPlugs`, `mediaStoragePaths`, `delayedEngagementReply`, etc.).
+3. If the provider accepts images in compose, plan for **preview layout fix checklist** items 1–4 before calling preview “done” — a bare `ImageSlider` with `object-cover` full column width is not sufficient for image-heavy networks.
+4. Bento composer mocks — use real `ShowAllProviders` + mock channel VM with matching `identifier` (see `BentoThreadsComposerPreview.svelte`, `BentoInstagramComposerPreview.svelte`, `BentoTiktokComposerPreview.svelte`).
 
 **Do not**
 
-- Assume a media or layout fix in one `{id}Preview.svelte` applies to all channels — regression-test the provider you changed; when touching shared helpers (`mediaDrop.ts`, `ImageSlider`, `VideoOrImage`), spot-check siblings.
+- Assume a media or layout fix in one `{id}Preview.svelte` applies to all channels — regression-test the provider you changed; when touching shared helpers (`mediaDrop.ts`, `ImageSlider`, `VideoOrImage`, `MultiMedia`), spot-check siblings.
 - Put all platforms in one preview component or branch on post type inside `GeneralPreviewComponent` for shipped networks — extend `ShowAllProviders` instead.
 - Rely on preview URL file extensions alone during compose — `blob:` URLs have no extension; use `postMediaPreviewUrl` (local blob → API `publicUrl` → storage URL) and pass storage paths when classification needs extensions.
+- Gate **Media details** (gear) on `localPreviewUrl` alone — uploaded composer items keep blob previews; use `isGuestOnlyComposerMedia` in `composerMediaSettings.ts` (guest flat filename only).
 
-**References:** Instagram feed/story (`aspect-[4/5]` / `aspect-[9/16]`), Facebook feed/story (`aspect-[1.91/1]` / `aspect-[9/16]`), Threads (`aspect-[4/3]`), X (`aspect-video`), LinkedIn (`aspect-[1.91/1]`), YouTube (`object-contain` video), TikTok (9:16 phone frame + photo carousel), Dev.to (cover + article body).
+**References:** `TiktokPreview.svelte`, `InstagramPreview.svelte`, `tiktok.provider.ts` (`classifyTiktokPreviewMediaMode`), `instagram.provider.ts` (`classifyInstagramPreviewMediaMode`), `mediaDrop.ts`, `AddEditModal.svelte` (`effectivePreviewMediaUrls`, `previewChannelKey`).
 
 ### Follow-up comments / reply chains (required when `comment()` ships)
 
@@ -702,7 +755,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Humanizer:** all public catalog channels (including coming-soon schedulers) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees). Do not gate Humanizer samples on `available: true`.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
-- **Post Preview:** `{id}Preview.svelte` + `ShowAllProviders` branch for the new identifier; shared `previewMediaUrls` / `postMediaPreviewUrl` wired; platform-specific props (`mediaStoragePaths`, aspect/fit, story vs feed) only on branches that need them; public `/p/[postId]` matches composer; when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
+- **Post Preview:** `{id}Preview.svelte` + `ShowAllProviders` branch for the new identifier; shared `postMediaPreviewUrl` / `effectivePreviewMediaUrls` wired; **preview layout fix checklist** completed for image/video networks (phone `max-w`, fixed aspect, `ImageSlider` variant, `classify*PreviewMediaMode` + tests, `mediaStoragePaths` on branch); update **Preview layout status** table in this rule when shipping layout work; public `/p/[postId]` matches composer; when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
 - **Follow-up comments:** when `comment()` ships — `followUp.ts` + `replyChainBucketForProvider` + orchestrator `supportsFollowUps` updated; launch `postComment` / `comments` set; `{bucket}.replies` documented in agent + CLI examples; `threads-and-comments.md` platform row; landing/bento copy matches composer (text-only vs media-on-replies); preview/bento show `threadReplies` when marketed.
 - **Cross-account plugs:** when `internalPlugCatalog()` ships cross-account entries — orchestrator plug handlers + `{bucket}.crossAccountPlugs` persistence; extend `CrossAccountPlugSettingsBucket` + `crossAccountSettingsBucketForIdentifier`; `{Provider}CrossAccountPlugsPreview.svelte` wired from `{id}Preview.svelte`; `ShowAllProviders` passes/derives `crossAccountPlugs`; dynamic engagement counts in preview; plug dialog settings flush on close; bento mocks when marketed; agent/MCP docs for `{bucket}.crossAccountPlugs`.
 - **Writing the post:** `writing-the-post.md` **Editor by platform** table lists the new channel under the correct **Standard** / **Markdown** / **HTML** / **Plain** row; `lastUpdated` bumped.
