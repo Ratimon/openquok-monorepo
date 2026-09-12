@@ -681,11 +681,13 @@
 					Post Preview
 				</div>
 			</div>
-			<div class="p-4 sm:p-6">
+			<div class="flex justify-center p-4 sm:p-6">
+				<div class="w-full min-w-0 max-w-full">
 				<ShowAllProviders
 					channel={previewChannel}
 					{previewText}
 					{mediaUrls}
+					mediaStoragePaths={postMediaItems.map((item) => item.path)}
 					maximumCharacters={softCharLimit}
 					{weightedCharCount}
 					threadReplies={previewThreadRepliesVm}
@@ -700,6 +702,7 @@
 					providerSettings={effectivePreviewProviderSettings}
 					crossAccountPlugs={previewCrossAccountPlugs}
 				/>
+				</div>
 			</div>
 		</div>
 	</div>

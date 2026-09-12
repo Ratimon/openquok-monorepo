@@ -6,6 +6,8 @@ import type {
 	TiktokPrivacyLevel
 } from '$lib/ui/components/posts/providers/provider.types';
 
+import { isVideoMediaPath } from '$lib/medias/utils/mediaDisplay';
+
 /** TikTok caption limit (matches backend `TiktokProvider.maxLength`). */
 export const TIKTOK_MAX_CHARACTERS = 2000;
 
@@ -33,6 +35,38 @@ function isMp4Path(path: string | undefined | null): boolean {
 function isImagePath(path: string | undefined | null): boolean {
 	if (!path) return false;
 	return IMAGE_EXTENSIONS.has(mediaExtFromPath(path));
+}
+
+export type TiktokPreviewMediaMode = 'empty' | 'video' | 'photo';
+
+function isVideoStorageOrPreviewPath(path: string | undefined | null): boolean {
+	if (!path?.trim()) return false;
+	const trimmed = path.trim();
+	if (trimmed.startsWith('blob:')) return false;
+	return isVideoMediaPath(trimmed) || isMp4Path(trimmed);
+}
+
+/**
+ * TikTok preview fit: photo carousels letterbox non-9:16 slides; single videos fill the frame.
+ * Prefer storage paths — composer `blob:` preview URLs have no file extension.
+ */
+export function classifyTiktokPreviewMediaMode(
+	urls: readonly string[],
+	storagePaths?: readonly string[]
+): TiktokPreviewMediaMode {
+	if (urls.length === 0) return 'empty';
+
+	for (let i = 0; i < urls.length; i++) {
+		const storagePath = storagePaths?.[i]?.trim();
+		if (storagePath && isVideoStorageOrPreviewPath(storagePath)) {
+			return 'video';
+		}
+		if (isVideoStorageOrPreviewPath(urls[i])) {
+			return 'video';
+		}
+	}
+
+	return 'photo';
 }
 
 function readPrivacyLevel(source: Record<string, unknown>): TiktokPrivacyLevel {

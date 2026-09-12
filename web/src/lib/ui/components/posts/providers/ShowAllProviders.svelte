@@ -19,6 +19,8 @@
 		previewText: string;
 		maximumCharacters?: number;
 		mediaUrls?: string[];
+		/** Parallel storage paths for previews that need file extensions (e.g. TikTok photo carousels). */
+		mediaStoragePaths?: string[];
 		threadReplies?: PublicPreviewThreadReplyViewModel[];
 		threadFinisher?: { enabled: boolean; message: string } | null;
 		/** Weighted character count for X preview overflow. */
@@ -37,6 +39,7 @@
 		previewText,
 		maximumCharacters,
 		mediaUrls = [],
+		mediaStoragePaths = [],
 		threadReplies = [],
 		threadFinisher = null,
 		delayedEngagementReply = null,
@@ -118,6 +121,7 @@
 		{channel}
 		{previewText}
 		{mediaUrls}
+		{mediaStoragePaths}
 		maximumCharacters={maxChars}
 		{threadReplies}
 		{threadFinisher}

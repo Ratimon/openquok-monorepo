@@ -59,6 +59,18 @@ describe('postMediaPreviewUrls', () => {
 			])
 		).toEqual(['blob:guest/1', 'blob:legacy/2']);
 	});
+
+	it('uses API publicUrl before guessed storage URLs', () => {
+		expect(
+			postMediaPreviewUrls([
+				{
+					id: '1',
+					path: 'org/shot.png',
+					publicUrl: 'https://cdn.example/org/shot.png'
+				}
+			])
+		).toEqual(['https://cdn.example/org/shot.png']);
+	});
 });
 
 describe('revokeLocalMediaPreviewUrl', () => {

@@ -58,21 +58,17 @@
 	const imgClass = $derived(
 		resolvedFit === 'none'
 			? cn(imageClass)
-			: cn(
-					resolvedFit === 'contain' ? 'object-contain' : 'object-cover',
-					'h-full w-full',
-					imageClass
-				)
+			: resolvedFit === 'contain'
+				? cn('max-h-full max-w-full object-contain', imageClass)
+				: cn('h-full w-full object-cover', imageClass)
 	);
 
 	const videoClassResolved = $derived(
 		resolvedFit === 'none'
 			? cn(videoClass)
-			: cn(
-					resolvedFit === 'contain' ? 'object-contain' : 'object-cover',
-					'h-full w-full',
-					videoClass
-				)
+			: resolvedFit === 'contain'
+				? cn('max-h-full max-w-full object-contain', videoClass)
+				: cn('h-full w-full object-cover', videoClass)
 	);
 </script>
 

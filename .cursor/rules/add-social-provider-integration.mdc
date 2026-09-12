@@ -24,6 +24,10 @@ globs:
   - web/src/content/docs/creating-posts/threads-and-comments.md
   - web/src/lib/posts/utils/create-post/followUp.ts
   - web/src/lib/posts/utils/create-post/providerSettings.ts
+  - web/src/lib/posts/utils/composer/mediaDrop.ts
+  - web/src/lib/ui/media-files/ImageSlider.svelte
+  - web/src/lib/ui/media-files/VideoOrImage.svelte
+  - web/src/routes/(public)/p/[postId]/**
   - web/src/lib/ui/components/preview/crossAccountPlugPreview.ts
   - web/src/lib/ui/components/posts/thread/**
   - backend/utils/dtos/PostDTO.ts
@@ -136,7 +140,7 @@ Hub UI: `web/src/routes/(public)/extensions/+page.svelte` + `ExtensionsTagFilter
 Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 
 1. **Launch config** — `web/src/lib/ui/components/posts/providers/{id}/{id}.provider.ts` (`LaunchProviderConfig`: limits, `postComment`, optional `comments`, optional `checkValidity` / `checkValidityAsync`). Register in `providers/index.ts` → `getLaunchProviderConfig`. When the provider supports scheduled follow-ups, also complete **Follow-up comments / reply chains** (below) — declaring `postComment: 'COMMENT'` alone does **not** wire the composer or worker.
-2. **Preview** — `{id}Preview.svelte` + branch in `ShowAllProviders.svelte`. When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live. When cross-account internal plugs ship, also wire **Cross-account plug preview** (below).
+2. **Preview** — **per-channel** `{id}Preview.svelte` + branch in `ShowAllProviders.svelte` (see **Post Preview architecture** below). When compose settings exist, wire **Post Preview provider settings** (below) so Settings changes update the preview live. When cross-account internal plugs ship, also wire **Cross-account plug preview** (below).
 3. **OAuth Page picker** (when `isBetweenSteps`) — config in `web/src/lib/integrations/continue-provider/{id}.ts`, register in `continue-provider/index.ts`; reuse `IntegrationContinue.svelte` + `ContinueIntegration.presenter.svelte.ts` + `ContinueProviderPicker.svelte`.
 4. **Compose settings** (optional) — `{id}Settings.svelte`; wire provider branch in `SettingsAccordion.svelte`; emit **only that provider’s bucket** (do not write unrelated `threads` / `instagram` defaults). Add types/helpers in `provider.types.ts` and `{id}.provider.ts`. When settings affect what users see before publish (title, tags, cover, post type, etc.), also ship **Post Preview provider settings** (below).
 5. **`web/src/data/social-providers.ts`** (required when the slug is new **or** when shipping platform analytics) — single catalog for display labels, icons, and the analytics allow-list:
@@ -156,6 +160,34 @@ Connect catalog is backend-driven; composer wiring is **opt-in per provider**.
 7. **User connect guide** — update `web/src/content/docs/channels/connect.md`: OAuth providers under the OAuth redirect tab (follow-up picker table when `isBetweenSteps`); credentials providers in the credentials table. When a new connect family ships, add a tab there before users see it in Add Channel.
 
 Keep composer validation aligned with backend publish rules (`checkValidity` ↔ `validateCreatePost` / publish helper constraints).
+
+### Post Preview architecture (per-channel)
+
+Post Preview is **not one shared mock** — each network has its own `{id}Preview.svelte` under `web/src/lib/ui/components/posts/providers/{id}/`. `ShowAllProviders.svelte` routes by `channel.identifier` (Instagram uses `startsWith('instagram')`; unknown identifiers fall back to `GeneralPreviewComponent`).
+
+| Layer | Shared vs per-channel |
+| --- | --- |
+| Preview media URLs | **Shared** — `postMediaPreviewUrl` / `postMediaPreviewUrls` in `web/src/lib/posts/utils/composer/mediaDrop.ts`; composer passes `previewMediaUrls`; public `/p/[postId]` uses the same helper via `GetScheduledPost.presenter` |
+| Preview chrome + layout | **Per-channel** — aspect ratio, carousel vs single, platform header/actions, story vs feed modes live in `{id}Preview.svelte` |
+| Media rendering helpers | **Shared building blocks** — `ImageSlider.svelte`, `VideoOrImage.svelte`, `PreviewScheduledSocialReplies.svelte`; add a `variant` or prop when one platform needs different fit (e.g. TikTok `variant="tiktok"` for letterboxed photo carousels) |
+| Extra preview props | **Per-channel wiring** — add props on `{id}Preview.svelte` and pass them only from that branch in `ShowAllProviders.svelte` (and from `AddEditModal` / `/p/[postId]` when needed). Example: TikTok `mediaStoragePaths` parallel to `mediaUrls` so blob previews can classify photo vs video by storage-path extension |
+
+**When adding a provider**
+
+1. Create `{id}Preview.svelte` with network-native layout (match real feed/story/article chrome where practical).
+2. Add an `{:else if identifier === '{id}'}` branch in `ShowAllProviders.svelte` — pass only the props that preview needs (`providerSettings`, `threadReplies`, `crossAccountPlugs`, `mediaStoragePaths`, `delayedEngagementReply`, etc.).
+3. Reuse `ImageSlider` / `VideoOrImage` with the aspect class your network uses (`aspect-[4/5]` feed, `aspect-[9/16]` story, `aspect-video`, …). Default `ImageSlider` uses `object-cover`; use `fit="contain"` or a slider `variant` when the platform letterboxes non-native aspect ratios.
+4. Unit-test preview-only helpers in `{id}.provider.ts` (e.g. `classifyTiktokPreviewMediaMode`) — not the Svelte file unless behavior is complex.
+5. Wire the same `mediaUrls` (+ any extra paths) on public preview (`web/src/routes/(public)/p/[postId]/`) so scheduled-post links match the composer.
+6. Bento composer mocks — use real `ShowAllProviders` + mock channel VM with matching `identifier` (see `BentoThreadsComposerPreview.svelte`, `BentoFacebookSettingsPreview.svelte`).
+
+**Do not**
+
+- Assume a media or layout fix in one `{id}Preview.svelte` applies to all channels — regression-test the provider you changed; when touching shared helpers (`mediaDrop.ts`, `ImageSlider`, `VideoOrImage`), spot-check siblings.
+- Put all platforms in one preview component or branch on post type inside `GeneralPreviewComponent` for shipped networks — extend `ShowAllProviders` instead.
+- Rely on preview URL file extensions alone during compose — `blob:` URLs have no extension; use `postMediaPreviewUrl` (local blob → API `publicUrl` → storage URL) and pass storage paths when classification needs extensions.
+
+**References:** Instagram feed/story (`aspect-[4/5]` / `aspect-[9/16]`), Facebook feed/story (`aspect-[1.91/1]` / `aspect-[9/16]`), Threads (`aspect-[4/3]`), X (`aspect-video`), LinkedIn (`aspect-[1.91/1]`), YouTube (`object-contain` video), TikTok (9:16 phone frame + photo carousel), Dev.to (cover + article body).
 
 ### Follow-up comments / reply chains (required when `comment()` ships)
 
@@ -670,7 +702,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Humanizer:** all public catalog channels (including coming-soon schedulers) appear as mock chips on `/tools/humanizer` and as `/tools/humanizer/{slug}` pages automatically; optional `CHANNEL_HUB_DESCRIPTIONS` hub blurb; Tools hub Humanizer card shows the new channel in the **By channel** dropdown. Copy and FAQ stay honest (no classifier guarantees). Do not gate Humanizer samples on `available: true`.
 - **Agent channel SEO:** `CHANNEL_PROVIDER_IDENTIFIERS`, `KANBAN_BENTO_BY_CHANNEL`, and `ANALYTICS_BENTO_BY_CHANNEL` in `publicAgentChannelConfig.ts`; `CHANNEL_CLI_RECIPES` + `KANBAN_EXAMPLE_BY_CHANNEL` in `buildAgentChannelCliCommandReference.ts`; `/agents/{agentSlug}/{slug}` resolves for all catalog channels on **agent hosts and MCP clients** (coming-soon when `available: false`); generic agent/MCP kanban mock updated when the catalog gains a platform.
 - **Listing tags:** do **not** edit SQL seeds or re-aggregate migrations. Create the tag in `/secret-admin/listing-manager/tags` with a **Name** that slugs to `provider.identifier` and a one-sentence description; optional attach on openquok-core listings via the tags picker.
-- **Post Preview:** when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
+- **Post Preview:** `{id}Preview.svelte` + `ShowAllProviders` branch for the new identifier; shared `previewMediaUrls` / `postMediaPreviewUrl` wired; platform-specific props (`mediaStoragePaths`, aspect/fit, story vs feed) only on branches that need them; public `/p/[postId]` matches composer; when compose settings ship, preview reads `providerSettings` via `read*LaunchSettings`; Settings changes update preview live; `AddEditModal` derives settings from `previewChannel.id` (not `followUpTargetIntegrationId`); `ShowAllProviders` passes `providerSettings` to every preview that consumes it.
 - **Follow-up comments:** when `comment()` ships — `followUp.ts` + `replyChainBucketForProvider` + orchestrator `supportsFollowUps` updated; launch `postComment` / `comments` set; `{bucket}.replies` documented in agent + CLI examples; `threads-and-comments.md` platform row; landing/bento copy matches composer (text-only vs media-on-replies); preview/bento show `threadReplies` when marketed.
 - **Cross-account plugs:** when `internalPlugCatalog()` ships cross-account entries — orchestrator plug handlers + `{bucket}.crossAccountPlugs` persistence; extend `CrossAccountPlugSettingsBucket` + `crossAccountSettingsBucketForIdentifier`; `{Provider}CrossAccountPlugsPreview.svelte` wired from `{id}Preview.svelte`; `ShowAllProviders` passes/derives `crossAccountPlugs`; dynamic engagement counts in preview; plug dialog settings flush on close; bento mocks when marketed; agent/MCP docs for `{bucket}.crossAccountPlugs`.
 - **Writing the post:** `writing-the-post.md` **Editor by platform** table lists the new channel under the correct **Standard** / **Markdown** / **HTML** / **Plain** row; `lastUpdated` bumped.

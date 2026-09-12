@@ -71,7 +71,7 @@ After you unlock, changes on that channel **no longer** follow the Global captio
 
 <p>When you are focused on one network, use <strong>← Back to global</strong>. OpenQuok asks you to confirm — going back drops <strong>all</strong> per-channel caption and attachment and returns to the shared draft.</p>
 
-<p>If you only needed different <strong>settings</strong> (a YouTube title, Dev.to tags, an Instagram post type) and not different words, you can often stay in Global and open <strong>Settings</strong> beside the preview instead. See <a href="/docs/creating-posts/links-and-validation">Links and validation</a> and <a href="/docs/platforms">Posting rules by platform</a>.</p>
+<p>If you only needed different <strong>settings</strong> (a YouTube title, Dev.to tags, an Instagram post type) and not different words, you can often stay in Global and open <strong>Settings</strong> instead. See <a href="/docs/creating-posts/links-and-validation">Links and validation</a> and <a href="/docs/platforms">Posting rules by platform</a>.</p>
 
 ## What works per-channel only
 

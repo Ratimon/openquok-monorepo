@@ -31,6 +31,8 @@ export type PostMediaProgrammerModel = {
 	/** Client preview only — not sent on create/update payloads. */
 	thumbnailPublicUrl?: string | null;
 	thumbnailTimestamp?: number | null;
+	/** Client preview only — from upload/list APIs; not sent on create/update payloads. */
+	publicUrl?: string | null;
 };
 
 function isComposerMediaFile(file: File): boolean {
@@ -71,10 +73,17 @@ export async function uploadSocialPostComposerMediaFiles(
 		if (result.success && result.data.filePath) {
 			completedBytes += file.size;
 			options?.onProgress?.({ bytesUploaded: completedBytes, bytesTotal: totalBytes });
+			const localPreviewUrl =
+				typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function'
+					? URL.createObjectURL(file)
+					: undefined;
+			const publicUrl = result.data.publicUrl?.trim();
 			items.push({
 				id: resolvePostMediaLibraryRowId(result.data.id),
 				path: result.data.filePath,
-				bucket: 'social_media'
+				bucket: 'social_media',
+				...(localPreviewUrl ? { localPreviewUrl } : {}),
+				...(publicUrl ? { publicUrl } : {})
 			});
 		} else {
 			return { ok: false, message: result.message || 'Upload failed.' };

@@ -115,6 +115,7 @@ export const load: PageServerLoad = async ({ params, fetch, parent, url }) => {
 		postVm,
 		previewChannelVm: toPublicPreviewChannelVm(postVm),
 		previewMediaUrlsVm: getScheduledPostsPresenter.toPostMediaPreviewUrlsVm(postVm.media ?? []),
+		previewMediaStoragePathsVm: (postVm.media ?? []).map((item) => item.path),
 		commentsVm,
 		pageMetaTags,
 		schemaData

@@ -10,6 +10,7 @@ describe('serializePostMediaItemForApi', () => {
 			path: 'social_media/org/reel.mp4',
 			bucket: 'social_media',
 			localPreviewUrl: 'blob:guest/preview',
+			publicUrl: 'https://cdn.example/reel.mp4',
 			thumbnailPublicUrl: 'https://cdn.example/poster.jpg',
 			alt: 'Launch reel',
 			thumbnail: 'social_media/org/poster.jpg',

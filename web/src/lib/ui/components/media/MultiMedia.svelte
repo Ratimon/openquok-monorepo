@@ -308,7 +308,7 @@
 {:else}
 	<div class="flex flex-col gap-2">
 		{#if items.length > 0}
-			<div class="flex flex-wrap gap-2 px-0.5">
+			<div class="flex flex-wrap gap-2.5 px-0.5">
 				{#each items as m, index (m.id)}
 					{@const previewSrc = previewUrls[index]}
 					{@const isVideo = isVideoMediaPath(m.path)}
@@ -318,7 +318,7 @@
 						composerMediaItemSupportsSettings(m) &&
 						!disabled}
 					<div
-						class="border-base-300 bg-base-200/40 group relative h-11 w-11 shrink-0 overflow-hidden rounded-md border"
+						class="border-base-300 bg-base-200/40 group relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border"
 					>
 						{#if settingsAvailable}
 							<button
@@ -376,30 +376,30 @@
 								</div>
 							</div>
 						{/if}
-						<div class="absolute top-0.5 left-0 z-[2] flex flex-col gap-0.5">
+						<div class="absolute top-1 left-1 z-[2] flex flex-col gap-0.5">
 							<button
 								type="button"
-								class="bg-base-100/90 text-base-content/80 hover:text-base-content flex h-5 w-5 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm disabled:opacity-40"
+								class="bg-primary text-primary-content ring-base-100 flex h-6 w-6 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm ring-2 hover:bg-primary/90 disabled:opacity-40"
 								disabled={disabled || index === 0}
 								onclick={() => move(index, index - 1)}
 								aria-label="Move up"
 							>
-								<AbstractIcon name={icons.ChevronUp.name} class="size-3.5" width="14" height="14" />
+								<AbstractIcon name={icons.ChevronUp.name} class="size-4" width="16" height="16" />
 							</button>
 							<button
 								type="button"
-								class="bg-base-100/90 text-base-content/80 hover:text-base-content flex h-5 w-5 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm disabled:opacity-40"
+								class="bg-primary text-primary-content ring-base-100 flex h-6 w-6 items-center justify-center rounded-sm text-[10px] leading-none shadow-sm ring-2 hover:bg-primary/90 disabled:opacity-40"
 								disabled={disabled || index === items.length - 1}
 								onclick={() => move(index, index + 1)}
 								aria-label="Move down"
 							>
-								<AbstractIcon name={icons.ChevronDown.name} class="size-3.5" width="14" height="14" />
+								<AbstractIcon name={icons.ChevronDown.name} class="size-4" width="16" height="16" />
 							</button>
 						</div>
 						{#if settingsAvailable}
 							<button
 								type="button"
-								class="bg-base-100/95 text-base-content/90 hover:text-base-content absolute bottom-0.5 right-0.5 z-[2] flex h-5 w-5 items-center justify-center rounded-full opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+								class="bg-primary text-primary-content ring-base-100 absolute bottom-1 right-1 z-[2] flex h-6 w-6 items-center justify-center rounded-full opacity-0 shadow-sm ring-2 transition-opacity hover:bg-primary/90 group-hover:opacity-100"
 								disabled={disabled}
 								onclick={(e) => {
 									e.stopPropagation();
@@ -407,17 +407,17 @@
 								}}
 								aria-label="Media details"
 							>
-								<AbstractIcon name={icons.Settings.name} class="size-3" width="12" height="12" />
+								<AbstractIcon name={icons.Settings.name} class="size-3.5" width="14" height="14" />
 							</button>
 						{/if}
 						<button
 							type="button"
-							class="bg-base-100/95 text-base-content/90 hover:bg-error/90 hover:text-error-content absolute -top-1 -right-1 z-[2] flex h-5 w-5 items-center justify-center rounded-full shadow-sm"
+							class="bg-primary text-primary-content ring-base-100 absolute -top-1.5 -right-1.5 z-[2] flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-2 hover:bg-primary/90"
 							disabled={disabled}
 							onclick={() => removeAt(index)}
 							aria-label="Remove media"
 						>
-							<AbstractIcon name={icons.X2.name} class="size-3.5" width="14" height="14" />
+							<AbstractIcon name={icons.X2.name} class="size-4" width="16" height="16" />
 						</button>
 					</div>
 				{/each}

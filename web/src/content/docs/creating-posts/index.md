@@ -66,7 +66,7 @@ Drag a file in, use <strong>Add media</strong> from the toolbar, or pick from yo
 
 ### Fill network-specific fields
 
-Some channels need extra details — a YouTube title, Dev.to tags, an Instagram post type. Open **Settings** beside the preview when a channel is focused. The editor blocks save until required fields are filled. See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.
+Some channels need extra details — a YouTube title, Dev.to tags, an Instagram post type. Open **Settings** when a channel is focused. The editor blocks save until required fields are filled. See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.
 
 ### Pick a time and save
 

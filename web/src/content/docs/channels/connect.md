@@ -74,7 +74,7 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 </TabItem>
 </Tabs>
 
-## Let a client connect their own account
+## Let clients connect their own account
 
 You do not need their password. Next to <Badge text="Add Channel" variant="new" /> on Home, click the link icon (<Badge text="Send Invite Link to connect channel" variant="default" />).
 

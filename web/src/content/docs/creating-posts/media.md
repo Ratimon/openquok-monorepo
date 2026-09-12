@@ -9,17 +9,17 @@ lastUpdated: 2026-09-01
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-The composer attaches **images and video** below the caption. Use the **toolbar** to add files and the **drag & drop** section to review thumbnails.
-
-In **Global** mode, one attachment list is copied to every channel selected. You can unlock that channel — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
+The composer attaches **images and video** below the caption. Use the **toolbar** to add files and the **drag & drop** to review thumbnails.
 
 ![Post editor with media toolbar and media drag&drop](/docs/_assets/creating-posts/editor-media.webp)
+
+In **Global** mode, one attachment list is copied to every channel selected. You can unlock that channel — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
 ## Ways to add media
 
 | Method | What happens |
 | --- | --- |
-| **Add media** | First toolbar button opens a device picker. Choose one or more images or videos from your computer. Files upload to your workspace. |
+| **Add media** | First toolbar button opens a device picker. Choose one or more images or videos. Files upload to your workspace. |
 | **Drag and drop** | Drop images or videos onto the area. Same upload rules as **Add media**. |
 | **Media library** | Second toolbar button — attach files already stored at <a href="/account/media">/account/media</a>. See <a href="/docs/getting-started/tour-the-app">Tour the app</a> for where the library lives in the sidebar. |
 | **Design Media** | Canvas toolbar button — open the **Photo Editor**, create or edit a visual, then choose **Use this media** to attach the export. Same canvas as the public <a href="/tools/photo-editor">Photo Editor</a> tool. |
@@ -57,11 +57,11 @@ In the post editor, click a strip thumbnail or the **gear** icon on hover to ope
 | **Alt text** | Up to **2000** characters. Describes the image for accessibility( eg. SEO) and preview. |
 | **Video poster** | Choose **Create thumbnail**, drag the slider to the frame you want, then **Use current frame as thumbnail**. That image is the video cover. **Clear thumbnail** removes it. |
 
-Changes save to the **workspace media library** and on each scheduled <Badge text="media[]" variant="param" /> item for that attachment. The same **Media details** dialog is available on <a href="/account/media">/account/media</a>.
+Changes save to the **workspace media library**. The same **Media details** dialog is available on <a href="/account/media">/account/media</a>.
 
 At publish time, Instagram uses the video poster **timestamp** for reel cover offset. OpenQuok does not send alt text to Meta or X APIs.
 
-Channel-specific visuals that are part of publish settings stay in **Settings** beside the preview — for example a **YouTube custom thumbnail** or a **Dev.to cover image**. See <a href="/docs/platforms">Posting rules by platform</a>.
+Channel-specific visuals that are part of publish settings stay in **Settings** — for example a **YouTube custom thumbnail** or a **Dev.to cover image**. See <a href="/docs/platforms">Posting rules by platform</a>.
 
 ## Photo Editor
 
@@ -77,7 +77,7 @@ Open the composer and you are already in Global mode. Whatever you attach in the
 
 Sometimes one channel needs a different image or video — a square crop for Instagram, a shorter clip for TikTok, or no media at all.
 
-The flow mirrors per-channel captions:
+The flow:
 
 <Steps howToName="Attach different media on one channel">
 
@@ -99,33 +99,16 @@ OpenQuok stores per-channel lists only for channels you edited while unlocked. E
 
 </Steps>
 
-<p>Channels you never unlock still receive the Global media list. Going back to Global with <strong>← Back to global</strong> drops <strong>all</strong> per-channel caption and attachment overrides — the confirm dialog is irreversible. See <a href="/docs/creating-posts/global-vs-per-channel#go-back-to-global">Go back to Global</a>.</p>
-
-<Callout type="note" title="Templates and sets">
-<p>When you define a reusable <a href="/docs/creating-posts/templates">template</a> or workspace set, authoring stays in Global mode — per-channel media overrides are not saved in the preset.</p>
-</Callout>
-
-## Preview column
-
-The **Post Preview** on the right reflects the attachment list for the channel you are focused on in custom mode, or the shared Global list when every selected channel still uses it. If previews look wrong for one network, focus that channel and check its media strip (or unlock and adjust).
+<p>Channels you never unlock still receive the Global media list. Going back to Global with <strong>← Back to global</strong> drops <strong>all</strong> per-channel caption and attachment. See <a href="/docs/creating-posts/global-vs-per-channel#go-back-to-global">Go back to Global</a>.</p>
 
 ## When an upload fails
 
-<Callout type="warning" title="Unsupported file type">
-<p>The composer rejects files that are not <code>image/*</code> or <code>video/*</code>. The library and API also allow <code>audio/*</code> and <code>application/pdf</code>. You see an error toast when the type is not allowed.</p>
-</Callout>
-
-<Callout type="warning" title="File too large">
-<p>Images over <strong>30 MB</strong> are blocked in the browser before upload. Images over <strong>10 MB</strong> are rejected on the server. Videos over <strong>1 GB</strong> are rejected. A multi-file batch over <strong>1 GB</strong> total is rejected.</p>
-</Callout>
-
-<Callout type="warning" title="Platform rules after upload">
-<p>Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms">Posting rules by platform</a>.</p>
-</Callout>
-
-<Callout type="warning" title="Workspace storage full">
-<p>On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a>.</p>
-</Callout>
+| Problem | What to try |
+| --- | --- |
+| Unsupported file type | The composer rejects files that are not `image/*` or `video/*`. The library and API also allow `audio/*` and `application/pdf`. You see an error toast when the type is not allowed |
+| File too large | Images over **30 MB** are blocked in the browser before upload. Images over **10 MB** are rejected on the server. Videos over **1 GB** are rejected. A multi-file batch over **1 GB** total is rejected |
+| Platform rules after upload | Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms">Posting rules by platform</a> |
+| Workspace storage full | On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
 
 ## Public API and CLI
 

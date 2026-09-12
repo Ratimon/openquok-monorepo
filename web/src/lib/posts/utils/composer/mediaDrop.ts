@@ -25,6 +25,8 @@ export function postMediaPreviewUrl(item: PostMediaProgrammerModel): string {
 	if (local) return local;
 	const path = item.path.trim();
 	if (path.startsWith('blob:')) return path;
+	const apiPublic = item.publicUrl?.trim();
+	if (apiPublic) return apiPublic;
 	if (isVideoMediaPath(path)) {
 		const poster = videoPosterPreviewUrl(item);
 		if (poster) return poster;

@@ -24,7 +24,10 @@ export function postMediaToLibraryItemVm(item: PostMediaProgrammerModel): MediaL
 		name: fileNameFromPath(path),
 		size: 0,
 		lastModified: null,
-		publicUrl: item.localPreviewUrl?.trim() || publicUrlForMediaStorageKey(path),
+		publicUrl:
+			item.localPreviewUrl?.trim() ||
+			item.publicUrl?.trim() ||
+			publicUrlForMediaStorageKey(path),
 		kind: mediaKindFromPath(path),
 		alt: item.alt ?? null,
 		thumbnail: item.thumbnail ?? null,
@@ -43,7 +46,8 @@ export function mergeLibraryVmIntoPostMedia(
 		alt: lib.alt ?? null,
 		thumbnail: lib.thumbnail ?? null,
 		thumbnailPublicUrl: lib.thumbnailPublicUrl ?? null,
-		thumbnailTimestamp: lib.thumbnailTimestamp ?? null
+		thumbnailTimestamp: lib.thumbnailTimestamp ?? null,
+		...(lib.publicUrl?.trim() ? { publicUrl: lib.publicUrl.trim() } : {})
 	};
 }
 

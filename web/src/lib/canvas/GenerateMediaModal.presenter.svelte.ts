@@ -131,13 +131,20 @@ export class GenerateMediaModalPresenter {
 			const file = new File([blob], 'canvas.png', { type: 'image/png' });
 			const result = await this.mediaRepository.uploadMedia(file, uploadUid);
 			if (result.success && result.data.filePath) {
+				const localPreviewUrl =
+					typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function'
+						? URL.createObjectURL(blob)
+						: undefined;
+				const publicUrl = result.data.publicUrl?.trim();
 				return {
 					ok: true,
 					items: [
 						{
 							id: resolvePostMediaLibraryRowId(result.data.id),
 							path: result.data.filePath,
-							bucket: 'social_media'
+							bucket: 'social_media',
+							...(localPreviewUrl ? { localPreviewUrl } : {}),
+							...(publicUrl ? { publicUrl } : {})
 						}
 					]
 				};

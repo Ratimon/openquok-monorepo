@@ -127,6 +127,8 @@
 		data.previewMediaUrlsVm ?? publicPreviewPostByIdPagePresenter.currentPreviewMediaUrlsVm
 	);
 
+	const previewMediaStoragePathsVm = $derived(data.previewMediaStoragePathsVm ?? []);
+
 	const previewProviderSettings = $derived(previewPostVm?.providerSettings ?? {});
 
 	// /sign-in
@@ -215,6 +217,7 @@
 						channel={previewChannelVm}
 						previewText={stripHtmlToPlainText(previewPostVm.content ?? '')}
 						mediaUrls={previewMediaUrlsVm}
+						mediaStoragePaths={previewMediaStoragePathsVm}
 						threadReplies={previewPostVm.threadReplies}
 						threadFinisher={previewPostVm.threadFinisher}
 						delayedEngagementReply={previewPostVm.delayedEngagementReply}

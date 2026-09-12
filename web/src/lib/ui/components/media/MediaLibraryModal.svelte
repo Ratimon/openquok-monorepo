@@ -185,7 +185,14 @@
 		const row: PostMediaProgrammerModel = {
 			id: resolvePostMediaLibraryRowId(item.id),
 			path: item.path,
-			bucket: 'social_media'
+			bucket: 'social_media',
+			...(item.publicUrl?.trim() ? { publicUrl: item.publicUrl.trim() } : {}),
+			alt: item.alt ?? null,
+			thumbnail: item.thumbnail ?? null,
+			...(item.thumbnailPublicUrl?.trim()
+				? { thumbnailPublicUrl: item.thumbnailPublicUrl.trim() }
+				: {}),
+			thumbnailTimestamp: item.thumbnailTimestamp ?? null
 		};
 		onAttach?.([row]);
 		toast.success('Media attached.');
