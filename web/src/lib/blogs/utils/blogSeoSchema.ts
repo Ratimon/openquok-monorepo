@@ -500,14 +500,69 @@ function normalizeBlogImageStoragePath(path: string): string {
 	return path.replace(/^\/+/, '').trim();
 }
 
+function blogPostFeaturedImageId(canonicalUrl: string): string {
+	return `${canonicalUrl}#featured-image`;
+}
+
+function blogPostInlineImageId(canonicalUrl: string, index: number): string {
+	return `${canonicalUrl}#inline-image-${index + 1}`;
+}
+
+function blogPostingNodeId(canonicalUrl: string): string {
+	return `${canonicalUrl}#blogposting`;
+}
+
+function jsonLdNodeRef(id: string): { '@id': string } {
+	return { '@id': id };
+}
+
+function jsonLdNodeRefs(ids: string[]): { '@id': string } | { '@id': string }[] {
+	return ids.length === 1 ? jsonLdNodeRef(ids[0]) : ids.map((id) => jsonLdNodeRef(id));
+}
+
+type BlogImageObjectContext = {
+	canonicalUrl: string;
+	blogPostingId: string;
+	author: Record<string, unknown>;
+	publishedAt?: string | null;
+};
+
+function createBlogHeroImageObjectNode(params: {
+	context: BlogImageObjectContext;
+	postTitle: string;
+	heroUrl: string;
+	heroFilename: string;
+}): ImageObject {
+	const { context, postTitle, heroUrl, heroFilename } = params;
+	const heroCaption = postTitle.trim();
+	const publishedIso = context.publishedAt ? new Date(context.publishedAt).toISOString() : undefined;
+
+	return {
+		'@type': 'ImageObject',
+		'@id': blogPostFeaturedImageId(context.canonicalUrl),
+		url: heroUrl,
+		contentUrl: heroUrl,
+		name: `Featured image for blog post: ${postTitle}`,
+		...(heroCaption ? { caption: heroCaption } : {}),
+		width: 1200,
+		height: 630,
+		encodingFormat: guessImageMimeFromFilename(heroFilename),
+		representativeOfPage: true,
+		...(publishedIso ? { datePublished: publishedIso } : {}),
+		author: context.author,
+		isPartOf: jsonLdNodeRef(context.blogPostingId)
+	} satisfies ImageObject;
+}
+
 function createBlogInlineImageObjectNodes(params: {
 	html: string;
-	canonicalUrl: string;
 	postTitle: string;
 	heroStoragePath?: string | null;
-}): Record<string, unknown>[] {
-	const { html, canonicalUrl, postTitle, heroStoragePath } = params;
+	context: BlogImageObjectContext;
+}): ImageObject[] {
+	const { html, postTitle, heroStoragePath, context } = params;
 	const heroKey = heroStoragePath ? normalizeBlogImageStoragePath(heroStoragePath) : '';
+	const publishedIso = context.publishedAt ? new Date(context.publishedAt).toISOString() : undefined;
 
 	return extractBlogInlineImagesFromHtml(html).flatMap((img) => {
 		const storagePath = normalizeBlogImageStoragePath(img.storagePath);
@@ -518,11 +573,14 @@ function createBlogInlineImageObjectNodes(params: {
 
 		const node = {
 			'@type': 'ImageObject',
-			'@id': `${canonicalUrl}#inline-image-${img.index + 1}`,
+			'@id': blogPostInlineImageId(context.canonicalUrl, img.index),
 			url: src,
 			contentUrl: src,
 			encodingFormat: guessImageMimeFromFilename(storagePath),
-			...(caption ? { caption } : { name: `Illustration in ${postTitle}` })
+			...(caption ? { caption } : { name: `Illustration in ${postTitle}` }),
+			...(publishedIso ? { datePublished: publishedIso } : {}),
+			author: context.author,
+			isPartOf: jsonLdNodeRef(context.blogPostingId)
 		} satisfies ImageObject;
 
 		return [node];
@@ -592,37 +650,30 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		};
 	}
 
-	let heroImage: Record<string, unknown> | undefined;
-	if (heroUrl && post.heroImageFilename) {
-		const mime = guessImageMimeFromFilename(post.heroImageFilename);
-		const heroCaption = post.title.trim();
-		heroImage = {
-			'@type': 'ImageObject',
-			contentUrl: heroUrl,
-			url: heroUrl,
-			name: `Featured image for blog post: ${post.title}`,
-			...(heroCaption ? { caption: heroCaption } : {}),
-			width: '1200',
-			height: '630',
-			encodingFormat: mime
-		};
-		if (publishedAt) {
-			heroImage.datePublished = new Date(publishedAt).toISOString();
-		}
-		if (authorName) {
-			heroImage.author = authorName;
-		}
-	}
+	const blogPostingId = blogPostingNodeId(canonicalUrl);
+	const imageContext: BlogImageObjectContext = {
+		canonicalUrl,
+		blogPostingId,
+		author,
+		publishedAt
+	};
 
-	const imageNodes: Record<string, unknown>[] = [
-		...(heroImage ? [heroImage] : []),
-		...createBlogInlineImageObjectNodes({
-			html: post.content ?? '',
-			canonicalUrl,
-			postTitle: post.title,
-			heroStoragePath: post.heroImageFilename
-		})
-	];
+	const heroImageNode =
+		heroUrl && post.heroImageFilename
+			? createBlogHeroImageObjectNode({
+					context: imageContext,
+					postTitle: post.title,
+					heroUrl,
+					heroFilename: post.heroImageFilename
+				})
+			: undefined;
+
+	const inlineImageNodes = createBlogInlineImageObjectNodes({
+		html: post.content ?? '',
+		postTitle: post.title,
+		heroStoragePath: post.heroImageFilename,
+		context: imageContext
+	});
 
 	const interactionStatistic: Record<string, unknown>[] = [];
 	if (post.likeCount != null && post.likeCount > 0) {
@@ -639,6 +690,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 
 	const blogPosting: Record<string, unknown> = {
 		'@type': 'BlogPosting',
+		'@id': blogPostingId,
 		headline: post.title,
 		description: description || undefined,
 		articleSection: topicName,
@@ -664,10 +716,15 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		}
 	};
 
-	if (imageNodes.length === 1) {
-		blogPosting.image = imageNodes[0];
-	} else if (imageNodes.length > 1) {
-		blogPosting.image = imageNodes;
+	if (heroImageNode) {
+		blogPosting.image = jsonLdNodeRef(String(heroImageNode['@id']));
+		if (inlineImageNodes.length > 0) {
+			blogPosting.associatedMedia = jsonLdNodeRefs(
+				inlineImageNodes.map((node) => String(node['@id']))
+			);
+		}
+	} else if (inlineImageNodes.length > 0) {
+		blogPosting.image = jsonLdNodeRefs(inlineImageNodes.map((node) => String(node['@id'])));
 	}
 	if (interactionStatistic.length) {
 		blogPosting.interactionStatistic = interactionStatistic;
@@ -766,5 +823,16 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 			: {}
 	]);
 
-	return createJsonLdGraph([blogPosting, breadcrumbList, ...commentNodes, ...extraNodes] as Thing[]);
+	const imageGraphNodes = filterNonEmptyJsonLdNodes([
+		heroImageNode ?? {},
+		...inlineImageNodes
+	]);
+
+	return createJsonLdGraph([
+		blogPosting,
+		breadcrumbList,
+		...imageGraphNodes,
+		...commentNodes,
+		...extraNodes
+	] as Thing[]);
 }
