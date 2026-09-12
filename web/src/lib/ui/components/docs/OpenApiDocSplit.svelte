@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { OpenapiDocsParamPayload, OpenapiDocsBodyPayload, OpenapiDocsResponsePayload } from '$lib/docs/utils/openapi-examples';
+	import type { OpenapiDocsParamPayload, OpenapiDocsBodyPayload, OpenapiDocsResponsePayload } from '$lib/docs/utils/openapi/openapiExamples';
 
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
-	import { fetchOpenapiOperationForDocs} from '$lib/docs/utils/openapi-examples';
+	import { fetchOpenapiOperationForDocs} from '$lib/docs/utils/openapi/openapiExamples';
 
 	import ApiEndpointTryItBar from '$lib/ui/components/docs/mdx/ApiEndpointTryItBar.svelte';
 	import ParamField from '$lib/ui/components/docs/mdx/ParamField.svelte';

@@ -1,6 +1,6 @@
 import type { ListItem } from 'schema-dts';
 
-import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 
 /** Absolute docs URL for JSON-LD and canonical tags (prerender-safe; no query string). */
 export function resolveDocsPageUrl(pathname: string, requestUrl: URL): string {

@@ -193,12 +193,13 @@ Applies to feature/module code under `web/src/lib/<module>/...`, excluding the s
   - keep responsibilities small and pure (no component state, no DOM unless guarded)
 - If a util touches DOM or `document`, guard SSR:
   - `if (typeof document === 'undefined') return ...`
+- When a module accumulates many helpers, group them in subfolders under `utils/` (e.g. `$lib/docs/utils/seo/`, `content/`, `openapi/`, `site/`, `ui/`) and expose the public surface from `utils/index.ts`.
 
 ## Import guidance
 
 - Repositories/presenters/importers should use:
   - `$lib/<module>/constants/config` for module config/schema defaults
-  - `$lib/<module>/utils` (barrel) or `$lib/<module>/utils/<helper>` for helper functions
+  - `$lib/<module>/utils` (barrel) or `$lib/<module>/utils/<area>/<helper>` for helper functions
 
 ---
 

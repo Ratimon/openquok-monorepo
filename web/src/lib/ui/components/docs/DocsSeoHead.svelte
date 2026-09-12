@@ -1,14 +1,17 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
-	import type { DocsHowToBlock } from '$lib/docs/utils/extractDocsHowToFromRaw';
-	import type { DocsImageFromRaw } from '$lib/docs/utils/extractDocsImagesFromRaw';
+	import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
+	import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 	import {
 		buildDocsBreadcrumbListItems,
 		resolveDocsPageUrl
-	} from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
-	import { createDocsPageSeoSchema, resolveDocsImageUrl } from '$lib/docs/utils/createDocsPageSeoSchema';
-	import { pickDocsSocialPreview } from '$lib/docs/utils/docsSocialPreview';
+	} from '$lib/docs/utils/seo/buildDocsBreadcrumbJsonLd';
+	import {
+		createDocsPageSeoSchema,
+		pickDocsSocialPreview,
+		resolveDocsImageUrl
+	} from '$lib/docs/utils/seo/docsSeoSchema';
 	import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
 	import { jsonLdScriptHtml } from '$lib/seo/jsonLdScriptHtml';
 

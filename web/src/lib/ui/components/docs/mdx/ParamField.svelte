@@ -3,7 +3,7 @@
 
 	import { icons } from '$data/icons';
 
-	import type { DocsParamLocation } from '$lib/docs/utils/openapi-examples';
+	import type { DocsParamLocation } from '$lib/docs/utils/openapi/openapiExamples';
 	import { cn } from '$lib/ui/helpers/common';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 

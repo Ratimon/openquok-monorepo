@@ -4,51 +4,112 @@ import { dirname, join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { buildDocsBreadcrumbListItems } from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
 import { DOCS_FALLBACK_SOCIAL_IMAGE_ALT, DOCS_FALLBACK_SOCIAL_IMAGE_SRC } from '$lib/docs/constants/docsSeoDefaults';
-import { createDocsPageSeoSchema, resolveDocsImageUrl } from '$lib/docs/utils/createDocsPageSeoSchema';
 import {
 	dedupeDocsImagesFromRaw,
 	extractDocsImagesFromRaw
-} from '$lib/docs/utils/extractDocsImagesFromRaw';
+} from '$lib/docs/utils/content/extractDocsImagesFromRaw';
+import { buildDocsBreadcrumbListItems } from '$lib/docs/utils/seo/buildDocsBreadcrumbJsonLd';
+import {
+	createDocsPageSeoSchema,
+	orderDocsImagesForSeo,
+	pickDocsSocialPreview,
+	resolveDocsImageUrl
+} from '$lib/docs/utils/seo/docsSeoSchema';
+import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 
 const quickstartFixture = readFileSync(
-	join(dirname(fileURLToPath(import.meta.url)), '../../../content/docs/getting-started/quickstart.md'),
+	join(dirname(fileURLToPath(import.meta.url)), '../../../../content/docs/getting-started/quickstart.md'),
 	'utf8'
 );
 
 const QUICKSTART_URL = 'https://www.openquok.com/docs/getting-started/quickstart';
 const requestUrl = new URL(QUICKSTART_URL);
 
-describe('extractDocsImagesFromRaw', () => {
-	it('parses markdown image syntax with alt text and root-relative paths', () => {
-		const images = extractDocsImagesFromRaw(quickstartFixture);
-		expect(images.length).toBeGreaterThanOrEqual(8);
-		expect(images[0]).toMatchObject({
-			alt: 'Workspace in Dashboard',
-			src: '/docs/_assets/getting-started/1-workspace-dashboard.webp',
-			index: 0
-		});
-		expect(images.find((image) => image.alt === 'Step 5 - Kanban Board')).toMatchObject({
-			src: '/docs/_assets/getting-started/5-kanban-board.webp'
-		});
-	});
-
-	it('dedupes repeated image paths while preserving first alt text', () => {
-		const images = dedupeDocsImagesFromRaw(extractDocsImagesFromRaw(quickstartFixture));
-		const workspaceImages = images.filter((image) =>
-			image.src.endsWith('1-workspace-dashboard.webp')
-		);
-		expect(workspaceImages).toHaveLength(1);
-		expect(workspaceImages[0]?.alt).toBe('Workspace in Dashboard');
-	});
-});
+const DOC_IMAGES: DocsImageFromRaw[] = [
+	{
+		alt: 'Workspace in Dashboard',
+		src: '/docs/_assets/getting-started/1-workspace-dashboard.webp',
+		index: 0
+	},
+	{
+		alt: 'Step 5 - Kanban Board',
+		src: '/docs/_assets/getting-started/5-kanban-board.webp',
+		index: 5
+	}
+];
 
 describe('resolveDocsImageUrl', () => {
 	it('resolves root-relative docs assets against the public site origin', () => {
 		expect(resolveDocsImageUrl('/docs/_assets/getting-started/5-kanban-board.webp', requestUrl, QUICKSTART_URL)).toBe(
 			'https://www.openquok.com/docs/_assets/getting-started/5-kanban-board.webp'
 		);
+	});
+});
+
+describe('pickDocsSocialPreview', () => {
+	it('prefers frontmatter ogImage over the first inline image', () => {
+		const preview = pickDocsSocialPreview({
+			ogImage: '/docs/_assets/getting-started/5-kanban-board.webp',
+			ogImageAlt: 'Kanban preview',
+			title: 'Quickstart',
+			docImages: DOC_IMAGES,
+			resolveImageUrl: (src) => `https://www.openquok.com${src}`
+		});
+
+		expect(preview).toEqual({
+			src: '/docs/_assets/getting-started/5-kanban-board.webp',
+			url: 'https://www.openquok.com/docs/_assets/getting-started/5-kanban-board.webp',
+			alt: 'Kanban preview'
+		});
+	});
+
+	it('falls back to the first inline image when ogImage is omitted', () => {
+		const preview = pickDocsSocialPreview({
+			title: 'Quickstart',
+			docImages: DOC_IMAGES,
+			resolveImageUrl: (src) => `https://www.openquok.com${src}`
+		});
+
+		expect(preview.src).toBe('/docs/_assets/getting-started/1-workspace-dashboard.webp');
+	});
+
+	it('falls back to the OpenQuok logo when there are no inline images or ogImage', () => {
+		const preview = pickDocsSocialPreview({
+			title: 'Plain doc',
+			docImages: [],
+			resolveImageUrl: (src) => `https://www.openquok.com${src}`
+		});
+
+		expect(preview).toEqual({
+			src: DOCS_FALLBACK_SOCIAL_IMAGE_SRC,
+			url: `https://www.openquok.com${DOCS_FALLBACK_SOCIAL_IMAGE_SRC}`,
+			alt: DOCS_FALLBACK_SOCIAL_IMAGE_ALT
+		});
+	});
+});
+
+describe('orderDocsImagesForSeo', () => {
+	it('moves a matching ogImage to the front without duplicating it', () => {
+		const ordered = orderDocsImagesForSeo(DOC_IMAGES, {
+			primarySrc: '/docs/_assets/getting-started/5-kanban-board.webp',
+			primaryAlt: 'Kanban preview',
+			pageTitle: 'Quickstart'
+		});
+
+		expect(ordered).toHaveLength(2);
+		expect(ordered[0]?.src).toBe('/docs/_assets/getting-started/5-kanban-board.webp');
+		expect(ordered[0]?.alt).toBe('Kanban preview');
+	});
+
+	it('prepends ogImage when it is not present in inline images', () => {
+		const ordered = orderDocsImagesForSeo(DOC_IMAGES, {
+			primarySrc: '/docs/_assets/getting-started/hero.webp',
+			pageTitle: 'Quickstart'
+		});
+
+		expect(ordered[0]?.src).toBe('/docs/_assets/getting-started/hero.webp');
+		expect(ordered).toHaveLength(3);
 	});
 });
 

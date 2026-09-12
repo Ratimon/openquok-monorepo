@@ -5,7 +5,7 @@
 		absoluteDocsUrl,
 		docsMarkdownPath,
 		docsPagePath
-	} from '$lib/docs/utils/doc-share-urls';
+	} from '$lib/docs/utils/site/docShareUrls';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';

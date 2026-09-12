@@ -357,7 +357,7 @@ The documentation engine:
 - <Badge text="content.ts" variant="path" /> — Content loader that discovers and parses markdown files
 - <Badge text="navigation.ts" variant="path" /> — Generates sidebar navigation and maps paths/slugs to the active tab
 - <Badge text="types.ts" variant="path" /> — TypeScript types for docs, navigation, and config
-- <Badge text="utils/toc-state.svelte.ts" variant="path" /> — Table of contents state management
+- <Badge text="utils/ui/tocState.svelte.ts" variant="path" /> — Table of contents state management
 
 ### <Badge text="src/lib/ui/components/docs/" variant="path" />
 

@@ -9,9 +9,8 @@
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
 
-	import { toc } from '$lib/docs/utils/toc-state.svelte';
 	import { docsConfig } from '$lib/docs/constants';
-	import { calculateReadingTime } from '$lib/docs/utils/reading-time';
+	import { calculateReadingTime, toc } from '$lib/docs/utils';
 	import { stringToSlug } from '$lib/ui/helpers/common';
 	import { icons } from '$data/icons';
 

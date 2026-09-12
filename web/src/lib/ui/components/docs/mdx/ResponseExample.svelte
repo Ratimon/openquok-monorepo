@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 
 	import { cn } from '$lib/ui/helpers/common';
-	import { highlightCode } from '$lib/docs/utils/shiki-highlight';
+	import { highlightCode } from '$lib/docs/utils/openapi/shikiHighlight';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import { icons } from '$data/icons';
 

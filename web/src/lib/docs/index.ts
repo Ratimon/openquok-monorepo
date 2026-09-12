@@ -20,8 +20,7 @@ export {
 	getPrevNext,
 	stripDocsLocaleFromPathname
 } from '$lib/docs/navigation';
-export { calculateReadingTime } from '$lib/docs/utils/reading-time';
-export { toc } from '$lib/docs/utils/toc-state.svelte';
+export { calculateReadingTime, toc } from '$lib/docs/utils';
 export type {
 	DocMeta,
 	DocFile,

@@ -2,7 +2,7 @@ import type { DocPage, DocsDocTabId, NavItem, SidebarSection } from '$lib/docs/t
 
 import { docsConfig, docsSidebarMerged, docsTabs } from '$lib/docs/constants';
 import { getAllDocs, getDocsByDirectory } from '$lib/docs/content';
-import { httpMethodBadgeLabel } from '$lib/docs/utils/openapi-docs-layout';
+import { httpMethodBadgeLabel } from '$lib/docs/utils/openapi/openapiDocsLayout';
 
 export function generateNavigationFromSidebar(
 	sections: SidebarSection[],

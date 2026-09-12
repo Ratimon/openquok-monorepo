@@ -29,7 +29,7 @@
 			return;
 		}
 		let cancelled = false;
-		void import('$lib/docs/utils/shiki-highlight')
+		void import('$lib/docs/utils/openapi/shikiHighlight')
 			.then(({ highlightCode }) => highlightCode(trimmedCode, language))
 			.then((h) => {
 				if (!cancelled) html = h;

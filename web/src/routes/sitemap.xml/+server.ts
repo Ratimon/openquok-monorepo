@@ -1,5 +1,5 @@
-import { mergeDocsUrlsIntoUrlset } from '$lib/docs/utils/merge-docs-sitemap';
-import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { mergeDocsUrlsIntoUrlset } from '$lib/docs/utils/site/mergeDocsSitemap';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 export async function GET({

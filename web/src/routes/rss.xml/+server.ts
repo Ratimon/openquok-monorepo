@@ -1,7 +1,7 @@
 import { eachLocaleDocPages } from '$lib/docs/content';
 import { docsConfig } from '$lib/docs/constants';
-import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
-import { escapeXml } from '$lib/docs/utils/xml-escape';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
+import { escapeXml } from '$lib/docs/utils/site/xmlEscape';
 import type { RequestHandler } from './$types';
 
 export const prerender = true;

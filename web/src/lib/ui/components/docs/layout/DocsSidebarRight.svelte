@@ -2,7 +2,7 @@
 	import type { ComponentProps } from 'svelte';
 	import type { NavItem } from '$lib/docs/types';
 
-	import { toc } from '$lib/docs/utils/toc-state.svelte';
+	import { toc } from '$lib/docs/utils';
 
 	import DocsSearchCommand from '$lib/ui/components/docs/search/DocsSearchCommand.svelte';
 	import { cn } from '$lib/ui/helpers/common';

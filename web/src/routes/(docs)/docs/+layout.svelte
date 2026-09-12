@@ -14,7 +14,7 @@
 		getSocialProfileHref
 	} from '$lib/config/constants/config';
 	import { docsSite, docsSidebarWidthCss } from '$lib/docs/constants';
-	import { isOpenapiReferenceChrome } from '$lib/docs/utils/openapi-docs-layout';
+	import { isOpenapiReferenceChrome } from '$lib/docs/utils/openapi/openapiDocsLayout';
 	import { ensureDefaultTheme } from '$lib/ui/daisyui/ThemeSwitcher.svelte';
 
 	import { icons } from '$data/icons';

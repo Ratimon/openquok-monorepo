@@ -2,7 +2,7 @@ import { docsConfig } from '$lib/docs/constants';
 import type { DocFile, DocMeta, DocPage } from '$lib/docs/types';
 import type { Component } from 'svelte';
 
-import { docMetaFromRawSource } from '$lib/docs/utils/parse-doc-frontmatter';
+import { docMetaFromRawSource } from '$lib/docs/utils/content/parseDocFrontmatter';
 
 /** Compiled doc modules (default export = page body). Sole import of each file besides `?raw` — avoids Vite duplicate-import warnings. */
 const contentLoaders = import.meta.glob<DocFile>('/src/content/docs/**/*.{md,svx}', {

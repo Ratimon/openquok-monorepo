@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { toc } from '$lib/docs/utils/toc-state.svelte';
+	import { toc } from '$lib/docs/utils';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 
 	import { icons } from '$data/icons';

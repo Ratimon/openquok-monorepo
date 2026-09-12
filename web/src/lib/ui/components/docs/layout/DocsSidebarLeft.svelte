@@ -9,7 +9,7 @@
 	import { cn } from '$lib/ui/helpers/common';
 	import { docsConfig } from '$lib/docs/constants';
 	import { getDocsTabIdFromPathname, isDocsNavItemActive } from '$lib/docs/navigation';
-	import { docsHttpMethodBadgeClass } from '$lib/docs/utils/openapi-docs-layout';
+	import { docsHttpMethodBadgeClass } from '$lib/docs/utils/openapi/openapiDocsLayout';
 
 	import * as Collapsible from '$lib/ui/collapsible/index.js';
 	import * as DropdownMenu from '$lib/ui/dropdown-menu/index.js';

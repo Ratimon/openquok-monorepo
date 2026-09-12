@@ -4,10 +4,10 @@ import { dirname, join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { extractDocsHowToBlocksFromRaw } from '$lib/docs/utils/extractDocsHowToFromRaw';
+import { extractDocsHowToBlocksFromRaw } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 
 const oauthServerFixture = readFileSync(
-	join(dirname(fileURLToPath(import.meta.url)), '../../../content/docs/admin/oauth-server.md'),
+	join(dirname(fileURLToPath(import.meta.url)), '../../../../content/docs/admin/oauth-server.md'),
 	'utf8'
 );
 

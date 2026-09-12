@@ -1,4 +1,4 @@
-import { docsStepBodyToPlainText } from '$lib/docs/utils/docsStepBodyToPlainText';
+import { docsStepBodyToPlainText } from '$lib/docs/utils/content/docsStepBodyToPlainText';
 
 export interface DocsHowToStep {
 	name: string;

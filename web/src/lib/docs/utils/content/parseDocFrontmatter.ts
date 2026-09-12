@@ -1,6 +1,6 @@
 import type { DocMeta } from '$lib/docs/types';
 
-import { normalizeDocsLayout } from '$lib/docs/utils/openapi-docs-layout';
+import { normalizeDocsLayout } from '$lib/docs/utils/openapi/openapiDocsLayout';
 
 /** Minimal YAML subset for docs frontmatter (title, order, nested `sidebar.label`, etc.). */
 function unquote(s: string): string {

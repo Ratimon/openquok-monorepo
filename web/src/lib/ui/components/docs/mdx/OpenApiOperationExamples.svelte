@@ -5,7 +5,7 @@
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
 
-	import { fetchOpenapiOperationForDocs } from '$lib/docs/utils/openapi-examples';
+	import { fetchOpenapiOperationForDocs } from '$lib/docs/utils/openapi/openapiExamples';
 
 	import ApiEndpointTryItBar from '$lib/ui/components/docs/mdx/ApiEndpointTryItBar.svelte';
 	import RequestExample from '$lib/ui/components/docs/mdx/RequestExample.svelte';

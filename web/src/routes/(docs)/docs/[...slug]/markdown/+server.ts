@@ -1,5 +1,5 @@
 import { getRawContent } from '$lib/docs/index';
-import { markdownResourceHeaders } from '$lib/docs/utils/markdown-route-headers';
+import { markdownResourceHeaders } from '$lib/docs/utils/site/markdownRouteHeaders';
 import { error } from '@sveltejs/kit';
 
 import type { RequestHandler } from './$types';

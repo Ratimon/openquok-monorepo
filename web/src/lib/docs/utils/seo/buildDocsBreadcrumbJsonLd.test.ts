@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	buildDocsBreadcrumbListItems,
 	resolveDocsPageUrl
-} from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
+} from '$lib/docs/utils/seo/buildDocsBreadcrumbJsonLd';
 
 const requestUrl = new URL('https://www.openquok.com/docs/getting-started-for-cli');
 

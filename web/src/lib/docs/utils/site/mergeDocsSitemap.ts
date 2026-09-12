@@ -1,5 +1,5 @@
 import { eachLocaleDocPages } from '$lib/docs/content';
-import { escapeXml } from './xml-escape';
+import { escapeXml } from '$lib/docs/utils/site/xmlEscape';
 
 function extractLocs(xml: string): Set<string> {
 	const set = new Set<string>();

@@ -21,10 +21,10 @@
 		type JsonValue,
 		type OasDoc,
 		type OasOperation
-	} from '$lib/docs/utils/openapi-examples';
+	} from '$lib/docs/utils/openapi/openapiExamples';
 
 	import { cn } from '$lib/ui/helpers/common';
-	import { highlightCode } from '$lib/docs/utils/shiki-highlight';
+	import { highlightCode } from '$lib/docs/utils/openapi/shikiHighlight';
 
 	import RequestExample from '$lib/ui/components/docs/mdx/RequestExample.svelte';
 	import ResponseExample from '$lib/ui/components/docs/mdx/ResponseExample.svelte';

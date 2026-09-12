@@ -1,4 +1,4 @@
-import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 import {
 	ROBOTS_CONTENT_SIGNAL,
 	robotsAiCrawlerBlocks,

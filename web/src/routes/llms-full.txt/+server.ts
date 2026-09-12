@@ -1,7 +1,7 @@
 import { eachLocaleDocPages, getRawContent } from '$lib/docs/content';
 import { docsConfig } from '$lib/docs/constants';
-import { docSectionKey, sidebarLabelForSection } from '$lib/docs/utils/docs-sidebar-label';
-import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
+import { docSectionKey, sidebarLabelForSection } from '$lib/docs/utils/site/docsSidebarLabel';
+import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
 import type { DocPage } from '$lib/docs/types';
 import type { RequestHandler } from './$types';
 
