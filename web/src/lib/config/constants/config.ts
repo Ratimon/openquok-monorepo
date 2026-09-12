@@ -309,7 +309,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'The secondary text or tagline shown below the hero title',
 		type: 'string',
 		default:
-			'Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels. Connect OpenClaw, Hermes, or Claude.',
+			'Let AI agents handle volume — drafting and scheduling at scale. You handle quality: review and approve what goes live across your channels. Connect Grok Bot, OpenClaw, Hermes, Codex, Cursor or Claude.',
 		inputType: 'textarea',
 		maxInputLength: 200
 	},

@@ -100,6 +100,9 @@
 	const TITLE_GRADIENT_ACCENT =
 		'bg-gradient-to-r from-fuchsia-300 via-rose-300 to-orange-300 bg-clip-text text-transparent';
 
+	const PEERPUSH_PROFILE_HREF = 'https://peerpush.com/p/openquok';
+	const PEERPUSH_BADGE_SRC = 'https://peerpush.com/p/openquok/badge.png';
+
 	function getTitleSegmentGradientClass(
 		lineIndex: number,
 		segmentIndex: number,
@@ -191,11 +194,25 @@
 
 		<div class="relative z-10 container mx-auto px-4 pt-16 pb-24 sm:pt-20 sm:pb-28">
 			<div class="mx-auto max-w-3xl text-center">
-				{#if githubOwner && githubRepo}
-					<div class="mb-6 flex justify-center">
+				<div class="mb-6 flex flex-wrap items-center justify-center gap-3">
+					{#if githubOwner && githubRepo}
 						<Stargazers owner={githubOwner} name={githubRepo} />
-					</div>
-				{/if}
+					{/if}
+					<ExternalLink
+						href={PEERPUSH_PROFILE_HREF}
+						class="inline-flex shrink-0 items-center opacity-90 transition-opacity hover:opacity-100"
+						ariaLabel="OPENQUOK on PeerPush"
+					>
+						<img
+							src={PEERPUSH_BADGE_SRC}
+							alt="OPENQUOK on PeerPush"
+							width="230"
+							height="65"
+							class="peerpush-official-badge h-9 w-auto"
+							decoding="async"
+						/>
+					</ExternalLink>
+				</div>
 
 				<h1 class="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
 					{#if titleLineModels.length > 0}
@@ -348,3 +365,10 @@
 		</div>
 	</section>
 </AuroraBackground>
+
+<style>
+	/* Official PeerPush PNG is a light card. Invert + hue-rotate on forest keeps their artwork on a dark field. */
+	:global(html[data-theme='forest']) :global(img.peerpush-official-badge) {
+		filter: invert(1) hue-rotate(180deg);
+	}
+</style>
