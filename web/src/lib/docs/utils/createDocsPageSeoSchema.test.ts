@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildDocsBreadcrumbListItems } from '$lib/docs/utils/buildDocsBreadcrumbJsonLd';
+import { DOCS_FALLBACK_SOCIAL_IMAGE_ALT, DOCS_FALLBACK_SOCIAL_IMAGE_SRC } from '$lib/docs/constants/docsSeoDefaults';
 import { createDocsPageSeoSchema, resolveDocsImageUrl } from '$lib/docs/utils/createDocsPageSeoSchema';
 import {
 	dedupeDocsImagesFromRaw,
@@ -131,6 +132,43 @@ describe('createDocsPageSeoSchema', () => {
 		expect(primaryImage).toMatchObject({
 			caption: 'Kanban preview',
 			contentUrl: 'https://www.openquok.com/docs/_assets/getting-started/5-kanban-board.webp',
+			representativeOfPage: true
+		});
+	});
+
+	it('uses the OpenQuok logo when the page has no inline images or ogImage', () => {
+		const schema = createDocsPageSeoSchema({
+			title: 'Plain doc',
+			description: 'Text-only documentation page.',
+			canonicalUrl: 'https://www.openquok.com/docs/example/plain',
+			requestUrl: new URL('https://www.openquok.com/docs/example/plain'),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/example/plain', new URL('https://www.openquok.com/docs/example/plain')),
+			images: []
+		});
+
+		const techArticle = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'TechArticle'
+		) as Record<string, unknown> | undefined;
+
+		expect(techArticle?.image).toEqual({
+			'@id': 'https://www.openquok.com/docs/example/plain#doc-image-1'
+		});
+
+		const logoImage = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@id' in node &&
+				node['@id'] === 'https://www.openquok.com/docs/example/plain#doc-image-1'
+		) as Record<string, unknown> | undefined;
+
+		expect(logoImage).toMatchObject({
+			'@type': 'ImageObject',
+			caption: DOCS_FALLBACK_SOCIAL_IMAGE_ALT,
+			contentUrl: `https://www.openquok.com${DOCS_FALLBACK_SOCIAL_IMAGE_SRC}`,
+			encodingFormat: 'image/svg+xml',
 			representativeOfPage: true
 		});
 	});

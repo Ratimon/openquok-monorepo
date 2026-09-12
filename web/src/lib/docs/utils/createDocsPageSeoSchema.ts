@@ -2,7 +2,7 @@ import type { BreadcrumbList, ImageObject, ListItem, TechArticle, WebSite } from
 
 import type { DocsHowToBlock } from '$lib/docs/utils/extractDocsHowToFromRaw';
 import type { DocsImageFromRaw } from '$lib/docs/utils/extractDocsImagesFromRaw';
-import { orderDocsImagesForSeo } from '$lib/docs/utils/docsSocialPreview';
+import { orderDocsImagesForSeo, resolveDocsPrimaryImageForSeo } from '$lib/docs/utils/docsSocialPreview';
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
@@ -99,9 +99,15 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 
 	const siteOrigin = resolvePublicSiteUrl(requestUrl);
 	const techArticleId = docsTechArticleId(canonicalUrl);
+	const primaryImage = resolveDocsPrimaryImageForSeo({
+		ogImage,
+		ogImageAlt,
+		docImages: images,
+		pageTitle: title
+	});
 	const orderedImages = orderDocsImagesForSeo(images, {
-		primarySrc: ogImage,
-		primaryAlt: ogImageAlt,
+		primarySrc: primaryImage.primarySrc,
+		primaryAlt: primaryImage.primaryAlt,
 		pageTitle: title
 	});
 	const imageNodes = createDocsImageObjectNodes({

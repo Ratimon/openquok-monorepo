@@ -81,7 +81,7 @@
 		<meta property="og:image:type" content={guessImageMimeFromFilename(socialPreview.src)} />
 	{/if}
 
-	<meta name="twitter:card" content={socialPreview ? 'summary_large_image' : 'summary'} />
+	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={fullTitle} />
 	{#if description}
 		<meta name="twitter:description" content={description} />

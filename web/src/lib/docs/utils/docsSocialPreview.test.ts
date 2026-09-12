@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { orderDocsImagesForSeo, pickDocsSocialPreview } from '$lib/docs/utils/docsSocialPreview';
+import { DOCS_FALLBACK_SOCIAL_IMAGE_ALT, DOCS_FALLBACK_SOCIAL_IMAGE_SRC } from '$lib/docs/constants/docsSeoDefaults';
 import type { DocsImageFromRaw } from '$lib/docs/utils/extractDocsImagesFromRaw';
 import { docMetaFromRawSource } from '$lib/docs/utils/parse-doc-frontmatter';
 
@@ -42,6 +43,20 @@ describe('pickDocsSocialPreview', () => {
 		});
 
 		expect(preview?.src).toBe('/docs/_assets/getting-started/1-workspace-dashboard.webp');
+	});
+
+	it('falls back to the OpenQuok logo when there are no inline images or ogImage', () => {
+		const preview = pickDocsSocialPreview({
+			title: 'Plain doc',
+			docImages: [],
+			resolveImageUrl: (src) => `https://www.openquok.com${src}`
+		});
+
+		expect(preview).toEqual({
+			src: DOCS_FALLBACK_SOCIAL_IMAGE_SRC,
+			url: `https://www.openquok.com${DOCS_FALLBACK_SOCIAL_IMAGE_SRC}`,
+			alt: DOCS_FALLBACK_SOCIAL_IMAGE_ALT
+		});
 	});
 });
 
