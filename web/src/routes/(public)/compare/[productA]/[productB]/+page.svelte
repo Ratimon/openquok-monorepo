@@ -76,6 +76,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-sky-400/20 via-cyan-300/16 to-blue-300/16 text-sky-100 ring-sky-300/28'
 		},
+		'claw-post': {
+			heroContainerClass:
+				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35',
+			cardContainerClass:
+				'bg-linear-to-br from-red-500/20 via-rose-400/16 to-cyan-400/16 text-red-50 ring-red-400/28'
+		},
 		recurpost: {
 			heroContainerClass:
 				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40',

@@ -8,6 +8,7 @@ export type CompareProductSlug =
 	| 'hootsuite'
 	| 'hopper-hq'
 	| 'buffer'
+	| 'claw-post'
 	| 'mixpost'
 	| 'openpost'
 	| 'post-bridge'

@@ -29,6 +29,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	hootsuite: 'https://www.hootsuite.com',
 	'hopper-hq': 'https://www.hopperhq.com',
 	buffer: 'https://buffer.com',
+	'claw-post': 'https://clawpost.net',
 	mixpost: 'https://mixpost.app',
 	openpost: 'https://openpo.st',
 	'post-bridge': 'https://www.post-bridge.com',
@@ -44,6 +45,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| 'hootsuite'
 	| 'hopper-hq'
 	| 'buffer'
+	| 'claw-post'
 	| 'mixpost'
 	| 'openpost'
 	| 'post-bridge'

@@ -55,6 +55,10 @@
 			containerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35'
 		},
+		'claw-post': {
+			containerClass:
+				'bg-linear-to-br from-red-500/30 via-rose-400/20 to-cyan-400/20 text-red-50 ring-red-400/35'
+		},
 		recurpost: {
 			containerClass:
 				'bg-linear-to-br from-yellow-400/35 via-amber-300/20 to-yellow-500/25 text-yellow-50 ring-yellow-400/40'
