@@ -12,6 +12,7 @@
 
 	let meta = $derived(data.meta);
 	let howToBlocks = $derived(data.howToBlocks ?? []);
+	let docImages = $derived(data.docImages ?? []);
 	let slug = $derived(data.slug);
 	let prev = $derived(data.prev);
 	let next = $derived(data.next);
@@ -21,7 +22,7 @@
 	let doc = $derived(getDoc(slug));
 </script>
 
-<DocsSeoHead title={meta.title} description={meta.description} {howToBlocks} />
+<DocsSeoHead title={meta.title} description={meta.description} {howToBlocks} {docImages} />
 
 {#key slug}
 	{#if doc}

@@ -38,33 +38,15 @@ import {
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
 import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
+import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
+
+export { guessImageMimeFromFilename };
 
 function absoluteAppUrl(origin: string, pathname: string): string {
 	const b = base === '/' ? '' : base.replace(/\/$/, '');
 	const p = pathname.startsWith('/') ? pathname : `/${pathname}`;
 	return `${origin}${b}${p}`;
-}
-
-/** Guess MIME type from a storage filename (used for OG / JSON-LD image). */
-export function guessImageMimeFromFilename(filename: string): string {
-	const name = filename.split('?')[0].toLowerCase();
-	const ext = name.split('.').pop();
-	switch (ext) {
-		case 'png':
-			return 'image/png';
-		case 'webp':
-			return 'image/webp';
-		case 'gif':
-			return 'image/gif';
-		case 'jpg':
-		case 'jpeg':
-			return 'image/jpeg';
-		case 'svg':
-			return 'image/svg+xml';
-		default:
-			return 'image/jpeg';
-	}
 }
 
 function collectionPageNode(params: {
