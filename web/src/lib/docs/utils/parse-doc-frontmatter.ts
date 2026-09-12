@@ -69,6 +69,8 @@ export function docMetaFromRawSource(raw: string): DocMeta {
 				: undefined,
 		draft: data.draft === true,
 		lastUpdated: typeof data.lastUpdated === 'string' ? data.lastUpdated : undefined,
+		ogImage: typeof data.ogImage === 'string' ? data.ogImage : undefined,
+		ogImageAlt: typeof data.ogImageAlt === 'string' ? data.ogImageAlt : undefined,
 		openapi: typeof data.openapi === 'string' ? data.openapi : undefined,
 		docsLayout: normalizeDocsLayout(data.docsLayout)
 	};

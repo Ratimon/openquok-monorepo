@@ -86,6 +86,8 @@ function buildDocs(
 				order: meta?.order,
 				sidebar: meta?.sidebar,
 				lastUpdated: meta?.lastUpdated,
+				ogImage: meta?.ogImage,
+				ogImageAlt: meta?.ogImageAlt,
 				openapi: meta?.openapi,
 				docsLayout: meta?.docsLayout
 			},

@@ -95,4 +95,43 @@ describe('createDocsPageSeoSchema', () => {
 		});
 		expect(kanbanImage).not.toHaveProperty('representativeOfPage');
 	});
+
+	it('uses ogImage as the primary ImageObject when frontmatter overrides inline order', () => {
+		const images = dedupeDocsImagesFromRaw(extractDocsImagesFromRaw(quickstartFixture));
+		const schema = createDocsPageSeoSchema({
+			title: 'Quickstart',
+			description: 'Get started with OpenQuok.',
+			canonicalUrl: QUICKSTART_URL,
+			requestUrl,
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/getting-started/quickstart', requestUrl),
+			images,
+			ogImage: '/docs/_assets/getting-started/5-kanban-board.webp',
+			ogImageAlt: 'Kanban preview'
+		});
+
+		expect(schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@type' in node &&
+				node['@type'] === 'TechArticle'
+		)).toMatchObject({
+			image: { '@id': `${QUICKSTART_URL}#doc-image-1` }
+		});
+
+		const primaryImage = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@id' in node &&
+				node['@id'] === `${QUICKSTART_URL}#doc-image-1`
+		) as Record<string, unknown> | undefined;
+
+		expect(primaryImage).toMatchObject({
+			caption: 'Kanban preview',
+			contentUrl: 'https://www.openquok.com/docs/_assets/getting-started/5-kanban-board.webp',
+			representativeOfPage: true
+		});
+	});
 });

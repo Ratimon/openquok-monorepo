@@ -23,7 +23,14 @@
 	let doc = $derived(getDoc(slug, locale));
 </script>
 
-<DocsSeoHead title={meta.title} description={meta.description} {howToBlocks} {docImages} />
+<DocsSeoHead
+	title={meta.title}
+	description={meta.description}
+	ogImage={meta.ogImage}
+	ogImageAlt={meta.ogImageAlt}
+	{howToBlocks}
+	{docImages}
+/>
 
 {#key slug}
 	{#if doc}

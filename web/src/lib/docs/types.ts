@@ -11,6 +11,10 @@ export interface DocMeta {
 	sidebar?: { label?: string };
 	draft?: boolean;
 	lastUpdated?: string;
+	/** Optional Open Graph / Twitter preview image (root-relative or absolute URL). */
+	ogImage?: string;
+	/** Alt text for `ogImage`; defaults to page title when omitted. */
+	ogImageAlt?: string;
 	/** When set (e.g. `POST /integrations/foo`), the doc page loads examples + playground from `GET /api/v1/openapi.json`. */
 	openapi?: string;
 	/**

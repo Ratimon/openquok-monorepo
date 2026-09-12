@@ -2,6 +2,7 @@ import type { BreadcrumbList, ImageObject, ListItem, TechArticle, WebSite } from
 
 import type { DocsHowToBlock } from '$lib/docs/utils/extractDocsHowToFromRaw';
 import type { DocsImageFromRaw } from '$lib/docs/utils/extractDocsImagesFromRaw';
+import { orderDocsImagesForSeo } from '$lib/docs/utils/docsSocialPreview';
 import { resolvePublicSiteUrl } from '$lib/docs/utils/resolve-public-site-url';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
@@ -76,6 +77,9 @@ export type CreateDocsPageSeoSchemaParams = {
 	breadcrumbItems: ListItem[];
 	howToBlocks?: DocsHowToBlock[];
 	images?: DocsImageFromRaw[];
+	/** Frontmatter override for the primary / social preview image. */
+	ogImage?: string;
+	ogImageAlt?: string;
 };
 
 /** JSON-LD `@graph` for a docs page: `TechArticle`, breadcrumbs, optional HowTo, and inline images. */
@@ -88,13 +92,20 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		siteTitle,
 		breadcrumbItems,
 		howToBlocks = [],
-		images = []
+		images = [],
+		ogImage,
+		ogImageAlt
 	} = params;
 
 	const siteOrigin = resolvePublicSiteUrl(requestUrl);
 	const techArticleId = docsTechArticleId(canonicalUrl);
+	const orderedImages = orderDocsImagesForSeo(images, {
+		primarySrc: ogImage,
+		primaryAlt: ogImageAlt,
+		pageTitle: title
+	});
 	const imageNodes = createDocsImageObjectNodes({
-		images,
+		images: orderedImages,
 		canonicalUrl,
 		requestUrl,
 		techArticleId,

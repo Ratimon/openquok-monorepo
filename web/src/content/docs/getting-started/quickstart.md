@@ -1,6 +1,8 @@
 ---
 title: Quickstart
 description: OpenQuok zero to hero — five steps from a new workspace to a queued post.
+ogImage: /docs/_assets/getting-started/5-kanban-board.webp
+ogImageAlt: Step 5 - Kanban Board in OpenQuok
 order: 1
 lastUpdated: 2026-08-25
 ---
