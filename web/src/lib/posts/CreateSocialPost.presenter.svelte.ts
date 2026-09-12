@@ -35,6 +35,7 @@ import {
 	integrationSupportsFollowUpComments,
 	clearPerChannelBodies,
 	clearPerChannelMedia,
+	resolveIntegrationMedia,
 	cloneProviderSettingsByIntegrationId,
 	computeLaunchMaxMediaItems,
 	computeScheduleValidationError,
@@ -78,6 +79,7 @@ import {
 	type ComposerTextHistory,
 	type ComposerTextSnapshot
 } from '$lib/posts/utils/composer';
+import { revokeLocalMediaPreviewUrls } from '$lib/posts/utils/composer/mediaDrop';
 import {
 	datetimeLocalToIso,
 	isoToDatetimeLocalValue,
@@ -485,11 +487,23 @@ export class CreateSocialPostPresenter {
 	loadEditorMedia(): void {
 		if (this.mode === 'custom' && this.focusedIntegrationId) {
 			this.postMediaItemsVm = [
-				...(this.mediaByIntegrationId[this.focusedIntegrationId] ?? this.globalMediaItems)
+				...resolveIntegrationMedia(
+					this.focusedIntegrationId,
+					this.globalMediaItems,
+					this.mediaByIntegrationId
+				)
 			];
 			return;
 		}
 		this.postMediaItemsVm = [...this.globalMediaItems];
+	}
+
+	private revokeAllComposerMediaPreviewUrls(): void {
+		revokeLocalMediaPreviewUrls(this.postMediaItemsVm);
+		revokeLocalMediaPreviewUrls(this.globalMediaItems);
+		for (const items of Object.values(this.mediaByIntegrationId)) {
+			revokeLocalMediaPreviewUrls(items);
+		}
 	}
 
 	enterCustomMode(integrationId: string): void {
@@ -1172,6 +1186,8 @@ export class CreateSocialPostPresenter {
 	}
 
 	private resetForm(): void {
+		this.revokeAllComposerMediaPreviewUrls();
+
 		this.mode = 'global';
 		this.focusedIntegrationId = null;
 		this.editorLocked = false;

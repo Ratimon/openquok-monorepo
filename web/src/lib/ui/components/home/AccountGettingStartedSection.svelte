@@ -121,8 +121,12 @@
 		</div>
 
 		<div class="px-5 py-5">
-			<h3 class="text-sm font-semibold text-base-content">Automate with agents &amp; CLI</h3>
-			<p class="mt-1 text-sm text-base-content/65">Connect OpenClaw or Hermes and use the CLI.</p>
+			<h3 class="text-sm font-semibold text-base-content">
+				Automate with MCP &amp; CLI
+			</h3>
+			<p class="mt-1 text-sm text-base-content/65">
+				Connect agents via MCP clients or the CLI.
+			</p>
 			<ul class="mt-4 space-y-1">
 				{#each automationLinks as link (link.label)}
 					<li>

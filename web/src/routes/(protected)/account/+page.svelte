@@ -728,6 +728,13 @@
 			onClick: openOnboardingFlow
 		},
 		{
+			label: 'MCP setup guides',
+			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
+			iconName: icons.BookOpen.name,
+			href: mcpSetupGuidesHref,
+			external: true
+		},
+		{
 			label: 'CLI documentation',
 			description: 'Install and use the OpenQuok CLI.',
 			iconName: icons.BookOpen.name,
@@ -769,13 +776,6 @@
 		// 	href: thinkrailGuideHref,
 		// 	external: true
 		// },
-		{
-			label: 'MCP setup guides',
-			description: 'Connect Cursor, Claude Code, Codex, and other MCP clients.',
-			iconName: icons.BookOpen.name,
-			href: mcpSetupGuidesHref,
-			external: true
-		}
 	]);
 
 

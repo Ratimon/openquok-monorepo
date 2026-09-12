@@ -72,22 +72,24 @@
 	);
 </script>
 
-{#if isVideo}
-	<video
-		autoplay={autoplay}
-		muted
-		loop
-		playsinline
-		class={videoClassResolved}
-		aria-label={alt || undefined}
-	>
-		{#if webmSrc}
-			<source src={webmSrc} type="video/webm" />
-		{/if}
-		{#if mp4Src}
-			<source src={mp4Src} type="video/mp4" />
-		{/if}
-	</video>
-{:else}
-	<img {src} {alt} class={imgClass} {loading} {decoding} />
-{/if}
+{#key src}
+	{#if isVideo}
+		<video
+			autoplay={autoplay}
+			muted
+			loop
+			playsinline
+			class={videoClassResolved}
+			aria-label={alt || undefined}
+		>
+			{#if webmSrc}
+				<source src={webmSrc} type="video/webm" />
+			{/if}
+			{#if mp4Src}
+				<source src={mp4Src} type="video/mp4" />
+			{/if}
+		</video>
+	{:else}
+		<img {src} {alt} class={imgClass} {loading} {decoding} />
+	{/if}
+{/key}

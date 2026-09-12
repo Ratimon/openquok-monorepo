@@ -2,8 +2,6 @@
 	import type { MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 	import type { PostMediaProgrammerModel } from '$lib/posts';
 
-	import { onDestroy } from 'svelte';
-
 	import { isVideoMediaPath, publicUrlForMediaStorageKey, formatBytes } from '$lib/medias';
 	import { composerMediaItemSupportsSettings } from '$lib/posts/utils/composer/composerMediaSettings';
 	import {
@@ -11,8 +9,7 @@
 		attachComposerMediaFromLocalFiles,
 		filesFromDataTransfer,
 		postMediaPreviewUrl,
-		revokeLocalMediaPreviewUrl,
-		revokeLocalMediaPreviewUrls
+		revokeLocalMediaPreviewUrl
 	} from '$lib/posts/utils/composer/mediaDrop';
 	import { icons } from '$data/icons';
 	import { toast } from '$lib/ui/sonner';
@@ -164,10 +161,6 @@
 	export function isUploadBusy(): boolean {
 		return uploadBusy;
 	}
-
-	onDestroy(() => {
-		revokeLocalMediaPreviewUrls(items);
-	});
 
 	function onDropZoneDrop(e: DragEvent) {
 		e.preventDefault();
@@ -399,7 +392,7 @@
 						{#if settingsAvailable}
 							<button
 								type="button"
-								class="bg-primary text-primary-content ring-base-100 absolute bottom-1 right-1 z-[2] flex h-6 w-6 items-center justify-center rounded-full opacity-0 shadow-sm ring-2 transition-opacity hover:bg-primary/90 group-hover:opacity-100"
+								class="bg-primary text-primary-content ring-base-100 absolute bottom-1 right-1 z-[2] flex h-6 w-6 items-center justify-center rounded-full shadow-sm ring-2 hover:bg-primary/90"
 								disabled={disabled}
 								onclick={(e) => {
 									e.stopPropagation();

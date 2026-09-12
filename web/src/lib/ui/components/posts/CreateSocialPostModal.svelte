@@ -86,12 +86,14 @@
 	$effect(() => {
 		if (!open) {
 			saveSetNameOpen = false;
-			presenter.onModalClose();
+			untrack(() => presenter.onModalClose());
 			return;
 		}
 		if (!workspaceId) return;
-		const channels = untrack(() => connectedChannels);
-		void presenter.onModalOpen(workspaceId, channels);
+		// Init once per open — onModalOpen resets presenter $state; keep that out of this effect's deps.
+		untrack(() => {
+			void presenter.onModalOpen(workspaceId, connectedChannels);
+		});
 	});
 
 	function requestClose() {

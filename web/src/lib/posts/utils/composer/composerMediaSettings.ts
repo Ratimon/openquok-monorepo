@@ -51,6 +51,14 @@ export function mergeLibraryVmIntoPostMedia(
 	};
 }
 
+/** Guest-only attachment: local blob preview with no workspace storage key yet. */
+export function isGuestOnlyComposerMedia(item: PostMediaProgrammerModel): boolean {
+	if (!item.localPreviewUrl?.trim()) return false;
+	const path = item.path.trim();
+	if (path.includes('/')) return false;
+	return !item.publicUrl?.trim();
+}
+
 /** Resolve workspace library row by storage path (legacy drafts may carry a random attachment id). */
 export async function resolveComposerMediaLibraryItemVm(
 	organizationId: string,
@@ -59,7 +67,7 @@ export async function resolveComposerMediaLibraryItemVm(
 ): Promise<MediaLibraryItemViewModel> {
 	const base = postMediaToLibraryItemVm(item);
 	const orgId = organizationId.trim();
-	if (!orgId || item.localPreviewUrl?.trim()) return base;
+	if (!orgId || isGuestOnlyComposerMedia(item)) return base;
 
 	const browse = await getMediaPresenter.loadMediaPickerBrowseVm(orgId);
 	const match = browse.images.find((row) => row.path === item.path);
@@ -73,7 +81,7 @@ export async function resolveComposerMediaLibraryItemVm(
 }
 
 export function composerMediaItemSupportsSettings(item: PostMediaProgrammerModel): boolean {
-	if (item.localPreviewUrl?.trim()) return false;
+	if (isGuestOnlyComposerMedia(item)) return false;
 	const path = item.path.trim();
 	return isImageMediaPath(path) || isVideoMediaPath(path);
 }

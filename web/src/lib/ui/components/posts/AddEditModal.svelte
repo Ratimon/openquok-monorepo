@@ -18,6 +18,7 @@
 	import type { ThreadFollowUpReply } from '$lib/posts/createSocialPost.types';
 	import type { ComposerTextHistory } from '$lib/posts/utils/composer';
 	import { resolvePreviewProviderSettings } from '$lib/posts/utils/composer';
+	import { postMediaPreviewUrls } from '$lib/posts/utils/composer/mediaDrop';
 	import {
 		activeCrossAccountPlugs,
 		buildCrossAccountPlugsProviderPatch,
@@ -299,6 +300,15 @@
 					: null;
 		return integrationId ? socialChannels.find((c) => c.id === integrationId) ?? null : null;
 	});
+
+	const previewChannelKey = $derived(
+		previewChannel?.id ?? `global-${selectedIds.slice().sort().join(',') || 'none'}`
+	);
+
+	/** Keep preview URLs in sync with strip items (survives per-network channel switches). */
+	const effectivePreviewMediaUrls = $derived(
+		postMediaItems.length > 0 ? postMediaPreviewUrls(postMediaItems) : mediaUrls
+	);
 
 	const effectivePreviewProviderSettings = $derived(
 		resolvePreviewProviderSettings(
@@ -683,10 +693,11 @@
 			</div>
 			<div class="flex justify-center p-4 sm:p-6">
 				<div class="w-full min-w-0 max-w-full">
+				{#key previewChannelKey}
 				<ShowAllProviders
 					channel={previewChannel}
 					{previewText}
-					{mediaUrls}
+					mediaUrls={effectivePreviewMediaUrls}
 					mediaStoragePaths={postMediaItems.map((item) => item.path)}
 					maximumCharacters={softCharLimit}
 					{weightedCharCount}
@@ -702,6 +713,7 @@
 					providerSettings={effectivePreviewProviderSettings}
 					crossAccountPlugs={previewCrossAccountPlugs}
 				/>
+				{/key}
 				</div>
 			</div>
 		</div>

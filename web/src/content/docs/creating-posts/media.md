@@ -40,7 +40,7 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 <p>The browser blocks an image over <strong>30 MB</strong> before upload. The server rejects an image over <strong>10 MB</strong>. One drop or multi-select cannot exceed <strong>1 GB</strong> total.</p>
 </Callout>
 
-The composer accepts images and videos only. The media library, CLI, and Uploads API also accept audio and PDF.
+The post editor accepts images and videos only. The media library, CLI, and Uploads API also accept audio and PDF.
 
 Platform rules are stricter than these and vary a lot: YouTube wants exactly one video, Instagram needs at least one attachment, and TikTok does not mix photos and video. See <a href="/docs/platforms">Posting rules by platform</a>. The **Post Preview** column and the validation under the media strip warn you before save.
 
@@ -50,7 +50,7 @@ Each thumbnail has **Move up** and **Move down** chevrons and a **Remove** contr
 
 ## Media settings
 
-In the post editor, click a strip thumbnail or the **gear** icon on hover to open **Media details**.
+In the post editor, click a strip thumbnail or the **gear** icon (bottom-right of each thumbnail) to open **Media details**.
 
 | Field | What you can set |
 | --- | --- |
