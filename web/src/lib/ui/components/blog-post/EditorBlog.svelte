@@ -624,7 +624,7 @@
 									faqs={field.state.value ?? []}
 									onChange={(faqs) => field.handleChange(faqs.length > 0 ? faqs : null)}
 									label="FAQ items"
-									description="Questions stay plain text. Answers use Visual or HTML source so you can link Skill Builder and other first-party pages. JSON-LD stores the answer as plain text."
+									description="Questions stay plain text. Answers use Visual or HTML source so you can link Skill Builder and other first-party pages. JSON-LD stores the answer as plain text. Use the arrows on each card to reorder items."
 									richTextAnswers={true}
 								/>
 							</div>

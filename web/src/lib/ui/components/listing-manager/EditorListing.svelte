@@ -884,7 +884,7 @@
 						faqs={field.state.value ?? []}
 						onChange={(faqs) => field.handleChange(faqs)}
 						label="FAQ"
-						description="Add Q&A pairs for the public detail page and FAQPage JSON-LD."
+						description="Add Q&A pairs for the public detail page and FAQPage JSON-LD. Use the arrows on each card to reorder items."
 					/>
 					<Field.Error errors={fieldErrors(field)} />
 				</div>
