@@ -71,8 +71,6 @@ Agent workflows often pair **Agent** + **To do** so humans only see drafts that 
 | **Drafted & scheduled** | Draft + Scheduled | All Upcoming | All Upcoming · Next Week · Next 30 Days |
 | **Published posts** | Published | All Past | All Past · Past Week · Past 30 Days |
 
-Upcoming filters never hide the published column, and past filters never hide drafts or scheduled items — so an empty published column usually means no posts match the past window, not a wrong default.
-
 Use the **Calendar** button beside the upcoming filters to open <a href="/account/calendar">/account/calendar</a> for a date-based view of the same posts.
 
 On narrow screens, each time zone collapses to a **dropdown** so the controls stay on one row and stay aligned with their columns.

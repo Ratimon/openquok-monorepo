@@ -105,7 +105,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 | --- | --- |
 | <Badge text="Save as draft" variant="param" /> | Keeps the post as **Drafted posts**. It never publishes until you schedule. |
 | <Badge text="Add to calendar" variant="default" /> | Schedule it for the time you picked. |
-| <Badge text="Publish now" variant="default" /> | Publishes immediately — hover the schedule button or open its menu to find it. |
+| <Badge text="Publish now" variant="default" /> | Publish Now. Open the <Badge text="⋯" variant="default" /> menu on the schedule button to reveal it. |
 
 <p>See more at <a href="/docs/creating-posts/scheduling">Scheduling</a> for draft vs scheduled vs publish-now behavior.</p>
 
