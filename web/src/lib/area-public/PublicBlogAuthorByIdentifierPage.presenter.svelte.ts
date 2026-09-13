@@ -1,9 +1,5 @@
 import type { BlogAuthorPublicViewModel, BlogPostPublicViewModel, GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
-import { stringToSlug } from '$lib/ui/helpers/common';
-
-function authorProfileSlug(author: BlogAuthorPublicViewModel): string {
-	return stringToSlug(author.fullName || author.username || 'Anonymous');
-}
+import { getBlogAuthorProfileIdentifier } from '$lib/blogs/utils/blogAuthorPaths';
 
 /**
  * Match URL segment to an author: slug from display name (Next.js overview links),
@@ -19,7 +15,7 @@ export function findPublishedAuthorByIdentifier(
 		authors.find((a) => {
 			if (a.id === id) return true;
 			if (a.username && a.username === id) return true;
-			return authorProfileSlug(a) === id;
+			return getBlogAuthorProfileIdentifier(a) === id;
 		}) ?? null
 	);
 }

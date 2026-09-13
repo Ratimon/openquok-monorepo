@@ -56,7 +56,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 	const updatedAt = currentPostVm.updatedAt ?? currentPostVm.createdAt;
 
 	const minutes = currentPostVm.readingTimeMinutes ?? 0;
-	const minutesLabel = minutes ? `${minutes} minutes` : `5 minutes`;
+	const minutesLabel = minutes ? `${minutes} minute${minutes === 1 ? '' : 's'}` : `5 minutes`;
 
 	const description =
 		currentPostVm.description ??
@@ -100,6 +100,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		customTags: keywords,
 		customImages,
 		customSlug: getRootPathPublicBlogPost(slug),
+		openGraphType: 'article',
 		customMetaTags: [
 			{ property: 'article:published_time', content: publishedAt },
 			{ property: 'article:modified_time', content: updatedAt },

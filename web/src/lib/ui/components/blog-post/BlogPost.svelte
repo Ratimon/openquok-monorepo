@@ -6,8 +6,9 @@
 	import { browser } from '$app/environment';
 
 	import { syncBlogHeadingIds } from '$lib/blogs/utils';
-	import { getRootPathPublicBlog, getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { stringToSlug } from '$lib/ui/helpers/common';
+	import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
+	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
+	import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
 	import { url } from '$lib/utils/path';
 
 	import AuthorInfo from '$lib/ui/components/blog-post/AuthorInfo.svelte';
@@ -17,7 +18,6 @@
 	import BlogViewPixel from '$lib/ui/components/blog-post/BlogViewPixel.svelte';
 	import TableOfContents from '$lib/ui/components/blog-post/TableOfContents.svelte';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
-	import SupabaseImage from '$lib/ui/supabase/SupabaseImage.svelte';
 	import OneColSection from '$lib/ui/layouts/OneColSection.svelte';
 
 	// /blog
@@ -64,13 +64,11 @@
 	);
 
 	let authorProfileHref = $derived(
-		post.author
-			? url(
-					`/${getRootPathPublicBlogAuthor(
-						stringToSlug(post.author.fullName || post.author.username || 'Anonymous')
-					)}`
-				)
-			: null
+		post.author ? url(`/${getBlogAuthorProfilePath(post.author)}`) : null
+	);
+
+	let heroImageSrc = $derived(
+		post.heroImageFilename ? buildBlogInlineImageSrc(post.heroImageFilename) : ''
 	);
 
 	let proseEl: HTMLDivElement | undefined = $state();
@@ -191,13 +189,14 @@
 							class="relative h-auto w-full overflow-hidden rounded-lg"
 							data-testid="blog-post-hero-image"
 						>
-							<SupabaseImage
-								dbImageUrl={post.heroImageFilename}
-								database="blog_images"
+							<img
+								src={heroImageSrc}
+								alt={post.title}
 								width={1200}
 								height={630}
 								class="h-auto w-full rounded-t-md object-cover"
-								imageAlt={post.title}
+								loading="eager"
+								decoding="async"
 							/>
 						</div>
 					{/if}

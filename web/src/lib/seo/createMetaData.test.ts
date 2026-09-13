@@ -77,4 +77,26 @@ describe('createMetaData', () => {
 		expect(metaTags.title).toBe('Sign in');
 		expect(metaTags.titleTemplate).toBe('%s | OpenQuok');
 	});
+
+	it('defaults openGraph.type to website', async () => {
+		const metaTags = await createMetaData({
+			companyInformation,
+			marketingInformation,
+			requestUrl: new URL('https://www.openquok.com/')
+		});
+
+		expect(metaTags.openGraph?.type).toBe('website');
+	});
+
+	it('sets openGraph.type to article when openGraphType is article', async () => {
+		const metaTags = await createMetaData({
+			companyInformation,
+			marketingInformation,
+			customTitle: 'How to schedule posts',
+			openGraphType: 'article',
+			requestUrl: new URL('https://www.openquok.com/blog/how-to-schedule-posts')
+		});
+
+		expect(metaTags.openGraph?.type).toBe('article');
+	});
 });

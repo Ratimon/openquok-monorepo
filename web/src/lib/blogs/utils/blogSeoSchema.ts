@@ -37,6 +37,7 @@ import {
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
+import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
 import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
@@ -609,10 +610,15 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 
 	const heroUrl = post.heroImageFilename ? buildBlogInlineImageSrc(post.heroImageFilename) : '';
 
+	const authorProfileUrl = post.author
+		? absoluteAppUrl(origin, `/${getBlogAuthorProfilePath(post.author)}`)
+		: siteFallback;
+
 	const author: Person = {
 		'@type': 'Person',
 		name: authorName,
-		url: post.author?.website?.trim() || siteFallback,
+		url: authorProfileUrl,
+		...(post.author?.website?.trim() ? { sameAs: [post.author.website.trim()] } : {}),
 		...(post.author?.avatarUrl?.trim() ? { image: post.author.avatarUrl.trim() } : {}),
 		...(post.author?.tagLine?.trim() ? { description: post.author.tagLine.trim() } : {})
 	};

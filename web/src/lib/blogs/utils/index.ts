@@ -1,4 +1,8 @@
 export {
+	getBlogAuthorProfileIdentifier,
+	getBlogAuthorProfilePath
+} from '$lib/blogs/utils/blogAuthorPaths';
+export {
 	buildBlogInlineImageSrc,
 	extractBlogImageStoragePathFromImageSrc,
 	extractBlogImageStoragePathsFromHtml,

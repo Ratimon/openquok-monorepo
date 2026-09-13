@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { getRootPathPublicBlogAuthor } from '$lib/area-public/constants/getRootPathPublicBlog';
+	import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
 	import { url } from '$lib/utils/path';
-	import { stringToSlug } from '$lib/ui/helpers/common';
 
 	import * as Avatar from '$lib/ui/components/avatar';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
@@ -28,8 +27,7 @@
 	let schemaData = $derived(data.schemaData);
 
 	function authorHref(author: (typeof authors)[number]): string {
-		const segment = stringToSlug(author.fullName || author.username || 'Anonymous');
-		return url(`/${getRootPathPublicBlogAuthor(segment)}`);
+		return url(`/${getBlogAuthorProfilePath(author)}`);
 	}
 
 	function displayName(author: (typeof authors)[number]): string {

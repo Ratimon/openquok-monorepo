@@ -299,6 +299,47 @@ describe('isBlogTopicEligibleForGuide', () => {
 	});
 });
 
+describe('createBlogPostSEOSchema author Person', () => {
+	it('uses the public author profile URL when fullName is present', () => {
+		const schema = createPostSchema({
+			author: {
+				id: '33333333-3333-4333-8333-333333333333',
+				fullName: 'Rati Montreewat',
+				username: null,
+				avatarUrl: null,
+				website: null,
+				tagLine: null
+			}
+		});
+
+		const blogPosting = findBlogPosting(schema);
+		expect(blogPosting?.author).toMatchObject({
+			'@type': 'Person',
+			name: 'Rati Montreewat',
+			url: 'https://www.openquok.com/blog/author/rati-montreewat'
+		});
+	});
+
+	it('keeps author website in sameAs instead of Person.url', () => {
+		const schema = createPostSchema({
+			author: {
+				id: '33333333-3333-4333-8333-333333333333',
+				fullName: 'Rati Montreewat',
+				username: null,
+				avatarUrl: null,
+				website: 'https://example.com',
+				tagLine: null
+			}
+		});
+
+		const blogPosting = findBlogPosting(schema);
+		expect(blogPosting?.author).toMatchObject({
+			url: 'https://www.openquok.com/blog/author/rati-montreewat',
+			sameAs: ['https://example.com']
+		});
+	});
+});
+
 describe('createBlogPostSEOSchema product node', () => {
 	it('includes a free Offer so Google Product snippets validate', () => {
 		const schema = createBlogPostSEOSchema({

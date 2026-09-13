@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { BlogPostPublicViewModel } from '$lib/blogs/index';
+	import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
 	import FormattedISODate from '$lib/ui/components/FormattedISODate.svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/ui/card';
 	import { cn } from '$lib/ui/helpers/common';
-	import SupabaseImage from '$lib/ui/supabase/SupabaseImage.svelte';
 
 	type Props = {
 		post: BlogPostPublicViewModel;
@@ -14,6 +14,10 @@
 
 	const minutes = $derived(post.readingTimeMinutes ?? 0);
 	const readingLabel = $derived(`${minutes} min read`);
+	const heroImageSrc = $derived(
+		post.heroImageFilename ? buildBlogInlineImageSrc(post.heroImageFilename) : ''
+	);
+	const heroImageAlt = $derived(`Featured image for blog post: ${post.title}`);
 </script>
 
 <article>
@@ -30,13 +34,14 @@
 			)}
 		>
 			{#if post.heroImageFilename}
-				<SupabaseImage
-					dbImageUrl={post.heroImageFilename}
-					database="blog_images"
+				<img
+					src={heroImageSrc}
+					alt={heroImageAlt}
 					width={900}
 					height={600}
-					class="relative aspect-video w-full overflow-hidden rounded-t-lg bg-base-200"
-					imageAlt="Featured image for blog post: {post.title}"
+					class="relative aspect-video w-full overflow-hidden rounded-t-lg bg-base-200 object-cover"
+					loading="lazy"
+					decoding="async"
 				/>
 			{:else}
 				<div class="relative aspect-video w-full rounded-t-lg bg-base-200"></div>

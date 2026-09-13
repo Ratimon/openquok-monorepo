@@ -80,6 +80,7 @@ export function resolveDocumentTitleTemplate(title: string, companyName: string)
  * @param customSlug - Path segment for canonical/OG URL (e.g. "terms").
  * @param customMetaTags - Extra meta tags appended to additionalMetaTags.
  * @param requestUrl - URL from SvelteKit load for SSR fallbacks.
+ * @param openGraphType - Open Graph `og:type` (default `website`; use `article` for blog posts).
  */
 export async function createMetaData({
 	companyInformation,
@@ -90,7 +91,8 @@ export async function createMetaData({
 	customImages,
 	customSlug,
 	customMetaTags,
-	requestUrl
+	requestUrl,
+	openGraphType = 'website'
 }: {
 	companyInformation: CompanyInformationProgrammerModel | null;
 	marketingInformation: MarketingInformationProgrammerModel | null;
@@ -101,6 +103,7 @@ export async function createMetaData({
 	customSlug?: string;
 	customMetaTags?: MetaTag[];
 	requestUrl?: URL;
+	openGraphType?: 'website' | 'article';
 }): Promise<MetaTagsProps> {
 	const companyConfig = companyInformation?.config as Record<string, string> | undefined;
 	const marketingConfig = marketingInformation?.config as Record<string, string> | undefined;
@@ -198,7 +201,7 @@ export async function createMetaData({
 
 		openGraph: {
 			url: canonicalHref,
-			type: 'website',
+			type: openGraphType,
 			locale: 'en_US',
 			siteName: companyName,
 			title,
