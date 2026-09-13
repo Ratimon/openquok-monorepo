@@ -4,6 +4,9 @@
   </a>
 </p>
 
+<h1 align="center">OpenQuok: agent-native social media scheduling tool/workspace
+</h1>
+
 <p align="center">
   <!-- Badges -->
   <a href="https://github.com/Ratimon/openquok-monorepo/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Ratimon/openquok-monorepo?style=for-the-badge&labelColor=000000"></a>
@@ -11,23 +14,52 @@
   <a href="https://discord.gg/wXgWcYzU4"><img alt="Join our Discord" src="https://img.shields.io/badge/Join%20our%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=000000"></a>
 </p>
 
-<h1 align="center">OpenQuok: agent-native social media scheduling tool/workspace</h1>
-
-It helps individuals or teams to run many social accounts at scale (especially as AI multiplies output) with an automation pipeline—draft, schedule, and publish—plus review and approval workflows so humans give final sign-off before anything goes live
-
-It also offers a forkable, self-hosted alternative to closed SaaS schedulers (Buffer, Hypefury, and etc).
-
-Use the **dashboard** to review, schedule and approve with a clear path from draft to post. Fits naturally on top of AI tooling like **OpenClaw**.
-
-Use the **`@openquok/auto-cli`**, CLI-first for AI agents and scripts, to give them the same scheduling surface to autonomously schedule posts, manage integrations, and upload media from the terminal.
-
-
 <p align="center">
   <a href="https://www.openquok.com/sign-up">Sign up</a>
-  · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
   · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
-  · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a><br />
+  · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a>
+  · <a href="https://www.openquok.com/tools/humanizer">Humanizer</a>
+  · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a><br />
 </p>
+
+OpenQuok helps individuals and teams run many social accounts at scale — especially as AI multiplies output. Draft, schedule, and publish from one workspace, with review and approval before anything goes live. Use the dashboard, or connect agents through the CLI, MCP, and public API. Self-host when you want an open alternative to closed SaaS schedulers.
+
+## What you can do
+
+- <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, and Dev.to to a workspace. Each network keeps its own posting rules and limits — see the [channel catalog](https://www.openquok.com/channels).
+- <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Compose for each platform](https://www.openquok.com/docs/creating-posts).** Write once in Global mode or unlock a channel for its own caption, media, and settings. Preview each version before you schedule — see [Global vs per-channel](https://www.openquok.com/docs/creating-posts/global-vs-per-channel).
+- <img src="./assets/readme/features/photo-editor.svg" alt="" width="24" height="24" align="top"> **[Photo editor](https://www.openquok.com/tools/photo-editor).** Design and resize visuals for social channels in your browser. Pick platform aspect ratios, export PNG free, or save to your workspace when signed in.
+- <img src="./assets/readme/features/humanizer.svg" alt="" width="24" height="24" align="top"> **[Humanizer](https://www.openquok.com/tools/humanizer).** Rewrite drafts so they read less machine-written. Human and Roughen modes run on-device in Chrome — no account required to copy results.
+- <img src="./assets/readme/features/calendar.svg" alt="" width="24" height="24" align="top"> **[Calendar and kanban](https://www.openquok.com/docs/calendar-and-posts).** Plan posts on the calendar, drag to reschedule, and review drafts on Home kanban — see [Kanban board](https://www.openquok.com/docs/creating-posts/kanban) and [Moving posts](https://www.openquok.com/docs/calendar-and-posts/moving-posts).
+- <img src="./assets/readme/features/approvals.svg" alt="" width="24" height="24" align="top"> **[Review and approvals](https://www.openquok.com/docs/calendar-and-posts/approvals).** Share preview links and collect client comments before you schedule. Humans give final sign-off before anything goes live.
+- <img src="./assets/readme/features/calendar.svg" alt="" width="24" height="24" align="top"> **[Scheduling and time slots](https://www.openquok.com/docs/creating-posts/scheduling).** Save drafts, pick a publish time, or use [posting time slots](https://www.openquok.com/docs/channels/time-slots) per channel. Bundle channels into [channel groups](https://www.openquok.com/docs/channels/channel-groups) for clients or brands.
+- <img src="./assets/readme/features/media.svg" alt="" width="24" height="24" align="top"> **[Media library](https://www.openquok.com/docs/creating-posts/media).** Upload from your device, reuse files from your workspace library, or attach saved media without uploading again. Per-channel lists apply when networks disagree on formats.
+- <img src="./assets/readme/features/threads.svg" alt="" width="24" height="24" align="top"> **[Threads and follow-up comments](https://www.openquok.com/docs/creating-posts/threads-and-comments).** Schedule multi-part posts and timed replies on supported networks. Delays, thread finisher, and cross-account plugs are covered in [Automations](https://www.openquok.com/docs/automations).
+- <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Templates and tags](https://www.openquok.com/docs/creating-posts/templates).** Save composer presets for repeat workflows and label campaigns with [tags](https://www.openquok.com/docs/creating-posts/tags).
+- <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Analytics](https://www.openquok.com/docs/calendar-and-posts/actions-and-stats).** Compare post results and track audience changes across connected accounts. Per-network availability is listed under [Posting rules by platform](https://www.openquok.com/docs/platforms#analytics).
+- <img src="./assets/readme/features/ai.svg" alt="" width="24" height="24" align="top"> **[AI drafting](https://www.openquok.com/docs/creating-posts/ai-generation).** Queue posts from agents, the CLI, or the public API. Everything lands in the same review queue — you approve what publishes.
+- <img src="./assets/readme/features/automation.svg" alt="" width="24" height="24" align="top"> **[API, CLI, and MCP](https://www.openquok.com/docs/automations).** Create drafts, schedule posts, and check publishing results from scripts or agent clients. Start with [CLI](https://www.openquok.com/docs/getting-started-for-cli), [MCP](https://www.openquok.com/docs/getting-started-for-mcp), or the [Public API reference](https://www.openquok.com/docs/getting-started-for-public-api).
+- <img src="./assets/readme/features/tools.svg" alt="" width="24" height="24" align="top"> **[Free creator tools](https://www.openquok.com/tools).** [Skill Builder](https://www.openquok.com/tools/skill-builder) exports agent skills, [Best time to post](https://www.openquok.com/tools/best-time-to-post) builds timing test plans, and channel-specific pages exist for each shipped network.
+- <img src="./assets/readme/features/workspaces.svg" alt="" width="24" height="24" align="top"> **[Teams and workspaces](https://www.openquok.com/docs/settings/team).** Keep brands and clients in separate workspaces, invite teammates, and manage timezone, profile, and [developer tokens](https://www.openquok.com/docs/settings/developers).
+
+## Supported platforms
+
+<p>
+  <a href="https://www.openquok.com/channels/facebook"><img src="./assets/readme/socials/facebook.svg" alt="Facebook" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/threads"><img src="./assets/readme/socials/threads.svg" alt="Threads" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/instagram"><img src="./assets/readme/socials/instagram.svg" alt="Instagram" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/linkedin"><img src="./assets/readme/socials/linkedin.svg" alt="LinkedIn" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/x"><img src="./assets/readme/socials/x.svg" alt="X" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/youtube"><img src="./assets/readme/socials/youtube.svg" alt="YouTube" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/tiktok"><img src="./assets/readme/socials/tiktok.svg" alt="TikTok" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/devto"><img src="./assets/readme/socials/devto.svg" alt="Dev.to" width="32" height="32"></a>
+</p>
+
+OpenQuok ships integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, and **Dev.to**. Dev.to connects with a personal API key in Add Channel — no OAuth redirect.
+
+Posting formats, follow-up comments, and analytics vary by platform. Some integrations require provider app approval or publicly reachable media URLs on self-hosted deployments.
+
+[Connect channels](https://www.openquok.com/docs/channels/connect) · [Posting rules by platform](https://www.openquok.com/docs/platforms) · [Channel catalog](https://www.openquok.com/channels) · [Social integrations (self-host)](https://www.openquok.com/docs/social-integration)
 
 ---
 
@@ -112,35 +144,43 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 
 - [Official Website](https://www.openquok.com)
 
-**Documentation (by audience)**
+**Product docs (General tab)**
 
-- [Product overview](https://www.openquok.com/docs) — [Quickstart](https://www.openquok.com/docs/getting-started/quickstart) for a first post
-- [Cloud](https://www.openquok.com/docs/cloud) — hosted plans, trial, and billing
-- [CLI & agent users](https://www.openquok.com/docs/getting-started-for-cli) — `@openquok/auto-cli`, auth, commands, and examples
-- [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup and examples
-- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens; [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) for Authorization Code flow
-- [Contributing](https://www.openquok.com/docs/developer-guidelines) — repo conventions and contribution guides
-- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
+- [Getting started](https://www.openquok.com/docs/getting-started) — product overview; [Quickstart](https://www.openquok.com/docs/getting-started/quickstart) for a first post; [Glossary](https://www.openquok.com/docs/getting-started/glossary) and [Tour the app](https://www.openquok.com/docs/getting-started/tour-the-app)
+- [Channels](https://www.openquok.com/docs/channels) — [connect](https://www.openquok.com/docs/channels/connect), [manage](https://www.openquok.com/docs/channels/manage), [time slots](https://www.openquok.com/docs/channels/time-slots), and [channel groups](https://www.openquok.com/docs/channels/channel-groups)
+- [Creating posts](https://www.openquok.com/docs/creating-posts) — composer, [media](https://www.openquok.com/docs/creating-posts/media), [scheduling](https://www.openquok.com/docs/creating-posts/scheduling), [kanban](https://www.openquok.com/docs/creating-posts/kanban), and [AI generation](https://www.openquok.com/docs/creating-posts/ai-generation)
+- [Calendar and posts](https://www.openquok.com/docs/calendar-and-posts) — [moving posts](https://www.openquok.com/docs/calendar-and-posts/moving-posts), [actions and stats](https://www.openquok.com/docs/calendar-and-posts/actions-and-stats), and [approvals](https://www.openquok.com/docs/calendar-and-posts/approvals)
+- [Platforms](https://www.openquok.com/docs/platforms) — character limits, media rules, and per-network settings
+- [Automations](https://www.openquok.com/docs/automations) — [plugs](https://www.openquok.com/docs/automations/plugs), internal, cross-account, and global rules
+- [Settings](https://www.openquok.com/docs/settings) — timezone, team, profile, developers, signatures, and approved apps
+- [Free tools](https://www.openquok.com/tools) — [Humanizer](https://www.openquok.com/tools/humanizer), [Photo editor](https://www.openquok.com/tools/photo-editor), [Skill Builder](https://www.openquok.com/tools/skill-builder), and [Best time to post](https://www.openquok.com/tools/best-time-to-post)
+- [Cloud](https://www.openquok.com/docs/cloud) — hosted plans, [trial](https://www.openquok.com/docs/cloud/trial), [limits](https://www.openquok.com/docs/cloud/limits), and billing
+
+**CLI, MCP, and Public API**
+
+- [CLI & agent users](https://www.openquok.com/docs/getting-started-for-cli) — `@openquok/auto-cli`, auth, [core usages](https://www.openquok.com/docs/cli-usages), and [examples](https://www.openquok.com/docs/cli-examples)
+- [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup, [tools reference](https://www.openquok.com/docs/mcp-references/tools), and [examples](https://www.openquok.com/docs/mcp-examples)
+- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens; [supported channels](https://www.openquok.com/docs/getting-started-for-public-api/supported-social-channels)
+- [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) — Authorization Code flow for third-party applications
 
 **Self-host & setup**
 
-- [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose)
-- [System requirements](https://www.openquok.com/docs/installation/system-requirements)
-- [Quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start)
-- [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
-- [Installation](https://www.openquok.com/docs/installation)
-- [Social integrations](https://www.openquok.com/docs/social-integration) — connect channels (OAuth, env, provider dashboards)
+- [Developer quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start) and [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
+- [Installation](https://www.openquok.com/docs/installation) — [Docker Compose](https://www.openquok.com/docs/installation/docker-compose), [system requirements](https://www.openquok.com/docs/installation/system-requirements), [development environment](https://www.openquok.com/docs/installation/development-environment), and [production deployment](https://www.openquok.com/docs/installation/production-deployment)
+- [Social integrations](https://www.openquok.com/docs/social-integration) — operator OAuth apps, env keys, and provider dashboards
 - [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup
-- [Configuration – Backend](https://www.openquok.com/docs/configuration-backend)
-- [Configuration – Web](https://www.openquok.com/docs/configuration-web)
-- [Configuration – Workers](https://www.openquok.com/docs/configuration-worker)
-- [Configuration – CLI auth server](https://www.openquok.com/docs/configuration-agent)
+- [Configuration – Backend](https://www.openquok.com/docs/configuration-backend), [Web](https://www.openquok.com/docs/configuration-web), [Workers](https://www.openquok.com/docs/configuration-worker), and [CLI auth server](https://www.openquok.com/docs/configuration-agent)
 
-**Guidelines**
+**Contributing**
 
-- [Developer guidelines](https://www.openquok.com/docs/developer-guidelines)
-- [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
+- [Developer guidelines](https://www.openquok.com/docs/developer-guidelines) and [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
+- [Contribution opportunities](https://www.openquok.com/docs/contribution-opportunities) — add a provider, translate docs, and more
+- [Publish listings](https://www.openquok.com/docs/publish-listings) — Extensions Hub playbooks and building blocks
 - [Documentation contribution](https://www.openquok.com/docs/documentation-contribution)
+
+**Blog**
+
+- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 
 ---
 
