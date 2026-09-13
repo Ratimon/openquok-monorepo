@@ -48,7 +48,7 @@
 	import ComposerGuestLockBadge from '$lib/ui/components/posts/ComposerGuestLockBadge.svelte';
 	import ComposerHistoryButtons from '$lib/ui/components/posts/ComposerHistoryButtons.svelte';
 	import AiHumanizeModal from '$lib/ui/components/posts/AiHumanizeModal.svelte';
-	import AiSummarizeModal from '$lib/ui/components/posts/AiSummarizeModal.svelte';
+	import AiSummarizerModal from '$lib/ui/components/posts/AiSummarizerModal.svelte';
 	import AiWriterModal from '$lib/ui/components/posts/AiWriterModal.svelte';
 	import SignatureModal from '$lib/ui/components/signature/SignatureModal.svelte';
 	import LinkedInCompanyModal from '$lib/ui/components/posts/providers/linkedin/LinkedInCompanyModal.svelte';
@@ -941,7 +941,7 @@
 	onInsertDraft={insertDraftFromModal}
 />
 
-<AiSummarizeModal
+<AiSummarizerModal
 	{summarizerPresenter}
 	bind:open={aiSummarizeOpen}
 	existingBody={summarizeSourceBody}

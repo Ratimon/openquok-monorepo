@@ -252,7 +252,7 @@
 				<div class="min-w-0 flex-1">
 					<Dialog.Title class="flex items-center gap-2 text-base font-semibold text-base-content">
 						<AbstractIcon name={icons.NotebookPen.name} class="size-5" width="20" height="20" />
-						AI Summarize
+						AI Summarizer
 					</Dialog.Title>
 					<Dialog.Description class="mt-1 text-xs leading-snug text-base-content/70">
 						{#if phase === 'opt-in'}
@@ -277,7 +277,7 @@
 				<div class="rounded-md border border-base-300 bg-base-100 p-3 text-sm text-base-content/80">
 					<p class="font-medium text-base-content">Use AI Summarize on this device?</p>
 					<p class="mt-2 text-base-content/70">
-						AI Summarize uses Chrome's on-device Summarizer API. Your post text stays on this
+						AI Summarizer uses Chrome's on-device Summarizer API. Your post text stays on this
 						device.
 					</p>
 					<p class="mt-2 text-base-content/70">
@@ -301,7 +301,6 @@
 					<p class="mt-2 text-base-content/70">
 						AI Summarize uses Chrome's experimental on-device Summarizer API. It works in recent
 						Chrome builds when the Summarizer API is enabled (and the on-device model can download).
-						This feature does not send input to OpenQuok servers.
 					</p>
 					<p class="mt-2 text-base-content/70">
 						See the

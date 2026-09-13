@@ -57,13 +57,10 @@ Each thumbnail has **Move up** and **Move down** chevrons and a **X** to detach.
 
 In the post editor, click a strip thumbnail or the **gear** icon (bottom-right of each thumbnail) to open **Media details**.
 
-![Edit Alt-test and Select Thumbnail](/docs/_assets/creating-posts/dropped-media-details.webp)
-
 | Field | What you can set |
 | --- | --- |
 | **Alt text** | Up to **2000** characters. Describes the image for accessibility(for SEO) and preview. |
 | **Video poster** | Choose **Create thumbnail**, drag the slider to the frame you want, then **Use current frame as thumbnail**. That image is the video cover. **Clear thumbnail** removes it. |
-
 
 ![Select Timeframe for Video Thumbnail](/docs/_assets/creating-posts/dropped-video-timeframe.webp)
 

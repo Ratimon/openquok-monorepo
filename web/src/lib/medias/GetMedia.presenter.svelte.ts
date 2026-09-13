@@ -28,6 +28,8 @@ export interface MediaLibraryItemViewModel {
 	alt?: string | null;
 	thumbnail?: string | null;
 	thumbnailPublicUrl?: string | null;
+	/** Session blob URL for a freshly captured video poster (compose only; not from API). */
+	thumbnailLocalPreviewUrl?: string | null;
 	thumbnailTimestamp?: number | null;
 }
 
