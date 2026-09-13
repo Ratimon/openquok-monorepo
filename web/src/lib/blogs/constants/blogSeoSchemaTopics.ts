@@ -1,6 +1,9 @@
 /** Topic slug for How-to Tutorials posts (from `generate_unique_slug` on topic name). */
 export const BLOG_SEO_TOPIC_SLUG_HOWTO = 'howto-tutorials';
 
+/** Topic slug for Feature Walkthroughs by Use Case posts (from `generate_unique_slug` on topic name). */
+export const BLOG_SEO_TOPIC_SLUG_GUIDE = 'feature-walkthroughs-by-use-case';
+
 /** Topic slugs eligible for Product structured data. */
 export const BLOG_SEO_TOPIC_SLUGS_PRODUCT = [
 	'product-updates',
@@ -10,6 +13,9 @@ export const BLOG_SEO_TOPIC_SLUGS_PRODUCT = [
 
 /** Seeded topic id for HowTo structured data (How-to Tutorials). */
 export const BLOG_SEO_TOPIC_ID_HOWTO = 'd5f7a000-0000-4000-a000-000000000202';
+
+/** Seeded topic id for Guide structured data (Feature Walkthroughs by Use Case). */
+export const BLOG_SEO_TOPIC_ID_GUIDE = 'd5f7a000-0000-4000-a000-000000000203';
 
 /** Seeded topic ids for Product structured data. */
 export const BLOG_SEO_TOPIC_IDS_PRODUCT = [
@@ -24,6 +30,14 @@ export function isBlogTopicEligibleForHowTo(
 ): boolean {
 	if (topicId === BLOG_SEO_TOPIC_ID_HOWTO) return true;
 	return topicSlug === BLOG_SEO_TOPIC_SLUG_HOWTO;
+}
+
+export function isBlogTopicEligibleForGuide(
+	topicSlug: string | null | undefined,
+	topicId?: string | null | undefined
+): boolean {
+	if (topicId === BLOG_SEO_TOPIC_ID_GUIDE) return true;
+	return topicSlug === BLOG_SEO_TOPIC_SLUG_GUIDE;
 }
 
 export function isBlogTopicEligibleForProduct(

@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import type { BlogPostBySlugPublicViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
-import { BLOG_SEO_TOPIC_IDS_PRODUCT } from '$lib/blogs/constants/blogSeoSchemaTopics';
+import {
+	BLOG_SEO_TOPIC_ID_GUIDE,
+	BLOG_SEO_TOPIC_IDS_PRODUCT,
+	BLOG_SEO_TOPIC_SLUG_GUIDE,
+	isBlogTopicEligibleForGuide
+} from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
 import { createBlogPostSEOSchema } from '$lib/blogs/utils/blogSeoSchema';
 
@@ -46,16 +51,22 @@ function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPo
 	};
 }
 
+function isBlogPostingType(type: unknown): boolean {
+	if (type === 'BlogPosting') return true;
+	return Array.isArray(type) && type.includes('BlogPosting');
+}
+
 function findBlogPosting(schema: ReturnType<typeof createBlogPostSEOSchema>): Record<string, unknown> | undefined {
 	return schema['@graph'].find(
-		(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'BlogPosting'
+		(node) =>
+			typeof node === 'object' && node !== null && '@type' in node && isBlogPostingType(node['@type'])
 	) as Record<string, unknown> | undefined;
 }
 
-function findImageObjects(schema: ReturnType<typeof createBlogPostSEOSchema>): Record<string, unknown>[] {
+function findImageObjects(schema: ReturnType<typeof createBlogPostSEOSchema>) {
 	return schema['@graph'].filter(
 		(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'ImageObject'
-	) as Record<string, unknown>[];
+	);
 }
 
 function graphNodeTypes(schema: ReturnType<typeof createBlogPostSEOSchema>): unknown[] {
@@ -95,8 +106,8 @@ describe('createBlogPostSEOSchema hero image', () => {
 			name: 'Featured image for blog post: Platforms are adding AI labels',
 			caption: 'Platforms are adding AI labels',
 			representativeOfPage: true,
-			width: 1200,
-			height: 630,
+			width: '1200',
+			height: '630',
 			encodingFormat: 'image/webp',
 			author: {
 				'@type': 'Person',
@@ -239,6 +250,52 @@ describe('createBlogPostSEOSchema inline images', () => {
 			contentUrl: buildBlogInlineImageSrc(storagePath)
 		});
 		expect(inlineImage).not.toHaveProperty('caption');
+	});
+});
+
+describe('createBlogPostSEOSchema guide topic', () => {
+	it('emits BlogPosting plus Guide @type and about for Feature Walkthroughs', () => {
+		const schema = createPostSchema({
+			topic: {
+				id: BLOG_SEO_TOPIC_ID_GUIDE,
+				name: 'Feature Walkthroughs by Use Case',
+				slug: BLOG_SEO_TOPIC_SLUG_GUIDE
+			},
+			product: null
+		});
+
+		const blogPosting = findBlogPosting(schema);
+		expect(blogPosting?.['@type']).toEqual(['BlogPosting', 'Guide']);
+		expect(blogPosting?.about).toEqual({
+			'@type': 'SoftwareApplication',
+			name: 'OpenQuok'
+		});
+	});
+
+	it('keeps a string BlogPosting @type for product and how-to topics', () => {
+		const productSchema = createPostSchema();
+		expect(findBlogPosting(productSchema)?.['@type']).toBe('BlogPosting');
+		expect(findBlogPosting(productSchema)).not.toHaveProperty('about');
+
+		const howToSchema = createPostSchema({
+			topic: {
+				id: 'd5f7a000-0000-4000-a000-000000000202',
+				name: 'How-to Tutorials',
+				slug: 'howto-tutorials'
+			},
+			howtoSteps: [{ name: 'Step one', text: 'Do the thing.' }],
+			product: null
+		});
+		expect(findBlogPosting(howToSchema)?.['@type']).toBe('BlogPosting');
+		expect(findBlogPosting(howToSchema)).not.toHaveProperty('about');
+	});
+});
+
+describe('isBlogTopicEligibleForGuide', () => {
+	it('matches by seeded topic id or slug', () => {
+		expect(isBlogTopicEligibleForGuide(BLOG_SEO_TOPIC_SLUG_GUIDE, null)).toBe(true);
+		expect(isBlogTopicEligibleForGuide(null, BLOG_SEO_TOPIC_ID_GUIDE)).toBe(true);
+		expect(isBlogTopicEligibleForGuide('product-updates', BLOG_SEO_TOPIC_IDS_PRODUCT[0])).toBe(false);
 	});
 });
 

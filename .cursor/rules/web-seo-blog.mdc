@@ -14,6 +14,8 @@ Public posts at `/blog/[slug]` render CMS HTML through `BlogPost.svelte` after `
 
 FAQ, HowTo, and Product blocks are **form fields** (`faq_items`, `howto_steps`, `product`). They render in `BlogPostSeoBlocks` and JSON-LD (`createBlogPostSEOSchema`). Do not duplicate those Q&A / step lists as a second accordion in `content`.
 
+**Feature Walkthroughs by Use Case** (`feature-walkthroughs-by-use-case`) emit `BlogPosting` + `Guide` on the same JSON-LD node via `createBlogPostSEOSchema` — including optional `about` as `SoftwareApplication` — with **no extra admin form fields**. Editors only need the correct topic; do not add a Guide block to `content` or structured SEO fields.
+
 **FAQ answers and How-to step text** use the same Visual / HTML source editor as Content (`BlogRichTextField`). Questions and step **names** stay plain text. Paste root-relative `<a href="/tools/skill-builder">Skill Builder</a>` (or use Visual → link; the prompt keeps `/…` paths). Visible HTML is normalized with `prepareBlogRichTextForDisplay`; JSON-LD `Answer.text` / `HowToStep.text` is **plain text** (`stripHtmlToPlainText`) so schema stays valid.
 
 ## Pick the tool page, not the hub

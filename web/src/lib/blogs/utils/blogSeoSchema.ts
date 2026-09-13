@@ -32,6 +32,7 @@ import type {
 } from '$lib/blogs/GetBlog.presenter.svelte';
 import type { BlogSeoFaqItem, BlogSeoHowtoStep, BlogSeoProduct } from '$lib/blogs/blog.types';
 import {
+	isBlogTopicEligibleForGuide,
 	isBlogTopicEligibleForHowTo,
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
@@ -505,7 +506,7 @@ function jsonLdNodeRefs(ids: string[]): { '@id': string } | { '@id': string }[] 
 type BlogImageObjectContext = {
 	canonicalUrl: string;
 	blogPostingId: string;
-	author: Record<string, unknown>;
+	author: Person;
 	publishedAt?: string | null;
 };
 
@@ -526,8 +527,8 @@ function createBlogHeroImageObjectNode(params: {
 		contentUrl: heroUrl,
 		name: `Featured image for blog post: ${postTitle}`,
 		...(heroCaption ? { caption: heroCaption } : {}),
-		width: 1200,
-		height: 630,
+		width: '1200',
+		height: '630',
 		encodingFormat: guessImageMimeFromFilename(heroFilename),
 		representativeOfPage: true,
 		...(publishedIso ? { datePublished: publishedIso } : {}),
@@ -608,17 +609,13 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 
 	const heroUrl = post.heroImageFilename ? buildBlogInlineImageSrc(post.heroImageFilename) : '';
 
-	const author: Record<string, unknown> = {
+	const author: Person = {
 		'@type': 'Person',
 		name: authorName,
-		url: post.author?.website?.trim() || siteFallback
+		url: post.author?.website?.trim() || siteFallback,
+		...(post.author?.avatarUrl?.trim() ? { image: post.author.avatarUrl.trim() } : {}),
+		...(post.author?.tagLine?.trim() ? { description: post.author.tagLine.trim() } : {})
 	};
-	if (post.author?.avatarUrl?.trim()) {
-		author.image = post.author.avatarUrl.trim();
-	}
-	if (post.author?.tagLine?.trim()) {
-		author.description = post.author.tagLine.trim();
-	}
 
 	const publisher: Record<string, unknown> = {
 		'@type': 'Organization',
@@ -670,8 +667,10 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		? post.content.trim().split(/\s+/).filter(Boolean).length
 		: undefined;
 
+	const isGuideTopic = isBlogTopicEligibleForGuide(topicSlug, topicId);
+
 	const blogPosting: Record<string, unknown> = {
-		'@type': 'BlogPosting',
+		'@type': isGuideTopic ? ['BlogPosting', 'Guide'] : 'BlogPosting',
 		'@id': blogPostingId,
 		headline: post.title,
 		description: description || undefined,
@@ -697,6 +696,13 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 			url: blogIndexUrl
 		}
 	};
+
+	if (isGuideTopic) {
+		blogPosting.about = {
+			'@type': 'SoftwareApplication',
+			name: companyName
+		};
+	}
 
 	if (heroImageNode) {
 		blogPosting.image = jsonLdNodeRef(String(heroImageNode['@id']));
