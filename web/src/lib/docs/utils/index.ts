@@ -33,6 +33,8 @@ export {
 } from '$lib/docs/utils/openapi/openapiDocsLayout';
 export {
 	fetchOpenapiOperationForDocs,
+	resolveDocsApiOrigin,
+	resolveOpenapiSpecUrl,
 	type DocsParamLocation,
 	type OpenapiDocsBodyPayload,
 	type OpenapiDocsParamPayload,

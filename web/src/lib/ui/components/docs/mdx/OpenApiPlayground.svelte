@@ -17,6 +17,8 @@
 		pathHasUnresolvedParams,
 		pickJsonExample,
 		resolveApiBaseUrl,
+		openapiSpecFetchInit,
+		resolveOpenapiSpecUrl,
 		substitutePathParams,
 		type JsonValue,
 		type OasDoc,
@@ -38,6 +40,8 @@
 		specUrl?: string;
 		layout?: 'embed' | 'modal';
 	} = $props();
+
+	let resolvedSpecUrl = $derived(resolveOpenapiSpecUrl(page.url.origin, specUrl));
 
 	let loading = $state(true);
 	let loadError = $state<string | null>(null);
@@ -146,7 +150,7 @@
 
 		void (async () => {
 			try {
-				const res = await fetch(specUrl, { credentials: 'same-origin' });
+				const res = await fetch(resolvedSpecUrl, openapiSpecFetchInit(resolvedSpecUrl, page.url.origin));
 				if (!res.ok) throw new Error(`HTTP ${res.status}`);
 				const nextSpec = (await res.json()) as OasDoc;
 				if (cancelled) return;
@@ -257,7 +261,7 @@
 		<strong class="font-semibold">Could not load OpenAPI.</strong>
 		<span class="opacity-90">{loadError}</span>
 		<span class="text-base-content/70 mt-1 block text-xs">
-			Ensure the backend is running and <code class="text-xs">GET {specUrl}</code> succeeds.
+			Ensure the backend is running and <code class="text-xs">GET {resolvedSpecUrl}</code> succeeds.
 		</span>
 	</div>
 {:else}

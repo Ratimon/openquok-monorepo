@@ -138,11 +138,6 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started-for-public-api' }
 	},
 	{
-		label: 'OAuth2 for apps',
-		icon: icons.Globe.name,
-		autogenerate: { directory: 'oauth2-for-apps' }
-	},
-	{
 		label: 'Integrations',
 		icon: icons.Link.name,
 		autogenerate: { directory: 'apis-integrations' }
@@ -166,7 +161,12 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		label: 'Uploads',
 		icon: icons.Image.name,
 		autogenerate: { directory: 'apis-uploads' }
-	}
+	},
+	{
+		label: 'OAuth2 for apps',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'oauth2-for-apps' }
+	},
 ];
 
 /** Operator install, configuration, and self-hosted deployment. Third-party app OAuth lives on Public API (`oauth2-for-apps`). */

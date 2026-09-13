@@ -1,5 +1,38 @@
+import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import { normalizeApiBaseUrl } from '$lib/utils/path';
+
 /** Minimal OpenAPI 3 types for resolving examples (avoid coupling to a heavy schema lib). */
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
+
+const DEFAULT_OPENAPI_SPEC_PATH = '/api/v1/openapi.json';
+
+function configuredApiBaseUrl(): string {
+	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
+}
+
+/** API origin for docs examples and playground (`VITE_API_BASE_URL` when set, else the page origin). */
+export function resolveDocsApiOrigin(pageOrigin: string): string {
+	const configured = configuredApiBaseUrl();
+	if (configured) return configured;
+	return pageOrigin.replace(/\/$/, '');
+}
+
+/** OpenAPI spec URL for docs UI (cross-host in production when `VITE_API_BASE_URL` is set). */
+export function resolveOpenapiSpecUrl(pageOrigin: string, override?: string): string {
+	const explicit = override?.trim();
+	if (explicit && explicit !== DEFAULT_OPENAPI_SPEC_PATH) return explicit;
+
+	const configured = configuredApiBaseUrl();
+	if (configured) return `${configured}${DEFAULT_OPENAPI_SPEC_PATH}`;
+
+	return explicit || DEFAULT_OPENAPI_SPEC_PATH;
+}
+
+export function openapiSpecFetchInit(specUrl: string, pageOrigin: string): RequestInit {
+	const crossOrigin =
+		/^https?:\/\//i.test(specUrl) && !specUrl.startsWith(pageOrigin.replace(/\/$/, ''));
+	return { credentials: crossOrigin ? 'omit' : 'same-origin' };
+}
 
 export type OasParameter = {
 	in?: string;
@@ -284,7 +317,7 @@ export function buildCurlSample(opts: {
 	const pathFilled = fillPathExample(opts.pathPattern);
 	let base = opts.serverUrl.trim();
 	if (base.startsWith('/')) {
-		base = `${opts.origin.replace(/\/$/, '')}${base}`;
+		base = `${resolveDocsApiOrigin(opts.origin)}${base}`;
 	}
 	const url = `${base.replace(/\/$/, '')}${pathFilled.startsWith('/') ? pathFilled : `/${pathFilled}`}`;
 	const lines = [`curl --request ${opts.method} \\`, `  --url '${url}' \\`];
@@ -557,9 +590,11 @@ export async function fetchOpenapiOperationForDocs(
 		return { ok: false, error: `Invalid openapi line: ${operation}` };
 	}
 
+	const resolvedSpecUrl = resolveOpenapiSpecUrl(origin, specUrl);
+
 	let spec: OasDoc;
 	try {
-		const res = await fetch(specUrl, { credentials: 'same-origin' });
+		const res = await fetch(resolvedSpecUrl, openapiSpecFetchInit(resolvedSpecUrl, origin));
 		if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
 		spec = (await res.json()) as OasDoc;
 	} catch (e) {
@@ -611,7 +646,7 @@ export function resolveApiBaseUrl(origin: string, serverUrl: string): string {
 	const s = serverUrl.trim();
 	if (/^https?:\/\//i.test(s)) return s.replace(/\/$/, '');
 	const path = s.startsWith('/') ? s : `/${s}`;
-	return `${origin.replace(/\/$/, '')}${path}`;
+	return `${resolveDocsApiOrigin(origin)}${path}`;
 }
 
 /** Replace `{name}` segments with encoded values; missing keys leave `{name}` unchanged. */

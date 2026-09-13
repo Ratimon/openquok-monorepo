@@ -5,7 +5,10 @@
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
 
-	import { fetchOpenapiOperationForDocs } from '$lib/docs/utils/openapi/openapiExamples';
+	import {
+		fetchOpenapiOperationForDocs,
+		resolveOpenapiSpecUrl
+	} from '$lib/docs/utils/openapi/openapiExamples';
 
 	import ApiEndpointTryItBar from '$lib/ui/components/docs/mdx/ApiEndpointTryItBar.svelte';
 	import RequestExample from '$lib/ui/components/docs/mdx/RequestExample.svelte';
@@ -20,6 +23,8 @@
 	} = $props();
 
 	const playgroundCtx = getContext<DocsPlaygroundContext | undefined>(DOCS_PLAYGROUND);
+
+	let resolvedSpecUrl = $derived(resolveOpenapiSpecUrl(page.url.origin, specUrl));
 
 	let loading = $state(true);
 	let errorText = $state<string | null>(null);
@@ -43,7 +48,7 @@
 		errorText = null;
 
 		void (async () => {
-			const result = await fetchOpenapiOperationForDocs(operation, specUrl, page.url.origin);
+			const result = await fetchOpenapiOperationForDocs(operation, resolvedSpecUrl, page.url.origin);
 			if (cancelled) return;
 
 			if (!result.ok) {
@@ -86,7 +91,7 @@
 			<strong class="font-semibold">Could not load OpenAPI.</strong>
 			<span class="opacity-90">{errorText}</span>
 			<span class="text-base-content/70 mt-1 block text-xs">
-				Ensure the backend is running and <code class="text-xs">GET {specUrl}</code> succeeds.
+				Ensure the backend is running and <code class="text-xs">GET {resolvedSpecUrl}</code> succeeds.
 			</span>
 		</div>
 	{:else}
