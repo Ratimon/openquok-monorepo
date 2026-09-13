@@ -61,6 +61,31 @@ Posting formats, follow-up comments, and analytics vary by platform. Some integr
 
 [Connect channels](https://www.openquok.com/docs/channels/connect) · [Posting rules by platform](https://www.openquok.com/docs/platforms) · [Channel catalog](https://www.openquok.com/channels) · [Social integrations (self-host)](https://www.openquok.com/docs/social-integration)
 
+## Supported Agents & MCP
+
+<p>
+  <a href="https://www.openquok.com/agents/openclaw"><img src="./assets/readme/agents-mcp/openclaw.svg" alt="OpenClaw" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/hermes"><img src="./assets/readme/agents-mcp/hermes.svg" alt="Hermes Agent" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/grok-bot"><img src="./assets/readme/agents-mcp/grok-bot.svg" alt="Grok Bot" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/thinkrail"><img src="./assets/readme/agents-mcp/thinkrail.svg" alt="ThinkRail" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/cursor"><img src="./assets/readme/agents-mcp/cursor.svg" alt="Cursor" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/claude-code"><img src="./assets/readme/agents-mcp/claude-code.svg" alt="Claude Code" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/claude-cowork"><img src="./assets/readme/agents-mcp/claude-cowork.svg" alt="Claude Cowork" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/chatgpt"><img src="./assets/readme/agents-mcp/chatgpt.svg" alt="ChatGPT" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/codex"><img src="./assets/readme/agents-mcp/codex.svg" alt="Codex" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/vscode-copilot"><img src="./assets/readme/agents-mcp/vscode-copilot.svg" alt="VS Code Copilot" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/devin-desktop"><img src="./assets/readme/agents-mcp/devin-desktop.svg" alt="Devin Desktop" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/amp"><img src="./assets/readme/agents-mcp/amp.svg" alt="Amp" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/antigravity-cli"><img src="./assets/readme/agents-mcp/antigravity-cli.svg" alt="Antigravity CLI" width="32" height="32"></a>
+  <a href="https://www.openquok.com/agents/warp"><img src="./assets/readme/agents-mcp/warp.svg" alt="Warp" width="32" height="32"></a>
+</p>
+
+**Agent hosts** — **OpenClaw**, **Hermes Agent**, **Grok Bot**, and **ThinkRail** — install the `@openquok/auto-cli` skill and schedule from chat or a terminal. **MCP clients** — **Cursor**, **Claude Code**, **Claude Cowork**, **ChatGPT**, **Codex**, **VS Code / Copilot**, **Devin Desktop**, **Amp**, **Antigravity CLI**, and **Warp** — connect OpenQuok over HTTP with a workspace programmatic token. Drafts from every path land in the same review queue on Home and the calendar.
+
+Create a programmatic token under **Account → Settings → Developers → Access**, or [start on Cloud](https://www.openquok.com/pricing) when you want hosted plans and billing handled for you.
+
+[Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) · [CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp) · [Agents catalog](https://www.openquok.com/agents) · [Pricing](https://www.openquok.com/pricing)
+
 ---
 
 ## Packages
