@@ -466,7 +466,7 @@ Delete a saved global plug rule.
 <CardGrid>
 <LinkCard title="MCP introduction" description="Endpoints, authentication, and typical list → schedule → manage workflows" href="/docs/getting-started-for-mcp" />
 <LinkCard title="MCP examples" description="Agent prompts for scheduling, plugs, analytics, and cross-account Threads" href="/docs/mcp-examples" />
-<LinkCard title="Supported social channels" description="Per-provider settings for Threads, X, and LinkedIn" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="Provider settings" description="Per-provider settings for Threads, X, and LinkedIn" href="/docs/public-api-providers" />
 <LinkCard title="Posts APIs" description="REST equivalent of schedulePostTool and post management" href="/docs/apis-posts" />
 <LinkCard title="Integrations APIs" description="REST list, trigger, and global plug endpoints" href="/docs/apis-integrations" />
 </CardGrid>

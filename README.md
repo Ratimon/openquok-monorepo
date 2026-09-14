@@ -185,7 +185,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 
 - [CLI & agent users](https://www.openquok.com/docs/getting-started-for-cli) — `@openquok/auto-cli`, auth, [core usages](https://www.openquok.com/docs/cli-usages), and [examples](https://www.openquok.com/docs/cli-examples)
 - [MCP](https://www.openquok.com/docs/getting-started-for-mcp) — Model Context Protocol setup, [tools reference](https://www.openquok.com/docs/mcp-references/tools), and [examples](https://www.openquok.com/docs/mcp-examples)
-- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens; [supported channels](https://www.openquok.com/docs/getting-started-for-public-api/supported-social-channels)
+- [Public API](https://www.openquok.com/docs/getting-started-for-public-api) — programmatic access with workspace tokens; [provider settings](https://www.openquok.com/docs/public-api-providers)
 - [OAuth2 for apps](https://www.openquok.com/docs/oauth2-for-apps) — Authorization Code flow for third-party applications
 
 **Self-host & setup**

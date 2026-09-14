@@ -64,7 +64,7 @@ Save or schedule as usual. OpenQuok publishes the extra reply after follow-ups a
 
 ## Agents, CLI, and API
 
-Set <Badge text="threads.internalEngagementPlug" variant="param" /> on the publishing channel in <Badge text="providerSettingsByIntegrationId" variant="param" />. See <a href="/docs/cli-examples/threads">CLI examples — Threads</a> and <a href="/docs/getting-started-for-public-api/supported-social-channels#internal-plugs">Supported social channels → Internal plugs</a>.
+Set <Badge text="threads.internalEngagementPlug" variant="param" /> on the publishing channel in <Badge text="providerSettingsByIntegrationId" variant="param" />. See <a href="/docs/cli-examples/threads">CLI examples — Threads</a> and <a href="/docs/public-api-providers/threads#internal-plugs">Threads Settings → Internal plugs</a>.
 
 ## Related
 

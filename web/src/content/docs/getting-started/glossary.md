@@ -61,7 +61,7 @@ The API mirrors this: one shared body with optional per-integration caption and 
 
 Each network expects extra fields beyond the caption — a YouTube title, Dev.to tags, an Instagram post type. These **provider settings** sit in the composer beside the preview. Some are required; the post will not save without them.
 
-<p>See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a> for limits and save-time errors. API shapes are in <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a>.</p>
+<p>See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a> for limits and save-time errors. API shapes are in <a href="/docs/public-api-providers">Provider settings</a>.</p>
 
 ## Tag
 

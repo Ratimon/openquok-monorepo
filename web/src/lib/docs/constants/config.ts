@@ -130,6 +130,7 @@ export const docsSidebarMcp: DocsSidebarSection[] = [
 	},
 ];
 
+
 /** Programmatic HTTP API plus third-party OAuth apps (`oauth2-for-apps`). */
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	{
@@ -138,27 +139,32 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'getting-started-for-public-api' }
 	},
 	{
-		label: 'Integrations',
+		label: 'Provider settings',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'public-api-providers' }
+	},
+	{
+		label: 'Integrations APIs',
 		icon: icons.Link.name,
 		autogenerate: { directory: 'apis-integrations' }
 	},
 	{
-		label: 'Posts',
+		label: 'Posts APIs',
 		icon: icons.Send.name,
 		autogenerate: { directory: 'apis-posts' }
 	},
 	{
-		label: 'Analytics',
+		label: 'Analytics APIs',
 		icon: icons.Activity.name,
 		autogenerate: { directory: 'apis-analytics' }
 	},
 	{
-		label: 'Notifications',
+		label: 'Notifications APIs',
 		icon: icons.Bell.name,
 		autogenerate: { directory: 'apis-notifications' }
 	},
 	{
-		label: 'Uploads',
+		label: 'Uploads APIs',
 		icon: icons.Image.name,
 		autogenerate: { directory: 'apis-uploads' }
 	},

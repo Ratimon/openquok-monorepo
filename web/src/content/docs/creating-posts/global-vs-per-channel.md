@@ -125,7 +125,7 @@ The same idea applies outside the dashboard:
 | **Public API** | <code>body</code> and <code>media</code> plus optional <code>bodiesByIntegrationId</code> and <code>mediaByIntegrationId</code> keyed by channel UUID |
 | **CLI** | <Badge text="--bodiesByIntegrationId" variant="param" /> and <Badge text="--mediaByIntegrationId" variant="param" /> for per-channel captions and attachments; <Badge text="--providerSettingsByIntegrationId" variant="param" /> for settings |
 
-See <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> and <a href="/docs/cli-usages/managing-posts">Managing posts</a> for request shapes and examples.
+See <a href="/docs/public-api-providers">Provider settings</a> and <a href="/docs/cli-usages/managing-posts">Managing posts</a> for request shapes and examples.
 
 ## Related
 

@@ -2,7 +2,7 @@
 title: Overview - Public API
 description: Getting started to automate your Social Scheduling with OpenQuok's public API and Node.js SDK.
 order: 0
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-14
 ---
 
 <script>
@@ -65,11 +65,24 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 
 Every connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by the channel's UUID.
 
-For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> page.
+For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/public-api-providers">Provider settings</a> section.
 
 <CardGrid>
-<LinkCard title="Supported social channels" description="Provider identifiers, per-channel settings (Threads, Instagram)" href="/docs/getting-started-for-public-api/supported-social-channels" />
-<LinkCard title="MCP (HTTP streaming)" description="Connect Cursor, Claude Code, and Codex with your opo_ token" href="/docs/getting-started-for-mcp" />
+<LinkCard title="MCP connection" 
+description="Connect Cursor, Claude Code, and Codex 
+with your opo_ token" href="/docs/
+getting-started-for-mcp" />
+<LinkCard title="Provider settings overview" description="Channel vs integration terminology, provider catalog, and multi-channel examples" href="/docs/public-api-providers" />
+<LinkCard title="Threads Settings" description="500-char cap, follow-up replies, internal plugs, and cross-account comments" href="/docs/public-api-providers/threads" />
+<LinkCard title="X Settings" description="Reply audience, community, disclosures, thread finisher, and cross-account reposts" href="/docs/public-api-providers/x" />
+<LinkCard title="LinkedIn Settings" description="Image carousel, carousel name, follow-up comments, and cross-account plugs" href="/docs/public-api-providers/linkedin" />
+<LinkCard title="LinkedIn Page Settings" description="Same settings shape as personal LinkedIn — page-specific connect and analytics" href="/docs/public-api-providers/linkedin-page" />
+<LinkCard title="Facebook Page Settings" description="Embedded URL on text posts and follow-up comments with optional image" href="/docs/public-api-providers/facebook" />
+<LinkCard title="Instagram Business Settings" description="Post type, trial reels, collaborators, and follow-up comments (Business, FB-linked)" href="/docs/public-api-providers/instagram-business" />
+<LinkCard title="Instagram Standalone Settings" description="Same settings shape as Business — IG Login connect path" href="/docs/public-api-providers/instagram-standalone" />
+<LinkCard title="YouTube Settings" description="Title, privacy, tags, made-for-kids, and custom thumbnail" href="/docs/public-api-providers/youtube" />
+<LinkCard title="TikTok Settings" description="Direct post vs inbox upload, privacy, photo title, and brand toggles" href="/docs/public-api-providers/tiktok" />
+<LinkCard title="Dev.to Settings" description="Title, tags, canonical URL, organization, and cover image" href="/docs/public-api-providers/devto" />
 </CardGrid>
 
 ## Generate Output
@@ -116,9 +129,9 @@ The same <Badge text="group" variant="param" /> filter is available on <Badge te
 | **Cross-account plugs** | Per post (compose time) | <Badge text="providerSettingsByIntegrationId" variant="param" /> on <Badge text="POST /public/posts" variant="path" /> |
 | **Global plugs** | Per channel (account rules) | Plug endpoints below |
 
-**Internal plugs** run once after publish — for example a same-account Threads delayed engagement reply. Set them in the create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#internal-plugs">Supported social channels → Internal plugs</a> and <a href="/docs/automations/internal-plugs">Internal plugs</a>.
+**Internal plugs** run once after publish — for example a same-account Threads delayed engagement reply. Set them in the create-post payload; see <a href="/docs/public-api-providers/threads#internal-plugs">Threads Settings → Internal plugs</a> and <a href="/docs/automations/internal-plugs">Internal plugs</a>.
 
-**Cross-account plugs** let another connected channel comment, repost, or reshare after publish. Set them in the same create-post payload; see <a href="/docs/getting-started-for-public-api/supported-social-channels#cross-account-plugs">Supported social channels → Cross-account plugs</a>, <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>, and the <a href="/docs/cli-examples/threads">Threads CLI examples</a>.
+**Cross-account plugs** let another connected channel comment, repost, or reshare after publish. Set them in the same create-post payload; see <a href="/docs/public-api-providers/threads#cross-account-plugs">Threads Settings → Cross-account plugs</a>, <a href="/docs/public-api-providers/x#cross-account-plugs">X Settings → Cross-account plugs</a>, <a href="/docs/public-api-providers/linkedin#cross-account-plugs">LinkedIn Settings → Cross-account plugs</a>, <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a>, and the <a href="/docs/cli-examples/threads">Threads CLI examples</a>.
 
 **Global plugs** are saved rules on a channel (e.g. auto-repost when likes ≥ 100). The orchestrator re-checks every 6 hours, up to 3 times per post.
 
@@ -217,7 +230,7 @@ For the full method table — posts, integrations, plugs, analytics, notificatio
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Supported social channels" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="Provider settings" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/public-api-providers" />
 <LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Integrations APIs" description="Programmatic endpoints for channels, groups, global plugs, and provider tools — what the SDK wraps" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts against your connected channels" href="/docs/apis-posts" />

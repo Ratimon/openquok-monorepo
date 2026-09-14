@@ -102,7 +102,9 @@ function isPublicApiDocsPath(segmentOrSlug: string): boolean {
 		segmentOrSlug.startsWith('getting-started-for-public-api/') ||
 		segmentOrSlug.startsWith('apis-') ||
 		segmentOrSlug === 'oauth2-for-apps' ||
-		segmentOrSlug.startsWith('oauth2-for-apps/')
+		segmentOrSlug.startsWith('oauth2-for-apps/') ||
+		segmentOrSlug === 'public-api-providers' ||
+		segmentOrSlug.startsWith('public-api-providers/')
 	);
 }
 

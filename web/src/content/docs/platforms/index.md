@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 Every network disagrees on caption length, attachment count, and extra fields. This page is the **composer and publish reference** for channels OpenQuok ships today — not marketing <strong>coming soon</strong> badges on channel landing pages.
 
-Use it with <a href="/docs/creating-posts/writing-the-post">Writing the post</a>, <a href="/docs/creating-posts/media">Media</a>, and <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> when you schedule from the dashboard. Programmatic field shapes for API keys live in <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a>.
+Use it with <a href="/docs/creating-posts/writing-the-post">Writing the post</a>, <a href="/docs/creating-posts/media">Media</a>, and <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> when you schedule from the dashboard. Programmatic field shapes for API keys live in <a href="/docs/public-api-providers">Provider settings</a>.
 
 ## Every platform
 
@@ -227,6 +227,6 @@ Per-post metrics follow the same split — **LinkedIn Page** includes post-level
 <LinkCard title="Social integrations" description="Operator developer apps and backend env for self-hosting" href="/docs/social-integration" />
 <LinkCard title="Threads and comments" description="Follow-up comments, delays, and thread finisher" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Writing the post" description="Editor modes, toolbar, and character count" href="/docs/creating-posts/writing-the-post" />
-<LinkCard title="Supported social channels" description="Public API identifier and payload reference" href="/docs/getting-started-for-public-api/supported-social-channels" />
+<LinkCard title="Provider settings" description="Public API identifier and payload reference" href="/docs/public-api-providers" />
 <LinkCard title="CLI examples" description="Copy-paste openquok recipes by network" href="/docs/cli-examples" />
 </CardGrid>

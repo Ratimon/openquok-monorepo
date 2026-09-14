@@ -179,7 +179,7 @@ Copy-paste recipes:
 
 Agent JSON examples (replace placeholders, then <Badge text="openquok posts:create --json …" variant="default" />): <Badge text="threads-follow-up-reply-with-image.json" variant="path" />, <Badge text="x-follow-up-reply-with-image.json" variant="path" />, and <Badge text="facebook-follow-up-comment-with-image.json" variant="path" /> in <Badge text="agent/skills/openquok-core/resources/examples/" variant="path" />.
 
-See <a href="/docs/cli-usages/managing-posts">Managing posts</a> and <a href="/docs/getting-started-for-public-api/supported-social-channels">Supported social channels</a> for request shapes.
+See <a href="/docs/cli-usages/managing-posts">Managing posts</a> and <a href="/docs/public-api-providers">Provider settings</a> for request shapes.
 
 
 ## Related

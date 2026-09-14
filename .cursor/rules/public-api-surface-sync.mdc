@@ -90,7 +90,7 @@ lastUpdated: 2026-07-19
 
 ## 5. Overview docs (`getting-started-for-public-api/`)
 
-When new endpoints introduce **concepts** users need before reading `apis-*` pages (channel groups, global vs internal plugs, new SDK methods), update `web/src/content/docs/getting-started-for-public-api/index.md` (and sibling pages such as `supported-social-channels.md` when provider-specific).
+When new endpoints introduce **concepts** users need before reading `apis-*` pages (channel groups, global vs internal plugs, new SDK methods), update `web/src/content/docs/getting-started-for-public-api/index.md` (and sibling pages under `public-api-providers/` when provider-specific).
 
 - Add curl + SDK examples that match the OpenAPI `example` payloads.
 - Link to the matching `apis-*` operation pages — do not duplicate full request/response tables (those come from OpenAPI).
