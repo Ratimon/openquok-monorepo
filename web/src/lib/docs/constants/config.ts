@@ -221,7 +221,6 @@ export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 
 /** Repository conventions, catalog publishing, and documentation authoring. */
 export const docsSidebarContributing: DocsSidebarSection[] = [
-
 	{
 		label: 'Developer Guidelines',
 		icon: icons.FolderCode.name,

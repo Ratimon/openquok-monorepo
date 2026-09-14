@@ -28,6 +28,16 @@ OpenQuok exposes a **hosted MCP server** so AI clients can list connected channe
 
 Use the same <Badge text="opo_" variant="default" /> programmatic access token you generate under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
 
+## MCP documentation
+
+Connect a native MCP client, then browse examples, tool reference, and per-client setup guides.
+
+<CardGrid>
+<LinkCard title="MCP Examples" description="Agent workflows — scheduling, plugs, analytics, and cross-account engagement" href="/docs/mcp-examples" />
+<LinkCard title="MCP References" description="Tool input shapes, responses, and provider settings for AI clients" href="/docs/mcp-references" />
+<LinkCard title="MCP Setup Guides" description="Connect OpenQuok MCP to Cursor, Claude Code, ChatGPT, and other clients" href="/docs/mcp-setup-guides" />
+</CardGrid>
+
 ## How it works
 
 The server registers tools that AI clients discover at connect time. The agent reads each tool's schema, then calls them on your behalf against the authenticated workspace.
@@ -119,10 +129,15 @@ If authentication succeeds, the agent calls <Badge text="integrationList" varian
 
 ## Related Section(s)
 
+Other MCP sections plus the public API and CLI.
+
 <CardGrid>
-<LinkCard title="Client setup" description="MCP configuration snippets for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp/setup" />
-<LinkCard title="MCP setup guides" description="Step-by-step guides for Cursor, Claude Code, ChatGPT, Warp, and other clients" href="/docs/mcp-setup-guides" />
+<LinkCard title="MCP Examples" description="Agent workflows — scheduling, plugs, analytics, and cross-account engagement" href="/docs/mcp-examples" />
+<LinkCard title="MCP References" description="Tool input shapes, responses, and provider settings for AI clients" href="/docs/mcp-references" />
+<LinkCard title="MCP Setup Guides" description="Connect OpenQuok MCP to Cursor, Claude Code, ChatGPT, and other clients" href="/docs/mcp-setup-guides" />
+<LinkCard title="Client setup" description="MCP configuration snippets from the dashboard" href="/docs/getting-started-for-mcp/setup" />
 <LinkCard title="Tools reference" description="Input shapes and responses for every MCP tool" href="/docs/mcp-references/tools" />
-<LinkCard title="MCP examples" description="Agent workflows — scheduling, plugs, analytics, and cross-account Threads" href="/docs/mcp-examples" />
 <LinkCard title="Public API overview" description="REST authentication, rate limits, and SDK quick start" href="/docs/getting-started-for-public-api" />
+<LinkCard title="CLI" description="Terminal commands when your agent host prefers openquok-core" href="/docs/getting-started-for-cli" />
+<LinkCard title="Automations" description="Plugs, webhooks, and programmatic scheduling concepts" href="/docs/automations" />
 </CardGrid>

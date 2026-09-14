@@ -28,6 +28,19 @@ Start with the track that matches you — the product, Cloud, a self-hosted inst
 <LinkCard title="Free tools" description="Creator tools — photo editor, humanizer, best time to post, and more." href="/tools" />
 </CardGrid>
 
+## Using OpenQuok
+
+Guides for the dashboard — connect channels, compose and schedule posts, and manage your workspace day to day.
+
+<CardGrid>
+<LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
+<LinkCard title="Creating posts" description="Write and schedule posts — editor, media, previews, and scheduling" href="/docs/creating-posts" />
+<LinkCard title="Calendar and posts" description="Home kanban, calendar, post actions, and client approvals" href="/docs/calendar-and-posts" />
+<LinkCard title="Settings" description="Timezone, team, profile, developers, signatures, and approved apps" href="/docs/settings" />
+<LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
+<LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
+</CardGrid>
+
 ## Building on OpenQuok
 
 Integrate, automate, or contribute.
@@ -42,10 +55,18 @@ Integrate, automate, or contribute.
 
 ## Related Section(s)
 
+More product guides plus automation and contribution paths.
+
 <CardGrid>
-<LinkCard title="Creating posts" description="Composer, global vs per-channel, media, and scheduling" href="/docs/creating-posts" />
-<LinkCard title="Quickstart" description="First channel and first scheduled post." href="/docs/getting-started/quickstart" />
-<LinkCard title="Glossary" description="The concepts OpenQuok uses, defined once." href="/docs/getting-started/glossary" />
-<LinkCard title="Settings" description="Timezone, team, profile, developers, and signatures" href="/docs/settings" />
-<LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site after you sign in." href="/docs/getting-started/tour-the-app" />
+<LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
+<LinkCard title="Calendar and posts" description="Home kanban, calendar, post actions, and client approvals" href="/docs/calendar-and-posts" />
+<LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
+<LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
+<LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
+<LinkCard title="Glossary" description="The concepts OpenQuok uses, defined once" href="/docs/getting-started/glossary" />
+<LinkCard title="Tour the app" description="Sidebar, header, composer, and settings after you sign in" href="/docs/getting-started/tour-the-app" />
+<LinkCard title="CLI" description="Terminal commands and agent skills for a workspace" href="/docs/getting-started-for-cli" />
+<LinkCard title="MCP" description="Connect Cursor, Claude Code, and other MCP clients" href="/docs/getting-started-for-mcp" />
+<LinkCard title="Public API" description="Posts, channels, and analytics over HTTP" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Contributing" description="Code guidelines, catalog listings, and docs authoring" href="/docs/developer-guidelines" />
 </CardGrid>

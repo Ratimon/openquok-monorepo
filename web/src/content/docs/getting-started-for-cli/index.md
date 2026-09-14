@@ -22,6 +22,16 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 <Badge text="@openquok/auto-cli" variant="experimental" /> is the programmatic CLI for the OpenQuok scheduling API — built for automation and AI agents. It wraps the <a href="/docs/getting-started-for-public-api">public API</a> so you can schedule posts, manage integrations, and upload media from shell scripts.
 
+## CLI documentation
+
+Install and authenticate first, then use command reference, platform recipes, agent host setup, and sibling skills.
+
+<CardGrid>
+<LinkCard title="CLI Core Usages" description="Command-by-command recipes for posts, integrations, analytics, and uploads" href="/docs/cli-usages" />
+<LinkCard title="CLI Examples" description="End-to-end platform recipes organized by social network" href="/docs/cli-examples" />
+<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, and ThinkRail" href="/docs/agent-setup-guides" />
+<LinkCard title="Other skills" description="Sibling agent skills that extend openquok-core" href="/docs/other-skills" />
+</CardGrid>
 
 ## Installation
 
@@ -181,19 +191,27 @@ openquok posts:delete <post-id>
 ```
 
 
-## Explore More ?
+## Explore More
 
 <CardGrid>
-<LinkCard title="CLI Usage" description="Command-by-command reference" href="/docs/cli-usages" />
-<LinkCard title="CLI Examples" description="e.g. Meta Threads and Instagram (Business / Standalone)" href="/docs/cli-examples" />
+<LinkCard title="CLI Core Usages" description="Command-by-command reference" href="/docs/cli-usages" />
+<LinkCard title="CLI Examples" description="Platform-specific end-to-end recipes" href="/docs/cli-examples" />
+<LinkCard title="Agent Setup Guides" description="OpenClaw, Hermes, Grok Bot, and ThinkRail setup" href="/docs/agent-setup-guides" />
 <LinkCard title="Other skills" description="Sibling pipelines such as openquok-tiktok-slideshow" href="/docs/other-skills" />
-<LinkCard title="Public API" description="REST endpoints and OAuth used by the CLI and integrations" href="/docs/getting-started-for-public-api" />
 </CardGrid>
 
 ## Related Section(s)
 
+Other CLI sections plus the public API and self-hosted auth server.
+
 <CardGrid>
+<LinkCard title="CLI Core Usages" description="Command-by-command recipes for posts, integrations, analytics, and uploads" href="/docs/cli-usages" />
+<LinkCard title="CLI Examples" description="End-to-end platform recipes organized by social network" href="/docs/cli-examples" />
+<LinkCard title="Agent Setup Guides" description="Run openquok-core with OpenClaw, Hermes, Grok Bot, and ThinkRail" href="/docs/agent-setup-guides" />
+<LinkCard title="Other skills" description="Sibling agent skills that extend openquok-core" href="/docs/other-skills" />
 <LinkCard title="CLI authentication" description="OAuth device flow, programmatic token, and custom auth server URL" href="/docs/getting-started-for-cli/authentication" />
+<LinkCard title="Public API" description="REST endpoints and SDK used by the CLI" href="/docs/getting-started-for-public-api" />
+<LinkCard title="MCP" description="Native MCP client alternative to the CLI skill" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Configuration - Agent" description="Deploy the CLI auth server" href="/docs/configuration-agent" />
 <LinkCard title="Auth server architecture" description="Device flow, endpoints, and Postgres state" href="/docs/configuration-agent/architecture" />
 </CardGrid>

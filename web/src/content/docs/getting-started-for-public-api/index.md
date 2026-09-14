@@ -61,28 +61,28 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 <p>A <strong>30 requests per hour</strong> limit applies to all endpoints. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput.</p>
 </Callout>
 
+## Public API documentation
+
+Use your workspace token, then read provider settings, HTTP endpoints, and OAuth for third-party apps.
+
+<CardGrid>
+<LinkCard title="Provider settings" description="Per-channel providerSettingsByIntegrationId shapes for every shipped network" href="/docs/public-api-providers" />
+<LinkCard title="Integrations APIs" description="Connect, inspect, and trigger endpoints around connected channels" href="/docs/apis-integrations" />
+<LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
+<LinkCard title="Analytics APIs" description="Platform and per-post insights from each provider's native API" href="/docs/apis-analytics" />
+<LinkCard title="Notifications APIs" description="Paginated in-app notification history for your workspace" href="/docs/apis-notifications" />
+<LinkCard title="Uploads APIs" description="Upload media to attach to scheduled posts" href="/docs/apis-uploads" />
+<LinkCard title="OAuth2 for apps" description="Authorization Code flow for third-party apps acting on behalf of users" href="/docs/oauth2-for-apps" />
+</CardGrid>
+
 ## Supported social channels
 
 Every connected channel goes through the same <Badge text="POST /api/v1/public/posts" variant="default" /> endpoint — provider-specific tuning lives under <Badge text="providerSettingsByIntegrationId" variant="param" /> keyed by the channel's UUID.
 
-For per-channel settings, and copy-paste API examples — plus the **channel vs integration** terminology used across the dashboard and API — see the dedicated <a href="/docs/public-api-providers">Provider settings</a> section.
+For per-channel settings, copy-paste API examples, and the **channel vs integration** terminology used across the dashboard and API — see <a href="/docs/public-api-providers">Provider settings</a>.
 
 <CardGrid>
-<LinkCard title="MCP connection" 
-description="Connect Cursor, Claude Code, and Codex 
-with your opo_ token" href="/docs/
-getting-started-for-mcp" />
-<LinkCard title="Provider settings overview" description="Channel vs integration terminology, provider catalog, and multi-channel examples" href="/docs/public-api-providers" />
-<LinkCard title="Threads Settings" description="500-char cap, follow-up replies, internal plugs, and cross-account comments" href="/docs/public-api-providers/threads" />
-<LinkCard title="X Settings" description="Reply audience, community, disclosures, thread finisher, and cross-account reposts" href="/docs/public-api-providers/x" />
-<LinkCard title="LinkedIn Settings" description="Image carousel, carousel name, follow-up comments, and cross-account plugs" href="/docs/public-api-providers/linkedin" />
-<LinkCard title="LinkedIn Page Settings" description="Same settings shape as personal LinkedIn — page-specific connect and analytics" href="/docs/public-api-providers/linkedin-page" />
-<LinkCard title="Facebook Page Settings" description="Embedded URL on text posts and follow-up comments with optional image" href="/docs/public-api-providers/facebook" />
-<LinkCard title="Instagram Business Settings" description="Post type, trial reels, collaborators, and follow-up comments (Business, FB-linked)" href="/docs/public-api-providers/instagram-business" />
-<LinkCard title="Instagram Standalone Settings" description="Same settings shape as Business — IG Login connect path" href="/docs/public-api-providers/instagram-standalone" />
-<LinkCard title="YouTube Settings" description="Title, privacy, tags, made-for-kids, and custom thumbnail" href="/docs/public-api-providers/youtube" />
-<LinkCard title="TikTok Settings" description="Direct post vs inbox upload, privacy, photo title, and brand toggles" href="/docs/public-api-providers/tiktok" />
-<LinkCard title="Dev.to Settings" description="Title, tags, canonical URL, organization, and cover image" href="/docs/public-api-providers/devto" />
+<LinkCard title="Provider settings overview" description="Provider catalog, multi-channel examples, and links to every network's field reference" href="/docs/public-api-providers" />
 </CardGrid>
 
 ## Generate Output
@@ -229,15 +229,18 @@ For the full method table — posts, integrations, plugs, analytics, notificatio
 
 ## Related Section(s)
 
+Every Public API section plus CLI, MCP, and dashboard platform limits.
+
 <CardGrid>
-<LinkCard title="Provider settings" description="Per-provider settings and copy-paste API examples for Threads and Instagram" href="/docs/public-api-providers" />
-<LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
-<LinkCard title="Integrations APIs" description="Programmatic endpoints for channels, groups, global plugs, and provider tools — what the SDK wraps" href="/docs/apis-integrations" />
-<LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts against your connected channels" href="/docs/apis-posts" />
-<LinkCard title="Analytics APIs" description="Platform and per-post insights backed by each provider's native analytics" href="/docs/apis-analytics" />
-<LinkCard title="Notifications APIs" description="Paginated in-app notification history scoped to your workspace" href="/docs/apis-notifications" />
-<LinkCard title="Uploads APIs" description="Upload media that you attach to scheduled posts" href="/docs/apis-uploads" />
+<LinkCard title="Provider settings" description="Per-channel providerSettingsByIntegrationId shapes for every shipped network" href="/docs/public-api-providers" />
+<LinkCard title="Integrations APIs" description="Connect, inspect, and trigger endpoints around connected channels" href="/docs/apis-integrations" />
+<LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
+<LinkCard title="Analytics APIs" description="Platform and per-post insights from each provider's native API" href="/docs/apis-analytics" />
+<LinkCard title="Notifications APIs" description="Paginated in-app notification history for your workspace" href="/docs/apis-notifications" />
+<LinkCard title="Uploads APIs" description="Upload media to attach to scheduled posts" href="/docs/apis-uploads" />
 <LinkCard title="OAuth2 for apps" description="Authorization Code flow for third-party apps acting on behalf of users" href="/docs/oauth2-for-apps" />
-<LinkCard title="CLI" description="Same public API surface, available as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
+<LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
+<LinkCard title="CLI" description="Same public API surface as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
+<LinkCard title="Platform limits" description="Composer and publish rules by network (dashboard reference)" href="/docs/platforms" />
 </CardGrid>
 
