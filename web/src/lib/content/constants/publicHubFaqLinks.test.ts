@@ -34,6 +34,13 @@ describe('pSEO hub FAQ funnel links', () => {
 		});
 	}
 
+	it('channels hub provider-settings FAQ links public API provider docs', () => {
+		const providerSettingsAnswer = PUBLIC_CHANNELS_HUB_FAQ.faqItems[3]?.description ?? '';
+		expect(providerSettingsAnswer).toContain('href="/docs/public-api-providers"');
+		expect(providerSettingsAnswer).toContain('href="/docs/public-api-providers/youtube"');
+		expect(providerSettingsAnswer).not.toContain('href="/channels"');
+	});
+
 	it('channels hub connect FAQ prioritizes sign-up and connect guide', () => {
 		assertConnectFaqsHaveFunnelLinks(PUBLIC_CHANNELS_HUB_FAQ.faqItems, (title) =>
 			title.startsWith('How do I connect a social channel')

@@ -82,6 +82,7 @@ export const publicFaqHref = {
 	cliSetupGuides: faqHrefDocs('getting-started-for-cli'),
 	mcpGettingStarted: faqHrefDocs('getting-started-for-mcp'),
 	publicApi: faqHrefDocs('getting-started-for-public-api'),
+	publicApiProviders: faqHrefDocs('public-api-providers'),
 	oauthApps: faqHrefDocs('oauth2-for-apps'),
 	socialIntegration: faqHrefDocs('social-integration'),
 	channelGroups: faqHrefDocs('apis-integrations/groups'),

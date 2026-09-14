@@ -2,6 +2,7 @@ import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 
 import {
 	buildChannelFaqLinks,
+	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
@@ -40,7 +41,7 @@ export const PUBLIC_CHANNELS_HUB_FAQ = {
 		{
 			title: 'What is the difference between a channel page and setup docs?',
 			description:
-				`Channel landings on ${faqLink(publicFaqHref.channels, 'Channels')} explain what you can schedule and why teams pick OpenQuok for that network. The ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} covers the dashboard flow every cloud user follows. Self-host operator guides live under social-integration docs and must be labeled self-host when linked from FAQs.`
+				`Public API ${faqLink(publicFaqHref.publicApiProviders, 'provider settings')} document field-level shapes for each network — for example ${faqLink(faqHrefDocs('public-api-providers/youtube'), 'YouTube Settings')}. The ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} covers the dashboard flow every cloud user follows. Self-host operator guides live under social-integration docs and must be labeled self-host when linked from FAQs.`
 		}
 	]
 } satisfies PublicChannelsHubFaqSection;

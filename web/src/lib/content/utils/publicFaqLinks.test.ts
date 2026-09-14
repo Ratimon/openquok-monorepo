@@ -37,6 +37,7 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.selfHostingLanding).toBe('/self-hosting');
 		expect(publicFaqHref.dockerCompose).toBe('/docs/installation/docker-compose');
 		expect(publicFaqHref.productionDeployment).toBe('/docs/installation/production-deployment');
+		expect(publicFaqHref.publicApiProviders).toBe('/docs/public-api-providers');
 		expect(faqHrefAgent('grok-bot')).toBe('/agents/grok-bot');
 	});
 
