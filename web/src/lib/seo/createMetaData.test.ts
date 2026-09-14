@@ -9,6 +9,11 @@ import {
 	createMetaData,
 	resolveDocumentTitleTemplate
 } from '$lib/seo/createMetaData';
+import {
+	DEFAULT_OG_IMAGE_MIME,
+	DEFAULT_OG_IMAGE_PATH,
+	DEFAULT_OG_IMAGE_SPECS
+} from '$lib/seo/ogImageDefaults';
 
 const companyInformation: CompanyInformationProgrammerModel = {
 	module_name: 'company_information',
@@ -86,6 +91,25 @@ describe('createMetaData', () => {
 		});
 
 		expect(metaTags.openGraph?.type).toBe('website');
+	});
+
+	it('emits default Open Graph images (1200x630 first) with image/png type', async () => {
+		const metaTags = await createMetaData({
+			companyInformation,
+			marketingInformation,
+			requestUrl: new URL('https://www.openquok.com/channels/facebook')
+		});
+
+		expect(metaTags.openGraph?.images).toEqual(
+			DEFAULT_OG_IMAGE_SPECS.map((spec) => ({
+				url: `https://www.openquok.com${spec.path}`,
+				type: DEFAULT_OG_IMAGE_MIME,
+				alt: `OpenQuok — ${spec.altSuffix}`,
+				width: spec.width,
+				height: spec.height
+			}))
+		);
+		expect(metaTags.twitter?.image).toBe(`https://www.openquok.com${DEFAULT_OG_IMAGE_PATH}`);
 	});
 
 	it('sets openGraph.type to article when openGraphType is article', async () => {

@@ -1,6 +1,7 @@
 import type { MetaTagsProps, MetaTag } from 'svelte-meta-tags';
 
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { buildDefaultOgImage, buildDefaultOgImages } from '$lib/seo/ogImageDefaults';
 
 import type {
 	CompanyInformationProgrammerModel,
@@ -185,11 +186,7 @@ export async function createMetaData({
 			: canonicalBaseUrl ??
 				(typeof window !== 'undefined' ? buildCanonicalUrl(window.location) : DEFAULT_ORIGIN);
 
-	const defaultOgImages: MetaDataImage[] = [
-		{ url: `${baseUrl}/og/og_1200x630.png`, type: 'image', alt: `${companyName} OG 1200x630`, width: 1200, height: 630 },
-		{ url: `${baseUrl}/og/og_1080x1080.png`, type: 'image', alt: `${companyName} OG 1080x1080`, width: 1080, height: 1080 },
-		{ url: `${baseUrl}/og/og_1600x900.png`, type: 'image', alt: `${companyName} OG 1600x900`, width: 1600, height: 900 }
-	];
+	const defaultOgImages: MetaDataImage[] = buildDefaultOgImages(baseUrl, companyName);
 	const ogImages = customImages ?? defaultOgImages;
 
 	return {
@@ -213,7 +210,7 @@ export async function createMetaData({
 			cardType: 'summary_large_image',
 			title,
 			description,
-			image: ogImages[0]?.url ?? `${baseUrl}/og/og_1600x900.png`
+			image: ogImages[0]?.url ?? buildDefaultOgImage(baseUrl, companyName).url
 		},
 
 		additionalMetaTags: [
