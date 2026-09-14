@@ -220,6 +220,18 @@ Compiled CLI code published as [`@openquok/auto-cli`](https://www.npmjs.com/pack
 
 <br /><br /><br />
 
+## Star History
+
+<p align="center">
+  <a href="https://star-history.com/#Ratimon/openquok-monorepo&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Ratimon/openquok-monorepo&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Ratimon/openquok-monorepo&type=Date&theme=light" />
+      <img alt="GitHub Star History Chart" src="https://api.star-history.com/svg?repos=Ratimon/openquok-monorepo&type=Date" />
+    </picture>
+  </a>
+</p>
+
 <p align="center">
   <a href="https://www.trustpilot.com/review/openquok.com" target="_blank">
     <img alt="Leave a review on Trustpilot" src="assets/readme/review-trustpilot-banner.jpg" />
