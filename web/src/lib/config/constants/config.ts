@@ -41,6 +41,7 @@ import {
 	buildPublicFooterSkillBuilderLinks,
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
+import { docsTabHref } from '$lib/docs/navigation';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
@@ -58,9 +59,12 @@ const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
 const publicApisIntegrationsDocsPath = route(`${getRootPathPublicDocs()}/apis-integrations`);
+const publicDocsGettingStartedForMcpPath = route(`${getRootPathPublicDocs()}/getting-started-for-mcp`);
+const publicDocsGettingStartedForCliPath = route(`${getRootPathPublicDocs()}/getting-started-for-cli`);
 const publicGettingStartedForPublicApiDocsPath = route(
 	`${getRootPathPublicDocs()}/getting-started-for-public-api`
 );
+const publicDocsContributingPath = route(docsTabHref('contributing'));
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
@@ -881,10 +885,14 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
 	Resources: [
-		{ label: 'All Agent Integrations', href: publicAgentsPath },
 		{ label: 'All Supported Channels', href: publicChannelsPath },
-		{ label: 'Self-hosted', href: publicSelfHostingPath },
+		{ label: 'All Agent Integrations', href: publicAgentsPath },
 		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'Contribute', href: publicDocsContributingPath },
+		{ label: 'MCP Getting Started', href: publicDocsGettingStartedForMcpPath },
+		{ label: 'CLI Getting Started', href: publicDocsGettingStartedForCliPath },
+		{ label: 'Public API', href: publicGettingStartedForPublicApiDocsPath },
+		{ label: 'Self-hosted', href: publicSelfHostingPath },
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },

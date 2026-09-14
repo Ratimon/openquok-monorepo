@@ -46,7 +46,7 @@
 <div class="grid w-full grid-cols-1 gap-x-8 gap-y-10 text-left sm:grid-cols-2 xl:grid-cols-3">
 	{#each Object.keys(linkList) as category (category)}
 		<div class="min-w-0">
-			<h3 class="text-sm font-semibold leading-6 text-base-content">
+			<h3 class="text-sm font-semibold leading-6 text-primary">
 				{capitalize(category)}</h3>
 			<ul role="list" class="mt-6 space-y-4">
 				{#each linkList[category] as link (link.href)}
