@@ -50,7 +50,7 @@ Below filters apply across all three columns unless noted.
 | --- | --- |
 | **Channel groups** | Limit cards to channels in the groups you pick. See <a href="/docs/channels/channel-groups">Channel groups</a>. |
 | **Platforms** | Show only posts tied to selected social platforms (when you have more than one platform connected). |
-| **Tags** | Match <a href="/docs/creating-posts/tags">tags</a> on the post group. |
+| **Tags** | Match <a href="/docs/getting-started/glossary#tag">tags</a> on the post group. |
 
 ### Review and source
 
@@ -130,7 +130,7 @@ The kanban appears only when your workspace has at least one **connected social 
 <LinkCard title="Creating posts overview" description="Composer layout, save options, and typical flow" href="/docs/creating-posts" />
 <LinkCard title="Scheduling" description="Save as draft, add to calendar, and publish now" href="/docs/creating-posts/scheduling" />
 <LinkCard title="AI generation" description="Agent and API drafts in the same review queue" href="/docs/creating-posts/ai-generation" />
-<LinkCard title="Tags" description="Campaign labels and kanban tag filter" href="/docs/creating-posts/tags" />
+<LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Moving posts" description="Drag on the calendar and reschedule" href="/docs/calendar-and-posts/moving-posts" />
 <LinkCard title="Calendar vs kanban" description="Glossary — when to use each surface" href="/docs/getting-started/glossary#calendar-vs-kanban" />

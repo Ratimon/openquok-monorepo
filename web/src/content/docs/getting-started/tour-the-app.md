@@ -29,7 +29,7 @@ Settings and Billing sit under the account menu.
 | --- | --- | --- |
 | <Badge text="Home" variant="default" /> | <Badge text="/account" variant="path" /> | Connected channels, Getting started checklist, kanban, <Badge text="Create Post" variant="new" /> |
 | <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
-| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/creating-posts/templates">Templates</a> |
+| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/getting-started/glossary#template">Template</a> in the glossary |
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
 | <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/global-plugs">Global plugs</a> |
 | <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish (fields vary by network) |
@@ -64,7 +64,7 @@ The post editor (also called the composer) is a modal, not a sidebar page. Open 
 | Channel groups | Group controls on Home — see <a href="/docs/channels/channel-groups">Channel groups</a> |
 | Smart filters | Home table <Badge text="Add filters" variant="default" />; kanban and calendar dropdowns; Templates and Auto Plugs tables — see <a href="/docs/getting-started/glossary#smart-filter">Smart filter</a> |
 | Per-network fields | Composer, beside the preview |
-| Tags | Composer toolbar — see <a href="/docs/creating-posts/tags">Tags</a> |
+| Tags | Composer footer — see <a href="/docs/getting-started/glossary#tag">Tag</a> in the glossary |
 | Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |
 | Internal (per-post) plugs | Composer <Badge text="Settings" variant="default" /> accordion — see <a href="/docs/automations/internal-plugs">Internal plugs</a> |
 | Cross-account (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> |

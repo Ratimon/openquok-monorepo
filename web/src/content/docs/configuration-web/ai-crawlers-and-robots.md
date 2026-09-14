@@ -13,42 +13,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 OpenQuok serves <Badge text="/robots.txt" variant="path" /> from the web app and publishes <Badge text="/llms.txt" variant="path" /> plus <Badge text="/llms-full.txt" variant="path" /> for documentation discovery. Marketing pages, docs, and channel hubs are meant to be crawlable; auth and workspace routes stay disallowed.
 
-If a **directory or AI visibility tool** (for example PeerPush’s “AI engine coverage map”) reports that **Claude** or **Gemini** “has not found you” while ChatGPT, Copilot, or Perplexity partially do, check production <Badge text="/robots.txt" variant="path" /> first. On OpenQuok, the usual cause is **Cloudflare managed robots.txt** (“block training in robots.txt”), not the SvelteKit route alone.
-
-<Callout type="danger" title="Repo deploy cannot fix PeerPush Claude / Gemini">
-The SvelteKit <Badge text="Allow: /" variant="path" /> groups are already correct. Cloudflare still prepends <Badge text="Disallow Path" variant="path" /> for <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" /> until you turn managed robots.txt off in the zone. Confirm with <code>pnpm --filter ./web run verify:ai-robots</code> — it fails while that prepend exists.
-</Callout>
-
-## Why ChatGPT can look fine while Claude and Gemini do not
-
-Cloudflare’s managed block list typically includes <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, and <Badge text="GPTBot" variant="default" />, but **not** every OpenAI or Microsoft user agent. Tools often attribute ChatGPT coverage to <Badge text="OAI-SearchBot" variant="default" /> / <Badge text="ChatGPT-User" variant="default" />, Copilot to Bing, and Perplexity to <Badge text="PerplexityBot" variant="default" /> — none of which appear in the managed Disallow list. Claude and Gemini map to the blocked tokens, so the coverage map shows a gap.
-
-## What production looks like when the bug is present
-
-When Cloudflare injects managed content, <Badge text="/robots.txt" variant="path" /> begins with a block like:
-
-```text
-# BEGIN Cloudflare Managed content
-User-agent: ClaudeBot
-Disallow: /
-
-User-agent: Google-Extended
-Disallow: /
-...
-# END Cloudflare Managed Content
-```
-
-The OpenQuok app **appends** its own rules after that block (sitemap, auth disallows, explicit <strong>Allow</strong> groups for AI crawlers). Most parsers treat the Cloudflare <Badge text="Disallow: /" variant="path" /> as a full-site block for that user agent. **Appending** <Badge text="Allow: /" variant="path" /> in the app cannot undo it.
-
-<Callout type="warning" title="Repo deploy is not enough">
-Turning off Cloudflare managed robots.txt is required. Allowing crawlers in <strong>AI Crawl Control</strong> alone does <strong>not</strong> remove the prepended <Badge text="Disallow: /" variant="path" /> block. Verify with <code>pnpm --filter ./web run verify:ai-robots</code>.
-</Callout>
+If a **directory or AI visibility tool** reports that **Claude** or **Gemini** “has not found you”, check production <Badge text="/robots.txt" variant="path" /> first. On OpenQuok, the usual cause is **Cloudflare managed robots.txt** (“block training in robots.txt”), not the SvelteKit route alone.
 
 ## Why “Training → Allow” is not enough
 
 Cloudflare has <strong>two separate controls</strong>:
 
-| Control | What it does | PeerPush Claude / Gemini |
+| Control | What it does | Claude / Gemini |
 | --- | --- | --- |
 | <strong>Training → Allow (do not block)</strong> under Configure AI bot policies | Stops Cloudflare from <strong>HTTP-blocking</strong> training crawlers at the edge | Necessary, but not sufficient |
 | <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) | Prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, … | This is what PeerPush reads |
@@ -90,11 +61,11 @@ This sets <Badge text="is_robots_txt_managed" variant="default" /> to <code>fals
 
 ### Keep Training Allow (already correct if set)
 
-Under <strong>Security</strong> → <strong>Settings</strong> → <strong>Configure AI bot policies</strong>, leave <strong>Training</strong> on <strong>Allow (do not block)</strong>. That only affects edge HTTP blocking. PeerPush still fails until managed robots.txt is off.
+Under <strong>Security</strong> → <strong>Settings</strong> → <strong>Configure AI bot policies</strong>, leave <strong>Training</strong> on <strong>Allow (do not block)</strong>. That only affects edge HTTP blocking.
 
 ### Optional: AI Crawl Control Allow
 
-Under <strong>Security</strong> → <strong>AI Crawl Control</strong>, set <strong>Action</strong> to <strong>Allow</strong> for crawlers you want (at least <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" />). This also controls WAF blocking; it does not replace turning off managed robots.txt for the PeerPush-style robots check.
+Under <strong>Security</strong> → <strong>AI Crawl Control</strong>, set <strong>Action</strong> to <strong>Allow</strong> for crawlers you want (at least <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" />). This also controls WAF blocking.
 
 ### Verify the live file
 
@@ -111,15 +82,11 @@ Pass criteria:
 
 </Steps>
 
-## After robots is fixed: PeerPush may still lag
+## After robots is fixed: Al crawlers may still lag
 
 Once <code>pnpm --filter ./web run verify:ai-robots</code> passes, the crawl <strong>gate</strong> is open. PeerPush’s “AI engine coverage map” is not only a robots check — the percentages (e.g. ChatGPT 73% / Copilot 24% / Perplexity 3%) are a <strong>visibility mix</strong> across engines that have already retrieved or attributed your product.
 
 So <strong>Claude hasn’t found you</strong> / <strong>Gemini hasn’t found you</strong> after a successful Cloudflare change usually means:
-
-1. PeerPush has not rescanned yet (force a refresh/rescan in their dashboard if available), or
-2. Claude / Gemini have not crawled or cited the product yet (often days to weeks after allow), or
-3. Those engines still lack enough public facts / third-party mentions to retrieve you for PeerPush’s prompts
 
 That is no longer fixed by more <Badge text="robots.txt" variant="path" /> edits. Keep <Badge text="/llms.txt" variant="path" />, pricing, compare, and docs public; watch Cloudflare <strong>AI Crawl Control</strong> for <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> request logs; and re-check PeerPush after a rescan.
 

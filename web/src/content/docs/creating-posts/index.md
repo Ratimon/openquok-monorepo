@@ -23,7 +23,7 @@ On Home and the calendar it opens as a modal. The same editor powers <Badge text
 | --- | --- |
 | <Badge text="Create Post" variant="new" /> | <a href="/account">Home</a> |
 | Click a day or empty slot | <a href="/account/calendar">Calendar</a> |
-| <Badge text="Select a template" variant="default" /> | Home — restores a saved <a href="/docs/creating-posts/templates">template</a> |
+| <Badge text="Select a template" variant="default" /> | Home — restores a saved <a href="/docs/getting-started/glossary#template">template</a> |
 | Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/creating-posts/kanban">Kanban board</a> and <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a> |
 
 You need at least one connected channel before the editor is useful. See <a href="/docs/channels/connect">Connect a channel</a>.
@@ -37,7 +37,7 @@ The editor is one window with three main areas and a footer bar.
 | **Top** | Pick which channels receive this post. You can select a <a href="/docs/channels/channel-groups">channel group</a> to turn on every channel in that brand at once. |
 | **Left** | <a href="/docs/creating-posts/writing-the-post">Write the caption</a>, use the toolbar, add <a href="/docs/creating-posts/media">media</a>, open per-network **Settings** (<a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>), and build <a href="/docs/creating-posts/threads-and-comments">thread replies or follow-up comments</a>. |
 | **Right** | <a href="/docs/creating-posts/writing-the-post#post-preview">Post Preview</a> — a live look at how each selected channel will render the post. |
-| **Footer** | <a href="/docs/creating-posts/tags">Tags</a>, repeat schedule, date and time, and save buttons — see <a href="/docs/creating-posts/scheduling">Scheduling</a> for <Badge text="Save as draft" variant="default" />, <Badge text="Add to calendar" variant="new" />, and <Badge text="Publish now" variant="new" />. |
+| **Footer** | <a href="/docs/getting-started/glossary#tag">Tags</a>, repeat schedule, date and time, and save buttons — see <a href="/docs/creating-posts/scheduling">Scheduling</a> for <Badge text="Save as draft" variant="default" />, <Badge text="Add to calendar" variant="new" />, and <Badge text="Publish now" variant="new" />. |
 
 The preview column is worth a glance. Line breaks, image crops, and titles that truncate on one network often show up there before you schedule.
 
@@ -76,7 +76,7 @@ Choose a date and time in the footer, then save as a draft, add to the calendar,
 
 ## Starting from a template
 
-If you saved <a href="/docs/creating-posts/templates">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok can offer one when you start a new post. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week.
+If you saved <a href="/docs/getting-started/glossary#template">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok can offer one when you start a new post. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week.
 
 You can always continue without a template and pick channels manually.
 
@@ -89,7 +89,7 @@ You can always continue without a template and pick channels manually.
 | Topic | Where in the editor |
 | --- | --- |
 | Multi-part posts and timed replies | <Badge text="Follow-up comments" variant="default" /> under the caption; <Badge text="Settings" variant="default" /> for finisher and plugs — see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
-| Campaign labels | Footer tags — see <a href="/docs/creating-posts/tags">Tags</a> |
+| Campaign labels | Footer tags — see <a href="/docs/getting-started/glossary#tag">Tag</a> in the glossary |
 | Same-account delayed reply | <Badge text="Settings" variant="default" /> accordion — see <a href="/docs/automations/internal-plugs">Internal plugs</a> |
 | Cross-channel after publish | <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> |
 
@@ -120,8 +120,8 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Scheduling" description="Pick a publish time and save as draft or scheduled" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Kanban board" description="Review drafts, drag to schedule, filters, and pagination on Home" href="/docs/creating-posts/kanban" />
 <LinkCard title="Links and validation" description="Link previews, character limits, and save-time errors" href="/docs/creating-posts/links-and-validation" />
-<LinkCard title="Tags" description="Colored labels on posts for campaigns and filters" href="/docs/creating-posts/tags" />
-<LinkCard title="Templates" description="Saved composer presets for repeat workflows" href="/docs/creating-posts/templates" />
+<LinkCard title="Tags" description="Colored labels on posts for campaigns and filters" href="/docs/getting-started/glossary#tag" />
+<LinkCard title="Templates" description="Saved composer presets for repeat workflows" href="/docs/getting-started/glossary#template" />
 </CardGrid>
 
 ## Related

@@ -60,7 +60,7 @@ Tags sit in the footer beside repeat. Create one with a color, and that color be
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
-Tags can be edited and deleted later. The color change applies everywhere the tag is used. See <a href="/docs/creating-posts/tags">Tags</a>.
+Tags can be edited and deleted later. The color change applies everywhere the tag is used.
 
 ## Drafts
 
@@ -94,7 +94,7 @@ If publish fails, the card shows <Badge text="Failed" variant="deprecated" />. O
 <CardGrid>
 <LinkCard title="Creating posts overview" description="Editor layout, flow, and where the footer fits" href="/docs/creating-posts" />
 <LinkCard title="Kanban board" description="Draft, scheduled, and published columns — drag to reschedule" href="/docs/creating-posts/kanban" />
-<LinkCard title="Tags" description="Colored labels for campaigns and calendar filters" href="/docs/creating-posts/tags" />
+<LinkCard title="Glossary → Tag" description="What tags are and how they tint cards" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed the next suggested time" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Date metrics timezone for calendar and slot labels" href="/docs/settings/timezone" />
 <LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/calendar-and-posts/moving-posts" />

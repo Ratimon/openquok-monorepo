@@ -69,7 +69,6 @@ A **tag** is a colored workspace label you attach to a post. The color tints the
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
-<p>See <a href="/docs/creating-posts/tags">Tags</a>.</p>
 
 ## Template
 
@@ -77,7 +76,7 @@ A **template** is a saved preset of selected channels, caption (global or per-ch
 
 ![Select a Template](/docs/_assets/glossary/select-a-template.webp)
 
-<p>Templates are created at <a href="/account/templates">/account/templates</a>. See <a href="/docs/creating-posts/templates">Templates</a>.</p>
+<p>Templates are created at <a href="/account/templates">/account/templates</a>. See <a href="/docs/creating-posts#starting-from-a-template">Starting from a template</a> on the creating-posts overview for the composer flow.</p>
 
 Templates are workspace-scoped. They speed up repeat workflows; they do not auto-publish on their own.
 
@@ -118,7 +117,7 @@ A **smart filter** is how you narrow a table or board to the channels, posts, te
 
 <p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/creating-posts/kanban">Kanban board</a>.</p>
 
-<p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/docs/creating-posts/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
+<p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/account/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 
 ## Post states
 
