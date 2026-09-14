@@ -1,5 +1,5 @@
 ---
-description: Checklist for adding a social channel — backend provider + web composer/OAuth + cross-account plug preview + docs + public API provider settings page + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + Extensions Hub listing tag (secret-admin)
+description: Checklist for adding a social channel — backend provider + web composer/OAuth + cross-account plug preview + docs + public API provider settings page + self-host env + public SEO landing page + agent channel SEO routes + public Photo Editor channel routes + public Best Time to Post channel routes + public Humanizer channel routes + feature bento showcases + auto-derived site footer links + Extensions Hub listing tag (secret-admin)
 globs:
   - backend/integrations/**
   - backend/config/GlobalConfig.ts
@@ -409,7 +409,7 @@ Routes and UI are **generic** — adding a channel is a **catalog entry only** (
 | Hero (live) | `web/src/lib/ui/templates/landing-page/PublicChannelHero.svelte` |
 | Hero (coming soon) | `web/src/lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte` |
 
-Navbar/footer link to `/channels` is already in `web/src/lib/config/constants/config.ts`; **do not add per-channel nav entries**.
+Navbar link to `/channels` is already in `web/src/lib/config/constants/config.ts`; **do not add per-channel nav entries**. Per-channel **footer** links are auto-derived — see **Site footer** below.
 
 ### Catalog entry (`PublicChannelLandingPageViewModel`)
 
@@ -513,6 +513,26 @@ Wire through `web/src/routes/(public)/channels/[slug]/+page.svelte` (`publicChan
 - `+page.server.ts` files own SSR, meta tags (`createMetaData`), and JSON-LD schema.
 - `+page.ts` follows the universal load pattern (`await parent()`, merge `isLoggedIn` / roles on the client branch). See **web-sveltekit-universal-page-load**.
 - `+page.svelte` exposes load fields via `$derived(data.*)` and owns the page markup (no separate `*Page.svelte` wrapper).
+
+### Site footer (`PUBLIC_FOOTER_LINKS`)
+
+Footer columns are assembled in `web/src/lib/config/constants/config.ts` from builders in `web/src/lib/config/utils/buildPublicFooterLinks.ts`. **Do not** hand-add per-provider rows to `PUBLIC_FOOTER_LINKS` or extend the builders when shipping a channel — complete the catalog/docs items in this checklist and the footer updates at build time.
+
+| Footer section | Ship in this PR | Auto-wired from |
+| --- | --- | --- |
+| **Supported Channels** | `channels/{slug}.ts` catalog entry | `listPublicChannelsForHub()` → `/channels/{slug}` |
+| **How to self-host with different social channels** | `social-integration/{id}.md` + `social-integration/index.md` LinkCard | Eager glob on `web/src/content/docs/social-integration/**`; frontmatter `title`, `order` (omit `draft: true`) |
+| **Skill Builder Tools** | Live channel (`available: true`) + Skill Builder recipes | `listSkillBuilderChannelsForHub()` |
+| **Photo Editor Tools** | Live channel + aspect presets (recommended at go-live) | `listCanvasChannelsForHub()` |
+| **Best Time to Post Tools** | Live channel + `PLATFORM_WINDOWS['{identifier}']` | `listBestTimeChannelsForHub()` |
+| **Humanizer Tools** | Any `publicChannelConfig` entry (including coming-soon) | `listHumanizeChannelsForHub()` |
+| **Autonomous Agent Integrations** | Agent channel SEO (bento + CLI when go-live) | Agent hosts from `listPublicAgentsForHub()`; per-channel rows from `/agents/{agentSlug}/{slug}` catalog |
+
+**Self-host setup doc frontmatter:** filename slug must match `provider.identifier` (link → `/docs/social-integration/{identifier}`). Set `title` for the footer label, `order` to sort among sibling guides, and optional `sidebar.label` when the footer label should differ from the page title.
+
+**Verify in PR:** on any public page, confirm the new channel appears under **Supported Channels** and the operator setup guide under **How to self-host with different social channels** with the expected label and href. Edit `buildPublicFooterLinks.ts` only when introducing a **new footer column type**, not for each provider.
+
+See also **web-seo-pseo** → Footer inventory.
 
 ## Docs and agent resources (user-facing providers)
 
@@ -780,6 +800,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); CTAs are only `Get Started For Free` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
+- **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.
 - **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth provider listed under OAuth redirect (and follow-up picker table when `isBetweenSteps`); credentials provider row in the credentials table; invite-link note if `customFields`.
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs; sync `web/src/content/docs/public-api-providers/{identifier}.md` when `providerSettingsByIntegrationId` shapes change.
 - **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/index.md` row when new network; follow-up/plug sections match shipped backend only.

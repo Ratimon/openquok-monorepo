@@ -127,16 +127,21 @@ On OpenQuok Cloud, developer apps are already registered; users **sign up** and 
 
 ## Footer inventory (`PUBLIC_FOOTER_LINKS`)
 
-Sitewide footer columns in `web/src/lib/config/constants/config.ts` — keep aligned when adding hubs or tools:
+Sitewide footer columns in `web/src/lib/config/constants/config.ts`. Hub-level links (Tools, Resources, Company, Directories) are static; **per-channel/per-doc rows** are built in `web/src/lib/config/utils/buildPublicFooterLinks.ts` from catalogs and docs frontmatter — see **add-social-provider-integration** → **Site footer** when shipping a social channel (do not hand-edit footer rows per slug).
 
 | Column | Examples |
 | --- | --- |
 | **Tools** | `/tools`, `/tools/skill-builder`, `/tools/photo-editor`, `/tools/humanizer`, `/tools/best-time-to-post` |
+| **Skill Builder / Photo Editor / Humanizer / Best Time to Post Tools** | Auto: `/tools/{tool}/{channelSlug}` from live channel catalogs |
+| **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelsForHub()` |
+| **How to self-host with different social channels** | Auto: `/docs/social-integration/{slug}` from setup-guide markdown |
+| **Autonomous Agent / MCP Integrations** | Auto: `/agents/{slug}` from agent/MCP catalogs |
+| **API Payload Validators / Integrations APIs / …** | Auto: `/docs/apis-*` from `docsSidebarPublicApi` + operation markdown |
 | **Directories** | `/playbooks`, `/building-blocks`, `/creators`, category/tag index paths |
 | **Resources** | `/agents`, `/channels`, `/alternatives`, `/blog`, `/compare`, `/docs`, self-host install |
 | **Company** | `/about`, `/roadmap`, `/pricing`, Discord |
 
-New pSEO routes that should be discoverable from every page belong here or in header nav config — not only in FAQ cross-links.
+New pSEO routes that should be discoverable from every page belong here or in header nav config — not only in FAQ cross-links. Add a static hub row in `config.ts` or extend `buildPublicFooterLinks.ts` when introducing a **new column type**; individual channel slugs stay catalog-driven.
 
 ## PR checklist (pSEO FAQ + copy)
 

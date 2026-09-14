@@ -29,6 +29,18 @@ import {
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
+import {
+	buildPublicFooterAutonomousAgentIntegrationLinks,
+	buildPublicFooterApiPayloadValidatorLinks,
+	buildPublicFooterBestTimeToPostLinks,
+	buildPublicFooterHumanizerLinks,
+	buildPublicFooterMcpIntegrationLinks,
+	buildPublicFooterPhotoEditorLinks,
+	buildPublicFooterPublicApiDocsLinkSections,
+	buildPublicFooterSelfHostSocialIntegrationLinks,
+	buildPublicFooterSkillBuilderLinks,
+	buildPublicFooterSupportedChannelLinks
+} from '$lib/config/utils/buildPublicFooterLinks';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
 
 const publicBlogPath = route(getRootPathPublicBlog());
@@ -46,6 +58,9 @@ const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
 const publicApisIntegrationsDocsPath = route(`${getRootPathPublicDocs()}/apis-integrations`);
+const publicGettingStartedForPublicApiDocsPath = route(
+	`${getRootPathPublicDocs()}/getting-started-for-public-api`
+);
 const publicToolsPath = route(getRootPathPublicTools());
 const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
@@ -53,6 +68,20 @@ const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
+
+const publicFooterSkillBuilderLinks = buildPublicFooterSkillBuilderLinks(publicSkillBuilderPath);
+const publicFooterPhotoEditorLinks = buildPublicFooterPhotoEditorLinks(publicPhotoEditorPath);
+const publicFooterHumanizerLinks = buildPublicFooterHumanizerLinks(publicHumanizerPath);
+const publicFooterBestTimeToPostLinks = buildPublicFooterBestTimeToPostLinks(publicBestTimeToPostPath);
+const publicFooterAutonomousAgentIntegrationLinks =
+	buildPublicFooterAutonomousAgentIntegrationLinks(publicAgentsPath);
+const publicFooterMcpIntegrationLinks = buildPublicFooterMcpIntegrationLinks(publicAgentsPath);
+const publicFooterSupportedChannelLinks = buildPublicFooterSupportedChannelLinks(publicChannelsPath);
+const publicFooterSelfHostSocialIntegrationLinks = buildPublicFooterSelfHostSocialIntegrationLinks();
+const publicFooterApiPayloadValidatorLinks = buildPublicFooterApiPayloadValidatorLinks(
+	publicGettingStartedForPublicApiDocsPath
+);
+const publicFooterPublicApiDocsLinkSections = buildPublicFooterPublicApiDocsLinkSections();
 
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
@@ -836,6 +865,32 @@ export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 
 
 export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
+	Company: [
+		{ label: 'About Us', href: '/about' },
+		{ label: 'Roadmap', href: publicRoadmapPath },
+		{ label: 'Pricing', href: '/pricing' },
+		{
+			label: 'Discord',
+			href: getSocialProfileHref('SOCIAL_LINKS_DISCORD')
+		},
+		{ label: 'Blog', href: publicBlogPath },
+		{ label: 'Blog Topics', href: '/blog/topic' },
+		{ label: 'Blog Authors', href: '/blog/author' },
+		{ label: 'Alternatives', href: publicAlternativesPath },
+		{ label: 'Compare', href: publicComparePath },
+		{ label: 'Sitemap', href: '/sitemap.xml' }
+	],
+	Resources: [
+		{ label: 'All Agent Integrations', href: publicAgentsPath },
+		{ label: 'All Supported Channels', href: publicChannelsPath },
+		{ label: 'Self-hosted', href: publicSelfHostingPath },
+		{ label: 'Developer Docs', href: publicDocsPath },
+	],
+	Legal: [
+		{ label: 'Terms', href: '/terms' },
+		{ label: 'Privacy', href: '/privacy-policy' },
+		{ label: 'Cookies', href: '/cookie-policy' }
+	],
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
@@ -853,30 +908,14 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Building Block Categories', href: publicBuildingBlocksCategoriesPath },
 		{ label: 'Building Block Tags', href: publicBuildingBlocksTagsPath },
 	],
-	Resources: [
-		{ label: 'All Agent Integrations', href: publicAgentsPath },
-		{ label: 'All Supported Channels', href: publicChannelsPath },
-		{ label: 'Alternatives', href: publicAlternativesPath },
-		{ label: 'Blog', href: publicBlogPath },
-		{ label: 'Blog Topics', href: '/blog/topic' },
-		{ label: 'Blog Authors', href: '/blog/author' },
-		{ label: 'Compare', href: publicComparePath },
-		{ label: 'Self-hosted', href: publicSelfHostingPath },
-		{ label: 'Developer Docs', href: publicDocsPath },
-	],
-	Legal: [
-		{ label: 'Terms', href: '/terms' },
-		{ label: 'Privacy', href: '/privacy-policy' },
-		{ label: 'Cookies', href: '/cookie-policy' }
-	],
-	Company: [
-		{ label: 'About Us', href: '/about' },
-		{ label: 'Roadmap', href: publicRoadmapPath },
-		{ label: 'Pricing', href: '/pricing' },
-		{
-			label: 'Discord',
-			href: getSocialProfileHref('SOCIAL_LINKS_DISCORD')
-		},
-		{ label: 'Sitemap', href: '/sitemap.xml' }
-	]
+	'Autonomous Agent Integrations': publicFooterAutonomousAgentIntegrationLinks,
+	'MCP Integrations': publicFooterMcpIntegrationLinks,
+	'Supported Channels': publicFooterSupportedChannelLinks,
+	'How to self-host with different social channels': publicFooterSelfHostSocialIntegrationLinks,
+	'Skill Builder Tools': publicFooterSkillBuilderLinks,
+	'Photo Editor Tools': publicFooterPhotoEditorLinks,
+	'Humanizer Tools': publicFooterHumanizerLinks,
+	'Best Time to Post Tools': publicFooterBestTimeToPostLinks,
+	'API Payload Validators': publicFooterApiPayloadValidatorLinks,
+	...publicFooterPublicApiDocsLinkSections,
 };
