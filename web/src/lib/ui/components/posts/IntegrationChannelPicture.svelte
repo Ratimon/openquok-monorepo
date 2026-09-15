@@ -2,6 +2,7 @@
 	import type { IconName } from '$data/icons';
 
 	import { imageRepository } from '$lib/core';
+	import { fetchExternalProxiedImageBlobCached } from '$lib/core/externalProxiedImageCache';
 	import {
 		integrationProfilePictureNeedsAuthenticatedProxy,
 		isIntegrationProfileStoragePath
@@ -20,26 +21,34 @@
 	let { profilePictureUrl, fallbackIcon, alt = '', class: className = '' }: Props = $props();
 
 	let resolvedSrc = $state<string | null>(null);
+	let proxyAttemptedForUrl = $state<string | null>(null);
+	let blobObjectUrl = $state<string | null>(null);
+
+	function revokeBlobUrl(): void {
+		if (blobObjectUrl) {
+			URL.revokeObjectURL(blobObjectUrl);
+			blobObjectUrl = null;
+		}
+	}
+
+	function setBlobSrc(blob: Blob): void {
+		revokeBlobUrl();
+		const u = URL.createObjectURL(blob);
+		blobObjectUrl = u;
+		resolvedSrc = u;
+	}
 
 	$effect(() => {
 		const raw = typeof profilePictureUrl === 'string' ? profilePictureUrl.trim() : '';
+		proxyAttemptedForUrl = null;
+		revokeBlobUrl();
+
 		if (!raw) {
 			resolvedSrc = null;
 			return;
 		}
 
 		let cancelled = false;
-		let blobObjectUrl: string | null = null;
-
-		const setBlobSrc = (blob: Blob) => {
-			const u = URL.createObjectURL(blob);
-			if (cancelled) {
-				URL.revokeObjectURL(u);
-				return;
-			}
-			blobObjectUrl = u;
-			resolvedSrc = u;
-		};
 
 		if (isIntegrationProfileStoragePath(raw)) {
 			void (async () => {
@@ -53,32 +62,43 @@
 			})();
 		} else if (!/^https?:\/\//i.test(raw)) {
 			resolvedSrc = raw;
-		} else if (!integrationProfilePictureNeedsAuthenticatedProxy(raw)) {
-			resolvedSrc = raw;
 		} else {
-			void (async () => {
-				const blob = await imageRepository.fetchExternalProxiedImageBlob(raw);
-				if (cancelled) return;
-				if (blob) {
-					setBlobSrc(blob);
-					return;
-				}
-				// Proxy 403 (WAF or datacenter IP): try the signed URL in the browser with no Referer.
-				resolvedSrc = raw;
-			})();
+			// Instagram / LinkedIn CDNs: browser first (`referrerpolicy="no-referrer"` on the img).
+			// Server proxy often 403s from datacenter IPs; only try after a direct load fails.
+			resolvedSrc = raw;
 		}
 
 		return () => {
 			cancelled = true;
-			if (blobObjectUrl) {
-				URL.revokeObjectURL(blobObjectUrl);
-				blobObjectUrl = null;
-			}
+			revokeBlobUrl();
 		};
 	});
+
+	function handleImageError(failedUrl: string) {
+		const raw = typeof profilePictureUrl === 'string' ? profilePictureUrl.trim() : '';
+		if (!raw || failedUrl !== raw || !integrationProfilePictureNeedsAuthenticatedProxy(raw)) {
+			resolvedSrc = null;
+			return;
+		}
+		if (proxyAttemptedForUrl === raw) {
+			resolvedSrc = null;
+			return;
+		}
+		proxyAttemptedForUrl = raw;
+
+		void (async () => {
+			const blob = await fetchExternalProxiedImageBlobCached(raw);
+			if (proxyAttemptedForUrl !== raw) return;
+			if (blob) {
+				setBlobSrc(blob);
+				return;
+			}
+			resolvedSrc = null;
+		})();
+	}
 </script>
 
 <!-- Fixed-size shell: prevents flex min-width:auto from expanding on wide logos/images. -->
 <div class="inline-flex flex-none overflow-hidden {className}">
-	<ImageWithFallback src={resolvedSrc} {fallbackIcon} {alt} />
+	<ImageWithFallback src={resolvedSrc} {fallbackIcon} {alt} onImageError={handleImageError} />
 </div>

@@ -7,12 +7,19 @@
 		src: string | null;
 		alt?: string;
 		fallbackIcon: IconName;
+		/** Fires when the current `src` fails to load (before switching to the fallback icon). */
+		onImageError?: (failedUrl: string) => void;
 	};
 
-	let { src, alt = '', fallbackIcon }: Props = $props();
+	let { src, alt = '', fallbackIcon, onImageError }: Props = $props();
 
 	let failedSrc = $state<string | null>(null);
 	let showPicture = $derived(Boolean(src?.trim()) && failedSrc !== src);
+
+	$effect(() => {
+		void src;
+		failedSrc = null;
+	});
 </script>
 
 {#if showPicture}
@@ -22,7 +29,9 @@
 		class="block h-full w-full object-cover"
 		referrerpolicy="no-referrer"
 		onerror={() => {
-			failedSrc = src ?? null;
+			const failed = src ?? '';
+			failedSrc = failed;
+			if (failed) onImageError?.(failed);
 		}}
 	/>
 {:else}

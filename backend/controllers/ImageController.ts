@@ -143,7 +143,11 @@ export class ImageController {
         } catch (error) {
             if (error instanceof ExternalImageFetchError) {
                 const err = new Error(error.message);
-                (err as Error & { statusCode?: number }).statusCode = error.statusCode;
+                // Upstream CDN 403/404 is not an auth failure — use 502 so clients/logs are not confused
+                // with JWT rejection on this route.
+                const statusCode =
+                    error.statusCode === 403 || error.statusCode === 404 ? 502 : error.statusCode;
+                (err as Error & { statusCode?: number }).statusCode = statusCode;
                 next(err);
                 return;
             }
