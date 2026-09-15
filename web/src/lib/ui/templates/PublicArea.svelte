@@ -5,7 +5,7 @@
 	import {
 		PUBLIC_NAVBAR_LINKS,
 		PUBLIC_NAVBAR_MOBILE_LINKS,
-		PUBLIC_FOOTER_LINKS
+		PUBLIC_FOOTER_LINKS_STATIC
 	} from '$lib/config/constants/config';
 
 	import HeaderPublic from '$lib/ui/templates/HeaderPublic.svelte';
@@ -47,7 +47,7 @@
 
 	let navbarDesktopLinks = $derived(propNavbarDesktopLinks ?? PUBLIC_NAVBAR_LINKS);
 	let navbarMobileLinks = $derived(propNavbarMobileLinks ?? PUBLIC_NAVBAR_MOBILE_LINKS);
-	let footerNavigationLinks = $derived(propFooterNavigationLinks ?? PUBLIC_FOOTER_LINKS);
+	let footerNavigationLinks = $derived(propFooterNavigationLinks ?? PUBLIC_FOOTER_LINKS_STATIC);
 </script>
 
 <section class="min-h-screen flex flex-col">

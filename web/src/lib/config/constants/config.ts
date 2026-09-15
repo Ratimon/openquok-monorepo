@@ -42,7 +42,9 @@ import {
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { docsTabHref } from '$lib/docs/navigation';
+import { preloadDocsRegistry } from '$lib/docs/content';
 import { normalizeApiBaseUrl, route } from '$lib/utils/path';
+import type { PublicFooterLinksMap } from '$lib/config/utils/buildPublicFooterLinks';
 
 const publicBlogPath = route(getRootPathPublicBlog());
 const publicAgentsPath = route(getRootPathPublicAgents());
@@ -81,11 +83,6 @@ const publicFooterAutonomousAgentIntegrationLinks =
 	buildPublicFooterAutonomousAgentIntegrationLinks(publicAgentsPath);
 const publicFooterMcpIntegrationLinks = buildPublicFooterMcpIntegrationLinks(publicAgentsPath);
 const publicFooterSupportedChannelLinks = buildPublicFooterSupportedChannelLinks(publicChannelsPath);
-const publicFooterSelfHostSocialIntegrationLinks = buildPublicFooterSelfHostSocialIntegrationLinks();
-const publicFooterApiPayloadValidatorLinks = buildPublicFooterApiPayloadValidatorLinks(
-	publicGettingStartedForPublicApiDocsPath
-);
-const publicFooterPublicApiDocsLinkSections = buildPublicFooterPublicApiDocsLinkSections();
 
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
@@ -868,7 +865,7 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 export const PUBLIC_NAVBAR_MOBILE_LINKS: Link[] = [...PUBLIC_NAVBAR_LINKS];
 
 
-export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }[]> = {
+export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	Company: [
 		{ label: 'About Us', href: '/about' },
 		{ label: 'Roadmap', href: publicRoadmapPath },
@@ -892,7 +889,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'MCP Getting Started', href: publicDocsGettingStartedForMcpPath },
 		{ label: 'CLI Getting Started', href: publicDocsGettingStartedForCliPath },
 		{ label: 'Public API', href: publicGettingStartedForPublicApiDocsPath },
-		{ label: 'Self-hosted', href: publicSelfHostingPath },
+		{ label: 'Self-hosted', href: publicSelfHostingPath }
 	],
 	Legal: [
 		{ label: 'Terms', href: '/terms' },
@@ -905,7 +902,7 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Photo Editor', href: publicPhotoEditorPath },
 		{ label: 'Humanizer', href: publicHumanizerPath },
 		{ label: 'Best Time to Post', href: publicBestTimeToPostPath },
-		{ label: 'API Payload Validator', href: publicApisIntegrationsDocsPath },
+		{ label: 'API Payload Validator', href: publicApisIntegrationsDocsPath }
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
@@ -914,16 +911,28 @@ export const PUBLIC_FOOTER_LINKS: Record<string, { label: string; href: string }
 		{ label: 'Playbook Categories', href: publicPlaybooksCategoriesPath },
 		{ label: 'Playbook Tags', href: publicPlaybooksTagsPath },
 		{ label: 'Building Block Categories', href: publicBuildingBlocksCategoriesPath },
-		{ label: 'Building Block Tags', href: publicBuildingBlocksTagsPath },
+		{ label: 'Building Block Tags', href: publicBuildingBlocksTagsPath }
 	],
 	'Autonomous Agent Integrations': publicFooterAutonomousAgentIntegrationLinks,
 	'MCP Integrations': publicFooterMcpIntegrationLinks,
 	'Supported Channels': publicFooterSupportedChannelLinks,
-	'How to self-host with different social channels': publicFooterSelfHostSocialIntegrationLinks,
 	'Skill Builder Tools': publicFooterSkillBuilderLinks,
 	'Photo Editor Tools': publicFooterPhotoEditorLinks,
 	'Humanizer Tools': publicFooterHumanizerLinks,
-	'Best Time to Post Tools': publicFooterBestTimeToPostLinks,
-	'API Payload Validators': publicFooterApiPayloadValidatorLinks,
-	...publicFooterPublicApiDocsLinkSections,
+	'Best Time to Post Tools': publicFooterBestTimeToPostLinks
 };
+
+/** Full footer columns including doc-derived sections. Await from server loads after docs preload. */
+export async function getPublicFooterLinks(): Promise<PublicFooterLinksMap> {
+	await preloadDocsRegistry();
+
+	return {
+		...PUBLIC_FOOTER_LINKS_STATIC,
+		'How to self-host with different social channels':
+			buildPublicFooterSelfHostSocialIntegrationLinks(),
+		'API Payload Validators': buildPublicFooterApiPayloadValidatorLinks(
+			publicGettingStartedForPublicApiDocsPath
+		),
+		...buildPublicFooterPublicApiDocsLinkSections()
+	};
+}

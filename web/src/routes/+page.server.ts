@@ -7,7 +7,6 @@ import {
 	CONFIG_SCHEMA_MARKETING,
 	getLandingPageConfigDefaults,
 	getPublicFaqConfigDefaults,
-	PUBLIC_FOOTER_LINKS,
 	PUBLIC_NAVBAR_LINKS
 } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
@@ -43,11 +42,11 @@ async function loadPublicModuleConfig(
 }
 
 export const load: PageServerLoad = async ({ parent, url, fetch }) => {
-	const { baseMetaTags, companyInformationPm, marketingInformationPm } = await parent();
+	const { baseMetaTags, companyInformationPm, marketingInformationPm, footerNavigationLinks } =
+		await parent();
 
 	const navbarDesktopLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
-	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
 	const [landingPageRaw, publicFaqRaw] = await Promise.all([
 		loadPublicModuleConfig('landing_page', fetch),

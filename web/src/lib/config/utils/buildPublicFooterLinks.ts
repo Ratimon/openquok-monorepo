@@ -6,12 +6,14 @@ import { listBestTimeChannelsForHub } from '$lib/best-time-to-post/constants/pub
 import { listCanvasChannelsForHub } from '$lib/canvas/constants/publicCanvasChannelConfig';
 import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
 import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+import { getDocsByDirectory } from '$lib/docs/content';
 import { docsSidebarPublicApi } from '$lib/docs/constants/config';
-import { docMetaFromRawSource } from '$lib/docs/utils/content/parseDocFrontmatter';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { route } from '$lib/utils/path';
 
 export type PublicFooterLink = { label: string; href: string };
+
+export type PublicFooterLinksMap = Record<string, PublicFooterLink[]>;
 
 type PublicFooterHubEntry = { platformLabel: string; href: string };
 
@@ -29,46 +31,17 @@ const MCP_HUB_FOOTER_ENTRIES = [
 	{ slug: 'warp', label: 'Warp' }
 ] as const;
 
-const publicApiDocsRawModules: Record<string, string> = import.meta.glob(
-	'/src/content/docs/apis-*/**/*.{md,svx}',
-	{ query: '?raw', import: 'default', eager: true }
-);
-
-const socialIntegrationDocsRawModules: Record<string, string> = import.meta.glob(
-	'/src/content/docs/social-integration/**/*.{md,svx}',
-	{ query: '?raw', import: 'default', eager: true }
-);
-
 const SOCIAL_INTEGRATION_DOCS_DIRECTORY = 'social-integration';
 
-function docSlugFromContentPath(path: string): string {
-	return path
-		.replace('/src/content/docs/', '')
-		.replace(/\.(md|svx)$/, '')
-		.replace(/\/index$/, '');
-}
-
-function listDocDirectoryFooterEntries(
-	directory: string,
-	rawModules: Record<string, string>
-): PublicFooterHubEntry[] {
-	const docsRoot = getRootPathPublicDocs();
-	const entries: { order: number; platformLabel: string; href: string }[] = [];
-
-	for (const [path, raw] of Object.entries(rawModules)) {
-		const slug = docSlugFromContentPath(path);
-		if (slug !== directory && !slug.startsWith(`${directory}/`)) continue;
-
-		const meta = docMetaFromRawSource(raw);
-		if (meta.draft) continue;
-		if (slug === directory) continue;
-
-		entries.push({
-			order: meta.order ?? 999,
-			platformLabel: meta.sidebar?.label ?? meta.title,
-			href: route(`${docsRoot}/${slug}`)
-		});
-	}
+/** Requires `preloadDocsRegistry()` — reads doc metadata from the shared docs registry. */
+function listDocDirectoryFooterEntries(directory: string): PublicFooterHubEntry[] {
+	const entries = getDocsByDirectory(directory)
+		.filter((doc) => doc.slug !== directory)
+		.map((doc) => ({
+			order: doc.meta.order ?? 999,
+			platformLabel: doc.meta.sidebar?.label ?? doc.meta.title,
+			href: route(doc.href.replace(/^\//, ''))
+		}));
 
 	return entries
 		.sort((a, b) => a.order - b.order || a.platformLabel.localeCompare(b.platformLabel))
@@ -76,7 +49,7 @@ function listDocDirectoryFooterEntries(
 }
 
 function listPublicApiDocFooterEntries(directory: string): PublicFooterHubEntry[] {
-	return listDocDirectoryFooterEntries(directory, publicApiDocsRawModules);
+	return listDocDirectoryFooterEntries(directory);
 }
 
 function listPublicApiDocsSidebarSections() {
@@ -165,10 +138,7 @@ export function buildPublicFooterSelfHostSocialIntegrationLinks(): PublicFooterL
 	return buildPublicFooterHubLinks(
 		'All self-host social integrations',
 		route(`${docsRoot}/${SOCIAL_INTEGRATION_DOCS_DIRECTORY}`),
-		listDocDirectoryFooterEntries(
-			SOCIAL_INTEGRATION_DOCS_DIRECTORY,
-			socialIntegrationDocsRawModules
-		)
+		listDocDirectoryFooterEntries(SOCIAL_INTEGRATION_DOCS_DIRECTORY)
 	);
 }
 

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, beforeAll } from 'vitest';
 
 import {
 	buildPublicFooterAutonomousAgentIntegrationLinks,
@@ -9,6 +9,7 @@ import {
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
+import { preloadDocsRegistry } from '$lib/docs/content';
 import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
 import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
@@ -16,6 +17,10 @@ import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPath
 import { route } from '$lib/utils/path';
 
 describe('buildPublicFooterLinks', () => {
+	beforeAll(async () => {
+		await preloadDocsRegistry();
+	});
+
 	it('places the hub link first, then detail links', () => {
 		expect(
 			buildPublicFooterHubLinks('All Skill Builder Tools', '/tools/skill-builder', [

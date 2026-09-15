@@ -8,7 +8,7 @@
 	import {
 		PUBLIC_NAVBAR_LINKS,
 		PUBLIC_NAVBAR_MOBILE_LINKS,
-		PUBLIC_FOOTER_LINKS
+		PUBLIC_FOOTER_LINKS_STATIC
 	} from '$lib/config/constants/config';
 	import { authenticationRepository, verifyEmailPresenter } from '$lib/user-auth/index';
 	import { VerifyEmailStatus } from '$lib/user-auth/VerifyEmail.presenter.svelte';
@@ -76,7 +76,10 @@
 	);
 	let navbarDesktopLinks = $derived((page.data as { navbarDesktopLinks?: typeof PUBLIC_NAVBAR_LINKS })?.navbarDesktopLinks ?? PUBLIC_NAVBAR_LINKS);
 	let navbarMobileLinks = $derived((page.data as { navbarMobileLinks?: typeof PUBLIC_NAVBAR_MOBILE_LINKS })?.navbarMobileLinks ?? PUBLIC_NAVBAR_MOBILE_LINKS);
-	let footerNavigationLinks = $derived((page.data as { footerNavigationLinks?: typeof PUBLIC_FOOTER_LINKS })?.footerNavigationLinks ?? PUBLIC_FOOTER_LINKS);
+	let footerNavigationLinks = $derived(
+		(page.data as { footerNavigationLinks?: typeof PUBLIC_FOOTER_LINKS_STATIC })
+			?.footerNavigationLinks ?? PUBLIC_FOOTER_LINKS_STATIC
+	);
 </script>
 
 <PublicArea

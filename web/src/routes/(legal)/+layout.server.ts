@@ -1,8 +1,7 @@
 import type { LayoutServerLoad } from './$types';
 import {
 	PUBLIC_NAVBAR_LINKS,
-	PUBLIC_NAVBAR_MOBILE_LINKS,
-	PUBLIC_FOOTER_LINKS
+	PUBLIC_NAVBAR_MOBILE_LINKS
 } from '$lib/config/constants/config';
 import type { Link } from '$lib/ui/nav-bars/Link';
 
@@ -15,13 +14,11 @@ export const load: LayoutServerLoad = async ({ cookies, parent }) => {
 
 	const navbarDesktopLinks: Link[] = [...PUBLIC_NAVBAR_LINKS];
 	const navbarMobileLinks: Link[] = [...PUBLIC_NAVBAR_MOBILE_LINKS];
-	const footerNavigationLinks = { ...PUBLIC_FOOTER_LINKS };
 
 	return {
 		...parentData,
 		isLoggedIn,
 		navbarDesktopLinks,
-		navbarMobileLinks,
-		footerNavigationLinks
+		navbarMobileLinks
 	};
 };

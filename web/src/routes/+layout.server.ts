@@ -2,7 +2,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
-import { getCompanyConfigDefaults } from '$lib/config/constants/config';
+import { getCompanyConfigDefaults, getPublicFooterLinks } from '$lib/config/constants/config';
 import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
 import {
 	getStaticCompanyInformationPm,
@@ -51,6 +51,7 @@ export async function load({ url, cookies, fetch }) {
 	}) satisfies MetaTagsProps;
 
 	const footerInfo = publicLayoutPagePresenter.loadInfoForFooterStateless(companyConfig);
+	const footerNavigationLinks = await getPublicFooterLinks();
 
 	return {
 		baseMetaTags,
@@ -62,6 +63,7 @@ export async function load({ url, cookies, fetch }) {
 		companyYearVm: footerInfo.companyYearVm,
 		companyAddressVm: footerInfo.companyAddressVm,
 		supportPhoneVm: footerInfo.supportPhoneVm,
-		supportEmailVm: footerInfo.supportEmailVm
+		supportEmailVm: footerInfo.supportEmailVm,
+		footerNavigationLinks
 	};
 }

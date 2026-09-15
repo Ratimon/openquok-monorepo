@@ -9,7 +9,7 @@
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 	import {
-		PUBLIC_FOOTER_LINKS,
+		PUBLIC_FOOTER_LINKS_STATIC,
 		SOCIAL_FOLLOW_BAR_LINKS,
 		getSocialProfileHref
 	} from '$lib/config/constants/config';
@@ -40,8 +40,8 @@
 	let showDocsRightSidebar = $derived(!isOpenapiReferenceChrome(docMeta));
 
 	let footerNavigationLinks = $derived(
-		(page.data as { footerNavigationLinks?: typeof PUBLIC_FOOTER_LINKS }).footerNavigationLinks ??
-			PUBLIC_FOOTER_LINKS
+		(page.data as { footerNavigationLinks?: typeof PUBLIC_FOOTER_LINKS_STATIC })
+			.footerNavigationLinks ?? PUBLIC_FOOTER_LINKS_STATIC
 	);
 	let companyNameVm = $derived(
 		(data as App.LayoutData).companyNameVm ??
