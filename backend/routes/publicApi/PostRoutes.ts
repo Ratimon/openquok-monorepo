@@ -7,6 +7,7 @@ import {
     validatePublicCreatePostBody,
     validatePublicFindSlotParams,
     validatePublicFlipPostStatusRequest,
+    validatePublicReschedulePostRequest,
     validatePublicListPostsQuery,
     validatePublicPostIdParams,
     validatePublicUpdateReleaseIdRequest,
@@ -22,7 +23,7 @@ type PublicPostRouter = ReturnType<typeof Router>;
  * - Programmatic auth: OAuth app token (`opo_…`) with `public_api` plan enforcement
  *
  * NOTE: order matters — static segments (`/list`, `/find-slot/...`) and
- * suffix routes (`/:postId/status`, `/:postId/missing`, `/:postId/release-id`) are registered **before**
+ * suffix routes (`/:postId/status`, `/:postId/reschedule`, `/:postId/missing`, `/:postId/release-id`) are registered **before**
  * `GET /:postId` and `DELETE /:postId` so Express does not greedily match the catch-all.
  */
 const publicPostRouter: PublicPostRouter = Router();
@@ -50,6 +51,12 @@ publicPostRouter.put(
     apiKeyAuth,
     validatePublicFlipPostStatusRequest,
     publicPostsController.flipPostStatus
+);
+publicPostRouter.put(
+    "/:postId/reschedule",
+    apiKeyAuth,
+    validatePublicReschedulePostRequest,
+    publicPostsController.reschedulePost
 );
 publicPostRouter.get(
     "/:postId/missing",

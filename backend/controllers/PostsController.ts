@@ -419,6 +419,46 @@ export class PostsController {
         }
     };
 
+    /** PUT /posts/:postId/reschedule — move publish time; optionally re-queue or republish. */
+    reschedulePost = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as {
+                organizationId: string;
+                publishDateIso: string;
+                action: "update" | "schedule";
+                republish?: boolean;
+            };
+            const result = await this.postsService.reschedulePostGroupByPostId({
+                postId,
+                organizationId: body.organizationId,
+                publishDateIso: body.publishDateIso,
+                action: body.action,
+                republish: body.republish,
+                authUserId,
+                skipMembershipCheck: false,
+            });
+            const posts = await this.postsService.toPostDtosWithChannelMetadata(
+                body.organizationId,
+                result.posts
+            );
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts,
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     updatePostReviewTodo = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const authReq = req as AuthenticatedRequest;

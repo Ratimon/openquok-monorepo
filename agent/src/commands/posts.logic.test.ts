@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildMediaFromArgs,
   mergeProviderSettingsForIntegrations,
+  parsePostsRescheduleAction,
   parsePostsStatusFlag,
   providerIdentifierByIntegrationIdFromList,
   readCreatePayloadFromJsonFile,
@@ -225,6 +226,22 @@ describe("readCreatePayloadFromJsonFile", () => {
     expect(() => readCreatePayloadFromJsonFile(path.join(os.tmpdir(), "missing-openquok-xyz.json"))).toThrow(
       /json file not found/
     );
+  });
+});
+
+describe("parsePostsRescheduleAction", () => {
+  it("defaults to update", () => {
+    expect(parsePostsRescheduleAction(undefined)).toBe("update");
+    expect(parsePostsRescheduleAction("")).toBe("update");
+  });
+
+  it("maps schedule and update", () => {
+    expect(parsePostsRescheduleAction("schedule")).toBe("schedule");
+    expect(parsePostsRescheduleAction("update")).toBe("update");
+  });
+
+  it("throws on invalid action", () => {
+    expect(() => parsePostsRescheduleAction("republish")).toThrow(/invalid action/);
   });
 });
 

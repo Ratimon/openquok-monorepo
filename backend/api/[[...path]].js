@@ -10214,6 +10214,31 @@ var init_PostsRepository = __esm({
         return data ?? [];
       }
       /**
+       * Moves a post group to a new publish time. Unlike {@link updatePostGroupPublishSchedule},
+       * `action: "update"` only changes `publish_date` and preserves each row's `state`.
+       */
+      async reschedulePostGroup(postGroup, organizationId, fields) {
+        const patch = {
+          publish_date: fields.publishDateIso,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        if (fields.action === "schedule") {
+          patch.state = fields.scheduleTargetState ?? "QUEUE";
+          patch.release_id = null;
+          patch.release_url = null;
+          patch.error = null;
+        }
+        const { data, error } = await this.supabase.from(TABLE_POSTS).update(patch).eq("post_group", postGroup).eq("organization_id", organizationId).is("deleted_at", null).select("*");
+        if (error) {
+          throw new DatabaseError(`Failed to reschedule post group: ${error.message}`, {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        return data ?? [];
+      }
+      /**
        * Updates kanban review fields for every row in the post group (keeps siblings in sync).
        */
       async updatePostGroupReviewFields(postGroup, organizationId, fields) {
@@ -23736,6 +23761,116 @@ var init_PostsService = __esm({
         });
         return { postGroup: post.post_group, posts: updated };
       }
+      /**
+       * Programmatic reschedule (`PUT {api.prefix}/public/posts/:postId/reschedule`).
+       * Loads the post group via the row id (no public group GET/PUT).
+       */
+      async reschedulePostGroupByPostIdProgrammatic(postId, organizationId, publishDateIso, action, republish, publicUserId) {
+        return await this.reschedulePostGroupByPostId({
+          postId,
+          organizationId,
+          publishDateIso,
+          action,
+          republish,
+          authUserId: null,
+          publicUserId: publicUserId ?? null,
+          skipMembershipCheck: true
+        });
+      }
+      /**
+       * Session/UI and programmatic reschedule (`PUT …/posts/:postId/reschedule`).
+       * `update` moves publish time only; `schedule` re-queues (or keeps all-draft) and clears publish results.
+       */
+      async reschedulePostGroupByPostId(input) {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+          throw new AppError("Post not found", 404);
+        }
+        const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+        if (!rows.length) {
+          throw new AppError("Post group not found", 404);
+        }
+        if (rows.some((r) => r.state === "ERROR")) {
+          throw new AppError("Cannot reschedule a failed post", 400);
+        }
+        const scheduledDate = new Date(input.publishDateIso);
+        if (Number.isNaN(scheduledDate.getTime())) {
+          throw new AppError("Invalid schedule time", 400);
+        }
+        const publishIso = scheduledDate.toISOString();
+        const currentPublishMs = new Date(rows[0].publish_date).getTime();
+        const nextPublishMs = scheduledDate.getTime();
+        if (!Number.isNaN(currentPublishMs) && currentPublishMs === nextPublishMs) {
+          return { postGroup: post.post_group, posts: rows };
+        }
+        const hasPublished = rows.some((r) => r.state === "PUBLISHED");
+        const allDraft = rows.every((r) => r.state === "DRAFT");
+        if (input.action === "schedule" && hasPublished && !input.republish) {
+          throw new AppError("Republish is required to reschedule a published post", 400);
+        }
+        const nowMs = Date.now();
+        if (input.action === "schedule" && nextPublishMs <= nowMs) {
+          throw new AppError("Schedule time must be in the future", 400);
+        }
+        if (input.action === "update" && !hasPublished && nextPublishMs < nowMs) {
+          throw new AppError("Schedule time must be in the future", 400);
+        }
+        const scheduleTargetState = allDraft ? "DRAFT" : "QUEUE";
+        const willOccupyQueueSlot = input.action === "schedule" ? scheduleTargetState === "QUEUE" : rows.some((r) => r.state === "QUEUE");
+        if (willOccupyQueueSlot) {
+          const hasChannel = rows.some((r) => r.integration_id != null);
+          if (!hasChannel) {
+            throw new AppError("Select at least one channel to schedule", 400);
+          }
+          const channelIds = [
+            ...new Set(
+              rows.map((r) => r.integration_id).filter((id) => typeof id === "string" && Boolean(id))
+            )
+          ];
+          if (channelIds.length > 0) {
+            const integrations = await this.integrationService.listByOrganization(input.organizationId);
+            this.assertIntegrationsNotDisabled(integrations, channelIds);
+          }
+          const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+            input.organizationId,
+            publishIso,
+            post.post_group
+          );
+          if (taken) {
+            throw new AppError("That time slot is already taken; pick another.", 409);
+          }
+        }
+        if (input.action === "schedule" && scheduleTargetState === "QUEUE") {
+          const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+          if (draftRows.length > 0) {
+            await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+              scope: "workspaceWithDelta",
+              organizationId: input.organizationId,
+              authUserId: input.authUserId ?? void 0,
+              publicUserId: input.publicUserId ?? void 0,
+              delta: draftRows.length
+            });
+          }
+        }
+        let updated = await this.postsRepository.reschedulePostGroup(post.post_group, input.organizationId, {
+          publishDateIso: publishIso,
+          action: input.action,
+          scheduleTargetState: input.action === "schedule" ? scheduleTargetState : void 0
+        });
+        if (input.authUserId && !input.skipMembershipCheck) {
+          updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+            isAgentEdited: false
+          });
+        }
+        const enqueueStatus = updated.some((r) => r.state === "QUEUE") && nextPublishMs > nowMs ? "scheduled" : "draft";
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, enqueueStatus);
+        await this._invalidatePostMutationCaches({
+          organizationId: input.organizationId,
+          postGroup: post.post_group,
+          postIds: updated.map((p) => p.id)
+        });
+        return { postGroup: post.post_group, posts: updated };
+      }
       async buildPostGroupDetails(postGroup, rows) {
         const organizationId = rows[0].organization_id;
         const { isGlobal, repeatInterval } = parsePostSettingsJson(rows[0].settings);
@@ -32094,6 +32229,40 @@ var init_PostsController = __esm({
           next(error);
         }
       };
+      /** PUT /posts/:postId/reschedule — move publish time; optionally re-queue or republish. */
+      reschedulePost = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const postId = req.params.postId;
+          const body = req.body;
+          const result = await this.postsService.reschedulePostGroupByPostId({
+            postId,
+            organizationId: body.organizationId,
+            publishDateIso: body.publishDateIso,
+            action: body.action,
+            republish: body.republish,
+            authUserId,
+            skipMembershipCheck: false
+          });
+          const posts = await this.postsService.toPostDtosWithChannelMetadata(
+            body.organizationId,
+            result.posts
+          );
+          res.status(200).json({
+            success: true,
+            data: {
+              postGroup: result.postGroup,
+              posts
+            }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
       updatePostReviewTodo = async (req, res, next) => {
         try {
           const authReq = req;
@@ -32239,6 +32408,33 @@ var init_PublicPostsController = __esm({
             postId,
             organizationId,
             status,
+            programmaticReq.publicUserId
+          );
+          res.status(200).json({
+            success: true,
+            data: {
+              postGroup: result.postGroup,
+              posts: PostDTOMapper.toDTOCollection(result.posts)
+            }
+          });
+        } catch (error) {
+          next(error);
+        }
+      };
+      /** PUT /public/posts/:postId/reschedule — move publish time; optionally re-queue or republish. */
+      reschedulePost = async (req, res, next) => {
+        try {
+          countPublicApiRequest("posts-reschedule");
+          const programmaticReq = req;
+          const organizationId = programmaticReq.organization.id;
+          const postId = req.params.postId;
+          const body = req.body;
+          const result = await this.postsService.reschedulePostGroupByPostIdProgrammatic(
+            postId,
+            organizationId,
+            body.scheduledAt,
+            body.action ?? "update",
+            body.republish,
             programmaticReq.publicUserId
           );
           res.status(200).json({
@@ -33645,6 +33841,53 @@ var init_postsReviewTodo = __esm({
     init_mcpJsonResult();
   }
 });
+function registerPostsRescheduleTool(server2, deps) {
+  server2.registerTool(
+    "postsReschedule",
+    {
+      description: "Move a post group to a new publish time. action update preserves state; schedule re-queues and clears publish results.",
+      inputSchema: {
+        postId: zod.z.string().describe("Post row id from postsList or schedulePostTool"),
+        scheduledAt: zod.z.string().describe("New publish time (ISO-8601)"),
+        action: zod.z.enum(["update", "schedule"]).optional().describe("update (default) moves time only; schedule re-queues publishing"),
+        republish: zod.z.boolean().optional().describe("Required true when action is schedule and the group has published rows")
+      }
+    },
+    async ({ postId, scheduledAt, action, republish }) => {
+      const id = postId?.trim();
+      if (!id) {
+        throw new Error("postId is required");
+      }
+      const at = scheduledAt?.trim();
+      if (!at) {
+        throw new Error("scheduledAt is required");
+      }
+      const { organizationId, publicUserId } = getMcpContext();
+      const result = await deps.postsService.reschedulePostGroupByPostIdProgrammatic(
+        id,
+        organizationId,
+        at,
+        action ?? "update",
+        republish,
+        publicUserId
+      );
+      return mcpJsonResult({
+        success: true,
+        data: {
+          postGroup: result.postGroup,
+          posts: PostDTOMapper.toDTOCollection(result.posts)
+        }
+      });
+    }
+  );
+}
+var init_postsReschedule = __esm({
+  "mcp/tools/postsReschedule.ts"() {
+    init_PostDTO();
+    init_context();
+    init_mcpJsonResult();
+  }
+});
 function registerPostsStatusTool(server2, deps) {
   server2.registerTool(
     "postsStatus",
@@ -34057,6 +34300,7 @@ function createMcpServer(deps) {
   registerPostsListTool(server2, deps);
   registerPostsFindSlotTool(server2, deps);
   registerPostsStatusTool(server2, deps);
+  registerPostsRescheduleTool(server2, deps);
   registerPostsReviewTodoTool(server2, deps);
   registerPostsDeleteTool(server2, deps);
   registerPostsMissingTool(server2, deps);
@@ -34088,6 +34332,7 @@ var init_createMcpServer = __esm({
     init_postsList();
     init_postsMissing();
     init_postsReviewTodo();
+    init_postsReschedule();
     init_postsStatus();
     init_schedulePostTool();
     init_triggerTool();
@@ -35369,7 +35614,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-11T11:19:10.053Z",
+  generated: "2026-09-15T00:49:16.945Z",
   routes: [
     {
       path: "/docs",
@@ -35654,6 +35899,12 @@ var routes_manifest_default = {
       type: "public-catalog"
     },
     {
+      path: "/compare/buffer/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35732,7 +35983,97 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/claw-post/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/claw-post/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35816,6 +36157,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hopper-hq/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -35889,6 +36236,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/mixpost/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -35972,6 +36325,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openpost/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openpost/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36045,6 +36404,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openquok/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -36128,6 +36493,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36201,6 +36572,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postfast/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -36284,6 +36661,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36357,6 +36740,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postpeer/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -36440,6 +36829,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/recurpost/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/recurpost/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36513,6 +36908,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/socialclaw/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -36596,6 +36997,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/typefully/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/typefully/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36674,6 +37081,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/usebard/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/usebard/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36747,6 +37160,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/claw-post",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -40152,6 +40571,18 @@ var validateFlipPostStatus = validateRequest({
   params: postIdParamsSchema,
   body: flipPostStatusBodySchema
 });
+var reschedulePostBodySchema = zod.z.object({
+  organizationId: zod.z.string().uuid("Invalid organization id"),
+  publishDateIso: zod.z.string().min(1, "Schedule time is required"),
+  action: zod.z.enum(["update", "schedule"], {
+    errorMap: () => ({ message: "action must be update or schedule" })
+  }),
+  republish: zod.z.boolean().optional()
+});
+var validateReschedulePost = validateRequest({
+  params: postIdParamsSchema,
+  body: reschedulePostBodySchema
+});
 var publishPostNowBodySchema = zod.z.object({
   organizationId: zod.z.string().uuid("Invalid organization id")
 });
@@ -40198,6 +40629,17 @@ var publicFlipPostStatusBodySchema = zod.z.object({
 var validatePublicFlipPostStatusRequest = validateRequest({
   params: publicPostIdParamsSchema,
   body: publicFlipPostStatusBodySchema
+});
+var publicReschedulePostBodySchema = zod.z.object({
+  scheduledAt: zod.z.string().min(1, "Schedule time is required"),
+  action: zod.z.enum(["update", "schedule"], {
+    errorMap: () => ({ message: "action must be update or schedule" })
+  }).default("update"),
+  republish: zod.z.boolean().optional()
+});
+var validatePublicReschedulePostRequest = validateRequest({
+  params: publicPostIdParamsSchema,
+  body: publicReschedulePostBodySchema
 });
 var publicFindSlotParamsSchema = zod.z.object({
   integrationId: zod.z.string().uuid("Invalid integration id").optional()
@@ -40249,6 +40691,12 @@ publicPostRouter.put(
   apiKeyAuth5,
   validatePublicFlipPostStatusRequest,
   publicPostsController.flipPostStatus
+);
+publicPostRouter.put(
+  "/:postId/reschedule",
+  apiKeyAuth5,
+  validatePublicReschedulePostRequest,
+  publicPostsController.reschedulePost
 );
 publicPostRouter.get(
   "/:postId/missing",
@@ -40360,6 +40808,7 @@ postRouter.get("/:postId/missing", auth4, validatePostMissingQuery, postsControl
 postRouter.put("/:postId/release-id", auth4, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
 postRouter.put("/:postId/publish-now", auth4, validatePublishPostNow, postsController.publishPostNow);
 postRouter.put("/:postId/status", auth4, validateFlipPostStatus, postsController.flipPostStatus);
+postRouter.put("/:postId/reschedule", auth4, validateReschedulePost, postsController.reschedulePost);
 postRouter.put("/:postId/review-todo", auth4, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
 postRouter.delete("/:postGroup", auth4, validateDeletePostGroup, postsController.deletePostGroup);
 

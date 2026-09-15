@@ -209,6 +209,20 @@ export const validateFlipPostStatus: RequestHandler = validateRequest({
     body: flipPostStatusBodySchema,
 });
 
+export const reschedulePostBodySchema = z.object({
+    organizationId: z.string().uuid("Invalid organization id"),
+    publishDateIso: z.string().min(1, "Schedule time is required"),
+    action: z.enum(["update", "schedule"], {
+        errorMap: () => ({ message: "action must be update or schedule" }),
+    }),
+    republish: z.boolean().optional(),
+});
+
+export const validateReschedulePost: RequestHandler = validateRequest({
+    params: postIdParamsSchema,
+    body: reschedulePostBodySchema,
+});
+
 export const publishPostNowBodySchema = z.object({
     organizationId: z.string().uuid("Invalid organization id"),
 });

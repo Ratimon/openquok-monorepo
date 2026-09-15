@@ -20,6 +20,7 @@ import { registerPostsFindSlotTool } from "./tools/postsFindSlot";
 import { registerPostsListTool } from "./tools/postsList";
 import { registerPostsMissingTool } from "./tools/postsMissing";
 import { registerPostsReviewTodoTool } from "./tools/postsReviewTodo";
+import { registerPostsRescheduleTool } from "./tools/postsReschedule";
 import { registerPostsStatusTool } from "./tools/postsStatus";
 import { registerSchedulePostTool } from "./tools/schedulePostTool";
 import { registerTriggerTool } from "./tools/triggerTool";
@@ -55,6 +56,7 @@ export function createMcpServer(deps: McpServerDeps): McpServer {
     registerPostsListTool(server, deps);
     registerPostsFindSlotTool(server, deps);
     registerPostsStatusTool(server, deps);
+    registerPostsRescheduleTool(server, deps);
     registerPostsReviewTodoTool(server, deps);
     registerPostsDeleteTool(server, deps);
     registerPostsMissingTool(server, deps);

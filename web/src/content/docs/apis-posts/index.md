@@ -16,6 +16,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 <LinkCard title="Create Post" description="Create a draft or scheduled post group with one row per selected channel" href="/docs/apis-posts/create" />
 <LinkCard title="Find Slot" description="Suggest the next free posting slot for the workspace (or one specific channel)" href="/docs/apis-posts/find-slot" />
 <LinkCard title="Flip post status" description="Flip draft ↔ scheduled for the group that a list row belongs to, without changing the stored publish time" href="/docs/apis-posts/flip-status" />
+<LinkCard title="Reschedule post" description="Move a post group to a new publish time; optionally re-queue or republish published rows" href="/docs/apis-posts/reschedule" />
 <LinkCard title="Get Post (row summary)" description="Resolve a list row UUID to its parent postGroup id" href="/docs/apis-posts/get-post" />
 <LinkCard title="Delete Post" description="Delete a single post by row id (soft-deletes the whole post group it belongs to)" href="/docs/apis-posts/delete" />
 <LinkCard title="Missing Content" description="List provider-side candidate ids when the worker could not link a published row" href="/docs/apis-posts/missing" />
@@ -32,7 +33,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 1. <strong>Pick channels</strong> — call <Badge text="GET /public/integrations" variant="default" /> to list connected channels, then collect the UUIDs you want to publish to.
 2. <strong>(Optional) Attach media</strong> — upload each asset via <Badge text="POST /public/upload" variant="default" /> and keep the returned <code>id</code> + <code>path</code>.
 3. <strong>Create</strong> — call <Badge text="POST /public/posts" variant="default" /> with the canonical <code>body</code>, any per-channel <code>bodiesByIntegrationId</code> and <code>mediaByIntegrationId</code> overrides, the shared <code>media</code> references, <code>scheduledAt</code>, and <code>status</code> (<code>draft</code> or <code>scheduled</code>). For agent/approval flows, set <Badge text="isAgent" variant="param" /> and optional <Badge text="note" variant="param" /> (kanban review checklist). The response includes the new <code>postGroup</code> UUID.
-4. <strong>Iterate</strong> — use the workspace composer or authenticated session APIs to change channels, copy, media, or reschedule. Use <Badge text={"PUT /public/posts/{postId}/status"} variant="default" /> with a row id when you only need to flip <code>draft</code> ↔ <code>scheduled</code> at the same stored time.
+4. <strong>Iterate</strong> — use the workspace composer or authenticated session APIs to change channels, copy, or media. Use <Badge text={"PUT /public/posts/{postId}/reschedule"} variant="default" /> with a row id to move publish time (<code>action: update</code> preserves state; <code>schedule</code> re-queues). Use <Badge text={"PUT /public/posts/{postId}/status"} variant="default" /> when you only need to flip <code>draft</code> ↔ <code>scheduled</code> at the same stored time.
 5. <strong>Remove</strong> — call <Badge text={"DELETE /public/posts/{postId}"} variant="default" /> with any row id from the group to soft-delete the whole group; already-published rows remain on the social provider.
 
 ## Rate limits

@@ -88,6 +88,7 @@ type PostsRepoMock = jest.Mocked<
         | "hasQueueSlotTakenExcludingPostGroup"
         | "updatePostGroupState"
         | "updatePostGroupPublishSchedule"
+        | "reschedulePostGroup"
         | "listTagsByOrganization"
         | "insertTag"
         | "findTagByOrgAndName"
@@ -118,6 +119,7 @@ function createPostsRepoMock(): PostsRepoMock {
         hasQueueSlotTakenExcludingPostGroup: jest.fn(),
         updatePostGroupState: jest.fn(),
         updatePostGroupPublishSchedule: jest.fn(),
+        reschedulePostGroup: jest.fn(),
         listTagsByOrganization: jest.fn(),
         insertTag: jest.fn(),
         findTagByOrgAndName: jest.fn(),
@@ -3343,6 +3345,378 @@ describe("PostsService", () => {
                 message: "That time slot is already taken; pick another.",
             });
             expect(postsRepo.updatePostGroupPublishSchedule).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("reschedulePostGroupByPostId", () => {
+        const futureIso = "2030-06-15T14:30:00.000Z";
+        const anotherFutureIso = "2030-06-16T14:30:00.000Z";
+
+        beforeEach(() => {
+            integrationService.listByOrganization.mockResolvedValue([
+                {
+                    id: integrationId,
+                    deleted_at: null,
+                    disabled: false,
+                    provider_identifier: "threads",
+                } as unknown as IntegrationLike,
+            ]);
+        });
+
+        it("throws 404 when the post is missing", async () => {
+            postsRepo.getPostById.mockResolvedValue(null);
+
+            await expect(
+                service().reschedulePostGroupByPostId({
+                    postId: faker.string.uuid(),
+                    organizationId: orgId,
+                    publishDateIso: futureIso,
+                    action: "schedule",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 404,
+                message: "Post not found",
+            });
+        });
+
+        it("throws 400 when the group has ERROR rows", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const errorRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "ERROR",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(errorRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([errorRow]);
+
+            await expect(
+                service().reschedulePostGroupByPostId({
+                    postId,
+                    organizationId: orgId,
+                    publishDateIso: futureIso,
+                    action: "schedule",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Cannot reschedule a failed post",
+            });
+            expect(postsRepo.reschedulePostGroup).not.toHaveBeenCalled();
+        });
+
+        it("schedule action moves a queued group and re-enqueues at the new slot", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                publish_date: futureIso,
+                integration_id: integrationId,
+                is_agent_edited: true,
+            });
+            const rescheduledRow = {
+                ...queuedRow,
+                publish_date: anotherFutureIso,
+                release_id: null,
+                release_url: null,
+                error: null,
+                is_agent_edited: false,
+            };
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.reschedulePostGroup.mockResolvedValue([rescheduledRow]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([rescheduledRow]);
+
+            const out = await service().reschedulePostGroupByPostId({
+                postId,
+                organizationId: orgId,
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.postGroup).toBe(postGroup);
+            expect(out.posts).toEqual([rescheduledRow]);
+            expect(postsRepo.reschedulePostGroup).toHaveBeenCalledWith(postGroup, orgId, {
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                scheduleTargetState: "QUEUE",
+            });
+            expect(postsRepo.updatePostGroupReviewFields).toHaveBeenCalledWith(postGroup, orgId, {
+                isAgentEdited: false,
+            });
+        });
+
+        it("schedule action keeps all-draft groups in DRAFT", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                publish_date: futureIso,
+                integration_id: integrationId,
+            });
+            const rescheduledRow = { ...draftRow, publish_date: anotherFutureIso };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.reschedulePostGroup.mockResolvedValue([rescheduledRow]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([rescheduledRow]);
+
+            await service().reschedulePostGroupByPostId({
+                postId,
+                organizationId: orgId,
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(postsRepo.hasQueueSlotTakenExcludingPostGroup).not.toHaveBeenCalled();
+            expect(postsRepo.reschedulePostGroup).toHaveBeenCalledWith(postGroup, orgId, {
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                scheduleTargetState: "DRAFT",
+            });
+        });
+
+        it("update action changes publish time only for published groups", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publishedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "PUBLISHED",
+                publish_date: "2020-01-01T12:00:00.000Z",
+                integration_id: integrationId,
+                release_id: "abc",
+                release_url: "https://example.com/post",
+            });
+            const updatedRow = { ...publishedRow, publish_date: anotherFutureIso };
+
+            postsRepo.getPostById.mockResolvedValue(publishedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([publishedRow]);
+            postsRepo.reschedulePostGroup.mockResolvedValue([updatedRow]);
+            postsRepo.updatePostGroupReviewFields.mockResolvedValue([updatedRow]);
+
+            const out = await service().reschedulePostGroupByPostId({
+                postId,
+                organizationId: orgId,
+                publishDateIso: anotherFutureIso,
+                action: "update",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.posts).toEqual([updatedRow]);
+            expect(postsRepo.reschedulePostGroup).toHaveBeenCalledWith(postGroup, orgId, {
+                publishDateIso: anotherFutureIso,
+                action: "update",
+                scheduleTargetState: undefined,
+            });
+            expect(postsRepo.hasQueueSlotTakenExcludingPostGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when scheduling a published post without republish", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publishedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "PUBLISHED",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(publishedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([publishedRow]);
+
+            await expect(
+                service().reschedulePostGroupByPostId({
+                    postId,
+                    organizationId: orgId,
+                    publishDateIso: anotherFutureIso,
+                    action: "schedule",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Republish is required to reschedule a published post",
+            });
+            expect(postsRepo.reschedulePostGroup).not.toHaveBeenCalled();
+        });
+
+        it("schedule action with republish clears publish results for published groups", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publishedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "PUBLISHED",
+                publish_date: "2020-01-01T12:00:00.000Z",
+                integration_id: integrationId,
+                release_id: "abc",
+                release_url: "https://example.com/post",
+            });
+            const queuedRow = {
+                ...publishedRow,
+                state: "QUEUE" as const,
+                publish_date: anotherFutureIso,
+                release_id: null,
+                release_url: null,
+                error: null,
+            };
+
+            postsRepo.getPostById.mockResolvedValue(publishedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([publishedRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(false);
+            postsRepo.reschedulePostGroup.mockResolvedValue([queuedRow]);
+
+            const out = await service().reschedulePostGroupByPostId({
+                postId,
+                organizationId: orgId,
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                republish: true,
+                authUserId: null,
+                skipMembershipCheck: true,
+            });
+
+            expect(out.posts).toEqual([queuedRow]);
+            expect(postsRepo.reschedulePostGroup).toHaveBeenCalledWith(postGroup, orgId, {
+                publishDateIso: anotherFutureIso,
+                action: "schedule",
+                scheduleTargetState: "QUEUE",
+            });
+            expect(postsRepo.updatePostGroupReviewFields).not.toHaveBeenCalled();
+        });
+
+        it("throws 400 when the new schedule time is in the past", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+
+            await expect(
+                service().reschedulePostGroupByPostId({
+                    postId,
+                    organizationId: orgId,
+                    publishDateIso: "2020-01-01T12:00:00.000Z",
+                    action: "schedule",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 400,
+                message: "Schedule time must be in the future",
+            });
+            expect(postsRepo.reschedulePostGroup).not.toHaveBeenCalled();
+        });
+
+        it("throws 409 when the target slot is already taken", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                publish_date: futureIso,
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+            postsRepo.hasQueueSlotTakenExcludingPostGroup.mockResolvedValue(true);
+
+            await expect(
+                service().reschedulePostGroupByPostId({
+                    postId,
+                    organizationId: orgId,
+                    publishDateIso: anotherFutureIso,
+                    action: "schedule",
+                    authUserId,
+                    skipMembershipCheck: false,
+                })
+            ).rejects.toMatchObject({
+                statusCode: 409,
+                message: "That time slot is already taken; pick another.",
+            });
+            expect(postsRepo.reschedulePostGroup).not.toHaveBeenCalled();
+        });
+
+        it("is idempotent when publish time is unchanged", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const queuedRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "QUEUE",
+                publish_date: futureIso,
+                integration_id: integrationId,
+            });
+
+            postsRepo.getPostById.mockResolvedValue(queuedRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([queuedRow]);
+
+            const out = await service().reschedulePostGroupByPostId({
+                postId,
+                organizationId: orgId,
+                publishDateIso: futureIso,
+                action: "schedule",
+                authUserId,
+                skipMembershipCheck: false,
+            });
+
+            expect(out.posts).toEqual([queuedRow]);
+            expect(postsRepo.reschedulePostGroup).not.toHaveBeenCalled();
+        });
+
+        it("delegates to reschedulePostGroupByPostId via programmatic wrapper", async () => {
+            const postId = faker.string.uuid();
+            const postGroup = faker.string.uuid();
+            const publicUserId = faker.string.uuid();
+            const draftRow = socialPostRow({
+                id: postId,
+                post_group: postGroup,
+                state: "DRAFT",
+                publish_date: futureIso,
+                integration_id: integrationId,
+            });
+            const rescheduledRow = { ...draftRow, publish_date: anotherFutureIso };
+
+            postsRepo.getPostById.mockResolvedValue(draftRow);
+            postsRepo.listPostsByGroup.mockResolvedValue([draftRow]);
+            postsRepo.reschedulePostGroup.mockResolvedValue([rescheduledRow]);
+
+            const out = await service().reschedulePostGroupByPostIdProgrammatic(
+                postId,
+                orgId,
+                anotherFutureIso,
+                "schedule",
+                false,
+                publicUserId
+            );
+
+            expect(out.posts).toEqual([rescheduledRow]);
+            expect(postsRepo.updatePostGroupReviewFields).not.toHaveBeenCalled();
         });
     });
 });

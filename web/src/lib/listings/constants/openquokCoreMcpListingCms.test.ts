@@ -13,7 +13,7 @@ describe('openquokCoreMcpListingCms', () => {
 	});
 
 	it('ships the full hosted MCP tool catalog for the hub card', () => {
-		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS).toHaveLength(20);
+		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS).toHaveLength(21);
 		expect(OPENQUOK_CORE_MCP_LISTING_TOOLS.map((tool) => tool.name)).toEqual([
 			'groupList',
 			'integrationList',
@@ -24,6 +24,7 @@ describe('openquokCoreMcpListingCms', () => {
 			'postsList',
 			'postsFindSlot',
 			'postsStatus',
+			'postsReschedule',
 			'postsReviewTodo',
 			'postsDelete',
 			'postsMissing',

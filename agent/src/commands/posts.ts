@@ -7,6 +7,7 @@ import { parseJsonMaybe, requireArg, runCommand, toArrayFromCsv } from "./utils"
 import {
   buildMediaFromArgs,
   mergeProviderSettingsForIntegrations,
+  parsePostsRescheduleAction,
   parsePostsStatusFlag,
   providerIdentifierByIntegrationIdFromList,
   readCreatePayloadFromJsonFile,
@@ -410,6 +411,59 @@ export const registerPostCommands: RegisterCommands = (y: Argv, ctx: CommandCont
           const postId = requireArg("postId", args.postId);
           const next = parsePostsStatusFlag(args.status ?? args.s);
           const out = await api.flipPostStatus(postId, next);
+          printJson(out);
+        });
+      }
+    )
+    .command(
+      "posts:reschedule <postId>",
+      "Move a post group to a new publish time (PUT /public/posts/:postId/reschedule)",
+      (yy: Argv) =>
+        yy
+          .positional("postId", {
+            type: "string",
+            demandOption: true,
+            describe: "Post row UUID from `posts:list` (any row in the group)",
+          })
+          .option("scheduledAt", {
+            alias: "s",
+            type: "string",
+            demandOption: true,
+            describe: "New publish time (ISO-8601); same field as POST /public/posts",
+          })
+          .option("action", {
+            type: "string",
+            choices: ["update", "schedule"] as const,
+            default: "update" as const,
+            describe:
+              "update moves time only (preserves draft/scheduled/published state); schedule re-queues and clears publish results",
+          })
+          .option("republish", {
+            type: "boolean",
+            default: false,
+            describe: "Required when action is schedule and the group has published rows",
+          })
+          .example(
+            "$0 posts:reschedule <post-id> -s \"2026-06-15T14:30:00.000Z\"",
+            "Move a draft or scheduled group to a new slot without changing its state"
+          )
+          .example(
+            '$0 posts:reschedule <post-id> -s "2026-06-20T10:00:00.000Z" --action schedule --republish',
+            "Re-queue a published group at a new future time (clears release ids)"
+          ),
+      async (args: any) => {
+        await runCommand("posts:reschedule", async () => {
+          const api = await ctx.buildApi();
+          const postId = requireArg("postId", args.postId);
+          const scheduledAt = requireArg("scheduledAt", args.scheduledAt ?? args.s);
+          const action = parsePostsRescheduleAction(args.action);
+          const body: {
+            scheduledAt: string;
+            action: "update" | "schedule";
+            republish?: boolean;
+          } = { scheduledAt, action };
+          if (args.republish === true) body.republish = true;
+          const out = await api.reschedulePost(postId, body);
           printJson(out);
         });
       }

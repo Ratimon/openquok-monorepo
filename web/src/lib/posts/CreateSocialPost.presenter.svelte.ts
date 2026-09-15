@@ -268,7 +268,9 @@ export class CreateSocialPostPresenter {
 		this.selectedIds.length === 0
 			? 'Select channels above'
 			: this.editingPostGroup
-				? 'Update'
+				? this.editingGroupStatusBeforeSave === 'draft'
+					? 'Schedule'
+					: 'Update'
 				: 'Add to calendar'
 	);
 

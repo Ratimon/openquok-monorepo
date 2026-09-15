@@ -7,6 +7,7 @@
 		PostGroupDetailsViewModel
 	} from '$lib/posts/GetScheduledPost.presenter.svelte';
 	import { resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
+	import { postStatusSurfaceClasses } from '$lib/posts/utils/postStatusColors';
 
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { firstBillingGatePresenter } from '$lib/billing';
@@ -263,6 +264,7 @@
 					{headerError}</div>
 			{:else if summary && hasExistingPost}
 				{@const dt = formatLocalDateTime(summary.publishDateIso)}
+				{@const statusStyle = postStatusSurfaceClasses(summary.status ?? '')}
 				{@const chs = summary.channels ?? []}
 				{@const maxAvatars = 4}
 				{@const visibleChs = chs.slice(0, maxAvatars)}
@@ -324,9 +326,9 @@
 									{/if}
 								</div>
 							</div>
-							{#if summary.status}
-								<div class="shrink-0 rounded bg-base-200 px-2 py-0.5 text-[11px] font-semibold text-base-content/70">
-									{summary.status}
+							{#if statusStyle.label}
+								<div class={cn('shrink-0 rounded', statusStyle.badge)}>
+									{statusStyle.label}
 								</div>
 							{/if}
 						</div>

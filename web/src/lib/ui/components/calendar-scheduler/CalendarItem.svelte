@@ -2,12 +2,21 @@
 	import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+	import { postStatusSurfaceClasses } from '$lib/posts/utils/postStatusColors';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 
+	import {
+		CALENDAR_POST_DRAG_MIME,
+		canDragCalendarPost,
+		markCalendarChipClickSuppressed,
+		serializeCalendarPostDrag,
+		setActiveCalendarPostDrag
+	} from '$lib/ui/components/calendar-scheduler/calendarDnd';
+
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
-	
+
 	type SlotSummaryItem = {
 		postId?: string;
 		postGroup: string;
@@ -55,6 +64,7 @@
 	const post = $derived((ev.post ?? {}) as NonNullable<CalendarEventWithPost['post']>);
 
 	const postState = $derived(String(post.state ?? '').toUpperCase());
+	const statusSurface = $derived(postStatusSurfaceClasses(postState));
 	const content = $derived(stripHtmlToPlainText(String(post.content ?? '')) || 'no content');
 	const hasError = $derived(Boolean((post as any)?.error));
 	const isDraft = $derived(postState === 'DRAFT');
@@ -112,11 +122,46 @@
 	const previewChannels = $derived((slotSummary as SlotSummaryItem[]).slice(0, 3));
 	const hiddenChannelCount = $derived(Math.max(0, postCount - previewChannels.length));
 
+	const postId = $derived(String((post as { id?: string }).id ?? '').trim());
+	const isDraggable = $derived(
+		canDragCalendarPost({ multiPosts, state: postState }) && Boolean(postId && postGroup)
+	);
+
+	function dragPayload() {
+		return {
+			postId,
+			postGroup,
+			state: postState,
+			intervalInDays: repeatIntervalDays > 0 ? repeatIntervalDays : null,
+			sourcePublishDateIso: publishDateIso
+		};
+	}
+
+	function handleDragStart(e: DragEvent) {
+		if (!isDraggable || !e.dataTransfer) return;
+		const payload = dragPayload();
+		e.dataTransfer.effectAllowed = 'move';
+		const serialized = serializeCalendarPostDrag(payload);
+		e.dataTransfer.setData(CALENDAR_POST_DRAG_MIME, serialized);
+		e.dataTransfer.setData('text/plain', serialized);
+		setActiveCalendarPostDrag(payload);
+	}
+
+	function handleDragEnd() {
+		setActiveCalendarPostDrag(null);
+		markCalendarChipClickSuppressed();
+	}
+
 </script>
 
 <button
 	type="button"
 	class="oq-calendar-item group relative flex h-full w-full flex-col overflow-hidden rounded-[10px] bg-base-200/30 text-base-content {isBeforeNow ? 'oq-calendar-item--past' : ''}"
+	class:cursor-grab={isDraggable}
+	class:active:cursor-grabbing={isDraggable}
+	draggable={isDraggable}
+	ondragstart={handleDragStart}
+	ondragend={handleDragEnd}
 	data-variant={variant}
 	data-post-group={postGroup}
 	data-post-id={String((post as { id?: string }).id ?? '').trim()}
@@ -134,7 +179,7 @@
 	</span>
 
 	{#if variant === 'monthGrid'}
-		<div class="flex h-full min-h-0 items-center gap-2 bg-primary px-2 text-[11px] text-primary-content">
+		<div class="flex h-full min-h-0 items-center gap-2 px-2 text-[11px] {statusSurface.header}">
 			<div class="flex shrink-0 items-center gap-1">
 				{#if multiPosts}
 					<div class="relative h-4 w-8 shrink-0">
@@ -144,12 +189,12 @@
 								<IntegrationChannelPicture
 									profilePictureUrl={entry.channelPicture}
 									fallbackIcon={entryIcon}
-									class="h-4 w-4 rounded object-cover ring-1 ring-primary"
+									class="h-4 w-4 rounded object-cover ring-1 {statusSurface.ring}"
 								/>
 							</div>
 						{/each}
 						{#if previewChannels.length === 0}
-							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
+							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded {statusSurface.contentMutedBg} text-[9px] font-semibold {statusSurface.contentMutedText}">
 								{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
 							</div>
 						{/if}
@@ -163,11 +208,11 @@
 								class="h-4 w-4 rounded object-cover"
 							/>
 						{:else}
-							<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+							<div class="h-4 w-4 rounded {statusSurface.contentMutedBg}"></div>
 						{/if}
 						{#if providerBadgeIcon}
 							<span
-								class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border border-primary/30 bg-base-100"
+								class="absolute -bottom-0.5 -right-0.5 z-[1] flex size-[10px] items-center justify-center rounded-full border {statusSurface.borderMuted} bg-base-100"
 								aria-hidden="true"
 							>
 								<AbstractIcon name={socialProviderIcon(providerBadgeIcon)} class="size-2" width="8" height="8" />
@@ -177,7 +222,7 @@
 				{/if}
 				{#if isRepeating}
 					<span
-						class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+						class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border {statusSurface.borderMuted} bg-base-100 text-base-content/70 shadow-sm"
 						title={repeatLabel}
 						aria-label={repeatLabel}
 					>
@@ -188,13 +233,13 @@
 			<div class="min-w-0 flex-1 truncate">
 				{statusLabel || 'Scheduled'}</div>
 			{#if hiddenChannelCount > 0}
-				<div class="ml-1 rounded bg-primary-content/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary-content/90">
+				<div class="ml-1 rounded {statusSurface.contentMutedBg} px-1.5 py-0.5 text-[10px] font-semibold {statusSurface.contentMutedText}">
 					+{hiddenChannelCount}
 				</div>
 			{/if}
 		</div>
 	{:else}
-		<div class="oq-calendar-item__top flex h-6 min-h-6 items-center justify-between gap-2 bg-primary px-2 text-[11px] text-primary-content">
+		<div class="oq-calendar-item__top flex h-6 min-h-6 items-center justify-between gap-2 px-2 text-[11px] {statusSurface.header}">
 			{#if multiPosts}
 				<div class="flex shrink-0 items-center gap-1">
 					<div class="relative h-4 w-8 shrink-0">
@@ -204,19 +249,19 @@
 								<IntegrationChannelPicture
 									profilePictureUrl={entry.channelPicture}
 									fallbackIcon={entryIcon}
-									class="h-4 w-4 rounded object-cover ring-1 ring-primary"
+									class="h-4 w-4 rounded object-cover ring-1 {statusSurface.ring}"
 								/>
 							</div>
 						{/each}
 						{#if previewChannels.length === 0}
-							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded bg-primary-content/20 text-[9px] font-semibold text-primary-content/90">
+							<div class="absolute left-0 top-0 flex h-4 w-4 items-center justify-center rounded {statusSurface.contentMutedBg} text-[9px] font-semibold {statusSurface.contentMutedText}">
 								{(previewChannelName || 'CH').slice(0, 1).toUpperCase()}
 							</div>
 						{/if}
 					</div>
 					{#if isRepeating}
 						<span
-							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border {statusSurface.borderMuted} bg-base-100 text-base-content/70 shadow-sm"
 							title={repeatLabel}
 							aria-label={repeatLabel}
 						>
@@ -234,12 +279,12 @@
 								class="h-4 w-4 rounded object-cover"
 							/>
 						{:else}
-							<div class="h-4 w-4 rounded bg-primary-content/20"></div>
+							<div class="h-4 w-4 rounded {statusSurface.contentMutedBg}"></div>
 						{/if}
 					</div>
 					{#if isRepeating}
 						<span
-							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border border-primary/30 bg-base-100 text-base-content/70 shadow-sm"
+							class="z-[2] flex size-[12px] shrink-0 items-center justify-center rounded-full border {statusSurface.borderMuted} bg-base-100 text-base-content/70 shadow-sm"
 							title={repeatLabel}
 							aria-label={repeatLabel}
 						>
@@ -254,7 +299,7 @@
 			</div>
 
 			{#if hiddenChannelCount > 0}
-				<div class="shrink-0 rounded bg-primary-content/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary-content/90">
+				<div class="shrink-0 rounded {statusSurface.contentMutedBg} px-1.5 py-0.5 text-[10px] font-semibold {statusSurface.contentMutedText}">
 					+{hiddenChannelCount}
 				</div>
 			{/if}

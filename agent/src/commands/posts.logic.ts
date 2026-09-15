@@ -58,6 +58,18 @@ export function resolveCreateStatus(args: { status?: unknown; type?: unknown }):
   return "scheduled";
 }
 
+/** `posts:reschedule --action`: update (default) | schedule. */
+export function parsePostsRescheduleAction(v: unknown): "update" | "schedule" {
+  if (v === undefined || v === null || v === "") return "update";
+  if (typeof v !== "string") {
+    throw new Error('action must be update or schedule');
+  }
+  const raw = v.trim().toLowerCase();
+  if (raw === "update") return "update";
+  if (raw === "schedule") return "schedule";
+  throw new Error('invalid action (use --action update | schedule)');
+}
+
 /** `posts:status --status` (and `-s`): require draft | schedule | scheduled (no default). */
 export function parsePostsStatusFlag(v: unknown): "draft" | "scheduled" {
   if (typeof v !== "string" || !v.trim()) {

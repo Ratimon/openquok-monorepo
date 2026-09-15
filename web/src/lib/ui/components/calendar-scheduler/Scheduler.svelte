@@ -197,6 +197,28 @@
 
 	const calendarPostsForTagFilter = $derived(presenter.postsForChannelLookup);
 
+	async function handleCalendarReschedule(params: {
+		postId: string;
+		postGroup: string;
+		publishDateIso: string;
+		action: 'update' | 'schedule';
+		republish?: boolean;
+		isRecurring?: boolean;
+	}): Promise<void> {
+		const resultVm = await presenter.rescheduleCalendarPost({
+			organizationId,
+			...params
+		});
+		if (!resultVm.ok) {
+			toast.error(resultVm.error);
+			return;
+		}
+		if (resultVm.refetch) {
+			onRefresh?.();
+		}
+		toast.success('Post rescheduled.');
+	}
+
 	const hasDistinctSocialPlatforms = $derived.by(() => {
 		const ids = new Set<string>();
 		for (const c of channels) {
@@ -289,6 +311,7 @@
 			{openActionsForPostGroup}
 			{onCreatePostAtIso}
 			{onRefresh}
+			onReschedulePost={handleCalendarReschedule}
 		/>
 	{/if}
 </div>

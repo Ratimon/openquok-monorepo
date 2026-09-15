@@ -132,7 +132,10 @@ The kanban appears only when your workspace has at least one **connected social 
 <LinkCard title="AI generation" description="Agent and API drafts in the same review queue" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
-<LinkCard title="Moving posts" description="Drag on the calendar and reschedule" href="/docs/calendar-and-posts/moving-posts" />
+<LinkCard title="Calendar and posts" description="Calendar views, filters, and post actions" href="/docs/calendar-and-posts" />
+<LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/calendar-and-posts/moving-posts" />
+<LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/calendar-and-posts/actions-and-stats" />
+<LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/calendar-and-posts/approvals" />
 <LinkCard title="Calendar vs kanban" description="Glossary — when to use each surface" href="/docs/getting-started/glossary#calendar-vs-kanban" />
 <LinkCard title="Tour the app" description="Sidebar, Home, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 </CardGrid>

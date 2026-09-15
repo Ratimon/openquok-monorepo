@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 The <Badge text="posts:*" variant="default" /> commands wrap the <a href="/docs/apis-posts">Posts APIs</a>. They drive every step of the publishing lifecycle: pick channels and a schedule time, create a post group, iterate on it, then delete it or reconnect it to its provider-native id once it is published.
 
 <Callout type="note" title="Post groups vs. post rows">
-<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; its id is returned as <code>postGroup</code> from <Badge text="posts:create" variant="default" /> and on list rows. Full <strong>get / update / delete group</strong> over HTTP is for the signed-in app only — use the workspace or session <code>/posts/group/…</code> APIs. The CLI uses <strong>post row</strong> ids from <Badge text="posts:list" variant="default" /> for <Badge text="posts:status" variant="default" />, <Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, and <Badge text="posts:connect" variant="default" />.</p>
+<p>A <strong>post group</strong> is the multi-channel composition the UI calls a post; its id is returned as <code>postGroup</code> from <Badge text="posts:create" variant="default" /> and on list rows. Full <strong>get / update / delete group</strong> over HTTP is for the signed-in app only — use the workspace or session <code>/posts/group/…</code> APIs. The CLI uses <strong>post row</strong> ids from <Badge text="posts:list" variant="default" /> for <Badge text="posts:status" variant="default" />, <Badge text="posts:reschedule" variant="default" />, <Badge text="posts:delete" variant="default" />, <Badge text="posts:missing" variant="default" />, and <Badge text="posts:connect" variant="default" />.</p>
 </Callout>
 
 ## Create a post
@@ -345,6 +345,30 @@ openquok posts:status <post-id> -s schedule
 | <Badge text="-s" variant="param" /> <Badge text="--status" variant="param" /> | <code>draft</code> — moves a scheduled group back to draft and **terminates** any in-flight publishing workflow, so it will not publish until you promote it again. <code>schedule</code> or <code>scheduled</code> — promotes a draft into the publishing queue and **(re)starts** the workflow so it publishes at the **stored** time. |
 
 Use this when you want to pause a scheduled post without deleting it, or hand a draft to the scheduler once it is ready.
+
+### Rescheduling posts
+
+Move a post group to a **new publish time**. Pass any **post row** id from <Badge text="posts:list" variant="default" />.
+
+```bash
+openquok posts:reschedule <post-id> -s "2026-06-15T14:30:00.000Z"
+```
+
+| Flag | Description |
+| --- | --- |
+| <Badge text="-s" variant="param" /> <Badge text="--scheduledAt" variant="param" /> | New publish time (ISO-8601, required). Same field as <Badge text="POST /public/posts" variant="path" />. |
+| <Badge text="--action" variant="param" /> | <code>update</code> (default) — moves <code>publishDate</code> only and preserves each row's state (draft, scheduled, or published). <code>schedule</code> — re-queues publishing at the new time and clears <code>releaseId</code>, <code>releaseUrl</code>, and errors. |
+| <Badge text="--republish" variant="param" /> | Set when <code>--action schedule</code> and the group already has published rows; otherwise the API returns <code>400</code>. |
+
+```bash
+# Draft or scheduled — move slot without changing state
+openquok posts:reschedule <post-id> -s "2026-06-15T14:30:00.000Z"
+
+# Published — re-queue at a new future time (clears provider release ids)
+openquok posts:reschedule <post-id> -s "2026-06-20T10:00:00.000Z" --action schedule --republish
+```
+
+See <a href="/docs/apis-posts/reschedule">Reschedule post</a> for SDK and curl examples.
 
 ### Deleting posts
 

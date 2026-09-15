@@ -85,6 +85,8 @@ openquok posts:create --json ./post.json
 # Manage post rows
 openquok posts:status <post-id> --status draft
 openquok posts:status <post-id> -s schedule
+openquok posts:reschedule <post-id> -s "2026-06-15T14:30:00.000Z"
+openquok posts:reschedule <post-id> -s "2026-06-20T10:00:00.000Z" --action schedule --republish
 openquok posts:review-todo <post-id> --note "…"
 openquok posts:delete <post-id>
 
@@ -103,6 +105,15 @@ openquok posts:connect <post-id> --release-id "<provider-release-id>"
 
 - Takes a **post row** id from `posts:list` (same as `posts:delete`).
 - Flips `draft` ↔ `scheduled` at the stored publish time.
+
+### `posts:reschedule`
+
+- Takes a **post row** id from `posts:list` (any row in the group).
+- Required `-s` / `--scheduledAt` — new publish time (ISO-8601); same field as `POST /public/posts`.
+- `--action update` (default) — moves `publishDate` only; preserves each row's state (draft, scheduled, or published).
+- `--action schedule` — re-queues publishing at the new time and clears `releaseId`, `releaseUrl`, and errors.
+- `--republish` — required when `--action schedule` and the group already has published rows; otherwise the API returns `400`.
+- Use `posts:status` when you only need to flip draft ↔ scheduled at the **same** stored time — not to move the slot.
 
 ### `posts:missing` / `posts:connect`
 

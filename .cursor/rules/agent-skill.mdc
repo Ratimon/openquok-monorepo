@@ -27,6 +27,7 @@ Publish each slug separately to ClawHub (`agent/CLAWHUB.md`). Skills with `scrip
   - `{identifier}-examples.md` — per-channel agent docs (see **Per-channel example file** below). Today: `threads`, `facebook`, `instagram-standalone`, `instagram-business`.
   - `threads-publish.md` — server publish behavior summarized in markdown (never link to `.ts` / backend paths from the skill).
 - **`SKILL.md` tone** — imperative, short tables and bullets; no tutorial prose; shell-safety rules for untrusted input; defer command lists and long bash to `resources/`.
+- **CLI parity** — When a new `openquok` command ships, update `resources/command-reference.md` and the `SKILL.md` workflow table in the **same PR** as `agent/src/commands/*` (see **`agent-cli.mdc`** checklist steps 6–7). Do not leave the skill behind site CLI docs or `agent/README.md`.
 
 ## Skill layout — sibling skills (`scripts/` + `references/`)
 
