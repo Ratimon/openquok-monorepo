@@ -11,7 +11,17 @@ sidebar:
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-OpenQuok keeps your content pipeline in two places on <a href="/account">Home</a>: the **kanban board** shows **stage** (draft, scheduled, published), and the <a href="/account/calendar">calendar</a> shows **when** each post ships. Both views read the same post groups — change one and the other updates.
+OpenQuok keeps your content in two places. Both views read the same post groups — change one and the other updates:
+
+1) The **kanban board** on <a href="/account">Home</a> shows posts in dfferent **stage** (draft, scheduled, published):
+
+![Kanban View](/docs/_assets/posts-management/posts-unfiltered-kanban.webp)
+
+
+2) The <a href="/account/calendar">calendar</a> is your schedule and your history — drafts, scheduled posts, and published posts share one grid. 
+
+![Calendar View](/docs/_assets/posts-management/posts-unfiltered-calendar.webp)
+
 
 This section covers the Home kanban board, calendar views, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
 
@@ -23,82 +33,81 @@ This section covers the Home kanban board, calendar views, moving posts between 
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 </CardGrid>
 
-## Calendar views
+## The calendar
 
-Open <a href="/account/calendar">/account/calendar</a> from the sidebar or the **Calendar** button on the Home kanban filters.
+> Day, week, month, and list views — and how to filter them.
 
-| Control | Options |
+**Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the Home kanban toolbar.
+
+The calendar is the plan and the record. Drafts, scheduled posts, and published posts sit on the same grid. The Home kanban shows **stage**; the calendar shows **time**. Both views read the same post groups.
+
+### Views
+
+The default view is **Week**.
+
+| View | What it shows |
 | --- | --- |
-| **Day** · **Week** · **Month** | How much of the timeline you see at once |
-| Calendar-clock icon · List icon | **Calendar view** (time grid) or **List view** (upcoming rows) |
-| **Previous** · **Next** · **Today** | Move the visible range |
+| **Day** | One day on a 24-hour grid with half-hour rows |
+| **Week** | Seven day columns on the same time grid |
+| **Month** | A six-by-seven grid; each day is a compact cell |
+| **List** | Upcoming posts in date order |
 
-**Day** and **Week** show a **24-hour time grid** with half-hour rows. Posts sit in the row that matches their scheduled time. **Month** collapses each day into a compact cell — you still see chips, but without the per-slot body text.
+Posts sit in the row or cell that matches their scheduled time. In **Month** view, chips appear without caption text.
 
-**List view** is a scrollable queue sorted by date. Each row shows a **left accent** in the first tag color on the group. It is useful for a quick read of what is coming up, but you cannot drag posts there — use the grid views to reschedule. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
+**List view** keeps the same filters as the grid. Each row shows a left accent in the first tag color. Use it to scan what is next. You cannot drag posts in list view — use the grid to reschedule. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
 
-Past hours in day and week views get a striped **Date passed** background. You cannot create or drop posts into those cells.
+Use **Previous**, **Next**, and **Today** to move the visible range. Switch between grid and list with the calendar-clock icon and list icon. OpenQuok remembers your view between sessions.
 
-## Filters
+Past hours in day and week views show a striped **Date passed** background. You cannot create or drop posts in those cells.
 
-The filter row under the calendar navigation uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as Home:
+### Filters
+
+The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as Home.
 
 | Filter | What it limits |
 | --- | --- |
-| **Channel groups** | Posts tied to channels in the groups you pick — see <a href="/docs/channels/channel-groups">Channel groups</a> |
-| **Platforms** | Only posts for selected social platforms (shown when you have more than one) |
+| **Channel groups** | Posts for channels in the groups you pick — see <a href="/docs/channels/channel-groups">Channel groups</a> |
+| **Platforms** | Posts for selected social platforms (shown when you have more than one) |
 | **Post types** | Draft, scheduled, published, failed, or repeating rows |
-| **Tags** | Posts tagged with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
+| **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
 
-**Post types** includes a synthetic **Repeating** option for recurring series (posts with a repeat interval). That is separate from the database state — a repeating draft and a repeating scheduled post both match when **Repeating** is on.
+**Repeating** matches any post with a repeat interval. It is separate from draft or scheduled state.
 
-Below the filters, **targeted channels** shows avatar chips for connected channels that match your current group and platform selection. They are a quick visual check, not an extra filter.
+Below the filters, **targeted channels** shows avatar chips for channels that match your group and platform selection. They are a visual check, not an extra filter.
 
-## Post chips
+### Post chips
 
-Each chip on the grid is one **post group** scheduled for that slot. The **header bar** uses the **first tag** on the group. Posts with no tag use the default indigo accent.
+Each chip is one **post group** in that time slot. The header bar uses the **first tag** on the group. Posts with no tag use the default indigo accent.
 
 | Signal | Meaning |
 | --- | --- |
-| **Header colour** | First tag on the post group (same order as composer tags) |
-| **`Draft:` prefix** + dashed chip outline | Draft — will not publish until you schedule |
-| **No outline** | Scheduled (queued) for the shown time |
-| **Published** pill on body | Already live on the network |
-| **Red ring** + hover tooltip | Failed — platform error text in the tooltip |
-| **+N** badge · stacked avatars | Multiple channels in one slot — click opens **Posts in this slot** |
-| Refresh icon on header | Recurring post — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> |
+| **Header colour** | First tag on the post group |
+| **`Draft:` prefix** + dashed outline | Draft — will not publish until you schedule |
+| **Solid outline** | Scheduled for the shown time |
+| **Published** pill | Already live on the network |
+| **Red ring** + tooltip | Failed — error text in the tooltip |
+| **+N** badge | Multiple channels in one slot — click to open **Posts in this slot** |
+| Refresh icon | Recurring post — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> |
 
-Day and week chips show the caption snippet, channel name, and time in the body. The header focuses on the channel (avatars and name), not status words. Month chips are header-only for space.
+Day and week chips show caption, channel name, and time in the body. Month chips show the header only. Past slots keep tag colour but render chips in grayscale.
 
-Past slots keep the same tag colour but render chips in **grayscale** so upcoming posts stand out.
+### Create and open posts
 
-## Intentional differences
-
-OpenQuok’s calendar is close to common scheduler patterns but not identical everywhere:
-
-| Topic | OpenQuok today | Notes |
-| --- | --- | --- |
-| Day view rows | 24-hour grid | Some products use per-channel **time slots** as row labels — OpenQuok links suggested hours to <a href="/docs/channels/time-slots">Posting time slots</a> instead |
-| Post actions | **Click** chip → modal | No hover menu on chips — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a> |
-| List view | Upcoming rows, no page size | Some products paginate (~100 per page) and replace the view switcher with state filters |
-| View in URL | Session memory only | Bookmarking a specific week or month in the URL is not implemented yet |
-| Cell overflow | **+N** = multi-channel in one group | Some products use **+ Show more** when more than three *groups* share one cell — a different model |
-
-## Open a post or create in a slot
-
-Interactions are **click-based** — there is no hover menu on chips.
+Click a chip to act on it. There is no hover menu.
 
 | You click… | What happens |
 | --- | --- |
-| A **single-channel** chip | **Post actions** modal — edit, duplicate, preview, statistics, delete. See <a href="/docs/posts-management/actions-and-stats">Actions and stats</a> |
+| A **single-channel** chip | **Post actions** — edit, duplicate, preview, statistics, delete. See <a href="/docs/posts-management/actions-and-stats">Actions and stats</a> |
 | A **multi-channel** chip | **Posts in this slot** — pick **Open** on the row you need |
-| An **empty** time cell | Opens the composer with that slot's time prefilled (at least five minutes in the future) |
-| The **+** strip on the left edge of the grid | Same as an empty cell — **Schedule a new post** |
-| **Shift+click** a chip (day/week) | Create a new post at the hovered hour while keeping the original |
+| An **empty** time cell | Composer opens with that time prefilled (at least five minutes in the future) |
+| The **+** strip on the left edge | Same as an empty cell |
+| **Shift+click** a chip (day/week) | New post at the hovered hour; the original stays in place |
 
-Use **Create Post** in the page header when you do not care about a specific slot yet.
+Use **Create Post** in the page header when you do not need a specific slot.
 
-On phones and coarse pointers, tapping an empty slot may show **Schedule slot** first, then **Create post**.
+On phones, tapping an empty slot may show **Schedule slot** first, then **Create post**.
+
+Suggested publish hours come from <a href="/docs/channels/time-slots">Posting time slots</a> in the composer. The day grid uses a 24-hour timeline, not per-channel slot rows.
 
 <Callout type="tip">
 <p>Double-click a card on the Home kanban to open the editor directly. On the calendar, click once for <strong>Post actions</strong>, then <Badge text="Edit" variant="default" />.</p>
