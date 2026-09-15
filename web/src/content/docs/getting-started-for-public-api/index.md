@@ -1,8 +1,10 @@
 ---
-title: Overview - Public API
+title: Getting Started for Using Public API
 description: Getting started to automate your Social Scheduling with OpenQuok's public API and Node.js SDK.
 order: 0
 lastUpdated: 2026-09-14
+sidebar:
+  label: Overview - Public API
 ---
 
 <script>
@@ -26,13 +28,13 @@ For scripts, CI, and your own integrations, use a **programmatic access token** 
 curl -H "Authorization: Bearer opo_your_programmatic_token" https://api.openquok.com/api/v1/public/integrations
 ```
 
-Tokens belong to the **workspace (organization)** you selected and act with that workspace's permissions. Rotate from the same panel when you need a new token; previously issued tokens stop working after rotation.
+Tokens belong to the **workspace** you selected. Rotate from the same panel when you need a new token. It is noted that previously issued tokens stop working after rotation.
 
-<Callout type="tip" title="CLI and agents">
-<p>Prefer <Badge text="openquok auth:login" variant="default" /> (device OAuth) when a browser is available — it stores an <Badge text="opo_" variant="default" /> token without pasting secrets. For headless hosts, set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> to the same <Badge text="opo_" variant="default" /> value. See <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
+<Callout type="tip">
+<p>Prefer <Badge text="openquok auth:login" variant="default" /> (device OAuth) when a browser is available. It stores an <Badge text="opo_" variant="default" /> token without pasting secrets. For headless hosts, set <Badge text="OPENQUOK_API_KEY" variant="envBackend" /> to the same <Badge text="opo_" variant="default" /> value. See <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
-<Callout type="tip" title="Native MCP clients">
+<Callout type="tip">
 <p>Cursor, Claude Code, Codex, and other MCP hosts can connect directly to OpenQuok over HTTP streaming with your <Badge text="opo_" variant="default" /> token — no CLI skill required. See <a href="/docs/getting-started-for-mcp">MCP introduction</a> and copy snippets from <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> in the dashboard.</p>
 </Callout>
 

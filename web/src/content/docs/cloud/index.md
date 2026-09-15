@@ -1,8 +1,10 @@
 ---
-title: Overview
+title: Overview - Cloud
 description: OpenQuok Cloud vs self-hosting for the social scheduler — hosted plans, Stripe billing, pre-registered OAuth, and when to run your own stack.
 order: 0
 lastUpdated: 2026-08-22
+sidebar:
+  label: Overview
 ---
 
 <script>

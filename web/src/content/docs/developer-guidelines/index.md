@@ -3,6 +3,8 @@ title: Overview - Developer Guidelines
 description: OpenQuok's developer guidelines — fork the repo, submit code PRs, security, RBAC, and theming conventions.
 order: 0
 lastUpdated: 2026-07-05
+sidebar:
+  label: Overview
 ---
 
 <script>

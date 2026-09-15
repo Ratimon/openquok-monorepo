@@ -1,8 +1,10 @@
 ---
-title: Overview - Connections
+title: Overview - Integrate with Your Own Social Key
 description: Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
 lastUpdated: 2026-08-20
+sidebar:
+  label: Overview
 ---
 
 <script>
@@ -13,9 +15,11 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 OpenQuok connects **social channels** through the **backend** integration layer: organization-scoped channels, optional **programmatic** APIs authenticated with a workspace <Badge text="opo_" variant="default" /> token, and one of two connect families.
 
-<strong>Most</strong> channels use <strong>OAuth</strong>: you register an operator developer app, set redirect URIs, and store client IDs and secrets in backend env—**never** in client-side code or the repo. <strong>Some</strong> channels (Dev.to) use a <strong>personal API key</strong> the user pastes in Add Channel — no operator app and no OpenQuok env keys. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
+<strong>Most</strong> channels use <strong>OAuth</strong>. You apply for developer app , set redirect URIs, request API acess and store client IDs and secrets in backend environment.
 
-<Callout type="danger" title="Secrets">
+<strong>Some</strong> channels ( eg. Dev.to) use a <strong>personal API key</strong> the user pastes in Add Channel. See <a href="/docs/getting-started-for-public-api#authentication">Public API authentication</a> for token setup.
+
+<Callout type="danger">
 Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other provider secrets. Use <Badge text="backend/.env.development.local" variant="envBackend" /> (or your host’s secret store in production).
 </Callout>
 

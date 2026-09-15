@@ -13,6 +13,9 @@ export function newDayjs(config?: ConfigType) {
 /** Persists IANA zone for posting schedules (Time table slots, etc.). */
 export const TIMEZONE_STORAGE_KEY = 'timezone' as const;
 
+/** Fired on `window` when {@link setPostingScheduleTimezone} updates the stored zone. */
+export const POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT = 'openquok:posting-schedule-timezone-change';
+
 /** `US` = 12-hour (AM/PM) preference; `GLOBAL` = 24-hour. */
 export const DATE_METRIC_STORAGE_KEY = 'isUS' as const;
 
@@ -104,9 +107,30 @@ export function setPostingScheduleTimezone(tz: string): void {
 	try {
 		window.localStorage.setItem(TIMEZONE_STORAGE_KEY, tz);
 		dayjs.tz.setDefault(tz);
+		window.dispatchEvent(
+			new CustomEvent(POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT, { detail: { timezone: tz } })
+		);
 	} catch {
 		/* ignore quota / private mode */
 	}
+}
+
+/** Format a publish instant for calendar chips and slot summaries (Date metrics zone + clock format). */
+export function formatPublishTimeLabel(iso: string, timeZone?: string): string {
+	const tz = (timeZone?.trim() || getPostingScheduleTimezone()).trim() || 'UTC';
+	const d = newDayjs(iso).tz(tz);
+	if (!d.isValid()) return '';
+	return getDateMetricUsStyle() ? d.format('h:mm A') : d.format('HH:mm');
+}
+
+/** Format a publish instant for reschedule / slot dialogs (date + time in Date metrics zone). */
+export function formatPublishDateTimeLabel(iso: string, timeZone?: string): string {
+	const tz = (timeZone?.trim() || getPostingScheduleTimezone()).trim() || 'UTC';
+	const d = newDayjs(iso).tz(tz);
+	if (!d.isValid()) return '';
+	const date = d.format('MMM D, YYYY');
+	const time = getDateMetricUsStyle() ? d.format('h:mm A') : d.format('HH:mm');
+	return `${date}, ${time}`;
 }
 
 /** `true` after the user has chosen a zone in Date metrics (stored under {@link TIMEZONE_STORAGE_KEY}). */

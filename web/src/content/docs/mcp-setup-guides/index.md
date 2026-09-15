@@ -1,8 +1,10 @@
 ---
-title: MCP Clients Overview
+title: Overview - Setup Guides for different MCPs
 description: Platform-specific setup for connecting OpenQuok MCP to Cursor, Claude Code, ChatGPT, Codex, VS Code Copilot, and other native MCP clients.
 order: 0
 lastUpdated: 2026-07-29
+sidebar:
+  label: Overview
 ---
 
 <script>
@@ -11,7 +13,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What is in this section
 
-Guides for wiring OpenQuok into **native MCP clients** — the editors and terminals where you already chat with an AI agent. Each page covers where to paste the config, which auth method to use, and how to confirm the connection.
+The guide is for OpenQuok into **native MCP clients** — the editors and terminals where you already chat with an AI agent.
+
+Each page covers where to paste the config, which auth method to use, and how to confirm the connection.
 
 For a quick copy-paste snippet, start at <a href="/docs/getting-started-for-mcp/setup">MCP client setup</a> in the dashboard (<Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → <strong>MCP client configuration</strong>).
 

@@ -1,8 +1,10 @@
 ---
-title: Agents Overview
+title: Overview - Setup Guides for different agents
 description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, and ThinkRail).
 order: 0
 lastUpdated: 2026-08-29
+sidebar:
+  label: Overview
 ---
 
 <script>
@@ -11,7 +13,9 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What is in this section
 
-Guides for wiring <Badge text="@openquok/auto-cli" variant="experimental" /> into **agent runtimes** — not generic shell usage on your laptop. Each page covers where to install the skill, where the <Badge text="openquok" variant="default" /> binary must live, and auth patterns that work when the agent has no browser.
+The guide is for wiring <Badge text="@openquok/auto-cli" variant="experimental" /> into **agent runtimes**.
+
+Each page covers where to install the skill, where the <Badge text="openquok" variant="default" /> must live, and auth patterns that work when the agent has no browser/desktop.
 
 For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you can skip the CLI skill and connect directly to OpenQuok HTTP streaming with your programmatic <Badge text="opo_" variant="default" /> token. See <a href="/docs/getting-started-for-mcp">MCP introduction</a>.
 

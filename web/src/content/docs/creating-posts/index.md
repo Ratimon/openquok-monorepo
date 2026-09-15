@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Overview - Creating Post
 description: How to write and schedule posts in OpenQuok — the post editor, channels, media, previews, and scheduling.
 order: 0
 lastUpdated: 2026-09-01

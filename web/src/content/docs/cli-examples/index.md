@@ -3,6 +3,8 @@ title: Overview - CLI Examples
 description: Real world end-to-end examples for the OpenQuok CLI, organized by platform-specific social network.
 order: 0
 lastUpdated: 2026-08-20
+sidebar:
+  label: Overview
 ---
 
 <script>

@@ -1,8 +1,10 @@
 ---
 title: Overview - Publish listings
 description: Share building blocks and playbooks on the OpenQuok catalog — what to publish, how listings work, and where to start.
-order: 2
+order: 0
 lastUpdated: 2026-07-05
+sidebar:
+  label: Overview
 ---
 
 <script>

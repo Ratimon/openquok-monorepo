@@ -3,6 +3,8 @@ title: Configuration - Agent
 description: Deploy and configure the CLI auth server environment variables for production and local development.
 order: 0
 lastUpdated: 2026-05-29
+sidebar:
+  label: Overview
 ---
 
 <script>
@@ -11,20 +13,22 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-The **CLI auth server** (<Badge text="agent/server" variant="path" />) implements OAuth2 **device flow** so the OpenQuok CLI can obtain tokens without embedding OAuth client secrets in the CLI; short-lived state lives in **Postgres**, and token exchange is proxied to the **OpenQuok API**.
+The **CLI auth server** (<Badge text="agent/server" variant="path" />) implements OAuth2 **device flow** so the OpenQuok CLI can obtain tokens without embedding OAuth client secrets in the CLI.
+
+While short-lived state lives in **Postgres**, token exchange is proxied to the **OpenQuok API**.
 
 In **OpenQuok production**, the flow is split across **two Vercel projects** in the same monorepo:
 
 | Role | Package | Host | Examples |
 | --- | --- | --- | --- |
 | **API** (CLI polling, token exchange) | <Badge text="agent/server" variant="path" /> | <Badge text="cli-auth.openquok.com" variant="new" /> | <Badge text="POST /device/code" variant="path" />, <Badge text="POST /device/token" variant="path" /> |
-| **Browser** (code entry, OAuth callback) | <Badge text="web" variant="path" /> | <Badge text="www.openquok.com" variant="new" /> | <Badge text="GET /cli/device/verify" variant="path" />, <Badge text="GET /cli/device/callback" variant="path" /> |
+| **Browser** (OAuth callback) | <Badge text="web" variant="path" /> | <Badge text="www.openquok.com" variant="new" /> | <Badge text="GET /cli/device/verify" variant="path" />, <Badge text="GET /cli/device/callback" variant="path" /> |
 
-The auth server sets <Badge text="BROWSER_ORIGIN" variant="envBackend" /> so <Badge text="verification_uri" variant="default" /> and the OAuth <Badge text="redirect_uri" variant="default" /> point at the web app; the web app proxies those steps to the auth server using <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> (see <a href="/docs/configuration-web">Configuration - Web</a>).
+The auth server sets <Badge text="BROWSER_ORIGIN" variant="envBackend" /> so <Badge text="verification_uri" variant="default" /> and the OAuth <Badge text="redirect_uri" variant="default" /> point at the web app. Then, the web app proxies to the auth server using <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> (see <a href="/docs/configuration-web">Configuration - Web</a>).
 
-For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envBackend" /> (gitignored). For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envBackend" />.
+For **local development**, copy the development template to <Badge text="agent/server/.env.development.local" variant="envBackend" />.
 
-In local development, keep <Badge text="NODE_ENV" variant="envBackend" /> set to **development** unless you intentionally mimic production. On Vercel, the platform injects configuration at runtime.
+For **production** deploys and Vercel env sync, copy the production template to <Badge text="agent/server/.env.production.local" variant="envBackend" />.
 
 ```bash
 NODE_ENV=development
@@ -34,16 +38,19 @@ DATABASE_URL=postgresql://openquok:openquok@localhost:5432/openquok_cli_auth
 
 <Callout type="warning">
 <p><Badge text="SERVER_URL" variant="envBackend" /> is the <strong>API origin</strong> the CLI calls (<Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" /> defaults to this in production). Use the correct scheme (<code>http</code> vs <code>https</code>), host, and <strong>no trailing slash</strong>.</p>
+</Callout>
+
+<Callout type="warning">
 <p>The OAuth app <strong>redirect / callback URL</strong> must match where the browser lands after approval — not necessarily the same host as <Badge text="SERVER_URL" variant="envBackend" />:</p>
 <ul class="mt-2 list-disc pl-5 space-y-1">
-<li><strong>OpenQuok production</strong> — register <Badge text="https://www.openquok.com/cli/device/callback" variant="new" /> (web app). Set <Badge text="BROWSER_ORIGIN=https://www.openquok.com" variant="envBackend" /> on the auth server and <Badge text="CLI_AUTH_SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" /> on the web app.</li>
+<li><strong>OpenQuok production</strong> — register <Badge text="https://www.openquok.com/cli/device/callback" variant="new" />. Set <Badge text="BROWSER_ORIGIN=https://www.openquok.com" variant="envBackend" /> on the auth server and <Badge text="CLI_AUTH_SERVER_URL=https://cli-auth.openquok.com" variant="envBackend" /> on the web app.</li>
 <li><strong>Local (auth server only)</strong> — leave <Badge text="BROWSER_ORIGIN" variant="envBackend" /> unset so browser steps stay on <Badge text="http://localhost:3111/device/verify" variant="default" /> and <Badge text="http://localhost:3111/device/callback" variant="default" />.</li>
 <li><strong>Self-hosted</strong> — set <Badge text="BROWSER_ORIGIN" variant="envBackend" /> to your web origin and register <Badge text="BROWSER_ORIGIN/cli/device/callback" variant="path" /> on the OAuth app, or use a single host (omit <Badge text="BROWSER_ORIGIN" variant="envBackend" />) and register <Badge text="SERVER_URL/device/callback" variant="path" />.</li>
 </ul>
 </Callout>
 
-<Callout type="note" title="Who this page is for">
-<p><strong>Deployers</strong> configure <Badge text="agent/server" variant="path" /> and (for production) deploy <Badge text="web" variant="path" /> with matching env. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, programmatic tokens — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
+<Callout type="note">
+<p>This page is for who want to host own CLI Auth server. Start by configuring <Badge text="agent/server" variant="path" /> and (for production) deploy <Badge text="web" variant="path" /> with matching env. <strong>CLI users</strong> — install, <code>openquok auth:login</code>, programmatic tokens — see <a href="/docs/getting-started-for-cli">CLI</a> and <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.</p>
 </Callout>
 
 Request paths, polling, and the <Badge text="device_requests" variant="default" /> table are explained in <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
@@ -56,9 +63,9 @@ Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/
 
 ### Required
 
-- <Badge text="DATABASE_URL" variant="envBackend" /> — Postgres connection string. The server auto-creates the <code>device_requests</code> table on startup.
-- <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — Platform CLI OAuth app client ID (prefix <code>oqc_...</code>). Used only on the auth server; not configured on the OpenQuok API backend.
-- <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — That app’s client secret (prefix <code>oqs_...</code>). Held only by the auth server for token exchange — not end-user credentials.
+- <Badge text="DATABASE_URL" variant="envBackend" /> — Postgres connection string.
+- <Badge text="OPENQUOK_OAUTH_CLIENT_ID" variant="envBackend" /> — Platform CLI OAuth app client ID (prefix <code>oqc_...</code>).
+- <Badge text="OPENQUOK_OAUTH_CLIENT_SECRET" variant="envBackend" /> — That app’s client secret (prefix <code>oqs_...</code>). Held only by the auth server for token exchange.
 
 <Callout type="note">
 <p>Each CLI user still gets their own <Badge text="opo_…" variant="default" /> token scoped to the workspace they approve; plan limits apply to that workspace. See <a href="/docs/configuration-agent/architecture#oauth-client-credentials-vs-user-access-tokens">Auth server architecture → OAuth client credentials vs user access tokens</a>.</p>
@@ -66,7 +73,7 @@ Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/
 
 ### SERVER_URL (API origin)
 
-- <Badge text="SERVER_URL" variant="envBackend" /> — Public origin of the **auth server API** (no trailing slash). The CLI uses this as <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />.
+- <Badge text="SERVER_URL" variant="envBackend" /> — Public origin of the auth server API (no trailing slash). The CLI uses this as <Badge text="OPENQUOK_AUTH_SERVER" variant="envBackend" />.
 
 **OpenQuok production (reference):**
 
@@ -95,13 +102,17 @@ Templates: <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/
 
 ### Optional
 
-- <Badge text="PORT" variant="envBackend" /> — Local listen port (default <code>3111</code>). Less relevant on Vercel; useful for <code>pnpm dev</code>.
+- <Badge text="PORT" variant="envBackend" /> — Local listen port (default <code>3111</code>).
 - <Badge text="OPENQUOK_FRONTEND_URL" variant="envBackend" /> — Web app hosting the OAuth approval UI.
 - <Badge text="OPENQUOK_API_URL" variant="envBackend" /> — API base URL; token exchange uses <code>/api/v1/oauth/token</code>.
 - <Badge text="OPENQUOK_AUTHORIZE_PATH" variant="envBackend" /> — Frontend path for the approve UI (default <code>/oauth/authorize</code>).
 
-<Callout type="note" title="Local development">
-From <Badge text="agent/server" variant="path" />, run <code>pnpm dev</code> and hit <code>http://localhost:3111/health</code> once env vars are set. For local Postgres, run <code>docker compose -f infra/docker-compose.yml up -d postgres</code>.
+<Callout type="note">
+For local development, run <code>pnpm dev</code> from <Badge text="agent/server" variant="path" /> and hit <code>http://localhost:3111/health</code> once env vars are set.
+</Callout>
+
+<Callout type="note">
+For local Postgres, run <code>docker compose -f infra/docker-compose.yml up -d postgres</code>.
 </Callout>
 
 ## Common setup steps
@@ -150,7 +161,10 @@ See <a href="/docs/installation/vercel#cli-auth-server-on-vercel">Installation �
 
 </Steps>
 
-<p>To run the CLI **before** <Badge text="@openquok/auto-cli" variant="experimental" /> is installed from npm (<code>pnpm --filter ./agent build</code>, <code>node agent/dist/index.js …</code>), see <a href="/docs/installation/development-environment#running-the-cli-from-the-monorepo-unpublished">Development environment → Running the CLI from the monorepo (unpublished)</a>.</p>
+<Callout type="tip">
+<p>To run the CLI before <Badge text="@openquok/auto-cli" variant="experimental" /> is installed from npm (<code>pnpm --filter ./agent build</code>, <code>node agent/dist/index.js …</code>), see <a href="/docs/installation/development-environment#running-the-cli-from-the-monorepo-unpublished">Development environment → Running the CLI from the monorepo (unpublished)</a>.</p>
+</Callout>
+
 
 ## Guides
 

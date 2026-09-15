@@ -3,6 +3,8 @@ title: Overview - MCP References
 description: OpenQuok MCP reference — tool input shapes, responses, and provider settings for AI agent clients.
 order: 0
 lastUpdated: 2026-09-10
+sidebar:
+  label: Overview
 ---
 
 <script>

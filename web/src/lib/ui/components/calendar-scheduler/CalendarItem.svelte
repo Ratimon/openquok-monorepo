@@ -13,6 +13,7 @@
 		serializeCalendarPostDrag,
 		setActiveCalendarPostDrag
 	} from '$lib/ui/components/calendar-scheduler/calendarDnd';
+	import { formatPublishTimeLabel } from '$lib/utils/postingSchedulePreferences';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
@@ -76,9 +77,7 @@
 	const publishDateIso = $derived(typeof post.publishDate === 'string' ? post.publishDate : '');
 	const publishTimeLabel = $derived.by(() => {
 		if (!publishDateIso) return '';
-		const ms = Date.parse(publishDateIso);
-		if (!Number.isFinite(ms)) return '';
-		return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		return formatPublishTimeLabel(publishDateIso);
 	});
 	const isBeforeNow = $derived.by(() => {
 		if (!publishDateIso) return false;

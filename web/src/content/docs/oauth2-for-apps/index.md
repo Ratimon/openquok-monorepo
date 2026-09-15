@@ -3,6 +3,8 @@ title: Overview - OAuth2 for apps
 description: Build third-party OpenQuok apps that act on behalf of subscribed users using OAuth2 Authorization Code flow.
 order: 0
 lastUpdated: 2026-08-22
+sidebar:
+  label: Overview
 ---
 
 <script>

@@ -3,6 +3,8 @@ title: Introduction to OpenQuok CLI
 description: An CLI-first tool for AI agents. Give your agents the OpenQuok CLI to schedule posts, manage integrations, and upload media from the terminal.
 order: 0
 lastUpdated: 2026-08-11
+sidebar:
+  label: Overview
 ---
 
 <script>

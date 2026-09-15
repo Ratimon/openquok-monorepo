@@ -117,8 +117,22 @@ export function canDropOnSlot(targetPublishDateIso: string, nowMs = Date.now()):
 	return t >= min;
 }
 
-/** Snap pointer position within a day column to a 30-minute slot (UTC). */
-export function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number): string | null {
+export function zonedDateTimeFromGridSlot(
+	dateStr: string,
+	hour: number,
+	minute: number,
+	timeZone: string
+): Temporal.ZonedDateTime {
+	return Temporal.ZonedDateTime.from(
+		`${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00[${timeZone}]`
+	);
+}
+
+function hourMinuteFromTimeGridPointer(
+	dayEl: HTMLElement,
+	clientY: number,
+	snapMinutes: number | null
+): { dateStr: string; hour: number; minute: number } | null {
 	const dateStr = dayEl.getAttribute('data-time-grid-date') ?? '';
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
 
@@ -126,15 +140,24 @@ export function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number)
 	const y = clientY - rect.top;
 	const frac = Math.min(1, Math.max(0, y / rect.height));
 	const totalMinutes = Math.floor(frac * 24 * 60);
-	const snappedMinutes = Math.min(24 * 60 - 30, Math.floor(totalMinutes / 30) * 30);
+	const snappedMinutes =
+		snapMinutes == null
+			? totalMinutes
+			: Math.min(24 * 60 - snapMinutes, Math.floor(totalMinutes / snapMinutes) * snapMinutes);
 	const hour = Math.floor(snappedMinutes / 60);
 	const minute = snappedMinutes % 60;
+	return { dateStr, hour, minute };
+}
 
+function scheduledIsoFromGridSlot(
+	dateStr: string,
+	hour: number,
+	minute: number,
+	timeZone: string
+): string | null {
 	try {
-		const dt = Temporal.ZonedDateTime.from(
-			`${dateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+00:00[UTC]`
-		);
-		const now = Temporal.Now.zonedDateTimeISO('UTC');
+		const dt = zonedDateTimeFromGridSlot(dateStr, hour, minute, timeZone);
+		const now = Temporal.Now.zonedDateTimeISO(timeZone);
 		const min = now.add({ minutes: 5 });
 		if (Temporal.ZonedDateTime.compare(dt, min) < 0) return null;
 		if (Temporal.ZonedDateTime.compare(dt, now) <= 0) return null;
@@ -144,28 +167,39 @@ export function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number)
 	}
 }
 
+/** Snap pointer position within a day column to a 30-minute slot in the calendar timezone. */
+export function scheduledIsoFromTimeGridDay(
+	dayEl: HTMLElement,
+	clientY: number,
+	timeZone = 'UTC'
+): string | null {
+	const slot = hourMinuteFromTimeGridPointer(dayEl, clientY, 30);
+	if (!slot) return null;
+	return scheduledIsoFromGridSlot(slot.dateStr, slot.hour, slot.minute, timeZone);
+}
+
+/** Hour cell from pointer position (no minute snapping) in the calendar timezone. */
+export function scheduledIsoFromTimeGridHour(
+	dayEl: HTMLElement,
+	clientY: number,
+	timeZone = 'UTC'
+): string | null {
+	const slot = hourMinuteFromTimeGridPointer(dayEl, clientY, null);
+	if (!slot) return null;
+	return scheduledIsoFromGridSlot(slot.dateStr, slot.hour, 0, timeZone);
+}
+
 /** Month view: move to another day while preserving wall-clock time from the source post. */
 export function scheduledIsoFromMonthGridDay(
 	dayDateStr: string,
-	sourcePublishDateIso: string
+	sourcePublishDateIso: string,
+	timeZone = 'UTC'
 ): string | null {
 	if (!/^\d{4}-\d{2}-\d{2}$/.test(dayDateStr)) return null;
-	const sourceMs = Date.parse(sourcePublishDateIso);
-	if (!Number.isFinite(sourceMs)) return null;
-
-	const source = new Date(sourceMs);
-	const hour = source.getUTCHours();
-	const minute = source.getUTCMinutes();
 
 	try {
-		const dt = Temporal.ZonedDateTime.from(
-			`${dayDateStr}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00+00:00[UTC]`
-		);
-		const now = Temporal.Now.zonedDateTimeISO('UTC');
-		const min = now.add({ minutes: 5 });
-		if (Temporal.ZonedDateTime.compare(dt, min) < 0) return null;
-		if (Temporal.ZonedDateTime.compare(dt, now) <= 0) return null;
-		return dt.toInstant().toString();
+		const source = Temporal.Instant.from(sourcePublishDateIso).toZonedDateTimeISO(timeZone);
+		return scheduledIsoFromGridSlot(dayDateStr, source.hour, source.minute, timeZone);
 	} catch {
 		return null;
 	}

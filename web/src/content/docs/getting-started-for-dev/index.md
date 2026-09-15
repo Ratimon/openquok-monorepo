@@ -1,8 +1,10 @@
 ---
-title: Overview - Getting Started
+title: Getting Started for Self-host
 description: Getting started with OpenQuok for contributors and self-hosted social scheduler instances — architecture, quick start, and default env patterns.
 order: 0
 lastUpdated: 2026-08-22
+sidebar:
+  label: Overview
 ---
 
 <script>

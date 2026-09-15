@@ -33,10 +33,18 @@
 		parseCalendarPostDrag,
 		scheduledIsoFromMonthGridDay,
 		scheduledIsoFromTimeGridDay as scheduledIsoFromTimeGridDayForDnD,
+		scheduledIsoFromTimeGridHour,
 		setActiveCalendarPostDrag,
 		shouldSuppressCalendarChipClick,
+		zonedDateTimeFromGridSlot,
 		type CalendarPostDragPayload
 	} from '$lib/ui/components/calendar-scheduler/calendarDnd';
+	import {
+		formatPublishDateTimeLabel,
+		formatPublishTimeLabel,
+		getPostingScheduleTimezone,
+		POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT
+	} from '$lib/utils/postingSchedulePreferences';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
@@ -62,7 +70,7 @@
 		backgroundEvents?: BackgroundEvent[];
 		/** Compact week preview (Best Time to Post tool) — shorter grid + optional day boundaries. */
 		embeddedToolPreview?: boolean;
-		/** IANA zone for embedded preview (defaults to UTC for workspace scheduler). */
+		/** IANA zone override (embedded previews). Workspace scheduler uses Date metrics timezone. */
 		calendarTimezone?: string;
 		dayBoundaries?: { start: string; end: string };
 		onEditPostGroup?: (postGroup: string) => void;
@@ -143,8 +151,21 @@
 		return window.matchMedia('(pointer: coarse), (max-width: 640px)').matches;
 	}
 
-	function clampScheduledZonedDateTime(dt: Temporal.ZonedDateTime): Temporal.ZonedDateTime | null {
-		const now = Temporal.Now.zonedDateTimeISO('UTC');
+	let storageTimezone = $state(
+		typeof window !== 'undefined' ? getPostingScheduleTimezone() : 'UTC'
+	);
+
+	const displayTimezone = $derived(
+		embeddedToolPreview && calendarTimezone?.trim()
+			? calendarTimezone.trim()
+			: storageTimezone
+	);
+
+	function clampScheduledZonedDateTime(
+		dt: Temporal.ZonedDateTime,
+		timeZone: string
+	): Temporal.ZonedDateTime | null {
+		const now = Temporal.Now.zonedDateTimeISO(timeZone);
 		const min = now.add({ minutes: 5 });
 		const cellEnd = dt.add({ hours: 1 });
 		if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) return null;
@@ -157,18 +178,8 @@
 		return scheduled;
 	}
 
-	function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number): string | null {
-		const dateStr = dayEl.getAttribute('data-time-grid-date') ?? '';
-		if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
-
-		const rect = dayEl.getBoundingClientRect();
-		const y = clientY - rect.top;
-		const frac = Math.min(1, Math.max(0, y / rect.height));
-		const minutes = Math.floor(frac * 24 * 60);
-		const hour = Math.min(23, Math.max(0, Math.floor(minutes / 60)));
-		const dt = Temporal.ZonedDateTime.from(`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`);
-		const scheduled = clampScheduledZonedDateTime(dt);
-		return scheduled ? scheduled.toInstant().toString() : null;
+	function scheduledIsoFromTimeGridDay(dayEl: HTMLElement, clientY: number, timeZone: string): string | null {
+		return scheduledIsoFromTimeGridHour(dayEl, clientY, timeZone);
 	}
 
 	function openSlotActionsFromCalendar(iso: string, postGroup?: string, focusPostId?: string, focusIntegrationId?: string): void {
@@ -187,26 +198,21 @@
 		openCreatePostAtIsoFromCalendar(iso);
 	}
 
-	function selectedPlainDateFromProps(): Temporal.PlainDate {
+	function selectedPlainDateFromProps(timeZone: string): Temporal.PlainDate {
 		if (/^\d{4}-\d{2}-\d{2}$/.test(rangeStartDate)) {
 			return Temporal.PlainDate.from(rangeStartDate);
 		}
-		return Temporal.Now.plainDateISO('UTC');
+		return Temporal.Now.plainDateISO(timeZone);
 	}
 
-	function buildCalendarApp(initialEvents: CalendarEventExternal[]) {
-		const tz =
-			embeddedToolPreview && calendarTimezone?.trim()
-				? calendarTimezone.trim()
-				: 'UTC';
-
+	function buildCalendarApp(initialEvents: CalendarEventExternal[], timeZone: string) {
 		return createCalendar(
 			{
-				timezone: tz,
+				timezone: timeZone,
 				views,
 				events: initialEvents,
 				backgroundEvents,
-				selectedDate: selectedPlainDateFromProps(),
+				selectedDate: selectedPlainDateFromProps(timeZone),
 				defaultView: viewNameForDisplay(display) as DefaultViewName,
 				...(dayBoundaries ? { dayBoundaries } : {}),
 				...(embeddedToolPreview
@@ -222,7 +228,8 @@
 						if (target?.closest?.('.sx__time-grid-background-event')) return;
 
 						const scheduled = clampScheduledZonedDateTime(
-							dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 })
+							dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }),
+							timeZone
 						);
 						if (!scheduled) return;
 						openSlotActionsFromCalendar(scheduled.toInstant().toString());
@@ -233,7 +240,9 @@
 		);
 	}
 
-	let calendarApp = $state.raw(buildCalendarApp([]));
+	let calendarApp = $state.raw(
+		buildCalendarApp([], typeof window !== 'undefined' ? getPostingScheduleTimezone() : 'UTC')
+	);
 	let hostEl = $state<HTMLElement | null>(null);
 	let lastAppliedGridHeight = $state<number | null>(null);
 
@@ -277,9 +286,7 @@
 
 	function formatSlotSummaryTime(iso: string | undefined): string {
 		if (!iso || typeof iso !== 'string') return '';
-		const ms = Date.parse(iso);
-		if (!Number.isFinite(ms)) return '';
-		return new Date(ms).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+		return formatPublishTimeLabel(iso, displayTimezone);
 	}
 
 	function slotSummaryStatusLine(stateRaw: string | undefined, publishDateIso: string | undefined): string {
@@ -312,9 +319,8 @@
 	let highlightedDropEl = $state<HTMLElement | null>(null);
 
 	function formatRescheduleTargetLabel(iso: string): string {
-		const ms = Date.parse(iso);
-		if (!Number.isFinite(ms)) return 'the new time';
-		return new Date(ms).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+		const label = formatPublishDateTimeLabel(iso, displayTimezone);
+		return label || 'the new time';
 	}
 
 	function clearDropHighlight(): void {
@@ -403,10 +409,13 @@
 
 		// If the pinned hover cell becomes fully past (or otherwise invalid), hide the strip.
 		try {
-			const dt = Temporal.ZonedDateTime.from(
-				`${createStripHoverDate}T${String(createStripHoverHour).padStart(2, '0')}:00:00+00:00[UTC]`
+			const dt = zonedDateTimeFromGridSlot(
+				createStripHoverDate,
+				createStripHoverHour,
+				0,
+				displayTimezone
 			);
-			const now = Temporal.Now.zonedDateTimeISO('UTC');
+			const now = Temporal.Now.zonedDateTimeISO(displayTimezone);
 			const cellEnd = dt.add({ hours: 1 });
 			if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) {
 				clearCreateUi();
@@ -474,6 +483,16 @@
 	});
 
 	$effect(() => {
+		const tz = displayTimezone;
+		const app = (calendarApp as unknown as { $app?: { config?: { timezone?: { value: string } } } })
+			.$app;
+		const tzSignal = app?.config?.timezone;
+		if (tzSignal && tzSignal.value !== tz) {
+			tzSignal.value = tz;
+		}
+	});
+
+	$effect(() => {
 		(calendarApp as unknown as CalendarRuntime).events.set(events);
 	});
 
@@ -483,7 +502,7 @@
 
 	$effect(() => {
 		const view = viewNameForDisplay(display);
-		const date = selectedPlainDateFromProps();
+		const date = selectedPlainDateFromProps(displayTimezone);
 		const app = calendarApp as unknown as CalendarRuntime;
 		app.$app.calendarState.setView(view as DefaultViewName, date);
 
@@ -502,6 +521,11 @@
 		const el = hostEl;
 		if (!el) return;
 
+		const onTimezoneChange = () => {
+			storageTimezone = getPostingScheduleTimezone();
+		};
+		window.addEventListener(POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT, onTimezoneChange);
+
 		const onClick = (ev: MouseEvent) => {
 			const target = ev.target as HTMLElement | null;
 
@@ -518,8 +542,9 @@
 				if (rawIso) {
 					const ms = Date.parse(rawIso);
 					if (Number.isFinite(ms)) {
-						const dt = Temporal.Instant.from(new Date(ms).toISOString()).toZonedDateTimeISO('UTC');
-						const now = Temporal.Now.zonedDateTimeISO('UTC');
+						const tz = displayTimezone;
+						const dt = Temporal.Instant.from(new Date(ms).toISOString()).toZonedDateTimeISO(tz);
+						const now = Temporal.Now.zonedDateTimeISO(tz);
 						const min = now.add({ minutes: 5 });
 						let scheduled = dt.with({ minute: 0, second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 });
 						if (Temporal.ZonedDateTime.compare(scheduled, min) < 0) {
@@ -547,10 +572,9 @@
 						const frac = Math.min(1, Math.max(0, y / rect.height));
 						const minutes = Math.floor(frac * 24 * 60);
 						const hour = Math.min(23, Math.max(0, Math.floor(minutes / 60)));
-						const dt = Temporal.ZonedDateTime.from(
-							`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`
-						);
-						const now = Temporal.Now.zonedDateTimeISO('UTC');
+						const tz = displayTimezone;
+						const dt = zonedDateTimeFromGridSlot(dateStr, hour, 0, tz);
+						const now = Temporal.Now.zonedDateTimeISO(tz);
 						const cellEnd = dt.add({ hours: 1 });
 						if (Temporal.ZonedDateTime.compare(cellEnd, now) <= 0) return;
 						const min = now.add({ minutes: 5 });
@@ -596,7 +620,7 @@
 				const focusId = String(chip?.dataset?.postId ?? '').trim();
 				const focusInt = String(chip?.dataset?.integrationId ?? '').trim();
 				const dayEl = chip?.closest?.('.sx__time-grid-day') as HTMLElement | null;
-				const slotIso = dayEl ? scheduledIsoFromTimeGridDay(dayEl, ev.clientY) : null;
+				const slotIso = dayEl ? scheduledIsoFromTimeGridDay(dayEl, ev.clientY, displayTimezone) : null;
 				if (prefersCompactCalendarActions() && slotIso) {
 					openActionsForPostGroup?.(postGroup, focusId || undefined, focusInt || undefined, slotIso);
 				} else {
@@ -649,9 +673,10 @@
 			const slotHeight = rect.height / 24;
 			const hoverKey = `${dateStr}|${hour}`;
 
-			const now = Temporal.Now.zonedDateTimeISO('UTC');
+			const tz = displayTimezone;
+			const now = Temporal.Now.zonedDateTimeISO(tz);
 			const min = now.add({ minutes: 5 });
-			const dt = Temporal.ZonedDateTime.from(`${dateStr}T${String(hour).padStart(2, '0')}:00:00+00:00[UTC]`);
+			const dt = zonedDateTimeFromGridSlot(dateStr, hour, 0, tz);
 
 			// Never show the create affordance for hour-cells that are fully in the past.
 			// If we're partway through the current hour, keep it available (we'll clamp to now+5m below).
@@ -664,10 +689,7 @@
 			}
 			if (Temporal.ZonedDateTime.compare(scheduled, now) <= 0) return clearCreateHover();
 
-			const localLabel = new Date(scheduled.toInstant().toString()).toLocaleTimeString([], {
-				hour: '2-digit',
-				minute: '2-digit'
-			});
+			const localLabel = formatPublishTimeLabel(scheduled.toInstant().toString(), tz);
 			const isOverEvent = Boolean(target?.closest?.('[data-post-group]'));
 			setCreateHover(
 				ev,
@@ -735,7 +757,11 @@
 					return;
 				}
 				const dateStr = dayEl.getAttribute('data-date') ?? '';
-				const iso = scheduledIsoFromMonthGridDay(dateStr, payload.sourcePublishDateIso);
+				const iso = scheduledIsoFromMonthGridDay(
+					dateStr,
+					payload.sourcePublishDateIso,
+					displayTimezone
+				);
 				if (!iso || !canDropOnSlot(iso)) {
 					clearDropHighlight();
 					if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
@@ -752,7 +778,7 @@
 				clearDropHighlight();
 				return;
 			}
-			const iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY);
+			const iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY, displayTimezone);
 			if (!iso || !canDropOnSlot(iso)) {
 				clearDropHighlight();
 				if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
@@ -778,11 +804,15 @@
 			if (isMonthViewActive()) {
 				const dayEl = target?.closest?.('.sx__month-grid-day') as HTMLElement | null;
 				const dateStr = dayEl?.getAttribute('data-date') ?? '';
-				iso = scheduledIsoFromMonthGridDay(dateStr, payload.sourcePublishDateIso);
+				iso = scheduledIsoFromMonthGridDay(
+					dateStr,
+					payload.sourcePublishDateIso,
+					displayTimezone
+				);
 			} else {
 				const dayEl = target?.closest?.('.sx__time-grid-day') as HTMLElement | null;
 				if (dayEl && !target?.closest?.('.sx__time-grid-background-event')) {
-					iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY);
+					iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY, displayTimezone);
 				}
 			}
 
@@ -833,6 +863,7 @@
 		window.addEventListener('resize', scheduleSync);
 
 		return () => {
+			window.removeEventListener(POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT, onTimezoneChange);
 			clearCreateHover();
 			clearDropHighlight();
 			el.removeEventListener('mousemove', onMove);

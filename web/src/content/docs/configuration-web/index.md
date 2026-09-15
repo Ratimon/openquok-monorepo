@@ -3,6 +3,8 @@ title: Configuration - Web
 description: Getting Started to Environment variables and configuration for the OpenQuok's in web application.
 order: 0
 lastUpdated: 2026-05-15
+sidebar:
+  label: Overview
 ---
 
 <script>

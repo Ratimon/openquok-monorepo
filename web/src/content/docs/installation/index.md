@@ -3,6 +3,8 @@ title: Overview - Installation
 description: Set up OpenQuok — system requirements, Docker Compose self-host, local development, and Vercel / Railway production deploys for the social scheduler.
 order: 0
 lastUpdated: 2026-08-22
+sidebar:
+  label: Overview
 ---
 
 <script>

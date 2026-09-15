@@ -3,6 +3,8 @@ title: Overview - Contribution opportunities
 description: Feature-sized OpenQuok contribution tasks for external contributors — social providers, Humanizer locales, docs translations, and scoped product work.
 order: 0
 lastUpdated: 2026-09-12
+sidebar:
+  label: Overview
 ---
 
 <script>

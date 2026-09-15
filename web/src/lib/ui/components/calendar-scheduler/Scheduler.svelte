@@ -11,6 +11,8 @@
 		SocialPlatformFilterVm
 	} from '$lib/posts';
 
+	import { onMount } from 'svelte';
+
 	import { toast } from '$lib/ui/sonner';
 
 	import ChannelGroupFilter from '$lib/ui/components/filters/ChannelGroupFilter.svelte';
@@ -21,6 +23,10 @@
 
 	import CalendarView from '$lib/ui/components/calendar-scheduler/CalendarView.svelte';
 	import ListView from '$lib/ui/components/calendar-scheduler/ListView.svelte';
+	import {
+		getPostingScheduleTimezone,
+		POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT
+	} from '$lib/utils/postingSchedulePreferences';
 
 	type BackgroundEvent = {
 		start: Temporal.PlainDate | Temporal.ZonedDateTime;
@@ -62,6 +68,10 @@
 
 	const scheduledPostsVm = $derived(presenter.scheduledPostsCalendarVm);
 
+	let postingTimezone = $state(
+		typeof window !== 'undefined' ? getPostingScheduleTimezone() : 'UTC'
+	);
+
 	const display = $derived<CalendarDisplayViewModel>(
 		scheduledPostsVm.layoutMode === 'list' ? 'list' : scheduledPostsVm.granularity
 	);
@@ -71,7 +81,8 @@
 		if (!scheduledPostsVm.rangeStartDate || !scheduledPostsVm.rangeEndDate) return [];
 		if (scheduledPostsVm.granularity === 'month') return [];
 
-		const now = Temporal.Now.zonedDateTimeISO('UTC');
+		const timeZone = postingTimezone;
+		const now = Temporal.Now.zonedDateTimeISO(timeZone);
 		const startD = new Date(`${scheduledPostsVm.rangeStartDate}T00:00:00Z`);
 		const endD = new Date(`${scheduledPostsVm.rangeEndDate}T00:00:00Z`);
 		if (Number.isNaN(startD.getTime()) || Number.isNaN(endD.getTime())) return [];
@@ -81,7 +92,7 @@
 			const yyyy = d.getUTCFullYear();
 			const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
 			const dd = String(d.getUTCDate()).padStart(2, '0');
-			const dayStart = Temporal.ZonedDateTime.from(`${yyyy}-${mm}-${dd}T00:00:00+00:00[UTC]`);
+			const dayStart = Temporal.ZonedDateTime.from(`${yyyy}-${mm}-${dd}T00:00:00[${timeZone}]`);
 			const dayEnd = dayStart.add({ days: 1 });
 			if (Temporal.ZonedDateTime.compare(now, dayStart) <= 0) continue;
 
@@ -100,6 +111,16 @@
 			});
 		}
 		return out;
+	});
+
+	onMount(() => {
+		const onTimezoneChange = () => {
+			postingTimezone = getPostingScheduleTimezone();
+		};
+		window.addEventListener(POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT, onTimezoneChange);
+		return () => {
+			window.removeEventListener(POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT, onTimezoneChange);
+		};
 	});
 
 	$effect(() => {

@@ -1,8 +1,10 @@
 ---
-title: Other skills
+title: Overview - Other skills
 description: Sibling agent skills that extend openquok-core  (e.g. research, media generation, posting).
 order: 0
 lastUpdated: 2026-08-03
+sidebar:
+  label: Overview
 ---
 
 <script>

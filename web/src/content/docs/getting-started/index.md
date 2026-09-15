@@ -1,6 +1,6 @@
 ---
-title: Introduction
-description: OpenQuok social scheduler — volume without the headache. Review before publish. Cloud, self-host, or the API, CLI, and MCP.
+title: Introduction to OpenQuok
+description: OpenQuok social scheduler — connect channels, draft posts, and review on calendar or kanban before anything publishes.
 order: 0
 lastUpdated: 2026-08-23
 sidebar:
