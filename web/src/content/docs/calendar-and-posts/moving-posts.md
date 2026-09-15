@@ -1,6 +1,6 @@
 ---
-title: Moving posts
-description: Drag posts on the OpenQuok calendar to reschedule, or use the kanban, API, and CLI for bulk moves.
+title: Moving and rescheduling posts
+description: Drag & Drop posts on the calendar or the kanban.
 order: 1
 lastUpdated: 2026-09-14
 ---

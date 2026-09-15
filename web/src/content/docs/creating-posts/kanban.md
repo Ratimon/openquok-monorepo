@@ -2,7 +2,7 @@
 title: Kanban board
 description: Review drafts, scheduled posts, and published history with kanban style.
 order: 7
-lastUpdated: 2026-09-11
+lastUpdated: 2026-09-15
 ---
 
 <script>
@@ -31,6 +31,8 @@ The calendar answers <em>when</em> posts ship; the kanban answers <em>what stage
 | **Published posts** | Already sent to the network. Open the card menu for the live URL. |
 
 Column headers show a count. When filters hide some rows, the badge can read <strong>visible / total</strong> (for example <code>2 / 5</code>).
+
+Each card header uses the **first tag** colour on the group (same order as composer tags). Draft cards keep that colour and add a **`Draft:`** prefix plus a dashed outline; scheduled cards use a solid outline. See <a href="/docs/calendar-and-posts">Calendar and posts</a> for the full chip signal table.
 
 <Callout type="tip">
 <p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without editing each post from editor.</p>

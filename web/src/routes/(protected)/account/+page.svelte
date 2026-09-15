@@ -238,6 +238,9 @@
 	$effect(() => {
 		postKanbanBoard.populateAllTagSelectionWhenEmpty(workspaceTagsVm, postKanbanPostsForTagFilter);
 	});
+	$effect(() => {
+		postKanbanBoard.syncWorkspaceTags(workspaceTagsVm);
+	});
 	const postKanbanStatus = $derived(postKanbanBoard.status);
 	const postKanbanError = $derived(postKanbanBoard.error);
 	const postKanbanMovingPostGroup = $derived(postKanbanBoard.movingPostGroup);

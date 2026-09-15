@@ -48,6 +48,11 @@ import {
 	kanbanMoveBlockedMessage,
 	type KanbanCardDragPayload
 } from '$lib/ui/components/posts/kanban/kanbanDnd';
+import {
+	buildTagColorByName,
+	tagColorMapsEqual,
+	type TagColorLookup
+} from '$lib/posts/utils/tagChipTheme';
 import dayjs from 'dayjs';
 
 export type {
@@ -104,6 +109,8 @@ export class PostKanbanBoardPresenter {
 	movingPostGroup = $state<string | null>(null);
 	channels = $state<readonly CreateSocialPostChannelViewModel[]>([]);
 	cardsVm = $state<PostKanbanCardViewModel[]>([]);
+
+	private cachedTagColorByName = new Map<string, string>();
 
 	private filteredCardsVm = $derived.by(() => {
 		const integrationFiltered = filterKanbanCardsByIntegration(
@@ -456,6 +463,16 @@ export class PostKanbanBoardPresenter {
 		this.selectedTagNames = [];
 	}
 
+	/** Workspace tag colors for kanban chip headers; rebuilds cards when posts are already loaded. */
+	syncWorkspaceTags(tags: readonly TagColorLookup[]): void {
+		const next = buildTagColorByName(tags);
+		if (tagColorMapsEqual(this.cachedTagColorByName, next)) return;
+		this.cachedTagColorByName = next;
+		if (this.listVm.length) {
+			this.rebuildCardsVm();
+		}
+	}
+
 	populateAllTagSelectionWhenEmpty(
 		tagsVm: readonly { name: string }[],
 		posts: readonly { tagNames?: string[] }[] = this.listVm
@@ -552,7 +569,8 @@ export class PostKanbanBoardPresenter {
 		this.cardsVm = buildKanbanCardsVm(
 			this.listVm,
 			this.channelById(),
-			this.channelSnapshotById()
+			this.channelSnapshotById(),
+			this.cachedTagColorByName
 		);
 	}
 

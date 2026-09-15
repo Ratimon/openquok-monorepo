@@ -6,6 +6,7 @@ import {
 	channelDisplayFromPostRow,
 	resolvePostChannelDisplay
 } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import { resolveFirstTagColor } from '$lib/posts/utils/tagChipTheme';
 import type {
 	PostKanbanCardViewModel,
 	PostKanbanChannelSlotViewModel,
@@ -240,7 +241,8 @@ function resolveKanbanCardPlacement(groupRows: PostKanbanRowViewModel[]): {
 export function buildKanbanCardsVm(
 	listVm: PostKanbanRowViewModel[],
 	channelById: Map<string, CreateSocialPostChannelViewModel>,
-	channelSnapshotById: Map<string, PostKanbanChannelSlotViewModel>
+	channelSnapshotById: Map<string, PostKanbanChannelSlotViewModel>,
+	tagColorByName: ReadonlyMap<string, string> = new Map()
 ): PostKanbanCardViewModel[] {
 	const byGroup = new Map<string, PostKanbanRowViewModel[]>();
 	for (const row of listVm) {
@@ -267,6 +269,14 @@ export function buildKanbanCardsVm(
 		const tagNames = [
 			...new Set(groupRows.flatMap((r) => r.tagNames ?? []).map((n) => String(n).trim()).filter(Boolean))
 		].sort((a, b) => a.localeCompare(b));
+		const { color: chipTagColor, name: chipTagName } = resolveFirstTagColor(
+			rep.tagNames,
+			tagColorByName
+		);
+		const postError =
+			groupRows
+				.map((r) => String(r.error ?? '').trim())
+				.find((message) => message.length > 0) ?? null;
 		const channelSlots = integrationIds.map((integrationId) =>
 			resolveChannelSlot(integrationId, groupRows, channelById, channelSnapshotById)
 		);
@@ -292,6 +302,9 @@ export function buildKanbanCardsVm(
 			isAgentEdited: rep.isAgentEdited ?? false,
 			isReviewed: rep.isReviewed ?? false,
 			tagNames,
+			chipTagColor,
+			chipTagName,
+			postError,
 			needsManualFinishInApp: Boolean(manualFinish),
 			suggestedReviewNote:
 				manualFinish && !rep.note?.trim() ? manualFinish.defaultReviewNote : null

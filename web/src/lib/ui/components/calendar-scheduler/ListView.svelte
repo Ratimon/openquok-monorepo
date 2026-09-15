@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { CalendarEventExternal } from '@schedule-x/calendar';
 
+	import type { SchedulerCalendarEvent } from '$lib/posts/scheduler.types';
+
+	import { DEFAULT_TAG_CHIP_COLOR } from '$lib/posts/utils/tagChipTheme';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
@@ -37,6 +40,7 @@
 		channelIdentifier?: string;
 		publishDateIso?: string;
 		state?: string;
+		chipTagColor: string;
 	};
 
 	function parsePublishMs(iso: string | undefined): number {
@@ -59,12 +63,18 @@
 		const rows: ListRow[] = [];
 
 		for (const ev of evs ?? []) {
-			const summary = ((ev as any)?.slotSummary ?? null) as SlotSummaryItem[] | null;
-			const posts = (Array.isArray(summary) && summary.length ? summary : [((ev as any)?.post ?? {}) as SlotSummaryItem])
-				.filter(Boolean);
+			const schedEv = ev as SchedulerCalendarEvent;
+			const chipTagColor =
+				String(schedEv.chipTagColor ?? '').trim() || DEFAULT_TAG_CHIP_COLOR;
+			const summary = (schedEv.slotSummary ?? null) as SlotSummaryItem[] | null;
+			const posts = (
+				Array.isArray(summary) && summary.length
+					? summary
+					: [(schedEv.post ?? {}) as SlotSummaryItem]
+			).filter(Boolean);
 
 			for (const s of posts) {
-				const postGroup = String(s.postGroup ?? (ev as any)?.post?.postGroup ?? '').trim();
+				const postGroup = String(s.postGroup ?? schedEv.post?.postGroup ?? '').trim();
 				if (!postGroup) continue;
 				rows.push({
 					postGroup,
@@ -72,10 +82,15 @@
 					integrationId: s.integrationId ? String(s.integrationId) : undefined,
 					content: stripHtmlToPlainText(String(s.content ?? '')).trim(),
 					channelPicture: s.channelPicture ? String(s.channelPicture) : undefined,
-					channelName: s.channelName ? String(s.channelName) : (ev as any)?.title ? String((ev as any).title) : undefined,
+					channelName: s.channelName
+						? String(s.channelName)
+						: schedEv.title
+							? String(schedEv.title)
+							: undefined,
 					channelIdentifier: s.channelIdentifier ? String(s.channelIdentifier) : undefined,
 					publishDateIso: typeof s.publishDate === 'string' ? s.publishDate : undefined,
-					state: s.state ? String(s.state) : undefined
+					state: s.state ? String(s.state) : undefined,
+					chipTagColor
 				});
 			}
 		}
@@ -124,7 +139,8 @@
 			{@const iconName = socialProviderIcon(row.channelIdentifier)}
 			<button
 				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-3 rounded-lg border border-base-300 bg-base-100 px-3 py-2 text-start outline-none"
+				class="hover:bg-base-200/60 flex w-full items-center gap-3 rounded-lg border border-base-300 border-l-4 bg-base-100 px-3 py-2 text-start outline-none"
+				style:border-left-color={row.chipTagColor}
 				onclick={() => {
 					const pid = row.postId?.trim();
 					const iid = row.integrationId?.trim();

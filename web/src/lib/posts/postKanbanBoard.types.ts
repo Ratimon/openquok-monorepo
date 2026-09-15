@@ -79,6 +79,11 @@ export type PostKanbanCardViewModel = {
 	isAgentEdited: boolean;
 	isReviewed: boolean;
 	tagNames: string[];
+	/** First-tag chip header color (composer tag order on the representative row). */
+	chipTagColor?: string;
+	chipTagName?: string | null;
+	/** Platform error text for failed-post tooltip and error ring. */
+	postError?: string | null;
 	/** TikTok inbox / private-draft posts that still need finishing in the TikTok app. */
 	needsManualFinishInApp?: boolean;
 	/** Kanban hint when `note` is empty (not persisted until the user saves a note). */

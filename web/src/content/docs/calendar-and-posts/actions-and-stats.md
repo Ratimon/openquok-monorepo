@@ -2,7 +2,7 @@
 title: Actions and stats
 description: Duplicate, delete, export, preview, per-post statistics, and connect missing releases from the OpenQuok post actions modal.
 order: 2
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-15
 ---
 
 <script>
@@ -44,9 +44,9 @@ To remove one channel from a multi-channel post, open **Edit** and deselect that
 
 ## Failed posts
 
-When publish fails, the calendar chip header shows **Failed**. The row is not draggable until you fix the underlying issue.
+When publish fails, the calendar chip keeps shows a **red ring** . Hover the chip to read the platform error in a tooltip. The row is not draggable until you fix the underlying issue.
 
-Open the post (**Edit** from **Post actions**) to read the platform error, reconnect the channel if auth expired, adjust content to match <a href="/docs/platforms">posting rules</a>, then schedule again.
+Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/calendar-and-posts">Calendar overview → Post chips</a> for how failed chips differ from draft and scheduled rows.
 
 Failed rows also appear when **Post types → Failed** is selected on the calendar filter. In **Posts in this slot**, the status line reads **publish failed** for that row.
 

@@ -8,6 +8,7 @@ import type {
 	SchedulerCalendarEvent,
 	SchedulerSlotSummaryEntry
 } from '$lib/posts/scheduler.types';
+import { resolveFirstTagColor } from '$lib/posts/utils/tagChipTheme';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 // --- Calendar date ranges ---
@@ -171,10 +172,21 @@ function bucketKey(bucketStart: Temporal.ZonedDateTime): string {
 	return `${bucketStart.toPlainDate().toString()}|${bucketStart.hour}:${bucketStart.minute}`;
 }
 
+function applyTagChipToEvent(
+	ev: SchedulerCalendarEvent,
+	post: CalendarPostRowViewModel,
+	tagColorByName: ReadonlyMap<string, string>
+): void {
+	const { color, name } = resolveFirstTagColor(post.tagNames, tagColorByName);
+	ev.chipTagColor = color;
+	ev.chipTagName = name;
+}
+
 function createEventForPost(
 	p: CalendarPostRowViewModel,
 	bucketStart: Temporal.ZonedDateTime,
-	channelById: Map<string, ChannelViewModel>
+	channelById: Map<string, ChannelViewModel>,
+	tagColorByName: ReadonlyMap<string, string>
 ): SchedulerCalendarEvent {
 	const end = bucketStart.add({ minutes: Math.max(BUCKET_MINUTES, VISUAL_MINUTES) });
 	const display = p.integrationId
@@ -182,7 +194,7 @@ function createEventForPost(
 		: null;
 	const channel = display ? channelVmFromDisplay(display, channelById) : null;
 
-	return {
+	const ev: SchedulerCalendarEvent = {
 		id: p.id,
 		title: display?.name || 'Draft',
 		start: bucketStart,
@@ -192,6 +204,8 @@ function createEventForPost(
 		posts: [p],
 		slotSummary: [slotSummaryEntry(p, channelById)]
 	};
+	applyTagChipToEvent(ev, p, tagColorByName);
+	return ev;
 }
 
 function appendPostToEvent(
@@ -220,7 +234,8 @@ function pickRepresentativePost(posts: CalendarPostRowViewModel[]): CalendarPost
 
 function applyRepresentativeToEvent(
 	ev: SchedulerCalendarEvent,
-	channelById: Map<string, ChannelViewModel>
+	channelById: Map<string, ChannelViewModel>,
+	tagColorByName: ReadonlyMap<string, string>
 ): void {
 	const posts = ev.posts ?? [];
 	if (posts.length === 0) return;
@@ -234,6 +249,7 @@ function applyRepresentativeToEvent(
 		: null;
 	ev.channel = repDisplay ? channelVmFromDisplay(repDisplay, channelById) : null;
 	ev.title = repDisplay?.name || 'Draft';
+	applyTagChipToEvent(ev, representative, tagColorByName);
 
 	const summary = ev.slotSummary ?? [];
 	if (summary.length <= 1) return;
@@ -259,7 +275,8 @@ function applyRepresentativeToEvent(
 
 export function buildCalendarEventsFromPosts(
 	posts: readonly CalendarPostRowViewModel[],
-	channelById: Map<string, ChannelViewModel>
+	channelById: Map<string, ChannelViewModel>,
+	tagColorByName: ReadonlyMap<string, string> = new Map()
 ): SchedulerCalendarEvent[] {
 	const bucketed = new Map<string, SchedulerCalendarEvent>();
 
@@ -275,11 +292,11 @@ export function buildCalendarEventsFromPosts(
 			continue;
 		}
 
-		bucketed.set(key, createEventForPost(p, bucketStart, channelById));
+		bucketed.set(key, createEventForPost(p, bucketStart, channelById, tagColorByName));
 	}
 
 	for (const ev of bucketed.values()) {
-		applyRepresentativeToEvent(ev, channelById);
+		applyRepresentativeToEvent(ev, channelById, tagColorByName);
 	}
 
 	return Array.from(bucketed.values());

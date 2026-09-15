@@ -1,8 +1,8 @@
 ---
-title: Scheduling
-description: Draft, schedule, and publish posts in the OpenQuok social scheduler — pick a time, repeat on a cadence, and save from the composer footer.
+title: Scheduling and Publishing
+description: Draft, schedule, and publish now — pick a time, repeat a post.
 order: 6
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-15
 ---
 
 <script>
@@ -56,7 +56,7 @@ After each successful publish, OpenQuok creates the next scheduled copy on the s
 
 ## Tags
 
-Tags sit in the footer beside repeat. Create one with a color, and that color becomes the post's color on the calendar. Use them to spot a specific campaign, client, or content type in the calendat.
+Tags sit in the footer beside repeat. Create one with a color — the **first tag** on a group sets the chip header colour on the <a href="/account/calendar">calendar</a> and on Home <a href="/docs/creating-posts/kanban">kanban</a> cards. Draft vs scheduled is shown by a **`Draft:`** body prefix and dashed outline, not by different header theme colours. Use tags to spot a specific campaign, client, or content type in the calendar.
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
@@ -70,7 +70,7 @@ Use a draft to hold a post in your workspace until you are ready to schedule it:
 - You are mapping out next week’s slots but are not ready to commit publish times yet.
 - You stepped away mid-compose — saving as draft beats losing changes when the close dialog appears.
 
-Drafts list under **Drafted posts** on Home and on the calendar with a <Badge text="Draft:" variant="param" /> prefix. They never leave that state until you schedule them (<Badge text="Add to calendar" variant="default" />) or drag the card into **Scheduled posts** on the kanban.
+Drafts list under **Drafted posts** on Home and on the calendar with a <Badge text="Draft:" variant="param" /> prefix and a dashed chip outline. They never leave that state until you schedule them (<Badge text="Add to calendar" variant="default" />) or drag the card into **Scheduled posts** on the kanban.
 
 
 Agent, MCP, CLI, and public API drafts land in the same queue. Filter **Source → Agent** on the kanban when you only want machine-created rows. See <a href="/docs/creating-posts/ai-generation">AI generation</a>.

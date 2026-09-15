@@ -144,6 +144,10 @@
 		presenter.populateAllTagSelectionWhenEmpty(tagsVm, presenter.postsForChannelLookup);
 	});
 
+	$effect(() => {
+		presenter.syncWorkspaceTags(tagsVm);
+	});
+
 	/**
 	 * Primitive reload fingerprint — when only `events` / `loading` / `lastSuccessfulPostsKey` change,
 	 * this string stays equal so the load `$effect` does not run again (avoids `effect_update_depth_exceeded`).

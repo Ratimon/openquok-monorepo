@@ -30,6 +30,11 @@ import {
 	temporalToUtcYyyyMmDd,
 	todayUtcYyyyMmDd
 } from '$lib/posts/utils/scheduler';
+import {
+	buildTagColorByName,
+	tagColorMapsEqual,
+	type TagColorLookup
+} from '$lib/posts/utils/tagChipTheme';
 
 export type {
 	CalendarDisplayViewModel,
@@ -78,6 +83,7 @@ export class SchedulerPresenter {
 
 	private cachedPostsVm: CalendarPostRowViewModel[] = [];
 	private cachedChannelById = new Map<string, ChannelViewModel>();
+	private cachedTagColorByName = new Map<string, string>();
 
 	get postsForChannelLookup(): readonly CalendarPostRowViewModel[] {
 		return this.cachedPostsVm;
@@ -102,7 +108,21 @@ export class SchedulerPresenter {
 	resetCalendarUiState(): void {
 		this.cachedPostsVm = [];
 		this.cachedChannelById = new Map();
+		this.cachedTagColorByName = new Map();
 		this.patchVm(createInitialScheduledPostsCalendarViewModel());
+	}
+
+	/** Workspace tag colors for calendar chip headers; rebuilds events when posts are already cached. */
+	syncWorkspaceTags(tags: readonly TagColorLookup[]): void {
+		const next = buildTagColorByName(tags);
+		if (tagColorMapsEqual(this.cachedTagColorByName, next)) return;
+		this.cachedTagColorByName = next;
+		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
+		// Defer VM patch — called from Scheduler `$effect`; synchronous read+write on
+		// `scheduledPostsCalendarVm` here triggers `effect_update_depth_exceeded`.
+		queueMicrotask(() => {
+			this.applyClientFiltersToCache();
+		});
 	}
 
 	async listPosts(params: {
@@ -419,7 +439,11 @@ export class SchedulerPresenter {
 			selectedPostStates
 		);
 		filtered = filterPostsByTags(filtered, allTags, selectedTagNames);
-		return buildCalendarEventsFromPosts(filtered, this.cachedChannelById);
+		return buildCalendarEventsFromPosts(
+			filtered,
+			this.cachedChannelById,
+			this.cachedTagColorByName
+		);
 	}
 
 	private applyClientFiltersToCache(): void {

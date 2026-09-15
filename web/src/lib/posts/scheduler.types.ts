@@ -91,6 +91,10 @@ export type SchedulerCalendarEvent = CalendarEventExternal & {
 	post?: CalendarPostRowViewModel;
 	posts?: CalendarPostRowViewModel[];
 	slotSummary?: SchedulerSlotSummaryEntry[];
+	/** First-tag chip header color (composer tag order). */
+	chipTagColor?: string;
+	/** First tag name when present on the representative post. */
+	chipTagName?: string | null;
 };
 
 export function createInitialScheduledPostsCalendarViewModel(): ScheduledPostsCalendarViewModel {

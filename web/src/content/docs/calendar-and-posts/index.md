@@ -1,8 +1,8 @@
 ---
-title: Overview
-description: Home kanban, the OpenQuok calendar, post chips, filters, and how to open the composer from a slot.
+title: Overview - The Calendar and Kanban
+description: Day, week, month and list views, and how to filter them by groups, tags and platforms.
 order: 0
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-15
 sidebar:
   label: Overview
 ---
@@ -35,7 +35,7 @@ Open <a href="/account/calendar">/account/calendar</a> from the sidebar or the *
 
 **Day** and **Week** show a **24-hour time grid** with half-hour rows. Posts sit in the row that matches their scheduled time. **Month** collapses each day into a compact cell — you still see chips, but without the per-slot body text.
 
-**List view** is a scrollable queue sorted by date. It is useful for a quick read of what is coming up, but you cannot drag posts there — use the grid views to reschedule. See <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a>.
+**List view** is a scrollable queue sorted by date. Each row shows a **left accent** in the first tag color on the group. It is useful for a quick read of what is coming up, but you cannot drag posts there — use the grid views to reschedule. See <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a>.
 
 Past hours in day and week views get a striped **Date passed** background. You cannot create or drop posts into those cells.
 
@@ -56,20 +56,33 @@ Below the filters, **targeted channels** shows avatar chips for connected channe
 
 ## Post chips
 
-Each chip on the grid is one **post group** scheduled for that slot.
+Each chip on the grid is one **post group** scheduled for that slot. The **header bar** uses the **first tag** on the group. Posts with no tag use the default indigo accent.
 
 | Signal | Meaning |
 | --- | --- |
-| Header **Draft** · body prefix **Draft:** | Saved as draft — will not publish until you schedule |
-| Header **Scheduled** | Queued for the shown time |
-| Header **Published** | Already sent to the network |
-| Header **Failed** | Publish error — open the post to read the platform message |
+| **Header colour** | First tag on the post group (same order as composer tags) |
+| **`Draft:` prefix** + dashed chip outline | Draft — will not publish until you schedule |
+| **No outline** | Scheduled (queued) for the shown time |
+| **Published** pill on body | Already live on the network |
+| **Red ring** + hover tooltip | Failed — platform error text in the tooltip |
 | **+N** badge · stacked avatars | Multiple channels in one slot — click opens **Posts in this slot** |
 | Refresh icon on header | Recurring post — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> |
 
-Day and week chips show the caption snippet, channel name, and time. Month chips are header-only for space.
+Day and week chips show the caption snippet, channel name, and time in the body. The header focuses on the channel (avatars and name), not status words. Month chips are header-only for space.
 
-Tag colors from the composer tint the chip when a tag is set on the group.
+Past slots keep the same tag colour but render chips in **grayscale** so upcoming posts stand out.
+
+## Intentional differences
+
+OpenQuok’s calendar is close to common scheduler patterns but not identical everywhere:
+
+| Topic | OpenQuok today | Notes |
+| --- | --- | --- |
+| Day view rows | 24-hour grid | Some products use per-channel **time slots** as row labels — OpenQuok links suggested hours to <a href="/docs/channels/time-slots">Posting time slots</a> instead |
+| Post actions | **Click** chip → modal | No hover menu on chips — see <a href="/docs/calendar-and-posts/actions-and-stats">Actions and stats</a> |
+| List view | Upcoming rows, no page size | Some products paginate (~100 per page) and replace the view switcher with state filters |
+| View in URL | Session memory only | Bookmarking a specific week or month in the URL is not implemented yet |
+| Cell overflow | **+N** = multi-channel in one group | Some products use **+ Show more** when more than three *groups* share one cell — a different model |
 
 ## Open a post or create in a slot
 
