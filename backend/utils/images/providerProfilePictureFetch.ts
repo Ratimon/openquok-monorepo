@@ -1,5 +1,9 @@
 import { isExternalCdnProfilePictureUrl } from "./allowedExternalImageHosts";
-import { fetchAllowlistedExternalImage, type FetchedExternalImage } from "./externalImageFetch";
+import {
+    externalCdnImageRequestHeaders,
+    fetchAllowlistedExternalImage,
+    type FetchedExternalImage,
+} from "./externalImageFetch";
 
 const GRAPH = "https://graph.facebook.com/v20.0";
 
@@ -15,9 +19,31 @@ async function imageFromResponse(response: Response): Promise<FetchedExternalIma
     return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
 }
 
-async function fetchRemotePictureUrl(pictureUrl: string | null | undefined): Promise<FetchedExternalImage | null> {
+async function fetchRemotePictureUrl(
+    pictureUrl: string | null | undefined,
+    accessToken?: string
+): Promise<FetchedExternalImage | null> {
     const url = pictureUrl?.trim();
     if (!url || !isExternalCdnProfilePictureUrl(url)) return null;
+
+    const token = accessToken?.trim();
+    if (token) {
+        try {
+            const res = await fetch(url, {
+                method: "GET",
+                redirect: "follow",
+                headers: {
+                    ...externalCdnImageRequestHeaders(url),
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            const authed = await imageFromResponse(res);
+            if (authed) return authed;
+        } catch {
+            /* fall through to unauthenticated proxy fetch */
+        }
+    }
+
     try {
         return await fetchAllowlistedExternalImage(url);
     } catch {
@@ -49,7 +75,7 @@ async function fetchLinkedInPersonPicture(accessToken: string): Promise<FetchedE
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         const json = (await res.json()) as { picture?: string };
-        return await fetchRemotePictureUrl(json.picture);
+        return await fetchRemotePictureUrl(json.picture, accessToken);
     } catch {
         return null;
     }
@@ -77,7 +103,7 @@ async function fetchLinkedInOrganizationPicture(
             logoV2?: { "original~"?: { elements?: Array<{ identifiers?: Array<{ identifier?: string }> }> } };
         };
         const url = org.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier;
-        return await fetchRemotePictureUrl(url);
+        return await fetchRemotePictureUrl(url, accessToken);
     } catch {
         return null;
     }

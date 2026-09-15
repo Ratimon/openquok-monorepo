@@ -24,6 +24,9 @@ const imageRouter: ImageRouter = Router();
 
 imageRouter.get("/download", imageController.getByUrl);
 
+// Provider-authenticated channel avatar (LinkedIn / Meta); JWT + org membership required.
+imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
+
 // Allowlisted external avatar proxy; JWT required (see `middlewares/core.ts`).
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);

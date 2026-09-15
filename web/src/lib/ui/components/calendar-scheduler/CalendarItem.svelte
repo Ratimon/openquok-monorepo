@@ -185,6 +185,7 @@
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture
 									profilePictureUrl={entry.channelPicture}
+									integrationId={entry.integrationId}
 									fallbackIcon={entryIcon}
 									class="h-4 w-4 rounded object-cover ring-1 ring-white/30"
 								/>
@@ -203,6 +204,7 @@
 						{#if ev.channel?.picture}
 							<IntegrationChannelPicture
 								profilePictureUrl={ev.channel.picture}
+								integrationId={ev.channel.id ?? (post as { integrationId?: string }).integrationId}
 								fallbackIcon={socialProviderIcon(providerBadgeIcon ?? 'threads')}
 								class="h-4 w-4 rounded object-cover"
 							/>
@@ -251,6 +253,7 @@
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture
 									profilePictureUrl={entry.channelPicture}
+									integrationId={entry.integrationId}
 									fallbackIcon={entryIcon}
 									class="h-4 w-4 rounded object-cover ring-1 ring-white/30"
 								/>
@@ -283,6 +286,7 @@
 						{#if ev.channel?.picture}
 							<IntegrationChannelPicture
 								profilePictureUrl={ev.channel.picture}
+								integrationId={ev.channel.id ?? (post as { integrationId?: string }).integrationId}
 								fallbackIcon={socialProviderIcon(providerBadgeIcon ?? 'threads')}
 								class="h-4 w-4 rounded object-cover"
 							/>

@@ -1,28 +1,45 @@
 <script lang="ts">
 	import type { IconName } from '$data/icons';
 
-	import { imageRepository } from '$lib/core';
-	import { fetchExternalProxiedImageBlobCached } from '$lib/core/externalProxiedImageCache';
+	import {
+		fetchExternalProxiedImageBlobCached,
+		fetchIntegrationAvatarBlobCached,
+		fetchIntegrationProfileStorageBlobCached
+	} from '$lib/core/externalProxiedImageCache';
 	import {
 		integrationProfilePictureNeedsAuthenticatedProxy,
 		isIntegrationProfileStoragePath
 	} from '$lib/core/Image.repository.svelte';
+	import { workspaceSettingsPresenter } from '$lib/settings';
 
 	import ImageWithFallback from '$lib/ui/media-files/ImageWithFallback.svelte';
 
 	type Props = {
 		/** Raw profile picture URL from the integration API (storage key, Graph `/picture`, or CDN URL). */
 		profilePictureUrl: string | null | undefined;
+		/** Connected channel id — enables provider OAuth avatar fallback for expired CDN URLs. */
+		integrationId?: string | null;
 		fallbackIcon: IconName;
 		alt?: string;
 		class?: string;
 	};
 
-	let { profilePictureUrl, fallbackIcon, alt = '', class: className = '' }: Props = $props();
+	let {
+		profilePictureUrl,
+		integrationId = null,
+		fallbackIcon,
+		alt = '',
+		class: className = ''
+	}: Props = $props();
+
+	const organizationId = $derived(
+		integrationId?.trim() ? workspaceSettingsPresenter.currentWorkspaceId : null
+	);
 
 	let resolvedSrc = $state<string | null>(null);
 	let proxyAttemptedForUrl = $state<string | null>(null);
-	let blobObjectUrl = $state<string | null>(null);
+	/** Plain let — must not be $state or $effect re-runs when we create a blob URL and revokes it. */
+	let blobObjectUrl: string | null = null;
 
 	function revokeBlobUrl(): void {
 		if (blobObjectUrl) {
@@ -51,14 +68,15 @@
 		let cancelled = false;
 
 		if (isIntegrationProfileStoragePath(raw)) {
+			resolvedSrc = null;
 			void (async () => {
-				const result = await imageRepository.getImageBlobByUrl('avatars', raw);
+				const blob = await fetchIntegrationProfileStorageBlobCached(raw);
 				if (cancelled) return;
-				if (!result?.blob) {
+				if (!blob) {
 					resolvedSrc = null;
 					return;
 				}
-				setBlobSrc(result.blob);
+				setBlobSrc(blob);
 			})();
 		} else if (!/^https?:\/\//i.test(raw)) {
 			resolvedSrc = raw;
@@ -76,7 +94,13 @@
 
 	function handleImageError(failedUrl: string) {
 		const raw = typeof profilePictureUrl === 'string' ? profilePictureUrl.trim() : '';
-		if (!raw || failedUrl !== raw || !integrationProfilePictureNeedsAuthenticatedProxy(raw)) {
+		// Revoked or stale blob URLs must not re-trigger proxy / storage fetches.
+		if (
+			!raw ||
+			failedUrl.startsWith('blob:') ||
+			failedUrl !== raw ||
+			!integrationProfilePictureNeedsAuthenticatedProxy(raw)
+		) {
 			resolvedSrc = null;
 			return;
 		}
@@ -87,10 +111,21 @@
 		proxyAttemptedForUrl = raw;
 
 		void (async () => {
-			const blob = await fetchExternalProxiedImageBlobCached(raw);
+			const orgId = organizationId?.trim();
+			const channelId = integrationId?.trim();
+			if (orgId && channelId) {
+				const oauthBlob = await fetchIntegrationAvatarBlobCached(orgId, channelId);
+				if (proxyAttemptedForUrl !== raw) return;
+				if (oauthBlob) {
+					setBlobSrc(oauthBlob);
+					return;
+				}
+			}
+
+			const proxyBlob = await fetchExternalProxiedImageBlobCached(raw);
 			if (proxyAttemptedForUrl !== raw) return;
-			if (blob) {
-				setBlobSrc(blob);
+			if (proxyBlob) {
+				setBlobSrc(proxyBlob);
 				return;
 			}
 			resolvedSrc = null;

@@ -4,6 +4,7 @@ import https from "https";
 
 import { ImageController } from "./ImageController";
 import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
+import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
 function createMockResponse(): jest.Mocked<Response> {
     return {
@@ -16,6 +17,7 @@ function createMockResponse(): jest.Mocked<Response> {
 
 describe("ImageController", () => {
     let storageRepository: jest.Mocked<StorageSupabaseRepository>;
+    let integrationConnectionService: jest.Mocked<IntegrationConnectionService>;
     let controller: ImageController;
 
     beforeEach(() => {
@@ -24,8 +26,11 @@ describe("ImageController", () => {
             uploadImage: jest.fn(),
             deleteImage: jest.fn(),
         } as unknown as jest.Mocked<StorageSupabaseRepository>;
+        integrationConnectionService = {
+            getIntegrationAvatarImage: jest.fn(),
+        } as unknown as jest.Mocked<IntegrationConnectionService>;
 
-        controller = new ImageController(storageRepository);
+        controller = new ImageController(storageRepository, integrationConnectionService);
     });
 
     describe("getByUrl", () => {

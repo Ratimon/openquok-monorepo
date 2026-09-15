@@ -117,6 +117,11 @@ export class IntegrationService {
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
     }
 
+    async updateIntegrationPicture(organizationId: string, integrationId: string, picture: string | null) {
+        await this.integrationRepository.updateIntegrationPicture(organizationId, integrationId, picture);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+    }
+
     async setRefreshNeeded(organizationId: string, integrationId: string, needed: boolean): Promise<void> {
         await this.integrationRepository.setRefreshNeeded(organizationId, integrationId, needed);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);

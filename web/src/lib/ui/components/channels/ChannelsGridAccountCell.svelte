@@ -17,6 +17,7 @@
 		<div class="h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 			<IntegrationChannelPicture
 				profilePictureUrl={rowVm.channelPicture}
+				integrationId={rowVm.id}
 				alt=""
 				class="h-8 w-8 object-cover"
 				fallbackIcon={socialProviderIcon(rowVm.platformKey)}

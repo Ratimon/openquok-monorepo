@@ -9129,6 +9129,16 @@ var init_IntegrationRepository = __esm({
           });
         }
       }
+      async updateIntegrationPicture(organizationId, integrationId, picture) {
+        const { error } = await this.supabase.from(TABLE2).update({ picture, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId).is("deleted_at", null);
+        if (error) {
+          throw new DatabaseError("Failed to update integration picture", {
+            cause: error,
+            operation: "update",
+            resource: { type: "table", name: TABLE2 }
+          });
+        }
+      }
       async setRefreshNeeded(organizationId, integrationId, needed) {
         const { error } = await this.supabase.from(TABLE2).update({ refresh_needed: needed, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("organization_id", organizationId).eq("id", integrationId);
         if (error) {
@@ -21191,9 +21201,25 @@ async function imageFromResponse(response) {
   if (!contentType.startsWith("image/")) return null;
   return { buffer: Buffer.from(await response.arrayBuffer()), contentType };
 }
-async function fetchRemotePictureUrl(pictureUrl) {
+async function fetchRemotePictureUrl(pictureUrl, accessToken2) {
   const url = pictureUrl?.trim();
   if (!url || !isExternalCdnProfilePictureUrl(url)) return null;
+  const token = accessToken2?.trim();
+  if (token) {
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          ...externalCdnImageRequestHeaders(url),
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const authed = await imageFromResponse(res);
+      if (authed) return authed;
+    } catch {
+    }
+  }
   try {
     return await fetchAllowlistedExternalImage(url);
   } catch {
@@ -21220,7 +21246,7 @@ async function fetchLinkedInPersonPicture(accessToken2) {
       headers: { Authorization: `Bearer ${accessToken2}` }
     });
     const json = await res.json();
-    return await fetchRemotePictureUrl(json.picture);
+    return await fetchRemotePictureUrl(json.picture, accessToken2);
   } catch {
     return null;
   }
@@ -21241,7 +21267,7 @@ async function fetchLinkedInOrganizationPicture(organizationId, accessToken2) {
     );
     const org = await res.json();
     const url = org.logoV2?.["original~"]?.elements?.[0]?.identifiers?.[0]?.identifier;
-    return await fetchRemotePictureUrl(url);
+    return await fetchRemotePictureUrl(url, accessToken2);
   } catch {
     return null;
   }
@@ -21520,6 +21546,10 @@ var init_IntegrationService = __esm({
       }
       async setPostingTimes(organizationId, integrationId, json) {
         await this.integrationRepository.setPostingTimes(organizationId, integrationId, json);
+        await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
+      }
+      async updateIntegrationPicture(organizationId, integrationId, picture) {
+        await this.integrationRepository.updateIntegrationPicture(organizationId, integrationId, picture);
         await this.invalidateIntegrationDomainCacheForIntegration(organizationId, integrationId);
       }
       async setRefreshNeeded(organizationId, integrationId, needed) {
@@ -21916,6 +21946,37 @@ var init_IntegrationConnectionService = __esm({
         const rows = await this.integrations.listByOrganization(organizationId);
         const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
         return { integrations };
+      }
+      /**
+       * Fresh channel avatar bytes via the provider API (OAuth token). Used when expired LinkedIn /
+       * Instagram CDN URLs fail in the browser and the datacenter external-proxy cannot reach them.
+       */
+      async getIntegrationAvatarImage(authUserId, organizationId, integrationId) {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row || row.deleted_at) {
+          throw new AppError("Integration not found", 404);
+        }
+        const token = row.token?.trim();
+        if (!token) return null;
+        const image = await downloadProviderProfilePicture({
+          providerIdentifier: row.provider_identifier,
+          internalId: row.internal_id,
+          accessToken: token
+        });
+        if (!image) return null;
+        void resolveIntegrationPictureForStorage({
+          storageRepository: this.storageRepository,
+          organizationId,
+          internalId: row.internal_id,
+          picture: row.picture,
+          downloadBytes: () => Promise.resolve(image)
+        }).then(async (storedPicture) => {
+          if (!storedPicture || storedPicture === row.picture) return;
+          await this.integrations.updateIntegrationPicture(organizationId, integrationId, storedPicture);
+        }).catch(() => {
+        });
+        return image;
       }
       async getIntegrationCustomers(authUserId, organizationId) {
         await this.assertOrganizationMember(authUserId, organizationId);
@@ -29386,13 +29447,15 @@ var init_ListingTagController = __esm({
 var ImageController;
 var init_ImageController = __esm({
   "controllers/ImageController.ts"() {
+    init_AppError();
     init_UserError();
     init_StorageSupabaseRepository();
     init_allowedExternalImageHosts();
     init_externalImageFetch();
     ImageController = class {
-      constructor(storageRepository) {
+      constructor(storageRepository, integrationConnectionService2) {
         this.storageRepository = storageRepository;
+        this.integrationConnectionService = integrationConnectionService2;
       }
       getByUrl = async (req, res, next) => {
         try {
@@ -29483,6 +29546,36 @@ var init_ImageController = __esm({
        * small host allowlist is supported. Prefer POST `{ url }` so long signed CDN query strings are
        * not stripped by edge WAFs; GET `?url=` remains for older clients.
        */
+      /**
+       * Channel avatar via provider OAuth (LinkedIn userinfo / org logo, Meta Graph `/picture`, etc.).
+       * Requires JWT + workspace membership; use when signed CDN URLs expired in the browser.
+       */
+      getIntegrationAvatar = async (req, res, next) => {
+        try {
+          const authUser = req.user;
+          if (!authUser?.id) {
+            throw new UserAuthorizationError("Not authenticated");
+          }
+          const organizationId = typeof req.query.organizationId === "string" ? req.query.organizationId.trim() : "";
+          const integrationId = typeof req.query.integrationId === "string" ? req.query.integrationId.trim() : "";
+          if (!organizationId || !integrationId) {
+            throw new UserValidationError("organizationId and integrationId are required");
+          }
+          const image = await this.integrationConnectionService.getIntegrationAvatarImage(
+            authUser.id,
+            organizationId,
+            integrationId
+          );
+          if (!image) {
+            throw new AppError("Channel avatar is not available", 404);
+          }
+          res.set("Content-Type", image.contentType);
+          res.set("Cache-Control", "private, max-age=3600, stale-while-revalidate=86400");
+          res.send(image.buffer);
+        } catch (error) {
+          next(error);
+        }
+      };
       allowlistedExternalImageProxy = async (req, res, next) => {
         try {
           const url = this.readExternalImageUrl(req);
@@ -29500,7 +29593,8 @@ var init_ImageController = __esm({
         } catch (error) {
           if (error instanceof ExternalImageFetchError) {
             const err = new Error(error.message);
-            err.statusCode = error.statusCode;
+            const statusCode = error.statusCode === 403 || error.statusCode === 404 ? 502 : error.statusCode;
+            err.statusCode = statusCode;
             next(err);
             return;
           }
@@ -33235,7 +33329,7 @@ var init_controllers = __esm({
     blogController = new BlogController(blogService);
     listingController = new ListingController(listingService);
     listingTagController = new ListingTagController(listingTagService);
-    imageController = new ImageController(storageSupabaseRepository);
+    imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
     mediaController = new MediaController(
       mediaService,
       subscriptionService,
@@ -35614,7 +35708,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-15T01:07:29.835Z",
+  generated: "2026-09-15T12:24:17.443Z",
   routes: [
     {
       path: "/docs",
@@ -39760,6 +39854,7 @@ var authWithRoles7 = requireFullAuthWithRoles(
 );
 var imageRouter = express.Router();
 imageRouter.get("/download", imageController.getByUrl);
+imageRouter.get("/integration-avatar", imageController.getIntegrationAvatar);
 imageRouter.get("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post("/external-proxy", imageController.allowlistedExternalImageProxy);
 imageRouter.post(

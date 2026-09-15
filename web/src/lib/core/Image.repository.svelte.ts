@@ -40,6 +40,7 @@ export interface ImageConfig {
 		deleteImage: string;
 		proxyImage: string;
 		externalProxyImage: string;
+		integrationAvatar: string;
 	};
 }
 
@@ -176,6 +177,29 @@ export class ImageRepository {
 			const { data, ok } = await this.httpGateway.post<Blob>(
 				this.config.endpoints.externalProxyImage,
 				{ url: remoteUrl },
+				{
+					responseType: 'blob',
+					headers: { Accept: '*/*' }
+				}
+			);
+
+			if (!ok || !data) return null;
+			return data;
+		} catch {
+			return null;
+		}
+	}
+
+	/** Provider OAuth avatar (`GET .../image/integration-avatar`); for expired LinkedIn / Meta CDN URLs. */
+	public async fetchIntegrationAvatarBlob(
+		organizationId: string,
+		integrationId: string
+	): Promise<Blob | null> {
+		try {
+			const params = new URLSearchParams({ organizationId, integrationId });
+			const { data, ok } = await this.httpGateway.get<Blob>(
+				`${this.config.endpoints.integrationAvatar}?${params.toString()}`,
+				undefined,
 				{
 					responseType: 'blob',
 					headers: { Accept: '*/*' }

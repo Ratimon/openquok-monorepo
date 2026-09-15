@@ -150,6 +150,7 @@
 				<div class="relative h-9 w-9 shrink-0">
 					<IntegrationChannelPicture
 						profilePictureUrl={row.channelPicture}
+						integrationId={row.integrationId}
 						fallbackIcon={iconName}
 						class="h-9 w-9 rounded-md object-cover"
 					/>

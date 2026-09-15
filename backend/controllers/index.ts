@@ -88,7 +88,7 @@ export const feedbackController = new FeedbackController(feedbackService);
 export const blogController = new BlogController(blogService);
 export const listingController = new ListingController(listingService);
 export const listingTagController = new ListingTagController(listingTagService);
-export const imageController = new ImageController(storageSupabaseRepository);
+export const imageController = new ImageController(storageSupabaseRepository, integrationConnectionService);
 export const mediaController = new MediaController(
     mediaService,
     subscriptionService,

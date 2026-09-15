@@ -84,6 +84,7 @@
 					{#if ch.picture?.trim()}
 						<IntegrationChannelPicture
 							profilePictureUrl={ch.picture}
+							integrationId={ch.id}
 							fallbackIcon={socialProviderIcon(ch.identifier)}
 							alt=""
 							class="h-full w-full object-cover"

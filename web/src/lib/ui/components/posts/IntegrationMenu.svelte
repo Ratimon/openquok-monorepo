@@ -315,6 +315,7 @@
 			<div class="relative h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 				<IntegrationChannelPicture
 					profilePictureUrl={integration.picture}
+					integrationId={integration.id}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
@@ -338,6 +339,7 @@
 			<div class="relative h-full w-full overflow-hidden rounded-full ring-1 ring-base-300/80">
 				<IntegrationChannelPicture
 					profilePictureUrl={integration.picture}
+					integrationId={integration.id}
 					alt=""
 					class="h-full w-full object-cover"
 					fallbackIcon={providerIcon(integration.identifier)}
@@ -440,6 +442,7 @@
 					<div class="relative h-12 w-12 shrink-0 overflow-hidden rounded-md">
 						<IntegrationChannelPicture
 							profilePictureUrl={integration.picture}
+							integrationId={integration.id}
 							alt=""
 							class="h-full w-full object-cover"
 							fallbackIcon={providerIcon(integration.identifier)}

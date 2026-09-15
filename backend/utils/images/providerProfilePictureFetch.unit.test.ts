@@ -65,6 +65,41 @@ describe("downloadProviderProfilePicture", () => {
             accessToken: "tok",
         });
         expect(result?.contentType).toBe("image/jpeg");
+        const cdnCall = jest.mocked(global.fetch).mock.calls[1];
+        expect(cdnCall?.[0]).toBe("https://media.licdn.com/dms/image/v2/abc.jpg");
+        expect((cdnCall?.[1] as { headers?: Record<string, string> })?.headers?.Authorization).toBe(
+            "Bearer tok"
+        );
+    });
+
+    it("falls back to unauthenticated CDN fetch when the bearer request fails", async () => {
+        const bytes = new Uint8Array([0xff, 0xd8, 0xff]);
+        jest.mocked(global.fetch)
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                json: async () => ({ picture: "https://media.licdn.com/dms/image/v2/abc.jpg" }),
+            } as unknown as Response)
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 403,
+                statusText: "Forbidden",
+                headers: { get: () => null },
+            } as unknown as Response)
+            .mockResolvedValueOnce({
+                ok: true,
+                status: 200,
+                headers: { get: (name: string) => (name === "content-type" ? "image/jpeg" : null) },
+                arrayBuffer: async () => bytes.buffer,
+            } as unknown as Response);
+
+        const result = await downloadProviderProfilePicture({
+            providerIdentifier: "linkedin",
+            internalId: "person-1",
+            accessToken: "tok",
+        });
+        expect(result?.contentType).toBe("image/jpeg");
+        expect(global.fetch).toHaveBeenCalledTimes(3);
     });
 
     it("returns null for providers without a picture downloader", async () => {

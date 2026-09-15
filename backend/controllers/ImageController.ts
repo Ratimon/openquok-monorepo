@@ -1,11 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import type { StorageSupabaseRepository } from "../repositories/StorageSupabaseRepository";
+import type { IntegrationConnectionService } from "../services/IntegrationConnectionService";
 
 import http from "http";
 import https from "https";
 
 import type { AuthenticatedRequest } from "../guards";
-import { UserValidationError } from "../errors/UserError";
+import { AppError } from "../errors/AppError";
+import { UserAuthorizationError, UserValidationError } from "../errors/UserError";
 import { isSupabaseImageBucketName } from "../repositories/StorageSupabaseRepository";
 import { isAllowedExternalImageHost } from "../utils/images/allowedExternalImageHosts";
 import {
@@ -14,7 +16,10 @@ import {
 } from "../utils/images/externalImageFetch";
 
 export class ImageController {
-    constructor(private readonly storageRepository: StorageSupabaseRepository) {}
+    constructor(
+        private readonly storageRepository: StorageSupabaseRepository,
+        private readonly integrationConnectionService: IntegrationConnectionService
+    ) {}
 
     getByUrl = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -118,6 +123,42 @@ export class ImageController {
      * small host allowlist is supported. Prefer POST `{ url }` so long signed CDN query strings are
      * not stripped by edge WAFs; GET `?url=` remains for older clients.
      */
+    /**
+     * Channel avatar via provider OAuth (LinkedIn userinfo / org logo, Meta Graph `/picture`, etc.).
+     * Requires JWT + workspace membership; use when signed CDN URLs expired in the browser.
+     */
+    getIntegrationAvatar = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const authUser = (req as AuthenticatedRequest).user;
+            if (!authUser?.id) {
+                throw new UserAuthorizationError("Not authenticated");
+            }
+
+            const organizationId =
+                typeof req.query.organizationId === "string" ? req.query.organizationId.trim() : "";
+            const integrationId =
+                typeof req.query.integrationId === "string" ? req.query.integrationId.trim() : "";
+            if (!organizationId || !integrationId) {
+                throw new UserValidationError("organizationId and integrationId are required");
+            }
+
+            const image = await this.integrationConnectionService.getIntegrationAvatarImage(
+                authUser.id,
+                organizationId,
+                integrationId
+            );
+            if (!image) {
+                throw new AppError("Channel avatar is not available", 404);
+            }
+
+            res.set("Content-Type", image.contentType);
+            res.set("Cache-Control", "private, max-age=3600, stale-while-revalidate=86400");
+            res.send(image.buffer);
+        } catch (error) {
+            next(error);
+        }
+    };
+
     allowlistedExternalImageProxy = async (
         req: Request,
         res: Response,

@@ -32,6 +32,7 @@ import {
     downloadProviderProfilePicture,
     facebookGraphProfilePictureUrl,
 } from "../utils/images/providerProfilePictureFetch";
+import type { FetchedExternalImage } from "../utils/images/externalImageFetch";
 import { logger } from "../utils/Logger";
 import {
     isVerifiedFromAdditionalSettings,
@@ -247,6 +248,50 @@ export class IntegrationConnectionService {
         const rows = await this.integrations.listByOrganization(organizationId);
         const integrations = await Promise.all(rows.map((row) => this.mapListRow(row)));
         return { integrations };
+    }
+
+    /**
+     * Fresh channel avatar bytes via the provider API (OAuth token). Used when expired LinkedIn /
+     * Instagram CDN URLs fail in the browser and the datacenter external-proxy cannot reach them.
+     */
+    async getIntegrationAvatarImage(
+        authUserId: string,
+        organizationId: string,
+        integrationId: string
+    ): Promise<FetchedExternalImage | null> {
+        await this.assertOrganizationMember(authUserId, organizationId);
+        const row = await this.integrations.getById(organizationId, integrationId);
+        if (!row || row.deleted_at) {
+            throw new AppError("Integration not found", 404);
+        }
+
+        const token = row.token?.trim();
+        if (!token) return null;
+
+        const image = await downloadProviderProfilePicture({
+            providerIdentifier: row.provider_identifier,
+            internalId: row.internal_id,
+            accessToken: token,
+        });
+
+        if (!image) return null;
+
+        void resolveIntegrationPictureForStorage({
+            storageRepository: this.storageRepository,
+            organizationId,
+            internalId: row.internal_id,
+            picture: row.picture,
+            downloadBytes: () => Promise.resolve(image),
+        })
+            .then(async (storedPicture) => {
+                if (!storedPicture || storedPicture === row.picture) return;
+                await this.integrations.updateIntegrationPicture(organizationId, integrationId, storedPicture);
+            })
+            .catch(() => {
+                /* best-effort mirror */
+            });
+
+        return image;
     }
 
     async getIntegrationCustomers(authUserId: string, organizationId: string) {
