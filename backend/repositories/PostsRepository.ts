@@ -749,6 +749,50 @@ export class PostsRepository {
     }
 
     /**
+     * Moves a post group to a new publish time. Unlike {@link updatePostGroupPublishSchedule},
+     * `action: "update"` only changes `publish_date` and preserves each row's `state`.
+     */
+    async reschedulePostGroup(
+        postGroup: string,
+        organizationId: string,
+        fields: {
+            publishDateIso: string;
+            action: "update" | "schedule";
+            /** Required when `action` is `"schedule"` — `DRAFT` when the group is all-draft, else `QUEUE`. */
+            scheduleTargetState?: PostStateDb;
+        }
+    ): Promise<SocialPostLike[]> {
+        const patch: Record<string, unknown> = {
+            publish_date: fields.publishDateIso,
+            updated_at: new Date().toISOString(),
+        };
+
+        if (fields.action === "schedule") {
+            patch.state = fields.scheduleTargetState ?? "QUEUE";
+            patch.release_id = null;
+            patch.release_url = null;
+            patch.error = null;
+        }
+
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .update(patch)
+            .eq("post_group", postGroup)
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .select("*");
+
+        if (error) {
+            throw new DatabaseError(`Failed to reschedule post group: ${error.message}`, {
+                cause: error,
+                operation: "update",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+        return (data ?? []) as SocialPostLike[];
+    }
+
+    /**
      * Updates kanban review fields for every row in the post group (keeps siblings in sync).
      */
     async updatePostGroupReviewFields(

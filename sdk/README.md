@@ -13,7 +13,7 @@
 `@openquok/node-sdk` helps you automate OpenQuok's social scheduling from Node.js:
 
 - Create/schedule posts via the programmatic API (including agent/kanban review fields)
-- List posts and flip draft ↔ scheduled (`flipPostStatus`)
+- List posts, flip draft ↔ scheduled (`flipPostStatus`), and reschedule (`reschedulePost`)
 - Upload media (simple multipart, direct-to-storage for large videos, or from URL) for use in posts
 - Manage integrations (list, groups, settings, trigger provider tools, OAuth URL, delete)
 - Configure global plugs (catalog, list, upsert, activate, delete)
@@ -94,6 +94,7 @@ await openquok.post({
 | `postList(filters)` | `GET /public/posts/list` |
 | `getPost(postId)` | `GET /public/posts/:postId` |
 | `flipPostStatus(postId, status \| body)` | `PUT /public/posts/:postId/status` |
+| `reschedulePost(postId, scheduledAt \| body)` | `PUT /public/posts/:postId/reschedule` |
 | `updatePostReviewTodo(postId, body)` | `PUT /public/posts/:postId/review-todo` |
 | `deletePost(postId)` | `DELETE /public/posts/:postId` |
 | `getMissingContent(postId)` | `GET /public/posts/:postId/missing` |

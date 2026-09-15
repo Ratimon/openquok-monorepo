@@ -151,6 +151,18 @@ export class OpenquokApi {
     });
   }
 
+  async reschedulePost(
+    postId: string,
+    body: { scheduledAt: string; action?: "update" | "schedule"; republish?: boolean }
+  ): Promise<unknown> {
+    return await requestJson({
+      url: this.url(`/public/posts/${encodeURIComponent(postId)}/reschedule`),
+      apiKey: this.cfg.apiKey,
+      method: "PUT",
+      body,
+    });
+  }
+
   async deletePost(postId: string): Promise<unknown> {
     return await requestJson({
       url: this.url(`/public/posts/${encodeURIComponent(postId)}`),

@@ -25,9 +25,22 @@
 	import { socialProviderIcon } from '$data/social-providers';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import {
+		canDropOnSlot,
+		getActiveCalendarPostDrag,
+		isRecurringPost,
+		isRescheduleConfirmationRequired,
+		parseCalendarPostDrag,
+		scheduledIsoFromMonthGridDay,
+		scheduledIsoFromTimeGridDay as scheduledIsoFromTimeGridDayForDnD,
+		setActiveCalendarPostDrag,
+		shouldSuppressCalendarChipClick,
+		type CalendarPostDragPayload
+	} from '$lib/ui/components/calendar-scheduler/calendarDnd';
 	import DateGridEvent from '$lib/ui/components/calendar-scheduler/DateGridEvent.svelte';
 	import * as Dialog from '$lib/ui/dialog';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import ReschedulePublishedPostDialog from '$lib/ui/components/calendar-scheduler/ReschedulePublishedPostDialog.svelte';
 	import TimeGridEvent from '$lib/ui/components/calendar-scheduler/TimeGridEvent.svelte';
 	import MonthGridEvent from '$lib/ui/components/calendar-scheduler/MonthGridEvent.svelte';
 	
@@ -61,6 +74,14 @@
 		) => void;
 		onCreatePostAtIso?: (iso: string) => void;
 		onRefresh?: () => void;
+		onReschedulePost?: (params: {
+			postId: string;
+			postGroup: string;
+			publishDateIso: string;
+			action: 'update' | 'schedule';
+			republish?: boolean;
+			isRecurring?: boolean;
+		}) => void | Promise<void>;
 	};
 
 	let {
@@ -74,7 +95,8 @@
 		onEditPostGroup,
 		openActionsForPostGroup,
 		onCreatePostAtIso,
-		onRefresh
+		onRefresh,
+		onReschedulePost
 	}: Props = $props();
 
 	$effect(() => {
@@ -281,6 +303,72 @@
 	let slotDialogOpen = $state(false);
 	let slotDialogItems = $state<SlotSummaryItem[]>([]);
 
+	let rescheduleDialogOpen = $state(false);
+	let rescheduleBusy = $state(false);
+	let pendingReschedule = $state<{
+		payload: CalendarPostDragPayload;
+		publishDateIso: string;
+	} | null>(null);
+	let highlightedDropEl = $state<HTMLElement | null>(null);
+
+	function formatRescheduleTargetLabel(iso: string): string {
+		const ms = Date.parse(iso);
+		if (!Number.isFinite(ms)) return 'the new time';
+		return new Date(ms).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+	}
+
+	function clearDropHighlight(): void {
+		highlightedDropEl?.classList.remove('oq-calendar-drop-target');
+		highlightedDropEl = null;
+	}
+
+	function setDropHighlight(el: HTMLElement | null): void {
+		if (highlightedDropEl === el) return;
+		clearDropHighlight();
+		if (!el) return;
+		el.classList.add('oq-calendar-drop-target');
+		highlightedDropEl = el;
+	}
+
+	function resolveCalendarDragPayload(dataTransfer: DataTransfer | null): CalendarPostDragPayload | null {
+		return parseCalendarPostDrag(dataTransfer, getActiveCalendarPostDrag());
+	}
+
+	async function executeCalendarReschedule(
+		payload: CalendarPostDragPayload,
+		publishDateIso: string,
+		action: 'update' | 'schedule',
+		republish?: boolean
+	): Promise<void> {
+		if (!onReschedulePost) return;
+		rescheduleBusy = true;
+		try {
+			await onReschedulePost({
+				postId: payload.postId,
+				postGroup: payload.postGroup,
+				publishDateIso,
+				action,
+				republish,
+				isRecurring: isRecurringPost(payload.intervalInDays)
+			});
+			rescheduleDialogOpen = false;
+			pendingReschedule = null;
+		} finally {
+			rescheduleBusy = false;
+		}
+	}
+
+	function beginRescheduleDrop(payload: CalendarPostDragPayload, publishDateIso: string): void {
+		if (
+			isRescheduleConfirmationRequired(payload.state, payload.sourcePublishDateIso)
+		) {
+			pendingReschedule = { payload, publishDateIso };
+			rescheduleDialogOpen = true;
+			return;
+		}
+		void executeCalendarReschedule(payload, publishDateIso, 'schedule');
+	}
+
 	let createStripVisible = $state(false);
 	let createStripTopPx = $state('0px');
 	let createStripLeftPx = $state('0px');
@@ -416,6 +504,12 @@
 
 		const onClick = (ev: MouseEvent) => {
 			const target = ev.target as HTMLElement | null;
+
+			if (shouldSuppressCalendarChipClick() && target?.closest?.('[data-post-group]')) {
+				ev.preventDefault();
+				ev.stopPropagation();
+				return;
+			}
 
 			// Plus strip on an event chip: schedule a new post for that slot.
 			const add = target?.closest?.('[data-create-post-at-iso]') as HTMLElement | null;
@@ -621,10 +715,93 @@
 			el.classList.remove('date-passed-hovering');
 		};
 
+		const isMonthViewActive = () => Boolean(el.querySelector('.sx__month-grid'));
+		const isListViewActive = () => Boolean(el.querySelector('.sx__list-wrapper'));
+
+		const onCalendarDragOver = (ev: DragEvent) => {
+			if (!onReschedulePost || embeddedToolPreview || isListViewActive()) return;
+			const payload = resolveCalendarDragPayload(ev.dataTransfer);
+			if (!payload) {
+				clearDropHighlight();
+				return;
+			}
+
+			const target = ev.target as HTMLElement | null;
+
+			if (isMonthViewActive()) {
+				const dayEl = target?.closest?.('.sx__month-grid-day') as HTMLElement | null;
+				if (!dayEl) {
+					clearDropHighlight();
+					return;
+				}
+				const dateStr = dayEl.getAttribute('data-date') ?? '';
+				const iso = scheduledIsoFromMonthGridDay(dateStr, payload.sourcePublishDateIso);
+				if (!iso || !canDropOnSlot(iso)) {
+					clearDropHighlight();
+					if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
+					return;
+				}
+				ev.preventDefault();
+				if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+				setDropHighlight(dayEl);
+				return;
+			}
+
+			const dayEl = target?.closest?.('.sx__time-grid-day') as HTMLElement | null;
+			if (!dayEl || target?.closest?.('.sx__time-grid-background-event')) {
+				clearDropHighlight();
+				return;
+			}
+			const iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY);
+			if (!iso || !canDropOnSlot(iso)) {
+				clearDropHighlight();
+				if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'none';
+				return;
+			}
+			ev.preventDefault();
+			if (ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+			setDropHighlight(dayEl);
+		};
+
+		const onCalendarDrop = (ev: DragEvent) => {
+			if (!onReschedulePost || embeddedToolPreview || isListViewActive()) return;
+			ev.preventDefault();
+			ev.stopPropagation();
+			const payload = resolveCalendarDragPayload(ev.dataTransfer);
+			clearDropHighlight();
+			setActiveCalendarPostDrag(null);
+			if (!payload) return;
+
+			const target = ev.target as HTMLElement | null;
+			let iso: string | null = null;
+
+			if (isMonthViewActive()) {
+				const dayEl = target?.closest?.('.sx__month-grid-day') as HTMLElement | null;
+				const dateStr = dayEl?.getAttribute('data-date') ?? '';
+				iso = scheduledIsoFromMonthGridDay(dateStr, payload.sourcePublishDateIso);
+			} else {
+				const dayEl = target?.closest?.('.sx__time-grid-day') as HTMLElement | null;
+				if (dayEl && !target?.closest?.('.sx__time-grid-background-event')) {
+					iso = scheduledIsoFromTimeGridDayForDnD(dayEl, ev.clientY);
+				}
+			}
+
+			if (!iso || !canDropOnSlot(iso)) return;
+			beginRescheduleDrop(payload, iso);
+		};
+
+		const onCalendarDragEnd = () => {
+			clearDropHighlight();
+			setActiveCalendarPostDrag(null);
+		};
+
 		el.addEventListener('mousemove', onMove);
 		el.addEventListener('mouseover', onOver);
 		el.addEventListener('mouseout', onOut);
 		el.addEventListener('click', onClick, true);
+		el.addEventListener('dragover', onCalendarDragOver);
+		el.addEventListener('drop', onCalendarDrop);
+		el.addEventListener('dragend', onCalendarDragEnd);
 
 		let raf = 0;
 		const scheduleSync = () => {
@@ -657,10 +834,14 @@
 
 		return () => {
 			clearCreateHover();
+			clearDropHighlight();
 			el.removeEventListener('mousemove', onMove);
 			el.removeEventListener('mouseover', onOver);
 			el.removeEventListener('mouseout', onOut);
 			el.removeEventListener('click', onClick, true);
+			el.removeEventListener('dragover', onCalendarDragOver);
+			el.removeEventListener('drop', onCalendarDrop);
+			el.removeEventListener('dragend', onCalendarDragEnd);
 			for (const s of scrollEls) {
 				s.removeEventListener('scroll', scheduleSync as any, true as any);
 				s.removeEventListener('wheel', scheduleSync as any, true as any);
@@ -772,6 +953,38 @@
 		</div>
 	</Dialog.Content>
 </Dialog.Root>
+
+{#if onReschedulePost}
+	<ReschedulePublishedPostDialog
+		open={rescheduleDialogOpen}
+		targetTimeLabel={pendingReschedule
+			? formatRescheduleTargetLabel(pendingReschedule.publishDateIso)
+			: 'the new time'}
+		isRecurring={pendingReschedule
+			? isRecurringPost(pendingReschedule.payload.intervalInDays)
+			: false}
+		busy={rescheduleBusy}
+		onOpenChange={(open) => {
+			rescheduleDialogOpen = open;
+			if (!open) pendingReschedule = null;
+		}}
+		onUpdateDetails={() => {
+			const pending = pendingReschedule;
+			if (!pending) return;
+			void executeCalendarReschedule(pending.payload, pending.publishDateIso, 'update');
+		}}
+		onReschedulePost={() => {
+			const pending = pendingReschedule;
+			if (!pending) return;
+			void executeCalendarReschedule(
+				pending.payload,
+				pending.publishDateIso,
+				'schedule',
+				true
+			);
+		}}
+	/>
+{/if}
 
 <style>
 	/*
@@ -938,6 +1151,13 @@
 		color: rgba(255, 255, 255, 0.75);
 		/* Above the create-strip (+) but below dialogs */
 		z-index: 30;
+	}
+
+	.schedule-x-calendar-host :global(.sx__time-grid-day.oq-calendar-drop-target),
+	.schedule-x-calendar-host :global(.sx__month-grid-day.oq-calendar-drop-target) {
+		outline: 2px solid var(--color-primary);
+		outline-offset: -2px;
+		box-shadow: inset 0 0 0 2px color-mix(in oklab, var(--color-primary) 22%, transparent);
 	}
 
 	:global(.schedule-x-calendar-host.create-post-hovering)::before {

@@ -74,6 +74,13 @@ export type PublicFlipPostStatusDto = {
     status: "draft" | "schedule" | "scheduled";
 };
 
+/** `PUT /public/posts/{postId}/reschedule` — move publish time; optionally re-queue or republish. */
+export type PublicReschedulePostDto = {
+    scheduledAt: string;
+    action?: "update" | "schedule";
+    republish?: boolean;
+};
+
 /** `GET /public/posts/{postId}` — row id and parent post group (programmatic API). */
 export type PublicPostSummaryDto = {
     id: string;

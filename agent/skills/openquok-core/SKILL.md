@@ -119,7 +119,7 @@ Details: [resources/command-reference.md](./resources/command-reference.md#authe
 | 2 | `openquok integrations:groups` when the workspace uses channel groups; then `integrations:list` (optionally `--group <id>`) → `integrations:settings <uuid>` per channel |
 | 3 | `integrations:trigger <uuid> <method> -d '{}'` when `output.tools` requires it |
 | 4 | `upload` / `upload-from-url` for media; ask user for file or direct image URL if missing in chat |
-| 5 | `posts:create` / `posts:status`; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
+| 5 | `posts:create` / `posts:status` / `posts:reschedule`; use `posts:status` to flip draft ↔ scheduled at the same time; use `posts:reschedule` to move the publish slot; agent drafts: `-t draft` + `--note`; TikTok inbox/private drafts: `--note` with finish-in-app checklist; update with `posts:review-todo` |
 | 6 | `analytics:platform` / `analytics:post` with `-d 7` \| `30` \| `90` |
 | 7 | Missing release id: `posts:missing` → `posts:connect --release-id` |
 
@@ -160,6 +160,7 @@ openquok posts:create --json ./examples/threads-text-only.json
 ```
 
 - Flag-based create **requires** `-s` (ISO-8601) unless `--json` includes `scheduledAt`.
+- `posts:status` flips draft ↔ scheduled at the stored time; `posts:reschedule` moves the publish slot (`-s`). Full flags: [resources/command-reference.md](./resources/command-reference.md#postsreschedule).
 - `--settings` merges into `providerSettingsByIntegrationId` for each `-i` UUID; per-UUID maps use `--providerSettingsByIntegrationId`. See [resources/provider-settings.md](./resources/provider-settings.md).
 - Repeated `-c` (+ optional `-m`, `-d` in **milliseconds**) can build follow-up segments — for Meta Threads/Instagram follow-ups prefer nested `threads` / `instagram` buckets in channel examples.
 

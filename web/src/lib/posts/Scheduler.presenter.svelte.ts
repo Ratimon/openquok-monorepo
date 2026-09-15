@@ -426,4 +426,55 @@ export class SchedulerPresenter {
 		if (!this.scheduledPostsCalendarVm.lastSuccessfulPostsKey) return;
 		this.patchVm({ events: this.buildEventsFromCache() });
 	}
+
+	private replacePostGroupInCache(postGroup: string, rows: CalendarPostRowViewModel[]): void {
+		const pg = postGroup.trim();
+		if (!pg) return;
+		const without = this.cachedPostsVm.filter((r) => r.postGroup !== pg);
+		this.cachedPostsVm = [...without, ...rows];
+		this.applyClientFiltersToCache();
+	}
+
+	async rescheduleCalendarPost(params: {
+		organizationId: string;
+		postId: string;
+		postGroup: string;
+		publishDateIso: string;
+		action: 'update' | 'schedule';
+		republish?: boolean;
+		isRecurring?: boolean;
+	}): Promise<{ ok: true; refetch: boolean } | { ok: false; error: string }> {
+		const pg = params.postGroup.trim();
+		if (!pg) return { ok: false, error: 'Could not reschedule post.' };
+
+		const prevRows = this.cachedPostsVm.filter((r) => r.postGroup === pg);
+		const optimisticRows = prevRows.map((row) => ({
+			...row,
+			publishDate: params.publishDateIso
+		}));
+		if (optimisticRows.length) {
+			this.replacePostGroupInCache(pg, optimisticRows);
+		}
+
+		const resultPm = await this.postsRepository.reschedulePost({
+			organizationId: params.organizationId,
+			postId: params.postId,
+			publishDateIso: params.publishDateIso,
+			action: params.action,
+			republish: params.republish
+		});
+
+		if (!resultPm.ok) {
+			if (prevRows.length) this.replacePostGroupInCache(pg, prevRows);
+			return { ok: false, error: resultPm.error };
+		}
+
+		this.replacePostGroupInCache(pg, resultPm.posts);
+
+		const refetch = params.isRecurring === true || params.republish === true;
+		if (refetch) {
+			this.patchVm({ lastSuccessfulPostsKey: '' });
+		}
+		return { ok: true, refetch };
+	}
 }

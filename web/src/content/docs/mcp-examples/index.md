@@ -83,7 +83,9 @@ Repeat with different <Badge text="date" variant="param" /> values (or ask the a
 
 > Show me all scheduled posts for the next two weeks.
 
-The agent calls <Badge text="postsList" variant="default" /> with <Badge text="start" variant="param" /> and <Badge text="end" variant="param" /> ISO timestamps. Use <Badge text="postsStatus" variant="default" /> to flip a row between draft and scheduled, <Badge text="postsDelete" variant="default" /> to remove it, or <Badge text="postsReviewTodo" variant="default" /> to set a kanban review note.
+The agent calls <Badge text="postsList" variant="default" /> with <Badge text="start" variant="param" /> and <Badge text="end" variant="param" /> ISO timestamps. Use <Badge text="postsStatus" variant="default" /> to flip a row between draft and scheduled at the same time, <Badge text="postsReschedule" variant="default" /> to move the publish slot, <Badge text="postsDelete" variant="default" /> to remove it, or <Badge text="postsReviewTodo" variant="default" /> to set a kanban review note.
+
+> Move post X to tomorrow at 2pm UTC
 
 > Find a free slot on my Threads channel next week.
 

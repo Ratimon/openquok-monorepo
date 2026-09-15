@@ -1034,6 +1034,154 @@ export class PostsService {
         return { postGroup: post.post_group, posts: updated };
     }
 
+    /**
+     * Programmatic reschedule (`PUT {api.prefix}/public/posts/:postId/reschedule`).
+     * Loads the post group via the row id (no public group GET/PUT).
+     */
+    async reschedulePostGroupByPostIdProgrammatic(
+        postId: string,
+        organizationId: string,
+        publishDateIso: string,
+        action: "update" | "schedule",
+        republish?: boolean,
+        publicUserId?: string | null
+    ): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        return await this.reschedulePostGroupByPostId({
+            postId,
+            organizationId,
+            publishDateIso,
+            action,
+            republish,
+            authUserId: null,
+            publicUserId: publicUserId ?? null,
+            skipMembershipCheck: true,
+        });
+    }
+
+    /**
+     * Session/UI and programmatic reschedule (`PUT …/posts/:postId/reschedule`).
+     * `update` moves publish time only; `schedule` re-queues (or keeps all-draft) and clears publish results.
+     */
+    async reschedulePostGroupByPostId(input: {
+        postId: string;
+        organizationId: string;
+        publishDateIso: string;
+        action: "update" | "schedule";
+        republish?: boolean;
+        authUserId: string | null;
+        /** Token owner `public.users.id` when called via programmatic/MCP (no auth UUID). */
+        publicUserId?: string | null;
+        skipMembershipCheck: boolean;
+    }): Promise<{ postGroup: string; posts: SocialPostLike[] }> {
+        const post = await this.postsRepository.getPostById(input.postId);
+        if (!post || post.organization_id !== input.organizationId) {
+            throw new AppError("Post not found", 404);
+        }
+
+        const rows = await this.postsRepository.listPostsByGroup(post.post_group);
+        if (!rows.length) {
+            throw new AppError("Post group not found", 404);
+        }
+
+        if (rows.some((r) => r.state === "ERROR")) {
+            throw new AppError("Cannot reschedule a failed post", 400);
+        }
+
+        const scheduledDate = new Date(input.publishDateIso);
+        if (Number.isNaN(scheduledDate.getTime())) {
+            throw new AppError("Invalid schedule time", 400);
+        }
+        const publishIso = scheduledDate.toISOString();
+
+        const currentPublishMs = new Date(rows[0]!.publish_date).getTime();
+        const nextPublishMs = scheduledDate.getTime();
+        if (!Number.isNaN(currentPublishMs) && currentPublishMs === nextPublishMs) {
+            return { postGroup: post.post_group, posts: rows };
+        }
+
+        const hasPublished = rows.some((r) => r.state === "PUBLISHED");
+        const allDraft = rows.every((r) => r.state === "DRAFT");
+
+        if (input.action === "schedule" && hasPublished && !input.republish) {
+            throw new AppError("Republish is required to reschedule a published post", 400);
+        }
+
+        const nowMs = Date.now();
+        if (input.action === "schedule" && nextPublishMs <= nowMs) {
+            throw new AppError("Schedule time must be in the future", 400);
+        }
+        if (input.action === "update" && !hasPublished && nextPublishMs < nowMs) {
+            throw new AppError("Schedule time must be in the future", 400);
+        }
+
+        const scheduleTargetState: PostStateDb = allDraft ? "DRAFT" : "QUEUE";
+        const willOccupyQueueSlot =
+            input.action === "schedule"
+                ? scheduleTargetState === "QUEUE"
+                : rows.some((r) => r.state === "QUEUE");
+
+        if (willOccupyQueueSlot) {
+            const hasChannel = rows.some((r) => r.integration_id != null);
+            if (!hasChannel) {
+                throw new AppError("Select at least one channel to schedule", 400);
+            }
+            const channelIds = [
+                ...new Set(
+                    rows
+                        .map((r) => r.integration_id)
+                        .filter((id): id is string => typeof id === "string" && Boolean(id))
+                ),
+            ];
+            if (channelIds.length > 0) {
+                const integrations = await this.integrationService.listByOrganization(input.organizationId);
+                this.assertIntegrationsNotDisabled(integrations, channelIds);
+            }
+            const taken = await this.postsRepository.hasQueueSlotTakenExcludingPostGroup(
+                input.organizationId,
+                publishIso,
+                post.post_group
+            );
+            if (taken) {
+                throw new AppError("That time slot is already taken; pick another.", 409);
+            }
+        }
+
+        if (input.action === "schedule" && scheduleTargetState === "QUEUE") {
+            const draftRows = rows.filter((r) => r.state === "DRAFT" && r.deleted_at == null);
+            if (draftRows.length > 0) {
+                await this.subscriptionGuard?.assert(SubscriptionSection.POSTS_PER_MONTH, {
+                    scope: "workspaceWithDelta",
+                    organizationId: input.organizationId,
+                    authUserId: input.authUserId ?? undefined,
+                    publicUserId: input.publicUserId ?? undefined,
+                    delta: draftRows.length,
+                });
+            }
+        }
+
+        let updated = await this.postsRepository.reschedulePostGroup(post.post_group, input.organizationId, {
+            publishDateIso: publishIso,
+            action: input.action,
+            scheduleTargetState: input.action === "schedule" ? scheduleTargetState : undefined,
+        });
+
+        if (input.authUserId && !input.skipMembershipCheck) {
+            updated = await this.postsRepository.updatePostGroupReviewFields(post.post_group, input.organizationId, {
+                isAgentEdited: false,
+            });
+        }
+
+        const enqueueStatus =
+            updated.some((r) => r.state === "QUEUE") && nextPublishMs > nowMs ? "scheduled" : "draft";
+        await this.maybeEnqueueScheduledSocialPostOrchestration(input.organizationId, updated, enqueueStatus);
+        await this._invalidatePostMutationCaches({
+            organizationId: input.organizationId,
+            postGroup: post.post_group,
+            postIds: updated.map((p) => p.id),
+        });
+        return { postGroup: post.post_group, posts: updated };
+    }
+
     private async buildPostGroupDetails(postGroup: string, rows: SocialPostLike[]): Promise<PostGroupDetails> {
         const organizationId = rows[0]!.organization_id;
 

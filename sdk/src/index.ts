@@ -8,6 +8,7 @@ import type {
     PublicCreatePostDto,
     PublicDeletePostDataDto,
     PublicFlipPostStatusDto,
+    PublicReschedulePostDto,
     PublicIntegrationDto,
     PublicIntegrationPlugRowDto,
     PublicIntegrationTriggerDto,
@@ -41,6 +42,7 @@ export type {
     PublicCreatePostMediaItemDto,
     PublicDeletePostDataDto,
     PublicFlipPostStatusDto,
+    PublicReschedulePostDto,
     PublicIntegrationDto,
     PublicIntegrationPlugRowDto,
     PublicIntegrationTriggerDto,
@@ -329,6 +331,19 @@ export default class Openquok {
         return await this.json(`/public/posts/${encodeURIComponent(postId)}/status`, {
             method: "PUT",
             body,
+        });
+    }
+
+    /**
+     * Move a post group to a new publish time (`PUT /public/posts/:postId/reschedule`).
+     * `action: update` (default) preserves row state; `schedule` re-queues and clears publish results.
+     */
+    async reschedulePost(postId: string, body: PublicReschedulePostDto | string) {
+        const payload: PublicReschedulePostDto =
+            typeof body === "string" ? { scheduledAt: body } : body;
+        return await this.json(`/public/posts/${encodeURIComponent(postId)}/reschedule`, {
+            method: "PUT",
+            body: payload,
         });
     }
 

@@ -9,7 +9,7 @@
 `@openquok/auto-cli` is a **Programmatic CLI for the OpenQuok scheduling API** — designed for automation and AI agents. It is to automate social media posting, manage scheduled content, and upload media via the OpenQuok API across the social platforms you’ve connected to OpenQuok (e.g. Twitter/X and Instagram, Facebook).
 
 - Create and schedule posts via the programmatic API
-- List posts and flip draft ↔ scheduled (`posts:status`)
+- List posts, flip draft ↔ scheduled (`posts:status`), and move publish slots (`posts:reschedule`)
 - Upload media for use in posts
 - List programmatic integrations and trigger provider-specific tools (e.g. Dev.to tags and organizations, LinkedIn company URLs)
 
@@ -114,13 +114,17 @@ openquok posts:create \
 openquok posts:status <post-id> --status draft
 openquok posts:status <post-id> -s schedule
 
+openquok posts:reschedule <post-id> -s "2026-06-15T14:30:00.000Z"
+openquok posts:reschedule <post-id> -s "2026-06-20T10:00:00.000Z" --action schedule --republish
+
 openquok posts:delete <postId>
 openquok posts:missing <postId>
 openquok posts:connect <postId> --release-id <providerReleaseId>
 ```
 
 - `posts:list` without flags defaults to 30 local calendar days before today through 30 local calendar days after today (JavaScript `Date` local rules, then ISO UTC on the wire). Pass `--start` / `--end` or `--startDate` / `--endDate`; use `-i` / `--integrations` / `--integrationIds <csv>` and/or `--customer` / `--customerGroupId` (`integration_customers.id`) to narrow channels.
-- `posts:status` takes a **post row** id from `posts:list` (same as `posts:delete`) and flips `draft` ↔ `scheduled` at the same stored publish time via `PUT /public/posts/{postId}/status`.
+- `posts:status` takes a **post row** id from `posts:list` (same as `posts:delete`) and flips `draft` ↔ `scheduled` at the same stored publish time via `PUT /public/posts/{postId}/status`. Use `posts:status` when you only need to change state, not the slot.
+- `posts:reschedule` takes a **post row** id from `posts:list` (any row in the group) and moves the group to a new publish time via `PUT /public/posts/{postId}/reschedule`. Required `-s` / `--scheduledAt` (ISO-8601). `--action update` (default) moves time only; `--action schedule` re-queues and clears publish results; add `--republish` when re-scheduling a group that already has published rows.
 - `posts:delete` removes a single post (and the post group it belongs to — a row never publishes in isolation).
 - `posts:missing` and `posts:connect` are the workflow for posts whose `release_id` came back as `"missing"`: list provider-side candidates with `posts:missing`, then link the matching id with `posts:connect --release-id <id>` (or `--releaseId` / `-r`) to unlock per-post analytics.
 
@@ -214,6 +218,7 @@ pnpm --filter ./agent cli -- integrations:list --help
 pnpm --filter ./agent cli -- analytics:platform --help
 pnpm --filter ./agent cli -- analytics:post --help
 pnpm --filter ./agent cli -- posts:status --help
+pnpm --filter ./agent cli -- posts:reschedule --help
 pnpm --filter ./agent cli -- posts:delete --help
 pnpm --filter ./agent cli -- posts:missing --help
 pnpm --filter ./agent cli -- posts:connect --help

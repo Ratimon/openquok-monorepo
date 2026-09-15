@@ -143,6 +143,38 @@ export class PublicPostsController {
         }
     };
 
+    /** PUT /public/posts/:postId/reschedule — move publish time; optionally re-queue or republish. */
+    reschedulePost = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            countPublicApiRequest("posts-reschedule");
+            const programmaticReq = req as ProgrammaticAuthRequest;
+            const organizationId = programmaticReq.organization!.id;
+            const postId = (req.params as { postId: string }).postId;
+            const body = req.body as {
+                scheduledAt: string;
+                action?: "update" | "schedule";
+                republish?: boolean;
+            };
+            const result = await this.postsService.reschedulePostGroupByPostIdProgrammatic(
+                postId,
+                organizationId,
+                body.scheduledAt,
+                body.action ?? "update",
+                body.republish,
+                programmaticReq.publicUserId
+            );
+            res.status(200).json({
+                success: true,
+                data: {
+                    postGroup: result.postGroup,
+                    posts: PostDTOMapper.toDTOCollection(result.posts),
+                },
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** GET /public/posts/list?start=...&end=...&integrationIds=...&customerGroupId=... */
     listPosts = async (req: Request, res: Response, next: NextFunction) => {
         try {

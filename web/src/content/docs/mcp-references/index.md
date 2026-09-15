@@ -23,7 +23,7 @@ Schema-level reference for OpenQuok MCP tools. Use these pages when you need exa
 | --- | --- |
 | Channel discovery | <Badge text="groupList" variant="default" />, <Badge text="integrationList" variant="default" />, <Badge text="integrationSchema" variant="default" />, <Badge text="triggerTool" variant="default" /> |
 | Scheduling | <Badge text="schedulePostTool" variant="default" />, <Badge text="uploadFromUrl" variant="default" /> |
-| Post management | <Badge text="postsList" variant="default" />, <Badge text="postsFindSlot" variant="default" />, <Badge text="postsStatus" variant="default" />, <Badge text="postsReviewTodo" variant="default" />, <Badge text="postsDelete" variant="default" />, <Badge text="postsMissing" variant="default" />, <Badge text="postsConnect" variant="default" /> |
+| Post management | <Badge text="postsList" variant="default" />, <Badge text="postsFindSlot" variant="default" />, <Badge text="postsStatus" variant="default" />, <Badge text="postsReschedule" variant="default" />, <Badge text="postsReviewTodo" variant="default" />, <Badge text="postsDelete" variant="default" />, <Badge text="postsMissing" variant="default" />, <Badge text="postsConnect" variant="default" /> |
 | Analytics | <Badge text="analyticsPlatform" variant="default" />, <Badge text="analyticsPost" variant="default" /> |
 | Global plugs | <Badge text="plugsCatalog" variant="default" />, <Badge text="plugsList" variant="default" />, <Badge text="plugsUpsert" variant="default" />, <Badge text="plugsActivate" variant="default" />, <Badge text="plugsDelete" variant="default" /> |
 

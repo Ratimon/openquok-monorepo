@@ -24,6 +24,7 @@ const postsConfig: PostsConfig = {
 		updatePostReleaseId: (postId: string) => `${base}/${encodeURIComponent(postId)}/release-id`,
 		updatePostReviewTodo: (postId: string) => `${base}/${encodeURIComponent(postId)}/review-todo`,
 		flipPostStatus: (postId: string) => `${base}/${encodeURIComponent(postId)}/status`,
+		reschedulePost: (postId: string) => `${base}/${encodeURIComponent(postId)}/reschedule`,
 		publishPostNow: (postId: string) => `${base}/${encodeURIComponent(postId)}/publish-now`
 	}
 };

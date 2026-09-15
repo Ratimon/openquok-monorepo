@@ -369,6 +369,7 @@ export interface PostsConfig {
 		updatePostReleaseId: (postId: string) => string;
 		updatePostReviewTodo: (postId: string) => string;
 		flipPostStatus: (postId: string) => string;
+		reschedulePost: (postId: string) => string;
 		publishPostNow: (postId: string) => string;
 	};
 }
@@ -699,6 +700,34 @@ export class PostsRepository {
 			return { ok: false, error: 'Could not connect post.' };
 		} catch (error) {
 			return this.mapCatch(error, 'Could not connect post.');
+		}
+	}
+
+	async reschedulePost(params: {
+		postId: string;
+		organizationId: string;
+		publishDateIso: string;
+		action: 'update' | 'schedule';
+		republish?: boolean;
+	}): Promise<{ ok: true; posts: PostRowProgrammerModel[] } | { ok: false; error: string }> {
+		try {
+			const body: Record<string, unknown> = {
+				organizationId: params.organizationId,
+				publishDateIso: params.publishDateIso,
+				action: params.action
+			};
+			if (params.republish === true) body.republish = true;
+			const { ok, data: dto } = await this.httpGateway.put<ListPostsResponseDto>(
+				this.config.endpoints.reschedulePost(params.postId),
+				body,
+				{ withCredentials: true }
+			);
+			if (ok && dto?.success === true && Array.isArray(dto.data?.posts)) {
+				return { ok: true, posts: dto.data.posts.map(normalizePostRowFromApi) };
+			}
+			return { ok: false, error: 'Could not reschedule post.' };
+		} catch (error) {
+			return this.mapCatch(error, 'Could not reschedule post.');
 		}
 	}
 

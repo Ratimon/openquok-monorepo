@@ -2,7 +2,7 @@
 title: Approvals
 description: Send a client a preview link, collect comments, and schedule once you are happy — no OpenQuok login required for reviewers.
 order: 3
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-14
 ---
 
 <script>
@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 Every post has a **preview page** at <Badge text="/p/" variant="path" /> plus the post id. Send that link when someone outside your workspace should read the copy and leave feedback — without giving them access to Home, the calendar, or your other clients.
 
-**Where:** <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a> — open a post card, then click <Badge text="Preview" variant="default" /> in the actions menu.
+**Where:** <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a> — **click** a post card or chip once to open **Post actions** (there is no hover menu), then click <Badge text="Preview" variant="default" />. On the kanban, use the card menu if the chip is not visible.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
@@ -40,7 +40,7 @@ Write posts and save them as <Badge text="Draft" variant="default" /> so nothing
 
 ### Send preview links
 
-Open each post’s actions menu, click <Badge text="Preview" variant="default" />, then <Badge text="Share with Others" variant="new" />. Send the copied URL to your client.
+Click each post to open **Post actions**, choose <Badge text="Preview" variant="default" />, then <Badge text="Share with Others" variant="new" /> on the preview page. Send the copied URL to your client.
 
 ### Read the comments
 
@@ -77,8 +77,10 @@ If you run social for multiple clients, the usual flow is:
 ## Related
 
 <CardGrid>
+<LinkCard title="Actions and stats" description="Post actions modal — preview, edit, duplicate, and delete" href="/docs/calendar-and-posts/actions-and-stats" />
+<LinkCard title="Calendar overview" description="Filters, chips, and opening posts from the grid" href="/docs/calendar-and-posts" />
+<LinkCard title="Scheduling" description="Save as draft until client sign-off, then add to calendar" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Channel groups" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Glossary" description="Draft, scheduled, and preview link terminology" href="/docs/getting-started/glossary" />
 <LinkCard title="Cloud limits" description="Shareable preview availability by plan" href="/docs/cloud/limits" />
-<LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
 </CardGrid>

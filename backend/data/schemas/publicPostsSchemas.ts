@@ -34,7 +34,7 @@ export const validatePublicCreatePostBody: RequestHandler = validateRequest({
     body: publicCreatePostBodySchema,
 });
 
-/** `:postId` UUID param for single-post endpoints (delete/missing/release-id/status). */
+/** `:postId` UUID param for single-post endpoints (delete/missing/release-id/status/reschedule). */
 export const publicPostIdParamsSchema = z.object({
     postId: z.string().uuid("Invalid post id"),
 });
@@ -52,6 +52,21 @@ export const publicFlipPostStatusBodySchema = z.object({
 export const validatePublicFlipPostStatusRequest: RequestHandler = validateRequest({
     params: publicPostIdParamsSchema,
     body: publicFlipPostStatusBodySchema,
+});
+
+export const publicReschedulePostBodySchema = z.object({
+    scheduledAt: z.string().min(1, "Schedule time is required"),
+    action: z
+        .enum(["update", "schedule"], {
+            errorMap: () => ({ message: "action must be update or schedule" }),
+        })
+        .default("update"),
+    republish: z.boolean().optional(),
+});
+
+export const validatePublicReschedulePostRequest: RequestHandler = validateRequest({
+    params: publicPostIdParamsSchema,
+    body: publicReschedulePostBodySchema,
 });
 
 /** Optional `:integrationId` UUID param for `find-slot` (no id means "use all org integrations"). */

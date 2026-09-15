@@ -2,7 +2,7 @@
 title: Scheduling
 description: Draft, schedule, and publish posts in the OpenQuok social scheduler — pick a time, repeat on a cadence, and save from the composer footer.
 order: 6
-lastUpdated: 2026-09-13
+lastUpdated: 2026-09-14
 ---
 
 <script>
@@ -22,7 +22,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ![Pick a time and save from the composer footer](/docs/_assets/getting-started/4-schedule-or-publish.webp)
 
-When you edit an existing post, the primary button becomes <Badge text="Update" variant="default" />. A <Badge text="Delete Post" variant="deprecated" /> option appears on the left.
+When you edit an existing post, the primary button depends on its current status: <Badge text="Schedule" variant="default" /> for a **draft** (moves it onto the calendar), or <Badge text="Update" variant="default" /> for an already **scheduled** post. A <Badge text="Delete Post" variant="deprecated" /> option appears on the left.
 
 You can also move cards on the Home kanban — drag between **Drafted posts** and **Scheduled posts**, or drop on **Published posts** to publish now. See <a href="/docs/creating-posts/kanban">Kanban board</a>.
 
@@ -97,7 +97,9 @@ If publish fails, the card shows <Badge text="Failed" variant="deprecated" />. O
 <LinkCard title="Glossary → Tag" description="What tags are and how they tint cards" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed the next suggested time" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Date metrics timezone for calendar and slot labels" href="/docs/settings/timezone" />
+<LinkCard title="Calendar and posts" description="Calendar views, filters, chips, and post actions" href="/docs/calendar-and-posts" />
 <LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/calendar-and-posts/moving-posts" />
+<LinkCard title="Actions and stats" description="Duplicate, delete, statistics, and connect from post actions" href="/docs/calendar-and-posts/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
 <LinkCard title="Quickstart" description="First scheduled post in five steps" href="/docs/getting-started/quickstart" />
 </CardGrid>

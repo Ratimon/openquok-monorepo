@@ -27,6 +27,8 @@ alwaysApply: true
 | API reference | `web/src/content/docs/apis-<domain>/*.md` | `/docs/apis-*` pages (body rendered from OpenAPI) |
 | Overview | `web/src/content/docs/getting-started-for-public-api/` | Auth, concepts (groups, plugs), SDK quickstart |
 | CLI usage | `web/src/content/docs/cli-usages/` | Command recipes when the CLI wraps the route |
+| MCP tool docs | `web/src/content/docs/mcp-references/tools.md`, `mcp-references/index.md`, `getting-started-for-mcp/index.md`, `mcp-examples/index.md` | MCP tab reference, onboarding, and examples |
+| MCP hub catalog | `web/src/lib/listings/constants/openquokCoreMcpListingCms.ts` (+ test) | Extensions Hub tool list for the hosted OpenQuok MCP server |
 
 **Do not confuse layers:** `backend/swagger/jsdoc/*.doc.ts` files are **OpenAPI JSDoc sources only** (merged into `/api/v1/openapi.json`). They are **not** Vitest specs. Agent tests live under `agent/src/**/*.test.ts` (unit) and `agent/tests/e2e/**/*.e2e.test.ts` (e2e), with e2e filenames like `threads.schedule.post.e2e.test.ts` — see `agent-cli.mdc`.
 
@@ -120,7 +122,8 @@ When you touch `backend/routes/publicApi/**`:
 4. **API reference** — add/update `web/src/content/docs/apis-<domain>/<endpoint>.md` with `openapi: '<METHOD> /path'` frontmatter, and the section `index.md` `CardGrid`.
 5. **Overview** — update `getting-started-for-public-api/` when the change affects SDK quickstart, auth examples, or cross-cutting concepts (groups, plugs, rate limits).
 6. **Sidebar** — only when introducing a new `apis-<domain>/` directory: add a section to `docsSidebarPublicApi` in `web/src/lib/docs/constants/config.ts`.
-7. **Verify** — hit `GET /api/v1/openapi.json` (backend dev) and load the docs page locally; confirm the rendered example, headers, query/body params, and response fields all match the route.
+7. **MCP** — when the route has a matching tool in `backend/mcp/tools/`: document it in `mcp-references/tools.md` (params, example output, callouts), add badges/rows in `mcp-references/index.md` and `getting-started-for-mcp/index.md`, extend `mcp-examples/index.md` when agents need a prompt recipe; update `openquokCoreMcpListingCms.ts` (+ test) if the tool is part of the hosted OpenQuok MCP server.
+8. **Verify** — hit `GET /api/v1/openapi.json` (backend dev) and load the docs page locally; confirm the rendered example, headers, query/body params, and response fields all match the route.
 
 ## Do not
 
@@ -128,4 +131,5 @@ When you touch `backend/routes/publicApi/**`:
 - Ship SDK methods without updating `sdk/README.md` and the getting-started SDK section when the method is user-facing.
 - Change a path or rename a parameter without updating the SDK method and the `openapi: '<METHOD> /path'` frontmatter — slugs are how the docs page finds the operation. Also update `OpenquokApi` / CLI commands **when** this route is wrapped by the agent.
 - Hand-roll a markdown body for an `apis-*` page. The Svelte renderer drives the entire body from the OpenAPI spec; extra content gets overridden / ignored.
-- Defer docs to a follow-up PR — include Swagger, `apis-*`, overview, SDK, and CLI docs in the same change as the route.
+- Defer docs to a follow-up PR — include Swagger, `apis-*`, overview, SDK, CLI, MCP references, and hub catalog updates in the same change as the route.
+- Ship an MCP tool in `backend/mcp/tools/` without updating `mcp-references/` and `openquokCoreMcpListingCms.ts` when the tool is listed on the hosted server.

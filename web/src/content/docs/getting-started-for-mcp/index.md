@@ -48,7 +48,7 @@ A typical workflow:
 
 1. **List** — <Badge text="groupList" variant="default" /> (optional) then <Badge text="integrationList" variant="default" /> to find channel UUIDs; <Badge text="integrationSchema" variant="default" /> for platform rules.
 2. **Schedule** — <Badge text="schedulePostTool" variant="default" /> to draft, schedule, or publish now; <Badge text="uploadFromUrl" variant="default" /> when you need media ids before scheduling.
-3. **Manage** — <Badge text="postsList" variant="default" />, <Badge text="postsStatus" variant="default" />, <Badge text="postsDelete" variant="default" />, <Badge text="postsReviewTodo" variant="default" />; <Badge text="postsMissing" variant="default" /> then <Badge text="postsConnect" variant="default" /> when <Badge text="release_id" variant="param" /> is missing.
+3. **Manage** — <Badge text="postsList" variant="default" />, <Badge text="postsStatus" variant="default" />, <Badge text="postsReschedule" variant="default" />, <Badge text="postsDelete" variant="default" />, <Badge text="postsReviewTodo" variant="default" />; <Badge text="postsMissing" variant="default" /> then <Badge text="postsConnect" variant="default" /> when <Badge text="release_id" variant="param" /> is missing.
 4. **Analytics** — <Badge text="analyticsPlatform" variant="default" /> or <Badge text="analyticsPost" variant="default" /> with <Badge text="days" variant="param" /> <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" />.
 5. **Plugs** — <Badge text="plugsCatalog" variant="default" />, <Badge text="plugsList" variant="default" />, <Badge text="plugsUpsert" variant="default" /> for global like-threshold rules; cross-account comments on create go in <Badge text="schedulePostTool" variant="default" /> <Badge text="settings" variant="param" />.
 
@@ -104,7 +104,8 @@ OAuth2 access tokens from third-party apps also use the <Badge text="opo_" varia
 | Scheduling | <Badge text="uploadFromUrl" variant="default" /> | Fetch a public HTTPS URL into workspace media |
 | Posts | <Badge text="postsList" variant="default" /> | List posts in a date window |
 | Posts | <Badge text="postsFindSlot" variant="default" /> | Suggest a free schedule slot |
-| Posts | <Badge text="postsStatus" variant="default" /> | Flip draft ↔ scheduled |
+| Posts | <Badge text="postsStatus" variant="default" /> | Flip draft ↔ scheduled at the stored time |
+| Posts | <Badge text="postsReschedule" variant="default" /> | Move post group to a new publish time |
 | Posts | <Badge text="postsReviewTodo" variant="default" /> | Set or update a review-todo note |
 | Posts | <Badge text="postsDelete" variant="default" /> | Delete a post row |
 | Posts | <Badge text="postsMissing" variant="default" /> | List candidates when <Badge text="release_id" variant="param" /> is missing |

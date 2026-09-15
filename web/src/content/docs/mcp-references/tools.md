@@ -13,7 +13,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 All tools run in the context of the workspace tied to your <Badge text="opo_" variant="default" /> token. They call the same backend services as <Badge text="/api/v1/public/*" variant="path" /> — lower latency, no HTTP loopback.
 
-A typical agent workflow: <Badge text="integrationList" variant="default" /> → <Badge text="schedulePostTool" variant="default" /> → <Badge text="postsList" variant="default" /> / <Badge text="postsStatus" variant="default" /> → <Badge text="analyticsPost" variant="default" /> → <Badge text="plugsUpsert" variant="default" />. Image and video generation MCP tools from other catalogs are not available yet.
+A typical agent workflow: <Badge text="integrationList" variant="default" /> → <Badge text="schedulePostTool" variant="default" /> → <Badge text="postsList" variant="default" /> / <Badge text="postsStatus" variant="default" /> / <Badge text="postsReschedule" variant="default" /> → <Badge text="analyticsPost" variant="default" /> → <Badge text="plugsUpsert" variant="default" />. Image and video generation MCP tools from other catalogs are not available yet.
 
 ## Channel discovery
 
@@ -266,6 +266,42 @@ Flip a post row between draft and scheduled at the stored publish time.
   }
 }
 ```
+
+### postsReschedule
+
+Move a post group to a new publish time. Pass any post row id from <Badge text="postsList" variant="default" /> — the whole group moves together.
+
+**Input:**
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| <Badge text="postId" variant="param" /> | string | Yes | Post row id from <Badge text="postsList" variant="default" /> or <Badge text="schedulePostTool" variant="default" /> |
+| <Badge text="scheduledAt" variant="param" /> | string | Yes | New publish time (ISO-8601) |
+| <Badge text="action" variant="param" /> | <Badge text="update" variant="default" /> \| <Badge text="schedule" variant="default" /> | No | <Badge text="update" variant="default" /> (default) moves <Badge text="publishDate" variant="param" /> only and preserves each row's state; <Badge text="schedule" variant="default" /> re-queues publishing and clears <Badge text="releaseId" variant="param" />, <Badge text="releaseUrl" variant="param" />, and errors |
+| <Badge text="republish" variant="param" /> | boolean | No | Required <Badge text="true" variant="default" /> when <Badge text="action" variant="param" /> is <Badge text="schedule" variant="default" /> and the group already has published rows |
+
+**Output:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "postGroup": "9a0a1b2c-3d4e-4f5a-9b8c-aa11bb22cc33",
+    "posts": [
+      {
+        "id": "5b3c1d2e-9a3f-4e6b-bb12-2c0a5f1a90a1",
+        "state": "QUEUE",
+        "publishDate": "2026-06-15T14:30:00.000Z",
+        "postGroup": "9a0a1b2c-3d4e-4f5a-9b8c-aa11bb22cc33"
+      }
+    ]
+  }
+}
+```
+
+<Callout type="tip">
+<p><Badge text="postsStatus" variant="default" /> flips draft ↔ scheduled <strong>without</strong> changing the stored publish time. Use <Badge text="postsReschedule" variant="default" /> when the slot itself should move.</p>
+</Callout>
 
 ### postsReviewTodo
 

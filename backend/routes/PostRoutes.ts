@@ -18,6 +18,7 @@ import {
     validateUpdatePostReleaseId,
     validateUpdatePostReviewTodo,
     validateFlipPostStatus,
+    validateReschedulePost,
     validatePublishPostNow,
 } from "../data/schemas/postSchemas";
 
@@ -53,6 +54,7 @@ postRouter.get("/:postId/missing", auth, validatePostMissingQuery, postsControll
 postRouter.put("/:postId/release-id", auth, validateUpdatePostReleaseId, postsController.updatePostReleaseId);
 postRouter.put("/:postId/publish-now", auth, validatePublishPostNow, postsController.publishPostNow);
 postRouter.put("/:postId/status", auth, validateFlipPostStatus, postsController.flipPostStatus);
+postRouter.put("/:postId/reschedule", auth, validateReschedulePost, postsController.reschedulePost);
 postRouter.put("/:postId/review-todo", auth, validateUpdatePostReviewTodo, postsController.updatePostReviewTodo);
 postRouter.delete("/:postGroup", auth, validateDeletePostGroup, postsController.deletePostGroup);
 

@@ -68,7 +68,7 @@ Use your workspace token, then read provider settings, HTTP endpoints, and OAuth
 <CardGrid>
 <LinkCard title="Provider settings" description="Per-channel providerSettingsByIntegrationId shapes for every shipped network" href="/docs/public-api-providers" />
 <LinkCard title="Integrations APIs" description="Connect, inspect, and trigger endpoints around connected channels" href="/docs/apis-integrations" />
-<LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
+<LinkCard title="Posts APIs" description="Schedule, list, reschedule, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
 <LinkCard title="Analytics APIs" description="Platform and per-post insights from each provider's native API" href="/docs/apis-analytics" />
 <LinkCard title="Notifications APIs" description="Paginated in-app notification history for your workspace" href="/docs/apis-notifications" />
 <LinkCard title="Uploads APIs" description="Upload media to attach to scheduled posts" href="/docs/apis-uploads" />
@@ -195,7 +195,7 @@ const channels = groups[0]
 const uploaded = await openquok.upload(fileBuffer, 'png');
 
 // Create a scheduled post
-await openquok.post({
+const created = await openquok.post({
 	scheduledAt: new Date().toISOString(),
 	status: 'scheduled',
 	body: 'Hello from OpenQuok SDK',
@@ -204,6 +204,15 @@ await openquok.post({
 		: undefined,
 	integrationIds: [channels[0]?.id].filter(Boolean)
 });
+
+// Move the group to a new slot (post row id from created.data.posts[0].id)
+const postRowId = created?.data?.posts?.[0]?.id;
+if (postRowId) {
+	await openquok.reschedulePost(postRowId, {
+		scheduledAt: '2026-06-15T14:30:00.000Z',
+		action: 'update'
+	});
+}
 
 // Configure a global plug on a Threads channel (auto-reply at 100 likes)
 const threadsChannel = channels.find((c) => c.identifier === 'threads');
@@ -218,7 +227,7 @@ if (threadsChannel) {
 }
 ```
 
-For the full method table — posts, integrations, plugs, analytics, notifications, and more — see the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/README.md">SDK README</DocsExternalLink> (current release: <Badge text="@openquok/node-sdk@0.0.10" variant="experimental" />).
+For the full method table — posts, integrations, plugs, analytics, notifications, and more — see the <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/README.md">SDK README</DocsExternalLink> (current release: <Badge text="@openquok/node-sdk@0.0.13" variant="experimental" />).
 
 ### References
 
@@ -234,7 +243,7 @@ Every Public API section plus CLI, MCP, and dashboard platform limits.
 <CardGrid>
 <LinkCard title="Provider settings" description="Per-channel providerSettingsByIntegrationId shapes for every shipped network" href="/docs/public-api-providers" />
 <LinkCard title="Integrations APIs" description="Connect, inspect, and trigger endpoints around connected channels" href="/docs/apis-integrations" />
-<LinkCard title="Posts APIs" description="Schedule, list, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
+<LinkCard title="Posts APIs" description="Schedule, list, reschedule, flip draft ↔ scheduled, and delete posts" href="/docs/apis-posts" />
 <LinkCard title="Analytics APIs" description="Platform and per-post insights from each provider's native API" href="/docs/apis-analytics" />
 <LinkCard title="Notifications APIs" description="Paginated in-app notification history for your workspace" href="/docs/apis-notifications" />
 <LinkCard title="Uploads APIs" description="Upload media to attach to scheduled posts" href="/docs/apis-uploads" />

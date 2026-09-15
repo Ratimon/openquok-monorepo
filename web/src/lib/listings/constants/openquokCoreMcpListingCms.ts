@@ -25,7 +25,7 @@ Authenticate with a programmatic token (\`opo_\`) from **Settings → Developers
 
 - **Schedule** — \`integrationList\` then \`schedulePostTool\` (\`draft\` / \`schedule\` / \`now\`). Extra \`postsAndComments\` strings are same-account reply chains. Cross-account comment/repost belongs in \`settings\` (\`threads.crossAccountPlugs\`, \`x.crossAccountPlugs\`, LinkedIn plugs) on the publishing channel.
 - **Media** — \`uploadFromUrl\` (public HTTPS URL) then pass \`{id, path}\` into schedule settings, or pass URLs on \`schedulePostTool.attachments\`.
-- **Manage** — \`postsList\`, \`postsStatus\`, \`postsDelete\`, \`postsReviewTodo\`; missing \`release_id\`: \`postsMissing\` then \`postsConnect\`.
+- **Manage** — \`postsList\`, \`postsStatus\`, \`postsReschedule\`, \`postsDelete\`, \`postsReviewTodo\`; missing \`release_id\`: \`postsMissing\` then \`postsConnect\`.
 - **Analytics** — \`analyticsPlatform\` / \`analyticsPost\` with \`days\` 7, 30, or 90.
 - **Global plugs** — \`plugsCatalog\`, \`plugsList\`, \`plugsUpsert\`, \`plugsActivate\`, \`plugsDelete\` (like-threshold rules). Local file upload and CLI device login stay on the openquok-core skill.
 
@@ -74,6 +74,11 @@ export const OPENQUOK_CORE_MCP_LISTING_TOOLS: readonly McpListingToolRow[] = [
 	{
 		name: 'postsStatus',
 		description: 'Flip a post row between draft and scheduled at the stored publish time.'
+	},
+	{
+		name: 'postsReschedule',
+		description:
+			'Move a post group to a new publish time. action update preserves state; schedule re-queues and clears publish results.'
 	},
 	{
 		name: 'postsReviewTodo',
