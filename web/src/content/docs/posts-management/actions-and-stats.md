@@ -1,7 +1,7 @@
 ---
 title: Actions and stats
 description: Duplicate, delete, export, preview, per-post statistics, and connect missing releases from the OpenQuok post actions modal.
-order: 2
+order: 4
 lastUpdated: 2026-09-15
 ---
 
@@ -46,7 +46,7 @@ To remove one channel from a multi-channel post, open **Edit** and deselect that
 
 When publish fails, the calendar chip keeps shows a **red ring** . Hover the chip to read the platform error in a tooltip. The row is not draggable until you fix the underlying issue.
 
-Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/posts-management">Posts management overview → Post chips</a> for how failed chips differ from draft and scheduled rows.
+Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/posts-management/calendar#post-chips">Calendar → Post chips</a> for how failed chips differ from draft and scheduled rows.
 
 Failed rows also appear when **Post types → Failed** is selected on the calendar filter. In **Posts in this slot**, the status line reads **publish failed** for that row.
 
@@ -92,7 +92,8 @@ Status lines use plain language: **draft**, **scheduled at** the slot time, **pu
 <CardGrid>
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 <LinkCard title="Moving posts" description="Drag to reschedule and posts:reschedule for bulk moves" href="/docs/posts-management/moving-posts" />
-<LinkCard title="Posts management overview" description="Kanban, calendar filters, chip states, and opening the composer from a slot" href="/docs/posts-management" />
+<LinkCard title="Calendar" description="Views, filters, chip states, and opening the composer from a slot" href="/docs/posts-management/calendar" />
+<LinkCard title="Kanban board" description="Columns, filters, and card signals on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Glossary → Post states" description="Draft, scheduled, published, and failed" href="/docs/getting-started/glossary#post-states" />
 <LinkCard title="Managing posts (CLI)" description="posts:connect, posts:delete, and analytics commands" href="/docs/cli-usages/managing-posts" />
 </CardGrid>

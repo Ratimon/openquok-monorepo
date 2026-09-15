@@ -98,6 +98,7 @@ If publish fails, the card shows <Badge text="Failed" variant="deprecated" />. O
 <LinkCard title="Posting time slots" description="Per-channel hours that feed the next suggested time" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Date metrics timezone for calendar and slot labels" href="/docs/settings/timezone" />
 <LinkCard title="Posts management" description="Kanban, calendar views, filters, chips, and post actions" href="/docs/posts-management" />
+<LinkCard title="Calendar" description="Views, filters, post chips, and opening posts from the grid" href="/docs/posts-management/calendar" />
 <LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Duplicate, delete, statistics, and connect from post actions" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />

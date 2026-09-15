@@ -32,7 +32,7 @@ The calendar answers <em>when</em> posts ship; the kanban answers <em>what stage
 
 Column headers show a count. When filters hide some rows, the badge can read <strong>visible / total</strong> (for example <code>2 / 5</code>).
 
-Each card header uses the **first tag** colour on the group (same order as composer tags). Draft cards keep that colour and add a **`Draft:`** prefix plus a dashed outline; scheduled cards use a solid outline. See <a href="/docs/posts-management">Posts management</a> for the full chip signal table.
+Each card header uses the **first tag** colour on the group (same order as composer tags). Draft cards keep that colour and add a **`Draft:`** prefix plus a dashed outline; scheduled cards use a solid outline. See <a href="/docs/posts-management/kanban#post-cards">Kanban board (posts management)</a> for the full card signal table.
 
 <Callout type="tip">
 <p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without editing each post from editor.</p>
@@ -135,6 +135,8 @@ The kanban appears only when your workspace has at least one **connected social 
 <LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Posts management" description="Kanban, calendar views, filters, and post actions" href="/docs/posts-management" />
+<LinkCard title="Kanban board (posts management)" description="Columns, filters, and card signals on Home" href="/docs/posts-management/kanban" />
+<LinkCard title="Calendar" description="Day, week, month, and list views on the date grid" href="/docs/posts-management/calendar" />
 <LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/posts-management/approvals" />

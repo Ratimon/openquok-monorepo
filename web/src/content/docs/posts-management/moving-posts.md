@@ -1,7 +1,7 @@
 ---
 title: Moving and rescheduling posts
 description: Drag & Drop posts on the calendar or the kanban.
-order: 1
+order: 3
 lastUpdated: 2026-09-14
 ---
 
@@ -115,7 +115,8 @@ Full flag tables and HTTP examples live in <a href="/docs/cli-usages/managing-po
 ## Related
 
 <CardGrid>
-<LinkCard title="Posts management overview" description="Kanban, calendar views, filters, chips, and how to open a slot" href="/docs/posts-management" />
+<LinkCard title="Calendar" description="Views, filters, chips, and how to open a slot" href="/docs/posts-management/calendar" />
+<LinkCard title="Kanban board" description="Columns, filters, and drag moves on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Actions and stats" description="Post actions modal after you click a chip" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Scheduling" description="Composer save buttons and repeat cadence" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Kanban board" description="Drag between draft, scheduled, and published columns" href="/docs/creating-posts/kanban" />
