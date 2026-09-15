@@ -16,14 +16,14 @@ pnpm install -g @openquok/node-sdk
 
 ## Publish via Github
 
-Match `sdk/package.json` `version` to the tag (`sdk-v0.0.11` → `"0.0.12"`). Commit to `main`, then tag **that** commit:
+Match `sdk/package.json` `version` to the tag (`sdk-v0.0.12` → `"0.0.13"`). Commit to `main`, then tag **that** commit:
 
 ```bash
 git add sdk/
-git commit -m "chore(sdk): release 0.0.12"
+git commit -m "chore(sdk): release 0.0.13"
 git push origin main
-git tag sdk-v0.0.12
-git push origin sdk-v0.0.12
+git tag sdk-v0.0.13
+git push origin sdk-v0.0.13
 ```
 
 ### GitHub release notes
