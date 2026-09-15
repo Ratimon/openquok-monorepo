@@ -68,7 +68,7 @@ The post editor (also called the composer) is a modal, not a sidebar page. Open 
 | Signatures | Composer toolbar — see <a href="/docs/settings/signatures">Signatures</a> |
 | Internal (per-post) plugs | Composer <Badge text="Settings" variant="default" /> accordion — see <a href="/docs/automations/internal-plugs">Internal plugs</a> |
 | Cross-account (per-post) plugs | Composer <Badge text="Plug settings" variant="default" /> — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> |
-| Shareable preview | Post card actions — see <a href="/docs/calendar-and-posts/approvals">Approvals</a>. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
+| Shareable preview | Post card actions — see <a href="/docs/posts-management/approvals">Approvals</a>. Public URL under <Badge text="/p/" variant="path" /> plus the post id |
 
 ## Settings
 

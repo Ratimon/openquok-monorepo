@@ -35,7 +35,7 @@ Guides for the dashboard — connect channels, compose and schedule posts, and m
 <CardGrid>
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
 <LinkCard title="Creating posts" description="Write and schedule posts — editor, media, previews, and scheduling" href="/docs/creating-posts" />
-<LinkCard title="Calendar and posts" description="Home kanban, calendar, post actions, and client approvals" href="/docs/calendar-and-posts" />
+<LinkCard title="Posts management" description="Home kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
 <LinkCard title="Settings" description="Timezone, team, profile, developers, signatures, and approved apps" href="/docs/settings" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
 <LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
@@ -59,7 +59,7 @@ More product guides plus automation and contribution paths.
 
 <CardGrid>
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts in your workspace" href="/docs/channels" />
-<LinkCard title="Calendar and posts" description="Home kanban, calendar, post actions, and client approvals" href="/docs/calendar-and-posts" />
+<LinkCard title="Posts management" description="Home kanban, calendar, post actions, and client approvals" href="/docs/posts-management" />
 <LinkCard title="Platforms" description="Character limits, media rules, and follow-up support by network" href="/docs/platforms" />
 <LinkCard title="Automations" description="CLI, MCP, public API, RSS, and webhooks" href="/docs/automations" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />

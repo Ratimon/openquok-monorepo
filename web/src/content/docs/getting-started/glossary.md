@@ -132,7 +132,7 @@ Nothing publishes until a scheduled time arrives and the row is publishable — 
 
 ## Preview link
 
-Every post can expose a **preview link**. You can open the link from the post action modal on Kanban or the calendar. See <a href="/docs/calendar-and-posts/approvals">Approvals</a> for sending links to clients and collecting comments.
+Every post can expose a **preview link**. You can open the link from the post action modal on Kanban or the calendar. See <a href="/docs/posts-management/approvals">Approvals</a> for sending links to clients and collecting comments.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 

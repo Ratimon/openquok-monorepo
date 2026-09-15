@@ -156,7 +156,7 @@ CLI, MCP, or API **401** errors usually mean a rotated token. Generate a new one
 <LinkCard title="Connect a channel" description="OAuth, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Creating posts" description="Post editor layout, flow, templates, and scheduling" href="/docs/creating-posts" />
 <LinkCard title="Global vs per-channel" description="One caption for every channel or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
-<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
+<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 <LinkCard title="Automations" description="CLI, MCP, public API, and future RSS or webhook flows" href="/docs/automations" />
 <LinkCard title="Cloud" description="Trial, plans, billing, and limits for the hosted product" href="/docs/cloud" />
 <LinkCard title="Self-hosting" description="Docker Compose and configuration guides" href="/docs/installation" />

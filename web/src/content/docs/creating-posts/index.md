@@ -24,7 +24,7 @@ On Home and the calendar it opens as a modal. The same editor powers <Badge text
 | <Badge text="Create Post" variant="new" /> | <a href="/account">Home</a> |
 | Click a day or empty slot | <a href="/account/calendar">Calendar</a> |
 | <Badge text="Select a template" variant="default" /> | Home — restores a saved <a href="/docs/getting-started/glossary#template">template</a> |
-| Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/creating-posts/kanban">Kanban board</a> and <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a> |
+| Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/creating-posts/kanban">Kanban board</a> and <a href="/docs/posts-management/moving-posts">Moving posts</a> |
 
 You need at least one connected channel before the editor is useful. See <a href="/docs/channels/connect">Connect a channel</a>.
 
@@ -132,5 +132,5 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Glossary" description="Global mode, provider settings, and calendar vs kanban" href="/docs/getting-started/glossary" />
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts" href="/docs/channels" />
 <LinkCard title="Posting rules by platform" description="Character limits, media rules, and per-network settings" href="/docs/platforms" />
-<LinkCard title="Calendar and posts" description="Moving posts, actions, and client approvals" href="/docs/calendar-and-posts" />
+<LinkCard title="Posts management" description="Kanban, calendar, moving posts, actions, and client approvals" href="/docs/posts-management" />
 </CardGrid>

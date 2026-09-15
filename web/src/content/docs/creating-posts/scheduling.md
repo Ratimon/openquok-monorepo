@@ -66,7 +66,7 @@ Tags can be edited and deleted later. The color change applies everywhere the ta
 
 Use a draft to hold a post in your workspace until you are ready to schedule it:
 
-- Post's content still pending — send a <a href="/docs/calendar-and-posts/approvals">preview link</a> and keep the row as a draft until you schedule.
+- Post's content still pending — send a <a href="/docs/posts-management/approvals">preview link</a> and keep the row as a draft until you schedule.
 - You are mapping out next week’s slots but are not ready to commit publish times yet.
 - You stepped away mid-compose — saving as draft beats losing changes when the close dialog appears.
 
@@ -97,9 +97,9 @@ If publish fails, the card shows <Badge text="Failed" variant="deprecated" />. O
 <LinkCard title="Glossary → Tag" description="What tags are and how they tint cards" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed the next suggested time" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Date metrics timezone for calendar and slot labels" href="/docs/settings/timezone" />
-<LinkCard title="Calendar and posts" description="Calendar views, filters, chips, and post actions" href="/docs/calendar-and-posts" />
-<LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/calendar-and-posts/moving-posts" />
-<LinkCard title="Actions and stats" description="Duplicate, delete, statistics, and connect from post actions" href="/docs/calendar-and-posts/actions-and-stats" />
-<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
+<LinkCard title="Posts management" description="Kanban, calendar views, filters, chips, and post actions" href="/docs/posts-management" />
+<LinkCard title="Moving posts" description="Drag on the calendar and reschedule from Home" href="/docs/posts-management/moving-posts" />
+<LinkCard title="Actions and stats" description="Duplicate, delete, statistics, and connect from post actions" href="/docs/posts-management/actions-and-stats" />
+<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 <LinkCard title="Quickstart" description="First scheduled post in five steps" href="/docs/getting-started/quickstart" />
 </CardGrid>

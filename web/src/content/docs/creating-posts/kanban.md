@@ -32,7 +32,7 @@ The calendar answers <em>when</em> posts ship; the kanban answers <em>what stage
 
 Column headers show a count. When filters hide some rows, the badge can read <strong>visible / total</strong> (for example <code>2 / 5</code>).
 
-Each card header uses the **first tag** colour on the group (same order as composer tags). Draft cards keep that colour and add a **`Draft:`** prefix plus a dashed outline; scheduled cards use a solid outline. See <a href="/docs/calendar-and-posts">Calendar and posts</a> for the full chip signal table.
+Each card header uses the **first tag** colour on the group (same order as composer tags). Draft cards keep that colour and add a **`Draft:`** prefix plus a dashed outline; scheduled cards use a solid outline. See <a href="/docs/posts-management">Posts management</a> for the full chip signal table.
 
 <Callout type="tip">
 <p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without editing each post from editor.</p>
@@ -134,10 +134,10 @@ The kanban appears only when your workspace has at least one **connected social 
 <LinkCard title="AI generation" description="Agent and API drafts in the same review queue" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
-<LinkCard title="Calendar and posts" description="Calendar views, filters, and post actions" href="/docs/calendar-and-posts" />
-<LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/calendar-and-posts/moving-posts" />
-<LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/calendar-and-posts/actions-and-stats" />
-<LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/calendar-and-posts/approvals" />
+<LinkCard title="Posts management" description="Kanban, calendar views, filters, and post actions" href="/docs/posts-management" />
+<LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/posts-management/moving-posts" />
+<LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/posts-management/actions-and-stats" />
+<LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/posts-management/approvals" />
 <LinkCard title="Calendar vs kanban" description="Glossary — when to use each surface" href="/docs/getting-started/glossary#calendar-vs-kanban" />
 <LinkCard title="Tour the app" description="Sidebar, Home, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 </CardGrid>

@@ -60,8 +60,8 @@ function isGeneralDocsPath(segmentOrSlug: string): boolean {
 		segmentOrSlug.startsWith('channels/') ||
 		segmentOrSlug === 'creating-posts' ||
 		segmentOrSlug.startsWith('creating-posts/') ||
-		segmentOrSlug === 'calendar-and-posts' ||
-		segmentOrSlug.startsWith('calendar-and-posts/') ||
+		segmentOrSlug === 'posts-management' ||
+		segmentOrSlug.startsWith('posts-management/') ||
 		segmentOrSlug === 'settings' ||
 		segmentOrSlug.startsWith('settings/') ||
 		segmentOrSlug === 'platforms' ||

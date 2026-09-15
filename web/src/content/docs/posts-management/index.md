@@ -1,6 +1,6 @@
 ---
-title: Overview - The Calendar and Kanban
-description: Day, week, month and list views, and how to filter them by groups, tags and platforms.
+title: Overview - Posts management
+description: Kanban board, calendar views, filters, and how to move, review, and act on posts across Home and the calendar.
 order: 0
 lastUpdated: 2026-09-15
 sidebar:
@@ -13,14 +13,14 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 OpenQuok keeps your content pipeline in two places on <a href="/account">Home</a>: the **kanban board** shows **stage** (draft, scheduled, published), and the <a href="/account/calendar">calendar</a> shows **when** each post ships. Both views read the same post groups — change one and the other updates.
 
-This section covers the calendar surface, moving posts between slots, post actions (duplicate, delete, statistics), and <a href="/docs/calendar-and-posts/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
+This section covers the Home kanban board, calendar views, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
 
 ## In this section
 
 <CardGrid>
-<LinkCard title="Moving posts" description="Drag on the calendar, published reschedule dialog, and programmatic reschedule" href="/docs/calendar-and-posts/moving-posts" />
-<LinkCard title="Actions and stats" description="Duplicate, delete, export, statistics, and connect" href="/docs/calendar-and-posts/actions-and-stats" />
-<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
+<LinkCard title="Moving posts" description="Drag on the calendar, published reschedule dialog, and programmatic reschedule" href="/docs/posts-management/moving-posts" />
+<LinkCard title="Actions and stats" description="Duplicate, delete, export, statistics, and connect" href="/docs/posts-management/actions-and-stats" />
+<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 </CardGrid>
 
 ## Calendar views
@@ -35,7 +35,7 @@ Open <a href="/account/calendar">/account/calendar</a> from the sidebar or the *
 
 **Day** and **Week** show a **24-hour time grid** with half-hour rows. Posts sit in the row that matches their scheduled time. **Month** collapses each day into a compact cell — you still see chips, but without the per-slot body text.
 
-**List view** is a scrollable queue sorted by date. Each row shows a **left accent** in the first tag color on the group. It is useful for a quick read of what is coming up, but you cannot drag posts there — use the grid views to reschedule. See <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a>.
+**List view** is a scrollable queue sorted by date. Each row shows a **left accent** in the first tag color on the group. It is useful for a quick read of what is coming up, but you cannot drag posts there — use the grid views to reschedule. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
 
 Past hours in day and week views get a striped **Date passed** background. You cannot create or drop posts into those cells.
 
@@ -79,7 +79,7 @@ OpenQuok’s calendar is close to common scheduler patterns but not identical ev
 | Topic | OpenQuok today | Notes |
 | --- | --- | --- |
 | Day view rows | 24-hour grid | Some products use per-channel **time slots** as row labels — OpenQuok links suggested hours to <a href="/docs/channels/time-slots">Posting time slots</a> instead |
-| Post actions | **Click** chip → modal | No hover menu on chips — see <a href="/docs/calendar-and-posts/actions-and-stats">Actions and stats</a> |
+| Post actions | **Click** chip → modal | No hover menu on chips — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a> |
 | List view | Upcoming rows, no page size | Some products paginate (~100 per page) and replace the view switcher with state filters |
 | View in URL | Session memory only | Bookmarking a specific week or month in the URL is not implemented yet |
 | Cell overflow | **+N** = multi-channel in one group | Some products use **+ Show more** when more than three *groups* share one cell — a different model |
@@ -90,7 +90,7 @@ Interactions are **click-based** — there is no hover menu on chips.
 
 | You click… | What happens |
 | --- | --- |
-| A **single-channel** chip | **Post actions** modal — edit, duplicate, preview, statistics, delete. See <a href="/docs/calendar-and-posts/actions-and-stats">Actions and stats</a> |
+| A **single-channel** chip | **Post actions** modal — edit, duplicate, preview, statistics, delete. See <a href="/docs/posts-management/actions-and-stats">Actions and stats</a> |
 | A **multi-channel** chip | **Posts in this slot** — pick **Open** on the row you need |
 | An **empty** time cell | Opens the composer with that slot's time prefilled (at least five minutes in the future) |
 | The **+** strip on the left edge of the grid | Same as an empty cell — **Schedule a new post** |
@@ -111,7 +111,7 @@ On phones and coarse pointers, tapping an empty slot may show **Schedule slot** 
 | What stage is this post in? | Home kanban — <a href="/docs/creating-posts/kanban">Kanban board</a> |
 | When does it go out? | Calendar |
 | Move between draft and scheduled without a new time? | Drag on the kanban |
-| Move to a different day or hour? | Drag on the calendar — <a href="/docs/calendar-and-posts/moving-posts">Moving posts</a> |
+| Move to a different day or hour? | Drag on the calendar — <a href="/docs/posts-management/moving-posts">Moving posts</a> |
 
 See <a href="/docs/getting-started/glossary#calendar-vs-kanban">Glossary → Calendar vs kanban</a> for the full comparison.
 

@@ -63,7 +63,7 @@ See <a href="/docs/channels/connect">Connect a channel</a> for invite links and 
 
 ## Approval workflow
 
-Grouping pairs with <a href="/docs/calendar-and-posts/approvals">Approvals</a>: put a client’s channels in one group, draft their week, then send preview links for sign-off before anything publishes.
+Grouping pairs with <a href="/docs/posts-management/approvals">Approvals</a>: put a client’s channels in one group, draft their week, then send preview links for sign-off before anything publishes.
 
 ## API and automations
 
@@ -80,6 +80,6 @@ The dashboard says <strong>channel group</strong>. The public API and CLI call t
 <LinkCard title="Connect a channel" description="Add Channel, OAuth, API keys, and invite links for clients" href="/docs/channels/connect" />
 <LinkCard title="Manage a channel" description="Reconnect, disable, or remove a connected account" href="/docs/channels/manage" />
 <LinkCard title="Posting time slots" description="Usual posting hours per channel" href="/docs/channels/time-slots" />
-<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
+<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
 <LinkCard title="Glossary" description="Channel groups, preview links, and calendar vs kanban" href="/docs/getting-started/glossary" />
 </CardGrid>

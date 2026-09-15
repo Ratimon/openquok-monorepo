@@ -49,9 +49,9 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'creating-posts' }
 	},
 	{
-		label: 'Calendar and posts',
+		label: 'Posts management',
 		icon: icons.CalendarClock.name,
-		autogenerate: { directory: 'calendar-and-posts' }
+		autogenerate: { directory: 'posts-management' }
 	},
 	{
 		label: 'Settings',

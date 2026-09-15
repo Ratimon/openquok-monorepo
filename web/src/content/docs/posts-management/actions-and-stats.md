@@ -24,7 +24,7 @@ When a post is loaded, the modal title is **Post actions**. The header shows cha
 | <Badge text="Edit" variant="default" /> | Opens the composer for this post group |
 | <Badge text="Duplicate" variant="default" /> | Copies the group so you can tweak and schedule separately |
 | <Badge text="Export & debug as JSON" variant="default" /> | Copies the full post group payload to the clipboard for support or API debugging |
-| <Badge text="Preview" variant="default" /> | Opens the public preview page in a new tab — see <a href="/docs/calendar-and-posts/approvals">Approvals</a> |
+| <Badge text="Preview" variant="default" /> | Opens the public preview page in a new tab — see <a href="/docs/posts-management/approvals">Approvals</a> |
 | <Badge text="Statistics" variant="default" /> | Opens performance metrics for the published release |
 | <Badge text="Delete" variant="deprecated" /> | Removes the entire post group after confirmation |
 
@@ -46,7 +46,7 @@ To remove one channel from a multi-channel post, open **Edit** and deselect that
 
 When publish fails, the calendar chip keeps shows a **red ring** . Hover the chip to read the platform error in a tooltip. The row is not draggable until you fix the underlying issue.
 
-Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/calendar-and-posts">Calendar overview → Post chips</a> for how failed chips differ from draft and scheduled rows.
+Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/posts-management">Posts management overview → Post chips</a> for how failed chips differ from draft and scheduled rows.
 
 Failed rows also appear when **Post types → Failed** is selected on the calendar filter. In **Posts in this slot**, the status line reads **publish failed** for that row.
 
@@ -90,9 +90,9 @@ Status lines use plain language: **draft**, **scheduled at** the slot time, **pu
 ## Related
 
 <CardGrid>
-<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/calendar-and-posts/approvals" />
-<LinkCard title="Moving posts" description="Drag to reschedule and posts:reschedule for bulk moves" href="/docs/calendar-and-posts/moving-posts" />
-<LinkCard title="Calendar overview" description="Filters, chip states, and opening the composer from a slot" href="/docs/calendar-and-posts" />
+<LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
+<LinkCard title="Moving posts" description="Drag to reschedule and posts:reschedule for bulk moves" href="/docs/posts-management/moving-posts" />
+<LinkCard title="Posts management overview" description="Kanban, calendar filters, chip states, and opening the composer from a slot" href="/docs/posts-management" />
 <LinkCard title="Glossary → Post states" description="Draft, scheduled, published, and failed" href="/docs/getting-started/glossary#post-states" />
 <LinkCard title="Managing posts (CLI)" description="posts:connect, posts:delete, and analytics commands" href="/docs/cli-usages/managing-posts" />
 </CardGrid>

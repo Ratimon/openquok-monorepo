@@ -115,8 +115,8 @@ Full flag tables and HTTP examples live in <a href="/docs/cli-usages/managing-po
 ## Related
 
 <CardGrid>
-<LinkCard title="Calendar overview" description="Views, filters, chips, and how to open a slot" href="/docs/calendar-and-posts" />
-<LinkCard title="Actions and stats" description="Post actions modal after you click a chip" href="/docs/calendar-and-posts/actions-and-stats" />
+<LinkCard title="Posts management overview" description="Kanban, calendar views, filters, chips, and how to open a slot" href="/docs/posts-management" />
+<LinkCard title="Actions and stats" description="Post actions modal after you click a chip" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Scheduling" description="Composer save buttons and repeat cadence" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Kanban board" description="Drag between draft, scheduled, and published columns" href="/docs/creating-posts/kanban" />
 <LinkCard title="Managing posts (CLI)" description="posts:reschedule, posts:status, and delete" href="/docs/cli-usages/managing-posts" />
