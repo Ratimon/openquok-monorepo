@@ -25,6 +25,12 @@ export type ChannelViewModel = CreateSocialPostChannelViewModel;
 /** Checkbox id for channels that are not in any workspace channel group. */
 export const CALENDAR_UNGROUPED_SENTINEL = '__ungrouped__';
 
+/** Checkbox id for posts with no tag names (calendar / kanban Tags filter). */
+export const UNTAGGED_POST_TAG_FILTER = '__untagged__';
+
+/** Label for {@link UNTAGGED_POST_TAG_FILTER} in the Tags filter list and badges. */
+export const UNTAGGED_POST_TAG_LABEL = 'Untagged';
+
 export type CalendarIntegrationFilterViewModel =
 	| { kind: 'all' }
 	| { kind: 'integrations'; integrationIds: string[] }

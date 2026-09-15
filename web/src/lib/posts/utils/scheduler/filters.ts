@@ -3,7 +3,10 @@ import type {
 	CalendarIntegrationFilterViewModel,
 	ChannelViewModel
 } from '$lib/posts/scheduler.types';
-import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+import {
+	CALENDAR_UNGROUPED_SENTINEL,
+	UNTAGGED_POST_TAG_FILTER
+} from '$lib/posts/scheduler.types';
 
 // --- Integration / platform filter ---
 
@@ -140,11 +143,24 @@ function normalizeTagName(name: string): string {
 	return String(name ?? '').trim().toLowerCase();
 }
 
-/** Returns true when the item has at least one of the selected tag names. */
+const UNTAGGED_FILTER_NORMALIZED = normalizeTagName(UNTAGGED_POST_TAG_FILTER);
+
+/** True when `tagNames` is missing or every entry is blank after trim. */
+export function hasNoPostTagNames(tagNames: readonly string[] | undefined | null): boolean {
+	return !(tagNames ?? []).some((n) => String(n ?? '').trim().length > 0);
+}
+
+/**
+ * Returns true when the item has at least one of the selected tag names,
+ * or is untagged when {@link UNTAGGED_POST_TAG_FILTER} is selected (OR semantics).
+ */
 export function matchesTagFilters(
 	tagNames: readonly string[] | undefined,
 	selectedTagNames: Set<string>
 ): boolean {
+	const wantsUntagged = selectedTagNames.has(UNTAGGED_FILTER_NORMALIZED);
+	if (wantsUntagged && hasNoPostTagNames(tagNames)) return true;
+
 	const tags = tagNames ?? [];
 	return tags.some((n) => selectedTagNames.has(normalizeTagName(n)));
 }

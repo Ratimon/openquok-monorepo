@@ -1,6 +1,9 @@
 <script lang="ts">
 	import type { CalendarPostRowViewModel, PostTagFilterVm, PostTagViewModel } from '$lib/posts';
 
+	import { UNTAGGED_POST_TAG_FILTER, UNTAGGED_POST_TAG_LABEL } from '$lib/posts';
+	import { hasNoPostTagNames } from '$lib/posts/utils/scheduler';
+	import { DEFAULT_TAG_CHIP_COLOR } from '$lib/posts/utils/tagChipTheme';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -26,24 +29,31 @@
 		const map = new Map<string, { name: string; color: string | null }>();
 		for (const t of tagsVm) {
 			const name = String(t.name ?? '').trim();
-			if (!name) continue;
+			if (!name || name === UNTAGGED_POST_TAG_FILTER) continue;
 			map.set(name, { name, color: t.color?.trim() || null });
 		}
 		for (const p of posts) {
 			for (const raw of p.tagNames ?? []) {
 				const name = String(raw ?? '').trim();
-				if (!name || map.has(name)) continue;
+				if (!name || name === UNTAGGED_POST_TAG_FILTER || map.has(name)) continue;
 				const fromVm = tagsVm.find((t) => t.name === name);
 				map.set(name, { name, color: fromVm?.color?.trim() || null });
 			}
 		}
 		for (const s of normalizedSelected) {
+			if (s === UNTAGGED_POST_TAG_FILTER) continue;
 			if (!map.has(s)) map.set(s, { name: s, color: null });
 		}
 		return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
 	});
 
-	const allTagNames = $derived.by(() => tagRows.map((t) => t.name));
+	const hasUntagged = $derived(posts.some((p) => hasNoPostTagNames(p.tagNames)));
+
+	const allTagNames = $derived.by(() => {
+		const names = tagRows.map((t) => t.name);
+		if (hasUntagged) names.unshift(UNTAGGED_POST_TAG_FILTER);
+		return names;
+	});
 
 	const effectiveSelected = $derived.by(() => (allTags ? allTagNames : normalizedSelected));
 
@@ -51,7 +61,11 @@
 		if (allTags) return 'All tags';
 		const n = normalizedSelected.length;
 		if (n === 0) return 'Select tags';
-		if (n === 1) return normalizedSelected[0] ?? '1 tag';
+		if (n === 1) {
+			const only = normalizedSelected[0];
+			if (only === UNTAGGED_POST_TAG_FILTER) return UNTAGGED_POST_TAG_LABEL;
+			return only ?? '1 tag';
+		}
 		return `${n} tags`;
 	});
 
@@ -82,11 +96,19 @@
 	);
 
 	const selectedBadges = $derived.by(() =>
-		effectiveSelected.map((name) => ({
-			id: name,
-			label: name,
-			color: colorByName.get(name) ?? null
-		}))
+		effectiveSelected.map((name) =>
+			name === UNTAGGED_POST_TAG_FILTER
+				? {
+						id: name,
+						label: UNTAGGED_POST_TAG_LABEL,
+						color: DEFAULT_TAG_CHIP_COLOR
+					}
+				: {
+						id: name,
+						label: name,
+						color: colorByName.get(name) ?? null
+					}
+		)
 	);
 
 </script>
@@ -164,6 +186,35 @@
 		<div class="divider my-1"></div>
 
 		<div class="max-h-[min(50vh,280px)] space-y-1 overflow-y-auto">
+			{#if hasUntagged}
+				<label
+					class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allTags &&
+					normalizedSelected.includes(UNTAGGED_POST_TAG_FILTER)
+						? 'bg-base-200/80'
+						: ''}"
+				>
+					<Checkbox
+						checked={effectiveSelected.includes(UNTAGGED_POST_TAG_FILTER)}
+						onCheckedChange={() => {
+							if (allTags) {
+								onChange({
+									allTags: false,
+									selectedTagNames: allTagNames.filter((x) => x !== UNTAGGED_POST_TAG_FILTER)
+								});
+							} else {
+								toggleTag(UNTAGGED_POST_TAG_FILTER);
+							}
+						}}
+						class="mt-0.5"
+					/>
+					<span
+						class="mt-1 size-3 shrink-0 rounded-full border border-base-content/10"
+						style:background-color={DEFAULT_TAG_CHIP_COLOR}
+						aria-hidden="true"
+					></span>
+					<span class="text-sm leading-snug">{UNTAGGED_POST_TAG_LABEL}</span>
+				</label>
+			{/if}
 			{#each tagRows as t (t.name)}
 				<label
 					class="hover:bg-base-200 flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 {!allTags && normalizedSelected.includes(t.name)

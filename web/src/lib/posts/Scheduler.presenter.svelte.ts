@@ -49,7 +49,11 @@ export type {
 	ScheduledPostsCalendarViewModel,
 	SocialPlatformFilterVm
 } from '$lib/posts/scheduler.types';
-export { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+export {
+	CALENDAR_UNGROUPED_SENTINEL,
+	UNTAGGED_POST_TAG_FILTER,
+	UNTAGGED_POST_TAG_LABEL
+} from '$lib/posts/scheduler.types';
 export {
 	registerEditPostGroupHandler,
 	registerOpenActionsForPostGroupHandler,

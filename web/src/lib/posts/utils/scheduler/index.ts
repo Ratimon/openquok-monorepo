@@ -14,6 +14,7 @@ export {
 	deriveIntegrationFilter,
 	filterPostsByPostType,
 	filterPostsByTags,
+	hasNoPostTagNames,
 	matchesTagFilters,
 	rowMatchesTagFilters
 } from './filters';

@@ -85,7 +85,12 @@ export type {
 	ScheduledPostsCalendarViewModel,
 	SocialPlatformFilterVm
 } from '$lib/posts/Scheduler.presenter.svelte';
-export { CALENDAR_UNGROUPED_SENTINEL, SchedulerPresenter } from '$lib/posts/Scheduler.presenter.svelte';
+export {
+	CALENDAR_UNGROUPED_SENTINEL,
+	UNTAGGED_POST_TAG_FILTER,
+	UNTAGGED_POST_TAG_LABEL,
+	SchedulerPresenter
+} from '$lib/posts/Scheduler.presenter.svelte';
 export { PostKanbanBoardPresenter } from '$lib/posts/PostKanbanBoard.presenter.svelte';
 export type {
 	PostKanbanCardViewModel,
