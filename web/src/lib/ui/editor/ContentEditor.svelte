@@ -31,10 +31,9 @@
 
 	let currentContent = $state('');
 	let currentLength = $state(0);
-	/** Avoid wiping the editor when the parent `content` prop has not caught up to our last `onChange` yet. */
-	let lastOutgoingContent = $state<string | null>(null);
-	/** Last `content` prop applied to TipTap — avoids setContent ↔ onChange loops when HTML round-trips differ. */
-	let lastAppliedPropContent = $state<string | null>(null);
+	/** Last HTML/text pushed to the parent — avoids duplicate onChange during TipTap normalization. */
+	let lastNotifiedContent: string | null = null;
+	let acceptingEditorUpdates = false;
 	/** Blob URL => selected local file (upload later on submit). */
 	const pendingInlineImageFiles = new Map<string, File>();
 
@@ -114,6 +113,7 @@
 				handleUpdate();
 			},
 			onTransaction: ({ transaction }) => {
+				if (!acceptingEditorUpdates) return;
 				// Re-render toolbar active states; skip while typing alt (selection noise only).
 				if (transaction.docChanged || (transaction.selectionSet && !isBlogImageAltEditing())) {
 					toolbarRevision += 1;
@@ -124,11 +124,9 @@
 		// Initialize content length
 		currentContent = content || '';
 		currentLength = editor.getText().length;
+		lastNotifiedContent = content || '';
+		acceptingEditorUpdates = true;
 	});
-
-	function isBlogImageAltInputFocused(): boolean {
-		return isBlogImageAltEditing();
-	}
 
 	function collectBlobSrcsFromEditorDoc(): Set<string> {
 		const blobSrcs = new Set<string>();
@@ -261,10 +259,9 @@
 		const nextHtml = doc.innerHTML;
 		if (nextHtml !== html) {
 			editor.commands.setContent(nextHtml, { emitUpdate: false });
-			lastOutgoingContent = nextHtml;
-			lastAppliedPropContent = nextHtml;
 			currentContent = nextHtml;
 			currentLength = editor.getText().length;
+			lastNotifiedContent = nextHtml;
 			onChange(nextHtml);
 		}
 		return true;
@@ -287,63 +284,28 @@
 			}
 		}
 
-		lastOutgoingContent = newContent;
 		currentContent = newContent;
 		currentLength = editor.getText().length;
 		if (outputType === 'html') {
 			cleanupRemovedPendingBlobUrls(newContent);
 		}
+		if (!acceptingEditorUpdates || newContent === lastNotifiedContent) return;
+		lastNotifiedContent = newContent;
 		onChange(newContent);
 	}
 
-	function effectiveContentFromProp(raw: string): string {
-		if (outputType === 'html') {
-			return normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(raw || ''));
-		}
-		return raw || '';
-	}
-
-	function applyContentFromProp(raw: string): void {
+	/** Replace editor body from outside (e.g. AI draft). Not wired to the `content` prop echo. */
+	export function applyDynamicContent(raw: string): void {
 		if (!editor) return;
-		const effective = effectiveContentFromProp(raw);
-		const current =
-			outputType === 'html' ? editor.getHTML() : editor.getText();
-		if (effective === current) {
-			lastAppliedPropContent = raw;
-			return;
-		}
-		editor.commands.setContent(effective, { emitUpdate: false });
-		lastAppliedPropContent = raw;
-		currentContent = raw || '';
-		currentLength = editor.getText().length;
-	}
-
-	$effect(() => {
-		if (!editor || !dynamicContent) return;
 		const effective =
-			outputType === 'html' ? normalizeBlogInlineImagesInHtml(dynamicContent) : dynamicContent;
+			outputType === 'html' ? normalizeBlogInlineImagesInHtml(raw) : raw;
+		acceptingEditorUpdates = false;
 		editor.commands.setContent(effective, { emitUpdate: false });
-		lastAppliedPropContent = dynamicContent;
-		handleUpdate();
-	});
-
-	// Watch for content prop changes and update editor
-	$effect(() => {
-		if (!editor || content === undefined) return;
-		if (isBlogImageAltInputFocused()) return;
-
-		// Parent has not echoed our last onChange yet — do not overwrite the editor.
-		if (lastOutgoingContent !== null) {
-			if (content === lastOutgoingContent) {
-				lastOutgoingContent = null;
-			}
-			return;
-		}
-
-		if (content === lastAppliedPropContent) return;
-
-		applyContentFromProp(content);
-	});
+		currentContent = raw;
+		currentLength = editor.getText().length;
+		lastNotifiedContent = raw;
+		acceptingEditorUpdates = true;
+	}
 
 	onDestroy(() => {
 		for (const [blobUrl] of pendingInlineImageFiles) {

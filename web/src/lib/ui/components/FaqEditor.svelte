@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
+
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -41,16 +43,8 @@
 		return rows.map(({ question, answer }) => ({ question, answer }));
 	}
 
-	let localFaqs = $state<LocalFaqRow[]>([]);
-
-	$effect.pre(() => {
-		const next = faqs ?? [];
-		const nextDto = JSON.stringify(next);
-		const localDto = JSON.stringify(toFaqDto(localFaqs));
-		if (nextDto !== localDto) {
-			localFaqs = hydrateFaqs(next);
-		}
-	});
+	/** Local FAQ rows — initialized once per mount; parent updates flow out via `onChange` only. */
+	let localFaqs = $state<LocalFaqRow[]>(untrack(() => hydrateFaqs(faqs ?? [])));
 
 	function emitChange(rows: LocalFaqRow[]) {
 		localFaqs = rows;

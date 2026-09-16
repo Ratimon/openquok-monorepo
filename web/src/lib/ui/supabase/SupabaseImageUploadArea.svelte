@@ -4,7 +4,7 @@
     import type { DatabaseName } from "$lib/core/Image.repository.svelte";
     import type { LocalImage } from "$lib/core/constants/types";
 
-    import { onMount, onDestroy } from 'svelte';
+    import { onDestroy } from 'svelte';
     import { toast } from '$lib/ui/sonner';
     import { cn } from '$lib/ui/helpers/common';
     import { icons } from "$data/icons";
@@ -34,6 +34,10 @@
         onUploadImage: (databaseName: DatabaseName, imageFile: File, uid: string) => void;
         onToastMessageChange: (show: boolean) => void;
         onReset?: () => void;
+        /** Fired when the user picks or clears a local file preview (before upload on save). */
+        onPendingFileChange?: (pending: boolean) => void;
+        /** When false, VM state is kept across unmount (per-editor presenter). */
+        resetOnDestroy?: boolean;
     };
 
     let {
@@ -51,6 +55,8 @@
         onUploadImage,
         onToastMessageChange,
         onReset,
+        onPendingFileChange,
+        resetOnDestroy = true,
     }: Props = $props();
 
     let imageUrl = $derived(uploadAreaVm.imageURL);
@@ -63,23 +69,30 @@
 
     let previewImage: LocalImage | null = $state(null);
     let selectedImage: string | null = $state(null);
+    let loadedStorageKey = $state('');
 
-    onMount(() => {
-        if (url) {
-            onLoadImage(databaseName, url);
-        } else {
-            // Reset upload area VM when mounting with no url (new sublisting)
+    $effect(() => {
+        const storageKey = (url ?? '').trim();
+        if (storageKey === loadedStorageKey) return;
+        loadedStorageKey = storageKey;
+        if (storageKey) {
+            void Promise.resolve(onLoadImage(databaseName, storageKey));
+            return;
+        }
+        if (!previewImage) {
             onReset?.();
         }
     });
 
     onDestroy(() => {
-        onReset?.();
+        if (resetOnDestroy) {
+            onReset?.();
+        }
         if (previewImage?.preview) {
             URL.revokeObjectURL(previewImage.preview);
         }
-        // Clear component internal state
         previewImage = null;
+        onPendingFileChange?.(false);
     });
 
     function handleFileChange(event: Event) {
@@ -101,6 +114,7 @@
                 isNew: true,
                 uploadedFilename: undefined
             };
+            onPendingFileChange?.(true);
         }
     }
 
@@ -109,6 +123,7 @@
             URL.revokeObjectURL(previewImage.preview);
         }
         previewImage = null;
+        onPendingFileChange?.(false);
     }
 
     function handleImageClick(preview: string) {
@@ -165,6 +180,7 @@
 
             if (uploadedSuccessfully && uploadedPath) {
                 onFormTouch(uploadedPath);
+                loadedStorageKey = uploadedPath;
                 handleRemovePreview();
                 if (showToastMessage && toastMessage) {
                     toast.success(toastMessage);

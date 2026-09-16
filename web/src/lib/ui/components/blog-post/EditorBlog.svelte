@@ -2,6 +2,7 @@
 	import type { BlogPostFormSchemaType, BlogSeoHowtoStep, BlogSeoProduct, TopicChoice } from '$lib/blogs/blog.types';
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
+	import { onMount, untrack } from 'svelte';
 	import { createForm } from '@tanstack/svelte-form';
 
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
@@ -19,7 +20,11 @@
 	import { Alert, AlertTitle, AlertDescription } from '$lib/ui/alert';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import * as Select from '$lib/ui/select';
-	import { blogHeroImageUploadAreaPresenter, imageRepository } from '$lib/core/index';
+	import { imageRepository } from '$lib/core/index';
+	import { DeleteImagePresenter } from '$lib/core/DeleteImage.presenter.svelte';
+	import { DownloadImagePresenter } from '$lib/core/DownloadImage.presenter.svelte';
+	import { SupabaseImageUploadAreaPresenter } from '$lib/core/SupabaseImageUploadArea.presenter.svelte';
+	import { UploadImagePresenter } from '$lib/core/UploadImage.presenter.svelte';
 	import FaqEditor from '$lib/ui/components/FaqEditor.svelte';
 	import BlogRichTextField from '$lib/ui/components/blog-post/BlogRichTextField.svelte';
 	import SupabaseImageUploadArea from '$lib/ui/supabase/SupabaseImageUploadArea.svelte';
@@ -53,6 +58,35 @@
 	function resolveTopicSlug(topicId: string): string {
 		return topicChoices.find((choice) => choice.value === topicId)?.slug ?? '';
 	}
+
+	function snapshotBlogFormValues(
+		values: Partial<BlogPostFormSchemaType>
+	): Partial<BlogPostFormSchemaType> {
+		return {
+			id: values.id ?? '',
+			title: values.title ?? '',
+			description: values.description ?? '',
+			content: values.content ?? '',
+			topic_id: values.topic_id ?? '',
+			hero_image_filename: values.hero_image_filename ?? '',
+			is_sponsored: values.is_sponsored ?? false,
+			is_featured: values.is_featured ?? false,
+			is_user_published: values.is_user_published ?? false,
+			is_admin_approved: values.is_admin_approved ?? false,
+			faq_items: values.faq_items?.map((item) => ({ ...item })) ?? null,
+			howto_steps: values.howto_steps?.map((step) => ({ ...step })) ?? null,
+			product: values.product ? { ...values.product } : null
+		};
+	}
+
+	/** Frozen once per EditorBlog mount — prevents createForm from resetting when parent re-renders. */
+	const bootValues = untrack(() => snapshotBlogFormValues(initialValues));
+
+	const heroImagePresenter = new SupabaseImageUploadAreaPresenter(
+		new DownloadImagePresenter(imageRepository),
+		new UploadImagePresenter(imageRepository),
+		new DeleteImagePresenter(imageRepository)
+	);
 
 	function normalizeSeoPayload(
 		value: BlogPostFormSchemaType,
@@ -98,21 +132,7 @@
 	);
 
 	const form = createForm(() => ({
-		defaultValues: {
-			id: initialValues.id ?? '',
-			title: initialValues.title ?? '',
-			description: initialValues.description ?? '',
-			content: initialValues.content ?? '',
-			topic_id: initialValues.topic_id ?? '',
-			hero_image_filename: initialValues.hero_image_filename ?? '',
-			is_sponsored: initialValues.is_sponsored ?? false,
-			is_featured: initialValues.is_featured ?? false,
-			is_user_published: initialValues.is_user_published ?? false,
-			is_admin_approved: initialValues.is_admin_approved ?? false,
-			faq_items: initialValues.faq_items ?? null,
-			howto_steps: initialValues.howto_steps ?? null,
-			product: initialValues.product ?? null
-		},
+		defaultValues: bootValues,
 		onSubmit: async ({ value }) => {
 			savePhase = 'uploading';
 			try {
@@ -136,11 +156,12 @@
 					}
 				}
 
-				const topicSlug = resolveTopicSlug(value.topic_id);
+				const topicId = value.topic_id ?? '';
+				const topicSlug = resolveTopicSlug(topicId);
 				const seoFields = normalizeSeoPayload(
 					value as BlogPostFormSchemaType,
 					topicSlug,
-					value.topic_id
+					topicId
 				);
 
 				const payload = {
@@ -172,12 +193,9 @@
 	// Component reference for image upload
 	let heroImageUploadRef: SupabaseImageUploadArea | undefined = $state();
 	let contentEditorRef: ContentEditor | undefined = $state();
-	let hasPendingHeroImageChanges = $derived(() => heroImageUploadRef?.hasSelectedFile?.());
+	let hasPendingHeroFile = $state(false);
 	let contentEditorMode = $state<'visual' | 'html'>('visual');
 	let htmlSourceContent = $state('');
-	let productPrefillDone = $state(false);
-	let productPrefillTopicId = $state('');
-
 	const seoTopicStore = form.useStore((state) => ({
 		topicId: state.values.topic_id ?? '',
 		title: state.values.title ?? '',
@@ -185,33 +203,44 @@
 		product: state.values.product ?? null
 	}));
 
-	$effect(() => {
-		const { topicId, title, description, product } = seoTopicStore.current;
-		if (topicId !== productPrefillTopicId) {
-			productPrefillTopicId = topicId;
-			productPrefillDone = false;
-		}
-
-		const topicSlug = resolveTopicSlug(topicId);
-		const showProductSection = isBlogTopicEligibleForProduct(topicSlug, topicId);
-		if (!showProductSection || productPrefillDone) return;
-
-		if (product?.name?.trim() && product?.description?.trim()) {
-			productPrefillDone = true;
-			return;
-		}
-
+	function buildProductPrefill(
+		title: string,
+		description: string,
+		product: BlogSeoProduct | null
+	): BlogSeoProduct | null {
 		const trimmedTitle = title.trim();
 		const trimmedDescription = description.trim();
-		if (!trimmedTitle && !trimmedDescription) return;
+		if (!trimmedTitle && !trimmedDescription) return null;
 
-		form.setFieldValue('product', {
+		return {
 			name: product?.name?.trim() || trimmedTitle,
 			description: product?.description?.trim() || trimmedDescription,
 			brand: product?.brand?.trim() || companyName || null,
 			url: product?.url?.trim() || null
-		});
-		productPrefillDone = true;
+		};
+	}
+
+	function prefillProductFields(): void {
+		const { topicId, title, description, product } = seoTopicStore.current;
+		const topicSlug = resolveTopicSlug(topicId);
+		if (!isBlogTopicEligibleForProduct(topicSlug, topicId)) return;
+		if (product?.name?.trim() && product?.description?.trim()) return;
+
+		const nextProduct = buildProductPrefill(title, description, product);
+		if (!nextProduct) return;
+
+		const unchanged =
+			product?.name === nextProduct.name &&
+			product?.description === nextProduct.description &&
+			(product?.brand ?? null) === nextProduct.brand &&
+			(product?.url ?? null) === nextProduct.url;
+		if (unchanged) return;
+
+		form.setFieldValue('product', nextProduct);
+	}
+
+	onMount(() => {
+		prefillProductFields();
 	});
 
 	function prettyFormatHtml(html: string): string {
@@ -276,11 +305,11 @@
 	}
 
 	const handleLoadImageForBlogHeroImage = async (databaseName: DatabaseName, imageUrl: string) => {
-		return blogHeroImageUploadAreaPresenter.loadImage(databaseName, imageUrl);
+		return heroImagePresenter.loadImage(databaseName, imageUrl);
 	};
 
 	const handleUploadImageForBlogHeroImage = async (databaseName: DatabaseName, imageFile: File, uid: string) => {
-		return blogHeroImageUploadAreaPresenter.uploadImage(databaseName, imageFile, uid);
+		return heroImagePresenter.uploadImage(databaseName, imageFile, uid);
 	};
 
 	/** Remove previous hero object from storage before replacing (see MultiImageUpload / listing editor). */
@@ -316,7 +345,7 @@
 						{@const stickyBusy = saveBusy || state.isSubmitting}
 						{#if stickyBusy && saveStatusLabel}
 							<p class="text-xs text-base-content/70">{saveStatusLabel}</p>
-						{:else if state.isDirty || hasPendingHeroImageChanges()}
+						{:else if state.isDirty || hasPendingHeroFile}
 							<p class="text-xs text-base-content/70">
 								Unsaved changes</p>
 						{/if}
@@ -327,7 +356,7 @@
 							<Button
 								type="submit"
 								class="gap-2"
-								disabled={(!state.isDirty && !hasPendingHeroImageChanges()) || stickyBusy}
+								disabled={(!state.isDirty && !hasPendingHeroFile) || stickyBusy}
 								aria-busy={stickyBusy}
 							>
 								{#if stickyBusy}
@@ -493,7 +522,7 @@
 								maxlength={500}
 							/>
 							<p class="text-xs text-base-content/60">
-								{field.state.value.length}/500</p>
+								{(field.state.value ?? '').length}/500</p>
 							<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 						</div>
 					{/snippet}
@@ -513,7 +542,7 @@
 									type="button"
 									variant={contentEditorMode === 'visual' ? 'primary' : 'outline'}
 									size="sm"
-									onclick={() => switchContentEditorMode('visual', field.state.value)}
+									onclick={() => switchContentEditorMode('visual', field.state.value ?? '')}
 								>
 									Visual
 								</Button>
@@ -521,7 +550,7 @@
 									type="button"
 									variant={contentEditorMode === 'html' ? 'primary' : 'outline'}
 									size="sm"
-									onclick={() => switchContentEditorMode('html', field.state.value)}
+									onclick={() => switchContentEditorMode('html', field.state.value ?? '')}
 								>
 									HTML source
 								</Button>
@@ -529,7 +558,7 @@
 							{#if contentEditorMode === 'visual'}
 								<ContentEditor
 									bind:this={contentEditorRef}
-									content={field.state.value}
+									content={field.state.value ?? ''}
 									onChange={(v) => field.handleChange(v)}
 									outputType="html"
 									showMenu={true}
@@ -563,7 +592,10 @@
 								<Select.Root
 									type="single"
 									value={field.state.value || undefined}
-									onValueChange={(v) => field.handleChange(v ?? '')}
+									onValueChange={(v) => {
+										field.handleChange(v ?? '');
+										prefillProductFields();
+									}}
 								>
 									<Select.Trigger class="w-full max-w-md">
 										{topicChoices.find((c) => c.value === field.state.value)?.label ?? 'Select topic'}
@@ -803,6 +835,11 @@
 							<Field.Description>
 								Upload a hero image. The storage path is saved on the post when you save.
 							</Field.Description>
+							{#if field.state.value}
+								<p class="break-all font-mono text-xs text-base-content/70">
+									Current file: {field.state.value}
+								</p>
+							{/if}
 							<SupabaseImageUploadArea
 								bind:this={heroImageUploadRef}
 								duid={userId}
@@ -812,12 +849,16 @@
 								aspectRatio="1200/630"
 								databaseName="blog_images"
 								deletePreviousStorage={deletePreviousHeroInStorage}
+								resetOnDestroy={false}
 								onFormTouch={(url) => field.handleChange(url)}
-								uploadAreaVm={blogHeroImageUploadAreaPresenter.uploadAreaVm}
+								onPendingFileChange={(pending) => {
+									hasPendingHeroFile = pending;
+								}}
+								uploadAreaVm={heroImagePresenter.uploadAreaVm}
 								onLoadImage={handleLoadImageForBlogHeroImage}
 								onUploadImage={handleUploadImageForBlogHeroImage}
-								onToastMessageChange={(show) => (blogHeroImageUploadAreaPresenter.uploadAreaVm.showToastMessage = show)}
-								onReset={() => blogHeroImageUploadAreaPresenter.reset()}
+								onToastMessageChange={(show) => (heroImagePresenter.uploadAreaVm.showToastMessage = show)}
+								onReset={() => heroImagePresenter.reset()}
 							/>
 							<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 						</div>

@@ -29,10 +29,9 @@
 	const title = $derived(mode === 'insert' ? 'Add image' : 'Edit alt text');
 	const confirmLabel = $derived(mode === 'insert' ? 'Insert preview' : 'Save');
 
-	$effect(() => {
-		if (open) {
-			alt = initialAlt ?? '';
-		}
+	$effect.pre(() => {
+		if (!open) return;
+		alt = initialAlt ?? '';
 	});
 
 	async function submit(e: Event) {
