@@ -3,6 +3,8 @@ import type { BlogPostCommentViewModel } from '$lib/blogs/GetBlog.presenter.svel
 
 import { error } from '@sveltejs/kit';
 
+import { ApiError } from '$lib/core/HttpGateway';
+
 import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blogs/utils';
 import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
@@ -28,11 +30,20 @@ export async function load({ url, params, fetch, cookies, parent }) {
 	// Configurable related posts count (kept here for easy tuning per route).
 	const relatedPostsLimit = 2;
 
-	const { currentPostVm, otherPostsVm } = await publicBlogBySlugPagePresenter.loadDataForBlogPostBySlugStateless({
-		slug,
-		fetch,
-		relatedLimit: relatedPostsLimit
-	});
+	let currentPostVm;
+	let otherPostsVm;
+	try {
+		({ currentPostVm, otherPostsVm } = await publicBlogBySlugPagePresenter.loadDataForBlogPostBySlugStateless({
+			slug,
+			fetch,
+			relatedLimit: relatedPostsLimit
+		}));
+	} catch (err) {
+		if (err instanceof ApiError && err.status === 429) {
+			throw error(503, 'Temporarily unavailable');
+		}
+		throw err;
+	}
 
 	if (!currentPostVm) {
 		throw error(404, 'Blog post not found');

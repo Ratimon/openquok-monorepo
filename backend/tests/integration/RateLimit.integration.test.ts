@@ -97,6 +97,21 @@ describe("Rate limit", () => {
         });
     });
 
+    describe("Public cached CMS GETs", () => {
+        it("does not apply the global limiter to company information", async () => {
+            const ip = "203.0.113.80";
+            let lastStatus = 0;
+            for (let i = 0; i < globalLimit + 2; i++) {
+                const res = await supertest(app)
+                    .get(`${apiPrefix}/company/information`)
+                    .set("X-Forwarded-For", ip);
+                lastStatus = res.status;
+                expect(res.status).not.toBe(429);
+            }
+            expect(lastStatus).not.toBe(429);
+        });
+    });
+
     describe("Auth rate limiting", () => {
         it("returns 429 on sign-in when exceeded", async () => {
             const limited = await untilRateLimited(

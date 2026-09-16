@@ -120,6 +120,30 @@ export function userFacingApiErrorMessage(error: unknown, fallback: string): str
 	return sanitizeUserFacingMessage(messageFromApiError(error, fallback), fallback);
 }
 
+export function isApiError(error: unknown): error is ApiError {
+	return error instanceof ApiError;
+}
+
+/** Map HTTP 404 to `fallback`. Other failures (including 429) still throw. */
+export async function withNotFoundFallback<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+	try {
+		return await run();
+	} catch (error) {
+		if (error instanceof ApiError && error.status === 404) return fallback;
+		throw error;
+	}
+}
+
+/** Map 4xx API errors (missing resource, rate limit) to `fallback` so optional SSR blocks do not 500. */
+export async function withClientErrorFallback<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+	try {
+		return await run();
+	} catch (error) {
+		if (error instanceof ApiError && error.status >= 400 && error.status < 500) return fallback;
+		throw error;
+	}
+}
+
 export class ApiError extends Error {
 	public status: number;
 	public statusText: string;

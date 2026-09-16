@@ -2,7 +2,7 @@
 title: Rate limiting
 description: Configure backend rate limiting (global, auth, public API, uploads, and other route-specific limits) for OpenQuok.
 order: 9
-lastUpdated: 2026-07-15
+lastUpdated: 2026-09-16
 ---
 
 <script>
@@ -27,6 +27,10 @@ Implementation lives in <Badge text="backend/middlewares/rateLimit.ts" variant="
 
 <Callout type="note">
 Routes with their own limiter are excluded from the global per-IP counter so public API tokens are not capped by a shared office IP, and upload/feedback limits stay independent.
+</Callout>
+
+<Callout type="warning" title="Website SSR and Cloudflare">
+<p>Vercel SSR and Cloudflare can make many requests look like one IP (<code>trust proxy: 1</code>). The global limiter skips public cached GETs used for SSR and keys the rest on <code>CF-Connecting-IP</code> when present. Anonymous writes still use the public-write limiter.</p>
 </Callout>
 
 <Callout>
@@ -128,7 +132,7 @@ PUBLIC_WRITE_RATE_LIMIT_MAX=60
 
 | Limiter | Scope | Key | Default |
 | --- | --- | --- | --- |
-| Global | Most authenticated session routes | IP | 30/hr (prod) |
+| Global | Most authenticated session routes (not public CMS GETs) | IP or Cloudflare connecting IP | 30/hr (prod) |
 | Auth | <Badge text="POST /auth/sign-in" variant="path" />, sign-up, reset, verification | IP | 50 / 15 min |
 | OAuth | <Badge text="GET /auth/oauth/google" variant="path" /> (+ callback) | IP | 20 / 5 min |
 | Public API | All <Badge text="/public/*" variant="path" /> | <Badge text="opo_" variant="default" /> token | 30 / hr |

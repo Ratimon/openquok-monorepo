@@ -8,6 +8,7 @@ import type {
 import type { BlogPostFormSchemaType } from '$lib/blogs/blog.types';
 import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
 import { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils';
+import { userFacingApiErrorMessage } from '$lib/core/HttpGateway';
 
 
 export class AdminBlogEditorPagePresenter {
@@ -77,6 +78,11 @@ export class AdminBlogEditorPagePresenter {
 			const post = await this.blogRepository.getBlogPostById(postId, fetch);
 			this.blogPost = post;
 			return post != null;
+		} catch (error) {
+			this.blogPost = null;
+			this.toastMessage = userFacingApiErrorMessage(error, 'Could not load this blog post.');
+			this.showToastMessage = true;
+			return false;
 		} finally {
 			this.loadingPost = false;
 		}
@@ -87,6 +93,10 @@ export class AdminBlogEditorPagePresenter {
 		this.loadingTopics = true;
 		try {
 			this.topicChoices = await this.blogRepository.getBlogTopics(fetch);
+		} catch (error) {
+			this.topicChoices = [];
+			this.toastMessage = userFacingApiErrorMessage(error, 'Could not load blog topics.');
+			this.showToastMessage = true;
 		} finally {
 			this.loadingTopics = false;
 		}
@@ -97,8 +107,14 @@ export class AdminBlogEditorPagePresenter {
 		if (!postId) {
 			this.blogPost = null;
 		}
-		const loadPost = postId ? this.loadPostById(postId, fetch) : Promise.resolve(false);
-		await Promise.all([loadPost, this.loadTopics(fetch)]);
+		try {
+			const loadPost = postId ? this.loadPostById(postId, fetch) : Promise.resolve(false);
+			await Promise.all([loadPost, this.loadTopics(fetch)]);
+		} catch (error) {
+			this.toastMessage = userFacingApiErrorMessage(error, 'Could not load the blog editor.');
+			this.showToastMessage = true;
+			return { postFound: false };
+		}
 		const postFound = !postId || this.blogPost != null;
 		return { postFound };
 	}

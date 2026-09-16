@@ -1,4 +1,4 @@
-import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
+import { HttpGateway, HttpMethod, withClientErrorFallback } from '$lib/core/HttpGateway';
 
 import {
 	getDefaultSchemaTypeForListingKind,
@@ -734,20 +734,22 @@ export class ListingRepository {
 		if (sortByKey) params.sortByKey = sortByKey;
 		if (sortByOrder != null) params.sortByOrder = sortByOrder;
 
-		const { data: getPublishedListingsDto, ok } =
-			await this.httpGateway.get<GetListingsCollectionResponseDto>(
-				this.config.endpoints.getPublishedListings,
-				params,
-				{ withCredentials: false, fetch: customFetch }
-			);
+		return withClientErrorFallback(async () => {
+			const { data: getPublishedListingsDto, ok } =
+				await this.httpGateway.get<GetListingsCollectionResponseDto>(
+					this.config.endpoints.getPublishedListings,
+					params,
+					{ withCredentials: false, fetch: customFetch }
+				);
 
-		if (ok && getPublishedListingsDto?.success && Array.isArray(getPublishedListingsDto.data)) {
-			return {
-				listings: getPublishedListingsDto.data.map((row) => this.toListingPm(row)),
-				count: getPublishedListingsDto.count ?? 0
-			};
-		}
-		return { listings: [], count: 0 };
+			if (ok && getPublishedListingsDto?.success && Array.isArray(getPublishedListingsDto.data)) {
+				return {
+					listings: getPublishedListingsDto.data.map((row) => this.toListingPm(row)),
+					count: getPublishedListingsDto.count ?? 0
+				};
+			}
+			return { listings: [], count: 0 };
+		}, { listings: [], count: 0 });
 	}
 
 	async getPublishedBySlug(slug: string, fetch?: typeof globalThis.fetch): Promise<ListingProgrammerModel | null> {

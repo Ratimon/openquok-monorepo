@@ -26,6 +26,44 @@ const PROGRAMMATIC_TOKEN_PREFIX = "opo_";
 const hashRateLimitKey = (value: string): string =>
     createHash("sha256").update(value).digest("hex").slice(0, 32);
 
+const firstHeaderValue = (value: string | string[] | undefined): string | null => {
+    const raw = Array.isArray(value) ? value[0] : value;
+    if (typeof raw !== "string") return null;
+    const first = raw.split(",")[0]?.trim();
+    return first && first.length > 0 ? first : null;
+};
+
+/**
+ * Prefer Cloudflare's client IP. With Cloudflare in front of Vercel,
+ * `trust proxy: 1` makes `req.ip` the Cloudflare edge (shared by every visitor).
+ */
+export const clientIpFromRequest = (req: Request): string => {
+    const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
+    if (cfConnectingIp) return cfConnectingIp;
+    return req.ip ?? "unknown";
+};
+
+/**
+ * Public cached CMS/catalog GETs used by website SSR. They must not share the
+ * global per-IP bucket — Vercel SSR egress and a mis-read Cloudflare hop would
+ * 429 the marketing site (and secret-admin shells that still SSR layout).
+ */
+export const isPublicCachedGetRequest = (req: Request): boolean => {
+    if (req.method !== "GET") return false;
+    const path = req.path;
+    if (path === "/company" || path.startsWith("/company/")) return true;
+    if (path === "/blog-system" || path.startsWith("/blog-system/")) return true;
+    if (path === "/listings/published" || path.startsWith("/listings/published/")) return true;
+    if (path === "/listings/stacks/published" || path.startsWith("/listings/stacks/published/")) {
+        return true;
+    }
+    if (path.startsWith("/listings/categories/")) return true;
+    if (path.startsWith("/listings/tags/")) return true;
+    if (path === "/listings/creators" || path.startsWith("/listings/creators/")) return true;
+    if (path === "/image/download") return true;
+    return false;
+};
+
 const extractBearerToken = (req: Request): string | null => {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith("Bearer ")) return null;
@@ -33,7 +71,7 @@ const extractBearerToken = (req: Request): string | null => {
     return token.length > 0 ? token : null;
 };
 
-const clientIpKey = (req: Request): string => ipKeyGenerator(req.ip ?? "unknown");
+const clientIpKey = (req: Request): string => ipKeyGenerator(clientIpFromRequest(req));
 
 const publicApiKeyGenerator = (req: Request): string => {
     const token = extractBearerToken(req);
@@ -132,7 +170,7 @@ const createRateLimiter = (options: RateLimitConfig): RateLimitRequestHandler =>
         max: options.max,
         message: options.message,
         skip: skipFunction,
-        keyGenerator: options.keyGenerator,
+        keyGenerator: options.keyGenerator ?? clientIpKey,
     });
 };
 
@@ -154,7 +192,8 @@ export const globalLimiter = createRateLimiter({
             path === "/health" ||
             path.startsWith("/health") ||
             path === "/sitemap.xml" ||
-            path.startsWith("/sitemap.xml");
+            path.startsWith("/sitemap.xml") ||
+            isPublicCachedGetRequest(req);
         const isDedicatedLimiter =
             isPublicApiPath(path) ||
             isUploadPath(path) ||

@@ -52,4 +52,12 @@ export const blogHeroImageUploadAreaPresenter = new SupabaseImageUploadAreaPrese
 );
 
 export { httpGateway };
-export { HttpGateway, ApiError, type ApiRequestOptions, type ApiResponse } from '$lib/core/HttpGateway';
+export {
+	HttpGateway,
+	ApiError,
+	isApiError,
+	withNotFoundFallback,
+	withClientErrorFallback,
+	type ApiRequestOptions,
+	type ApiResponse
+} from '$lib/core/HttpGateway';

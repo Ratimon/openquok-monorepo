@@ -1,4 +1,9 @@
-import { HttpGateway, HttpMethod } from '$lib/core/HttpGateway';
+import {
+	HttpGateway,
+	HttpMethod,
+	withClientErrorFallback,
+	withNotFoundFallback
+} from '$lib/core/HttpGateway';
 import type {
 	BlogPostFormSchemaType,
 	BlogSeoFaqItem,
@@ -503,13 +508,15 @@ export class BlogRepository {
 		id: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<BlogPostProgrammerModel | null> {
-		const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
-			this.config.endpoints.getPostById(id),
-			undefined,
-			{ withCredentials: true, fetch }
-		);
-		if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
-		return null;
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
+				this.config.endpoints.getPostById(id),
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
+			return null;
+		}, null);
 	}
 
 	/**
@@ -520,25 +527,29 @@ export class BlogRepository {
 		identifier: string,
 		fetch?: typeof globalThis.fetch
 	): Promise<BlogPostProgrammerModel | null> {
-		const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
-			this.config.endpoints.getPostById(identifier),
-			undefined,
-			{ withCredentials: false, fetch }
-		);
-		if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
-		return null;
+		return withNotFoundFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
+				this.config.endpoints.getPostById(identifier),
+				undefined,
+				{ withCredentials: false, fetch }
+			);
+			if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
+			return null;
+		}, null);
 	}
 
 	async getBlogTopics(fetch?: typeof globalThis.fetch): Promise<BlogTopicProgrammerModel[]> {
-		const { data: dto, ok } = await this.httpGateway.get<GetBlogTopicsResponseDto>(
-			this.config.endpoints.getTopics,
-			undefined,
-			{ withCredentials: true, fetch }
-		);
-		if (ok && dto?.success && Array.isArray(dto.data)) {
-			return dto.data.map((topicDto) => this.toBlogTopicPm(topicDto));
-		}
-		return [];
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetBlogTopicsResponseDto>(
+				this.config.endpoints.getTopics,
+				undefined,
+				{ withCredentials: true, fetch }
+			);
+			if (ok && dto?.success && Array.isArray(dto.data)) {
+				return dto.data.map((topicDto) => this.toBlogTopicPm(topicDto));
+			}
+			return [];
+		}, []);
 	}
 
 	/**
@@ -642,18 +653,20 @@ export class BlogRepository {
 		if (authorId?.trim()) {
 			params.authorId = authorId.trim();
 		}
-		const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogPostsResponseDto>(
-			this.config.endpoints.getPublishedPosts,
-			params,
-			{ withCredentials: false, fetch: customFetch }
-		);
-		if (ok && dto?.success && dto.data && Array.isArray(dto.data.postsResult)) {
-			return {
-				posts: dto.data.postsResult.map((p) => this.toBlogPostPm(p)),
-				count: dto.data.countResult ?? 0
-			};
-		}
-		return { posts: [], count: 0 };
+		return withClientErrorFallback(async () => {
+			const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogPostsResponseDto>(
+				this.config.endpoints.getPublishedPosts,
+				params,
+				{ withCredentials: false, fetch: customFetch }
+			);
+			if (ok && dto?.success && dto.data && Array.isArray(dto.data.postsResult)) {
+				return {
+					posts: dto.data.postsResult.map((p) => this.toBlogPostPm(p)),
+					count: dto.data.countResult ?? 0
+				};
+			}
+			return { posts: [], count: 0 };
+		}, { posts: [], count: 0 });
 	}
 
 	/** Public topic list for filters (no auth). */
