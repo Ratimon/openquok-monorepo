@@ -17,7 +17,17 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ![Kanban View](/docs/_assets/posts-management/kanban-unfiltered-posts.webp)
 
-The kanban tracks **stage**. Each card is one **post group**. The calendar tracks **time** on the same data. See <a href="/docs/posts-management/calendar">Calendar</a> when you need a date grid.
+The kanban tracks **stage**; the <a href="/docs/posts-management/calendar">calendar</a> tracks **time** on the same data. Each card is one **post group**.
+
+Drag draft ↔ scheduled to flip status or drop on **Published posts** to publish now. Published cards do not drag backward. To change the publish time, use the calendar — see <a href="/docs/posts-management/moving-posts">Moving posts</a>. Double-click a card to edit, or the **note** for complete to-do or review text.
+
+<Callout type="tip">
+<p>This checkbox workflow is an alternative way to work with agent drafts, TikTok inbox uploads, and CLI review notes — see <a href="/docs/creating-posts/kanban">Kanban board (creating posts)</a>.</p>
+</Callout>
+
+<Callout type="tip">
+<p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without opening the editor. Drop on <strong>Published posts</strong> to publish now — OpenQuok asks you to confirm first.</p>
+</Callout>
 
 ### Columns
 
@@ -27,7 +37,6 @@ The kanban tracks **stage**. Each card is one **post group**. The calendar track
 | **Scheduled posts** | Queued for a future time (<Badge text="Add to calendar" variant="new" />). |
 | **Published posts** | Already sent to the network. Open the card menu for the live URL. |
 
-Column headers show a count. When filters hide rows, the badge can read **visible / total** (for example <code>2 / 5</code>).
 
 The board appears only when your workspace has at least one connected channel. See <a href="/docs/channels/connect">Connect a channel</a>.
 
@@ -91,8 +100,9 @@ The kanban shows **one card per post group** in **Drafted posts** or **Scheduled
 
 | Signal | Where | Meaning |
 | --- | --- | --- |
-| Refresh icon | Card header | This group is on a repeat schedule — hover for cadence (for example, every 1 w) |
-| **Repeating** | <a href="/docs/posts-management/actions-and-stats">Post actions</a> summary | Same series as the refresh icon on the card |
+| Refresh icon + **Every day** (etc.) | Card header | Repeat cadence for this group |
+| **Every day** (primary) | Schedule line after the relative time | Same cadence — for example `· Every week` after `(in 17 hrs)` |
+| **Every day** (primary) | <a href="/docs/posts-management/actions-and-stats">Post actions</a> summary | Same series as the card labels |
 
 On the <a href="/account/calendar">calendar</a>, the same groups expand into **multiple chips** across the visible range. See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> for projections, rescheduling the anchor, and <a href="/docs/posts-management/calendar#stop-the-rest-of-a-series">stopping the rest of a series</a>.
 
@@ -102,25 +112,9 @@ See <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post<
 
 ### How to manage on a post card
 
-Double-click a card to open the editor. Open the card menu for preview, export, delete, and related actions — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>.
+Open the card menu for preview, export, delete, and related actions — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>.
 
-| You drag… | What happens |
-| --- | --- |
-| Draft → **Scheduled posts** | Queues the post without opening the composer |
-| Draft or scheduled → **Published posts** | **Publish now** after you confirm |
-| Between draft and scheduled | Flips status at the same time |
-
-You cannot drag published cards back to draft or scheduled. To change the ship time, use the <a href="/account/calendar">calendar</a> — see <a href="/docs/posts-management/moving-posts">Moving posts</a>.
-
-Double-click the **note** on a card to edit the review checklist, or use the **Reviewed** checkbox when the post is live.
-
-<Callout type="tip">
-This checkbox workflow is an alternative way to work with agent drafts, TikTok inbox uploads, and CLI review notes, see <a href="/docs/creating-posts/kanban">Kanban board (creating posts)</a>.
-</Callout>
-
-<Callout type="tip">
-<p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without opening the editor. Drop on <strong>Published posts</strong> to publish now — OpenQuok asks you to confirm first.</p>
-</Callout>
+![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 
 ## Related
 

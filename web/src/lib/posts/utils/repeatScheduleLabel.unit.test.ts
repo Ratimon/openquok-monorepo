@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	formatRepeatScheduleHighlightLabel,
 	formatRepeatScheduleLabel,
 	hasRepeatSchedule,
 	parseRepeatIntervalDays,
+	repeatScheduleHighlightLabel,
 	repeatScheduleLabel
 } from './repeatScheduleLabel';
 
@@ -28,7 +30,14 @@ describe('repeatScheduleLabel', () => {
 		expect(repeatScheduleLabel(null, null)).toBeNull();
 	});
 
-	it('falls back to generic label when only repeatInterval is set', () => {
-		expect(repeatScheduleLabel(null, 'week')).toBe('Repeating post');
+	it('resolves tooltip label from repeatInterval when interval days are missing', () => {
+		expect(repeatScheduleLabel(null, 'week')).toBe('Repeat every 1 w');
+	});
+
+	it('formats highlight labels for inline display', () => {
+		expect(formatRepeatScheduleHighlightLabel(1)).toBe('Every day');
+		expect(formatRepeatScheduleHighlightLabel(7)).toBe('Every week');
+		expect(repeatScheduleHighlightLabel(7, null)).toBe('Every week');
+		expect(repeatScheduleHighlightLabel(null, 'day')).toBe('Every day');
 	});
 });

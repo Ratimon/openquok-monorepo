@@ -5,7 +5,10 @@
 		DEFAULT_TAG_CHIP_COLOR,
 		calendarChipStatusClasses
 	} from '$lib/posts/utils/tagChipTheme';
-	import { repeatScheduleLabel } from '$lib/posts/utils/repeatScheduleLabel';
+	import {
+		repeatScheduleHighlightLabel,
+		repeatScheduleLabel
+	} from '$lib/posts/utils/repeatScheduleLabel';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 
@@ -71,6 +74,9 @@
 	);
 	const repeatLabel = $derived(
 		repeatScheduleLabel(cardVm.intervalInDays, cardVm.repeatInterval)
+	);
+	const repeatHighlightLabel = $derived(
+		repeatScheduleHighlightLabel(cardVm.intervalInDays, cardVm.repeatInterval)
 	);
 
 	$effect(() => {
@@ -220,13 +226,19 @@
 			{/if}
 		</div>
 
-		{#if repeatLabel}
+		{#if repeatHighlightLabel}
 			<span
-				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20"
-				title={repeatLabel}
-				aria-label={repeatLabel}
+				class="flex max-w-[5.5rem] shrink-0 items-center gap-0.5 truncate rounded bg-white/20 px-1.5 py-0.5 text-[9px] font-semibold"
+				title={repeatLabel ?? repeatHighlightLabel}
+				aria-label={repeatLabel ?? repeatHighlightLabel}
 			>
-				<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+				<AbstractIcon
+					name={icons.RefreshCw.name}
+					class="size-2.5 shrink-0"
+					width="10"
+					height="10"
+				/>
+				<span class="truncate">{repeatHighlightLabel}</span>
 			</span>
 		{/if}
 
@@ -283,7 +295,9 @@
 		<p class="truncate text-[10px] text-base-content/60 select-none">
 			{headerChannelLabel}{cardVm.publishTimeLabel ? ` @ ${cardVm.publishTimeLabel}` : ''}{cardVm.relativePublishLabel
 				? ` ${cardVm.relativePublishLabel}`
-				: ''}{#if cardVm.needsManualFinishInApp} · {cardVm.statusLabel}{/if}
+				: ''}{#if repeatHighlightLabel}<span class="font-semibold text-primary">
+					· {repeatHighlightLabel}</span
+				>{/if}{#if cardVm.needsManualFinishInApp} · {cardVm.statusLabel}{/if}
 		</p>
 
 		<div class="border-t border-base-300/80 pt-1.5" data-no-dnd="true">

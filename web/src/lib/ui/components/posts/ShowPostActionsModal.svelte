@@ -19,7 +19,10 @@
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
-	import { repeatScheduleLabel } from '$lib/posts/utils/repeatScheduleLabel';
+	import {
+		repeatScheduleHighlightLabel,
+		repeatScheduleLabel
+	} from '$lib/posts/utils/repeatScheduleLabel';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SharePostPreviewLimitUpgradeModal from '$lib/ui/components/posts/SharePostPreviewLimitUpgradeModal.svelte';
@@ -138,6 +141,7 @@
 		status?: string;
 		content?: string;
 		repeatLabel?: string | null;
+		repeatHighlightLabel?: string | null;
 		/** One entry per scheduled row / integration in the group (multi-channel). */
 		channels: HeaderChannelVm[];
 	} | null>(null);
@@ -236,6 +240,10 @@
 					status: g.status ? String(g.status).toUpperCase() : undefined,
 					content: stripHtmlToPlainText(bodyText).trim(),
 					repeatLabel: repeatScheduleLabel(
+						focusRow?.intervalInDays,
+						g.repeatInterval
+					),
+					repeatHighlightLabel: repeatScheduleHighlightLabel(
 						focusRow?.intervalInDays,
 						g.repeatInterval
 					),
@@ -349,10 +357,10 @@
 										{statusStyle.label}
 									</div>
 								{/if}
-								{#if summary.repeatLabel}
+								{#if summary.repeatHighlightLabel}
 									<div
-										class="flex items-center gap-1 rounded bg-base-200 px-1.5 py-0.5 text-[10px] font-medium text-base-content/70"
-										title={summary.repeatLabel}
+										class="flex items-center gap-1 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+										title={summary.repeatLabel ?? summary.repeatHighlightLabel}
 									>
 										<AbstractIcon
 											name={icons.RefreshCw.name}
@@ -360,7 +368,7 @@
 											width="12"
 											height="12"
 										/>
-										Repeating
+										{summary.repeatHighlightLabel}
 									</div>
 								{/if}
 							</div>
