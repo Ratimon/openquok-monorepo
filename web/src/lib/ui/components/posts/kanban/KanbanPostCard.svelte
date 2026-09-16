@@ -5,6 +5,7 @@
 		DEFAULT_TAG_CHIP_COLOR,
 		calendarChipStatusClasses
 	} from '$lib/posts/utils/tagChipTheme';
+	import { repeatScheduleLabel } from '$lib/posts/utils/repeatScheduleLabel';
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 
@@ -67,6 +68,9 @@
 	const headerChannelLabel = $derived(cardVm.primaryChannelName || 'No channel');
 	const showAgentWarningRing = $derived(
 		cardVm.isAgentEdited && !cardVm.isReviewed && !statusChrome.chipRing
+	);
+	const repeatLabel = $derived(
+		repeatScheduleLabel(cardVm.intervalInDays, cardVm.repeatInterval)
 	);
 
 	$effect(() => {
@@ -215,6 +219,16 @@
 				</span>
 			{/if}
 		</div>
+
+		{#if repeatLabel}
+			<span
+				class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20"
+				title={repeatLabel}
+				aria-label={repeatLabel}
+			>
+				<AbstractIcon name={icons.RefreshCw.name} class="size-2.5" width="10" height="10" />
+			</span>
+		{/if}
 
 		{#if onOpenActions}
 			<button

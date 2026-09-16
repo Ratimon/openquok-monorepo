@@ -307,7 +307,9 @@ export function buildKanbanCardsVm(
 			postError,
 			needsManualFinishInApp: Boolean(manualFinish),
 			suggestedReviewNote:
-				manualFinish && !rep.note?.trim() ? manualFinish.defaultReviewNote : null
+				manualFinish && !rep.note?.trim() ? manualFinish.defaultReviewNote : null,
+			intervalInDays: rep.intervalInDays ?? null,
+			repeatInterval: rep.repeatInterval ?? null
 		});
 	}
 	return cards;

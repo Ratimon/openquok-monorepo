@@ -55,6 +55,10 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 | **Post types** | Draft, scheduled, published, failed, or repeating rows |
 | **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
 
+#### Filtering by channel group
+
+When you run social for more than one client or brand, put each account in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control in the filter row limits the grid to those channels — pick one group, several, or **Ungrouped channels** only.
+
 **Repeating** matches any post with a repeat interval. It is separate from draft or scheduled state.
 
 Below the filters, **targeted channels** shows avatar chips for channels that match your group and platform selection. They are a visual check, not an extra filter.
@@ -81,13 +85,18 @@ Each chip is one **post group** in that time slot. The header bar uses the **fir
 | **`Draft:` prefix** + dashed outline | Draft — will not publish until you schedule |
 | **Solid outline** | Scheduled for the shown time |
 | **Published** pill | Already live on the network |
-| **Red ring** + tooltip | Failed — error text in the tooltip |
-| **+N** badge | Multiple channels in one slot — click to open **Posts in this slot** |
+| **Red ring** + tooltip | Failed — error text in the tooltip; not draggable until fixed |
+| **+N** badge | Multiple post groups in one time slot — click to open **Posts in this slot** |
+| **Grayscale chip** | Publish time is in the past — hover for **Date passed** |
 | Refresh icon | Recurring post — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> |
 
-Day and week chips show caption, channel name, and time in the body. Month chips show the header only. Past slots keep tag colour but render chips in grayscale.
+OpenQuok buckets same-slot posts into one chip with **+N** — there is no separate **Show more** row when a cell is crowded.
+
+Day and week chips show caption, channel name, and time in the body. Month chips show the header only.
 
 ### Recurring posts
+
+The <a href="/docs/posts-management/kanban">Home kanban</a> shows **one card** per repeating group (refresh icon on the header, **Repeating** in **Post actions**) instead of expanding across dates — see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
 Draft and scheduled posts with a repeat interval show **multiple chips** across the visible day, week, month, or list range — one per projected occurrence from the anchor time. Those chips are **projections** of a single post group; navigate the calendar without refreshing and OpenQuok loads the full pattern for the range you are viewing.
 

@@ -19,6 +19,10 @@
 		setActiveCalendarPostDrag
 	} from '$lib/ui/components/calendar-scheduler/calendarDnd';
 	import { formatPublishTimeLabel } from '$lib/utils/postingSchedulePreferences';
+	import {
+		formatRepeatScheduleLabel,
+		parseRepeatIntervalDays
+	} from '$lib/posts/utils/repeatScheduleLabel';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
@@ -91,23 +95,10 @@
 			.intervalInDays ??
 			(post as { interval_in_days?: number | null }).interval_in_days ??
 			null;
-		const n = typeof raw === 'number' ? raw : raw == null ? null : Number(raw);
-		return typeof n === 'number' && Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+		return parseRepeatIntervalDays(raw);
 	});
 	const isRepeating = $derived(repeatIntervalDays > 0);
-	const repeatLabel = $derived.by(() => {
-		const d = repeatIntervalDays;
-		if (!d) return '';
-		if (d % 30 === 0) {
-			const m = d / 30;
-			return `Every ${m} m${m === 1 ? '' : 's'}`;
-		}
-		if (d % 7 === 0) {
-			const w = d / 7;
-			return `Repeat every ${w} w${w === 1 ? '' : 's'}`;
-		}
-		return `Repeat every ${d} d${d === 1 ? '' : 's'}`;
-	});
+	const repeatLabel = $derived(formatRepeatScheduleLabel(repeatIntervalDays));
 	const slotSummary = $derived(
 		Array.isArray(ev.slotSummary) ? (ev.slotSummary as SlotSummaryItem[]) : []
 	);

@@ -19,6 +19,7 @@
 	import { icons } from '$data/icons';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+	import { repeatScheduleLabel } from '$lib/posts/utils/repeatScheduleLabel';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SharePostPreviewLimitUpgradeModal from '$lib/ui/components/posts/SharePostPreviewLimitUpgradeModal.svelte';
@@ -136,6 +137,7 @@
 		publishDateIso?: string;
 		status?: string;
 		content?: string;
+		repeatLabel?: string | null;
 		/** One entry per scheduled row / integration in the group (multi-channel). */
 		channels: HeaderChannelVm[];
 	} | null>(null);
@@ -226,10 +228,17 @@
 					focusInt && Object.prototype.hasOwnProperty.call(bodies, focusInt)
 						? String(bodies[focusInt] ?? '')
 						: String(g.body ?? '');
+				const focusRow =
+					(focusPid ? channelLookupPosts.find((p) => p.id === focusPid) : undefined) ??
+					channelLookupPosts.find((p) => p.postGroup === pg);
 				summary = {
 					publishDateIso: g.publishDateIso ?? undefined,
 					status: g.status ? String(g.status).toUpperCase() : undefined,
 					content: stripHtmlToPlainText(bodyText).trim(),
+					repeatLabel: repeatScheduleLabel(
+						focusRow?.intervalInDays,
+						g.repeatInterval
+					),
 					channels: headerChannels.length ? headerChannels : []
 				};
 			} finally {
@@ -334,11 +343,27 @@
 									{/if}
 								</div>
 							</div>
-							{#if statusStyle.label}
-								<div class={cn('shrink-0 rounded', statusStyle.badge)}>
-									{statusStyle.label}
-								</div>
-							{/if}
+							<div class="flex shrink-0 flex-col items-end gap-1">
+								{#if statusStyle.label}
+									<div class={cn('rounded', statusStyle.badge)}>
+										{statusStyle.label}
+									</div>
+								{/if}
+								{#if summary.repeatLabel}
+									<div
+										class="flex items-center gap-1 rounded bg-base-200 px-1.5 py-0.5 text-[10px] font-medium text-base-content/70"
+										title={summary.repeatLabel}
+									>
+										<AbstractIcon
+											name={icons.RefreshCw.name}
+											class="size-3 shrink-0"
+											width="12"
+											height="12"
+										/>
+										Repeating
+									</div>
+								{/if}
+							</div>
 						</div>
 						<div class="mt-2 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
 							{summary.content || 'No content'}

@@ -41,43 +41,62 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 | **Platforms** | Posts for selected social platforms (shown when you have more than one) |
 | **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
 
-![Kanban 's All Filters](/docs/_assets/posts-management/kanban-filters.webp)
+#### Filtering by channel group
 
-**Review** and **Source** sit on the left. The controls are:
+When you run social for more than one client or brand, put each account/channel in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control in the filter row limits the board to those channels — pick one group, several, or **Ungrouped channels** only.
+
+![Kanban 's Filter with Source and Review Controls](/docs/_assets/posts-management/kanban-source-review-filter.webp)
+
+#### Filters (Review and source)
+
+**Review** and **Source** sit on the left of the filter row:
+
 - **To do** hides cards you already marked reviewed.
-- **Agent** shows drafts from an agent, MCP, CLI, or public API. Pair **Agent** + **To do** when humans must sign off scripted batches.
+- **Agent** shows drafts from an agent, MCP, CLI, or public API.
 
 <Callout type="tip">
-<p>Pair **Agent** + **To do** when humans must sign off scripted batches.</p>
+<p>Pair <strong>Agent</strong> + <strong>To do</strong> when humans must sign off scripted batches.</p>
 </Callout>
 
-**Time** filters split by zone: **All Upcoming**, **Next Week**, and **Next 30 Days** for draft and scheduled columns; **All Past**, **Past Week**, and **Past 30 Days** for published. Use the **Calendar** button beside them to open the date grid for the same posts.
+#### Filtering by time
+
+**Time** filters split by zone:
+
+1) **All Upcoming**, **Next Week**, and **Next 30 Days** for draft and scheduled columns
+
+![Kanban 's Filter for Draft & Scheduled Posts](/docs/_assets/posts-management/kanban-future-filter.webp)
+
+2) **All Past**, **Past Week**, and **Past 30 Days** for published. Use the **Calendar** button beside them to open the date grid for the same posts.
+
+![Kanban 's Filter for Published Posts](/docs/_assets/posts-management/kanban-past-filter.webp)
 
 ### Post cards
 
-
 | Signal | Meaning |
 | --- | --- |
-| **Header colour** | The first post's tag on or default indigo color if not set |
-| <Badge text="Draft" variant="deprecated" />` prefix | never publish unless you schedule |
-| **Solid outline** | Scheduled for a future time |
-| **Published** column | Already live on the network |
+| **Header colour** | First tag on the post group, or default indigo when none is set |
+| <Badge text="Draft" 
+variant="experimental" />` prefix | 
+never publish unless you schedule |
+| **Red ring** + tooltip | Failed — platform error in the tooltip; fix in the editor before you drag again |
+| **+N** badge | Multiple channels in one post group — extra avatars collapse into **+N** on the header |
+| Refresh icon | Recurring post — cadence in the tooltip |
 | **Reviewed** checkbox | Marks human review complete on the card note |
+
+Same status rings and **`Draft:`** prefix as <a href="/docs/posts-management/calendar#post-chips">calendar chips</a>. Past-time styling and **Posts in this slot** apply on the calendar only.
 
 ### Recurring posts
 
-Repeating posts still show as **one card per post group** in **Drafted posts** or **Scheduled posts** — only the next (or current) group at its anchor time.
+The kanban shows **one card per post group** in **Drafted posts** or **Scheduled posts** — the next (or current) group at its anchor time, not every future occurrence.
 
-On the <a href="/account/calendar">calendar</a>, the same groups expand into multiple chips across the visible range — see <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a>.
+| Signal | Where | Meaning |
+| --- | --- | --- |
+| Refresh icon | Card header | This group is on a repeat schedule — hover for cadence (for example, every 1 w) |
+| **Repeating** | <a href="/docs/posts-management/actions-and-stats">Post actions</a> summary | Same series as the refresh icon on the card |
 
-After a recurrence publishes, the card moves to **Published posts** and OpenQuok schedules the **next** group as a new card.
+On the <a href="/account/calendar">calendar</a>, the same groups expand into **multiple chips** across the visible range. See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> for projections, rescheduling the anchor, and <a href="/docs/posts-management/calendar#stop-the-rest-of-a-series">stopping the rest of a series</a>.
 
-To stop what is left in the series, work on the **upcoming** card or open it in the editor:
-
-| Action | Effect |
-| --- | --- |
-| <Badge text="Delete" variant="deprecated" /> (card menu or post actions) | Removes the upcoming group now. Published cards already in **Published posts** stay. |
-| <Badge text="No repeat" variant="param" /> in the composer | After that group publishes once, no further copies are scheduled. |
+After a recurrence publishes, the card moves to **Published posts**. OpenQuok schedules the **next** group as a new card in **Drafted posts** or **Scheduled posts**.
 
 See <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> for repeat cadence in the composer.
 

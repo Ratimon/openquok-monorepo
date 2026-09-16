@@ -88,6 +88,8 @@ export type PostKanbanCardViewModel = {
 	needsManualFinishInApp?: boolean;
 	/** Kanban hint when `note` is empty (not persisted until the user saves a note). */
 	suggestedReviewNote?: string | null;
+	intervalInDays?: number | null;
+	repeatInterval?: string | null;
 };
 
 export type PostKanbanColumnsViewModel = Record<PostKanbanColumnId, PostKanbanCardViewModel[]>;
