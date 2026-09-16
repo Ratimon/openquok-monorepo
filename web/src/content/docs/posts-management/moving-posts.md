@@ -9,6 +9,10 @@ lastUpdated: 2026-09-16
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Moving and rescheduling
+
+> Change when a post publishes — drag on the calendar, flip status on the kanban, or call the reschedule API.
+
 You can change when a post publishes without reopening the composer. **Drag** a chip on the calendar for draft and scheduled posts, use the Home **kanban** to flip status at the same time, or call the **reschedule** API when you automate at scale.
 
 ## Drag on the calendar

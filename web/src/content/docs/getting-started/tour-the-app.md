@@ -11,6 +11,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
+> Where every sidebar page lives and what you do there — Home, calendar, plugs, analytics, and settings.
+
 Most of our features are put behind the left sidebar, and the sidebar footer has <Badge text="Reset product tours" variant="default" /> if you want those guides again.
 
 ![Signed-in left sidebar](/docs/_assets/tour-the-app/left-sidebar.webp)

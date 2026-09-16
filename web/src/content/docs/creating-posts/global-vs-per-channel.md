@@ -9,6 +9,10 @@ lastUpdated: 2026-08-26
 import { Badge, Callout, CardGrid, LinkCard, Steps, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Global vs per-channel
+
+> One caption for every channel — or unlock one network when it needs its own copy and media.
+
 When you schedule to more than one channel, you usually want the **same message everywhere**. OpenQuok starts you in **Global** mode for exactly that: one caption, one set of attachments, synced across every channel you picked.
 
 ![Global Mode](/docs/_assets/creating-posts/first-global-edit.webp)

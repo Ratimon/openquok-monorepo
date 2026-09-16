@@ -11,6 +11,10 @@ sidebar:
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Platform rules
+
+> Character limits, media rules, follow-ups, and per-network settings for every shipped channel.
+
 Every network disagrees on caption length, attachment count, and extra fields. This page is the **composer and publish reference** for channels OpenQuok ships today — not marketing <strong>coming soon</strong> badges on channel landing pages.
 
 Use it with <a href="/docs/creating-posts/writing-the-post">Writing the post</a>, <a href="/docs/creating-posts/media">Media</a>, and <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> when you schedule from the dashboard. Programmatic field shapes for API keys live in <a href="/docs/public-api-providers">Provider settings</a>.

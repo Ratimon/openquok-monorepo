@@ -9,6 +9,10 @@ lastUpdated: 2026-09-15
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## The kanban board
+
+> Save buttons, review queues, and agent draft workflows on the Home kanban.
+
 The **kanban board** on <a href="/account">Home</a> is the fastest way to see **post status** in your workspace:
 - what still needs review
 - what is queued to publish

@@ -8,10 +8,17 @@ sidebar:
 ---
 
 <script>
-import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Overview
+
+> Kanban for stage, calendar for time — same post groups, two ways to work.
+
+<Callout type="tip">
 OpenQuok keeps your content in two places. Both views read the same post groups — change one and the other updates:
+</Callout>
+
 
 1) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
 

@@ -9,6 +9,10 @@ lastUpdated: 2026-09-13
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Follow-up comments
+
+> Thread replies and follow-up comments after the main post — with delays between parts.
+
 A post can have more than one part: a **main post** (caption plus <a href="/docs/creating-posts/media">media</a>) and optional parts in <Badge text="Follow-up comments" variant="default" />. 
 
 Those parts publish as **thread replies** on Threads and X, and as **comments** on Instagram, LinkedIn, and Facebook. They can be a thread reply, or a comment on your own post.

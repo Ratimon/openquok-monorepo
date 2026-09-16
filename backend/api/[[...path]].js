@@ -9638,7 +9638,8 @@ var init_PostDTO = __esm({
             channelName,
             channelPictureUrl,
             providerIdentifier
-          } : {}
+          } : {},
+          ...row.series_anchor_publish_date ? { seriesAnchorPublishDate: row.series_anchor_publish_date } : {}
         };
       },
       toDTOCollection(rows, integrationById) {
@@ -9931,6 +9932,11 @@ var init_PostsRepository = __esm({
             resource: { type: "table", name: TABLE_POSTS }
           });
         }
+        const sourceIds = rows.filter((r) => !r.deleted_at).map((r) => r.id);
+        const existing = await this.findExistingRepeatGroupByParentPostIds(sourceIds);
+        if (existing) {
+          return existing;
+        }
         const newGroup = this.newPostGroup();
         const toInsert = rows.filter((r) => !r.deleted_at).map((r) => ({
           state: "QUEUE",
@@ -9956,7 +9962,6 @@ var init_PostsRepository = __esm({
           is_reviewed: false
         }));
         const inserted = await this.insertPostGroup(toInsert);
-        const sourceIds = rows.map((r) => r.id);
         const tags = await this.listTagsForPostIds(sourceIds);
         const tagIds = tags.map((t) => t.id).filter(Boolean);
         await this.linkTagsToPosts(
@@ -9964,6 +9969,25 @@ var init_PostsRepository = __esm({
           tagIds
         );
         return { postGroup: newGroup, posts: inserted };
+      }
+      /**
+       * Returns an existing QUEUE/DRAFT repeat group spawned from any of the source post ids.
+       * Used to make orchestrator retries idempotent after a successful repeat insert.
+       */
+      async findExistingRepeatGroupByParentPostIds(parentPostIds) {
+        if (parentPostIds.length === 0) return null;
+        const { data, error } = await this.supabase.from(TABLE_POSTS).select("post_group").in("parent_post_id", parentPostIds).in("state", ["DRAFT", "QUEUE"]).is("deleted_at", null).limit(1);
+        if (error) {
+          throw new DatabaseError(`Failed to look up existing repeat group: ${error.message}`, {
+            cause: error,
+            operation: "select",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        const hit = (data ?? [])[0];
+        if (!hit?.post_group) return null;
+        const posts = await this.listPostsByGroup(hit.post_group);
+        return { postGroup: hit.post_group, posts };
       }
       async linkTagsToPosts(postIds, tagIds) {
         if (postIds.length === 0 || tagIds.length === 0) return;
@@ -10002,6 +10026,45 @@ var init_PostsRepository = __esm({
           });
         }
         return data ?? [];
+      }
+      /**
+       * Calendar list source rows: posts in range plus recurring DRAFT/QUEUE anchors (any publish_date).
+       * Virtual occurrence expansion happens in {@link expandRecurringPostsForCalendarRange}.
+       */
+      async listPostsForCalendar({
+        organizationId,
+        startIso,
+        endIso,
+        integrationIds
+      }) {
+        const inRange = await this.listPostsByOrganizationAndDateRange({
+          organizationId,
+          startIso,
+          endIso,
+          integrationIds
+        });
+        let anchorQuery = this.supabase.from(TABLE_POSTS).select("*").eq("organization_id", organizationId).is("deleted_at", null).gt("interval_in_days", 0).in("state", ["DRAFT", "QUEUE"]).order("publish_date", { ascending: true });
+        if (integrationIds && integrationIds.length > 0) {
+          anchorQuery = anchorQuery.in("integration_id", integrationIds);
+        }
+        const { data: anchorData, error: anchorError } = await anchorQuery;
+        if (anchorError) {
+          throw new DatabaseError(`Failed to list recurring post anchors: ${anchorError.message}`, {
+            cause: anchorError,
+            operation: "select",
+            resource: { type: "table", name: TABLE_POSTS }
+          });
+        }
+        const byId = /* @__PURE__ */ new Map();
+        for (const row of inRange) {
+          byId.set(row.id, row);
+        }
+        for (const row of anchorData ?? []) {
+          if (!byId.has(row.id)) {
+            byId.set(row.id, row);
+          }
+        }
+        return [...byId.values()].sort((a, b) => a.publish_date.localeCompare(b.publish_date));
       }
       async listPostsByGroup(postGroup) {
         const { data, error } = await this.supabase.from(TABLE_POSTS).select("*").eq("post_group", postGroup).is("deleted_at", null).order("created_at", { ascending: true });
@@ -23100,6 +23163,82 @@ var init_crossAccountPublishChannels = __esm({
     CROSS_ACCOUNT_PLUG_BUCKETS2 = ["threads", "x", "linkedin"];
   }
 });
+
+// utils/posts/recurringPublishDate.ts
+function addUtcDays(iso, days) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString();
+}
+var init_recurringPublishDate = __esm({
+  "utils/posts/recurringPublishDate.ts"() {
+  }
+});
+
+// utils/posts/expandRecurringPostsForCalendarRange.ts
+function occurrenceKey(id, publishDate) {
+  return `${id}@${publishDate}`;
+}
+function isExpandableRecurringAnchor(row) {
+  const interval = row.interval_in_days;
+  if (interval == null || interval <= 0) return false;
+  return row.state === "DRAFT" || row.state === "QUEUE";
+}
+function expandRecurringPostsForCalendarRange(rows, startIso, endIso) {
+  const startMs = new Date(startIso).getTime();
+  const endMs = new Date(endIso).getTime();
+  const seen = /* @__PURE__ */ new Set();
+  const result = [];
+  for (const row of rows) {
+    if (!isExpandableRecurringAnchor(row)) {
+      const key = occurrenceKey(row.id, row.publish_date);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      result.push(row);
+      continue;
+    }
+    const anchorDate = row.publish_date;
+    const interval = row.interval_in_days;
+    let cursor = anchorDate;
+    let cursorMs = new Date(cursor).getTime();
+    if (Number.isNaN(cursorMs)) {
+      const key = occurrenceKey(row.id, row.publish_date);
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(row);
+      }
+      continue;
+    }
+    while (cursorMs < startMs) {
+      cursor = addUtcDays(cursor, interval);
+      cursorMs = new Date(cursor).getTime();
+      if (Number.isNaN(cursorMs)) break;
+    }
+    while (cursorMs <= endMs) {
+      const key = occurrenceKey(row.id, cursor);
+      if (!seen.has(key)) {
+        seen.add(key);
+        const isVirtual = cursor !== anchorDate;
+        result.push({
+          ...row,
+          publish_date: cursor,
+          ...isVirtual ? { series_anchor_publish_date: anchorDate } : {}
+        });
+      }
+      cursor = addUtcDays(cursor, interval);
+      cursorMs = new Date(cursor).getTime();
+      if (Number.isNaN(cursorMs)) break;
+    }
+  }
+  result.sort((a, b) => a.publish_date.localeCompare(b.publish_date));
+  return result;
+}
+var init_expandRecurringPostsForCalendarRange = __esm({
+  "utils/posts/expandRecurringPostsForCalendarRange.ts"() {
+    init_recurringPublishDate();
+  }
+});
 function sleepMs7(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -23181,6 +23320,7 @@ var init_PostsService = __esm({
     init_stripComposerBodyForEditor();
     init_validateProviderCaptionLength();
     init_crossAccountPublishChannels();
+    init_expandRecurringPostsForCalendarRange();
     init_AppError();
     init_ProviderIntegrationErrors();
     init_GlobalConfig();
@@ -23545,12 +23685,15 @@ var init_PostsService = __esm({
           endIso: endIsoNorm,
           integrationIds: integrationIdsNorm
         });
-        const factory = async () => this.postsRepository.listPostsByOrganizationAndDateRange({
-          organizationId,
-          startIso: startIsoNorm,
-          endIso: endIsoNorm,
-          integrationIds: integrationIdsNorm
-        });
+        const factory = async () => {
+          const rows = await this.postsRepository.listPostsForCalendar({
+            organizationId,
+            startIso: startIsoNorm,
+            endIso: endIsoNorm,
+            integrationIds: integrationIdsNorm
+          });
+          return expandRecurringPostsForCalendarRange(rows, startIsoNorm, endIsoNorm);
+        };
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
         }
@@ -23595,12 +23738,15 @@ var init_PostsService = __esm({
           endIso: endIsoNorm,
           integrationIds: integrationIdsNorm
         });
-        const factory = async () => this.postsRepository.listPostsByOrganizationAndDateRange({
-          organizationId,
-          startIso: startIsoNorm,
-          endIso: endIsoNorm,
-          integrationIds: integrationIdsNorm
-        });
+        const factory = async () => {
+          const rows = await this.postsRepository.listPostsForCalendar({
+            organizationId,
+            startIso: startIsoNorm,
+            endIso: endIsoNorm,
+            integrationIds: integrationIdsNorm
+          });
+          return expandRecurringPostsForCalendarRange(rows, startIsoNorm, endIsoNorm);
+        };
         if (this.cache) {
           return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
         }
@@ -35708,7 +35854,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-15T12:24:17.443Z",
+  generated: "2026-09-16T04:11:53.543Z",
   routes: [
     {
       path: "/docs",

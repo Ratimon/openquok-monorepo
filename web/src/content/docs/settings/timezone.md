@@ -5,4 +5,8 @@ order: 2
 lastUpdated: 2026-08-25
 ---
 
+## Timezone
+
+> Workspace posting timezone for calendar slots and scheduled times — not your laptop clock.
+
 Content coming soon.

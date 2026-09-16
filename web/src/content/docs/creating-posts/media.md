@@ -9,6 +9,10 @@ lastUpdated: 2026-09-01
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Media
+
+> Upload, library, Photo Editor, and drag-and-drop — one list in Global mode or per channel.
+
 The composer attaches **images and video** below the caption. Use the **toolbar** to add files and the **drag & drop** to review thumbnails.
 
 ![Post editor with attached media and preview ](/docs/_assets/creating-posts/editor-media.webp)

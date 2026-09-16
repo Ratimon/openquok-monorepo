@@ -11,6 +11,8 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 
 ## What it is
 
+> Send clients a preview link so they can read copy and leave feedback — no OpenQuok login required.
+
 Every post has a **preview page** at <Badge text="/p/" variant="path" /> plus the post id. Send that link when someone outside your workspace should read the copy and leave feedback — without giving them access to Home, the calendar, or your other clients.
 
 **Where:** <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a> — **click** a post card or chip once to open **Post actions** (there is no hover menu), then click <Badge text="Preview" variant="default" />. On the kanban, use the card menu if the chip is not visible.

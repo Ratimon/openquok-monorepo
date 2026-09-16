@@ -11,6 +11,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What they are
 
+> Bundle channels by client or brand — and pick a whole group at once in the composer.
+
 A **channel group** is a label you put on one or more channels — usually one client, one brand, or one project. Each channel belongs to at most one group. Channels with no group stay in the **Ungrouped** list.
 
 If you manage social for more than one client, groups keep Home readable and let you focus on one account at a time.

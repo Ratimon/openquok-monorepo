@@ -11,6 +11,10 @@ sidebar:
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Overview
+
+> Plugs and programmatic scheduling — automate what happens after publish and at scale.
+
 ## In this section
 
 <CardGrid>

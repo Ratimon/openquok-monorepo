@@ -11,7 +11,11 @@ sidebar:
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Open <strong>Settings</strong> from the account menu in the header. Each tab covers one area of your workspace or personal account.
+## Overview
+
+> Timezone, team, profile, developers, signatures, and approved apps — from the account menu.
+
+**Where:** Open <strong>Settings</strong> from the account menu in the header. Each tab covers one area of your workspace or personal account.
 
 ## In this section
 

@@ -9,7 +9,11 @@ lastUpdated: 2026-09-15
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Click a single-post chip on the <a href="/account/calendar">calendar</a> or open the card menu on <a href="/account">Home</a> to reach **Post actions**. The same modal appears in both places — no hover menu, just one click on the chip or the card's action control.
+## Post actions
+
+> Duplicate, delete, preview, statistics, and connect — from one modal on the calendar or Home.
+
+**Where:** Click a single-post chip on the <a href="/account/calendar">calendar</a> or open the card menu on <a href="/account">Home</a> to open action modal.
 
 ![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
 

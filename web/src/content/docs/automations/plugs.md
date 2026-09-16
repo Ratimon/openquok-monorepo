@@ -9,6 +9,10 @@ lastUpdated: 2026-09-11
 import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Plugs
+
+> Replies, comments, reposts, and reshares after your post goes live — internal, cross-account, or global.
+
 A **plug** is an automation that runs **after** your post goes live. It, for example, adds a reply, comment, repost, or reshare.
 
 | Kind | Scope | Where you set it | When it runs |

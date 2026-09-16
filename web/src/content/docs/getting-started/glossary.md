@@ -9,6 +9,10 @@ lastUpdated: 2026-08-25
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Overview
+
+> Shared terms for the app, API, and CLI — read once, then navigate the rest of the docs.
+
 These are the words the Guide, app, public API, and CLI use for the same things. Read this once; later pages assume you know them.
 
 ## Workspace

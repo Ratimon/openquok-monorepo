@@ -19,7 +19,9 @@
   · <a href="https://www.openquok.com/tools/skill-builder">Skill Builder</a>
   · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a>
   · <a href="https://www.openquok.com/tools/humanizer">Humanizer</a>
-  · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a><br />
+  · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
+  <a href="https://www.openquok.com/pricing">Public API</a>
+  ·<br />
 </p>
 
 OpenQuok helps individuals and teams run many social accounts at scale — especially as AI multiplies output. Draft, schedule, and publish from one workspace, with review and approval before anything goes live. Use the dashboard, or connect agents through the CLI, MCP, and public API. Self-host when you want an open alternative to closed SaaS schedulers.
@@ -86,7 +88,7 @@ Posting formats, follow-up comments, and analytics vary by platform. Some integr
 
 Create a programmatic token under **Account → Settings → Developers → Access**, or [start on Cloud](https://www.openquok.com/pricing) when you want hosted plans and billing handled for you.
 
-[OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) · [Building blocks](https://www.openquok.com/building-blocks) · [Playbooks](https://www.openquok.com/playbooks) · [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) · [CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp) · [Agents catalog](https://www.openquok.com/agents) · [Pricing](https://www.openquok.com/pricing)
+[OpenQuok Core](https://www.openquok.com/creators/openquok/building-blocks/openquok-core) · [Building blocks](https://www.openquok.com/building-blocks) · [Playbooks](https://www.openquok.com/playbooks) · [Agent setup guides](https://www.openquok.com/docs/agent-setup-guides) · [MCP setup guides](https://www.openquok.com/docs/mcp-setup-guides) · [CLI getting started](https://www.openquok.com/docs/getting-started-for-cli) · [MCP getting started](https://www.openquok.com/docs/getting-started-for-mcp) · [Agents catalog](https://www.openquok.com/agents)
 
 ---
 

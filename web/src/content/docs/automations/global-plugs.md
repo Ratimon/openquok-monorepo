@@ -9,7 +9,13 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-A **global plug** is a **channel** rule at <a href="/account/plugs">Account → Auto Plugs</a>. It watches **likes** on posts that already published. When the count reaches your threshold, OpenQuok runs the rule. If the threshold is never met, the worker stops after **three checks**.
+## Global plugs
+
+> Channel rules at Auto Plugs — run when likes on a published post reach your threshold.
+
+**Where:** <a href="/account/plugs">Account → Auto Plugs</a>.
+
+A **global plug** is a **channel** rule. It watches **likes** on posts that already published. When the count reaches your threshold, OpenQuok runs the rule. If the threshold is never met, the worker stops after **three checks**.
 
 For one scheduled post, use an <a href="/docs/automations/internal-plugs">internal plug</a> or a <a href="/docs/automations/cross-account-plugs">cross-account plug</a> in the post editor instead.
 

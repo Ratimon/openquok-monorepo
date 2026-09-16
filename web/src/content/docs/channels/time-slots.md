@@ -11,6 +11,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## What they are
 
+> Per-channel hours that feed suggested schedule times — a convenience, not a publish lock.
+
 Each channel has its own **time slots** — the hours you usually post on that network. LinkedIn might be 9:00, Instagram 18:00, and so on.
 
 Slots are a convenience, not a lock. You can still pick any date and time in the post editor.

@@ -11,6 +11,10 @@ sidebar:
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## The post editor
+
+> Write captions, attach media, preview every channel, and save as draft or schedule — all in one window.
+
 Most of your time in OpenQuok happens in the **post editor** — we also call it the **composer**.
 
 ![Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)

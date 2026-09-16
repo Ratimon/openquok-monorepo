@@ -11,6 +11,10 @@ sidebar:
 import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Overview
+
+> Connect channels, draft posts, and review on calendar or kanban before anything publishes.
+
 OpenQuok is a **social scheduler** for volume without the headache. Agents draft and queue at scale, while you keep quality. You can review and approve on the **calendar** and **kanban** before anything publishes.
 
 ![Save hours scheduling social media at scale](/docs/_assets/getting-started/landing-page-hero.webp)

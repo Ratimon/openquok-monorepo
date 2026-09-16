@@ -11,6 +11,10 @@ lastUpdated: 2026-08-25
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Quickstart
+
+> Five steps from a new workspace to your first queued post on the calendar and kanban.
+
 Sign in, connect a channel, compose, pick a time, then confirm the post on the calendar and kanban. Cloud and self-hosted share the same UI.
 
 <Callout type="note">

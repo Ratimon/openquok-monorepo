@@ -9,6 +9,9 @@ lastUpdated: 2026-09-15
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Scheduling
+
+> Save as draft, add to the calendar, or publish now — plus repeat and tags in the footer.
 
 **Where:** Inside the composer, the footer bar — tags and repeat on the left; date, time, and save buttons on the right.
 

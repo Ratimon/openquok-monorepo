@@ -5,4 +5,8 @@ order: 3
 lastUpdated: 2026-08-25
 ---
 
+## Profile
+
+> Display name and personal account preferences.
+
 Content coming soon.

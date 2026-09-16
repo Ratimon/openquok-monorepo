@@ -9,6 +9,10 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Cross-account plugs
+
+> Other connected channels comment, repost, or reshare after your post publishes.
+
 A **cross-account plug** lets **another connected channel** act on your post after publish. The acting channel is not the publishing channel.
 
 You need at least **two** connected channels on that network. The publishing channel cannot act on itself.

@@ -13,6 +13,8 @@ import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.j
 
 ## What is a channel?
 
+> One connected social account per channel — the foundation for scheduling, groups, and analytics.
+
 A **channel** is one connected social account — one X profile, one LinkedIn Page, one Threads account, and so on. You connect channels inside a **workspace**. Everything you schedule, review on the calendar, or see on Home kanban hangs off those connections.
 
 ![Connected Channels](/docs/_assets/getting-started/2-add-channel.webp)

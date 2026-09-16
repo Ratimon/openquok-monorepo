@@ -11,11 +11,13 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 ## Where to start
 
+> Link your first network in Add Channel — OAuth redirect or credentials, depending on the platform.
+
+**Where:** <a href="/account">Home</a> — click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
+
 A **channel** is one linked social account — one X profile, one LinkedIn Page, one Threads login.
 
 The calendar, post editor, analytics, and templates all need at least one channel before they can do anything useful, so connecting is the first step in a new workspace.
-
-On <a href="/account">Home</a>, click <Badge text="Add Channel" variant="new" />. You can open the same picker from the channel row in the post editor.
 
 ![Add Channel](/docs/_assets/getting-started/2-add-channel.webp)
 

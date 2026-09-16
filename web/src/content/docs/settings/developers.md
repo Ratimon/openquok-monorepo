@@ -5,4 +5,8 @@ order: 4
 lastUpdated: 2026-08-25
 ---
 
+## Developers
+
+> Programmatic tokens, MCP snippets, and OAuth apps for your workspace.
+
 Content coming soon.

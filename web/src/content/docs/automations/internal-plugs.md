@@ -9,6 +9,10 @@ lastUpdated: 2026-09-11
 import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Internal plugs
+
+> Same-account delayed engagement on one post — after follow-up comments finish.
+
 An **internal plug** is a same-account action on **one** scheduled post. OpenQuok runs it once after the main post publishes, once <a href="/docs/creating-posts/threads-and-comments">Follow-up comments</a> and the thread finisher finish. Today only **Threads** ships an internal plug — the **Threads delayed engagement reply**.
 
 ## Where in the post editor

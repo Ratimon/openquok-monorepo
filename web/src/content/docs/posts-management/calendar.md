@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## The calendar
 
-> Day, week, month, and list views — and how to find your/filter your posts.
+> Day, week, month, and list views — and how to find and filter your posts.
 
 **Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the Home kanban toolbar.
 

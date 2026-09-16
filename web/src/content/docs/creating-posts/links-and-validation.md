@@ -9,6 +9,10 @@ lastUpdated: 2026-09-14
 import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Links and validation
+
+> Links in the caption, link fields in Settings, and what blocks save before you schedule.
+
 OpenQuok checks your post before you save. This page covers **links in the caption**, **link fields in Settings**, and **what blocks a draft or schedule**.
 
 For the character counter and editor modes, see <a href="/docs/creating-posts/writing-the-post">Writing the post</a>. For one caption vs per-network text, see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.

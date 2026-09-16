@@ -9,9 +9,13 @@ lastUpdated: 2026-09-12
 import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Generate and rewrite post copy in the post editor, or schddue drafts from an agent, MCP client, or CLI.
+## Free AI generation
+
+> Writer, Summarizer, and Sound more human — on-device in the composer, or schedule drafts from agents.
 
 **Where:** The post editor toolbar and the same three tools on each **Follow-up comments** row.
+
+Generate and rewrite post copy in the post editor, or schedule drafts from an agent, MCP client, or CLI.
 
 ![Three AI tools in the composer toolbar](/docs/_assets/creating-posts/ai-toolbar.webp)
 

@@ -9,6 +9,10 @@ lastUpdated: 2026-08-27
 import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
+## Writing the post
+
+> Captions, editor modes, toolbar tools, character counts, and live Post Preview.
+
 The **left column** of the post editor is where you write the post. A caption box sits above the toolbar — media, signatures, styling, AI helpers, and more.
 
 ![Post Editor](/docs/_assets/creating-posts/editor-post.webp)

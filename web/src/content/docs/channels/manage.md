@@ -11,16 +11,15 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Open the channel
 
-After a channel is connected, go to <a href="/account">Home</a> and click the channel and the actions modal appear. If Home is in table layout, click <Badge text="Actions" variant="default" />.
+> Reconnect, disable, copy IDs, assign groups, and remove channels from Home or the calendar.
+
+**Where:** <a href="/account">Home</a> — click the channel and the actions modal appears. If Home is in table layout, click <Badge text="Actions" variant="default" />. You can also open a channel chip on the <a href="/account/calendar">calendar</a>.
 
 ![Add channel to a channel group](/docs/_assets/glossary/add-to-group.webp)
 
-<p>You can also switch to table view (the table icon next to <strong>Connected channels</strong>), then click <Badge text="Add filters" variant="default" /> to open the smart filter. Narrow the list by social platform, connected account, group, or status, then click <Badge text="Actions" variant="default" /> on the row you want.</p>
+<p>Switch to table view (the table icon next to <strong>Connected channels</strong>), then click <Badge text="Add filters" variant="default" /> to open the smart filter. Narrow the list by social platform, connected account, group, or status, then click <Badge text="Actions" variant="default" /> on the row you want.</p>
 
 ![Group Connected Channels Using Smart Filter](/docs/_assets/channel-groups/smart-filter-connected-channel.webp)
-
-
-Plus, You can do the same from a channel chip on the <a href="/account/calendar">calendar</a>.
 
 ## What you can do
 
