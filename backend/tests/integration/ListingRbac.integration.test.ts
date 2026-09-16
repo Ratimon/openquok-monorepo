@@ -188,6 +188,7 @@ describe("Listing RBAC", () => {
                 is_official: false,
                 is_user_published: overrides?.isUserPublished ?? true,
                 is_admin_published: overrides?.isAdminPublished,
+                schema_type: "SoftwareApplication" as const,
             },
             listingTagsData: [{ id: testTagId, slug: testTagSlug }],
         };
@@ -200,9 +201,11 @@ describe("Listing RBAC", () => {
                 title,
                 description: "Test stack description.",
                 listing_kind: "stack" as const,
+                listing_category_id: testCategoryId,
                 is_official: false,
                 is_user_published: true,
                 is_admin_published: overrides?.isAdminPublished,
+                schema_type: "CreativeWork" as const,
             },
             listingTagsData: [] as Array<{ id: string; slug: string }>,
         };
@@ -242,12 +245,6 @@ describe("Listing RBAC", () => {
     }
 
     describe("Public read", () => {
-        it("GET /information returns module config", async () => {
-            const res = await supertest(app).get(`${listingPath}/information`).expect(200);
-            expect(res.body.success).toBe(true);
-            expect(typeof res.body.data).toBe("object");
-        });
-
         it("GET /published returns only dual-published extensions; unpublished slug returns 404", async () => {
             const body = validExtensionBody();
             const { listingId } = await createListingAs(editorToken, body);

@@ -30,6 +30,10 @@ export default {
     testEnvironment: "node",
     clearMocks: true,
     collectCoverage: false,
-    testPathIgnorePatterns: ["/node_modules/"],
+    testPathIgnorePatterns: [
+        "/node_modules/",
+        // Uses jest.integration.ratelimit.config.js (real rate-limit middleware + low limits).
+        "RateLimit\\.integration\\.test\\.ts",
+    ],
     forceExit: true,
 };

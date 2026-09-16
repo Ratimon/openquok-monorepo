@@ -10,6 +10,11 @@ import {
     signupVerifyAndSignIn as sharedSignupVerifyAndSignIn,
 } from "../helpers/integrationAuthTestHelper";
 import { generateRandomVerificationToken } from "../utils/getVerificationTokenStub";
+import {
+    prepareSoloWorkspace,
+    restoreSoloWorkspaceSpies,
+    type SoloWorkspaceSpies,
+} from "../helpers/workspaceTestHelper";
 
 const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
 const authPath = `${apiPrefix}/auth`;
@@ -29,6 +34,7 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
     let getVerificationTokenSpy: jest.SpyInstance;
     let verificationToken: string;
     let emailSendSpy: jest.SpyInstance;
+    let soloWorkspaceSpies: SoloWorkspaceSpies | undefined;
 
     beforeAll(() => {
         verificationToken = generateRandomVerificationToken();
@@ -50,7 +56,13 @@ describe("OAuth Apps (JWT-managed) + programmatic token auth", () => {
         emailSendSpy?.mockRestore();
     });
 
+    beforeEach(() => {
+        soloWorkspaceSpies = prepareSoloWorkspace();
+    });
+
     afterEach(async () => {
+        restoreSoloWorkspaceSpies(soloWorkspaceSpies);
+        soloWorkspaceSpies = undefined;
         if (userHelper) {
             await cleanupIntegrationTestUsers(userHelper);
         }

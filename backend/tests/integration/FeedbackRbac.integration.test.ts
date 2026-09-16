@@ -21,6 +21,9 @@ const feedbackPath = `${apiPrefix}/feedback`;
 
 const PASSWORD = "Test1234!";
 
+/** Two full signup + role-assignment flows per test; allow headroom when the suite runs in band. */
+jest.setTimeout(60_000);
+
 /**
  * Feedback RBAC integration tests. Requires user_roles, feedback table.
  * Simplified: shared helpers, grouped flows, fewer duplicate setups.

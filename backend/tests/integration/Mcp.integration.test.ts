@@ -164,11 +164,27 @@ describeIfSupabase("Hosted MCP auth + tools/list (integration)", () => {
 
             const toolNames = result.tools.map((tool) => tool.name).sort();
             expect(toolNames).toEqual([
+                "analyticsPlatform",
+                "analyticsPost",
                 "groupList",
                 "integrationList",
                 "integrationSchema",
+                "plugsActivate",
+                "plugsCatalog",
+                "plugsDelete",
+                "plugsList",
+                "plugsUpsert",
+                "postsConnect",
+                "postsDelete",
+                "postsFindSlot",
+                "postsList",
+                "postsMissing",
+                "postsReschedule",
+                "postsReviewTodo",
+                "postsStatus",
                 "schedulePostTool",
                 "triggerTool",
+                "uploadFromUrl",
             ]);
         } finally {
             await transport.close();
