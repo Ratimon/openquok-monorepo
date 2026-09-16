@@ -12,7 +12,7 @@ describe('PublicHumanizeComposerPresenter.applyPageChannel', () => {
 		expect(composer.selectedIds.length).toBeGreaterThan(0);
 	});
 
-	it('preselects and focuses a coming-soon catalog mock on a channel page', () => {
+	it('preselects and focuses a catalog mock on a channel page', () => {
 		const composer = new PublicHumanizeComposerPresenter({
 			composerMode: 'custom',
 			focusedProviderIdentifier: 'facebook'

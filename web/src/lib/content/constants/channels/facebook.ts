@@ -164,5 +164,5 @@ export const facebookChannel = {
 		}
 	],
 	docsPath: FACEBOOK_DOCS_PATH,
-	available: false
+	available: true
 } satisfies PublicChannelLandingPageViewModel;

@@ -35854,7 +35854,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-16T04:11:53.543Z",
+  generated: "2026-09-16T12:12:19.427Z",
   routes: [
     {
       path: "/docs",
@@ -36104,6 +36104,18 @@ var routes_manifest_default = {
     },
     {
       path: "/channels/devto",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/facebook",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
+      path: "/channels/instagram",
       priority: 0.8,
       changeFreq: "monthly",
       type: "public-catalog"
@@ -38161,6 +38173,18 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/photo-editor/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/photo-editor/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/photo-editor/linkedin",
       priority: 0.7,
       changeFreq: "monthly",
@@ -38197,6 +38221,18 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/skill-builder/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/skill-builder/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/tools/skill-builder/linkedin",
       priority: 0.7,
       changeFreq: "monthly",
@@ -38228,6 +38264,18 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/best-time-to-post/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/best-time-to-post/instagram",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
@@ -41951,13 +41999,39 @@ init_GlobalConfig();
 init_Logger();
 var PROGRAMMATIC_TOKEN_PREFIX = "opo_";
 var hashRateLimitKey = (value) => crypto.createHash("sha256").update(value).digest("hex").slice(0, 32);
+var firstHeaderValue = (value) => {
+  const raw = Array.isArray(value) ? value[0] : value;
+  if (typeof raw !== "string") return null;
+  const first = raw.split(",")[0]?.trim();
+  return first && first.length > 0 ? first : null;
+};
+var clientIpFromRequest = (req) => {
+  const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
+  if (cfConnectingIp) return cfConnectingIp;
+  return req.ip ?? "unknown";
+};
+var isPublicCachedGetRequest = (req) => {
+  if (req.method !== "GET") return false;
+  const path7 = req.path;
+  if (path7 === "/company" || path7.startsWith("/company/")) return true;
+  if (path7 === "/blog-system" || path7.startsWith("/blog-system/")) return true;
+  if (path7 === "/listings/published" || path7.startsWith("/listings/published/")) return true;
+  if (path7 === "/listings/stacks/published" || path7.startsWith("/listings/stacks/published/")) {
+    return true;
+  }
+  if (path7.startsWith("/listings/categories/")) return true;
+  if (path7.startsWith("/listings/tags/")) return true;
+  if (path7 === "/listings/creators" || path7.startsWith("/listings/creators/")) return true;
+  if (path7 === "/image/download") return true;
+  return false;
+};
 var extractBearerToken = (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice("Bearer ".length).trim();
   return token.length > 0 ? token : null;
 };
-var clientIpKey = (req) => rateLimit.ipKeyGenerator(req.ip ?? "unknown");
+var clientIpKey = (req) => rateLimit.ipKeyGenerator(clientIpFromRequest(req));
 var publicApiKeyGenerator = (req) => {
   const token = extractBearerToken(req);
   if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
@@ -42035,7 +42109,7 @@ var createRateLimiter = (options2) => {
     max: options2.max,
     message: options2.message,
     skip: skipFunction,
-    keyGenerator: options2.keyGenerator
+    keyGenerator: options2.keyGenerator ?? clientIpKey
   });
 };
 var shouldSkipRateLimit = () => {
@@ -42049,7 +42123,7 @@ var globalLimiter = createRateLimiter({
     const path7 = req.path;
     const originalUrl = req.originalUrl || req.url;
     const isWebhook = path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    const isBypass = path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
+    const isBypass = path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml") || isPublicCachedGetRequest(req);
     const isDedicatedLimiter = isPublicApiPath(path7) || isUploadPath(path7) || req.method === "POST" && path7 === "/feedback" || req.method === "POST" && path7 === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(path7) || isPublicWritePath(path7, req.method);
     return isWebhook || isBypass || isDedicatedLimiter;
   }

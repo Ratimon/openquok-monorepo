@@ -161,5 +161,5 @@ export const instagramChannel = {
 		}
 	],
 	docsPath: INSTAGRAM_DOCS_PATH,
-	available: false
+	available: true
 } satisfies PublicChannelLandingPageViewModel;

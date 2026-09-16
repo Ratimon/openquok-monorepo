@@ -8,6 +8,7 @@
 	type Props = {
 		children: Snippet;
 		editor: TiptapEditor;
+		toolbarRevision?: number;
 		onClick: () => void;
 		name: string;
 		title?: string;
@@ -15,7 +16,13 @@
 		attributes?: object;
 	};
 
-	let { children, editor, onClick, name, title, disabled, attributes }: Props = $props();
+	let { children, editor, toolbarRevision = 0, onClick, name, title, disabled, attributes }: Props =
+		$props();
+
+	const isActive = $derived.by(() => {
+		void toolbarRevision;
+		return editor.isActive(name, attributes);
+	});
 
 	function preventDefault(fn: any) {
 		return function (event: any) {
@@ -29,7 +36,7 @@
 <Button
 	class={cn(
 		'group border-r border-base-300 p-2 first-of-type:rounded-l-md last-of-type:rounded-r-md last-of-type:border-r-0 disabled:cursor-not-allowed disabled:hover:bg-base-200',
-		editor.isActive(name, attributes)
+		isActive
 			? 'bg-base-content text-base-100 hover:bg-base-100 hover:text-base-content'
 			: 'bg-base-100 text-base-content hover:bg-base-content hover:text-base-100'
 	)}

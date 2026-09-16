@@ -22,7 +22,7 @@ describe('PublicHumanizePagePresenter', () => {
 		expect(vm.focusedProviderIdentifier).toBeNull();
 	});
 
-	it('returns channel SEO when a coming-soon catalog slug is set', () => {
+	it('returns channel SEO when a catalog slug is set', () => {
 		const presenter = new PublicHumanizePagePresenter();
 		const vm = presenter.loadHumanizeVm({ channelSlug: 'facebook' });
 		expect(vm.metaTitle).toBe(buildHumanizeChannelMetaTitle('Facebook'));

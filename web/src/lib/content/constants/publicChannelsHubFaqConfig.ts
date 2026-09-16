@@ -31,7 +31,7 @@ export const PUBLIC_CHANNELS_HUB_FAQ = {
 		{
 			title: 'Which channels can I schedule on OpenQuok?',
 			description:
-				`Browse live and coming-soon networks on ${faqLink(publicFaqHref.channels, 'Channels')}. Each card links to a channel landing page — for example ${faqLink(YOUTUBE_CHANNEL_LINKS.channelLanding, 'YouTube')} — with scheduling features, FAQs, and agent playbooks for that platform.`
+				`Browse supported networks on ${faqLink(publicFaqHref.channels, 'Channels')}. Each card links to a channel landing page — for example ${faqLink(YOUTUBE_CHANNEL_LINKS.channelLanding, 'YouTube')} — with scheduling features, FAQs, and agent playbooks for that platform.`
 		},
 		{
 			title: 'Do I need my own Meta or Google developer app?',

@@ -293,7 +293,7 @@ openquok analytics:post <post-id> -d 30`
 		{
 			title: 'Which social media platforms are supported?',
 			description:
-				`YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
+				`Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. Connect channels in the OpenQuok web app or follow the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}; see every network on ${faqLink(publicFaqHref.channels, 'Supported channels')}. Grok Bot uses integration UUIDs from openquok integrations:list to target the right accounts.`
 		},
 		{
 			title: 'Does Grok Bot publish immediately or wait for approval?',

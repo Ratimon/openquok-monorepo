@@ -102,7 +102,7 @@ export const warpMcpSeed = {
 			},
 			{
 				title: 'Which social platforms are supported?',
-				description: `YouTube, TikTok, LinkedIn, X, and Threads are available today. Facebook and Instagram are coming soon. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+				description: `Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, and X are supported today. See ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
 			}
 		]
 	}

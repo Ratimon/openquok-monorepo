@@ -26,11 +26,15 @@
 
 	let element: HTMLElement;
 	let editor = $state<TiptapEditor>();
+	/** Bumps on TipTap transactions so the toolbar re-renders without reassigning `editor` (which retriggers $effects). */
+	let toolbarRevision = $state(0);
 
 	let currentContent = $state('');
 	let currentLength = $state(0);
 	/** Avoid wiping the editor when the parent `content` prop has not caught up to our last `onChange` yet. */
 	let lastOutgoingContent = $state<string | null>(null);
+	/** Last `content` prop applied to TipTap — avoids setContent ↔ onChange loops when HTML round-trips differ. */
+	let lastAppliedPropContent = $state<string | null>(null);
 	/** Blob URL => selected local file (upload later on submit). */
 	const pendingInlineImageFiles = new Map<string, File>();
 
@@ -112,7 +116,7 @@
 			onTransaction: ({ transaction }) => {
 				// Re-render toolbar active states; skip while typing alt (selection noise only).
 				if (transaction.docChanged || (transaction.selectionSet && !isBlogImageAltEditing())) {
-					editor = editor;
+					toolbarRevision += 1;
 				}
 			}
 		});
@@ -256,8 +260,9 @@
 
 		const nextHtml = doc.innerHTML;
 		if (nextHtml !== html) {
-			editor.commands.setContent(nextHtml);
+			editor.commands.setContent(nextHtml, { emitUpdate: false });
 			lastOutgoingContent = nextHtml;
+			lastAppliedPropContent = nextHtml;
 			currentContent = nextHtml;
 			currentLength = editor.getText().length;
 			onChange(nextHtml);
@@ -291,53 +296,53 @@
 		onChange(newContent);
 	}
 
-	$effect(() => {
-		if (editor && dynamicContent) {
-			const effective =
-				outputType === 'html' ? normalizeBlogInlineImagesInHtml(dynamicContent) : dynamicContent;
-			editor.commands.setContent(effective);
-			handleUpdate();
+	function effectiveContentFromProp(raw: string): string {
+		if (outputType === 'html') {
+			return normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(raw || ''));
 		}
+		return raw || '';
+	}
+
+	function applyContentFromProp(raw: string): void {
+		if (!editor) return;
+		const effective = effectiveContentFromProp(raw);
+		const current =
+			outputType === 'html' ? editor.getHTML() : editor.getText();
+		if (effective === current) {
+			lastAppliedPropContent = raw;
+			return;
+		}
+		editor.commands.setContent(effective, { emitUpdate: false });
+		lastAppliedPropContent = raw;
+		currentContent = raw || '';
+		currentLength = editor.getText().length;
+	}
+
+	$effect(() => {
+		if (!editor || !dynamicContent) return;
+		const effective =
+			outputType === 'html' ? normalizeBlogInlineImagesInHtml(dynamicContent) : dynamicContent;
+		editor.commands.setContent(effective, { emitUpdate: false });
+		lastAppliedPropContent = dynamicContent;
+		handleUpdate();
 	});
 
 	// Watch for content prop changes and update editor
 	$effect(() => {
-		if (editor && content !== undefined) {
-			if (isBlogImageAltInputFocused()) return;
+		if (!editor || content === undefined) return;
+		if (isBlogImageAltInputFocused()) return;
 
+		// Parent has not echoed our last onChange yet — do not overwrite the editor.
+		if (lastOutgoingContent !== null) {
 			if (content === lastOutgoingContent) {
 				lastOutgoingContent = null;
-				return;
 			}
-			// Get current editor content in the same format as the prop
-			const editorContent = outputType === 'html' ? editor.getHTML() : editor.getText();
-
-			// Normalize content for comparison
-			// For HTML, compare as-is (whitespace can be meaningful)
-			// For text, trim whitespace for comparison
-			let normalizedContent: string;
-			let normalizedEditorContent: string;
-
-			if (outputType === 'html') {
-				// For HTML, normalize empty paragraphs for comparison
-				normalizedContent = (content || '').replace(/<p><\/p>/g, '').trim();
-				normalizedEditorContent = (editorContent || '').replace(/<p><\/p>/g, '').trim();
-			} else {
-				normalizedContent = (content || '').trim();
-				normalizedEditorContent = (editorContent || '').trim();
-			}
-
-			// Only update if content actually changed to avoid unnecessary updates
-			if (normalizedContent !== normalizedEditorContent) {
-				const effective =
-					outputType === 'html'
-						? normalizeBlogInlineImagesInHtml(prepareBlogContentForDisplay(content || ''))
-						: (content || '');
-				editor.commands.setContent(effective);
-				currentContent = content || '';
-				currentLength = editor.getText().length;
-			}
+			return;
 		}
+
+		if (content === lastAppliedPropContent) return;
+
+		applyContentFromProp(content);
 	});
 
 	onDestroy(() => {
@@ -353,7 +358,11 @@
 
 <div class="relative">
 	{#if editor && showMenu}
-		<ContentEditorMenu editor={editor} onInsertLocalImagePreview={insertLocalImagePreview} />
+		<ContentEditorMenu
+			editor={editor}
+			toolbarRevision={toolbarRevision}
+			onInsertLocalImagePreview={insertLocalImagePreview}
+		/>
 	{/if}
 
 	<div bind:this={element} class="content-editor min-h-[200px]"></div>

@@ -176,6 +176,7 @@
 	let contentEditorMode = $state<'visual' | 'html'>('visual');
 	let htmlSourceContent = $state('');
 	let productPrefillDone = $state(false);
+	let productPrefillTopicId = $state('');
 
 	const seoTopicStore = form.useStore((state) => ({
 		topicId: state.values.topic_id ?? '',
@@ -186,13 +187,14 @@
 
 	$effect(() => {
 		const { topicId, title, description, product } = seoTopicStore.current;
+		if (topicId !== productPrefillTopicId) {
+			productPrefillTopicId = topicId;
+			productPrefillDone = false;
+		}
+
 		const topicSlug = resolveTopicSlug(topicId);
 		const showProductSection = isBlogTopicEligibleForProduct(topicSlug, topicId);
-		if (!showProductSection) {
-			productPrefillDone = false;
-			return;
-		}
-		if (productPrefillDone) return;
+		if (!showProductSection || productPrefillDone) return;
 
 		if (product?.name?.trim() && product?.description?.trim()) {
 			productPrefillDone = true;
@@ -262,11 +264,6 @@
 		}
 		contentEditorMode = mode;
 	}
-
-	$effect(() => {
-		if (contentEditorMode !== 'html') return;
-		htmlSourceContent = prettyFormatHtml(form.state.values.content ?? '');
-	});
 
 	function handleFormSubmit(e: Event) {
 		e.preventDefault();

@@ -23,15 +23,14 @@ describe('publicHumanizeChannelConfig', () => {
 		expect(getHumanizeChannelBySlug('not-a-channel')).toBeUndefined();
 	});
 
-	it('includes coming-soon catalog channels as sample Humanizer pages', () => {
+	it('includes every catalog channel as a Humanizer page (including Meta networks)', () => {
+		const catalog = listPublicChannelsForHub();
 		const liveSlugs = new Set(listAvailablePublicChannels().map((channel) => channel.slug));
-		const comingSoon = listPublicChannelsForHub().filter((channel) => !liveSlugs.has(channel.slug));
 
-		expect(comingSoon.map((channel) => channel.slug)).toEqual(
-			expect.arrayContaining(['facebook', 'instagram'])
-		);
+		expect(liveSlugs.has('facebook')).toBe(true);
+		expect(liveSlugs.has('instagram')).toBe(true);
 
-		for (const channel of comingSoon) {
+		for (const channel of catalog) {
 			expect(getHumanizeChannelBySlug(channel.slug)).toBeDefined();
 			expect(listHumanizeChannelsForHub().some((item) => item.slug === channel.slug)).toBe(true);
 		}
