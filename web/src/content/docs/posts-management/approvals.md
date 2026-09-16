@@ -80,8 +80,8 @@ If you run social for multiple clients, the usual flow is:
 
 <CardGrid>
 <LinkCard title="Actions and stats" description="Post actions modal — preview, edit, duplicate, and delete" href="/docs/posts-management/actions-and-stats" />
-<LinkCard title="Kanban board" description="Columns, filters, and opening posts from Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Calendar" description="Filters, chips, and opening posts from the grid" href="/docs/posts-management/calendar" />
+<LinkCard title="Kanban board" description="Columns, filters, and opening posts from Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Scheduling" description="Save as draft until client sign-off, then add to calendar" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Channel groups" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Glossary" description="Draft, scheduled, and preview link terminology" href="/docs/getting-started/glossary" />

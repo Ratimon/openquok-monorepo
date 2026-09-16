@@ -1,7 +1,7 @@
 ---
 title: Calendar
 description: Day, week, month, and list views, smart filters, and how to open or create posts from the grid.
-order: 2
+order: 1
 lastUpdated: 2026-09-16
 ---
 
@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 The calendar is the plan and the record. Drafts, scheduled posts, and published posts sit on the same grid. The Home kanban shows **stage**; the calendar shows **time**. Both views read the same post groups.
 
-![Calendar View](/docs/_assets/posts-management/posts-unfiltered-calendar.webp)
+![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
 ### Views
 

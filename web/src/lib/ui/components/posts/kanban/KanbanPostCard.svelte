@@ -241,12 +241,12 @@
 						if (e.detail === 0) openPostEditor();
 					}}
 				>
-					{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
+					{#if cardVm.column === 'draft'}<span class="font-semibold text-warning">Draft: </span>{/if}
 					{cardVm.contentPreview || '—'}
 				</button>
 			{:else}
 				<p class="min-w-0 flex-1 text-xs font-medium text-base-content select-none">
-					{#if cardVm.column === 'draft'}<span class="text-base-content/55">Draft: </span>{/if}
+					{#if cardVm.column === 'draft'}<span class="font-semibold text-warning">Draft: </span>{/if}
 					{cardVm.contentPreview || '—'}
 				</p>
 			{/if}

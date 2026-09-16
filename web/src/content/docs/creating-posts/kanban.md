@@ -139,8 +139,8 @@ The kanban appears only when your workspace has at least one **connected social 
 <LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Posts management" description="Kanban, calendar views, filters, and post actions" href="/docs/posts-management" />
-<LinkCard title="Kanban board (posts management)" description="Columns, filters, and card signals on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Calendar" description="Day, week, month, and list views on the date grid" href="/docs/posts-management/calendar" />
+<LinkCard title="Kanban board (posts management)" description="Columns, filters, and card signals on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/posts-management/approvals" />

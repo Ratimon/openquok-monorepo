@@ -2,7 +2,22 @@ import { describe, expect, it } from 'vitest';
 
 import { UNTAGGED_POST_TAG_FILTER } from '$lib/posts/scheduler.types';
 
-import { hasNoPostTagNames, matchesTagFilters } from './filters';
+import type { CalendarPostRowViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
+
+import { filterPostsByPostType, hasNoPostTagNames, matchesTagFilters } from './filters';
+
+function row(overrides: Partial<CalendarPostRowViewModel> = {}): CalendarPostRowViewModel {
+	return {
+		id: 'post-1',
+		postGroup: 'group-1',
+		state: 'QUEUE',
+		publishDate: '2030-06-01T12:00:00.000Z',
+		organizationId: 'org-1',
+		integrationId: 'int-1',
+		content: 'hello',
+		...overrides
+	};
+}
 
 function selected(...names: string[]): Set<string> {
 	return new Set(names.map((n) => n.trim().toLowerCase()).filter(Boolean));
@@ -15,6 +30,41 @@ describe('hasNoPostTagNames', () => {
 		expect(hasNoPostTagNames([])).toBe(true);
 		expect(hasNoPostTagNames(['', '  '])).toBe(true);
 		expect(hasNoPostTagNames(['reels'])).toBe(false);
+	});
+});
+
+describe('filterPostsByPostType', () => {
+	it('shows non-repeating drafts when REPEATING and DRAFT are selected but PUBLISHED is not', () => {
+		const posts = [
+			row({ id: 'draft-plain', state: 'DRAFT' }),
+			row({ id: 'draft-repeat', state: 'DRAFT', intervalInDays: 7 }),
+			row({ id: 'pub-repeat', state: 'PUBLISHED', intervalInDays: 7 })
+		];
+		const out = filterPostsByPostType(posts, false, [
+			'QUEUE',
+			'DRAFT',
+			'ERROR',
+			'REPEATING'
+		]);
+		expect(out.map((p) => p.id).sort()).toEqual(['draft-plain', 'draft-repeat'].sort());
+	});
+
+	it('shows only repeating rows when REPEATING is the sole selected filter', () => {
+		const posts = [
+			row({ id: 'queue', state: 'QUEUE' }),
+			row({ id: 'repeat', state: 'QUEUE', intervalInDays: 7 })
+		];
+		const out = filterPostsByPostType(posts, false, ['REPEATING']);
+		expect(out.map((p) => p.id)).toEqual(['repeat']);
+	});
+
+	it('shows repeating and non-repeating rows for a selected DB state when REPEATING is off', () => {
+		const posts = [
+			row({ id: 'draft-plain', state: 'DRAFT' }),
+			row({ id: 'draft-repeat', state: 'DRAFT', intervalInDays: 7 })
+		];
+		const out = filterPostsByPostType(posts, false, ['DRAFT']);
+		expect(out.map((p) => p.id).sort()).toEqual(['draft-plain', 'draft-repeat'].sort());
 	});
 });
 

@@ -98,10 +98,11 @@ function isRepeating(rowVm: CalendarPostRowViewModel): boolean {
 }
 
 /**
- * Calendar “Post types” filter:
- * - REPEATING on → only repeating rows (∩ selected DB states when any).
- * - REPEATING off + ≥1 DB state → exclude repeating rows.
- * - REPEATING only → repeating rows in any DB state.
+ * Calendar “Post types” filter (OR semantics — same idea as tag filters):
+ * - Each selected DB state matches rows in that state (repeating or not).
+ * - REPEATING matches rows with a repeat interval; when DB states are also selected,
+ *   repeating rows must still be in one of those states (so unchecking PUBLISHED hides repeating published).
+ * - REPEATING alone matches any repeating row in any state.
  */
 function rowMatchesPostTypeFilters(rowVm: CalendarPostRowViewModel, selectedFilters: Set<string>): boolean {
 	const selected = new Set(
@@ -111,15 +112,13 @@ function rowMatchesPostTypeFilters(rowVm: CalendarPostRowViewModel, selectedFilt
 	const repeatingOn = selected.has(CALENDAR_FILTER_REPEATING);
 	const dbFilters = [...selected].filter((t) => CALENDAR_DB_POST_STATES.has(t));
 	const rowState = String(rowVm.state ?? '').trim().toUpperCase();
-
-	const stateOk = dbFilters.length === 0 || dbFilters.includes(rowState);
 	const isRep = isRepeating(rowVm);
 
-	let repeatOk = true;
-	if (repeatingOn) repeatOk = isRep;
-	else if (dbFilters.length > 0) repeatOk = !isRep;
+	const matchesDbState = dbFilters.length > 0 && dbFilters.includes(rowState);
+	const matchesRepeating =
+		repeatingOn && isRep && (dbFilters.length === 0 || dbFilters.includes(rowState));
 
-	return stateOk && repeatOk;
+	return matchesDbState || matchesRepeating;
 }
 
 export function filterPostsByPostType(

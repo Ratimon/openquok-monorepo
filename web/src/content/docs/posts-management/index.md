@@ -1,6 +1,6 @@
 ---
 title: Overview - Posts management
-description: Kanban board, calendar views, filters, and how to move, review, and act on posts across Home and the calendar.
+description: Calendar views, kanban board, filters, and how to move, review, and act on posts across the grid and Home.
 order: 0
 lastUpdated: 2026-09-16
 sidebar:
@@ -13,30 +13,29 @@ import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.j
 
 ## Overview
 
-> Kanban for stage, calendar for time — same post groups, two ways to work.
+> Calendar for time, kanban for stage — same post groups, two ways to work.
 
 <Callout type="tip">
 OpenQuok keeps your content in two places. Both views read the same post groups — change one and the other updates:
 </Callout>
 
+1) The <a href="/account/calendar">calendar</a> is your schedule and your history — drafts, scheduled posts, and published posts share one grid.
 
-1) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
-
-![Kanban View](/docs/_assets/posts-management/posts-unfiltered-kanban.webp)
-
-
-2) The <a href="/account/calendar">calendar</a> is your schedule and your history — drafts, scheduled posts, and published posts share one grid.
-
-![Calendar View](/docs/_assets/posts-management/posts-unfiltered-calendar.webp)
+![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
 
-This section covers the Home kanban board, calendar views, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
+2) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
+
+![Kanban View](/docs/_assets/posts-management/kanban-unfiltered-posts.webp)
+
+
+This section covers calendar views, the Home kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
 
 ## In this section
 
 <CardGrid>
-<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Calendar" description="Day, week, month, and list views on the date grid" href="/docs/posts-management/calendar" />
+<LinkCard title="Kanban board" description="Draft, scheduled, and published columns on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Moving posts" description="Drag on the calendar, published reschedule dialog, and programmatic reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Duplicate, delete, export, statistics, and connect" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
