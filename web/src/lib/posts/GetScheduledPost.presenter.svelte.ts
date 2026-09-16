@@ -115,6 +115,8 @@ export interface CalendarPostRowViewModel {
 	content: string;
 	intervalInDays?: number | null;
 	repeatInterval?: string | null;
+	/** Anchor publish date when this row is a virtual recurring calendar copy. */
+	seriesAnchorPublishDate?: string | null;
 	error?: string | null;
 	/** From list/flip API — resolved `integrations` row (includes soft-deleted). */
 	channelName?: string | null;

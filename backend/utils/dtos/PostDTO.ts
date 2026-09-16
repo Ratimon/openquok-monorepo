@@ -32,6 +32,8 @@ export interface SocialPostLike {
     is_reviewed: boolean;
     created_at: string;
     updated_at: string;
+    /** Set on calendar virtual recurrence rows (not a DB column). */
+    series_anchor_publish_date?: string;
 }
 
 /** Raw row shape from Supabase `post_tags` select. */
@@ -392,6 +394,8 @@ export interface SocialPostDTO {
     providerIdentifier?: string | null;
     /** Workspace tag names assigned to this post row. */
     tagNames?: string[];
+    /** Anchor `publishDate` when this row is a virtual recurrence from calendar expansion. */
+    seriesAnchorPublishDate?: string;
 }
 
 export interface PostTagDTO {
@@ -492,6 +496,9 @@ export const PostDTOMapper = {
                       channelPictureUrl,
                       providerIdentifier,
                   }
+                : {}),
+            ...(row.series_anchor_publish_date
+                ? { seriesAnchorPublishDate: row.series_anchor_publish_date }
                 : {}),
         };
     },

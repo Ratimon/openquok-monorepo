@@ -145,6 +145,15 @@
 		setActiveCalendarPostDrag(null);
 		markCalendarChipClickSuppressed();
 	}
+
+	function previewChannelKey(entry: SlotSummaryItem, index: number): string {
+		const postId = String(entry.postId ?? '').trim();
+		const publishDate = String(entry.publishDate ?? '').trim();
+		const integrationId = String(entry.integrationId ?? '').trim();
+		if (postId && publishDate) return `${postId}@${publishDate}`;
+		if (integrationId) return `${integrationId}-${index}`;
+		return `ch-${index}`;
+	}
 </script>
 
 <button
@@ -180,7 +189,7 @@
 			<div class="flex shrink-0 items-center gap-1">
 				{#if multiPosts}
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewChannels as entry, i (entry.postId || `${entry.integrationId ?? 'ch'}-${i}`)}
+						{#each previewChannels as entry, i (previewChannelKey(entry, i))}
 							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture
@@ -248,7 +257,7 @@
 			{#if multiPosts}
 				<div class="flex min-w-0 flex-1 items-center gap-1">
 					<div class="relative h-4 w-8 shrink-0">
-						{#each previewChannels as entry, i (entry.postId || `${entry.integrationId ?? 'ch'}-${i}`)}
+						{#each previewChannels as entry, i (previewChannelKey(entry, i))}
 							{@const entryIcon = socialProviderIcon(entry.channelIdentifier)}
 							<div class="absolute top-0" style={`left:${i * 6}px`}>
 								<IntegrationChannelPicture

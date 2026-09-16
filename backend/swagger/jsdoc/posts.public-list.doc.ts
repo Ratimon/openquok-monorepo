@@ -20,7 +20,10 @@
  *       channel (and ungrouped posts). Pass `customerGroupId` as the UUID of an
  *       `integration_customers` row to restrict to integrations assigned to
  *       that channel group; if `integrationIds` is also set, the result is the
- *       intersection.
+ *       intersection. Recurring `DRAFT` or `QUEUE` posts with `intervalInDays`
+ *       greater than zero expand to one row per occurrence in the window—the
+ *       same `id` may appear multiple times with different `publishDate` values.
+ *       Virtual copies include `seriesAnchorPublishDate` (the anchor slot).
  *     parameters:
  *       - in: query
  *         name: start
@@ -55,7 +58,11 @@
  *         example: '7b2c9d1e-4a3f-4e5b-8c7d-1a2b3c4d5e6f'
  *     responses:
  *       '200':
- *         description: Posts (one DTO per row, multi-channel groups appear as separate rows sharing `postGroup`).
+ *         description: >-
+ *           Posts (one DTO per calendar row). Multi-channel groups appear as
+ *           separate rows sharing `postGroup`. Recurring `DRAFT`/`QUEUE` posts
+ *           may repeat the same `id` with different `publishDate` when
+ *           `intervalInDays` is set.
  *         content:
  *           application/json:
  *             schema:
@@ -78,12 +85,61 @@
  *                 posts:
  *                   - id: 5b3c1d2e-9a3f-4e6b-bb12-2c0a5f1a90a1
  *                     state: QUEUE
+ *                     publishDate: '2026-05-07T10:00:00.000Z'
+ *                     organizationId: c1d8a3f4-1234-4abc-bf12-1234567890ab
+ *                     integrationId: 1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22
+ *                     content: 'Weekly check-in from the public API!'
+ *                     delay: 0
+ *                     postGroup: 9a0a1b2c-3d4e-4f5a-9b8c-aa11bb22cc33
+ *                     title: null
+ *                     description: null
+ *                     parentPostId: null
+ *                     releaseId: null
+ *                     releaseUrl: null
+ *                     settings: null
+ *                     image: null
+ *                     intervalInDays: 7
+ *                     error: null
+ *                     deletedAt: null
+ *                     createdByUserId: null
+ *                     note: null
+ *                     isAgentEdited: false
+ *                     isReviewed: false
+ *                     createdAt: '2026-05-10T09:00:00.000Z'
+ *                     updatedAt: '2026-05-10T09:00:00.000Z'
+ *                   - id: 5b3c1d2e-9a3f-4e6b-bb12-2c0a5f1a90a1
+ *                     state: QUEUE
  *                     publishDate: '2026-05-14T10:00:00.000Z'
  *                     organizationId: c1d8a3f4-1234-4abc-bf12-1234567890ab
  *                     integrationId: 1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22
- *                     content: 'Hello from the public API!'
+ *                     content: 'Weekly check-in from the public API!'
  *                     delay: 0
  *                     postGroup: 9a0a1b2c-3d4e-4f5a-9b8c-aa11bb22cc33
+ *                     title: null
+ *                     description: null
+ *                     parentPostId: null
+ *                     releaseId: null
+ *                     releaseUrl: null
+ *                     settings: null
+ *                     image: null
+ *                     intervalInDays: 7
+ *                     error: null
+ *                     deletedAt: null
+ *                     createdByUserId: null
+ *                     note: null
+ *                     isAgentEdited: false
+ *                     isReviewed: false
+ *                     createdAt: '2026-05-10T09:00:00.000Z'
+ *                     updatedAt: '2026-05-10T09:00:00.000Z'
+ *                     seriesAnchorPublishDate: '2026-05-07T10:00:00.000Z'
+ *                   - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+ *                     state: DRAFT
+ *                     publishDate: '2026-05-20T15:30:00.000Z'
+ *                     organizationId: c1d8a3f4-1234-4abc-bf12-1234567890ab
+ *                     integrationId: 2c8b5e4a-5a4b-4f7d-8e2c-9b3f1c4d5e22
+ *                     content: 'One-off draft post'
+ *                     delay: 0
+ *                     postGroup: b2c3d4e5-f6a7-8901-bcde-f23456789012
  *                     title: null
  *                     description: null
  *                     parentPostId: null
@@ -95,8 +151,11 @@
  *                     error: null
  *                     deletedAt: null
  *                     createdByUserId: null
- *                     createdAt: '2026-05-10T09:00:00.000Z'
- *                     updatedAt: '2026-05-10T09:00:00.000Z'
+ *                     note: null
+ *                     isAgentEdited: true
+ *                     isReviewed: false
+ *                     createdAt: '2026-05-18T12:00:00.000Z'
+ *                     updatedAt: '2026-05-18T12:00:00.000Z'
  *       '400':
  *         description: Invalid date range (`start`/`end` missing or non-parseable).
  *       '401':
@@ -161,6 +220,16 @@
  *         intervalInDays:
  *           type: integer
  *           nullable: true
+ *           description: >-
+ *             Repeat cadence in days. When greater than zero on a `DRAFT` or
+ *             `QUEUE` post, the list endpoint expands one row per occurrence in
+ *             the requested window (same `id`, different `publishDate`).
+ *         seriesAnchorPublishDate:
+ *           type: string
+ *           format: date-time
+ *           description: >-
+ *             Present on virtual recurrence rows only—the anchor `publishDate`
+ *             of the recurring series before expansion.
  *         error:
  *           type: string
  *           nullable: true

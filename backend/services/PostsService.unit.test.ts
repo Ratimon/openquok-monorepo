@@ -102,7 +102,7 @@ type PostsRepoMock = jest.Mocked<
         | "softDeleteThreadRepliesByPostIds"
         | "softDeletePostsByGroup"
         | "insertThreadReplies"
-        | "listPostsByOrganizationAndDateRange"
+        | "listPostsForCalendar"
         | "getPostById"
         | "listCommentsByPostId"
         | "insertComposerComment"
@@ -133,7 +133,7 @@ function createPostsRepoMock(): PostsRepoMock {
         softDeleteThreadRepliesByPostIds: jest.fn().mockResolvedValue(undefined),
         softDeletePostsByGroup: jest.fn(),
         insertThreadReplies: jest.fn().mockResolvedValue([]),
-        listPostsByOrganizationAndDateRange: jest.fn(),
+        listPostsForCalendar: jest.fn(),
         getPostById: jest.fn(),
         listCommentsByPostId: jest.fn(),
         insertComposerComment: jest.fn(),
@@ -1117,7 +1117,7 @@ describe("PostsService", () => {
     describe("listPostsForCalendar", () => {
         it("asserts membership then returns repository rows", async () => {
             const rows = [socialPostRow({ integration_id: integrationId, state: "QUEUE" })];
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue(rows);
+            postsRepo.listPostsForCalendar.mockResolvedValue(rows);
 
             const out = await service().listPostsForCalendar({
                 organizationId: orgId,
@@ -1128,7 +1128,7 @@ describe("PostsService", () => {
             });
 
             expect(integrationConnection.assertOrganizationMember).toHaveBeenCalledWith(authUserId, orgId);
-            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+            expect(postsRepo.listPostsForCalendar).toHaveBeenCalledWith({
                 organizationId: orgId,
                 startIso: new Date("2030-06-01T00:00:00.000Z").toISOString(),
                 endIso: new Date("2030-06-30T23:59:59.999Z").toISOString(),
@@ -1138,7 +1138,7 @@ describe("PostsService", () => {
         });
 
         it("normalizes integrationIds to null when omitted", async () => {
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+            postsRepo.listPostsForCalendar.mockResolvedValue([]);
 
             await service().listPostsForCalendar({
                 organizationId: orgId,
@@ -1147,7 +1147,7 @@ describe("PostsService", () => {
                 endIso: "2030-06-02T00:00:00.000Z",
             });
 
-            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+            expect(postsRepo.listPostsForCalendar).toHaveBeenCalledWith({
                 organizationId: orgId,
                 startIso: new Date("2030-06-01T00:00:00.000Z").toISOString(),
                 endIso: new Date("2030-06-02T00:00:00.000Z").toISOString(),
@@ -1168,7 +1168,7 @@ describe("PostsService", () => {
                 statusCode: 400,
                 message: "Invalid date range",
             });
-            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+            expect(postsRepo.listPostsForCalendar).not.toHaveBeenCalled();
         });
 
         it("throws 400 when start is after end", async () => {
@@ -1184,12 +1184,12 @@ describe("PostsService", () => {
                 statusCode: 400,
                 message: "Start must be before end",
             });
-            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+            expect(postsRepo.listPostsForCalendar).not.toHaveBeenCalled();
         });
 
         it("uses getOrSet with calendar key and TTL 300 when cache provided", async () => {
             const rows = [socialPostRow()];
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue(rows);
+            postsRepo.listPostsForCalendar.mockResolvedValue(rows);
             const startIso = new Date("2030-06-01T00:00:00.000Z").toISOString();
             const endIso = new Date("2030-06-30T23:59:59.999Z").toISOString();
             const getOrSet = jest.fn().mockResolvedValue(rows);
@@ -1216,7 +1216,7 @@ describe("PostsService", () => {
         });
 
         it("calls repository once when getOrSet remembers", async () => {
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+            postsRepo.listPostsForCalendar.mockResolvedValue([]);
             const memory = new Map<string, unknown>();
             const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
                 if (memory.has(key)) return memory.get(key);
@@ -1235,7 +1235,89 @@ describe("PostsService", () => {
             await s.listPostsForCalendar(args);
             await s.listPostsForCalendar(args);
 
-            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledTimes(1);
+            expect(postsRepo.listPostsForCalendar).toHaveBeenCalledTimes(1);
+        });
+
+        it("expands recurring DRAFT anchors inside the cached factory", async () => {
+            const anchor = socialPostRow({
+                id: "recurring-1",
+                state: "DRAFT",
+                publish_date: "2030-06-01T12:00:00.000Z",
+                interval_in_days: 7,
+            });
+            postsRepo.listPostsForCalendar.mockResolvedValue([anchor]);
+
+            const out = await service().listPostsForCalendar({
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-15T00:00:00.000Z",
+                endIso: "2030-06-22T23:59:59.999Z",
+            });
+
+            expect(out.map((r) => r.publish_date)).toEqual([
+                "2030-06-15T12:00:00.000Z",
+                "2030-06-22T12:00:00.000Z",
+            ]);
+            expect(out.every((r) => r.series_anchor_publish_date === "2030-06-01T12:00:00.000Z")).toBe(true);
+        });
+
+        it("expands recurring anchors inside getOrSet factory before caching", async () => {
+            const anchor = socialPostRow({
+                id: "recurring-cache",
+                state: "QUEUE",
+                publish_date: "2030-06-01T12:00:00.000Z",
+                interval_in_days: 7,
+            });
+            postsRepo.listPostsForCalendar.mockResolvedValue([anchor]);
+            const memory = new Map<string, unknown>();
+            const getOrSet = jest.fn(async (key: string, factory: () => Promise<unknown>) => {
+                if (memory.has(key)) return memory.get(key);
+                const value = await factory();
+                memory.set(key, value);
+                return value;
+            });
+
+            const args = {
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-08T00:00:00.000Z",
+                endIso: "2030-06-22T23:59:59.999Z",
+            };
+            const out = await service({ getOrSet: asGetOrSet(getOrSet) }).listPostsForCalendar(args);
+
+            expect(out.map((r) => r.publish_date)).toEqual([
+                "2030-06-08T12:00:00.000Z",
+                "2030-06-15T12:00:00.000Z",
+                "2030-06-22T12:00:00.000Z",
+            ]);
+            const cached = memory.get(
+                expectedCalendarCacheKey({
+                    organizationId: orgId,
+                    startIso: new Date(args.startIso).toISOString(),
+                    endIso: new Date(args.endIso).toISOString(),
+                    integrationIds: null,
+                })
+            ) as SocialPostLike[];
+            expect(cached).toHaveLength(3);
+            expect(cached.every((r) => r.id === anchor.id)).toBe(true);
+        });
+
+        it("does not expand PUBLISHED recurring rows from repository", async () => {
+            const published = socialPostRow({
+                state: "PUBLISHED",
+                publish_date: "2030-06-10T12:00:00.000Z",
+                interval_in_days: 7,
+            });
+            postsRepo.listPostsForCalendar.mockResolvedValue([published]);
+
+            const out = await service().listPostsForCalendar({
+                organizationId: orgId,
+                authUserId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-30T23:59:59.999Z",
+            });
+
+            expect(out).toEqual([published]);
         });
     });
 
@@ -1257,7 +1339,7 @@ describe("PostsService", () => {
             });
 
             expect(out).toEqual([]);
-            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+            expect(postsRepo.listPostsForCalendar).not.toHaveBeenCalled();
         });
 
         it("narrows to integrations for customerGroupId before listing", async () => {
@@ -1265,7 +1347,7 @@ describe("PostsService", () => {
                 { id: integrationId, customer_id: customerGroupId } as IntegrationLike,
                 { id: otherIntegrationId, customer_id: customerGroupId } as IntegrationLike,
             ]);
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+            postsRepo.listPostsForCalendar.mockResolvedValue([]);
 
             await service().listPostsForCalendarProgrammatic({
                 organizationId: orgId,
@@ -1275,13 +1357,13 @@ describe("PostsService", () => {
             });
 
             expect(integrationService.listByOrganization).toHaveBeenCalledWith(orgId);
-            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+            expect(postsRepo.listPostsForCalendar).toHaveBeenCalledWith({
                 organizationId: orgId,
                 startIso,
                 endIso,
                 integrationIds: expect.arrayContaining([integrationId, otherIntegrationId]),
             });
-            const passed = postsRepo.listPostsByOrganizationAndDateRange.mock.calls[0][0].integrationIds as string[];
+            const passed = postsRepo.listPostsForCalendar.mock.calls[0][0].integrationIds as string[];
             expect(passed).toHaveLength(2);
         });
 
@@ -1290,7 +1372,7 @@ describe("PostsService", () => {
                 { id: integrationId, customer_id: customerGroupId } as IntegrationLike,
                 { id: otherIntegrationId, customer_id: customerGroupId } as IntegrationLike,
             ]);
-            postsRepo.listPostsByOrganizationAndDateRange.mockResolvedValue([]);
+            postsRepo.listPostsForCalendar.mockResolvedValue([]);
 
             await service().listPostsForCalendarProgrammatic({
                 organizationId: orgId,
@@ -1300,7 +1382,7 @@ describe("PostsService", () => {
                 integrationIds: [otherIntegrationId],
             });
 
-            expect(postsRepo.listPostsByOrganizationAndDateRange).toHaveBeenCalledWith({
+            expect(postsRepo.listPostsForCalendar).toHaveBeenCalledWith({
                 organizationId: orgId,
                 startIso,
                 endIso,
@@ -1322,7 +1404,36 @@ describe("PostsService", () => {
             });
 
             expect(out).toEqual([]);
-            expect(postsRepo.listPostsByOrganizationAndDateRange).not.toHaveBeenCalled();
+            expect(postsRepo.listPostsForCalendar).not.toHaveBeenCalled();
+        });
+
+        it("expands recurring anchors the same way as listPostsForCalendar", async () => {
+            const anchor = socialPostRow({
+                id: "programmatic-recurring",
+                state: "DRAFT",
+                publish_date: "2030-06-01T12:00:00.000Z",
+                interval_in_days: 7,
+            });
+            postsRepo.listPostsForCalendar.mockResolvedValue([anchor]);
+
+            const out = await service().listPostsForCalendarProgrammatic({
+                organizationId: orgId,
+                startIso: "2030-06-01T00:00:00.000Z",
+                endIso: "2030-06-15T23:59:59.999Z",
+            });
+
+            expect(out.map((r) => r.publish_date)).toEqual([
+                "2030-06-01T12:00:00.000Z",
+                "2030-06-08T12:00:00.000Z",
+                "2030-06-15T12:00:00.000Z",
+            ]);
+            const anchorRow = out.find((r) => r.publish_date === "2030-06-01T12:00:00.000Z");
+            expect(anchorRow?.series_anchor_publish_date).toBeUndefined();
+            expect(
+                out
+                    .filter((r) => r.publish_date !== "2030-06-01T12:00:00.000Z")
+                    .every((r) => r.series_anchor_publish_date === "2030-06-01T12:00:00.000Z")
+            ).toBe(true);
         });
     });
 

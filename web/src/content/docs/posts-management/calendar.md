@@ -69,6 +69,25 @@ Each chip is one **post group** in that time slot. The header bar uses the **fir
 
 Day and week chips show caption, channel name, and time in the body. Month chips show the header only. Past slots keep tag colour but render chips in grayscale.
 
+### Recurring posts
+
+Draft and scheduled posts with a repeat interval show **multiple chips** across the visible day, week, month, or list range — one per projected occurrence from the anchor time. Those chips are **projections** of a single post group; navigate the calendar without refreshing and OpenQuok loads the full pattern for the range you are viewing.
+
+Published recurring rows appear **once** at their actual publish time (they are not expanded). After each successful publish, OpenQuok creates the **next physical scheduled group** on the same cadence; that new group expands on the grid like any other repeating draft or queue row. You may see one published chip plus multiple upcoming chips at the same time — they belong to **different post groups**.
+
+Rescheduling a recurring chip moves the **anchor** for that post group. Every projected chip for **that group** shifts together — OpenQuok does not move one occurrence in isolation. See <a href="/docs/posts-management/moving-posts#recurring-posts">Recurring posts</a>.
+
+#### Stop the rest of a series
+
+After the first occurrence publishes, use the **upcoming** scheduled or draft group (not the published chip) to stop what is left:
+
+| Action | Where | Effect |
+| --- | --- | --- |
+| <Badge text="Delete" variant="deprecated" /> | Post actions on the upcoming group | Removes that post group immediately. Nothing else in the series publishes. Already published rows stay live. |
+| <Badge text="No repeat" variant="param" /> | Composer <Badge text="Repeat" variant="default" /> dropdown on the upcoming group | After **that** group publishes once, OpenQuok does not create the next scheduled copy. |
+
+You can combine them: set <Badge text="No repeat" variant="param" /> if you want one more send, or <Badge text="Delete" variant="deprecated" /> if you want to cancel the upcoming group now. See <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
+
 ### Create and open posts
 
 Click a chip to act on it. There is no hover menu.

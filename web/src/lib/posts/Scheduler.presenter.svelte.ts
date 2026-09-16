@@ -19,6 +19,7 @@ import {
 	type SocialPlatformFilterVm
 } from '$lib/posts/scheduler.types';
 import { CALENDAR_UNGROUPED_SENTINEL } from '$lib/posts/scheduler.types';
+import { buildOptimisticRecurringCalendarRows } from '$lib/posts/utils/scheduler/recurringCalendarOptimistic';
 import {
 	buildCalendarEventsFromPosts,
 	deriveIntegrationFilter,
@@ -476,12 +477,22 @@ export class SchedulerPresenter {
 		if (!pg) return { ok: false, error: 'Could not reschedule post.' };
 
 		const prevRows = this.cachedPostsVm.filter((r) => r.postGroup === pg);
-		const optimisticRows = prevRows.map((row) => ({
-			...row,
-			publishDate: params.publishDateIso
-		}));
-		if (optimisticRows.length) {
-			this.replacePostGroupInCache(pg, optimisticRows);
+		if (prevRows.length) {
+			const optimisticRows =
+				params.isRecurring === true
+					? buildOptimisticRecurringCalendarRows(
+							prevRows,
+							params.publishDateIso,
+							this.scheduledPostsCalendarVm.rangeStartDate,
+							this.scheduledPostsCalendarVm.rangeEndDate
+						)
+					: prevRows.map((row) => ({
+							...row,
+							publishDate: params.publishDateIso
+						}));
+			if (optimisticRows.length) {
+				this.replacePostGroupInCache(pg, optimisticRows);
+			}
 		}
 
 		const resultPm = await this.postsRepository.reschedulePost({
@@ -497,7 +508,9 @@ export class SchedulerPresenter {
 			return { ok: false, error: resultPm.error };
 		}
 
-		this.replacePostGroupInCache(pg, resultPm.posts);
+		if (params.isRecurring !== true) {
+			this.replacePostGroupInCache(pg, resultPm.posts);
+		}
 
 		const refetch = params.isRecurring === true || params.republish === true;
 		if (refetch) {

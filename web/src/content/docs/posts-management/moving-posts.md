@@ -2,7 +2,7 @@
 title: Moving and rescheduling posts
 description: Drag & Drop posts on the calendar or the kanban.
 order: 3
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-16
 ---
 
 <script>
@@ -62,11 +62,26 @@ Draft and future scheduled moves skip this dialog — the new time applies immed
 
 Chips with the repeat icon are part of a series. You can drag them like any other single-post row.
 
-After you move a recurring post, OpenQuok may need to refetch the calendar before every future copy appears in the grid. The reschedule dialog adds a note when the post repeats:
+On the calendar, multiple chips for the same repeat are **projections** of one post group. Moving a recurring chip updates the **anchor** time for **that group**. Every projected occurrence for that group shifts with it — OpenQuok does not move one chip in isolation. When you drop a published or past-scheduled recurring post, the reschedule dialog adds a warning:
 
-<p><em>This post repeats on a schedule. After you move it, refresh the calendar to see every future occurrence.</em></p>
+<p><em>This is a recurring post: your changes apply to all future recurrences starting now.</em></p>
 
-Editing the repeat cadence itself still happens in the composer — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
+That warning applies to **projected occurrences on the group you moved**. Draft and future scheduled recurring moves apply the same rule without the dialog. The calendar refetches after the move so every projected chip in the visible range reflects the new anchor.
+
+After an occurrence publishes, OpenQuok creates a **new physical scheduled group** for the next slot. Rescheduling or editing the **published** group affects that group only; the upcoming group is separate unless you open and change it too.
+
+### Stop the rest of a series
+
+Once the first post is live, stop what is still queued with either option — both target the **upcoming** post group:
+
+| Action | Where | Effect |
+| --- | --- | --- |
+| <Badge text="Delete" variant="deprecated" /> | Post actions — see <a href="/docs/posts-management/actions-and-stats#delete-scope">Delete scope</a> | Removes the whole upcoming group now. Already published posts are unchanged. |
+| <Badge text="No repeat" variant="param" /> | Composer on the upcoming group | After that group publishes once, OpenQuok does not spawn the next scheduled copy. |
+
+Use <Badge text="Delete" variant="deprecated" /> to cancel immediately. Use <Badge text="No repeat" variant="param" /> when you still want **one** more send on the current queue row.
+
+Editing repeat cadence (<Badge text="Week" variant="param" />, <Badge text="Month" variant="param" />, and so on) still happens in the composer — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>. The Home kanban shows **one card per post group** for repeating posts; see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
 ## Kanban moves (same time)
 

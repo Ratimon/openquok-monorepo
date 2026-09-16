@@ -167,6 +167,8 @@ export type PostRowProgrammerModel = {
 	settings?: string | null;
 	/** Workspace tag names on this post row (list/flip API). */
 	tagNames?: string[];
+	/** Anchor slot for virtual recurring calendar copies (`seriesAnchorPublishDate` from list API). */
+	seriesAnchorPublishDate?: string | null;
 };
 
 export type CreatePostResponseDto = {
@@ -196,13 +198,23 @@ function normalizePostRowFromApi(
 		channel_name?: string | null;
 		channel_picture_url?: string | null;
 		provider_identifier?: string | null;
+		series_anchor_publish_date?: string | null;
 	}
 ): PostRowProgrammerModel {
 	const integrationId = raw.integrationId ?? raw.integration_id ?? null;
 	const channelName = raw.channelName ?? raw.channel_name ?? null;
 	const channelPictureUrl = raw.channelPictureUrl ?? raw.channel_picture_url ?? null;
 	const providerIdentifier = raw.providerIdentifier ?? raw.provider_identifier ?? null;
-	return { ...raw, integrationId, channelName, channelPictureUrl, providerIdentifier };
+	const seriesAnchorPublishDate =
+		raw.seriesAnchorPublishDate ?? raw.series_anchor_publish_date ?? null;
+	return {
+		...raw,
+		integrationId,
+		channelName,
+		channelPictureUrl,
+		providerIdentifier,
+		seriesAnchorPublishDate
+	};
 }
 
 export type PostGroupDetailsProgrammerModel = {

@@ -124,6 +124,15 @@ export function temporalToUtcYyyyMmDd(x: unknown): string {
 
 // --- Calendar events from posts ---
 
+/** Schedule-X event id — virtual recurring copies share `post.id` but differ by slot. */
+export function calendarEventIdForPost(post: Pick<CalendarPostRowViewModel, 'id' | 'publishDate'>): string {
+	const id = String(post.id ?? '').trim();
+	const publishDate = String(post.publishDate ?? '').trim();
+	if (!id) return publishDate || '';
+	if (!publishDate) return id;
+	return `${id}@${publishDate}`;
+}
+
 const BUCKET_MINUTES = 30;
 const VISUAL_MINUTES = 30;
 
@@ -195,7 +204,7 @@ function createEventForPost(
 	const channel = display ? channelVmFromDisplay(display, channelById) : null;
 
 	const ev: SchedulerCalendarEvent = {
-		id: p.id,
+		id: calendarEventIdForPost(p),
 		title: display?.name || 'Draft',
 		start: bucketStart,
 		end,

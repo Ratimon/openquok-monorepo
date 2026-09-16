@@ -665,4 +665,133 @@ describe("scheduledSocialPostActivities / plugPipeline", () => {
             expect.any(Object)
         );
     });
+
+    describe("repeat scheduling", () => {
+        function createRepeatPublishHandler(
+            postOverrides: Partial<SocialPostLike> = {},
+            repeatGroupResult: { postGroup: string; posts: SocialPostLike[] } = {
+                postGroup: "repeat-group-1",
+                posts: [],
+            }
+        ) {
+            const integrationRepo = createIntegrationRepoMock();
+            integrationRepo.getById.mockResolvedValue(minimalIntegration());
+
+            const manager = createPlugAwareIntegrationManager({
+                threads: {
+                    post: jest.fn().mockResolvedValue([{ postId: "release-main" }]),
+                },
+            });
+
+            const refreshService: Pick<RefreshIntegrationService, "refresh"> = {
+                refresh: jest.fn().mockResolvedValue(false),
+            };
+
+            const postsRepo = basePostsRepo(minimalPost(postOverrides));
+            postsRepo.createRepeatGroupFromPostGroup.mockResolvedValue(repeatGroupResult);
+
+            const publish = createPublishScheduledGroupHandler({
+                postsRepository: postsRepo as unknown as ScheduledPostsRepository,
+                integrationRepository: integrationRepo,
+                integrationManager: manager,
+                refreshService,
+            });
+
+            return { publish, postsRepo };
+        }
+
+        it("schedules repeat-post todo using anchor publish_date plus interval", async () => {
+            const anchorPublishDate = "2020-06-01T12:00:00.000Z";
+            const intervalDays = 7;
+            const expectedPublishDate = "2020-06-08T12:00:00.000Z";
+
+            const { publish, postsRepo } = createRepeatPublishHandler({
+                publish_date: anchorPublishDate,
+                interval_in_days: intervalDays,
+            });
+
+            const result = await publish({ organizationId: orgId, postGroup });
+
+            expect(postsRepo.createRepeatGroupFromPostGroup).toHaveBeenCalledWith({
+                postGroup,
+                publishDateIso: expectedPublishDate,
+            });
+            expect(result).toEqual({
+                todos: [{ type: "repeat-post", postGroup: "repeat-group-1", delayMs: 0 }],
+            });
+        });
+
+        it("uses anchor-based next slot after late publish, not now plus interval", async () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date("2030-06-05T12:00:00.000Z"));
+
+            const anchorPublishDate = "2030-06-01T12:00:00.000Z";
+            const intervalDays = 7;
+            const expectedPublishDate = "2030-06-08T12:00:00.000Z";
+            const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
+
+            const { publish, postsRepo } = createRepeatPublishHandler({
+                publish_date: anchorPublishDate,
+                interval_in_days: intervalDays,
+            });
+
+            const result = await publish({ organizationId: orgId, postGroup });
+
+            expect(postsRepo.createRepeatGroupFromPostGroup).toHaveBeenCalledWith({
+                postGroup,
+                publishDateIso: expectedPublishDate,
+            });
+            expect(postsRepo.createRepeatGroupFromPostGroup).not.toHaveBeenCalledWith({
+                postGroup,
+                publishDateIso: "2030-06-12T12:00:00.000Z",
+            });
+            expect(result).toEqual({
+                todos: [{ type: "repeat-post", postGroup: "repeat-group-1", delayMs: threeDaysMs }],
+            });
+
+            jest.useRealTimers();
+        });
+
+        it("returns repeat-post todo for an existing repeat group on orchestrator retry", async () => {
+            jest.useFakeTimers();
+            jest.setSystemTime(new Date("2030-06-05T12:00:00.000Z"));
+
+            const existingRepeatGroup = "existing-repeat-group";
+            const repeatPost = minimalPost({
+                id: faker.string.uuid(),
+                state: "QUEUE",
+                post_group: existingRepeatGroup,
+                parent_post_id: postId,
+                publish_date: "2030-06-08T12:00:00.000Z",
+                interval_in_days: 7,
+            });
+
+            const { publish, postsRepo } = createRepeatPublishHandler(
+                {
+                    publish_date: "2030-06-01T12:00:00.000Z",
+                    interval_in_days: 7,
+                },
+                { postGroup: existingRepeatGroup, posts: [repeatPost] }
+            );
+
+            const result = await publish({ organizationId: orgId, postGroup });
+
+            expect(postsRepo.createRepeatGroupFromPostGroup).toHaveBeenCalledTimes(1);
+            expect(postsRepo.createRepeatGroupFromPostGroup).toHaveBeenCalledWith({
+                postGroup,
+                publishDateIso: "2030-06-08T12:00:00.000Z",
+            });
+            expect(result).toEqual({
+                todos: [
+                    {
+                        type: "repeat-post",
+                        postGroup: existingRepeatGroup,
+                        delayMs: 3 * 24 * 60 * 60 * 1000,
+                    },
+                ],
+            });
+
+            jest.useRealTimers();
+        });
+    });
 });

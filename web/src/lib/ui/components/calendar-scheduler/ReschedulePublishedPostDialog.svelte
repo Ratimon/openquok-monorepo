@@ -38,8 +38,7 @@
 
 		{#if isRecurring}
 			<p class="text-sm text-warning">
-				This post repeats on a schedule. After you move it, refresh the calendar to see every
-				future occurrence.
+				This is a recurring post: your changes apply to all future recurrences starting now.
 			</p>
 		{/if}
 

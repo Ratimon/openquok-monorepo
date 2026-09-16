@@ -57,6 +57,26 @@ Each card header uses the **first tag** on the group. Posts with no tag use the 
 | **Published** column | Already live on the network |
 | **Reviewed** checkbox | Marks human review complete on the card note |
 
+### Recurring posts
+
+The kanban always shows **one card per post group**, even when the post repeats. On the <a href="/account/calendar">calendar</a>, draft and scheduled repeating groups expand into **multiple chips** across the visible range — one per projected occurrence from the anchor time. The kanban does not duplicate those projections; you see a single card for the next (or current) group at its anchor publish time.
+
+| Surface | Repeating draft or scheduled post |
+| --- | --- |
+| **Calendar** | Multiple chips in the visible day, week, or month |
+| **Kanban** | One card in **Drafted posts** or **Scheduled posts** |
+
+After a recurrence publishes, the card moves to **Published posts** and OpenQuok creates a **new** scheduled group for the next run. That upcoming group appears as **one** card on the kanban while the calendar may show several chips for the same group.
+
+To stop what is left in the series, work on the **upcoming** card or open it in the editor:
+
+| Action | Effect |
+| --- | --- |
+| <Badge text="Delete" variant="deprecated" /> (card menu or post actions) | Removes the upcoming group now. Published cards already in **Published posts** stay. |
+| <Badge text="No repeat" variant="param" /> in the composer | After that group publishes once, no further copies are scheduled. |
+
+See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> and <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
+
 ### Work on a card
 
 Double-click a card to open the editor. Open the card menu for preview, export, delete, and related actions — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>.

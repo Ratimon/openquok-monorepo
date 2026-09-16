@@ -8,6 +8,7 @@ import type { NotificationService } from "backend/services/NotificationService.j
 import type { NotificationEmailType } from "openquok-common";
 
 import { extractFollowUpRepliesFromProviderSettingsObject } from "backend/utils/dtos/PostDTO.js";
+import { computeNextRepeatPublishDateIso } from "backend/utils/posts/recurringPublishDate.js";
 import { convertPostMediaPngToJpeg } from "backend/integrations/utils/convertPostMediaToJpeg.js";
 import { stripComposerBodyForEditor } from "backend/utils/content/stripComposerBodyForEditor.js";
 import { ProviderAccessTokenExpiredError } from "backend/errors/ProviderIntegrationErrors.js";
@@ -1194,8 +1195,12 @@ export function createPublishScheduledGroupHandler(deps: {
             // create a new QUEUE group scheduled in the future and enqueue it via a repeat-post todo.
             const intervalDays = rows[0]?.interval_in_days ?? null;
             if (typeof intervalDays === "number" && Number.isFinite(intervalDays) && intervalDays > 0) {
-                const delayMs = Math.floor(intervalDays * 24 * 60 * 60 * 1000);
-                const publishDateIso = new Date(Date.now() + delayMs).toISOString();
+                const anchorPublishDate = String(rows[0]?.publish_date ?? "").trim();
+                const publishDateIso = computeNextRepeatPublishDateIso(anchorPublishDate, intervalDays);
+                const publishMs = new Date(publishDateIso).getTime();
+                const delayMs = Number.isNaN(publishMs)
+                    ? Math.floor(intervalDays * 24 * 60 * 60 * 1000)
+                    : Math.max(0, publishMs - Date.now());
                 const repeat = await deps.postsRepository.createRepeatGroupFromPostGroup({
                     postGroup,
                     publishDateIso,

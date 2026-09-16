@@ -326,6 +326,12 @@ export class PostsRepository {
             });
         }
 
+        const sourceIds = rows.filter((r) => !r.deleted_at).map((r) => r.id);
+        const existing = await this.findExistingRepeatGroupByParentPostIds(sourceIds);
+        if (existing) {
+            return existing;
+        }
+
         const newGroup = this.newPostGroup();
 
         const toInsert: SocialPostInsert[] = rows
@@ -357,7 +363,6 @@ export class PostsRepository {
         const inserted = await this.insertPostGroup(toInsert);
 
         // Copy tags from the source group to the new group.
-        const sourceIds = rows.map((r) => r.id);
         const tags = await this.listTagsForPostIds(sourceIds);
         const tagIds = tags.map((t) => t.id).filter(Boolean);
         await this.linkTagsToPosts(
@@ -366,6 +371,38 @@ export class PostsRepository {
         );
 
         return { postGroup: newGroup, posts: inserted };
+    }
+
+    /**
+     * Returns an existing QUEUE/DRAFT repeat group spawned from any of the source post ids.
+     * Used to make orchestrator retries idempotent after a successful repeat insert.
+     */
+    private async findExistingRepeatGroupByParentPostIds(
+        parentPostIds: string[]
+    ): Promise<{ postGroup: string; posts: SocialPostLike[] } | null> {
+        if (parentPostIds.length === 0) return null;
+
+        const { data, error } = await this.supabase
+            .from(TABLE_POSTS)
+            .select("post_group")
+            .in("parent_post_id", parentPostIds)
+            .in("state", ["DRAFT", "QUEUE"])
+            .is("deleted_at", null)
+            .limit(1);
+
+        if (error) {
+            throw new DatabaseError(`Failed to look up existing repeat group: ${error.message}`, {
+                cause: error,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+
+        const hit = (data ?? [])[0] as { post_group: string } | undefined;
+        if (!hit?.post_group) return null;
+
+        const posts = await this.listPostsByGroup(hit.post_group);
+        return { postGroup: hit.post_group, posts };
     }
 
     async linkTagsToPosts(postIds: string[], tagIds: string[]): Promise<void> {
@@ -420,6 +457,63 @@ export class PostsRepository {
             });
         }
         return (data ?? []) as SocialPostLike[];
+    }
+
+    /**
+     * Calendar list source rows: posts in range plus recurring DRAFT/QUEUE anchors (any publish_date).
+     * Virtual occurrence expansion happens in {@link expandRecurringPostsForCalendarRange}.
+     */
+    async listPostsForCalendar({
+        organizationId,
+        startIso,
+        endIso,
+        integrationIds,
+    }: {
+        organizationId: string;
+        startIso: string;
+        endIso: string;
+        integrationIds?: string[] | null;
+    }): Promise<SocialPostLike[]> {
+        const inRange = await this.listPostsByOrganizationAndDateRange({
+            organizationId,
+            startIso,
+            endIso,
+            integrationIds,
+        });
+
+        let anchorQuery = this.supabase
+            .from(TABLE_POSTS)
+            .select("*")
+            .eq("organization_id", organizationId)
+            .is("deleted_at", null)
+            .gt("interval_in_days", 0)
+            .in("state", ["DRAFT", "QUEUE"])
+            .order("publish_date", { ascending: true });
+
+        if (integrationIds && integrationIds.length > 0) {
+            anchorQuery = anchorQuery.in("integration_id", integrationIds);
+        }
+
+        const { data: anchorData, error: anchorError } = await anchorQuery;
+        if (anchorError) {
+            throw new DatabaseError(`Failed to list recurring post anchors: ${anchorError.message}`, {
+                cause: anchorError,
+                operation: "select",
+                resource: { type: "table", name: TABLE_POSTS },
+            });
+        }
+
+        const byId = new Map<string, SocialPostLike>();
+        for (const row of inRange) {
+            byId.set(row.id, row);
+        }
+        for (const row of (anchorData ?? []) as SocialPostLike[]) {
+            if (!byId.has(row.id)) {
+                byId.set(row.id, row);
+            }
+        }
+
+        return [...byId.values()].sort((a, b) => a.publish_date.localeCompare(b.publish_date));
     }
 
     async listPostsByGroup(postGroup: string): Promise<SocialPostLike[]> {

@@ -31,6 +31,7 @@ import {
 import { stripComposerBodyForEditor } from "../utils/content/stripComposerBodyForEditor";
 import { validateScheduledCaptionsForIntegration } from "../utils/content/validateProviderCaptionLength";
 import { resolvePublishIntegrationIds } from "../utils/posts/crossAccountPublishChannels";
+import { expandRecurringPostsForCalendarRange } from "../utils/posts/expandRecurringPostsForCalendarRange";
 
 import { AppError } from "../errors/AppError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
@@ -683,13 +684,15 @@ export class PostsService {
             integrationIds: integrationIdsNorm,
         });
 
-        const factory = async (): Promise<SocialPostLike[]> =>
-            this.postsRepository.listPostsByOrganizationAndDateRange({
+        const factory = async (): Promise<SocialPostLike[]> => {
+            const rows = await this.postsRepository.listPostsForCalendar({
                 organizationId,
                 startIso: startIsoNorm,
                 endIso: endIsoNorm,
                 integrationIds: integrationIdsNorm,
             });
+            return expandRecurringPostsForCalendarRange(rows, startIsoNorm, endIsoNorm);
+        };
 
         if (this.cache) {
             return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);
@@ -748,13 +751,15 @@ export class PostsService {
             integrationIds: integrationIdsNorm,
         });
 
-        const factory = async (): Promise<SocialPostLike[]> =>
-            this.postsRepository.listPostsByOrganizationAndDateRange({
+        const factory = async (): Promise<SocialPostLike[]> => {
+            const rows = await this.postsRepository.listPostsForCalendar({
                 organizationId,
                 startIso: startIsoNorm,
                 endIso: endIsoNorm,
                 integrationIds: integrationIdsNorm,
             });
+            return expandRecurringPostsForCalendarRange(rows, startIsoNorm, endIsoNorm);
+        };
 
         if (this.cache) {
             return this.cache.getOrSet(cacheKey, factory, POSTS_CACHE_TTL_SEC);

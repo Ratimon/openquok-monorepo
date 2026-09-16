@@ -1,5 +1,12 @@
 export {
+	buildOptimisticRecurringCalendarRows,
+	collapseRecurringGroupToAnchorRows,
+	expandRecurringCalendarRowsForRange,
+	resolveRecurringAnchorPublishDate
+} from './recurringCalendarOptimistic';
+export {
 	buildCalendarEventsFromPosts,
+	calendarEventIdForPost,
 	endOfIsoWeek,
 	endOfMonth,
 	labelForRange,
