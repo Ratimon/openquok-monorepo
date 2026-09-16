@@ -11,11 +11,37 @@ import type {
 import { resolveFirstTagColor } from '$lib/posts/utils/tagChipTheme';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
+/** Inclusive days before today in the list-mode fetch window. */
+export const CALENDAR_LIST_LOOKBACK_DAYS = 90;
+/** Inclusive days after today in the list-mode fetch window. */
+export const CALENDAR_LIST_LOOKAHEAD_DAYS = 180;
+/** Days to shift the list-mode window on Prev / Next. */
+export const CALENDAR_LIST_SHIFT_DAYS = 30;
+
 // --- Calendar date ranges ---
 
 function yyyyMmDd(d: Date): string {
 	const pad = (n: number) => String(n).padStart(2, '0');
 	return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function yyyyMmDdUtc(d: Date): string {
+	const pad = (n: number) => String(n).padStart(2, '0');
+	return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+}
+
+function addUtcDays(dateStr: string, days: number): string {
+	const d = new Date(`${dateStr}T00:00:00Z`);
+	d.setUTCDate(d.getUTCDate() + days);
+	return yyyyMmDdUtc(d);
+}
+
+function formatMmDdYyyy(yyyyMmDdStr: string): string {
+	const [y, m, d] = yyyyMmDdStr.split('-').map((x) => Number(x));
+	if (!y || !m || !d) return yyyyMmDdStr;
+	const mm = String(m).padStart(2, '0');
+	const dd = String(d).padStart(2, '0');
+	return `${mm}/${dd}/${y}`;
 }
 
 export function todayUtcYyyyMmDd(): string {
@@ -60,6 +86,27 @@ export function rangeForGranularity(
 	return { rangeStartDate: startOfMonth(base), rangeEndDate: endOfMonth(base) };
 }
 
+export function rangeForListWindow(
+	baseDate = todayUtcYyyyMmDd()
+): { rangeStartDate: string; rangeEndDate: string } {
+	return {
+		rangeStartDate: addUtcDays(baseDate, -CALENDAR_LIST_LOOKBACK_DAYS),
+		rangeEndDate: addUtcDays(baseDate, CALENDAR_LIST_LOOKAHEAD_DAYS)
+	};
+}
+
+export function shiftListWindow(
+	rangeStartDate: string,
+	rangeEndDate: string,
+	delta: number
+): { rangeStartDate: string; rangeEndDate: string } {
+	const days = delta * CALENDAR_LIST_SHIFT_DAYS;
+	return {
+		rangeStartDate: addUtcDays(rangeStartDate, days),
+		rangeEndDate: addUtcDays(rangeEndDate, days)
+	};
+}
+
 export function shiftRange(
 	granularity: CalendarGranularityViewModel,
 	rangeStartDate: string,
@@ -87,16 +134,14 @@ export function labelForRange(
 	rangeEndDate: string
 ): string {
 	if (!rangeStartDate || !rangeEndDate) return '';
-	const fmt = (yyyyMmDdStr: string) => {
-		const [y, m, d] = yyyyMmDdStr.split('-').map((x) => Number(x));
-		if (!y || !m || !d) return yyyyMmDdStr;
-		const mm = String(m).padStart(2, '0');
-		const dd = String(d).padStart(2, '0');
-		return `${mm}/${dd}/${y}`;
-	};
 	if (granularity === 'month') return rangeStartDate.slice(0, 7);
-	if (granularity === 'day') return fmt(rangeStartDate);
-	return `${fmt(rangeStartDate)} → ${fmt(rangeEndDate)}`;
+	if (granularity === 'day') return formatMmDdYyyy(rangeStartDate);
+	return `${formatMmDdYyyy(rangeStartDate)} → ${formatMmDdYyyy(rangeEndDate)}`;
+}
+
+export function labelForListWindow(rangeStartDate: string, rangeEndDate: string): string {
+	if (!rangeStartDate || !rangeEndDate) return '';
+	return `${formatMmDdYyyy(rangeStartDate)} → ${formatMmDdYyyy(rangeEndDate)}`;
 }
 
 export function temporalToUtcYyyyMmDd(x: unknown): string {

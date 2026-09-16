@@ -1,193 +1,160 @@
 <script lang="ts">
 	import type { CalendarEventExternal } from '@schedule-x/calendar';
 
-	import type { SchedulerCalendarEvent } from '$lib/posts/scheduler.types';
-
-	import { DEFAULT_TAG_CHIP_COLOR } from '$lib/posts/utils/tagChipTheme';
-	import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
+	import {
+		formatListViewRowMeta,
+		listViewRowAccentState,
+		postStatusAccentTextClass
+	} from '$lib/posts/utils/postStatusColors';
+	import {
+		formatLocalDateTime,
+		groupRowsByDate,
+		LIST_VIEW_PAGE_SIZE,
+		normalizeRowsFromEvents,
+		paginateRows,
+		resolveListViewEmptyMessage,
+		sortListRows,
+		type ListViewRow
+	} from '$lib/posts/utils/scheduler/listViewRows';
+	import { cn } from '$lib/ui/helpers/common';
 	import { socialProviderIcon } from '$data/social-providers';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
 
-	type SlotSummaryItem = {
-		postId?: string;
-		postGroup?: string;
-		integrationId?: string;
-		content?: string;
-		channelPicture?: string;
-		channelName?: string;
-		publishDate?: string;
-		state?: string;
-		channelIdentifier?: string;
-	};
-
 	export type Props = {
 		events: CalendarEventExternal[];
+		/** Rows in the fetch window before post-type / tag filters; drives empty-state copy. */
+		windowRowCount?: number;
 		onOpenPostGroup?: (postGroup: string, focusPostId?: string, focusIntegrationId?: string) => void;
 	};
 
-	let { events, onOpenPostGroup }: Props = $props();
+	let { events, windowRowCount, onOpenPostGroup }: Props = $props();
 
-	type ListRow = {
-		postGroup: string;
-		postId?: string;
-		integrationId?: string;
-		content: string;
-		channelPicture?: string;
-		channelName?: string;
-		channelIdentifier?: string;
-		publishDateIso?: string;
-		state?: string;
-		chipTagColor: string;
-	};
+	let pageIndex = $state(0);
 
-	function parsePublishMs(iso: string | undefined): number {
-		if (!iso) return Number.NaN;
-		const ms = Date.parse(iso);
-		return Number.isFinite(ms) ? ms : Number.NaN;
-	}
+	const sortedRows = $derived(sortListRows(normalizeRowsFromEvents(events)));
+	const pagination = $derived(paginateRows(sortedRows, pageIndex, LIST_VIEW_PAGE_SIZE));
+	const dateGroups = $derived(groupRowsByDate(pagination.rows));
+	const emptyMessage = $derived(resolveListViewEmptyMessage(sortedRows.length, windowRowCount));
 
-	function formatLocalDateTime(iso: string | undefined): { date: string; time: string } {
-		const ms = parsePublishMs(iso);
-		if (!Number.isFinite(ms)) return { date: '', time: '' };
-		const d = new Date(ms);
-		return {
-			date: d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }),
-			time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-		};
-	}
-
-	function normalizeRowsFromEvents(evs: CalendarEventExternal[]): ListRow[] {
-		const rows: ListRow[] = [];
-
-		for (const ev of evs ?? []) {
-			const schedEv = ev as SchedulerCalendarEvent;
-			const chipTagColor =
-				String(schedEv.chipTagColor ?? '').trim() || DEFAULT_TAG_CHIP_COLOR;
-			const summary = (schedEv.slotSummary ?? null) as SlotSummaryItem[] | null;
-			const posts = (
-				Array.isArray(summary) && summary.length
-					? summary
-					: [(schedEv.post ?? {}) as SlotSummaryItem]
-			).filter(Boolean);
-
-			for (const s of posts) {
-				const postGroup = String(s.postGroup ?? schedEv.post?.postGroup ?? '').trim();
-				if (!postGroup) continue;
-				rows.push({
-					postGroup,
-					postId: s.postId ? String(s.postId) : undefined,
-					integrationId: s.integrationId ? String(s.integrationId) : undefined,
-					content: stripHtmlToPlainText(String(s.content ?? '')).trim(),
-					channelPicture: s.channelPicture ? String(s.channelPicture) : undefined,
-					channelName: s.channelName
-						? String(s.channelName)
-						: schedEv.title
-							? String(schedEv.title)
-							: undefined,
-					channelIdentifier: s.channelIdentifier ? String(s.channelIdentifier) : undefined,
-					publishDateIso: typeof s.publishDate === 'string' ? s.publishDate : undefined,
-					state: s.state ? String(s.state) : undefined,
-					chipTagColor
-				});
-			}
-		}
-
-		// Dedupe identical rows (merges), not multi-channel groups (same postGroup, different integration).
-		const byKey = new Map<string, ListRow>();
-		for (const r of rows) {
-			const k = r.postId?.trim()
-				? `id:${r.postId.trim()}`
-				: `g:${r.postGroup}|i:${r.integrationId?.trim() ?? ''}|c:${r.channelIdentifier ?? ''}`;
-			if (!byKey.has(k)) byKey.set(k, r);
-		}
-		return Array.from(byKey.values());
-	}
-
-	const upcomingRows = $derived.by(() => {
-		const nowMs = Date.now();
-		return normalizeRowsFromEvents(events)
-			.filter((r) => {
-				const ms = parsePublishMs(r.publishDateIso);
-				// If publishDate is missing, still show it (drafts), but keep them after dated items.
-				if (!Number.isFinite(ms)) return true;
-				return ms >= nowMs;
-			})
-			.sort((a, b) => {
-				const am = parsePublishMs(a.publishDateIso);
-				const bm = parsePublishMs(b.publishDateIso);
-				if (Number.isFinite(am) && Number.isFinite(bm)) return am - bm;
-				if (Number.isFinite(am)) return -1;
-				if (Number.isFinite(bm)) return 1;
-				return a.postGroup.localeCompare(b.postGroup);
-			});
+	$effect(() => {
+		events;
+		pageIndex = 0;
 	});
+
+	function rowKey(row: ListViewRow): string {
+		return `${row.postGroup}:${row.postId ?? row.integrationId ?? ''}`;
+	}
 </script>
 
-{#if upcomingRows.length === 0}
+{#if emptyMessage}
 	<div class="flex flex-1 flex-col items-center justify-center py-18">
 		<div class="text-base text-base-content/70">
-            No upcoming posts scheduled
-        </div>
+			{emptyMessage}
+		</div>
 	</div>
 {:else}
-	<div class="space-y-2">
-		{#each upcomingRows as row (`${row.postGroup}:${row.postId ?? row.integrationId ?? ''}`)}
-			{@const dt = formatLocalDateTime(row.publishDateIso)}
-			{@const iconName = socialProviderIcon(row.channelIdentifier)}
-			<button
-				type="button"
-				class="hover:bg-base-200/60 flex w-full items-center gap-3 rounded-lg border border-base-300 border-l-4 bg-base-100 px-3 py-2 text-start outline-none"
-				style:border-left-color={row.chipTagColor}
-				onclick={() => {
-					const pid = row.postId?.trim();
-					const iid = row.integrationId?.trim();
-					onOpenPostGroup?.(row.postGroup, pid || undefined, iid || undefined);
-				}}
-			>
-				<div class="relative h-9 w-9 shrink-0">
-					<IntegrationChannelPicture
-						profilePictureUrl={row.channelPicture}
-						integrationId={row.integrationId}
-						fallbackIcon={iconName}
-						class="h-9 w-9 rounded-md object-cover"
-					/>
-					{#if row.channelIdentifier}
-						<span
-							class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
-							aria-hidden="true"
-						>
-							<AbstractIcon name={iconName} class="size-3.5" width="14" height="14" />
-						</span>
-					{/if}
-				</div>
+	<div class="space-y-4">
+		{#each dateGroups as group (group.dateKey)}
+			<section class="space-y-2">
+				<h3 class="sticky top-0 z-10 bg-base-100/95 px-1 py-1 text-xs font-semibold uppercase tracking-wide text-base-content/55 backdrop-blur-sm">
+					{group.label}
+				</h3>
+				{#each group.rows as row (rowKey(row))}
+					{@const dt = formatLocalDateTime(row.publishDateIso)}
+					{@const iconName = socialProviderIcon(row.channelIdentifier)}
+					{@const metaLabel = formatListViewRowMeta(row.publishDateIso, row.state, dt.time)}
+					{@const accentState = listViewRowAccentState(row.publishDateIso, row.state)}
+					<button
+						type="button"
+						class="hover:bg-base-200/60 flex w-full flex-col gap-1.5 rounded-lg border border-base-300 border-l-4 bg-base-100 px-3 py-2 text-start outline-none"
+						style:border-left-color={row.chipTagColor}
+						onclick={() => {
+							const pid = row.postId?.trim();
+							const iid = row.integrationId?.trim();
+							onOpenPostGroup?.(row.postGroup, pid || undefined, iid || undefined);
+						}}
+					>
+						{#if metaLabel}
+							<div
+								class={cn(
+									'text-center text-xs font-semibold tracking-wide',
+									postStatusAccentTextClass(accentState)
+								)}
+							>
+								{metaLabel}
+							</div>
+						{/if}
 
-				<div class="min-w-0 flex-1">
-					<div class="flex items-center justify-between gap-2">
-						<div class="truncate text-xs font-semibold text-base-content/70">
-							{row.channelName || 'Channel'}
-						</div>
-						<div class="shrink-0 text-xs text-base-content/55">
-							{#if dt.date || dt.time}
-								{dt.date}{dt.time ? ` · ${dt.time}` : ''}
-							{:else}
-								Draft
-							{/if}
-						</div>
-					</div>
-					<div class="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
-						{row.content || 'No content'}
-					</div>
-				</div>
+						<div class="flex w-full items-center gap-3">
+							<div class="relative h-9 w-9 shrink-0">
+								<IntegrationChannelPicture
+									profilePictureUrl={row.channelPicture}
+									integrationId={row.integrationId}
+									fallbackIcon={iconName}
+									class="h-9 w-9 rounded-md object-cover"
+								/>
+								{#if row.channelIdentifier}
+									<span
+										class="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-base-100 text-base-content shadow-sm ring-1 ring-base-300"
+										aria-hidden="true"
+									>
+										<AbstractIcon name={iconName} class="size-3.5" width="14" height="14" />
+									</span>
+								{/if}
+							</div>
 
-				<div class="shrink-0 text-xs text-base-content/50">
-					{row.state ? String(row.state).toUpperCase() : 'Open'}
-				</div>
-				<AbstractIcon name={icons.ChevronRight.name} class="size-4 text-base-content/40" width="16" height="16" />
-			</button>
+							<div class="min-w-0 flex-1">
+								<div class="truncate text-xs font-semibold text-base-content/70">
+									{row.channelName || 'Channel'}
+								</div>
+								<div class="mt-0.5 line-clamp-2 text-sm font-medium leading-snug text-base-content/90">
+									{row.content || 'No content'}
+								</div>
+							</div>
+
+							<AbstractIcon
+								name={icons.ChevronRight.name}
+								class="size-4 shrink-0 text-base-content/40"
+								width="16"
+								height="16"
+							/>
+						</div>
+					</button>
+				{/each}
+			</section>
 		{/each}
 	</div>
-{/if}
 
+	{#if pagination.totalCount > LIST_VIEW_PAGE_SIZE}
+		<div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-base-300 pt-3 text-sm text-base-content/70">
+			<p>
+				Showing {pagination.rangeStart}–{pagination.rangeEnd} of {pagination.totalCount}
+			</p>
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					class="btn btn-sm btn-ghost"
+					disabled={pagination.pageIndex <= 0}
+					onclick={() => {
+						pageIndex = Math.max(0, pagination.pageIndex - 1);
+					}}
+				>
+					Previous
+				</button>
+				<button
+					type="button"
+					class="btn btn-sm btn-ghost"
+					disabled={pagination.pageIndex >= pagination.pageCount - 1}
+					onclick={() => {
+						pageIndex = Math.min(pagination.pageCount - 1, pagination.pageIndex + 1);
+					}}
+				>
+					Load more
+				</button>
+			</div>
+		</div>
+	{/if}
+{/if}

@@ -27,6 +27,7 @@
 		getPostingScheduleTimezone,
 		POSTING_SCHEDULE_TIMEZONE_CHANGE_EVENT
 	} from '$lib/utils/postingSchedulePreferences';
+	import { normalizeRowsFromEvents } from '$lib/posts/utils/scheduler/listViewRows';
 
 	type BackgroundEvent = {
 		start: Temporal.PlainDate | Temporal.ZonedDateTime;
@@ -222,6 +223,10 @@
 
 	const calendarPostsForTagFilter = $derived(presenter.postsForChannelLookup);
 
+	const listWindowRowCount = $derived(
+		normalizeRowsFromEvents([...presenter.calendarEventsInWindow]).length
+	);
+
 	async function handleCalendarReschedule(params: {
 		postId: string;
 		postGroup: string;
@@ -324,6 +329,7 @@
 	{#if display === 'list'}
 		<ListView
 			events={scheduledPostsVm.events}
+			windowRowCount={listWindowRowCount}
 			onOpenPostGroup={openActionsForPostGroup}
 		/>
 	{:else}

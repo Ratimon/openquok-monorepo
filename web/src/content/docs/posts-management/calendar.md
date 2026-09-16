@@ -1,6 +1,6 @@
 ---
 title: Calendar
-description: Day, week, month, and list views, filters, post chips, and how to open or create posts from the grid.
+description: Day, week, month, and list views, smart filters, and how to open or create posts from the grid.
 order: 2
 lastUpdated: 2026-09-16
 ---
@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## The calendar
 
-> Day, week, month, and list views — and how to filter them.
+> Day, week, month, and list views — and how to find your/filter your posts.
 
 **Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the Home kanban toolbar.
 
@@ -25,18 +25,24 @@ The default view is **Week**.
 
 | View | What it shows |
 | --- | --- |
-| **Day** | One day on a 24-hour grid with half-hour rows |
-| **Week** | Seven day columns on the same time grid |
+| **Day** | One day on a full 24-hour timeline with half-hour rows |
+| **Week** | Seven day columns on the same timeline |
 | **Month** | A six-by-seven grid; each day is a compact cell |
-| **List** | Upcoming posts in date order |
+| **List** | Posts in a rolling date window (90 days back, 180 days forward), grouped by date, 100 rows per page |
 
 Posts sit in the row or cell that matches their scheduled time. In **Month** view, chips appear without caption text.
 
-**List view** keeps the same filters as the grid. Each row shows a left accent in the first tag color. Use it to scan what is next. You cannot drag posts in list view — use the grid to reschedule. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
+<Callout type="note">
+You cannot create or drop posts in past hours in the calendar. This ensure integrity between our real records your past real published posts 
+</Callout>
 
-Use **Previous**, **Next**, and **Today** to move the visible range. Switch between grid and list with the calendar-clock icon and list icon. OpenQuok remembers your view between sessions.
+### Timeline and time slots
 
-Past hours in day and week views show a striped **Date passed** background. You cannot create or drop posts in those cells.
+**Day** and **Week** show a real clock for the full day. Every future half-hour row is available. You can create a post or drag it to any half-hour time slot on the grid.
+
+<a href="/docs/channels/time-slots">Posting time slots</a> are the usual hours for each channel. They suggest the next free time in the post editor.
+
+Use **Previous**, **Next**, and **Today** to move the visible range on the grid. Switch to list mode with the list icon (details below). OpenQuok remembers your view between sessions.
 
 ### Filters
 
@@ -52,6 +58,18 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 **Repeating** matches any post with a repeat interval. It is separate from draft or scheduled state.
 
 Below the filters, **targeted channels** shows avatar chips for channels that match your group and platform selection. They are a visual check, not an extra filter.
+
+### List view
+
+What is still a draft? List mode is the quickest way to find out — one scrollable table instead of hunting through grid cells. The same filters above apply; set **Post types** to narrow by state.
+
+Rows use the rolling window from the **Views** table, grouped by date (for example, **Wed, Sep 16**). Undated drafts sit under **No date**. Each row shows the first-tag accent and a state badge (**DRAFT**, **QUEUE**, **PUBLISHED**, **ERROR**). Past published rows stay visible for history.
+
+**Previous** and **Next** shift the list window by 30 days; **Today** re-centers on the current period. You cannot drag in list view — open a row for **Post actions** or reschedule from the grid. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
+
+<Callout type="tip">
+<a href="/docs/posts-management/kanban">Home kanban</a> tracks **stage**; list view tracks **time**. Use the kanban board for workflow columns and list for when posts fall on the calendar.
+</Callout>
 
 ### Post chips
 
@@ -103,8 +121,6 @@ Click a chip to act on it. There is no hover menu.
 Use **Create Post** in the page header when you do not need a specific slot.
 
 On phones, tapping an empty slot may show **Schedule slot** first, then **Create post**.
-
-Suggested publish hours come from <a href="/docs/channels/time-slots">Posting time slots</a> in the composer. The day grid uses a 24-hour timeline, not per-channel slot rows.
 
 <Callout type="tip">
 <p>Click a chip once for <strong>Post actions</strong>, then <Badge text="Edit" variant="default" />. On Home, double-click a kanban card to open the editor directly.</p>

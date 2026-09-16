@@ -25,8 +25,11 @@ import {
 	deriveIntegrationFilter,
 	filterPostsByPostType,
 	filterPostsByTags,
+	labelForListWindow,
 	labelForRange,
 	rangeForGranularity,
+	rangeForListWindow,
+	shiftListWindow,
 	shiftRange,
 	temporalToUtcYyyyMmDd,
 	todayUtcYyyyMmDd
@@ -92,6 +95,15 @@ export class SchedulerPresenter {
 
 	get postsForChannelLookup(): readonly CalendarPostRowViewModel[] {
 		return this.cachedPostsVm;
+	}
+
+	/** Calendar events for the loaded range before post-type / tag client filters. */
+	get calendarEventsInWindow(): readonly ReturnType<typeof buildCalendarEventsFromPosts> {
+		return buildCalendarEventsFromPosts(
+			this.cachedPostsVm,
+			this.cachedChannelById,
+			this.cachedTagColorByName
+		);
 	}
 
 	constructor(
@@ -311,21 +323,46 @@ export class SchedulerPresenter {
 	}
 
 	setLayoutMode(next: CalendarLayoutModeViewModel): void {
-		this.patchVm({ layoutMode: next });
+		if (next === this.scheduledPostsCalendarVm.layoutMode) return;
+
+		const range =
+			next === 'list'
+				? rangeForListWindow()
+				: rangeForGranularity(this.scheduledPostsCalendarVm.granularity, todayUtcYyyyMmDd());
+
+		this.patchVm({
+			layoutMode: next,
+			...range,
+			lastSuccessfulPostsKey: ''
+		});
 	}
 
 	goToday(): void {
+		if (this.scheduledPostsCalendarVm.layoutMode === 'list') {
+			this.patchVm(rangeForListWindow());
+			return;
+		}
 		this.setInitialRangeForGranularity(this.scheduledPostsCalendarVm.granularity);
 	}
 
 	shiftRange(delta: number): void {
-		const { rangeStartDate, granularity } = this.scheduledPostsCalendarVm;
+		const { rangeStartDate, rangeEndDate, granularity, layoutMode } =
+			this.scheduledPostsCalendarVm;
 		if (!rangeStartDate) return;
+		if (layoutMode === 'list') {
+			if (!rangeEndDate) return;
+			this.patchVm(shiftListWindow(rangeStartDate, rangeEndDate, delta));
+			return;
+		}
 		this.patchVm(shiftRange(granularity, rangeStartDate, delta));
 	}
 
 	labelForRange(): string {
-		const { rangeStartDate, rangeEndDate, granularity } = this.scheduledPostsCalendarVm;
+		const { rangeStartDate, rangeEndDate, granularity, layoutMode } =
+			this.scheduledPostsCalendarVm;
+		if (layoutMode === 'list') {
+			return labelForListWindow(rangeStartDate, rangeEndDate);
+		}
 		return labelForRange(granularity, rangeStartDate, rangeEndDate);
 	}
 

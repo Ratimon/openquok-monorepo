@@ -2,7 +2,7 @@
 title: Posting time slots
 description: Per-channel usual posting times in OpenQuok — a convenience for scheduling suggestions, not a hard limit on when you can publish.
 order: 3
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-16
 ---
 
 <script>
@@ -32,7 +32,7 @@ Saved slots feed the **next suggested schedule time** when you compose a new pos
 Automations and the public API use the same logic. See <a href="/docs/apis-posts/find-slot">Find slot</a>: call <Badge text="GET /public/posts/find-slot" variant="path" /> for a workspace-wide suggestion, or add a channel UUID in the path when you already know the target channel and want only that channel’s slots.
 
 <Callout type="note">
-<p>Time slots do not change how the calendar grid is drawn. The calendar stays a full 24-hour view; slots only influence schedule-time suggestions.</p>
+<p>Time slots do not change how the calendar grid is drawn. <strong>Day</strong> and <strong>Week</strong> stay a full 24-hour timeline. Slots only influence schedule-time suggestions. See <a href="/docs/posts-management/calendar#timeline-and-time-slots">Timeline and time slots</a>.</p>
 </Callout>
 
 ## New channels

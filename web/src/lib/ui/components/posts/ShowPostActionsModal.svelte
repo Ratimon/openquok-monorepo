@@ -7,7 +7,10 @@
 		PostGroupDetailsViewModel
 	} from '$lib/posts/GetScheduledPost.presenter.svelte';
 	import { resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
-	import { postStatusSurfaceClasses } from '$lib/posts/utils/postStatusColors';
+	import {
+		postStatusAccentTextClass,
+		postStatusSurfaceClasses
+	} from '$lib/posts/utils/postStatusColors';
 
 	import { getRootPathAccount } from '$lib/area-protected';
 	import { firstBillingGatePresenter } from '$lib/billing';
@@ -318,7 +321,12 @@
 										</div>
 									{/if}
 								</div>
-								<div class="mt-0.5 text-xs text-base-content/55">
+								<div
+									class={cn(
+										'mt-0.5 text-xs',
+										postStatusAccentTextClass(summary.status ?? '')
+									)}
+								>
 									{#if dt.date || dt.time}
 										{dt.date}{dt.time ? ` · ${dt.time}` : ''}
 									{:else}

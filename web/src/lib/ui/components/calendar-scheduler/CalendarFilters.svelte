@@ -58,32 +58,34 @@
 	{/if}
 
 	<div class="flex flex-wrap items-center gap-2 sm:justify-end">
-		<div class="inline-flex rounded-lg border border-base-300 bg-base-100 p-1">
-			<Button
-				type="button"
-				variant={granularity === 'day' ? 'secondary' : 'ghost'}
-				size="sm"
-				onclick={() => onSetGranularity('day')}
-			>
-				Day
-			</Button>
-			<Button
-				type="button"
-				variant={granularity === 'week' ? 'secondary' : 'ghost'}
-				size="sm"
-				onclick={() => onSetGranularity('week')}
-			>
-				Week
-			</Button>
-			<Button
-				type="button"
-				variant={granularity === 'month' ? 'secondary' : 'ghost'}
-				size="sm"
-				onclick={() => onSetGranularity('month')}
-			>
-				Month
-			</Button>
-		</div>
+		{#if layoutMode === 'calendar'}
+			<div class="inline-flex rounded-lg border border-base-300 bg-base-100 p-1">
+				<Button
+					type="button"
+					variant={granularity === 'day' ? 'secondary' : 'ghost'}
+					size="sm"
+					onclick={() => onSetGranularity('day')}
+				>
+					Day
+				</Button>
+				<Button
+					type="button"
+					variant={granularity === 'week' ? 'secondary' : 'ghost'}
+					size="sm"
+					onclick={() => onSetGranularity('week')}
+				>
+					Week
+				</Button>
+				<Button
+					type="button"
+					variant={granularity === 'month' ? 'secondary' : 'ghost'}
+					size="sm"
+					onclick={() => onSetGranularity('month')}
+				>
+					Month
+				</Button>
+			</div>
+		{/if}
 
 		<div
 			class="inline-flex overflow-hidden rounded-lg border border-base-300 bg-base-100"
