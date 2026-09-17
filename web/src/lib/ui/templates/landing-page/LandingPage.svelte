@@ -397,8 +397,8 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature5Subtitle}
 	landingTitle={feature5Title}
 	landingDescription={feature5Description}
-	imageSrc="/landing/3-kanban-filters.mp4"
-	imageAlt="Kanban board for reviewing AI-generated drafts"
+	imageSrc="/landing/3-kanban-filters-drag-drop.mp4"
+	imageAlt="Kanban board with drag-and-drop review workflow"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />

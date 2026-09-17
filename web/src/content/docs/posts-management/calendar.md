@@ -96,7 +96,7 @@ It is the fastest way to answer “what is still a draft?”. Use **Post types**
 
 The toolbar opens on **this week**; click the **date range** to pick another period (presets include **Last 7 days**, **This month**, and **90 back, 180 ahead**). **Previous** and **Next** step the window; **Today** returns to **this week**. Open a row for **Post actions** — you cannot drag in list view. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
 
-### Post chips/cards
+### Post chips
 
 Each chip is one **post group** in that time slot. The header bar uses the **first tag** on the group. Posts with no tag use the default indigo/purple color.
 
