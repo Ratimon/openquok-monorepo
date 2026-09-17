@@ -26,7 +26,7 @@ export const YOUTUBE_LANDING_MOCK_BODY =
 export const YOUTUBE_LANDING_MOCK_SCHEDULED_LOCAL = '2026-06-12T09:00';
 
 /** Demo video for the 16:9 YouTube preview panel. */
-export const YOUTUBE_LANDING_MOCK_MEDIA_URLS = ['/landing/2-calendar-filters.mp4'];
+export const YOUTUBE_LANDING_MOCK_MEDIA_URLS = ['/landing/2-calendar-filters-views.mp4'];
 
 export const YOUTUBE_LANDING_MOCK_PROVIDER_SETTINGS = {
 	youtube: {

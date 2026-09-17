@@ -386,8 +386,8 @@ openquok analytics:post <post-id> -d 30`
 	landingSubtitle={feature4Subtitle}
 	landingTitle={feature4Title}
 	landingDescription={feature4Description}
-	imageSrc="/landing/2-calendar-filters.mp4"
-	imageAlt="Calendar with smart filters for scheduled posts"
+	imageSrc="/landing/2-calendar-filters-views.mp4"
+	imageAlt="Calendar day, week, month, and list views with smart filters"
 	ctaText={secondaryCtaText}
 	ctaHref={secondaryCtaHref}
 />
