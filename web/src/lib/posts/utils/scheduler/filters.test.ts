@@ -4,7 +4,12 @@ import { UNTAGGED_POST_TAG_FILTER } from '$lib/posts/scheduler.types';
 
 import type { CalendarPostRowViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 
-import { filterPostsByPostType, hasNoPostTagNames, matchesTagFilters } from './filters';
+import {
+	filterPostsByPostType,
+	hasActiveCalendarToolbarFilters,
+	hasNoPostTagNames,
+	matchesTagFilters
+} from './filters';
 
 function row(overrides: Partial<CalendarPostRowViewModel> = {}): CalendarPostRowViewModel {
 	return {
@@ -90,5 +95,27 @@ describe('matchesTagFilters', () => {
 		expect(matchesTagFilters(['reels'], reels)).toBe(true);
 		expect(matchesTagFilters([], reels)).toBe(false);
 		expect(matchesTagFilters(['launch'], reels)).toBe(false);
+	});
+});
+
+describe('hasActiveCalendarToolbarFilters', () => {
+	const defaults = {
+		allGroups: true,
+		allSocialPlatforms: true,
+		allPostStates: true,
+		allTags: true
+	};
+
+	it('returns false when every toolbar filter is at the default show-all state', () => {
+		expect(hasActiveCalendarToolbarFilters(defaults)).toBe(false);
+	});
+
+	it('returns true when any toolbar filter is narrowed', () => {
+		expect(hasActiveCalendarToolbarFilters({ ...defaults, allGroups: false })).toBe(true);
+		expect(hasActiveCalendarToolbarFilters({ ...defaults, allSocialPlatforms: false })).toBe(
+			true
+		);
+		expect(hasActiveCalendarToolbarFilters({ ...defaults, allPostStates: false })).toBe(true);
+		expect(hasActiveCalendarToolbarFilters({ ...defaults, allTags: false })).toBe(true);
 	});
 });

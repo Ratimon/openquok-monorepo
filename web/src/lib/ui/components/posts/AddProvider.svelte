@@ -247,7 +247,7 @@
 				<Tooltip.Root>
 					<Tooltip.Trigger>
 						{#snippet child({ props: triggerProps })}
-							<span {...triggerProps} class="inline-flex">
+							<span {...triggerProps} class="inline-flex max-xl:hidden">
 								<Button
 									type="button"
 									variant={channelButtonVariant}
@@ -257,7 +257,7 @@
 									aria-label={inviteLockedLabel}
 								>
 									<AbstractIcon
-										name={channelLimitFull ? icons.Lock.name : icons.Link.name}
+										name={icons.Link.name}
 										class="size-4"
 										width="16"
 										height="16"
@@ -269,24 +269,54 @@
 					<Tooltip.Content side="top" sideOffset={8}>{iconOnlyTooltip}</Tooltip.Content>
 				</Tooltip.Root>
 			</Tooltip.Provider>
-		{:else}
+		{:else if channelLimitFull}
 			<Button
 				type="button"
 				variant={channelButtonVariant}
 				size="icon"
-				class={cn('shrink-0', lockedTriggerClass || 'border-base-300')}
+				class={cn('max-xl:hidden shrink-0', lockedTriggerClass || 'border-base-300')}
 				onclick={openAddChannelFlow}
 				aria-label={inviteLockedLabel}
 				title={inviteLockedLabel}
 			>
+				<AbstractIcon name={icons.Lock.name} class="size-4" width="16" height="16" />
+			</Button>
+		{/if}
+		<Button
+			type="button"
+			variant={channelButtonVariant}
+			size="sm"
+			class={cn('gap-1.5 xl:hidden', lockedTriggerClass, buttonClass)}
+			onclick={openAddChannelFlow}
+			aria-label={inviteLockedLabel}
+		>
+			<AbstractIcon
+				name={channelLimitFull ? icons.Lock.name : icons.Link.name}
+				class={triggerIconClass}
+				width="16"
+				height="16"
+			/>
+			{inviteLockedLabel}
+		</Button>
+	{:else if invite}
+		<span class="inline-flex shrink-0">
+			<Button
+				class={cn('gap-2', lockedTriggerClass, buttonClass)}
+				type="button"
+				variant={channelButtonVariant}
+				size={buttonSize}
+				onclick={openAddChannelFlow}
+				aria-label={inviteLockedLabel}
+			>
 				<AbstractIcon
-					name={icons.Link.name}
-					class="size-4"
+					name={channelLimitFull ? icons.Lock.name : icons.Link.name}
+					class={triggerIconClass}
 					width="16"
 					height="16"
 				/>
+				{inviteLockedLabel}
 			</Button>
-		{/if}
+		</span>
 	{:else}
 		<span class="inline-flex shrink-0">
 			<Button

@@ -25,6 +25,7 @@ import {
 	deriveIntegrationFilter,
 	filterPostsByPostType,
 	filterPostsByTags,
+	hasActiveCalendarToolbarFilters,
 	labelForListWindow,
 	labelForRange,
 	rangeForGranularity,
@@ -317,6 +318,35 @@ export class SchedulerPresenter {
 			allSocialPlatforms: next.allSocialPlatforms,
 			selectedSocialPlatformIdentifiers: next.selectedSocialPlatformIdentifiers
 		});
+	}
+
+	hasActiveToolbarFilters(): boolean {
+		const vm = this.scheduledPostsCalendarVm;
+		return hasActiveCalendarToolbarFilters({
+			allGroups: vm.allGroups,
+			allSocialPlatforms: vm.allSocialPlatforms,
+			allPostStates: vm.allPostStates,
+			allTags: vm.allTags
+		});
+	}
+
+	/**
+	 * @param pendingUrlGroupId When clearing while a `groupId` query param is still on the URL,
+	 * pass it so `applyGroupIdFromUrl` does not immediately re-apply that scope before navigation finishes.
+	 */
+	clearAllFilters(pendingUrlGroupId: string | null = null): void {
+		this.patchVm({
+			allGroups: true,
+			selectedGroupIds: [],
+			allSocialPlatforms: true,
+			selectedSocialPlatformIdentifiers: [],
+			allPostStates: true,
+			selectedPostStates: [],
+			allTags: true,
+			selectedTagNames: [],
+			prevUrlGroupId: pendingUrlGroupId
+		});
+		this.applyClientFiltersToCache();
 	}
 
 	setGranularity(next: CalendarGranularityViewModel): void {

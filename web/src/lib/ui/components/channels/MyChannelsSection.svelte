@@ -407,6 +407,7 @@
 			<AddProvider
 				invite
 				iconOnly
+				buttonLabel="Send Invite Link to connect channel"
 				iconOnlyTooltip="Send Invite Link to connect channel"
 				hasConnectedChannels={connectedChannelCount >= 1}
 				channelLimitFull={isChannelLimitFull}

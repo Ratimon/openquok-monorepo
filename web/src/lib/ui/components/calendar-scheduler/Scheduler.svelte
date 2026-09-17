@@ -20,6 +20,7 @@
 	import TagFilter from '$lib/ui/components/filters/TagFilter.svelte';
 	import PostTypeFilter from '$lib/ui/components/calendar-scheduler/PostTypeFilter.svelte';
 	import CalendarFilters from '$lib/ui/components/calendar-scheduler/CalendarFilters.svelte';
+	import Button from '$lib/ui/buttons/Button.svelte';
 
 	import CalendarView from '$lib/ui/components/calendar-scheduler/CalendarView.svelte';
 	import ListView from '$lib/ui/components/calendar-scheduler/ListView.svelte';
@@ -42,6 +43,7 @@
 		channels,
 		tagsVm = [],
 		groupId = null,
+		onClearUrlGroupFilter,
 		refreshKey = 0,
 		onTargetedChannelsChange,
 		onEditPostGroup,
@@ -54,6 +56,7 @@
 		channels: ChannelViewModel[];
 		tagsVm?: PostTagViewModel[];
 		groupId?: string | null;
+		onClearUrlGroupFilter?: () => void;
 		refreshKey?: string | number;
 		onTargetedChannelsChange?: (channels: ChannelViewModel[]) => void;
 		onEditPostGroup?: (postGroup: string) => void;
@@ -221,6 +224,16 @@
 		presenter.setTagFilter(next);
 	}
 
+	const hasActiveToolbarFilters = $derived(
+		presenter.hasActiveToolbarFilters() || Boolean(groupId)
+	);
+
+	function clearAllFilters() {
+		const urlGroup = groupId ?? null;
+		presenter.clearAllFilters(urlGroup);
+		if (urlGroup) onClearUrlGroupFilter?.();
+	}
+
 	const calendarPostsForTagFilter = $derived(presenter.postsForChannelLookup);
 
 	const listWindowRowCount = $derived(
@@ -319,6 +332,17 @@
 					selectedTagNames={scheduledPostsVm.selectedTagNames}
 					onChange={onTagFilterChange}
 				/>
+				{#if hasActiveToolbarFilters}
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						class="shrink-0"
+						onclick={clearAllFilters}
+					>
+						Clear all filters
+					</Button>
+				{/if}
 			</div>
 		{/snippet}
 	</CalendarFilters>

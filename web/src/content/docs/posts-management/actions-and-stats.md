@@ -50,9 +50,11 @@ To remove one channel from a multi-channel post, open **Edit** and deselect that
 
 When publish fails, the calendar chip keeps shows a **red ring** . Hover the chip to read the platform error in a tooltip. The row is not draggable until you fix the underlying issue.
 
-Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again. See <a href="/docs/posts-management/calendar#post-chips">Calendar → Post chips</a> for how failed chips differ from draft and scheduled rows.
+Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again.
 
-Failed rows also appear when **Post types → Failed** is selected on the calendar filter. In **Posts in this slot**, the status line reads **publish failed** for that row.
+<Callout type="note">
+See <a href="/docs/posts-management/calendar#post-chips">Calendar → Post chips</a> for how failed chips differ from draft and scheduled rows.
+</Callout>
 
 <Callout type="tip">
 <p>After a failure, <Badge text="posts:status" variant="default" /> and <Badge text="posts:reschedule" variant="default" /> can help agents recover once the content is valid — see <a href="/docs/cli-usages/managing-posts">Managing posts (CLI)</a>.</p>

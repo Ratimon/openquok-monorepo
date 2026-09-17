@@ -30,7 +30,7 @@ The default view is **Week**.
 | **Day** | One day on a full 24-hour timeline with half-hour rows |
 | **Week** | Seven day columns on the same timeline |
 | **Month** | A six-by-seven grid; each day is a compact cell |
-| **List** | Scrollable table for **this week** by default — 100 rows per page; change the toolbar date range or use **Post types** to narrow rows |
+| **List** | Scrollable table for **this week** by default — 100 rows per page; change the toolbar date range or use **Post types** to find the post |
 
 <Callout type="tip">
 <p>Switch to <strong>Month</strong> when you need the whole month on one screen — spot busy days, open gaps, and how repeating posts spread across dates without scrolling hour rows.</p>
@@ -41,6 +41,13 @@ The default view is **Week**.
 <Callout type="note">
 You cannot create or drop posts in past time slots. This keeps published history accurate.
 </Callout>
+
+<Callout type="tip">
+<p>Switch to <strong>List</strong> when you need a post outside the visible week or month — deep in <strong>published history</strong> or far in the <strong>future</strong>. Use the toolbar <strong>date range</strong> to jump months or years at once. The presets are such as <strong>90 back, 180 ahead</strong> cover long windows without stepping day by day on the grid.</p>
+</Callout>
+
+![Calendar List View](/docs/_assets/posts-management/calendar-list-posts.webp)
+
 
 ### Timeline and time slots
 
@@ -92,7 +99,9 @@ In above screenshot, **Repeating** matches any post with a repeat interval. It i
 
 List mode hides the Day / Week / Month switcher and shows a scrollable table instead.
 
-It is the fastest way to answer “what is still a draft?”. Use **Post types** in the filter row to focus on **Draft**, **Scheduled**, **Published**, or everything at once. Rows group by date (undated drafts under **No date**), 100 per page.
+It is the fastest way to answer “what is still a draft?”. Use **Post types** in the filter row to focus on **Draft**, **Scheduled**, **Published**, or everything at once. Rows group by date, 100 per page.
+
+![Filter posts by date range picker](/docs/_assets/posts-management/calendar-list-datepicker.webp)
 
 The toolbar opens on **this week**; click the **date range** to pick another period (presets include **Last 7 days**, **This month**, and **90 back, 180 ahead**). **Previous** and **Next** step the window; **Today** returns to **this week**. Open a row for **Post actions** — you cannot drag in list view. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
 

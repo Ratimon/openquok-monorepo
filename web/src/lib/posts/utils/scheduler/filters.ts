@@ -186,3 +186,20 @@ export function filterPostsByTags(
 
 	return posts.filter((rowVm) => rowMatchesTagFilters(rowVm, selected));
 }
+
+export type CalendarToolbarFilterFlags = {
+	allGroups: boolean;
+	allSocialPlatforms: boolean;
+	allPostStates: boolean;
+	allTags: boolean;
+};
+
+/** True when any calendar toolbar filter is narrowed from the default “show all”. */
+export function hasActiveCalendarToolbarFilters(flags: CalendarToolbarFilterFlags): boolean {
+	return (
+		!flags.allGroups ||
+		!flags.allSocialPlatforms ||
+		!flags.allPostStates ||
+		!flags.allTags
+	);
+}

@@ -130,6 +130,14 @@
 
 	const groupId = $derived(page.url.searchParams.get('groupId'));
 
+	function clearCalendarGroupIdFromUrl() {
+		const params = new URLSearchParams(page.url.searchParams);
+		if (!params.has('groupId')) return;
+		params.delete('groupId');
+		const qs = params.toString();
+		void goto(`${page.url.pathname}${qs ? `?${qs}` : ''}`, { replaceState: true, keepFocus: true });
+	}
+
 	$effect(() => {
 		const orgId = workspaceId;
 		if (!orgId) return;
@@ -508,6 +516,7 @@
 				channels={connectedChannelsVm}
 				tagsVm={workspaceTagsVm}
 				groupId={groupId}
+				onClearUrlGroupFilter={clearCalendarGroupIdFromUrl}
 				refreshKey={calendarRefreshKey}
 				onTargetedChannelsChange={(chs) => calendarPresenter.setTargetedChannels(chs)}
 				onEditPostGroup={openEditPostGroup}

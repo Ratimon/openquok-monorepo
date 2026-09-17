@@ -494,7 +494,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fourth secondary hero section',
 		type: 'string',
 		default:
-			'Day, week, and month calendar views plus filters by platform, channel group, or tags. Schedule ahead and surface the right drafts without scrolling an endless AI queue.',
+			'Day, week, month, and list views plus filters by platform, channel group, or colored tags. Switch to list for deep history or far-out dates, then schedule ahead without scrolling an endless AI queue.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},
@@ -516,7 +516,7 @@ export const CONFIG_SCHEMA_LANDING_PAGE: ModuleConfigSchema = {
 		description: 'Support copy for the fifth secondary hero section',
 		type: 'string',
 		default:
-			'Move agent-generated posts from draft to review to scheduled on a kanban board—with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+			'Move/Drag draft cards to schedule or publish, filter by tag, channel group, platform, agent source, or review to-do. Approve quality at scale instead of trusting autopilot.',
 		inputType: 'textarea',
 		maxInputLength: 300
 	},

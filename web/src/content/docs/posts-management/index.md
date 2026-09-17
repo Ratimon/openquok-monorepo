@@ -29,7 +29,7 @@ OpenQuok keeps your content in two places. Both views read the same post groups 
 ![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
 
 
-This section covers calendar views, the Home kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.
+This section covers calendar views, the Home kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/posts-management/kanban">Kanban board</a>.
 
 ## In this section
 
@@ -56,7 +56,6 @@ See <a href="/docs/getting-started/glossary#calendar-vs-kanban">Glossary → Cal
 
 <CardGrid>
 <LinkCard title="Scheduling" description="Save as draft, add to calendar, repeat, and tags in the composer" href="/docs/creating-posts/scheduling" />
-<LinkCard title="Kanban board (creating posts)" description="Save buttons, review queues, and agent draft workflows" href="/docs/creating-posts/kanban" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed suggested times" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="How calendar labels follow your browser setting" href="/docs/settings/timezone" />
 </CardGrid>

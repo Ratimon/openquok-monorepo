@@ -132,7 +132,7 @@ AI output can sound confident and still be wrong. <Badge text="Roughen" variant=
 <LinkCard title="Media" description="Attach images and video — no AI image or video generation" href="/docs/creating-posts/media" />
 <LinkCard title="Humanizer" description="Free browser tool — rewrite drafts without signing in" href="/tools/humanizer" />
 <LinkCard title="Threads and comments" description="AI tools on follow-up comment rows" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Kanban board" description="Filter agent drafts with Source → Agent" href="/docs/creating-posts/kanban" />
+<LinkCard title="Kanban board" description="Filter agent drafts with Source → Agent" href="/docs/posts-management/kanban" />
 <LinkCard title="MCP introduction" description="Schedule from Cursor, Claude, and other clients" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Public API" description="POST /public/posts and Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="CLI" description="openquok posts:create and related commands" href="/docs/getting-started-for-cli" />

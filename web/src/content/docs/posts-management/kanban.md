@@ -1,8 +1,8 @@
 ---
 title: Kanban board
-description: Draft, scheduled, and published columns on Home, filters, post cards, and how to move and review posts.
+description: Review drafts, scheduled posts, and published history on Home — columns, filters, cards, and workflows.
 order: 2
-lastUpdated: 2026-09-16
+lastUpdated: 2026-09-17
 ---
 
 <script>
@@ -11,130 +11,188 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## The kanban board
 
-> Three columns for draft, scheduled, and published posts — and how to filter them.
+> Three columns for draft, scheduled, and published posts — and how to review, filter and maange draft workflows
 
-**Where:** <a href="/account">Home</a>, in the **On-going Tasks** section below your profile and connected channels.
 
-The kanban tracks **stage**, while the <a href="/docs/posts-management/calendar">calendar</a> tracks **time** on the same data. Each card is one **post group**.
+**Where:** The **kanban board** on <a href="/account">Home</a> is the fastest way to see **post status** in your workspace:
+- what still needs review
+- what is queued to publish
+- what already went out.
 
-![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
+![Kanban board](/docs/_assets/getting-started/5-kanban-board.webp)
 
-Drag from <Badge text="draft" variant="experimental" /> to <Badge text="scheduled" variant="new" /> or drop on <Badge text="published" variant="default" />to publish now. Published cards do not drag backward. To change the publish time, use the calendar — see <a href="/docs/posts-management/moving-posts">Moving posts</a>. Double-click a card to edit, or the **note** for complete to-do or review text.
+It sits in the **On-going Tasks** section below your profile and connected channels.
 
-<Callout type="tip">
-<p>This checkbox workflow is an alternative way to work with agent drafts, TikTok inbox uploads, and CLI review notes — see <a href="/docs/creating-posts/kanban">Kanban board (creating posts)</a>.</p>
-</Callout>
+Each card represents one **post group**. See <a href="/docs/getting-started/glossary#post-group">Glossary → Post group</a>.
 
-<Callout type="tip">
-<p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without opening the editor. Drop on <strong>Published posts</strong> to publish now — OpenQuok asks you to confirm first.</p>
-</Callout>
+The calendar answers <em>when</em> posts ship; the kanban answers <em>what stage</em> they are in. Both views read the same data. See <a href="/docs/getting-started/glossary#calendar-vs-kanban">Calendar vs kanban</a>.
 
-### Columns
+
+## When the board is hidden
+
+The kanban appears only when your workspace has at least one **connected social channel**. Connect a channel first — see <a href="/docs/channels/connect">Connect a channel</a>.
+
+## Three columns
 
 | Column | What it shows |
 | --- | --- |
-| **Drafted posts** | Saved with <Badge text="Save as draft" variant="default" />. Nothing publishes until you move or schedule the card. |
-| **Scheduled posts** | Queued for a future time (<Badge text="Add to calendar" variant="new" />). |
+| **Drafted posts** | Saved with <Badge text="Save as draft" variant="param" />. Nothing publishes until you move or schedule the card. |
+| **Scheduled posts** | Queued for a future time (<Badge text="Add to calendar" variant="default" />). Drag a draft here when you are ready to publish. |
 | **Published posts** | Already sent to the network. Open the card menu for the live URL. |
 
 
-The board appears only when your workspace has at least one connected channel. See <a href="/docs/channels/connect">Connect a channel</a>.
-
-### Filters
-
-The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as the calendar.
-
-| Filter | What it limits |
-| --- | --- |
-| **Channel groups** | Cards for channels in the groups you pick — see <a href="/docs/channels/channel-groups">Channel groups</a> |
-| **Platforms** | Posts for selected social platforms (shown when you have more than one) |
-| **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
-| **Review** and **Source** | **To do** hides reviewed cards; **Agent** shows drafts from agents, MCP, CLI, or the public API |
-| **Time** | Upcoming window for draft and scheduled columns; past window for published |
-
-#### Filtering by channel group
-
-When you run social for more than one client or brand, put each account/channel in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control in the filter row limits the board to those channels — pick one group, several, or **Ungrouped channels** only.
-
-![Kanban's Filter by (un)grouped channels](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
-
-#### Filtering by platform
-
-When your workspace connects more than one social platform, **Platforms** appears in the filter row. Pick one network or several to limit cards to those channels.
-
-#### Filtering by tag
-
-Use **Tags** to show cards that carry specific <a href="/docs/getting-started/glossary#tag">tags</a>. Pick one tag, several, or **Untagged** for posts with no tag.
-
-#### Filters (Review and source)
-
-**Review** and **Source** sit on the left of the filter row:
-
-- **To do** hides cards you already marked reviewed.
-- **Agent** shows drafts from an agent, MCP, CLI, or public API.
-
-![Kanban 's Filter with Source and Review Controls](/docs/_assets/posts-management/kanban-source-review-filter.webp)
+Each card header uses the **first tag** colour on the group. If not, the tag color is falled back to indigo/purple color. Draft cards keep that colour and add a <Badge text="Draft" variant="experimental" /> prefix, while Scheduled cards use a solid <Badge text="Published" variant="default" /> outline.
 
 <Callout type="tip">
-<p>Pair <strong>Agent</strong> + <strong>To do</strong> when humans must sign off scripted batches.</p>
+<p>Drag between <strong>Drafted posts</strong> and <strong>Scheduled posts</strong> to flip status without editing each post from the editor.</p>
 </Callout>
 
-#### Filtering by time
+<Callout type="tip">
+<p>Drop a draft or scheduled post on <strong>Published posts</strong> to <strong>publish now</strong>: OpenQuok asks you to confirm, queues the post immediately, and the card stays in <strong>Scheduled posts</strong> until the network confirms. Published cards cannot move backward. To change the publish time, use the <a href="/docs/posts-management/calendar">calendar</a> — see <a href="/docs/posts-management/moving-posts">Moving posts</a>.</p>
+</Callout>
 
-**Time** filters split by zone:
-
-1) **All Upcoming**, **Next Week**, and **Next 30 Days** for draft and scheduled columns
-
-![Kanban 's Filter for Draft & Scheduled Posts](/docs/_assets/posts-management/kanban-future-filter.webp)
-
-2) **All Past**, **Past Week**, and **Past 30 Days** for published. Use the **Calendar** button beside them to open the date grid for the same posts.
-
-![Kanban 's Filter for Published Posts](/docs/_assets/posts-management/kanban-past-filter.webp)
-
-### Post cards
+## Post cards
 
 | Signal | Meaning |
 | --- | --- |
 | **Header colour** | First tag on the post group, or default indigo when none is set |
-| <Badge text="Draft" variant="experimental" /> prefix | Never publish unless you schedule |
-| <Badge text="Red" variant="deprecated" /> **ring** + tooltip | Failed — platform error in the tooltip; fix in the editor before you drag again |
+| <Badge text="Draft" variant="experimental" /> prefix + dashed outline | Draft — will not publish until you schedule |
+| <Badge text="Red" variant="deprecated" /> + tooltip | Failed — platform error in the tooltip; fix in the editor before you drag again |
 | **+N** badge | Multiple channels in one post group — extra avatars collapse into **+N** on the header |
-| Refresh icon | Recurring post — cadence in the tooltip |
-| **Reviewed** checkbox | Marks human review complete on the card note |
+| Refresh icon + <Badge text="Every day" variant="param" /> (etc.) | Recurring post — cadence in the tooltip and on the schedule line |
+| <Badge text="Reviewed" variant="param" /> checkbox | Marks human review complete on the card note |
 
-Same status rings and **`Draft:`** prefix as <a href="/docs/posts-management/calendar#post-chips">calendar chips</a>. Past-time styling and **Posts in this slot** apply on the calendar only.
+Same status rings and <Badge text="Draft" variant="experimental" /> prefix as <a href="/docs/posts-management/calendar#post-chips">calendar chips</a>.
 
 ### Recurring posts
 
 The kanban shows **one card per post group** in **Drafted posts** or **Scheduled posts** — the next (or current) group at its anchor time, not every future occurrence.
 
-![Kanban 's draft card with is scheduled for every 2 days](/docs/_assets/posts-management/kanban-recurring-post.webp)
+![Recurring post on the kanban](/docs/_assets/posts-management/kanban-recurring-post.webp)
 
 | Signal | Where | Meaning |
 | --- | --- | --- |
-| Refresh icon + **Every day** (etc.) | Card header | Repeat cadence for this group |
-| **Every day** (primary) | Schedule line after the relative time | Same cadence — for example `· Every week` after `(in 17 hrs)` |
-| **Every day** (primary) | <a href="/docs/posts-management/actions-and-stats">Post actions</a> summary | Same series as the card labels |
+| Refresh icon + <Badge text="Every day" variant="param" /> (etc.) | Card header | Repeat cadence for this group |
+| <Badge text="Every day" variant="param" /> (primary) | Schedule line after the relative time | Same cadence — for example `· Every week` after `(in 17 hrs)` |
+| <Badge text="Every day" variant="param" /> (primary) | <a href="/docs/posts-management/actions-and-stats">Post actions</a> summary | Same series as the card labels |
 
-On the <a href="/account/calendar">calendar</a>, the same groups expand into **multiple chips** across the visible range. See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> for projections, rescheduling the anchor, and <a href="/docs/posts-management/calendar#stop-the-rest-of-a-series">stopping the rest of a series</a>.
+On the <a href="/account/calendar">calendar</a>, the same groups expand into **multiple chips** across the visible range. See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a>.
 
-After a recurrence publishes, the card moves to **Published posts**. OpenQuok schedules the **next** group as a new card in **Drafted posts** or **Scheduled posts**.
 
-See <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> for repeat cadence in the composer.
 
-### How to manage on a post card
+<Callout type="tip">
+After a recurrence publishes, the card moves to <Badge text="Published posts" variant="default" />. OpenQuok automatically schedules the next group as a new card in <Badge text="Drafted posts" variant="experimental" /> or <Badge text="Scheduled posts" variant="param" />. See, edit or delete <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> in the post editor/composer for repeat cadence.
+</Callout>
 
-Open the card menu for preview, export, delete, and related actions — see <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>.
 
-![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
+## Filters
+
+The filter row uses the same <a href="/docs/getting-started/glossary#smart-filter">smart filter</a> pattern as the calendar. Controls below apply across all three columns unless noted.
+
+### Channel groups, platforms, and tags
+
+| Control | Effect |
+| --- | --- |
+| **Channel groups** | Limit cards to channels in the groups you pick. See <a href="/docs/channels/channel-groups">Channel groups</a>. |
+| **Platforms** | Show only posts tied to selected social platforms (when you have more than one platform connected). |
+| **Tags** | Match <a href="/docs/getting-started/glossary#tag">tags</a> on the post group. |
+
+![Kanban filter by channel group, platform, and post type](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
+
+### Review and source
+
+These controls sit on the **left**, under the channel filters.
+
+| Control | Options | Effect |
+| --- | --- | --- |
+| **Review** | <Badge text="All" variant="param" /> · <Badge text="To do" variant="param" /> · <Badge text="Reviewed" variant="param" /> | <strong>To do</strong> hides cards you already marked reviewed. |
+| **Source** | <Badge text="All" variant="param" /> · <Badge text="Agent" variant="param" /> · <Badge text="Human" variant="param" /> | <strong>Agent</strong> shows drafts created by an agent, MCP, CLI, or public API. <strong>Human</strong> shows posts composed or approved in the dashboard. |
+
+![Kanban review and source filters](/docs/_assets/posts-management/kanban-source-review-filter.webp)
+
+<Callout type="tip">
+<p>Pair <strong>Agent</strong> + <strong>To do</strong> so humans only see drafts that still need a sign-off. See <a href="/docs/creating-posts/ai-generation">AI generation</a> and <a href="/docs/cli-usages/managing-posts">Managing posts (CLI)</a>.</p>
+</Callout>
+
+### Time filters
+
+| Zone | Columns | Default | Options |
+| --- | --- | --- | --- |
+| **Drafted & scheduled** | Draft + Scheduled | All Upcoming | All Upcoming · Next Week · Next 30 Days |
+| **Published posts** | Published | All Past | All Past · Past Week · Past 30 Days |
+
+![Kanban upcoming time filters](/docs/_assets/posts-management/kanban-future-filter.webp)
+
+![Kanban past time filters](/docs/_assets/posts-management/kanban-past-filter.webp)
+
+Use the **Calendar** button beside the upcoming filters to open <a href="/account/calendar">/account/calendar</a> for a date-based view of the same posts.
+
+
+## Work on a card
+
+| Action | How |
+| --- | --- |
+| **Edit content** | Double-click the card (opens the post editor for that post group). |
+| **More actions** | Open the card menu — preview link, copy JSON, delete group, and related actions. See <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>. |
+| **Review note** | Double-click the note area, or use the checkbox to mark <strong>Reviewed</strong>. Agent drafts can ship with a suggested note from the API. |
+| **Schedule from draft** | Drag the card to **Scheduled posts**, or open the composer and use <Badge text="Add to calendar" variant="new" />. |
+| **Publish now** | Drag a normal draft or scheduled card to **Published posts**, confirm in the dialog, and OpenQuok starts scheduling it. The card remains in <strong>Scheduled posts</strong> until publish completes. |
+
+![Post actions modal](/docs/_assets/glossary/post-actions-modal.webp)
+
+## Manage your own to-do(s)
+
+TikTok **inbox upload** (<Badge text="content_posting_method=UPLOAD" variant="param" />) is the usual pattern when you want to **schedule content at scale** (CLI, agents, or API) but **pick trending audio, cover, and the final publish step yourself** in the TikTok app.
+
+OpenQuok sends the video to your creator inbox on schedule, while the kanban is where humans track what still needs a finish-in-app pass.
+
+<Callout type="warning">
+Dropping these cards on <strong>Published posts</strong> does <strong>not</strong> publish now — it only marks the review checklist when the card is already <strong>Reviewed</strong> and the scheduled time has passed.
+</Callout>
+
+
+| Stage | Column | Card label |
+| --- | --- | --- |
+| Scheduled time still upcoming | **Scheduled posts** | **In TikTok inbox** |
+| Scheduled time has passed | **Published posts** | **In TikTok inbox** (until you mark **Reviewed**) |
+
+Double-click the **note** on the card to edit the checklist, or use the **Reviewed** checkbox when the post is live.
+
+If you scripted the batch, the note is the same field you set with <Badge text="--note" variant="param" /> on <Badge text="posts:create" variant="default" /> and update with <Badge text="posts:review-todo" variant="default" />:
+
+```bash
+openquok posts:create \
+  -c "Coding meme clip" \
+  -m "$VIDEO" \
+  -s "2026-09-15T12:00:00Z" \
+  -i "$TIKTOK_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$TIKTOK_ID" \
+    '{ ($id): { content_posting_method: "UPLOAD" } }')" \
+  --note "Finish in TikTok app: open inbox, add trending audio, pick cover, then publish."
+
+# After you publish from the phone, refresh the checklist:
+openquok posts:review-todo "$POST_ID" --note "Posted from warmed phone — confirm live URL."
+```
+
+<Callout type="tip">
+<p>Pair <strong>Agent</strong> + <strong>To do</strong> to see only scripted inbox uploads waiting on a human. Use <strong>Past Week</strong> on <strong>Published posts</strong> when scheduled times have already passed but cards still show <strong>In TikTok inbox</strong>.</p>
+</Callout>
+
+See <a href="/docs/cli-examples/tiktok#upload-send-to-user-inbox">CLI Examples → TikTok → UPLOAD</a>, <a href="/docs/cli-usages/managing-posts#agent-draft-with-a-human-review-todo">Managing posts → review todo on create</a>, and <a href="/docs/apis-posts/review-todo">Update Review Todo</a>.
+
 
 ## Related
 
 <CardGrid>
+<LinkCard title="Creating posts overview" description="Composer layout, save options, and typical flow" href="/docs/creating-posts" />
+<LinkCard title="Scheduling" description="Save as draft, add to calendar, and publish now" href="/docs/creating-posts/scheduling" />
+<LinkCard title="AI generation" description="Agent and API drafts in the same review queue" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Calendar" description="Day, week, month, and list views on the date grid" href="/docs/posts-management/calendar" />
 <LinkCard title="Moving posts" description="Drag on the calendar, kanban status moves, and posts:reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Post actions modal — preview, statistics, and delete" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links before you move a card to Scheduled" href="/docs/posts-management/approvals" />
-<LinkCard title="Kanban board (creating posts)" description="Save buttons, review queues, and TikTok inbox workflows" href="/docs/creating-posts/kanban" />
+<LinkCard title="Tag" description="Colored labels and kanban tag filter" href="/docs/getting-started/glossary#tag" />
+<LinkCard title="TikTok CLI examples" description="Inbox upload, review notes, and posts:review-todo at scale" href="/docs/cli-examples/tiktok" />
 <LinkCard title="Calendar vs kanban" description="Glossary — when to use each surface" href="/docs/getting-started/glossary#calendar-vs-kanban" />
+<LinkCard title="Tour the app" description="Sidebar, Home, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 </CardGrid>

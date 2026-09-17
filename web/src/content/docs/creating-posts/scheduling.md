@@ -27,7 +27,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 When you edit an existing post, the primary button depends on its current status: <Badge text="Schedule" variant="default" /> for a **draft** (moves it onto the calendar), or <Badge text="Update" variant="default" /> for an already **scheduled** post. A <Badge text="Delete Post" variant="deprecated" /> option appears on the left.
 
-You can also move cards on the Home kanban — drag between **Drafted posts** and **Scheduled posts**, or drop on **Published posts** to publish now. See <a href="/docs/creating-posts/kanban">Kanban board</a>.
+You can also move cards on the Home kanban — drag between **Drafted posts** and **Scheduled posts**, or drop on **Published posts** to publish now. See <a href="/docs/posts-management/kanban">Kanban board</a>.
 
 ## Picking a time
 
@@ -59,7 +59,7 @@ After each successful publish, OpenQuok creates the next scheduled copy on the s
 
 ## Tags
 
-Tags sit in the footer beside repeat. Create one with a color — the **first tag** on a group sets the chip header colour on the <a href="/account/calendar">calendar</a> and on Home <a href="/docs/creating-posts/kanban">kanban</a> cards. Draft vs scheduled is shown by a **`Draft:`** body prefix and dashed outline, not by different header theme colours. Use tags to spot a specific campaign, client, or content type in the calendar.
+Tags sit in the footer beside repeat. Create one with a color — the **first tag** on a group sets the chip header colour on the <a href="/account/calendar">calendar</a> and on Home <a href="/docs/posts-management/kanban">kanban</a> cards. Draft vs scheduled is shown by a **`Draft:`** body prefix and dashed outline, not by different header theme colours. Use tags to spot a specific campaign, client, or content type in the calendar.
 
 ![Add new tag](/docs/_assets/glossary/add-new-tag.webp)
 
@@ -96,7 +96,7 @@ If publish fails, the card shows <Badge text="Failed" variant="deprecated" />. O
 
 <CardGrid>
 <LinkCard title="Creating posts overview" description="Editor layout, flow, and where the footer fits" href="/docs/creating-posts" />
-<LinkCard title="Kanban board" description="Draft, scheduled, and published columns — drag to reschedule" href="/docs/creating-posts/kanban" />
+<LinkCard title="Kanban board" description="Draft, scheduled, and published columns — drag to reschedule" href="/docs/posts-management/kanban" />
 <LinkCard title="Glossary → Tag" description="What tags are and how they tint cards" href="/docs/getting-started/glossary#tag" />
 <LinkCard title="Posting time slots" description="Per-channel hours that feed the next suggested time" href="/docs/channels/time-slots" />
 <LinkCard title="Timezone" description="Date metrics timezone for calendar and slot labels" href="/docs/settings/timezone" />

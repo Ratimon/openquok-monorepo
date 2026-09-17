@@ -2,7 +2,7 @@
 title: Moving and rescheduling posts
 description: Drag & Drop posts on the calendar or the kanban.
 order: 3
-lastUpdated: 2026-09-16
+lastUpdated: 2026-09-17
 ---
 
 <script>
@@ -19,9 +19,15 @@ You can change when a post publishes without reopening the composer. **Drag** a 
 
 **Where:** <a href="/account/calendar">/account/calendar</a> in **Day**, **Week**, or **Month** view (not **List view**).
 
+![Drag posts on the calendar](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
+
 1. Click and hold a single-post chip — the grip icon appears on draggable rows.
 2. Drop on a future day or time slot.
 3. OpenQuok saves the new time and shows **Post rescheduled.**
+
+<Callout type="tip">
+<p><strong>List view</strong> has no drop targets — switch back to day, week, or month to drag. Use list mode with the date range picker when you need to <em>find</em> a post far in the past or future, then open it from the row. See <a href="/docs/posts-management/calendar#list-view">List view</a>.</p>
+</Callout>
 
 ### What you can drag
 
@@ -64,32 +70,26 @@ Draft and future scheduled moves skip this dialog — the new time applies immed
 
 ## Recurring posts
 
-Chips with the repeat icon are part of a series. You can drag them like any other single-post row.
+Drag chips with the refresh icon like any other single-post row. The rules below apply to **that post group** — not one projected chip in isolation.
 
-On the calendar, multiple chips for the same repeat are **projections** of one post group. Moving a recurring chip updates the **anchor** time for **that group**. Every projected occurrence for that group shifts with it — OpenQuok does not move one chip in isolation. When you drop a published or past-scheduled recurring post, the reschedule dialog adds a warning:
+![Recurring posts on the calendar](/docs/_assets/posts-management/calendar-recurring-post.webp)
 
-<p><em>This is a recurring post: your changes apply to all future recurrences starting now.</em></p>
+On the calendar, multiple chips are **projections** of one **anchor** time. Moving any chip shifts every occurrence for that group. How repeats look on the grid vs Home is covered in <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a> and <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
-That warning applies to **projected occurrences on the group you moved**. Draft and future scheduled recurring moves apply the same rule without the dialog. The calendar refetches after the move so every projected chip in the visible range reflects the new anchor.
+<Callout type="warning">
+<p>When you drop a <strong>published</strong> or <strong>past-scheduled</strong> recurring post, the reschedule dialog adds: <em>This is a recurring post: your changes apply to all future recurrences starting now.</em></p>
+<p>While, draft and future scheduled recurring moves use the same anchor rule <strong>without</strong> the dialog. For example, If you move one post to the next two days, the relevant recurring post move to the next two days from those reduring post whose existing scheduling times too</p>
+</Callout>
 
-After an occurrence publishes, OpenQuok creates a **new physical scheduled group** for the next slot. Rescheduling or editing the **published** group affects that group only; the upcoming group is separate unless you open and change it too.
+<Callout type="note">
+<p>After an occurrence publishes, OpenQuok creates a <strong>new</strong> scheduled group for the next slot. Rescheduling the published row affects that group only — open the upcoming group separately if you need to change what ships next.</p>
+</Callout>
 
-### Stop the rest of a series
-
-Once the first post is live, stop what is still queued with either option — both target the **upcoming** post group:
-
-| Action | Where | Effect |
-| --- | --- | --- |
-| <Badge text="Delete" variant="deprecated" /> | Post actions — see <a href="/docs/posts-management/actions-and-stats#delete-scope">Delete scope</a> | Removes the whole upcoming group now. Already published posts are unchanged. |
-| <Badge text="No repeat" variant="param" /> | Composer on the upcoming group | After that group publishes once, OpenQuok does not spawn the next scheduled copy. |
-
-Use <Badge text="Delete" variant="deprecated" /> to cancel immediately. Use <Badge text="No repeat" variant="param" /> when you still want **one** more send on the current queue row.
-
-Editing repeat cadence (<Badge text="Week" variant="param" />, <Badge text="Month" variant="param" />, and so on) still happens in the composer — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>. The Home kanban shows **one card per post group** for repeating posts; see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
+To cancel what is still queued or change cadence, see <a href="/docs/posts-management/calendar#stop-the-rest-of-a-series">Stop the rest of a series</a> and <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
 
 ## Kanban moves (same time)
 
-The Home kanban answers a different question: **status**, not **slot**.
+The Home kanban answers **status**, not **slot** — see <a href="/docs/posts-management/kanban">Kanban board</a> for columns, filters, and card signals.
 
 | Drag | Result |
 | --- | --- |
@@ -97,9 +97,9 @@ The Home kanban answers a different question: **status**, not **slot**.
 | **Scheduled posts** → **Drafted posts** | Pauses publishing — time is preserved |
 | **Draft** or **Scheduled** → **Published posts** | **Publish now** after you confirm |
 
-Published cards do not drag backward. For a new hour or day, use the calendar or the reschedule API.
-
-See <a href="/docs/creating-posts/kanban">Kanban board</a> for filters, review notes, and TikTok inbox workflows.
+<Callout type="tip">
+<p>Published cards do not drag backward. For a new hour or day, use the calendar or the reschedule API below.</p>
+</Callout>
 
 ## Programmatic reschedule
 
@@ -138,6 +138,5 @@ Full flag tables and HTTP examples live in <a href="/docs/cli-usages/managing-po
 <LinkCard title="Kanban board" description="Columns, filters, and drag moves on Home" href="/docs/posts-management/kanban" />
 <LinkCard title="Actions and stats" description="Post actions modal after you click a chip" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Scheduling" description="Composer save buttons and repeat cadence" href="/docs/creating-posts/scheduling" />
-<LinkCard title="Kanban board" description="Drag between draft, scheduled, and published columns" href="/docs/creating-posts/kanban" />
 <LinkCard title="Managing posts (CLI)" description="posts:reschedule, posts:status, and delete" href="/docs/cli-usages/managing-posts" />
 </CardGrid>

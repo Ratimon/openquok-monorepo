@@ -2,7 +2,7 @@
 title: Glossary
 description: OpenQuok terms in one place — workspace, channel, smart filters, templates, tags, building blocks, playbooks, plugs, and how agents fit the review flow.
 order: 2
-lastUpdated: 2026-08-25
+lastUpdated: 2026-09-17
 ---
 
 <script>
@@ -102,12 +102,33 @@ Slots are a convenience, not a lock — you can always pick another time. See <a
 
 ## Calendar vs kanban
 
-| Surface | Best for |
-| --- | --- |
-| **Calendar** (<a href="/account/calendar">/account/calendar</a>) | What ships **by date** — busy weeks, empty days, opening the composer for a slot |
-| **Kanban** (<a href="/account">/account</a> Home) | **Status** — drafts waiting for review, scheduled items, recently published posts |
+The **calendar** answers **when** posts ship; the **kanban** answers **what stage** they are in. Both views read the same <a href="/docs/getting-started/glossary#post-group">post groups</a> — save or reschedule in the composer, drag on either surface, and the other view updates.
 
-Both views read the same posts. Changing a time in the composer updates both. See <a href="/docs/getting-started/tour-the-app">Tour the app</a>.
+| Surface | Where | Best for |
+| --- | --- | --- |
+| **Calendar** | <a href="/account/calendar">/account/calendar</a> | Dates and times — busy weeks, empty slots, half-hour reschedules, and list mode across a date range |
+| **Kanban** | <a href="/account">/account</a> Home | **Status** — drafts waiting for review, the scheduled queue, and recently published history |
+
+| Question | Use |
+| --- | --- |
+| What ships this week? | **Calendar** — day, week, month, or list view |
+| What still needs a human sign-off? | **Kanban** — filter **Review → To do**; pair with **Source → Agent** for agent or API drafts |
+| Move draft → scheduled without picking a new time? | **Kanban** — drag between **Drafted posts** and **Scheduled posts** |
+| Move to another day or hour? | **Calendar** — drag the chip — see <a href="/docs/posts-management/moving-posts">Moving posts</a> |
+| Publish immediately? | **Kanban** — drop on **Published posts** and confirm in the dialog |
+
+### Recurring posts
+
+Repeating series look different on each surface:
+
+| Surface | What you see |
+| --- | --- |
+| **Calendar** | **Multiple chips** across the visible range — one projection per future occurrence from the anchor time |
+| **Kanban** | **One card** per series — the next group at its anchor time, not every future occurrence |
+
+After a recurrence publishes, OpenQuok creates the **next** group on the same cadence. The calendar adds another projected chip; the kanban card moves to **Published posts** and the next occurrence appears in **Drafted posts** or **Scheduled posts**. Set or change repeat cadence in the composer — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
+
+See <a href="/docs/posts-management/calendar#recurring-posts">Recurring posts on the calendar</a>, <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>, <a href="/docs/posts-management/calendar">Calendar</a>, <a href="/docs/posts-management/kanban">Kanban board</a>, and <a href="/docs/getting-started/tour-the-app">Tour the app</a>.
 
 <h2 id="smart-filter">Smart filter</h2>
 
@@ -119,7 +140,7 @@ A **smart filter** is how you narrow a table or board to the channels, posts, te
 
 <p>The same <Badge text="Add filters" variant="param" /> control sits on the tables at <a href="/account/templates">Templates</a> and <a href="/account/plugs">Auto Plugs</a> — for example social channel and tags on templates, or rule and active on plugs.</p>
 
-<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/creating-posts/kanban">Kanban board</a>.</p>
+<p>On the calendar and the kanban, smart filters are the dropdowns: <strong>Channel groups</strong>, platforms, and tags. The calendar also has post types. On the kanban, separate <strong>upcoming</strong> time filters apply to drafted and scheduled posts, <strong>past</strong> filters apply to published posts, and you can narrow by review status and source (Agent or Human). See <a href="/docs/posts-management/kanban">Kanban board</a>.</p>
 
 <p>See <a href="/docs/channels/manage">Manage a channel</a>, <a href="/docs/channels/channel-groups">Channel groups</a>, <a href="/account/templates">Templates</a>, and <a href="/docs/automations/plugs">Plugs</a>.</p>
 

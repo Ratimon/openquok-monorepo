@@ -44,9 +44,11 @@ export {
 	deriveIntegrationFilter,
 	filterPostsByPostType,
 	filterPostsByTags,
+	hasActiveCalendarToolbarFilters,
 	hasNoPostTagNames,
 	matchesTagFilters,
-	rowMatchesTagFilters
+	rowMatchesTagFilters,
+	type CalendarToolbarFilterFlags
 } from './filters';
 export {
 	formatKanbanPublishScheduleLabel,

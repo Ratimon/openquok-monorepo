@@ -78,7 +78,9 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 
 ## Let clients connect their own account
 
-You do not need their password. Next to <Badge text="Add Channel" variant="new" /> on Home, click the link icon (<Badge text="Send Invite Link to connect channel" variant="default" />).
+You do not need their password. Next to <Badge text="Add Channel" variant="new" /> on Home, click the link icon (<Badge text="Send Invite Link to connect channel" variant="param" />).
+
+![Send Invitation Links](/docs/_assets/channel-groups/send-invite.webp)
 
 OpenQuok copies an **invite link** to your clipboard (valid for one hour). Send it to your client. They open it, sign in on the platform, and the channel appears in your workspace.
 
