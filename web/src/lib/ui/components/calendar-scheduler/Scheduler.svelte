@@ -280,11 +280,14 @@
 		granularity={scheduledPostsVm.granularity}
 		layoutMode={scheduledPostsVm.layoutMode}
 		label={presenter.labelForRange()}
+		rangeStartDate={scheduledPostsVm.rangeStartDate}
+		rangeEndDate={scheduledPostsVm.rangeEndDate}
 		onToday={goToday}
 		onPrev={() => shiftRange(-1)}
 		onNext={() => shiftRange(1)}
 		onSetGranularity={setGranularity}
 		onSetLayoutMode={setLayoutMode}
+		onListRangeApply={(start, end) => presenter.setListDateRange(start, end)}
 	>
 		{#snippet groupFilter()}
 			<div class="flex flex-wrap items-center gap-2">

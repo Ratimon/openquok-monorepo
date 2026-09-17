@@ -148,7 +148,10 @@
 					Delete Post
 				</Button>
 			{/if}
-			<DatePicker bind:value={scheduledLocal} disabled={busy} />
+			<DatePicker
+				bind:value={scheduledLocal}
+				disabled={busy}
+			/>
 			<Button
 				type="button"
 				variant="secondary"

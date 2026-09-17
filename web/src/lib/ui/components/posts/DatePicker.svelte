@@ -71,9 +71,9 @@
 		if (!value) return 'Select date & time';
 		const d = newDayjs(value);
 		if (!d.isValid()) return 'Select date & time';
-		return getDateMetricUsStyle()
-			? d.format('MM/DD/YYYY hh:mm A')
-			: d.format('DD/MM/YYYY HH:mm');
+		const date = d.format('MMM D, YYYY');
+		const time = getDateMetricUsStyle() ? d.format('h:mm A') : d.format('HH:mm');
+		return `${date}, ${time}`;
 	});
 
 	$effect(() => {
@@ -134,7 +134,7 @@
 		sideOffset={12}
 		collisionPadding={16}
 		class={cn(
-			'border-base-300 bg-base-100 text-base-content z-[300] flex w-[min(100vw-2rem,22rem)] max-w-[min(100vw-2rem,22rem)] flex-col gap-3 rounded-2xl border p-4 shadow-xl outline-none'
+			'border-base-300 bg-base-200 text-base-content z-[300] flex w-[min(100vw-2rem,22rem)] max-w-[min(100vw-2rem,22rem)] flex-col gap-3 rounded-2xl border p-4 shadow-2xl ring-1 ring-base-300 outline-none'
 		)}
 		onclick={(e) => e.stopPropagation()}
 	>

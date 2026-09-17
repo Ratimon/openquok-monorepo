@@ -15,11 +15,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 **Where:** <a href="/account">Home</a>, in the **On-going Tasks** section below your profile and connected channels.
 
-![Kanban View](/docs/_assets/posts-management/kanban-unfiltered-posts.webp)
+The kanban tracks **stage**, while the <a href="/docs/posts-management/calendar">calendar</a> tracks **time** on the same data. Each card is one **post group**.
 
-The kanban tracks **stage**; the <a href="/docs/posts-management/calendar">calendar</a> tracks **time** on the same data. Each card is one **post group**.
+![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
 
-Drag draft ↔ scheduled to flip status or drop on **Published posts** to publish now. Published cards do not drag backward. To change the publish time, use the calendar — see <a href="/docs/posts-management/moving-posts">Moving posts</a>. Double-click a card to edit, or the **note** for complete to-do or review text.
+Drag from <Badge text="draft" variant="experimental" /> to <Badge text="scheduled" variant="new" /> or drop on <Badge text="published" variant="default" />to publish now. Published cards do not drag backward. To change the publish time, use the calendar — see <a href="/docs/posts-management/moving-posts">Moving posts</a>. Double-click a card to edit, or the **note** for complete to-do or review text.
 
 <Callout type="tip">
 <p>This checkbox workflow is an alternative way to work with agent drafts, TikTok inbox uploads, and CLI review notes — see <a href="/docs/creating-posts/kanban">Kanban board (creating posts)</a>.</p>
@@ -49,12 +49,22 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 | **Channel groups** | Cards for channels in the groups you pick — see <a href="/docs/channels/channel-groups">Channel groups</a> |
 | **Platforms** | Posts for selected social platforms (shown when you have more than one) |
 | **Tags** | Posts with specific <a href="/docs/getting-started/glossary#tag">tags</a> |
+| **Review** and **Source** | **To do** hides reviewed cards; **Agent** shows drafts from agents, MCP, CLI, or the public API |
+| **Time** | Upcoming window for draft and scheduled columns; past window for published |
 
 #### Filtering by channel group
 
 When you run social for more than one client or brand, put each account/channel in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control in the filter row limits the board to those channels — pick one group, several, or **Ungrouped channels** only.
 
-![Kanban 's Filter with Source and Review Controls](/docs/_assets/posts-management/kanban-source-review-filter.webp)
+![Kanban's Filter by (un)grouped channels](/docs/_assets/posts-management/kanban-group-platform-type-filters.webp)
+
+#### Filtering by platform
+
+When your workspace connects more than one social platform, **Platforms** appears in the filter row. Pick one network or several to limit cards to those channels.
+
+#### Filtering by tag
+
+Use **Tags** to show cards that carry specific <a href="/docs/getting-started/glossary#tag">tags</a>. Pick one tag, several, or **Untagged** for posts with no tag.
 
 #### Filters (Review and source)
 
@@ -62,6 +72,8 @@ When you run social for more than one client or brand, put each account/channel 
 
 - **To do** hides cards you already marked reviewed.
 - **Agent** shows drafts from an agent, MCP, CLI, or public API.
+
+![Kanban 's Filter with Source and Review Controls](/docs/_assets/posts-management/kanban-source-review-filter.webp)
 
 <Callout type="tip">
 <p>Pair <strong>Agent</strong> + <strong>To do</strong> when humans must sign off scripted batches.</p>
@@ -84,10 +96,8 @@ When you run social for more than one client or brand, put each account/channel 
 | Signal | Meaning |
 | --- | --- |
 | **Header colour** | First tag on the post group, or default indigo when none is set |
-| <Badge text="Draft" 
-variant="experimental" />` prefix | 
-never publish unless you schedule |
-| **Red ring** + tooltip | Failed — platform error in the tooltip; fix in the editor before you drag again |
+| <Badge text="Draft" variant="experimental" /> prefix | Never publish unless you schedule |
+| <Badge text="Red" variant="deprecated" /> **ring** + tooltip | Failed — platform error in the tooltip; fix in the editor before you drag again |
 | **+N** badge | Multiple channels in one post group — extra avatars collapse into **+N** on the header |
 | Refresh icon | Recurring post — cadence in the tooltip |
 | **Reviewed** checkbox | Marks human review complete on the card note |
@@ -97,6 +107,8 @@ Same status rings and **`Draft:`** prefix as <a href="/docs/posts-management/cal
 ### Recurring posts
 
 The kanban shows **one card per post group** in **Drafted posts** or **Scheduled posts** — the next (or current) group at its anchor time, not every future occurrence.
+
+![Kanban 's draft card with is scheduled for every 2 days](/docs/_assets/posts-management/kanban-recurring-post.webp)
 
 | Signal | Where | Meaning |
 | --- | --- | --- |

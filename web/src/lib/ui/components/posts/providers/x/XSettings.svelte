@@ -42,7 +42,7 @@
 
 	<div class="space-y-1">
 		<label class="text-xs font-medium text-base-content/70" for="x-community-url">
-			Community URL (optional)
+			Post to a community, URL ex. https://x.com/i/communities/123456789 (optional)
 		</label>
 		<input
 			id="x-community-url"

@@ -34,6 +34,7 @@ import {
 	temporalToUtcYyyyMmDd,
 	todayUtcYyyyMmDd
 } from '$lib/posts/utils/scheduler';
+import { validateListViewDateRange } from '$lib/posts/utils/scheduler/listViewRangePresets';
 import {
 	buildTagColorByName,
 	tagColorMapsEqual,
@@ -339,10 +340,26 @@ export class SchedulerPresenter {
 
 	goToday(): void {
 		if (this.scheduledPostsCalendarVm.layoutMode === 'list') {
-			this.patchVm(rangeForListWindow());
+			const next = rangeForListWindow();
+			const { rangeStartDate, rangeEndDate } = this.scheduledPostsCalendarVm;
+			if (next.rangeStartDate === rangeStartDate && next.rangeEndDate === rangeEndDate) {
+				return;
+			}
+			this.patchVm({ ...next, lastSuccessfulPostsKey: '' });
 			return;
 		}
 		this.setInitialRangeForGranularity(this.scheduledPostsCalendarVm.granularity);
+	}
+
+	setListDateRange(startDate: string, endDate: string): void {
+		if (validateListViewDateRange(startDate, endDate)) return;
+		const { rangeStartDate, rangeEndDate } = this.scheduledPostsCalendarVm;
+		if (startDate === rangeStartDate && endDate === rangeEndDate) return;
+		this.patchVm({
+			rangeStartDate: startDate,
+			rangeEndDate: endDate,
+			lastSuccessfulPostsKey: ''
+		});
 	}
 
 	shiftRange(delta: number): void {

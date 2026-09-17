@@ -6,16 +6,20 @@
 	import { icons } from '$data/icons';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import DateRangePicker from '$lib/ui/components/posts/DateRangePicker.svelte';
 
 	type Props = {
 		granularity: CalendarGranularityViewModel;
 		layoutMode: CalendarLayoutModeViewModel;
 		label: string;
+		rangeStartDate: string;
+		rangeEndDate: string;
 		onToday: () => void;
 		onPrev: () => void;
 		onNext: () => void;
 		onSetGranularity: (g: CalendarGranularityViewModel) => void;
 		onSetLayoutMode: (m: CalendarLayoutModeViewModel) => void;
+		onListRangeApply: (start: string, end: string) => void;
 		groupFilter?: Snippet;
 	};
 
@@ -23,11 +27,14 @@
 		granularity,
 		layoutMode,
 		label,
+		rangeStartDate,
+		rangeEndDate,
 		onToday,
 		onPrev,
 		onNext,
 		onSetGranularity,
 		onSetLayoutMode,
+		onListRangeApply,
 		groupFilter
 	}: Props = $props();
 </script>
@@ -38,11 +45,20 @@
 			<Button type="button" variant="ghost" class="rounded-none" onclick={onPrev} aria-label="Previous">
 				<AbstractIcon name={icons.ChevronLeft.name} class="size-4" width="16" height="16" />
 			</Button>
-			<div
-				class="min-w-0 max-w-[min(100%,12rem)] truncate px-2 py-2 text-center text-sm font-medium text-base-content/80 sm:max-w-none sm:min-w-[220px] sm:px-3 sm:whitespace-nowrap"
-			>
-				{label}
-			</div>
+			{#if layoutMode === 'list'}
+				<DateRangePicker
+					startDate={rangeStartDate}
+					endDate={rangeEndDate}
+					onApply={onListRangeApply}
+					class="h-auto min-w-0 max-w-[min(100%,12rem)] rounded-none border-0 px-2 py-2 text-sm font-medium sm:max-w-none sm:min-w-[220px] sm:px-3"
+				/>
+			{:else}
+				<div
+					class="min-w-0 max-w-[min(100%,12rem)] truncate px-2 py-2 text-center text-sm font-medium text-base-content/80 sm:max-w-none sm:min-w-[220px] sm:px-3 sm:whitespace-nowrap"
+				>
+					{label}
+				</div>
+			{/if}
 			<Button type="button" variant="ghost" class="rounded-none" onclick={onNext} aria-label="Next">
 				<AbstractIcon name={icons.ChevronRight.name} class="size-4" width="16" height="16" />
 			</Button>

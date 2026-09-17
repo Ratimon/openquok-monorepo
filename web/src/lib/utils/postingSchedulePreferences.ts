@@ -123,6 +123,24 @@ export function formatPublishTimeLabel(iso: string, timeZone?: string): string {
 	return getDateMetricUsStyle() ? d.format('h:mm A') : d.format('HH:mm');
 }
 
+/** Format a calendar bound (`YYYY-MM-DD`) for toolbar labels using local calendar days. */
+export function formatCalendarDateLabel(yyyyMmDd: string): string {
+	const trimmed = yyyyMmDd.trim();
+	if (!trimmed) return '';
+	const d = newDayjs(trimmed);
+	if (!d.isValid()) return trimmed;
+	return d.format('MMM D, YYYY');
+}
+
+/** Format an inclusive calendar range (`YYYY-MM-DD` bounds) for toolbar labels. */
+export function formatCalendarDateRangeLabel(start: string, end: string): string {
+	const startLabel = formatCalendarDateLabel(start);
+	const endLabel = formatCalendarDateLabel(end);
+	if (!startLabel || !endLabel) return '';
+	if (start.trim() === end.trim()) return startLabel;
+	return `${startLabel} – ${endLabel}`;
+}
+
 /** Format a publish instant for reschedule / slot dialogs (date + time in Date metrics zone). */
 export function formatPublishDateTimeLabel(iso: string, timeZone?: string): string {
 	const tz = (timeZone?.trim() || getPostingScheduleTimezone()).trim() || 'UTC';

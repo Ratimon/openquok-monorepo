@@ -38,3 +38,5 @@ export {
 	//
 	Root as Calendar,
 };
+
+export * as RangeCalendar from './range-calendar/index';

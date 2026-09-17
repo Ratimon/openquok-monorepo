@@ -2,7 +2,7 @@
 title: Calendar
 description: Day, week, month, and list views, smart filters, and how to open or create posts from the grid.
 order: 1
-lastUpdated: 2026-09-16
+lastUpdated: 2026-09-17
 ---
 
 <script>
@@ -15,9 +15,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 **Where:** <a href="/account/calendar">Calendar</a> in the sidebar, or the **Calendar** button on the Home kanban toolbar.
 
-The calendar is the plan and the record. Drafts, scheduled posts, and published posts sit on the same grid. The Home kanban shows **stage**; the calendar shows **time**. Both views read the same post groups.
+The calendar is both the plan and the record. Drafts, scheduled posts, and published posts sit on one grid. While the <a href="/docs/posts-management/kanban">kanban</a> tracks **stage**, the 
+calendar shows **time**. Both views read the same 
+post groups.
 
-![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
+![Calendar Week View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
 ### Views
 
@@ -28,12 +30,16 @@ The default view is **Week**.
 | **Day** | One day on a full 24-hour timeline with half-hour rows |
 | **Week** | Seven day columns on the same timeline |
 | **Month** | A six-by-seven grid; each day is a compact cell |
-| **List** | Posts in a rolling date window (90 days back, 180 days forward), grouped by date, 100 rows per page |
+| **List** | Scrollable table for **this week** by default — 100 rows per page; change the toolbar date range or use **Post types** to narrow rows |
 
-Posts sit in the row or cell that matches their scheduled time. In **Month** view, chips appear without caption text.
+<Callout type="tip">
+<p>Switch to <strong>Month</strong> when you need the whole month on one screen — spot busy days, open gaps, and how repeating posts spread across dates without scrolling hour rows.</p>
+</Callout>
+
+![Calendar Month View](/docs/_assets/posts-management/calendar-month-view.webp)
 
 <Callout type="note">
-You cannot create or drop posts in past hours in the calendar. This ensure integrity between our real records your past real published posts 
+You cannot create or drop posts in past time slots. This keeps published history accurate.
 </Callout>
 
 ### Timeline and time slots
@@ -57,27 +63,42 @@ The filter row uses the same <a href="/docs/getting-started/glossary#smart-filte
 
 #### Filtering by channel group
 
-When you run social for more than one client or brand, put each account in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control in the filter row limits the grid to those channels — pick one group, several, or **Ungrouped channels** only.
+When you run social for more than one client or brand, put each account in a <a href="/docs/channels/channel-groups">channel group</a>. The **Channel groups** control limits the grid to those channels — pick one group, several, or **Ungrouped channels** only.
 
-**Repeating** matches any post with a repeat interval. It is separate from draft or scheduled state.
+![Calendar's Filter by (un)grouped channel](/docs/_assets/posts-management/calendar-group-filter.webp)
 
-Below the filters, **targeted channels** shows avatar chips for channels that match your group and platform selection. They are a visual check, not an extra filter.
+#### Filtering by platform
+
+When your workspace connects more than one social platform, **Platforms** appears in the filter row. Pick one network or several to limit the grid to those channels.
+
+![Calendar's Filter by platform](/docs/_assets/posts-management/calendar-platform-filter.webp)
+
+#### Filtering by tag
+
+Use **Tags** to show posts that carry specific <a href="/docs/getting-started/glossary#tag">tags</a>. Pick one tag, several, or **Untagged** for posts with no tag.
+
+![Calendar's Filter by tag, focusing on Repeating post](/docs/_assets/posts-management/calendar-tag-filter.webp)
+
+#### Filtering by post type
+
+Use **Post types** to narrow the post by its status, including draft, scheduled, published, failed, or repeating.
+
+![Calendar's Filter by tag](/docs/_assets/posts-management/calendar-type-filter.webp)
+
+In above screenshot, **Repeating** matches any post with a repeat interval. It is separate from draft or scheduled state.
+
 
 ### List view
 
-What is still a draft? List mode is the quickest way to find out — one scrollable table instead of hunting through grid cells. The same filters above apply; set **Post types** to narrow by state.
+List mode hides the Day / Week / Month switcher and shows a scrollable table instead.
 
-Rows use the rolling window from the **Views** table, grouped by date (for example, **Wed, Sep 16**). Undated drafts sit under **No date**. Each row shows the first-tag accent and a state badge (**DRAFT**, **QUEUE**, **PUBLISHED**, **ERROR**). Past published rows stay visible for history.
+It is the fastest way to answer “what is still a draft?”. Use **Post types** in the filter row to focus on **Draft**, **Scheduled**, **Published**, or everything at once. Rows group by date (undated drafts under **No date**), 100 per page.
 
-**Previous** and **Next** shift the list window by 30 days; **Today** re-centers on the current period. You cannot drag in list view — open a row for **Post actions** or reschedule from the grid. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
+The toolbar opens on **this week**; click the **date range** to pick another period (presets include **Last 7 days**, **This month**, and **90 back, 180 ahead**). **Previous** and **Next** step the window; **Today** returns to **this week**. Open a row for **Post actions** — you cannot drag in list view. See <a href="/docs/posts-management/moving-posts">Moving posts</a>.
 
-<Callout type="tip">
-<a href="/docs/posts-management/kanban">Home kanban</a> tracks **stage**; list view tracks **time**. Use the kanban board for workflow columns and list for when posts fall on the calendar.
-</Callout>
+### Post chips/cards
 
-### Post chips
-
-Each chip is one **post group** in that time slot. The header bar uses the **first tag** on the group. Posts with no tag use the default indigo accent.
+Each chip is one **post group** in that time slot. The header bar uses the **first tag** on the group. Posts with no tag use the default indigo/purple color.
 
 | Signal | Meaning |
 | --- | --- |
@@ -86,34 +107,36 @@ Each chip is one **post group** in that time slot. The header bar uses the **fir
 | **Solid outline** | Scheduled for the shown time |
 | **Published** pill | Already live on the network |
 | **Red ring** + tooltip | Failed — error text in the tooltip; not draggable until fixed |
-| **+N** badge | Multiple post groups in one time slot — click to open **Posts in this slot** |
+| **+N** badge | Multiple post groups in one slot — one combined chip; click for **Posts in this slot** (no separate **Show more** row) |
 | **Grayscale chip** | Publish time is in the past — hover for **Date passed** |
 | Refresh icon | Recurring post — see <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a> |
-
-OpenQuok buckets same-slot posts into one chip with **+N** — there is no separate **Show more** row when a cell is crowded.
 
 Day and week chips show caption, channel name, and time in the body. Month chips show the header only.
 
 ### Recurring posts
 
-The <a href="/docs/posts-management/kanban">Home kanban</a> shows **one card** per repeating group (refresh icon on the header, **Repeating** in **Post actions**) instead of expanding across dates — see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
+Repeating draft and scheduled groups show **multiple chips** across the visible range — one projection per occurrence from the anchor time. OpenQuok loads the full pattern when you change the date range.
 
-Draft and scheduled posts with a repeat interval show **multiple chips** across the visible day, week, month, or list range — one per projected occurrence from the anchor time. Those chips are **projections** of a single post group; navigate the calendar without refreshing and OpenQuok loads the full pattern for the range you are viewing.
+![Recurring posts on the calendar](/docs/_assets/posts-management/calendar-recurring-post.webp)
 
-Published recurring rows appear **once** at their actual publish time (they are not expanded). After each successful publish, OpenQuok creates the **next physical scheduled group** on the same cadence; that new group expands on the grid like any other repeating draft or queue row. You may see one published chip plus multiple upcoming chips at the same time — they belong to **different post groups**.
+The <a href="/docs/posts-management/kanban">Home kanban</a> shows **one card** per group instead — see <a href="/docs/posts-management/kanban#recurring-posts">Recurring posts on the kanban</a>.
 
-Rescheduling a recurring chip moves the **anchor** for that post group. Every projected chip for **that group** shifts together — OpenQuok does not move one occurrence in isolation. See <a href="/docs/posts-management/moving-posts#recurring-posts">Recurring posts</a>.
+Published recurring rows appear **once** at their actual publish time. After each publish, OpenQuok creates the **next scheduled group** on the same cadence.
+
+Rescheduling a chip moves the **anchor** for that group. Every projected chip shifts together. See <a href="/docs/posts-management/moving-posts#recurring-posts">Moving posts</a>.
 
 #### Stop the rest of a series
 
-After the first occurrence publishes, use the **upcoming** scheduled or draft group (not the published chip) to stop what is left:
+After the first occurrence publishes, use the **upcoming** scheduled or draft group to delete what is left:
 
 | Action | Where | Effect |
 | --- | --- | --- |
 | <Badge text="Delete" variant="deprecated" /> | Post actions on the upcoming group | Removes that post group immediately. Nothing else in the series publishes. Already published rows stay live. |
 | <Badge text="No repeat" variant="param" /> | Composer <Badge text="Repeat" variant="default" /> dropdown on the upcoming group | After **that** group publishes once, OpenQuok does not create the next scheduled copy. |
 
+<Callout type="tip">
 You can combine them: set <Badge text="No repeat" variant="param" /> if you want one more send, or <Badge text="Delete" variant="deprecated" /> if you want to cancel the upcoming group now. See <a href="/docs/creating-posts/scheduling#repeating-a-post">Repeating a post</a>.
+</Callout>
 
 ### Create and open posts
 

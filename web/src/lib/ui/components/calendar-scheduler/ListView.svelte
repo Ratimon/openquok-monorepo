@@ -22,6 +22,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import IntegrationChannelPicture from '$lib/ui/components/posts/IntegrationChannelPicture.svelte';
+	import { Pagination } from '$lib/ui/pagination';
 
 	export type Props = {
 		events: CalendarEventExternal[];
@@ -32,17 +33,43 @@
 
 	let { events, windowRowCount, onOpenPostGroup }: Props = $props();
 
-	let pageIndex = $state(0);
+	let itemsPerPage = $state(LIST_VIEW_PAGE_SIZE);
+	let currentPage = $state(1);
 
 	const sortedRows = $derived(sortListRows(normalizeRowsFromEvents(events)));
-	const pagination = $derived(paginateRows(sortedRows, pageIndex, LIST_VIEW_PAGE_SIZE));
+	const pagination = $derived(paginateRows(sortedRows, currentPage - 1, itemsPerPage));
 	const dateGroups = $derived(groupRowsByDate(pagination.rows));
 	const emptyMessage = $derived(resolveListViewEmptyMessage(sortedRows.length, windowRowCount));
+	const totalPages = $derived(pagination.pageCount);
+	const safeCurrentPage = $derived(Math.min(currentPage, totalPages));
 
 	$effect(() => {
 		events;
-		pageIndex = 0;
+		currentPage = 1;
 	});
+
+	$effect(() => {
+		if (currentPage !== safeCurrentPage) {
+			currentPage = safeCurrentPage;
+		}
+	});
+
+	function setItemsPerPage(size: number) {
+		itemsPerPage = size;
+		currentPage = 1;
+	}
+
+	function setCurrentPage(page: number) {
+		currentPage = page;
+	}
+
+	function paginateToFirstPage() {
+		setCurrentPage(1);
+	}
+
+	function paginateToLastPage() {
+		setCurrentPage(totalPages);
+	}
 
 	function rowKey(row: ListViewRow): string {
 		return `${row.postGroup}:${row.postId ?? row.integrationId ?? ''}`;
@@ -128,33 +155,18 @@
 		{/each}
 	</div>
 
-	{#if pagination.totalCount > LIST_VIEW_PAGE_SIZE}
-		<div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-base-300 pt-3 text-sm text-base-content/70">
-			<p>
-				Showing {pagination.rangeStart}–{pagination.rangeEnd} of {pagination.totalCount}
-			</p>
-			<div class="flex items-center gap-2">
-				<button
-					type="button"
-					class="btn btn-sm btn-ghost"
-					disabled={pagination.pageIndex <= 0}
-					onclick={() => {
-						pageIndex = Math.max(0, pagination.pageIndex - 1);
-					}}
-				>
-					Previous
-				</button>
-				<button
-					type="button"
-					class="btn btn-sm btn-ghost"
-					disabled={pagination.pageIndex >= pagination.pageCount - 1}
-					onclick={() => {
-						pageIndex = Math.min(pagination.pageCount - 1, pagination.pageIndex + 1);
-					}}
-				>
-					Load more
-				</button>
-			</div>
-		</div>
-	{/if}
+	<Pagination
+		class="mt-4 border-t border-base-300 pt-3"
+		pageSizeSelectId="calendar-list-page-size"
+		{itemsPerPage}
+		totalItems={sortedRows.length}
+		currentPage={safeCurrentPage}
+		{totalPages}
+		{setItemsPerPage}
+		{setCurrentPage}
+		paginateBackFF={paginateToFirstPage}
+		paginateFrontFF={paginateToLastPage}
+		nameOfItems="posts"
+		pageSizeOptions={[50, 100]}
+	/>
 {/if}

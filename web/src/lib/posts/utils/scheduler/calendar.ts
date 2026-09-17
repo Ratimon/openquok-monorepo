@@ -2,6 +2,11 @@ import 'temporal-polyfill/global';
 
 import type { CalendarPostRowViewModel } from '$lib/posts/GetScheduledPost.presenter.svelte';
 import { channelVmFromDisplay, resolvePostChannelDisplay } from '$lib/posts/GetScheduledPost.presenter.svelte';
+import {
+	formatCalendarDateLabel,
+	formatCalendarDateRangeLabel,
+	newDayjs
+} from '$lib/utils/postingSchedulePreferences';
 import type {
 	CalendarGranularityViewModel,
 	ChannelViewModel,
@@ -30,18 +35,10 @@ function yyyyMmDdUtc(d: Date): string {
 	return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
 
-function addUtcDays(dateStr: string, days: number): string {
+export function addUtcDays(dateStr: string, days: number): string {
 	const d = new Date(`${dateStr}T00:00:00Z`);
 	d.setUTCDate(d.getUTCDate() + days);
 	return yyyyMmDdUtc(d);
-}
-
-function formatMmDdYyyy(yyyyMmDdStr: string): string {
-	const [y, m, d] = yyyyMmDdStr.split('-').map((x) => Number(x));
-	if (!y || !m || !d) return yyyyMmDdStr;
-	const mm = String(m).padStart(2, '0');
-	const dd = String(d).padStart(2, '0');
-	return `${mm}/${dd}/${y}`;
 }
 
 export function todayUtcYyyyMmDd(): string {
@@ -86,7 +83,15 @@ export function rangeForGranularity(
 	return { rangeStartDate: startOfMonth(base), rangeEndDate: endOfMonth(base) };
 }
 
+/** Default list-view window: ISO week containing the base date (same as calendar Week view). */
 export function rangeForListWindow(
+	baseDate = todayUtcYyyyMmDd()
+): { rangeStartDate: string; rangeEndDate: string } {
+	return rangeForGranularity('week', baseDate);
+}
+
+/** Optional long-range list preset: lookback + lookahead from the base date. */
+export function rangeForListExtendedWindow(
 	baseDate = todayUtcYyyyMmDd()
 ): { rangeStartDate: string; rangeEndDate: string } {
 	return {
@@ -100,7 +105,14 @@ export function shiftListWindow(
 	rangeEndDate: string,
 	delta: number
 ): { rangeStartDate: string; rangeEndDate: string } {
-	const days = delta * CALENDAR_LIST_SHIFT_DAYS;
+	const startMs = Date.parse(`${rangeStartDate}T00:00:00Z`);
+	const endMs = Date.parse(`${rangeEndDate}T00:00:00Z`);
+	const spanDays =
+		Number.isFinite(startMs) && Number.isFinite(endMs)
+			? Math.floor((endMs - startMs) / 86_400_000) + 1
+			: CALENDAR_LIST_SHIFT_DAYS;
+	const stepDays = spanDays < CALENDAR_LIST_SHIFT_DAYS ? spanDays : CALENDAR_LIST_SHIFT_DAYS;
+	const days = delta * stepDays;
 	return {
 		rangeStartDate: addUtcDays(rangeStartDate, days),
 		rangeEndDate: addUtcDays(rangeEndDate, days)
@@ -134,14 +146,17 @@ export function labelForRange(
 	rangeEndDate: string
 ): string {
 	if (!rangeStartDate || !rangeEndDate) return '';
-	if (granularity === 'month') return rangeStartDate.slice(0, 7);
-	if (granularity === 'day') return formatMmDdYyyy(rangeStartDate);
-	return `${formatMmDdYyyy(rangeStartDate)} → ${formatMmDdYyyy(rangeEndDate)}`;
+	if (granularity === 'month') {
+		const d = newDayjs(rangeStartDate);
+		return d.isValid() ? d.format('MMMM YYYY') : rangeStartDate.slice(0, 7);
+	}
+	if (granularity === 'day') return formatCalendarDateLabel(rangeStartDate);
+	return formatCalendarDateRangeLabel(rangeStartDate, rangeEndDate);
 }
 
 export function labelForListWindow(rangeStartDate: string, rangeEndDate: string): string {
 	if (!rangeStartDate || !rangeEndDate) return '';
-	return `${formatMmDdYyyy(rangeStartDate)} → ${formatMmDdYyyy(rangeEndDate)}`;
+	return formatCalendarDateRangeLabel(rangeStartDate, rangeEndDate);
 }
 
 export function temporalToUtcYyyyMmDd(x: unknown): string {

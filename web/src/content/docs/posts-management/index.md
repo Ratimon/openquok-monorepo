@@ -26,7 +26,7 @@ OpenQuok keeps your content in two places. Both views read the same post groups 
 
 2) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
 
-![Kanban View](/docs/_assets/posts-management/kanban-unfiltered-posts.webp)
+![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)
 
 
 This section covers calendar views, the Home kanban board, moving posts between slots and stages, post actions (duplicate, delete, statistics), and <a href="/docs/posts-management/approvals">client approvals</a>. For composing copy and picking save buttons, start with <a href="/docs/creating-posts/scheduling">Scheduling</a> and <a href="/docs/creating-posts/kanban">Kanban board</a>.

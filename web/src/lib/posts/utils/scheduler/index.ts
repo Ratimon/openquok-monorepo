@@ -31,6 +31,7 @@ export {
 	labelForListWindow,
 	labelForRange,
 	rangeForGranularity,
+	rangeForListExtendedWindow,
 	rangeForListWindow,
 	shiftListWindow,
 	shiftRange,

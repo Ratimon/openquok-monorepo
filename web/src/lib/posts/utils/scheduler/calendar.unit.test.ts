@@ -9,6 +9,7 @@ import {
 	CALENDAR_LIST_SHIFT_DAYS,
 	calendarEventIdForPost,
 	labelForListWindow,
+	rangeForListExtendedWindow,
 	rangeForListWindow,
 	shiftListWindow
 } from '$lib/posts/utils/scheduler/calendar';
@@ -63,22 +64,31 @@ describe('buildCalendarEventsFromPosts', () => {
 });
 
 describe('rangeForListWindow', () => {
-	it('looks back 90 UTC days and forward 180 UTC days from the base date', () => {
+	it('returns the ISO week containing the base date', () => {
 		expect(rangeForListWindow('2026-09-16')).toEqual({
+			rangeStartDate: '2026-09-14',
+			rangeEndDate: '2026-09-20'
+		});
+	});
+
+	it('crosses month boundaries within the same ISO week', () => {
+		expect(rangeForListWindow('2026-09-01')).toEqual({
+			rangeStartDate: '2026-08-31',
+			rangeEndDate: '2026-09-06'
+		});
+	});
+});
+
+describe('rangeForListExtendedWindow', () => {
+	it('looks back 90 UTC days and forward 180 UTC days from the base date', () => {
+		expect(rangeForListExtendedWindow('2026-09-16')).toEqual({
 			rangeStartDate: '2026-06-18',
 			rangeEndDate: '2027-03-15'
 		});
 	});
 
-	it('crosses year boundaries in UTC', () => {
-		expect(rangeForListWindow('2026-01-15')).toEqual({
-			rangeStartDate: '2025-10-17',
-			rangeEndDate: '2026-07-14'
-		});
-	});
-
 	it('spans lookback plus lookahead plus the base day inclusively', () => {
-		const { rangeStartDate, rangeEndDate } = rangeForListWindow('2026-09-16');
+		const { rangeStartDate, rangeEndDate } = rangeForListExtendedWindow('2026-09-16');
 		const startMs = Date.parse(`${rangeStartDate}T00:00:00Z`);
 		const endMs = Date.parse(`${rangeEndDate}T00:00:00Z`);
 		const inclusiveDays = (endMs - startMs) / (24 * 60 * 60 * 1000) + 1;
@@ -87,8 +97,8 @@ describe('rangeForListWindow', () => {
 });
 
 describe('shiftListWindow', () => {
-	it(`shifts both bounds by ${CALENDAR_LIST_SHIFT_DAYS} UTC days per delta step`, () => {
-		const window = rangeForListWindow('2026-09-16');
+	it(`shifts both bounds by ${CALENDAR_LIST_SHIFT_DAYS} UTC days per delta step for long windows`, () => {
+		const window = rangeForListExtendedWindow('2026-09-16');
 		expect(shiftListWindow(window.rangeStartDate, window.rangeEndDate, 1)).toEqual({
 			rangeStartDate: '2026-07-18',
 			rangeEndDate: '2027-04-14'
@@ -98,13 +108,21 @@ describe('shiftListWindow', () => {
 			rangeEndDate: '2027-02-13'
 		});
 	});
+
+	it('shifts the default week window by seven days', () => {
+		const window = rangeForListWindow('2026-09-16');
+		expect(shiftListWindow(window.rangeStartDate, window.rangeEndDate, 1)).toEqual({
+			rangeStartDate: '2026-09-21',
+			rangeEndDate: '2026-09-27'
+		});
+	});
 });
 
 describe('labelForListWindow', () => {
-	it('formats the inclusive UTC window as MM/DD/YYYY → MM/DD/YYYY', () => {
+	it('formats the inclusive UTC window as MMM D, YYYY – MMM D, YYYY', () => {
 		const window = rangeForListWindow('2026-09-16');
 		expect(labelForListWindow(window.rangeStartDate, window.rangeEndDate)).toBe(
-			'06/18/2026 → 03/15/2027'
+			'Sep 14, 2026 – Sep 20, 2026'
 		);
 	});
 
