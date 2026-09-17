@@ -234,6 +234,9 @@ export class HttpGateway {
 			headers,
 			credentials: withCredentials ? 'include' : 'same-origin'
 		};
+		if (options.cache !== undefined) {
+			fetchOptions.cache = options.cache;
+		}
 		if (method !== HttpMethod.GET && data !== undefined) {
 			if (data instanceof FormData) {
 				fetchOptions.body = data;

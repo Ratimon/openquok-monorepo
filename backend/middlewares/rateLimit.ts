@@ -8,10 +8,24 @@ import rateLimit, {
 import type { Request, Response } from "express";
 import type { Express } from "express";
 
+import { BULL_BOARD_ACCESS_COOKIE_NAME } from "../guards/auth/types";
 import { config } from "../config/GlobalConfig";
+import {
+    hasDedicatedRateLimiter,
+    isIntegrationConnectPath,
+    isPublicReadGet,
+    isPublicWriteRoute,
+    isUploadPath,
+    isWebhookPath,
+} from "./publicRouteRegistry";
+import { clientIpFromRequest, trustedClientIp } from "./trustedClientIp";
+import { createRateLimitStore, isRateLimitRedisStoreActive } from "./rateLimitStore";
 import { logger } from "../utils/Logger";
 
+export { clientIpFromRequest, trustedClientIp };
+
 interface RateLimitConfig {
+    limiterName: string;
     windowMs: number;
     max: number;
     standardHeaders: boolean;
@@ -19,59 +33,120 @@ interface RateLimitConfig {
     message?: string;
     skip?: boolean | ((req: Request) => boolean);
     keyGenerator?: (req: Request) => string;
+    storeName?: string;
 }
+
+export interface RateLimitExceededLogPayload {
+    msg: string;
+    limiter: string;
+    path: string;
+    method: string;
+    trustedClientIp: string;
+    userId: string | null;
+    windowMs: number;
+    max: number;
+}
+
+/** Structured fields for 429 observability (limiter name, client IP, user id when known). */
+export const buildRateLimitExceededLog = (
+    req: Request,
+    limiterName: string,
+    options: Pick<RateLimitOptions, "windowMs" | "max">
+): RateLimitExceededLogPayload => ({
+    msg: "Rate limit exceeded",
+    limiter: limiterName,
+    path: req.path,
+    method: req.method,
+    trustedClientIp: trustedClientIp(req),
+    userId: tryResolveUserIdFromRequest(req),
+    windowMs: options.windowMs as number,
+    max: options.max as number,
+});
 
 const PROGRAMMATIC_TOKEN_PREFIX = "opo_";
 
 const hashRateLimitKey = (value: string): string =>
     createHash("sha256").update(value).digest("hex").slice(0, 32);
 
-const firstHeaderValue = (value: string | string[] | undefined): string | null => {
-    const raw = Array.isArray(value) ? value[0] : value;
-    if (typeof raw !== "string") return null;
-    const first = raw.split(",")[0]?.trim();
-    return first && first.length > 0 ? first : null;
-};
-
-/**
- * Prefer Cloudflare's client IP. With Cloudflare in front of Vercel,
- * `trust proxy: 1` makes `req.ip` the Cloudflare edge (shared by every visitor).
- */
-export const clientIpFromRequest = (req: Request): string => {
-    const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
-    if (cfConnectingIp) return cfConnectingIp;
-    return req.ip ?? "unknown";
-};
-
-/**
- * Public cached CMS/catalog GETs used by website SSR. They must not share the
- * global per-IP bucket — Vercel SSR egress and a mis-read Cloudflare hop would
- * 429 the marketing site (and secret-admin shells that still SSR layout).
- */
-export const isPublicCachedGetRequest = (req: Request): boolean => {
-    if (req.method !== "GET") return false;
-    const path = req.path;
-    if (path === "/company" || path.startsWith("/company/")) return true;
-    if (path === "/blog-system" || path.startsWith("/blog-system/")) return true;
-    if (path === "/listings/published" || path.startsWith("/listings/published/")) return true;
-    if (path === "/listings/stacks/published" || path.startsWith("/listings/stacks/published/")) {
-        return true;
-    }
-    if (path.startsWith("/listings/categories/")) return true;
-    if (path.startsWith("/listings/tags/")) return true;
-    if (path === "/listings/creators" || path.startsWith("/listings/creators/")) return true;
-    if (path === "/image/download") return true;
-    return false;
-};
+/** Public cached CMS/catalog GETs used by website SSR (see `publicReadLimiter`). */
+export const isPublicCachedGetRequest = (req: Request): boolean => isPublicReadGet(req, req.path);
 
 const extractBearerToken = (req: Request): string | null => {
-    const authHeader = req.headers.authorization;
+    const authHeader = req.headers?.authorization;
     if (!authHeader?.startsWith("Bearer ")) return null;
     const token = authHeader.slice("Bearer ".length).trim();
     return token.length > 0 ? token : null;
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const normalizeAccessTokenForPeek = (raw: string): string | null => {
+    const trimmed = raw.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith("{")) {
+        try {
+            const parsed = JSON.parse(trimmed) as { value?: string };
+            if (typeof parsed?.value === "string" && parsed.value.length > 0) {
+                return parsed.value.trim();
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    }
+    return trimmed;
+};
+
+const extractAccessTokenForPeek = (req: Request): string | null => {
+    const bearer = extractBearerToken(req);
+    if (bearer) {
+        const normalized = normalizeAccessTokenForPeek(bearer);
+        if (normalized?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) return null;
+        return normalized;
+    }
+    const cookies = (req as Request & { cookies?: Record<string, string> }).cookies;
+    const fromCookie = cookies?.[BULL_BOARD_ACCESS_COOKIE_NAME];
+    if (!fromCookie) return null;
+    return normalizeAccessTokenForPeek(fromCookie);
+};
+
+const decodeJwtSubForRateLimitKey = (token: string): string | null => {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    try {
+        const payloadJson = Buffer.from(parts[1], "base64url").toString("utf8");
+        const payload = JSON.parse(payloadJson) as { sub?: unknown; exp?: unknown };
+        const sub = payload.sub;
+        if (typeof sub !== "string" || !UUID_RE.test(sub)) return null;
+        const exp = payload.exp;
+        if (typeof exp === "number" && exp * 1000 < Date.now()) return null;
+        return sub;
+    } catch {
+        return null;
+    }
+};
+
+/**
+ * Lightweight JWT peek for rate-limit keying only (no signature verify, no DB).
+ * Returns Supabase auth user id (`sub`) when a Bearer token or Bull Board cookie is present.
+ */
+export const tryResolveUserIdFromRequest = (req: Request): string | null => {
+    const authenticatedUserId = (req as Request & { user?: { id?: string } }).user?.id;
+    if (authenticatedUserId && UUID_RE.test(authenticatedUserId)) {
+        return authenticatedUserId;
+    }
+    const token = extractAccessTokenForPeek(req);
+    if (!token) return null;
+    return decodeJwtSubForRateLimitKey(token);
+};
+
 const clientIpKey = (req: Request): string => ipKeyGenerator(clientIpFromRequest(req));
+
+const sessionKeyGenerator = (req: Request): string => {
+    const userId = tryResolveUserIdFromRequest(req);
+    if (userId) return `session:${userId}`;
+    return `ip:${clientIpKey(req)}`;
+};
 
 const publicApiKeyGenerator = (req: Request): string => {
     const token = extractBearerToken(req);
@@ -114,30 +189,6 @@ const uploadKeyGenerator = (req: Request): string => {
     return `upload:ip:${clientIpKey(req)}`;
 };
 
-const isPublicApiPath = (path: string): boolean =>
-    path === "/public" || path.startsWith("/public/");
-
-const isUploadPath = (path: string): boolean =>
-    path === "/public/upload" ||
-    path.startsWith("/public/upload/") ||
-    path === "/public/upload-from-url" ||
-    path === "/media/upload" ||
-    path === "/media/upload-server" ||
-    path === "/media/upload-simple";
-
-const isIntegrationConnectPath = (path: string): boolean =>
-    /^\/integrations\/social-connect\/[^/]+$/.test(path) ||
-    /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path);
-
-const isPublicWritePath = (path: string, method: string): boolean => {
-    if (method === "POST" && path === "/company/t") return true;
-    if (method === "PUT" && /^\/blog-system\/posts\/[^/]+\/activity$/.test(path)) return true;
-    if (method === "PUT" && /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/.test(path)) {
-        return true;
-    }
-    return false;
-};
-
 const createRateLimiter = (options: RateLimitConfig): RateLimitRequestHandler => {
     let skipFunction: ((req: Request) => boolean) | undefined;
     if (options.skip !== undefined) {
@@ -148,16 +199,14 @@ const createRateLimiter = (options: RateLimitConfig): RateLimitRequestHandler =>
         }
     }
 
+    const store = options.storeName ? createRateLimitStore(options.storeName) : undefined;
+
+    const limiterName = options.limiterName;
+
     return rateLimit({
+        ...(store ? { store } : {}),
         handler: (req: Request, res: Response, _next, options: RateLimitOptions) => {
-            logger.warn({
-                msg: "Rate limit reached",
-                path: req.path,
-                method: req.method,
-                ip: req.ip,
-                limit: options.max,
-                windowMs: options.windowMs,
-            });
+            logger.warn(buildRateLimitExceededLog(req, limiterName, options));
             res.status(429).json({
                 status: "error",
                 message: "Too many requests, please try again later.",
@@ -179,120 +228,160 @@ const shouldSkipRateLimit = (): boolean => {
     return !rateLimitConfig?.enabled;
 };
 
-export const globalLimiter = createRateLimiter({
-    ...(config.rateLimit as { global?: RateLimitConfig }).global,
-    skip: (req: Request) => {
-        if (shouldSkipRateLimit()) return true;
-        const path = req.path;
-        const originalUrl = req.originalUrl || req.url;
-        const isWebhook =
-            path.includes("/webhooks/") ||
-            originalUrl.includes("/webhooks/");
-        const isBypass =
-            path === "/health" ||
-            path.startsWith("/health") ||
-            path === "/sitemap.xml" ||
-            path.startsWith("/sitemap.xml") ||
-            isPublicCachedGetRequest(req);
-        const isDedicatedLimiter =
-            isPublicApiPath(path) ||
-            isUploadPath(path) ||
-            (req.method === "POST" && path === "/feedback") ||
-            (req.method === "POST" && path === "/oauth/token") ||
-            (req.method === "POST" && isIntegrationConnectPath(path)) ||
-            isPublicWritePath(path, req.method);
-        return isWebhook || isBypass || isDedicatedLimiter;
-    },
-} as RateLimitConfig);
+const isHealthOrSitemapPath = (path: string): boolean =>
+    path === "/health" ||
+    path.startsWith("/health") ||
+    path === "/sitemap.xml" ||
+    path.startsWith("/sitemap.xml");
 
-export const authLimiter = createRateLimiter({
-    ...(config.rateLimit as { auth?: RateLimitConfig }).auth,
-    skip: (req: Request) => {
-        if (shouldSkipRateLimit()) return true;
-        // OAuth endpoints have their own stricter limiter to reduce abuse of external auth flows.
-        // Avoid double-counting by skipping them here.
-        return req.path.startsWith("/oauth/");
-    },
-} as RateLimitConfig);
+const shouldSkipInfrastructurePaths = (req: Request): boolean => {
+    const path = req.path;
+    const originalUrl = req.originalUrl || req.url;
+    return isWebhookPath(path, originalUrl) || isHealthOrSitemapPath(path);
+};
 
-export const oauthLimiter = createRateLimiter({
-    // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { oauth?: RateLimitConfig }).oauth,
-    skip: shouldSkipRateLimit,
-} as RateLimitConfig);
-
-export const publicApiLimiter = createRateLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { publicApi?: RateLimitConfig }).publicApi,
-    keyGenerator: publicApiKeyGenerator,
-    skip: shouldSkipRateLimit,
-} as RateLimitConfig);
-
-export const mcpLimiter = createRateLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 120,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { mcp?: RateLimitConfig }).mcp,
-    keyGenerator: mcpKeyGenerator,
-    skip: (req: Request) => shouldSkipRateLimit() || req.method === "OPTIONS",
-} as RateLimitConfig);
-
-export const uploadLimiter = createRateLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { upload?: RateLimitConfig }).upload,
-    keyGenerator: uploadKeyGenerator,
-    skip: (req: Request) => shouldSkipRateLimit() || !isUploadPath(req.path),
-} as RateLimitConfig);
-
-export const feedbackLimiter = createRateLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { feedback?: RateLimitConfig }).feedback,
-    skip: (req: Request) => shouldSkipRateLimit() || req.method !== "POST",
-} as RateLimitConfig);
-
-export const integrationConnectLimiter = createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { integrationConnect?: RateLimitConfig }).integrationConnect,
-    skip: (req: Request) =>
-        shouldSkipRateLimit() ||
-        req.method !== "POST" ||
-        !isIntegrationConnectPath(req.path),
-} as RateLimitConfig);
-
-export const oauthTokenLimiter = createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 30,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { oauthToken?: RateLimitConfig }).oauthToken,
-    skip: (req: Request) => shouldSkipRateLimit() || req.method !== "POST" || req.path !== "/token",
-} as RateLimitConfig);
-
-export const publicWriteLimiter = createRateLimiter({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 60,
-    standardHeaders: true,
-    legacyHeaders: false,
-    ...(config.rateLimit as { publicWrite?: RateLimitConfig }).publicWrite,
-    skip: (req: Request) => shouldSkipRateLimit() || !isPublicWritePath(req.path, req.method),
-} as RateLimitConfig);
+const buildRateLimiters = () => ({
+    publicReadLimiter: createRateLimiter({
+        limiterName: "publicRead",
+        storeName: "public-read",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 600,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { publicRead?: RateLimitConfig }).publicRead,
+        skip: (req: Request) => {
+            if (shouldSkipRateLimit()) return true;
+            if (shouldSkipInfrastructurePaths(req)) return true;
+            if (hasDedicatedRateLimiter(req, req.path)) return true;
+            return !isPublicReadGet(req, req.path);
+        },
+    } as RateLimitConfig),
+    sessionLimiter: createRateLimiter({
+        limiterName: "session",
+        storeName: "session",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 2000,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { session?: RateLimitConfig }).session,
+        keyGenerator: sessionKeyGenerator,
+        skip: (req: Request) => {
+            if (shouldSkipRateLimit()) return true;
+            if (shouldSkipInfrastructurePaths(req)) return true;
+            return !tryResolveUserIdFromRequest(req);
+        },
+    } as RateLimitConfig),
+    globalLimiter: createRateLimiter({
+        limiterName: "global",
+        storeName: "global",
+        ...(config.rateLimit as { global?: RateLimitConfig }).global,
+        skip: (req: Request) => {
+            if (shouldSkipRateLimit()) return true;
+            if (shouldSkipInfrastructurePaths(req)) return true;
+            if (tryResolveUserIdFromRequest(req)) return true;
+            if (isPublicReadGet(req, req.path)) return true;
+            return hasDedicatedRateLimiter(req, req.path);
+        },
+    } as RateLimitConfig),
+    authLimiter: createRateLimiter({
+        limiterName: "auth",
+        storeName: "auth",
+        ...(config.rateLimit as { auth?: RateLimitConfig }).auth,
+        skip: (req: Request) => {
+            if (shouldSkipRateLimit()) return true;
+            // OAuth endpoints have their own stricter limiter to reduce abuse of external auth flows.
+            // Avoid double-counting by skipping them here.
+            return req.path.startsWith("/oauth/");
+        },
+    } as RateLimitConfig),
+    oauthLimiter: createRateLimiter({
+        limiterName: "oauth",
+        storeName: "oauth",
+        // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
+        windowMs: 5 * 60 * 1000, // 5 minutes
+        max: 20,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { oauth?: RateLimitConfig }).oauth,
+        skip: shouldSkipRateLimit,
+    } as RateLimitConfig),
+    publicApiLimiter: createRateLimiter({
+        limiterName: "publicApi",
+        storeName: "public-api",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 30,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { publicApi?: RateLimitConfig }).publicApi,
+        keyGenerator: publicApiKeyGenerator,
+        skip: shouldSkipRateLimit,
+    } as RateLimitConfig),
+    mcpLimiter: createRateLimiter({
+        limiterName: "mcp",
+        storeName: "mcp",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 120,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { mcp?: RateLimitConfig }).mcp,
+        keyGenerator: mcpKeyGenerator,
+        skip: (req: Request) => shouldSkipRateLimit() || req.method === "OPTIONS",
+    } as RateLimitConfig),
+    uploadLimiter: createRateLimiter({
+        limiterName: "upload",
+        storeName: "upload",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 20,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { upload?: RateLimitConfig }).upload,
+        keyGenerator: uploadKeyGenerator,
+        skip: (req: Request) => shouldSkipRateLimit() || !isUploadPath(req.path),
+    } as RateLimitConfig),
+    feedbackLimiter: createRateLimiter({
+        limiterName: "feedback",
+        storeName: "feedback",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 10,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { feedback?: RateLimitConfig }).feedback,
+        skip: (req: Request) => shouldSkipRateLimit() || req.method !== "POST",
+    } as RateLimitConfig),
+    integrationConnectLimiter: createRateLimiter({
+        limiterName: "integrationConnect",
+        storeName: "integration-connect",
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 30,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { integrationConnect?: RateLimitConfig }).integrationConnect,
+        skip: (req: Request) =>
+            shouldSkipRateLimit() ||
+            req.method !== "POST" ||
+            !isIntegrationConnectPath(req.path),
+    } as RateLimitConfig),
+    oauthTokenLimiter: createRateLimiter({
+        limiterName: "oauthToken",
+        storeName: "oauth-token",
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 30,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { oauthToken?: RateLimitConfig }).oauthToken,
+        skip: (req: Request) => shouldSkipRateLimit() || req.method !== "POST" || req.path !== "/token",
+    } as RateLimitConfig),
+    publicWriteLimiter: createRateLimiter({
+        limiterName: "publicWrite",
+        storeName: "public-write",
+        windowMs: 60 * 60 * 1000, // 1 hour
+        max: 60,
+        standardHeaders: true,
+        legacyHeaders: false,
+        ...(config.rateLimit as { publicWrite?: RateLimitConfig }).publicWrite,
+        skip: (req: Request) => shouldSkipRateLimit() || !isPublicWriteRoute(req, req.path),
+    } as RateLimitConfig),
+});
 
 export const applyRateLimiting = (app: Express): void => {
     const rateLimitConfig = config.rateLimit as { enabled?: boolean };
@@ -301,15 +390,50 @@ export const applyRateLimiting = (app: Express): void => {
         return;
     }
 
+    const {
+        publicReadLimiter,
+        sessionLimiter,
+        globalLimiter,
+        authLimiter,
+        oauthLimiter,
+        publicApiLimiter,
+        mcpLimiter,
+        uploadLimiter,
+        feedbackLimiter,
+        integrationConnectLimiter,
+        oauthTokenLimiter,
+        publicWriteLimiter,
+    } = buildRateLimiters();
+
     const apiPrefix = (config.api as { prefix?: string })?.prefix ?? "/api/v1";
+    const publicReadConfig = (config.rateLimit as { publicRead?: RateLimitConfig }).publicRead;
+    const sessionConfig = (config.rateLimit as { session?: RateLimitConfig }).session;
     const globalConfig = (config.rateLimit as { global?: RateLimitConfig }).global;
     const authConfig = (config.rateLimit as { auth?: RateLimitConfig }).auth;
 
+    app.use(apiPrefix, publicReadLimiter);
+    logger.info({
+        msg: "Applied public read rate limiting to CMS/catalog GET routes",
+        windowMs: publicReadConfig?.windowMs ?? 60 * 60 * 1000,
+        max: publicReadConfig?.max ?? 600,
+        key: "trusted client IP",
+        store: isRateLimitRedisStoreActive() ? "redis" : "memory",
+    });
+
+    app.use(apiPrefix, sessionLimiter);
+    logger.info({
+        msg: "Applied session rate limiting for authenticated API traffic",
+        windowMs: sessionConfig?.windowMs ?? 60 * 60 * 1000,
+        max: sessionConfig?.max ?? 2000,
+        key: "JWT sub (peek) or req.user.id",
+    });
+
     app.use(apiPrefix, globalLimiter);
     logger.info({
-        msg: "Applied global rate limiting to all API routes",
+        msg: "Applied global rate limiting for anonymous non-public-read API routes",
         windowMs: globalConfig?.windowMs,
         max: globalConfig?.max,
+        store: isRateLimitRedisStoreActive() ? "redis" : "memory",
     });
 
     const oauthConfig = (config.rateLimit as { oauth?: RateLimitConfig }).oauth;

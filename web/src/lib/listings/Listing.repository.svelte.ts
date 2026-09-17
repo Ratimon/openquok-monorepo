@@ -1,4 +1,5 @@
 import { HttpGateway, HttpMethod, withClientErrorFallback } from '$lib/core/HttpGateway';
+import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 
 import {
 	getDefaultSchemaTypeForListingKind,
@@ -739,7 +740,7 @@ export class ListingRepository {
 				await this.httpGateway.get<GetListingsCollectionResponseDto>(
 					this.config.endpoints.getPublishedListings,
 					params,
-					{ withCredentials: false, fetch: customFetch }
+					publicCmsServerRequestOptions(customFetch)
 				);
 
 			if (ok && getPublishedListingsDto?.success && Array.isArray(getPublishedListingsDto.data)) {
@@ -756,7 +757,7 @@ export class ListingRepository {
 		const { data: getPublishedBySlugDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
 			this.config.endpoints.getPublishedBySlug(slug),
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && getPublishedBySlugDto?.success && getPublishedBySlugDto.data) {
 			return this.toListingPm(getPublishedBySlugDto.data);
@@ -786,7 +787,7 @@ export class ListingRepository {
 		const { data: getPublishedStacksDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
 			this.config.endpoints.getPublishedStacks,
 			query,
-			{ withCredentials: false, fetch: params.fetch }
+			publicCmsServerRequestOptions(params.fetch)
 		);
 
 		if (ok && getPublishedStacksDto?.success && Array.isArray(getPublishedStacksDto.data)) {
@@ -805,7 +806,7 @@ export class ListingRepository {
 		const { data: getPublishedStackDto, ok } = await this.httpGateway.get<GetListingResponseDto>(
 			this.config.endpoints.getPublishedStackBySlug(slug),
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && getPublishedStackDto?.success && getPublishedStackDto.data) {
 			return this.toListingPm(getPublishedStackDto.data);
@@ -817,7 +818,7 @@ export class ListingRepository {
 		const { data: getListingCreatorsDto, ok } = await this.httpGateway.get<GetListingCreatorsResponseDto>(
 			this.config.endpoints.getListingCreators,
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 
 		if (ok && getListingCreatorsDto?.success && Array.isArray(getListingCreatorsDto.data)) {
@@ -833,7 +834,7 @@ export class ListingRepository {
 		const { data: getCreatorListingsDto, ok } = await this.httpGateway.get<GetListingsCollectionResponseDto>(
 			this.config.endpoints.getCreatorListings(username),
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 
 		if (ok && getCreatorListingsDto?.success && Array.isArray(getCreatorListingsDto.data)) {
@@ -849,10 +850,7 @@ export class ListingRepository {
 		const { data: getCommentsDto, ok } = await this.httpGateway.get<{
 			success: boolean;
 			data: ListingCommentDto[];
-		}>(this.config.endpoints.getListingComments(listingId), undefined, {
-			withCredentials: false,
-			fetch
-		});
+		}>(this.config.endpoints.getListingComments(listingId), undefined, publicCmsServerRequestOptions(fetch));
 		if (ok && getCommentsDto?.success && Array.isArray(getCommentsDto.data)) {
 			return getCommentsDto.data.map((row) => this.toListingCommentPm(row));
 		}
@@ -1194,7 +1192,7 @@ export class ListingRepository {
 		const { data: getActiveCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
 			this.config.endpoints.getActiveCategories,
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && getActiveCategoriesDto?.success && Array.isArray(getActiveCategoriesDto.data)) {
 			return getActiveCategoriesDto.data.map((row) => this.toCategoryPm(row));

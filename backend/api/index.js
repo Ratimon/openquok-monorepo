@@ -25,6 +25,7 @@ var groupBy = require('lodash/groupBy.js');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
 var http = require('http');
 var https = require('https');
+var rateLimitRedis = require('rate-limit-redis');
 var async_hooks = require('async_hooks');
 var mcp_js = require('@modelcontextprotocol/sdk/server/mcp.js');
 var streamableHttp_js = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
@@ -691,7 +692,20 @@ var init_GlobalConfig = __esm({
         nodeEnv: getEnv("NODE_ENV", "development"),
         frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
         backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
-        port: getEnvNumber("PORT", 3e3)
+        port: getEnvNumber("PORT", 3e3),
+        /**
+         * When true, rate limiting prefers CF-Connecting-IP over req.ip.
+         * Default on in production (not NOT_SECURED); off in local dev so headers cannot be spoofed directly.
+         */
+        trustCloudflareHeaders: getEnvBoolean(
+          "TRUST_CLOUDFLARE_HEADERS",
+          isProductionEnv && !notSecured
+        ),
+        /**
+         * When true with TRUST_CLOUDFLARE_HEADERS, only accept CF-Connecting-IP when the
+         * immediate peer (req.ip / socket) is a published Cloudflare edge address.
+         */
+        verifyCloudflareIpRange: getEnvBoolean("VERIFY_CLOUDFLARE_IP_RANGE", false)
       },
       api: {
         prefix: resolvedApiPrefix
@@ -928,10 +942,26 @@ var init_GlobalConfig = __esm({
         global: {
           windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 36e5),
           // 1 hour
-          max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 30 : 1e3),
+          max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 120 : 1e3),
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many requests from this IP, please try again later"
+        },
+        publicRead: {
+          windowMs: getEnvNumber("PUBLIC_READ_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("PUBLIC_READ_RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 600 : 1e4),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many public read requests from this IP, please try again later"
+        },
+        session: {
+          windowMs: getEnvNumber("SESSION_RATE_LIMIT_WINDOW_MS", 36e5),
+          // 1 hour
+          max: getEnvNumber("SESSION_RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 2e3 : 1e4),
+          standardHeaders: true,
+          legacyHeaders: false,
+          message: "Too many requests for this session, please try again later"
         },
         auth: {
           windowMs: getEnvNumber("AUTH_RATE_LIMIT_WINDOW_MS", 9e5),
@@ -1003,7 +1033,25 @@ var init_GlobalConfig = __esm({
           standardHeaders: true,
           legacyHeaders: false,
           message: "Too many requests for this public action, please try again later"
+        },
+        redis: {
+          enabled: getEnvBoolean("RATE_LIMIT_REDIS_ENABLED", isProductionEnv),
+          keyPrefix: getEnv("RATE_LIMIT_REDIS_PREFIX", "rl:"),
+          /** Logical Redis DB for rate-limit keys (defaults to REDIS_DB). */
+          db: getEnvNumber("RATE_LIMIT_REDIS_DB", getEnvNumber("REDIS_DB", 0))
         }
+      },
+      /** HTTP Cache-Control for public CMS/catalog GET responses (SSR + crawlers). */
+      publicCmsCache: {
+        enabled: getEnvBoolean("PUBLIC_CMS_CACHE_ENABLED", isProductionEnv && !notSecured),
+        maxAgeSeconds: getEnvNumber("PUBLIC_CMS_CACHE_MAX_AGE", 60),
+        staleWhileRevalidateSeconds: getEnvNumber("PUBLIC_CMS_CACHE_STALE_WHILE_REVALIDATE", 300),
+        rssMaxAgeSeconds: getEnvNumber("PUBLIC_CMS_RSS_CACHE_MAX_AGE", 86400),
+        imageMaxAgeSeconds: getEnvNumber("PUBLIC_CMS_IMAGE_CACHE_MAX_AGE", 3600),
+        imageStaleWhileRevalidateSeconds: getEnvNumber(
+          "PUBLIC_CMS_IMAGE_CACHE_STALE_WHILE_REVALIDATE",
+          86400
+        )
       },
       /** Product analytics (Meta Conversions API). */
       marketing: {
@@ -28291,6 +28339,185 @@ var init_generateBlogRSSFeed = __esm({
   }
 });
 
+// middlewares/publicRouteRegistry.ts
+var BLOG_POSTS_PREFIX, BLOG_POST_ACTIVITY_PATH, LISTINGS_PUBLISHED_PREFIX, LISTINGS_STACKS_PUBLISHED_PREFIX, LISTING_STAT_PATH, LISTING_COMMENTS_PATH, PUBLIC_PATH_PREFIXES, PUBLIC_PATH_EXACT, BYPASS_PATHS, matchesPublicPathPrefix, matchesPublicPathExact, isPublicImageDownloadGet, isAuthExemptRoute, isPublicReadGet, isPublicWriteRoute, isPublicApiPath, isUploadPath, isIntegrationConnectPath, isWebhookPath, hasDedicatedRateLimiter, normalizeApiRoutePath;
+var init_publicRouteRegistry = __esm({
+  "middlewares/publicRouteRegistry.ts"() {
+    BLOG_POSTS_PREFIX = "/blog-system/posts/";
+    BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
+    LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
+    LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
+    LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
+    LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
+    PUBLIC_PATH_PREFIXES = [
+      "/auth",
+      "/company",
+      "/feedback",
+      "/public",
+      "/oauth",
+      "/posts/preview",
+      "/docs",
+      "/billing/webhooks"
+    ];
+    PUBLIC_PATH_EXACT = [
+      "/blog-system/posts",
+      "/blog-system/rss",
+      "/blog-system/authors",
+      "/blog-system/topics",
+      "/blog-system/topics/active",
+      "/listings/published",
+      "/listings/stacks/published",
+      "/listings/categories/active-partial",
+      "/listings/categories/active-full",
+      "/listings/categories/all-partial",
+      "/listings/categories/all-full",
+      "/listings/categories/groups",
+      "/listings/tags/active-partial",
+      "/listings/tags/active-full",
+      "/listings/tags/all-full",
+      "/listings/tags/groups",
+      "/listings/creators",
+      "/openapi.json",
+      /** Join-org page: invitees validate the link before sign-in. */
+      "/settings/invite/validate"
+    ];
+    BYPASS_PATHS = ["/health", "/sitemap.xml"];
+    matchesPublicPathPrefix = (routePath) => PUBLIC_PATH_PREFIXES.some((p) => routePath === p || routePath.startsWith(`${p}/`));
+    matchesPublicPathExact = (routePath) => PUBLIC_PATH_EXACT.some((p) => routePath === p);
+    isPublicImageDownloadGet = (req, routePath) => {
+      if (req.method !== "GET" || routePath !== "/image/download") return false;
+      const query = req.query ?? {};
+      const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
+      const imageUrlParam = typeof query.imageUrl === "string" ? query.imageUrl : "";
+      return (dbName === "blog_images" || dbName === "listing_images") && imageUrlParam.length > 0;
+    };
+    isAuthExemptRoute = (req, routePath) => {
+      if (matchesPublicPathExact(routePath)) {
+        return true;
+      }
+      if (matchesPublicPathPrefix(routePath)) {
+        return true;
+      }
+      if (req.method === "GET" && routePath.startsWith(BLOG_POSTS_PREFIX) && routePath.length > BLOG_POSTS_PREFIX.length) {
+        return true;
+      }
+      if (req.method === "PUT" && BLOG_POST_ACTIVITY_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
+        return true;
+      }
+      if (req.method === "GET" && routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX)) {
+        return true;
+      }
+      if (req.method === "GET" && LISTING_COMMENTS_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "GET" && routePath.startsWith("/listings/creators/")) {
+        return true;
+      }
+      if (isPublicImageDownloadGet(req, routePath)) {
+        return true;
+      }
+      if (req.method === "GET" && routePath === "/integrations") {
+        return true;
+      }
+      if (req.method === "POST" && isIntegrationConnectPath(routePath)) {
+        return true;
+      }
+      return false;
+    };
+    isPublicReadGet = (req, routePath) => {
+      if (req.method !== "GET") return false;
+      return isAuthExemptRoute(req, routePath);
+    };
+    isPublicWriteRoute = (req, routePath) => {
+      if (req.method === "POST" && routePath === "/company/t") {
+        return true;
+      }
+      if (req.method === "PUT" && BLOG_POST_ACTIVITY_PATH.test(routePath)) {
+        return true;
+      }
+      if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
+        return true;
+      }
+      return false;
+    };
+    isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
+    isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
+    isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
+    isWebhookPath = (path7, originalUrl) => path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
+    hasDedicatedRateLimiter = (req, routePath) => isPublicApiPath(routePath) || isUploadPath(routePath) || req.method === "POST" && routePath === "/feedback" || req.method === "POST" && routePath === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(routePath) || isPublicWriteRoute(req, routePath);
+    normalizeApiRoutePath = (pathName, apiPrefix) => {
+      let routePath = pathName.slice(apiPrefix.length) || "/";
+      if (routePath.length > 1 && routePath.endsWith("/")) {
+        routePath = routePath.slice(0, -1);
+      }
+      if (!routePath.startsWith("/")) {
+        routePath = `/${routePath}`;
+      }
+      return routePath;
+    };
+  }
+});
+
+// utils/http/publicCmsCache.ts
+var getPublicCmsCacheConfig, buildCacheControlHeader, isPublicCmsImageDownloadGet, resolvePublicCmsCacheControl, setPublicCmsCacheHeaders, applyPublicCmsCacheHeadersForRequest;
+var init_publicCmsCache = __esm({
+  "utils/http/publicCmsCache.ts"() {
+    init_GlobalConfig();
+    init_publicRouteRegistry();
+    getPublicCmsCacheConfig = () => {
+      const cmsCache = config.publicCmsCache;
+      return cmsCache ?? {};
+    };
+    buildCacheControlHeader = (maxAgeSeconds, staleWhileRevalidateSeconds) => {
+      const parts = [`public`, `max-age=${maxAgeSeconds}`];
+      if (staleWhileRevalidateSeconds !== void 0 && staleWhileRevalidateSeconds > 0) {
+        parts.push(`stale-while-revalidate=${staleWhileRevalidateSeconds}`);
+      }
+      return parts.join(", ");
+    };
+    isPublicCmsImageDownloadGet = (req, routePath) => {
+      if (routePath !== "/image/download") return false;
+      const query = req.query ?? {};
+      const dbName = typeof query.databaseName === "string" ? query.databaseName : "";
+      return dbName === "blog_images" || dbName === "listing_images";
+    };
+    resolvePublicCmsCacheControl = (req, routePath) => {
+      const cmsCache = getPublicCmsCacheConfig();
+      if (cmsCache.enabled === false) return null;
+      if (!isPublicReadGet(req, routePath)) return null;
+      if (routePath === "/blog-system/rss") {
+        const maxAge2 = cmsCache.rssMaxAgeSeconds ?? 86400;
+        return buildCacheControlHeader(maxAge2);
+      }
+      if (isPublicCmsImageDownloadGet(req, routePath)) {
+        const maxAge2 = cmsCache.imageMaxAgeSeconds ?? 3600;
+        const swr2 = cmsCache.imageStaleWhileRevalidateSeconds ?? 86400;
+        return buildCacheControlHeader(maxAge2, swr2);
+      }
+      const maxAge = cmsCache.maxAgeSeconds ?? 60;
+      const swr = cmsCache.staleWhileRevalidateSeconds ?? 300;
+      return buildCacheControlHeader(maxAge, swr);
+    };
+    setPublicCmsCacheHeaders = (res, cacheControl) => {
+      if (!res.getHeader("Cache-Control")) {
+        res.setHeader("Cache-Control", cacheControl);
+      }
+    };
+    applyPublicCmsCacheHeadersForRequest = (req, res, routePath) => {
+      const cacheControl = resolvePublicCmsCacheControl(req, routePath);
+      if (cacheControl) {
+        setPublicCmsCacheHeaders(res, cacheControl);
+      }
+    };
+  }
+});
+
 // controllers/BlogController.ts
 var BlogController;
 var init_BlogController = __esm({
@@ -28298,6 +28525,7 @@ var init_BlogController = __esm({
     init_BlogDTO();
     init_generateBlogRSSFeed();
     init_InfraError();
+    init_publicCmsCache();
     BlogController = class {
       constructor(blogService2) {
         this.blogService = blogService2;
@@ -28778,7 +29006,10 @@ var init_BlogController = __esm({
               content = feed.rss2;
           }
           res.setHeader("Content-Type", contentType);
-          res.setHeader("Cache-Control", "public, max-age=86400");
+          const rssCacheControl = resolvePublicCmsCacheControl(req, "/blog-system/rss");
+          if (rssCacheControl) {
+            setPublicCmsCacheHeaders(res, rssCacheControl);
+          }
           res.status(200).send(content);
         } catch (err) {
           next(err);
@@ -33534,6 +33765,156 @@ var init_resolveProgrammaticAuth = __esm({
   }
 });
 
+// middlewares/rateLimitStore.ts
+var rateLimitStore_exports = {};
+__export(rateLimitStore_exports, {
+  createRateLimitStore: () => createRateLimitStore,
+  isRateLimitRedisStoreActive: () => isRateLimitRedisStoreActive,
+  resetRateLimitStoreForTests: () => resetRateLimitStoreForTests,
+  warmUpRateLimitRedisStore: () => warmUpRateLimitRedisStore
+});
+var sharedClient, redisStoreActive, warmUpCompleted, fallbackWarningLogged, getRateLimitRedisConfig, getCacheRedisConfig, isRateLimitRedisEnabled, rateLimitRedisOptionsFromConfig, logFallbackToMemory, getOrCreateSharedClient, warmUpRateLimitRedisStore, isRateLimitRedisStoreActive, createRateLimitStore, resetRateLimitStoreForTests;
+var init_rateLimitStore = __esm({
+  "middlewares/rateLimitStore.ts"() {
+    init_GlobalConfig();
+    init_Logger();
+    sharedClient = null;
+    redisStoreActive = false;
+    warmUpCompleted = false;
+    fallbackWarningLogged = false;
+    getRateLimitRedisConfig = () => {
+      const rateLimitConfig = config.rateLimit;
+      return rateLimitConfig?.redis ?? {};
+    };
+    getCacheRedisConfig = () => {
+      const cacheConfig2 = config.cache;
+      return cacheConfig2?.redis ?? {};
+    };
+    isRateLimitRedisEnabled = () => getRateLimitRedisConfig().enabled === true;
+    rateLimitRedisOptionsFromConfig = () => {
+      const cacheRedis = getCacheRedisConfig();
+      const rateLimitRedis = getRateLimitRedisConfig();
+      const host = String(cacheRedis.host ?? "").trim();
+      if (!host) return null;
+      const port = cacheRedis.port ?? 6379;
+      const password = typeof cacheRedis.password === "string" ? cacheRedis.password.trim() : cacheRedis.password;
+      const db = rateLimitRedis.db ?? cacheRedis.db ?? 0;
+      const tlsEnabled = cacheRedis.tls === true;
+      const tlsRejectUnauthorized = cacheRedis.tlsRejectUnauthorized !== false;
+      return {
+        host,
+        port,
+        password: password || void 0,
+        db,
+        connectTimeout: 1e4,
+        lazyConnect: true,
+        maxRetriesPerRequest: 1,
+        enableOfflineQueue: false,
+        ...tlsEnabled ? {
+          tls: {
+            rejectUnauthorized: tlsRejectUnauthorized
+          }
+        } : {}
+      };
+    };
+    logFallbackToMemory = (reason, extra) => {
+      if (fallbackWarningLogged) return;
+      fallbackWarningLogged = true;
+      logger.warn({
+        msg: "[RateLimit] Redis store unavailable; using in-memory counters",
+        reason,
+        ...extra
+      });
+    };
+    getOrCreateSharedClient = () => {
+      if (sharedClient) return sharedClient;
+      const opts = rateLimitRedisOptionsFromConfig();
+      if (!opts) {
+        logFallbackToMemory("REDIS_HOST is not configured");
+        return null;
+      }
+      const client = new IORedis__default.default(opts);
+      client.on("error", (err) => {
+        logger.error({
+          msg: "[RateLimit] Redis error",
+          error: err instanceof Error ? err.message : String(err),
+          host: opts.host,
+          port: opts.port,
+          db: opts.db,
+          tls: Boolean(opts.tls)
+        });
+      });
+      sharedClient = client;
+      return client;
+    };
+    warmUpRateLimitRedisStore = async () => {
+      if (warmUpCompleted) return;
+      warmUpCompleted = true;
+      if (!isRateLimitRedisEnabled()) {
+        redisStoreActive = false;
+        return;
+      }
+      const client = getOrCreateSharedClient();
+      if (!client) {
+        redisStoreActive = false;
+        return;
+      }
+      const opts = rateLimitRedisOptionsFromConfig();
+      try {
+        await client.connect();
+        await client.ping();
+        redisStoreActive = true;
+        logger.info({
+          msg: "[RateLimit] Redis store connected",
+          host: opts?.host,
+          port: opts?.port,
+          db: opts?.db,
+          keyPrefix: getRateLimitRedisConfig().keyPrefix ?? "rl:"
+        });
+      } catch (err) {
+        redisStoreActive = false;
+        try {
+          await client.quit();
+        } catch {
+          client.disconnect();
+        }
+        sharedClient = null;
+        logFallbackToMemory("connection failed", {
+          error: err instanceof Error ? err.message : String(err),
+          host: opts?.host,
+          port: opts?.port,
+          db: opts?.db
+        });
+      }
+    };
+    isRateLimitRedisStoreActive = () => redisStoreActive;
+    createRateLimitStore = (limiterName) => {
+      if (!isRateLimitRedisEnabled() || !redisStoreActive) {
+        return void 0;
+      }
+      const client = getOrCreateSharedClient();
+      if (!client) {
+        return void 0;
+      }
+      const basePrefix = getRateLimitRedisConfig().keyPrefix ?? "rl:";
+      const prefix = `${basePrefix}${limiterName}:`;
+      return new rateLimitRedis.RedisStore({
+        prefix,
+        sendCommand: (command, ...args) => client.call(command, ...args)
+      });
+    };
+    resetRateLimitStoreForTests = () => {
+      if (sharedClient) {
+        sharedClient.disconnect();
+      }
+      sharedClient = null;
+      redisStoreActive = false;
+      warmUpCompleted = false;
+      fallbackWarningLogged = false;
+    };
+  }
+});
+
 // mcp/auth.ts
 async function resolveMcpAuth(token, deps) {
   const resolved = await resolveProgrammaticAuth(token, deps);
@@ -35854,7 +36235,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-16T12:12:19.427Z",
+  generated: "2026-09-17T12:29:23.798Z",
   routes: [
     {
       path: "/docs",
@@ -41993,45 +42374,227 @@ function errorHandler(err, _req, res, _next) {
     }
   });
 }
+init_publicRouteRegistry();
 
-// middlewares/rateLimit.ts
+// middlewares/publicCmsCacheHeaders.ts
 init_GlobalConfig();
+init_publicCmsCache();
 init_Logger();
-var PROGRAMMATIC_TOKEN_PREFIX = "opo_";
-var hashRateLimitKey = (value) => crypto.createHash("sha256").update(value).digest("hex").slice(0, 32);
+var applyPublicCmsCacheHeaders = (app2) => {
+  const cmsCache = config.publicCmsCache;
+  if (cmsCache?.enabled === false) {
+    logger.info({ msg: "Public CMS Cache-Control headers are disabled" });
+    return;
+  }
+  const apiPrefix = (config.api?.prefix ?? "/api/v1").replace(/\/+$/, "") || "/";
+  app2.use(apiPrefix, (req, res, next) => {
+    applyPublicCmsCacheHeadersForRequest(req, res, req.path);
+    next();
+  });
+  const maxAge = config.publicCmsCache?.maxAgeSeconds ?? 60;
+  const swr = config.publicCmsCache?.staleWhileRevalidateSeconds ?? 300;
+  logger.info({
+    msg: "Applied public CMS Cache-Control headers on catalog GET routes",
+    apiPrefix,
+    default: `public, max-age=${maxAge}, stale-while-revalidate=${swr}`
+  });
+};
+init_GlobalConfig();
+init_publicRouteRegistry();
+
+// middlewares/trustedClientIp.ts
+init_GlobalConfig();
+
+// middlewares/cloudflareIpRanges.ts
+var CLOUDFLARE_IPV4_CIDRS = [
+  "173.245.48.0/20",
+  "103.21.244.0/22",
+  "103.22.200.0/22",
+  "103.31.4.0/22",
+  "141.101.64.0/18",
+  "108.162.192.0/18",
+  "190.93.240.0/20",
+  "188.114.96.0/20",
+  "197.234.240.0/22",
+  "198.41.128.0/17",
+  "162.158.0.0/15",
+  "104.16.0.0/13",
+  "104.24.0.0/14",
+  "172.64.0.0/13",
+  "131.0.72.0/22"
+];
+var CLOUDFLARE_IPV6_CIDRS = [
+  "2400:cb00::/32",
+  "2606:4700::/32",
+  "2803:f800::/32",
+  "2405:b500::/32",
+  "2405:8100::/32",
+  "2a06:98c0::/29",
+  "2c0f:f248::/32"
+];
+var ipv4ToInt = (ip) => ip.split(".").reduce((acc, oct) => (acc << 8) + Number.parseInt(oct, 10), 0) >>> 0;
+var isIpv4InCidr = (ip, cidr) => {
+  const [range, bitsStr] = cidr.split("/");
+  const bits = Number.parseInt(bitsStr, 10);
+  if (!range || Number.isNaN(bits) || bits < 0 || bits > 32) return false;
+  const mask = bits === 0 ? 0 : -1 << 32 - bits >>> 0;
+  return (ipv4ToInt(ip) & mask) === (ipv4ToInt(range) & mask);
+};
+var expandIpv6 = (ip) => {
+  const normalized = ip.trim().toLowerCase();
+  const [head, tail = ""] = normalized.split("::");
+  const headParts = head ? head.split(":").filter(Boolean) : [];
+  const tailParts = tail ? tail.split(":").filter(Boolean) : [];
+  const missing = 8 - headParts.length - tailParts.length;
+  const parts = [...headParts, ...Array(Math.max(missing, 0)).fill("0"), ...tailParts];
+  if (parts.length !== 8) return BigInt(-1);
+  return parts.reduce((acc, part) => (acc << BigInt(16)) + BigInt(`0x${part}`), BigInt(0));
+};
+var isIpv6InCidr = (ip, cidr) => {
+  const [range, bitsStr] = cidr.split("/");
+  const bits = Number.parseInt(bitsStr, 10);
+  if (!range || Number.isNaN(bits) || bits < 0 || bits > 128) return false;
+  const ipNum = expandIpv6(ip);
+  const rangeNum = expandIpv6(range);
+  if (ipNum < BigInt(0) || rangeNum < BigInt(0)) return false;
+  const shift = BigInt(128 - bits);
+  return ipNum >> shift === rangeNum >> shift;
+};
+var isCloudflareIp = (ip) => {
+  const normalized = normalizeIpAddress(ip);
+  if (!normalized) return false;
+  if (normalized.includes(":")) {
+    return CLOUDFLARE_IPV6_CIDRS.some((cidr) => isIpv6InCidr(normalized, cidr));
+  }
+  return CLOUDFLARE_IPV4_CIDRS.some((cidr) => isIpv4InCidr(normalized, cidr));
+};
+var normalizeIpAddress = (ip) => {
+  if (!ip) return null;
+  const trimmed = ip.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("::ffff:")) return trimmed.slice("::ffff:".length);
+  return trimmed;
+};
+
+// middlewares/trustedClientIp.ts
 var firstHeaderValue = (value) => {
   const raw = Array.isArray(value) ? value[0] : value;
   if (typeof raw !== "string") return null;
   const first = raw.split(",")[0]?.trim();
   return first && first.length > 0 ? first : null;
 };
-var clientIpFromRequest = (req) => {
+var proxyIpFromRequest = (req) => {
+  const fromExpress = normalizeIpAddress(req.ip);
+  if (fromExpress) return fromExpress;
+  const socketAddress = req.socket?.remoteAddress;
+  return normalizeIpAddress(socketAddress);
+};
+var serverTrustConfig = () => {
+  const server2 = config.server;
+  return {
+    trustCloudflareHeaders: server2.trustCloudflareHeaders === true,
+    verifyCloudflareIpRange: server2.verifyCloudflareIpRange === true
+  };
+};
+var shouldTrustCfConnectingIp = (req, cfConnectingIp) => {
+  const { verifyCloudflareIpRange } = serverTrustConfig();
+  if (!verifyCloudflareIpRange) return true;
+  const proxyIp = proxyIpFromRequest(req);
+  if (!proxyIp) return false;
+  if (!isCloudflareIp(proxyIp)) return false;
+  return normalizeIpAddress(cfConnectingIp) !== null;
+};
+var trustedClientIp = (req) => {
+  const proxyIp = proxyIpFromRequest(req) ?? "unknown";
+  const { trustCloudflareHeaders } = serverTrustConfig();
+  if (!trustCloudflareHeaders) return proxyIp;
   const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
-  if (cfConnectingIp) return cfConnectingIp;
-  return req.ip ?? "unknown";
+  if (!cfConnectingIp) return proxyIp;
+  if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
+  return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
 };
-var isPublicCachedGetRequest = (req) => {
-  if (req.method !== "GET") return false;
-  const path7 = req.path;
-  if (path7 === "/company" || path7.startsWith("/company/")) return true;
-  if (path7 === "/blog-system" || path7.startsWith("/blog-system/")) return true;
-  if (path7 === "/listings/published" || path7.startsWith("/listings/published/")) return true;
-  if (path7 === "/listings/stacks/published" || path7.startsWith("/listings/stacks/published/")) {
-    return true;
-  }
-  if (path7.startsWith("/listings/categories/")) return true;
-  if (path7.startsWith("/listings/tags/")) return true;
-  if (path7 === "/listings/creators" || path7.startsWith("/listings/creators/")) return true;
-  if (path7 === "/image/download") return true;
-  return false;
-};
+var clientIpFromRequest = trustedClientIp;
+
+// middlewares/rateLimit.ts
+init_rateLimitStore();
+init_Logger();
+var buildRateLimitExceededLog = (req, limiterName, options2) => ({
+  msg: "Rate limit exceeded",
+  limiter: limiterName,
+  path: req.path,
+  method: req.method,
+  trustedClientIp: trustedClientIp(req),
+  userId: tryResolveUserIdFromRequest(req),
+  windowMs: options2.windowMs,
+  max: options2.max
+});
+var PROGRAMMATIC_TOKEN_PREFIX = "opo_";
+var hashRateLimitKey = (value) => crypto.createHash("sha256").update(value).digest("hex").slice(0, 32);
 var extractBearerToken = (req) => {
-  const authHeader = req.headers.authorization;
+  const authHeader = req.headers?.authorization;
   if (!authHeader?.startsWith("Bearer ")) return null;
   const token = authHeader.slice("Bearer ".length).trim();
   return token.length > 0 ? token : null;
 };
+var UUID_RE2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var normalizeAccessTokenForPeek = (raw) => {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed?.value === "string" && parsed.value.length > 0) {
+        return parsed.value.trim();
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+  return trimmed;
+};
+var extractAccessTokenForPeek = (req) => {
+  const bearer = extractBearerToken(req);
+  if (bearer) {
+    const normalized = normalizeAccessTokenForPeek(bearer);
+    if (normalized?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) return null;
+    return normalized;
+  }
+  const cookies = req.cookies;
+  const fromCookie = cookies?.[BULL_BOARD_ACCESS_COOKIE_NAME];
+  if (!fromCookie) return null;
+  return normalizeAccessTokenForPeek(fromCookie);
+};
+var decodeJwtSubForRateLimitKey = (token) => {
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  try {
+    const payloadJson = Buffer.from(parts[1], "base64url").toString("utf8");
+    const payload = JSON.parse(payloadJson);
+    const sub = payload.sub;
+    if (typeof sub !== "string" || !UUID_RE2.test(sub)) return null;
+    const exp = payload.exp;
+    if (typeof exp === "number" && exp * 1e3 < Date.now()) return null;
+    return sub;
+  } catch {
+    return null;
+  }
+};
+var tryResolveUserIdFromRequest = (req) => {
+  const authenticatedUserId = req.user?.id;
+  if (authenticatedUserId && UUID_RE2.test(authenticatedUserId)) {
+    return authenticatedUserId;
+  }
+  const token = extractAccessTokenForPeek(req);
+  if (!token) return null;
+  return decodeJwtSubForRateLimitKey(token);
+};
 var clientIpKey = (req) => rateLimit.ipKeyGenerator(clientIpFromRequest(req));
+var sessionKeyGenerator = (req) => {
+  const userId = tryResolveUserIdFromRequest(req);
+  if (userId) return `session:${userId}`;
+  return `ip:${clientIpKey(req)}`;
+};
 var publicApiKeyGenerator = (req) => {
   const token = extractBearerToken(req);
   if (token?.startsWith(PROGRAMMATIC_TOKEN_PREFIX)) {
@@ -42067,17 +42630,6 @@ var uploadKeyGenerator = (req) => {
   }
   return `upload:ip:${clientIpKey(req)}`;
 };
-var isPublicApiPath = (path7) => path7 === "/public" || path7.startsWith("/public/");
-var isUploadPath = (path7) => path7 === "/public/upload" || path7.startsWith("/public/upload/") || path7 === "/public/upload-from-url" || path7 === "/media/upload" || path7 === "/media/upload-server" || path7 === "/media/upload-simple";
-var isIntegrationConnectPath = (path7) => /^\/integrations\/social-connect\/[^/]+$/.test(path7) || /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(path7);
-var isPublicWritePath = (path7, method) => {
-  if (method === "POST" && path7 === "/company/t") return true;
-  if (method === "PUT" && /^\/blog-system\/posts\/[^/]+\/activity$/.test(path7)) return true;
-  if (method === "PUT" && /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/.test(path7)) {
-    return true;
-  }
-  return false;
-};
 var createRateLimiter = (options2) => {
   let skipFunction;
   if (options2.skip !== void 0) {
@@ -42087,16 +42639,12 @@ var createRateLimiter = (options2) => {
       skipFunction = options2.skip;
     }
   }
+  const store = options2.storeName ? createRateLimitStore(options2.storeName) : void 0;
+  const limiterName = options2.limiterName;
   return rateLimit__default.default({
+    ...store ? { store } : {},
     handler: (req, res, _next, options3) => {
-      logger.warn({
-        msg: "Rate limit reached",
-        path: req.path,
-        method: req.method,
-        ip: req.ip,
-        limit: options3.max,
-        windowMs: options3.windowMs
-      });
+      logger.warn(buildRateLimitExceededLog(req, limiterName, options3));
       res.status(429).json({
         status: "error",
         message: "Too many requests, please try again later.",
@@ -42116,100 +42664,158 @@ var shouldSkipRateLimit = () => {
   const rateLimitConfig = config.rateLimit;
   return !rateLimitConfig?.enabled;
 };
-var globalLimiter = createRateLimiter({
-  ...config.rateLimit.global,
-  skip: (req) => {
-    if (shouldSkipRateLimit()) return true;
-    const path7 = req.path;
-    const originalUrl = req.originalUrl || req.url;
-    const isWebhook = path7.includes("/webhooks/") || originalUrl.includes("/webhooks/");
-    const isBypass = path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml") || isPublicCachedGetRequest(req);
-    const isDedicatedLimiter = isPublicApiPath(path7) || isUploadPath(path7) || req.method === "POST" && path7 === "/feedback" || req.method === "POST" && path7 === "/oauth/token" || req.method === "POST" && isIntegrationConnectPath(path7) || isPublicWritePath(path7, req.method);
-    return isWebhook || isBypass || isDedicatedLimiter;
-  }
-});
-var authLimiter = createRateLimiter({
-  ...config.rateLimit.auth,
-  skip: (req) => {
-    if (shouldSkipRateLimit()) return true;
-    return req.path.startsWith("/oauth/");
-  }
-});
-var oauthLimiter = createRateLimiter({
-  // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
-  windowMs: 5 * 60 * 1e3,
-  // 5 minutes
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.oauth,
-  skip: shouldSkipRateLimit
-});
-var publicApiLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1e3,
-  // 1 hour
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.publicApi,
-  keyGenerator: publicApiKeyGenerator,
-  skip: shouldSkipRateLimit
-});
-var mcpLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1e3,
-  // 1 hour
-  max: 120,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.mcp,
-  keyGenerator: mcpKeyGenerator,
-  skip: (req) => shouldSkipRateLimit() || req.method === "OPTIONS"
-});
-var uploadLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1e3,
-  // 1 hour
-  max: 20,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.upload,
-  keyGenerator: uploadKeyGenerator,
-  skip: (req) => shouldSkipRateLimit() || !isUploadPath(req.path)
-});
-var feedbackLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1e3,
-  // 1 hour
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.feedback,
-  skip: (req) => shouldSkipRateLimit() || req.method !== "POST"
-});
-var integrationConnectLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1e3,
-  // 15 minutes
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.integrationConnect,
-  skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || !isIntegrationConnectPath(req.path)
-});
-var oauthTokenLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1e3,
-  // 15 minutes
-  max: 30,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.oauthToken,
-  skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || req.path !== "/token"
-});
-var publicWriteLimiter = createRateLimiter({
-  windowMs: 60 * 60 * 1e3,
-  // 1 hour
-  max: 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  ...config.rateLimit.publicWrite,
-  skip: (req) => shouldSkipRateLimit() || !isPublicWritePath(req.path, req.method)
+var isHealthOrSitemapPath = (path7) => path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
+var shouldSkipInfrastructurePaths = (req) => {
+  const path7 = req.path;
+  const originalUrl = req.originalUrl || req.url;
+  return isWebhookPath(path7, originalUrl) || isHealthOrSitemapPath(path7);
+};
+var buildRateLimiters = () => ({
+  publicReadLimiter: createRateLimiter({
+    limiterName: "publicRead",
+    storeName: "public-read",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 600,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.publicRead,
+    skip: (req) => {
+      if (shouldSkipRateLimit()) return true;
+      if (shouldSkipInfrastructurePaths(req)) return true;
+      if (hasDedicatedRateLimiter(req, req.path)) return true;
+      return !isPublicReadGet(req, req.path);
+    }
+  }),
+  sessionLimiter: createRateLimiter({
+    limiterName: "session",
+    storeName: "session",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 2e3,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.session,
+    keyGenerator: sessionKeyGenerator,
+    skip: (req) => {
+      if (shouldSkipRateLimit()) return true;
+      if (shouldSkipInfrastructurePaths(req)) return true;
+      return !tryResolveUserIdFromRequest(req);
+    }
+  }),
+  globalLimiter: createRateLimiter({
+    limiterName: "global",
+    storeName: "global",
+    ...config.rateLimit.global,
+    skip: (req) => {
+      if (shouldSkipRateLimit()) return true;
+      if (shouldSkipInfrastructurePaths(req)) return true;
+      if (tryResolveUserIdFromRequest(req)) return true;
+      if (isPublicReadGet(req, req.path)) return true;
+      return hasDedicatedRateLimiter(req, req.path);
+    }
+  }),
+  authLimiter: createRateLimiter({
+    limiterName: "auth",
+    storeName: "auth",
+    ...config.rateLimit.auth,
+    skip: (req) => {
+      if (shouldSkipRateLimit()) return true;
+      return req.path.startsWith("/oauth/");
+    }
+  }),
+  oauthLimiter: createRateLimiter({
+    limiterName: "oauth",
+    storeName: "oauth",
+    // Stricter defaults for OAuth routes (start + callback). Can be overridden by config.rateLimit.oauth.
+    windowMs: 5 * 60 * 1e3,
+    // 5 minutes
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.oauth,
+    skip: shouldSkipRateLimit
+  }),
+  publicApiLimiter: createRateLimiter({
+    limiterName: "publicApi",
+    storeName: "public-api",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.publicApi,
+    keyGenerator: publicApiKeyGenerator,
+    skip: shouldSkipRateLimit
+  }),
+  mcpLimiter: createRateLimiter({
+    limiterName: "mcp",
+    storeName: "mcp",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.mcp,
+    keyGenerator: mcpKeyGenerator,
+    skip: (req) => shouldSkipRateLimit() || req.method === "OPTIONS"
+  }),
+  uploadLimiter: createRateLimiter({
+    limiterName: "upload",
+    storeName: "upload",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.upload,
+    keyGenerator: uploadKeyGenerator,
+    skip: (req) => shouldSkipRateLimit() || !isUploadPath(req.path)
+  }),
+  feedbackLimiter: createRateLimiter({
+    limiterName: "feedback",
+    storeName: "feedback",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.feedback,
+    skip: (req) => shouldSkipRateLimit() || req.method !== "POST"
+  }),
+  integrationConnectLimiter: createRateLimiter({
+    limiterName: "integrationConnect",
+    storeName: "integration-connect",
+    windowMs: 15 * 60 * 1e3,
+    // 15 minutes
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.integrationConnect,
+    skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || !isIntegrationConnectPath(req.path)
+  }),
+  oauthTokenLimiter: createRateLimiter({
+    limiterName: "oauthToken",
+    storeName: "oauth-token",
+    windowMs: 15 * 60 * 1e3,
+    // 15 minutes
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.oauthToken,
+    skip: (req) => shouldSkipRateLimit() || req.method !== "POST" || req.path !== "/token"
+  }),
+  publicWriteLimiter: createRateLimiter({
+    limiterName: "publicWrite",
+    storeName: "public-write",
+    windowMs: 60 * 60 * 1e3,
+    // 1 hour
+    max: 60,
+    standardHeaders: true,
+    legacyHeaders: false,
+    ...config.rateLimit.publicWrite,
+    skip: (req) => shouldSkipRateLimit() || !isPublicWriteRoute(req, req.path)
+  })
 });
 var applyRateLimiting = (app2) => {
   const rateLimitConfig = config.rateLimit;
@@ -42217,14 +42823,46 @@ var applyRateLimiting = (app2) => {
     logger.info({ msg: "API rate limiting is disabled" });
     return;
   }
+  const {
+    publicReadLimiter,
+    sessionLimiter,
+    globalLimiter,
+    authLimiter,
+    oauthLimiter,
+    publicApiLimiter,
+    mcpLimiter,
+    uploadLimiter,
+    feedbackLimiter,
+    integrationConnectLimiter,
+    oauthTokenLimiter,
+    publicWriteLimiter
+  } = buildRateLimiters();
   const apiPrefix = config.api?.prefix ?? "/api/v1";
+  const publicReadConfig = config.rateLimit.publicRead;
+  const sessionConfig = config.rateLimit.session;
   const globalConfig = config.rateLimit.global;
   const authConfig2 = config.rateLimit.auth;
+  app2.use(apiPrefix, publicReadLimiter);
+  logger.info({
+    msg: "Applied public read rate limiting to CMS/catalog GET routes",
+    windowMs: publicReadConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: publicReadConfig?.max ?? 600,
+    key: "trusted client IP",
+    store: isRateLimitRedisStoreActive() ? "redis" : "memory"
+  });
+  app2.use(apiPrefix, sessionLimiter);
+  logger.info({
+    msg: "Applied session rate limiting for authenticated API traffic",
+    windowMs: sessionConfig?.windowMs ?? 60 * 60 * 1e3,
+    max: sessionConfig?.max ?? 2e3,
+    key: "JWT sub (peek) or req.user.id"
+  });
   app2.use(apiPrefix, globalLimiter);
   logger.info({
-    msg: "Applied global rate limiting to all API routes",
+    msg: "Applied global rate limiting for anonymous non-public-read API routes",
     windowMs: globalConfig?.windowMs,
-    max: globalConfig?.max
+    max: globalConfig?.max,
+    store: isRateLimitRedisStoreActive() ? "redis" : "memory"
   });
   const oauthConfig = config.rateLimit.oauth;
   app2.use(`${apiPrefix}/auth/oauth`, oauthLimiter);
@@ -42294,61 +42932,10 @@ var applyRateLimiting = (app2) => {
 
 // middlewares/core.ts
 init_Logger();
-var BLOG_POSTS_PREFIX = "/blog-system/posts/";
-var BLOG_POST_ACTIVITY_PATH = /^\/blog-system\/posts\/[^/]+\/activity$/;
-var LISTINGS_PUBLISHED_PREFIX = "/listings/published/";
-var LISTINGS_STACKS_PUBLISHED_PREFIX = "/listings/stacks/published/";
-var LISTING_STAT_PATH = /^\/listings\/stats\/(views|likes|clicks)\/[^/]+$/;
-var LISTING_COMMENTS_PATH = /^\/listings\/[0-9a-f-]{36}\/comments$/i;
-function shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact) {
-  if (publicPathsExact.some((p) => routePath === p)) {
-    return true;
-  }
-  if (publicPaths.some((p) => routePath === p || routePath.startsWith(`${p}/`))) {
-    return true;
-  }
-  if (req.method === "GET" && routePath.startsWith(BLOG_POSTS_PREFIX) && routePath.length > BLOG_POSTS_PREFIX.length) {
-    return true;
-  }
-  if (req.method === "PUT" && BLOG_POST_ACTIVITY_PATH.test(routePath)) {
-    return true;
-  }
-  if (req.method === "PUT" && LISTING_STAT_PATH.test(routePath)) {
-    return true;
-  }
-  if (req.method === "GET" && routePath.startsWith(LISTINGS_PUBLISHED_PREFIX)) {
-    return true;
-  }
-  if (req.method === "GET" && routePath.startsWith(LISTINGS_STACKS_PUBLISHED_PREFIX)) {
-    return true;
-  }
-  if (req.method === "GET" && LISTING_COMMENTS_PATH.test(routePath)) {
-    return true;
-  }
-  if (req.method === "GET" && routePath.startsWith("/listings/creators/")) {
-    return true;
-  }
-  if (req.method === "GET" && routePath === "/image/download") {
-    const dbName = typeof req.query.databaseName === "string" ? req.query.databaseName : "";
-    const imageUrlParam = typeof req.query.imageUrl === "string" ? req.query.imageUrl : "";
-    if ((dbName === "blog_images" || dbName === "listing_images") && imageUrlParam.length > 0) {
-      return true;
-    }
-  }
-  if (req.method === "GET" && routePath === "/integrations") {
-    return true;
-  }
-  if (req.method === "POST" && /^\/integrations\/social-connect\/[^/]+$/.test(routePath)) {
-    return true;
-  }
-  if (req.method === "POST" && /^\/integrations\/public\/provider\/[^/]+\/connect$/.test(routePath)) {
-    return true;
-  }
-  return false;
-}
 function configureCoreMiddleware(app2, config2, supabase2) {
   logger.info({ msg: "[Setup] Configuring core middleware..." });
   applyRateLimiting(app2);
+  applyPublicCmsCacheHeaders(app2);
   app2.use((req, res, next) => {
     if (req._skipJsonParsing) return next();
     const limit = config2.server?.bodyLimit ?? "10mb";
@@ -42372,51 +42959,12 @@ function configureCoreMiddleware(app2, config2, supabase2) {
     const authMiddleware = requireFullAuth(supabase2);
     const rawPrefix = config2.api?.prefix ?? "/api/v1";
     const apiPrefix = rawPrefix.replace(/\/+$/, "") || "/";
-    const publicPaths = [
-      "/auth",
-      "/company",
-      "/feedback",
-      "/public",
-      "/oauth",
-      "/posts/preview",
-      "/docs",
-      "/billing/webhooks"
-    ];
-    const publicPathsExact = [
-      "/blog-system/posts",
-      "/blog-system/rss",
-      "/blog-system/authors",
-      "/blog-system/topics",
-      "/blog-system/topics/active",
-      "/listings/published",
-      "/listings/stacks/published",
-      "/listings/categories/active-partial",
-      "/listings/categories/active-full",
-      "/listings/categories/all-partial",
-      "/listings/categories/all-full",
-      "/listings/categories/groups",
-      "/listings/tags/active-partial",
-      "/listings/tags/active-full",
-      "/listings/tags/all-full",
-      "/listings/tags/groups",
-      "/listings/creators",
-      "/openapi.json",
-      /** Join-org page: invitees validate the link before sign-in. */
-      "/settings/invite/validate"
-    ];
-    const bypassPaths = ["/health", "/sitemap.xml"];
     app2.use((req, res, next) => {
       const pathName = req.path;
-      if (bypassPaths.some((p) => pathName.startsWith(p))) return next();
+      if (BYPASS_PATHS.some((p) => pathName.startsWith(p))) return next();
       if (pathName.startsWith(apiPrefix)) {
-        let routePath = pathName.slice(apiPrefix.length) || "/";
-        if (routePath.length > 1 && routePath.endsWith("/")) {
-          routePath = routePath.slice(0, -1);
-        }
-        if (!routePath.startsWith("/")) {
-          routePath = `/${routePath}`;
-        }
-        if (shouldSkipApiAuth(req, routePath, publicPaths, publicPathsExact)) {
+        const routePath = normalizeApiRoutePath(pathName, apiPrefix);
+        if (isAuthExemptRoute(req, routePath)) {
           return next();
         }
         return authMiddleware(req, res, next);
@@ -42576,6 +43124,8 @@ async function createApp() {
       return stripeWebhookController2.handle(req, res, next);
     }
   );
+  const { warmUpRateLimitRedisStore: warmUpRateLimitRedisStore2 } = await Promise.resolve().then(() => (init_rateLimitStore(), rateLimitStore_exports));
+  await warmUpRateLimitRedisStore2();
   configureCoreMiddleware(app, config2, supabase);
   const { mountMcpRoutes: mountMcpRoutes2 } = await Promise.resolve().then(() => (init_startMcp(), startMcp_exports));
   mountMcpRoutes2(app);

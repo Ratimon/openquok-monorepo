@@ -94,6 +94,19 @@ export const config: ConfigObject = {
         frontendDomainUrl: getEnvTrimmed("FRONTEND_DOMAIN_URL", "http://localhost:5173"),
         backendDomainUrl: getEnvTrimmed("BACKEND_DOMAIN_URL", "http://localhost:3000"),
         port: getEnvNumber("PORT", 3000),
+        /**
+         * When true, rate limiting prefers CF-Connecting-IP over req.ip.
+         * Default on in production (not NOT_SECURED); off in local dev so headers cannot be spoofed directly.
+         */
+        trustCloudflareHeaders: getEnvBoolean(
+            "TRUST_CLOUDFLARE_HEADERS",
+            isProductionEnv && !notSecured
+        ),
+        /**
+         * When true with TRUST_CLOUDFLARE_HEADERS, only accept CF-Connecting-IP when the
+         * immediate peer (req.ip / socket) is a published Cloudflare edge address.
+         */
+        verifyCloudflareIpRange: getEnvBoolean("VERIFY_CLOUDFLARE_IP_RANGE", false),
     },
 
     api: {
@@ -344,10 +357,24 @@ export const config: ConfigObject = {
         enabled: getEnv("RATE_LIMIT_ENABLED", notSecured ? "false" : "true") !== "false",
         global: {
             windowMs: getEnvNumber("RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
-            max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 30 : 1000),
+            max: getEnvNumber("RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 120 : 1000),
             standardHeaders: true,
             legacyHeaders: false,
             message: "Too many requests from this IP, please try again later",
+        },
+        publicRead: {
+            windowMs: getEnvNumber("PUBLIC_READ_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("PUBLIC_READ_RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 600 : 10000),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many public read requests from this IP, please try again later",
+        },
+        session: {
+            windowMs: getEnvNumber("SESSION_RATE_LIMIT_WINDOW_MS", 3600000), // 1 hour
+            max: getEnvNumber("SESSION_RATE_LIMIT_MAX", isProductionEnv && !notSecured ? 2000 : 10000),
+            standardHeaders: true,
+            legacyHeaders: false,
+            message: "Too many requests for this session, please try again later",
         },
         auth: {
             windowMs: getEnvNumber("AUTH_RATE_LIMIT_WINDOW_MS", 900000),
@@ -412,6 +439,25 @@ export const config: ConfigObject = {
             legacyHeaders: false,
             message: "Too many requests for this public action, please try again later",
         },
+        redis: {
+            enabled: getEnvBoolean("RATE_LIMIT_REDIS_ENABLED", isProductionEnv),
+            keyPrefix: getEnv("RATE_LIMIT_REDIS_PREFIX", "rl:"),
+            /** Logical Redis DB for rate-limit keys (defaults to REDIS_DB). */
+            db: getEnvNumber("RATE_LIMIT_REDIS_DB", getEnvNumber("REDIS_DB", 0)),
+        },
+    },
+
+    /** HTTP Cache-Control for public CMS/catalog GET responses (SSR + crawlers). */
+    publicCmsCache: {
+        enabled: getEnvBoolean("PUBLIC_CMS_CACHE_ENABLED", isProductionEnv && !notSecured),
+        maxAgeSeconds: getEnvNumber("PUBLIC_CMS_CACHE_MAX_AGE", 60),
+        staleWhileRevalidateSeconds: getEnvNumber("PUBLIC_CMS_CACHE_STALE_WHILE_REVALIDATE", 300),
+        rssMaxAgeSeconds: getEnvNumber("PUBLIC_CMS_RSS_CACHE_MAX_AGE", 86400),
+        imageMaxAgeSeconds: getEnvNumber("PUBLIC_CMS_IMAGE_CACHE_MAX_AGE", 3600),
+        imageStaleWhileRevalidateSeconds: getEnvNumber(
+            "PUBLIC_CMS_IMAGE_CACHE_STALE_WHILE_REVALIDATE",
+            86400
+        ),
     },
 
     /** Product analytics (Meta Conversions API). */

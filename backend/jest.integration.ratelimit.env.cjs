@@ -4,8 +4,13 @@
  * (otherwise high RATE_LIMIT_MAX from local env makes the suite flood hundreds of requests).
  */
 process.env.RATE_LIMIT_ENABLED = "true";
+process.env.RATE_LIMIT_REDIS_ENABLED = "false";
 process.env.RATE_LIMIT_WINDOW_MS = "3600000";
 process.env.RATE_LIMIT_MAX = "3";
+process.env.PUBLIC_READ_RATE_LIMIT_WINDOW_MS = "3600000";
+process.env.PUBLIC_READ_RATE_LIMIT_MAX = "3";
+process.env.SESSION_RATE_LIMIT_WINDOW_MS = "3600000";
+process.env.SESSION_RATE_LIMIT_MAX = "3";
 process.env.AUTH_RATE_LIMIT_WINDOW_MS = "900000";
 process.env.AUTH_RATE_LIMIT_MAX = "3";
 process.env.PUBLIC_API_RATE_LIMIT_WINDOW_MS = "3600000";

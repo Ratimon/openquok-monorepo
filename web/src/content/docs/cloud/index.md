@@ -31,7 +31,7 @@ Self-hosted installs skip that gate when Stripe is unset — see [Stripe billing
 | **Updates** | Applied on the hosted service | You upgrade when you choose |
 | **Data location** | Hosted by OpenQuok | Your infrastructure |
 
-<Callout type="tip" title="Same product, different operator">
+<Callout type="tip">
 <p>Calendar, composer, kanban, CLI, MCP, and the public API work the same on Cloud and self-host. How to <em>use</em> those surfaces lives in the <a href="/docs/getting-started">Guide</a>. This section is trial, plans, billing, and limits.</p>
 </Callout>
 

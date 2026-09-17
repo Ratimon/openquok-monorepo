@@ -21,6 +21,7 @@ import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOS
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
+import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { LANDING_PAGE_LISTINGS_PREVIEW_SECTION } from '$lib/content/constants/publicAgentConfig';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
@@ -41,7 +42,11 @@ async function loadPublicModuleConfig(
 	}
 }
 
-export const load: PageServerLoad = async ({ parent, url, fetch }) => {
+export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHeaders }) => {
+	if (!cookies.get('access_token')) {
+		applyPublicCmsPageCacheHeaders(setHeaders);
+	}
+
 	const { baseMetaTags, companyInformationPm, marketingInformationPm, footerNavigationLinks } =
 		await parent();
 

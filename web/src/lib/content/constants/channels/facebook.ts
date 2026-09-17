@@ -24,7 +24,7 @@ export const facebookChannel = {
 	platformId: 'facebook',
 	platformLabel: 'Facebook',
 	icon: icons.FacebookGlyph.name,
-	heroTitle: 'Schedule Facebook posts, Reels, Stories, and follow-up comments you approve',
+	heroTitle: 'Schedule Facebook posts, Reels Stories, and follow-up comments you approve',
 	heroDescription:
 		'Connect a Facebook Page, queue feed posts, photos, link previews, MP4 Reels, Stories, and follow-up comments from the OpenQuok calendar or your AI agents, and publish through the official Meta API',
 	metaTitle: 'Facebook Page Post, Reel & Story Scheduler',

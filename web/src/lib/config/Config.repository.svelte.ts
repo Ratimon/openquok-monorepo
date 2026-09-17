@@ -1,4 +1,5 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
+import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 import { httpGateway } from '$lib/core/index';
 
 export interface ModuleConfigResponseDto {
@@ -79,7 +80,7 @@ export class ModuleConfigRepository {
 			const { data: moduleConfigDto, ok } = await this.httpGateway.get<ModuleConfigResponseDto>(
 				this.config.endpoints.getPublicModuleConfig,
 				{ moduleName },
-				{ withCredentials: false, fetch }
+				publicCmsServerRequestOptions(fetch)
 			);
 
 			if (ok && moduleConfigDto?.success && moduleConfigDto.data) {
@@ -101,7 +102,7 @@ export class ModuleConfigRepository {
 				await this.httpGateway.get<GetPublicCompanyInformationResponseDto>(
 					this.config.endpoints.getPublicCompanyInformation,
 					undefined,
-					{ withCredentials: false, fetch }
+					publicCmsServerRequestOptions(fetch)
 				);
 
 			if (ok && companyInformationDto?.success && companyInformationDto.data?.config) {

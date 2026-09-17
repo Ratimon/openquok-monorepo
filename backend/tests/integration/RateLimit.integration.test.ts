@@ -13,6 +13,8 @@ describe("Rate limit", () => {
     const rl = config.rateLimit as {
         enabled?: boolean;
         global?: { max?: number; windowMs?: number };
+        publicRead?: { max?: number };
+        session?: { max?: number };
         auth?: { max?: number };
         publicApi?: { max?: number };
         mcp?: { max?: number; windowMs?: number };
@@ -21,6 +23,8 @@ describe("Rate limit", () => {
     };
 
     const globalLimit = rl.global?.max ?? 3;
+    const publicReadLimit = rl.publicRead?.max ?? 3;
+    const sessionLimit = rl.session?.max ?? 3;
     const authLimit = rl.auth?.max ?? 3;
     const publicApiLimit = rl.publicApi?.max ?? 3;
     const mcpLimit = rl.mcp?.max ?? 3;
@@ -44,6 +48,8 @@ describe("Rate limit", () => {
     it("loads low test limits from the dedicated Jest env (guards against .env.*.local)", () => {
         expect(rl.enabled).toBe(true);
         expect(globalLimit).toBeLessThanOrEqual(5);
+        expect(publicReadLimit).toBeLessThanOrEqual(5);
+        expect(sessionLimit).toBeLessThanOrEqual(5);
         expect(authLimit).toBeLessThanOrEqual(5);
         expect(publicApiLimit).toBeLessThanOrEqual(5);
         expect(mcpLimit).toBeLessThanOrEqual(5);
@@ -97,18 +103,81 @@ describe("Rate limit", () => {
         });
     });
 
-    describe("Public cached CMS GETs", () => {
-        it("does not apply the global limiter to company information", async () => {
-            const ip = "203.0.113.80";
-            let lastStatus = 0;
-            for (let i = 0; i < globalLimit + 2; i++) {
-                const res = await supertest(app)
-                    .get(`${apiPrefix}/company/information`)
-                    .set("X-Forwarded-For", ip);
-                lastStatus = res.status;
-                expect(res.status).not.toBe(429);
-            }
-            expect(lastStatus).not.toBe(429);
+    describe("Public read rate limiting", () => {
+        it("returns 429 on public CMS GETs via the dedicated public read limiter", async () => {
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(`${apiPrefix}/company/information`)
+                        .set("X-Forwarded-For", "203.0.113.80"),
+                publicReadLimit
+            );
+            expect(limited.status).toBe(429);
+        });
+
+        it("does not consume the global anonymous bucket for public CMS GETs", async () => {
+            const ip = "203.0.113.81";
+            await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(`${apiPrefix}/company/information`)
+                        .set("X-Forwarded-For", ip),
+                publicReadLimit
+            );
+            const globalProbe = await supertest(app)
+                .get(`${apiPrefix}/users/me`)
+                .set("X-Forwarded-For", ip);
+            expect(globalProbe.status).not.toBe(429);
+        });
+    });
+
+    describe("Session rate limiting", () => {
+        const makeJwt = (sub: string): string => {
+            const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString(
+                "base64url"
+            );
+            const body = Buffer.from(
+                JSON.stringify({
+                    sub,
+                    exp: Math.floor(Date.now() / 1000) + 3600,
+                })
+            ).toString("base64url");
+            return `${header}.${body}.signature`;
+        };
+
+        it("keys authenticated traffic by JWT sub instead of the global IP bucket", async () => {
+            const token = makeJwt("660e8400-e29b-41d4-a716-446655440001");
+            const limited = await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(`${apiPrefix}/auth/status`)
+                        .set("Authorization", `Bearer ${token}`)
+                        .set("X-Forwarded-For", "192.168.3.100"),
+                sessionLimit
+            );
+            expect(limited.status).toBe(429);
+
+            const otherIpSameToken = await supertest(app)
+                .get(`${apiPrefix}/auth/status`)
+                .set("Authorization", `Bearer ${token}`)
+                .set("X-Forwarded-For", "192.168.3.101");
+            expect(otherIpSameToken.status).toBe(429);
+        });
+
+        it("does not consume the global anonymous bucket when a JWT is present", async () => {
+            const token = makeJwt("770e8400-e29b-41d4-a716-446655440002");
+            await untilRateLimited(
+                () =>
+                    supertest(app)
+                        .get(`${apiPrefix}/auth/status`)
+                        .set("Authorization", `Bearer ${token}`)
+                        .set("X-Forwarded-For", "192.168.3.200"),
+                sessionLimit
+            );
+            const anonymousProbe = await supertest(app)
+                .get(`${apiPrefix}/users/me`)
+                .set("X-Forwarded-For", "192.168.3.200");
+            expect(anonymousProbe.status).not.toBe(429);
         });
     });
 

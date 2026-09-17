@@ -19,6 +19,7 @@ import { BlogService } from "../services/BlogService";
 import { BlogDTOMapper } from "../utils/dtos/BlogDTO";
 import { generateBlogRSSFeed } from "../utils/blog/generateBlogRSSFeed";
 import { ValidationError, DatabaseEntityNotFoundError } from "../errors/InfraError";
+import { resolvePublicCmsCacheControl, setPublicCmsCacheHeaders } from "../utils/http/publicCmsCache";
 
 export class BlogController {
     constructor(private readonly blogService: BlogService) {}
@@ -531,7 +532,10 @@ export class BlogController {
             }
 
             res.setHeader("Content-Type", contentType);
-            res.setHeader("Cache-Control", "public, max-age=86400");
+            const rssCacheControl = resolvePublicCmsCacheControl(req, "/blog-system/rss");
+            if (rssCacheControl) {
+                setPublicCmsCacheHeaders(res, rssCacheControl);
+            }
             res.status(200).send(content);
         } catch (err) {
             next(err);

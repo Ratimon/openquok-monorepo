@@ -163,6 +163,9 @@ async function createApp(): Promise<Express> {
         }
     );
 
+    const { warmUpRateLimitRedisStore } = await import("./middlewares/rateLimitStore.js");
+    await warmUpRateLimitRedisStore();
+
     configureCoreMiddleware(app, config as ConfigObject, supabaseAnonClient);
 
     const { mountMcpRoutes } = await import("./mcp/startMcp.js");

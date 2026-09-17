@@ -4,6 +4,7 @@ import {
 	withClientErrorFallback,
 	withNotFoundFallback
 } from '$lib/core/HttpGateway';
+import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 import type {
 	BlogPostFormSchemaType,
 	BlogSeoFaqItem,
@@ -531,7 +532,7 @@ export class BlogRepository {
 			const { data: dto, ok } = await this.httpGateway.get<GetBlogPostResponseDto>(
 				this.config.endpoints.getPostById(identifier),
 				undefined,
-				{ withCredentials: false, fetch }
+				publicCmsServerRequestOptions(fetch)
 			);
 			if (ok && dto?.success && dto.data) return this.toBlogPostPm(dto.data);
 			return null;
@@ -657,7 +658,7 @@ export class BlogRepository {
 			const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogPostsResponseDto>(
 				this.config.endpoints.getPublishedPosts,
 				params,
-				{ withCredentials: false, fetch: customFetch }
+				publicCmsServerRequestOptions(customFetch)
 			);
 			if (ok && dto?.success && dto.data && Array.isArray(dto.data.postsResult)) {
 				return {
@@ -674,7 +675,7 @@ export class BlogRepository {
 		const { data: dto, ok } = await this.httpGateway.get<GetBlogTopicsResponseDto>(
 			this.config.endpoints.getTopics,
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && dto?.success && Array.isArray(dto.data)) {
 			return dto.data.map((topicDto) => this.toBlogTopicPm(topicDto));
@@ -687,7 +688,7 @@ export class BlogRepository {
 		const { data: dto, ok } = await this.httpGateway.get<GetPublishedBlogAuthorsResponseDto>(
 			this.config.endpoints.getPublishedAuthors,
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && dto?.success && Array.isArray(dto.data)) {
 			return dto.data.map((row) => this.toPublishedBlogAuthorPm(row));
@@ -700,7 +701,7 @@ export class BlogRepository {
 		const { data: dto, ok } = await this.httpGateway.get<GetActiveBlogTopicsResponseDto>(
 			this.config.endpoints.getActiveTopics,
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && dto?.success && Array.isArray(dto.data)) {
 			return dto.data.map((row) => this.toActiveBlogTopicPm(row));
@@ -723,7 +724,7 @@ export class BlogRepository {
 			const { data: dto, ok } = await this.httpGateway.get<GetBlogInformationResponseDto>(
 				this.config.endpoints.getBlogInformation,
 				undefined,
-				{ withCredentials: false, fetch }
+				publicCmsServerRequestOptions(fetch)
 			);
 
 			if (ok && dto?.success && dto.data) return dto.data;
@@ -741,7 +742,7 @@ export class BlogRepository {
 		const { data: dto, ok } = await this.httpGateway.get<GetPostCommentsResponseDto>(
 			this.config.endpoints.getPostComments(postId),
 			undefined,
-			{ withCredentials: false, fetch }
+			publicCmsServerRequestOptions(fetch)
 		);
 		if (ok && dto?.success && Array.isArray(dto.data)) {
 			return dto.data.map((row) => this.toBlogPostCommentPm(row));

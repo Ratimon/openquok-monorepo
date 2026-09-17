@@ -90,8 +90,8 @@ Add the public hostname to your env file:
 STORAGE_R2_PUBLIC_BASE_URL=https://customdomain.com
 ```
 
-<Callout type="warning" title="Do not use the S3 API endpoint as a public image URL">
-<p><code>https://&lt;accountId&gt;.r2.cloudflarestorage.com</code> is the R2 S3 API endpoint used by the backend SDK. It is not the recommended browser-facing public origin for media previews. Use a custom subdomain such as <code>media.yourdomain.com</code> for production.</p>
+<Callout type="warning">
+<p>"Do not use the S3 API endpoint as a public image URL. <code>https://&lt;accountId&gt;.r2.cloudflarestorage.com</code> is the R2 S3 API endpoint used by the backend SDK. It is not the recommended browser-facing public origin for media previews. Use a custom subdomain such as <code>media.yourdomain.com</code> for production.</p>
 </Callout>
 
 
@@ -186,7 +186,7 @@ Set a web env var so the account media uploader uses the server upload flow (XHR
 VITE_MEDIA_LIBRARY_UPLOAD=local
 ```
 
-<Callout type="note" title="Local HTTPS dev: proxy /uploads">
+<Callout type="warning">
 <p>In local disk mode, the backend serves files at <code>/uploads/*</code>. When you run the web app on <code>https://localhost:5173</code> with the Vite proxy, ensure <code>/uploads</code> is proxied to the backend the same way as <code>/api</code>, otherwise previews will show broken images.</p>
 </Callout>
 
@@ -200,8 +200,8 @@ Local disk is a single-host solution. For production scale, redundancy, and CDN-
 
 Avatars and blog inline images continue to use **Supabase Storage** (<Badge text="avatars" variant="default" />, <Badge text="blog_images" variant="default" />).
 
-<Callout type="note" title="Dashboard setup (R2)">
-<p>Create an R2 bucket and an <strong>Account API token</strong> with object read and write access to that bucket in the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>. Attach a <strong>public access</strong> hostname (prefer a custom subdomain; use <code>r2.dev</code> only for development) if you want browsers to load images directly without going through the API download route.</p>
+<Callout type="note">
+<p>To setup R2 Dashboard, create an R2 bucket and an <strong>Account API token</strong> with object read and write access to that bucket in the <DocsExternalLink href="https://dash.cloudflare.com/">Cloudflare dashboard</DocsExternalLink>. Attach a <strong>public access</strong> hostname (prefer a custom subdomain; use <code>r2.dev</code> only for development) if you want browsers to load images directly without going through the API download route.</p>
 </Callout>
 
 ## Backend environment variables
