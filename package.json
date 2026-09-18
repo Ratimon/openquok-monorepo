@@ -75,7 +75,7 @@
     "railway:deploy:integration-refresh": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.integration-refresh.json railway up",
     "railway:deploy:notification-email": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.notification-email.json railway up",
     "railway:deploy:scheduled-social-post": "cross-env RAILPACK_CONFIG_FILE=orchestrator/railpack.scheduled-social-post.json railway up",
-    "---------------------- PROD BACKUP (Phase 0 — Supabase Seoul) ----------------------": "",
+    "---------------------- PROD BACKUP ----------------------": "",
     "prod-backup:verify": "node scripts/prod-backup/verify-layer1.mjs",
     "prod-backup:dump": "node scripts/prod-backup/dump-database.mjs",
     "prod-backup:storage": "node scripts/prod-backup/export-storage.mjs",

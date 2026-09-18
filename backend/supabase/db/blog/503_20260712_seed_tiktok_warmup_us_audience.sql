@@ -108,7 +108,7 @@ INSERT INTO public.blog_posts (
 <p>That is where <a href="https://www.openquok.com/channels/tiktok">OpenQuok for TikTok</a> helps.</p>
 <p>OpenQuok is an open-source, agent-native social media scheduler. Connect your TikTok account once, then queue vertical videos or photo carousels on a calendar, review drafts on a kanban board, and publish through TikTok’s official APIs - from the dashboard, public API, or CLI.</p>
 <p>You may directly sign in via mobile or ask auth code via CLI. Either way, you connecy once, then you can chat anywhere from you prefered agent while still targeting US user or others as you wish.</p>
-<img class="max-w-full h-auto rounded-md border border-base-300" src="https://ldewhviobysqevtnfznh.supabase.co/storage/v1/object/public/blog_images/aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.022983113811150924.png" alt="" data-storage-path="aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.022983113811150924.png">
+<img class="max-w-full h-auto rounded-md border border-base-300" alt="" data-storage-path="aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.022983113811150924.png">
 <p>Creators who warm up for a US audience especially benefit from:</p>
 <ul>
   <li><strong>Bulk scheduling</strong> - batch a week of clips and carousels ahead of time so posting stays consistent after warm-up</li>
