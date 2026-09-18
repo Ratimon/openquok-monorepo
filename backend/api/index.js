@@ -1616,6 +1616,7 @@ var init_RedisCacheProvider = __esm({
       options;
       client = null;
       isConnected = false;
+      connectPromise = null;
       constructor(options2 = {}) {
         this.options = {
           host: options2.host ?? "localhost",
@@ -1629,11 +1630,36 @@ var init_RedisCacheProvider = __esm({
           useScan: options2.useScan !== false,
           maxReconnectAttempts: options2.maxReconnectAttempts ?? 10
         };
-        this.connect();
       }
-      async connect() {
+      async ensureConnected(options2) {
+        if (this.isConnected && this.client) {
+          return true;
+        }
+        if (this.connectPromise) {
+          try {
+            await this.connectPromise;
+            return this.isConnected && this.client !== null;
+          } catch {
+            return false;
+          }
+        }
+        if (options2?.connect === false) {
+          return false;
+        }
+        this.connectPromise = this.performConnect().then(() => {
+        }).catch((error) => {
+          this.connectPromise = null;
+          throw error;
+        });
         try {
-          if (this.client) await this.disconnect();
+          await this.connectPromise;
+          return this.isConnected && this.client !== null;
+        } catch {
+          return false;
+        }
+      }
+      async performConnect() {
+        try {
           const reconnectStrategy = (retries) => {
             if (retries > this.options.maxReconnectAttempts) {
               logger.error({
@@ -1705,7 +1731,20 @@ var init_RedisCacheProvider = __esm({
           throw error;
         }
       }
-      async disconnect() {
+      async connect() {
+        if (this.connectPromise) {
+          try {
+            await this.connectPromise;
+          } catch {
+          }
+        }
+        this.connectPromise = null;
+        if (this.client) {
+          await this.closeClient();
+        }
+        await this.performConnect();
+      }
+      async closeClient() {
         if (!this.client) return;
         try {
           await this.client.quit();
@@ -1718,9 +1757,20 @@ var init_RedisCacheProvider = __esm({
           this.client = null;
         }
       }
+      async disconnect() {
+        if (this.connectPromise) {
+          try {
+            await this.connectPromise;
+          } catch {
+          }
+        }
+        this.connectPromise = null;
+        await this.closeClient();
+      }
       async get(key) {
         try {
-          if (!this.isConnected || !this.client) {
+          const connected = await this.ensureConnected();
+          if (!connected || !this.client) {
             logger.warn({ msg: "[Cache] Redis not connected for get" });
             return null;
           }
@@ -1735,7 +1785,8 @@ var init_RedisCacheProvider = __esm({
       }
       async set(key, value, ttl) {
         try {
-          if (!this.isConnected || !this.client) {
+          const connected = await this.ensureConnected();
+          if (!connected || !this.client) {
             logger.warn({ msg: "[Cache] Redis not connected for set" });
             return false;
           }
@@ -1755,7 +1806,8 @@ var init_RedisCacheProvider = __esm({
       }
       async del(key) {
         try {
-          if (!this.isConnected || !this.client) return false;
+          const connected = await this.ensureConnected();
+          if (!connected || !this.client) return false;
           const prefixedKey = this.options.prefix + key;
           const result = await this.client.del(prefixedKey);
           return result > 0;
@@ -1790,7 +1842,8 @@ var init_RedisCacheProvider = __esm({
       }
       async delPattern(pattern) {
         try {
-          if (!this.isConnected || !this.client) return false;
+          const connected = await this.ensureConnected();
+          if (!connected || !this.client) return false;
           if (!this.options.useScan) return false;
           const keys = await this.scanForKeys(pattern);
           if (keys.length === 0) return false;
@@ -1805,7 +1858,8 @@ var init_RedisCacheProvider = __esm({
       }
       async flush() {
         try {
-          if (!this.isConnected || !this.client) return false;
+          const connected = await this.ensureConnected();
+          if (!connected || !this.client) return false;
           if (this.options.prefix) {
             const keys = await this.scanForKeys("*");
             if (keys.length > 0) {
@@ -1994,9 +2048,7 @@ function queueRedisOptionsFromConfig() {
 function getQueueRedisConnectionOptions() {
   return queueRedisOptionsFromConfig();
 }
-function createQueueIoredisClient() {
-  const opts = queueRedisOptionsFromConfig();
-  const redis = new IORedis__default.default(opts);
+function attachQueueIoredisListeners(redis, opts) {
   redis.on("error", (err) => {
     logger.error({
       msg: "[BullMQ] Redis error",
@@ -2016,12 +2068,25 @@ function createQueueIoredisClient() {
       tls: Boolean(opts.tls)
     });
   });
+}
+function createQueueIoredisClient() {
+  const opts = queueRedisOptionsFromConfig();
+  const redis = new IORedis__default.default(opts);
+  attachQueueIoredisListeners(redis, opts);
   return redis;
 }
+function getSharedQueueIoredisClient() {
+  if (!sharedQueueIoredisClient) {
+    sharedQueueIoredisClient = createQueueIoredisClient();
+  }
+  return sharedQueueIoredisClient;
+}
+var sharedQueueIoredisClient;
 var init_createQueueIoredis = __esm({
   "connections/bullmq/createQueueIoredis.ts"() {
     init_GlobalConfig();
     init_Logger();
+    sharedQueueIoredisClient = null;
   }
 });
 
@@ -23053,7 +23118,7 @@ var init_TransactionalNotificationEmailService = __esm({
        */
       async appendDigestEntry(organizationId, entry) {
         const { appendNotificationDigestEntry } = await import('openquok-orchestrator');
-        const redis = createQueueIoredisClient();
+        const redis = getSharedQueueIoredisClient();
         try {
           await appendNotificationDigestEntry(redis, organizationId, entry);
         } catch (err) {
@@ -23062,8 +23127,6 @@ var init_TransactionalNotificationEmailService = __esm({
             organizationId,
             error: err instanceof Error ? err.message : String(err)
           });
-        } finally {
-          await redis.quit();
         }
       }
       /**
@@ -36343,7 +36406,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-18T00:24:17.909Z",
+  generated: "2026-09-18T01:30:27.549Z",
   routes: [
     {
       path: "/docs",

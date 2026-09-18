@@ -6,6 +6,7 @@
  * Run: pnpm worker:integration-refresh-bullmq (from backend/)
  */
 import { bootstrapOrchestratorWorker } from "./bootstrapOrchestratorWorker.js";
+import { startWorkerHealthServer } from "./workerHealthServer.js";
 import { config } from "backend/config/GlobalConfig.js";
 import {
     integrationRepository,
@@ -27,7 +28,7 @@ import { startFlowcraftBullMqReconciliationTimer } from "./flowcraftBullMqReconc
 const integrationRefreshQueueName =
     (config.bullmq as { integrationRefresh?: { queueName?: string } }).integrationRefresh?.queueName ??
     "integration-refresh";
-const { stopHealthServer, flushSentry } = bootstrapOrchestratorWorker({
+const { flushSentry } = bootstrapOrchestratorWorker({
     label: "integration-refresh",
     queueName: integrationRefreshQueueName,
 });
@@ -66,6 +67,12 @@ const { adapter, redis } = createIntegrationRefreshBullMqAdapter({
     runRefresh: (row) => refreshIntegrationService.refresh(row),
 });
 
+const health = startWorkerHealthServer({
+    label: "integration-refresh",
+    queueName: integrationRefreshQueueName,
+    redis,
+});
+
 adapter.start();
 const flowcraftReconciler = startFlowcraftBullMqReconciliationTimer({
     adapter,
@@ -82,7 +89,7 @@ async function shutdown(signal: string): Promise<void> {
     logger.info({ msg: "[Worker] Shutting down BullMQ adapter", signal });
     flowcraftReconciler.stop();
     try {
-        await stopHealthServer();
+        await health.stop();
         await adapter.close();
         await redis.quit();
     } catch (err) {

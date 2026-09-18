@@ -29,6 +29,7 @@ class RedisCacheProvider {
     };
     private client: RedisClientType | null = null;
     private isConnected = false;
+    private connectPromise: Promise<void> | null = null;
 
     constructor(options: RedisCacheOptions = {}) {
         this.options = {
@@ -43,13 +44,43 @@ class RedisCacheProvider {
             useScan: options.useScan !== false,
             maxReconnectAttempts: options.maxReconnectAttempts ?? 10,
         };
-        this.connect();
     }
 
-    async connect(): Promise<void> {
-        try {
-            if (this.client) await this.disconnect();
+    private async ensureConnected(options?: { connect?: boolean }): Promise<boolean> {
+        if (this.isConnected && this.client) {
+            return true;
+        }
 
+        if (this.connectPromise) {
+            try {
+                await this.connectPromise;
+                return this.isConnected && this.client !== null;
+            } catch {
+                return false;
+            }
+        }
+
+        if (options?.connect === false) {
+            return false;
+        }
+
+        this.connectPromise = this.performConnect()
+            .then(() => {})
+            .catch((error: unknown) => {
+                this.connectPromise = null;
+                throw error;
+            });
+
+        try {
+            await this.connectPromise;
+            return this.isConnected && this.client !== null;
+        } catch {
+            return false;
+        }
+    }
+
+    private async performConnect(): Promise<void> {
+        try {
             const reconnectStrategy = (retries: number) => {
                 if (retries > this.options.maxReconnectAttempts) {
                     logger.error({
@@ -132,7 +163,22 @@ class RedisCacheProvider {
         }
     }
 
-    async disconnect(): Promise<void> {
+    async connect(): Promise<void> {
+        if (this.connectPromise) {
+            try {
+                await this.connectPromise;
+            } catch {
+                // A prior lazy connect failed; continue with an explicit reconnect attempt.
+            }
+        }
+        this.connectPromise = null;
+        if (this.client) {
+            await this.closeClient();
+        }
+        await this.performConnect();
+    }
+
+    private async closeClient(): Promise<void> {
         if (!this.client) return;
         try {
             // Quit even when `isConnected` is false: tests (and reconnect flows) can leave a client open
@@ -148,9 +194,22 @@ class RedisCacheProvider {
         }
     }
 
+    async disconnect(): Promise<void> {
+        if (this.connectPromise) {
+            try {
+                await this.connectPromise;
+            } catch {
+                // connect failed; nothing to close
+            }
+        }
+        this.connectPromise = null;
+        await this.closeClient();
+    }
+
     async get(key: string): Promise<string | null> {
         try {
-            if (!this.isConnected || !this.client) {
+            const connected = await this.ensureConnected();
+            if (!connected || !this.client) {
                 logger.warn({ msg: "[Cache] Redis not connected for get" });
                 return null;
             }
@@ -166,7 +225,8 @@ class RedisCacheProvider {
 
     async set(key: string, value: unknown, ttl?: number): Promise<boolean> {
         try {
-            if (!this.isConnected || !this.client) {
+            const connected = await this.ensureConnected();
+            if (!connected || !this.client) {
                 logger.warn({ msg: "[Cache] Redis not connected for set" });
                 return false;
             }
@@ -187,7 +247,8 @@ class RedisCacheProvider {
 
     async del(key: string): Promise<boolean> {
         try {
-            if (!this.isConnected || !this.client) return false;
+            const connected = await this.ensureConnected();
+            if (!connected || !this.client) return false;
             const prefixedKey = this.options.prefix + key;
             const result = await this.client.del(prefixedKey);
             return result > 0;
@@ -225,7 +286,8 @@ class RedisCacheProvider {
 
     async delPattern(pattern: string): Promise<boolean> {
         try {
-            if (!this.isConnected || !this.client) return false;
+            const connected = await this.ensureConnected();
+            if (!connected || !this.client) return false;
             if (!this.options.useScan) return false;
             const keys = await this.scanForKeys(pattern);
             if (keys.length === 0) return false;
@@ -241,7 +303,8 @@ class RedisCacheProvider {
 
     async flush(): Promise<boolean> {
         try {
-            if (!this.isConnected || !this.client) return false;
+            const connected = await this.ensureConnected();
+            if (!connected || !this.client) return false;
             if (this.options.prefix) {
                 const keys = await this.scanForKeys("*");
                 if (keys.length > 0) {

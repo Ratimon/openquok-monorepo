@@ -34,5 +34,10 @@ export const cacheInvalidationServiceConnection = cacheInvalidationService;
 export { Sentry } from "./sentry/index";
 export { countPublicApiRequest } from "./sentry/metrics";
 export { cacheService, cacheInvalidationService } from "./cache";
-export { createQueueIoredisClient, getQueueRedisConnectionOptions } from "./bullmq";
+export {
+    createQueueIoredisClient,
+    getQueueRedisConnectionOptions,
+    getSharedQueueIoredisClient,
+    resetSharedQueueIoredisClientForTests,
+} from "./bullmq";
 export { R2StorageClient, isR2ConnectionReady, type R2ConnectionConfig } from "./R2StorageClient";

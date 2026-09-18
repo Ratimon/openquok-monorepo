@@ -1,6 +1,7 @@
 import { createServer, type Server } from "node:http";
 import { Queue } from "bullmq";
-import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import type IORedis from "ioredis";
+import { getSharedQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
 
 const startedAt = Date.now();
@@ -8,6 +9,8 @@ const startedAt = Date.now();
 export type WorkerHealthServerOptions = {
     label: string;
     queueName?: string;
+    /** Worker adapter redis; health probes reuse it instead of opening a new connection per request. */
+    redis?: IORedis;
 };
 
 export type WorkerHealthPayload = {
@@ -55,7 +58,7 @@ export async function buildHealthPayload(options: WorkerHealthServerOptions): Pr
         redis: "error",
     };
 
-    const redis = createQueueIoredisClient();
+    const redis = options.redis ?? getSharedQueueIoredisClient();
     try {
         const pong = await redis.ping();
         if (pong !== "PONG") {
@@ -82,8 +85,6 @@ export async function buildHealthPayload(options: WorkerHealthServerOptions): Pr
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         return { ...base, status: "error", error: message };
-    } finally {
-        await redis.quit();
     }
 }
 

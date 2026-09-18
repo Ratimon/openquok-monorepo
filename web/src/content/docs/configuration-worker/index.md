@@ -55,6 +55,7 @@ You only need to inject variables the worker path actually uses; you do not have
 <LinkCard title="Railway (installation)" description="CLI, build/start commands, and persistent services" href="/docs/installation/railway" />
 <LinkCard title="Orchestrator workflows" description="Flowcraft, BullMQ transport, and behavior" href="/docs/developer-guidelines/orchestrator-workflows" />
 <LinkCard title="Redis cache" description="REDIS_* shared with cache and BullMQ" href="/docs/configuration-backend/redis" />
+<LinkCard title="Cache design" description="Source of truth, Redis roles, and connection limits" href="/docs/configuration-backend/cache-design" />
 <LinkCard title="RBAC" description="Platform admin, roles, and permissions" href="/docs/developer-guidelines/rbac" />
 <LinkCard title="Production deployment" description="Vercel API + optional worker hosts" href="/docs/installation/production-deployment" />
 </CardGrid>

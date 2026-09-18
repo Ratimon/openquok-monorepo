@@ -1,7 +1,11 @@
 import "./initWorkerSentry.js";
 import { Sentry } from "./initWorkerSentry.js";
 import { logger } from "backend/utils/Logger.js";
-import { startWorkerHealthServer, type WorkerHealthServerOptions } from "./workerHealthServer.js";
+
+export type BootstrapOrchestratorWorkerOptions = {
+    label: string;
+    queueName?: string;
+};
 
 let fatalHandlersRegistered = false;
 
@@ -33,8 +37,7 @@ function registerFatalErrorHandlers(label: string): void {
  * Call once at the top of each `run*BullMqWorker` entrypoint (before other imports in that file
  * are not possible — so this module must be the first import in the worker file).
  */
-export function bootstrapOrchestratorWorker(options: WorkerHealthServerOptions): {
-    stopHealthServer: () => Promise<void>;
+export function bootstrapOrchestratorWorker(options: BootstrapOrchestratorWorkerOptions): {
     flushSentry: (timeoutMs?: number) => Promise<boolean>;
 } {
     Sentry.setTag("openquok.component", "orchestrator-worker");
@@ -45,10 +48,7 @@ export function bootstrapOrchestratorWorker(options: WorkerHealthServerOptions):
 
     registerFatalErrorHandlers(options.label);
 
-    const health = startWorkerHealthServer(options);
-
     return {
-        stopHealthServer: health.stop,
         flushSentry: (timeoutMs = 2_000) => Sentry.flush(timeoutMs),
     };
 }

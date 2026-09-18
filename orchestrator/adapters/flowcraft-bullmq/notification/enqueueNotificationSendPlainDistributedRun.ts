@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
-import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import { getSharedQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
 import { buildNotificationSendPlainBlueprintDistributed } from "../../../blueprints/notificationEmailBlueprint.js";
 import { NOTIFICATION_SEND_PLAIN_BLUEPRINT_ID } from "../../../blueprints/notificationEmailFlowTypes.js";
@@ -10,13 +10,13 @@ import { flowcraftExecuteNodeJobOptions } from "../flowcraftBullMqJobOptions.js"
 
 /**
  * Enqueues the notification-send-plain Flowcraft blueprint on BullMQ (`executeNode` jobs).
- * Caller opens and closes its own Redis connection.
+ * Uses the process-wide shared queue Redis client; do not `quit()` after enqueue.
  */
 export async function enqueueNotificationSendPlainDistributedRun(
     payload: { to: string; subject: string; html: string; replyTo?: string },
     options?: { queueName?: string }
 ): Promise<{ runId: string; enqueued: boolean }> {
-    const redis = createQueueIoredisClient();
+    const redis = getSharedQueueIoredisClient();
     const bullmq = config.bullmq as { notificationEmail?: { queueName?: string } };
     const queueName = options?.queueName ?? bullmq.notificationEmail?.queueName ?? "notification-email";
 
@@ -51,6 +51,5 @@ export async function enqueueNotificationSendPlainDistributedRun(
         return { runId, enqueued: true };
     } finally {
         await queue.close();
-        await redis.quit();
     }
 }

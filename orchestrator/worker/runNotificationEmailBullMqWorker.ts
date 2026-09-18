@@ -5,6 +5,7 @@
  * Run: pnpm worker:notification-email-bullmq (from backend/)
  */
 import { bootstrapOrchestratorWorker } from "./bootstrapOrchestratorWorker.js";
+import { startWorkerHealthServer } from "./workerHealthServer.js";
 import { config } from "backend/config/GlobalConfig.js";
 import { createNotificationEmailBullMqAdapter } from "../adapters/flowcraft-bullmq/notification/createNotificationEmailBullMqAdapter.js";
 import { executeNotificationDigestFlush } from "../flows/notificationDigestFlushExecution.js";
@@ -26,7 +27,7 @@ const emailCfg = config.email as { enabled?: boolean } | undefined;
 const queueName = bullmqConfig.notificationEmail?.queueName ?? "notification-email";
 const digestEveryMs = bullmqConfig.notificationEmail?.digestFlushIntervalMs ?? 300_000;
 const sendPlainMinIntervalMs = bullmqConfig.notificationEmail?.sendPlainMinIntervalMs ?? 700;
-const { stopHealthServer, flushSentry } = bootstrapOrchestratorWorker({
+const { flushSentry } = bootstrapOrchestratorWorker({
     label: "notification-email",
     queueName,
 });
@@ -43,6 +44,12 @@ const { adapter, redis } = createNotificationEmailBullMqAdapter({
             transactionalNotificationEmailService,
             sendPlain: (to, subj, html) => emailService.sendPlain({ to, subject: subj, html }),
         }),
+});
+
+const health = startWorkerHealthServer({
+    label: "notification-email",
+    queueName,
+    redis,
 });
 
 adapter.start();
@@ -68,7 +75,7 @@ async function shutdown(signal: string): Promise<void> {
     flowcraftReconciler.stop();
     clearInterval(digestInterval);
     try {
-        await stopHealthServer();
+        await health.stop();
         await adapter.close();
         await redis.quit();
     } catch (err) {

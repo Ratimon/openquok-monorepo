@@ -1,5 +1,5 @@
 ---
-description: Cache usage in backend service layer — CacheService, CacheInvalidationService, keys, getOrSet, invalidation
+description: Cache usage in backend service layer — source of truth, read-aside / write-around, CacheService, keys, getOrSet, invalidation
 globs: ["backend/services/**/*.ts"]
 alwaysApply: false
 ---
@@ -7,6 +7,22 @@ alwaysApply: false
 # Cache in service layer
 
 Use **CacheService** and **CacheInvalidationService** (from `../connections/cache`) to cache reads and invalidate on mutations. Both are optional constructor args so tests or callers can omit them.
+
+Human-facing overview: `web/src/content/docs/configuration-backend/cache-design.md`.
+
+## Architecture (OpenQuok)
+
+- **Source of truth** for product data is **Postgres** (Supabase). Redis holds **copies** for speed, not authoritative state.
+- **Read strategy — read-aside.** Use `getOrSet`: read cache → on miss, load repository → set cache with TTL. Do not implement write-through or write-back in services unless there is an explicit, documented exception.
+- **Write strategy — write-around.** On mutation: **write Postgres first**, then invalidate cache keys/patterns. Do not update read caches in the same request as the DB write unless you have a named write-through design (OpenQuok does not use this by default).
+- **TTL is a backstop.** Prefer **explicit invalidation** after mutations. Stale reads are possible until invalidation or TTL expiry; choose TTL for acceptable lag (see `CACHE_DEFAULT_TTL` and per-service constants).
+- **Do not use CacheService for:**
+  - BullMQ / Flowcraft workflow state (orchestrator + `ioredis`).
+  - OAuth PKCE `state` (short-lived keys in `IntegrationConnectionService`; coordination, not a DB cache copy).
+  - Schedule truth for posts — persist rows in Postgres **before** enqueue; workers reconcile from DB if Redis jobs are lost.
+- **Do not treat Redis queue data as source of truth.** If APP (Postgres) and queue state disagree, trust Postgres.
+- **Avoid caching derived flags with separate writes** (e.g. `setPotential` then `setIsVip` as two cache lines). Prefer one computed value from Postgres, or invalidate both keys in one helper after one DB transaction.
+- **More cached state = more invalidation cost.** Add cache only when read load or latency justifies it; default to repository reads for low-traffic paths.
 
 ## Dependencies
 
@@ -27,6 +43,7 @@ constructor(
 - Use consistent prefixes and patterns so invalidation can target keys or patterns.
 - **Name keys so the scope is clear**: use suffixes like `BYUSERID`, `BY_ID`, `LIST_ALL` (e.g. `org:list:byUserId`, `blog:byBlogId`, `feedback:list:all`). This makes it obvious what each key is for and keeps naming consistent across services (e.g. `LIST_BYUSERID` / `listing:list:byUserId` style).
 - **Parameterized lists** (one cache entry per parent id, e.g. per organization): store a **string prefix** on `CACHE_KEYS` and build the full key in a **small helper** next to the constants so read and invalidate always agree (e.g. `` `${CACHE_KEYS.INTEGRATION_CUSTOMERS_LIST}:${organizationId}` ``).
+- Pick keys from **common read paths** (by id, by org, list filters). Document new keys in the service `CACHE_KEYS` comment when the shape is non-obvious.
 
 ```ts
 const CACHE_KEYS = {
@@ -47,7 +64,9 @@ const FEEDBACK_CACHE_TTL_SEC = 300;
 Use **`cache.getOrSet(cacheKey, factory, ttl)`** for data that can be cached. When `cache` is optional, call the repository when cache is undefined.
 
 - Use a **named `cacheKey`** (fixed or from a helper) so invalidation can reuse the same expression.
+- The **factory** loads from the **repository only** (Postgres), not from another cache layer.
 - The **factory** may log debug/info around the repository call (see `FeedbackService`, `IntegrationService`).
+- Hot keys with shared TTL can **stampede** on expiry; prefer invalidation on write. For spike-heavy read paths, discuss single-flight or warming before adding complexity.
 
 **Fixed key (global list):**
 
@@ -88,6 +107,7 @@ async customers(organizationId: string): Promise<CustomerListItem[]> {
 
 After any **create/update/delete** that affects cached data, call a **private invalidation helper**. Invalidation must not fail the request: log errors and do not throw.
 
+- **Order:** complete the **repository mutation** first, then invalidate.
 - **Invalidate the same keys used for reads.** For any key used in a get* method (e.g. `getBlogPostById` uses `blog:byBlogId:${id}`), ensure the invalidation helper explicitly invalidates that key on mutation (e.g. `invalidateKey(\`${CACHE_KEYS.BLOG_BYID}:${blogId}\`)`). This keeps read and invalidate in sync and survives changes to `CacheInvalidationService.invalidateEntity` conventions.
 - Invalidate **specific keys** and any **cross-referenced keys** (e.g. profile by id and by email).
 - Invalidate **list/aggregate** caches with `cacheInvalidator.invalidateKey(key)` or `invalidatePattern(pattern)`.
@@ -132,8 +152,10 @@ private async _invalidateFeedbackRelatedCaches(): Promise<void> {
 
 In **`services/index.ts`**, pass `cacheServiceConnection` and `cacheInvalidationServiceConnection` from `../connections` when instantiating services that use cache.
 
+Production requires shared Redis (`CACHE_PROVIDER=redis`) so cache and OAuth work across API instances. See `web/src/content/docs/configuration-backend/redis.md` for env vars.
+
 ## Reference implementations
 
-- `UserService`, `FeedbackService`, `MarketingService`, `OrganizationService`, `RbacService`, `CompanyService`, `BlogService`, `IntegrationService`.
+- `UserService`, `FeedbackService`, `MarketingService`, `OrganizationService`, `RbacService`, `CompanyService`, `BlogService`, `IntegrationService`, `PostsService` (`invalidatePostsCalendarListCachesForOrganization` for per-org pattern invalidation).
 - For by-id + list invalidation pattern: `BlogService` (BLOG_BYID + explicit invalidateKey), `OrganizationService` (ORG_LIST_BYUSERID, ORG_BY_IDS + explicit keys and pattern).
 - For **per-org `getOrSet` list** + **invalidate same key** + optional **`cache.del` fallback**: `IntegrationService` (`customers`, `createIntegrationCustomer` / `updateOnCustomerName` invalidation). For **pattern** invalidation alongside keys (e.g. per-provider segments under `integration:${orgId}:${provider}:*`): same file.

@@ -11,7 +11,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/co
 
 ## Overview
 
-Workers and the API share <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />). Configure connection strings and provider setup on <a href="/docs/configuration-backend/redis">Redis cache</a>. This page focuses on **BullMQ queue keys** and safe <code>redis-cli</code> usage.
+Workers and the API share <Badge text="REDIS_*" variant="envBackend" /> (and optional <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />). Configure connection strings on <a href="/docs/configuration-backend/redis">Redis cache</a>. Read <a href="/docs/configuration-backend/cache-design">Cache design</a> for source of truth and connection limits. This page focuses on **BullMQ queue keys** and safe <code>redis-cli</code> usage.
 
 <Callout type="warning" title="Pick the correct DB">
 If you set <Badge text="REDIS_BULLMQ_DB" variant="envBackend" />, use that DB index when running redis-cli (with <code>-n</code>). Do not run destructive commands against the wrong DB.

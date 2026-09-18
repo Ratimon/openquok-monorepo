@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { createQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
+import { getSharedQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
 import {
     buildNotificationDigestBodyInner,
     buildNotificationDigestSubject,
@@ -11,7 +11,7 @@ import { logger } from "../utils/Logger";
 import { TransactionalNotificationEmailService } from "./TransactionalNotificationEmailService";
 
 jest.mock("../connections/bullmq/createQueueIoredis", () => ({
-    createQueueIoredisClient: jest.fn(),
+    getSharedQueueIoredisClient: jest.fn(),
 }));
 
 jest.mock("openquok-orchestrator", () => ({
@@ -20,7 +20,7 @@ jest.mock("openquok-orchestrator", () => ({
     runNotificationSendPlainOrchestration: jest.fn(),
 }));
 
-const mockedCreateRedis = jest.mocked(createQueueIoredisClient);
+const mockedGetSharedRedis = jest.mocked(getSharedQueueIoredisClient);
 const mockedAppendDigest = jest.mocked(appendNotificationDigestEntry);
 const mockedRunSendPlain = jest.mocked(runNotificationSendPlainOrchestration);
 
@@ -35,12 +35,12 @@ function createMockOrgRepo(): jest.Mocked<Pick<OrganizationRepository, "listMemb
 
 describe("TransactionalNotificationEmailService", () => {
     let orgRepo: jest.Mocked<Pick<OrganizationRepository, "listMembersForNotificationEmails">>;
-    let redisQuit: jest.Mock;
+    let sharedRedis: { quit: jest.Mock };
 
     beforeEach(() => {
         orgRepo = createMockOrgRepo();
-        redisQuit = jest.fn().mockResolvedValue(undefined);
-        mockedCreateRedis.mockReturnValue({ quit: redisQuit } as never);
+        sharedRedis = { quit: jest.fn().mockResolvedValue(undefined) };
+        mockedGetSharedRedis.mockReturnValue(sharedRedis as never);
         mockedAppendDigest.mockReset().mockResolvedValue(undefined);
         mockedRunSendPlain.mockReset().mockResolvedValue({ runId: faker.string.uuid(), enqueued: true });
     });
@@ -180,21 +180,21 @@ describe("TransactionalNotificationEmailService", () => {
     });
 
     describe("appendDigestEntry", () => {
-        it("appends via store and closes redis", async () => {
+        it("appends via store using shared redis without quitting", async () => {
             const entry = { subject: "s", message: "m", type: "info" as const };
 
             await service().appendDigestEntry(organizationId, entry);
 
-            expect(mockedCreateRedis).toHaveBeenCalledTimes(1);
+            expect(mockedGetSharedRedis).toHaveBeenCalledTimes(1);
             expect(mockedAppendDigest).toHaveBeenCalledWith(
-                expect.anything(),
+                sharedRedis,
                 organizationId,
                 entry
             );
-            expect(redisQuit).toHaveBeenCalledTimes(1);
+            expect(sharedRedis.quit).not.toHaveBeenCalled();
         });
 
-        it("logs warn and still quits redis when append fails", async () => {
+        it("logs warn and does not quit shared redis when append fails", async () => {
             const warnSpy = jest.spyOn(logger, "warn").mockImplementation(() => {});
             mockedAppendDigest.mockRejectedValueOnce(new Error("redis down"));
             const entry = { subject: "s", message: "m", type: "success" as const };
@@ -208,7 +208,7 @@ describe("TransactionalNotificationEmailService", () => {
                     error: "redis down",
                 })
             );
-            expect(redisQuit).toHaveBeenCalledTimes(1);
+            expect(sharedRedis.quit).not.toHaveBeenCalled();
             warnSpy.mockRestore();
         });
     });

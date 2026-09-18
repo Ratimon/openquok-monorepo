@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
-import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import { getSharedQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
 import { buildRefreshTokenBlueprintDistributed } from "../../../blueprints/refreshTokenBlueprint.js";
 import { REFRESH_TOKEN_BLUEPRINT_ID } from "../../../blueprints/refreshTokenTypes.js";
@@ -16,7 +16,7 @@ export async function enqueueRefreshTokenDistributedRun(
     input: { integrationId: string; organizationId: string },
     options?: { queueName?: string }
 ): Promise<{ runId: string; enqueued: boolean }> {
-    const redis = createQueueIoredisClient();
+    const redis = getSharedQueueIoredisClient();
     const bullmq = config.bullmq as { integrationRefresh?: { queueName?: string } };
     const configuredQueueName = bullmq.integrationRefresh?.queueName ?? "integration-refresh";
     const queueName = options?.queueName ?? configuredQueueName;
@@ -54,6 +54,5 @@ export async function enqueueRefreshTokenDistributedRun(
         return { runId, enqueued: true };
     } finally {
         await queue.close();
-        await redis.quit();
     }
 }

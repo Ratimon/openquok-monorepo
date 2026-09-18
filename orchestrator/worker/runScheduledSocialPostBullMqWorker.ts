@@ -5,6 +5,7 @@
  * Run: pnpm worker:scheduled-social-post-bullmq
  */
 import { bootstrapOrchestratorWorker } from "./bootstrapOrchestratorWorker.js";
+import { startWorkerHealthServer } from "./workerHealthServer.js";
 import { config } from "backend/config/GlobalConfig.js";
 import { cacheInvalidationServiceConnection, cacheServiceConnection } from "backend/connections/index.js";
 import {
@@ -37,7 +38,7 @@ import { enqueueScheduledSocialPostDistributedRun } from "../adapters/flowcraft-
 const scheduledSocialPostQueueName =
     (config.bullmq as { scheduledSocialPost?: { queueName?: string } }).scheduledSocialPost?.queueName ??
     "scheduled-social-post";
-const { stopHealthServer, flushSentry } = bootstrapOrchestratorWorker({
+const { flushSentry } = bootstrapOrchestratorWorker({
     label: "scheduled-social-post",
     queueName: scheduledSocialPostQueueName,
 });
@@ -137,6 +138,13 @@ const { adapter, redis } = createScheduledSocialPostBullMqAdapter({
         await enqueueScheduledSocialPostDistributedRun({ organizationId, postGroup, delayMs });
     },
 });
+
+const health = startWorkerHealthServer({
+    label: "scheduled-social-post",
+    queueName: scheduledSocialPostQueueName,
+    redis,
+});
+
 adapter.start();
 const flowcraftReconciler = startFlowcraftBullMqReconciliationTimer({
     adapter,
@@ -164,7 +172,7 @@ async function shutdown(signal: string): Promise<void> {
     flowcraftReconciler.stop();
     if (missingPostInterval) clearInterval(missingPostInterval);
     try {
-        await stopHealthServer();
+        await health.stop();
         await adapter.close();
         await redis.quit();
     } catch (err) {

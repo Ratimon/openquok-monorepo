@@ -47,16 +47,7 @@ export function getQueueRedisConnectionOptions(): RedisOptions {
     return queueRedisOptionsFromConfig();
 }
 
-/**
- * Standalone `ioredis` client for one-off enqueue/ping tests. Caller should `quit()` when finished.
- * Uses the same host/port/password as application cache (`REDIS_*`), with an optional
- * logical DB via `REDIS_BULLMQ_DB` (defaults to `REDIS_DB`). This is separate from
- * `RedisCacheProvider`, which uses the `redis` package and key prefixing for cache keys.
- */
-export function createQueueIoredisClient(): IORedis {
-    const opts = queueRedisOptionsFromConfig();
-    const redis = new IORedis(opts);
-
+function attachQueueIoredisListeners(redis: IORedis, opts: RedisOptions): void {
     // Ensure we never emit an unhandled "error" event (common prod symptom: only "Unhandled error event" lines).
     redis.on("error", (err) => {
         logger.error({
@@ -65,7 +56,7 @@ export function createQueueIoredisClient(): IORedis {
             host: opts.host,
             port: opts.port,
             db: opts.db,
-            tls: Boolean((opts as any).tls),
+            tls: Boolean((opts as { tls?: unknown }).tls),
         });
     });
 
@@ -75,9 +66,50 @@ export function createQueueIoredisClient(): IORedis {
             host: opts.host,
             port: opts.port,
             db: opts.db,
-            tls: Boolean((opts as any).tls),
+            tls: Boolean((opts as { tls?: unknown }).tls),
         });
     });
+}
 
+/**
+ * Ephemeral `ioredis` client for integration tests and scripts that explicitly `quit()` after use.
+ * Production enqueue code should use {@link getSharedQueueIoredisClient} so each process reuses one connection.
+ * Uses the same host/port/password as application cache (`REDIS_*`), with an optional
+ * logical DB via `REDIS_BULLMQ_DB` (defaults to `REDIS_DB`). This is separate from
+ * `RedisCacheProvider`, which uses the `redis` package and key prefixing for cache keys.
+ */
+export function createQueueIoredisClient(): IORedis {
+    const opts = queueRedisOptionsFromConfig();
+    const redis = new IORedis(opts);
+    attachQueueIoredisListeners(redis, opts);
     return redis;
+}
+
+let sharedQueueIoredisClient: IORedis | null = null;
+
+/**
+ * Process-wide `ioredis` client for enqueue paths. Created once per process; do not `quit()` in application code.
+ * Worker adapter factories still own a dedicated client and quit it on SIGTERM.
+ */
+export function getSharedQueueIoredisClient(): IORedis {
+    if (!sharedQueueIoredisClient) {
+        sharedQueueIoredisClient = createQueueIoredisClient();
+    }
+    return sharedQueueIoredisClient;
+}
+
+/**
+ * Test-only: `quit()` the shared client and clear the singleton so the next get creates a new instance.
+ */
+export async function resetSharedQueueIoredisClientForTests(): Promise<void> {
+    if (!sharedQueueIoredisClient) {
+        return;
+    }
+    const client = sharedQueueIoredisClient;
+    sharedQueueIoredisClient = null;
+    try {
+        await client.quit();
+    } catch {
+        client.disconnect();
+    }
 }

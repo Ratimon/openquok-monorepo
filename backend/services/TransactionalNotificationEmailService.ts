@@ -1,5 +1,5 @@
 import type { DigestQueueEntry, NotificationEmailType } from "openquok-common";
-import { createQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
+import { getSharedQueueIoredisClient } from "../connections/bullmq/createQueueIoredis";
 import {
     buildNotificationDigestBodyInner,
     buildNotificationDigestSubject,
@@ -65,7 +65,7 @@ export class TransactionalNotificationEmailService {
      */
     async appendDigestEntry(organizationId: string, entry: DigestQueueEntry): Promise<void> {
         const { appendNotificationDigestEntry } = await import("openquok-orchestrator");
-        const redis = createQueueIoredisClient();
+        const redis = getSharedQueueIoredisClient();
         try {
             await appendNotificationDigestEntry(redis, organizationId, entry);
         } catch (err) {
@@ -74,8 +74,6 @@ export class TransactionalNotificationEmailService {
                 organizationId,
                 error: err instanceof Error ? err.message : String(err),
             });
-        } finally {
-            await redis.quit();
         }
     }
 

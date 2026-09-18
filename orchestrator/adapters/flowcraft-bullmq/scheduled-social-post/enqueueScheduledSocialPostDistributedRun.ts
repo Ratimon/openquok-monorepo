@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import { analyzeBlueprint } from "flowcraft";
 import { config } from "backend/config/GlobalConfig.js";
-import { createQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
+import { getSharedQueueIoredisClient } from "backend/connections/bullmq/createQueueIoredis.js";
 import { logger } from "backend/utils/Logger.js";
 import { buildScheduledSocialPostBlueprintDistributed } from "../../../blueprints/scheduledSocialPostBlueprint.js";
 import { SCHEDULED_SOCIAL_POST_BLUEPRINT_ID } from "../../../blueprints/scheduledSocialPostFlowTypes.js";
@@ -18,7 +18,7 @@ export async function enqueueScheduledSocialPostDistributedRun(
     input: { organizationId: string; postGroup: string; delayMs?: number },
     options?: { queueName?: string }
 ): Promise<{ runId: string; enqueued: boolean }> {
-    const redis = createQueueIoredisClient();
+    const redis = getSharedQueueIoredisClient();
     const bullmq = config.bullmq as { scheduledSocialPost?: { queueName?: string } };
     const queueName = options?.queueName ?? bullmq.scheduledSocialPost?.queueName ?? "scheduled-social-post";
     const rawDelay = input.delayMs ?? 0;
@@ -57,6 +57,5 @@ export async function enqueueScheduledSocialPostDistributedRun(
         return { runId, enqueued: true };
     } finally {
         await queue.close();
-        await redis.quit();
     }
 }

@@ -6,7 +6,7 @@ lastUpdated: 2026-04-27
 ---
 
 <script>
-import { Badge, Callout, DocsExternalLink, Steps } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -140,3 +140,10 @@ For **production** worker hosts (always-on), use <code>pnpm railway:orchestrator
 <Callout type="tip" title="Tip">
 You can keep <Badge text="CACHE_PROVIDER=memory" variant="envBackend" /> for local dev if you don’t want Redis running.
 </Callout>
+
+## Related
+
+<CardGrid>
+<LinkCard title="Cache design" description="Source of truth, Redis roles, invalidation, and connection limits" href="/docs/configuration-backend/cache-design" />
+<LinkCard title="Redis &amp; queues" description="BullMQ keys and redis-cli for workers" href="/docs/configuration-worker/redis" />
+</CardGrid>
