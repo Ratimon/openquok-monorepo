@@ -216,6 +216,12 @@ async function createApp(): Promise<Express> {
         res.status(200).json({ server: "ok" });
     });
 
+    app.get("/robots.txt", (_req: Request, res: Response) => {
+        res.type("text/plain; charset=utf-8");
+        res.set("Cache-Control", "public, max-age=3600");
+        res.status(200).send("User-agent: *\nDisallow: /\n");
+    });
+
     app.get("/debug-sentry", function mainHandler(_req, res) {
         throw new Error("My first Sentry error!");
     });
