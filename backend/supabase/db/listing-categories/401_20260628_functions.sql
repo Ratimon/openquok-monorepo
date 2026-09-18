@@ -86,8 +86,13 @@ AS $$
         c.image_url_hero, c.image_url_small, c.href, c.color, c.emoji;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_active_listing_categories() TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.get_full_active_listing_categories() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_active_listing_categories() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_listing_categories() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_listing_categories() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_full_active_listing_categories() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_full_active_listing_categories() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_categories() TO service_role;
 
 -- ---------------------------
 -- END OF FILE

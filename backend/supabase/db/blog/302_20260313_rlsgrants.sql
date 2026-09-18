@@ -141,10 +141,9 @@ CREATE POLICY "Users can view their own activities" ON public.blog_activities
         )
     );
 
--- Inserts are performed by the backend (service role, RLS bypass) for anonymous likes/views.
+-- Inserts are performed by the backend (service_role, RLS bypass) for anonymous likes/views.
+
 DROP POLICY IF EXISTS "System can insert activities" ON public.blog_activities;
-CREATE POLICY "System can insert activities" ON public.blog_activities
-    FOR INSERT TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Super admin admins editors can view all activities" ON public.blog_activities;
 CREATE POLICY "Super admin admins editors can view all activities" ON public.blog_activities
@@ -198,14 +197,6 @@ CREATE POLICY "Allow authenticated users to upload blog images"
     );
 
 DROP POLICY IF EXISTS "Allow read access to blog images" ON storage.objects;
-CREATE POLICY "Allow read access to blog images"
-    ON storage.objects
-    AS PERMISSIVE
-    FOR SELECT
-    TO anon, authenticated
-    USING (
-        bucket_id = 'blog_images'::text
-    );
 
 DROP POLICY IF EXISTS "Allow service_role to manage blog images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage blog images" 
@@ -222,13 +213,11 @@ CREATE POLICY "Allow service_role to manage blog images"
 GRANT SELECT ON public.blog_posts TO anon;
 GRANT SELECT ON public.blog_topics TO anon;
 GRANT SELECT ON public.blog_comments TO anon;
-GRANT SELECT ON storage.objects TO anon;
 
 -- Authenticated users
 GRANT ALL ON public.blog_posts TO authenticated;
 GRANT SELECT ON public.blog_topics TO authenticated;
 GRANT ALL ON public.blog_comments TO authenticated;
-GRANT INSERT ON public.blog_activities TO authenticated;
 GRANT DELETE, INSERT, SELECT, UPDATE ON storage.objects TO authenticated;
 
 -- Service role (for backend operations)
@@ -301,6 +290,14 @@ BEGIN
         post_count DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+REVOKE ALL ON FUNCTION public.get_published_blog_authors() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_published_blog_authors() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_published_blog_authors() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_active_blog_topics() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_blog_topics() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_blog_topics() TO service_role;
 
 COMMIT;
 

@@ -27,7 +27,10 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.is_super_admin(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_super_admin(UUID) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO service_role;
 COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super admin (bypasses RLS to avoid recursion)';
 
 -- ---------------------------
@@ -155,7 +158,6 @@ WITH CHECK (public.is_super_admin(auth.uid()));
 -- Avatars (storage.objects for bucket 'avatars')
 -- ---------------------------
 
-GRANT SELECT ON storage.objects TO anon;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRUNCATE, UPDATE, TRIGGER ON storage.objects TO authenticated;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRUNCATE, UPDATE, TRIGGER ON storage.objects TO service_role;
 
@@ -197,12 +199,6 @@ USING (
 );
 
 DROP POLICY IF EXISTS "Avatar images are publicly accessible." ON storage.objects;
-CREATE POLICY "Avatar images are publicly accessible."
-ON storage.objects
-AS PERMISSIVE
-FOR SELECT
-TO anon, authenticated
-USING (bucket_id = 'avatars'::text);
 
 DROP POLICY IF EXISTS "Allow service_role to manage avatars" ON storage.objects;
 CREATE POLICY "Allow service_role to manage avatars"

@@ -278,8 +278,6 @@ CREATE POLICY "Users can view their own listing activities" ON public.listing_ac
     );
 
 DROP POLICY IF EXISTS "System can insert listing activities" ON public.listing_activities;
-CREATE POLICY "System can insert listing activities" ON public.listing_activities
-    FOR INSERT TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Super admin admins editors can view all listing activities" ON public.listing_activities;
 CREATE POLICY "Super admin admins editors can view all listing activities" ON public.listing_activities
@@ -328,10 +326,6 @@ CREATE POLICY "Allow authenticated users to upload listing images"
     );
 
 DROP POLICY IF EXISTS "Allow read access to listing images" ON storage.objects;
-CREATE POLICY "Allow read access to listing images"
-    ON storage.objects
-    AS PERMISSIVE FOR SELECT TO anon, authenticated
-    USING (bucket_id = 'listing_images'::text);
 
 DROP POLICY IF EXISTS "Allow service_role to manage listing images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage listing images"
@@ -348,7 +342,6 @@ GRANT SELECT ON public.listings_listing_tags_association TO anon;
 GRANT SELECT ON public.listing_stack_members TO anon;
 GRANT SELECT ON public.listing_relations TO anon;
 GRANT SELECT ON public.listing_comments TO anon;
-GRANT SELECT ON storage.objects TO anon;
 
 GRANT ALL ON public.listings TO authenticated;
 GRANT ALL ON public.listings_listing_tags_association TO authenticated;
@@ -357,7 +350,6 @@ GRANT ALL ON public.listing_relations TO authenticated;
 GRANT ALL ON public.listing_bookmarks TO authenticated;
 GRANT ALL ON public.listing_ratings TO authenticated;
 GRANT ALL ON public.listing_comments TO authenticated;
-GRANT INSERT ON public.listing_activities TO authenticated;
 GRANT DELETE, INSERT, SELECT, UPDATE ON storage.objects TO authenticated;
 
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;

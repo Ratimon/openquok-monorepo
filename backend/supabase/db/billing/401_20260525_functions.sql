@@ -132,6 +132,19 @@ REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz
 ) FROM PUBLIC;
 
+REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+) FROM anon, authenticated;
+
 GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
     uuid,
     public.subscription_tier,

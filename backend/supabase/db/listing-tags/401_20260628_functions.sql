@@ -86,8 +86,13 @@ AS $$
         t.image_url_hero, t.image_url_small, t.href, t.color, t.emoji;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_active_listing_tags() TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.get_full_active_listing_tags() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_active_listing_tags() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_listing_tags() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_listing_tags() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_full_active_listing_tags() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_full_active_listing_tags() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_tags() TO service_role;
 
 -- ---------------------------
 -- END OF FILE

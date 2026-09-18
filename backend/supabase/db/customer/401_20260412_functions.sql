@@ -66,6 +66,7 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_list_integrations_by_org(uuid) TO service_role;
 COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
     'List integrations for an organization (bypasses RLS); service_role only; includes optional customer label';

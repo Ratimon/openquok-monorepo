@@ -63,10 +63,18 @@ AS $$
   );
 $$;
 
+REVOKE ALL ON FUNCTION public.is_active_member_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_member_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO service_role;
+
+REVOKE ALL ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO service_role;
+
+REVOKE ALL ON FUNCTION public.is_active_owner_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_owner_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_role;
 
@@ -187,6 +195,7 @@ CREATE OR REPLACE FUNCTION public.internal_get_org_member_counts(p_org_ids uuid[
 RETURNS TABLE (organization_id uuid, member_count integer)
 LANGUAGE sql
 SECURITY DEFINER
+SET search_path = public
 STABLE
 AS $$
   SELECT
@@ -214,6 +223,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
+SET search_path = public
 STABLE
 AS $$
   SELECT
@@ -301,7 +311,16 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_get_org_member_counts(uuid[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_org_member_counts(uuid[]) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.internal_get_org_member_counts(uuid[]) TO service_role;
+
+REVOKE ALL ON FUNCTION public.internal_get_org_team_members(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_org_team_members(uuid) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.internal_get_org_team_members(uuid) TO service_role;
+
 REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
 
 COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS

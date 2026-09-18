@@ -37,6 +37,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_upsert_user_from_auth IS 'Server-side upsert into public.users (bypasses RLS)';
 
@@ -64,6 +66,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) TO service_role;
 COMMENT ON FUNCTION public.internal_set_verification_token IS 'Server-side update of email verification token (bypasses RLS)';
 
@@ -94,6 +98,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_user_by_token_hash(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_user_by_token_hash(TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_user_by_token_hash(TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_find_user_by_token_hash IS 'Find user by hashed verification token (bypasses RLS)';
 
@@ -114,6 +120,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) TO service_role;
 COMMENT ON FUNCTION public.internal_update_email_verification IS 'Mark user email as verified/unverified (bypasses RLS)';
 
@@ -134,6 +142,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) TO service_role;
 COMMENT ON FUNCTION public.internal_find_user_id_by_auth_id IS 'Resolve auth.uid() to public.users.id (bypasses RLS)';
 
@@ -167,6 +177,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_full_user_by_email(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_full_user_by_email(TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_full_user_by_email(TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_find_full_user_by_email IS 'Find user by email with all core columns (bypasses RLS)';
 
@@ -206,6 +218,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS); idempotent on duplicate token for same user';
 
@@ -253,6 +267,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_rotate_refresh_token IS 'Atomically revoke old refresh token and insert new one (bypasses RLS)';
 
@@ -293,7 +309,9 @@ AS $$
     ORDER BY extension_count DESC, stack_count DESC;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_listing_creators() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_listing_creators() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO service_role;
 
 -- ---------------------------
 -- END OF FILE

@@ -218,5 +218,29 @@ CREATE TRIGGER update_blog_post_like_count_trigger
   FOR EACH ROW
   EXECUTE FUNCTION public.update_blog_post_like_count();
 
+REVOKE ALL ON FUNCTION public.update_blog_updated_at_column() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_updated_at_column() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_unique_slug(TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_unique_slug(TEXT, TEXT) FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_post_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_post_slug() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_topic_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_topic_slug() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.calculate_blog_reading_time() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.calculate_blog_reading_time() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.update_blog_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_published_at() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.increment_blog_view_count() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_blog_view_count() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM anon, authenticated;
+
 COMMIT;
 

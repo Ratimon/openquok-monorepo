@@ -161,11 +161,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 COMMENT ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) IS 'Removes a role. JWT callers must pass their own public.users.id as removed_by_user_id; must be admin/super_admin.';
 
--- Grant execute to authenticated (must run after functions exist)
-GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) TO authenticated;
+-- Server-side only (backend service_role client)
+REVOKE ALL ON FUNCTION public.get_user_permissions(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_permissions(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO service_role;
+
+REVOKE ALL ON FUNCTION public.has_role(UUID, public.app_role) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_role(UUID, public.app_role) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO service_role;
+
+REVOKE ALL ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) TO service_role;
+
+REVOKE ALL ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) TO service_role;
 
 -- ---------------------------
 -- END OF FILE

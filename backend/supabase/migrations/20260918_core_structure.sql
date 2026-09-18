@@ -1653,7 +1653,10 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.is_super_admin(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_super_admin(UUID) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_super_admin(UUID) TO service_role;
 COMMENT ON FUNCTION public.is_super_admin(UUID) IS 'Check if a user is a super admin (bypasses RLS to avoid recursion)';
 
 -- ---------------------------
@@ -1781,7 +1784,6 @@ WITH CHECK (public.is_super_admin(auth.uid()));
 -- Avatars (storage.objects for bucket 'avatars')
 -- ---------------------------
 
-GRANT SELECT ON storage.objects TO anon;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRUNCATE, UPDATE, TRIGGER ON storage.objects TO authenticated;
 GRANT DELETE, INSERT, REFERENCES, SELECT, TRUNCATE, UPDATE, TRIGGER ON storage.objects TO service_role;
 
@@ -1823,12 +1825,6 @@ USING (
 );
 
 DROP POLICY IF EXISTS "Avatar images are publicly accessible." ON storage.objects;
-CREATE POLICY "Avatar images are publicly accessible."
-ON storage.objects
-AS PERMISSIVE
-FOR SELECT
-TO anon, authenticated
-USING (bucket_id = 'avatars'::text);
 
 DROP POLICY IF EXISTS "Allow service_role to manage avatars" ON storage.objects;
 CREATE POLICY "Allow service_role to manage avatars"
@@ -1977,14 +1973,8 @@ WITH CHECK (
     )
 );
 
--- Authenticated users can create organizations (membership is added in app layer)
+-- Organization creation is server-side only (internal_create_organization_with_owner via service_role).
 DROP POLICY IF EXISTS "Authenticated can create organization" ON public.organizations;
-CREATE POLICY "Authenticated can create organization"
-ON public.organizations
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (true);
 
 -- Only owner members can delete (optional; we may disallow delete in app)
 DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;
@@ -3274,21 +3264,17 @@ USING (public.is_super_admin(auth.uid()));
 -- MODULE SCOPE: RLS & Grants
 -- ---------------------------
 -- Runs after user-management/300 so public.is_super_admin(uuid) exists.
--- Anyone can insert. Select/update/delete: super_admin or user with admin/support app role (support handles feedback; editor is blog-only).
+-- Inserts via backend (service_role). Select/update/delete: super_admin or user with admin/support app role (support handles feedback; editor is blog-only).
 
 BEGIN;
 
-GRANT SELECT, INSERT ON public.feedback TO anon;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.feedback TO authenticated;
+GRANT SELECT ON public.feedback TO anon;
+GRANT SELECT, UPDATE, DELETE ON public.feedback TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.feedback TO service_role;
 
 ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
 
--- Anyone can insert feedback
 DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.feedback;
-CREATE POLICY "Anyone can insert feedback"
-    ON public.feedback FOR INSERT TO anon, authenticated
-    WITH CHECK (true);
 
 -- Super admin, admins and support can select
 DROP POLICY IF EXISTS "Super admin admins support can select feedback" ON public.feedback;
@@ -3515,10 +3501,9 @@ CREATE POLICY "Users can view their own activities" ON public.blog_activities
         )
     );
 
--- Inserts are performed by the backend (service role, RLS bypass) for anonymous likes/views.
+-- Inserts are performed by the backend (service_role, RLS bypass) for anonymous likes/views.
+
 DROP POLICY IF EXISTS "System can insert activities" ON public.blog_activities;
-CREATE POLICY "System can insert activities" ON public.blog_activities
-    FOR INSERT TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Super admin admins editors can view all activities" ON public.blog_activities;
 CREATE POLICY "Super admin admins editors can view all activities" ON public.blog_activities
@@ -3572,14 +3557,6 @@ CREATE POLICY "Allow authenticated users to upload blog images"
     );
 
 DROP POLICY IF EXISTS "Allow read access to blog images" ON storage.objects;
-CREATE POLICY "Allow read access to blog images"
-    ON storage.objects
-    AS PERMISSIVE
-    FOR SELECT
-    TO anon, authenticated
-    USING (
-        bucket_id = 'blog_images'::text
-    );
 
 DROP POLICY IF EXISTS "Allow service_role to manage blog images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage blog images" 
@@ -3596,13 +3573,11 @@ CREATE POLICY "Allow service_role to manage blog images"
 GRANT SELECT ON public.blog_posts TO anon;
 GRANT SELECT ON public.blog_topics TO anon;
 GRANT SELECT ON public.blog_comments TO anon;
-GRANT SELECT ON storage.objects TO anon;
 
 -- Authenticated users
 GRANT ALL ON public.blog_posts TO authenticated;
 GRANT SELECT ON public.blog_topics TO authenticated;
 GRANT ALL ON public.blog_comments TO authenticated;
-GRANT INSERT ON public.blog_activities TO authenticated;
 GRANT DELETE, INSERT, SELECT, UPDATE ON storage.objects TO authenticated;
 
 -- Service role (for backend operations)
@@ -3675,6 +3650,14 @@ BEGIN
         post_count DESC;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+REVOKE ALL ON FUNCTION public.get_published_blog_authors() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_published_blog_authors() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_published_blog_authors() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_active_blog_topics() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_blog_topics() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_blog_topics() TO service_role;
 
 
 -- Module: listing-categories, File: 302_20260628_rlsgrants.sql
@@ -4162,8 +4145,6 @@ CREATE POLICY "Users can view their own listing activities" ON public.listing_ac
     );
 
 DROP POLICY IF EXISTS "System can insert listing activities" ON public.listing_activities;
-CREATE POLICY "System can insert listing activities" ON public.listing_activities
-    FOR INSERT TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Super admin admins editors can view all listing activities" ON public.listing_activities;
 CREATE POLICY "Super admin admins editors can view all listing activities" ON public.listing_activities
@@ -4212,10 +4193,6 @@ CREATE POLICY "Allow authenticated users to upload listing images"
     );
 
 DROP POLICY IF EXISTS "Allow read access to listing images" ON storage.objects;
-CREATE POLICY "Allow read access to listing images"
-    ON storage.objects
-    AS PERMISSIVE FOR SELECT TO anon, authenticated
-    USING (bucket_id = 'listing_images'::text);
 
 DROP POLICY IF EXISTS "Allow service_role to manage listing images" ON storage.objects;
 CREATE POLICY "Allow service_role to manage listing images"
@@ -4232,7 +4209,6 @@ GRANT SELECT ON public.listings_listing_tags_association TO anon;
 GRANT SELECT ON public.listing_stack_members TO anon;
 GRANT SELECT ON public.listing_relations TO anon;
 GRANT SELECT ON public.listing_comments TO anon;
-GRANT SELECT ON storage.objects TO anon;
 
 GRANT ALL ON public.listings TO authenticated;
 GRANT ALL ON public.listings_listing_tags_association TO authenticated;
@@ -4241,7 +4217,6 @@ GRANT ALL ON public.listing_relations TO authenticated;
 GRANT ALL ON public.listing_bookmarks TO authenticated;
 GRANT ALL ON public.listing_ratings TO authenticated;
 GRANT ALL ON public.listing_comments TO authenticated;
-GRANT INSERT ON public.listing_activities TO authenticated;
 GRANT DELETE, INSERT, SELECT, UPDATE ON storage.objects TO authenticated;
 
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
@@ -4567,6 +4542,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_upsert_user_from_auth(UUID, UUID, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_upsert_user_from_auth IS 'Server-side upsert into public.users (bypasses RLS)';
 
@@ -4594,6 +4571,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_set_verification_token(UUID, TEXT, TIMESTAMPTZ) TO service_role;
 COMMENT ON FUNCTION public.internal_set_verification_token IS 'Server-side update of email verification token (bypasses RLS)';
 
@@ -4624,6 +4603,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_user_by_token_hash(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_user_by_token_hash(TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_user_by_token_hash(TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_find_user_by_token_hash IS 'Find user by hashed verification token (bypasses RLS)';
 
@@ -4644,6 +4625,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_update_email_verification(UUID, BOOLEAN) TO service_role;
 COMMENT ON FUNCTION public.internal_update_email_verification IS 'Mark user email as verified/unverified (bypasses RLS)';
 
@@ -4664,6 +4647,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_user_id_by_auth_id(UUID) TO service_role;
 COMMENT ON FUNCTION public.internal_find_user_id_by_auth_id IS 'Resolve auth.uid() to public.users.id (bypasses RLS)';
 
@@ -4697,6 +4682,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_find_full_user_by_email(TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_find_full_user_by_email(TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_find_full_user_by_email(TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_find_full_user_by_email IS 'Find user by email with all core columns (bypasses RLS)';
 
@@ -4736,6 +4723,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS); idempotent on duplicate token for same user';
 
@@ -4783,6 +4772,8 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_rotate_refresh_token IS 'Atomically revoke old refresh token and insert new one (bypasses RLS)';
 
@@ -4823,7 +4814,9 @@ AS $$
     ORDER BY extension_count DESC, stack_count DESC;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_listing_creators() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_listing_creators() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -4936,10 +4929,18 @@ AS $$
   );
 $$;
 
+REVOKE ALL ON FUNCTION public.is_active_member_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_member_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_member_of_org(uuid, uuid) TO service_role;
+
+REVOKE ALL ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_admin_or_owner_of_org(uuid, uuid) TO service_role;
+
+REVOKE ALL ON FUNCTION public.is_active_owner_of_org(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.is_active_owner_of_org(uuid, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.is_active_owner_of_org(uuid, uuid) TO service_role;
 
@@ -5060,6 +5061,7 @@ CREATE OR REPLACE FUNCTION public.internal_get_org_member_counts(p_org_ids uuid[
 RETURNS TABLE (organization_id uuid, member_count integer)
 LANGUAGE sql
 SECURITY DEFINER
+SET search_path = public
 STABLE
 AS $$
   SELECT
@@ -5087,6 +5089,7 @@ RETURNS TABLE (
 )
 LANGUAGE sql
 SECURITY DEFINER
+SET search_path = public
 STABLE
 AS $$
   SELECT
@@ -5174,7 +5177,16 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.internal_get_org_member_counts(uuid[]) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_org_member_counts(uuid[]) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.internal_get_org_member_counts(uuid[]) TO service_role;
+
+REVOKE ALL ON FUNCTION public.internal_get_org_team_members(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_org_team_members(uuid) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.internal_get_org_team_members(uuid) TO service_role;
+
 REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
 
 COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
@@ -5316,6 +5328,19 @@ REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz
 ) FROM PUBLIC;
 
+REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+) FROM anon, authenticated;
+
 GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
     uuid,
     public.subscription_tier,
@@ -5436,6 +5461,7 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_list_integrations_by_org(uuid) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_list_integrations_by_org(uuid) TO service_role;
 COMMENT ON FUNCTION public.internal_list_integrations_by_org(uuid) IS
     'List integrations for an organization (bypasses RLS); service_role only; includes optional customer label';
@@ -5477,6 +5503,7 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) TO service_role;
 COMMENT ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) IS
     'Fetch one integration by organization and id (bypasses RLS); service_role only';
@@ -5505,6 +5532,7 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) TO service_role;
 COMMENT ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) IS
     'Soft-delete an integration row (bypasses RLS); service_role only';
@@ -5794,11 +5822,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
 
 COMMENT ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) IS 'Removes a role. JWT callers must pass their own public.users.id as removed_by_user_id; must be admin/super_admin.';
 
--- Grant execute to authenticated (must run after functions exist)
-GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) TO authenticated;
+-- Server-side only (backend service_role client)
+REVOKE ALL ON FUNCTION public.get_user_permissions(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_user_permissions(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_user_permissions(UUID) TO service_role;
+
+REVOKE ALL ON FUNCTION public.has_role(UUID, public.app_role) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.has_role(UUID, public.app_role) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO service_role;
+
+REVOKE ALL ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.assign_user_role(UUID, public.app_role, UUID) TO service_role;
+
+REVOKE ALL ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_user_role(UUID, public.app_role, UUID) TO service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -6026,6 +6065,30 @@ CREATE TRIGGER update_blog_post_like_count_trigger
   FOR EACH ROW
   EXECUTE FUNCTION public.update_blog_post_like_count();
 
+REVOKE ALL ON FUNCTION public.update_blog_updated_at_column() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_updated_at_column() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_unique_slug(TEXT, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_unique_slug(TEXT, TEXT) FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_post_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_post_slug() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.generate_topic_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_topic_slug() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.calculate_blog_reading_time() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.calculate_blog_reading_time() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.update_blog_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_published_at() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.increment_blog_view_count() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_blog_view_count() FROM anon, authenticated;
+
+REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM anon, authenticated;
+
 
 -- Module: listing-categories, File: 401_20260628_functions.sql
 -- ---------------------------
@@ -6116,8 +6179,13 @@ AS $$
         c.image_url_hero, c.image_url_small, c.href, c.color, c.emoji;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_active_listing_categories() TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.get_full_active_listing_categories() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_active_listing_categories() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_listing_categories() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_listing_categories() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_full_active_listing_categories() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_full_active_listing_categories() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_categories() TO service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -6213,8 +6281,13 @@ AS $$
         t.image_url_hero, t.image_url_small, t.href, t.color, t.emoji;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_active_listing_tags() TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.get_full_active_listing_tags() TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_active_listing_tags() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_active_listing_tags() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_active_listing_tags() TO service_role;
+
+REVOKE ALL ON FUNCTION public.get_full_active_listing_tags() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_full_active_listing_tags() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_full_active_listing_tags() TO service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -6240,6 +6313,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_listing_updated_at_column() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_listing_updated_at_column() FROM anon, authenticated;
 
 DROP TRIGGER IF EXISTS update_listings_updated_at ON public.listings;
 CREATE TRIGGER update_listings_updated_at
@@ -6272,6 +6348,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+REVOKE ALL ON FUNCTION public.generate_listing_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_listing_slug() FROM anon, authenticated;
+
 DROP TRIGGER IF EXISTS set_listing_slug ON public.listings;
 CREATE TRIGGER set_listing_slug
     BEFORE INSERT ON public.listings
@@ -6290,6 +6369,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_listing_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_listing_published_at() FROM anon, authenticated;
 
 DROP TRIGGER IF EXISTS set_listing_published_at ON public.listings;
 CREATE TRIGGER set_listing_published_at
@@ -6317,7 +6399,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.increment_field(UUID, TEXT) TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.increment_field(UUID, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_field(UUID, TEXT) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_field(UUID, TEXT) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.recompute_listing_rating_aggregate(p_listing_id UUID)
 RETURNS VOID
@@ -6341,6 +6425,10 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.recompute_listing_rating_aggregate(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.recompute_listing_rating_aggregate(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.recompute_listing_rating_aggregate(UUID) TO service_role;
+
 CREATE OR REPLACE FUNCTION public.trigger_recompute_listing_rating_aggregate()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -6352,6 +6440,9 @@ BEGIN
     RETURN COALESCE(NEW, OLD);
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.trigger_recompute_listing_rating_aggregate() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.trigger_recompute_listing_rating_aggregate() FROM anon, authenticated;
 
 DROP TRIGGER IF EXISTS recompute_listing_rating_on_change ON public.listing_ratings;
 CREATE TRIGGER recompute_listing_rating_on_change
@@ -6387,8 +6478,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_listing_statistics(UUID) TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.recompute_listing_rating_aggregate(UUID) TO service_role;
+REVOKE ALL ON FUNCTION public.get_listing_statistics(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_listing_statistics(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_listing_statistics(UUID) TO service_role;
 
 -- ---------------------------
 -- END OF FILE

@@ -33,6 +33,7 @@ AS $$
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) TO service_role;
 COMMENT ON FUNCTION public.internal_get_integration_by_org_and_id(uuid, uuid) IS
     'Fetch one integration by organization and id (bypasses RLS); service_role only';
@@ -61,6 +62,7 @@ END;
 $$;
 
 REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) FROM anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) TO service_role;
 COMMENT ON FUNCTION public.internal_soft_delete_integration(uuid, uuid, text) IS
     'Soft-delete an integration row (bypasses RLS); service_role only';

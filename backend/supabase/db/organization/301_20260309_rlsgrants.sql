@@ -71,14 +71,8 @@ WITH CHECK (
     )
 );
 
--- Authenticated users can create organizations (membership is added in app layer)
+-- Organization creation is server-side only (internal_create_organization_with_owner via service_role).
 DROP POLICY IF EXISTS "Authenticated can create organization" ON public.organizations;
-CREATE POLICY "Authenticated can create organization"
-ON public.organizations
-AS PERMISSIVE
-FOR INSERT
-TO authenticated
-WITH CHECK (true);
 
 -- Only owner members can delete (optional; we may disallow delete in app)
 DROP POLICY IF EXISTS "Superadmin can delete organization" ON public.organizations;

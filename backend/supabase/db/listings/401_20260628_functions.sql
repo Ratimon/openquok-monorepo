@@ -17,6 +17,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+REVOKE ALL ON FUNCTION public.update_listing_updated_at_column() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_listing_updated_at_column() FROM anon, authenticated;
+
 DROP TRIGGER IF EXISTS update_listings_updated_at ON public.listings;
 CREATE TRIGGER update_listings_updated_at
     BEFORE UPDATE ON public.listings
@@ -48,6 +51,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+REVOKE ALL ON FUNCTION public.generate_listing_slug() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.generate_listing_slug() FROM anon, authenticated;
+
 DROP TRIGGER IF EXISTS set_listing_slug ON public.listings;
 CREATE TRIGGER set_listing_slug
     BEFORE INSERT ON public.listings
@@ -66,6 +72,9 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+REVOKE ALL ON FUNCTION public.update_listing_published_at() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.update_listing_published_at() FROM anon, authenticated;
 
 DROP TRIGGER IF EXISTS set_listing_published_at ON public.listings;
 CREATE TRIGGER set_listing_published_at
@@ -93,7 +102,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.increment_field(UUID, TEXT) TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.increment_field(UUID, TEXT) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.increment_field(UUID, TEXT) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.increment_field(UUID, TEXT) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.recompute_listing_rating_aggregate(p_listing_id UUID)
 RETURNS VOID
@@ -117,6 +128,10 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION public.recompute_listing_rating_aggregate(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.recompute_listing_rating_aggregate(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.recompute_listing_rating_aggregate(UUID) TO service_role;
+
 CREATE OR REPLACE FUNCTION public.trigger_recompute_listing_rating_aggregate()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -128,6 +143,9 @@ BEGIN
     RETURN COALESCE(NEW, OLD);
 END;
 $$;
+
+REVOKE ALL ON FUNCTION public.trigger_recompute_listing_rating_aggregate() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.trigger_recompute_listing_rating_aggregate() FROM anon, authenticated;
 
 DROP TRIGGER IF EXISTS recompute_listing_rating_on_change ON public.listing_ratings;
 CREATE TRIGGER recompute_listing_rating_on_change
@@ -163,8 +181,9 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_listing_statistics(UUID) TO anon, authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.recompute_listing_rating_aggregate(UUID) TO service_role;
+REVOKE ALL ON FUNCTION public.get_listing_statistics(UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_listing_statistics(UUID) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_listing_statistics(UUID) TO service_role;
 
 -- ---------------------------
 -- END OF FILE
