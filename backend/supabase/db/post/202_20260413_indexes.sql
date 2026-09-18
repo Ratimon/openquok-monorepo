@@ -20,6 +20,13 @@ CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_
 CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
 CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
 
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_org_id ON public.post_thread_replies(organization_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_post_id ON public.post_thread_replies(post_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_integration_id ON public.post_thread_replies(integration_id);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_state ON public.post_thread_replies(state);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_deleted_at ON public.post_thread_replies(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_post_thread_replies_created_at ON public.post_thread_replies(created_at);
+
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------

@@ -7,19 +7,6 @@
 
 BEGIN;
 
-DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-);
-
 CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
     p_organization_id uuid,
     p_subscription_tier public.subscription_tier,
@@ -95,8 +82,22 @@ BEGIN
         deleted_at = NULL;
 
     UPDATE public.organizations
-    SET is_trialing = COALESCE(p_is_trialing, FALSE), updated_at = NOW()
+    SET
+        is_trialing = COALESCE(p_is_trialing, FALSE),
+        allow_trial = FALSE,
+        updated_at = NOW()
     WHERE organizations.id = p_organization_id;
+
+    IF COALESCE(p_is_trialing, FALSE) THEN
+        UPDATE public.users u
+        SET
+            cloud_trial_consumed_at = COALESCE(u.cloud_trial_consumed_at, NOW()),
+            updated_at = NOW()
+        FROM public.user_organizations uo
+        WHERE uo.user_id = u.id
+          AND uo.organization_id = p_organization_id
+          AND uo.role = 'owner';
+    END IF;
 
     RETURN QUERY
     SELECT
@@ -155,6 +156,30 @@ COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
     boolean,
     timestamptz,
     timestamptz
-) IS 'Upsert paid subscription row and trial flag (bypasses RLS); Stripe webhook and billing API only.';
+) IS 'Upsert paid subscription row, revoke workspace trial eligibility, and mark the owner trial as consumed when trialing (bypasses RLS); Stripe webhook and billing API only.';
+
+-- Workspaces that already have a subscription row (including soft-deleted) cannot start another trial.
+UPDATE public.organizations o
+SET allow_trial = FALSE, updated_at = NOW()
+WHERE o.allow_trial = TRUE
+  AND EXISTS (
+    SELECT 1 FROM public.organization_subscriptions s
+    WHERE s.organization_id = o.id
+  );
+
+-- Owners of those workspaces have already used their one Cloud trial.
+UPDATE public.users u
+SET
+    cloud_trial_consumed_at = COALESCE(u.cloud_trial_consumed_at, NOW()),
+    updated_at = NOW()
+WHERE u.cloud_trial_consumed_at IS NULL
+  AND EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    INNER JOIN public.organization_subscriptions s
+        ON s.organization_id = uo.organization_id
+    WHERE uo.user_id = u.id
+      AND uo.role = 'owner'
+  );
 
 COMMIT;

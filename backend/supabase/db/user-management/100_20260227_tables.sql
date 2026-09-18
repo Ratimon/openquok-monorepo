@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     send_success_emails BOOLEAN DEFAULT TRUE NOT NULL,
     send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL,
+    cloud_trial_consumed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -42,6 +43,8 @@ COMMENT ON COLUMN public.users.email_verification_token_expires IS 'Expiry for e
 COMMENT ON COLUMN public.users.username IS 'Public creator slug for /creators/[username]; nullable until set by user or admin';
 COMMENT ON COLUMN public.users.provider IS 'OAuth provider name: google, github, generic';
 COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
+COMMENT ON COLUMN public.users.cloud_trial_consumed_at IS
+    'Set when the user first starts or completes a Cloud trial. One trial per account.';
 
 -- ---------------------------
 -- User Profiles

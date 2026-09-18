@@ -234,13 +234,11 @@ $$;
 -- Server-side workspace creation bypasses RLS (service_role / API layer).
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
     p_description text,
-    p_allow_trial boolean DEFAULT TRUE,
+    p_allow_trial boolean DEFAULT NULL,
     p_is_trialing boolean DEFAULT TRUE
 )
 RETURNS TABLE (
@@ -257,6 +255,7 @@ AS $$
 DECLARE
     v_org_id uuid;
     v_name text;
+    v_allow_trial boolean;
 BEGIN
     v_name := trim(p_name);
     IF v_name IS NULL OR v_name = '' THEN
@@ -266,6 +265,15 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user_id) THEN
         RAISE EXCEPTION 'User not found';
     END IF;
+
+    v_allow_trial := COALESCE(
+        p_allow_trial,
+        (
+            SELECT u.cloud_trial_consumed_at IS NULL
+            FROM public.users u
+            WHERE u.id = p_user_id
+        )
+    );
 
     INSERT INTO public.organizations (
         name,
@@ -277,7 +285,7 @@ BEGIN
     VALUES (
         v_name,
         NULLIF(trim(COALESCE(p_description, '')), ''),
-        COALESCE(p_allow_trial, TRUE),
+        COALESCE(v_allow_trial, FALSE),
         COALESCE(p_is_trialing, TRUE),
         NOW()
     )
@@ -297,6 +305,6 @@ REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text
 GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
 
 COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
-    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
+    'Create organization and add founding user as owner (bypasses RLS). When p_allow_trial is omitted, defaults from whether the owner has already consumed a Cloud trial.';
 
 COMMIT;

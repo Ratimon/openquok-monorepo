@@ -28,6 +28,17 @@ COMMENT ON COLUMN public.media.path IS 'Public URL or object key returned by sto
 COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Convention: /General for library uploads; /Posts/YYYY-MM-DD or /Posts/unscheduled for composer uploads.';
 COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, video).';
 
+CREATE TABLE IF NOT EXISTS public.media_virtual_folders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE,
+    path TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT media_virtual_folders_org_path_unique UNIQUE (organization_id, path)
+);
+
+COMMENT ON TABLE public.media_virtual_folders IS 'Empty virtual folders for the workspace media library (paths without media rows yet).';
+COMMENT ON COLUMN public.media_virtual_folders.path IS 'Normalized virtual path (leading slash, no trailing slash), e.g. /General/Assets.';
+
 -- ---------------------------
 -- END OF FILE
 -- ---------------------------

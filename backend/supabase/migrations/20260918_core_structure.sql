@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     last_read_notifications TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     send_success_emails BOOLEAN DEFAULT TRUE NOT NULL,
     send_failure_emails BOOLEAN DEFAULT TRUE NOT NULL,
+    cloud_trial_consumed_at TIMESTAMPTZ NULL,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
@@ -53,6 +54,8 @@ COMMENT ON COLUMN public.users.email_verification_token_expires IS 'Expiry for e
 COMMENT ON COLUMN public.users.username IS 'Public creator slug for /creators/[username]; nullable until set by user or admin';
 COMMENT ON COLUMN public.users.provider IS 'OAuth provider name: google, github, generic';
 COMMENT ON COLUMN public.users.provider_id IS 'Provider-specific user id';
+COMMENT ON COLUMN public.users.cloud_trial_consumed_at IS
+    'Set when the user first starts or completes a Cloud trial. One trial per account.';
 
 -- ---------------------------
 -- User Profiles
@@ -77,28 +80,6 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
 COMMENT ON TABLE public.user_profiles IS 'Extended user profile information separated from core users table';
 COMMENT ON COLUMN public.user_profiles.owner_id IS 'Reference to the user who owns this profile';
 COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed from website)';
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: user-management, File: 101_20260918_tables.sql
--- ---------------------------
--- MODULE NAME: User Management
--- MODULE DATE: 20260918
--- MODULE SCOPE: Tables
--- ---------------------------
-
-BEGIN;
-
-ALTER TABLE public.users
-    ADD COLUMN IF NOT EXISTS cloud_trial_consumed_at TIMESTAMPTZ NULL;
-
-COMMENT ON COLUMN public.users.cloud_trial_consumed_at IS
-    'Set when the user first starts or completes a Cloud trial. One trial per account.';
-
--- Historical consumption is backfilled in billing/402 after organization_subscriptions exists.
 
 -- ---------------------------
 -- END OF FILE
@@ -301,20 +282,6 @@ COMMENT ON TABLE public.media IS 'Workspace media records that reference objects
 COMMENT ON COLUMN public.media.path IS 'Public URL or object key returned by storage; used to retrieve the file.';
 COMMENT ON COLUMN public.media.virtual_path IS 'Virtual folder path within the workspace (UI-only). Convention: /General for library uploads; /Posts/YYYY-MM-DD or /Posts/unscheduled for composer uploads.';
 COMMENT ON COLUMN public.media.type IS 'Logical media type label (e.g. image, video).';
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: media, File: 103_20260519_tables.sql
--- ---------------------------
--- MODULE NAME: media
--- MODULE DATE: 20260519
--- MODULE SCOPE: Tables
--- ---------------------------
-
-BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.media_virtual_folders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -593,21 +560,6 @@ CREATE TABLE IF NOT EXISTS public.post_tag_assignments (
 );
 
 COMMENT ON TABLE public.post_tag_assignments IS 'Join between posts and post_tags (TagsPosts model shape).';
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: post, File: 103_20260501_thread_replies_tables.sql
--- ---------------------------
--- MODULE NAME: post
--- MODULE DATE: 20260501
--- MODULE SCOPE: Tables
--- ---------------------------
--- Thread replies / follow-up comments for social posts (scheduled publishing entities).
-
-BEGIN;
 
 CREATE TABLE IF NOT EXISTS public.post_thread_replies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1406,20 +1358,6 @@ CREATE INDEX IF NOT EXISTS idx_posts_integration_id ON public.posts(integration_
 CREATE INDEX IF NOT EXISTS idx_posts_parent_post_id ON public.posts(parent_post_id);
 CREATE INDEX IF NOT EXISTS idx_posts_org_publish ON public.posts(organization_id, publish_date);
 CREATE INDEX IF NOT EXISTS idx_posts_org_state ON public.posts(organization_id, state);
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: post, File: 203_20260501_thread_replies_indexes.sql
--- ---------------------------
--- MODULE NAME: post
--- MODULE DATE: 20260501
--- MODULE SCOPE: Indexes
--- ---------------------------
-
-BEGIN;
 
 CREATE INDEX IF NOT EXISTS idx_post_thread_replies_org_id ON public.post_thread_replies(organization_id);
 CREATE INDEX IF NOT EXISTS idx_post_thread_replies_post_id ON public.post_thread_replies(post_id);
@@ -2344,20 +2282,6 @@ USING (
     )
 );
 
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: media, File: 303_20260519_rlsgrants.sql
--- ---------------------------
--- MODULE NAME: media
--- MODULE DATE: 20260519
--- MODULE SCOPE: RLS & Grants
--- ---------------------------
-
-BEGIN;
-
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.media_virtual_folders TO service_role;
 
@@ -2435,6 +2359,10 @@ USING (
           AND uo.disabled = FALSE
     )
 );
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
 
 
 -- Module: oauth, File: 301_20260505_rlsgrants.sql
@@ -3039,27 +2967,11 @@ USING (
     )
 );
 
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: post, File: 303_20260501_thread_replies_rlsgrants.sql
--- ---------------------------
--- MODULE NAME: post
--- MODULE DATE: 20260501
--- MODULE SCOPE: RLS & Grants
--- ---------------------------
--- API uses service_role; RLS limits direct authenticated access.
-
-BEGIN;
-
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.post_thread_replies TO service_role;
 
 ALTER TABLE public.post_thread_replies ENABLE ROW LEVEL SECURITY;
 
--- post_thread_replies (organization_id scope)
 DROP POLICY IF EXISTS "Members can view post_thread_replies" ON public.post_thread_replies;
 CREATE POLICY "Members can view post_thread_replies"
 ON public.post_thread_replies
@@ -4801,100 +4713,6 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-BEGIN
-    INSERT INTO public.refresh_tokens (id, user_id, token, created_at, expires_at, revoked, ip_address, user_agent)
-    VALUES (p_id, p_user_id, p_token, NOW(), p_expires_at, false, p_ip_address, p_user_agent);
-    RETURN p_id;
-END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
-COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS)';
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: user-management, File: 402_20260628_listing_creators.sql
--- ---------------------------
--- MODULE NAME: User Management
--- MODULE DATE: 20260628
--- MODULE SCOPE: Functions
--- ---------------------------
-
-BEGIN;
-
-CREATE OR REPLACE FUNCTION public.get_listing_creators()
-RETURNS TABLE (
-    id UUID,
-    username TEXT,
-    full_name TEXT,
-    avatar_url TEXT,
-    tag_line TEXT,
-    extension_count BIGINT,
-    stack_count BIGINT,
-    total_likes BIGINT,
-    total_bookmarks BIGINT
-)
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public
-AS $$
-    SELECT
-        u.id,
-        u.username,
-        u.full_name,
-        up.avatar_url,
-        up.tag_line,
-        COUNT(l.id) FILTER (WHERE l.listing_kind = 'extension') AS extension_count,
-        COUNT(l.id) FILTER (WHERE l.listing_kind = 'stack') AS stack_count,
-        COALESCE(SUM(l.likes), 0)::BIGINT AS total_likes,
-        COALESCE(SUM(l.bookmark_count), 0)::BIGINT AS total_bookmarks
-    FROM public.users u
-    INNER JOIN public.listings l ON l.owner_id = u.id
-        AND l.is_user_published = true
-        AND l.is_admin_published = true
-    LEFT JOIN public.user_profiles up ON up.owner_id = u.id
-    WHERE u.username IS NOT NULL
-    GROUP BY u.id, u.username, u.full_name, up.avatar_url, up.tag_line
-    ORDER BY extension_count DESC, stack_count DESC;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO anon, authenticated, service_role;
-
--- ---------------------------
--- END OF FILE
--- ---------------------------
-
-
--- Module: user-management, File: 403_20260910_functions_refresh_token_rotate.sql
--- ---------------------------
--- MODULE NAME: User Management
--- MODULE DATE: 20260910
--- MODULE SCOPE: Functions
--- ---------------------------
-
-BEGIN;
-
--- ---------------------------
--- Idempotent refresh token create (ON CONFLICT)
--- ---------------------------
-
-CREATE OR REPLACE FUNCTION public.internal_create_refresh_token(
-    p_id UUID,
-    p_user_id UUID,
-    p_token TEXT,
-    p_expires_at TIMESTAMPTZ,
-    p_ip_address TEXT DEFAULT NULL,
-    p_user_agent TEXT DEFAULT NULL
-)
-RETURNS UUID
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
 DECLARE
     v_id UUID;
 BEGIN
@@ -4920,10 +4738,6 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.internal_create_refresh_token(UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_create_refresh_token IS 'Insert refresh token row (bypasses RLS); idempotent on duplicate token for same user';
-
--- ---------------------------
--- Atomic refresh token rotation (revoke old + insert new)
--- ---------------------------
 
 CREATE OR REPLACE FUNCTION public.internal_rotate_refresh_token(
     p_old_token TEXT,
@@ -4971,6 +4785,45 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.internal_rotate_refresh_token(TEXT, UUID, UUID, TEXT, TIMESTAMPTZ, TEXT, TEXT) TO service_role;
 COMMENT ON FUNCTION public.internal_rotate_refresh_token IS 'Atomically revoke old refresh token and insert new one (bypasses RLS)';
+
+CREATE OR REPLACE FUNCTION public.get_listing_creators()
+RETURNS TABLE (
+    id UUID,
+    username TEXT,
+    full_name TEXT,
+    avatar_url TEXT,
+    tag_line TEXT,
+    extension_count BIGINT,
+    stack_count BIGINT,
+    total_likes BIGINT,
+    total_bookmarks BIGINT
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT
+        u.id,
+        u.username,
+        u.full_name,
+        up.avatar_url,
+        up.tag_line,
+        COUNT(l.id) FILTER (WHERE l.listing_kind = 'extension') AS extension_count,
+        COUNT(l.id) FILTER (WHERE l.listing_kind = 'stack') AS stack_count,
+        COALESCE(SUM(l.likes), 0)::BIGINT AS total_likes,
+        COALESCE(SUM(l.bookmark_count), 0)::BIGINT AS total_bookmarks
+    FROM public.users u
+    INNER JOIN public.listings l ON l.owner_id = u.id
+        AND l.is_user_published = true
+        AND l.is_admin_published = true
+    LEFT JOIN public.user_profiles up ON up.owner_id = u.id
+    WHERE u.username IS NOT NULL
+    GROUP BY u.id, u.username, u.full_name, up.avatar_url, up.tag_line
+    ORDER BY extension_count DESC, stack_count DESC;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_listing_creators() TO anon, authenticated, service_role;
 
 -- ---------------------------
 -- END OF FILE
@@ -5254,86 +5107,6 @@ $$;
 -- Server-side workspace creation bypasses RLS (service_role / API layer).
 -- Direct INSERT into organizations fails when the DB client is subject to RLS
 -- (e.g. publishable key without service_role bypass).
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
-CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
-    p_user_id uuid,
-    p_name text,
-    p_description text,
-    p_allow_trial boolean DEFAULT TRUE,
-    p_is_trialing boolean DEFAULT TRUE
-)
-RETURNS TABLE (
-    id uuid,
-    name text,
-    description text,
-    created_at timestamptz,
-    updated_at timestamptz
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-    v_org_id uuid;
-    v_name text;
-BEGIN
-    v_name := trim(p_name);
-    IF v_name IS NULL OR v_name = '' THEN
-        RAISE EXCEPTION 'Organization name is required';
-    END IF;
-
-    IF NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user_id) THEN
-        RAISE EXCEPTION 'User not found';
-    END IF;
-
-    INSERT INTO public.organizations (
-        name,
-        description,
-        allow_trial,
-        is_trialing,
-        updated_at
-    )
-    VALUES (
-        v_name,
-        NULLIF(trim(COALESCE(p_description, '')), ''),
-        COALESCE(p_allow_trial, TRUE),
-        COALESCE(p_is_trialing, TRUE),
-        NOW()
-    )
-    RETURNING organizations.id INTO v_org_id;
-
-    INSERT INTO public.user_organizations (user_id, organization_id, role, disabled, updated_at)
-    VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
-
-    RETURN QUERY
-    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
-    FROM public.organizations o
-    WHERE o.id = v_org_id;
-END;
-$$;
-
-REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
-
-COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
-    'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
-
-
--- Module: organization, File: 402_20260918_functions.sql
--- ---------------------------
--- MODULE NAME: organization
--- MODULE DATE: 20260918
--- MODULE SCOPE: Functions
--- ---------------------------
--- Default new-workspace trial eligibility from the owner's Cloud trial consumption.
-
-BEGIN;
-
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
-DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean);
-
 CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
     p_user_id uuid,
     p_name text,
@@ -5417,181 +5190,6 @@ COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, t
 -- Server-side subscription sync bypasses RLS (same pattern as workspace creation).
 
 BEGIN;
-
-DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-);
-
-CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
-    p_organization_id uuid,
-    p_subscription_tier public.subscription_tier,
-    p_period public.subscription_period,
-    p_identifier text,
-    p_cancel_at timestamptz,
-    p_channels_per_workspace integer,
-    p_is_lifetime boolean DEFAULT FALSE,
-    p_is_trialing boolean DEFAULT FALSE,
-    p_current_period_start timestamptz DEFAULT NULL,
-    p_current_period_end timestamptz DEFAULT NULL
-)
-RETURNS TABLE (
-    id uuid,
-    organization_id uuid,
-    subscription_tier public.subscription_tier,
-    period public.subscription_period,
-    identifier text,
-    cancel_at timestamptz,
-    channels_per_workspace integer,
-    is_lifetime boolean,
-    current_period_start timestamptz,
-    current_period_end timestamptz,
-    created_at timestamptz,
-    updated_at timestamptz,
-    deleted_at timestamptz
-)
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = p_organization_id) THEN
-        RAISE EXCEPTION 'Organization not found';
-    END IF;
-
-    INSERT INTO public.organization_subscriptions (
-        organization_id,
-        subscription_tier,
-        period,
-        identifier,
-        cancel_at,
-        channels_per_workspace,
-        is_lifetime,
-        current_period_start,
-        current_period_end,
-        updated_at,
-        deleted_at
-    )
-    VALUES (
-        p_organization_id,
-        p_subscription_tier,
-        p_period,
-        NULLIF(trim(COALESCE(p_identifier, '')), ''),
-        p_cancel_at,
-        p_channels_per_workspace,
-        COALESCE(p_is_lifetime, FALSE),
-        p_current_period_start,
-        p_current_period_end,
-        NOW(),
-        NULL
-    )
-    ON CONFLICT ON CONSTRAINT uq_organization_subscriptions_org DO UPDATE SET
-        subscription_tier = EXCLUDED.subscription_tier,
-        period = EXCLUDED.period,
-        identifier = EXCLUDED.identifier,
-        cancel_at = EXCLUDED.cancel_at,
-        channels_per_workspace = EXCLUDED.channels_per_workspace,
-        is_lifetime = EXCLUDED.is_lifetime,
-        current_period_start = EXCLUDED.current_period_start,
-        current_period_end = EXCLUDED.current_period_end,
-        updated_at = NOW(),
-        deleted_at = NULL;
-
-    UPDATE public.organizations
-    SET is_trialing = COALESCE(p_is_trialing, FALSE), updated_at = NOW()
-    WHERE organizations.id = p_organization_id;
-
-    RETURN QUERY
-    SELECT
-        s.id,
-        s.organization_id,
-        s.subscription_tier,
-        s.period,
-        s.identifier,
-        s.cancel_at,
-        s.channels_per_workspace,
-        s.is_lifetime,
-        s.current_period_start,
-        s.current_period_end,
-        s.created_at,
-        s.updated_at,
-        s.deleted_at
-    FROM public.organization_subscriptions s
-    WHERE s.organization_id = p_organization_id;
-END;
-$$;
-
-REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-) FROM PUBLIC;
-
-GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-) TO service_role;
-
-COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-) IS 'Upsert paid subscription row and trial flag (bypasses RLS); Stripe webhook and billing API only.';
-
-
--- Module: billing, File: 402_20260918_functions.sql
--- ---------------------------
--- MODULE NAME: Billing
--- MODULE DATE: 20260918
--- MODULE SCOPE: Functions
--- ---------------------------
--- One Cloud trial per account: revoke workspace trial eligibility on subscription
--- sync, and mark the workspace owner as having consumed their trial.
-
-BEGIN;
-
-DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
-    uuid,
-    public.subscription_tier,
-    public.subscription_period,
-    text,
-    timestamptz,
-    integer,
-    boolean,
-    boolean,
-    timestamptz,
-    timestamptz
-);
 
 CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
     p_organization_id uuid,
