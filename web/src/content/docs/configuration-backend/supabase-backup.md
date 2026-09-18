@@ -1,6 +1,6 @@
 ---
 title: Supabase backup
-description: Back up the OpenQuok Supabase database and Storage before migrations or region cutover.
+description: Back up OpenQuok Postgres and Storage, then freeze writes before the final dump for region cutover.
 order: 7
 lastUpdated: 2026-09-19
 ---
@@ -12,6 +12,8 @@ import { Badge, CardGrid, Callout, DocsExternalLink, LinkCard, Steps } from '$li
 ## Overview
 
 OpenQuok stores user data in Supabase Postgres and in Supabase Storage buckets. A database dump does not include Storage object bytes. Run a full backup before you squash migrations, change regions, or run a maintenance cutover.
+
+For region cutover, **freeze writes before the final dump** so users and workers cannot mutate Postgres while you copy data. Public marketing, blog, and docs pages stay live. See <a href="#cutover-freeze-runbook">Cutover freeze runbook</a>.
 
 The repo provides three backup layers:
 
@@ -127,6 +129,7 @@ pnpm prod-backup:dump
 pnpm prod-backup:storage
 pnpm prod-backup:initial
 pnpm prod-backup:restore
+pnpm prod-backup:migrate-storage
 pnpm prod-backup:rehearse
 ```
 
@@ -134,24 +137,13 @@ pnpm prod-backup:rehearse
 
 Copy the dated directory to encrypted private storage. Keep backups for at least 90 days. Keep a copy past project decommission if you may need audit or rollback data.
 
-Run a fresh backup immediately before a maintenance cutover. **Enable write-freeze first** (see <a href="/docs/installation/maintenance-mode">Maintenance mode</a>), then use a suffix so the folder name is unique:
+Run a fresh backup immediately before a maintenance cutover. **Enable write-freeze first**, then use a suffix so the folder name is unique (see <a href="#cutover-freeze-runbook">Cutover freeze runbook</a>):
 
 ```bash
-node scripts/prod-backup/run-initial-backup.mjs --latest-snapshot YYYY-MM-DD --suffix -pre-cutover
+pnpm prod-backup:initial --latest-snapshot YYYY-MM-DD --suffix -pre-cutover
 ```
 
 </Steps>
-
-## Maintenance window (write-freeze)
-
-Before the pre-cutover backup and restore, set <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> on the **Vercel backend**, **Vercel web**, and **Railway workers** (or self-host API, web, and worker containers). Redeploy so API mutations return 503, auth/app routes redirect to <Badge text="/maintenance" variant="path" />, and workers stop consuming BullMQ jobs.
-
-<Callout type="warning" title="Enable freeze before the final dump">
-<p>Turn on <Badge text="freeze_writes" variant="default" /> <strong>before</strong> you run the <code>-pre-cutover</code> backup — not after restore. Otherwise users and workers can still write to Postgres while you copy data.</p>
-</Callout>
-
-Full behavior, env vars, and smoke-test bypass: <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
-
 
 ## Phase B0 — Target project in the new region
 
@@ -276,32 +268,176 @@ Storage dry-run only:
 pnpm prod-backup:rehearse --skip-restore
 ```
 
-## Restore and cutover
+## Cutover freeze runbook
 
-To restore a dump into a new Supabase project, follow the official guide:
+Use this sequence for the live region cutover (~30–60 minutes). Flag behavior, env vars, and the operator bypass header are on <a href="/docs/installation/maintenance-mode">Maintenance mode</a>. Official restore notes: <DocsExternalLink href="https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore">Backup and Restore using the CLI</DocsExternalLink>.
 
-<DocsExternalLink href="https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore">Backup and Restore using the CLI</DocsExternalLink>
+<Callout type="warning" title="Freeze writes before the final dump">
+<p>Set <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> on the API, web, and workers, redeploy, and <strong>verify the freeze</strong> before you run the <code>-pre-cutover</code> backup. Dumping first leaves a window where users, MCP/CLI, and BullMQ jobs can still write to the source database.</p>
+<p>Do not squash migrations, refactor schema, or run security SQL during this window.</p>
+</Callout>
 
-During cutover, use <code>pnpm prod-backup:restore</code> with the pre-cutover backup directory, then copy Storage objects:
+### Operator timeline
 
-```bash
-pnpm prod-backup:migrate-storage
+```text
+T-0    MAINTENANCE_MODE=freeze_writes (Vercel backend + web + Railway workers; redeploy)
+T+2m   Verify: /blog → 200; /sign-in → /maintenance; POST /api/v1/... → 503
+T+5m   pnpm prod-backup:initial --latest-snapshot YYYY-MM-DD --suffix -pre-cutover
+T+10m  pnpm prod-backup:restore --backup-dir .backups/YYYYMMDD-pre-cutover
+T+30m  pnpm prod-backup:migrate-storage --yes
+T+35m  SQL: replace source Storage URLs in blog_posts.content (if needed)
+T+40m  Env cutover (target URL + keys); Vercel/Railway redeploy
+T+50m  Smoke test (auth, workers, images, billing)
+T+55m  MAINTENANCE_MODE=off; redeploy; resume workers
 ```
 
-Set <code>OLD_PROJECT_URL</code>, <code>OLD_PROJECT_SERVICE_KEY</code>, <code>NEW_PROJECT_URL</code>, and <code>NEW_PROJECT_SERVICE_KEY</code> in your shell before you run the script. Add <code>--dry-run</code> to list object counts without uploading.
+<Callout type="note" title="Workers">
+<p>The worker process exits on startup when the flag is <Badge text="freeze_writes" variant="default" />. As a backup, scale Railway worker services to 0 for the window so a missed env var cannot consume jobs.</p>
+</Callout>
 
-After smoke tests pass, set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers and redeploy. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+<Steps
+	howToName="Supabase region cutover freeze runbook"
+	howToDescription="Freeze writes, dump the source, restore to the target project, migrate Storage, cut over env, then resume."
+>
+
+### Enable write-freeze and verify
+
+<p>
+Set{' '}
+<Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" />
+{' '}on the Vercel backend, Vercel web (server env, not a{' '}
+<Badge text="VITE_*" variant="envWeb" />
+{' '}variable), and Railway workers (or recreate self-host API, web, and worker containers). Redeploy all three.
+</p>
+
+Confirm before you dump:
+
+| Check | Expected |
+|-------|----------|
+| Public blog / docs | HTTP 200 (SEO pages stay live) |
+| <Badge text="/sign-in" variant="path" /> (and other auth/app routes) | Redirect to <Badge text="/maintenance" variant="path" /> |
+| Mutation such as <code>POST /api/v1/...</code> | 503 with <code>Retry-After</code> |
+| Worker logs | Process exits without consuming BullMQ jobs |
+
+Optional API smoke during freeze: send <Badge text="X-Maintenance-Bypass" variant="envBackend" /> when <Badge text="MAINTENANCE_BYPASS_SECRET" variant="envBackend" /> is set. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+
+### Take the pre-cutover backup
+
+With writes frozen, re-run Layers 1–3 into a unique directory:
+
+```bash
+pnpm prod-backup:initial --latest-snapshot YYYY-MM-DD --suffix -pre-cutover
+```
+
+Then <code>git status</code>. Git must not list <code>.backups/*.sql</code>. Copy the dated directory to encrypted private storage.
+
+### Restore the dump into the target
+
+```bash
+export NEW_DB_URL='postgresql://postgres.<target-ref>:[PASSWORD]@<pooler-host>:5432/postgres'
+pnpm prod-backup:restore --backup-dir .backups/YYYYMMDD-pre-cutover
+```
+
+The restore script strips <code>cli_login_postgres</code> role lines and comments <code>supabase_admin</code> owner lines. If you restore by hand with <code>psql</code>, set <code>session_replication_role = replica</code> before loading <code>data.sql</code> (see the official backup-restore guide).
+
+### Migrate Storage and rewrite blog URLs
+
+Source keys come from the current production env. Target keys come from <Badge text=".backups/migration/project.json" variant="path" /> (or the B0 rehearsal manifest).
+
+```bash
+export OLD_PROJECT_URL='https://<source-ref>.supabase.co'
+export OLD_PROJECT_SERVICE_KEY='sb_secret_...'
+export NEW_PROJECT_URL='https://<target-ref>.supabase.co'
+export NEW_PROJECT_SERVICE_KEY='sb_secret_...'
+pnpm prod-backup:migrate-storage --yes
+```
+
+Add <code>--dry-run</code> first to list object counts without uploading.
+
+If blog HTML still points at the source project host, rewrite in the **target** SQL editor:
+
+```sql
+UPDATE public.blog_posts
+SET content = replace(content, 'https://<source-ref>.supabase.co', 'https://<target-ref>.supabase.co')
+WHERE content LIKE '%<source-ref>.supabase.co%';
+```
+
+### Cut over environment variables
+
+Update these keys to the **target** project, then rebuild and redeploy.
+
+| Surface | File | Keys |
+|---------|------|------|
+| Backend and workers | <Badge text="backend/.env.production.local" variant="envBackend" />, <Badge text="orchestrator/.env.production.local" variant="envBackend" /> | <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />, <Badge text="PUBLIC_SUPABASE_PUBLISHABLE_KEY" variant="envBackend" />, <Badge text="SUPABASE_SECRET_KEY" variant="envBackend" /> |
+| Web | <Badge text="web/.env.production.local" variant="envWeb" /> | <Badge text="VITE_PUBLIC_SUPABASE_URL" variant="envWeb" /> (baked at build time) |
+
+```bash
+pnpm vercel:env:sync:backend:prod
+pnpm vercel:env:sync:web:prod
+pnpm vercel:deploy:backend:prod
+pnpm vercel:deploy:web:prod
+```
+
+Redeploy Railway workers with the same target keys. Keep <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> until smoke tests pass.
+
+Point the CLI at the target, then confirm migration history (repair only if the list is wrong):
+
+```bash
+cd backend
+npx supabase@latest link --project-ref <target-ref>
+pnpm db:production:migration-list
+```
+
+If the aggregated file is present on disk but not marked applied, use the date segment from the filename (see <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — Supabase production migrations</a>):
+
+```bash
+npx supabase@latest migration repair --linked --status applied 20260828
+```
+
+### Smoke test, then resume writes
+
+| Check | How |
+|-------|-----|
+| Google OAuth + email signup | Existing user and a new user |
+| Cloud trial | <code>cloud_trial_consumed_at</code> plus billing upsert |
+| Session refresh | Reload after login (expect one re-login; sessions invalidate) |
+| Workers | Enqueue a scheduled post after freeze is off |
+| Integrations | One provider OAuth |
+| Blog / avatars / listing images | Public URLs on the **target** project host |
+| <code>pg_cron</code> | Cron UI or extension query |
+| Database Linter | No high-severity RPC exposure |
+| Direct RPC | Publishable key cannot call sensitive RPCs |
+| Stripe | Subscriptions unchanged |
+
+When checks pass, set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers; redeploy; restore Railway worker replicas if you scaled them to 0.
+
+### Pause the source project
+
+After the target has been production for **7–14 days**:
+
+1. Pause the source project (rollback in that window is revert env + redeploy).
+2. Remove the source project Google OAuth callback URI.
+3. Pause or delete the source project so you are not billed for two computes.
+
+</Steps>
+
+### What you do not need to change
+
+R2 (<code>media.openquok.com</code>), Redis, Railway/Vercel **region**, Neon, Meta/Stripe/social redirect URIs, and the Google OAuth **client ID/secret** stay the same. You only add the **target** Supabase Auth callback URI (done in Phase B0).
 
 ## What not to do
 
-- Do not <code>git add</code> SQL dumps or exported Storage files.
+- Do not take the <code>-pre-cutover</code> dump until write-freeze is live and verified on API, web, and workers.
+- Do not <code>git add</code> SQL dumps or exported Storage files. Run <code>git status</code> after every dump.
 - Do not skip Layer 3. Blog posts and avatars break after restore if object bytes are missing.
-- Do not run migration squash and region cutover in the same maintenance window. Squash first, verify locally, then cut over with a fresh backup.
+- Do not squash migrations, refactor schema, or apply security SQL in the same window as region cutover. Squash first, verify locally, then cut over with a frozen dump.
+- Do not leave freeze mode on after smoke tests. Set <Badge text="MAINTENANCE_MODE" variant="envBackend" /> to <Badge text="off" variant="default" /> and redeploy, or public app writes stay blocked.
 
 ## Related configuration
 
 <CardGrid>
-<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze before pre-cutover backup and restore" href="/docs/installation/maintenance-mode" />
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze before the pre-cutover dump" href="/docs/installation/maintenance-mode" />
+<LinkCard title="Production deployment" description="Vercel env sync, deploy, and production migration repair" href="/docs/installation/production-deployment" />
 <LinkCard title="Database & migrations" description="Link the Supabase CLI, run migrations, and reset local Postgres" href="/docs/configuration-backend/database" />
 <LinkCard title="Supabase" description="Project setup, API keys, and dashboard settings" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Cloudflare R2" description="S3-compatible storage for composer media (separate from Supabase Storage)" href="/docs/configuration-backend/cloudflare-r2" />

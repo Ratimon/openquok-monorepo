@@ -85,7 +85,7 @@ With writes frozen, run Layer 2 and Layer 3 again using a <code>-pre-cutover</co
 
 ### Restore, migrate Storage, and cut over env
 
-Follow <a href="/docs/configuration-backend/supabase-backup#restore-and-cutover">Restore and cutover</a>. Update Supabase URLs and keys in production env only after restore and Storage migration succeed.
+Follow <a href="/docs/configuration-backend/supabase-backup#cutover-freeze-runbook">Cutover freeze runbook</a>. Update Supabase URLs and keys in production env only after restore and Storage migration succeed.
 
 ### Smoke test and resume
 
