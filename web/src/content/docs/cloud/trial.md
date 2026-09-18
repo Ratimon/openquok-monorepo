@@ -2,7 +2,7 @@
 title: Trial
 description: OpenQuok Cloud 7-day free trial for the social scheduler — no credit card required to start, plan limits apply, cancel anytime from billing.
 order: 2
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-18
 ---
 
 <script>
@@ -11,9 +11,13 @@ import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-New OpenQuok Cloud workspaces can start a **7-day free trial**. You can create an account, connect channels, and schedule posts **without a credit card**. The trial is 100% free for those seven days; cancel from billing settings at any time.
+Eligible OpenQuok Cloud accounts can start **one 7-day free trial** per account and per Stripe payment customer. You can create an account, connect channels, and schedule posts **without a credit card**. The trial is 100% free for those seven days; cancel from billing settings at any time.
 
-There is no ongoing free Cloud plan. After the trial, you need an active subscription to keep using the hosted scheduler.
+There is no ongoing free Cloud plan. After the trial, you need an active subscription to keep using the hosted scheduler. Creating another workspace, canceling and resubscribing, or opening a new account does **not** grant a second trial.
+
+<Callout type="warning">
+<p>Canceling your subscription and subscribing again does <strong>not</strong> start another free trial. Trial eligibility is limited to one per account and per payment customer. See <a href="/terms">Terms of Service</a> §5.</p>
+</Callout>
 
 <Callout type="tip">
 <p>Plan limits still apply during the trial — they match the tier you pick, time-boxed to seven days. See <a href="/docs/cloud/limits">Limits</a> and <a href="/pricing">Pricing</a>.</p>
@@ -32,7 +36,7 @@ Sign up from the marketing site and confirm your email if prompted. Your first w
 
 ### Choose a plan
 
-Open <a href="/account/billing">Billing</a> (or the first-billing screen if Cloud asks you to pick a plan). Select Solo, Team, Ultimate, or Max. Eligible workspaces include a 7-day trial on checkout.
+Open <a href="/account/billing">Billing</a> (or the first-billing screen if Cloud asks you to pick a plan). Select Solo, Team, Ultimate, or Max. If your account is eligible, checkout includes a 7-day trial.
 
 ### Use the scheduler
 

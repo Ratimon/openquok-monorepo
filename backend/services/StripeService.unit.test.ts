@@ -80,6 +80,7 @@ function createMockSubscriptionRepo(): jest.Mocked<SubscriptionRepository> {
         getSubscriptionByIdentifier: jest.fn(),
         getOrganizationByStripeCustomerId: jest.fn(),
         setTrialing: jest.fn(),
+        hasUserConsumedCloudTrial: jest.fn().mockResolvedValue(false),
     } as unknown as jest.Mocked<SubscriptionRepository>;
 }
 
@@ -581,6 +582,73 @@ describe("StripeService", () => {
         });
     });
 
+    describe("resolveCheckoutTrialEligibility", () => {
+        it("returns false when organization allow_trial is false", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                ...defaultOrganizationBilling(),
+                allow_trial: false,
+            });
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(false);
+            expect(subscriptionRepo.hasUserConsumedCloudTrial).not.toHaveBeenCalled();
+        });
+
+        it("returns false when the user already consumed a Cloud trial", async () => {
+            (subscriptionRepo.hasUserConsumedCloudTrial as jest.Mock).mockResolvedValue(true);
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(false);
+            expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+        });
+
+        it("returns false when Stripe customer has prior subscriptions", async () => {
+            mockStripe.subscriptions.list.mockResolvedValue({
+                data: [{ id: "sub_prior" }],
+            });
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(false);
+            expect(mockStripe.subscriptions.list).toHaveBeenCalledWith({
+                customer: customerId,
+                status: "all",
+                limit: 1,
+            });
+        });
+
+        it("returns true only when org, user, and Stripe history all allow trial", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                ...defaultOrganizationBilling(),
+                allow_trial: true,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(true);
+            expect(subscriptionRepo.hasUserConsumedCloudTrial).toHaveBeenCalledWith(userId);
+        });
+
+        it("returns false when organization billing profile is missing", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue(null);
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(false);
+            expect(subscriptionRepo.hasUserConsumedCloudTrial).not.toHaveBeenCalled();
+        });
+
+        it("skips Stripe history check when organization has no customer id", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                ...defaultOrganizationBilling(),
+                allow_trial: true,
+                stripe_customer_id: null,
+            });
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId)
+            ).resolves.toBe(true);
+            expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+        });
+    });
+
     describe("subscribe", () => {
         beforeEach(() => {
             (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
@@ -627,6 +695,20 @@ describe("StripeService", () => {
                     success_url: `https://app.example.com/account?checkout=${checkoutId}`,
                 })
             );
+        });
+
+        it("omits trial_period_days on new checkout when allowTrial is false", async () => {
+            await service().subscribe({
+                organizationId,
+                userId,
+                body: { period: "MONTHLY", billing: "SOLO", stripePriceId: priceId },
+                allowTrial: false,
+            });
+            const sessionArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as {
+                subscription_data?: { trial_period_days?: number };
+            };
+            expect(sessionArgs.subscription_data).toBeDefined();
+            expect(sessionArgs.subscription_data).not.toHaveProperty("trial_period_days");
         });
 
         it("updates an existing Stripe subscription even when the DB row is missing", async () => {
@@ -700,6 +782,57 @@ describe("StripeService", () => {
                     allowTrial: false,
                 })
             ).rejects.toBeInstanceOf(UserValidationError);
+        });
+    });
+
+    describe("createEmbeddedCheckout", () => {
+        beforeEach(() => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                id: organizationId,
+                name: "Acme",
+                stripe_customer_id: customerId,
+                allow_trial: true,
+                is_trialing: false,
+            });
+            mockStripe.checkout.sessions.create.mockResolvedValue({
+                client_secret: "cs_test_secret",
+            });
+            mockStripe.prices.retrieve.mockResolvedValue({
+                active: true,
+                unit_amount: pricing.SOLO.month_price * 100,
+                recurring: { interval: "month" },
+            });
+        });
+
+        it("includes trial_period_days when allowTrial is true", async () => {
+            await service().createEmbeddedCheckout({
+                organizationId,
+                userId,
+                body: { period: "MONTHLY", billing: "SOLO", stripePriceId: priceId },
+                allowTrial: true,
+            });
+            expect(mockStripe.checkout.sessions.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ui_mode: "elements",
+                    subscription_data: expect.objectContaining({
+                        trial_period_days: 7,
+                    }),
+                })
+            );
+        });
+
+        it("omits trial_period_days when allowTrial is false", async () => {
+            await service().createEmbeddedCheckout({
+                organizationId,
+                userId,
+                body: { period: "MONTHLY", billing: "SOLO", stripePriceId: priceId },
+                allowTrial: false,
+            });
+            const sessionArgs = mockStripe.checkout.sessions.create.mock.calls[0]?.[0] as {
+                subscription_data?: { trial_period_days?: number };
+            };
+            expect(sessionArgs.subscription_data).toBeDefined();
+            expect(sessionArgs.subscription_data).not.toHaveProperty("trial_period_days");
         });
     });
 

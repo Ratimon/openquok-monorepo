@@ -5986,9 +5986,7 @@ var init_OrganizationRepository = __esm({
           {
             p_user_id: params.userId,
             p_name: params.name,
-            p_description: params.description ?? null,
-            p_allow_trial: true,
-            p_is_trialing: true
+            p_description: params.description ?? null
           }
         );
         if (error) {
@@ -11023,6 +11021,55 @@ var init_SubscriptionRepository = __esm({
             resource: { type: "table", name: ORGS_TABLE2 }
           });
         }
+      }
+      async setAllowTrial(organizationId, allowTrial) {
+        const { error } = await this.supabase.from(ORGS_TABLE2).update({ allow_trial: allowTrial, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", organizationId);
+        if (error) {
+          throw new DatabaseError("Failed to update allow_trial flag", {
+            cause: error,
+            operation: "setAllowTrial",
+            resource: { type: "table", name: ORGS_TABLE2 }
+          });
+        }
+      }
+      /** True when the user has started a Cloud trial or owns a workspace with subscription history. */
+      async hasUserConsumedCloudTrial(userId) {
+        const trimmed = userId.trim();
+        if (!trimmed) return false;
+        const { data: userRow, error: userError } = await this.supabase.from("users").select("cloud_trial_consumed_at").eq("id", trimmed).maybeSingle();
+        if (userError) {
+          throw new DatabaseError("Failed to load user trial consumption", {
+            cause: userError,
+            operation: "hasUserConsumedCloudTrial",
+            resource: { type: "table", name: "users" }
+          });
+        }
+        if (userRow?.cloud_trial_consumed_at) {
+          return true;
+        }
+        const { data: ownedOrgs, error: membershipError } = await this.supabase.from("user_organizations").select("organization_id").eq("user_id", trimmed).eq("role", "owner");
+        if (membershipError) {
+          throw new DatabaseError("Failed to list owned workspaces for trial check", {
+            cause: membershipError,
+            operation: "hasUserConsumedCloudTrial",
+            resource: { type: "table", name: "user_organizations" }
+          });
+        }
+        const ownedOrgIds = (ownedOrgs ?? []).map(
+          (row) => row.organization_id
+        );
+        if (ownedOrgIds.length === 0) {
+          return false;
+        }
+        const { count, error: subscriptionError } = await this.supabase.from(SUBSCRIPTIONS_TABLE).select("id", { count: "exact", head: true }).in("organization_id", ownedOrgIds);
+        if (subscriptionError) {
+          throw new DatabaseError("Failed to check owned workspace subscription history", {
+            cause: subscriptionError,
+            operation: "hasUserConsumedCloudTrial",
+            resource: { type: "table", name: SUBSCRIPTIONS_TABLE }
+          });
+        }
+        return (count ?? 0) > 0;
       }
       /** Checkout correlation id (`?checkout=` / Stripe metadata.uniqueId), any workspace. */
       async getSubscriptionByIdentifier(identifier) {
@@ -26956,6 +27003,28 @@ var init_StripeService = __esm({
         const stripeCfg2 = config.stripe;
         return Boolean(stripeCfg2?.publishableKey?.trim());
       }
+      /** One 7-day Cloud trial per account and per Stripe customer (org flag + user + Stripe history). */
+      async resolveCheckoutTrialEligibility(organizationId, userId) {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.allow_trial) {
+          return false;
+        }
+        if (await this.subscriptionRepository.hasUserConsumedCloudTrial(userId)) {
+          return false;
+        }
+        const customer = org.stripe_customer_id?.trim();
+        if (customer) {
+          const subs = await getStripeClient().subscriptions.list({
+            customer,
+            status: "all",
+            limit: 1
+          });
+          if (subs.data.length > 0) {
+            return false;
+          }
+        }
+        return true;
+      }
       packagesFromCatalog() {
         const rows = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => {
           const plan = pricing[tier];
@@ -31073,8 +31142,12 @@ var init_BillingController = __esm({
       getCurrent = async (req, res, next) => {
         try {
           const organizationId = resolveActiveOrganizationId(req, { required: true });
-          const authUserId = req.user?.id;
-          const data = await this.buildCurrentBillingData(organizationId, authUserId);
+          const authUser = req.user;
+          const data = await this.buildCurrentBillingData(
+            organizationId,
+            authUser?.id,
+            authUser?.publicId
+          );
           res.status(200).json({ success: true, data });
         } catch (error) {
           next(error);
@@ -31095,15 +31168,23 @@ var init_BillingController = __esm({
           if (!orgBilling) {
             throw new UserValidationError("Organization not found");
           }
+          const publicUserId = authUser.publicId;
+          if (!publicUserId) {
+            throw new UserValidationError("Authentication required");
+          }
+          const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
+            organizationId,
+            publicUserId
+          );
           const result = await this.stripeService.subscribe({
             organizationId,
-            userId: authUser.publicId ?? authUser.id,
+            userId: publicUserId,
             body: {
               period: body.period,
               billing: body.billing,
               stripePriceId: body.stripePriceId
             },
-            allowTrial: orgBilling.allow_trial
+            allowTrial
           });
           res.status(200).json({ success: true, data: result });
         } catch (error) {
@@ -31125,15 +31206,23 @@ var init_BillingController = __esm({
           if (!orgBilling) {
             throw new UserValidationError("Organization not found");
           }
+          const publicUserId = authUser.publicId;
+          if (!publicUserId) {
+            throw new UserValidationError("Authentication required");
+          }
+          const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
+            organizationId,
+            publicUserId
+          );
           const result = await this.stripeService.createEmbeddedCheckout({
             organizationId,
-            userId: authUser.publicId ?? authUser.id,
+            userId: publicUserId,
             body: {
               period: body.period,
               billing: body.billing,
               stripePriceId: body.stripePriceId
             },
-            allowTrial: orgBilling.allow_trial
+            allowTrial
           });
           res.status(200).json({ success: true, data: result });
         } catch (error) {
@@ -31327,7 +31416,7 @@ ${feedback}`,
           next(error);
         }
       };
-      async buildCurrentBillingData(organizationId, authUserId) {
+      async buildCurrentBillingData(organizationId, authUserId, publicUserId) {
         try {
           await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
         } catch (error) {
@@ -31381,11 +31470,30 @@ ${feedback}`,
         let billing = null;
         try {
           const orgBilling = await this.subscriptionRepository.getOrganizationBilling(billingOrganizationId);
-          billing = orgBilling ? {
-            allowTrial: orgBilling.allow_trial,
-            isTrialing: orgBilling.is_trialing,
-            hasStripeCustomer: Boolean(orgBilling.stripe_customer_id)
-          } : null;
+          if (orgBilling) {
+            let effectiveAllowTrial = orgBilling.allow_trial;
+            if (publicUserId) {
+              try {
+                effectiveAllowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
+                  billingOrganizationId,
+                  publicUserId
+                );
+              } catch (error) {
+                logger.warn({
+                  msg: "buildCurrentBillingData: trial eligibility lookup failed",
+                  organizationId: billingOrganizationId,
+                  error: error instanceof Error ? error.message : String(error)
+                });
+              }
+            }
+            billing = {
+              allowTrial: effectiveAllowTrial,
+              isTrialing: orgBilling.is_trialing,
+              hasStripeCustomer: Boolean(orgBilling.stripe_customer_id)
+            };
+          } else {
+            billing = null;
+          }
         } catch (error) {
           logger.warn({
             msg: "buildCurrentBillingData: organization billing lookup failed",
@@ -36235,7 +36343,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-17T12:29:23.798Z",
+  generated: "2026-09-18T00:24:17.909Z",
   routes: [
     {
       path: "/docs",

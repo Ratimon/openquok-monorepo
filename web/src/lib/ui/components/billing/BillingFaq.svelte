@@ -13,11 +13,18 @@
 		const list: FaqItem[] = [];
 
 		if (allowTrial) {
-			list.push({
-				title: 'Am I going to be charged?',
-				description:
-					'To confirm your card, we may place a small authorization hold and release it immediately. You can cancel anytime from billing settings without contacting support.'
-			});
+			list.push(
+				{
+					title: 'Am I going to be charged?',
+					description:
+						'To confirm your card, we may place a small authorization hold and release it immediately. You can cancel anytime from billing settings without contacting support.'
+				},
+				{
+					title: 'Can I get another free trial later?',
+					description:
+						'No. Cloud includes one 7-day trial per account and per payment customer. Canceling and resubscribing, opening another workspace, or registering again does not start a new trial.'
+				}
+			);
 		}
 
 

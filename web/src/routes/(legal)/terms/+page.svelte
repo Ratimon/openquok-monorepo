@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 8, 2026</SectionDescription>
+			<SectionDescription>Last updated September 17, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -125,6 +125,13 @@
 					We may offer free tiers, trials, or features labelled beta, preview, or similar. They are
 					provided <strong>“as is”</strong>, may have additional limits, and may change or end at any
 					time. We make no warranties regarding free or beta features.
+				</p>
+				<p>
+					Where we offer a Cloud free trial (for example a seven-day trial on a paid plan), you may
+					receive <strong>one</strong> such trial per person or account and per payment customer (for
+					example the Stripe customer on file). Repeat trials after cancellation, resubscription, a
+					new workspace, or re-registration are not permitted. We may end or adjust a trial, or
+					require immediate paid billing, when eligibility rules are not met.
 				</p>
 
 				<h2>6. Your content</h2>

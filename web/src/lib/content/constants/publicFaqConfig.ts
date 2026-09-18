@@ -22,7 +22,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I try OpenQuok for free?',
 		description:
-			`Yes. OpenQuok offers a 7-day free trial so you can schedule social media posts across your connected channels before you choose a plan. Create an account and start today — no credit card required to explore the scheduler. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			`Yes. OpenQuok offers one 7-day free trial per account and per payment customer so you can schedule social media posts across your connected channels before you choose a plan. Create an account and start today — no credit card required to explore the scheduler. Canceling and resubscribing, or creating another workspace, does not grant a second trial. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}; trial rules are in the ${faqLink(faqHrefDocs('cloud/trial'), 'Cloud trial guide')}.`
 	},
 	{
 		title: 'How do I schedule social media posts with OpenQuok?',

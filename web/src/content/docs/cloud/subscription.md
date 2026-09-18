@@ -2,7 +2,7 @@
 title: Subscription
 description: Manage an OpenQuok Cloud subscription — Stripe checkout, plan changes, invoices, and cancellation from account billing.
 order: 3
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-18
 ---
 
 <script>
@@ -12,6 +12,8 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 ## Overview
 
 Cloud billing lives at <a href="/account/billing">/account/billing</a>. OpenQuok uses **Stripe** for checkout, invoices, and the customer portal. Workspace **owners** change plans and payment methods; other roles can view limits but cannot subscribe, upgrade, or cancel.
+
+The 7-day Cloud trial is offered once per account and per Stripe customer — canceling and resubscribing does not grant another trial. See the [Trial](/docs/cloud/trial) guide for eligibility and checkout behavior.
 
 <Callout type="warning">
 <p>Self-hosted instances with Stripe unset show billing as not configured — no upgrade cards and no paywall. Limits are not enforced by Stripe in that mode. See <a href="/docs/configuration-backend/stripe">Stripe billing</a>.</p>

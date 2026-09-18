@@ -108,8 +108,12 @@ export class BillingController {
     getCurrent = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const organizationId = resolveActiveOrganizationId(req, { required: true })!;
-            const authUserId = (req as AuthenticatedRequest).user?.id;
-            const data = await this.buildCurrentBillingData(organizationId, authUserId);
+            const authUser = (req as AuthenticatedRequest).user;
+            const data = await this.buildCurrentBillingData(
+                organizationId,
+                authUser?.id,
+                authUser?.publicId
+            );
             res.status(200).json({ success: true, data });
         } catch (error) {
             next(error);
@@ -141,15 +145,25 @@ export class BillingController {
                 throw new UserValidationError("Organization not found");
             }
 
+            const publicUserId = authUser.publicId;
+            if (!publicUserId) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
+                organizationId,
+                publicUserId
+            );
+
             const result = await this.stripeService.subscribe({
                 organizationId,
-                userId: authUser.publicId ?? authUser.id,
+                userId: publicUserId,
                 body: {
                     period: body.period,
                     billing: body.billing,
                     stripePriceId: body.stripePriceId,
                 },
-                allowTrial: orgBilling.allow_trial,
+                allowTrial,
             });
 
             res.status(200).json({ success: true, data: result });
@@ -183,15 +197,25 @@ export class BillingController {
                 throw new UserValidationError("Organization not found");
             }
 
+            const publicUserId = authUser.publicId;
+            if (!publicUserId) {
+                throw new UserValidationError("Authentication required");
+            }
+
+            const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
+                organizationId,
+                publicUserId
+            );
+
             const result = await this.stripeService.createEmbeddedCheckout({
                 organizationId,
-                userId: authUser.publicId ?? authUser.id,
+                userId: publicUserId,
                 body: {
                     period: body.period,
                     billing: body.billing,
                     stripePriceId: body.stripePriceId,
                 },
-                allowTrial: orgBilling.allow_trial,
+                allowTrial,
             });
 
             res.status(200).json({ success: true, data: result });
@@ -415,7 +439,11 @@ export class BillingController {
         }
     };
 
-    async buildCurrentBillingData(organizationId: string, authUserId?: string) {
+    async buildCurrentBillingData(
+        organizationId: string,
+        authUserId?: string,
+        publicUserId?: string
+    ) {
         try {
             await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
         } catch (error) {
@@ -480,13 +508,31 @@ export class BillingController {
         try {
             const orgBilling =
                 await this.subscriptionRepository.getOrganizationBilling(billingOrganizationId);
-            billing = orgBilling
-                ? {
-                      allowTrial: orgBilling.allow_trial,
-                      isTrialing: orgBilling.is_trialing,
-                      hasStripeCustomer: Boolean(orgBilling.stripe_customer_id),
-                  }
-                : null;
+            if (orgBilling) {
+                let effectiveAllowTrial = orgBilling.allow_trial;
+                if (publicUserId) {
+                    try {
+                        effectiveAllowTrial =
+                            await this.stripeService.resolveCheckoutTrialEligibility(
+                                billingOrganizationId,
+                                publicUserId
+                            );
+                    } catch (error) {
+                        logger.warn({
+                            msg: "buildCurrentBillingData: trial eligibility lookup failed",
+                            organizationId: billingOrganizationId,
+                            error: error instanceof Error ? error.message : String(error),
+                        });
+                    }
+                }
+                billing = {
+                    allowTrial: effectiveAllowTrial,
+                    isTrialing: orgBilling.is_trialing,
+                    hasStripeCustomer: Boolean(orgBilling.stripe_customer_id),
+                };
+            } else {
+                billing = null;
+            }
         } catch (error) {
             logger.warn({
                 msg: "buildCurrentBillingData: organization billing lookup failed",

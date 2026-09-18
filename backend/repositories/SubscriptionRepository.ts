@@ -143,6 +143,81 @@ export class SubscriptionRepository {
         }
     }
 
+    async setAllowTrial(organizationId: string, allowTrial: boolean): Promise<void> {
+        const { error } = await this.supabase
+            .from(ORGS_TABLE)
+            .update({ allow_trial: allowTrial, updated_at: new Date().toISOString() })
+            .eq("id", organizationId);
+
+        if (error) {
+            throw new DatabaseError("Failed to update allow_trial flag", {
+                cause: error as unknown as Error,
+                operation: "setAllowTrial",
+                resource: { type: "table", name: ORGS_TABLE },
+            });
+        }
+    }
+
+    /** True when the user has started a Cloud trial or owns a workspace with subscription history. */
+    async hasUserConsumedCloudTrial(userId: string): Promise<boolean> {
+        const trimmed = userId.trim();
+        if (!trimmed) return false;
+
+        const { data: userRow, error: userError } = await this.supabase
+            .from("users")
+            .select("cloud_trial_consumed_at")
+            .eq("id", trimmed)
+            .maybeSingle();
+
+        if (userError) {
+            throw new DatabaseError("Failed to load user trial consumption", {
+                cause: userError as unknown as Error,
+                operation: "hasUserConsumedCloudTrial",
+                resource: { type: "table", name: "users" },
+            });
+        }
+
+        if (userRow?.cloud_trial_consumed_at) {
+            return true;
+        }
+
+        const { data: ownedOrgs, error: membershipError } = await this.supabase
+            .from("user_organizations")
+            .select("organization_id")
+            .eq("user_id", trimmed)
+            .eq("role", "owner");
+
+        if (membershipError) {
+            throw new DatabaseError("Failed to list owned workspaces for trial check", {
+                cause: membershipError as unknown as Error,
+                operation: "hasUserConsumedCloudTrial",
+                resource: { type: "table", name: "user_organizations" },
+            });
+        }
+
+        const ownedOrgIds = (ownedOrgs ?? []).map(
+            (row: { organization_id: string }) => row.organization_id
+        );
+        if (ownedOrgIds.length === 0) {
+            return false;
+        }
+
+        const { count, error: subscriptionError } = await this.supabase
+            .from(SUBSCRIPTIONS_TABLE)
+            .select("id", { count: "exact", head: true })
+            .in("organization_id", ownedOrgIds);
+
+        if (subscriptionError) {
+            throw new DatabaseError("Failed to check owned workspace subscription history", {
+                cause: subscriptionError as unknown as Error,
+                operation: "hasUserConsumedCloudTrial",
+                resource: { type: "table", name: SUBSCRIPTIONS_TABLE },
+            });
+        }
+
+        return (count ?? 0) > 0;
+    }
+
     /** Checkout correlation id (`?checkout=` / Stripe metadata.uniqueId), any workspace. */
     async getSubscriptionByIdentifier(identifier: string): Promise<OrganizationSubscriptionRow | null> {
         const trimmed = identifier.trim();

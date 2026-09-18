@@ -273,6 +273,30 @@ describe("OrganizationService", () => {
             await service.createOrganization(authUserId, { name: orgName, description: orgDescription });
             expect(invalidateKey).toHaveBeenCalledWith(`org:list:byUserId:${authUserId}`);
         });
+
+        it("does not force allow_trial when creating a workspace (SQL default applies)", async () => {
+            (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await service.createOrganization(authUserId, {
+                name: orgName,
+                description: orgDescription,
+            });
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: orgName,
+                description: orgDescription,
+                userId,
+            });
+            const createArgs = (orgRepo.createOrganization as jest.Mock).mock.calls[0]?.[0] as Record<
+                string,
+                unknown
+            >;
+            expect(createArgs).not.toHaveProperty("allowTrial");
+            expect(createArgs).not.toHaveProperty("p_allow_trial");
+            expect(createArgs).not.toHaveProperty("p_is_trialing");
+        });
     });
 
     describe("createDefaultOrganizationForNewUser", () => {
@@ -381,6 +405,31 @@ describe("OrganizationService", () => {
                 description: null,
                 userId,
             });
+        });
+
+        it("does not override trial eligibility when creating a default org for repeat subscribers", async () => {
+            (orgRepo.findOrganizationsByUserId as jest.Mock).mockResolvedValue({
+                organizations: [],
+                memberships: [],
+                error: null,
+            });
+            (orgRepo.getMemberCounts as jest.Mock).mockResolvedValue({});
+            (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const service = new OrganizationService(orgRepo, userRepo);
+            await service.ensureDefaultOrganizationForUser(authUserId, { name: orgName });
+            const createArgs = (orgRepo.createOrganization as jest.Mock).mock.calls[0]?.[0] as Record<
+                string,
+                unknown
+            >;
+            expect(createArgs).toEqual({
+                name: orgName,
+                description: null,
+                userId,
+            });
+            expect(createArgs).not.toHaveProperty("p_allow_trial");
         });
     });
 

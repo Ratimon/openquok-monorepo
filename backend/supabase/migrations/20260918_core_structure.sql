@@ -83,6 +83,28 @@ COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed
 -- ---------------------------
 
 
+-- Module: user-management, File: 101_20260918_tables.sql
+-- ---------------------------
+-- MODULE NAME: User Management
+-- MODULE DATE: 20260918
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.users
+    ADD COLUMN IF NOT EXISTS cloud_trial_consumed_at TIMESTAMPTZ NULL;
+
+COMMENT ON COLUMN public.users.cloud_trial_consumed_at IS
+    'Set when the user first starts or completes a Cloud trial. One trial per account.';
+
+-- Historical consumption is backfilled in billing/402 after organization_subscriptions exists.
+
+-- ---------------------------
+-- END OF FILE
+-- ---------------------------
+
+
 -- Module: user-auth, File: 102_20260227_tables.sql
 -- ---------------------------
 -- MODULE NAME: User Auth
@@ -5298,6 +5320,94 @@ COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, t
     'Create organization and add founding user as owner (bypasses RLS); billing flags supplied by API layer.';
 
 
+-- Module: organization, File: 402_20260918_functions.sql
+-- ---------------------------
+-- MODULE NAME: organization
+-- MODULE DATE: 20260918
+-- MODULE SCOPE: Functions
+-- ---------------------------
+-- Default new-workspace trial eligibility from the owner's Cloud trial consumption.
+
+BEGIN;
+
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text);
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, text, boolean, boolean);
+DROP FUNCTION IF EXISTS public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean);
+
+CREATE OR REPLACE FUNCTION public.internal_create_organization_with_owner(
+    p_user_id uuid,
+    p_name text,
+    p_description text,
+    p_allow_trial boolean DEFAULT NULL,
+    p_is_trialing boolean DEFAULT TRUE
+)
+RETURNS TABLE (
+    id uuid,
+    name text,
+    description text,
+    created_at timestamptz,
+    updated_at timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_org_id uuid;
+    v_name text;
+    v_allow_trial boolean;
+BEGIN
+    v_name := trim(p_name);
+    IF v_name IS NULL OR v_name = '' THEN
+        RAISE EXCEPTION 'Organization name is required';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM public.users u WHERE u.id = p_user_id) THEN
+        RAISE EXCEPTION 'User not found';
+    END IF;
+
+    v_allow_trial := COALESCE(
+        p_allow_trial,
+        (
+            SELECT u.cloud_trial_consumed_at IS NULL
+            FROM public.users u
+            WHERE u.id = p_user_id
+        )
+    );
+
+    INSERT INTO public.organizations (
+        name,
+        description,
+        allow_trial,
+        is_trialing,
+        updated_at
+    )
+    VALUES (
+        v_name,
+        NULLIF(trim(COALESCE(p_description, '')), ''),
+        COALESCE(v_allow_trial, FALSE),
+        COALESCE(p_is_trialing, TRUE),
+        NOW()
+    )
+    RETURNING organizations.id INTO v_org_id;
+
+    INSERT INTO public.user_organizations (user_id, organization_id, role, disabled, updated_at)
+    VALUES (p_user_id, v_org_id, 'owner', FALSE, NOW());
+
+    RETURN QUERY
+    SELECT o.id, o.name, o.description, o.created_at, o.updated_at
+    FROM public.organizations o
+    WHERE o.id = v_org_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) TO service_role;
+
+COMMENT ON FUNCTION public.internal_create_organization_with_owner(uuid, text, text, boolean, boolean) IS
+    'Create organization and add founding user as owner (bypasses RLS). When p_allow_trial is omitted, defaults from whether the owner has already consumed a Cloud trial.';
+
+
 -- Module: billing, File: 401_20260525_functions.sql
 -- ---------------------------
 -- MODULE NAME: Billing
@@ -5457,6 +5567,206 @@ COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
     timestamptz,
     timestamptz
 ) IS 'Upsert paid subscription row and trial flag (bypasses RLS); Stripe webhook and billing API only.';
+
+
+-- Module: billing, File: 402_20260918_functions.sql
+-- ---------------------------
+-- MODULE NAME: Billing
+-- MODULE DATE: 20260918
+-- MODULE SCOPE: Functions
+-- ---------------------------
+-- One Cloud trial per account: revoke workspace trial eligibility on subscription
+-- sync, and mark the workspace owner as having consumed their trial.
+
+BEGIN;
+
+DROP FUNCTION IF EXISTS public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+);
+
+CREATE OR REPLACE FUNCTION public.internal_upsert_organization_subscription(
+    p_organization_id uuid,
+    p_subscription_tier public.subscription_tier,
+    p_period public.subscription_period,
+    p_identifier text,
+    p_cancel_at timestamptz,
+    p_channels_per_workspace integer,
+    p_is_lifetime boolean DEFAULT FALSE,
+    p_is_trialing boolean DEFAULT FALSE,
+    p_current_period_start timestamptz DEFAULT NULL,
+    p_current_period_end timestamptz DEFAULT NULL
+)
+RETURNS TABLE (
+    id uuid,
+    organization_id uuid,
+    subscription_tier public.subscription_tier,
+    period public.subscription_period,
+    identifier text,
+    cancel_at timestamptz,
+    channels_per_workspace integer,
+    is_lifetime boolean,
+    current_period_start timestamptz,
+    current_period_end timestamptz,
+    created_at timestamptz,
+    updated_at timestamptz,
+    deleted_at timestamptz
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.organizations o WHERE o.id = p_organization_id) THEN
+        RAISE EXCEPTION 'Organization not found';
+    END IF;
+
+    INSERT INTO public.organization_subscriptions (
+        organization_id,
+        subscription_tier,
+        period,
+        identifier,
+        cancel_at,
+        channels_per_workspace,
+        is_lifetime,
+        current_period_start,
+        current_period_end,
+        updated_at,
+        deleted_at
+    )
+    VALUES (
+        p_organization_id,
+        p_subscription_tier,
+        p_period,
+        NULLIF(trim(COALESCE(p_identifier, '')), ''),
+        p_cancel_at,
+        p_channels_per_workspace,
+        COALESCE(p_is_lifetime, FALSE),
+        p_current_period_start,
+        p_current_period_end,
+        NOW(),
+        NULL
+    )
+    ON CONFLICT ON CONSTRAINT uq_organization_subscriptions_org DO UPDATE SET
+        subscription_tier = EXCLUDED.subscription_tier,
+        period = EXCLUDED.period,
+        identifier = EXCLUDED.identifier,
+        cancel_at = EXCLUDED.cancel_at,
+        channels_per_workspace = EXCLUDED.channels_per_workspace,
+        is_lifetime = EXCLUDED.is_lifetime,
+        current_period_start = EXCLUDED.current_period_start,
+        current_period_end = EXCLUDED.current_period_end,
+        updated_at = NOW(),
+        deleted_at = NULL;
+
+    UPDATE public.organizations
+    SET
+        is_trialing = COALESCE(p_is_trialing, FALSE),
+        allow_trial = FALSE,
+        updated_at = NOW()
+    WHERE organizations.id = p_organization_id;
+
+    IF COALESCE(p_is_trialing, FALSE) THEN
+        UPDATE public.users u
+        SET
+            cloud_trial_consumed_at = COALESCE(u.cloud_trial_consumed_at, NOW()),
+            updated_at = NOW()
+        FROM public.user_organizations uo
+        WHERE uo.user_id = u.id
+          AND uo.organization_id = p_organization_id
+          AND uo.role = 'owner';
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        s.id,
+        s.organization_id,
+        s.subscription_tier,
+        s.period,
+        s.identifier,
+        s.cancel_at,
+        s.channels_per_workspace,
+        s.is_lifetime,
+        s.current_period_start,
+        s.current_period_end,
+        s.created_at,
+        s.updated_at,
+        s.deleted_at
+    FROM public.organization_subscriptions s
+    WHERE s.organization_id = p_organization_id;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+) FROM PUBLIC;
+
+GRANT EXECUTE ON FUNCTION public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+) TO service_role;
+
+COMMENT ON FUNCTION public.internal_upsert_organization_subscription(
+    uuid,
+    public.subscription_tier,
+    public.subscription_period,
+    text,
+    timestamptz,
+    integer,
+    boolean,
+    boolean,
+    timestamptz,
+    timestamptz
+) IS 'Upsert paid subscription row, revoke workspace trial eligibility, and mark the owner trial as consumed when trialing (bypasses RLS); Stripe webhook and billing API only.';
+
+-- Workspaces that already have a subscription row (including soft-deleted) cannot start another trial.
+UPDATE public.organizations o
+SET allow_trial = FALSE, updated_at = NOW()
+WHERE o.allow_trial = TRUE
+  AND EXISTS (
+    SELECT 1 FROM public.organization_subscriptions s
+    WHERE s.organization_id = o.id
+  );
+
+-- Owners of those workspaces have already used their one Cloud trial.
+UPDATE public.users u
+SET
+    cloud_trial_consumed_at = COALESCE(u.cloud_trial_consumed_at, NOW()),
+    updated_at = NOW()
+WHERE u.cloud_trial_consumed_at IS NULL
+  AND EXISTS (
+    SELECT 1
+    FROM public.user_organizations uo
+    INNER JOIN public.organization_subscriptions s
+        ON s.organization_id = uo.organization_id
+    WHERE uo.user_id = u.id
+      AND uo.role = 'owner'
+  );
 
 
 -- Module: customer, File: 401_20260412_functions.sql

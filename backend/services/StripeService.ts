@@ -211,6 +211,32 @@ export class StripeService {
         return Boolean(stripeCfg?.publishableKey?.trim());
     }
 
+    /** One 7-day Cloud trial per account and per Stripe customer (org flag + user + Stripe history). */
+    async resolveCheckoutTrialEligibility(
+        organizationId: string,
+        userId: string
+    ): Promise<boolean> {
+        const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
+        if (!org?.allow_trial) {
+            return false;
+        }
+        if (await this.subscriptionRepository.hasUserConsumedCloudTrial(userId)) {
+            return false;
+        }
+        const customer = org.stripe_customer_id?.trim();
+        if (customer) {
+            const subs = await getStripeClient().subscriptions.list({
+                customer,
+                status: "all",
+                limit: 1,
+            });
+            if (subs.data.length > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private packagesFromCatalog(): SubscriptionTiersPackages {
         const rows: SubscriptionTierPriceRow[] = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => {
             const plan = pricing[tier];

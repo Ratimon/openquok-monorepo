@@ -170,8 +170,6 @@ export class OrganizationRepository {
                 p_user_id: params.userId,
                 p_name: params.name,
                 p_description: params.description ?? null,
-                p_allow_trial: true,
-                p_is_trialing: true,
             } as never
         );
         if (error) {
