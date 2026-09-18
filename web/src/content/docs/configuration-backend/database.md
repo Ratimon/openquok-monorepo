@@ -71,6 +71,10 @@ pnpm db:aggregate-migrations-all
 pnpm db:aggregate-migrations-single config
 ```
 
+## Production backup
+
+Before you squash migrations or move a production project to a new region, back up the database and Storage. See <a href="/docs/configuration-backend/supabase-backup">Supabase backup</a>.
+
 ## Cron: expired refresh tokens (pg_cron)
 
 The `user-auth` module includes a cron job that deletes expired rows in `public.refresh_tokens` (runs every Saturday at **3:30 AM GMT**). It relies on the Postgres <code>pg&#95;cron</code> extension.

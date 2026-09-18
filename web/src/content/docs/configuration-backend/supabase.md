@@ -100,5 +100,6 @@ If you need to enable it manually, Supabase’s docs show the required SQL and g
 
 <CardGrid>
 <LinkCard title="Database & migrations" description="Supabase CLI, migrations, and pg_cron refresh-token cleanup" href="/docs/configuration-backend/database" />
+<LinkCard title="Supabase backup" description="Dashboard snapshots, CLI dumps, and Storage export before cutover" href="/docs/configuration-backend/supabase-backup" />
 <LinkCard title="Email (Resend / local)" description="Supabase email confirmations, local inbox, and Resend production setup" href="/docs/configuration-backend/resend" />
 </CardGrid>

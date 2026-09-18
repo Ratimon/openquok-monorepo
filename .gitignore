@@ -16,6 +16,10 @@
 .env.*
 !.env*.example
 
+# Manual production Supabase exports (PII — never commit dump output)
+.backups/*
+!.backups/README.md
+
 # Cursor MCP config (contains programmatic API tokens)
 .cursor/mcp.json
 
