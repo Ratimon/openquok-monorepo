@@ -8,15 +8,16 @@
  *   node scripts/prod-backup/dump-database.mjs --linked
  *
  * Or with an explicit session-pooler URL / password:
- *   export OLD_DB_URL='postgresql://postgres.ldewhviobysqevtnfznh:[PASSWORD]@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres'
+ *   export OLD_DB_URL='postgresql://postgres.<source-ref>:[PASSWORD]@<pooler-host>:5432/postgres'
  *   node scripts/prod-backup/dump-database.mjs
+ *   export SUPABASE_SOURCE_POOLER_HOST='<pooler-host>'
  *   node scripts/prod-backup/dump-database.mjs --db-password '...'
  */
 
 import { spawnSync } from "node:child_process";
 import { existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { PROD_POOLER_HOST, PROD_PROJECT_REF } from "./constants.mjs";
+import { resolveSourceProjectRef } from "./constants.mjs";
 import {
   buildSessionPoolerUrl,
   ensureDir,
@@ -41,7 +42,9 @@ Options:
   -h, --help                 Show this help
 
 Environment:
-  OLD_DB_URL                 Full session-pooler connection string
+  OLD_DB_URL                   Full session-pooler connection string
+  SUPABASE_SOURCE_POOLER_HOST  Required with --db-password (Dashboard → Connect)
+  SUPABASE_SOURCE_PROJECT_REF  Optional override when building URL from password
 `);
 }
 
@@ -83,10 +86,12 @@ function resolveDbUrl(args) {
     return process.env.OLD_DB_URL.trim();
   }
   if (args.dbPassword) {
-    return buildSessionPoolerUrl(PROD_PROJECT_REF, args.dbPassword, PROD_POOLER_HOST);
+    const projectRef = resolveSourceProjectRef({ envFile: args.envFile });
+    const poolerHost = process.env.SUPABASE_SOURCE_POOLER_HOST?.trim();
+    return buildSessionPoolerUrl(projectRef, args.dbPassword, poolerHost);
   }
   fail(
-    "Pass --linked (backend project linked to Seoul), or set OLD_DB_URL, or pass --db-password."
+    "Pass --linked (backend linked to source project), or set OLD_DB_URL, or pass --db-password with SUPABASE_SOURCE_POOLER_HOST."
   );
 }
 

@@ -2,7 +2,7 @@
 title: Supabase backup
 description: Back up the OpenQuok Supabase database and Storage before migrations or region cutover.
 order: 7
-lastUpdated: 2026-09-18
+lastUpdated: 2026-09-19
 ---
 
 <script>
@@ -126,6 +126,8 @@ pnpm prod-backup:verify
 pnpm prod-backup:dump
 pnpm prod-backup:storage
 pnpm prod-backup:initial
+pnpm prod-backup:restore
+pnpm prod-backup:rehearse
 ```
 
 ### Copy dumps off site
@@ -140,19 +142,142 @@ node scripts/prod-backup/run-initial-backup.mjs --latest-snapshot YYYY-MM-DD --s
 
 </Steps>
 
+## Phase B0 — Target project in the new region
+
+Create the cutover target project in the new region before you run the maintenance restore. The source (current production) project stays live until cutover. This phase does not change production environment variables.
+
+Pick a region close to your API and workers. Enable <strong>Integrations → Cron</strong> (<code>pg_cron</code>) on the target project before you restore data.
+
+### Automated setup
+
+Run from the repo root:
+
+```bash
+pnpm prod-backup:create-us-project
+```
+
+Pass the target project ref when the project already exists:
+
+```bash
+pnpm prod-backup:create-us-project --project-ref YOUR_TARGET_PROJECT_REF
+```
+
+To copy auth settings from the source project through the Management API, set a <DocsExternalLink href="https://supabase.com/dashboard/account/tokens">Personal Access Token</DocsExternalLink> with auth config read and write permissions:
+
+```bash
+SUPABASE_ACCESS_TOKEN=sbp_... pnpm prod-backup:create-us-project --project-ref YOUR_TARGET_PROJECT_REF
+```
+
+<Callout type="note" title="Personal Access Token and the CLI">
+<p>If the command fails with a privileges error, the token may not list projects or run SQL. Unset the token and finish keys and <code>pg_cron</code> only:</p>
+<p><code>unset SUPABASE_ACCESS_TOKEN</code></p>
+<p><code>pnpm prod-backup:create-us-project --project-ref YOUR_TARGET_PROJECT_REF --skip-auth</code></p>
+<p>Then complete auth in the dashboard, or create a token with broader project read access.</p>
+</Callout>
+
+The script writes a migration manifest under <Badge text=".backups/" variant="path" /> (gitignored). It records the target project ref, pooler host, and API keys.
+
+### Manual verification checklist
+
+Complete these checks after the script runs. Do not update <Badge text="backend/.env.production.local" variant="envBackend" />, <Badge text="web/.env.production.local" variant="envWeb" />, or Vercel until cutover.
+
+<Steps
+	howToName="Verify target Supabase project (Phase B0)"
+	howToDescription="Manual dashboard checks after creating the cutover target project in a new region."
+>
+
+### Verify auth on the target project
+
+Open <strong>Authentication</strong> in the <DocsExternalLink href="https://supabase.com/dashboard">Supabase Dashboard</DocsExternalLink> for the target project.
+
+| Check | Where |
+|-------|--------|
+| Google is enabled. Client secret is saved. | Auth → Providers → Google |
+| Site URL matches your frontend | Auth → URL Configuration |
+| Redirect URLs match the source project | Auth → URL Configuration |
+| Email confirmation settings match the source project | Auth → Providers → Email (or Auth → Settings) |
+| Leaked password protection matches your policy | Auth → Settings |
+
+<Callout type="note" title="Resend is not Supabase SMTP">
+<p>OpenQuok sends mail through the backend Resend HTTPS API (<Badge text="RESEND_SECRET_KEY" variant="envBackend" />, <Badge text="SENDER_EMAIL_ADDRESS" variant="envBackend" />). See <a href="/docs/configuration-backend/resend">Email (Resend)</a>. You do not configure Resend under Supabase Auth → SMTP.</p>
+</Callout>
+
+If auth settings are missing, copy them from the source project dashboard or re-run the script with <Badge text="SUPABASE_ACCESS_TOKEN" variant="envBackend" /> (without <code>--skip-auth</code>).
+
+### Add the Google Cloud redirect URI
+
+In <DocsExternalLink href="https://console.cloud.google.com/">Google Cloud Console</DocsExternalLink> → OAuth client → <strong>Authorized redirect URIs</strong>, add the target project callback:
+
+```txt
+https://YOUR_TARGET_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+Keep the source project callback until you decommission the old project:
+
+```txt
+https://YOUR_SOURCE_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+See <a href="/docs/configuration-backend/google-oauth">Google OAuth</a>.
+
+### Confirm API key format
+
+OpenQuok expects <Badge text="sb_publishable_…" variant="envBackend" /> and <Badge text="sb_secret_…" variant="envBackend" />, not legacy JWT keys. Copy both from <strong>target project → Settings → API Keys</strong>. Update the migration manifest if the script stored legacy <code>eyJ…</code> keys.
+
+### Complete the B0 checklist
+
+- Target project exists in the new region (correct plan and compute size)
+- <code>pg_cron</code> is enabled on the target project
+- API keys are recorded (<code>sb_publishable_…</code> / <code>sb_secret_…</code>)
+- Auth is verified (Google secret, URL config, email confirmation, leaked-password protection)
+- Google OAuth redirect URI for the target project is added in Google Cloud Console
+- Production env still points at the source project
+
+### Optional — redirect URL wildcard
+
+The target project may list a wildcard redirect URL (for example <code>https://YOUR_BACKEND_DOMAIN/**</code>) in addition to the exact callback path. The source project may list only the exact URL. You can remove the wildcard to match the source project. Add it back if OAuth redirects fail. See <a href="/docs/configuration-backend/google-oauth">Google OAuth</a>.
+
+</Steps>
+
+### Optional — rehearsal on the throwaway target
+
+Before the maintenance window, restore a Layer 2 dump into the B0 target project and dry-run Storage migration (list source/target object counts without uploading bytes):
+
+```bash
+# backend/ must be linked to the throwaway target project
+pnpm prod-backup:rehearse --linked --backup-dir .backups/20260918
+```
+
+Roles and schema restore through the linked Supabase CLI. <code>data.sql</code> loads through <code>psql</code> (COPY format). Without <Badge text="NEW_DB_URL" variant="envBackend" /> or <Badge text="SUPABASE_TARGET_DB_PASSWORD" variant="envBackend" />, the script resets the target database password via the Management API (requires <Badge text="SUPABASE_ACCESS_TOKEN" variant="envBackend" /> with <code>database_config_write</code>).
+
+The script writes <Badge text=".backups/us-migration/rehearsal-report.json" variant="path" /> (gitignored). To copy Storage objects during rehearsal (not recommended on production source), add <code>--migrate-storage --yes</code>.
+
+Restore only:
+
+```bash
+export NEW_DB_URL='postgresql://postgres.<target-ref>:[PASSWORD]@<pooler-host>:5432/postgres'
+pnpm prod-backup:restore --backup-dir .backups/20260918 --manifest-dir .backups/us-migration
+```
+
+Storage dry-run only:
+
+```bash
+pnpm prod-backup:rehearse --skip-restore
+```
+
 ## Restore and cutover
 
 To restore a dump into a new Supabase project, follow the official guide:
 
 <DocsExternalLink href="https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore">Backup and Restore using the CLI</DocsExternalLink>
 
-To copy Storage objects from the old project to a new project during cutover, use:
+During cutover, use <code>pnpm prod-backup:restore</code> with the pre-cutover backup directory, then copy Storage objects:
 
 ```bash
 pnpm prod-backup:migrate-storage
 ```
 
-Set <code>OLD_PROJECT_URL</code>, <code>OLD_PROJECT_SERVICE_KEY</code>, <code>NEW_PROJECT_URL</code>, and <code>NEW_PROJECT_SERVICE_KEY</code> in your shell before you run the script.
+Set <code>OLD_PROJECT_URL</code>, <code>OLD_PROJECT_SERVICE_KEY</code>, <code>NEW_PROJECT_URL</code>, and <code>NEW_PROJECT_SERVICE_KEY</code> in your shell before you run the script. Add <code>--dry-run</code> to list object counts without uploading.
 
 ## What not to do
 

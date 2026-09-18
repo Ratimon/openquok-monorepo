@@ -1,7 +1,8 @@
-import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createHash, randomBytes } from "node:crypto";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { DEFAULT_REHEARSAL_MANIFEST_DIR, MIGRATION_OUTPUT_DIR } from "./constants.mjs";
 import { parseDotenvFile } from "../vercelSyncEnvCore.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -61,9 +62,12 @@ export function loadBackendProdEnv(envFile) {
   return parseDotenvFile(abs);
 }
 
-export function buildSessionPoolerUrl(projectRef, password, host = "aws-1-ap-northeast-2.pooler.supabase.com") {
+export function buildSessionPoolerUrl(projectRef, password, host) {
+  if (!host?.trim()) {
+    fail("Pooler host is required (set SUPABASE_SOURCE_POOLER_HOST or OLD_DB_URL).");
+  }
   const encoded = encodeURIComponent(password);
-  return `postgresql://postgres.${projectRef}:${encoded}@${host}:5432/postgres`;
+  return `postgresql://postgres.${projectRef}:${encoded}@${host.trim()}:5432/postgres`;
 }
 
 export function sha256File(path) {
@@ -73,4 +77,112 @@ export function sha256File(path) {
 
 export function writeJson(path, value) {
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+}
+
+export function readJson(path) {
+  if (!existsSync(path)) {
+    fail(`JSON file not found: ${path}`);
+  }
+  return JSON.parse(readFileSync(path, "utf8"));
+}
+
+/** Load Phase B0 target project manifest (project.json). */
+export function loadMigrationManifest({ manifestDir = null } = {}) {
+  const candidates = [
+    manifestDir ? resolve(repoRoot, manifestDir, "project.json") : null,
+    resolve(repoRoot, DEFAULT_REHEARSAL_MANIFEST_DIR, "project.json"),
+    resolve(repoRoot, MIGRATION_OUTPUT_DIR, "project.json"),
+  ].filter(Boolean);
+
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      return { manifest: readJson(path), path };
+    }
+  }
+
+  fail(
+    `Migration manifest not found. Run pnpm prod-backup:create-us-project or pass --manifest-dir.`
+  );
+}
+
+/** Pick the newest dated backup directory under .backups/ that contains roles.sql. */
+export function resolveLatestBackupDir() {
+  const backupsRoot = resolve(repoRoot, ".backups");
+  if (!existsSync(backupsRoot)) {
+    fail("No .backups/ directory found. Run prod-backup:dump first.");
+  }
+
+  const dirs = readdirSync(backupsRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && /^\d{8}/.test(entry.name))
+    .map((entry) => entry.name)
+    .sort()
+    .reverse();
+
+  for (const name of dirs) {
+    const dir = resolve(backupsRoot, name);
+    if (existsSync(resolve(dir, "roles.sql"))) {
+      return dir;
+    }
+  }
+
+  fail("No backup directory with roles.sql found under .backups/.");
+}
+
+export function resolveAccessToken() {
+  const fromEnv = process.env.SUPABASE_ACCESS_TOKEN?.trim();
+  if (fromEnv) return fromEnv;
+
+  return null;
+}
+
+export function generateDbPassword() {
+  return randomBytes(24).toString("base64url");
+}
+
+export async function resetTargetDbPassword(projectRef, password) {
+  const token = resolveAccessToken();
+  if (!token) {
+    fail(
+      "Cannot reset target DB password. Set SUPABASE_ACCESS_TOKEN or run `supabase login`, or pass --db-password / NEW_DB_URL."
+    );
+  }
+
+  const res = await fetch(`https://api.supabase.com/v1/projects/${projectRef}/database/password`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    fail(`Failed to reset target DB password (${res.status}): ${text}`);
+  }
+}
+
+export function resolveTargetDbUrl({ manifest, dbPassword = null } = {}) {
+  if (process.env.NEW_DB_URL?.trim()) {
+    return process.env.NEW_DB_URL.trim();
+  }
+
+  const password =
+    dbPassword?.trim() ||
+    process.env.SUPABASE_TARGET_DB_PASSWORD?.trim() ||
+    manifest?.databasePassword?.trim();
+
+  if (!password) {
+    fail(
+      "Set NEW_DB_URL, SUPABASE_TARGET_DB_PASSWORD, --db-password, or databasePassword in project.json."
+    );
+  }
+
+  const projectRef = manifest?.projectRef?.trim();
+  const poolerHost = manifest?.poolerHost?.trim();
+  if (!projectRef || !poolerHost) {
+    fail("Migration manifest is missing projectRef or poolerHost.");
+  }
+
+  return buildSessionPoolerUrl(projectRef, password, poolerHost);
 }

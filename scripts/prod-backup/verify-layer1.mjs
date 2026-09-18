@@ -11,7 +11,7 @@
 import { spawnSync } from "node:child_process";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { DASHBOARD_BACKUPS_URL, PROD_PROJECT_REF } from "./constants.mjs";
+import { resolveDashboardBackupsUrl, resolveSourceProjectRef } from "./constants.mjs";
 import { ensureDir, log, parseArgs, repoRoot, resolveBackupDir, writeJson } from "./lib.mjs";
 
 function printHelp() {
@@ -35,16 +35,16 @@ async function prompt(question, defaultValue = "") {
   return answer || defaultValue;
 }
 
-function openDashboard() {
+function openDashboard(dashboardUrl) {
   if (process.platform === "darwin") {
-    spawnSync("open", [DASHBOARD_BACKUPS_URL], { stdio: "ignore" });
+    spawnSync("open", [dashboardUrl], { stdio: "ignore" });
     return;
   }
   if (process.platform === "win32") {
-    spawnSync("cmd", ["/c", "start", "", DASHBOARD_BACKUPS_URL], { stdio: "ignore" });
+    spawnSync("cmd", ["/c", "start", "", dashboardUrl], { stdio: "ignore" });
     return;
   }
-  spawnSync("xdg-open", [DASHBOARD_BACKUPS_URL], { stdio: "ignore" });
+  spawnSync("xdg-open", [dashboardUrl], { stdio: "ignore" });
 }
 
 function parseCli(argv) {
@@ -76,9 +76,12 @@ async function main() {
     return;
   }
 
+  const projectRef = resolveSourceProjectRef({ envFile: args.envFile });
+  const dashboardUrl = resolveDashboardBackupsUrl(projectRef);
+
   log("Layer 1 — Supabase Pro daily backups (dashboard)");
-  log(`Project: ${PROD_PROJECT_REF}`);
-  log(`Dashboard: ${DASHBOARD_BACKUPS_URL}`);
+  log(`Project: ${projectRef}`);
+  log(`Dashboard: ${dashboardUrl}`);
   log("");
   log("Confirm in the dashboard:");
   log("  - Recent daily snapshots are listed");
@@ -87,10 +90,10 @@ async function main() {
   log("");
 
   if (args.openDashboard) {
-    openDashboard();
+    openDashboard(dashboardUrl);
     log("Opened dashboard in your browser.");
   } else {
-    log(`Open manually: ${DASHBOARD_BACKUPS_URL}`);
+    log(`Open manually: ${dashboardUrl}`);
   }
 
   const latestSnapshot =
@@ -107,8 +110,8 @@ async function main() {
 
   const record = {
     layer: 1,
-    projectRef: PROD_PROJECT_REF,
-    dashboardUrl: DASHBOARD_BACKUPS_URL,
+    projectRef,
+    dashboardUrl,
     plan: "pro",
     retentionDays: 7,
     latestSnapshotDate: latestSnapshot,

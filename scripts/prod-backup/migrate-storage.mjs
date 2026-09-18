@@ -4,19 +4,20 @@
  * Based on the official backup-restore storage migration guide.
  *
  * Usage:
- *   export OLD_PROJECT_URL='https://ldewhviobysqevtnfznh.supabase.co'
+ *   export OLD_PROJECT_URL='https://<source-ref>.supabase.co'
  *   export OLD_PROJECT_SERVICE_KEY='sb_secret_...'
  *   export NEW_PROJECT_URL='https://<new-ref>.supabase.co'
  *   export NEW_PROJECT_SERVICE_KEY='sb_secret_...'
  *   node scripts/prod-backup/migrate-storage.mjs --yes
+ *   node scripts/prod-backup/migrate-storage.mjs --dry-run
  */
 
 import { createRequire } from "node:module";
 import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { resolve } from "node:path";
-import { STORAGE_BUCKETS } from "./constants.mjs";
-import { fail, log, repoRoot } from "./lib.mjs";
+import { DEFAULT_REHEARSAL_MANIFEST_DIR, STORAGE_BUCKETS } from "./constants.mjs";
+import { fail, log, repoRoot, writeJson } from "./lib.mjs";
 
 const require = createRequire(resolve(repoRoot, "backend/package.json"));
 const { createClient } = require("@supabase/supabase-js");
@@ -26,6 +27,8 @@ const BATCH_SIZE = 10;
 function parseFlags(argv) {
   return {
     autoYes: argv.includes("--yes"),
+    dryRun: argv.includes("--dry-run"),
+    reportPath: resolve(repoRoot, DEFAULT_REHEARSAL_MANIFEST_DIR, "storage-dry-run-report.json"),
     buckets: STORAGE_BUCKETS,
   };
 }
@@ -98,6 +101,76 @@ function chunk(items, size) {
   return out;
 }
 
+async function countTargetFiles(supabase, bucketName) {
+  try {
+    const files = await listAllFiles(supabase, bucketName);
+    return { exists: true, count: files.length };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    if (message.includes("not found")) {
+      return { exists: false, count: 0, error: message };
+    }
+    throw err;
+  }
+}
+
+async function runDryRun(oldSupabase, newSupabase, oldUrl, newUrl, flags) {
+  log("Supabase Storage migration dry-run (no uploads)");
+  log(`Source: ${oldUrl}`);
+  log(`Target: ${newUrl}`);
+
+  const buckets = [];
+  let sourceTotal = 0;
+  let targetTotal = 0;
+
+  for (const bucketName of flags.buckets) {
+    log(`\nBucket: ${bucketName}`);
+    const { data: bucketMeta, error } = await oldSupabase.storage.getBucket(bucketName);
+    if (error) {
+      fail(`Could not read source bucket metadata for ${bucketName}: ${error.message}`);
+    }
+
+    const sourceFiles = await listAllFiles(oldSupabase, bucketName);
+    const targetState = await countTargetFiles(newSupabase, bucketName);
+    const { data: targetBucketMeta } = await newSupabase.storage.getBucket(bucketName);
+
+    log(`  Source: ${sourceFiles.length} file(s), public=${bucketMeta.public}`);
+    log(
+      `  Target: ${targetState.exists ? `${targetState.count} file(s)` : "bucket missing"}, public=${targetBucketMeta?.public ?? "n/a"}`
+    );
+
+    sourceTotal += sourceFiles.length;
+    targetTotal += targetState.count;
+
+    buckets.push({
+      bucket: bucketName,
+      sourceCount: sourceFiles.length,
+      targetCount: targetState.count,
+      targetBucketExists: targetState.exists,
+      sourcePublic: bucketMeta.public,
+      targetPublic: targetBucketMeta?.public ?? null,
+      wouldCreateBucket: !targetBucketMeta,
+      samplePaths: sourceFiles.slice(0, 5).map((file) => file.fullPath),
+    });
+  }
+
+  const report = {
+    mode: "dry-run",
+    checkedAt: new Date().toISOString(),
+    sourceUrl: oldUrl,
+    targetUrl: newUrl,
+    buckets,
+    sourceTotal,
+    targetTotal,
+    wouldMigrate: sourceTotal,
+    success: true,
+  };
+
+  writeJson(flags.reportPath, report);
+  log(`\nDry-run summary: ${sourceTotal} source object(s) would be migrated`);
+  log(`Report: ${flags.reportPath.replace(repoRoot + "/", "")}`);
+}
+
 async function main() {
   const flags = parseFlags(process.argv);
   const oldUrl = process.env.OLD_PROJECT_URL?.trim();
@@ -113,6 +186,11 @@ async function main() {
 
   const oldSupabase = createClient(oldUrl, oldKey);
   const newSupabase = createClient(newUrl, newKey);
+
+  if (flags.dryRun) {
+    await runDryRun(oldSupabase, newSupabase, oldUrl, newUrl, flags);
+    return;
+  }
 
   log("Supabase Storage migration (cutover)");
   log(`Source: ${oldUrl}`);
