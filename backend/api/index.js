@@ -473,6 +473,30 @@ var init_stripePriceConfig = __esm({
   }
 });
 
+// config/maintenanceMode.ts
+function parseMaintenanceMode(raw) {
+  const normalized = String(raw ?? "").trim().toLowerCase();
+  if (normalized === "banner" || normalized === "freeze_writes") {
+    return normalized;
+  }
+  return "off";
+}
+function isWriteFreezeMode(mode) {
+  return parseMaintenanceMode(mode) === "freeze_writes";
+}
+function isRecognizedMaintenanceMode(raw) {
+  const normalized = String(raw ?? "").trim().toLowerCase();
+  if (normalized === "") return true;
+  return MAINTENANCE_MODES.includes(normalized);
+}
+var MAINTENANCE_MODES, MAINTENANCE_BYPASS_HEADER;
+var init_maintenanceMode = __esm({
+  "config/maintenanceMode.ts"() {
+    MAINTENANCE_MODES = ["off", "banner", "freeze_writes"];
+    MAINTENANCE_BYPASS_HEADER = "x-maintenance-bypass";
+  }
+});
+
 // utils/Logger.ts
 function quietVerboseLogsNow() {
   if (typeof process === "undefined" || process.env.BACKEND_TEST_VERBOSE_LOGS === "true") {
@@ -635,6 +659,7 @@ var init_GlobalConfig = __esm({
     init_envHelper();
     init_stripePriceConfig();
     init_apiPrefix();
+    init_maintenanceMode();
     init_Logger();
     loadBackendDotenvCjs = __toESM(require_loadBackendDotenv());
     init_orchestratorFlows();
@@ -707,6 +732,25 @@ var init_GlobalConfig = __esm({
          */
         verifyCloudflareIpRange: getEnvBoolean("VERIFY_CLOUDFLARE_IP_RANGE", false)
       },
+      /**
+       * Tiered maintenance: `off` (normal), `banner` (web-only notice), `freeze_writes`
+       * (block API mutations, redirect auth/app UI, workers exit without consuming).
+       */
+      maintenance: (() => {
+        const rawMode = getEnvTrimmed("MAINTENANCE_MODE", "off");
+        const underJest = getEnv("OPENQUOK_JEST_HARNESS", "") === "1" || getEnv("JEST_WORKER_ID", "") !== "";
+        if (!isRecognizedMaintenanceMode(rawMode) && !underJest) {
+          logger.warn({
+            msg: "[Config] Invalid MAINTENANCE_MODE; using off",
+            value: rawMode
+          });
+        }
+        return {
+          mode: parseMaintenanceMode(rawMode),
+          retryAfterSeconds: getEnvNumber("MAINTENANCE_RETRY_AFTER_SECONDS", 3600),
+          bypassSecret: getEnvTrimmed("MAINTENANCE_BYPASS_SECRET", "")
+        };
+      })(),
       api: {
         prefix: resolvedApiPrefix
       },
@@ -747,7 +791,13 @@ var init_GlobalConfig = __esm({
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: (() => {
-          const base = ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"];
+          const base = [
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With",
+            "X-CSRF-Token",
+            "X-Maintenance-Bypass"
+          ];
           if (getEnvBoolean("NOT_SECURED", false)) {
             base.push("showorg", "joinOrg", "impersonate");
           }
@@ -36406,7 +36456,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-18T01:30:27.549Z",
+  generated: "2026-09-18T22:12:30.965Z",
   routes: [
     {
       path: "/docs",
@@ -36566,6 +36616,12 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/skill-builder",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/maintenance",
       priority: 0.7,
       changeFreq: "monthly",
       type: "static"
@@ -42570,6 +42626,73 @@ var applyPublicCmsCacheHeaders = (app2) => {
     default: `public, max-age=${maxAge}, stale-while-revalidate=${swr}`
   });
 };
+
+// middlewares/maintenanceMode.ts
+init_GlobalConfig();
+init_maintenanceMode();
+init_publicRouteRegistry();
+init_Logger();
+var READ_METHODS = /* @__PURE__ */ new Set(["GET", "HEAD", "OPTIONS"]);
+function firstHeaderValue(value) {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
+function matchesMaintenanceBypass(headerValue, secret) {
+  if (!secret) return false;
+  const provided = firstHeaderValue(headerValue);
+  if (!provided) return false;
+  const expected = Buffer.from(secret);
+  const actual = Buffer.from(provided);
+  if (expected.length !== actual.length) return false;
+  return crypto.timingSafeEqual(expected, actual);
+}
+function isHealthOrSitemapPath(pathName) {
+  return BYPASS_PATHS.some((p) => pathName === p || pathName.startsWith(`${p}/`));
+}
+function isAllowedDuringWriteFreeze(args) {
+  if (READ_METHODS.has(args.method.toUpperCase())) return true;
+  if (matchesMaintenanceBypass(args.bypassHeader, args.bypassSecret)) return true;
+  if (isHealthOrSitemapPath(args.path)) return true;
+  if (isWebhookPath(args.path, args.originalUrl)) return true;
+  return false;
+}
+function readMaintenanceConfig() {
+  const maintenance = config.maintenance;
+  return {
+    mode: parseMaintenanceMode(maintenance?.mode),
+    retryAfterSeconds: Math.max(0, Number(maintenance?.retryAfterSeconds ?? 3600) || 3600),
+    bypassSecret: typeof maintenance?.bypassSecret === "string" ? maintenance.bypassSecret : ""
+  };
+}
+function maintenanceModeMiddleware(req, res, next) {
+  const { mode, retryAfterSeconds, bypassSecret } = readMaintenanceConfig();
+  if (!isWriteFreezeMode(mode)) {
+    next();
+    return;
+  }
+  const allowed = isAllowedDuringWriteFreeze({
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl ?? req.url ?? req.path,
+    bypassHeader: req.headers[MAINTENANCE_BYPASS_HEADER],
+    bypassSecret
+  });
+  if (allowed) {
+    next();
+    return;
+  }
+  res.setHeader("Retry-After", String(retryAfterSeconds));
+  res.status(503).json({
+    success: false,
+    message: "Service temporarily unavailable due to scheduled maintenance",
+    code: "maintenance_freeze_writes"
+  });
+}
+function applyMaintenanceMode(app2) {
+  const { mode } = readMaintenanceConfig();
+  logger.info({ msg: "[Setup] Maintenance mode", mode });
+  app2.use(maintenanceModeMiddleware);
+}
 init_GlobalConfig();
 init_publicRouteRegistry();
 
@@ -42648,7 +42771,7 @@ var normalizeIpAddress = (ip) => {
 };
 
 // middlewares/trustedClientIp.ts
-var firstHeaderValue = (value) => {
+var firstHeaderValue2 = (value) => {
   const raw = Array.isArray(value) ? value[0] : value;
   if (typeof raw !== "string") return null;
   const first = raw.split(",")[0]?.trim();
@@ -42679,7 +42802,7 @@ var trustedClientIp = (req) => {
   const proxyIp = proxyIpFromRequest(req) ?? "unknown";
   const { trustCloudflareHeaders } = serverTrustConfig();
   if (!trustCloudflareHeaders) return proxyIp;
-  const cfConnectingIp = firstHeaderValue(req.headers["cf-connecting-ip"]);
+  const cfConnectingIp = firstHeaderValue2(req.headers["cf-connecting-ip"]);
   if (!cfConnectingIp) return proxyIp;
   if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
   return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
@@ -42835,11 +42958,11 @@ var shouldSkipRateLimit = () => {
   const rateLimitConfig = config.rateLimit;
   return !rateLimitConfig?.enabled;
 };
-var isHealthOrSitemapPath = (path7) => path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
+var isHealthOrSitemapPath2 = (path7) => path7 === "/health" || path7.startsWith("/health") || path7 === "/sitemap.xml" || path7.startsWith("/sitemap.xml");
 var shouldSkipInfrastructurePaths = (req) => {
   const path7 = req.path;
   const originalUrl = req.originalUrl || req.url;
-  return isWebhookPath(path7, originalUrl) || isHealthOrSitemapPath(path7);
+  return isWebhookPath(path7, originalUrl) || isHealthOrSitemapPath2(path7);
 };
 var buildRateLimiters = () => ({
   publicReadLimiter: createRateLimiter({
@@ -43105,6 +43228,7 @@ var applyRateLimiting = (app2) => {
 init_Logger();
 function configureCoreMiddleware(app2, config2, supabase2) {
   logger.info({ msg: "[Setup] Configuring core middleware..." });
+  applyMaintenanceMode(app2);
   applyRateLimiting(app2);
   applyPublicCmsCacheHeaders(app2);
   app2.use((req, res, next) => {
@@ -43337,6 +43461,11 @@ async function createApp() {
   });
   app.get("/health", (_req, res) => {
     res.status(200).json({ server: "ok" });
+  });
+  app.get("/robots.txt", (_req, res) => {
+    res.type("text/plain; charset=utf-8");
+    res.set("Cache-Control", "public, max-age=3600");
+    res.status(200).send("User-agent: *\nDisallow: /\n");
   });
   app.get("/debug-sentry", function mainHandler(_req, res) {
     throw new Error("My first Sentry error!");

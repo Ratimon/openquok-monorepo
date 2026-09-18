@@ -134,13 +134,24 @@ pnpm prod-backup:rehearse
 
 Copy the dated directory to encrypted private storage. Keep backups for at least 90 days. Keep a copy past project decommission if you may need audit or rollback data.
 
-Run a fresh backup immediately before a maintenance cutover. Use a suffix so the folder name is unique:
+Run a fresh backup immediately before a maintenance cutover. **Enable write-freeze first** (see <a href="/docs/installation/maintenance-mode">Maintenance mode</a>), then use a suffix so the folder name is unique:
 
 ```bash
 node scripts/prod-backup/run-initial-backup.mjs --latest-snapshot YYYY-MM-DD --suffix -pre-cutover
 ```
 
 </Steps>
+
+## Maintenance window (write-freeze)
+
+Before the pre-cutover backup and restore, set <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> on the **Vercel backend**, **Vercel web**, and **Railway workers** (or self-host API, web, and worker containers). Redeploy so API mutations return 503, auth/app routes redirect to <Badge text="/maintenance" variant="path" />, and workers stop consuming BullMQ jobs.
+
+<Callout type="warning" title="Enable freeze before the final dump">
+<p>Turn on <Badge text="freeze_writes" variant="default" /> <strong>before</strong> you run the <code>-pre-cutover</code> backup — not after restore. Otherwise users and workers can still write to Postgres while you copy data.</p>
+</Callout>
+
+Full behavior, env vars, and smoke-test bypass: <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+
 
 ## Phase B0 — Target project in the new region
 
@@ -279,6 +290,8 @@ pnpm prod-backup:migrate-storage
 
 Set <code>OLD_PROJECT_URL</code>, <code>OLD_PROJECT_SERVICE_KEY</code>, <code>NEW_PROJECT_URL</code>, and <code>NEW_PROJECT_SERVICE_KEY</code> in your shell before you run the script. Add <code>--dry-run</code> to list object counts without uploading.
 
+After smoke tests pass, set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers and redeploy. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+
 ## What not to do
 
 - Do not <code>git add</code> SQL dumps or exported Storage files.
@@ -288,6 +301,7 @@ Set <code>OLD_PROJECT_URL</code>, <code>OLD_PROJECT_SERVICE_KEY</code>, <code>NE
 ## Related configuration
 
 <CardGrid>
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze before pre-cutover backup and restore" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Database & migrations" description="Link the Supabase CLI, run migrations, and reset local Postgres" href="/docs/configuration-backend/database" />
 <LinkCard title="Supabase" description="Project setup, API keys, and dashboard settings" href="/docs/configuration-backend/supabase" />
 <LinkCard title="Cloudflare R2" description="S3-compatible storage for composer media (separate from Supabase Storage)" href="/docs/configuration-backend/cloudflare-r2" />

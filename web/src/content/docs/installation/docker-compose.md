@@ -2,7 +2,7 @@
 title: Self-host - Docker Compose
 description: Self-host OpenQuok with Docker Compose — env setup, Supabase, and bring-up of API, web, Redis, and BullMQ workers.
 order: 5
-lastUpdated: 2026-08-20
+lastUpdated: 2026-09-19
 ---
 
 <script>
@@ -91,6 +91,8 @@ Leave <Badge text="VITE_API_BASE_URL" variant="envWeb" /> <strong>empty</strong>
 <p>When API and workers run in Docker but Supabase runs on the host (<code>supabase start</code>), use the API URL from <code>supabase status</code> (typically port <code>54321</code>, not Postgres <code>5432</code>) and reach the host from containers via <code>http://host.docker.internal:54321</code> for <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" /> and matching <Badge text="VITE_PUBLIC_SUPABASE_*" variant="envWeb" />.</p>
 </Callout>
 Redis and storage defaults point at Compose service DNS and the uploads volume (<Badge text="REDIS_HOST=redis" variant="envBackend" />, <Badge text="STORAGE_PROVIDER=local" variant="envBackend" />, <Badge text="UPLOAD_DIRECTORY=/uploads" variant="envBackend" />).
+
+For database cutover or maintenance, set <Badge text="MAINTENANCE_MODE" variant="envBackend" /> in <Badge text="infra/self-host/.env" variant="path" /> (default <Badge text="off" variant="default" />). The web service receives it at runtime via Compose. Recreate API, web, and worker containers after changes. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
 
 <Callout type="warning" title="Changing env after build">
 <p><Badge text="VITE_*" variant="envWeb" /> values are baked into the web image at <strong>build</strong> time. After changing them, rebuild the web service. Other vars usually need a recreate: <code>docker compose -f infra/self-host/docker-compose.yml up -d --force-recreate</code>.</p>
@@ -198,6 +200,7 @@ This stack is designed for **trusted local / private-network** operators, not a 
 <CardGrid>
 <LinkCard title="System requirements" description="CPU, RAM, ports, and operator-provided Supabase" href="/docs/installation/system-requirements" />
 <LinkCard title="Production deployment" description="Vercel / Railway SaaS path vs self-host Compose" href="/docs/installation/production-deployment" />
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE for self-host cutover and ops windows" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Docker (local services)" description="Contributor Redis via infra/docker-compose.yml" href="/docs/configuration-backend/docker" />
 <LinkCard title="Email (Resend / local)" description="EMAIL_ENABLED=false self-host mode" href="/docs/configuration-backend/resend" />
 <LinkCard title="Stripe billing" description="Empty publishable key disables billing" href="/docs/configuration-backend/stripe" />

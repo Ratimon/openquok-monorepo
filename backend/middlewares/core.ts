@@ -13,6 +13,7 @@ import {
     normalizeApiRoutePath,
 } from "../middlewares/publicRouteRegistry";
 import { applyPublicCmsCacheHeaders } from "../middlewares/publicCmsCacheHeaders";
+import { applyMaintenanceMode } from "../middlewares/maintenanceMode";
 import { applyRateLimiting } from "../middlewares/rateLimit";
 import { logger } from "../utils/Logger";
 
@@ -22,6 +23,8 @@ interface RequestWithId extends Request {
 
 function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: SupabaseClient) {
     logger.info({ msg: "[Setup] Configuring core middleware..." });
+
+    applyMaintenanceMode(app);
 
     // Rate limiting (before body parsing so limits apply to all API requests)
     applyRateLimiting(app);

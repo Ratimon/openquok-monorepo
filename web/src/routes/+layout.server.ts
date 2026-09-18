@@ -1,5 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
 
+import { env } from '$env/dynamic/private';
+
 import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { getCompanyConfigDefaults, getPublicFooterLinks } from '$lib/config/constants/config';
@@ -8,6 +10,7 @@ import {
 	getStaticCompanyInformationPm,
 	getStaticMarketingInformationPm
 } from '$lib/config/utils/staticPublicSiteConfig';
+import { parseMaintenanceMode } from '$lib/maintenance/maintenanceMode';
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { createMetaData } from '$lib/seo/createMetaData';
 
@@ -64,6 +67,7 @@ export async function load({ url, cookies, fetch }) {
 		companyAddressVm: footerInfo.companyAddressVm,
 		supportPhoneVm: footerInfo.supportPhoneVm,
 		supportEmailVm: footerInfo.supportEmailVm,
-		footerNavigationLinks
+		footerNavigationLinks,
+		maintenanceMode: parseMaintenanceMode(env.MAINTENANCE_MODE)
 	};
 }

@@ -2,7 +2,7 @@
 title: Configuration - Web
 description: Getting Started to Environment variables and configuration for the OpenQuok's in web application.
 order: 0
-lastUpdated: 2026-05-15
+lastUpdated: 2026-09-19
 sidebar:
   label: Overview
 ---
@@ -37,6 +37,8 @@ Maintain <Badge text="web/.env.production.local" variant="envWeb" /> from <DocsE
 
 For CLI device login browser routes (<Badge text="/cli/device/*" variant="path" />), set server-only <Badge text="CLI_AUTH_SERVER_URL" variant="envBackend" /> to your auth server API origin (OpenQuok production: <Badge text="https://cli-auth.openquok.com" variant="new" />). See <a href="/docs/configuration-agent">Configuration - Agent</a>.
 
+For Supabase region cutover or other maintenance windows, set server-only <Badge text="MAINTENANCE_MODE" variant="envBackend" /> (<Badge text="off" variant="default" />, <Badge text="banner" variant="default" />, or <Badge text="freeze_writes" variant="default" />). During <Badge text="freeze_writes" variant="default" />, auth and app routes redirect to <Badge text="/maintenance" variant="path" /> while public SEO pages stay live. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+
 ### Update PWA settings
 
 Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/web/src/web-config.json"><Badge text="web/src/web-config.json" variant="path" /></DocsExternalLink> to customize PWA metadata (name/title/description/theme, and icon references).
@@ -52,6 +54,7 @@ Edit <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 <LinkCard title="Config defaults" description="Backend URL, company, landing, and navigation schema defaults" href="/docs/configuration-web/config-defaults" />
 <LinkCard title="PWA configuration" description="Edit web-config.json for app name and icon metadata" href="/docs/configuration-web/pwa" />
 <LinkCard title="Configuration - Agent" description="CLI auth server API, BROWSER_ORIGIN, and OAuth callback" href="/docs/configuration-agent" />
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE on the web project (server env)" href="/docs/installation/maintenance-mode" />
 </CardGrid>
 
 For the full checklist, see the repository <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo#frontend-setup">README</DocsExternalLink> (**Frontend Setup**).

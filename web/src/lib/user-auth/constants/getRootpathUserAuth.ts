@@ -36,6 +36,11 @@ export function getRootPathOauthAuthorize(): string {
 	return 'oauth/authorize';
 }
 
+/** CLI device-flow browser routes (`cli/device/verify`, `cli/device/callback`). */
+export function getRootPathCliDevice(): string {
+	return 'cli/device';
+}
+
 function pathnameFromSegment(segment: string): string {
 	return segment.startsWith('/') ? segment : `/${segment}`;
 }

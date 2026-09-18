@@ -2,7 +2,7 @@
 title: Configuration - Worker
 description: Environment and deployment for orchestrator worker processes (BullMQ, Redis, Docker, Railway), plus the admin queue dashboard.
 order: 0
-lastUpdated: 2026-05-16
+lastUpdated: 2026-09-19
 sidebar:
   label: Overview
 ---
@@ -35,6 +35,7 @@ Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, o
 - **Storage (scheduled social post publishing)** — If you publish posts with media, workers must be able to build a **public HTTPS URL** for uploaded objects. Set <Badge text="STORAGE_PROVIDER" variant="envBackend" /> (typically <code>r2</code>) and <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> (your public bucket hostname, no trailing slash). See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Per worker** — Provider OAuth secrets for **integration refresh**; email provider keys for **notification email**; the same **provider or channel** credentials the API would use to publish for **scheduled social** posts. A short template lives in the repo at <Badge text="orchestrator/.env.production.example" variant="path" />.
 - **Health & errors** — Each worker exposes <code>GET /health</code> and <code>GET /health/status</code> (Redis PING + optional queue depth). Port: host <Badge text="PORT" variant="envBackend" /> on Railway, else <Badge text="ORCHESTRATOR_WORKER_HEALTH_PORT" variant="envBackend" /> (default <code>3091</code>; set <code>0</code> to disable). Optional <Badge text="SENTRY_DSN" variant="envBackend" /> / <Badge text="SENTRY_ENABLED" variant="envBackend" /> match the API so worker crashes reach Sentry (tag <code>openquok.worker</code>).
+- **Maintenance cutover** — When <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> matches the API, workers exit on startup without consuming BullMQ jobs. Set <Badge text="MAINTENANCE_RETRY_AFTER_SECONDS" variant="envBackend" /> and <Badge text="MAINTENANCE_BYPASS_SECRET" variant="envBackend" /> on workers only if you mirror the API (optional). See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
 
 ## Guides
 
@@ -42,6 +43,7 @@ Platform admins can inspect and **manage BullMQ jobs** (pause / resume queues, o
 <LinkCard title="Docker (local Redis)" description="Compose Redis, local REDIS_*, and dev worker scripts" href="/docs/configuration-worker/docker" />
 <LinkCard title="Redis & queues" description="redis-cli for BullMQ locally and in production" href="/docs/configuration-worker/redis" />
 <LinkCard title="Railway (workers)" description="Build/start commands, deploy flow, and stopping a service" href="/docs/configuration-worker/railway" />
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE and worker startup guard during cutover" href="/docs/installation/maintenance-mode" />
 </CardGrid>
 
 <Callout type="note" title="Minimal secret surface">

@@ -1,5 +1,7 @@
 import "./initWorkerSentry.js";
 import { Sentry } from "./initWorkerSentry.js";
+import { config } from "backend/config/GlobalConfig.js";
+import { isWriteFreezeMode } from "backend/config/maintenanceMode.js";
 import { logger } from "backend/utils/Logger.js";
 
 export type BootstrapOrchestratorWorkerOptions = {
@@ -44,6 +46,15 @@ export function bootstrapOrchestratorWorker(options: BootstrapOrchestratorWorker
     Sentry.setTag("openquok.worker", options.label);
     if (options.queueName) {
         Sentry.setTag("openquok.worker.queue", options.queueName);
+    }
+
+    const maintenanceMode = (config.maintenance as { mode?: string } | undefined)?.mode;
+    if (isWriteFreezeMode(maintenanceMode)) {
+        logger.warn({
+            msg: "[Worker] MAINTENANCE_MODE=freeze_writes; exiting without consuming jobs",
+            worker: options.label,
+        });
+        process.exit(0);
     }
 
     registerFatalErrorHandlers(options.label);

@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Getting Started to Backend configuration — env vars, Supabase, and services OpenQuok.
 order: 0
-lastUpdated: 2026-05-19
+lastUpdated: 2026-09-19
 sidebar:
   label: Overview
 ---

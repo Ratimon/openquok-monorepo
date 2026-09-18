@@ -2,7 +2,7 @@
 title: Project Architecture
 description: OpenQuok's architecture — project layout and key files for the social scheduler.
 order: 1
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-19
 ---
 
 <script>
@@ -69,6 +69,8 @@ OpenQuok has **three main services**, **programmatic clients**, and **four exter
 - **Storage** — User media (Supabase Storage, R2, or local disk in self-host).
 - **Resend** — Transactional email when <Badge text="EMAIL_ENABLED" variant="envBackend" /> is enabled.
 
+**Maintenance mode** — When <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> is set, mutations are blocked while public SEO pages stay live. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
+
 <h3 id="web">Web</h3>
 
 The web app is what users see in the browser — workspace, admin, and in-app docs.
@@ -90,7 +92,7 @@ See <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator wor
 
 <h3 id="programmatic-clients">Programmatic clients</h3>
 
-The CLI (<Badge text="openquok" variant="default" />), Node SDK, and hosted MCP server call <Badge text="/api/v1/public/*" variant="path" />. The CLI may use the device-flow auth server in <Badge text="agent/server/" variant="path" /> for login — see <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
+The CLI, Node SDK, and hosted MCP server call <Badge text="/api/v1/public/*" variant="path" />. The CLI may use the device-flow auth server in <Badge text="agent/server/" variant="path" /> for login — see <a href="/docs/configuration-agent/architecture">Auth server architecture</a>.
 
 ## Project Layout
 
@@ -100,6 +102,9 @@ Repository layout at the root:
 
 - LICENSE
 - README.md
+- .backups/
+  - README.md
+  - migration/
 - .cursor/
   - rules/
 - agent/
@@ -124,12 +129,15 @@ Repository layout at the root:
 </FileTree>
 
 - <Badge text="agent/" variant="path" /> — Published as <Badge text="@openquok/auto-cli" variant="default" />: the programmatic CLI, agent skills under <Badge text="skills/" variant="path" />, and the OAuth2 device-flow auth server in <Badge text="server/" variant="path" />. See <a href="/docs/getting-started-for-cli">Getting Started - CLI</a> and <a href="/docs/configuration-agent">Configuration - Agent</a>.
+- <Badge text=".backups/" variant="path" /> See <a href="/docs/configuration-backend/supabase-backup">Supabase backup</a>.
 - <Badge text="backend/" variant="path" /> — Supabase project assets (migrations, RLS, modules) and the Express API that talks to Supabase (database + auth, and Storage).
 - <Badge text="common/" variant="path" /> — Shared workspace package (`openquok-common`): types and small utilities imported by <Badge text="backend/" variant="path" /> and <Badge text="orchestrator/" variant="path" /> (for example notification email types).
+- <Badge text=".github/" variant="path" /> — CI workflows (for example release automation under <Badge text="workflows/" variant="path" />).
 - <Badge text="infra/" variant="path" /> — Docker Compose and self-host env templates. Dev dependencies live in <Badge text="infra/docker-compose.yml" variant="path" />; the full operator stack is under <Badge text="infra/self-host/" variant="path" />. See <a href="/docs/installation/docker-compose">Docker Compose</a>.
 - <Badge text="orchestrator/" variant="path" /> — Workspace package: Flowcraft blueprints, BullMQ adapters, and worker entrypoints. See <a href="/docs/developer-guidelines/orchestrator-workflows">Orchestrator workflows</a>, <a href="/docs/configuration-worker">Configuration - Worker</a>, and <a href="/docs/configuration-worker/railway">Railway (workers)</a>.
+- <Badge text=".railway/" variant="path" /> — Railway infrastructure-as-code (<Badge text="railway.ts" variant="path" />); local CLI backups under this folder are gitignored. Worker deploy also uses per-flavor <Badge text="orchestrator/railpack.*.json" variant="path" /> configs.
 - <Badge text="sdk/" variant="path" /> — Published as <Badge text="@openquok/node-sdk" variant="default" />: a typed Node.js client for the programmatic API.
-- <Badge text="scripts/" variant="path" /> — Monorepo automation (build, codegen, migration aggregation, etc.).
+- <Badge text="scripts/" variant="path" /> — Monorepo automation: Vercel env sync/deploy helpers (<Badge text="vercelSync*.mjs" variant="path" />, <Badge text="vercelDeploy*.mjs" variant="path" />), Railway worker service setup (<Badge text="railwaySetupWorkerService.mjs" variant="path" />), and <Badge text="prod-backup/" variant="path" /> for Supabase export/restore scripts.
 - <Badge text="web/" variant="path" /> — SvelteKit frontend; public static files live under <Badge text="web/static/" variant="path" />.
 - <Badge text=".cursor/" variant="path" /> — Cursor rules that encode repository conventions. Contributors and agents should follow the matching <Badge text=".cursor/rules/*.mdc" variant="path" /> files when editing code or using them as chat context in each area.
 
@@ -149,12 +157,18 @@ Repository layout at the root:
   - data/
   - emails/
   - errors/
+  - guards/
+  - integrations/
+  - mcp/
   - middlewares/
+  - public/
   - repositories/
   - routes/
+    - publicApi/
   - scripts/
   - services/
   - supabase/
+  - swagger/
   - tests/
   - types/
   - utils/
@@ -164,10 +178,14 @@ Repository layout at the root:
 - <Badge text="api/" variant="path" /> and <Badge text="handler/" variant="path" /> — HTTP entrypoints shaped or types for Vercel. Use them as the deployment shell.
 - <Badge text="services/" variant="path" /> — Domain orchestration and use-cases; this layer is also where caching belongs when you need to reuse or shorten expensive work across requests (in-memory, keyed stores, or upstream cache). Services may also call `openquok-orchestrator` to enqueue Flowcraft runs.
 - <Badge text="supabase/" variant="path" /> — Database source of truth: modular SQL under <Badge text="db/" variant="path" /> tables, RLS, functions, seeds, and migration files.
+- <Badge text="integrations/" variant="path" /> — Social provider adapters (OAuth, publish, analytics) consumed by services and orchestrator activities.
+- <Badge text="routes/publicApi/" variant="path" /> — Programmatic API surface mounted at <Badge text="/api/v1/public/*" variant="path" /> (SDK, CLI, MCP clients).
+- <Badge text="mcp/" variant="path" /> — Hosted MCP server tools and auth wired into the API process.
+- <Badge text="swagger/" variant="path" /> — OpenAPI JSDoc sources merged into <Badge text="/api/v1/openapi.json" variant="path" /> for docs and SDK alignment.
 - <Badge text="repositories/" variant="path" />, <Badge text="controllers/" variant="path" />, <Badge text="routes/" variant="path" /> — Persistence adapters, request/response handling, and route tables; prefer Supabase clients and SQL in migrations over ad hoc SQL in the web app.
-- <Badge text="middlewares/" variant="path" />, <Badge text="errors/" variant="path" />, <Badge text="connections/" variant="path" />, <Badge text="config/" variant="path" />, <Badge text="types/" variant="path" />, <Badge text="utils/" variant="path" />, <Badge text="data/" variant="path" /> — Cross-cutting behavior, Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
+- <Badge text="middlewares/" variant="path" />, <Badge text="errors/" variant="path" />, <Badge text="connections/" variant="path" />, <Badge text="config/" variant="path" />, <Badge text="types/" variant="path" />, <Badge text="utils/" variant="path" />, <Badge text="data/" variant="path" />, <Badge text="guards/" variant="path" /> — Cross-cutting behavior (including <Badge text="maintenanceMode.ts" variant="path" /> write-freeze), Supabase/client wiring, shared types, helpers, and supporting data fixtures or reference payloads.
 - <Badge text="emails/" variant="path" /> — Transactional templates and send flows.
-- <Badge text="scripts/" variant="path" /> and <Badge text="tests/" variant="path" /> — One-off backend scripts and automated tests.
+- <Badge text="scripts/" variant="path" /> and <Badge text="tests/" variant="path" /> — Migration aggregation (<Badge text="aggregate_migrations_all.mjs" variant="path" />), one-off backend scripts, and automated tests.
 - **Storage** — User or system files go through <Badge text="Supabase Storage" variant="param" /> (buckets and policies live with the rest of the backend).
 
 ### <Badge text="orchestrator/" variant="path" />
@@ -236,7 +254,7 @@ Docker and self-host operator assets:
 
 </FileTree>
 
-- <Badge text="infra/docker-compose.yml" variant="path" /> — devvelopment environment only.
+- <Badge text="infra/docker-compose.yml" variant="path" /> — Contributor development environment only.
 - <Badge text="infra/self-host/" variant="path" /> — full stack: Redis, API, web, BullMQ workers, uploads volume; optional `cli` profile for Postgres + agent server. Default UI: <Badge text="http://localhost:4007" variant="default" />.
 - <Badge text="infra/self-host/.env.example" variant="path" /> — Template for self-host env vars; operators copy to `.env` beside the Compose file.
 
@@ -271,13 +289,14 @@ The SvelteKit app root:
       - (legal)/
       - (protected)/
       - (public)/
+      - maintenance/
       - …
     - styles/
     - tests/
 
 </FileTree>
 
-- <Badge text="src/routes/" variant="path" /> — File-based routing. Route groups <Badge text="(public)" variant="path" />, <Badge text="(auth)" variant="path" />, <Badge text="(protected)" variant="path" />, <Badge text="(docs)" variant="path" />, <Badge text="(legal)" variant="path" /> share layouts and auth boundaries without affecting the URL prefix.
+- <Badge text="src/routes/" variant="path" /> — File-based routing. Route groups <Badge text="(public)" variant="path" />, <Badge text="(auth)" variant="path" />, <Badge text="(protected)" variant="path" />, <Badge text="(docs)" variant="path" />, <Badge text="(legal)" variant="path" /> share layouts and auth boundaries without affecting the URL prefix. <Badge text="maintenance/" variant="path" /> is the write-freeze landing page when <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> (see <Badge text="src/lib/maintenance/" variant="path" /> and <Badge text="hooks.server.ts" variant="path" />).
 - <Badge text="src/data/" variant="path" /> — Small typed registries and config imported from <Badge text="$data/…" variant="path" />(e.g. `docs.ts`, `icons.ts`).
 - <Badge text="src/lib/core/" variant="path" /> — HttpGateway, cookies, shared presenters that sit next to I/O. DTOs from the API are parsed here and in repositories, not in `.svelte` files.
 - <Badge text="src/lib/area-admin/" variant="path" />, <Badge text="src/lib/area-protected/" variant="path" />, <Badge text="src/lib/area-public/" variant="path" /> — Page-level presenters, including admin console, signed-in app, public/marketing and etc. Routes import singletons from these indexes.
@@ -318,6 +337,12 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
 
 - src/content/docs/
   - getting-started/
+  - channels/
+  - creating-posts/
+  - posts-management/
+  - settings/
+  - platforms/
+  - automations/
   - cloud/
   - getting-started-for-dev/
   - installation/
@@ -337,6 +362,7 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
   - mcp-references/
   - mcp-setup-guides/
   - getting-started-for-public-api/
+  - public-api-providers/
   - oauth2-for-apps/
   - apis-integrations/
   - apis-posts/
@@ -344,10 +370,16 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
   - apis-notifications/
   - apis-uploads/
   - developer-guidelines/
+  - contribution-opportunities/
   - publish-listings/
   - documentation-contribution/
 
 </FileTree>
+
+- **General tab** — Product usage under <Badge text="getting-started/" variant="path" />, <Badge text="channels/" variant="path" />, <Badge text="creating-posts/" variant="path" />, <Badge text="posts-management/" variant="path" />, <Badge text="settings/" variant="path" />, <Badge text="platforms/" variant="path" />, and <Badge text="automations/" variant="path" />.
+- **Self-hosting tab** — Operator install and config: <Badge text="installation/" variant="path" /> (including <Badge text="maintenance-mode.md" variant="path" />), <Badge text="configuration-*" variant="path" />, <Badge text="admin/" variant="path" />, and <Badge text="social-integration/" variant="path" />.
+- **Public API tab** — <Badge text="getting-started-for-public-api/" variant="path" />, <Badge text="public-api-providers/" variant="path" />, <Badge text="apis-*" variant="path" />, and <Badge text="oauth2-for-apps/" variant="path" />.
+- **Contributing tab** — <Badge text="developer-guidelines/" variant="path" />, <Badge text="contribution-opportunities/" variant="path" />, <Badge text="publish-listings/" variant="path" />, and <Badge text="documentation-contribution/" variant="path" />.
 
 ### <Badge text="src/lib/docs/" variant="path" />
 
@@ -458,5 +490,7 @@ Documentation UI (layouts, MDX helpers, search, nav):
 <LinkCard title="General" description="What OpenQuok is and how to use the social scheduler" href="/docs" />
 <LinkCard title="Cloud" description="Hosted plans, trial, and billing" href="/docs/cloud" />
 <LinkCard title="Quick Start" description="Get started with OpenQuok installation" href="/docs/getting-started-for-dev/quick-start" />
+<LinkCard title="Supabase backup" description="Layers 1–3 and cutover scripts under .backups/" href="/docs/configuration-backend/supabase-backup" />
+<LinkCard title="Maintenance mode" description="Cross-stack write-freeze for cutover windows" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Documentation contribution" description="Tabs, sidebar config, and how to author docs pages" href="/docs/documentation-contribution" />
 </CardGrid>

@@ -31,6 +31,7 @@ declare global {
 			companyAddressVm?: string | null;
 			supportPhoneVm?: string | null;
 			supportEmailVm?: string | null;
+			maintenanceMode?: import('$lib/maintenance/maintenanceMode').MaintenanceMode;
 		}
 
 		interface HomePageData extends LayoutData {

@@ -44,6 +44,7 @@ function isOrchestratorRelevantEnvKey(key: string): boolean {
         "AWS_",
         "SENTRY_",
         "BULLMQ_",
+        "MAINTENANCE_",
     ];
     if (prefixes.some((p) => key.startsWith(p))) return true;
     return key === "NODE_ENV" || key === "SITE_NAME" || key === "SENDER_EMAIL_ADDRESS";

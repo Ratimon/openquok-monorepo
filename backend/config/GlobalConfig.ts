@@ -1,6 +1,7 @@
 import { getEnv, getEnvTrimmed, getEnvNumber, getEnvBoolean } from "./envHelper";
 import { loadStripePriceIds } from "./stripePriceConfig";
 import { DEFAULT_API_PREFIX, normalizeApiPrefix } from "./apiPrefix";
+import { isRecognizedMaintenanceMode, parseMaintenanceMode } from "./maintenanceMode";
 import { logger } from "../utils/Logger";
 import * as loadBackendDotenvCjs from "./loadBackendDotenv.cjs";
 
@@ -109,6 +110,27 @@ export const config: ConfigObject = {
         verifyCloudflareIpRange: getEnvBoolean("VERIFY_CLOUDFLARE_IP_RANGE", false),
     },
 
+    /**
+     * Tiered maintenance: `off` (normal), `banner` (web-only notice), `freeze_writes`
+     * (block API mutations, redirect auth/app UI, workers exit without consuming).
+     */
+    maintenance: (() => {
+        const rawMode = getEnvTrimmed("MAINTENANCE_MODE", "off");
+        const underJest =
+            getEnv("OPENQUOK_JEST_HARNESS", "") === "1" || getEnv("JEST_WORKER_ID", "") !== "";
+        if (!isRecognizedMaintenanceMode(rawMode) && !underJest) {
+            logger.warn({
+                msg: "[Config] Invalid MAINTENANCE_MODE; using off",
+                value: rawMode,
+            });
+        }
+        return {
+            mode: parseMaintenanceMode(rawMode),
+            retryAfterSeconds: getEnvNumber("MAINTENANCE_RETRY_AFTER_SECONDS", 3600),
+            bypassSecret: getEnvTrimmed("MAINTENANCE_BYPASS_SECRET", ""),
+        };
+    })(),
+
     api: {
         prefix: resolvedApiPrefix,
     },
@@ -152,7 +174,13 @@ export const config: ConfigObject = {
         })(),
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allowedHeaders: (() => {
-            const base = ["Content-Type", "Authorization", "X-Requested-With", "X-CSRF-Token"];
+            const base = [
+                "Content-Type",
+                "Authorization",
+                "X-Requested-With",
+                "X-CSRF-Token",
+                "X-Maintenance-Bypass",
+            ];
             if (getEnvBoolean("NOT_SECURED", false)) {
                 base.push("showorg", "joinOrg", "impersonate");
             }

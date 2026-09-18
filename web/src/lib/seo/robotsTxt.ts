@@ -12,7 +12,8 @@ export const ROBOTS_DISALLOWED_PATHS = [
 	'/admin',
 	'/secret-admin',
 	'/oauth',
-	'/integration/oauth'
+	'/integration/oauth',
+	'/maintenance'
 ] as const;
 
 /**

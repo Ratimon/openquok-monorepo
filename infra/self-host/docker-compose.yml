@@ -124,6 +124,7 @@ services:
       PORT: "3000"
       OPENQUOK_API_PROXY_TARGET: http://api:3000
       CLI_AUTH_SERVER_URL: ${CLI_AUTH_SERVER_URL:-http://localhost:3111}
+      MAINTENANCE_MODE: ${MAINTENANCE_MODE:-off}
     ports:
       - "${OPENQUOK_WEB_HOST_PORT:-4007}:3000"
     depends_on:

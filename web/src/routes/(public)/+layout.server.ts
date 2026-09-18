@@ -25,6 +25,7 @@ export const load: LayoutServerLoad = async ({ cookies, parent, setHeaders }) =>
 		...parentData,
 		isLoggedIn,
 		navbarDesktopLinks,
-		navbarMobileLinks
+		navbarMobileLinks,
+		maintenanceMode: parentData.maintenanceMode ?? 'off'
 	};
 };

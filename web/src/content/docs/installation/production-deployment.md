@@ -2,7 +2,7 @@
 title: Production - deployment
 description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-09-17
+lastUpdated: 2026-09-19
 ---
 
 <script>
@@ -59,6 +59,7 @@ Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> with <Badge text="BACK
 - **Local HTTPS dev** differs: the web app can use an empty <Badge text="VITE_API_BASE_URL" variant="envWeb" /> and same-origin <code>/api</code> through the dev server. See <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit)</a>.
 - **Media publishing (Threads, etc.)**: for posts with media stored as object keys, set <Badge text="STORAGE_R2_PUBLIC_BASE_URL" variant="envBackend" /> so workers can build public HTTPS URLs for Meta to fetch. See <a href="/docs/configuration-backend/cloudflare-r2">R2 or local storage</a>.
 - **Rate limiting (backend API only):** set <Badge text="NOT_SECURED" variant="envBackend" /> to <Badge text="false" variant="new" /> on the Vercel backend so production defaults apply.
+- **Maintenance cutover:** for Supabase region migration or other ops windows, set <Badge text="MAINTENANCE_MODE" variant="envBackend" /> on the **backend**, **web** (server env), and **workers** together. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a> and <a href="/docs/configuration-backend/supabase-backup">Supabase backup</a>.
 
 
 <Callout type="warning">
@@ -236,6 +237,8 @@ Requires <code>npm login</code> locally. Prefer tags + CI when trusted publishin
 <LinkCard title="Railway (orchestrator workers)" description="CLI linking, env sync, and deploy scripts for BullMQ workers—referenced in the workers section" href="/docs/configuration-worker/railway" />
 <LinkCard title="Configuration - Agent" description="CLI auth server secrets, Vercel root directory, and production OAuth callbacks" href="/docs/configuration-agent" />
 <LinkCard title="Configuration - Worker" description="Redis for BullMQ, worker processes, and Railway alongside the API" href="/docs/configuration-worker" />
+<LinkCard title="Supabase backup" description="Pre-cutover backup layers and restore cutover" href="/docs/configuration-backend/supabase-backup" />
+<LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze during region cutover" href="/docs/installation/maintenance-mode" />
 <LinkCard title="Database &amp; migrations" description="Local Supabase CLI, aggregation, pg_cron, and production-linked commands" href="/docs/configuration-backend/database" />
 <LinkCard title="Configuration - Backend" description="GlobalConfig env vars, Redis, Supabase, and R2 public URLs for worker media links" href="/docs/configuration-backend" />
 <LinkCard title="Rate limiting" description="publicRead, session, and global limiters; Redis store; Cloudflare client IP; CMS Cache-Control" href="/docs/configuration-backend/rate-limiting" />

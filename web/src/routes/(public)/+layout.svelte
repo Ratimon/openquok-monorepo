@@ -50,7 +50,16 @@
 			publicLayoutPagePresenter.supportEmailVm ??
 			''
 	);
+	let maintenanceMode = $derived(
+		data?.maintenanceMode ?? page.data?.maintenanceMode ?? 'off'
+	);
 </script>
+
+{#if maintenanceMode === 'banner'}
+	<div class="bg-warning text-warning-content px-4 py-2 text-center text-sm" role="status">
+		Scheduled maintenance is coming soon. Sign-in and publishing may pause for a short window.
+	</div>
+{/if}
 
 <PublicArea
 	{isLoggedIn}

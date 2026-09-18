@@ -1,8 +1,16 @@
-import type { Handle } from '@sveltejs/kit';
+import { redirect, type Handle } from '@sveltejs/kit';
 
 import { building } from '$app/environment';
+import { env } from '$env/dynamic/private';
 
+import {
+	getRootPathMaintenance,
+	isWriteFreezeMode,
+	parseMaintenanceMode,
+	shouldRedirectToMaintenance
+} from '$lib/maintenance/maintenanceMode';
 import { ensureUtf8CharsetResponse } from '$lib/utils/ensureUtf8CharsetResponse';
+import { route } from '$lib/utils/path';
 
 /**
  * Forward `/api/*` (and local `/uploads/*`) to the backend when:
@@ -71,42 +79,49 @@ function maybeEnsureUtf8Charset(response: Response): Response {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const backendOrigin = resolveBackendProxyOrigin();
-	if (!backendOrigin || !shouldProxyPathname(event.url.pathname)) {
-		const response = await resolve(event);
-		return maybeEnsureUtf8Charset(response);
+	if (backendOrigin && shouldProxyPathname(event.url.pathname)) {
+		const targetUrl = `${backendOrigin}${event.url.pathname}${event.url.search}`;
+
+		const headers = new Headers(event.request.headers);
+		headers.delete('host');
+		headers.delete('connection');
+
+		let clientAddress: string | undefined;
+		try {
+			clientAddress = event.getClientAddress();
+		} catch {
+			// Vite dev SSR cannot always resolve a client IP for proxied `/api` fetches.
+			clientAddress = undefined;
+		}
+		if (clientAddress) {
+			const prior = event.request.headers.get('x-forwarded-for');
+			headers.set(
+				'x-forwarded-for',
+				prior?.trim() ? `${prior}, ${clientAddress}` : clientAddress
+			);
+		}
+
+		const init: RequestInit = {
+			method: event.request.method,
+			headers,
+			redirect: 'manual'
+		};
+
+		if (event.request.method !== 'GET' && event.request.method !== 'HEAD') {
+			init.body = await event.request.arrayBuffer();
+		}
+
+		const upstream = await fetch(targetUrl, init);
+		return forwardUpstreamResponse(upstream);
 	}
 
-	const targetUrl = `${backendOrigin}${event.url.pathname}${event.url.search}`;
-
-	const headers = new Headers(event.request.headers);
-	headers.delete('host');
-	headers.delete('connection');
-
-	let clientAddress: string | undefined;
-	try {
-		clientAddress = event.getClientAddress();
-	} catch {
-		// Vite dev SSR cannot always resolve a client IP for proxied `/api` fetches.
-		clientAddress = undefined;
-	}
-	if (clientAddress) {
-		const prior = event.request.headers.get('x-forwarded-for');
-		headers.set(
-			'x-forwarded-for',
-			prior?.trim() ? `${prior}, ${clientAddress}` : clientAddress
-		);
+	if (
+		isWriteFreezeMode(parseMaintenanceMode(env.MAINTENANCE_MODE)) &&
+		shouldRedirectToMaintenance(event.url.pathname)
+	) {
+		redirect(302, route(getRootPathMaintenance()));
 	}
 
-	const init: RequestInit = {
-		method: event.request.method,
-		headers,
-		redirect: 'manual'
-	};
-
-	if (event.request.method !== 'GET' && event.request.method !== 'HEAD') {
-		init.body = await event.request.arrayBuffer();
-	}
-
-	const upstream = await fetch(targetUrl, init);
-	return forwardUpstreamResponse(upstream);
+	const response = await resolve(event);
+	return maybeEnsureUtf8Charset(response);
 };
