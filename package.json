@@ -81,6 +81,7 @@
     "prod-backup:storage": "node scripts/prod-backup/export-storage.mjs",
     "prod-backup:initial": "node scripts/prod-backup/run-initial-backup.mjs",
     "prod-backup:migrate-storage": "node scripts/prod-backup/migrate-storage.mjs",
+    "prod-backup:fix-blog-urls": "node scripts/prod-backup/fix-blog-urls.mjs",
     "prod-backup:restore": "node scripts/prod-backup/restore-database.mjs",
     "prod-backup:rehearse": "node scripts/prod-backup/rehearse-migration.mjs",
     "prod-backup:create-us-project": "node scripts/prod-backup/create-us-project.mjs",

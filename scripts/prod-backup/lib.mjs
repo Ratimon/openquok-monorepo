@@ -1,5 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DEFAULT_REHEARSAL_MANIFEST_DIR, MIGRATION_OUTPUT_DIR } from "./constants.mjs";
@@ -128,11 +130,50 @@ export function resolveLatestBackupDir() {
   fail("No backup directory with roles.sql found under .backups/.");
 }
 
+function readAccessTokenFile(path) {
+  if (!existsSync(path)) return null;
+  const value = readFileSync(path, "utf8").trim();
+  return value || null;
+}
+
+function readAccessTokenFromKeychain() {
+  if (process.platform !== "darwin") return null;
+  const result = spawnSync(
+    "security",
+    ["find-generic-password", "-s", "Supabase CLI", "-w"],
+    { encoding: "utf8" }
+  );
+  if (result.status !== 0) return null;
+  const value = (result.stdout || "").trim();
+  if (!value.startsWith("sbp_")) return null;
+  return value;
+}
+
+/** Resolve Management API token for password reset (env, file, or macOS keychain). */
 export function resolveAccessToken() {
   const fromEnv = process.env.SUPABASE_ACCESS_TOKEN?.trim();
   if (fromEnv) return fromEnv;
 
+  const fromKeychain = readAccessTokenFromKeychain();
+  if (fromKeychain) return fromKeychain;
+
+  const home = homedir();
+  const candidates = [
+    resolve(home, ".supabase", "access-token"),
+    resolve(home, ".config", "supabase", "access-token"),
+    resolve(home, "Library", "Application Support", "supabase", "access-token"),
+  ];
+  for (const path of candidates) {
+    const token = readAccessTokenFile(path);
+    if (token) return token;
+  }
+
   return null;
+}
+
+export function buildDirectDbUrl(projectRef, password) {
+  const encoded = encodeURIComponent(password);
+  return `postgresql://postgres:${encoded}@db.${projectRef}.supabase.co:5432/postgres`;
 }
 
 export function generateDbPassword() {
@@ -162,7 +203,7 @@ export async function resetTargetDbPassword(projectRef, password) {
   }
 }
 
-export function resolveTargetDbUrl({ manifest, dbPassword = null } = {}) {
+export function resolveTargetDbUrl({ manifest, dbPassword = null, preferDirect = false } = {}) {
   if (process.env.NEW_DB_URL?.trim()) {
     return process.env.NEW_DB_URL.trim();
   }
@@ -179,9 +220,22 @@ export function resolveTargetDbUrl({ manifest, dbPassword = null } = {}) {
   }
 
   const projectRef = manifest?.projectRef?.trim();
+  if (!projectRef) {
+    fail("Migration manifest is missing projectRef.");
+  }
+
+  const useDirect =
+    preferDirect ||
+    process.env.SUPABASE_TARGET_USE_DIRECT_DB === "1" ||
+    process.env.SUPABASE_TARGET_USE_DIRECT_DB === "true";
+
+  if (useDirect) {
+    return buildDirectDbUrl(projectRef, password);
+  }
+
   const poolerHost = manifest?.poolerHost?.trim();
-  if (!projectRef || !poolerHost) {
-    fail("Migration manifest is missing projectRef or poolerHost.");
+  if (!poolerHost) {
+    fail("Migration manifest is missing poolerHost (or set SUPABASE_TARGET_USE_DIRECT_DB=1).");
   }
 
   return buildSessionPoolerUrl(projectRef, password, poolerHost);

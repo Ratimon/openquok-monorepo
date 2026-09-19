@@ -226,14 +226,15 @@ async function resolveDataDbUrl({ args, manifest }) {
     manifest?.databasePassword?.trim();
 
   if (explicitPassword) {
-    return resolveTargetDbUrl({ manifest, dbPassword: explicitPassword });
+    return resolveTargetDbUrl({ manifest, dbPassword: explicitPassword, preferDirect: true });
   }
 
   if (args.resetDbPassword) {
     const password = generateDbPassword();
     log("Resetting target database password for data restore...");
     await resetTargetDbPassword(manifest.projectRef, password);
-    return resolveTargetDbUrl({ manifest, dbPassword: password });
+    manifest.databasePassword = password;
+    return resolveTargetDbUrl({ manifest, dbPassword: password, preferDirect: true });
   }
 
   if (args.linked) {
@@ -314,6 +315,17 @@ async function main() {
     const counts = collectVerification({ linked: args.linked, dbUrl: dataDbUrl });
     for (const [table, count] of Object.entries(counts)) {
       log(`  ${table}: ${count}`);
+    }
+
+    if (manifest.databasePassword) {
+      const { path: manifestPath, manifest: stored } = loadMigrationManifest({
+        manifestDir: args.manifestDir,
+      });
+      if (!stored.databasePassword) {
+        stored.databasePassword = manifest.databasePassword;
+        writeJson(manifestPath, stored);
+        log(`Recorded databasePassword in ${manifestPath.replace(repoRoot + "/", "")}`);
+      }
     }
 
     const report = {
