@@ -4,7 +4,12 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { DEFAULT_REHEARSAL_MANIFEST_DIR, MIGRATION_OUTPUT_DIR } from "./constants.mjs";
+import {
+  AGGREGATE_MIGRATIONS_DIR,
+  DEFAULT_REHEARSAL_MANIFEST_DIR,
+  MIGRATION_OUTPUT_DIR,
+  SUPABASE_CLI_SPEC,
+} from "./constants.mjs";
 import { parseDotenvFile } from "../vercelSyncEnvCore.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
@@ -88,8 +93,8 @@ export function readJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-/** Load Phase B0 target project manifest (project.json). */
-export function loadMigrationManifest({ manifestDir = null } = {}) {
+/** Load Phase B0 target project manifest (project.json), or null if none exists. */
+export function tryLoadMigrationManifest({ manifestDir = null } = {}) {
   const candidates = [
     manifestDir ? resolve(repoRoot, manifestDir, "project.json") : null,
     resolve(repoRoot, DEFAULT_REHEARSAL_MANIFEST_DIR, "project.json"),
@@ -102,9 +107,62 @@ export function loadMigrationManifest({ manifestDir = null } = {}) {
     }
   }
 
+  return null;
+}
+
+/** Load Phase B0 target project manifest (project.json). */
+export function loadMigrationManifest({ manifestDir = null } = {}) {
+  const loaded = tryLoadMigrationManifest({ manifestDir });
+  if (loaded) return loaded;
   fail(
     `Migration manifest not found. Run pnpm prod-backup:create-us-project or pass --manifest-dir.`
   );
+}
+
+/** Date segments from `YYYYMMDD_core_structure.sql` files under backend/supabase/migrations/. */
+export function listLocalAggregateVersions(migrationsDir = resolve(repoRoot, AGGREGATE_MIGRATIONS_DIR)) {
+  if (!existsSync(migrationsDir)) return [];
+  return readdirSync(migrationsDir)
+    .flatMap((name) => {
+      const match = name.match(/^(\d{8})_core_structure\.sql$/);
+      return match ? [match[1]] : [];
+    })
+    .sort();
+}
+
+/** Local aggregate versions that are not yet marked applied on the remote. */
+export function versionsNeedingRepair(localVersions, migrationRows) {
+  const remoteApplied = new Set(
+    (migrationRows ?? []).map((row) => row?.remote).filter(Boolean)
+  );
+  return (localVersions ?? []).filter((version) => !remoteApplied.has(version));
+}
+
+export function parseSupabaseJsonOutput(stdout) {
+  const trimmed = (stdout || "").trim();
+  const jsonStart = trimmed.search(/[\[{]/);
+  const payload = jsonStart >= 0 ? trimmed.slice(jsonStart) : trimmed;
+  try {
+    return JSON.parse(payload);
+  } catch {
+    fail(`Expected JSON from supabase CLI, got:\n${stdout}`);
+  }
+}
+
+export function runSupabaseCli(args, { cwd = resolve(repoRoot, "backend") } = {}) {
+  const result = spawnSync("npx", ["--yes", SUPABASE_CLI_SPEC, ...args, "--yes"], {
+    cwd,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      NPM_CONFIG_CACHE: process.env.NPM_CONFIG_CACHE || "/tmp/npm-cache-openquok",
+    },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  if (result.status !== 0) {
+    fail(result.stderr || result.stdout || `supabase ${args.join(" ")} failed`);
+  }
+  return (result.stdout || "").trim();
 }
 
 /** Pick the newest dated backup directory under .backups/ that contains roles.sql. */

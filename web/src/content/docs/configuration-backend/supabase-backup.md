@@ -131,6 +131,7 @@ pnpm prod-backup:initial
 pnpm prod-backup:restore
 pnpm prod-backup:migrate-storage
 pnpm prod-backup:rehearse
+pnpm prod-backup:relink
 ```
 
 ### Copy dumps off site
@@ -287,6 +288,7 @@ T+10m  pnpm prod-backup:restore --backup-dir .backups/YYYYMMDD-pre-cutover
 T+30m  pnpm prod-backup:migrate-storage --yes
 T+35m  SQL: replace source Storage URLs in blog_posts.content (if needed)
 T+40m  Env cutover (target URL + keys); Vercel/Railway redeploy
+T+42m  pnpm prod-backup:relink
 T+50m  Smoke test (auth, workers, images, billing)
 T+55m  MAINTENANCE_MODE=off; redeploy; resume workers
 ```
@@ -297,7 +299,7 @@ T+55m  MAINTENANCE_MODE=off; redeploy; resume workers
 
 <Steps
 	howToName="Supabase region cutover freeze runbook"
-	howToDescription="Freeze writes, dump the source, restore to the target project, migrate Storage, cut over env, then resume."
+	howToDescription="Freeze writes, dump the source, restore to the target project, migrate Storage, cut over env, relink the CLI, then resume."
 >
 
 ### Enable write-freeze and verify
@@ -380,19 +382,13 @@ pnpm vercel:deploy:web:prod
 
 Redeploy Railway workers with the same target keys. Keep <Badge text="MAINTENANCE_MODE=freeze_writes" variant="envBackend" /> until smoke tests pass.
 
-Point the CLI at the target, then confirm migration history (repair only if the list is wrong):
+Point the CLI at the target and repair migration history if the aggregated date changed. The script reads the target ref from <Badge text=".backups/us-migration/project.json" variant="path" /> and the date from <Badge text="backend/supabase/migrations/*_core_structure.sql" variant="path" />. It does <strong>not</strong> run <code>db push</code> — restore already applied schema; repair only updates the history table.
 
 ```bash
-cd backend
-npx supabase@latest link --project-ref <target-ref>
-pnpm db:production:migration-list
+pnpm prod-backup:relink
 ```
 
-If the aggregated file is present on disk but not marked applied, use the date segment from the filename (see <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — Supabase production migrations</a>):
-
-```bash
-npx supabase@latest migration repair --linked --status applied 20260828
-```
+Add <code>--dry-run</code> to print the target ref and any versions that would be marked applied. See <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — Supabase production migrations</a> for the manual <code>migration list</code> / <code>repair</code> commands.
 
 ### Smoke test, then resume writes
 

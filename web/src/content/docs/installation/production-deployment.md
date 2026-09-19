@@ -91,15 +91,17 @@ pnpm db:production:push-db
 
 <p>Another one is copy & paste SQL from the module folder (e.g. <Badge text="backend/supabase/db/acquisition/" variant="path" />) into the <strong>Supabase Dashboard → SQL Editor</strong>. </p>
 
-<p>After the SQL succeeds, mark the matching aggregated migration as applied so <code>migration list</code> stays in sync with the remote (use the <strong>date segment</strong> from the filename, e.g. <Badge text="20260828" variant="param" /> from <Badge text="20260828_core_structure.sql" variant="path" />):</p>
+<p>After the SQL succeeds, mark the matching aggregated migration as applied so <code>migration list</code> stays in sync with the remote (use the <strong>date segment</strong> from the filename, e.g. <Badge text="20260919" variant="param" /> from <Badge text="20260919_core_structure.sql" variant="path" />):</p>
 
 ```bash
-npx supabase@latest migration repair --linked --status applied 20260828
+npx supabase@latest migration repair --linked --status applied 20260919
 pnpm db:production:migration-list
 ```
 
+<p>After a region restore, prefer <code>pnpm prod-backup:relink</code> from the repo root. It links to the target project and repairs the current aggregate date only when remote history is behind. Do not run <code>db push</code> during cutover — restore already applied the schema.</p>
+
 <Callout type="warning">
-<p>"Do not revert old migration rows. If production already has an earlier aggregated migration recorded, only <strong>add</strong> the new version as <code>applied</code>. Do not run <code>repair --status reverted</code> on migrations that are already live unless you are deliberately rolling back schema.</p>
+<p>Do not revert old migration rows. If production already has an earlier aggregated migration recorded, only <strong>add</strong> the new version as <code>applied</code>. Do not run <code>repair --status reverted</code> on migrations that are already live unless you are deliberately rolling back schema.</p>
 </Callout>
 
 Optional — refresh backend table types from the linked project:

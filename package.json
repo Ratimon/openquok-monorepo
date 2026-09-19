@@ -85,6 +85,7 @@
     "prod-backup:restore": "node scripts/prod-backup/restore-database.mjs",
     "prod-backup:rehearse": "node scripts/prod-backup/rehearse-migration.mjs",
     "prod-backup:create-us-project": "node scripts/prod-backup/create-us-project.mjs",
+    "prod-backup:relink": "node scripts/prod-backup/relink-cli.mjs",
     "---------------------- CLEAR REDIS (orchestrator workers) ----------------------": "",
     "redis:clear-history": "pnpm --filter openquok-orchestrator script:clear-redis-history",
     "redis:clear-history:prod": "pnpm --filter openquok-orchestrator script:clear-redis-history -- --env-file .env.production.local",

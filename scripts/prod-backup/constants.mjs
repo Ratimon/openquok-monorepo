@@ -10,6 +10,11 @@ export const MIGRATION_OUTPUT_DIR = ".backups/migration";
 /** Default manifest location when create-us-project uses --output-dir .backups/us-migration */
 export const DEFAULT_REHEARSAL_MANIFEST_DIR = ".backups/us-migration";
 
+/** Pinned CLI used by prod-backup scripts that call `npx supabase`. */
+export const SUPABASE_CLI_SPEC = "supabase@2.117.0";
+
+export const AGGREGATE_MIGRATIONS_DIR = "backend/supabase/migrations";
+
 /** Parse the project ref from a Supabase project URL. */
 export function parseProjectRefFromSupabaseUrl(url) {
   if (!url || typeof url !== "string") return null;
