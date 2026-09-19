@@ -2,7 +2,7 @@
 title: Limits
 description: What happens when an OpenQuok Cloud workspace hits a plan cap — channels, posts, seats, storage, API, and how to unblock.
 order: 4
-lastUpdated: 2026-09-04
+lastUpdated: 2026-09-19
 ---
 
 <script>
@@ -29,10 +29,29 @@ Exact numbers live on <a href="/pricing">Pricing</a>. This page describes **beha
 | **Posts per month** | Schedule / publish rejected | Wait for the billing month to roll, delete unused scheduled posts if your process allows, or upgrade |
 | **Team seats** | Invite or accept member blocked | Remove a member, or upgrade. Seat copy is “invites + you as owner” |
 | **Media storage** | Upload rejected | Delete files in the media library, or upgrade |
-| **Public API** | API / CLI / MCP calls that require the public API | Subscribe to a plan that includes it (all current paid Cloud tiers do) |
+| **Public API** | HTTP calls to <Badge text="/api/v1/public/*" variant="path" /> with an <Badge text="opo_" variant="default" /> token (same token powers CLI and MCP) | Subscribe to a paid Cloud tier; hourly cap is <strong>30 requests per hour per token</strong> (see below) |
 | **Shareable post preview** | Public preview links unavailable | Team and above on current Cloud plans |
 
 Community features and admin-only actions have separate gates; those errors name the missing capability.
+
+## Public API, CLI, and MCP
+
+OpenQuok Cloud enforces two separate caps for programmatic access:
+
+| Cap | What counts | Typical block |
+| --- | --- | --- |
+| **Hourly API traffic** | Every HTTP request to <Badge text="/api/v1/public/*" variant="path" /> | <code>429</code> when you exceed <strong>30 requests per hour per <Badge text="opo_" variant="default" /> token</strong> |
+| **Monthly posts** | Each scheduled or published post row, whether created in the dashboard or via API | Plan guard when <Badge text="posts_per_month" variant="param" /> is exhausted |
+
+<p><strong>Paid plan required.</strong> The free tier does not include public API access. All current paid Cloud tiers (SOLO, TEAM, ULTIMATE, MAX) include it.</p>
+
+<p><strong>Workspace billing, not credits.</strong> OpenQuok charges a subscription per workspace. We do not sell per-post API credits.</p>
+
+<p><strong>Same token, shared limit.</strong> Your workspace programmatic token from Developers → Access powers the HTTP API, Node SDK, CLI, and MCP. OAuth app tokens for third-party apps count toward the same hourly bucket for that workspace.</p>
+
+<p>The hourly cap applies per HTTP request, not per post. Batch multiple channels in one <Badge text="POST /public/posts" variant="path" /> call to stay efficient. Uploads (<Badge text="POST /public/upload*" variant="path" />) have a separate <strong>20 requests per hour</strong> limit per token.</p>
+
+Operators can tune limits with environment variables — see <a href="/docs/configuration-backend/rate-limiting">Rate limiting</a>. End-user quickstart: <a href="/docs/getting-started-for-public-api">Public API getting started</a>.
 
 ## Connected vs active channels
 
@@ -85,4 +104,6 @@ Operators who enable Stripe on their instance get the same guard behavior as Clo
 <LinkCard title="Subscription" description="Upgrade or change billing period" href="/docs/cloud/subscription" />
 <LinkCard title="Quickstart" description="Connect a channel, schedule a post, and confirm a failed card" href="/docs/getting-started/quickstart" />
 <LinkCard title="Pricing" description="Current numeric limits per plan" href="/pricing" />
+<LinkCard title="Public API getting started" description="Authentication, rate limits, and your first POST /public/posts call" href="/docs/getting-started-for-public-api" />
+<LinkCard title="Rate limiting" description="Operator env vars for public API, MCP, upload, and other backend limiters" href="/docs/configuration-backend/rate-limiting" />
 </CardGrid>

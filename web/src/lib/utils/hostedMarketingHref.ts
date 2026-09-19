@@ -7,6 +7,10 @@ import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPath
 import { getRootPathPublicCreators } from '$lib/area-public/constants/getRootPathPublicCreators';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicPlaybooks } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathSocialMediaPostingApi,
+	getRootPathSocialMediaSchedulingApi
+} from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicTools } from '$lib/area-public/constants/getRootPathPublicTools';
 import { route, url } from '$lib/utils/path';
@@ -29,6 +33,8 @@ export const HOSTED_MARKETING_PATH_PREFIXES: readonly string[] = [
 	getRootPathPublicAlternatives(),
 	getRootPathPublicTools(),
 	getRootPathPublicRoadmap(),
+	getRootPathSocialMediaPostingApi(),
+	getRootPathSocialMediaSchedulingApi(),
 	...EXTRA_HOSTED_MARKETING_SEGMENTS
 ].map((segment) => route(segment));
 

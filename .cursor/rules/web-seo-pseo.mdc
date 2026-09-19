@@ -19,6 +19,9 @@ globs:
   - web/src/routes/(public)/alternatives/**
   - web/src/routes/(public)/playbooks/**
   - web/src/routes/(public)/building-blocks/**
+  - web/src/routes/(public)/social-media-posting-api/**
+  - web/src/routes/(public)/social-media-scheduling-api/**
+  - web/src/lib/content/constants/apis/**
 alwaysApply: false
 ---
 
@@ -49,9 +52,10 @@ Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client n
 | Alternatives | `/alternatives` | `/alternatives/{slug}` |
 | Creators | `/creators` | `/creators/{userSlug}` |
 | Playbooks / building blocks | `/playbooks`, `/building-blocks` | Creator listing detail; category/tag sub-hubs |
+| Public API marketing | `/social-media-posting-api`, `/social-media-scheduling-api` | `/social-media-posting-api/{slug}`, `/social-media-scheduling-api/{slug}` (7 platforms) |
 | Roadmap | `/roadmap` | — |
 
-**Hub FAQs** (main index routes): `publicToolsHubFaqConfig.ts`, `publicChannelsHubFaqConfig.ts`, `publicCompareHubFaqConfig.ts`, `publicCreatorsHubFaqConfig.ts`, `publicRoadmapHubFaqConfig.ts` — wire in hub `+page.server.ts` + `+page.svelte`.
+**Hub FAQs** (main index routes): `publicToolsHubFaqConfig.ts`, `publicChannelsHubFaqConfig.ts`, `publicCompareHubFaqConfig.ts`, `publicCreatorsHubFaqConfig.ts`, `publicRoadmapHubFaqConfig.ts`, `publicApiCapabilityHubFaqConfig.ts` — wire in hub `+page.server.ts` + `+page.svelte`.
 
 **Detail FAQs**: channel catalogs (`channels/{slug}.ts`), agent/MCP seeds, tool `public*FaqConfig.ts` builders — items live on the VM returned from the presenter.
 
@@ -124,6 +128,7 @@ On OpenQuok Cloud, developer apps are already registered; users **sign up** and 
 | `/compare` | `publicCompareHubFaqConfig.ts` | `/compare/openquok/buffer`, `/pricing`, `/alternatives` |
 | `/creators` | `publicCreatorsHubFaqConfig.ts` | `/playbooks`, `/building-blocks`, sign-up to publish |
 | `/roadmap` | `publicRoadmapHubFaqConfig.ts` | Feedback on roadmap page, Discord |
+| `/social-media-posting-api`, `/social-media-scheduling-api` | `publicApiCapabilityHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/pricing`, `/docs/cloud/limits` — connect before operator docs on platform pages |
 
 ## Footer inventory (`PUBLIC_FOOTER_LINKS`)
 
@@ -134,6 +139,7 @@ Sitewide footer columns in `web/src/lib/config/constants/config.ts`. Hub-level l
 | **Tools** | `/tools`, `/tools/skill-builder`, `/tools/photo-editor`, `/tools/humanizer`, `/tools/best-time-to-post` |
 | **Skill Builder / Photo Editor / Humanizer / Best Time to Post Tools** | Auto: `/tools/{tool}/{channelSlug}` from live channel catalogs |
 | **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelsForHub()` |
+| **Social Media Posting / Scheduling API** | Auto: `/social-media-posting-api/{slug}` and `/social-media-scheduling-api/{slug}` from `listPublicApiPostingPlatformsForHub()` / `listPublicApiSchedulingPlatformsForHub()` |
 | **How to self-host with different social channels** | Auto: `/docs/social-integration/{slug}` from setup-guide markdown |
 | **Autonomous Agent / MCP Integrations** | Auto: `/agents/{slug}` from agent/MCP catalogs |
 | **API Payload Validators / Integrations APIs / …** | Auto: `/docs/apis-*` from `docsSidebarPublicApi` + operation markdown |

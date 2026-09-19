@@ -53,6 +53,17 @@ export type {
 } from '$lib/posts/Post.repository.svelte';
 export type { CreateSocialPostPrepareOpenOptions } from '$lib/posts/CreateSocialPost.presenter.svelte';
 export { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
+export {
+	PublicPayloadWizardComposerPresenter,
+	type PublicPayloadWizardComposerInit
+} from '$lib/posts/PublicPayloadWizardComposer.presenter.svelte';
+export {
+	buildPayloadWizardMockChannels,
+	payloadWizardMockIntegrationId,
+	PAYLOAD_WIZARD_MOCK_INTEGRATION_ID_BY_SLUG,
+	PAYLOAD_WIZARD_PREVIEW_WORKSPACE_ID
+} from '$lib/posts/utils/buildPayloadWizardMockChannels';
+export { defaultPayloadWizardScheduledLocal } from '$lib/posts/utils/defaultPayloadWizardScheduledLocal';
 export { default as Delay } from '$lib/ui/components/posts/thread/Delay.svelte';
 export { GetScheduledPostsPresenter, toPublicPreviewChannelVm } from '$lib/posts/GetScheduledPost.presenter.svelte';
 export type {

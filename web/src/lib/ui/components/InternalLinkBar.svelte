@@ -11,8 +11,11 @@
 	};
 	let { linkList }: Props = $props();
 
-	function capitalize(s: string): string {
-		return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+	function categoryHeading(category: string): string {
+		if (category === 'APIs') {
+			return 'APIs';
+		}
+		return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
 	}
 
 	function footerAnchorAttrs(href: string) {
@@ -47,7 +50,7 @@
 	{#each Object.keys(linkList) as category (category)}
 		<div class="min-w-0">
 			<h3 class="text-sm font-semibold leading-6 text-primary">
-				{capitalize(category)}</h3>
+				{categoryHeading(category)}</h3>
 			<ul role="list" class="mt-6 space-y-4">
 				{#each linkList[category] as link (link.href)}
 					{@const attrs = footerAnchorAttrs(link.href)}

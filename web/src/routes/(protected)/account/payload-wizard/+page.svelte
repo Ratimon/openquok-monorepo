@@ -1,6 +1,4 @@
 <script lang="ts">
-	import type { RepeatIntervalKey } from '$lib/posts';
-
 	import { untrack } from 'svelte';
 
 	import { getRootPathAccount, protectedPayloadWizardPagePresenter } from '$lib/area-protected';
@@ -12,9 +10,8 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import AddEditModal from '$lib/ui/components/posts/AddEditModal.svelte';
 	import CreateSocialPostModal from '$lib/ui/components/posts/CreateSocialPostModal.svelte';
-	import ManageModal from '$lib/ui/components/posts/ManageModal.svelte';
+	import PayloadWizardHeroPanel from '$lib/ui/templates/api-marketing/PayloadWizardHeroPanel.svelte';
 
 	// /account
 	const rootPathAccount = getRootPathAccount();
@@ -30,46 +27,16 @@
 	/** Stable ref for composer `bind:` chain (`pagePresenter.createSocialPostPresenter`). */
 	const composerPresenter = pagePresenter.createSocialPostPresenter;
 
-	const threadFollowUpEditorEnabled = $derived(
-		composerPresenter.listThreadFollowUpSupportedIntegrationIds().length > 0
-	);
-
 	/** Writable ref for `bind:` (Svelte cannot bind to `const`). */
 	let createSocialPostModalPresenter = $state.raw(composerPresenter);
 
 	let initializedForWorkspaceId = $state<string | null>(null);
 	let createSocialPostOpen = $state(false);
 
-	const repeatOptions: { value: RepeatIntervalKey; label: string }[] = [
-		{ value: 'day', label: 'Day' },
-		{ value: 'two_days', label: 'Two Days' },
-		{ value: 'three_days', label: 'Three Days' },
-		{ value: 'four_days', label: 'Four Days' },
-		{ value: 'five_days', label: 'Five Days' },
-		{ value: 'six_days', label: 'Six Days' },
-		{ value: 'week', label: 'Week' },
-		{ value: 'two_weeks', label: 'Two Weeks' },
-		{ value: 'month', label: 'Month' }
-	];
-
 	const wizardPayloadResult = $derived(
 		composerPresenter.getProgrammaticCreatePostPayloadPreview('scheduled')
 	);
 	const wizardPayload = $derived(wizardPayloadResult.ok ? wizardPayloadResult.payload : null);
-
-	async function copyProgrammaticPayload(status: 'draft' | 'scheduled'): Promise<void> {
-		const res = composerPresenter.getProgrammaticCreatePostPayloadPreview(status);
-		if (!res.ok) {
-			toast.error(res.error);
-			return;
-		}
-		try {
-			await navigator.clipboard.writeText(JSON.stringify(res.payload, null, 2));
-			toast.success(status === 'draft' ? 'Draft payload copied.' : 'Scheduled payload copied.');
-		} catch {
-			toast.error('Could not copy to clipboard.');
-		}
-	}
 
 	function scheduleViaUi(): void {
 		const oid = workspaceId;
@@ -185,149 +152,12 @@
 				</p>
 			</div>
 		{:else}
-			<div class="flex min-w-0 flex-col gap-4">
-				<div
-					class="flex min-h-[min(72vh,820px)] min-w-0 flex-col overflow-hidden rounded-lg border border-base-300 bg-base-100/50"
-				>
-					<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-						<div class="min-h-0 min-w-0 flex-1 overflow-auto">
-						<AddEditModal
-							stockPhotosVm={composerPresenter.stockPhotosVm}
-							designTemplatesVm={composerPresenter.designTemplatesVm}
-							fetchPolotnoTemplateListPage={composerPresenter.fetchPolotnoTemplateListPage}
-							backgroundPanelVm={composerPresenter.backgroundPanelVm}
-							exportCanvasToMedia={composerPresenter.exportCanvasToMedia}
-							writerPresenter={composerPresenter.composerWriterPresenter}
-							summarizerPresenter={composerPresenter.composerSummarizerPresenter}
-							humanizePresenter={composerPresenter.composerHumanizePresenter}
-							loadSignaturesVmForComposer={composerPresenter.loadSignaturesVmForComposer}
-							socialChannels={composerPresenter.baseSocialChannelsVm}
-							bind:body={composerPresenter.editorBody}
-							bind:postMediaItems={composerPresenter.postMediaItemsVm}
-							uploadUid={workspaceId ?? ''}
-							organizationId={workspaceId}
-							busy={composerPresenter.busy}
-							selectedIds={composerPresenter.selectedIds}
-							mode={composerPresenter.mode}
-							focusedIntegrationId={composerPresenter.focusedIntegrationId}
-							previewText={composerPresenter.previewText}
-							charCount={composerPresenter.charCount}
-							softCharLimit={composerPresenter.softCharLimit}
-							constraintProviderIdentifiers={composerPresenter.writerConstraintProviderIdentifiers}
-							maxMediaItems={composerPresenter.launchMaxMediaItems}
-							scheduleValidationMessage={composerPresenter.scheduleValidationError}
-							contentSetAuthoringNetworkLock={false}
-							scheduledPostDatetimeLocal={composerPresenter.scheduledLocal}
-							selectedGroupId={composerPresenter.selectedGroupId}
-							onToggleChannel={composerPresenter.toggleChannel.bind(composerPresenter)}
-							onToggleGlobal={() => {
-								if (composerPresenter.mode === 'custom') composerPresenter.backToGlobalMode();
-							}}
-							onRemoveSelected={composerPresenter.removeSelected.bind(composerPresenter)}
-							onFocusIntegration={composerPresenter.focusIntegration.bind(composerPresenter)}
-							onRequestCustomize={composerPresenter.requestCustomize.bind(composerPresenter)}
-							onSelectGroup={composerPresenter.selectGroup.bind(composerPresenter)}
-							editorLocked={composerPresenter.mode === 'custom' ? composerPresenter.editorLocked : false}
-							editorLockMessage="Click this button to exit global editing and customize the post for this channel"
-							onEditorUnlock={() => {
-								composerPresenter.customEditingUnlocked = true;
-								composerPresenter.editorLocked = false;
-							}}
-							editorBannerLeftLabel={composerPresenter.mode === 'custom' ? 'Editing a Specific Network' : null}
-							editorBannerRightActionLabel={composerPresenter.mode === 'custom' ? 'Back to global' : null}
-							onEditorBannerRightAction={composerPresenter.mode === 'custom'
-								? composerPresenter.backToGlobalMode.bind(composerPresenter)
-								: null}
-							postComment={composerPresenter.postComment}
-							onAddPost={() => composerPresenter.handleAddThreadItemClick()}
-							bind:settingsOpen={composerPresenter.settingsOpen}
-							providerSettings={composerPresenter.providerSettingsByIntegrationId[composerPresenter.focusedIntegrationId ?? ''] ?? {}}
-							providerSettingsByIntegrationId={composerPresenter.providerSettingsByIntegrationId}
-							onProviderSettingsChange={composerPresenter.updateFocusedProviderSettings.bind(composerPresenter)}
-							onUpdateProviderSettingsForIntegration={composerPresenter.updateProviderSettingsForIntegration.bind(
-								composerPresenter
-							)}
-							settingsDisabled={composerPresenter.busy}
-							threadReplies={composerPresenter.getThreadFollowUpRepliesForEditor()}
-							onChangeThreadReplies={threadFollowUpEditorEnabled
-								? (next) => {
-										composerPresenter.applyThreadFollowUpReplies(next);
-									}
-								: undefined}
-							threadProviderIdentifier={composerPresenter.getPrimaryThreadFollowUpIntegrationId()
-								? (composerPresenter.baseSocialChannelsVm.find(
-										(c) => c.id === composerPresenter.getPrimaryThreadFollowUpIntegrationId()
-									)?.identifier ?? null)
-								: null}
-							mediaUrls={composerPresenter.previewMediaUrls}
-						/>
-						</div>
-						<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
-						<ManageModal
-							tagsVm={composerPresenter.tagsVm}
-							selectedTagNames={composerPresenter.selectedTagNames}
-							repeatInterval={composerPresenter.repeatInterval}
-							{repeatOptions}
-							bind:scheduledLocal={composerPresenter.scheduledLocal}
-							busy={composerPresenter.busy}
-							showDelete={false}
-							saveDraftLabel="Copy draft payload"
-							primaryLabel="Copy scheduled payload"
-							scheduleDisabled={!wizardPayloadResult.ok}
-							footerVariant="schedulePost"
-							onToggleTag={composerPresenter.toggleTag.bind(composerPresenter)}
-							onAddTag={composerPresenter.addNewTag.bind(composerPresenter)}
-							onDeleteTag={composerPresenter.deleteWorkspaceTag.bind(composerPresenter)}
-							onRepeatChange={(v) => {
-								composerPresenter.repeatInterval = v;
-							}}
-							onSaveDraft={() => void copyProgrammaticPayload('draft')}
-							onSchedule={() => void copyProgrammaticPayload('scheduled')}
-							showPublishNow={false}
-						/>
-						</div>
-					</div>
-				</div>
-
-				<div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-					<div class="rounded-lg border border-base-300 bg-base-100 p-4 space-y-3">
-						<div class="flex items-center justify-between gap-3">
-							<h2 class="text-base font-semibold text-base-content">Generated payload</h2>
-							<Button
-								variant="primary"
-								type="button"
-								class="gap-2"
-								disabled={!wizardPayload}
-								onclick={() => void copyProgrammaticPayload('scheduled')}
-							>
-								<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
-								Copy JSON
-							</Button>
-						</div>
-
-						{#if wizardPayload}
-							<pre class="overflow-x-auto rounded-md border border-base-300 bg-base-200/40 p-4 text-xs text-base-content"><code>{JSON.stringify(wizardPayload, null, 2)}</code></pre>
-						{:else}
-							<div class="rounded-md border border-base-300 bg-base-200/40 p-4">
-								<p class="text-sm text-base-content/70">
-									{wizardPayloadResult.ok ? 'Fill out the composer to generate a payload.' : wizardPayloadResult.error}
-								</p>
-							</div>
-						{/if}
-					</div>
-
-					<div class="rounded-lg border border-base-300 bg-base-100 p-4 space-y-2 xl:self-start">
-						<h2 class="text-base font-semibold text-base-content">Endpoint</h2>
-						<p class="text-sm text-base-content/70">
-							Send this payload to <span class="font-mono text-base-content">POST /api/v1/public/posts</span>.
-						</p>
-						<p class="text-sm text-base-content/70">
-							<span class="font-medium text-base-content">Note:</span> programmatic auth derives the organization from your OAuth app
-							token, so <span class="font-mono text-base-content">organizationId</span> is intentionally omitted.
-						</p>
-					</div>
-				</div>
-			</div>
+			<PayloadWizardHeroPanel
+				mode="workspace"
+				workspaceComposer={composerPresenter}
+				workspaceId={workspaceId}
+				isLoggedIn={true}
+			/>
 		{/if}
 	</div>
 </div>
@@ -339,4 +169,3 @@
 	connectedChannels={connectedChannelsVm}
 	uploadUid={workspaceId ?? ''}
 />
-

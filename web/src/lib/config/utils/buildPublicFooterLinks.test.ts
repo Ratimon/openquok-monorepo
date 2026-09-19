@@ -7,13 +7,26 @@ import {
 	buildPublicFooterMcpIntegrationLinks,
 	buildPublicFooterPublicApiDocsLinkSections,
 	buildPublicFooterSelfHostSocialIntegrationLinks,
+	buildPublicFooterApisLinks,
+	buildPublicFooterSocialMediaPostingApiLinks,
+	buildPublicFooterSocialMediaSchedulingApiLinks,
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { preloadDocsRegistry } from '$lib/docs/content';
 import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
 import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+import {
+	getPublicApiPostingPlatformBySlug,
+	listPublicApiPostingPlatformsForHub,
+	listPublicApiSchedulingPlatformsForHub,
+	PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS
+} from '$lib/content/constants/apis/index';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+import {
+	getRootPathSocialMediaPostingApiPlatform,
+	getRootPathSocialMediaSchedulingApiPlatform
+} from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { route } from '$lib/utils/path';
 
 describe('buildPublicFooterLinks', () => {
@@ -66,6 +79,62 @@ describe('buildPublicFooterLinks', () => {
 				label: channel.platformLabel,
 				href: route(getRootPathPublicChannel(channel.slug))
 			}))
+		);
+	});
+
+	it('lists every posting API platform under the posting API hub', () => {
+		const links = buildPublicFooterSocialMediaPostingApiLinks('/social-media-posting-api');
+
+		expect(links[0]).toEqual({
+			label: 'All Posting API Platforms',
+			href: '/social-media-posting-api'
+		});
+		expect(links.slice(1)).toEqual(
+			listPublicApiPostingPlatformsForHub().map((platform) => ({
+				label: platform.platformLabel,
+				href: route(getRootPathSocialMediaPostingApiPlatform(platform.slug))
+			}))
+		);
+	});
+
+	it('lists every scheduling API platform under the scheduling API hub', () => {
+		const links = buildPublicFooterSocialMediaSchedulingApiLinks('/social-media-scheduling-api');
+
+		expect(links[0]).toEqual({
+			label: 'All Scheduling API Platforms',
+			href: '/social-media-scheduling-api'
+		});
+		expect(links.slice(1)).toEqual(
+			listPublicApiSchedulingPlatformsForHub().map((platform) => ({
+				label: platform.platformLabel,
+				href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
+			}))
+		);
+	});
+
+	it('builds a PostPeer-style APIs footer column with hubs, docs, and popular posting pages', () => {
+		const links = buildPublicFooterApisLinks(
+			'/social-media-posting-api',
+			'/social-media-scheduling-api'
+		);
+
+		expect(links.slice(0, 6)).toEqual([
+			{ label: 'Social Media Posting API', href: '/social-media-posting-api' },
+			{ label: 'Social Media Scheduling API', href: '/social-media-scheduling-api' },
+			{ label: 'Posts APIs', href: '/docs/apis-posts' },
+			{ label: 'Analytics APIs', href: '/docs/apis-analytics' },
+			{ label: 'Integrations APIs', href: '/docs/apis-integrations' },
+			{ label: 'Uploads APIs', href: '/docs/apis-uploads' }
+		]);
+
+		expect(links.slice(6)).toEqual(
+			PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS.map((slug) => {
+				const platform = getPublicApiPostingPlatformBySlug(slug);
+				return {
+					label: platform!.metaTitle,
+					href: route(getRootPathSocialMediaPostingApiPlatform(slug))
+				};
+			})
 		);
 	});
 

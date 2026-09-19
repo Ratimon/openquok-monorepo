@@ -59,6 +59,15 @@ const PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = '/tools/humanizer';
 
 const LISTING_HUB_PREFIXES = ['/playbooks', '/building-blocks'];
 
+/** Keep in sync with backend/middlewares/generateSitemap.ts and apis/index.ts. */
+const PUBLIC_API_MARKETING_HUB_PATHS = [
+	'/social-media-posting-api',
+	'/social-media-scheduling-api'
+];
+
+const PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX =
+	/export const PUBLIC_API_POSTING_PLATFORM_SLUGS:\s*readonly[^=]*=\s*\[([\s\S]*?)\]/;
+
 const CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
 
 const COMPARE_PRODUCT_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],/;
@@ -207,6 +216,49 @@ function extractCompareProductSlugs(constantsDir = WEB_CONSTANTS_DIR) {
 	return [...new Set(slugs)];
 }
 
+function extractPublicApiPlatformSlugs(constantsDir = WEB_CONSTANTS_DIR) {
+	const indexPath = path.join(constantsDir, 'apis', 'index.ts');
+	if (!fs.existsSync(indexPath)) return [];
+
+	const content = fs.readFileSync(indexPath, 'utf-8');
+	const blockMatch = content.match(PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX);
+	if (!blockMatch?.[1]) return [];
+
+	const slugs = [];
+	const slugRegex = /['"]([^'"]+)['"]/g;
+
+	for (const match of blockMatch[1].matchAll(slugRegex)) {
+		if (match[1]) slugs.push(match[1]);
+	}
+
+	return [...new Set(slugs)];
+}
+
+function buildPublicApiMarketingRoutes(constantsDir = WEB_CONSTANTS_DIR) {
+	const platformSlugs = extractPublicApiPlatformSlugs(constantsDir);
+	const routes = [];
+
+	for (const hubPath of PUBLIC_API_MARKETING_HUB_PATHS) {
+		routes.push({
+			path: hubPath,
+			priority: 0.8,
+			changeFreq: 'monthly',
+			type: 'programmatic-api-marketing-hub'
+		});
+
+		for (const slug of platformSlugs) {
+			routes.push({
+				path: `${hubPath}/${encodeURIComponent(slug)}`,
+				priority: 0.75,
+				changeFreq: 'monthly',
+				type: 'programmatic-api-marketing-platform'
+			});
+		}
+	}
+
+	return routes;
+}
+
 function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 	const catalog = extractPublicCatalogSlugs(constantsDir);
 	const compareSlugs = extractCompareProductSlugs(constantsDir);
@@ -260,6 +312,8 @@ function buildProgrammaticRoutes(constantsDir = WEB_CONSTANTS_DIR) {
 			});
 		}
 	}
+
+	routes.push(...buildPublicApiMarketingRoutes(constantsDir));
 
 	return routes;
 }

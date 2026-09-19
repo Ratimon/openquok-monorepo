@@ -9,6 +9,10 @@ import {
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicPlaybooks, getRootPathPublicPlaybooksTag } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
+import {
+	getRootPathSocialMediaPostingApi,
+	getRootPathSocialMediaSchedulingApi
+} from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import {
 	getRootPathPublicBestTimeToPost,
@@ -83,6 +87,8 @@ export const publicFaqHref = {
 	mcpGettingStarted: faqHrefDocs('getting-started-for-mcp'),
 	publicApi: faqHrefDocs('getting-started-for-public-api'),
 	publicApiProviders: faqHrefDocs('public-api-providers'),
+	socialMediaPostingApi: route(getRootPathSocialMediaPostingApi()),
+	socialMediaSchedulingApi: route(getRootPathSocialMediaSchedulingApi()),
 	oauthApps: faqHrefDocs('oauth2-for-apps'),
 	socialIntegration: faqHrefDocs('social-integration'),
 	channelGroups: faqHrefDocs('apis-integrations/groups'),

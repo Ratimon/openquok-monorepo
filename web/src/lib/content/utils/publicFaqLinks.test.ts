@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	PUBLIC_API_POSTING_HUB_FAQ,
+	PUBLIC_API_POSTING_PLATFORM_SLUGS,
+	PUBLIC_API_SCHEDULING_HUB_FAQ,
+	getPublicApiPostingPlatformBySlug,
+	getPublicApiSchedulingPlatformBySlug
+} from '$lib/content/constants/apis/index';
+import {
+	assertConnectFaqsHaveFunnelLinks,
+	assertSelfHostLabelsOnSocialIntegrationLinks
+} from '$lib/content/utils/publicFaqFunnel.test-utils';
+import {
 	buildAgentFaqLinks,
 	buildChannelFaqLinks,
 	buildChannelFreeTrialFaqDescription,
@@ -38,6 +49,8 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.dockerCompose).toBe('/docs/installation/docker-compose');
 		expect(publicFaqHref.productionDeployment).toBe('/docs/installation/production-deployment');
 		expect(publicFaqHref.publicApiProviders).toBe('/docs/public-api-providers');
+		expect(publicFaqHref.socialMediaPostingApi).toBe('/social-media-posting-api');
+		expect(publicFaqHref.socialMediaSchedulingApi).toBe('/social-media-scheduling-api');
 		expect(faqHrefAgent('grok-bot')).toBe('/agents/grok-bot');
 	});
 
@@ -105,5 +118,55 @@ describe('publicFaqLinks', () => {
 		expect(description).toContain('href="/self-hosting"');
 		expect(description).toContain('href="/pricing"');
 		expect(description).toContain('cloud free trial');
+	});
+
+	it('API hub FAQs document workspace billing, rate limits, and cloud limits', () => {
+		for (const hubFaq of [PUBLIC_API_POSTING_HUB_FAQ, PUBLIC_API_SCHEDULING_HUB_FAQ]) {
+			const html = hubFaq.faqItems.map((item) => item.description).join('\n');
+			expect(html).toContain('30 requests per hour');
+			expect(html).toContain('href="/docs/cloud/limits"');
+			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
+			expect(html).toMatch(/not per-post credits|bills workspaces/);
+		}
+
+		const postingRateLimitFaq = PUBLIC_API_POSTING_HUB_FAQ.faqItems.find((item) =>
+			item.title.includes('rate limits')
+		);
+		expect(postingRateLimitFaq?.description).toContain('opo_');
+	});
+
+	it('API hub connect FAQs prioritize sign-up and connect guide', () => {
+		const postingPaidPlanFaq = PUBLIC_API_POSTING_HUB_FAQ.faqItems.find((item) =>
+			item.title.includes('paid plan')
+		);
+		expect(postingPaidPlanFaq?.description).toContain(`href="${publicFaqHref.signUp}"`);
+		expect(postingPaidPlanFaq?.description).toContain(
+			`href="${publicFaqHref.connectChannelsGuide}"`
+		);
+
+		assertConnectFaqsHaveFunnelLinks(PUBLIC_API_SCHEDULING_HUB_FAQ.faqItems, (title) =>
+			title.startsWith('How do I connect channels')
+		);
+	});
+
+	it('API platform connect FAQs use the connect funnel and label self-host docs', () => {
+		for (const slug of PUBLIC_API_POSTING_PLATFORM_SLUGS) {
+			const postingPlatform = getPublicApiPostingPlatformBySlug(slug);
+			const schedulingPlatform = getPublicApiSchedulingPlatformBySlug(slug);
+
+			expect(postingPlatform).toBeDefined();
+			expect(schedulingPlatform).toBeDefined();
+
+			for (const platform of [postingPlatform!, schedulingPlatform!]) {
+				assertConnectFaqsHaveFunnelLinks(platform.faqItems, (title) =>
+					title.startsWith('How do I connect')
+				);
+				assertSelfHostLabelsOnSocialIntegrationLinks(platform.faqItems);
+
+				const billingFaq = platform.faqItems.find((item) => item.title.includes('bill per'));
+				expect(billingFaq?.description).toContain('30 requests per hour');
+				expect(billingFaq?.description).toContain('href="/docs/cloud/limits"');
+			}
+		}
 	});
 });

@@ -19,7 +19,7 @@ Most of your time in OpenQuok happens in the **post editor** — we also call it
 
 ![Post Editor](/docs/_assets/getting-started/3-compose-your-post.webp)
 
-On Home and the calendar it opens as a modal. The same editor powers <Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> for developers who want to copy a JSON payload for the public API.
+On Home and the calendar it opens as a modal. The same editor powers <Badge text="Payload Wizard" variant="default" /> on the public <a href="/social-media-posting-api">posting API</a> and <a href="/social-media-scheduling-api">scheduling API</a> landing pages (sample channels) and at <a href="/account/payload-wizard">/account/payload-wizard</a> in your workspace for developers who want to copy a JSON payload for the public API.
 
 ## Where to open it
 
@@ -111,7 +111,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 
 ## Payload Wizard (developers)
 
-<p><Badge text="Payload Wizard" variant="default" /> at <a href="/account/payload-wizard">/account/payload-wizard</a> shows the same editor on a full page. Compose as usual, then copy JSON for <Badge text="POST /api/v1/public/posts" variant="path" />. Settings → <Badge text="Developers" variant="default" /> → <strong>Access</strong> links here. See <a href="/docs/getting-started-for-public-api">Public API</a> for auth and request shape.</p>
+<p><Badge text="Payload Wizard" variant="default" /> is on the public <a href="/social-media-posting-api">posting API</a> and <a href="/social-media-scheduling-api">scheduling API</a> landing pages with sample channels, or at <a href="/account/payload-wizard">/account/payload-wizard</a> in your workspace after sign-in. Compose as usual, then copy JSON for <Badge text="POST /api/v1/public/posts" variant="path" />. Settings → <Badge text="Developers" variant="default" /> → <strong>Access</strong> links to the workspace wizard. See <a href="/docs/getting-started-for-public-api">Public API</a> for auth and request shape.</p>
 
 ## In this section
 

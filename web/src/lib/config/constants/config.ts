@@ -23,6 +23,10 @@ import {
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import {
+	getRootPathSocialMediaPostingApi,
+	getRootPathSocialMediaSchedulingApi
+} from '$lib/area-public/constants/getRootPathPublicApiMarketing';
+import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicHumanizer,
 	getRootPathPublicSkillBuilder,
@@ -39,6 +43,7 @@ import {
 	buildPublicFooterPublicApiDocsLinkSections,
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterSkillBuilderLinks,
+	buildPublicFooterApisLinks,
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { docsTabHref } from '$lib/docs/navigation';
@@ -74,6 +79,8 @@ const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
+const publicSocialMediaPostingApiPath = route(getRootPathSocialMediaPostingApi());
+const publicSocialMediaSchedulingApiPath = route(getRootPathSocialMediaSchedulingApi());
 
 const publicFooterSkillBuilderLinks = buildPublicFooterSkillBuilderLinks(publicSkillBuilderPath);
 const publicFooterPhotoEditorLinks = buildPublicFooterPhotoEditorLinks(publicPhotoEditorPath);
@@ -83,6 +90,10 @@ const publicFooterAutonomousAgentIntegrationLinks =
 	buildPublicFooterAutonomousAgentIntegrationLinks(publicAgentsPath);
 const publicFooterMcpIntegrationLinks = buildPublicFooterMcpIntegrationLinks(publicAgentsPath);
 const publicFooterSupportedChannelLinks = buildPublicFooterSupportedChannelLinks(publicChannelsPath);
+const publicFooterApisLinks = buildPublicFooterApisLinks(
+	publicSocialMediaPostingApiPath,
+	publicSocialMediaSchedulingApiPath
+);
 
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
@@ -896,6 +907,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Privacy', href: '/privacy-policy' },
 		{ label: 'Cookies', href: '/cookie-policy' }
 	],
+	APIs: publicFooterApisLinks,
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
@@ -919,7 +931,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	'Skill Builder Tools': publicFooterSkillBuilderLinks,
 	'Photo Editor Tools': publicFooterPhotoEditorLinks,
 	'Humanizer Tools': publicFooterHumanizerLinks,
-	'Best Time to Post Tools': publicFooterBestTimeToPostLinks
+	'Best Time to Post Tools': publicFooterBestTimeToPostLinks,
 };
 
 /** Full footer columns including doc-derived sections. Await from server loads after docs preload. */

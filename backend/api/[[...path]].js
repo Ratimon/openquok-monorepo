@@ -36456,7 +36456,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-18T23:49:32.878Z",
+  generated: "2026-09-19T12:32:18.987Z",
   routes: [
     {
       path: "/docs",
@@ -36586,6 +36586,18 @@ var routes_manifest_default = {
     },
     {
       path: "/self-hosting",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/social-media-posting-api",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/social-media-scheduling-api",
       priority: 0.7,
       changeFreq: "monthly",
       type: "static"
@@ -38965,6 +38977,102 @@ var routes_manifest_default = {
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-tool-channel"
+    },
+    {
+      path: "/social-media-posting-api",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-hub"
+    },
+    {
+      path: "/social-media-posting-api/tiktok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/x",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/instagram",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/youtube",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/facebook",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/threads",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-posting-api/linkedin",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-hub"
+    },
+    {
+      path: "/social-media-scheduling-api/tiktok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/x",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/instagram",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/youtube",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/facebook",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/threads",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
+    },
+    {
+      path: "/social-media-scheduling-api/linkedin",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-api-marketing-platform"
     }
   ]};
 
@@ -38991,6 +39099,11 @@ var PUBLIC_TOOL_CHANNEL_PATHS = [
 ];
 var PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
+var PUBLIC_API_MARKETING_HUB_PATHS = [
+  "/social-media-posting-api",
+  "/social-media-scheduling-api"
+];
+var PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX = /export const PUBLIC_API_POSTING_PLATFORM_SLUGS:\s*readonly[^=]*=\s*\[([\s\S]*?)\]/;
 var AGENT_HOST_PAGE_REGEX = /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_PAGE_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:[\s\S]*?available:\s*(true|false)/g;
 var CHANNEL_SLUG_REGEX = /slug:\s*['"]([^'"]+)['"],\s*\n\s*platformId:/g;
@@ -39099,6 +39212,30 @@ function extractCompareProductSlugs(constantsDir) {
   }
   return [...new Set(slugs)];
 }
+function extractPublicApiPlatformSlugs(constantsDir) {
+  const indexPath = path3__default.default.join(constantsDir, "apis", "index.ts");
+  if (!fs2__default.default.existsSync(indexPath)) return [];
+  const content = fs2__default.default.readFileSync(indexPath, "utf-8");
+  const blockMatch = content.match(PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX);
+  if (!blockMatch?.[1]) return [];
+  const slugs = [];
+  const slugRegex = /['"]([^'"]+)['"]/g;
+  for (const match of blockMatch[1].matchAll(slugRegex)) {
+    if (match[1]) slugs.push(match[1]);
+  }
+  return [...new Set(slugs)];
+}
+function buildPublicApiMarketingSitemapPaths(constantsDir) {
+  const platformSlugs = extractPublicApiPlatformSlugs(constantsDir);
+  const paths = [];
+  for (const hubPath of PUBLIC_API_MARKETING_HUB_PATHS) {
+    paths.push(hubPath);
+    for (const slug of platformSlugs) {
+      paths.push(`${hubPath}/${encodeURIComponent(slug)}`);
+    }
+  }
+  return paths;
+}
 function buildProgrammaticSitemapPaths(constantsDir) {
   const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
   const compareSlugs = extractCompareProductSlugs(constantsDir);
@@ -39131,6 +39268,7 @@ function buildProgrammaticSitemapPaths(constantsDir) {
       paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
     }
   }
+  paths.push(...buildPublicApiMarketingSitemapPaths(constantsDir));
   return paths;
 }
 function pushSitemapPaths(urls, paths, changeFreq, lastMod) {

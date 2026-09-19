@@ -2,7 +2,7 @@
 title: Getting Started for Using Public API
 description: Getting started to automate your Social Scheduling with OpenQuok's public API and Node.js SDK.
 order: 0
-lastUpdated: 2026-09-14
+lastUpdated: 2026-09-19
 sidebar:
   label: Overview - Public API
 ---
@@ -60,7 +60,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 ## Rate limits
 
 <Callout type="warning">
-<p>A <strong>30 requests per hour</strong> limit applies to all endpoints. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput.</p>
+<p>A <strong>30 requests per hour</strong> limit applies per <Badge text="opo_" variant="default" /> token across all <Badge text="/api/v1/public/*" variant="path" /> endpoints on OpenQuok Cloud. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput. Public API access requires a <a href="/pricing">paid workspace plan</a>; scheduled posts still count toward your monthly post quota. OpenQuok bills workspaces, not per-post credits. See <a href="/docs/cloud/limits">cloud limits</a> for every cap.</p>
 </Callout>
 
 ## Public API documentation
@@ -89,7 +89,7 @@ For per-channel settings, copy-paste API examples, and the **channel vs integrat
 
 ## Generate Output
 
-Skip hand-writing JSON — open the <a href="/account/payload-wizard">Payload Wizard</a> instead.
+Skip hand-writing JSON — open the <a href="/social-media-posting-api">Payload Wizard on the posting API landing page</a> (sample channels, no account required) or the full <a href="/account/payload-wizard">workspace Payload Wizard</a> after you sign in.
 
 
 ![Wizard Payload Generator](/docs/_assets/getting-started-for-public-api/wizard-payload.webp)

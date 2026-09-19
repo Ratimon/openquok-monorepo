@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/publicChannelsHubFaqConfig';
+import {
+	PUBLIC_API_POSTING_HUB_FAQ,
+	PUBLIC_API_SCHEDULING_HUB_FAQ
+} from '$lib/content/constants/apis/publicApiCapabilityHubFaqConfig';
 import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/publicCompareHubFaqConfig';
 import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
 import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/publicRoadmapHubFaqConfig';
@@ -18,7 +22,9 @@ const HUB_FAQ_SECTIONS = [
 	{ name: '/tools hub', section: PUBLIC_TOOLS_HUB_FAQ },
 	{ name: '/compare hub', section: PUBLIC_COMPARE_HUB_FAQ },
 	{ name: '/creators hub', section: PUBLIC_CREATORS_HUB_FAQ },
-	{ name: '/roadmap hub', section: PUBLIC_ROADMAP_HUB_FAQ }
+	{ name: '/roadmap hub', section: PUBLIC_ROADMAP_HUB_FAQ },
+	{ name: '/social-media-posting-api hub', section: PUBLIC_API_POSTING_HUB_FAQ },
+	{ name: '/social-media-scheduling-api hub', section: PUBLIC_API_SCHEDULING_HUB_FAQ }
 ] as const;
 
 describe('pSEO hub FAQ funnel links', () => {
@@ -89,5 +95,14 @@ describe('pSEO hub FAQ funnel links', () => {
 		const html = PUBLIC_ROADMAP_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain('href="/roadmap"');
 		expect(html).toMatch(/href="https:\/\/discord\.gg\//);
+	});
+
+	it('API marketing hubs link pricing and cloud limits for rate-limit FAQs', () => {
+		for (const section of [PUBLIC_API_POSTING_HUB_FAQ, PUBLIC_API_SCHEDULING_HUB_FAQ]) {
+			const html = section.faqItems.map((item) => item.description).join('\n');
+			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
+			expect(html).toContain('href="/docs/cloud/limits"');
+			expect(html).toContain('30 requests per hour');
+		}
 	});
 });

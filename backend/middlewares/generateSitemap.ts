@@ -69,6 +69,15 @@ const PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
 
 const LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"] as const;
 
+/** Keep in sync with web/src/lib/content/constants/apis/index.ts and generate-routes-manifest.mjs. */
+const PUBLIC_API_MARKETING_HUB_PATHS = [
+    "/social-media-posting-api",
+    "/social-media-scheduling-api",
+] as const;
+
+const PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX =
+    /export const PUBLIC_API_POSTING_PLATFORM_SLUGS:\s*readonly[^=]*=\s*\[([\s\S]*?)\]/;
+
 /** Keep parsing logic in sync with scripts/generate-routes-manifest.mjs. */
 const AGENT_HOST_PAGE_REGEX =
     /pageType:\s*['"]agent-host['"][\s\S]*?slug:\s*['"]([^'"]+)['"][\s\S]*?available:\s*(true|false)/g;
@@ -227,6 +236,38 @@ function extractCompareProductSlugs(constantsDir: string): string[] {
     return [...new Set(slugs)];
 }
 
+function extractPublicApiPlatformSlugs(constantsDir: string): string[] {
+    const indexPath = path.join(constantsDir, "apis", "index.ts");
+    if (!fs.existsSync(indexPath)) return [];
+
+    const content = fs.readFileSync(indexPath, "utf-8");
+    const blockMatch = content.match(PUBLIC_API_POSTING_PLATFORM_SLUGS_REGEX);
+    if (!blockMatch?.[1]) return [];
+
+    const slugs: string[] = [];
+    const slugRegex = /['"]([^'"]+)['"]/g;
+
+    for (const match of blockMatch[1].matchAll(slugRegex)) {
+        if (match[1]) slugs.push(match[1]);
+    }
+
+    return [...new Set(slugs)];
+}
+
+function buildPublicApiMarketingSitemapPaths(constantsDir: string): string[] {
+    const platformSlugs = extractPublicApiPlatformSlugs(constantsDir);
+    const paths: string[] = [];
+
+    for (const hubPath of PUBLIC_API_MARKETING_HUB_PATHS) {
+        paths.push(hubPath);
+        for (const slug of platformSlugs) {
+            paths.push(`${hubPath}/${encodeURIComponent(slug)}`);
+        }
+    }
+
+    return paths;
+}
+
 function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
     const catalog = extractPublicCatalogSlugsFromDir(constantsDir);
     const compareSlugs = extractCompareProductSlugs(constantsDir);
@@ -264,6 +305,8 @@ function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
             paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
         }
     }
+
+    paths.push(...buildPublicApiMarketingSitemapPaths(constantsDir));
 
     return paths;
 }

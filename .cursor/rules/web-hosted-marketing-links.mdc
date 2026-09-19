@@ -12,7 +12,7 @@ Helper: `$lib/utils/hostedMarketingHref` — `hostedMarketingHref`, `hostedMarke
 
 ## Marketing prefixes (rewrite)
 
-`docs`, `blog`, `agents`, `channels`, `playbooks`, `building-blocks`, `creators`, `compare`, `alternatives`, `tools`, `roadmap`, `pricing`, `about` (and subpaths).
+`docs`, `blog`, `agents`, `channels`, `playbooks`, `building-blocks`, `creators`, `compare`, `alternatives`, `tools`, `roadmap`, `social-media-posting-api`, `social-media-scheduling-api`, `pricing`, `about` (and subpaths).
 
 When the **final** `href` is one of these, use `hostedMarketingHref(path, page.url.origin)` (or `hostedMarketingAnchorAttrs`). Do **not** use bare `route()` / `url()` / hardcoded `/docs` as the rendered href.
 

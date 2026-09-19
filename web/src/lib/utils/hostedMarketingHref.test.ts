@@ -41,6 +41,8 @@ describe('isHostedMarketingPath', () => {
 		expect(isHostedMarketingPath('/self-hosting')).toBe(true);
 		expect(isHostedMarketingPath('/agents/openclaw')).toBe(true);
 		expect(isHostedMarketingPath('/tools/skill-builder')).toBe(true);
+		expect(isHostedMarketingPath('/social-media-posting-api/tiktok')).toBe(true);
+		expect(isHostedMarketingPath('/social-media-scheduling-api/x')).toBe(true);
 		expect(isHostedMarketingPath('/building-blocks?type=official')).toBe(true);
 	});
 
@@ -82,6 +84,9 @@ describe('hostedMarketingHref', () => {
 		);
 		expect(hostedMarketingHref('/self-hosting', SELF_HOST_ORIGIN, { isDev: false })).toBe(
 			`${OPENQUOK_HOSTED_WEB_ORIGIN}/self-hosting`
+		);
+		expect(hostedMarketingHref('/social-media-posting-api', SELF_HOST_ORIGIN, { isDev: false })).toBe(
+			`${OPENQUOK_HOSTED_WEB_ORIGIN}/social-media-posting-api`
 		);
 	});
 

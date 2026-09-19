@@ -1,11 +1,21 @@
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
+import {
+	getRootPathSocialMediaPostingApiPlatform,
+	getRootPathSocialMediaSchedulingApiPlatform
+} from '$lib/area-public/constants/getRootPathPublicApiMarketing';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { listHumanizeChannelsForHub } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
 import { listBestTimeChannelsForHub } from '$lib/best-time-to-post/constants/publicBestTimeToPostChannelConfig';
 import { listCanvasChannelsForHub } from '$lib/canvas/constants/publicCanvasChannelConfig';
 import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
 import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+import {
+	getPublicApiPostingPlatformBySlug,
+	PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS,
+	listPublicApiPostingPlatformsForHub,
+	listPublicApiSchedulingPlatformsForHub
+} from '$lib/content/constants/apis/index';
 import { getDocsByDirectory } from '$lib/docs/content';
 import { docsSidebarPublicApi } from '$lib/docs/constants/config';
 import { listSkillBuilderChannelsForHub } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
@@ -129,6 +139,63 @@ export function buildPublicFooterSupportedChannelLinks(channelsHubHref: string):
 			href: route(getRootPathPublicChannel(channel.slug))
 		}))
 	);
+}
+
+export function buildPublicFooterSocialMediaPostingApiLinks(
+	postingApiHubHref: string
+): PublicFooterLink[] {
+	return buildPublicFooterHubLinks(
+		'All Posting API Platforms',
+		postingApiHubHref,
+		listPublicApiPostingPlatformsForHub().map((platform) => ({
+			platformLabel: platform.platformLabel,
+			href: route(getRootPathSocialMediaPostingApiPlatform(platform.slug))
+		}))
+	);
+}
+
+export function buildPublicFooterSocialMediaSchedulingApiLinks(
+	schedulingApiHubHref: string
+): PublicFooterLink[] {
+	return buildPublicFooterHubLinks(
+		'All Scheduling API Platforms',
+		schedulingApiHubHref,
+		listPublicApiSchedulingPlatformsForHub().map((platform) => ({
+			platformLabel: platform.platformLabel,
+			href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
+		}))
+	);
+}
+
+/**
+ * PostPeer-style APIs footer column: capability hubs, reference docs, then popular platform posting pages.
+ */
+export function buildPublicFooterApisLinks(
+	postingApiHubHref: string,
+	schedulingApiHubHref: string
+): PublicFooterLink[] {
+	const docsRoot = getRootPathPublicDocs();
+
+	const capabilityLinks: PublicFooterLink[] = [
+		{ label: 'Social Media Posting API', href: postingApiHubHref },
+		{ label: 'Social Media Scheduling API', href: schedulingApiHubHref },
+		{ label: 'Posts APIs', href: route(`${docsRoot}/apis-posts`) },
+		{ label: 'Analytics APIs', href: route(`${docsRoot}/apis-analytics`) },
+		{ label: 'Integrations APIs', href: route(`${docsRoot}/apis-integrations`) },
+		{ label: 'Uploads APIs', href: route(`${docsRoot}/apis-uploads`) }
+	];
+
+	const popularPostingLinks: PublicFooterLink[] = PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS.map(
+		(slug) => {
+			const platform = getPublicApiPostingPlatformBySlug(slug);
+			return {
+				label: platform?.metaTitle ?? `${slug} Posting API`,
+				href: route(getRootPathSocialMediaPostingApiPlatform(slug))
+			};
+		}
+	);
+
+	return [...capabilityLinks, ...popularPostingLinks];
 }
 
 /** Self-host operator setup guides under `/docs/social-integration/*`. */
