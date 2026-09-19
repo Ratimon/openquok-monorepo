@@ -48,7 +48,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
-	import AgentChannelHubGrid from '$lib/ui/templates/landing-page/AgentChannelHubGrid.svelte';
+	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
@@ -226,10 +226,11 @@
 {/if}
 
 {#if channelLinksVm.length > 0}
-	<AgentChannelHubGrid
-		agentLabel={agentVm.agentLabel}
-		{channelLinksVm}
+	<PublicChannelSiblingGrid
+		channelsVm={channelLinksVm}
 		{activeChannelSlug}
+		activePlatformLabel={comingSoonPlatformLabel}
+		agentLabel={agentVm.agentLabel}
 	/>
 {/if}
 

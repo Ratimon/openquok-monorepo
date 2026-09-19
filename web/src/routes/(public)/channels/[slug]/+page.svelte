@@ -6,7 +6,7 @@
 	import { publicChannelByPagePresenter } from '$lib/area-public';
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
-	import { route } from '$lib/utils/path';
+	import { route, url } from '$lib/utils/path';
 
 	import HeroWithLeftMedia from '$lib/ui/templates/HeroWithLeftMedia.svelte';
 	import HeroWithRightMedia from '$lib/ui/templates/HeroWithRightMedia.svelte';
@@ -27,6 +27,9 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
+	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
+	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
 	type Props = { data: PageData };
 
@@ -49,6 +52,16 @@
 
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(channelVm.platformLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(channelVm.platformLabel));
+
+	const siblingChannels = $derived(
+		listPublicChannelsForHub().map((channel) => ({
+			slug: channel.slug,
+			platformLabel: channel.platformLabel,
+			icon: channel.icon,
+			href: route(getRootPathPublicChannel(channel.slug)),
+			available: channel.available
+		}))
+	);
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -112,6 +125,12 @@
 			/>
 		{/if}
 	{/each}
+
+	<PublicChannelSiblingGrid
+		channelsVm={siblingChannels}
+		activeChannelSlug={channelVm.slug}
+		activePlatformLabel={channelVm.platformLabel}
+	/>
 
 	<div class="container mx-auto px-4">
 		<PublicFaq

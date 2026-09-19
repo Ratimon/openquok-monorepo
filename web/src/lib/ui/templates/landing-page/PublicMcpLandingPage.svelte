@@ -34,7 +34,7 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
-	import AgentChannelHubGrid from '$lib/ui/templates/landing-page/AgentChannelHubGrid.svelte';
+	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
@@ -171,10 +171,11 @@
 {/if}
 
 {#if channelLinksVm.length > 0}
-	<AgentChannelHubGrid
-		agentLabel={mcpVm.agentLabel}
-		{channelLinksVm}
+	<PublicChannelSiblingGrid
+		channelsVm={channelLinksVm}
 		{activeChannelSlug}
+		activePlatformLabel={comingSoonPlatformLabel}
+		agentLabel={mcpVm.agentLabel}
 	/>
 {/if}
 
