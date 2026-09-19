@@ -8,7 +8,11 @@ import { getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathP
 import { getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
 import { getRootPathPublicCompare } from '$lib/area-public/constants/getRootPathPublicCompare';
 import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
-import { getRootPathPublicDocs, getRootPathPublicDocsInstallationDockerCompose } from '$lib/area-public/constants/getRootPathPublicDocs';
+import {
+	getRootPathPublicDocs,
+	getRootPathPublicDocsGettingStartedForDev,
+	getRootPathPublicDocsInstallationDockerCompose
+} from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicBuildingBlocks } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import {
 	getRootPathPublicBuildingBlocksCategories,
@@ -66,6 +70,7 @@ const publicBuildingBlocksCategoriesPath = route(getRootPathPublicBuildingBlocks
 const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags());
 const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
+const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingStartedForDev());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
 const publicDocsGettingStartedForMcpPath = route(`${getRootPathPublicDocs()}/getting-started-for-mcp`);
 const publicDocsGettingStartedForCliPath = route(`${getRootPathPublicDocs()}/getting-started-for-cli`);
@@ -877,7 +882,7 @@ export const PUBLIC_NAVBAR_LINKS: Link[] = [
 	{ pathname: publicAgentsPath, title: 'Agents', navType: 'agents' },
 	{ pathname: publicChannelsPath, title: 'Channels', navType: 'channels' },
 	{ pathname: publicPlaybooksPath, title: 'Playbooks', navType: 'playbooks' },
-	{ pathname: publicDocsPath, title: 'Dev Docs', navType: 'tab' },
+	{ pathname: publicDocsPath, title: 'Docs', navType: 'tab' },
 	{ pathname: publicBlogPath, title: 'Blog', navType: 'tab' },
 	{ pathname: '/pricing', title: 'Pricing', navType: 'tab' }
 ];
@@ -901,11 +906,12 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
-	
+
 	Resources: [
 		{ label: 'All Supported Channels', href: publicChannelsPath },
 		{ label: 'All Agent Integrations', href: publicAgentsPath },
-		{ label: 'Developer Docs', href: publicDocsPath },
+		{ label: 'General Docs', href: publicDocsPath },
+		{ label: 'Developer Docs', href: publicDocsGettingStartedForDevPath },
 		{ label: 'Contribute', href: publicDocsContributingPath },
 		{ label: 'MCP Getting Started', href: publicDocsGettingStartedForMcpPath },
 		{ label: 'CLI Getting Started', href: publicDocsGettingStartedForCliPath },
