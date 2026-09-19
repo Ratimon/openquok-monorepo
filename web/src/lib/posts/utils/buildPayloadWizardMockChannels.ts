@@ -31,6 +31,26 @@ export function payloadWizardMockIntegrationId(slug: PublicApiPlatformSlug): str
 }
 
 /**
+ * Guest Payload Wizard landings pre-select text-first sample channels.
+ * TikTok, Instagram, and YouTube require media — visitors opt in via the channel picker.
+ */
+export const PAYLOAD_WIZARD_GUEST_DEFAULT_SELECTED_SLUGS: readonly PublicApiPlatformSlug[] = [
+	'x',
+	'facebook',
+	'threads',
+	'linkedin'
+];
+
+export function defaultPayloadWizardGuestSelectedIntegrationIds(
+	channels: readonly CreateSocialPostChannelViewModel[]
+): string[] {
+	const defaultIds = new Set(
+		PAYLOAD_WIZARD_GUEST_DEFAULT_SELECTED_SLUGS.map((slug) => payloadWizardMockIntegrationId(slug))
+	);
+	return channels.filter((channel) => defaultIds.has(channel.id)).map((channel) => channel.id);
+}
+
+/**
  * Sample channels for the public Payload Wizard composer (7 API marketing platforms).
  * Catalog icons and labels only — not the visitor's workspace accounts.
  */

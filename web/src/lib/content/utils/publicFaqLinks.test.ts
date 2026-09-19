@@ -79,6 +79,14 @@ describe('publicFaqLinks', () => {
 		});
 	});
 
+	it('builds payload wizard tool×channel FAQ destinations', () => {
+		const links = buildToolChannelFaqLinks('payload-wizard', 'tiktok');
+		expect(links).toEqual({
+			toolLanding: '/tools/payload-wizard',
+			toolChannel: '/tools/payload-wizard/tiktok'
+		});
+	});
+
 	it('rejects unknown tool slugs', () => {
 		expect(() => buildToolChannelFaqLinks('unknown-tool', 'linkedin')).toThrow(
 			/Unknown tool slug/

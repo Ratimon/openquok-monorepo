@@ -227,7 +227,7 @@ Verify the media hostname in TikTok developer settings and ensure your public UR
 
 For unaudited developer apps, TikTok enforces **two** requirements on **direct post** (not inbox upload):
 
-1. **Post privacy** in OpenQuok: <code>Only me (private)</code> / <code>SELF_ONLY</code>.
+1. **Post privacy** in OpenQuok: <Badge text="Only me (private)" variant="envBackend" /><code></code> / <Badge text="SELF_ONLY" variant="envBackend" />.
 2. **Account privacy** in the TikTok app: set the connected profile to <strong>Private</strong> (TikTok → Settings and privacy → Privacy → Private account) at publish time.
 
 Inbox upload (<code>UPLOAD</code>) sends media to the creator’s TikTok inbox and is not subject to the private-account rule. To publish directly to a public profile without these limits, submit your app for Content Posting API review in the TikTok developer portal.

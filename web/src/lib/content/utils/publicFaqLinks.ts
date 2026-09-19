@@ -19,6 +19,8 @@ import {
 	getRootPathPublicBestTimeToPostChannel,
 	getRootPathPublicHumanizer,
 	getRootPathPublicHumanizerChannel,
+	getRootPathPublicPayloadWizard,
+	getRootPathPublicPayloadWizardChannel,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicPhotoEditorChannel,
 	getRootPathPublicSkillBuilder,
@@ -208,6 +210,10 @@ const TOOL_CHANNEL_PATH_BUILDERS: Record<
 	'best-time-to-post': {
 		landing: getRootPathPublicBestTimeToPost,
 		channel: getRootPathPublicBestTimeToPostChannel
+	},
+	'payload-wizard': {
+		landing: getRootPathPublicPayloadWizard,
+		channel: getRootPathPublicPayloadWizardChannel
 	}
 };
 

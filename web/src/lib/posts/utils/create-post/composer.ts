@@ -1,5 +1,5 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
-import type { ComposerSnapshotInput } from '$lib/posts/createSocialPost.types';
+import type { ComposerSnapshotInput, CreateSocialPostMode } from '$lib/posts/createSocialPost.types';
 import type { PostMediaViewModel } from '$lib/posts/Post.repository.svelte';
 import { threadFollowUpRepliesRawForIntegration } from '$lib/posts/utils/create-post/followUp';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
@@ -72,6 +72,52 @@ export function resolveIntegrationMedia(
 	mediaByIntegrationId: Record<string, PostMediaViewModel[]>
 ): PostMediaViewModel[] {
 	return mediaByIntegrationId[integrationId] ?? globalMediaItems;
+}
+
+export type ComposerMediaValidationInput = {
+	mode: CreateSocialPostMode;
+	focusedIntegrationId: string | null;
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
+	postMediaItems: PostMediaViewModel[];
+};
+
+/** Custom mode previews one network at a time — do not fail on other selected targets. */
+export function resolvePayloadPreviewValidationIntegrationIds(args: {
+	mode: CreateSocialPostMode;
+	focusedIntegrationId: string | null;
+	selectedIds: string[];
+}): string[] {
+	if (args.mode === 'custom' && args.focusedIntegrationId) {
+		return [args.focusedIntegrationId];
+	}
+	return args.selectedIds;
+}
+
+/** Live editor attachments before `persistEditorMedia` — matches payload preview media resolution. */
+export function resolveComposerMediaForValidation(input: ComposerMediaValidationInput): {
+	globalMediaItems: PostMediaViewModel[];
+	mediaByIntegrationId: Record<string, PostMediaViewModel[]>;
+} {
+	if (input.mode === 'global') {
+		return {
+			globalMediaItems: input.postMediaItems,
+			mediaByIntegrationId: input.mediaByIntegrationId
+		};
+	}
+	if (input.focusedIntegrationId) {
+		return {
+			globalMediaItems: input.globalMediaItems,
+			mediaByIntegrationId: {
+				...input.mediaByIntegrationId,
+				[input.focusedIntegrationId]: input.postMediaItems
+			}
+		};
+	}
+	return {
+		globalMediaItems: input.globalMediaItems,
+		mediaByIntegrationId: input.mediaByIntegrationId
+	};
 }
 
 // --- Composer snapshot / dirty check ---

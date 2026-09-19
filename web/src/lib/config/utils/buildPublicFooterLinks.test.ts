@@ -6,20 +6,23 @@ import {
 	buildPublicFooterHubLinks,
 	buildPublicFooterMcpIntegrationLinks,
 	buildPublicFooterPublicApiDocsLinkSections,
+	buildPublicFooterPayloadWizardLinks,
+	buildPublicFooterPostingApiPlatformLinks,
+	buildPublicFooterSchedulingApiPlatformLinks,
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterApisLinks,
-	buildPublicFooterSocialMediaPostingApiLinks,
-	buildPublicFooterSocialMediaSchedulingApiLinks,
 	buildPublicFooterSupportedChannelLinks
 } from '$lib/config/utils/buildPublicFooterLinks';
+import { getPublicFooterLinks, PUBLIC_FOOTER_LINKS_STATIC } from '$lib/config/constants/config';
 import { preloadDocsRegistry } from '$lib/docs/content';
 import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
 import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
 import {
 	getPublicApiPostingPlatformBySlug,
+	getPublicApiSchedulingPlatformBySlug,
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub,
-	PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS
+	PUBLIC_API_POSTING_PLATFORM_SLUGS
 } from '$lib/content/constants/apis/index';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -27,6 +30,7 @@ import {
 	getRootPathSocialMediaPostingApiPlatform,
 	getRootPathSocialMediaSchedulingApiPlatform
 } from '$lib/area-public/constants/getRootPathPublicApiMarketing';
+import { getRootPathPublicPayloadWizardChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import { route } from '$lib/utils/path';
 
 describe('buildPublicFooterLinks', () => {
@@ -83,56 +87,69 @@ describe('buildPublicFooterLinks', () => {
 	});
 
 	it('lists every posting API platform under the posting API hub', () => {
-		const links = buildPublicFooterSocialMediaPostingApiLinks('/social-media-posting-api');
+		const links = buildPublicFooterPostingApiPlatformLinks('/social-media-posting-api');
 
 		expect(links[0]).toEqual({
-			label: 'All Posting API Platforms',
+			label: 'All Posting APIs',
 			href: '/social-media-posting-api'
 		});
 		expect(links.slice(1)).toEqual(
-			listPublicApiPostingPlatformsForHub().map((platform) => ({
-				label: platform.platformLabel,
-				href: route(getRootPathSocialMediaPostingApiPlatform(platform.slug))
-			}))
+			listPublicApiPostingPlatformsForHub().map((platform) => {
+				const page = getPublicApiPostingPlatformBySlug(platform.slug);
+				return {
+					label: page!.metaTitle,
+					href: route(getRootPathSocialMediaPostingApiPlatform(platform.slug))
+				};
+			})
 		);
+		expect(links.some((link) => link.href.startsWith('/docs/'))).toBe(false);
 	});
 
 	it('lists every scheduling API platform under the scheduling API hub', () => {
-		const links = buildPublicFooterSocialMediaSchedulingApiLinks('/social-media-scheduling-api');
+		const links = buildPublicFooterSchedulingApiPlatformLinks('/social-media-scheduling-api');
 
 		expect(links[0]).toEqual({
-			label: 'All Scheduling API Platforms',
+			label: 'All Scheduling APIs',
 			href: '/social-media-scheduling-api'
 		});
 		expect(links.slice(1)).toEqual(
-			listPublicApiSchedulingPlatformsForHub().map((platform) => ({
-				label: platform.platformLabel,
-				href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
-			}))
+			listPublicApiSchedulingPlatformsForHub().map((platform) => {
+				const page = getPublicApiSchedulingPlatformBySlug(platform.slug);
+				return {
+					label: page!.metaTitle,
+					href: route(getRootPathSocialMediaSchedulingApiPlatform(platform.slug))
+				};
+			})
 		);
+		expect(links.some((link) => link.href.startsWith('/docs/'))).toBe(false);
 	});
 
-	it('builds a PostPeer-style APIs footer column with hubs, docs, and popular posting pages', () => {
+	it('builds the APIs footer column with capability hubs only', () => {
 		const links = buildPublicFooterApisLinks(
 			'/social-media-posting-api',
 			'/social-media-scheduling-api'
 		);
 
-		expect(links.slice(0, 6)).toEqual([
-			{ label: 'Social Media Posting API', href: '/social-media-posting-api' },
-			{ label: 'Social Media Scheduling API', href: '/social-media-scheduling-api' },
-			{ label: 'Posts APIs', href: '/docs/apis-posts' },
-			{ label: 'Analytics APIs', href: '/docs/apis-analytics' },
-			{ label: 'Integrations APIs', href: '/docs/apis-integrations' },
-			{ label: 'Uploads APIs', href: '/docs/apis-uploads' }
+		expect(links).toEqual([
+			{ label: 'All Posting APIs', href: '/social-media-posting-api' },
+			{ label: 'All Scheduling APIs', href: '/social-media-scheduling-api' }
 		]);
+		expect(links.some((link) => link.href.startsWith('/docs/'))).toBe(false);
+	});
 
-		expect(links.slice(6)).toEqual(
-			PUBLIC_API_FOOTER_POPULAR_POSTING_SLUGS.map((slug) => {
+	it('lists payload wizard tools under the payload wizard hub', () => {
+		const links = buildPublicFooterPayloadWizardLinks('/tools/payload-wizard');
+
+		expect(links[0]).toEqual({
+			label: 'All Payload Wizard Tools',
+			href: '/tools/payload-wizard'
+		});
+		expect(links.slice(1)).toEqual(
+			PUBLIC_API_POSTING_PLATFORM_SLUGS.map((slug) => {
 				const platform = getPublicApiPostingPlatformBySlug(slug);
 				return {
-					label: platform!.metaTitle,
-					href: route(getRootPathSocialMediaPostingApiPlatform(slug))
+					label: `${platform!.platformLabel} Payload Wizard`,
+					href: route(getRootPathPublicPayloadWizardChannel(slug))
 				};
 			})
 		);
@@ -169,6 +186,25 @@ describe('buildPublicFooterLinks', () => {
 			{ label: 'Notifications APIs', href: '/docs/apis-notifications' },
 			{ label: 'Uploads APIs', href: '/docs/apis-uploads' }
 		]);
+	});
+
+	it('assembles the marketing footer with payload wizard and without API docs columns', async () => {
+		const links = await getPublicFooterLinks();
+
+		expect(links['Payload Wizard Tools']?.[0]).toEqual({
+			label: 'All Payload Wizard Tools',
+			href: '/tools/payload-wizard'
+		});
+		expect(links['Payload Wizard Tools']?.some((link) => link.href.startsWith('/docs/'))).toBe(
+			false
+		);
+		expect(links['Integrations APIs']).toBeUndefined();
+		expect(links['Posts APIs']).toBeUndefined();
+		expect(links['API Payload Validators']).toBeUndefined();
+		expect(PUBLIC_FOOTER_LINKS_STATIC.Tools).toContainEqual({
+			label: 'Payload Wizard',
+			href: '/tools/payload-wizard'
+		});
 	});
 
 	it('builds public API docs sections from apis-* markdown frontmatter', () => {

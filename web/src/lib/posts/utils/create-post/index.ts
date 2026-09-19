@@ -9,6 +9,8 @@ export {
 	isChannelSchedulable,
 	isComposerDirty,
 	mergeProviderSettingsPatch,
+	resolveComposerMediaForValidation,
+	resolvePayloadPreviewValidationIntegrationIds,
 	resolveIntegrationMedia,
 	serializeComposerSnapshot,
 	unschedulableReason

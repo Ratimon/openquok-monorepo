@@ -19,6 +19,7 @@ import { SummarizerPresenter } from '$lib/ai-summarizer';
 import { WriterPresenter } from '$lib/ai-writer';
 import {
 	buildPayloadWizardMockChannels,
+	defaultPayloadWizardGuestSelectedIntegrationIds,
 	PAYLOAD_WIZARD_PREVIEW_WORKSPACE_ID,
 	payloadWizardMockIntegrationId
 } from '$lib/posts/utils/buildPayloadWizardMockChannels';
@@ -30,11 +31,11 @@ import {
 	clearPerChannelBodies,
 	clearPerChannelMedia,
 	computeLaunchMaxMediaItems,
-	computeScheduleValidationError,
 	getPrimaryThreadFollowUpIntegrationId,
 	isChannelSchedulable,
 	listThreadFollowUpSupportedIntegrationIds,
 	mergeProviderSettingsPatch,
+	resolvePayloadPreviewValidationIntegrationIds,
 	threadFollowUpRepliesRawForIntegration,
 	unschedulableReason
 } from '$lib/posts/utils/create-post';
@@ -106,7 +107,7 @@ export class PublicPayloadWizardComposerPresenter {
 	constructor(init?: PublicPayloadWizardComposerInit) {
 		const channels = buildPayloadWizardMockChannels();
 		this.baseSocialChannelsVm = channels;
-		this.selectedIds = channels.map((channel) => channel.id);
+		this.selectedIds = defaultPayloadWizardGuestSelectedIntegrationIds(channels);
 		this.applyPageChannel(init);
 	}
 
@@ -213,13 +214,12 @@ export class PublicPayloadWizardComposerPresenter {
 
 	previewMediaUrls = $derived(postMediaPreviewUrls(this.postMediaItemsVm));
 
-	scheduleValidationError = $derived.by((): string | null =>
-		computeScheduleValidationError({
-			selectedIds: this.selectedIds,
-			baseSocialChannelsVm: this.baseSocialChannelsVm,
-			globalMediaItems: this.globalMediaItems,
-			mediaByIntegrationId: this.mediaByIntegrationId,
-			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
+	/** Custom mode previews one network at a time — do not fail on other selected targets. */
+	payloadPreviewTargetIntegrationIds = $derived.by((): string[] =>
+		resolvePayloadPreviewValidationIntegrationIds({
+			mode: this.mode,
+			focusedIntegrationId: this.focusedIntegrationId,
+			selectedIds: this.selectedIds
 		})
 	);
 
@@ -251,12 +251,12 @@ export class PublicPayloadWizardComposerPresenter {
 				globalMediaItems: this.globalMediaItems,
 				mediaByIntegrationId: this.mediaByIntegrationId,
 				postMediaItems: this.postMediaItemsVm,
-				selectedIds: this.selectedIds,
+				selectedIds: this.payloadPreviewTargetIntegrationIds,
 				scheduledLocal: this.scheduledLocal,
 				repeatInterval: this.repeatInterval,
 				selectedTagNames: this.selectedTagNames,
 				status,
-				scheduleValidationError: this.scheduleValidationError,
+				scheduleValidationIntegrationIds: this.payloadPreviewTargetIntegrationIds,
 				baseSocialChannelsVm: this.baseSocialChannelsVm,
 				minimumCharacters: this.minimumCharacters,
 				softCharLimit: this.softCharLimit

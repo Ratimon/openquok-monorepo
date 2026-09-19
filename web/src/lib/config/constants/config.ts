@@ -29,18 +29,20 @@ import {
 import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicHumanizer,
+	getRootPathPublicPayloadWizard,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import {
 	buildPublicFooterAutonomousAgentIntegrationLinks,
-	buildPublicFooterApiPayloadValidatorLinks,
 	buildPublicFooterBestTimeToPostLinks,
 	buildPublicFooterHumanizerLinks,
 	buildPublicFooterMcpIntegrationLinks,
 	buildPublicFooterPhotoEditorLinks,
-	buildPublicFooterPublicApiDocsLinkSections,
+	buildPublicFooterPayloadWizardLinks,
+	buildPublicFooterPostingApiPlatformLinks,
+	buildPublicFooterSchedulingApiPlatformLinks,
 	buildPublicFooterSelfHostSocialIntegrationLinks,
 	buildPublicFooterSkillBuilderLinks,
 	buildPublicFooterApisLinks,
@@ -65,7 +67,6 @@ const publicBuildingBlocksTagsPath = route(getRootPathPublicBuildingBlocksTags()
 const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
-const publicApisIntegrationsDocsPath = route(`${getRootPathPublicDocs()}/apis-integrations`);
 const publicDocsGettingStartedForMcpPath = route(`${getRootPathPublicDocs()}/getting-started-for-mcp`);
 const publicDocsGettingStartedForCliPath = route(`${getRootPathPublicDocs()}/getting-started-for-cli`);
 const publicGettingStartedForPublicApiDocsPath = route(
@@ -77,6 +78,7 @@ const publicSkillBuilderPath = route(getRootPathPublicSkillBuilder());
 const publicPhotoEditorPath = route(getRootPathPublicPhotoEditor());
 const publicHumanizerPath = route(getRootPathPublicHumanizer());
 const publicBestTimeToPostPath = route(getRootPathPublicBestTimeToPost());
+const publicPayloadWizardPath = route(getRootPathPublicPayloadWizard());
 const publicRoadmapPath = route(getRootPathPublicRoadmap());
 const publicSelfHostingPath = route(getRootPathPublicSelfHosting());
 const publicSocialMediaPostingApiPath = route(getRootPathSocialMediaPostingApi());
@@ -94,6 +96,13 @@ const publicFooterApisLinks = buildPublicFooterApisLinks(
 	publicSocialMediaPostingApiPath,
 	publicSocialMediaSchedulingApiPath
 );
+const publicFooterPostingApiPlatformLinks = buildPublicFooterPostingApiPlatformLinks(
+	publicSocialMediaPostingApiPath
+);
+const publicFooterSchedulingApiPlatformLinks = buildPublicFooterSchedulingApiPlatformLinks(
+	publicSocialMediaSchedulingApiPath
+);
+const publicFooterPayloadWizardLinks = buildPublicFooterPayloadWizardLinks(publicPayloadWizardPath);
 
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
@@ -908,13 +917,16 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Cookies', href: '/cookie-policy' }
 	],
 	APIs: publicFooterApisLinks,
+	'Posting API Platforms': publicFooterPostingApiPlatformLinks,
+	'Scheduling API Platforms': publicFooterSchedulingApiPlatformLinks,
+	'Payload Wizard Tools': publicFooterPayloadWizardLinks,
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
 		{ label: 'Photo Editor', href: publicPhotoEditorPath },
 		{ label: 'Humanizer', href: publicHumanizerPath },
 		{ label: 'Best Time to Post', href: publicBestTimeToPostPath },
-		{ label: 'API Payload Validator', href: publicApisIntegrationsDocsPath }
+		{ label: 'Payload Wizard', href: publicPayloadWizardPath }
 	],
 	Directories: [
 		{ label: 'All Playbooks', href: publicPlaybooksPath },
@@ -941,10 +953,6 @@ export async function getPublicFooterLinks(): Promise<PublicFooterLinksMap> {
 	return {
 		...PUBLIC_FOOTER_LINKS_STATIC,
 		'How to self-host with different social channels':
-			buildPublicFooterSelfHostSocialIntegrationLinks(),
-		'API Payload Validators': buildPublicFooterApiPayloadValidatorLinks(
-			publicGettingStartedForPublicApiDocsPath
-		),
-		...buildPublicFooterPublicApiDocsLinkSections()
+			buildPublicFooterSelfHostSocialIntegrationLinks()
 	};
 }

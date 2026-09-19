@@ -4,6 +4,7 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import type { HumanizeChannelHubLinkViewModel } from '$lib/ai-humanize';
 import type { BestTimeChannelHubLinkViewModel } from '$lib/best-time-to-post';
 import type { CanvasChannelHubLinkViewModel } from '$lib/canvas';
+import type { PayloadWizardChannelHubLinkViewModel } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
 import type {
 	SkillBuilderChannelHubLinkViewModel,
 	ToolsIndexToolCardViewModel
@@ -30,6 +31,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			photoEditorChannelsVm: CanvasChannelHubLinkViewModel[];
 			humanizerChannelsVm: HumanizeChannelHubLinkViewModel[];
 			bestTimeToPostChannelsVm: BestTimeChannelHubLinkViewModel[];
+			payloadWizardChannelsVm: PayloadWizardChannelHubLinkViewModel[];
 			schemaData: unknown;
 		};
 
@@ -42,6 +44,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			photoEditorChannelsVm: serverData.photoEditorChannelsVm,
 			humanizerChannelsVm: serverData.humanizerChannelsVm,
 			bestTimeToPostChannelsVm: serverData.bestTimeToPostChannelsVm,
+			payloadWizardChannelsVm: serverData.payloadWizardChannelsVm,
 			schemaData: serverData.schemaData,
 			isLoggedIn: accurateIsLoggedIn,
 			currentUser,

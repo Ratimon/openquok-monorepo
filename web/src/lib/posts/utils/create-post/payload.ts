@@ -5,7 +5,12 @@ import type {
 	PostMediaViewModel,
 	RepeatIntervalKey
 } from '$lib/posts/Post.repository.svelte';
-import { isChannelSchedulable, unschedulableReason } from './composer';
+import {
+	computeScheduleValidationError,
+	isChannelSchedulable,
+	resolveComposerMediaForValidation,
+	unschedulableReason
+} from './composer';
 import { datetimeLocalToIso } from '$lib/utils/postingSchedulePreferences';
 import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
@@ -81,7 +86,8 @@ export function buildPostUpsertPayload(input: BuildPostUpsertPayloadInput): Crea
 }
 
 export type ProgrammaticPayloadPreviewInput = BuildPostUpsertPayloadInput & {
-	scheduleValidationError: string | null;
+	/** Defaults to `selectedIds`; use focused id in custom mode for per-network payload preview. */
+	scheduleValidationIntegrationIds?: string[];
 	baseSocialChannelsVm: CreateSocialPostChannelViewModel[];
 	minimumCharacters: number;
 	softCharLimit: number;
@@ -119,8 +125,17 @@ export function buildProgrammaticCreatePostPayloadPreview(
 				return { ok: false, error: unschedulableReason(ch) ?? 'Reconnect this channel first.' };
 			}
 		}
-		if (input.scheduleValidationError) {
-			return { ok: false, error: input.scheduleValidationError };
+		const validationIds = input.scheduleValidationIntegrationIds ?? input.selectedIds;
+		const resolvedMedia = resolveComposerMediaForValidation(input);
+		const scheduleError = computeScheduleValidationError({
+			selectedIds: validationIds,
+			baseSocialChannelsVm: input.baseSocialChannelsVm,
+			globalMediaItems: resolvedMedia.globalMediaItems,
+			mediaByIntegrationId: resolvedMedia.mediaByIntegrationId,
+			providerSettingsByIntegrationId: input.providerSettingsByIntegrationId
+		});
+		if (scheduleError) {
+			return { ok: false, error: scheduleError };
 		}
 	}
 

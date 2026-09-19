@@ -29,4 +29,47 @@ describe('PublicPayloadWizardComposerPresenter', () => {
 		expect(result.payload.status).toBe('scheduled');
 		expect(result.payload.scheduledAt).toBeTruthy();
 	});
+
+	it('does not pre-select media-required sample channels on guest landings', () => {
+		const presenter = new PublicPayloadWizardComposerPresenter();
+
+		expect(presenter.selectedIds).not.toContain(payloadWizardMockIntegrationId('tiktok'));
+		expect(presenter.selectedIds).toContain(payloadWizardMockIntegrationId('facebook'));
+	});
+
+	it('builds live payload on guest hub defaults with text-only content', () => {
+		const presenter = new PublicPayloadWizardComposerPresenter();
+		presenter.editorBody = '<p>Hello from the posting API landing page</p>';
+
+		const result = presenter.getProgrammaticCreatePostPayloadPreview('scheduled');
+		expect(result.ok).toBe(true);
+	});
+
+	it('validates only the focused channel on platform payload wizard pages', () => {
+		const presenter = new PublicPayloadWizardComposerPresenter({
+			composerMode: 'custom',
+			focusedProviderIdentifier: 'facebook'
+		});
+		presenter.editorBody = '<p>Hello Facebook</p>';
+
+		const result = presenter.getProgrammaticCreatePostPayloadPreview('scheduled');
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		expect(result.payload.integrationIds).toEqual([payloadWizardMockIntegrationId('facebook')]);
+		expect(result.payload.isGlobal).toBe(false);
+	});
+
+	it('uses live editor media for schedule validation in global mode', () => {
+		const presenter = new PublicPayloadWizardComposerPresenter();
+		presenter.editorBody = '<p>Hello</p>';
+		presenter.selectedIds = [payloadWizardMockIntegrationId('tiktok')];
+		presenter.postMediaItemsVm = [{ id: 'media-1', path: 'uploads/photo.png' }];
+
+		const result = presenter.getProgrammaticCreatePostPayloadPreview('scheduled');
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+
+		expect(result.payload.media?.length).toBe(1);
+	});
 });

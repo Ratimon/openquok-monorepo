@@ -42,3 +42,13 @@ export function getRootPathPublicBestTimeToPost(): string {
 export function getRootPathPublicBestTimeToPostChannel(channelSlug: string): string {
 	return `${getRootPathPublicBestTimeToPost()}/${channelSlug.trim()}`;
 }
+
+/** Payload Wizard composer: `tools/payload-wizard` (no leading slash). */
+export function getRootPathPublicPayloadWizard(): string {
+	return `${getRootPathPublicTools()}/payload-wizard`;
+}
+
+/** Channel-specific Payload Wizard: `tools/payload-wizard/{channelSlug}` (no leading slash). */
+export function getRootPathPublicPayloadWizardChannel(channelSlug: string): string {
+	return `${getRootPathPublicPayloadWizard()}/${channelSlug.trim()}`;
+}

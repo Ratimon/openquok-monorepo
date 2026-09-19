@@ -6,7 +6,7 @@ lastUpdated: 2026-09-19
 ---
 
 <script>
-import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview

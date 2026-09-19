@@ -399,7 +399,7 @@ Run the automated Phase B4 checks against the target project (current <Badge tex
 pnpm prod-backup:smoke
 ```
 
-The script writes <Badge text=".backups/us-migration/smoke-report.json" variant="path" /> (gitignored). It verifies env alignment, user/post/integration counts, <code>cloud_trial_consumed_at</code> and billing rows, leftover Storage hosts, <code>pg_cron</code>, Database Linter RPC exposure, publishable-key denial of <code>internal_*</code> RPCs, public blog/health HTTP, and that API writes are not frozen (not 503). Add <code>--skip-http</code> for SQL-only. Add <code>--repair-cron</code> if the refresh-token job is missing after restore. Add <code>--open-dashboard</code> to open Advisors → Security.
+The script writes <Badge text=".backups/us-migration/smoke-report.json" variant="path" /> (gitignored). It verifies env alignment, user/post/integration counts, <code>cloud&#95;trial&#95;consumed&#95;at</code> and billing rows, leftover Storage hosts, <code>pg_cron</code>, Database Linter RPC exposure, publishable-key denial of <code>internal&#95;*</code> RPCs, public blog/health HTTP, and that API writes are not frozen (not 503). Add <code>--skip-http</code> for SQL-only. Add <code>--repair-cron</code> if the refresh-token job is missing after restore. Add <code>--open-dashboard</code> to open Advisors → Security.
 
 Complete these <strong>manual</strong> checks (the script prints the same list):
 

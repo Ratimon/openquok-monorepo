@@ -107,12 +107,20 @@
 
 	$effect(() => {
 		if (!guestComposer) return;
+		guestComposer.applyPageChannel({
+			focusedProviderIdentifier,
+			composerMode
+		});
+	});
+
+	$effect(() => {
+		if (!guestComposer) return;
 		return () => guestComposer.teardown();
 	});
 </script>
 
 {#if mode === 'workspace'}
-	<div class="flex min-w-0 flex-col gap-4">
+	<div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] xl:items-stretch">
 		<PayloadWizardComposerPanel
 			mode="workspace"
 			{workspaceComposer}
@@ -121,7 +129,7 @@
 			guestMode={false}
 		/>
 
-		{@render payloadPreviewGrid()}
+		{@render payloadPreviewColumn()}
 	</div>
 {:else}
 	<section class="py-10 md:py-14">
@@ -135,19 +143,19 @@
 				</p>
 			</div>
 
-			<div class="mx-auto flex w-full max-w-[min(100vw-2rem,1400px)] flex-col gap-5">
+			<div class="mx-auto grid w-full max-w-[min(100vw-2rem,1400px)] min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)] xl:items-stretch">
 				<PayloadWizardComposerPanel mode="guest" guestComposer={guestComposer} {isLoggedIn} guestMode={true} />
 
-				{@render payloadPreviewGrid()}
+				{@render payloadPreviewColumn()}
 			</div>
 		</div>
 	</section>
 {/if}
 
-{#snippet payloadPreviewGrid()}
-	<div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-		<div class="space-y-3 rounded-lg border border-base-300 bg-base-100 p-4">
-			<div class="flex flex-wrap items-center justify-between gap-3">
+{#snippet payloadPreviewColumn()}
+	<div class="flex min-h-0 min-w-0 flex-col gap-4 xl:min-h-[min(72vh,820px)]">
+		<div class="flex min-h-0 flex-1 flex-col space-y-3 rounded-lg border border-base-300 bg-base-100 p-4">
+			<div class="flex shrink-0 flex-wrap items-center justify-between gap-3">
 				<h3 class="text-base font-semibold text-base-content">Generated payload</h3>
 				<Button
 					variant="primary"
@@ -162,7 +170,7 @@
 			</div>
 
 			{#if hasFormatTabs}
-				<div class="flex flex-wrap gap-2" role="tablist" aria-label="Payload preview format">
+				<div class="flex shrink-0 flex-wrap gap-2" role="tablist" aria-label="Payload preview format">
 					<button
 						type="button"
 						role="tab"
@@ -196,10 +204,10 @@
 
 			{#if previewJsonReady}
 				<pre
-					class="overflow-x-auto rounded-md border border-base-300 bg-base-200/40 p-4 text-xs text-base-content"
+					class="min-h-0 flex-1 overflow-auto rounded-md border border-base-300 bg-base-200/40 p-4 text-xs text-base-content"
 				><code>{previewJsonText}</code></pre>
 			{:else}
-				<div class="rounded-md border border-base-300 bg-base-200/40 p-4">
+				<div class="min-h-0 flex-1 rounded-md border border-base-300 bg-base-200/40 p-4">
 					<p class="text-sm text-base-content/70">
 						{previewJsonText || 'Fill out the composer to generate a payload.'}
 					</p>
@@ -207,7 +215,7 @@
 			{/if}
 		</div>
 
-		<div class="space-y-2 rounded-lg border border-base-300 bg-base-100 p-4 xl:self-start">
+		<div class="shrink-0 space-y-2 rounded-lg border border-base-300 bg-base-100 p-4">
 			<h3 class="text-base font-semibold text-base-content">Endpoint</h3>
 			<p class="text-sm text-base-content/70">
 				Send this payload to <span class="font-mono text-base-content">{PUBLIC_API_CREATE_POST_ENDPOINT}</span>.

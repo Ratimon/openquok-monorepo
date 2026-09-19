@@ -6,9 +6,11 @@ import {
 } from '$lib/content/constants/apis/index';
 import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
 import {
+	PAYLOAD_WIZARD_GUEST_DEFAULT_SELECTED_SLUGS,
 	PAYLOAD_WIZARD_MOCK_INTEGRATION_ID_BY_SLUG,
 	PAYLOAD_WIZARD_PREVIEW_WORKSPACE_ID,
 	buildPayloadWizardMockChannels,
+	defaultPayloadWizardGuestSelectedIntegrationIds,
 	payloadWizardMockIntegrationId
 } from '$lib/posts/utils/buildPayloadWizardMockChannels';
 
@@ -39,5 +41,16 @@ describe('buildPayloadWizardMockChannels', () => {
 		expect(PAYLOAD_WIZARD_MOCK_INTEGRATION_ID_BY_SLUG.tiktok).toMatch(
 			/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 		);
+	});
+
+	it('pre-selects text-first sample channels for guest landings', () => {
+		const mocks = buildPayloadWizardMockChannels();
+		const selected = defaultPayloadWizardGuestSelectedIntegrationIds(mocks);
+
+		expect(selected).toHaveLength(PAYLOAD_WIZARD_GUEST_DEFAULT_SELECTED_SLUGS.length);
+		expect(selected).not.toContain(payloadWizardMockIntegrationId('tiktok'));
+		expect(selected).not.toContain(payloadWizardMockIntegrationId('instagram'));
+		expect(selected).not.toContain(payloadWizardMockIntegrationId('youtube'));
+		expect(selected).toContain(payloadWizardMockIntegrationId('facebook'));
 	});
 });

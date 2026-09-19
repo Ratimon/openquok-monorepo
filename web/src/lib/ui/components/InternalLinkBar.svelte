@@ -11,13 +11,6 @@
 	};
 	let { linkList }: Props = $props();
 
-	function categoryHeading(category: string): string {
-		if (category === 'APIs') {
-			return 'APIs';
-		}
-		return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
-	}
-
 	function footerAnchorAttrs(href: string) {
 		const marketing = hostedMarketingAnchorAttrs(href, page.url.origin);
 		if (marketing.external) {
@@ -49,8 +42,7 @@
 <div class="grid w-full grid-cols-1 gap-x-8 gap-y-10 text-left sm:grid-cols-2 xl:grid-cols-3">
 	{#each Object.keys(linkList) as category (category)}
 		<div class="min-w-0">
-			<h3 class="text-sm font-semibold leading-6 text-primary">
-				{categoryHeading(category)}</h3>
+			<h3 class="text-sm font-semibold leading-6 text-primary">{category}</h3>
 			<ul role="list" class="mt-6 space-y-4">
 				{#each linkList[category] as link (link.href)}
 					{@const attrs = footerAnchorAttrs(link.href)}

@@ -6,10 +6,12 @@ import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPub
 import {
 	getRootPathPublicBestTimeToPost,
 	getRootPathPublicHumanizer,
+	getRootPathPublicPayloadWizard,
 	getRootPathPublicPhotoEditor,
 	getRootPathPublicSkillBuilder,
 	getRootPathPublicTools
 } from '$lib/area-public/constants/getRootPathPublicTools';
+import { listPayloadWizardChannelsForHub } from '$lib/posts/constants/publicPayloadWizardChannelConfig';
 import { listBestTimeChannelsForHub } from '$lib/best-time-to-post';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { listCanvasChannelsForHub } from '$lib/canvas';
@@ -74,6 +76,14 @@ export async function load({ url: requestUrl, cookies, parent }) {
 			badge: 'Timing calculator'
 		},
 		{
+			id: 'payload-wizard',
+			title: 'Payload Wizard',
+			description:
+				'Compose a post with sample channels, preview POST /public/posts JSON for each platform, and copy the payload free. Scheduling needs an account.',
+			href: url(route(getRootPathPublicPayloadWizard())),
+			badge: 'API payload builder'
+		},
+		{
 			id: 'apis-integrations',
 			title: 'Integrations APIs',
 			description:
@@ -117,6 +127,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		photoEditorChannelsVm: listCanvasChannelsForHub(),
 		humanizerChannelsVm: listHumanizeChannelsForHub(),
 		bestTimeToPostChannelsVm: listBestTimeChannelsForHub(),
+		payloadWizardChannelsVm: listPayloadWizardChannelsForHub(),
 		schemaData
 	};
 }

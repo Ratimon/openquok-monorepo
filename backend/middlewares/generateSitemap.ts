@@ -62,10 +62,14 @@ const PUBLIC_TOOL_CHANNEL_PATHS = [
   "/tools/skill-builder",
   "/tools/best-time-to-post",
   "/tools/humanizer",
+  "/tools/payload-wizard",
 ] as const;
 
 /** Humanizer rewrites locally, so coming-soon scheduler slugs still get sample pages. */
 const PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
+
+/** Payload Wizard channel pages follow API marketing platform slugs. */
+const PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = "/tools/payload-wizard";
 
 const LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"] as const;
 
@@ -298,9 +302,15 @@ function buildProgrammaticSitemapPaths(constantsDir: string): string[] {
         }
     }
 
+    const apiPlatformSlugs = extractPublicApiPlatformSlugs(constantsDir);
+
     for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
         const channelSlugs =
-            toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : catalog.channels;
+            toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER
+                ? allChannels
+                : toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD
+                  ? apiPlatformSlugs
+                  : catalog.channels;
         for (const channelSlug of channelSlugs) {
             paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
         }

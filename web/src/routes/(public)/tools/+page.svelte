@@ -31,6 +31,7 @@
 	let photoEditorChannelsVm = $derived(data.photoEditorChannelsVm);
 	let humanizerChannelsVm = $derived(data.humanizerChannelsVm);
 	let bestTimeToPostChannelsVm = $derived(data.bestTimeToPostChannelsVm);
+	let payloadWizardChannelsVm = $derived(data.payloadWizardChannelsVm);
 	let schemaData = $derived(data.schemaData);
 
 	// /sign-up
@@ -93,6 +94,15 @@
 						genericHref={toolVm.href}
 						channelLinksVm={bestTimeToPostChannelsVm}
 						toolLabel="Best Time to Post"
+					/>
+				{:else if toolVm.id === 'payload-wizard'}
+					<ChannelHubToolCard
+						title={toolVm.title}
+						description={toolVm.description}
+						badge={toolVm.badge}
+						genericHref={toolVm.href}
+						channelLinksVm={payloadWizardChannelsVm}
+						toolLabel="Payload Wizard"
 					/>
 				{:else}
 					<li>

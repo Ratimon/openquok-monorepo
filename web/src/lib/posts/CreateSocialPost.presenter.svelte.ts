@@ -40,6 +40,8 @@ import {
 	computeLaunchMaxMediaItems,
 	computeScheduleValidationError,
 	computeScheduleValidationErrorAsync,
+	resolveComposerMediaForValidation,
+	resolvePayloadPreviewValidationIntegrationIds,
 	getPrimaryThreadFollowUpIntegrationId,
 	isChannelSchedulable,
 	isComposerDirty,
@@ -274,15 +276,27 @@ export class CreateSocialPostPresenter {
 				: 'Add to calendar'
 	);
 
-	scheduleValidationError = $derived.by((): string | null =>
-		computeScheduleValidationError({
-			selectedIds: this.selectedIds,
-			baseSocialChannelsVm: this.baseSocialChannelsVm,
+	scheduleValidationError = $derived.by((): string | null => {
+		const resolvedMedia = resolveComposerMediaForValidation({
+			mode: this.mode,
+			focusedIntegrationId: this.focusedIntegrationId,
 			globalMediaItems: this.globalMediaItems,
 			mediaByIntegrationId: this.mediaByIntegrationId,
+			postMediaItems: this.postMediaItemsVm
+		});
+		const validationIds = resolvePayloadPreviewValidationIntegrationIds({
+			mode: this.mode,
+			focusedIntegrationId: this.focusedIntegrationId,
+			selectedIds: this.selectedIds
+		});
+		return computeScheduleValidationError({
+			selectedIds: validationIds,
+			baseSocialChannelsVm: this.baseSocialChannelsVm,
+			globalMediaItems: resolvedMedia.globalMediaItems,
+			mediaByIntegrationId: resolvedMedia.mediaByIntegrationId,
 			providerSettingsByIntegrationId: this.providerSettingsByIntegrationId
-		})
-	);
+		});
+	});
 
 	canSchedule = $derived(!this.busy && this.selectedIds.length > 0);
 
@@ -862,7 +876,11 @@ export class CreateSocialPostPresenter {
 		return buildProgrammaticCreatePostPayloadPreview(
 			{
 				...this.buildPersistInput(workspaceId, status),
-				scheduleValidationError: this.scheduleValidationError,
+				scheduleValidationIntegrationIds: resolvePayloadPreviewValidationIntegrationIds({
+					mode: this.mode,
+					focusedIntegrationId: this.focusedIntegrationId,
+					selectedIds: this.selectedIds
+				}),
 				baseSocialChannelsVm: this.baseSocialChannelsVm,
 				minimumCharacters: this.minimumCharacters,
 				softCharLimit: this.softCharLimit

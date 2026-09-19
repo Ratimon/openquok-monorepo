@@ -25,6 +25,7 @@ import {
 import { PublicSkillBuilderPagePresenter } from '$lib/area-public/PublicSkillBuilderPage.presenter.svelte';
 import { PublicPhotoEditorPagePresenter } from '$lib/area-public/PublicPhotoEditorPage.presenter.svelte';
 import { PublicHumanizePagePresenter } from '$lib/area-public/PublicHumanizePage.presenter.svelte';
+import { PublicPayloadWizardPagePresenter } from '$lib/area-public/PublicPayloadWizardPage.presenter.svelte';
 import { PublicBestTimeToPostPagePresenter } from '$lib/area-public/PublicBestTimeToPostPage.presenter.svelte';
 import { PublicToolsPagePresenter } from '$lib/area-public/PublicToolsPage.presenter.svelte';
 import { PublicAlternativesPagePresenter } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
@@ -75,6 +76,7 @@ const publicRoadmapPagePresenter = new PublicRoadmapPagePresenter(generalFeedbac
 const publicSkillBuilderPagePresenter = new PublicSkillBuilderPagePresenter(getListingPresenter);
 const publicPhotoEditorPagePresenter = new PublicPhotoEditorPagePresenter();
 const publicHumanizePagePresenter = new PublicHumanizePagePresenter();
+const publicPayloadWizardPagePresenter = new PublicPayloadWizardPagePresenter();
 const publicBestTimeToPostPagePresenter = new PublicBestTimeToPostPagePresenter();
 const publicPhotoEditorCanvasPresenter = new GenerateMediaModalPresenter(mediaRepository);
 
@@ -96,6 +98,7 @@ export {
 	publicSkillBuilderPagePresenter,
 	publicPhotoEditorPagePresenter,
 	publicHumanizePagePresenter,
+	publicPayloadWizardPagePresenter,
 	publicBestTimeToPostPagePresenter,
 	publicPhotoEditorCanvasPresenter,
 	publicPricingPagePresenter,
