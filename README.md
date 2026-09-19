@@ -20,7 +20,7 @@
   · <a href="https://www.openquok.com/tools/photo-editor">Photo Editor</a>
   · <a href="https://www.openquok.com/tools/humanizer">Humanizer</a>
   · <a href="https://www.openquok.com/docs/getting-started-for-public-api">Public API</a>
-  <a href="https://www.openquok.com/pricing">Public API</a>
+  . <a href="https://www.openquok.com/pricing">Pricing</a>
   ·<br />
 </p>
 

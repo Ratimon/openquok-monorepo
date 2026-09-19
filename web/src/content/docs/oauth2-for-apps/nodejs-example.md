@@ -6,7 +6,7 @@ lastUpdated: 2026-07-05
 ---
 
 <script>
-import { DocsExternalLink } from '$lib/ui/components/docs/mdx/index.js';
+import { CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 Redirect URL is registered on the OAuth app in the dashboard — it is **not** sent again in the token exchange body (`POST /api/v1/oauth/token` accepts only `grant_type`, `code`, `client_id`, and `client_secret`).
@@ -92,3 +92,11 @@ app.get('/callback', async (req, res) => {
 
 app.listen(3000);
 ```
+
+## Related
+
+<CardGrid>
+<LinkCard title="Jev decision routing" description="Route inbound messages with Jev, then create OpenQuok drafts with the user's OAuth token" href="/docs/oauth2-for-apps/jev-decision-routing" />
+<LinkCard title="Implementation" description="Register your app, Authorization Code flow, and credential management" href="/docs/oauth2-for-apps/implementation" />
+<LinkCard title="OAuth2 for apps overview" description="Third-party apps and opo_ access tokens" href="/docs/oauth2-for-apps" />
+</CardGrid>

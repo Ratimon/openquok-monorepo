@@ -185,9 +185,12 @@
 				</p>
 			</div>
 		{:else}
-			<div class="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_440px]">
-				<div class="rounded-lg border border-base-300 bg-base-100/50 overflow-hidden">
-					<div class="min-h-0">
+			<div class="flex min-w-0 flex-col gap-4">
+				<div
+					class="flex min-h-[min(72vh,820px)] min-w-0 flex-col overflow-hidden rounded-lg border border-base-300 bg-base-100/50"
+				>
+					<div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+						<div class="min-h-0 min-w-0 flex-1 overflow-auto">
 						<AddEditModal
 							stockPhotosVm={composerPresenter.stockPhotosVm}
 							designTemplatesVm={composerPresenter.designTemplatesVm}
@@ -258,8 +261,8 @@
 								: null}
 							mediaUrls={composerPresenter.previewMediaUrls}
 						/>
-					</div>
-					<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
+						</div>
+						<div class="sticky bottom-0 z-10 shrink-0 pb-[env(safe-area-inset-bottom)]">
 						<ManageModal
 							tagsVm={composerPresenter.tagsVm}
 							selectedTagNames={composerPresenter.selectedTagNames}
@@ -282,10 +285,11 @@
 							onSchedule={() => void copyProgrammaticPayload('scheduled')}
 							showPublishNow={false}
 						/>
+						</div>
 					</div>
 				</div>
 
-				<div class="space-y-4">
+				<div class="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 					<div class="rounded-lg border border-base-300 bg-base-100 p-4 space-y-3">
 						<div class="flex items-center justify-between gap-3">
 							<h2 class="text-base font-semibold text-base-content">Generated payload</h2>
@@ -312,7 +316,7 @@
 						{/if}
 					</div>
 
-					<div class="rounded-lg border border-base-300 bg-base-100 p-4 space-y-2">
+					<div class="rounded-lg border border-base-300 bg-base-100 p-4 space-y-2 xl:self-start">
 						<h2 class="text-base font-semibold text-base-content">Endpoint</h2>
 						<p class="text-sm text-base-content/70">
 							Send this payload to <span class="font-mono text-base-content">POST /api/v1/public/posts</span>.

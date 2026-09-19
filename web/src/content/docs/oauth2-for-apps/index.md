@@ -2,7 +2,7 @@
 title: Overview - OAuth2 for apps
 description: Build third-party OpenQuok apps that act on behalf of subscribed users using OAuth2 Authorization Code flow.
 order: 0
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-19
 sidebar:
   label: Overview
 ---
@@ -24,6 +24,7 @@ Your app redirects users to OpenQuok where they approve access, and you receive 
 <CardGrid>
 <LinkCard title="Implementation" description="Register your app, Authorization Code flow, API calls, and credential management" href="/docs/oauth2-for-apps/implementation" />
 <LinkCard title="Node.js example" description="Copy-paste Express server with Authorization Code flow" href="/docs/oauth2-for-apps/nodejs-example" />
+<LinkCard title="Jev decision routing" description="Decide what to post (relevant, engaging, channel-fit), then create Global or per-channel OpenQuok drafts" href="/docs/oauth2-for-apps/jev-decision-routing" />
 <LinkCard title="Error reference" description="OAuth callback and token exchange error codes" href="/docs/oauth2-for-apps/error-reference" />
 </CardGrid>
 

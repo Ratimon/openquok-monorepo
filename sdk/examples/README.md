@@ -16,3 +16,19 @@ node oauth2-express.mjs
 ```
 
 Keep this file aligned with [`web/src/content/docs/oauth2-for-apps/nodejs-example.md`](../../web/src/content/docs/oauth2-for-apps/nodejs-example.md) (see `.cursor/rules/sdk-maintenance.mdc`).
+
+## Jev decision routing + OpenQuok draft
+
+[`jev-route-draft.mjs`](./jev-route-draft.mjs) — classify inbound text with `@typesafe-ai/sdk`, then create an OpenQuok **draft** with `@openquok/node-sdk` when intent is `schedule_social`.
+
+```bash
+cd sdk/examples
+npm install @typesafe-ai/sdk @openquok/node-sdk
+export TYPESAFE_API_KEY="sk-..."
+export OPENQUOK_API_KEY="opo_..."
+export OPENQUOK_THREADS_INTEGRATION_ID="<integration-id>"
+export OPENQUOK_LINKEDIN_INTEGRATION_ID="<integration-id>"
+node jev-route-draft.mjs "Launch update: same news on Threads and LinkedIn, but LinkedIn should sound more formal."
+```
+
+Keep aligned with [`web/src/content/docs/oauth2-for-apps/jev-decision-routing.md`](../../web/src/content/docs/oauth2-for-apps/jev-decision-routing.md).
