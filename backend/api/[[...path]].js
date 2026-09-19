@@ -36456,7 +36456,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-19T12:32:18.987Z",
+  generated: "2026-09-19T15:33:20.840Z",
   routes: [
     {
       path: "/docs",
@@ -36616,6 +36616,12 @@ var routes_manifest_default = {
     },
     {
       path: "/tools/humanizer",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "static"
+    },
+    {
+      path: "/tools/payload-wizard",
       priority: 0.7,
       changeFreq: "monthly",
       type: "static"
@@ -38979,6 +38985,48 @@ var routes_manifest_default = {
       type: "programmatic-tool-channel"
     },
     {
+      path: "/tools/payload-wizard/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
+      path: "/tools/payload-wizard/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-tool-channel"
+    },
+    {
       path: "/social-media-posting-api",
       priority: 0.8,
       changeFreq: "monthly",
@@ -39095,9 +39143,11 @@ var PUBLIC_TOOL_CHANNEL_PATHS = [
   "/tools/photo-editor",
   "/tools/skill-builder",
   "/tools/best-time-to-post",
-  "/tools/humanizer"
+  "/tools/humanizer",
+  "/tools/payload-wizard"
 ];
 var PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER = "/tools/humanizer";
+var PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD = "/tools/payload-wizard";
 var LISTING_HUB_PREFIXES = ["/playbooks", "/building-blocks"];
 var PUBLIC_API_MARKETING_HUB_PATHS = [
   "/social-media-posting-api",
@@ -39262,8 +39312,9 @@ function buildProgrammaticSitemapPaths(constantsDir) {
       );
     }
   }
+  const apiPlatformSlugs = extractPublicApiPlatformSlugs(constantsDir);
   for (const toolPrefix of PUBLIC_TOOL_CHANNEL_PATHS) {
-    const channelSlugs = toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : catalog.channels;
+    const channelSlugs = toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_HUMANIZER ? allChannels : toolPrefix === PUBLIC_TOOL_CHANNEL_PATH_PAYLOAD_WIZARD ? apiPlatformSlugs : catalog.channels;
     for (const channelSlug of channelSlugs) {
       paths.push(`${toolPrefix}/${encodeURIComponent(channelSlug)}`);
     }

@@ -1,4 +1,4 @@
-import type { PublicApiHubStaticExample } from '$lib/content/constants/apis/types';
+import type { PublicApiFormatExample, PublicApiHubStaticExample } from '$lib/content/constants/apis/types';
 import {
 	buildPublicApiCreatePostResponseExample,
 	prettyPublicApiJson,
@@ -56,3 +56,23 @@ function buildHubStaticExample(request: Record<string, unknown>): PublicApiHubSt
 export const PUBLIC_API_POSTING_HUB_STATIC_EXAMPLE = buildHubStaticExample(POSTING_REQUEST);
 
 export const PUBLIC_API_SCHEDULING_HUB_STATIC_EXAMPLE = buildHubStaticExample(SCHEDULING_REQUEST);
+
+/** Payload validator bento on platform API landings — first tabbed format example for that page. */
+export function buildPublicApiPayloadValidatorStaticExampleFromFormatExample(
+	formatExample: PublicApiFormatExample
+): PublicApiHubStaticExample {
+	const request = JSON.parse(formatExample.requestJson) as Record<string, unknown>;
+	const body = typeof request.body === 'string' ? request.body : 'Scheduled via the public API';
+	const publishDate =
+		typeof request.scheduledAt === 'string' ? request.scheduledAt : '2026-05-14T10:00:00.000Z';
+
+	return {
+		endpoint: PUBLIC_API_CREATE_POST_ENDPOINT,
+		method: 'POST',
+		curl: HUB_CURL_TEMPLATE,
+		requestJson: formatExample.requestJson,
+		responseJson:
+			formatExample.responseJson ||
+			buildPublicApiCreatePostResponseExample({ content: body, publishDate })
+	};
+}

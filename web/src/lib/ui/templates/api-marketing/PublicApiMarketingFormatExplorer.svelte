@@ -9,7 +9,15 @@
 
 	let { formatExamples }: Props = $props();
 
-	let selectedId = $state(formatExamples[0]?.id ?? '');
+	let userSelectedId = $state<string | null>(null);
+
+	const selectedId = $derived.by(() => {
+		const defaultId = formatExamples[0]?.id ?? '';
+		if (userSelectedId && formatExamples.some((example) => example.id === userSelectedId)) {
+			return userSelectedId;
+		}
+		return defaultId;
+	});
 
 	const selectedExample = $derived(
 		formatExamples.find((example) => example.id === selectedId) ?? formatExamples[0]
@@ -37,7 +45,7 @@
 							: 'border-base-content/15 bg-base-100 text-base-content/80 hover:border-primary/40'}"
 						aria-pressed={selectedId === example.id}
 						onclick={() => {
-							selectedId = example.id;
+							userSelectedId = example.id;
 						}}
 					>
 						{example.label}

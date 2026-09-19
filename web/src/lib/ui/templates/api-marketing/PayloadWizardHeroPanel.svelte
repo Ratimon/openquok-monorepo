@@ -3,7 +3,7 @@
 	import type { CreateSocialPostMode } from '$lib/posts/createSocialPost.types';
 	import type { CreateSocialPostPresenter } from '$lib/posts/CreateSocialPost.presenter.svelte';
 
-	import { untrack } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 
 	import { PUBLIC_API_CREATE_POST_ENDPOINT } from '$lib/content/constants/apis/shared';
 	import { PublicPayloadWizardComposerPresenter } from '$lib/posts/PublicPayloadWizardComposer.presenter.svelte';
@@ -41,13 +41,19 @@
 		workspaceId = null
 	}: Props = $props();
 
-	const guestComposer =
-		mode === 'guest'
-			? new PublicPayloadWizardComposerPresenter({
-					focusedProviderIdentifier: untrack(() => focusedProviderIdentifier),
-					composerMode: untrack(() => composerMode)
-				})
-			: undefined;
+	let guestComposer = $state.raw<PublicPayloadWizardComposerPresenter | undefined>(undefined);
+
+	$effect(() => {
+		if (mode !== 'guest') {
+			guestComposer?.teardown();
+			guestComposer = undefined;
+			return;
+		}
+		guestComposer ??= new PublicPayloadWizardComposerPresenter({
+			focusedProviderIdentifier: untrack(() => focusedProviderIdentifier),
+			composerMode: untrack(() => composerMode)
+		});
+	});
 
 	let selectedPreviewTab = $state<PayloadPreviewTab>('live');
 
@@ -106,16 +112,14 @@
 	}
 
 	$effect(() => {
-		if (!guestComposer) return;
-		guestComposer.applyPageChannel({
+		guestComposer?.applyPageChannel({
 			focusedProviderIdentifier,
 			composerMode
 		});
 	});
 
-	$effect(() => {
-		if (!guestComposer) return;
-		return () => guestComposer.teardown();
+	onDestroy(() => {
+		guestComposer?.teardown();
 	});
 </script>
 

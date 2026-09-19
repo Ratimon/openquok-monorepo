@@ -1,16 +1,17 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 
-	import { browser } from '$app/environment';
-
+	import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/apis/hubExamples';
+	import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
+	import { getPublicPayloadValidatorHref } from '$lib/content/utils/getPublicPayloadValidatorHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
-	import PayloadWizardHeroPanel from '$lib/ui/templates/api-marketing/PayloadWizardHeroPanel.svelte';
 	import PublicApiMarketingFormatExplorer from '$lib/ui/templates/api-marketing/PublicApiMarketingFormatExplorer.svelte';
 	import PublicApiMarketingHero from '$lib/ui/templates/api-marketing/PublicApiMarketingHero.svelte';
+	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingSiblingGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingSiblingGrid.svelte';
 
 	type Props = { data: PageData };
@@ -22,6 +23,16 @@
 	let platformsVm = $derived(data.platformsVm);
 	let isLoggedIn = $derived(data.isLoggedIn);
 	let heroEyebrow = $derived(`${platformVm.platformLabel} posting API`);
+
+	const payloadValidatorSection = $derived(
+		getPublicApiCapabilityPayloadValidatorHubSection(platformVm.capability)
+	);
+	const payloadValidatorStaticExample = $derived.by(() => {
+		const firstExample = platformVm.formatExamples[0];
+		if (!firstExample) return null;
+		return buildPublicApiPayloadValidatorStaticExampleFromFormatExample(firstExample);
+	});
+	const payloadValidatorHref = $derived(getPublicPayloadValidatorHref(platformVm.slug));
 </script>
 
 <JsonLdHead schemaData={schemaData} />
@@ -32,25 +43,19 @@
 			eyebrow={heroEyebrow}
 			title={platformVm.heroTitle}
 			description={platformVm.heroDescription}
+			payloadValidatorHref={payloadValidatorHref}
 		/>
 
-		{#if browser}
-			<PayloadWizardHeroPanel
-				mode="guest"
+		{#if payloadValidatorStaticExample}
+			<PublicApiMarketingPayloadValidatorSection
+				subtitle={payloadValidatorSection.subtitle}
+				title={payloadValidatorSection.title}
+				description={payloadValidatorSection.description}
+				mediaOnRight={payloadValidatorSection.mediaOnRight}
+				hubStaticExample={payloadValidatorStaticExample}
+				platformSlug={platformVm.slug}
 				{isLoggedIn}
-				focusedProviderIdentifier={platformVm.providerIdentifier}
-				composerMode="custom"
-				formatExamples={platformVm.formatExamples}
-				sectionTitle="Compose with sample channels"
-				sectionDescription="Build your draft, preview live JSON for POST /api/v1/public/posts, and copy the payload. Scheduling and uploads need a workspace — copy JSON stays free."
 			/>
-		{:else}
-			<div
-				class="border-base-300 text-base-content/60 flex min-h-[min(72vh,820px)] flex-col items-center justify-center gap-3 overflow-hidden rounded-2xl border bg-base-100 shadow-sm"
-			>
-				<span class="loading loading-spinner loading-md"></span>
-				<span class="text-sm">Loading composer…</span>
-			</div>
 		{/if}
 
 		<PublicApiMarketingFormatExplorer formatExamples={platformVm.formatExamples} />
