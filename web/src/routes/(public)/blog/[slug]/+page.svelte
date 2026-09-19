@@ -213,7 +213,10 @@
 
 <LayoutOuterContainer class="bg-base-100 pt-6 pb-6 md:pt-8 md:pb-10">
 	<LayoutInnerContainer class="mx-auto w-full pb-4">
-		<BlogHubBreadcrumb pageTitle={currentPostVm.title} class="mb-4" />
+		<BlogHubBreadcrumb
+			pageTitle={currentPostVm.title}
+			class="mb-4"
+		/>
 		<BlogPost
 			post={currentPostVm}
 			{contentHtml}

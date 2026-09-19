@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PublicMcpIntegrationViewModel } from '$lib/content/constants/publicMcpConfig';
 	import { PUBLIC_AGENTS_HUB } from '$lib/content/constants/publicAgentConfig';
+	import { PUBLIC_AGENTS_HUB_SECTION_IDS } from '$lib/content/constants/publicLandingBreadcrumbConfig';
 
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
@@ -15,7 +16,7 @@
 
 	let { integrationsVm }: Props = $props();
 
-	const sectionHeadingId = 'public-mcp-hub-heading';
+	const sectionHeadingId = PUBLIC_AGENTS_HUB_SECTION_IDS.mcpIntegrations;
 </script>
 
 <section class="border-t border-base-content/10 py-10 md:py-14" aria-labelledby={sectionHeadingId}>

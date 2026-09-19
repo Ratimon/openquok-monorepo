@@ -5,6 +5,8 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 	import SkillInstallCommandTabs from '$lib/ui/templates/landing-page/SkillInstallCommandTabs.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
@@ -21,9 +23,18 @@
 		ctaHref: string;
 		docsCtaText?: string;
 		docsCtaHref?: string;
+		channelLabel?: string | null;
 	};
 
-	let { agentVm, heroTheme, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let {
+		agentVm,
+		heroTheme,
+		ctaText,
+		ctaHref,
+		docsCtaText,
+		docsCtaHref,
+		channelLabel = null
+	}: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
@@ -57,9 +68,14 @@
 				{/if}
 			</div>
 
-			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{agentVm.agentLabel}
-			</p>
+			<div class="mb-6 flex justify-center">
+				<PublicAgentsLandingBreadcrumb
+					variant="agent-host"
+					agentSlug={agentVm.slug}
+					agentLabel={agentVm.agentLabel}
+					{channelLabel}
+				/>
+			</div>
 
 			<h1
 				id={headingId}

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
@@ -15,6 +17,7 @@
 		title: string;
 		description?: string;
 		subtitle?: string;
+		breadcrumb?: Snippet;
 		headingLevel?: 'h1' | 'h2';
 		titleClass?: string;
 	};
@@ -25,6 +28,7 @@
 		title,
 		description = '',
 		subtitle = '',
+		breadcrumb,
 		headingLevel = 'h2',
 		titleClass = 'text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl'
 	}: Props = $props();
@@ -33,7 +37,11 @@
 </script>
 
 <div class="mx-auto max-w-3xl space-y-4 text-center">
-	{#if subtitle}
+	{#if breadcrumb}
+		<div class="flex justify-center">
+			{@render breadcrumb()}
+		</div>
+	{:else if subtitle}
 		<p class={heroTheme.subtitleClass}>
 			{subtitle}
 		</p>

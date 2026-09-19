@@ -5,6 +5,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 
 	type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
@@ -37,9 +38,9 @@
 				<AbstractIcon name={channelVm.icon} width="36" height="36" class="size-9" focusable="false" />
 			</div>
 
-			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{channelVm.platformLabel}
-			</p>
+			<div class="mb-6 flex justify-center">
+				<PublicChannelsLandingBreadcrumb platformLabel={channelVm.platformLabel} />
+			</div>
 
 			<h1
 				id={headingId}

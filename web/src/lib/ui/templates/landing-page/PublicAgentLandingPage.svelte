@@ -57,6 +57,7 @@
 		secondaryCtaHref: string;
 		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
 		activeChannelSlug?: string | null;
+		activeChannelLabel?: string | null;
 		isChannelComingSoon?: boolean;
 		comingSoonPlatformLabel?: string;
 	};
@@ -68,6 +69,7 @@
 		secondaryCtaHref,
 		channelLinksVm = [],
 		activeChannelSlug = null,
+		activeChannelLabel = null,
 		isChannelComingSoon = false,
 		comingSoonPlatformLabel = ''
 	}: Props = $props();
@@ -123,6 +125,8 @@
 		platformLabel={comingSoonPlatformLabel}
 		icon={agentVm.heroSecondaryIcon}
 		agentLabel={agentVm.agentLabel}
+		agentSlug={agentVm.slug}
+		agentsBreadcrumbVariant="agent-host"
 	/>
 {:else}
 	<PublicAgentHero
@@ -132,6 +136,7 @@
 		ctaHref={resolvedSecondaryCtaHref}
 		docsCtaText="View Docs"
 		docsCtaHref={agentVm.docsPath}
+		channelLabel={activeChannelLabel}
 	/>
 {/if}
 

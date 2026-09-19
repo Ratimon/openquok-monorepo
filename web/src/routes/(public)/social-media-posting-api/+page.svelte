@@ -31,7 +31,7 @@
 
 <SectionOuterContainer>
 	<PublicApiMarketingHero
-		eyebrow="Posting API"
+		capability="posting"
 		title={hubVm.heroTitle}
 		description={hubVm.heroDescription}
 		{payloadValidatorHref}

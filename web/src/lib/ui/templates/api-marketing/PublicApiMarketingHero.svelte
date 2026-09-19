@@ -1,19 +1,26 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
-	import { route } from '$lib/utils/path';
-
+	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	type Props = {
-		eyebrow: string;
+		capability: PublicApiCapability;
+		platformLabel?: string | null;
 		title: string;
 		description: string;
 		payloadValidatorHref?: string | null;
 	};
 
-	let { eyebrow, title, description, payloadValidatorHref = null }: Props = $props();
+	let {
+		capability,
+		platformLabel = null,
+		title,
+		description,
+		payloadValidatorHref = null
+	}: Props = $props();
 
 	const pricingHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
 	const docsHref = $derived(
@@ -28,7 +35,9 @@
 
 <section class="py-10 md:py-16">
 	<div class="container mx-auto max-w-3xl space-y-5 px-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">{eyebrow}</p>
+		<div class="flex justify-center">
+			<PublicApiMarketingHubBreadcrumb {capability} {platformLabel} />
+		</div>
 		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
 			{title}
 		</h1>

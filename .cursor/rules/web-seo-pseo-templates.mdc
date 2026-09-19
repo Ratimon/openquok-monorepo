@@ -34,6 +34,7 @@ Public programmatic routes render in `+page.svelte` — **no** thin `*Page.svelt
 | `/tools/photo-editor`, `…/{channelSlug}` | `PhotoEditorToolPage.svelte` |
 | `/tools/skill-builder`, `…/{channelSlug}` | `SkillBuilderToolPage.svelte` |
 | `/tools/best-time-to-post`, `…/{channelSlug}` | `BestTimeToPostToolPage.svelte` |
+| `/social-media-posting-api`, `/social-media-scheduling-api` (+ `{slug}`) | `PublicApiMarketingHero.svelte` + hub/platform VMs (**web-landingpage** breadcrumbs) |
 | `/compare`, `/compare/{a}/{b}` | Compare hub grid / detail presenter sections + `PublicFaq` |
 | `/creators`, `/creators/{userSlug}` | Creators hub / profile templates + hub `PublicFaq` on index |
 | `/roadmap` | Roadmap board + hub `PublicFaq` |
@@ -56,7 +57,7 @@ Shared chrome: `PublicArea.svelte`, `Footer.svelte` (`PUBLIC_FOOTER_LINKS` — *
 
 ### Tool pages (humanizer, photo editor, skill builder, best time to post)
 
-1. Breadcrumb / hub link back to `/tools`.
+1. Breadcrumb / hub link back to `/tools` (**web-landingpage** when adding hero breadcrumbs).
 2. Hero + interactive panel (composer, calculator, canvas).
 3. Channel hub grid (`*ChannelHubGrid.svelte`) when generic tool route.
 4. Docs or accent CTA banners (`AccentSplitCtaBanner`, `CenteredDarkCtaBanner`).

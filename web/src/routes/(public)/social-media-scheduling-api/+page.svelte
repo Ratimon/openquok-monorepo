@@ -31,7 +31,7 @@
 
 <SectionOuterContainer>
 	<PublicApiMarketingHero
-		eyebrow="Scheduling API"
+		capability="scheduling"
 		title={hubVm.heroTitle}
 		description={hubVm.heroDescription}
 		{payloadValidatorHref}

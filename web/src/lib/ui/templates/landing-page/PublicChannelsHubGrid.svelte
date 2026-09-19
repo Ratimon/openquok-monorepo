@@ -6,6 +6,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 
 	type Props = {
 		channelsVm: PublicChannelLandingPageViewModel[];
@@ -18,7 +19,9 @@
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
 	<div class="mx-auto max-w-3xl space-y-4 text-center">
-		<p class="text-xs font-bold tracking-wider text-primary uppercase sm:text-sm">Channels</p>
+		<div class="flex justify-center">
+			<PublicChannelsLandingBreadcrumb />
+		</div>
 		<h1
 			id={headingId}
 			class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl"

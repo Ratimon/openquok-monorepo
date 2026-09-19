@@ -43,6 +43,7 @@
 		secondaryCtaHref: string;
 		channelLinksVm?: PublicAgentChannelHubLinkViewModel[];
 		activeChannelSlug?: string | null;
+		activeChannelLabel?: string | null;
 		isChannelComingSoon?: boolean;
 		comingSoonPlatformLabel?: string;
 	};
@@ -54,6 +55,7 @@
 		secondaryCtaHref,
 		channelLinksVm = [],
 		activeChannelSlug = null,
+		activeChannelLabel = null,
 		isChannelComingSoon = false,
 		comingSoonPlatformLabel = ''
 	}: Props = $props();
@@ -96,6 +98,8 @@
 		platformLabel={comingSoonPlatformLabel}
 		icon={mcpVm.heroSecondaryIcon}
 		agentLabel={mcpVm.agentLabel}
+		agentSlug={mcpVm.slug}
+		agentsBreadcrumbVariant="mcp-client"
 	/>
 {:else}
 	<PublicMcpHero
@@ -104,6 +108,7 @@
 		ctaHref={resolvedSecondaryCtaHref}
 		docsCtaText="View Docs"
 		docsCtaHref={mcpVm.docsPath}
+		channelLabel={activeChannelLabel}
 	/>
 {/if}
 

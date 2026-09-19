@@ -22,7 +22,6 @@
 	let platformVm = $derived(data.platformVm);
 	let platformsVm = $derived(data.platformsVm);
 	let isLoggedIn = $derived(data.isLoggedIn);
-	let heroEyebrow = $derived(`${platformVm.platformLabel} posting API`);
 
 	const payloadValidatorSection = $derived(
 		getPublicApiCapabilityPayloadValidatorHubSection(platformVm.capability)
@@ -40,7 +39,8 @@
 {#key platformVm.slug}
 	<SectionOuterContainer>
 		<PublicApiMarketingHero
-			eyebrow={heroEyebrow}
+			capability="posting"
+			platformLabel={platformVm.platformLabel}
 			title={platformVm.heroTitle}
 			description={platformVm.heroDescription}
 			payloadValidatorHref={payloadValidatorHref}

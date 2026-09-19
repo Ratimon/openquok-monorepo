@@ -3,6 +3,7 @@
 		PUBLIC_AGENTS_HUB,
 		type PublicAgentHostLandingPageViewModel
 	} from '$lib/content/constants/publicAgentConfig';
+	import { PUBLIC_AGENTS_HUB_SECTION_IDS } from '$lib/content/constants/publicLandingBreadcrumbConfig';
 	import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 	import { route } from '$lib/utils/path';
 
@@ -14,6 +15,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
+	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
 	import TerminalCommandMock from '$lib/ui/templates/device-mocks/terminal/TerminalCommandMock.svelte';
 
 	type Props = {
@@ -25,7 +27,7 @@
 	const headingId = 'public-agents-hub-heading';
 	const cliInstallHeadingId = 'public-agents-hub-cli-install-heading';
 	const skillInstallHeadingId = 'public-agents-hub-skill-install-heading';
-	const autonomousAgentHubHeadingId = 'public-autonomous-agent-hub-heading';
+	const autonomousAgentHubHeadingId = PUBLIC_AGENTS_HUB_SECTION_IDS.autonomousAgentIntegrations;
 </script>
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
@@ -36,8 +38,11 @@
 		titleClass="text-3xl font-black tracking-tight text-balance sm:text-4xl"
 		title={PUBLIC_AGENTS_HUB.title}
 		description={PUBLIC_AGENTS_HUB.description}
-		subtitle={PUBLIC_AGENTS_HUB.subtitle}
-	/>
+	>
+		{#snippet breadcrumb()}
+			<PublicAgentsLandingBreadcrumb variant="hub" />
+		{/snippet}
+	</FeaturesSectionHeader>
 
 	<div class="mx-auto mt-10 w-full max-w-4xl space-y-6">
 		<section class="space-y-3" aria-labelledby={cliInstallHeadingId}>

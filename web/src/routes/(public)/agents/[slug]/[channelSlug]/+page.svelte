@@ -45,6 +45,7 @@
 		secondaryCtaHref={secondaryCtaHref}
 		channelLinksVm={agentChannelLinksVm}
 		activeChannelSlug={channelSlug}
+		activeChannelLabel={channelLabel}
 		{isChannelComingSoon}
 		comingSoonPlatformLabel={channelLabel}
 	/>
@@ -56,6 +57,7 @@
 		secondaryCtaHref={secondaryCtaHref}
 		channelLinksVm={agentChannelLinksVm}
 		activeChannelSlug={channelSlug}
+		activeChannelLabel={channelLabel}
 		{isChannelComingSoon}
 		comingSoonPlatformLabel={channelLabel}
 	/>

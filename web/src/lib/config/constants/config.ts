@@ -901,6 +901,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Compare', href: publicComparePath },
 		{ label: 'Sitemap', href: '/sitemap.xml' }
 	],
+	
 	Resources: [
 		{ label: 'All Supported Channels', href: publicChannelsPath },
 		{ label: 'All Agent Integrations', href: publicAgentsPath },

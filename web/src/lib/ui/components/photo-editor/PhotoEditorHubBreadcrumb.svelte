@@ -2,6 +2,11 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	import * as Breadcrumb from '$lib/ui/breadcrumb';
+	import {
+		PUBLIC_LANDING_BREADCRUMB_LINK_CLASS,
+		PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS,
+		PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS
+	} from '$lib/ui/templates/landing-page/publicLandingBreadcrumbStyles';
 
 	type Props = {
 		toolsHubHref: string;
@@ -21,30 +26,24 @@
 <Breadcrumb.Root class={cn('max-w-full', className)}>
 	<Breadcrumb.List>
 		<Breadcrumb.Item>
-			<Breadcrumb.Link
-				href={toolsHubHref}
-				class="text-primary hover:text-primary/80 text-sm no-underline font-bold tracking-wider text-primary uppercase"
-			>
+			<Breadcrumb.Link href={toolsHubHref} class={PUBLIC_LANDING_BREADCRUMB_LINK_CLASS}>
 				Free Tools
 			</Breadcrumb.Link>
 		</Breadcrumb.Item>
-		<Breadcrumb.Separator class="text-primary/60" />
+		<Breadcrumb.Separator class={PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS} />
 		{#if channelLabel?.trim()}
 			<Breadcrumb.Item>
-				<Breadcrumb.Link
-					href={photoEditorHref}
-					class="text-primary hover:text-primary/80 text-sm no-underline"
-				>
+				<Breadcrumb.Link href={photoEditorHref} class={PUBLIC_LANDING_BREADCRUMB_LINK_CLASS}>
 					Photo Editor
 				</Breadcrumb.Link>
 			</Breadcrumb.Item>
-			<Breadcrumb.Separator class="text-primary/60" />
+			<Breadcrumb.Separator class={PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS} />
 			<Breadcrumb.Item>
-				<Breadcrumb.Page class="text-primary line-clamp-1 text-sm">{channelLabel.trim()}</Breadcrumb.Page>
+				<Breadcrumb.Page class={PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS}>{channelLabel.trim()}</Breadcrumb.Page>
 			</Breadcrumb.Item>
 		{:else}
 			<Breadcrumb.Item>
-				<Breadcrumb.Page class="text-primary line-clamp-1 text-sm">Photo Editor</Breadcrumb.Page>
+				<Breadcrumb.Page class={PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS}>Photo Editor</Breadcrumb.Page>
 			</Breadcrumb.Item>
 		{/if}
 	</Breadcrumb.List>

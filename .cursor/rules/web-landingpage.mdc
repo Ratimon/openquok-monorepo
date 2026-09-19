@@ -1,0 +1,87 @@
+---
+description: Public marketing landing pages — hero breadcrumbs, hub labels, placement, and shared *Breadcrumb.svelte conventions
+globs:
+  - web/src/routes/(public)/agents/**/*
+  - web/src/routes/(public)/channels/**/*
+  - web/src/routes/(public)/social-media-posting-api/**/*
+  - web/src/routes/(public)/social-media-scheduling-api/**/*
+  - web/src/routes/(public)/tools/**/*
+  - web/src/lib/ui/components/humanize/**/*
+  - web/src/lib/ui/components/photo-editor/**/*
+  - web/src/lib/ui/components/skill-builder/**/*
+  - web/src/lib/ui/components/best-time-to-post/**/*
+  - web/src/lib/ui/components/payload-wizard/**/*
+  - web/src/lib/ui/components/blog-public/BlogHubBreadcrumb.svelte
+  - web/src/lib/ui/templates/landing-page/**/*
+  - web/src/lib/ui/templates/api-marketing/**/*
+  - web/src/lib/content/constants/publicLandingBreadcrumbConfig.ts
+alwaysApply: false
+---
+
+# Web: landing-page breadcrumbs
+
+Public marketing heroes use a **breadcrumb trail** in place of the old uppercase eyebrow/subtitle (e.g. `Scheduling API`, `MCP`, platform label alone). Trails are **centered above the `<h1>`** inside the hero band — same vertical slot as the previous subtitle.
+
+## Shared building blocks
+
+| Piece | Path |
+| --- | --- |
+| Hub labels (Title Case source strings) | `web/src/lib/content/constants/publicLandingBreadcrumbConfig.ts` |
+| Link/page/separator classes | `web/src/lib/ui/templates/landing-page/publicLandingBreadcrumbStyles.ts` |
+| Generic renderer (`items[]`) | `PublicLandingHubBreadcrumb.svelte` |
+| DaisyUI breadcrumb primitives | `$lib/ui/breadcrumb` |
+
+**Styling:** marketing and tool breadcrumbs render **uppercase** via `PUBLIC_LANDING_BREADCRUMB_*_CLASS` in `publicLandingBreadcrumbStyles.ts` — store labels in Title Case in markup/constants; do not hand-type ALL CAPS.
+
+**Blog exception:** `BlogHubBreadcrumb.svelte` uses `PUBLIC_BLOG_BREADCRUMB_*_CLASS` (no `uppercase`) so the hub link reads **Blog**, not **BLOG**. Post/topic/author titles stay Title Case on the current segment.
+
+**Links:** use `hostedMarketingHref(..., page.url.origin)` and `route(getRootPath…())` helpers — not raw paths (**web-hosted-marketing-links**).
+
+## Component naming
+
+Add route-specific breadcrumb components under `web/src/lib/ui/templates/landing-page/` (or the matching template folder, e.g. `api-marketing/`):
+
+- `PublicAgentsLandingBreadcrumb.svelte`
+- `PublicChannelsLandingBreadcrumb.svelte`
+- `PublicApiMarketingHubBreadcrumb.svelte`
+- `HumanizeHubBreadcrumb.svelte`, `PhotoEditorHubBreadcrumb.svelte`, `SkillBuilderHubBreadcrumb.svelte`, `BestTimeToPostHubBreadcrumb.svelte`, `PayloadWizardHubBreadcrumb.svelte`
+
+Each wrapper builds an `items` array and delegates to `PublicLandingHubBreadcrumb`. Wire breadcrumbs **into the hero template**, not a separate container above the hero.
+
+## Route trails
+
+| Route | Breadcrumb |
+| --- | --- |
+| `/agents` | **Home** → Agents |
+| `/agents/{slug}` (MCP client) | **Home** → MCP Integrations → `{agentLabel}` (MCP Integrations links to `/agents#public-mcp-hub-heading`) |
+| `/agents/{slug}` (agent host) | **Home** → Autonomous Agent Integrations → `{agentLabel}` (hub segment links to `/agents#public-autonomous-agent-hub-heading`) |
+| `/agents/{slug}/{channelSlug}` | Same as slug row, plus → `{channelLabel}` (agent/MCP segment links back to `/agents/{slug}`) |
+| `/channels` | **Supported Channels** (current page only — no Home) |
+| `/channels/{slug}` | **Supported Channels** → `{platformLabel}` |
+| `/social-media-posting-api` | **Home** → Social Media Posting API |
+| `/social-media-posting-api/{slug}` | **Home** → Social Media Posting API → `{platformLabel}` |
+| `/social-media-scheduling-api` | **Home** → Social Media Scheduling API |
+| `/social-media-scheduling-api/{slug}` | **Home** → Social Media Scheduling API → `{platformLabel}` |
+| `/tools/humanizer` (+ `{channelSlug}`) | **Free Tools** → Humanizer [→ `{channelLabel}`] |
+| `/tools/photo-editor`, `/tools/skill-builder`, `/tools/best-time-to-post`, `/tools/payload-wizard` | Same pattern: **Free Tools** → tool name [→ channel] |
+
+Hub labels for agents/channels come from `PUBLIC_LANDING_BREADCRUMB` in `publicLandingBreadcrumbConfig.ts`. Scroll targets for the two `/agents` integration sections live in `PUBLIC_AGENTS_HUB_SECTION_IDS` (must match `headingId` on `PublicAgentsHubGrid` / `PublicMcpHubGrid`). API marketing hub titles come from `metaTitle` in the posting/scheduling hub VM.
+
+## Hero integration checklist
+
+When adding or changing a public landing hero:
+
+1. **Remove** the standalone eyebrow `<p>` (platform label, `MCP`, `Agents`, etc.) from the hero.
+2. **Render** the matching `*Breadcrumb.svelte` in a centered wrapper (`flex justify-center`) immediately above the title.
+3. **Coming-soon heroes** (`PublicComingSoonIntegrationPage`) — use the same breadcrumb component; pass agent/MCP variant props when the page is under `/agents/...`.
+4. **Hub grids** — pass a `{#snippet breadcrumb()}` into `FeaturesSectionHeader` when that header owns the page `<h1>`, or inline the breadcrumb where the hub subtitle used to live (`PublicChannelsHubGrid`).
+5. **Channel/agent depth** — pass `activeChannelLabel` / `channelLabel` from the route into the landing template so slug and channel-slug pages share one hero.
+
+## Do not
+
+- Duplicate breadcrumb markup inline in `+page.svelte` — keep trails in dedicated `*Breadcrumb.svelte` wrappers.
+- Add a second breadcrumb row above the hero section (outside the hero band).
+- Introduce new hub segment labels in page files — extend `publicLandingBreadcrumbConfig.ts` (or the relevant hub VM `metaTitle`) instead.
+- Skip uppercase styling on the current (non-link) segment.
+
+See also: **web-seo-pseo-templates** (section order), **add-agent** (agent/MCP landing wiring), **public-api-surface-sync** (API marketing pages).

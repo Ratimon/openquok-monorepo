@@ -5,6 +5,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
@@ -13,9 +14,17 @@
 		ctaHref: string;
 		docsCtaText?: string;
 		docsCtaHref?: string;
+		channelLabel?: string | null;
 	};
 
-	let { mcpVm, ctaText, ctaHref, docsCtaText, docsCtaHref }: Props = $props();
+	let {
+		mcpVm,
+		ctaText,
+		ctaHref,
+		docsCtaText,
+		docsCtaHref,
+		channelLabel = null
+	}: Props = $props();
 
 	const showDocsCta = $derived(Boolean(docsCtaText?.trim() && docsCtaHref?.trim()));
 
@@ -48,11 +57,14 @@
 				{/if}
 			</div>
 
-			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">MCP</p>
-
-			<p class="mt-2 text-xs font-bold tracking-[0.2em] text-base-content/60 uppercase sm:text-sm">
-				{mcpVm.agentLabel}
-			</p>
+			<div class="mb-6 flex justify-center">
+				<PublicAgentsLandingBreadcrumb
+					variant="mcp-client"
+					agentSlug={mcpVm.slug}
+					agentLabel={mcpVm.agentLabel}
+					{channelLabel}
+				/>
+			</div>
 
 			<h1
 				id={headingId}

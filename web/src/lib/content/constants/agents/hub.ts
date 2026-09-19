@@ -8,7 +8,7 @@ export const PUBLIC_AGENTS_HUB = {
 	cliInstallTitle: 'Install the CLI:',
 	skillInstallTitle: 'Install our core skill:',
 	autonomousAgentHubSubtitle: 'Autonomous Agent',
-	autonomousAgentHubTitle: 'Self-hosted agent hosts',
+	autonomousAgentHubTitle: 'Autonomous agent hosts',
 	autonomousAgentHubDescription:
 		'Message your assistant from Telegram, Discord, Slack, the Grok Bot desktop app, or ThinkRail — install openquok-core, and schedule posts from chat. Pick a host below for setup steps and skill install commands.',
 	mcpHubSubtitle: 'MCP',

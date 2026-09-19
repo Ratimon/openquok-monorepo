@@ -2,6 +2,11 @@
 	import { getRootPathPublicBlog } from '$lib/area-public/constants/getRootPathPublicBlog';
 	import * as Breadcrumb from '$lib/ui/breadcrumb';
 	import { cn } from '$lib/ui/helpers/common';
+	import {
+		PUBLIC_BLOG_BREADCRUMB_LINK_CLASS,
+		PUBLIC_BLOG_BREADCRUMB_PAGE_CLASS,
+		PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS
+	} from '$lib/ui/templates/landing-page/publicLandingBreadcrumbStyles';
 	import { url } from '$lib/utils/path';
 
 	type Props = {
@@ -19,16 +24,13 @@
 <Breadcrumb.Root class={cn('max-w-full', className)}>
 	<Breadcrumb.List>
 		<Breadcrumb.Item>
-			<Breadcrumb.Link
-				href={blogHubHref}
-				class="text-primary hover:text-primary/80 text-sm font-bold uppercase tracking-wider no-underline"
-			>
+			<Breadcrumb.Link href={blogHubHref} class={PUBLIC_BLOG_BREADCRUMB_LINK_CLASS}>
 				Blog
 			</Breadcrumb.Link>
 		</Breadcrumb.Item>
-		<Breadcrumb.Separator class="text-primary/60" />
+		<Breadcrumb.Separator class={PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS} />
 		<Breadcrumb.Item>
-			<Breadcrumb.Page class="text-primary line-clamp-1 text-sm">{pageTitle}</Breadcrumb.Page>
+			<Breadcrumb.Page class={PUBLIC_BLOG_BREADCRUMB_PAGE_CLASS}>{pageTitle}</Breadcrumb.Page>
 		</Breadcrumb.Item>
 	</Breadcrumb.List>
 </Breadcrumb.Root>

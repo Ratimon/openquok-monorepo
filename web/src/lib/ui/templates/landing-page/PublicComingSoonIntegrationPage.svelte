@@ -8,12 +8,16 @@
 	import PublicSoonBadge from '$lib/ui/components/PublicSoonBadge.svelte';
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
+	import PublicAgentsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicAgentsLandingBreadcrumb.svelte';
+	import PublicChannelsLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicChannelsLandingBreadcrumb.svelte';
 
 	type Props = {
 		platformLabel: string;
 		icon: IconName;
 		/** When set, copy references scheduling via this agent (e.g. OpenClaw). */
 		agentLabel?: string;
+		agentSlug?: string;
+		agentsBreadcrumbVariant?: 'agent-host' | 'mcp-client' | null;
 		/** Hero band only — omit standalone navigation (channel pages render sections below). */
 		heroOnly?: boolean;
 		backHref?: string;
@@ -26,6 +30,8 @@
 		platformLabel,
 		icon,
 		agentLabel,
+		agentSlug = '',
+		agentsBreadcrumbVariant = null,
 		heroOnly = false,
 		backHref = channelsHubPath,
 		backLabel = 'Browse available channels'
@@ -65,9 +71,18 @@
 				</div>
 			</div>
 
-			<p class="text-xs font-bold tracking-[0.2em] text-primary uppercase sm:text-sm">
-				{platformLabel}
-			</p>
+			<div class="mb-6 flex justify-center">
+				{#if agentsBreadcrumbVariant && agentSlug.trim() && agentLabel?.trim()}
+					<PublicAgentsLandingBreadcrumb
+						variant={agentsBreadcrumbVariant}
+						agentSlug={agentSlug.trim()}
+						agentLabel={agentLabel.trim()}
+						channelLabel={platformLabel}
+					/>
+				{:else}
+					<PublicChannelsLandingBreadcrumb platformLabel={platformLabel} />
+				{/if}
+			</div>
 
 			<h1
 				id={headingId}
