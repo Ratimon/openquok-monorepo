@@ -24,7 +24,7 @@ node scripts/prod-backup/export-storage.mjs
 node scripts/prod-backup/run-initial-backup.mjs --latest-snapshot YYYY-MM-DD
 ```
 
-pnpm shortcuts: `pnpm prod-backup:verify`, `pnpm prod-backup:dump`, `pnpm prod-backup:storage`, `pnpm prod-backup:initial`, `pnpm prod-backup:restore`, `pnpm prod-backup:migrate-storage`, `pnpm prod-backup:rehearse`, `pnpm prod-backup:relink`.
+pnpm shortcuts: `pnpm prod-backup:verify`, `pnpm prod-backup:dump`, `pnpm prod-backup:storage`, `pnpm prod-backup:initial`, `pnpm prod-backup:restore`, `pnpm prod-backup:migrate-storage`, `pnpm prod-backup:rehearse`, `pnpm prod-backup:relink`, `pnpm prod-backup:smoke`.
 
 The source project ref is read from `PUBLIC_SUPABASE_URL` in `backend/.env.production.local`, or override with `SUPABASE_SOURCE_PROJECT_REF`.
 
@@ -206,7 +206,7 @@ T+30m  pnpm prod-backup:migrate-storage --yes
 T+35m  SQL: replace source Storage URLs in blog_posts.content (if needed)
 T+40m  Env cutover (target URL + keys); Vercel/Railway redeploy
 T+42m  pnpm prod-backup:relink
-T+50m  Smoke test (auth, workers, images, billing)
+T+50m  pnpm prod-backup:smoke (then manual Google / scheduled post / provider OAuth)
 T+55m  MAINTENANCE_MODE=off; redeploy; resume workers
 ```
 
@@ -266,7 +266,13 @@ pnpm prod-backup:relink
 
 The script links `backend/` to the target in `.backups/us-migration/project.json` and marks the current `*_core_structure.sql` date applied only if remote history is missing it. It does **not** run `db push`. Add `--dry-run` first. Manual equivalent: `npx supabase@latest link --project-ref <target-ref>` then `pnpm db:production:migration-list` (repair only if the list is wrong).
 
-Smoke: Google + email auth, cloud trial, session reload (one re-login), scheduled post after unfreeze, one provider OAuth, public image URLs on the **target** host, `pg_cron`, Database Linter, Stripe unchanged.
+Smoke (automated + manual):
+
+```bash
+pnpm prod-backup:smoke
+```
+
+Writes `.backups/us-migration/smoke-report.json`. Automated: env alignment, users/posts/integrations, `cloud_trial_consumed_at` + billing rows, leftover Storage hosts, `pg_cron`, Database Linter RPC exposure, publishable-key `internal_*` RPC denial, public blog/health HTTP, writes not frozen. If restore left `cron.job` empty, re-run with `--repair-cron`. Manual (printed by the script): Google + email auth, session reload (one re-login), scheduled post after unfreeze, one provider OAuth, Stripe unchanged.
 
 Then `MAINTENANCE_MODE=off` on API, web, and workers; redeploy; restore worker replicas.
 

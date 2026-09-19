@@ -89,7 +89,7 @@ Follow <a href="/docs/configuration-backend/supabase-backup#cutover-freeze-runbo
 
 ### Smoke test and resume
 
-Run full smoke checks (auth, workers, integrations, blog images). Set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers; redeploy and resume worker processes.
+Run <code>pnpm prod-backup:smoke</code> (see <a href="/docs/configuration-backend/supabase-backup#smoke-test-then-resume-writes">Supabase backup — smoke test</a>), then finish the printed manual checks (Google login, scheduled post, provider OAuth). Set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers; redeploy and resume worker processes.
 
 </Steps>
 

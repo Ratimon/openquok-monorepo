@@ -132,6 +132,7 @@ pnpm prod-backup:restore
 pnpm prod-backup:migrate-storage
 pnpm prod-backup:rehearse
 pnpm prod-backup:relink
+pnpm prod-backup:smoke
 ```
 
 ### Copy dumps off site
@@ -289,7 +290,7 @@ T+30m  pnpm prod-backup:migrate-storage --yes
 T+35m  SQL: replace source Storage URLs in blog_posts.content (if needed)
 T+40m  Env cutover (target URL + keys); Vercel/Railway redeploy
 T+42m  pnpm prod-backup:relink
-T+50m  Smoke test (auth, workers, images, billing)
+T+50m  pnpm prod-backup:smoke (then manual Google / scheduled post / provider OAuth)
 T+55m  MAINTENANCE_MODE=off; redeploy; resume workers
 ```
 
@@ -392,20 +393,25 @@ Add <code>--dry-run</code> to print the target ref and any versions that would b
 
 ### Smoke test, then resume writes
 
+Run the automated Phase B4 checks against the target project (current <Badge text="PUBLIC_SUPABASE_URL" variant="envBackend" />):
+
+```bash
+pnpm prod-backup:smoke
+```
+
+The script writes <Badge text=".backups/us-migration/smoke-report.json" variant="path" /> (gitignored). It verifies env alignment, user/post/integration counts, <code>cloud_trial_consumed_at</code> and billing rows, leftover Storage hosts, <code>pg_cron</code>, Database Linter RPC exposure, publishable-key denial of <code>internal_*</code> RPCs, public blog/health HTTP, and that API writes are not frozen (not 503). Add <code>--skip-http</code> for SQL-only. Add <code>--repair-cron</code> if the refresh-token job is missing after restore. Add <code>--open-dashboard</code> to open Advisors → Security.
+
+Complete these <strong>manual</strong> checks (the script prints the same list):
+
 | Check | How |
 |-------|-----|
 | Google OAuth + email signup | Existing user and a new user |
-| Cloud trial | <code>cloud_trial_consumed_at</code> plus billing upsert |
 | Session refresh | Reload after login (expect one re-login; sessions invalidate) |
 | Workers | Enqueue a scheduled post after freeze is off |
 | Integrations | One provider OAuth |
-| Blog / avatars / listing images | Public URLs on the **target** project host |
-| <code>pg_cron</code> | Cron UI or extension query |
-| Database Linter | No high-severity RPC exposure |
-| Direct RPC | Publishable key cannot call sensitive RPCs |
 | Stripe | Subscriptions unchanged |
 
-When checks pass, set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers; redeploy; restore Railway worker replicas if you scaled them to 0.
+When automated and manual checks pass, set <Badge text="MAINTENANCE_MODE=off" variant="envBackend" /> on API, web, and workers; redeploy; restore Railway worker replicas if you scaled them to 0.
 
 ### Pause the source project
 
