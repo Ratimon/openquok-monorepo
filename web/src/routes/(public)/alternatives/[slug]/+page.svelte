@@ -204,9 +204,9 @@
 					OpenQuok is a free, open-source social media scheduler
 				</h2>
 				<p class="mx-auto mt-4 max-w-2xl text-base text-base-content/75">
-					Self-host at no cost or start a 7-day hosted trial. Connect channels, review every draft on
-					calendar or kanban, and publish across every platform from the dashboard — or pipe drafts in
-					from AI agents via skills, MCP, and the Public API.
+					Self-host at no cost, or start a 7-day hosted trial. Connect your channels. Review each
+					draft on the calendar or kanban. Publish from the dashboard, or send drafts from agents with
+					skills, MCP, and the Public API.
 				</p>
 				<div class="mt-6 flex justify-center">
 					<ButtonGlitchBrightness
@@ -242,7 +242,7 @@
 			headingId="alternatives-best-list"
 			subtitle="ranked picks"
 			title={`Best alternatives to ${detailVm.targetName}`}
-			description={`Top social media schedulers teams evaluate when they outgrow ${detailVm.targetName}.`}
+			description={`See alternatives to ${detailVm.targetName}. You can compare prices, channels, and features.`}
 		/>
 
 		<div class="mt-10 space-y-6">
@@ -263,13 +263,13 @@
 			headingId="alternatives-other-targets"
 			subtitle="more directories"
 			title="Explore more alternatives"
-			description="Browse other social media scheduler directories and compare tools side by side."
+			description="Open other alternative directories."
 			items={[
 				{
 					id: 'all-alternatives',
 					title: 'All alternatives',
 					href: alternativesHubPath,
-					description: 'Return to the alternatives hub and search every directory page.',
+					description: 'Go back to the alternatives hub.',
 					ctaLabel: 'Open'
 				},
 				...otherTargets.map((entry) => ({
@@ -306,7 +306,7 @@
 	<div class="container mx-auto px-4">
 		<AccentSplitCtaBanner
 			title="See plans and pricing"
-			description="Review how OpenQuok compares on pricing, channels, and agent workflows — then pick the right plan for your team."
+			description="See OpenQuok prices, channels, and agent tools. Then pick a plan."
 			ctaText="View pricing"
 			ctaHref={pricingPath}
 		/>

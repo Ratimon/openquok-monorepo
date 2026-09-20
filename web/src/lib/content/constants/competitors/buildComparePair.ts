@@ -26,18 +26,18 @@ export function buildComparePair(left: CompareProduct, right: CompareProduct): C
 }
 
 function buildCompareMetaDescription(left: CompareProduct, right: CompareProduct): string {
-	const comparisonCore = `Compare ${left.name} and ${right.name} side by side on pricing, channels, workspaces, agent integrations, and scheduling features.`;
+	const comparisonCore = `Compare prices, channels, workspaces, agent tools, and scheduling features for ${left.name} and ${right.name}.`;
 	return `${comparisonCore} ${buildCompareAlternativeClosing(left, right)}`;
 }
 
 function buildCompareAlternativeClosing(left: CompareProduct, right: CompareProduct): string {
 	if (left.slug === COMPARE_HUB_BASE_SLUG) {
-		return `Discover why teams choose ${left.name} as a ${right.name} alternative for agent workflows and multi-workspace publishing.`;
+		return `See why teams use ${left.name} instead of ${right.name}. You get agent workflows and separate workspaces.`;
 	}
 	if (right.slug === COMPARE_HUB_BASE_SLUG) {
-		return `See how ${right.name} compares as a ${left.name} alternative for social media scheduling and programmatic publishing.`;
+		return `See how ${right.name} compares as an alternative to ${left.name}. You can schedule posts and publish from agents.`;
 	}
-	return 'See which social media scheduler fits your workflow.';
+	return 'See which scheduler fits your work.';
 }
 
 function buildCompareKeywords(left: CompareProduct, right: CompareProduct): string[] {
@@ -63,14 +63,14 @@ function buildCompareKeywords(left: CompareProduct, right: CompareProduct): stri
 }
 
 function buildHeroDescription(left: CompareProduct, right: CompareProduct): string {
-	const base = `Compare ${left.name} and ${right.name} side by side on pricing, channels, and features.`;
+	const base = `Compare prices, channels, and features for ${left.name} and ${right.name}.`;
 	const openQuokPitch =
 		left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG
 			? ` ${buildCompareAlternativeClosing(left, right)}`
 			: '';
 	const trialNote =
 		left.slug === COMPARE_HUB_BASE_SLUG || right.slug === COMPARE_HUB_BASE_SLUG
-			? ' Start with a 7-day free trial — no credit card required.'
+			? ' Start a 7-day free trial. You do not need a credit card.'
 			: '';
 
 	return `${base}${openQuokPitch}${trialNote}`;
@@ -83,7 +83,7 @@ function buildWithWithoutSection(
 	return {
 		subtitle: 'comparisons',
 		title: buildWithWithoutTitle(left, right),
-		description: `${right.name} is built for ${right.comparison.builtFor}. ${left.name} ${left.comparison.positioningWhenLeft}.`,
+		description: `${right.name} is for ${right.comparison.builtFor}. ${left.name} ${left.comparison.positioningWhenLeft}.`,
 		withoutTitle: right.comparison.withoutTitle ?? `Typical ${right.name} workflow`,
 		withTitle: left.name,
 		points: buildTopicComparisonPoints(left, right)

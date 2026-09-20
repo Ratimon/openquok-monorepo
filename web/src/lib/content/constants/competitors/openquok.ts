@@ -149,41 +149,41 @@ export const openquokCompareProduct: CompareProduct = {
 	slug: 'openquok',
 	name: 'OpenQuok',
 	icon: icons.OpenQuok.name,
-	tagline: 'Social media scheduler built for humans and AI agents',
+	tagline: 'Social media scheduler for people and AI agents',
 	overview:
-		'OpenQuok is a 100% open-source agent-native social media scheduler. Connect Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, X, Dev.to, and more — plan content on calendar and kanban views, and publish from the dashboard or pipe drafts in from AI agents via skills, MCP, and the Public API. Multi-workspace isolation keeps brands, clients, and automation contexts separate.',
+		'OpenQuok is an open-source social media scheduler. Connect Facebook, Instagram, Threads, YouTube, TikTok, LinkedIn, X, Dev.to, and more. Plan posts on calendar and kanban views. Publish from the dashboard, or send drafts from agents with skills, MCP, and the Public API. Separate workspaces keep brands, clients, and agents apart.',
 	pricingPlans: OPENQUOK_PRICING_PLANS,
 	channels: OPENQUOK_CHANNELS,
 	featureSupport: buildOpenQuokFeatureSupport(),
 	comparison: {
 		headline: 'agent-native scheduling',
 		notAnother: 'browser-only scheduler',
-		builtFor: 'humans and AI agents who need multi-workspace scheduling',
+		builtFor: 'people and AI agents who need separate workspaces to schedule posts',
 		positioningWhenLeft:
-			'covers the same scheduling basics — and adds workspaces, agents, and API access when automation does the work',
+			'covers the same scheduling basics. You also get workspaces, agents, and API access',
 		talkingPoints: {
 			agent_workflow: {
 				strength:
-					'Agents draft and schedule via skills, MCP, or the Public API — you approve on the calendar'
+					'Agents draft and schedule with skills, MCP, or the Public API. You approve posts on the calendar.'
 			},
 			pricing_model: {
 				strength:
-					'Flat workspace pricing from $29/mo — predictable plans instead of per-seat or per-channel fees'
+					'Plans start at $29 per month per workspace. You do not pay per seat or per channel.'
 			},
 			workspace_isolation: {
 				strength:
-					'Agent workspaces isolate channels, OAuth apps, tokens, and MCP endpoints per brand or client'
+					'Each workspace has its own channels, OAuth app, token, and MCP endpoint.'
 			},
 			product_focus: {
 				strength:
-					'Focused scheduling, analytics, and agent integrations — pay for what you publish, not unused suites'
+					'You pay for scheduling, analytics, and agent tools. You do not pay for unused suite extras.'
 			},
 			programmatic_access: {
-				strength: 'MCP server and CLI per workspace — connect agents without copy-pasting between tools'
+				strength: 'Each workspace has an MCP server and CLI. Agents connect without copy and paste.'
 			},
 			publishing_control: {
 				strength:
-					'Every agent draft lands as draft or scheduled — follow-up threads and comments from 5s delays with per-reply toolbar (media + AI where supported)'
+					'Each agent draft lands as a draft or a scheduled post. You can add follow-up comments with delays.'
 			}
 		}
 	}

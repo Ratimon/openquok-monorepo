@@ -59,13 +59,13 @@ export type ComparePricingPlan = {
 
 /** Copy used to build with/without sections and pair descriptions at runtime. */
 export type CompareProductComparison = {
-	/** Headline fragment for the left product (e.g. "agent-native scheduling"). */
+	/** Headline fragment for the left product (e.g. "agent-native scheduling"). Keep ASD-STE100. */
 	headline: string;
 	/** Right-column headline fragment for OpenQuok-led pairs: "not another {notAnother}". */
 	notAnother: string;
-	/** Audience/context fragment: "{name} is built for {builtFor}." */
+	/** Audience fragment: "{name} is for {builtFor}." */
 	builtFor: string;
-	/** Second sentence when this product is on the left: "{name} {positioningWhenLeft}." */
+	/** Clause when this product is on the left: "{name} {positioningWhenLeft}." */
 	positioningWhenLeft: string;
 	/** Override for the without column title; defaults to "Typical {name} workflow". */
 	withoutTitle?: string;

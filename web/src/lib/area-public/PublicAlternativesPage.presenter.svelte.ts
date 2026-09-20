@@ -123,11 +123,11 @@ export class PublicAlternativesPagePresenter {
 
 		return {
 			metaTitle: `Best ${targetProduct.name} Alternatives`,
-			metaDescription: `Compare alternatives to ${targetProduct.name} for social media scheduling — pricing, channels, and agent workflows. OpenQuok ranks #1 as an open-source option; self-host for a $0 software fee or start a hosted 7-day trial. See ${alternativeCountLabel}.`,
+			metaDescription: `Compare alternatives to ${targetProduct.name}. See prices, channels, and agent tools. OpenQuok ranks first as an open-source option. Self-host for a $0 software fee, or start a 7-day hosted trial. See ${alternativeCountLabel}.`,
 			keywords: buildAlternativesDetailKeywords(targetProduct.name),
 			eyebrow: 'Alternatives',
 			title: `${targetProduct.name} alternatives`,
-			description: `Compare alternatives to ${targetProduct.name} for social media management, scheduling, and agent-driven publishing.`,
+			description: `See alternatives to ${targetProduct.name}. You can compare prices, channels, and features.`,
 			targetSlug: targetProduct.slug,
 			targetName: targetProduct.name,
 			targetIcon: targetProduct.icon,
@@ -163,7 +163,7 @@ export class PublicAlternativesPagePresenter {
 			icon: product.icon,
 			href: url(route(getRootPathPublicAlternativesTarget(product.slug))),
 			title: `${product.name} alternatives`,
-			description: `Compare alternatives to ${product.name} for social media management, scheduling, and analytics.`
+			description: `Compare alternatives to ${product.name}. You can compare prices, channels, and features.`
 		};
 	}
 
@@ -194,10 +194,10 @@ function buildAlternativeDetailDescription(
 	targetProduct: CompareProduct
 ): string {
 	if (product.slug === COMPARE_HUB_BASE_SLUG) {
-		return `${product.name} is 100% open source — self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}) or try hosted with a 7-day trial. Teams switch from ${targetProduct.name} for ${product.comparison.headline}, multi-workspace isolation, and programmatic scheduling through skills, MCP, and the Public API.`;
+		return `${product.name} is open source. Self-host for a $0 software fee (${publicFaqHref.selfHostingLanding}), or start a 7-day hosted trial. Teams leave ${targetProduct.name} for ${product.comparison.headline}, separate workspaces, and scheduling from skills, MCP, and the Public API.`;
 	}
 
-	return `${product.name} is built for ${product.comparison.builtFor}. ${product.comparison.positioningWhenLeft.charAt(0).toUpperCase()}${product.comparison.positioningWhenLeft.slice(1)}.`;
+	return `${product.name} is for ${product.comparison.builtFor}. ${product.name} ${product.comparison.positioningWhenLeft}.`;
 }
 
 function buildAlternativesDetailKeywords(competitorName: string): string[] {

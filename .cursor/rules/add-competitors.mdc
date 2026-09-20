@@ -32,6 +32,8 @@ Competitor data powers:
 
 Follow **source-project-neutrality**: describe products and positioning in first-party terms; trademark notes belong only in `branded-icons.ts` where needed.
 
+**User-facing copy** (competitor constants, compare/alternatives presenters, and compare/alternatives route pages): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style.
+
 ---
 
 ## Identifier contract
@@ -73,12 +75,12 @@ Export a `CompareProduct` with:
 | Field | Notes |
 | --- | --- |
 | `slug`, `name`, `icon` | `icon: icons.{Brand}.name` |
-| `tagline` | Short subtitle under the name on compare pages |
-| `overview` | 2–3 sentences for platform overview and alternatives listings |
+| `tagline` | Short subtitle under the name on compare pages (ASD-STE100) |
+| `overview` | 2–3 short sentences for platform overview and alternatives listings (ASD-STE100) |
 | `pricingPlans` | `ComparePricingPlan[]` — public list prices in USD; `monthlyPrice: null` for custom/enterprise |
 | `channels` | Human labels aligned with `listAvailablePublicChannelCompareLabels()` in `channels/index.ts` so channel compare icons resolve |
 | `featureSupport` | `Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>` — one cell per row in `PUBLIC_PRICING_COMPARE_ROWS` (`included` / `excluded` / `text`) |
-| `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` |
+| `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` — all ASD-STE100 |
 
 **Talking points** (`CompareTalkingPointId` keys in `shared.ts` → `COMPARE_TALKING_POINT_ORDER`):
 
@@ -167,6 +169,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 - [ ] `talkingPoints` pairs with OpenQuok (and peers) so with/without sections are not empty.
 - [ ] `PRODUCT_ICON_STYLES` updated in all **four** compare/alternatives route Svelte files.
 - [ ] Channel labels match public channel compare labels.
+- [ ] User-facing copy on compare/alternatives detail pages is concise ASD-STE100 (short sentences, active voice, `you`).
 - [ ] `/compare`, `/compare/openquok/{slug}`, `/alternatives`, and `/alternatives/{slug}` manually smoke-tested.
 - [ ] No third-party repo paths or attribution in SQL, comments, or user-facing strings (see **source-project-neutrality**).
 

@@ -241,14 +241,14 @@ function buildCompareHubPairCardDescription(
 	pairProduct: NonNullable<ReturnType<typeof getCompareProduct>>
 ): string {
 	if (baseProduct.slug === COMPARE_HUB_BASE_SLUG) {
-		return `Compare ${baseProduct.name} and ${pairProduct.name} on pricing, channels, workspaces, and agent integrations.`;
+		return `Compare prices, channels, workspaces, and agent tools for ${baseProduct.name} and ${pairProduct.name}.`;
 	}
 
 	if (pairProduct.slug === COMPARE_HUB_BASE_SLUG) {
-		return `Discover why teams choose ${pairProduct.name} as a ${baseProduct.name} alternative for agent workflows and multi-workspace scheduling.`;
+		return `See why teams use ${pairProduct.name} instead of ${baseProduct.name}. You get agent workflows and separate workspaces.`;
 	}
 
-	return `Compare ${baseProduct.name} and ${pairProduct.name} on pricing, channels, and scheduling features.`;
+	return `Compare prices, channels, and scheduling features for ${baseProduct.name} and ${pairProduct.name}.`;
 }
 
 function toProductSummary(product: NonNullable<ReturnType<typeof getCompareProduct>>): CompareProductSummaryViewModel {

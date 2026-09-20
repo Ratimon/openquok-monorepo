@@ -166,7 +166,7 @@
 			iconContainerClass:
 				'bg-linear-to-br from-violet-400/25 via-fuchsia-300/18 to-indigo-300/20 text-violet-100 ring-violet-300/30',
 			href: compareHubPath,
-			description: 'Browse every head-to-head social media scheduler comparison and find the best alternative for your workflow.',
+			description: 'See all scheduler comparisons.',
 			ctaLabel: 'Open'
 		},
 		...relatedPairs.map((pair) => ({
@@ -295,7 +295,7 @@
 			headingId="compare-platform-overview"
 			subtitle="overview"
 			title="Platform overview"
-			description={`See how ${leftProductVm.name} and ${rightProductVm.name} position themselves before diving into pricing, channels, and feature tradeoffs.`}
+			description={`Read a short summary of ${leftProductVm.name} and ${rightProductVm.name}. Then compare prices, channels, and features.`}
 		/>
 		<div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<article class="rounded-2xl border border-primary/20 bg-primary/5 p-6">
@@ -357,7 +357,7 @@
 			headingId="compare-pricing-plans"
 			subtitle="pricing"
 			title="Pricing & plans"
-			description={`Review how ${leftProductVm.name} and ${rightProductVm.name} package their plans, price points, and upgrade paths side by side.`}
+			description={`Compare the plans and prices for ${leftProductVm.name} and ${rightProductVm.name}.`}
 			leftProductName={leftProductVm.name}
 			rightProductName={rightProductVm.name}
 			leftPlansVm={leftProductVm.pricingPlans}
@@ -384,7 +384,7 @@
 			headingId="compare-feature-comparison"
 			subtitle="features"
 			title="Feature comparison"
-			description="Scan the feature matrix to spot where each product includes, limits, or leaves out the capabilities your workflow depends on."
+			description="See which features each product includes, limits, or omits."
 			leftProductName={leftProductVm.name}
 			rightProductName={rightProductVm.name}
 			rowsVm={compareRows}
@@ -415,7 +415,7 @@
 		headingId="compare-more-comparisons"
 		subtitle="next steps"
 		title="More comparisons"
-		description="Explore the full comparison hub or jump into related matchups to find the best social media scheduler alternative for your team."
+		description="Open more product comparisons. Find a scheduler that fits your team."
 		items={moreComparisonItems}
 		getItemKey={(item) => item.id}
 		sectionClass="pt-20 pb-0"
@@ -435,7 +435,7 @@
 	<div class="container mx-auto px-4">
 		<AccentSplitCtaBanner
 			title="See plans and pricing"
-			description="Compare the feature differences above, then review OpenQuok pricing to pick the right plan for your team."
+			description="Review OpenQuok plans and pick one that fits your team."
 			ctaText="View pricing"
 			ctaHref={pricingPath}
 		/>

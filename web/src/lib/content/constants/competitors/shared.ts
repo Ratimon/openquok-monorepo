@@ -7,7 +7,7 @@ export const COMPARE_CHANNELS_SECTION = {
 	subtitle: 'platform coverage',
 	title: 'Supported channels',
 	description:
-		'Compare which social networks each scheduler supports today. Platforms on our roadmap are marked with an hourglass.'
+		'See which social networks each product supports. An hourglass means the channel is on our roadmap.'
 };
 
 /** Display order for topic-keyed comparison rows. */

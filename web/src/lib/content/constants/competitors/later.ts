@@ -6,21 +6,21 @@ const LATER_PRICING_PLANS: ComparePricingPlan[] = [
 	{
 		name: 'Starter',
 		monthlyPrice: 18.75,
-		tagline: 'Best for casual scheduling on one social set with Link in Bio',
+		tagline: 'For casual scheduling on one social set with Link in Bio',
 		footnote:
 			'Annual billing ($25/mo monthly) · 1 social set (8 profiles) · 1 user · 30 posts/profile · 14-day free trial'
 	},
 	{
 		name: 'Growth',
 		monthlyPrice: 37.5,
-		tagline: 'Best for teams that need approvals, social inbox, and extra social sets',
+		tagline: 'For teams that need approvals, a social inbox, and extra social sets',
 		footnote:
 			'Annual billing ($50/mo monthly) · 2 social sets (16 profiles) · 2 users · 180 posts/profile · extra sets $11.25/mo annual'
 	},
 	{
 		name: 'Scale',
 		monthlyPrice: 82.5,
-		tagline: 'Best for brands that need unlimited posts, custom analytics, and listening',
+		tagline: 'For brands that need unlimited posts, custom analytics, and listening',
 		footnote:
 			'Annual billing ($110/mo monthly) · 6 social sets (48 profiles) · 4 users · unlimited posts · extra sets $11.25/mo annual'
 	}
@@ -75,47 +75,47 @@ export const laterCompareProduct: CompareProduct = {
 	slug: 'later',
 	name: 'Later',
 	icon: icons.Later.name,
-	tagline: 'Visual Instagram planner with Link in Bio and influencer tools',
+	tagline: 'Visual Instagram planner with Link in Bio',
 	overview:
-		'Later is a visual-first social media management platform for creators, brands, and agencies. Plan posts from a calendar and Instagram grid, auto-publish across eight networks, ship a Link in Bio page, and add AI captions, approvals, a social inbox, and Scale-tier analytics or listening — billed per social set with a 14-day free trial and no public scheduling API.',
+		'Later helps you plan social posts on a calendar and an Instagram grid. You can auto-publish to eight networks. You also get Link in Bio. Plans bill by social set. The trial is 14 days. Later has no public scheduling API.',
 	pricingPlans: LATER_PRICING_PLANS,
 	channels: LATER_CHANNELS,
 	featureSupport: LATER_FEATURE_SUPPORT,
 	comparison: {
 		headline: 'visual Instagram planning',
 		notAnother: 'grid planner tab',
-		builtFor: 'creators and social teams who live in a visual calendar and Link in Bio',
+		builtFor: 'creators and social teams who plan posts on a visual calendar',
 		positioningWhenLeft:
-			'keeps Instagram-first planning visual with grid previews, Link in Bio, best-time slots, and influencer extras for teams that work in the dashboard',
+			'lets you plan Instagram posts on a visual calendar and grid. You also get Link in Bio',
 		talkingPoints: {
 			agent_workflow: {
-				strength: 'Caption Writer and Ideas generate copy inside the post builder with monthly AI credits',
+				strength: 'Caption Writer and Ideas create copy in the post builder. You spend monthly AI credits.',
 				weakness:
-					'AI credits live inside Later (5–100/month) — no skills, workspace MCP, or Public API for external agents'
+					'AI credits stay inside Later (5–100 each month). You cannot use skills, workspace MCP, or a Public API with external agents.'
 			},
 			pricing_model: {
-				strength: 'Annual Starter from $18.75/mo for one social set, Link in Bio, and a 14-day free trial',
+				strength: 'Annual Starter starts at $18.75 per month for one social set, Link in Bio, and a 14-day trial.',
 				weakness:
-					'Social-set pricing plus extra-set fees as you add brands — 30 posts/profile on Starter and 180 on Growth'
+					'You pay per social set. Extra sets cost more. Starter allows 30 posts per profile. Growth allows 180 posts per profile.'
 			},
 			workspace_isolation: {
-				strength: 'Access Groups split media libraries and calendars when you manage extra brands',
+				strength: 'Access Groups split media libraries and calendars when you manage extra brands.',
 				weakness:
-					'Social sets and Access Groups still sit in one Later login — not isolated agent workspaces with separate tokens and MCP endpoints'
+					'Social sets and Access Groups stay in one Later login. You do not get separate agent workspaces with their own tokens and MCP endpoints.'
 			},
 			product_focus: {
 				strength:
-					'Instagram grid planner, Link in Bio, UGC collection, and Scale-tier competitive benchmarking in one dashboard',
+					'You get an Instagram grid planner, Link in Bio, UGC collection, and Scale competitive benchmarking in one dashboard.',
 				weakness:
-					'Visual planner, Link in Bio, and influencer bundles when you mainly need agent-native scheduling — no X or Bluesky publishing'
+					'Later focuses on a visual planner, Link in Bio, and influencer tools. You cannot publish to X or Bluesky.'
 			},
 			programmatic_access: {
-				weakness: 'No public scheduling API, MCP server, Zapier, Make, or n8n — dashboard-only publishing'
+				weakness: 'Later has no public scheduling API, MCP server, Zapier, Make, or n8n. You publish from the dashboard.'
 			},
 			publishing_control: {
-				strength: 'Internal and external approvals on Growth+ including review links without a Later login',
+				strength: 'Growth and Scale include internal and external approvals. You can share a review link without a Later login.',
 				weakness:
-					'Approvals start on Growth — Starter is one user, and agent drafts cannot land as reviewable checkpoints without the Later UI'
+					'Approvals start on Growth. Starter has one user. Agent drafts cannot wait for review unless you use the Later UI.'
 			}
 		}
 	}
