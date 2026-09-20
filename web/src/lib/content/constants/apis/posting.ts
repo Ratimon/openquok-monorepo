@@ -8,7 +8,13 @@ export const publicApiPostingHubPage: PublicApiHubPageViewModel = {
 	capability: 'posting',
 	heroTitle: buildPublicApiHubHeroTitle('posting'),
 	heroDescription:
-		'Post across TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one API. One POST /api/v1/public/posts call returns a post group id and per-channel rows you can track with the public API, SDK, CLI, or MCP.',
+		'Post to every major social platform with one API. Skip months of building and maintaining integrations yourself.',
+	heroBullets: [
+		'Post to TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one request',
+		'Publish images, videos, carousels, Stories, Reels, and Shorts',
+		'OAuth handled for you on OpenQuok Cloud — no developer apps to register',
+		'Connect multiple channels on a paid workspace plan'
+	],
 	metaTitle: 'Social Media Posting API',
 	metaDescription:
 		'Publish to TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one OpenQuok POST /public/posts request. Explore platform examples, copy JSON from the Payload Wizard, and connect channels on a paid workspace plan.',

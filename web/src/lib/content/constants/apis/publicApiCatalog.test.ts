@@ -55,8 +55,12 @@ describe('publicApiCatalog', () => {
 		expect(publicApiPostingHubPage.staticExample.endpoint).toBe('POST /api/v1/public/posts');
 		expect(publicApiPostingHubPage.heroTitle).toBe(buildPublicApiHubHeroTitle('posting'));
 		expect(publicApiPostingHubPage.heroTitle).toBe('Social Media Posting API');
+		expect(publicApiPostingHubPage.heroDescription).toContain('Skip months');
+		expect(publicApiPostingHubPage.heroBullets.length).toBe(4);
 		expect(publicApiSchedulingHubPage.heroTitle).toBe(buildPublicApiHubHeroTitle('scheduling'));
 		expect(publicApiSchedulingHubPage.heroTitle).toBe('Social Media Scheduling API');
+		expect(publicApiSchedulingHubPage.heroDescription).toContain('UTC');
+		expect(publicApiSchedulingHubPage.heroBullets.length).toBe(4);
 		expect(publicApiPostingHubPage.faqItems.length).toBeGreaterThan(0);
 		expect(publicApiSchedulingHubPage.faqItems.length).toBeGreaterThan(0);
 		expect(publicApiSchedulingHubPage.staticExample.requestJson).toContain('repeatInterval');

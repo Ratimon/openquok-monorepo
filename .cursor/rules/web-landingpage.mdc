@@ -129,6 +129,8 @@ Follow [PostPeer](https://www.postpeer.dev/social-media-posting-api)-style keywo
 
 Builders: `buildPublicApiHubHeroTitle`, `buildPublicApiPlatformHeroTitle` in `buildProgrammaticSeoTitles.ts`. Platform pages default the H1 in `buildPublicApiPlatformPage()` when `heroTitle` is omitted.
 
+In `LANDING_HERO_TITLE_HIGHLIGHT_WORDS`, chip suffix terms only (`Posting API`, `Scheduling API`, `Twitter / X`) — never the full hub H1 (`Social Media Posting API`) or the entire title becomes one white highlight tile.
+
 ## Do not
 
 - Duplicate breadcrumb markup inline in `+page.svelte` — keep trails in dedicated `*Breadcrumb.svelte` wrappers.

@@ -2,16 +2,26 @@ import { describe, expect, it } from 'vitest';
 
 import { PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM } from '$lib/content/constants/apis/formatExamples';
 import { buildPublicApiPayloadValidatorStaticExampleFromFormatExample } from '$lib/content/constants/apis/hubExamples';
-import { getPublicApiCapabilityPayloadValidatorHubSection } from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
+import {
+	PUBLIC_API_POSTING_PAYLOAD_VALIDATOR_HUB_SECTION,
+	PUBLIC_API_SCHEDULING_PAYLOAD_VALIDATOR_HUB_SECTION,
+	getPublicApiCapabilityPayloadValidatorHubSection
+} from '$lib/content/constants/apis/publicApiPayloadValidatorSectionConfig';
 import { getPublicPayloadValidatorHref } from '$lib/content/utils/getPublicPayloadValidatorHref';
 
 describe('publicApiPayloadValidatorSectionConfig', () => {
 	it('provides hub sections per capability', () => {
 		expect(getPublicApiCapabilityPayloadValidatorHubSection('posting').subtitle).toBe(
-			'Payload validator'
+			'Free payload wizard'
+		);
+		expect(PUBLIC_API_POSTING_PAYLOAD_VALIDATOR_HUB_SECTION.title).toContain(
+			'social media posting API'
+		);
+		expect(PUBLIC_API_SCHEDULING_PAYLOAD_VALIDATOR_HUB_SECTION.title).toContain(
+			'social media scheduling API'
 		);
 		expect(getPublicApiCapabilityPayloadValidatorHubSection('scheduling').description).toContain(
-			'repeatInterval'
+			'repeat cadence'
 		);
 	});
 });

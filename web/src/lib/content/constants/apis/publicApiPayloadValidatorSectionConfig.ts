@@ -8,18 +8,18 @@ export type PublicApiPayloadValidatorSection = {
 };
 
 export const PUBLIC_API_POSTING_PAYLOAD_VALIDATOR_HUB_SECTION: PublicApiPayloadValidatorSection = {
-	subtitle: 'Payload validator',
-	title: 'Preview JSON for POST /public/posts before you write integration code',
+	subtitle: 'Free payload wizard',
+	title: 'Test your social media posting API payload before you ship code',
 	description:
-		'Compose with sample channels, copy a validated JSON body, and paste it into curl or your SDK. Scheduling and uploads need a workspace — copy JSON stays free.',
+		'Compose a post with sample channels in your browser. Copy the JSON body and paste it into curl, your SDK, or an agent workflow. Copy JSON is free — no account required. Scheduling and file uploads need a workspace.',
 	mediaOnRight: true
 };
 
 export const PUBLIC_API_SCHEDULING_PAYLOAD_VALIDATOR_HUB_SECTION: PublicApiPayloadValidatorSection = {
-	subtitle: 'Payload validator',
-	title: 'Preview JSON for POST /public/posts before you write integration code',
+	subtitle: 'Free payload wizard',
+	title: 'Test your social media scheduling API payload before you ship code',
 	description:
-		'Compose with sample channels, set repeatInterval for recurring schedules, copy a validated JSON body, and paste it into curl or your SDK. Scheduling and uploads need a workspace — copy JSON stays free.',
+		'Compose a scheduled post with sample channels in your browser. Set the publish time and optional repeat cadence, then copy the JSON body. Copy JSON is free — no account required. Scheduling and file uploads need a workspace.',
 	mediaOnRight: false
 };
 

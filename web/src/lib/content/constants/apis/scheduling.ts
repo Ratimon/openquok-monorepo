@@ -8,7 +8,13 @@ export const publicApiSchedulingHubPage: PublicApiHubPageViewModel = {
 	capability: 'scheduling',
 	heroTitle: buildPublicApiHubHeroTitle('scheduling'),
 	heroDescription:
-		'Schedule posts across TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one API. Set scheduledAt in UTC, optional repeatInterval, and per-channel provider settings — OpenQuok publishes through the same POST /api/v1/public/posts endpoint.',
+		'Schedule posts across every major social platform with one API. Set the date and time in UTC — OpenQuok publishes on schedule.',
+	heroBullets: [
+		'Schedule to TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one request',
+		'Set scheduledAt in UTC with optional repeat cadence',
+		'Use the same POST /public/posts endpoint for posting and scheduling',
+		'Track post rows from the public API, SDK, CLI, or MCP'
+	],
 	metaTitle: 'Social Media Scheduling API',
 	metaDescription:
 		'Schedule TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube posts with OpenQuok POST /public/posts. Set scheduledAt in UTC, explore platform examples, and connect channels on a paid workspace plan.',

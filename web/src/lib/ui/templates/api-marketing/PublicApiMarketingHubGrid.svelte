@@ -8,6 +8,8 @@
 	import { route } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		capability: PublicApiCapability;
@@ -17,6 +19,11 @@
 	let { capability, platformsVm }: Props = $props();
 
 	const headingId = 'public-api-marketing-hub-grid-heading';
+	const sectionTitle = $derived(
+		capability === 'posting'
+			? 'Explore social media posting API by platform'
+			: 'Explore social media scheduling API by platform'
+	);
 
 	function platformHref(slug: string): string {
 		const rootPath =
@@ -29,12 +36,11 @@
 
 <section class="py-10 md:py-14" aria-labelledby={headingId}>
 	<div class="container mx-auto max-w-3xl space-y-4 px-4 text-center">
-		<h2
-			id={headingId}
-			class="text-2xl font-black tracking-tight text-balance text-base-content sm:text-3xl"
-		>
-			Explore by platform
-		</h2>
+		<PublicLandingSectionTitle
+			headingId={headingId}
+			title={sectionTitle}
+			heroTheme={landingHeroTheme}
+		/>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70">
 			Open platform pages for request and response examples, provider settings, and Payload Wizard
 			samples.

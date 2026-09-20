@@ -34,6 +34,7 @@
 		capability="posting"
 		title={hubVm.heroTitle}
 		description={hubVm.heroDescription}
+		bullets={hubVm.heroBullets}
 		{payloadValidatorHref}
 	/>
 

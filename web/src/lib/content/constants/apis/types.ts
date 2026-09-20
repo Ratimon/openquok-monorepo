@@ -36,6 +36,8 @@ export type PublicApiHubPageViewModel = {
 	capability: PublicApiCapability;
 	heroTitle: string;
 	heroDescription: string;
+	/** Short benefit lines under the hero description (hub pages only). */
+	heroBullets: readonly string[];
 	metaTitle: string;
 	metaDescription: string;
 	keywords: readonly string[];

@@ -2,6 +2,8 @@
 	import type { PublicApiFormatExample } from '$lib/content/constants/apis/types';
 
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
+	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		formatExamples: readonly PublicApiFormatExample[];
@@ -27,9 +29,10 @@
 <section class="py-10 md:py-14">
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<h2 class="text-2xl font-black tracking-tight text-base-content sm:text-3xl">
-				Explore requests and responses by format
-			</h2>
+			<PublicLandingSectionTitle
+				title="Explore request and response examples by format"
+				heroTheme={landingHeroTheme}
+			/>
 			<p class="text-base font-medium leading-relaxed text-base-content/70">
 				Static examples mirror shipped OpenQuok public API payloads and success responses.
 			</p>

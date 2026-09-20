@@ -34,6 +34,7 @@
 		capability="scheduling"
 		title={hubVm.heroTitle}
 		description={hubVm.heroDescription}
+		bullets={hubVm.heroBullets}
 		{payloadValidatorHref}
 	/>
 

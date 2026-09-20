@@ -25,8 +25,14 @@ type LandingHeroTitleSegment = { text: string; highlight: boolean };
 
 /** Longest first so regex alternation prefers multi-word phrases over substrings. */
 const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
-	'Social Media Scheduling API',
-	'Social Media Posting API',
+	'scheduling API payload',
+	'posting API payload',
+	'scheduling API platforms',
+	'posting API platforms',
+	'structured response',
+	'payload wizard',
+	'Scheduling API',
+	'Posting API',
 	'Twitter / X',
 	'alternative scheduler',
 	'every connected channel',
@@ -37,6 +43,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'scheduling API',
 	'posting API',
 	'schedule once',
+	'one request',
 	'request',
 	'every channel',
 	'best time to post calculator',

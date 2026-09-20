@@ -2,6 +2,8 @@
 	import type { PublicApiHubStaticExample } from '$lib/content/constants/apis/types';
 
 	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
+	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		staticExample: PublicApiHubStaticExample;
@@ -13,9 +15,11 @@
 <section class="py-10 md:py-14">
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<h2 class="text-2xl font-black tracking-tight text-base-content sm:text-3xl">
-				One request. Structured response.
-			</h2>
+			<PublicLandingSectionTitle
+				title="One request, structured response"
+				heroTheme={landingHeroTheme}
+				commaSeparated
+			/>
 			<p class="text-base font-medium leading-relaxed text-base-content/70">
 				{staticExample.endpoint} accepts one JSON payload and returns post group rows you can track
 				with the public API.

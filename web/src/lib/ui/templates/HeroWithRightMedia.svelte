@@ -4,19 +4,8 @@
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
-
-	type LandingHeroTitleSegment = { text: string; highlight: boolean };
-
-	type LandingHeroTheme = {
-		subtitleClass: string;
-		descriptionClass: string;
-		ctaButtonClass: string;
-		imageClass: string;
-		titlePartClass: (index: number, total: number) => string;
-		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
-		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
-	};
+	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -60,12 +49,7 @@
 		children
 	}: Props = $props();
 
-	const titleParts = $derived(
-		landingTitle
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
+	const commaSeparatedTitle = $derived(landingTitle.includes(','));
 
 	const resolvedMediaContainerClass = $derived(
 		mediaContainerClass ?? (rightMedia ? 'max-w-2xl' : 'max-w-lg')
@@ -97,31 +81,11 @@
 						{/if}
 
 						{#if landingTitle}
-							<h2
-								class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-							>
-								{#each titleParts as part, index (index)}
-									{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
-									{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
-									{@const layoutClass =
-										titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-									{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
-										<span class={layoutClass}>
-											{#each segments as seg, segmentIndex (segmentIndex)}
-												{#if seg.highlight}
-													<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-												{:else}
-													<span class={partClass}>{seg.text}</span>
-												{/if}
-											{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-										</span>
-									{:else}
-										<span class="{partClass} {layoutClass}">
-											{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-										</span>
-									{/if}
-								{/each}
-							</h2>
+							<PublicLandingSectionTitle
+								title={landingTitle}
+								{heroTheme}
+								commaSeparated={commaSeparatedTitle}
+							/>
 						{/if}
 
 						{#if landingDescription}

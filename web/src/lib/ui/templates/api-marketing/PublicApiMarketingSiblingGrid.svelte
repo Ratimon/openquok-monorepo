@@ -11,6 +11,8 @@
 	import { route } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		capability: PublicApiCapability;
@@ -24,6 +26,11 @@
 		$props();
 
 	const headingId = 'public-api-marketing-sibling-grid-heading';
+	const sectionTitle = $derived(
+		capability === 'posting'
+			? 'More social media posting API platforms'
+			: 'More social media scheduling API platforms'
+	);
 
 	const channelHref = $derived(
 		hostedMarketingHref(route(getRootPathPublicChannel(activeSlug)), page.url.origin)
@@ -44,9 +51,11 @@
 <section class="py-12 md:py-16" aria-labelledby={headingId}>
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<h2 id={headingId} class="text-2xl font-black tracking-tight text-base-content sm:text-3xl">
-				More {capability === 'posting' ? 'posting' : 'scheduling'} API platforms
-			</h2>
+			<PublicLandingSectionTitle
+				headingId={headingId}
+				title={sectionTitle}
+				heroTheme={landingHeroTheme}
+			/>
 			<p class="text-base font-medium leading-relaxed text-base-content/70">
 				Compare {activePlatformLabel} with other networks, or jump to channel setup and provider
 				settings docs.

@@ -12,6 +12,7 @@
 		platformLabel?: string | null;
 		title: string;
 		description: string;
+		bullets?: readonly string[];
 		payloadValidatorHref?: string | null;
 	};
 
@@ -20,6 +21,7 @@
 		platformLabel = null,
 		title,
 		description,
+		bullets = [],
 		payloadValidatorHref = null
 	}: Props = $props();
 
@@ -41,10 +43,26 @@
 		<div class="flex justify-center">
 			<PublicApiMarketingHubBreadcrumb {capability} {platformLabel} />
 		</div>
-		<PublicLandingHeroTitle {title} {headingId} />
+		<PublicLandingHeroTitle
+			{title}
+			{headingId}
+		/>
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{description}
 		</p>
+		{#if bullets.length > 0}
+			<ul
+				class="mx-auto max-w-xl space-y-2 text-left text-sm font-medium text-base-content/80 sm:text-base"
+				aria-label="API highlights"
+			>
+				{#each bullets as bullet (bullet)}
+					<li class="flex items-start gap-2.5">
+						<span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true"></span>
+						<span>{bullet}</span>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 		<div class="flex flex-wrap items-center justify-center gap-3 pt-2">
 			<Button href={pricingHref} variant="primary" size="lg">Get Started For Free</Button>
 			{#if resolvedPayloadValidatorHref}
