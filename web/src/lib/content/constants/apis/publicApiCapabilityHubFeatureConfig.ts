@@ -1,3 +1,5 @@
+import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+
 export type PublicApiMarketingFeatureSection = {
 	subtitle: string;
 	title: string;
@@ -13,12 +15,12 @@ export const PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS: readonly PublicApiMarket
 	[
 		{
 			subtitle: 'Node SDK',
-			title: 'TypeScript client, typed payloads, same REST surface',
+			title: 'TypeScript SDK,for Node.js backends,typed REST calls',
 			description:
-				'Install @openquok/node-sdk in your backend or automation repo. Call post() with the same JSON you would send to POST /public/posts — integrations, media, provider settings, and scheduling fields included.',
+				'Install @openquok/node-sdk in your Next.js or TypeScript backend. Call post() with the same JSON you send to POST /public/posts. Media, integrations, and schedule fields stay typed.',
 			mediaOnRight: true,
 			docsPath: '/docs/getting-started-for-public-api',
-			docsCtaLabel: 'Public API docs',
+			docsCtaLabel: PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA,
 			terminalCode: `npm install @openquok/node-sdk
 
 import Openquok from '@openquok/node-sdk';
@@ -35,12 +37,12 @@ await openquok.post({
 		},
 		{
 			subtitle: 'MCP server',
-			title: 'Agents schedule posts, list channels, read analytics',
+			title: 'MCP tools,for Cursor and Claude Code,same public API',
 			description:
-				'Connect Cursor, Claude Code, Codex, or any MCP client with your opo_ token. Tools such as schedulePostTool and integrationList mirror the public API so agents can draft and queue posts in chat.',
+				'Connect your MCP client with an opo_ token. Use schedulePostTool, integrationList, and postsList from chat. Agents draft and queue posts through the same REST API.',
 			mediaOnRight: false,
 			docsPath: '/docs/getting-started-for-mcp',
-			docsCtaLabel: 'MCP getting started',
+			docsCtaLabel: 'The MCP Setup Guide',
 			terminalCode: `# After you add OpenQuok in your MCP client config:
 # Ask your agent to schedule from connected channels.
 
@@ -50,12 +52,12 @@ await openquok.post({
 		},
 		{
 			subtitle: 'OAuth2 for apps',
-			title: 'Third-party apps, user consent, workspace-scoped tokens',
+			title: 'OAuth2 apps,user consent,workspace tokens',
 			description:
-				'Register an app under Developers → Apps, run the Authorization Code flow, and receive an opo_ access token for the organization the user approves. Ship embedded schedulers without asking users to paste workspace keys.',
+				'Register your app under Developers → Apps. Run the Authorization Code flow. Receive an opo_ token for the organization the user approves. Embed scheduling without pasted workspace keys.',
 			mediaOnRight: true,
 			docsPath: '/docs/oauth2-for-apps',
-			docsCtaLabel: 'OAuth for apps',
+			docsCtaLabel: 'The OAuth for Apps Guide',
 			terminalCode: `# Redirect the user to approve your app
 https://www.openquok.com/oauth/authorize?client_id=oqc_your_client_id&response_type=code&state=random123
 

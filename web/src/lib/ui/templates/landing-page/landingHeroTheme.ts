@@ -138,6 +138,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'stack',
 	'steps',
 	'track',
+	'typescript',
+	'Node.js',
 	'bulk',
 	'plan',
 	'tags',
@@ -195,6 +197,13 @@ export const landingHeroTheme = {
 	/** Docs CTA uses a longer label — skip max-w-xs so glitch text is not clipped. */
 	docsCtaButtonClass:
 		'my-2 w-full max-w-none justify-center rounded-full px-10 text-sm whitespace-nowrap sm:w-auto sm:text-base lg:text-lg',
+	/** Side-by-side hero CTAs — avoid w-full so buttons stay on one row. */
+	dualCtaRowClass:
+		'flex flex-nowrap items-center justify-center gap-2 pt-2 lg:justify-start',
+	compactCtaButtonClass:
+		'my-2 w-auto max-w-none shrink-0 justify-center rounded-full px-5 text-sm whitespace-nowrap sm:px-7 sm:text-base',
+	compactDocsCtaButtonClass:
+		'my-2 w-auto max-w-none shrink-0 justify-center rounded-full px-5 text-sm whitespace-nowrap sm:px-7 sm:text-base',
 	imageClass: 'h-auto w-full rounded-lg shadow-2xl ring-1 ring-base-content/10',
 	titlePartClass: (index: number, total: number) => {
 		if (index === 0) return 'text-base-content';

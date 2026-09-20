@@ -16,7 +16,7 @@ const POSTING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-lime-400',
 		title: 'SaaS developers',
 		description:
-			'Embed multi-platform posting in your app without OAuth apps for every network. One programmatic token and POST /public/posts reach every connected channel.',
+			'Add multi-platform posting to your Next.js or TypeScript backend with one REST API. One programmatic token powers POST /public/posts to every connected channel. Do not register OAuth for each network.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
@@ -24,7 +24,7 @@ const POSTING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-emerald-400',
 		title: 'Vibe coders',
 		description:
-			'Wire curl, the Node SDK, MCP, or CLI in an afternoon. Draft payloads in the validator, then publish from scripts or agents.',
+			'Use curl, the Node SDK, MCP, or CLI in one session. Draft JSON in the payload validator. Publish from TypeScript scripts or AI agents.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
@@ -32,7 +32,7 @@ const POSTING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-rose-400',
 		title: 'Startup teams',
 		description:
-			'Ship social publishing before you hire an integrations squad. Connect channels once in OpenQuok Cloud and keep OAuth out of your codebase.',
+			'Ship social publishing before you hire a backend integrations team. Connect channels once in OpenQuok Cloud. Keep OAuth out of your Next.js or TypeScript app.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	}
 ];
@@ -43,7 +43,7 @@ const SCHEDULING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-lime-400',
 		title: 'SaaS developers',
 		description:
-			'Add queue-and-publish scheduling to your product without cron jobs per platform. Set scheduledAt once and OpenQuok delivers on time.',
+			'Add post scheduling to your Next.js or TypeScript backend with one REST API. Set scheduledAt once. OpenQuok delivers on time. Do not run cron jobs per platform.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
@@ -51,7 +51,7 @@ const SCHEDULING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-emerald-400',
 		title: 'Vibe coders',
 		description:
-			'Schedule from curl, SDK, MCP, or CLI the same day you connect channels. Repeat intervals and UTC timestamps stay predictable in JSON.',
+			'Schedule with curl, the Node SDK, MCP, or CLI the same day you connect channels. UTC timestamps and repeat intervals stay predictable in JSON.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
@@ -59,7 +59,7 @@ const SCHEDULING_HUB_CARDS: readonly AudienceCard[] = [
 		iconClass: 'text-rose-400',
 		title: 'Startup teams',
 		description:
-			'Launch calendar features before platform integrations become a roadmap blocker. Connect once, queue posts, and track delivery through one API.',
+			'Launch calendar features before platform work blocks your roadmap. Connect once, queue posts, and track delivery through one REST API.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	}
 ];

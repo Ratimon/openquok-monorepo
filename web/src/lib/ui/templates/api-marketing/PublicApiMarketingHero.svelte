@@ -2,7 +2,7 @@
 	import { page } from '$app/state';
 
 	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
-	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+	import { PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA, PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
 	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
 	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
@@ -65,19 +65,19 @@
 				{/each}
 			</ul>
 		{/if}
-		<div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+		<div class={landingHeroTheme.dualCtaRowClass}>
 			<ButtonGlitchBrightness
-				class={landingHeroTheme.ctaButtonClass}
+				class={landingHeroTheme.compactCtaButtonClass}
 				variant="primary"
 				size="lg"
 				href={pricingHref}
 				preload="off"
 			>
-				Get Started For Free
+				{PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA}
 			</ButtonGlitchBrightness>
 			{#if resolvedPayloadValidatorHref}
 				<ButtonGlitchBrightness
-					class={landingHeroTheme.ctaButtonClass}
+					class={landingHeroTheme.compactCtaButtonClass}
 					variant="secondary"
 					size="lg"
 					href={resolvedPayloadValidatorHref}
@@ -87,7 +87,7 @@
 				</ButtonGlitchBrightness>
 			{/if}
 			<ButtonGlitchBrightness
-				class={landingHeroTheme.docsCtaButtonClass}
+				class={landingHeroTheme.compactDocsCtaButtonClass}
 				variant="ghost"
 				size="lg"
 				href={docsHref}

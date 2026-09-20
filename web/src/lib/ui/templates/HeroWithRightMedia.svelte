@@ -23,6 +23,10 @@
 
 		ctaText?: string;
 		ctaHref?: string;
+		primaryCtaText?: string;
+		primaryCtaHref?: string;
+		secondaryCtaText?: string;
+		secondaryCtaHref?: string;
 		showCta?: boolean;
 
 		bgColorClass?: string;
@@ -43,6 +47,10 @@
 
 		ctaText = 'Get Started For Free',
 		ctaHref = '/pricing',
+		primaryCtaText,
+		primaryCtaHref,
+		secondaryCtaText,
+		secondaryCtaHref,
 		showCta = true,
 
 		bgColorClass = 'bg-base-100',
@@ -95,16 +103,37 @@
 						{/if}
 
 						{#if showCta}
-							<div class="pt-2">
-								<ButtonGlitchBrightness
-									class={heroTheme.ctaButtonClass}
-									variant="primary"
-									size="lg"
-									href={ctaHref}
-									preload="off"
-								>
-									{ctaText}
-								</ButtonGlitchBrightness>
+							<div class={secondaryCtaText && secondaryCtaHref ? heroTheme.dualCtaRowClass : 'pt-2'}>
+								{#if secondaryCtaText && secondaryCtaHref}
+									<ButtonGlitchBrightness
+										class={heroTheme.compactCtaButtonClass}
+										variant="primary"
+										size="lg"
+										href={primaryCtaHref ?? ctaHref}
+										preload="off"
+									>
+										{primaryCtaText ?? ctaText}
+									</ButtonGlitchBrightness>
+									<ButtonGlitchBrightness
+										class={heroTheme.compactDocsCtaButtonClass}
+										variant="ghost"
+										size="lg"
+										href={secondaryCtaHref}
+										preload="off"
+									>
+										{secondaryCtaText}
+									</ButtonGlitchBrightness>
+								{:else}
+									<ButtonGlitchBrightness
+										class={heroTheme.ctaButtonClass}
+										variant="primary"
+										size="lg"
+										href={ctaHref}
+										preload="off"
+									>
+										{ctaText}
+									</ButtonGlitchBrightness>
+								{/if}
 							</div>
 						{/if}
 

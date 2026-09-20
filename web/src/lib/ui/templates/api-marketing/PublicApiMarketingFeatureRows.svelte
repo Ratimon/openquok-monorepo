@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 
 	import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
+	import { PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
@@ -11,6 +12,8 @@
 </script>
 
 {#each PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS as section, index (section.subtitle)}
+	{@const pricingHref = hostedMarketingHref('/pricing', page.url.origin)}
+	{@const docsHref = hostedMarketingHref(section.docsPath, page.url.origin)}
 	{#snippet terminalMedia()}
 		<TerminalCommandMock
 			code={section.terminalCode}
@@ -25,8 +28,10 @@
 			landingSubtitle={section.subtitle}
 			landingTitle={section.title}
 			landingDescription={section.description}
-			ctaText={section.docsCtaLabel}
-			ctaHref={hostedMarketingHref(section.docsPath, page.url.origin)}
+			primaryCtaText={PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA}
+			primaryCtaHref={pricingHref}
+			secondaryCtaText={section.docsCtaLabel}
+			secondaryCtaHref={docsHref}
 			showCta={true}
 			rightMedia={terminalMedia}
 			mediaContainerClass="max-w-3xl"
@@ -39,8 +44,10 @@
 			landingSubtitle={section.subtitle}
 			landingTitle={section.title}
 			landingDescription={section.description}
-			ctaText={section.docsCtaLabel}
-			ctaHref={hostedMarketingHref(section.docsPath, page.url.origin)}
+			primaryCtaText={PUBLIC_LANDING_GET_STARTED_FOR_FREE_CTA}
+			primaryCtaHref={pricingHref}
+			secondaryCtaText={section.docsCtaLabel}
+			secondaryCtaHref={docsHref}
 			showCta={true}
 			leftMedia={terminalMedia}
 			mediaContainerClass="max-w-3xl"

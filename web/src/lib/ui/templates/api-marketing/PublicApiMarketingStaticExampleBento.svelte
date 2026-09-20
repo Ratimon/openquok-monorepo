@@ -16,13 +16,13 @@
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl space-y-4 text-center">
 			<PublicLandingSectionHeading
-				title="One request, structured response"
+				title="Send JSON,get structured response back"
 				heroTheme={landingHeroTheme}
 				commaSeparated
 			/>
 			<p class="text-base font-medium leading-relaxed text-base-content/70">
-				{staticExample.endpoint} accepts one JSON payload and returns post group rows you can track
-				with the public API.
+				Send one JSON body to {staticExample.endpoint}. The REST API returns post group rows. Track
+				each group with the public API.
 			</p>
 		</div>
 
