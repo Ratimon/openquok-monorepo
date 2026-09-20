@@ -926,7 +926,6 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	APIs: publicFooterApisLinks,
 	'Posting API Platforms': publicFooterPostingApiPlatformLinks,
 	'Scheduling API Platforms': publicFooterSchedulingApiPlatformLinks,
-	'Payload Wizard Tools': publicFooterPayloadWizardLinks,
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
@@ -947,6 +946,7 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	'Autonomous Agent Integrations': publicFooterAutonomousAgentIntegrationLinks,
 	'MCP Integrations': publicFooterMcpIntegrationLinks,
 	'Supported Channels': publicFooterSupportedChannelLinks,
+	'Payload Wizard Tools': publicFooterPayloadWizardLinks,
 	'Skill Builder Tools': publicFooterSkillBuilderLinks,
 	'Photo Editor Tools': publicFooterPhotoEditorLinks,
 	'Humanizer Tools': publicFooterHumanizerLinks,

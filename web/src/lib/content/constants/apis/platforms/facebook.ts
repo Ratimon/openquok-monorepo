@@ -17,7 +17,6 @@ export const facebookPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 		slug: SLUG,
 		capability: 'posting',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-		heroTitle: 'Facebook Page posting API for text, photos, Reels, and links',
 		heroDescription:
 			'Publish Page posts with text, images, Reels, link previews, and follow-up comments through POST /public/posts.',
 		metaTitle: 'Facebook Posting API',
@@ -31,7 +30,6 @@ export const facebookPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel
 		slug: SLUG,
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroTitle: 'Facebook Page scheduling API for text, photos, Reels, and links',
 		heroDescription:
 			'Queue Facebook Page posts for a future publish time. Set scheduledAt in UTC with link previews and follow-up comment settings.',
 		metaTitle: 'Facebook Scheduling API',

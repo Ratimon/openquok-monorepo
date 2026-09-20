@@ -31,6 +31,7 @@
 		accentSplitHumanizeChannelCtaBannerTitle
 	} from '$lib/ui/templates/banners/humanizeBannerCopy';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
@@ -118,9 +119,7 @@
 		<HumanizeHubBreadcrumb {toolsHubHref} {humanizerHref} {channelLabel} />
 
 		<header class="space-y-3">
-			<h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">
-				{heroTitle}
-			</h1>
+			<PublicLandingHeroTitle title={heroTitle} headingId="humanize-tool-hero-heading" />
 			<p class="max-w-3xl text-base text-base-content/75">
 				{metaDescription}
 			</p>

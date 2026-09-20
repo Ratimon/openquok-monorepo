@@ -16,7 +16,6 @@ export const tiktokPublicApiPostingPlatform: PublicApiPlatformPageViewModel = bu
 	slug: SLUG,
 	capability: 'posting',
 	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-	heroTitle: 'TikTok posting API for videos and photo carousels',
 	heroDescription:
 		'Publish vertical videos and image carousels with privacy, inbox upload, and interaction settings through POST /public/posts.',
 	metaTitle: 'TikTok Posting API',
@@ -29,7 +28,6 @@ export const tiktokPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel =
 	slug: SLUG,
 	capability: 'scheduling',
 	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-	heroTitle: 'TikTok scheduling API for videos and photo carousels',
 	heroDescription:
 		'Queue TikTok videos and carousels for a future publish time. Set scheduledAt in UTC and tune privacy or inbox upload before the worker publishes.',
 	metaTitle: 'TikTok Scheduling API',

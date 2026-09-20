@@ -16,7 +16,6 @@ export const youtubePublicApiPostingPlatform: PublicApiPlatformPageViewModel = b
 	slug: SLUG,
 	capability: 'posting',
 	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-	heroTitle: 'YouTube posting API for videos, titles, and thumbnails',
 	heroDescription:
 		'Publish videos with title, privacy, tags, made-for-kids, and custom thumbnail settings through POST /public/posts.',
 	metaTitle: 'YouTube Posting API',
@@ -30,7 +29,6 @@ export const youtubePublicApiSchedulingPlatform: PublicApiPlatformPageViewModel 
 		slug: SLUG,
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroTitle: 'YouTube scheduling API for videos, titles, and thumbnails',
 		heroDescription:
 			'Queue YouTube uploads for a future publish time. Set scheduledAt in UTC with title, privacy, tags, and thumbnail settings.',
 		metaTitle: 'YouTube Scheduling API',

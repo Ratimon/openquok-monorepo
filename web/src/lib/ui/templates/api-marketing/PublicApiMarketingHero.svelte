@@ -3,6 +3,7 @@
 
 	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
 	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
+	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
@@ -31,6 +32,8 @@
 			? hostedMarketingHref(payloadValidatorHref, page.url.origin)
 			: null
 	);
+
+	const headingId = 'public-api-marketing-hero-heading';
 </script>
 
 <section class="py-10 md:py-16">
@@ -38,9 +41,7 @@
 		<div class="flex justify-center">
 			<PublicApiMarketingHubBreadcrumb {capability} {platformLabel} />
 		</div>
-		<h1 class="text-3xl font-black tracking-tight text-balance text-base-content sm:text-4xl">
-			{title}
-		</h1>
+		<PublicLandingHeroTitle {title} {headingId} />
 		<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
 			{description}
 		</p>

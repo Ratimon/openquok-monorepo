@@ -9,6 +9,10 @@ import {
 	publicApiPostingHubPage,
 	publicApiSchedulingHubPage
 } from '$lib/content/constants/apis/index';
+import {
+	buildPublicApiHubHeroTitle,
+	buildPublicApiPlatformHeroTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS } from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
 
 describe('publicApiCatalog', () => {
@@ -49,9 +53,21 @@ describe('publicApiCatalog', () => {
 
 	it('ships hub static examples and FAQ blocks', () => {
 		expect(publicApiPostingHubPage.staticExample.endpoint).toBe('POST /api/v1/public/posts');
+		expect(publicApiPostingHubPage.heroTitle).toBe(buildPublicApiHubHeroTitle('posting'));
+		expect(publicApiPostingHubPage.heroTitle).toBe('Social Media Posting API');
+		expect(publicApiSchedulingHubPage.heroTitle).toBe(buildPublicApiHubHeroTitle('scheduling'));
+		expect(publicApiSchedulingHubPage.heroTitle).toBe('Social Media Scheduling API');
 		expect(publicApiPostingHubPage.faqItems.length).toBeGreaterThan(0);
 		expect(publicApiSchedulingHubPage.faqItems.length).toBeGreaterThan(0);
 		expect(publicApiSchedulingHubPage.staticExample.requestJson).toContain('repeatInterval');
+	});
+
+	it('uses keyword-first platform hero titles', () => {
+		const xPosting = getPublicApiPostingPlatformBySlug('x');
+		const tiktokScheduling = getPublicApiSchedulingPlatformBySlug('tiktok');
+
+		expect(xPosting?.heroTitle).toBe(buildPublicApiPlatformHeroTitle('Twitter / X', 'posting'));
+		expect(tiktokScheduling?.heroTitle).toBe(buildPublicApiPlatformHeroTitle('TikTok', 'scheduling'));
 	});
 
 	it('ships hub feature rows for SDK, MCP, and OAuth docs', () => {

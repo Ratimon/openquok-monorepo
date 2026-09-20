@@ -17,7 +17,6 @@ export const linkedinPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 		slug: SLUG,
 		capability: 'posting',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-		heroTitle: 'LinkedIn posting API for text, video, and document carousels',
 		heroDescription:
 			'Publish LinkedIn posts with text, video, document carousels, and follow-up comments through POST /public/posts.',
 		metaTitle: 'LinkedIn Posting API',
@@ -31,7 +30,6 @@ export const linkedinPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel
 		slug: SLUG,
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroTitle: 'LinkedIn scheduling API for text, video, and document carousels',
 		heroDescription:
 			'Queue LinkedIn posts for a future publish time. Set scheduledAt in UTC with carousel names and follow-up comment settings.',
 		metaTitle: 'LinkedIn Scheduling API',

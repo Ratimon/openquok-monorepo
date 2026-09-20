@@ -109,6 +109,7 @@ export type BestTimeChannelHubLinkViewModel = {
 
 export type BestTimeToolPageViewModel = {
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Set on `/tools/best-time-to-post/{channelSlug}` programmatic SEO routes. */
 	channelSlug: string | null;

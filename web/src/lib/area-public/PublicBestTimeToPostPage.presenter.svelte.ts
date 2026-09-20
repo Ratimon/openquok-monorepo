@@ -12,6 +12,7 @@ export class PublicBestTimeToPostPagePresenter {
 
 		return {
 			metaTitle: channelConfig?.metaTitle ?? generic.metaTitle,
+			heroTitle: channelConfig?.heroTitle ?? generic.heroTitle,
 			metaDescription: channelConfig?.metaDescription ?? generic.metaDescription,
 			channelSlug: channelConfig?.channelSlug ?? null,
 			channelLabel: channelConfig?.platformLabel ?? null,

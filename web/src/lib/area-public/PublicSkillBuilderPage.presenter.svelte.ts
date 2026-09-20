@@ -1,5 +1,10 @@
 import type { GetListingPresenter } from '$lib/listings/GetListing.presenter.svelte';
 
+import {
+	buildSkillBuilderGenericHeroTitle,
+	buildSkillBuilderGenericMetaDescription,
+	buildSkillBuilderGenericMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { getSkillBuilderChannelBySlug } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { createDefaultStarterWorkflowSteps } from '$lib/skill-builder/constants/defaults';
 import type { SkillBuilderPageViewModel } from '$lib/skill-builder/skillBuilder.types';
@@ -57,12 +62,13 @@ export class PublicSkillBuilderPagePresenter {
 
 		const blueprintSteps = blueprintToWorkflowSteps(stackBlueprint, buildingBlockTitlesBySlug);
 
-		const defaultMetaTitle = 'Social Media Skill Builder';
-		const defaultMetaDescription =
-			'Build customized agent skills from selected SKILLs and MCP tools. Preview and download SKILL.md for your workspace.';
+		const defaultMetaTitle = buildSkillBuilderGenericMetaTitle();
+		const defaultHeroTitle = buildSkillBuilderGenericHeroTitle();
+		const defaultMetaDescription = buildSkillBuilderGenericMetaDescription();
 
 		return {
 			metaTitle: channelConfig?.metaTitle ?? defaultMetaTitle,
+			heroTitle: channelConfig?.heroTitle ?? defaultHeroTitle,
 			metaDescription: channelConfig?.metaDescription ?? defaultMetaDescription,
 			selectedBuildingBlockSlugs: resolvedSlugs,
 			selectedBuildingBlocks,

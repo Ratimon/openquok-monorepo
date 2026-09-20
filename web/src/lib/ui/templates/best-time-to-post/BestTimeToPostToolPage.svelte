@@ -28,11 +28,13 @@
 	} from '$lib/ui/templates/banners/bestTimeToPostBannerCopy';
 	import BestTimeToPostCalculatorPanel from '$lib/ui/templates/best-time-to-post/BestTimeToPostCalculatorPanel.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = {
 		metaTitle: string;
+		heroTitle: string;
 		metaDescription: string;
 		channelSlug?: string | null;
 		channelLabel?: string | null;
@@ -42,6 +44,7 @@
 
 	let {
 		metaTitle,
+		heroTitle,
 		metaDescription,
 		channelSlug = null,
 		channelLabel = null,
@@ -66,7 +69,7 @@
 
 	const docsBanner = BEST_TIME_TO_POST_DOCS_BANNER;
 
-	const pageHeading = $derived(metaTitle);
+	const pageHeading = $derived(heroTitle);
 
 	let accentBannerTitle = $derived(
 		channelSlug && channelLabel
@@ -93,7 +96,7 @@
 		<BestTimeToPostHubBreadcrumb {toolsHubHref} {bestTimeToPostHref} {channelLabel} />
 
 		<header class="space-y-3">
-			<h1 class="text-3xl font-bold tracking-tight text-base-content sm:text-4xl">{pageHeading}</h1>
+			<PublicLandingHeroTitle title={pageHeading} headingId="best-time-to-post-tool-hero-heading" />
 			<p class="max-w-3xl text-base text-base-content/75">{metaDescription}</p>
 		</header>
 

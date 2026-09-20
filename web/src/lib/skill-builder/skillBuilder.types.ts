@@ -39,6 +39,7 @@ export type SkillBuilderWorkflowStepViewModel =
 
 export interface SkillBuilderPageViewModel {
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	selectedBuildingBlockSlugs: string[];
 	selectedBuildingBlocks: ExtensionDetailViewModel[];

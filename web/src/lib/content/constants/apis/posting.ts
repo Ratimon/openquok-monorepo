@@ -2,12 +2,13 @@ import type { PublicApiHubPageViewModel } from '$lib/content/constants/apis/type
 import { PUBLIC_API_POSTING_HUB_STATIC_EXAMPLE } from '$lib/content/constants/apis/hubExamples';
 import { PUBLIC_API_POSTING_HUB_FAQ } from '$lib/content/constants/apis/publicApiCapabilityHubFaqConfig';
 import { SHARED_PUBLIC_API_SEO_KEYWORDS } from '$lib/content/constants/apis/shared';
+import { buildPublicApiHubHeroTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export const publicApiPostingHubPage: PublicApiHubPageViewModel = {
 	capability: 'posting',
-	heroTitle: 'One request. Structured response. Post to every connected channel.',
+	heroTitle: buildPublicApiHubHeroTitle('posting'),
 	heroDescription:
-		'Ship social posts with a single POST /api/v1/public/posts call. OpenQuok returns a post group id and per-channel rows you can track with the public API, SDK, CLI, or MCP.',
+		'Post across TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one API. One POST /api/v1/public/posts call returns a post group id and per-channel rows you can track with the public API, SDK, CLI, or MCP.',
 	metaTitle: 'Social Media Posting API',
 	metaDescription:
 		'Publish to TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube with one OpenQuok POST /public/posts request. Explore platform examples, copy JSON from the Payload Wizard, and connect channels on a paid workspace plan.',

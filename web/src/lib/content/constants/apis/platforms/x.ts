@@ -16,9 +16,9 @@ export const xPublicApiPostingPlatform: PublicApiPlatformPageViewModel = buildPu
 	slug: SLUG,
 	capability: 'posting',
 	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-	heroTitle: 'X posting API for tweets, threads, and media',
+	heroPlatformLabel: 'Twitter / X',
 	heroDescription:
-		'Publish tweets, thread replies, and media attachments with reply audience and cross-account repost settings through POST /public/posts.',
+		'Publish to Twitter/X through one simple API for apps, automations, and AI workflows. Post tweets, thread replies, and media with reply audience and cross-account repost settings.',
 	metaTitle: 'X Posting API',
 	metaDescription:
 		'Post to X with OpenQuok POST /public/posts. Tweets, scheduled thread replies, media, and cross-account reposts from one JSON payload.',
@@ -29,9 +29,9 @@ export const xPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel = buil
 	slug: SLUG,
 	capability: 'scheduling',
 	formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-	heroTitle: 'X scheduling API for tweets, threads, and media',
+	heroPlatformLabel: 'Twitter / X',
 	heroDescription:
-		'Queue tweets and thread chains for a future instant. Set scheduledAt in UTC and chain follow-up replies with delaySeconds.',
+		'Schedule Twitter/X posts through one simple API. Queue tweets and thread chains for a future instant with scheduledAt in UTC and chained follow-up replies.',
 	metaTitle: 'X Scheduling API',
 	metaDescription:
 		'Schedule X posts with OpenQuok POST /public/posts. Queue tweets, thread replies, and media for a future publish time in UTC.',

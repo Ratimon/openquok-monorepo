@@ -12,7 +12,13 @@ import {
 	defaultAspectRatioIdForComposer
 } from '$lib/ui/canvas-editor/utils/aspectRatioPresets';
 import { route } from '$lib/utils/path';
-import { buildPhotoEditorChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildPhotoEditorChannelHeroTitle,
+	buildPhotoEditorChannelMetaTitle,
+	buildPhotoEditorGenericHeroTitle,
+	buildPhotoEditorGenericMetaDescription,
+	buildPhotoEditorGenericMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 
 export type CanvasChannelPageConfig = {
 	/** URL segment under `/tools/photo-editor/` — matches `publicChannelConfig.slug`. */
@@ -23,6 +29,7 @@ export type CanvasChannelPageConfig = {
 	defaultAspectRatioId: string;
 	aspectPlatformGroupId: string;
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Short blurb for hub cards on `/tools/photo-editor`. */
 	hubDescription: string;
@@ -30,9 +37,9 @@ export type CanvasChannelPageConfig = {
 };
 
 export const PUBLIC_CANVAS_GENERIC_CONFIG = {
-	metaTitle: 'Social Media Photo Editor',
-	metaDescription:
-		'Free photo editor in your browser. Resize images for social channels, add text and elements, and download PNG — or save to your cloud when signed in.',
+	metaTitle: buildPhotoEditorGenericMetaTitle(),
+	heroTitle: buildPhotoEditorGenericHeroTitle(),
+	metaDescription: buildPhotoEditorGenericMetaDescription(),
 	defaultAspectRatioId: DEFAULT_ASPECT_RATIO_ID,
 	aspectPlatformGroupId: 'general',
 	keywords: [
@@ -69,7 +76,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Can
 		defaultAspectRatioId,
 		aspectPlatformGroupId,
 		metaTitle: buildPhotoEditorChannelMetaTitle(channel.platformLabel),
-		metaDescription: `Design and resize visuals for ${channel.platformLabel} — feed posts, stories, and channel formats. Edit in the browser, download PNG, or save to your cloud when signed in.`,
+		heroTitle: buildPhotoEditorChannelHeroTitle(channel.platformLabel),
+		metaDescription: `Free ${channel.platformLabel} photo editor in your browser. Design feed posts, stories, and channel formats — download PNG free, or save to your cloud when signed in. No sign up required.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
 			`${channel.platformLabel} canvas sizes and formats.`,

@@ -30,7 +30,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 	const { companyInformationPm, marketingInformationPm } = await parent();
 	const companyName = companyInformationPm?.config?.NAME ?? CONFIG_SCHEMA_COMPANY.NAME.default;
 
-	const { metaTitle, metaDescription, keywords } = publicToolsPagePresenter.getToolsIndexVm();
+	const { metaTitle, heroTitle, metaDescription, keywords } = publicToolsPagePresenter.getToolsIndexVm();
 
 	const metaTags = (await createMetaData({
 		companyInformation: companyInformationPm,
@@ -121,6 +121,7 @@ export async function load({ url: requestUrl, cookies, parent }) {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),
 		isLoggedIn,
 		metaTitle,
+		heroTitle,
 		metaDescription,
 		toolsVm: tools,
 		skillBuilderChannelsVm: listSkillBuilderChannelsForHub(),

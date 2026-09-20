@@ -18,13 +18,15 @@
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 
 	type Props = { data: PageData };
 
 	let { data }: Props = $props();
 
-	let metaTitle = $derived(data.metaTitle);
+	// let metaTitle = $derived(data.metaTitle);
+	let heroTitle = $derived(data.heroTitle);
 	let metaDescription = $derived(data.metaDescription);
 	let toolsVm = $derived(data.toolsVm);
 	let skillBuilderChannelsVm = $derived(data.skillBuilderChannelsVm);
@@ -48,9 +50,10 @@
 		<p class="text-xs font-bold tracking-wider text-primary uppercase">
 			Free tools
 		</p>
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			{metaTitle}
-		</h1>
+		<PublicLandingHeroTitle
+			title={heroTitle}
+			headingId="public-tools-hub-heading"
+		/>
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
 			{metaDescription}
 		</p>

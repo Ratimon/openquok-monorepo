@@ -17,7 +17,6 @@ export const threadsPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 		slug: SLUG,
 		capability: 'posting',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-		heroTitle: 'Threads posting API for text, media, and thread replies',
 		heroDescription:
 			'Publish Threads posts with media, follow-up replies, internal plugs, and cross-account comments through POST /public/posts.',
 		metaTitle: 'Threads Posting API',
@@ -31,7 +30,6 @@ export const threadsPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel 
 		slug: SLUG,
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroTitle: 'Threads scheduling API for text, media, and thread replies',
 		heroDescription:
 			'Queue Threads posts and reply chains for a future publish time. Set scheduledAt in UTC with threads.replies and plug settings.',
 		metaTitle: 'Threads Scheduling API',

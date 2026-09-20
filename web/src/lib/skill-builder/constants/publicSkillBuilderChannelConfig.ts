@@ -7,7 +7,13 @@ import {
 import { getRootPathPublicSkillBuilderChannel } from '$lib/area-public/constants/getRootPathPublicTools';
 import type { SkillBuilderChannelHubLinkViewModel } from '$lib/skill-builder/skillBuilder.types';
 import { route } from '$lib/utils/path';
-import { buildSkillBuilderChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildSkillBuilderChannelHeroTitle,
+	buildSkillBuilderChannelMetaTitle,
+	buildSkillBuilderGenericHeroTitle,
+	buildSkillBuilderGenericMetaDescription,
+	buildSkillBuilderGenericMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	FACEBOOK_FOLLOW_UP_COMMENT_PAYLOAD,
 	FACEBOOK_FOLLOW_UP_COMMENT_WITH_IMAGE_PAYLOAD,
@@ -63,6 +69,7 @@ export type SkillBuilderChannelPageConfig = {
 	platformLabel: string;
 	icon: IconName;
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Short blurb for hub cards on `/tools/skill-builder`. */
 	hubDescription: string;
@@ -290,7 +297,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Ski
 		platformLabel: channel.platformLabel,
 		icon: channel.icon,
 		metaTitle: buildSkillBuilderChannelMetaTitle(channel.platformLabel),
-		metaDescription: `Build a ${channel.platformLabel} scheduling skill with pre-loaded openquok CLI examples. Compose posts:create recipes, preview SKILL.md, and export for your agent workspace.`,
+		heroTitle: buildSkillBuilderChannelHeroTitle(channel.platformLabel),
+		metaDescription: `Free ${channel.platformLabel} skill builder in your browser. Compose posts:create recipes with pre-loaded openquok CLI examples, preview SKILL.md, and export for your agent workspace. No sign up required.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
 			`Pre-loaded ${channel.platformLabel} scheduling recipes.`,

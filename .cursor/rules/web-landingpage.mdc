@@ -18,6 +18,30 @@ globs:
 alwaysApply: false
 ---
 
+# Web: landing-page heroes
+
+Public marketing pages pair **breadcrumbs** and **gradient hero titles** inside the hero band. Reference heroes: `PublicMcpHero.svelte`, `PublicAgentHero.svelte`, `PublicChannelHero.svelte`, `PublicApiMarketingHero.svelte`, and every `*ToolPage.svelte` under `/tools`.
+
+## Hero title styling (`*Hero.svelte`)
+
+Never render `{heroTitle}` as plain text in an `<h1>`. Use `PublicLandingHeroTitle.svelte` (or the same `landingHeroTheme` segment loop) so copy picks up gradient spans and `LandingHeroHighlightedText` chips.
+
+```svelte
+<PublicLandingHeroTitle title={heroVm.heroTitle} headingId="my-hero-heading" />
+```
+
+| Piece | Path |
+| --- | --- |
+| Theme + highlight dictionary | `web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` |
+| Shared `<h1>` renderer | `PublicLandingHeroTitle.svelte` |
+| Highlight chip wrapper | `LandingHeroHighlightedText.svelte` |
+
+When `heroTitle` introduces new product names or phrases that should pop, append them to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in `landingHeroTheme.ts` (**longest phrases first**). Match the exact wording used in the constant/`heroTitle` string (case-insensitive). See **add-agent** for agent/MCP labels.
+
+Optional `heroTheme` prop on `PublicLandingHeroTitle` when a page passes a custom theme object (defaults to `landingHeroTheme`).
+
+---
+
 # Web: landing-page breadcrumbs
 
 Public marketing heroes use a **breadcrumb trail** in place of the old uppercase eyebrow/subtitle (e.g. `Scheduling API`, `MCP`, platform label alone). Trails are **centered above the `<h1>`** inside the hero band — same vertical slot as the previous subtitle.
@@ -62,6 +86,7 @@ Each wrapper builds an `items` array and delegates to `PublicLandingHubBreadcrum
 | `/social-media-posting-api/{slug}` | **Home** → Social Media Posting API → `{platformLabel}` |
 | `/social-media-scheduling-api` | **Home** → Social Media Scheduling API |
 | `/social-media-scheduling-api/{slug}` | **Home** → Social Media Scheduling API → `{platformLabel}` |
+| `/tools` | **Free Tools** (breadcrumb on tool pages; hub uses eyebrow + `PublicLandingHeroTitle`) |
 | `/tools/humanizer` (+ `{channelSlug}`) | **Free Tools** → Humanizer [→ `{channelLabel}`] |
 | `/tools/photo-editor`, `/tools/skill-builder`, `/tools/best-time-to-post`, `/tools/payload-wizard` | Same pattern: **Free Tools** → tool name [→ channel] |
 
@@ -76,6 +101,33 @@ When adding or changing a public landing hero:
 3. **Coming-soon heroes** (`PublicComingSoonIntegrationPage`) — use the same breadcrumb component; pass agent/MCP variant props when the page is under `/agents/...`.
 4. **Hub grids** — pass a `{#snippet breadcrumb()}` into `FeaturesSectionHeader` when that header owns the page `<h1>`, or inline the breadcrumb where the hub subtitle used to live (`PublicChannelsHubGrid`).
 5. **Channel/agent depth** — pass `activeChannelLabel` / `channelLabel` from the route into the landing template so slug and channel-slug pages share one hero.
+6. **Hero title** — render `heroTitle` through `PublicLandingHeroTitle` (see **Hero title styling** above); extend `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when new phrases need highlight chips.
+
+## Tool SEO titles (`/tools/*`)
+
+Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles.ts`. Follow the PostPeer-style split used across free tools:
+
+| Field | Purpose | Pattern |
+| --- | --- | --- |
+| `metaTitle` | SERP `<title>` (brand appended in `+page.server.ts`) | `Free {Tool or Platform descriptor} — No Sign Up` (Payload Wizard uses `— Copy POST /public/posts JSON` instead) |
+| `heroTitle` | On-page `<h1>` via `PublicLandingHeroTitle` | `Free {platform?} {tool name}` — reader-facing, usually lowercase after "Free" |
+| `metaDescription` | Meta + JSON-LD | Lead with "Free … in your browser" and end with "No sign up required" when the tool is guest-usable |
+
+- **Channel slugs** (`/tools/{tool}/{channelSlug}`) — builders take `platformLabel` from `publicChannelConfig` (e.g. `Free YouTube photo editor` H1, `Free YouTube Photo Editor — No Sign Up` title).
+- **Do not** reuse `metaTitle` as the visible H1 on tool pages — always pass `heroTitle` into the hero template.
+- **JSON-LD** `name` stays on `metaTitle` (keyword target), not `heroTitle`.
+
+## API marketing hero titles (`/social-media-*-api`)
+
+Follow [PostPeer](https://www.postpeer.dev/social-media-posting-api)-style keyword H1s — value props belong in `heroDescription`, not the title:
+
+| Route | `heroTitle` |
+| --- | --- |
+| Posting hub | `Social Media Posting API` |
+| Scheduling hub | `Social Media Scheduling API` |
+| Platform slug | `{PlatformLabel} Posting API` / `{PlatformLabel} Scheduling API` (override label with `heroPlatformLabel`, e.g. `Twitter / X`) |
+
+Builders: `buildPublicApiHubHeroTitle`, `buildPublicApiPlatformHeroTitle` in `buildProgrammaticSeoTitles.ts`. Platform pages default the H1 in `buildPublicApiPlatformPage()` when `heroTitle` is omitted.
 
 ## Do not
 
@@ -83,5 +135,6 @@ When adding or changing a public landing hero:
 - Add a second breadcrumb row above the hero section (outside the hero band).
 - Introduce new hub segment labels in page files — extend `publicLandingBreadcrumbConfig.ts` (or the relevant hub VM `metaTitle`) instead.
 - Skip uppercase styling on the current (non-link) segment.
+- Render marketing `heroTitle` as unstyled plain text — use `PublicLandingHeroTitle` + `landingHeroTheme`.
 
 See also: **web-seo-pseo-templates** (section order), **add-agent** (agent/MCP landing wiring), **public-api-surface-sync** (API marketing pages).

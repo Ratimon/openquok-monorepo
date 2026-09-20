@@ -17,7 +17,6 @@ export const instagramPublicApiPostingPlatform: PublicApiPlatformPageViewModel =
 		slug: SLUG,
 		capability: 'posting',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].posting,
-		heroTitle: 'Instagram posting API for feed, Reels, carousels, and Stories',
 		heroDescription:
 			'Publish feed posts, Reels, carousels, and Stories with post type and collaborator settings through POST /public/posts.',
 		metaTitle: 'Instagram Posting API',
@@ -31,7 +30,6 @@ export const instagramPublicApiSchedulingPlatform: PublicApiPlatformPageViewMode
 		slug: SLUG,
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
-		heroTitle: 'Instagram scheduling API for feed, Reels, carousels, and Stories',
 		heroDescription:
 			'Queue Instagram content for a future publish time. Set scheduledAt in UTC and choose post type, trial reels, or collaborators before publish.',
 		metaTitle: 'Instagram Scheduling API',

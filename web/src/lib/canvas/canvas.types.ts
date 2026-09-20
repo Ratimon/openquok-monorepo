@@ -10,6 +10,7 @@ export type CanvasChannelHubLinkViewModel = {
 
 export interface CanvasToolPageViewModel {
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Set on `/tools/photo-editor/{channelSlug}` programmatic SEO routes. */
 	channelSlug: string | null;

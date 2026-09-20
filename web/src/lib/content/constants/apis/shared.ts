@@ -8,6 +8,7 @@ import type {
 	PublicApiPlatformSlug
 } from '$lib/content/constants/apis/types';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import { buildPublicApiPlatformHeroTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	buildChannelFaqLinks,
 	faqHrefDocs,
@@ -202,7 +203,9 @@ type BuildPlatformPageParams = {
 	slug: PublicApiPlatformSlug;
 	capability: PublicApiCapability;
 	formatExamples: readonly PublicApiFormatExample[];
-	heroTitle: string;
+	/** Overrides channel `platformLabel` in the on-page H1 only (e.g. `Twitter / X`). */
+	heroPlatformLabel?: string;
+	heroTitle?: string;
 	heroDescription: string;
 	metaTitle: string;
 	metaDescription: string;
@@ -218,6 +221,9 @@ export function buildPublicApiPlatformPage(
 	}
 
 	const capabilityVerb = params.capability === 'posting' ? 'Posting' : 'Scheduling';
+	const heroPlatformLabel = params.heroPlatformLabel ?? channel.platformLabel;
+	const heroTitle =
+		params.heroTitle ?? buildPublicApiPlatformHeroTitle(heroPlatformLabel, params.capability);
 
 	return {
 		capability: params.capability,
@@ -227,7 +233,7 @@ export function buildPublicApiPlatformPage(
 		icon: channel.icon,
 		docsPath: channel.docsPath,
 		publicApiProvidersDocsPath: faqHrefDocs(PUBLIC_API_PROVIDERS_DOCS_BY_SLUG[params.slug]),
-		heroTitle: params.heroTitle,
+		heroTitle,
 		heroDescription: params.heroDescription,
 		metaTitle: params.metaTitle,
 		metaDescription: params.metaDescription,

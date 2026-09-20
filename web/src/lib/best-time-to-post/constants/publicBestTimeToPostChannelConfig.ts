@@ -7,7 +7,13 @@ import {
 	listAvailablePublicChannels,
 	type PublicChannelLandingPageViewModel
 } from '$lib/content/constants/publicChannelConfig';
-import { buildBestTimeToPostChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
+import {
+	buildBestTimeToPostChannelHeroTitle,
+	buildBestTimeToPostChannelMetaTitle,
+	buildBestTimeToPostGenericHeroTitle,
+	buildBestTimeToPostGenericMetaDescription,
+	buildBestTimeToPostGenericMetaTitle
+} from '$lib/content/utils/buildProgrammaticSeoTitles';
 import { route } from '$lib/utils/path';
 
 export type BestTimeChannelPageConfig = {
@@ -17,6 +23,7 @@ export type BestTimeChannelPageConfig = {
 	icon: IconName;
 	focusedProviderIdentifier: string;
 	metaTitle: string;
+	heroTitle: string;
 	metaDescription: string;
 	/** Short blurb for hub cards on `/tools/best-time-to-post`. */
 	hubDescription: string;
@@ -24,9 +31,9 @@ export type BestTimeChannelPageConfig = {
 };
 
 export const PUBLIC_BEST_TIME_GENERIC_CONFIG = {
-	metaTitle: 'Best Time to Post Calculator',
-	metaDescription:
-		'Generate benchmark timing test slots for social channels. Pick a platform, audience timezone, content type, and cadence — then run controlled tests in your OpenQuok scheduler.',
+	metaTitle: buildBestTimeToPostGenericMetaTitle(),
+	heroTitle: buildBestTimeToPostGenericHeroTitle(),
+	metaDescription: buildBestTimeToPostGenericMetaDescription(),
 	defaultPlatformSlug: DEFAULT_PLATFORM_SLUG,
 	keywords: [
 		'best time to post',
@@ -56,7 +63,8 @@ function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): Bes
 		icon: channel.icon,
 		focusedProviderIdentifier: channel.platformId,
 		metaTitle: buildBestTimeToPostChannelMetaTitle(channel.platformLabel),
-		metaDescription: `Generate ${channel.platformLabel} benchmark timing test slots by timezone, content type, and cadence — then schedule controlled tests in OpenQuok.`,
+		heroTitle: buildBestTimeToPostChannelHeroTitle(channel.platformLabel),
+		metaDescription: `Free ${channel.platformLabel} best time to post calculator in your browser. Generate benchmark timing test slots by timezone, content type, and cadence — then schedule controlled tests in OpenQuok. No sign up required.`,
 		hubDescription:
 			CHANNEL_HUB_DESCRIPTIONS[channel.slug] ??
 			`${channel.platformLabel} benchmark windows for timing tests.`,

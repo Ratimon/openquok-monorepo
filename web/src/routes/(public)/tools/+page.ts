@@ -25,6 +25,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		const serverData = data as {
 			pageMetaTags: MetaTagsProps;
 			metaTitle: string;
+			heroTitle: string;
 			metaDescription: string;
 			toolsVm: ToolsIndexToolCardViewModel[];
 			skillBuilderChannelsVm: SkillBuilderChannelHubLinkViewModel[];
@@ -38,6 +39,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 		return {
 			pageMetaTags: serverData.pageMetaTags,
 			metaTitle: serverData.metaTitle,
+			heroTitle: serverData.heroTitle,
 			metaDescription: serverData.metaDescription,
 			toolsVm: serverData.toolsVm,
 			skillBuilderChannelsVm: serverData.skillBuilderChannelsVm,

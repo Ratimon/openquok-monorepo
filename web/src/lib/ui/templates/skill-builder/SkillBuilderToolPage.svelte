@@ -62,10 +62,12 @@
 		accentSplitSkillBuilderCliCtaBannerTitle
 	} from '$lib/ui/templates/banners/skillBuilderBannerCopy';
 	import PublicFaq from '$lib/ui/templates/faq/PublicFaq.svelte';
+	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
 		metaTitle: string;
+		heroTitle: string;
 		metaDescription: string;
 		selectedBuildingBlockSlugs: string[];
 		selectedBuildingBlocksVm: ExtensionDetailViewModel[];
@@ -82,6 +84,7 @@
 
 	let {
 		metaTitle,
+		heroTitle,
 		metaDescription,
 		selectedBuildingBlockSlugs,
 		selectedBuildingBlocksVm,
@@ -363,9 +366,7 @@
 			skillBuilderHref={genericSkillBuilderHref}
 			{channelLabel}
 		/>
-		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			{metaTitle}
-		</h1>
+		<PublicLandingHeroTitle title={heroTitle} headingId="skill-builder-tool-hero-heading" />
 		<p class="max-w-3xl text-base text-base-content/70">
 			{metaDescription}
 		</p>
