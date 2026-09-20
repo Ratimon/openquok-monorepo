@@ -175,6 +175,8 @@ Hub and platform API pages render **`PublicMarketingPricingSection.svelte`** **a
 
 **Copy + tab headline overrides:** `web/src/lib/billing/constants/publicPricingLandingSectionConfig.ts` — section subtitle/title/description presets and per-tier `tabHeadline` overrides for landing tabs (`getPublicPricingLandingSection`, `getPublicPricingLandingPlanOverrides`). Dollar amounts and limits stay in `openquok-common`; shared feature bullets and `/pricing` compare rows stay in `publicPricingCatalog.ts`. Re-exported from `$lib/billing` and `$lib/content/constants/apis`.
 
+**Schema.org:** visible section uses `id="pricing"` on `PublicPricingTabs`. Page loaders emit `WebPage` at `{canonical}#pricing` with paid tier + self-host `$0` offers via `createPublicPricingSectionSEOSchema` (`createPublicPricingSEOSchema.ts`; self-host copy from `PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG`). See **web-seo-jsonld** → Pricing offers.
+
 **Do not** duplicate pricing tab wiring in route files — pass `presetId`, `isLoggedIn`, and optional `platformLabel` only.
 
 ## Hero CTAs (docs label + glitch buttons)

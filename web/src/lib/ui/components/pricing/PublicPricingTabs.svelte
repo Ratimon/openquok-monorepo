@@ -53,6 +53,8 @@
 		onPeriodChange?: (period: SubscriptionPeriod) => void;
 		showSectionHeader?: boolean;
 		showPeriodToggle?: boolean;
+		/** Matches JSON-LD `@id` fragment (`#pricing` by default). */
+		sectionId?: string;
 	};
 
 	let {
@@ -68,7 +70,8 @@
 		period: controlledPeriod,
 		onPeriodChange,
 		showSectionHeader = true,
-		showPeriodToggle = true
+		showPeriodToggle = true,
+		sectionId = 'pricing'
 	}: Props = $props();
 
 	const showSecondaryCta = $derived(
@@ -120,6 +123,7 @@
 
 <Background color="bg-base-100">
 	<section
+		id={sectionId}
 		class="relative isolate z-10 w-full overflow-hidden"
 		aria-labelledby={headingId}
 	>

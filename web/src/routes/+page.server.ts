@@ -19,6 +19,7 @@ import {
 	organizationSchemaId
 } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicPricingSectionSEOSchema } from '$lib/content/utils/createPublicPricingSEOSchema';
 import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
@@ -197,6 +198,10 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 				description: landingPageConfigVm.DEMO_DESCRIPTION,
 				pageUrl: canonical,
 				uploadDate: landingPageConfigVm.DEMO_YOUTUBE_UPLOAD_DATE
+			}),
+			createPublicPricingSectionSEOSchema({
+				pageUrl: canonical,
+				origin: url.origin
 			})
 		])
 	);

@@ -4,6 +4,7 @@ import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRoot
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicSelfHostPricingOffer } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
@@ -60,16 +61,10 @@ export async function load({ url, cookies, parent }) {
 					name: companyName,
 					url: url.origin
 				},
-				offers: {
-					'@type': 'Offer',
-					name: 'Free self-hosted OpenQuok',
-					description:
-						'No software fee under AGPL-3.0-or-later when you self-host OpenQuok as a free alternative social media scheduler on your own infrastructure.',
-					price: '0',
-					priceCurrency: 'USD',
-					url: canonical,
-					availability: 'https://schema.org/InStock'
-				}
+				offers: createPublicSelfHostPricingOffer({
+					pageUrl: canonical,
+					origin: url.origin
+				})
 			},
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

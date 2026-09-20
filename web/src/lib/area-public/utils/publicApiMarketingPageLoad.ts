@@ -29,6 +29,7 @@ import {
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
+import { createPublicPricingSectionSEOSchema } from '$lib/content/utils/createPublicPricingSEOSchema';
 import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaPostingApiPlatform,
@@ -255,6 +256,10 @@ export async function loadPublicApiMarketingHubPage(params: {
 				sectionDescription: setupStepsSection.setupStepsDescription,
 				steps: setupStepsSection.setupSteps
 			}),
+			createPublicPricingSectionSEOSchema({
+				pageUrl: canonical,
+				origin: url.origin
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: hubVm.faqTitle,
@@ -393,6 +398,10 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 				sectionSubtitle: platformSetupStepsSection.setupStepsSubtitle,
 				sectionDescription: platformSetupStepsSection.setupStepsDescription,
 				steps: platformSetupStepsSection.setupSteps
+			}),
+			createPublicPricingSectionSEOSchema({
+				pageUrl: canonical,
+				origin: url.origin
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

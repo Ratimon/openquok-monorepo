@@ -110,6 +110,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | `createPublicFaqSEOSchema` | `$lib/content/utils/createPublicFaqSEOSchema.ts` | `FAQPage` or `{}` |
 | `createPublicAudienceSectionSEOSchema` | `$lib/content/utils/createPublicAudienceSEOSchema.ts` | `ItemList` (`#audience`) + `BusinessAudience` / `PeopleAudience` or `{}` |
 | `createPublicSetupStepsSEOSchema` | `$lib/content/utils/createPublicSetupStepsSEOSchema.ts` | `HowTo` (`#setup-steps`) from `FeaturesOrdered` steps or `{}` |
+| `createPublicPricingSectionSEOSchema` | `$lib/content/utils/createPublicPricingSEOSchema.ts` | `WebPage` (`#pricing`) with paid + self-host `Offer` list or `{}` |
 | `createHowToSEOSchema` | `$lib/seo/createHowToSEOSchema.ts` | Low-level `HowTo` + `HowToStep` builder (docs, blog, setup steps) |
 | `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
 | `createOrganizationSEOSchema` | `$lib/content/utils/createOrganizationSEOSchema.ts` | `Organization` |
@@ -127,12 +128,12 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 
 | Route type | Typical `@graph` nodes |
 | --- | --- |
-| **Landing** | `WebSite` + `Organization` + `FAQPage` + `VideoObject` |
+| **Landing** | `WebSite` + `Organization` + `FAQPage` + `VideoObject` + `WebPage` (`#pricing` offers) |
 | **About** | `AboutPage` + `Organization` |
-| **Pricing** | `WebPage` (with `Offer` list) + `FAQPage` |
+| **Pricing** | `WebPage` (paid tiers + self-host `$0` `Offer` list) + `FAQPage` |
 | **Hub** | `CollectionPage` + `ItemList` (+ optional `FAQPage`) |
 | **Channel / agent detail** | `WebPage` + `SoftwareApplication` + `FAQPage` + optional `HowTo` (`#setup-steps`) + `ItemList` (`#audience`) |
-| **API marketing hub / platform** | `CollectionPage` or `WebPage` + `SoftwareApplication` + `ItemList` + `HowTo` (`#setup-steps`) + `ItemList` (`#audience`) + `FAQPage` |
+| **API marketing hub / platform** | `CollectionPage` or `WebPage` + `SoftwareApplication` + `ItemList` + `HowTo` (`#setup-steps`) + `WebPage` (`#pricing` offers) + `ItemList` (`#audience`) + `FAQPage` |
 | **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
 | **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` (+ `FAQPage` / `HowTo` / `Product` with a free `Offer`) |
 | **Blog hubs** | `Blog` + `CollectionPage` + `ItemList` (index); `ProfilePage` + `Person` (author); topic `CollectionPage` + breadcrumbs |
@@ -157,6 +158,14 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 - Wired from agent/MCP landing loads (`agentVm.setupSteps*`) and API marketing loads (`getPublicApiHubSetupStepsSection` / `getPublicApiPlatformSetupStepsSection`). MCP pages SSR **both** `#setup-steps` (MCP tab) and `#skill-setup-steps` (skill tab) via `buildPublicMcpSetupStepsSeoSchemas`.
 - Returns `{}` when `steps` is empty or `sectionTitle` is missing — always `filterNonEmptyJsonLdNodes`.
 - Underlying helper: `createHowToSEOSchema` (also used by docs `<Steps>` and blog CMS how-to fields).
+
+### Pricing offers (`createPublicPricingSEOSchema`)
+
+- Paid tiers from `GetPublicPricingPresenter` + **`$0` self-host** from `PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG` in `publicSelfHostingLandingConfig.ts` (same copy as `PublicSelfHostPricingFootnote.svelte`).
+- **`/pricing`**: attach full offer list to the main `WebPage` node.
+- **Home + API marketing** (`PublicMarketingPricingSection`): emit `WebPage` at `{canonical}#pricing` — visible section uses `id="pricing"` on `PublicPricingTabs`.
+- **`/self-hosting`**: single self-host `Offer` via `createPublicSelfHostPricingOffer`.
+- Helpers: `createPublicPricingOffers`, `createPublicPaidPlanOffers`, `createPublicSelfHostPricingOffer`, `createPublicPricingSectionSEOSchema`. Always `filterNonEmptyJsonLdNodes`.
 
 ### VideoObject (`createLandingDemoSEOSchema`)
 

@@ -102,6 +102,7 @@
 	{plans}
 	{period}
 	{onPeriodChange}
+	sectionId="pricing"
 />
 
 <PublicSelfHostPricingFootnote />

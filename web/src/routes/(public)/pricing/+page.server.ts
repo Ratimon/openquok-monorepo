@@ -5,6 +5,7 @@ import { GetPublicPricingPresenter } from '$lib/billing';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { createPublicPricingOffers } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -71,6 +72,11 @@ export async function load({ url, cookies, parent }) {
 	const yearlyPeriod: SubscriptionPeriod = 'YEARLY';
 	const pageVmMonthly = presenter.buildPageVm(monthlyPeriod);
 	const pageVmYearly = presenter.buildPageVm(yearlyPeriod);
+	const pricingOffers = createPublicPricingOffers({
+		pageUrl: canonical,
+		origin: url.origin,
+		period: monthlyPeriod
+	});
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
@@ -85,14 +91,7 @@ export async function load({ url, cookies, parent }) {
 					name: companyName,
 					url: url.origin
 				},
-				offers: pageVmMonthly.plans.map((plan) => ({
-					'@type': 'Offer',
-					name: plan.name,
-					category: 'subscription',
-					priceCurrency: 'USD',
-					price: plan.monthPrice,
-					url: canonical
-				}))
+				offers: pricingOffers
 			},
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
