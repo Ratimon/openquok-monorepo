@@ -9,6 +9,7 @@ import {
 	getPublicApiPlatformSetupStepsSection,
 	getPublicApiPostingPlatformBySlug,
 	PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER,
+	getPublicApiPlatformFeatureSections,
 	getPublicApiSchedulingPlatformBySlug,
 	isPublicApiPlatformSlug,
 	listPublicApiPostingPlatformsForHub,
@@ -110,6 +111,24 @@ describe('publicApiCatalog', () => {
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');
 		expect(tiktokPosting.audienceCards[0]?.description).toContain('Publish to TikTok');
+	});
+
+	it('tailors feature rows for platform slug pages', () => {
+		const youtubeScheduling = getPublicApiSchedulingPlatformBySlug('youtube');
+		const sections = getPublicApiPlatformFeatureSections(
+			'scheduling',
+			'YouTube',
+			'youtube',
+			youtubeScheduling?.formatExamples[0]?.requestJson
+		);
+
+		expect(sections).toHaveLength(3);
+		expect(sections[0]?.description).toContain('YouTube');
+		expect(sections[0]?.terminalCode).toContain('providerSettingsByIntegrationId');
+		expect(sections[1]?.terminalCode).toContain('Schedule on YouTube');
+		expect(sections[1]?.terminalCode).not.toContain('Threads');
+		expect(sections[1]?.description).toContain('YouTube');
+		expect(sections[2]?.terminalCode).toContain('identifier: youtube');
 	});
 
 	it('tailors setup steps for platform slug pages', () => {

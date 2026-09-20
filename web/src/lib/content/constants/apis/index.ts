@@ -51,6 +51,11 @@ export {
 	getPublicApiPlatformAudienceSection
 } from '$lib/content/constants/apis/publicApiCapabilityAudienceConfig';
 export {
+	PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS,
+	getPublicApiHubFeatureSections,
+	getPublicApiPlatformFeatureSections
+} from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
+export {
 	SHARED_PUBLIC_API_SEO_KEYWORDS,
 	PUBLIC_API_CREATE_POST_ENDPOINT,
 	PUBLIC_API_CLOUD_PUBLIC_BASE_URL,

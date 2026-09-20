@@ -32,9 +32,7 @@
 			: 'More social media scheduling API platforms'
 	);
 
-	const channelHref = $derived(
-		hostedMarketingHref(route(getRootPathPublicChannel(activeSlug)), page.url.origin)
-	);
+	const platformsDocsHref = $derived(hostedMarketingHref('/docs/platforms', page.url.origin));
 	const providerSettingsHref = $derived(
 		hostedMarketingHref(publicApiProvidersDocsPath, page.url.origin)
 	);
@@ -57,11 +55,11 @@
 				heroTheme={landingHeroTheme}
 			/>
 			<p class="text-base font-medium leading-relaxed text-base-content/70">
-				Compare {activePlatformLabel} with other networks, or jump to channel setup and provider
-				settings docs.
+				Compare {activePlatformLabel} with other networks, or jump to platform docs and provider
+				settings.
 			</p>
 			<div class="flex flex-wrap items-center justify-center gap-3 pt-1 text-sm font-semibold">
-				<a class="link link-primary" href={channelHref}>Channel landing</a>
+				<a class="link link-primary" href={platformsDocsHref}>All Platforms' Rules</a>
 				<span class="text-base-content/30" aria-hidden="true">·</span>
 				<a class="link link-primary" href={providerSettingsHref}>Provider settings</a>
 			</div>
