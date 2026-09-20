@@ -19,7 +19,7 @@ export const PUBLIC_API_SCHEDULING_PAYLOAD_VALIDATOR_HUB_SECTION: PublicApiPaylo
 	subtitle: 'Free payload wizard',
 	title: 'Test your social media scheduling API payload before you ship code',
 	description:
-		'Compose a scheduled post with sample channels in your browser. Set the publish time and optional repeat cadence, then copy the JSON body. Copy JSON is free — no account required. Scheduling and file uploads need a workspace.',
+		'Compose a scheduled post with sample channels in your browser. Set publish time, document carousel names, follow-up comments, and optional repeat cadence, then copy the JSON body. Copy JSON is free — no account required. Scheduling and file uploads need a workspace.',
 	mediaOnRight: false
 };
 

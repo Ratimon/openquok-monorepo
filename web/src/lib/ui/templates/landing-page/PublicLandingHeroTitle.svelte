@@ -32,7 +32,9 @@
 >
 	{#each titleSegments as seg, segmentIndex (segmentIndex)}
 		{#if seg.highlight}
-			<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
+			<LandingHeroHighlightedText>
+				{seg.text}
+			</LandingHeroHighlightedText>
 		{:else}
 			<span class={heroTheme.titleSegmentClass(segmentIndex, titleSegments)}>{seg.text}</span>
 		{/if}

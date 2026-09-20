@@ -24,12 +24,12 @@ export const facebookChannel = {
 	platformId: 'facebook',
 	platformLabel: 'Facebook',
 	icon: icons.FacebookGlyph.name,
-	heroTitle: 'Schedule Facebook posts, Reels Stories, and follow-up comments you approve',
+	heroTitle: 'Schedule Facebook posts, Reels, Stories, and follow-up comments you approve',
 	heroDescription:
-		'Connect a Facebook Page, queue feed posts, photos, link previews, MP4 Reels, Stories, and follow-up comments from the OpenQuok calendar or your AI agents, and publish through the official Meta API',
+		'Keep your Facebook Page active without living in Meta Business Suite. Queue feed posts, photos, Reels, Stories, and follow-up comments from the OpenQuok calendar or your agents — you approve every post before publish.',
 	metaTitle: 'Facebook Page Post, Reel & Story Scheduler',
 	metaDescription:
-		'Schedule Facebook Page posts, Reels, Stories, and follow-up comments with OpenQuok. Connect your Page, queue text, photos, MP4 video, and Stories from the calendar or API, and keep human approval in the loop.',
+		'Schedule Facebook Page posts, Reels, Stories, and follow-up comments with OpenQuok. Queue from the calendar or API, publish through Meta’s official API, and approve every post before it goes live.',
 	hubDescription:
 		'Page feed posts, MP4 Reels, Stories, link-preview cards, and scheduled follow-up comments — built for Facebook Pages, not personal profiles.',
 	keywords: [
@@ -46,39 +46,39 @@ export const facebookChannel = {
 	],
 	featureSections: [
 		{
-			subtitle: 'Bulk scheduling',
+			subtitle: 'Plan weeks ahead',
 			title: 'Queue Facebook posts, schedule Reels in bulk, weeks ahead',
 			description:
-				'Schedule feed posts, carousels, and MP4 Reels onto the calendar for days or weeks ahead. OpenQuok keeps your Page active without last-minute scrambles — whether you compose by hand or pipe drafts in from an agent.',
+				'Batch feed posts, carousels, and MP4 Reels onto your calendar for days or weeks ahead. Your Page stays active whether you compose by hand or pipe drafts in from an agent.',
 			bentoId: 'facebook-bulk-scheduling',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Post editor',
+			subtitle: 'Reels and link previews',
 			title: 'Publish Reels from MP4, schedule follow-up comments, add link previews',
 			description:
-				'Attach a single MP4 and OpenQuok publishes it to your Page through Meta’s video endpoint — the same path Facebook uses to surface Reels. Add an optional URL on text posts for link-preview cards, and queue follow-up comments in the composer with delays.',
+				'Upload one MP4 and OpenQuok publishes it as a Reel on your Page. Add a URL on text posts for link-preview cards, and queue follow-up comments with delays — all in one composer draft.',
 			bentoId: 'facebook-post-editor',
 			mediaOnRight: false
 		},
 		{
-			subtitle: 'Facebook settings',
-			title: 'Switch post type, publish Stories, tune Page options per post',
+			subtitle: 'Stories and post types',
+			title: 'Pick feed, Reel, or Story, publish from one composer, set options per post',
 			description:
-				'Set post type to feed, Reel, or Story before publish. Attach images or MP4 for Stories, and tune Page-specific options from channel settings — from the dashboard or via provider Settings in the API.',
+				'Choose feed, Reel, or Story before you schedule. Attach images or MP4 for Stories and adjust Page options from channel settings — in the dashboard or through the public API.',
 			bentoId: 'facebook-settings',
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Insights',
-			title: 'See what resonates on your Page, track engagement insights, and scale correctly',
+			subtitle: 'See what works',
+			title: 'See what resonates on your Page, track impressions and clicks, double down on winners',
 			description:
-				'Track post-level impressions, reactions, and clicks — plus Page-level video views — from connected Facebook Pages inside OpenQuok analytics, so you can schedule more of what already works.',
+				'Track post impressions, reactions, and clicks plus Page video views in OpenQuok analytics, so you can schedule more of what already works.',
 			bentoId: 'facebook-insights',
 			mediaOnRight: false
 		}
 	],
-	audienceSubtitle: 'Built for Facebook Pages',
+	audienceSubtitle: 'For Facebook Page owners',
 	audienceTitle: 'Who schedules Facebook with OpenQuok?',
 	audienceCards: [
 		{
@@ -86,7 +86,7 @@ export const facebookChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Page owners',
 			description:
-				'Schedule Page posts, Reels, and Stories without living in Business Suite. Publish through the official Graph API.',
+				'Schedule Page posts, Reels, and Stories without switching between Business Suite tabs. Review drafts on one calendar before anything goes live.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -94,7 +94,7 @@ export const facebookChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch weeks of Page content and review drafts before anything goes live.',
+				'Batch weeks of Page content and review drafts before anything goes live, so campaigns ship on time without weekend scrambles.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -109,7 +109,7 @@ export const facebookChannel = {
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Facebook scheduling, answered',
 	faqDescription:
-		'Common questions about connecting a Facebook Page, scheduling posts and Reels, and using OpenQuok with Meta.',
+		'Answers about connecting a Facebook Page, scheduling posts and Reels, Stories, and follow-up comments with OpenQuok.',
 	faqItems: [
 		{
 			title: 'How do I connect my Facebook Page to OpenQuok?',
@@ -148,7 +148,7 @@ export const facebookChannel = {
 		{
 			title: 'Can I schedule follow-up comments on Facebook?',
 			description:
-				`Yes. Add follow-up comments in the composer (or pass facebook.replies via the API or CLI). Each comment publishes as text or with one image after the delay you set once the main post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'Threads and comments')}.`
+				`Yes. Add follow-up comments in the composer (or pass facebook.replies via the API or CLI). Each comment publishes as text or with one image after the delay you set once the main post goes live. See the ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'follow-up comments guide')}.`
 		},
 		{
 			title: 'Does OpenQuok support Facebook Stories?',

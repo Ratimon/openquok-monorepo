@@ -1,19 +1,9 @@
 <script lang="ts">
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
 	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
-
-	type LandingHeroTitleSegment = { text: string; highlight: boolean };
-
-	type LandingHeroTheme = {
-		subtitleClass: string;
-		descriptionClass: string;
-		ctaButtonClass: string;
-		imageClass: string;
-		titlePartClass: (index: number, total: number) => string;
-		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
-		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
-	};
+	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -43,13 +33,6 @@
 		`https://img.youtube.com/vi/${youtubeVideoId}/maxresdefault.jpg`
 	);
 	const watchUrl = $derived(`https://www.youtube.com/watch?v=${youtubeVideoId}`);
-
-	const titleParts = $derived(
-		landingTitle
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
 </script>
 
 <section
@@ -66,32 +49,13 @@
 			{/if}
 
 			{#if landingTitle}
-				<h2
-					id={headingId}
-					class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-				>
-					{#each titleParts as part, index (index)}
-						{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
-						{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
-						{@const layoutClass =
-							titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-						{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
-							<span class={layoutClass}>
-								{#each segments as seg, segmentIndex (segmentIndex)}
-									{#if seg.highlight}
-										<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-									{:else}
-										<span class={partClass}>{seg.text}</span>
-									{/if}
-								{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-							</span>
-						{:else}
-							<span class="{partClass} {layoutClass}">
-								{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-							</span>
-						{/if}
-					{/each}
-				</h2>
+				<PublicLandingSectionHeading
+					{headingId}
+					title={landingTitle}
+					{heroTheme}
+					commaSeparated={true}
+					gradientMode="part"
+				/>
 			{/if}
 
 			{#if landingDescription}

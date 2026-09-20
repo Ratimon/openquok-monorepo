@@ -11,7 +11,7 @@
 	import { route } from '$lib/utils/path';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
+	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
@@ -51,7 +51,7 @@
 <section class="py-12 md:py-16" aria-labelledby={headingId}>
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-3xl space-y-4 text-center">
-			<PublicLandingSectionTitle
+			<PublicLandingSectionHeading
 				headingId={headingId}
 				title={sectionTitle}
 				heroTheme={landingHeroTheme}

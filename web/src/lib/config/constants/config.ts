@@ -743,7 +743,7 @@ export function accentSplitDocsCtaBannerTitle(label: string): string {
 }
 
 export function accentSplitDocsCtaBannerDescription(label: string): string {
-	return `Step-by-step instructions for connecting OpenQuok to ${label} — install commands, auth patterns, and configuration snippets.`;
+	return `Step-by-step self-host setup for connecting OpenQuok to ${label} — install commands, auth patterns, and configuration snippets.`;
 }
 
 const PUBLIC_SELF_HOST_DOCS_BANNER = {

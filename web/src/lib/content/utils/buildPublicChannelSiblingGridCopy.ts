@@ -43,7 +43,7 @@ export function buildPublicAgentChannelSiblingGridHubDescription(): string {
 export function buildPublicChannelSiblingGridDescription(platformLabel: string): string {
 	const label = platformLabel.trim();
 	return label.length > 0
-		? `Start with ${label}, then schedule every other network from the same workspace.`
+		? `Start with ${label}, then add Instagram, Threads, and every other supported network from one workspace.`
 		: 'Schedule every supported network from the same workspace.';
 }
 

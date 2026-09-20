@@ -31,9 +31,11 @@ export const linkedinPublicApiSchedulingPlatform: PublicApiPlatformPageViewModel
 		capability: 'scheduling',
 		formatExamples: PUBLIC_API_FORMAT_EXAMPLES_BY_PLATFORM[SLUG].scheduling,
 		heroDescription:
-			'Queue LinkedIn posts for a future publish time. Set scheduledAt in UTC with carousel names and follow-up comment settings.',
-		metaTitle: 'LinkedIn Scheduling API',
+			'Schedule LinkedIn profile and Page posts for a future publish time. Send scheduledAt in UTC, name PDF document carousels, and queue follow-up comments — one POST /public/posts payload.',
+		metaTitle: 'LinkedIn Scheduling API — Queue Posts with POST /public/posts',
 		metaDescription:
-			'Schedule LinkedIn posts with OpenQuok POST /public/posts. Queue text, video, and document carousels for a future UTC publish time.',
+			'Schedule LinkedIn posts with OpenQuok POST /public/posts. Queue text, video, PDF document carousels, and follow-up comments with scheduledAt in UTC.',
+		faqDescription:
+			'Connect LinkedIn, set scheduledAt in UTC, and schedule text posts, video, document carousels, and follow-up comments from your app or agent.',
 		keywords: KEYWORDS
 	});

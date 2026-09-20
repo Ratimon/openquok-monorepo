@@ -1,19 +1,11 @@
 <script lang="ts">
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+
 	import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 	import { getPublicFaqConfigDefaults } from '$lib/config/constants/config';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
-	import LandingHeroHighlightedText from '$lib/ui/texts/LandingHeroHighlightedText.svelte';
-
-	type LandingHeroTitleSegment = { text: string; highlight: boolean };
-
-	type LandingHeroTheme = {
-		subtitleClass: string;
-		descriptionClass: string;
-		titlePartClass: (index: number, total: number) => string;
-		parseLandingHeroTitlePartSegments: (text: string) => LandingHeroTitleSegment[];
-		landingHeroTitlePartHasHighlight: (segments: LandingHeroTitleSegment[]) => boolean;
-	};
+	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -48,13 +40,6 @@
 	const faqDescription = $derived(
 		faqDescriptionProp || faqConfigVm.DESCRIPTION || faqDefaults.DESCRIPTION
 	);
-
-	const titleParts = $derived(
-		faqTitle
-			.split(',')
-			.map((part) => part.trim())
-			.filter((part) => part.length > 0)
-	);
 </script>
 
 <section
@@ -73,32 +58,13 @@
 			{/if}
 
 			{#if faqTitle}
-				<h2
-					id={headingId}
-					class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
-				>
-					{#each titleParts as part, index (index)}
-						{@const partClass = heroTheme.titlePartClass(index, titleParts.length)}
-						{@const segments = heroTheme.parseLandingHeroTitlePartSegments(part)}
-						{@const layoutClass =
-							titleParts.length >= 3 ? 'block' : index > 0 ? 'block sm:inline' : ''}
-						{#if heroTheme.landingHeroTitlePartHasHighlight(segments)}
-							<span class={layoutClass}>
-								{#each segments as seg, segmentIndex (segmentIndex)}
-									{#if seg.highlight}
-										<LandingHeroHighlightedText>{seg.text}</LandingHeroHighlightedText>
-									{:else}
-										<span class={partClass}>{seg.text}</span>
-									{/if}
-								{/each}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-							</span>
-						{:else}
-							<span class="{partClass} {layoutClass}">
-								{part}{#if titleParts.length < 3 && index < titleParts.length - 1},{/if}
-							</span>
-						{/if}
-					{/each}
-				</h2>
+				<PublicLandingSectionHeading
+					{headingId}
+					title={faqTitle}
+					{heroTheme}
+					commaSeparated={true}
+					gradientMode="part"
+				/>
 			{/if}
 
 			{#if faqDescription}

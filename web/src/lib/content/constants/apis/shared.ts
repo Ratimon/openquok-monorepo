@@ -210,6 +210,7 @@ type BuildPlatformPageParams = {
 	metaTitle: string;
 	metaDescription: string;
 	keywords: readonly string[];
+	faqDescription?: string;
 };
 
 export function buildPublicApiPlatformPage(
@@ -241,7 +242,9 @@ export function buildPublicApiPlatformPage(
 		formatExamples: params.formatExamples,
 		faqSubtitle: 'API examples FAQ',
 		faqTitle: `${channel.platformLabel} ${capabilityVerb} API, answered`,
-		faqDescription: `Connect ${channel.platformLabel}, build a valid POST /public/posts payload, and publish from your app or agent.`,
+		faqDescription:
+			params.faqDescription ??
+			`Connect ${channel.platformLabel}, build a valid POST /public/posts payload, and publish from your app or agent.`,
 		faqItems: buildPublicApiPlatformFaqItems(params.slug, params.capability)
 	};
 }

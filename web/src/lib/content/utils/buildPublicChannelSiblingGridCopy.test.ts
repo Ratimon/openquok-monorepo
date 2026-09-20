@@ -17,7 +17,7 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 			'Beyond TikTok: Every Supported Platform'
 		);
 		expect(buildPublicChannelSiblingGridDescription('TikTok')).toBe(
-			'Start with TikTok, then schedule every other network from the same workspace.'
+			'Start with TikTok, then add Instagram, Threads, and every other supported network from one workspace.'
 		);
 	});
 

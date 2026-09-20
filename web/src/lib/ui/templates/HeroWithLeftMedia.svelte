@@ -1,11 +1,11 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import Background from '$lib/ui/background/Background.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import VideoOrImage from '$lib/ui/media-files/VideoOrImage.svelte';
-	import PublicLandingSectionTitle from '$lib/ui/templates/landing-page/PublicLandingSectionTitle.svelte';
-	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 
 	type Props = {
 		heroTheme: LandingHeroTheme;
@@ -109,7 +109,7 @@
 						{/if}
 
 						{#if landingTitle}
-							<PublicLandingSectionTitle
+							<PublicLandingSectionHeading
 								title={landingTitle}
 								{heroTheme}
 								commaSeparated={commaSeparatedTitle}
