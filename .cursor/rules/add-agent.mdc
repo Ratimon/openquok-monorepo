@@ -53,7 +53,7 @@ Use one **lowercase kebab-case** slug everywhere:
 
 ### Hero title gradient highlights
 
-Landing heroes (`heroTitle` is usually `Schedule social media from {label} then you approve`) pick up gradient styling via `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in **`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts`**.
+Landing heroes (`heroTitle` is usually `Schedule social media from {label}`) pick up gradient styling via `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in **`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts`**.
 
 Append the **product name as it appears in `heroTitle`** (seed `label` / `agentLabel`). Examples: `'openclaw'`, `'hermes'`, `'Grok Bot'`, `'ThinkRail'`. Matching is case-insensitive; multi-word labels need the full phrase (e.g. `'Grok Bot'`, not `'grok'`).
 

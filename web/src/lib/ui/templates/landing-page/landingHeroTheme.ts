@@ -43,6 +43,8 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'scheduling API',
 	'posting API',
 	'schedule once',
+	'three steps',
+	'your product',
 	'one request',
 	'request',
 	'every channel',
@@ -190,6 +192,9 @@ export const landingHeroTheme = {
 		'pt-2 text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg',
 	ctaButtonClass:
 		'my-2 w-full max-w-xs justify-center rounded-full px-10 text-sm sm:text-base lg:text-lg',
+	/** Docs CTA uses a longer label — skip max-w-xs so glitch text is not clipped. */
+	docsCtaButtonClass:
+		'my-2 w-full max-w-none justify-center rounded-full px-10 text-sm whitespace-nowrap sm:w-auto sm:text-base lg:text-lg',
 	imageClass: 'h-auto w-full rounded-lg shadow-2xl ring-1 ring-base-content/10',
 	titlePartClass: (index: number, total: number) => {
 		if (index === 0) return 'text-base-content';

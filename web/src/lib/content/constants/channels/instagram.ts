@@ -22,7 +22,7 @@ export const instagramChannel = {
 	platformId: 'instagram',
 	platformLabel: 'Instagram',
 	icon: icons.InstagramGlyph.name,
-	heroTitle: 'Schedule Instagram feed posts, Reels, carousels, and Stories you approve',
+	heroTitle: 'Schedule Instagram feed posts, Reels, carousels, and Stories',
 	heroDescription:
 		'Connect via Instagram or Facebook Business login, queue content on the OpenQuok calendar or through the public API, and tune per-post Instagram settings before publish.',
 	metaTitle: 'Instagram Post, Reel & Story Scheduler',

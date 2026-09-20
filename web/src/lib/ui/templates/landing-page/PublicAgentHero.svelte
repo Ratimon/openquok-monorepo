@@ -97,7 +97,7 @@
 			<div class="mt-8 flex flex-wrap items-center justify-center gap-3">
 				{#if showDocsCta}
 					<ButtonGlitchBrightness
-						class="my-2 w-full max-w-xs justify-center rounded-full border-white/40 bg-transparent px-10 text-sm text-white shadow-none hover:bg-white/10 sm:w-auto sm:text-base"
+						class="my-2 w-full max-w-none justify-center rounded-full border-white/40 bg-transparent px-10 text-sm whitespace-nowrap text-white shadow-none hover:bg-white/10 sm:w-auto sm:text-base"
 						variant="ghost"
 						size="lg"
 						href={docsCtaHref}

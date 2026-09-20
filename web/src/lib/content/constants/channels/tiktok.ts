@@ -23,7 +23,7 @@ export const tiktokChannel = {
 	platformId: 'tiktok',
 	platformLabel: 'TikTok',
 	icon: icons.TikTok.name,
-	heroTitle: 'Schedule TikTok videos and carousels you approve',
+	heroTitle: 'Schedule TikTok videos and carousels',
 	heroDescription:
 		'Connect a TikTok account, schedule vertical videos or image carousels on the calendar, set privacy and posting method, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
 	metaTitle: 'TikTok Video & Photo Scheduler',

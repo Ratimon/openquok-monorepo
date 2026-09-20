@@ -24,7 +24,7 @@ export const youtubeChannel = {
 	platformLabel: 'YouTube',
 	comparePlatformLabels: ['YouTube Shorts'],
 	icon: icons.YouTubeGlyph.name,
-	heroTitle: 'Schedule YouTube videos and Shorts you approve',
+	heroTitle: 'Schedule YouTube videos and Shorts',
 	heroDescription:
 		'Connect a YouTube channel you manage, queue MP4 videos and Shorts on the calendar, set title, privacy, tags, and thumbnail in the composer, and publish through the official Google APIs — from the dashboard, public API, or CLI.',
 	metaTitle: 'YouTube Video & Short Upload Scheduler',

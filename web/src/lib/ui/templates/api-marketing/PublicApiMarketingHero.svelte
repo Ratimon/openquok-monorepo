@@ -2,9 +2,11 @@
 	import { page } from '$app/state';
 
 	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
+	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
 	import PublicApiMarketingHubBreadcrumb from '$lib/ui/templates/api-marketing/PublicApiMarketingHubBreadcrumb.svelte';
 	import PublicLandingHeroTitle from '$lib/ui/templates/landing-page/PublicLandingHeroTitle.svelte';
-	import Button from '$lib/ui/buttons/Button.svelte';
+	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	type Props = {
@@ -64,14 +66,35 @@
 			</ul>
 		{/if}
 		<div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-			<Button href={pricingHref} variant="primary" size="lg">Get Started For Free</Button>
+			<ButtonGlitchBrightness
+				class={landingHeroTheme.ctaButtonClass}
+				variant="primary"
+				size="lg"
+				href={pricingHref}
+				preload="off"
+			>
+				Get Started For Free
+			</ButtonGlitchBrightness>
 			{#if resolvedPayloadValidatorHref}
-				<Button href={resolvedPayloadValidatorHref} variant="secondary" size="lg">
+				<ButtonGlitchBrightness
+					class={landingHeroTheme.ctaButtonClass}
+					variant="secondary"
+					size="lg"
+					href={resolvedPayloadValidatorHref}
+					preload="off"
+				>
 					Try Payload Validator
-				</Button>
+				</ButtonGlitchBrightness>
 			{/if}
-			<Button href={docsHref} variant="ghost" size="lg">View Docs</Button>
-
+			<ButtonGlitchBrightness
+				class={landingHeroTheme.docsCtaButtonClass}
+				variant="ghost"
+				size="lg"
+				href={docsHref}
+				preload="off"
+			>
+				{PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
+			</ButtonGlitchBrightness>
 		</div>
 	</div>
 </section>

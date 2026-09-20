@@ -24,7 +24,7 @@ export const threadsChannel = {
 	platformId: 'threads',
 	platformLabel: 'Threads',
 	icon: icons.Threads.name,
-	heroTitle: 'Schedule Threads posts, media, and follow-up replies you approve',
+	heroTitle: 'Schedule Threads posts, media, and follow-up replies',
 	heroDescription:
 		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, CLI, or MCP chat in Cursor and other assistants.',
 	metaTitle: 'Threads Post Scheduler',

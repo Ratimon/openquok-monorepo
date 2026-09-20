@@ -131,6 +131,18 @@ Builders: `buildPublicApiHubHeroTitle`, `buildPublicApiPlatformHeroTitle` in `bu
 
 In `LANDING_HERO_TITLE_HIGHLIGHT_WORDS`, chip suffix terms only (`Posting API`, `Scheduling API`, `Twitter / X`) — never the full hub H1 (`Social Media Posting API`) or the entire title becomes one white highlight tile.
 
+
+## Hero CTAs (docs label + glitch buttons)
+
+Public marketing heroes use **`ButtonGlitchBrightness`** for primary/secondary/ghost actions (not plain `Button`). Docs links use the shared label **`The Getting Started Guide`** from `publicLandingHeroCopy.ts` (`PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA`) — not “View Docs”.
+
+| Hero | Docs href |
+| --- | --- |
+| `PublicApiMarketingHero` | `/docs/getting-started-for-public-api` |
+| `PublicAgentHero` / `PublicMcpHero` | `agentVm.docsPath` / `mcpVm.docsPath` (setup guide for that integration) |
+
+Apply `landingHeroTheme.ctaButtonClass` on non-aurora heroes (`PublicApiMarketingHero`); use `docsCtaButtonClass` for the longer getting-started label (no `max-w-xs`). Aurora heroes (`PublicAgentHero`, `PublicMcpHero`) keep rounded-full ghost styling on the aurora band with `max-w-none whitespace-nowrap` on the docs button.
+
 ## Do not
 
 - Duplicate breadcrumb markup inline in `+page.svelte` — keep trails in dedicated `*Breadcrumb.svelte` wrappers.

@@ -12,6 +12,7 @@
 	import { getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
+	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -106,7 +107,7 @@
 		{mcpVm}
 		ctaText={secondaryCtaText}
 		ctaHref={resolvedSecondaryCtaHref}
-		docsCtaText="View Docs"
+		docsCtaText={PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA}
 		docsCtaHref={mcpVm.docsPath}
 		channelLabel={activeChannelLabel}
 	/>

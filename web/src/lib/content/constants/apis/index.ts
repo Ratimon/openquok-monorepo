@@ -41,6 +41,11 @@ export {
 	PUBLIC_API_SCHEDULING_HUB_STATIC_EXAMPLE
 } from '$lib/content/constants/apis/hubExamples';
 export {
+	PUBLIC_API_POSTING_HUB_SETUP_STEPS,
+	PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS,
+	getPublicApiHubSetupStepsSection
+} from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+export {
 	SHARED_PUBLIC_API_SEO_KEYWORDS,
 	PUBLIC_API_CREATE_POST_ENDPOINT,
 	buildPublicApiCreatePostResponseExample,

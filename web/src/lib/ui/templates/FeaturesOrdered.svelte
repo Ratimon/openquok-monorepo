@@ -44,6 +44,10 @@
 		heroTheme?: LandingHeroTheme;
 		sectionSubtitle?: string;
 		sectionTitle?: string;
+		sectionDescription?: string;
+		footerPrompt?: string;
+		footerLinkLabel?: string;
+		footerLinkHref?: string;
 		telegramAgentBranding?: TelegramMockAgentBranding;
 	};
 
@@ -56,6 +60,10 @@
 		heroTheme,
 		sectionSubtitle = '',
 		sectionTitle = '',
+		sectionDescription = '',
+		footerPrompt = '',
+		footerLinkLabel = '',
+		footerLinkHref = '',
 		telegramAgentBranding
 	}: Props = $props();
 
@@ -78,6 +86,12 @@
 
 	const showSectionHeader = $derived(
 		Boolean(sectionSubtitle?.trim() || sectionTitle?.trim()) && heroTheme
+	);
+
+	const showSectionDescription = $derived(Boolean(sectionDescription?.trim()));
+
+	const showSectionFooter = $derived(
+		Boolean(footerPrompt?.trim() && footerLinkLabel?.trim() && footerLinkHref?.trim())
 	);
 
 	const isIphoneMock = $derived(activeStep?.deviceMock === 'iphone-15-pro');
@@ -188,6 +202,12 @@
 								{/if}
 							{/each}
 						</h2>
+					{/if}
+
+					{#if showSectionDescription}
+						<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
+							{sectionDescription}
+						</p>
 					{/if}
 				</div>
 			{/if}
@@ -397,6 +417,16 @@
 					{/each}
 				</ul>
 			</div>
+
+			{#if showSectionFooter}
+				<p class="mt-12 text-center text-sm text-base-content/70 sm:text-base">
+					{footerPrompt}
+					{' '}
+					<a href={footerLinkHref} class="link link-primary font-semibold">
+						{footerLinkLabel}
+					</a>
+				</p>
+			{/if}
 		</div>
 	</div>
 </section>
