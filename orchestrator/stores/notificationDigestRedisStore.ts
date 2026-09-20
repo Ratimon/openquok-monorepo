@@ -75,15 +75,3 @@ export async function acknowledgeNotificationDigestBatch(
         await redis.srem(PENDING_ORGS_KEY, organizationId);
     }
 }
-
-/**
- * @deprecated Prefer {@link listPendingNotificationDigestBatches} + {@link acknowledgeNotificationDigestBatch}.
- * Kept for callers that still expect a destructive drain (tests / older workers).
- */
-export async function drainPendingNotificationDigestBatches(redis: IORedis): Promise<NotificationDigestBatch[]> {
-    const batches = await listPendingNotificationDigestBatches(redis);
-    for (const batch of batches) {
-        await acknowledgeNotificationDigestBatch(redis, batch.organizationId, batch.entries.length);
-    }
-    return batches;
-}

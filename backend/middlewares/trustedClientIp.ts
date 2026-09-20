@@ -54,6 +54,3 @@ export const trustedClientIp = (req: Request): string => {
 
     return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
 };
-
-/** @deprecated Prefer `trustedClientIp`; kept for existing imports. */
-export const clientIpFromRequest = trustedClientIp;

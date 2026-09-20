@@ -7,16 +7,16 @@ import {
 	buildToolsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import {
-	buildPublicLandingBreadcrumbListItems,
-	createPublicLandingBreadcrumbListSchema
+	buildBreadcrumbListItems,
+	createBreadcrumbListSchema
 } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { getRootPathPublicHumanizer } from '$lib/area-public/constants/getRootPathPublicTools';
 
 const origin = 'https://www.openquok.com';
 
-describe('buildPublicLandingBreadcrumbListItems', () => {
+describe('buildBreadcrumbListItems', () => {
 	it('sets item URLs only on non-terminal crumbs', () => {
-		const items = buildPublicLandingBreadcrumbListItems(
+		const items = buildBreadcrumbListItems(
 			[
 				{ label: 'Home', href: '/' },
 				{ label: 'Social Media Posting API', href: '/social-media-posting-api' },
@@ -32,9 +32,9 @@ describe('buildPublicLandingBreadcrumbListItems', () => {
 	});
 });
 
-describe('createPublicLandingBreadcrumbListSchema', () => {
+describe('createBreadcrumbListSchema', () => {
 	it('emits Schema.org BreadcrumbList', () => {
-		const schema = createPublicLandingBreadcrumbListSchema(
+		const schema = createBreadcrumbListSchema(
 			buildApiMarketingLandingBreadcrumbItems({
 				capability: 'scheduling',
 				hubMetaTitle: 'Social Media Scheduling API',

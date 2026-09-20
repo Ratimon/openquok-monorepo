@@ -143,20 +143,6 @@ export function buildPublicFooterSupportedChannelLinks(channelsHubHref: string):
 	);
 }
 
-/** @deprecated Use `buildPublicFooterPostingApiPlatformLinks` */
-export function buildPublicFooterSocialMediaPostingApiLinks(
-	postingApiHubHref: string
-): PublicFooterLink[] {
-	return buildPublicFooterPostingApiPlatformLinks(postingApiHubHref);
-}
-
-/** @deprecated Use `buildPublicFooterSchedulingApiPlatformLinks` */
-export function buildPublicFooterSocialMediaSchedulingApiLinks(
-	schedulingApiHubHref: string
-): PublicFooterLink[] {
-	return buildPublicFooterSchedulingApiPlatformLinks(schedulingApiHubHref);
-}
-
 export function buildPublicFooterPostingApiPlatformLinks(
 	postingApiHubHref: string
 ): PublicFooterLink[] {

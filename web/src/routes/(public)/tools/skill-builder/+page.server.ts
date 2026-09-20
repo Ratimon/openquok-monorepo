@@ -13,7 +13,7 @@ import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseB
 import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -53,7 +53,7 @@ export async function load({ url, cookies, fetch, parent }) {
 			applicationCategory: 'DeveloperApplication',
 			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
 		} satisfies WebApplication,
-		createPublicLandingBreadcrumbListSchema(
+		createBreadcrumbListSchema(
 			buildToolsLandingBreadcrumbItems({
 				toolLabel: 'Skill Builder',
 				toolRootPath: getRootPathPublicSkillBuilder()

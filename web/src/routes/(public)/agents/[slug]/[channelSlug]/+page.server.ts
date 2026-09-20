@@ -19,7 +19,7 @@ import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOS
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicAgentChannel } from '$lib/area-public/constants/getRootPathPublicAgents';
 
@@ -165,7 +165,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				description: landingVm.faqDescription,
 				items: landingVm.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildAgentsLandingBreadcrumbItems({
 					variant: agentsBreadcrumbVariant,
 					agentSlug,

@@ -18,11 +18,11 @@ import {
     isUploadPath,
     isWebhookPath,
 } from "./publicRouteRegistry";
-import { clientIpFromRequest, trustedClientIp } from "./trustedClientIp";
+import { trustedClientIp } from "./trustedClientIp";
 import { createRateLimitStore, isRateLimitRedisStoreActive } from "./rateLimitStore";
 import { logger } from "../utils/Logger";
 
-export { clientIpFromRequest, trustedClientIp };
+export { trustedClientIp };
 
 interface RateLimitConfig {
     limiterName: string;
@@ -140,7 +140,7 @@ export const tryResolveUserIdFromRequest = (req: Request): string | null => {
     return decodeJwtSubForRateLimitKey(token);
 };
 
-const clientIpKey = (req: Request): string => ipKeyGenerator(clientIpFromRequest(req));
+const clientIpKey = (req: Request): string => ipKeyGenerator(trustedClientIp(req));
 
 const sessionKeyGenerator = (req: Request): string => {
     const userId = tryResolveUserIdFromRequest(req);

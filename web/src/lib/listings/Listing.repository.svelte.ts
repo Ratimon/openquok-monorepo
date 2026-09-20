@@ -1183,11 +1183,6 @@ export class ListingRepository {
 		return [];
 	}
 
-	/** @deprecated Use {@link getAllCategories}. */
-	async getAllFullCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
-		return this.getAllCategories(fetch);
-	}
-
 	async getActiveCategories(fetch?: typeof globalThis.fetch): Promise<ListingCategoryProgrammerModel[]> {
 		const { data: getActiveCategoriesDto, ok } = await this.httpGateway.get<GetListingCategoriesResponseDto>(
 			this.config.endpoints.getActiveCategories,
@@ -1263,11 +1258,6 @@ export class ListingRepository {
 		}
 	}
 
-	/** @deprecated Use {@link deleteCategory}. */
-	async deleteListingCategory(categoryId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
-		return this.deleteCategory(categoryId, fetch);
-	}
-
 	async getAllTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
 		const { data: getAllTagsDto, ok } = await this.httpGateway.get<GetListingTagsResponseDto>(
 			this.config.endpoints.getAllTags,
@@ -1278,11 +1268,6 @@ export class ListingRepository {
 			return getAllTagsDto.data.map((row) => this.toTagPm(row));
 		}
 		return [];
-	}
-
-	/** @deprecated Use {@link getAllTags}. */
-	async getAllFullTags(fetch?: typeof globalThis.fetch): Promise<ListingTagProgrammerModel[]> {
-		return this.getAllTags(fetch);
 	}
 
 	async createTag(
@@ -1422,11 +1407,6 @@ export class ListingRepository {
 		}
 	}
 
-	/** @deprecated Use {@link deleteTag}. */
-	async deleteListingTag(tagId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
-		return this.deleteTag(tagId, fetch);
-	}
-
 	async getAdminComments(
 		params?: { limit?: number; searchTerm?: string | null },
 		fetch?: typeof globalThis.fetch
@@ -1449,14 +1429,6 @@ export class ListingRepository {
 		return [];
 	}
 
-	/** @deprecated Use {@link getAdminComments}. */
-	async getAdminListingComments(
-		params?: { limit?: number; searchTerm?: string | null },
-		fetch?: typeof globalThis.fetch
-	): Promise<AdminListingCommentProgrammerModel[]> {
-		return this.getAdminComments(params, fetch);
-	}
-
 	async getAdminActivities(
 		params?: { limit?: number },
 		fetch?: typeof globalThis.fetch
@@ -1477,14 +1449,6 @@ export class ListingRepository {
 		return [];
 	}
 
-	/** @deprecated Use {@link getAdminActivities}. */
-	async getAdminListingActivities(
-		params?: { limit?: number },
-		fetch?: typeof globalThis.fetch
-	): Promise<AdminListingActivityProgrammerModel[]> {
-		return this.getAdminActivities(params, fetch);
-	}
-
 	async approveComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
 		try {
 			const { data: approveCommentDto, ok } = await this.httpGateway.request<ApproveListingCommentResponseDto>({
@@ -1502,11 +1466,6 @@ export class ListingRepository {
 		}
 	}
 
-	/** @deprecated Use {@link approveComment}. */
-	async approveListingComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
-		return this.approveComment(commentId, fetch);
-	}
-
 	async deleteComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
 		try {
 			const { data: deleteCommentDto, ok } = await this.httpGateway.delete<DeleteListingCommentResponseDto>(
@@ -1518,11 +1477,6 @@ export class ListingRepository {
 		} catch (err) {
 			return { ok: false, error: this.extractMessage(err) };
 		}
-	}
-
-	/** @deprecated Use {@link deleteComment}. */
-	async deleteListingComment(commentId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {
-		return this.deleteComment(commentId, fetch);
 	}
 
 	async trackView(listingId: string, fetch?: typeof globalThis.fetch): Promise<ListingUpsertProgrammerModel> {

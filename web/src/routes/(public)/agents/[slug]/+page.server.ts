@@ -11,7 +11,7 @@ import {
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
 import {
@@ -146,7 +146,7 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				description: agentVm.faqDescription,
 				items: agentVm.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildAgentsLandingBreadcrumbItems({
 					variant: agentsBreadcrumbVariant,
 					agentSlug: agentVm.slug,

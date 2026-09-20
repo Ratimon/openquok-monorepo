@@ -12,7 +12,7 @@ import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOS
 import { buildAgentsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	getRootPathPublicAgent,
@@ -128,7 +128,7 @@ export async function load({ url, cookies, parent }) {
 				description: PUBLIC_AGENTS_HUB.faqSection.faqDescription,
 				items: PUBLIC_AGENTS_HUB.faqSection.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildAgentsLandingBreadcrumbItems({ variant: 'hub' }),
 				url.origin
 			)

@@ -13,7 +13,7 @@ import {
 	PUBLIC_AGENTS_HUB_SECTION_IDS,
 	PUBLIC_LANDING_BREADCRUMB
 } from '$lib/content/constants/publicLandingBreadcrumbConfig';
-import type { PublicLandingBreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import type { BreadcrumbCrumb } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { route } from '$lib/utils/path';
 
 export type AgentsLandingBreadcrumbVariant = 'hub' | 'agent-host' | 'mcp-client';
@@ -23,7 +23,7 @@ export function buildAgentsLandingBreadcrumbItems(params: {
 	agentSlug?: string;
 	agentLabel?: string;
 	channelLabel?: string | null;
-}): PublicLandingBreadcrumbCrumb[] {
+}): BreadcrumbCrumb[] {
 	const { variant, agentSlug = '', agentLabel = '', channelLabel = null } = params;
 
 	if (variant === 'hub') {
@@ -49,7 +49,7 @@ export function buildAgentsLandingBreadcrumbItems(params: {
 		? route(getRootPathPublicAgent(trimmedAgentSlug))
 		: null;
 
-	const trail: PublicLandingBreadcrumbCrumb[] = [
+	const trail: BreadcrumbCrumb[] = [
 		{ label: 'Home', href: '/' },
 		{ label: integrationHubLabel, href: integrationHubHref }
 	];
@@ -74,7 +74,7 @@ export function buildAgentsLandingBreadcrumbItems(params: {
 
 export function buildChannelsLandingBreadcrumbItems(params: {
 	platformLabel?: string | null;
-}): PublicLandingBreadcrumbCrumb[] {
+}): BreadcrumbCrumb[] {
 	const channelsHubHref = route(getRootPathPublicChannels());
 	const trimmedPlatformLabel = params.platformLabel?.trim() ?? '';
 
@@ -92,7 +92,7 @@ export function buildApiMarketingLandingBreadcrumbItems(params: {
 	capability: PublicApiCapability;
 	hubMetaTitle: string;
 	platformLabel?: string | null;
-}): PublicLandingBreadcrumbCrumb[] {
+}): BreadcrumbCrumb[] {
 	const hubHref = route(
 		params.capability === 'posting'
 			? getRootPathSocialMediaPostingApi()
@@ -119,7 +119,7 @@ export function buildToolsLandingBreadcrumbItems(params: {
 	toolRootPath: string;
 	channelLabel?: string | null;
 	channelRootPath?: string;
-}): PublicLandingBreadcrumbCrumb[] {
+}): BreadcrumbCrumb[] {
 	const toolsHubHref = route(getRootPathPublicTools());
 	const toolHref = route(params.toolRootPath);
 	const trimmedChannelLabel = params.channelLabel?.trim() ?? '';

@@ -9,7 +9,7 @@ import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPub
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	getRootPathPublicChannel,
@@ -118,7 +118,7 @@ export async function load({ url, cookies, parent }) {
 				description: PUBLIC_CHANNELS_HUB_FAQ.faqDescription,
 				items: PUBLIC_CHANNELS_HUB_FAQ.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildChannelsLandingBreadcrumbItems({}),
 				url.origin
 			)

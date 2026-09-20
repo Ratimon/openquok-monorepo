@@ -12,7 +12,7 @@ import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOS
 import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
@@ -135,7 +135,7 @@ export async function load({ url, params, cookies, parent }) {
 				description: channelVm.faqDescription,
 				items: channelVm.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildChannelsLandingBreadcrumbItems({
 					platformLabel: channelVm.platformLabel
 				}),

@@ -70,14 +70,6 @@ export function getPublicAgentChannelBySlug(
 	return buildAgentChannelPageConfig(openclawAgentChannelHost, channel);
 }
 
-/** @deprecated Pass `agentSlug` as the first argument — kept for routes that only had channel slug. */
-export function getPublicAgentChannelByChannelSlug(
-	channelSlug: string,
-	agentSlug: PublicAgentChannelHostSlug = 'openclaw'
-): PublicAgentChannelPageConfig | undefined {
-	return getPublicAgentChannelBySlug(agentSlug, channelSlug);
-}
-
 export function isPublicAgentChannelHostSlug(slug: string): slug is PublicAgentChannelHostSlug {
 	return (PUBLIC_AGENT_CHANNEL_HOST_SLUGS as readonly string[]).includes(slug.trim().toLowerCase());
 }

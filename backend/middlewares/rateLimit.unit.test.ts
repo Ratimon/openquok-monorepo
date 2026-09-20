@@ -3,8 +3,8 @@ import type { Request } from "express";
 import { isPublicReadGet } from "./publicRouteRegistry";
 import {
     buildRateLimitExceededLog,
-    clientIpFromRequest,
     isPublicCachedGetRequest,
+    trustedClientIp,
     tryResolveUserIdFromRequest,
 } from "./rateLimit";
 
@@ -47,10 +47,10 @@ const makeJwt = (payload: Record<string, unknown>): string => {
 };
 
 describe("rateLimit helpers", () => {
-    describe("clientIpFromRequest", () => {
+    describe("trustedClientIp", () => {
         it("prefers CF-Connecting-IP over req.ip when Cloudflare headers are trusted", () => {
             expect(
-                clientIpFromRequest(
+                trustedClientIp(
                     asReq({
                         ip: "104.23.160.155",
                         headers: { "cf-connecting-ip": "203.0.113.10" },
@@ -61,7 +61,7 @@ describe("rateLimit helpers", () => {
 
         it("falls back to req.ip", () => {
             expect(
-                clientIpFromRequest(
+                trustedClientIp(
                     asReq({
                         ip: "192.0.2.8",
                         headers: {},

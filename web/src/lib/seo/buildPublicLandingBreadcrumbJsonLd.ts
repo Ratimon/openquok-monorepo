@@ -7,9 +7,6 @@ export type BreadcrumbCrumb = {
 	href?: string | null;
 };
 
-/** @deprecated Use `BreadcrumbCrumb` — kept for landing-page call sites. */
-export type PublicLandingBreadcrumbCrumb = BreadcrumbCrumb;
-
 function absoluteBreadcrumbItemUrl(href: string, origin: string): string {
 	const resolved = hostedMarketingHref(href, origin);
 	if (resolved.startsWith('http://') || resolved.startsWith('https://')) {
@@ -44,9 +41,3 @@ export function createBreadcrumbListSchema(crumbs: BreadcrumbCrumb[], origin: st
 		itemListElement: buildBreadcrumbListItems(crumbs, origin)
 	};
 }
-
-/** @deprecated Use `buildBreadcrumbListItems`. */
-export const buildPublicLandingBreadcrumbListItems = buildBreadcrumbListItems;
-
-/** @deprecated Use `createBreadcrumbListSchema`. */
-export const createPublicLandingBreadcrumbListSchema = createBreadcrumbListSchema;

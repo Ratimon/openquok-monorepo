@@ -46,18 +46,3 @@ export function loadBuildingBlockDetailComponent(
 	}
 	return import('$lib/ui/templates/building-blocks/SkillBuildingBlockDetail.svelte');
 }
-
-/** @deprecated Use loadBuildingBlockDetailComponent */
-export type ExtensionBookmarkToggleResult = BuildingBlockBookmarkToggleResult;
-
-/** @deprecated Use loadBuildingBlockDetailComponent */
-export type ExtensionRatingMutationResult = BuildingBlockRatingMutationResult;
-
-/** @deprecated Use BuildingBlockDetailComponentProps */
-export type ExtensionDetailComponentProps = BuildingBlockDetailComponentProps;
-
-/** @deprecated Use BuildingBlockDetailComponent */
-export type ExtensionDetailComponent = BuildingBlockDetailComponent;
-
-/** @deprecated Use loadBuildingBlockDetailComponent */
-export const loadExtensionDetailComponent = loadBuildingBlockDetailComponent;

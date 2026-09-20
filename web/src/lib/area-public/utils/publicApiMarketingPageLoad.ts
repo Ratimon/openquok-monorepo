@@ -34,7 +34,7 @@ import { buildApiMarketingLandingBreadcrumbItems } from '$lib/content/utils/buil
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 type ParentData = {
@@ -206,7 +206,7 @@ export async function loadPublicApiMarketingHubPage(params: {
 				description: hubVm.faqDescription,
 				items: hubVm.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildApiMarketingLandingBreadcrumbItems({
 					capability,
 					hubMetaTitle: hubVm.metaTitle
@@ -312,7 +312,7 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 				description: platformVm.faqDescription,
 				items: platformVm.faqItems
 			}),
-			createPublicLandingBreadcrumbListSchema(
+			createBreadcrumbListSchema(
 				buildApiMarketingLandingBreadcrumbItems({
 					capability,
 					hubMetaTitle:
