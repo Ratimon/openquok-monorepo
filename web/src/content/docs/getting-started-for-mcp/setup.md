@@ -69,6 +69,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | <Badge text="Codex" variant="default" /> | <Badge text="~/.codex/config.toml" variant="path" /> | <a href="/docs/mcp-setup-guides/codex">Codex</a> |
 | <Badge text="Antigravity CLI" variant="default" /> | <Badge text="~/.gemini/config/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/antigravity-cli">Antigravity CLI</a> |
 | <Badge text="Warp" variant="default" /> | Settings → MCP Servers | <a href="/docs/mcp-setup-guides/warp">Warp</a> |
+| <Badge text="Muse Code" variant="default" /> | <Badge text="~/.config/muse/settings.json" variant="path" /> | <a href="/docs/mcp-setup-guides/muse-code">Muse Code</a> |
 
 ### Cursor (header auth)
 

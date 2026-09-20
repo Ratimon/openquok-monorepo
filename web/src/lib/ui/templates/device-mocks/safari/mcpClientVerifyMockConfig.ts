@@ -14,7 +14,8 @@ export type McpVerifySafariMockContentId =
 	| 'mcp-verify-amp'
 	| 'mcp-verify-codex'
 	| 'mcp-verify-antigravity-cli'
-	| 'mcp-verify-warp';
+	| 'mcp-verify-warp'
+	| 'mcp-verify-muse-code';
 
 export type McpInstallSafariMockContentId =
 	| 'mcp-install-cursor'
@@ -26,7 +27,8 @@ export type McpInstallSafariMockContentId =
 	| 'mcp-install-amp'
 	| 'mcp-install-codex'
 	| 'mcp-install-antigravity-cli'
-	| 'mcp-install-warp';
+	| 'mcp-install-warp'
+	| 'mcp-install-muse-code';
 
 export type McpVerifyMockLayout = 'ide' | 'terminal' | 'cowork';
 
@@ -169,6 +171,18 @@ const THEMES: Record<McpClient, McpClientVerifyMockTheme> = {
 		accentClass: 'text-fuchsia-300',
 		accentSoftClass: 'bg-fuchsia-500/15 text-fuchsia-100',
 		borderClass: 'border-white/10'
+	},
+	'Muse Code': {
+		layout: 'terminal',
+		mockUrl: 'dev.meta.ai/docs/muse-code',
+		productLabel: 'Muse Code',
+		panelLabel: 'muse',
+		icon: icons.MuseCode.name,
+		surfaceClass: 'bg-[#0b0f14]',
+		accentClass: 'text-blue-300',
+		accentSoftClass: 'bg-blue-500/15 text-blue-100',
+		borderClass: 'border-white/10',
+		configFileHint: 'settings.json'
 	}
 };
 

@@ -92,6 +92,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'instagram',
 	'one place',
 	'questions',
+	'Muse Code',
 	'ThinkRail',
 	'thumbnail',
 	'workspace',

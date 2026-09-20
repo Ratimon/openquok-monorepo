@@ -12,6 +12,7 @@ import { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/vscode-copilo
 import { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop';
 import { ampMcpSeed } from '$lib/content/constants/mcps/amp';
 import { warpMcpSeed } from '$lib/content/constants/mcps/warp';
+import { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
 
 export * from '$lib/content/constants/mcps/types';
 export * from '$lib/content/constants/mcps/builders';
@@ -25,6 +26,7 @@ export { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/vscode-copilo
 export { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop';
 export { ampMcpSeed } from '$lib/content/constants/mcps/amp';
 export { warpMcpSeed } from '$lib/content/constants/mcps/warp';
+export { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
 
 const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	antigravity_cliMcpSeed,
@@ -36,7 +38,8 @@ const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
 	vscode_copilotMcpSeed,
 	devin_desktopMcpSeed,
 	ampMcpSeed,
-	warpMcpSeed
+	warpMcpSeed,
+	muse_codeMcpSeed
 ];
 
 export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPageViewModel[] =

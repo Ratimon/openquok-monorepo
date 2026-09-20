@@ -11,7 +11,8 @@ export const MCP_CLIENTS = [
 	'Amp',
 	'Codex',
 	'Antigravity CLI',
-	'Warp'
+	'Warp',
+	'Muse Code'
 ] as const;
 
 export type McpClient = (typeof MCP_CLIENTS)[number];
@@ -30,7 +31,8 @@ export const MCP_CLIENT_DOCS_SLUG: Record<McpClient, string> = {
 	Amp: 'amp',
 	Codex: 'codex',
 	'Antigravity CLI': 'antigravity-cli',
-	Warp: 'warp'
+	Warp: 'warp',
+	'Muse Code': 'muse-code'
 };
 
 const json = (obj: object) => JSON.stringify(obj, null, 2);
@@ -120,6 +122,20 @@ export function getMcpClientConfig(
 				return {
 					config: json({ [MCP_SERVER_NAME]: { url: urlWithKey } }),
 					hint: 'Settings > MCP Servers > + Add, then paste this config.'
+				};
+			case 'Muse Code':
+				return {
+					config: json({
+						schema_version: 1,
+						mcp_servers: {
+							[MCP_SERVER_NAME]: {
+								transport: 'streamable_http',
+								url: urlWithKey,
+								mode: 'optional'
+							}
+						}
+					}),
+					hint: 'Add to ~/.config/muse/settings.json (schema_version must be 1).'
 				};
 		}
 	}
@@ -213,6 +229,21 @@ export function getMcpClientConfig(
 					[MCP_SERVER_NAME]: { url: urlBase, headers: { Authorization: bearer } }
 				}),
 				hint: 'Settings > MCP Servers > + Add, then paste this config.'
+			};
+		case 'Muse Code':
+			return {
+				config: json({
+					schema_version: 1,
+					mcp_servers: {
+						[MCP_SERVER_NAME]: {
+							transport: 'streamable_http',
+							url: urlBase,
+							headers: { Authorization: bearer },
+							mode: 'optional'
+						}
+					}
+				}),
+				hint: 'Add to ~/.config/muse/settings.json (schema_version must be 1).'
 			};
 	}
 }

@@ -84,6 +84,36 @@ describe('getMcpClientConfig', () => {
 		expect(parsed.mcpServers[MCP_SERVER_NAME].serverUrl).toBe(`${MCP_BASE}/mcp`);
 		expect(parsed.mcpServers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
 	});
+
+	it('generates Muse Code header auth with settings.json and streamable_http', () => {
+		const { config, hint } = getMcpClientConfig('Muse Code', 'header', MCP_BASE, API_KEY);
+		expect(hint).toContain('~/.config/muse/settings.json');
+		const parsed = JSON.parse(config) as {
+			schema_version: number;
+			mcp_servers: Record<
+				string,
+				{
+					transport: string;
+					url: string;
+					headers: { Authorization: string };
+					mode: string;
+				}
+			>;
+		};
+		expect(parsed.schema_version).toBe(1);
+		expect(parsed.mcp_servers[MCP_SERVER_NAME].transport).toBe('streamable_http');
+		expect(parsed.mcp_servers[MCP_SERVER_NAME].url).toBe(`${MCP_BASE}/mcp`);
+		expect(parsed.mcp_servers[MCP_SERVER_NAME].headers.Authorization).toBe(`Bearer ${API_KEY}`);
+	});
+
+	it('generates Muse Code path auth with token in URL', () => {
+		const { config } = getMcpClientConfig('Muse Code', 'path', MCP_BASE, API_KEY);
+		const parsed = JSON.parse(config) as {
+			mcp_servers: Record<string, { transport: string; url: string }>;
+		};
+		expect(parsed.mcp_servers[MCP_SERVER_NAME].transport).toBe('streamable_http');
+		expect(parsed.mcp_servers[MCP_SERVER_NAME].url).toBe(`${MCP_BASE}/mcp/${API_KEY}`);
+	});
 });
 
 describe('maskApiKeyInConfig', () => {

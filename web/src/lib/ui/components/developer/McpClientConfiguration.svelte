@@ -71,7 +71,9 @@
 <div class="rounded-xl border border-base-300 bg-base-200 p-6">
 	<div class="flex items-start justify-between gap-4">
 		<div>
-			<h3 class="text-base font-semibold">MCP client configuration</h3>
+			<h3 class="text-base font-semibold">
+				MCP client configuration
+			</h3>
 			<p class="text-sm text-base-content/70">
 				Connect Cursor, Claude Code, ChatGPT, Codex, and other MCP clients to OpenQuok over HTTP streaming to
 				schedule posts from your agent.

@@ -32,6 +32,7 @@ For **agent hosts** that run the CLI skill (OpenClaw, Hermes Agent, Grok Bot, Th
 <LinkCard title="Devin Desktop" description="Global ~/.codeium/mcp_config.json for Devin Local" href="/docs/mcp-setup-guides/devin-desktop" />
 <LinkCard title="Amp" description="amp mcp add or Amp settings.json" href="/docs/mcp-setup-guides/amp" />
 <LinkCard title="Warp" description="Warp terminal MCP server settings" href="/docs/mcp-setup-guides/warp" />
+<LinkCard title="Muse Code" description="Meta terminal agent — ~/.config/muse/settings.json streamable_http MCP" href="/docs/mcp-setup-guides/muse-code" />
 </CardGrid>
 
 <Callout type="note" title="Server name">
