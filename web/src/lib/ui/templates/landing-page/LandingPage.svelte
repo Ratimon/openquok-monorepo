@@ -32,8 +32,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import IconTileGrid from '$lib/ui/templates/feature-grid/IconTileGrid.svelte';
 	import PublicListingsPreviewDualGrid from '$lib/ui/components/listings/PublicListingsPreviewDualGrid.svelte';
-	import PublicPricingTabs from '$lib/ui/components/pricing/PublicPricingTabs.svelte';
-	import PublicSelfHostPricingFootnote from '$lib/ui/components/pricing/PublicSelfHostPricingFootnote.svelte';
+	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -259,11 +258,6 @@ openquok analytics:post <post-id> -d 30`
 
 	const secondaryCtaText = 'Get Started For Free';
 	const secondaryCtaHref = $derived(hostedMarketingHref('/pricing', page.url.origin));
-	const pricingCompareHref = $derived(
-		hostedMarketingHref('/pricing#pricing-compare', page.url.origin)
-	);
-	const pricingCtaHref = $derived(isLoggedIn ? '/account/billing' : '/sign-up');
-	const pricingCtaLabel = $derived(isLoggedIn ? 'Manage billing' : 'Start for $0');
 
 	// /sign-up
 	const rootPathSignUp = getRootPathSignup();
@@ -419,18 +413,11 @@ openquok analytics:post <post-id> -d 30`
 	landingDescription={featuresGridDescription}
 />
 
-<PublicPricingTabs
-	heroTheme={landingHeroTheme}
-	landingSubtitle={pricingSubtitle}
-	landingTitle={pricingTitle}
-	landingDescription={pricingDescription}
-	ctaHref={pricingCtaHref}
-	ctaLabel={pricingCtaLabel}
-	secondaryCtaHref={pricingCompareHref}
-	secondaryCtaLabel="Compare all features"
+<PublicMarketingPricingSection
+	presetId="home"
+	{isLoggedIn}
+	cmsSection={{ subtitle: pricingSubtitle, title: pricingTitle, description: pricingDescription }}
 />
-
-<PublicSelfHostPricingFootnote />
 
 <div class="container mx-auto px-4">
 	<PublicFaq

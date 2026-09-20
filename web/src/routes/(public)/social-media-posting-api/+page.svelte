@@ -15,6 +15,7 @@
 	import PublicApiMarketingHubGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingHubGrid.svelte';
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingStaticExampleBento from '$lib/ui/templates/api-marketing/PublicApiMarketingStaticExampleBento.svelte';
+	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 
 	type Props = { data: PageData };
 
@@ -58,6 +59,8 @@
 	<PublicApiMarketingHubGrid capability="posting" platformsVm={platformsVm} />
 
 	<PublicApiMarketingFeatureRows />
+
+	<PublicMarketingPricingSection presetId="api-posting-hub" {isLoggedIn} />
 
 	<div class="container mx-auto px-4">
 		<PublicFaq

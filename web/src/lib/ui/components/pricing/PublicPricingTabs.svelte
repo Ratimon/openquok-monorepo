@@ -246,7 +246,9 @@
 					</div>
 
 					{#if selectedPlan && selectedTabIcon}
-						{@const selectedMeta = PUBLIC_PRICING_PLAN_META[selectedPlan.tier]}
+						{@const selectedTabHeadline =
+							selectedPlan.tabHeadline ??
+							PUBLIC_PRICING_PLAN_META[selectedPlan.tier].tabHeadline}
 						{@const tierIconClass = TIER_ICON_CLASS[selectedPlan.tier]}
 						<div
 							id="landing-pricing-panel"
@@ -287,7 +289,7 @@
 								<p
 									class="text-base font-semibold leading-snug text-balance text-neutral-200 sm:text-lg"
 								>
-									{selectedMeta.tabHeadline}
+									{selectedTabHeadline}
 								</p>
 
 								<div class="flex flex-col gap-3">

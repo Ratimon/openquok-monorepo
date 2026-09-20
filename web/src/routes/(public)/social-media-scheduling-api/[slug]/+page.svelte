@@ -17,6 +17,7 @@
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingSiblingGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingSiblingGrid.svelte';
 	import PublicApiMarketingWhoIsFor from '$lib/ui/templates/api-marketing/PublicApiMarketingWhoIsFor.svelte';
+	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
 
 	type Props = { data: PageData };
 
@@ -90,6 +91,12 @@
 		/>
 
 		<PublicApiMarketingFeatureRows sections={featureSections} />
+
+		<PublicMarketingPricingSection
+			presetId="api-scheduling-platform"
+			platformLabel={platformVm.platformLabel}
+			{isLoggedIn}
+		/>
 
 		<div class="container mx-auto px-4">
 			<PublicFaq

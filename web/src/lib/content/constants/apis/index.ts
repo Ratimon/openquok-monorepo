@@ -56,6 +56,14 @@ export {
 	getPublicApiPlatformFeatureSections
 } from '$lib/content/constants/apis/publicApiCapabilityHubFeatureConfig';
 export {
+	getPublicPricingLandingPlanOverrides,
+	getPublicPricingLandingSection,
+	type PublicPricingLandingContext,
+	type PublicPricingLandingPlanOverrides,
+	type PublicPricingLandingPresetId,
+	type PublicPricingLandingSection
+} from '$lib/billing/constants/publicPricingLandingSectionConfig';
+export {
 	SHARED_PUBLIC_API_SEO_KEYWORDS,
 	PUBLIC_API_CREATE_POST_ENDPOINT,
 	PUBLIC_API_CLOUD_PUBLIC_BASE_URL,

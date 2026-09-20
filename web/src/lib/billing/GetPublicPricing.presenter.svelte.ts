@@ -17,6 +17,7 @@ import {
 	PUBLIC_PRICING_SHARED_CARD_FEATURES,
 	PUBLIC_PRICING_TIER_ORDER
 } from '$lib/billing/constants/publicPricingCatalog';
+import type { PublicPricingLandingPlanOverrides } from '$lib/billing/constants/publicPricingLandingSectionConfig';
 import {
 	accountTeamMemberSeatTotal,
 	isUnlimitedTeamMembersPerWorkspace,
@@ -48,6 +49,8 @@ export type PublicPricingPlanCardViewModel = {
 	isFeatured: boolean;
 	features: string[];
 	compareFootnote?: string;
+	/** Landing tab detail card headline; falls back to catalog meta when unset. */
+	tabHeadline?: string;
 };
 
 export type PublicPricingPageViewModel = {
@@ -286,6 +289,25 @@ export class GetPublicPricingPresenter {
 			compareRows,
 			featuredTier: PUBLIC_PRICING_FEATURED_TIER
 		};
+	}
+
+	public buildLandingTabPlans(
+		period: SubscriptionPeriod,
+		options?: { planMetaOverrides?: PublicPricingLandingPlanOverrides }
+	): PublicPricingPlanCardViewModel[] {
+		const plans = this.buildPageVm(period).plans;
+		const overrides = options?.planMetaOverrides;
+		if (!overrides) {
+			return plans;
+		}
+
+		return plans.map((plan) => {
+			const tabHeadline = overrides[plan.tier]?.tabHeadline;
+			if (!tabHeadline) {
+				return plan;
+			}
+			return { ...plan, tabHeadline };
+		});
 	}
 
 	/** Catalog-only PM source for tests and SSR. */

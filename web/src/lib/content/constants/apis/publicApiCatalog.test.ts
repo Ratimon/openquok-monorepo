@@ -17,6 +17,10 @@ import {
 	publicApiPostingHubPage,
 	publicApiSchedulingHubPage
 } from '$lib/content/constants/apis/index';
+import {
+	getPublicPricingLandingPlanOverrides,
+	getPublicPricingLandingSection
+} from '$lib/billing/constants/publicPricingLandingSectionConfig';
 import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
 import {
 	buildPublicApiHubHeroTitle,
@@ -176,5 +180,20 @@ describe('publicApiCatalog', () => {
 				expect.objectContaining({ '@type': 'HowToStep', position: 3 })
 			])
 		});
+	});
+
+	it('exposes API marketing pricing landing presets alongside catalog helpers', async () => {
+		const apis = await import('$lib/content/constants/apis/index');
+
+		expect(apis.getPublicPricingLandingSection).toBeTypeOf('function');
+		expect(apis.getPublicPricingLandingPlanOverrides).toBeTypeOf('function');
+
+		const section = getPublicPricingLandingSection('api-scheduling-platform', {
+			platformLabel: 'TikTok'
+		});
+		const overrides = getPublicPricingLandingPlanOverrides('api-scheduling-hub');
+
+		expect(section.title).toContain('TikTok');
+		expect(overrides.TEAM?.tabHeadline).toContain('OAuth');
 	});
 });

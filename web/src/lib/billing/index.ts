@@ -70,6 +70,14 @@ export {
 	type ListBillingPlansProgrammerModel
 } from '$lib/billing/Billing.repository.svelte';
 export { stripePriceIdForTier, STRIPE_PUBLISHABLE_KEY } from '$lib/billing/constants/config';
+export {
+	getPublicPricingLandingPlanOverrides,
+	getPublicPricingLandingSection,
+	type PublicPricingLandingContext,
+	type PublicPricingLandingPlanOverrides,
+	type PublicPricingLandingPresetId,
+	type PublicPricingLandingSection
+} from '$lib/billing/constants/publicPricingLandingSectionConfig';
 export { preloadStripe, ensureStripePreconnect } from '$lib/billing/stripe/loadStripeClient';
 export {
 	teamMemberDowngradeWarning,
