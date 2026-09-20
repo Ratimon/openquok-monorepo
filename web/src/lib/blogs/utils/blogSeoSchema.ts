@@ -40,6 +40,7 @@ import { createBlogChildPageBreadcrumbListSchema } from '$lib/blogs/utils/buildB
 import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
 import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
+import { createOpenQuokMerchantReturnPolicy } from '$lib/seo/createMerchantReturnPolicySEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes, type JsonLdGraphSchema } from '$lib/seo/jsonLdSchema';
 
@@ -407,9 +408,10 @@ function createBlogPostProductNode(params: {
 	companyName: string;
 	companySiteUrl: string;
 	heroImageUrl: string;
+	origin: string;
 	product: BlogSeoProduct;
 }): Product | Record<string, never> {
-	const { canonicalUrl, companyName, companySiteUrl, heroImageUrl, product } = params;
+	const { canonicalUrl, companyName, companySiteUrl, heroImageUrl, origin, product } = params;
 	if (!product.name?.trim() || !product.description?.trim()) return {};
 
 	const brandName = product.brand?.trim() || companyName;
@@ -420,7 +422,8 @@ function createBlogPostProductNode(params: {
 		price: '0',
 		priceCurrency: 'USD',
 		availability: 'https://schema.org/InStock',
-		url: productUrl
+		url: productUrl,
+		hasMerchantReturnPolicy: createOpenQuokMerchantReturnPolicy({ origin })
 	} satisfies Offer;
 
 	return {
@@ -735,6 +738,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 					companyName,
 					companySiteUrl: siteFallback,
 					heroImageUrl: heroUrl,
+					origin,
 					product
 				})
 			: {}

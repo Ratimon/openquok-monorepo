@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 17, 2026</SectionDescription>
+			<SectionDescription>Last updated September 20, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -108,10 +108,12 @@
 					automatically at the then-current rate unless you cancel before renewal.
 				</p>
 				<p>
-					Except where required by applicable law or expressly stated in a written refund policy on
-					our site, fees are non-refundable, including for partially used periods. Cancelling stops
-					future renewals; it does not entitle you to a pro-rata refund of the current period. Fees
-					are exclusive of taxes, duties, and similar charges, which are your responsibility where
+					Except where required by applicable law or expressly stated in our written refund policy
+					(for Cloud billing, see
+					<a href="/docs/cloud/refunds-and-support" class="link link-hover">Refunds and support</a>),
+					fees are non-refundable, including for partially used periods. Cancelling stops future
+					renewals; it does not entitle you to a pro-rata refund of the current period. Fees are
+					exclusive of taxes, duties, and similar charges, which are your responsibility where
 					applicable.
 				</p>
 				<p>

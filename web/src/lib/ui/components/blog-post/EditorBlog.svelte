@@ -750,7 +750,7 @@
 								<div>
 									<Field.Label>Product summary</Field.Label>
 									<Field.Description>
-										Name, description, and optional link shown on the post and in Product structured data.
+										Name, description, and optional link shown on the post and in Product structured data. JSON-LD adds a free Offer and links OpenQuok&apos;s refund policy automatically.
 									</Field.Description>
 								</div>
 								<div class="grid gap-4 sm:grid-cols-1 md:grid-cols-2">

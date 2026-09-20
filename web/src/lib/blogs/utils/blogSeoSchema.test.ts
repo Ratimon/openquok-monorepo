@@ -366,7 +366,11 @@ describe('createBlogPostSEOSchema product node', () => {
 				price: '0',
 				priceCurrency: 'USD',
 				availability: 'https://schema.org/InStock',
-				url: 'https://www.openquok.com/tools/humanizer'
+				url: 'https://www.openquok.com/tools/humanizer',
+				hasMerchantReturnPolicy: {
+					'@type': 'MerchantReturnPolicy',
+					merchantReturnLink: 'https://www.openquok.com/docs/cloud/refunds-and-support'
+				}
 			}
 		});
 	});

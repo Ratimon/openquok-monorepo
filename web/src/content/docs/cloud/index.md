@@ -42,7 +42,7 @@ Self-hosted installs skip that gate when Stripe is unset — see [Stripe billing
 <LinkCard title="Trial" description="7-day Cloud trial with no credit card required to start" href="/docs/cloud/trial" />
 <LinkCard title="Subscription" description="Stripe checkout, upgrades, cancellations, and the billing portal" href="/docs/cloud/subscription" />
 <LinkCard title="Limits" description="What happens when you hit a workspace, channel, post, or storage cap" href="/docs/cloud/limits" />
-<LinkCard title="Refunds and support" description="Refund window, unused periods, and how to reach the team" href="/docs/cloud/refunds-and-support" />
+<LinkCard title="Refunds and support" description="7-day refund window, unused periods, and how to reach the team" href="/docs/cloud/refunds-and-support" />
 </CardGrid>
 
 ## Related Section(s)
