@@ -10,7 +10,7 @@
 	} from '$lib/posts/utils/buildPayloadWizardMockChannels';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
+	import PublicApiJsonPayloadBlock from '$lib/ui/templates/api-marketing/PublicApiJsonPayloadBlock.svelte';
 	import PicksSocialsComponent from '$lib/ui/components/posts/PicksSocialsComponent.svelte';
 
 	type ParsedRequestPreview = {
@@ -104,19 +104,13 @@
 			{/if}
 		</div>
 
-		<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
-			<p class="text-xs font-medium tracking-wide text-base-content/60 uppercase">Endpoint</p>
-			<p class="mt-2 font-mono text-sm text-base-content">{staticExample.endpoint}</p>
+		<div class="rounded-lg border border-primary/20 bg-primary/5 p-3">
+			<p class="text-xs font-medium tracking-wide text-primary/80 uppercase">Endpoint</p>
+			<p class="mt-2 font-mono text-sm text-primary">{staticExample.endpoint}</p>
 		</div>
 
 		<div class="pointer-events-auto">
-			<CopyBlock
-				text={staticExample.requestJson}
-				background="bg-base-100"
-				copiedBackground="bg-success/20"
-				boxClass="rounded-xl border border-base-300 p-4 text-left text-xs leading-relaxed whitespace-pre-wrap font-mono"
-				copiedColor="text-success"
-			/>
+			<PublicApiJsonPayloadBlock json={staticExample.requestJson} />
 		</div>
 	</div>
 </div>

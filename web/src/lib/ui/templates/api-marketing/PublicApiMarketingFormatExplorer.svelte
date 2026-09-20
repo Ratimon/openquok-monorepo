@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PublicApiFormatExample } from '$lib/content/constants/apis/types';
 
-	import CopyBlock from '$lib/ui/components/CopyBlock.svelte';
+	import PublicApiJsonPayloadBlock from '$lib/ui/templates/api-marketing/PublicApiJsonPayloadBlock.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -64,24 +64,12 @@
 				<div class="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-2">
 					<div class="space-y-4 rounded-2xl border border-base-content/10 bg-base-200/30 p-5">
 						<h3 class="text-sm font-bold tracking-wide text-base-content uppercase">Request</h3>
-						<CopyBlock
-							text={selectedExample.requestJson}
-							background="bg-base-100"
-							copiedBackground="bg-success/20"
-							boxClass="rounded-xl border border-base-content/10 p-4 text-left text-xs leading-relaxed whitespace-pre-wrap font-mono"
-							copiedColor="text-success"
-						/>
+						<PublicApiJsonPayloadBlock json={selectedExample.requestJson} label="JSON body" />
 					</div>
 
 					<div class="space-y-4 rounded-2xl border border-base-content/10 bg-base-200/30 p-5">
 						<h3 class="text-sm font-bold tracking-wide text-base-content uppercase">Response</h3>
-						<CopyBlock
-							text={selectedExample.responseJson}
-							background="bg-base-100"
-							copiedBackground="bg-success/20"
-							boxClass="rounded-xl border border-base-content/10 p-4 text-left text-xs leading-relaxed whitespace-pre-wrap font-mono"
-							copiedColor="text-success"
-						/>
+						<PublicApiJsonPayloadBlock json={selectedExample.responseJson} label="JSON body" />
 					</div>
 				</div>
 			{/if}

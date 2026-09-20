@@ -14,6 +14,7 @@
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
 	import PayloadWizardComposerPanel from '$lib/ui/templates/api-marketing/PayloadWizardComposerPanel.svelte';
+	import PublicApiJsonPayloadBlock from '$lib/ui/templates/api-marketing/PublicApiJsonPayloadBlock.svelte';
 
 	type PayloadPreviewTab = 'live' | string;
 
@@ -207,9 +208,7 @@
 			{/if}
 
 			{#if previewJsonReady}
-				<pre
-					class="min-h-0 flex-1 overflow-auto rounded-md border border-base-300 bg-base-200/40 p-4 text-xs text-base-content"
-				><code>{previewJsonText}</code></pre>
+				<PublicApiJsonPayloadBlock json={previewJsonText} variant="embedded" />
 			{:else}
 				<div class="min-h-0 flex-1 rounded-md border border-base-300 bg-base-200/40 p-4">
 					<p class="text-sm text-base-content/70">
