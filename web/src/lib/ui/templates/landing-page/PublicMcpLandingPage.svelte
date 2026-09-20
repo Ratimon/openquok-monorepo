@@ -13,6 +13,7 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+	import { getPublicMcpSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -92,6 +93,13 @@
 		integrationTab === 'skill' ? 'skill-setup-steps' : 'setup-steps'
 	);
 
+	const setupStepsFooter = $derived(
+		getPublicMcpSetupStepsFooter(integrationTab, mcpVm.docsPath)
+	);
+	const setupStepsFooterHref = $derived(
+		hostedMarketingHref(setupStepsFooter.footerLinkHref, page.url.origin)
+	);
+
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(mcpVm.agentLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(mcpVm.agentLabel));
 </script>
@@ -148,6 +156,9 @@
 			sectionSubtitle={activeSetupStepsSubtitle}
 			sectionTitle={activeSetupStepsTitle}
 			sectionId={activeSetupStepsSectionId}
+			footerPrompt={setupStepsFooter.footerPrompt}
+			footerLinkLabel={setupStepsFooter.footerLinkLabel}
+			footerLinkHref={setupStepsFooterHref}
 		/>
 	{/key}
 {/if}

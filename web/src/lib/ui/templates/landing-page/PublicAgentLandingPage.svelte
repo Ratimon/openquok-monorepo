@@ -25,6 +25,7 @@
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 	import { PUBLIC_LANDING_GETTING_STARTED_GUIDE_CTA } from '$lib/content/constants/publicLandingHeroCopy';
+	import { getPublicAgentSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -118,6 +119,11 @@
 		agentIcon: agentVm.icon,
 		agentLabel: agentVm.telegramBotLabel ?? agentVm.agentLabel
 	});
+
+	const setupStepsFooter = $derived(getPublicAgentSetupStepsFooter(agentVm.docsPath));
+	const setupStepsFooterHref = $derived(
+		hostedMarketingHref(setupStepsFooter.footerLinkHref, page.url.origin)
+	);
 </script>
 
 {#if isChannelComingSoon && comingSoonPlatformLabel && agentVm.heroSecondaryIcon}
@@ -163,6 +169,9 @@
 		heroTheme={landingHeroTheme}
 		sectionSubtitle={agentVm.setupStepsSubtitle}
 		sectionTitle={agentVm.setupStepsTitle}
+		footerPrompt={setupStepsFooter.footerPrompt}
+		footerLinkLabel={setupStepsFooter.footerLinkLabel}
+		footerLinkHref={setupStepsFooterHref}
 		{telegramAgentBranding}
 	/>
 {/if}

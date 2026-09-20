@@ -146,7 +146,7 @@ Helper: `createPublicAudienceSectionSEOSchema`, `withSchemaOrgAudience`, `buildS
 
 ## Setup steps section (`FeaturesOrdered`)
 
-Agent, MCP, and API marketing pages render ordered setup steps via `FeaturesOrdered.svelte` (or wrappers `PublicApiMarketingHubSetupSteps.svelte`). Copy lives in agent/MCP VMs (`setupSteps*`) or `publicApiCapabilityHubSetupStepsConfig.ts`.
+Agent, MCP, and API marketing pages render ordered setup steps via `FeaturesOrdered.svelte` (or wrappers `PublicApiMarketingHubSetupSteps.svelte`). Copy lives in agent/MCP VMs (`setupSteps*`) or `publicApiCapabilityHubSetupStepsConfig.ts`. Section footers (`New to OpenQuok?` + docs link) resolve from `publicSetupStepsFooterConfig.ts` — API → `/docs/getting-started-for-public-api`, agents → `docsPath`, MCP client tab → `docsPath`, MCP skill tab → `/docs/getting-started-for-cli`.
 
 **Schema.org:** `FeaturesOrdered.svelte` is presentational only. Page loaders emit **`HowTo`** JSON-LD via `createPublicSetupStepsSEOSchema.ts` at `{canonical}#setup-steps`. MCP pages also emit `#skill-setup-steps` for the skill tab (`buildPublicMcpSetupStepsSeoSchemas`). Pass optional `sectionId` on `FeaturesOrdered` so the visible section `id` matches the JSON-LD fragment. Do not use `ItemList` alone for procedural steps — [`HowTo`](https://schema.org/HowTo) + [`HowToStep`](https://schema.org/HowToStep) match the section semantics. Optional step media (`terminalCode`, device mocks) stays out of JSON-LD; only plain `title` and `content` are included.
 

@@ -14,8 +14,6 @@ export type PublicApiHubSetupStepsSection = {
 	setupStepsTitle: string;
 	setupStepsDescription: string;
 	setupSteps: readonly FeaturesOrderedStep[];
-	setupStepsFooterPrompt: string;
-	setupStepsFooterLinkLabel: string;
 };
 
 const HUB_POSTING_REQUEST_JSON = prettyPublicApiJson({
@@ -72,9 +70,7 @@ export const PUBLIC_API_POSTING_HUB_SETUP_STEPS: PublicApiHubSetupStepsSection =
 			mediaAlt: 'Publish a post with POST /public/posts',
 			iconName: icons.Send.name
 		}
-	],
-	setupStepsFooterPrompt: 'New to OpenQuok?',
-	setupStepsFooterLinkLabel: 'Read the getting started guide'
+	]
 };
 
 export const PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS: PublicApiHubSetupStepsSection = {
@@ -94,9 +90,7 @@ export const PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS: PublicApiHubSetupStepsSectio
 			mediaAlt: 'Schedule a post with scheduledAt on POST /public/posts',
 			iconName: icons.CalendarClock.name
 		}
-	],
-	setupStepsFooterPrompt: 'New to OpenQuok?',
-	setupStepsFooterLinkLabel: 'Read the getting started guide'
+	]
 };
 
 const SETUP_STEPS_BY_CAPABILITY: Record<PublicApiCapability, PublicApiHubSetupStepsSection> = {

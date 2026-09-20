@@ -6,6 +6,7 @@
 		getPublicApiHubSetupStepsSection,
 		getPublicApiPlatformSetupStepsSection
 	} from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+	import { getPublicApiSetupStepsFooter } from '$lib/content/constants/publicSetupStepsFooterConfig';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -35,8 +36,9 @@
 				)
 			: getPublicApiHubSetupStepsSection(capability)
 	);
+	const setupStepsFooter = $derived(getPublicApiSetupStepsFooter());
 	const gettingStartedHref = $derived(
-		hostedMarketingHref('/docs/getting-started-for-public-api', page.url.origin)
+		hostedMarketingHref(setupStepsFooter.footerLinkHref, page.url.origin)
 	);
 </script>
 
@@ -46,7 +48,7 @@
 	sectionSubtitle={section.setupStepsSubtitle}
 	sectionTitle={section.setupStepsTitle}
 	sectionDescription={section.setupStepsDescription}
-	footerPrompt={section.setupStepsFooterPrompt}
-	footerLinkLabel={section.setupStepsFooterLinkLabel}
+	footerPrompt={setupStepsFooter.footerPrompt}
+	footerLinkLabel={setupStepsFooter.footerLinkLabel}
 	footerLinkHref={gettingStartedHref}
 />
