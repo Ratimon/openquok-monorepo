@@ -28,6 +28,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
 	hootsuite: 'https://www.hootsuite.com',
 	'hopper-hq': 'https://www.hopperhq.com',
+	later: 'https://later.com',
 	buffer: 'https://buffer.com',
 	'claw-post': 'https://clawpost.net',
 	mixpost: 'https://mixpost.app',
@@ -44,6 +45,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	| typeof COMPARE_HUB_BASE_SLUG
 	| 'hootsuite'
 	| 'hopper-hq'
+	| 'later'
 	| 'buffer'
 	| 'claw-post'
 	| 'mixpost'

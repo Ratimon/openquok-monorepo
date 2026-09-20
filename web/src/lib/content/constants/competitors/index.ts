@@ -13,6 +13,7 @@ import { bufferCompareProduct } from '$lib/content/constants/competitors/buffer'
 import { clawPostCompareProduct } from '$lib/content/constants/competitors/claw-post';
 import { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 import { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+import { laterCompareProduct } from '$lib/content/constants/competitors/later';
 import { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 import { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
 import { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
@@ -35,6 +36,7 @@ export { buildComparePair } from '$lib/content/constants/competitors/buildCompar
 export { openquokCompareProduct } from '$lib/content/constants/competitors/openquok';
 export { hopperHqCompareProduct } from '$lib/content/constants/competitors/hopper-hq';
 export { hootsuiteCompareProduct } from '$lib/content/constants/competitors/hootsuite';
+export { laterCompareProduct } from '$lib/content/constants/competitors/later';
 export { mixpostCompareProduct } from '$lib/content/constants/competitors/mixpost';
 export { openpostCompareProduct } from '$lib/content/constants/competitors/openpost';
 export { bufferCompareProduct } from '$lib/content/constants/competitors/buffer';
@@ -52,6 +54,7 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	openquokCompareProduct,
 	hootsuiteCompareProduct,
 	hopperHqCompareProduct,
+	laterCompareProduct,
 	bufferCompareProduct,
 	clawPostCompareProduct,
 	recurpostCompareProduct,

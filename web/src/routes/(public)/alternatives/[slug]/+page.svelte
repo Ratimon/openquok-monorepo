@@ -73,6 +73,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-blue-500/20 via-sky-400/16 to-cyan-300/16 text-blue-100 ring-blue-400/28'
 		},
+		later: {
+			heroContainerClass:
+				'bg-linear-to-br from-violet-800/40 via-fuchsia-700/20 to-orange-400/25 text-amber-50 ring-violet-500/40',
+			cardContainerClass:
+				'bg-linear-to-br from-violet-800/28 via-fuchsia-700/16 to-orange-400/18 text-amber-50 ring-violet-500/28'
+		},
 		buffer: {
 			heroContainerClass:
 				'bg-linear-to-br from-sky-400/30 via-cyan-300/20 to-blue-300/20 text-sky-100 ring-sky-300/35',

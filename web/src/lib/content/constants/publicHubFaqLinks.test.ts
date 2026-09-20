@@ -77,9 +77,11 @@ describe('pSEO hub FAQ funnel links', () => {
 		expect(scheduleFaq?.description).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 	});
 
-	it('compare hub links buffer compare, pricing, and alternatives', () => {
+	it('compare hub links buffer compare, later compare, pricing, and alternatives', () => {
 		const html = PUBLIC_COMPARE_HUB_FAQ.faqItems.map((item) => item.description).join('\n');
 		expect(html).toContain(`href="${publicFaqHref.compareOpenquokBuffer}"`);
+		expect(html).toContain(`href="${publicFaqHref.compareOpenquokLater}"`);
+		expect(html).toContain(`href="${publicFaqHref.alternativesLater}"`);
 		expect(html).toContain(`href="${publicFaqHref.pricing}"`);
 		expect(html).toContain(`href="${publicFaqHref.alternatives}"`);
 	});

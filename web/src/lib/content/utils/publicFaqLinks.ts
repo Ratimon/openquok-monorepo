@@ -1,5 +1,8 @@
 import { getRootPathPublicAgent, getRootPathPublicAgentChannel, getRootPathPublicAgents } from '$lib/area-public/constants/getRootPathPublicAgents';
-import { getRootPathPublicAlternatives } from '$lib/area-public/constants/getRootPathPublicAlternatives';
+import {
+	getRootPathPublicAlternatives,
+	getRootPathPublicAlternativesTarget
+} from '$lib/area-public/constants/getRootPathPublicAlternatives';
 import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { getRootPathPublicBuildingBlocks, getRootPathPublicBuildingBlocksTag } from '$lib/area-public/constants/getRootPathPublicBuildingBlocks';
 import { getRootPathPublicChannel, getRootPathPublicChannels } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -72,7 +75,9 @@ export const publicFaqHref = {
 	tools: route(getRootPathPublicTools()),
 	compare: route(getRootPathPublicCompare()),
 	compareOpenquokBuffer: faqHrefComparePair('openquok', 'buffer'),
+	compareOpenquokLater: faqHrefComparePair('openquok', 'later'),
 	alternatives: route(getRootPathPublicAlternatives()),
+	alternativesLater: route(getRootPathPublicAlternativesTarget('later')),
 	playbooks: route(getRootPathPublicPlaybooks()),
 	buildingBlocks: route(getRootPathPublicBuildingBlocks()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),

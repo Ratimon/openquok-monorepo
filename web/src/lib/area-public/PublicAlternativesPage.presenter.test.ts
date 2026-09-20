@@ -30,6 +30,16 @@ describe('PublicAlternativesPagePresenter', () => {
 		expect(vm!.description.toLowerCase()).toContain('alternatives');
 	});
 
+	it('builds a Later alternatives directory with OpenQuok ranked first', () => {
+		const vm = presenter.buildDetailVm('later');
+		expect(vm).not.toBeNull();
+
+		expect(vm!.metaTitle).toBe('Best Later Alternatives');
+		expect(vm!.targetName).toBe('Later');
+		expect(vm!.listings[0]?.isOpenQuok).toBe(true);
+		expect(vm!.listings[0]?.compareHref).toContain('/compare/openquok/later');
+	});
+
 	it('highlights OpenQuok open-source positioning in the #1 listing description', () => {
 		const vm = presenter.buildDetailVm('hootsuite');
 		expect(vm).not.toBeNull();

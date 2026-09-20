@@ -7,6 +7,7 @@ export type CompareProductSlug =
 	| 'openquok'
 	| 'hootsuite'
 	| 'hopper-hq'
+	| 'later'
 	| 'buffer'
 	| 'claw-post'
 	| 'mixpost'

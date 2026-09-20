@@ -13,7 +13,7 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 	faqSubtitle: 'Compare FAQ',
 	faqTitle: 'Product Comparison, answered',
 	faqDescription:
-		'How head-to-head pages work, where to start with Buffer, how pricing stacks up, and how to browse alternative directories.',
+		'How head-to-head pages work, where to start with Buffer or Later, how pricing stacks up, and how to browse alternative directories.',
 	faqItems: [
 		{
 			title: 'How do OpenQuok comparison pages work?',
@@ -24,6 +24,11 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 			title: 'Where should I start for OpenQuok vs Buffer?',
 			description:
 				`Read ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} for plan limits, agent workflows, and approval controls. The ${faqLink(publicFaqHref.blogBufferAlternatives, 'Buffer alternatives guide')} covers teams that want human review before AI-assisted posts go live.`
+		},
+		{
+			title: 'Where should I start for OpenQuok vs Later?',
+			description:
+				`Read ${faqLink(publicFaqHref.compareOpenquokLater, 'OpenQuok vs Later')} for social-set pricing, Instagram grid planning, Link in Bio, and agent workflows. Browse ${faqLink(publicFaqHref.alternativesLater, 'Later alternatives')} if you want workspace isolation and a public API instead of a visual dashboard.`
 		},
 		{
 			title: 'How does OpenQuok pricing compare?',
