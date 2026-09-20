@@ -9,8 +9,10 @@ import {
 	PUBLIC_BEST_TIME_GENERIC_CONFIG
 } from '$lib/best-time-to-post';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -47,7 +49,14 @@ export async function load({ url, cookies, parent }) {
 				name: companyName,
 				url: url.origin
 			}
-		} satisfies SoftwareApplication
+		} satisfies SoftwareApplication,
+		createPublicLandingBreadcrumbListSchema(
+			buildToolsLandingBreadcrumbItems({
+				toolLabel: 'Best Time to Post',
+				toolRootPath: getRootPathPublicBestTimeToPost()
+			}),
+			url.origin
+		)
 	]);
 
 	return {

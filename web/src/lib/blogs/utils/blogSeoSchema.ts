@@ -2,7 +2,6 @@ import { base } from '$app/paths';
 
 import type {
 	Blog,
-	BreadcrumbList,
 	CollectionPage,
 	FAQPage,
 	HowTo,
@@ -37,6 +36,7 @@ import {
 	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
+import { createBlogChildPageBreadcrumbListSchema } from '$lib/blogs/utils/buildBlogBreadcrumbItems';
 import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
 import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
@@ -212,7 +212,6 @@ export function createBlogTopicSEOSchema(params: CreateBlogTopicSEOSchemaParams)
 	const { canonicalUrl, origin, companyName, topic, posts } = params;
 	const name = topic.name;
 	const description = topic.description?.trim() || `Blog posts about ${topic.name}`;
-	const blogIndexUrl = absoluteAppUrl(origin, `/${getRootPathPublicBlog()}`);
 
 	const postsList = blogPostItemListNode({
 		canonicalUrl,
@@ -222,27 +221,7 @@ export function createBlogTopicSEOSchema(params: CreateBlogTopicSEOSchemaParams)
 		posts
 	});
 
-	const breadcrumbList: BreadcrumbList = {
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				item: {
-					'@id': blogIndexUrl,
-					name: 'Blog'
-				}
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				item: {
-					'@id': canonicalUrl,
-					name: topic.name
-				}
-			}
-		]
-	};
+	const breadcrumbList = createBlogChildPageBreadcrumbListSchema(topic.name, origin);
 
 	return createJsonLdGraph([
 		collectionPageNode({
@@ -328,7 +307,6 @@ export function createBlogAuthorSEOSchema(params: CreateBlogAuthorSEOSchemaParam
 	const { canonicalUrl, origin, companyName, author, identifier, posts } = params;
 	const displayName = author.fullName?.trim() || author.username?.trim() || 'Anonymous';
 	const description = author.tagLine?.trim() || `Blog posts by ${displayName}`;
-	const blogIndexUrl = absoluteAppUrl(origin, `/${getRootPathPublicBlog()}`);
 	const authorUrl = absoluteAppUrl(origin, `/${getRootPathPublicBlogAuthor(identifier)}`);
 	const authorImage = author.avatarUrl?.trim() || undefined;
 	const authorHandle = author.username?.trim() ? `@${author.username.trim()}` : undefined;
@@ -341,27 +319,7 @@ export function createBlogAuthorSEOSchema(params: CreateBlogAuthorSEOSchemaParam
 		posts
 	});
 
-	const breadcrumbList: BreadcrumbList = {
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{
-				'@type': 'ListItem',
-				position: 1,
-				item: {
-					'@id': blogIndexUrl,
-					name: 'Blog'
-				}
-			},
-			{
-				'@type': 'ListItem',
-				position: 2,
-				item: {
-					'@id': authorUrl,
-					name: displayName
-				}
-			}
-		]
-	};
+	const breadcrumbList = createBlogChildPageBreadcrumbListSchema(displayName, origin);
 
 	return createJsonLdGraph([
 		{
@@ -749,42 +707,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		blogPosting.comment = commentNodes.map((n) => ({ '@id': n['@id'] }));
 	}
 
-	const breadcrumbItems: Record<string, unknown>[] = [
-		{
-			'@type': 'ListItem',
-			position: 1,
-			item: {
-				'@id': blogIndexUrl,
-				name: 'Blog'
-			}
-		}
-	];
-
-	if (post.topic) {
-		const topicUrl = absoluteAppUrl(origin, `/${getRootPathPublicBlog()}/topic/${post.topic.slug}`);
-		breadcrumbItems.push({
-			'@type': 'ListItem',
-			position: 2,
-			item: {
-				'@id': topicUrl,
-				name: post.topic.name
-			}
-		});
-	}
-
-	breadcrumbItems.push({
-		'@type': 'ListItem',
-		position: post.topic ? 3 : 2,
-		item: {
-			'@id': canonicalUrl,
-			name: post.title
-		}
-	});
-
-	const breadcrumbList: Record<string, unknown> = {
-		'@type': 'BreadcrumbList',
-		itemListElement: breadcrumbItems
-	};
+	const breadcrumbList = createBlogChildPageBreadcrumbListSchema(post.title, origin);
 
 	const faqItems = post.faqItems ?? [];
 	const howtoSteps = post.howtoSteps ?? [];

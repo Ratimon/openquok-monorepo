@@ -30,9 +30,11 @@ import type {
 	MarketingInformationProgrammerModel
 } from '$lib/area-public/publicInformation.types';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildApiMarketingLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 type ParentData = {
@@ -203,7 +205,14 @@ export async function loadPublicApiMarketingHubPage(params: {
 				name: hubVm.faqTitle,
 				description: hubVm.faqDescription,
 				items: hubVm.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildApiMarketingLandingBreadcrumbItems({
+					capability,
+					hubMetaTitle: hubVm.metaTitle
+				}),
+				url.origin
+			)
 		])
 	);
 
@@ -302,7 +311,18 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 				name: platformVm.faqTitle,
 				description: platformVm.faqDescription,
 				items: platformVm.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildApiMarketingLandingBreadcrumbItems({
+					capability,
+					hubMetaTitle:
+						capability === 'posting'
+							? getPublicApiPostingHubPage().metaTitle
+							: getPublicApiSchedulingHubPage().metaTitle,
+					platformLabel: platformVm.platformLabel
+				}),
+				url.origin
+			)
 		])
 	);
 

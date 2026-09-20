@@ -6,6 +6,7 @@ import type { SoftwareApplication } from 'schema-dts';
 
 import { publicSkillBuilderPagePresenter } from '$lib/area-public';
 import {
+	getRootPathPublicSkillBuilder,
 	getRootPathPublicSkillBuilderChannel
 } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
@@ -14,8 +15,10 @@ import {
 	listSkillBuilderChannelsForHub
 } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
+import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -67,7 +70,16 @@ export async function load({ url, params, cookies, fetch, parent }) {
 				name: companyName,
 				url: url.origin
 			}
-		} satisfies SoftwareApplication
+		} satisfies SoftwareApplication,
+		createPublicLandingBreadcrumbListSchema(
+			buildToolsLandingBreadcrumbItems({
+				toolLabel: 'Skill Builder',
+				toolRootPath: getRootPathPublicSkillBuilder(),
+				channelLabel: builderVm.channelLabel,
+				channelRootPath: getRootPathPublicSkillBuilderChannel(channelSlug)
+			}),
+			url.origin
+		)
 	]);
 
 	return {

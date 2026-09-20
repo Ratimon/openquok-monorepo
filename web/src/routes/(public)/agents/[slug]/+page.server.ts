@@ -4,17 +4,23 @@ import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
 
 import { error } from '@sveltejs/kit';
 
-import { publicAgentByPagePresenter } from '$lib/area-public';
-import {
-	CONFIG_SCHEMA_COMPANY,
-} from '$lib/config/constants/config';
-import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import {
+	buildAgentsLandingBreadcrumbItems
+} from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicAgent } from '$lib/area-public/constants/getRootPathPublicAgents';
+import {
+	isPublicAgentHostLandingPage,
+	isPublicMcpLandingPage,
+	publicAgentByPagePresenter
+} from '$lib/area-public';
+import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { listPublicAgentChannelsForHub } from '$lib/content/constants/publicAgentChannelConfig';
 
 export const ssr = true;
 
@@ -102,6 +108,12 @@ export async function load({ url, params, cookies, parent, fetch }) {
 		}
 	});
 
+	const agentsBreadcrumbVariant = isPublicMcpLandingPage(agentVm)
+		? 'mcp-client'
+		: isPublicAgentHostLandingPage(agentVm)
+			? 'agent-host'
+			: 'agent-host';
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			{
@@ -133,7 +145,15 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				name: agentVm.faqTitle,
 				description: agentVm.faqDescription,
 				items: agentVm.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildAgentsLandingBreadcrumbItems({
+					variant: agentsBreadcrumbVariant,
+					agentSlug: agentVm.slug,
+					agentLabel: agentVm.agentLabel
+				}),
+				url.origin
+			)
 		])
 	);
 

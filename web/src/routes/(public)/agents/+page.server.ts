@@ -9,8 +9,10 @@ import {
 	CONFIG_SCHEMA_MARKETING
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { buildAgentsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	getRootPathPublicAgent,
@@ -125,7 +127,11 @@ export async function load({ url, cookies, parent }) {
 				name: PUBLIC_AGENTS_HUB.faqSection.faqTitle,
 				description: PUBLIC_AGENTS_HUB.faqSection.faqDescription,
 				items: PUBLIC_AGENTS_HUB.faqSection.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildAgentsLandingBreadcrumbItems({ variant: 'hub' }),
+				url.origin
+			)
 		])
 	);
 

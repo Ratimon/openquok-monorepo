@@ -9,8 +9,10 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
 
@@ -132,7 +134,13 @@ export async function load({ url, params, cookies, parent }) {
 				name: channelVm.faqTitle,
 				description: channelVm.faqDescription,
 				items: channelVm.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildChannelsLandingBreadcrumbItems({
+					platformLabel: channelVm.platformLabel
+				}),
+				url.origin
+			)
 		])
 	);
 

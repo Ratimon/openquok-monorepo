@@ -5,9 +5,11 @@ import type { ItemList } from 'schema-dts';
 import { publicChannelsPagePresenter } from '$lib/area-public';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_CHANNELS_HUB_FAQ } from '$lib/content/constants/publicChannelsHubFaqConfig';
+import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 import {
 	getRootPathPublicChannel,
@@ -115,7 +117,11 @@ export async function load({ url, cookies, parent }) {
 				name: PUBLIC_CHANNELS_HUB_FAQ.faqTitle,
 				description: PUBLIC_CHANNELS_HUB_FAQ.faqDescription,
 				items: PUBLIC_CHANNELS_HUB_FAQ.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildChannelsLandingBreadcrumbItems({}),
+				url.origin
+			)
 		])
 	);
 

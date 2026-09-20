@@ -10,9 +10,11 @@ import {
 	PUBLIC_SKILL_BUILDER_GENERIC_KEYWORDS
 } from '$lib/skill-builder/constants/publicSkillBuilderChannelConfig';
 import { getBuildingBlockSlugsQueryParam } from '$lib/skill-builder/utils/parseBuilderQuery';
+import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
-import { createJsonLdWithContext } from '$lib/seo/jsonLdSchema';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
+import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
 
@@ -41,13 +43,24 @@ export async function load({ url, cookies, fetch, parent }) {
 	})) satisfies MetaTagsProps;
 
 	const canonical = buildCanonicalUrl(url);
-	const schemaData = createJsonLdWithContext({
-		'@type': 'WebApplication',
-		name: builderVm.metaTitle,
-		description: builderVm.metaDescription,
-		applicationCategory: 'DeveloperApplication',
-		offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
-	} satisfies WebApplication);
+	const schemaData = createJsonLdGraph([
+		{
+			'@type': 'WebApplication',
+			'@id': `${canonical}#webapp`,
+			name: builderVm.metaTitle,
+			description: builderVm.metaDescription,
+			url: canonical,
+			applicationCategory: 'DeveloperApplication',
+			offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' }
+		} satisfies WebApplication,
+		createPublicLandingBreadcrumbListSchema(
+			buildToolsLandingBreadcrumbItems({
+				toolLabel: 'Skill Builder',
+				toolRootPath: getRootPathPublicSkillBuilder()
+			}),
+			url.origin
+		)
+	]);
 
 	return {
 		pageMetaTags: withCanonicalMetaTags(metaTags, canonical),

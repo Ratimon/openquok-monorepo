@@ -10,8 +10,10 @@ import {
 	listCanvasChannelsForHub,
 	PUBLIC_CANVAS_GENERIC_CONFIG
 } from '$lib/canvas';
+import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -48,7 +50,14 @@ export async function load({ url, cookies, parent }) {
 				name: companyName,
 				url: url.origin
 			}
-		} satisfies SoftwareApplication
+		} satisfies SoftwareApplication,
+		createPublicLandingBreadcrumbListSchema(
+			buildToolsLandingBreadcrumbItems({
+				toolLabel: 'Photo Editor',
+				toolRootPath: getRootPathPublicPhotoEditor()
+			}),
+			url.origin
+		)
 	]);
 
 	return {

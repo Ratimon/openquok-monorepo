@@ -16,24 +16,33 @@
 	type Props = {
 		items: PublicLandingHubBreadcrumbItem[];
 		class?: string;
+		linkClass?: string;
+		pageClass?: string;
+		separatorClass?: string;
 	};
 
-	let { items, class: className = '' }: Props = $props();
+	let {
+		items,
+		class: className = '',
+		linkClass = PUBLIC_LANDING_BREADCRUMB_LINK_CLASS,
+		pageClass = PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS,
+		separatorClass = PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS
+	}: Props = $props();
 </script>
 
 <Breadcrumb.Root class={cn('max-w-full', className)}>
 	<Breadcrumb.List>
 		{#each items as item, index (index)}
 			{#if index > 0}
-				<Breadcrumb.Separator class={PUBLIC_LANDING_BREADCRUMB_SEPARATOR_CLASS} />
+				<Breadcrumb.Separator class={separatorClass} />
 			{/if}
 			<Breadcrumb.Item>
 				{#if item.href?.trim()}
-					<Breadcrumb.Link href={item.href} class={PUBLIC_LANDING_BREADCRUMB_LINK_CLASS}>
+					<Breadcrumb.Link href={item.href} class={linkClass}>
 						{item.label}
 					</Breadcrumb.Link>
 				{:else}
-					<Breadcrumb.Page class={PUBLIC_LANDING_BREADCRUMB_PAGE_CLASS}>{item.label}</Breadcrumb.Page>
+					<Breadcrumb.Page class={pageClass}>{item.label}</Breadcrumb.Page>
 				{/if}
 			</Breadcrumb.Item>
 		{/each}

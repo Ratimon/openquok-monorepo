@@ -10,9 +10,11 @@ import { buildHumanizeFaqSection } from '$lib/ai-humanize/constants/publicHumani
 import { publicHumanizePagePresenter } from '$lib/area-public';
 import { getRootPathPublicHumanizer } from '$lib/area-public/constants/getRootPathPublicTools';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+import { buildToolsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
+import { createPublicLandingBreadcrumbListSchema } from '$lib/seo/buildPublicLandingBreadcrumbJsonLd';
 import { createJsonLdGraph, filterNonEmptyJsonLdNodes } from '$lib/seo/jsonLdSchema';
 
 export const ssr = true;
@@ -57,7 +59,14 @@ export async function load({ url, cookies, parent }) {
 				name: faqSection.faqTitle,
 				description: faqSection.faqDescription,
 				items: faqSection.faqItems
-			})
+			}),
+			createPublicLandingBreadcrumbListSchema(
+				buildToolsLandingBreadcrumbItems({
+					toolLabel: 'Humanizer',
+					toolRootPath: getRootPathPublicHumanizer()
+				}),
+				url.origin
+			)
 		])
 	);
 
