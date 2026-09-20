@@ -88,6 +88,9 @@
 			? resolvePublicMcpSkillSetupStepsSubtitle(mcpVm)
 			: mcpVm.setupStepsSubtitle
 	);
+	let activeSetupStepsSectionId = $derived(
+		integrationTab === 'skill' ? 'skill-setup-steps' : 'setup-steps'
+	);
 
 	let accentBannerTitle = $derived(accentSplitDocsCtaBannerTitle(mcpVm.agentLabel));
 	let accentBannerDescription = $derived(accentSplitDocsCtaBannerDescription(mcpVm.agentLabel));
@@ -144,6 +147,7 @@
 			heroTheme={landingHeroTheme}
 			sectionSubtitle={activeSetupStepsSubtitle}
 			sectionTitle={activeSetupStepsTitle}
+			sectionId={activeSetupStepsSectionId}
 		/>
 	{/key}
 {/if}

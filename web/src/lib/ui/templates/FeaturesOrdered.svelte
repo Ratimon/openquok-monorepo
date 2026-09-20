@@ -48,6 +48,8 @@
 		footerPrompt?: string;
 		footerLinkLabel?: string;
 		footerLinkHref?: string;
+		/** Matches JSON-LD `@id` fragment (`#setup-steps` by default). */
+		sectionId?: string;
 		telegramAgentBranding?: TelegramMockAgentBranding;
 	};
 
@@ -64,6 +66,7 @@
 		footerPrompt = '',
 		footerLinkLabel = '',
 		footerLinkHref = '',
+		sectionId = 'setup-steps',
 		telegramAgentBranding
 	}: Props = $props();
 
@@ -164,7 +167,7 @@
 	});
 </script>
 
-<section class={sectionClass} aria-labelledby={showSectionHeader ? headingId : undefined}>
+<section id={sectionId} class={sectionClass} aria-labelledby={showSectionHeader ? headingId : undefined}>
 	<div class="container mx-auto px-4">
 		<div class="mx-auto max-w-6xl">
 			{#if showSectionHeader && heroTheme}

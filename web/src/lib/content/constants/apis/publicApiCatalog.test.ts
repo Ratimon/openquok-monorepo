@@ -4,6 +4,7 @@ import {
 	buildPublicApiCreatePostTerminalCode,
 	buildPublicApiIntegrationsListTerminalCode,
 	getPublicApiHubAudienceSection,
+	getPublicApiHubSetupStepsSection,
 	getPublicApiPlatformAudienceSection,
 	getPublicApiPlatformSetupStepsSection,
 	getPublicApiPostingPlatformBySlug,
@@ -15,6 +16,7 @@ import {
 	publicApiPostingHubPage,
 	publicApiSchedulingHubPage
 } from '$lib/content/constants/apis/index';
+import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
 import {
 	buildPublicApiHubHeroTitle,
 	buildPublicApiPlatformHeroTitle
@@ -134,5 +136,26 @@ describe('publicApiCatalog', () => {
 		expect(integrationsCurl).toContain('Bearer opo_your_programmatic_token');
 		expect(integrationsCurl).not.toContain('opo_your_workspace_token');
 		expect(postCurl).toContain('Bearer opo_your_programmatic_token');
+	});
+
+	it('maps hub setup steps to HowTo JSON-LD', () => {
+		const postingSteps = getPublicApiHubSetupStepsSection('posting');
+		const howTo = createPublicSetupStepsSEOSchema({
+			pageUrl: 'https://www.openquok.com/social-media-posting-api',
+			sectionTitle: postingSteps.setupStepsTitle,
+			sectionSubtitle: postingSteps.setupStepsSubtitle,
+			sectionDescription: postingSteps.setupStepsDescription,
+			steps: postingSteps.setupSteps
+		});
+
+		expect(howTo).toMatchObject({
+			'@type': 'HowTo',
+			'@id': 'https://www.openquok.com/social-media-posting-api#setup-steps',
+			step: expect.arrayContaining([
+				expect.objectContaining({ '@type': 'HowToStep', position: 1 }),
+				expect.objectContaining({ '@type': 'HowToStep', position: 2 }),
+				expect.objectContaining({ '@type': 'HowToStep', position: 3 })
+			])
+		});
 	});
 });

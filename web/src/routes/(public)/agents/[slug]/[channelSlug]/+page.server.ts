@@ -1,6 +1,7 @@
 import type { MetaTagsProps } from 'svelte-meta-tags';
-
 import type { JsonLdGraphNode } from '$lib/seo/jsonLdSchema';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+
 
 import { error } from '@sveltejs/kit';
 
@@ -20,7 +21,7 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
-import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import { createPublicSetupStepsSEOSchema, buildPublicMcpSetupStepsSeoSchemas } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -203,6 +204,16 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				sectionSubtitle: landingVm.audienceSubtitle,
 				cards: landingVm.audienceCards
 			}),
+			...(isPublicMcpLandingPage(landingVm)
+				? buildPublicMcpSetupStepsSeoSchemas({ pageUrl: canonical, page: landingVm })
+				: [
+						createPublicSetupStepsSEOSchema({
+							pageUrl: canonical,
+							sectionTitle: landingVm.setupStepsTitle,
+							sectionSubtitle: landingVm.setupStepsSubtitle,
+							steps: landingVm.setupSteps
+						})
+					]),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: landingVm.faqTitle,

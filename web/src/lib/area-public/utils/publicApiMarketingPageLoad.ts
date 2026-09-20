@@ -13,7 +13,9 @@ import {
 	getPublicApiSchedulingHubPage,
 	getPublicApiSchedulingPlatformBySlug,
 	getPublicApiHubAudienceSection,
+	getPublicApiHubSetupStepsSection,
 	getPublicApiPlatformAudienceSection,
+	getPublicApiPlatformSetupStepsSection,
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub,
 	type PublicApiCapability,
@@ -26,6 +28,7 @@ import {
 	createPublicAudienceSectionSEOSchema,
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
+import { createPublicSetupStepsSEOSchema } from '$lib/content/utils/createPublicSetupStepsSEOSchema';
 import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaPostingApiPlatform,
@@ -181,6 +184,7 @@ export async function loadPublicApiMarketingHubPage(params: {
 	const hubVm = getHubVm(capability);
 	const platformsVm = listPlatformsForHub(capability);
 	const audienceSection = getPublicApiHubAudienceSection(capability);
+	const setupStepsSection = getPublicApiHubSetupStepsSection(capability);
 
 	const customTitle = hubVm.metaTitle;
 	const customDescription = hubVm.metaDescription;
@@ -244,6 +248,13 @@ export async function loadPublicApiMarketingHubPage(params: {
 				sectionSubtitle: audienceSection.audienceSubtitle,
 				cards: audienceSection.audienceCards
 			}),
+			createPublicSetupStepsSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: setupStepsSection.setupStepsTitle,
+				sectionSubtitle: setupStepsSection.setupStepsSubtitle,
+				sectionDescription: setupStepsSection.setupStepsDescription,
+				steps: setupStepsSection.setupSteps
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: hubVm.faqTitle,
@@ -299,6 +310,11 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 	const platformAudienceSection = getPublicApiPlatformAudienceSection(
 		capability,
 		platformVm.platformLabel
+	);
+	const platformSetupStepsSection = getPublicApiPlatformSetupStepsSection(
+		capability,
+		platformVm.platformLabel,
+		platformVm.slug
 	);
 	const featureList = [
 		platformVm.heroTitle,
@@ -370,6 +386,13 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 				sectionTitle: platformAudienceSection.audienceTitle,
 				sectionSubtitle: platformAudienceSection.audienceSubtitle,
 				cards: platformAudienceSection.audienceCards
+			}),
+			createPublicSetupStepsSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: platformSetupStepsSection.setupStepsTitle,
+				sectionSubtitle: platformSetupStepsSection.setupStepsSubtitle,
+				sectionDescription: platformSetupStepsSection.setupStepsDescription,
+				steps: platformSetupStepsSection.setupSteps
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
