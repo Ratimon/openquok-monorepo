@@ -107,7 +107,7 @@ When adding or changing a public landing hero:
 
 ## Tool SEO titles (`/tools/*`)
 
-Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles.ts`. Follow the PostPeer-style split used across free tools:
+Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles.ts`. Follow:
 
 | Field | Purpose | Pattern |
 | --- | --- | --- |
@@ -120,8 +120,6 @@ Programmatic copy lives in `web/src/lib/content/utils/buildProgrammaticSeoTitles
 - **JSON-LD** `name` stays on `metaTitle` (keyword target), not `heroTitle`.
 
 ## API marketing hero titles (`/social-media-*-api`)
-
-Follow [PostPeer](https://www.postpeer.dev/social-media-posting-api)-style keyword H1s — value props belong in `heroDescription`, not the title:
 
 | Route | `heroTitle` |
 | --- | --- |
@@ -161,9 +159,10 @@ Hub and platform API pages render **`PublicMarketingPricingSection.svelte`** **a
 3. `PublicApiMarketingHubSetupSteps` (platform slugs pass `platformLabel`)
 4. Payload validator / format sections (`PublicApiMarketingPayloadValidatorSection`, `PublicApiMarketingStaticExampleBento`, platform format bento when present)
 5. Hub or sibling grid (`PublicApiMarketingHubGrid` / `PublicApiMarketingSiblingGrid`)
-6. `PublicApiMarketingFeatureRows`
-7. **`PublicMarketingPricingSection`**
-8. `PublicFaq`
+6. **`PublicApiMarketingWorkflowGrid`** — Scheduling API + Analytics API cross-links (`publicApiCapabilityHubWorkflowConfig.ts`; patterned `SimpleLinkCard` grid, distinct from platform hub cards)
+7. `PublicApiMarketingFeatureRows`
+8. **`PublicMarketingPricingSection`**
+9. `PublicFaq`
 
 | Route | `presetId` | Context |
 | --- | --- | --- |

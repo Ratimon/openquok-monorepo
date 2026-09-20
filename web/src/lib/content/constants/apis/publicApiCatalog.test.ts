@@ -10,6 +10,7 @@ import {
 	getPublicApiPostingPlatformBySlug,
 	PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER,
 	getPublicApiPlatformFeatureSections,
+	getPublicApiHubWorkflowSection,
 	getPublicApiSchedulingPlatformBySlug,
 	isPublicApiPlatformSlug,
 	listPublicApiPostingPlatformsForHub,
@@ -115,6 +116,18 @@ describe('publicApiCatalog', () => {
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');
 		expect(tiktokPosting.audienceCards[0]?.description).toContain('Publish to TikTok');
+	});
+
+	it('tailors workflow cards for posting and scheduling hubs', () => {
+		const posting = getPublicApiHubWorkflowSection('posting');
+		const scheduling = getPublicApiHubWorkflowSection('scheduling');
+
+		expect(posting.cards).toHaveLength(2);
+		expect(scheduling.cards).toHaveLength(2);
+		expect(posting.cards.map((card) => card.id)).toEqual(['scheduling', 'analytics']);
+		expect(scheduling.cards.map((card) => card.id)).toEqual(['scheduling', 'analytics']);
+		expect(posting.cards[0]?.href).toBe('social-media-scheduling-api');
+		expect(posting.cards[1]?.href).toBe('/docs/apis-analytics');
 	});
 
 	it('tailors feature rows for platform slug pages', () => {

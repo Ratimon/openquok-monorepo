@@ -13,6 +13,7 @@
 	import PublicApiMarketingHubSetupSteps from '$lib/ui/templates/api-marketing/PublicApiMarketingHubSetupSteps.svelte';
 	import PublicApiMarketingWhoIsFor from '$lib/ui/templates/api-marketing/PublicApiMarketingWhoIsFor.svelte';
 	import PublicApiMarketingHubGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingHubGrid.svelte';
+	import PublicApiMarketingWorkflowGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingWorkflowGrid.svelte';
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingStaticExampleBento from '$lib/ui/templates/api-marketing/PublicApiMarketingStaticExampleBento.svelte';
 	import PublicMarketingPricingSection from '$lib/ui/components/pricing/PublicMarketingPricingSection.svelte';
@@ -56,7 +57,12 @@
 
 	<PublicApiMarketingStaticExampleBento staticExample={hubVm.staticExample} />
 
-	<PublicApiMarketingHubGrid capability="scheduling" platformsVm={platformsVm} />
+	<PublicApiMarketingHubGrid
+		capability="scheduling"
+		platformsVm={platformsVm}
+	/>
+
+	<PublicApiMarketingWorkflowGrid capability="scheduling" />
 
 	<PublicApiMarketingFeatureRows />
 

@@ -51,6 +51,9 @@ export {
 	getPublicApiPlatformAudienceSection
 } from '$lib/content/constants/apis/publicApiCapabilityAudienceConfig';
 export {
+	getPublicApiHubWorkflowSection
+} from '$lib/content/constants/apis/publicApiCapabilityHubWorkflowConfig';
+export {
 	PUBLIC_API_MARKETING_HUB_FEATURE_SECTIONS,
 	getPublicApiHubFeatureSections,
 	getPublicApiPlatformFeatureSections
