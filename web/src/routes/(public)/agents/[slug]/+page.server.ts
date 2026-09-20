@@ -6,6 +6,11 @@ import { error } from '@sveltejs/kit';
 
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import {
+	createPublicAudienceSectionSEOSchema,
+	withSchemaOrgAudience
+} from '$lib/content/utils/createPublicAudienceSEOSchema';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import {
 	buildAgentsLandingBreadcrumbItems
 } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
@@ -32,27 +37,49 @@ function buildSoftwareApplicationSchema(params: {
 	description: string;
 	keywords: string[];
 	featureList: string[];
+	audienceCards?: readonly AudienceCard[];
+	audienceSectionTitle?: string;
+	audienceSectionSubtitle?: string;
 }): JsonLdGraphNode {
-	const { canonical, origin, docsPath, name, description, keywords, featureList } = params;
-
-	return {
-		'@type': 'SoftwareApplication',
-		'@id': `${canonical}#software`,
+	const {
+		canonical,
+		origin,
+		docsPath,
 		name,
 		description,
-		url: canonical,
-		applicationCategory: 'AI assistant',
-		operatingSystem: 'Web, Desktop, CLI',
-		softwareHelp: {
-			'@type': 'CreativeWork',
-			url: new URL(docsPath, origin).href
-		},
+		keywords,
 		featureList,
-		keywords: keywords.join(', '),
-		mainEntityOfPage: {
-			'@id': `${canonical}#webpage`
-		}
-	};
+		audienceCards = [],
+		audienceSectionTitle,
+		audienceSectionSubtitle
+	} = params;
+
+	return withSchemaOrgAudience(
+		{
+			'@type': 'SoftwareApplication',
+			'@id': `${canonical}#software`,
+			name,
+			description,
+			url: canonical,
+			applicationCategory: 'AI assistant',
+			operatingSystem: 'Web, Desktop, CLI',
+			softwareHelp: {
+				'@type': 'CreativeWork',
+				url: new URL(docsPath, origin).href
+			},
+			featureList,
+			keywords: keywords.join(', '),
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		},
+		{
+			cards: audienceCards,
+			sectionTitle: audienceSectionTitle,
+			sectionSubtitle: audienceSectionSubtitle
+		},
+		canonical
+	);
 }
 
 export async function load({ url, params, cookies, parent, fetch }) {
@@ -116,21 +143,29 @@ export async function load({ url, params, cookies, parent, fetch }) {
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: agentVm.metaTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#software`
+			withSchemaOrgAudience(
+				{
+					'@type': 'WebPage',
+					'@id': `${canonical}#webpage`,
+					name: agentVm.metaTitle,
+					description: customDescription,
+					url: canonical,
+					mainEntity: {
+						'@id': `${canonical}#software`
+					},
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
 				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				{
+					cards: agentVm.audienceCards,
+					sectionTitle: agentVm.audienceTitle,
+					sectionSubtitle: agentVm.audienceSubtitle
+				},
+				canonical
+			),
 			buildSoftwareApplicationSchema({
 				canonical,
 				origin: url.origin,
@@ -138,7 +173,16 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				name: agentVm.agentLabel,
 				description: customDescription,
 				keywords: agentVm.keywords,
-				featureList
+				featureList,
+				audienceCards: agentVm.audienceCards,
+				audienceSectionTitle: agentVm.audienceTitle,
+				audienceSectionSubtitle: agentVm.audienceSubtitle
+			}),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: agentVm.audienceTitle,
+				sectionSubtitle: agentVm.audienceSubtitle,
+				cards: agentVm.audienceCards
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

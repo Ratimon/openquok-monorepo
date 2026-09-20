@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	buildPublicApiCreatePostTerminalCode,
+	buildPublicApiIntegrationsListTerminalCode,
+	getPublicApiHubAudienceSection,
+	getPublicApiPlatformAudienceSection,
+	getPublicApiPlatformSetupStepsSection,
 	getPublicApiPostingPlatformBySlug,
+	PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER,
 	getPublicApiSchedulingPlatformBySlug,
 	isPublicApiPlatformSlug,
 	listPublicApiPostingPlatformsForHub,
@@ -85,5 +91,48 @@ describe('publicApiCatalog', () => {
 			expect(section.title.split(',').length).toBeGreaterThanOrEqual(3);
 			expect(section.terminalCode.trim().length).toBeGreaterThan(0);
 		}
+	});
+
+	it('ships audience sections for posting and scheduling hubs', () => {
+		const posting = getPublicApiHubAudienceSection('posting');
+		const scheduling = getPublicApiHubAudienceSection('scheduling');
+
+		expect(posting.audienceCards).toHaveLength(3);
+		expect(posting.audienceCards.map((card) => card.title)).toEqual([
+			'SaaS developers',
+			'Vibe coders',
+			'Startup teams'
+		]);
+		expect(scheduling.audienceTitle).toContain('scheduling API');
+
+		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
+		expect(tiktokPosting.audienceTitle).toContain('TikTok');
+		expect(tiktokPosting.audienceCards[0]?.description).toContain('Publish to TikTok');
+	});
+
+	it('tailors setup steps for platform slug pages', () => {
+		const posting = getPublicApiPostingPlatformBySlug('tiktok');
+		const tiktokPosting = getPublicApiPlatformSetupStepsSection(
+			'posting',
+			'TikTok',
+			'tiktok',
+			posting?.formatExamples[0]?.requestJson
+		);
+
+		expect(tiktokPosting.setupStepsTitle).toContain('TikTok');
+		expect(tiktokPosting.setupSteps[1]?.title).toBe('2. Connect TikTok');
+		expect(tiktokPosting.setupSteps[1]?.terminalCode).toContain(PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER);
+		expect(tiktokPosting.setupSteps[1]?.terminalCode).toContain('identifier: tiktok');
+		expect(tiktokPosting.setupSteps[2]?.title).toBe('3. Publish to TikTok');
+		expect(tiktokPosting.setupSteps[2]?.terminalCode).toContain('providerSettingsByIntegrationId');
+	});
+
+	it('uses Bearer auth on hub setup step curl examples', () => {
+		const integrationsCurl = buildPublicApiIntegrationsListTerminalCode();
+		const postCurl = buildPublicApiCreatePostTerminalCode('{"status":"scheduled"}');
+
+		expect(integrationsCurl).toContain('Bearer opo_your_programmatic_token');
+		expect(integrationsCurl).not.toContain('opo_your_workspace_token');
+		expect(postCurl).toContain('Bearer opo_your_programmatic_token');
 	});
 });

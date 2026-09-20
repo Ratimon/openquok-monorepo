@@ -4,6 +4,7 @@ import type { Link } from '$lib/ui/nav-bars/Link';
 
 import {
 	CONFIG_SCHEMA_COMPANY,
+	CONFIG_SCHEMA_LANDING_PAGE,
 	CONFIG_SCHEMA_MARKETING,
 	getLandingPageConfigDefaults,
 	getPublicFaqConfigDefaults,
@@ -18,6 +19,11 @@ import {
 	organizationSchemaId
 } from '$lib/content/utils/createOrganizationSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import {
+	createPublicAudienceSectionSEOSchema,
+	withSchemaOrgAudience
+} from '$lib/content/utils/createPublicAudienceSEOSchema';
+import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/publicLandingWhoIsForConfig';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
@@ -127,6 +133,17 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 		logo: new URL('/pwa/favicon.svg', url.origin).href
 	});
 
+	const audienceSectionTitle =
+		landingPageConfigVm.AUDIENCE_TITLE ?? String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_TITLE.default);
+	const audienceSectionSubtitle =
+		landingPageConfigVm.AUDIENCE_SUBTITLE ??
+		String(CONFIG_SCHEMA_LANDING_PAGE.AUDIENCE_SUBTITLE.default);
+	const audienceSectionCopy = {
+		sectionTitle: audienceSectionTitle,
+		sectionSubtitle: audienceSectionSubtitle,
+		cards: PUBLIC_LANDING_WHO_IS_FOR_CARDS
+	};
+
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
 			{
@@ -142,17 +159,25 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 					'query-input': 'required name=search_term_string'
 				}
 			},
-			{
-				'@type': 'SoftwareApplication',
-				'@id': `${canonical}#software`,
-				name: companyName,
-				alternateName: 'openquok',
-				description: heroDescription,
-				url: canonical,
-				applicationCategory: 'BusinessApplication',
-				operatingSystem: 'Web',
-				publisher: { '@id': organizationId }
-			},
+			withSchemaOrgAudience(
+				{
+					'@type': 'SoftwareApplication',
+					'@id': `${canonical}#software`,
+					name: companyName,
+					alternateName: 'openquok',
+					description: heroDescription,
+					url: canonical,
+					applicationCategory: 'BusinessApplication',
+					operatingSystem: 'Web',
+					publisher: { '@id': organizationId }
+				},
+				audienceSectionCopy,
+				canonical
+			),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				...audienceSectionCopy
+			}),
 			organization,
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

@@ -131,6 +131,16 @@ Builders: `buildPublicApiHubHeroTitle`, `buildPublicApiPlatformHeroTitle` in `bu
 
 In `LANDING_HERO_TITLE_HIGHLIGHT_WORDS`, chip suffix terms only (`Posting API`, `Scheduling API`, `Twitter / X`) — never the full hub H1 (`Social Media Posting API`) or the entire title becomes one white highlight tile.
 
+## API marketing audience section (`WhoIsFor`)
+
+Hub and platform pages render `PublicApiMarketingWhoIsFor.svelte` **directly below** `PublicApiMarketingHero`, then `PublicApiMarketingHubSetupSteps.svelte` (platform slugs pass `platformLabel` for tailored step copy), then payload validator / format sections. Copy: `publicApiCapabilityAudienceConfig.ts` — three cards (SaaS developers, Vibe coders, Startup teams) with posting vs scheduling variants; platform slugs append a `{platformLabel}` hook.
+
+**Schema.org:** `WhoIsFor.svelte` is presentational only. Page loaders emit JSON-LD via `createPublicAudienceSEOSchema.ts`:
+
+- **`ItemList`** at `{canonical}#audience` — one `ListItem` per card with `BusinessAudience` / `PeopleAudience` on `item`
+- **`audience`** on `SoftwareApplication`, `WebPage`, or `CollectionPage` — same persona nodes linked to the product/page
+
+Helper: `createPublicAudienceSectionSEOSchema`, `withSchemaOrgAudience`, `buildSchemaOrgAudienceFromCards`. Home cards live in `publicLandingWhoIsForConfig.ts`.
 
 ## Hero CTAs (docs label + glitch buttons)
 

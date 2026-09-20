@@ -1,6 +1,12 @@
 import type { FeaturesOrderedStep } from '$lib/content/constants/agents/types';
-import type { PublicApiCapability } from '$lib/content/constants/apis/types';
-import { PUBLIC_API_CREATE_POST_ENDPOINT } from '$lib/content/constants/apis/shared';
+import type { PublicApiCapability, PublicApiPlatformSlug } from '$lib/content/constants/apis/types';
+import {
+	buildPublicApiCreatePostTerminalCode,
+	buildPublicApiIntegrationsListTerminalCode,
+	getPublicApiProviderIdentifier,
+	PUBLIC_API_CREATE_POST_ENDPOINT,
+	prettyPublicApiJson
+} from '$lib/content/constants/apis/shared';
 import { icons } from '$data/icons';
 
 export type PublicApiHubSetupStepsSection = {
@@ -12,29 +18,20 @@ export type PublicApiHubSetupStepsSection = {
 	setupStepsFooterLinkLabel: string;
 };
 
-const CONNECT_CHANNELS_TERMINAL = `curl -H "Authorization: opo_your_workspace_token" \\
-  https://api.openquok.com/api/v1/public/integrations`;
+const HUB_POSTING_REQUEST_JSON = prettyPublicApiJson({
+	scheduledAt: '2026-05-14T10:00:00.000Z',
+	status: 'scheduled',
+	body: 'Hello from the public API!',
+	integrationIds: ['<integration-id>']
+});
 
-const POSTING_REQUEST_TERMINAL = `curl -X POST 'https://api.openquok.com/api/v1/public/posts' \\
-  -H 'Authorization: opo_your_workspace_token' \\
-  -H 'Content-Type: application/json' \\
-  -d '{
-    "scheduledAt": "2026-05-14T10:00:00.000Z",
-    "status": "scheduled",
-    "body": "Hello from the public API!",
-    "integrationIds": ["<integration-id>"]
-  }'`;
-
-const SCHEDULING_REQUEST_TERMINAL = `curl -X POST 'https://api.openquok.com/api/v1/public/posts' \\
-  -H 'Authorization: opo_your_workspace_token' \\
-  -H 'Content-Type: application/json' \\
-  -d '{
-    "scheduledAt": "2026-06-18T14:30:00.000Z",
-    "status": "scheduled",
-    "body": "Queue this post for next Tuesday.",
-    "integrationIds": ["<integration-id>"],
-    "repeatInterval": "week"
-  }'`;
+const HUB_SCHEDULING_REQUEST_JSON = prettyPublicApiJson({
+	scheduledAt: '2026-06-18T14:30:00.000Z',
+	status: 'scheduled',
+	body: 'Queue this post for next Tuesday.',
+	integrationIds: ['<integration-id>'],
+	repeatInterval: 'week'
+});
 
 const SHARED_SETUP_STEPS: readonly [FeaturesOrderedStep, FeaturesOrderedStep] = [
 	{
@@ -51,9 +48,9 @@ const SHARED_SETUP_STEPS: readonly [FeaturesOrderedStep, FeaturesOrderedStep] = 
 		id: 2,
 		title: '2. Connect your channels',
 		content:
-			'Connect TikTok, Instagram, X, LinkedIn, Facebook, Threads, and YouTube once in the dashboard. OpenQuok Cloud handles OAuth for you.',
+			'Connect networks in the dashboard, then list UUIDs with GET /public/integrations. OpenQuok Cloud handles OAuth — no developer app required.',
 		deviceMock: 'terminal',
-		terminalCode: CONNECT_CHANNELS_TERMINAL,
+		terminalCode: buildPublicApiIntegrationsListTerminalCode(),
 		mediaAlt: 'List connected integrations with GET /public/integrations',
 		iconName: icons.Link.name
 	}
@@ -71,7 +68,7 @@ export const PUBLIC_API_POSTING_HUB_SETUP_STEPS: PublicApiHubSetupStepsSection =
 			title: '3. Publish with one request',
 			content: `Send ${PUBLIC_API_CREATE_POST_ENDPOINT} from curl, the Node SDK, CLI, or MCP. One JSON body can reach every connected channel.`,
 			deviceMock: 'terminal',
-			terminalCode: POSTING_REQUEST_TERMINAL,
+			terminalCode: buildPublicApiCreatePostTerminalCode(HUB_POSTING_REQUEST_JSON),
 			mediaAlt: 'Publish a post with POST /public/posts',
 			iconName: icons.Send.name
 		}
@@ -93,7 +90,7 @@ export const PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS: PublicApiHubSetupStepsSectio
 			content:
 				'Set scheduledAt in UTC and optional repeatInterval on POST /public/posts. OpenQuok queues the post and publishes on time.',
 			deviceMock: 'terminal',
-			terminalCode: SCHEDULING_REQUEST_TERMINAL,
+			terminalCode: buildPublicApiCreatePostTerminalCode(HUB_SCHEDULING_REQUEST_JSON),
 			mediaAlt: 'Schedule a post with scheduledAt on POST /public/posts',
 			iconName: icons.CalendarClock.name
 		}
@@ -111,4 +108,56 @@ export function getPublicApiHubSetupStepsSection(
 	capability: PublicApiCapability
 ): PublicApiHubSetupStepsSection {
 	return SETUP_STEPS_BY_CAPABILITY[capability];
+}
+
+export function getPublicApiPlatformSetupStepsSection(
+	capability: PublicApiCapability,
+	platformLabel: string,
+	platformSlug: PublicApiPlatformSlug,
+	platformRequestJson?: string | null
+): PublicApiHubSetupStepsSection {
+	const hub = getPublicApiHubSetupStepsSection(capability);
+	const [step1, step2, step3] = hub.setupSteps;
+	const providerIdentifier = getPublicApiProviderIdentifier(platformSlug);
+	const resolvedRequestJson =
+		platformRequestJson?.trim() ||
+		(capability === 'posting' ? HUB_POSTING_REQUEST_JSON : HUB_SCHEDULING_REQUEST_JSON);
+
+	return {
+		...hub,
+		setupStepsTitle:
+			capability === 'posting'
+				? `Add ${platformLabel} posting,to your product in three steps`
+				: `Add ${platformLabel} scheduling,to your product in three steps`,
+		setupStepsDescription:
+			capability === 'posting'
+				? `Connect ${platformLabel} once, then publish and track delivery through the same API.`
+				: `Connect ${platformLabel} once, then schedule posts and track delivery through the same API.`,
+		setupSteps: [
+			step1,
+			{
+				...step2,
+				title: `2. Connect ${platformLabel}`,
+				content: `Connect ${platformLabel} in the dashboard, then list channels with GET /public/integrations and match identifier \`${providerIdentifier}\`.`,
+				terminalCode: buildPublicApiIntegrationsListTerminalCode({ providerIdentifier }),
+				mediaAlt: `List ${platformLabel} integration UUID with GET /public/integrations`
+			},
+			{
+				...step3,
+				title:
+					capability === 'posting'
+						? `3. Publish to ${platformLabel}`
+						: `3. Schedule on ${platformLabel}`,
+				content:
+					capability === 'posting'
+						? `Send ${PUBLIC_API_CREATE_POST_ENDPOINT} with your ${platformLabel} integration UUID and provider settings for that network.`
+						: `Set scheduledAt in UTC on ${PUBLIC_API_CREATE_POST_ENDPOINT} with your ${platformLabel} integration UUID and provider settings.`,
+				terminalCode: buildPublicApiCreatePostTerminalCode(resolvedRequestJson),
+				mediaAlt:
+					capability === 'posting'
+						? `Publish to ${platformLabel} with POST /public/posts`
+						: `Schedule on ${platformLabel} with scheduledAt on POST /public/posts`
+			}
+		]
+	};
 }

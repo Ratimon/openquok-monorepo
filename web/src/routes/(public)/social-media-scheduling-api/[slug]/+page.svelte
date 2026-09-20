@@ -11,8 +11,10 @@
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';
 	import PublicApiMarketingFormatExplorer from '$lib/ui/templates/api-marketing/PublicApiMarketingFormatExplorer.svelte';
 	import PublicApiMarketingHero from '$lib/ui/templates/api-marketing/PublicApiMarketingHero.svelte';
+	import PublicApiMarketingHubSetupSteps from '$lib/ui/templates/api-marketing/PublicApiMarketingHubSetupSteps.svelte';
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingSiblingGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingSiblingGrid.svelte';
+	import PublicApiMarketingWhoIsFor from '$lib/ui/templates/api-marketing/PublicApiMarketingWhoIsFor.svelte';
 
 	type Props = { data: PageData };
 
@@ -44,6 +46,15 @@
 			title={platformVm.heroTitle}
 			description={platformVm.heroDescription}
 			payloadValidatorHref={payloadValidatorHref}
+		/>
+
+		<PublicApiMarketingWhoIsFor capability="scheduling" platformLabel={platformVm.platformLabel} />
+
+		<PublicApiMarketingHubSetupSteps
+			capability="scheduling"
+			platformLabel={platformVm.platformLabel}
+			platformSlug={platformVm.slug}
+			platformRequestJson={platformVm.formatExamples[0]?.requestJson}
 		/>
 
 		{#if payloadValidatorStaticExample}

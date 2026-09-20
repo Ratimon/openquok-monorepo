@@ -43,13 +43,22 @@ export {
 export {
 	PUBLIC_API_POSTING_HUB_SETUP_STEPS,
 	PUBLIC_API_SCHEDULING_HUB_SETUP_STEPS,
-	getPublicApiHubSetupStepsSection
+	getPublicApiHubSetupStepsSection,
+	getPublicApiPlatformSetupStepsSection
 } from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+export {
+	getPublicApiHubAudienceSection,
+	getPublicApiPlatformAudienceSection
+} from '$lib/content/constants/apis/publicApiCapabilityAudienceConfig';
 export {
 	SHARED_PUBLIC_API_SEO_KEYWORDS,
 	PUBLIC_API_CREATE_POST_ENDPOINT,
+	PUBLIC_API_CLOUD_PUBLIC_BASE_URL,
+	PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER,
 	buildPublicApiCreatePostResponseExample,
+	buildPublicApiCreatePostTerminalCode,
 	buildPublicApiFormatExample,
+	buildPublicApiIntegrationsListTerminalCode,
 	buildPublicApiPlatformHubCard,
 	getPublicApiProviderIdentifier
 } from '$lib/content/constants/apis/shared';

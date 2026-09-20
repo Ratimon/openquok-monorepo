@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
-	import type { PublicApiCapability } from '$lib/content/constants/apis/types';
-	import { getPublicApiHubSetupStepsSection } from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
+	import type { PublicApiCapability, PublicApiPlatformSlug } from '$lib/content/constants/apis/types';
+	import {
+		getPublicApiHubSetupStepsSection,
+		getPublicApiPlatformSetupStepsSection
+	} from '$lib/content/constants/apis/publicApiCapabilityHubSetupStepsConfig';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
@@ -10,11 +13,28 @@
 
 	type Props = {
 		capability: PublicApiCapability;
+		platformLabel?: string | null;
+		platformSlug?: PublicApiPlatformSlug | null;
+		platformRequestJson?: string | null;
 	};
 
-	let { capability }: Props = $props();
+	let {
+		capability,
+		platformLabel = null,
+		platformSlug = null,
+		platformRequestJson = null
+	}: Props = $props();
 
-	const section = $derived(getPublicApiHubSetupStepsSection(capability));
+	const section = $derived(
+		platformLabel?.trim() && platformSlug
+			? getPublicApiPlatformSetupStepsSection(
+					capability,
+					platformLabel.trim(),
+					platformSlug,
+					platformRequestJson
+				)
+			: getPublicApiHubSetupStepsSection(capability)
+	);
 	const gettingStartedHref = $derived(
 		hostedMarketingHref('/docs/getting-started-for-public-api', page.url.origin)
 	);

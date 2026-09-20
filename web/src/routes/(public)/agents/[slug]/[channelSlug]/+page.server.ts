@@ -16,6 +16,11 @@ import {
 import { getPublicChannelBySlug } from '$lib/content/constants/publicChannelConfig';
 import { buildAgentsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import {
+	createPublicAudienceSectionSEOSchema,
+	withSchemaOrgAudience
+} from '$lib/content/utils/createPublicAudienceSEOSchema';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import { loadAgentListingsPreviewStateless } from '$lib/listings/server/loadAgentListingsPreview.server';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -33,27 +38,49 @@ function buildSoftwareApplicationSchema(params: {
 	description: string;
 	keywords: string[];
 	featureList: string[];
+	audienceCards?: readonly AudienceCard[];
+	audienceSectionTitle?: string;
+	audienceSectionSubtitle?: string;
 }): JsonLdGraphNode {
-	const { canonical, origin, docsPath, name, description, keywords, featureList } = params;
-
-	return {
-		'@type': 'SoftwareApplication',
-		'@id': `${canonical}#software`,
+	const {
+		canonical,
+		origin,
+		docsPath,
 		name,
 		description,
-		url: canonical,
-		applicationCategory: 'AI assistant',
-		operatingSystem: 'Web, Desktop, CLI',
-		softwareHelp: {
-			'@type': 'CreativeWork',
-			url: new URL(docsPath, origin).href
-		},
+		keywords,
 		featureList,
-		keywords: keywords.join(', '),
-		mainEntityOfPage: {
-			'@id': `${canonical}#webpage`
-		}
-	};
+		audienceCards = [],
+		audienceSectionTitle,
+		audienceSectionSubtitle
+	} = params;
+
+	return withSchemaOrgAudience(
+		{
+			'@type': 'SoftwareApplication',
+			'@id': `${canonical}#software`,
+			name,
+			description,
+			url: canonical,
+			applicationCategory: 'AI assistant',
+			operatingSystem: 'Web, Desktop, CLI',
+			softwareHelp: {
+				'@type': 'CreativeWork',
+				url: new URL(docsPath, origin).href
+			},
+			featureList,
+			keywords: keywords.join(', '),
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		},
+		{
+			cards: audienceCards,
+			sectionTitle: audienceSectionTitle,
+			sectionSubtitle: audienceSectionSubtitle
+		},
+		canonical
+	);
 }
 
 export async function load({ url, params, cookies, parent, fetch }) {
@@ -135,21 +162,29 @@ export async function load({ url, params, cookies, parent, fetch }) {
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: landingVm.metaTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#software`
+			withSchemaOrgAudience(
+				{
+					'@type': 'WebPage',
+					'@id': `${canonical}#webpage`,
+					name: landingVm.metaTitle,
+					description: customDescription,
+					url: canonical,
+					mainEntity: {
+						'@id': `${canonical}#software`
+					},
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
 				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				{
+					cards: landingVm.audienceCards,
+					sectionTitle: landingVm.audienceTitle,
+					sectionSubtitle: landingVm.audienceSubtitle
+				},
+				canonical
+			),
 			buildSoftwareApplicationSchema({
 				canonical,
 				origin: url.origin,
@@ -157,7 +192,16 @@ export async function load({ url, params, cookies, parent, fetch }) {
 				name: landingVm.agentLabel,
 				description: customDescription,
 				keywords: landingVm.keywords,
-				featureList
+				featureList,
+				audienceCards: landingVm.audienceCards,
+				audienceSectionTitle: landingVm.audienceTitle,
+				audienceSectionSubtitle: landingVm.audienceSubtitle
+			}),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: landingVm.audienceTitle,
+				sectionSubtitle: landingVm.audienceSubtitle,
+				cards: landingVm.audienceCards
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

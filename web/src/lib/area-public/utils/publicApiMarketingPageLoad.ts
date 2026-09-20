@@ -12,6 +12,8 @@ import {
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiSchedulingHubPage,
 	getPublicApiSchedulingPlatformBySlug,
+	getPublicApiHubAudienceSection,
+	getPublicApiPlatformAudienceSection,
 	listPublicApiPostingPlatformsForHub,
 	listPublicApiSchedulingPlatformsForHub,
 	type PublicApiCapability,
@@ -19,6 +21,11 @@ import {
 	type PublicApiPlatformHubCard,
 	type PublicApiPlatformPageViewModel
 } from '$lib/content/constants/apis/index';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
+import {
+	createPublicAudienceSectionSEOSchema,
+	withSchemaOrgAudience
+} from '$lib/content/utils/createPublicAudienceSEOSchema';
 import {
 	getRootPathSocialMediaPostingApi,
 	getRootPathSocialMediaPostingApiPlatform,
@@ -112,27 +119,49 @@ function buildPublicApiMarketingSoftwareApplicationSchema(params: {
 	docsPath: string;
 	keywords: string[];
 	featureList: string[];
+	audienceCards?: readonly AudienceCard[];
+	audienceSectionTitle?: string;
+	audienceSectionSubtitle?: string;
 }): JsonLdGraphNode {
-	const { canonical, origin, name, description, docsPath, keywords, featureList } = params;
-
-	return {
-		'@type': 'SoftwareApplication',
-		'@id': `${canonical}#software`,
+	const {
+		canonical,
+		origin,
 		name,
 		description,
-		url: canonical,
-		applicationCategory: 'DeveloperApplication',
-		operatingSystem: 'Web',
-		softwareHelp: {
-			'@type': 'CreativeWork',
-			url: new URL(docsPath, origin).href
-		},
+		docsPath,
+		keywords,
 		featureList,
-		keywords: keywords.join(', '),
-		mainEntityOfPage: {
-			'@id': `${canonical}#webpage`
-		}
-	};
+		audienceCards = [],
+		audienceSectionTitle,
+		audienceSectionSubtitle
+	} = params;
+
+	return withSchemaOrgAudience(
+		{
+			'@type': 'SoftwareApplication',
+			'@id': `${canonical}#software`,
+			name,
+			description,
+			url: canonical,
+			applicationCategory: 'DeveloperApplication',
+			operatingSystem: 'Web',
+			softwareHelp: {
+				'@type': 'CreativeWork',
+				url: new URL(docsPath, origin).href
+			},
+			featureList,
+			keywords: keywords.join(', '),
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		},
+		{
+			cards: audienceCards,
+			sectionTitle: audienceSectionTitle,
+			sectionSubtitle: audienceSectionSubtitle
+		},
+		canonical
+	);
 }
 
 export async function loadPublicApiMarketingHubPage(params: {
@@ -151,6 +180,7 @@ export async function loadPublicApiMarketingHubPage(params: {
 
 	const hubVm = getHubVm(capability);
 	const platformsVm = listPlatformsForHub(capability);
+	const audienceSection = getPublicApiHubAudienceSection(capability);
 
 	const customTitle = hubVm.metaTitle;
 	const customDescription = hubVm.metaDescription;
@@ -179,26 +209,40 @@ export async function loadPublicApiMarketingHubPage(params: {
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'CollectionPage',
-				'@id': `${canonical}#webpage`,
-				name: customTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#platform-list`
+			withSchemaOrgAudience(
+				{
+					'@type': 'CollectionPage',
+					'@id': `${canonical}#webpage`,
+					name: customTitle,
+					description: customDescription,
+					url: canonical,
+					mainEntity: {
+						'@id': `${canonical}#platform-list`
+					},
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
 				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				{
+					cards: audienceSection.audienceCards,
+					sectionTitle: audienceSection.audienceTitle,
+					sectionSubtitle: audienceSection.audienceSubtitle
+				},
+				canonical
+			),
 			buildPublicApiMarketingHubItemListSchema({
 				canonical,
 				origin: url.origin,
 				capability,
 				platforms: platformsVm
+			}),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: audienceSection.audienceTitle,
+				sectionSubtitle: audienceSection.audienceSubtitle,
+				cards: audienceSection.audienceCards
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
@@ -252,6 +296,10 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 
 	const customTitle = platformVm.metaTitle;
 	const customDescription = platformVm.metaDescription;
+	const platformAudienceSection = getPublicApiPlatformAudienceSection(
+		capability,
+		platformVm.platformLabel
+	);
 	const featureList = [
 		platformVm.heroTitle,
 		...platformVm.formatExamples.map((example) => example.label),
@@ -282,21 +330,29 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: platformVm.metaTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#software`
+			withSchemaOrgAudience(
+				{
+					'@type': 'WebPage',
+					'@id': `${canonical}#webpage`,
+					name: platformVm.metaTitle,
+					description: customDescription,
+					url: canonical,
+					mainEntity: {
+						'@id': `${canonical}#software`
+					},
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
 				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				{
+					cards: platformAudienceSection.audienceCards,
+					sectionTitle: platformAudienceSection.audienceTitle,
+					sectionSubtitle: platformAudienceSection.audienceSubtitle
+				},
+				canonical
+			),
 			buildPublicApiMarketingSoftwareApplicationSchema({
 				canonical,
 				origin: url.origin,
@@ -304,7 +360,16 @@ export async function loadPublicApiMarketingPlatformPage(params: {
 				description: customDescription,
 				docsPath: platformVm.publicApiProvidersDocsPath,
 				keywords: [...platformVm.keywords],
-				featureList
+				featureList,
+				audienceCards: platformAudienceSection.audienceCards,
+				audienceSectionTitle: platformAudienceSection.audienceTitle,
+				audienceSectionSubtitle: platformAudienceSection.audienceSubtitle
+			}),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: platformAudienceSection.audienceTitle,
+				sectionSubtitle: platformAudienceSection.audienceSubtitle,
+				cards: platformAudienceSection.audienceCards
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

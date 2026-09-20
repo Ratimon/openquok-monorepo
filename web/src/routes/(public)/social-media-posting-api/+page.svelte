@@ -11,6 +11,7 @@
 	import PublicApiMarketingFeatureRows from '$lib/ui/templates/api-marketing/PublicApiMarketingFeatureRows.svelte';
 	import PublicApiMarketingHero from '$lib/ui/templates/api-marketing/PublicApiMarketingHero.svelte';
 	import PublicApiMarketingHubSetupSteps from '$lib/ui/templates/api-marketing/PublicApiMarketingHubSetupSteps.svelte';
+	import PublicApiMarketingWhoIsFor from '$lib/ui/templates/api-marketing/PublicApiMarketingWhoIsFor.svelte';
 	import PublicApiMarketingHubGrid from '$lib/ui/templates/api-marketing/PublicApiMarketingHubGrid.svelte';
 	import PublicApiMarketingPayloadValidatorSection from '$lib/ui/templates/api-marketing/PublicApiMarketingPayloadValidatorSection.svelte';
 	import PublicApiMarketingStaticExampleBento from '$lib/ui/templates/api-marketing/PublicApiMarketingStaticExampleBento.svelte';
@@ -38,6 +39,8 @@
 		bullets={hubVm.heroBullets}
 		{payloadValidatorHref}
 	/>
+
+	<PublicApiMarketingWhoIsFor capability="posting" />
 
 	<PublicApiMarketingHubSetupSteps capability="posting" />
 

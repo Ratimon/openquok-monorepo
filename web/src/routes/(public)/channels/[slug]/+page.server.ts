@@ -9,6 +9,11 @@ import {
 	CONFIG_SCHEMA_COMPANY,
 } from '$lib/config/constants/config';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import {
+	createPublicAudienceSectionSEOSchema,
+	withSchemaOrgAudience
+} from '$lib/content/utils/createPublicAudienceSEOSchema';
+import type { AudienceCard } from '$lib/ui/templates/WhoIsFor.svelte';
 import { buildChannelsLandingBreadcrumbItems } from '$lib/content/utils/buildPublicLandingBreadcrumbItems';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -26,27 +31,49 @@ function buildChannelSoftwareApplicationSchema(params: {
 	docsPath: string;
 	keywords: string[];
 	featureList: string[];
+	audienceCards?: readonly AudienceCard[];
+	audienceSectionTitle?: string;
+	audienceSectionSubtitle?: string;
 }): JsonLdGraphNode {
-	const { canonical, origin, name, description, docsPath, keywords, featureList } = params;
-
-	return {
-		'@type': 'SoftwareApplication',
-		'@id': `${canonical}#software`,
+	const {
+		canonical,
+		origin,
 		name,
 		description,
-		url: canonical,
-		applicationCategory: 'BusinessApplication',
-		operatingSystem: 'Web',
-		softwareHelp: {
-			'@type': 'CreativeWork',
-			url: new URL(docsPath, origin).href
-		},
+		docsPath,
+		keywords,
 		featureList,
-		keywords: keywords.join(', '),
-		mainEntityOfPage: {
-			'@id': `${canonical}#webpage`
-		}
-	};
+		audienceCards = [],
+		audienceSectionTitle,
+		audienceSectionSubtitle
+	} = params;
+
+	return withSchemaOrgAudience(
+		{
+			'@type': 'SoftwareApplication',
+			'@id': `${canonical}#software`,
+			name,
+			description,
+			url: canonical,
+			applicationCategory: 'BusinessApplication',
+			operatingSystem: 'Web',
+			softwareHelp: {
+				'@type': 'CreativeWork',
+				url: new URL(docsPath, origin).href
+			},
+			featureList,
+			keywords: keywords.join(', '),
+			mainEntityOfPage: {
+				'@id': `${canonical}#webpage`
+			}
+		},
+		{
+			cards: audienceCards,
+			sectionTitle: audienceSectionTitle,
+			sectionSubtitle: audienceSectionSubtitle
+		},
+		canonical
+	);
 }
 
 export async function load({ url, params, cookies, parent }) {
@@ -77,7 +104,6 @@ export async function load({ url, params, cookies, parent }) {
 	const featureList = [
 		channelVm.heroTitle,
 		...channelVm.featureSections.flatMap((section) => [section.subtitle, section.title]),
-		...channelVm.audienceCards.flatMap((card) => [card.title, card.description]),
 		...channelVm.faqItems.map((item) => item.title)
 	].filter((value, index, values) => value.trim().length > 0 && values.indexOf(value) === index);
 
@@ -105,21 +131,29 @@ export async function load({ url, params, cookies, parent }) {
 
 	const schemaData = createJsonLdGraph(
 		filterNonEmptyJsonLdNodes([
-			{
-				'@type': 'WebPage',
-				'@id': `${canonical}#webpage`,
-				name: channelVm.metaTitle,
-				description: customDescription,
-				url: canonical,
-				mainEntity: {
-					'@id': `${canonical}#software`
+			withSchemaOrgAudience(
+				{
+					'@type': 'WebPage',
+					'@id': `${canonical}#webpage`,
+					name: channelVm.metaTitle,
+					description: customDescription,
+					url: canonical,
+					mainEntity: {
+						'@id': `${canonical}#software`
+					},
+					isPartOf: {
+						'@type': 'WebSite',
+						name: companyName,
+						url: url.origin
+					}
 				},
-				isPartOf: {
-					'@type': 'WebSite',
-					name: companyName,
-					url: url.origin
-				}
-			},
+				{
+					cards: channelVm.audienceCards,
+					sectionTitle: channelVm.audienceTitle,
+					sectionSubtitle: channelVm.audienceSubtitle
+				},
+				canonical
+			),
 			buildChannelSoftwareApplicationSchema({
 				canonical,
 				origin: url.origin,
@@ -127,7 +161,16 @@ export async function load({ url, params, cookies, parent }) {
 				description: customDescription,
 				docsPath: channelVm.docsPath,
 				keywords: channelVm.keywords,
-				featureList
+				featureList,
+				audienceCards: channelVm.audienceCards,
+				audienceSectionTitle: channelVm.audienceTitle,
+				audienceSectionSubtitle: channelVm.audienceSubtitle
+			}),
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: channelVm.audienceTitle,
+				sectionSubtitle: channelVm.audienceSubtitle,
+				cards: channelVm.audienceCards
 			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,

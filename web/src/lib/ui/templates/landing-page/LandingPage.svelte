@@ -5,7 +5,7 @@
 	import type { PublicListingsPreviewVm } from '$lib/listings/server/loadAgentListingsPreview.server';
 
 	import { page } from '$app/state';
-	import { icons } from '$data/icons';
+	import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/publicLandingWhoIsForConfig';
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
 		CENTERED_DARK_CTA_BANNER_TITLE,
@@ -271,32 +271,7 @@ openquok analytics:post <post-id> -d 30`
 
 	const landingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.landing;
 
-	const whoIsForCards: AudienceCard[] = [
-		{
-			iconName: icons.CustomizedDrawnRobot.name,
-			iconClass: 'text-emerald-400',
-			title: 'Agentic',
-			description:
-				'Model-agnostic: use the assistant agents and models that work best or you already use.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnLaptop.name,
-			iconClass: 'text-lime-400',
-			title: 'Developers',
-			description:
-				'Fully open source: use OAuth, our SDK, and API to build your own content OS without writing your own APIs.',
-			containerClass: 'h-full min-h-[18rem]'
-		},
-		{
-			iconName: icons.CustomizedDrawnHouse.name,
-			iconClass: 'text-rose-400',
-			title: 'Scaling Team',
-			description:
-				'Reuse the viral formats that already work for you. Connect more social channels, and scale.',
-			containerClass: 'h-full min-h-[18rem]'
-		}
-	];
+	const whoIsForCards: AudienceCard[] = [...PUBLIC_LANDING_WHO_IS_FOR_CARDS];
 
 
 </script>

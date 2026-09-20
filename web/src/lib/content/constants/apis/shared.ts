@@ -27,6 +27,35 @@ export const SHARED_PUBLIC_API_SEO_KEYWORDS = [
 
 export const PUBLIC_API_CREATE_POST_ENDPOINT = 'POST /api/v1/public/posts';
 
+export const PUBLIC_API_CLOUD_PUBLIC_BASE_URL = 'https://api.openquok.com/api/v1/public';
+
+/** Matches getting-started-for-public-api — Bearer + opo_ programmatic token. */
+export const PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER =
+	'Authorization: Bearer opo_your_programmatic_token';
+
+export function buildPublicApiIntegrationsListTerminalCode(options?: {
+	providerIdentifier?: string;
+}): string {
+	const lines = [
+		`curl -H "${PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER}" \\`,
+		`  ${PUBLIC_API_CLOUD_PUBLIC_BASE_URL}/integrations`
+	];
+	if (options?.providerIdentifier) {
+		lines.push(
+			`# Match identifier: ${options.providerIdentifier} — copy id into integrationIds`
+		);
+	}
+	return lines.join('\n');
+}
+
+export function buildPublicApiCreatePostTerminalCode(requestJson: string): string {
+	const body = requestJson.trim();
+	return `curl -X POST '${PUBLIC_API_CLOUD_PUBLIC_BASE_URL}/posts' \\
+  -H "${PUBLIC_API_PROGRAMMATIC_AUTH_CURL_HEADER}" \\
+  -H "Content-Type: application/json" \\
+  -d '${body}'`;
+}
+
 export const PUBLIC_API_MOCK_INTEGRATION_ID = '1f9a4f3a-3b2c-4f4a-9d8e-7a3f6b1c8e22';
 
 export const PUBLIC_API_MOCK_POST_GROUP_ID = '9a0a1b2c-3d4e-4f5a-9b8c-aa11bb22cc33';
