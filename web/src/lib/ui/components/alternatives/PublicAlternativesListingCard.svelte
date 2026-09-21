@@ -2,7 +2,8 @@
 	import type { AlternativesListingViewModel } from '$lib/area-public/PublicAlternativesPage.presenter.svelte';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
+	import InternalLink from '$lib/ui/links/InternalLink.svelte';
 
 	type Props = {
 		listingVm: AlternativesListingViewModel;
@@ -43,7 +44,9 @@
 							/>
 						</div>
 						<h3 class="text-2xl font-semibold text-base-content">
-							{listingVm.name}
+							<CompareProductLink slug={listingVm.slug}>
+								{listingVm.name}
+							</CompareProductLink>
 						</h3>
 					</div>
 					<p class="text-sm font-medium text-primary">
@@ -61,16 +64,16 @@
 		</div>
 
 		<div class="flex shrink-0 flex-col gap-3 sm:flex-row lg:flex-col">
-			<ExternalLink
-				href={listingVm.websiteUrl}
+			<CompareProductLink
+				slug={listingVm.slug}
 				class="btn btn-outline btn-sm justify-center"
 			>
 				Go to website
-			</ExternalLink>
+			</CompareProductLink>
 
-			<a href={listingVm.compareHref} class="btn btn-primary btn-sm justify-center">
+			<InternalLink href={listingVm.compareHref} class="btn btn-primary btn-sm justify-center">
 				Compare with {targetName}
-			</a>
+			</InternalLink>
 		</div>
 	</div>
 </article>

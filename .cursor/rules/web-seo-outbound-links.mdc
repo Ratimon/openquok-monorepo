@@ -1,7 +1,9 @@
 ---
 description: Outbound link SEO — brand social / first-party GitHub follow; third-party nofollow; use resolveExternalLinkPolicy / ExternalLink.
 globs:
-  - web/src/lib/ui/components/ExternalLink.svelte
+  - web/src/lib/ui/links/ExternalLink.svelte
+  - web/src/lib/ui/links/InternalLink.svelte
+  - web/src/lib/ui/links/CompareProductLink.svelte
   - web/src/lib/ui/components/docs/mdx/DocsExternalLink.svelte
   - web/src/lib/ui/components/docs/mdx/DocsLinkCard.svelte
   - web/src/lib/ui/components/docs/nav/DocsSocialLinks.svelte
@@ -43,7 +45,9 @@ Prefer these over hand-rolled `rel="noopener noreferrer"`.
 
 ## Components
 
-- **`ExternalLink`**: low-level; defaults are untrusted + nofollow. Pass `trusted` / `follow` from the policy when the destination is allowlisted.
+- **`ExternalLink`** (`$lib/ui/links/ExternalLink.svelte`): low-level; defaults are untrusted + nofollow. Pass `trusted` / `follow` from the policy when the destination is allowlisted.
+- **`InternalLink`** (`$lib/ui/links/InternalLink.svelte`): first-party marketing paths — dofollow via `hostedMarketingAnchorAttrs`; never add `nofollow`.
+- **`CompareProductLink`** (`$lib/ui/links/CompareProductLink.svelte`): compare/alternatives product names and website CTAs — OpenQuok dofollow; competitors nofollow.
 - **`DocsExternalLink` / `DocsLinkCard`**: auto-apply `resolveExternalLinkPolicy` unless props override.
 - **Brand social UI** (`SocialFollowBar`, `DiscordSupportFab`, footer Discord via `InternalLinkBar`, `DocsSocialLinks`): must end up followable for configured profile URLs.
 - **`Stargazers` / listing source repos / setup-doc buttons**: policy-driven (first-party GitHub / openquok.com follow; third-party nofollow).

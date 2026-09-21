@@ -2,7 +2,7 @@
 	import { buttonVariants } from '$lib/ui/buttons/Button.svelte';
 	import { cn } from '$lib/ui/helpers/common';
 
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 
 	type Props = {

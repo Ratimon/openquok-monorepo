@@ -14,6 +14,7 @@
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
+	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
 	import PublicAlternativesListingCard from '$lib/ui/components/alternatives/PublicAlternativesListingCard.svelte';
 	import AccentSplitCtaBanner from '$lib/ui/templates/banners/AccentSplitCtaBanner.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
@@ -224,13 +225,19 @@
 	{/if}
 
 	<section class="container mx-auto mt-16 max-w-5xl scroll-mt-24 px-4">
-		<FeaturesSectionHeader
-			heroTheme={sectionHeroTheme}
-			headingId="alternatives-target-overview"
-			subtitle="overview"
-			title={`About ${detailVm.targetName}`}
-			description={detailVm.targetTagline}
-		/>
+		<div class="mx-auto max-w-3xl space-y-4 text-center">
+			<p class={sectionHeroTheme.subtitleClass}>overview</p>
+			<h2
+				id="alternatives-target-overview"
+				class="text-2xl font-black tracking-tight text-balance sm:text-3xl lg:text-4xl"
+			>
+				About{' '}
+				<CompareProductLink slug={detailVm.targetSlug}>{detailVm.targetName}</CompareProductLink>
+			</h2>
+			<p class="text-base font-medium leading-relaxed text-pretty text-base-content/70 sm:text-lg">
+				{detailVm.targetTagline}
+			</p>
+		</div>
 		<p class="mt-6 text-base leading-relaxed text-base-content/80">
 			{detailVm.targetOverview}
 		</p>

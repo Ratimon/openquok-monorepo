@@ -8,7 +8,7 @@
 	import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils';
 
 	import FaqAccordion from '$lib/ui/templates/faq/FaqAccordion.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 
 	type Props = {
 		postVm: BlogPostBySlugPublicViewModel;

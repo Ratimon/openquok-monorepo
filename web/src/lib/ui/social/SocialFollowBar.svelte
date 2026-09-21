@@ -6,7 +6,7 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 
 	type Props = {

@@ -19,7 +19,7 @@
 		LANDING_HERO_HOURS_ROTATE_TEXTS,
 		LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 
 	type Props = {
 		heroTitle?: string;

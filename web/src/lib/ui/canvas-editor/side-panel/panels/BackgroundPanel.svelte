@@ -12,7 +12,7 @@
 
 	import { icons } from '$data/icons';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import ColorPicker from '$lib/ui/color-picker/ColorPicker.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import * as InputGroup from '$lib/ui/input-group';

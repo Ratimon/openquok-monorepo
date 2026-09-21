@@ -2,7 +2,7 @@
 	import type { LandingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	import HeroVideoModal from '$lib/ui/modals/HeroVideoModal.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import PublicLandingSectionHeading from '$lib/ui/templates/landing-page/PublicLandingSectionHeading.svelte';
 
 	type Props = {

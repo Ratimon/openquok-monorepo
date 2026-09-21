@@ -3,7 +3,7 @@
 	import type { StockPhotoViewModel } from '$lib/canvas';
 
 	import PhotosImagesGrid from './PhotosImagesGrid.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import { icons } from '$data/icons';
 	import * as InputGroup from '$lib/ui/input-group';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';

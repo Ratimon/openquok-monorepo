@@ -37,7 +37,7 @@
 	import { planLimitsForTier } from 'openquok-common';
 	import { icons } from '$data/icons';
 
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import SkillBuilderHubBreadcrumb from '$lib/ui/components/skill-builder/SkillBuilderHubBreadcrumb.svelte';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import SectionOuterContainer from '$lib/ui/layouts/SectionOuterContainer.svelte';

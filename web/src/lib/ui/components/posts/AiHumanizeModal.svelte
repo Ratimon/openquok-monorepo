@@ -21,7 +21,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import ComposerMediaTooltip from '$lib/ui/components/posts/ComposerMediaTooltip.svelte';
 	import { Shimmer } from '$lib/ui/components/ai-elements/shimmer';
 	import * as Dialog from '$lib/ui/dialog';

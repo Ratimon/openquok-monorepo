@@ -55,6 +55,11 @@ describe('isHostedMarketingPath', () => {
 		expect(isHostedMarketingPath('/p/abc')).toBe(false);
 		expect(isHostedMarketingPath('/documentation')).toBe(false);
 	});
+
+	it('matches compare and alternatives detail paths', () => {
+		expect(isHostedMarketingPath('/compare/openquok/hootsuite')).toBe(true);
+		expect(isHostedMarketingPath('/alternatives/hootsuite')).toBe(true);
+	});
 });
 
 describe('hostedMarketingHref', () => {
@@ -136,6 +141,20 @@ describe('hostedMarketingAnchorAttrs', () => {
 			href: 'https://discord.gg/example',
 			external: false
 		});
+	});
+
+	it('never adds nofollow for InternalLink-style compare paths', () => {
+		const hosted = hostedMarketingAnchorAttrs('/compare/openquok/hootsuite', HOSTED_ORIGIN, {
+			isDev: false
+		});
+		expect(hosted).toEqual({ href: '/compare/openquok/hootsuite', external: false });
+		expect(hosted.rel).toBeUndefined();
+
+		const selfHost = hostedMarketingAnchorAttrs('/compare/openquok/hootsuite', SELF_HOST_ORIGIN, {
+			isDev: false
+		});
+		expect(selfHost.rel).toBe('noopener');
+		expect(selfHost.rel).not.toContain('nofollow');
 	});
 });
 

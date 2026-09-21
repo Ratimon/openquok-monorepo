@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Web: Lib Conventions
 
-Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement), section **6** (`data` on pages), section **7** (route page markup), and section **8** (route SEO / JSON-LD) apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation). Section **1b** documents external link behavior for UI (`ExternalLink` and programmatic new tabs).
+Conventions for code under `web/src/lib/`. Apply both when writing new lib code and when editing existing modules. Section **5** (Zod schema placement), section **6** (`data` on pages), section **7** (route page markup), and section **8** (route SEO / JSON-LD) apply to SvelteKit `+page.svelte` / `+layout.svelte` under `web/src/routes/` (and related `+page.server.ts` load validation). Section **1b** documents SEO link primitives under `$lib/ui/links/` (`ExternalLink`, `InternalLink`, `CompareProductLink`) and programmatic new tabs.
 
 ---
 
@@ -69,11 +69,36 @@ External packages are unchanged: use package names (e.g. `"bits-ui"`, `"svelte"`
 
 ---
 
-## 1b. External links: `ExternalLink` vs programmatic new tabs
+## 1b. SEO links: `$lib/ui/links/` vs programmatic new tabs
 
-Use **`$lib/ui/components/ExternalLink.svelte`** for external URLs that are rendered as **real `<a href>`** links in the DOM (SEO-visible, crawlable, correct `rel`).
+Colocate declarative SEO link primitives in **`$lib/ui/links/`** (`ExternalLink`, `InternalLink`, `CompareProductLink`). Import from `$lib/ui/links/…` or the optional barrel `$lib/ui/links`.
 
-### `ExternalLink` (declarative)
+### When to use which
+
+| Component | Use for |
+| --- | --- |
+| **`InternalLink`** | First-party paths (`/compare/…`, `/pricing`, `/alternatives/…`) — dofollow; self-host → hosted marketing rewrite via `hostedMarketingAnchorAttrs`. |
+| **`CompareProductLink`** | Compare/alternatives product names and “Go to website” CTAs — wraps `ExternalLink` with `getCompareProductWebsiteUrl` + `resolveExternalLinkPolicy` (OpenQuok dofollow; competitors nofollow). |
+| **`ExternalLink`** | Generic absolute `http(s)` URLs not covered above (brand social, GitHub, third-party docs). |
+| **`PageLink`** | Nav items with active-state / `goto` behavior — not for compare product names or marketing CTAs. |
+
+Do **not** use `InternalLink` for competitor absolute URLs — use `CompareProductLink` or `ExternalLink`.
+
+### `InternalLink` (first-party)
+
+- **`$lib/ui/links/InternalLink.svelte`** — thin wrapper around `hostedMarketingAnchorAttrs(href, page.url.origin)`.
+- Same-origin: normal in-tab navigation; no `nofollow` / `noreferrer`.
+- Self-host production: rewrites marketing prefixes to `https://www.openquok.com/…` with `target="_blank"` and `rel="noopener"` only. Full rules: **web-hosted-marketing-links**.
+
+### `CompareProductLink` (compare / alternatives product sites)
+
+- **`$lib/ui/links/CompareProductLink.svelte`** — pass `slug`; resolves official website URL and policy automatically.
+- **OpenQuok** (`openquok`) → `https://www.openquok.com` with **`trusted` + `follow`** (dofollow external).
+- **Competitors** → official URL with **`ExternalLink` defaults** (`noopener noreferrer nofollow`).
+
+### `ExternalLink` (absolute external)
+
+Use **`$lib/ui/links/ExternalLink.svelte`** for external URLs rendered as **real `<a href>`** links (SEO-visible, crawlable, correct `rel`).
 
 - **`target="_blank"`** is always set.
 - **`rel`** is derived from **`trusted`** and **`follow`** (defaults: `trusted = false`, `follow = false`):

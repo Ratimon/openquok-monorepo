@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Card, CardDescription, CardHeader, CardTitle } from '$lib/ui/card/index.js';
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import { resolveExternalLinkPolicy } from '$lib/utils/externalLinkRel';
 
 	let {

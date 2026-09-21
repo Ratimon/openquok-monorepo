@@ -2,7 +2,7 @@
 	import { cn } from '$lib/ui/helpers/common';
 
 	import * as Avatar from '$lib/ui/components/avatar';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import SupabaseUserAvatar from '$lib/ui/supabase/SupabaseUserAvatar.svelte';
 
 	export type BlogPostAuthorVm = {

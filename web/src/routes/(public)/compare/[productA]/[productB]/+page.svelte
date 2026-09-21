@@ -32,6 +32,7 @@
 		landingHeroTheme,
 		type LandingHeroTheme
 	} from '$lib/ui/templates/landing-page/landingHeroTheme';
+	import CompareProductLink from '$lib/ui/links/CompareProductLink.svelte';
 
 	type Props = { data: PageData };
 
@@ -268,9 +269,19 @@
 			</div>
 		</div>
 		<h1 class="text-3xl font-black tracking-tight text-base-content sm:text-4xl">
-			<span class={compareNamePrimaryClass}>{leftProductVm.name}</span>
+			<CompareProductLink
+				slug={leftProductVm.slug as CompareProductSlug}
+				class={compareNamePrimaryClass}
+			>
+				{leftProductVm.name}
+			</CompareProductLink>
 			<span class="px-2 text-base-content/80">vs</span>
-			<span class={compareNameAccentClass}>{rightProductVm.name}</span>
+			<CompareProductLink
+				slug={rightProductVm.slug as CompareProductSlug}
+				class={compareNameAccentClass}
+			>
+				{rightProductVm.name}
+			</CompareProductLink>
 			<span class="pl-2 text-base-content">comparison</span>
 		</h1>
 		<p class="mx-auto max-w-2xl text-base text-base-content/70">
@@ -313,7 +324,12 @@
 						/>
 					</div>
 					<h3 class="text-xl font-semibold">
-						<span class={compareNamePrimaryClass}>{leftProductVm.name}</span>
+						<CompareProductLink
+							slug={leftProductVm.slug as CompareProductSlug}
+							class={compareNamePrimaryClass}
+						>
+							{leftProductVm.name}
+						</CompareProductLink>
 					</h3>
 				</div>
 				<p class="mt-2 text-sm font-medium text-primary">
@@ -338,7 +354,12 @@
 						/>
 					</div>
 					<h3 class="text-xl font-semibold">
-						<span class={compareNameAccentClass}>{rightProductVm.name}</span>
+						<CompareProductLink
+							slug={rightProductVm.slug as CompareProductSlug}
+							class={compareNameAccentClass}
+						>
+							{rightProductVm.name}
+						</CompareProductLink>
 					</h3>
 				</div>
 				<p class="mt-2 text-sm font-medium text-base-content/70">

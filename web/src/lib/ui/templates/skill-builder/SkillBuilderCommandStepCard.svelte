@@ -5,7 +5,7 @@
 	import { supportsWorkflowJsonPayload } from '$lib/skill-builder/utils/postsCreatePayload';
 	import { url } from '$lib/utils/path';
 
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import SkillBuilderPostsCreatePayloadFields from '$lib/ui/templates/skill-builder/SkillBuilderPostsCreatePayloadFields.svelte';
 
 	type CommandStepViewModel = Extract<SkillBuilderWorkflowStepViewModel, { type: 'command' }>;

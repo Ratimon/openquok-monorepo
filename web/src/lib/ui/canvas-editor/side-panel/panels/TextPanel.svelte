@@ -12,7 +12,7 @@
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
 	import Button from '$lib/ui/buttons/Button.svelte';
-	import ExternalLink from '$lib/ui/components/ExternalLink.svelte';
+	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
 	import { Dropzone } from '$lib/ui/dropzone';
 	import { cn } from '$lib/ui/helpers/common';
 	import * as Collapsible from '$lib/ui/collapsible';
