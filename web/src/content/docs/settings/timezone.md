@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 **Where:** <Badge text="Settings" variant="default" /> → <Badge text="Timezone" variant="default" /> (<a href="/account/settings?section=timezone">/account/settings?section=timezone</a>).
 
-The <Badge text="Timezone" variant="default" /> section controls how times appear when you schedule posts and read the calendar.
+This setting section controls how times appear when you schedule posts and read the calendar.
 
 ### Clock format
 
