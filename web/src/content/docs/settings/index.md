@@ -8,7 +8,7 @@ sidebar:
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Overview
@@ -72,36 +72,20 @@ Templates and saved channel bundles live outside Settings — on <a href="/accou
 </TabItem>
 </Tabs>
 
-## Date metrics (Timezone)
+## In this section
 
-The <Badge text="Timezone" variant="default" /> section controls how times appear when you schedule posts and read the calendar.
-
-### Clock format
-
-Switch between **AM or PM** and **24 hours**.
-
-### Posting timezone
-
-Pick the IANA zone used for schedule slots, the calendar, and the Time table editor. This is your working timezone for OpenQuok — not necessarily your laptop clock.
-
-<Callout type="note" title="Stored in this browser">
-<p>Both clock format and timezone are saved in <strong>local storage</strong> on your device. They do not sync to your account. Open Settings on another machine if you need the same display there.</p>
-</Callout>
-
-Full detail: <a href="/docs/settings/timezone">Timezone</a>.
-
-## Approved apps
-
-<p><Badge text="Approved Apps" variant="default" /> lists every external application that completed OpenQuok OAuth for your account. These are not channels you connected for posting — they are separate clients (integrations, automations, or partner tools) that asked for permission to use your workspace on your behalf.</p>
-
-<p>Each row shows the app name, an optional description, and an <strong>Authorized on</strong> date. Use <Badge text="Revoke" variant="default" /> when you want to cut access. OpenQuok asks you to confirm in a dialog; after you confirm, that app’s tokens stop working until someone runs the OAuth flow again.</p>
-
-<p>Check this list when you rotate staff, retire a vendor, or stop using a tool. Remove rows you do not expect — stale OAuth access is an easy gap to close. For how third-party apps register and request consent, see <a href="/docs/oauth2-for-apps">OAuth2 for apps</a>.</p>
+<CardGrid>
+<LinkCard title="Team" description="Workspace list, invites, roles, and client access options" href="/docs/settings/team" />
+<LinkCard title="Timezone" description="Clock format and posting timezone for the calendar" href="/docs/settings/timezone" />
+<LinkCard title="Profile" description="Display name, username, avatar, and password reset" href="/docs/settings/profile" />
+<LinkCard title="Developers" description="Programmatic token, MCP snippets, and OAuth apps" href="/docs/settings/developers" />
+<LinkCard title="Approved apps" description="Third-party apps you authorized through OpenQuok OAuth" href="/docs/settings/approved-apps" />
+<LinkCard title="Signatures" description="Reusable sign-offs in the post editor" href="/docs/settings/signatures" />
+</CardGrid>
 
 ## Related Section(s)
 
 <CardGrid>
-<LinkCard title="Team" description="Invite members, roles, workspaces, and seat limits" href="/docs/settings/team" />
 <LinkCard title="Tour the app" description="Where Settings sits in the signed-in layout" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Cloud limits" description="What happens when a workspace hits a plan cap" href="/docs/cloud/limits" />
 <LinkCard title="Glossary" description="Workspace, channel, and organization terms" href="/docs/getting-started/glossary" />
