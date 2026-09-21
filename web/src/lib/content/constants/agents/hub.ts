@@ -4,25 +4,25 @@ export const PUBLIC_AGENTS_HUB = {
 	subtitle: 'Agents',
 	title: 'Social media CLI and MCP for AI agents',
 	description:
-		'Connect OpenClaw, Hermes, Grok Bot, ThinkRail, or any skill-based host — install openquok-core for local agents and custom workflows. Or plug OpenQuok into Cursor, Claude Code, Codex, and other MCP clients. Schedule posts from chat while you approve what goes live.',
+		'Install openquok-core on OpenClaw, Hermes, Grok Bot, ThinkRail, or another skill host. Or connect OpenQuok in Cursor, Claude Code, Codex, and other MCP clients. Schedule posts from chat. You approve what goes live.',
 	cliInstallTitle: 'Install the CLI:',
 	skillInstallTitle: 'Install our core skill:',
 	autonomousAgentHubSubtitle: 'Autonomous Agent',
 	autonomousAgentHubTitle: 'Autonomous agent hosts',
 	autonomousAgentHubDescription:
-		'Message your assistant from Telegram, Discord, Slack, the Grok Bot desktop app, or ThinkRail — install openquok-core, and schedule posts from chat. Pick a host below for setup steps and skill install commands.',
+		'Message your assistant from Telegram, Discord, Slack, Grok Bot, or ThinkRail. Install openquok-core. Schedule posts from chat. Pick a host below for setup and skill install commands.',
 	mcpHubSubtitle: 'MCP',
 	mcpHubTitle: 'Native MCP clients',
 	mcpHubDescription:
-		'Wire OpenQuok into the editors and terminals where you already chat with an AI agent — Cursor and Claude Code for IDE workflows, Warp for an AI-native terminal. Pick a client below for setup steps and a copy-paste MCP config.',
+		'Add OpenQuok where you already chat with an AI agent. Use Cursor or Claude Code in the IDE. Use Warp in the terminal. Pick a client below for setup and a copy-paste MCP config.',
 	mcpConfigTitle: 'Copy configuration',
 	mcpConfigDescription:
-		'Generate a programmatic token after sign-up, then paste the snippet for your client — no CLI skill required.',
+		'Generate a programmatic token after sign-up. Paste the snippet for your client. You do not need the CLI skill.',
 	compareSection: {
 		subtitle: 'Hosted Agent vs MCP client',
 		title: 'agent hosts vs MCP clients match the tool to how you work',
 		description:
-			'Both paths connect to OpenQuok. Agent hosts like OpenClaw, Hermes, Grok Bot, and ThinkRail shine when you want messaging, memory, and parallel sessions. MCP clients like Codex and Claude Code shine when you want focused coding workflows in your editor or terminal.',
+			'Both paths connect to OpenQuok. Use an agent host such as OpenClaw, Hermes, Grok Bot, or ThinkRail for messaging, memory, and parallel sessions. Use an MCP client such as Codex or Claude Code for focused work in your editor or terminal.',
 		leftTitle: 'Agent hosts (OpenClaw, Hermes, Grok Bot, ThinkRail)',
 		rightTitle: 'MCP clients (Codex, Claude Code, Cursor)',
 		points: [
@@ -52,32 +52,32 @@ export const PUBLIC_AGENTS_HUB = {
 		faqSubtitle: 'Frequently asked questions',
 		faqTitle: 'Agent hosts vs MCP clients, answered',
 		faqDescription:
-			'How OpenClaw, Hermes, Grok Bot, and ThinkRail differ from Cursor, Codex, and Claude Code — when to pick each path, how they connect to OpenQuok, what each costs to run, and why many teams use both.',
+			'How OpenClaw, Hermes, Grok Bot, and ThinkRail differ from Cursor, Codex, and Claude Code. When to pick each path. How they connect to OpenQuok. What each costs to run. Why many teams use both.',
 		faqItems: [
 			{
 				title: 'When should I choose an agent host?',
 				description:
-					'Choose an agent host for scheduling from chat apps, persistent memory, and parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, and <a href="/agents/thinkrail">ThinkRail</a> stay reachable while you are away.'
+					'Choose an agent host to schedule from chat apps, keep memory, and run parallel sessions. Install openquok-core as a SKILL.md you can customize. OpenClaw, Hermes, <a href="/agents/grok-bot">Grok Bot</a>, and <a href="/agents/thinkrail">ThinkRail</a> stay reachable while you are away.'
 			},
 			{
 				title: 'When should I choose an MCP client?',
 				description:
-					'Choose an MCP client when OpenQuok lives in your editor or terminal with native tool calls — no skill install. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex suit focused repo work; Warp suits terminal-first workflows.'
+					'Choose an MCP client when OpenQuok lives in your editor or terminal. You get native tool calls. You do not install a skill. <a href="/agents/cursor">Cursor</a>, Claude Code, and Codex fit focused repo work. Warp fits terminal-first workflows.'
 			},
 			{
 				title: 'How do I pay for agent hosts vs MCP clients?',
 				description:
-					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot needs SuperGrok or Cursor. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP only needs your programmatic token.'
+					'OpenQuok bills workspaces, channels, and scheduling. Your LLM and agent app bill separately. OpenClaw, Hermes, and ThinkRail are open source. Grok Bot needs SuperGrok or Cursor. Cursor, Claude Code, and Codex use their own plans. OpenQuok MCP needs only your programmatic token.'
 			},
 			{
 				title: 'What is the MCP host vs MCP client?',
 				description:
-					'The MCP host is the app you use — for example Cursor or Claude Desktop. It opens one MCP client session per connected server, including OpenQuok. We call Cursor, Codex, and Claude Code MCP clients because that matches how developers name their tools.'
+					'The MCP host is the app you use, such as Cursor or Claude Desktop. It opens one MCP client session per connected server, including OpenQuok. We call Cursor, Codex, and Claude Code MCP clients because that matches how developers name their tools.'
 			},
 			{
 				title: 'Does OpenQuok work with both paths at the same time?',
 				description:
-					'Yes. One workspace can serve an OpenClaw skill and a <a href="/agents/cursor">Cursor MCP</a> config simultaneously — same channels, same approval flow. Use whichever interface matches where you are working: message <a href="/agents/grok-bot">Grok Bot</a> from your phone, chat in <a href="/agents/thinkrail">ThinkRail</a>, or call OpenQuok tools from your IDE.'
+					'Yes. One workspace can serve an OpenClaw skill and a <a href="/agents/cursor">Cursor MCP</a> config at the same time. You keep the same channels and the same approval flow. Message <a href="/agents/grok-bot">Grok Bot</a> from your phone. Chat in <a href="/agents/thinkrail">ThinkRail</a>. Or call OpenQuok tools from your IDE.'
 			},
 			{
 				title: 'Which path gives me persistent memory?',

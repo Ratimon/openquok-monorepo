@@ -26,12 +26,12 @@ export const linkedinChannel = {
 	icon: icons.LinkedInGlyph.name,
 	heroTitle: 'Show up credibly on LinkedIn when B2B buyers actually look you up',
 	heroDescription:
-		'Connect your personal profile and company Page, queue posts, slide carousels, follow-up comments, and video on the OpenQuok calendar, and publish with review — because executives evaluate vendors at your profile, not in the scroll feed.',
+		'Connect your personal profile and company Page. Queue posts, slide carousels, follow-up comments, and video on the OpenQuok calendar. Publish with review. Executives evaluate vendors at your profile, not in the scroll feed.',
 	metaTitle: 'LinkedIn Post Scheduler for B2B Teams',
 	metaDescription:
-		'Schedule LinkedIn profile and Page posts for B2B outreach. Queue thought leadership, PDF document carousels, and video through the official API — with approval before anything goes live.',
+		'Schedule LinkedIn profile and Page posts for B2B outreach. Queue thought leadership, PDF document carousels, and video through the official API. Approve before anything goes live.',
 	hubDescription:
-		'B2B thought leadership on profile and company Page — scheduled, reviewed, and ready when buyers research you.',
+		'B2B thought leadership on profile and company Page. Scheduled and reviewed. Ready when buyers research you.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'LinkedIn post scheduler',
@@ -48,7 +48,7 @@ export const linkedinChannel = {
 			subtitle: 'Decision-time presence',
 			title: 'Queue profile and Page posts, batch B2B content, weeks ahead',
 			description:
-				'B2B buyers check your profile and company Page before they meet — not the feed. Queue founder posts, Page updates, and carousels on the OpenQuok calendar so both stay active when prospects research you.',
+				'B2B buyers check your profile and company Page before they meet. They do not live in the feed. Queue founder posts, Page updates, and carousels on the OpenQuok calendar. Both stay active when prospects research you.',
 			bentoId: 'linkedin-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -56,7 +56,7 @@ export const linkedinChannel = {
 			subtitle: 'Post editor',
 			title: 'Build PDF carousels on LinkedIn, schedule follow-up comments, before publish goes live',
 			description:
-				'Attach two or more images and OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page with delays — all from the same composer draft you review on the kanban board.',
+				'Attach two or more images. OpenQuok builds a document carousel when the post publishes. Queue follow-up comments on your profile or Page with delays. Review that same composer draft on the kanban board.',
 			bentoId: 'linkedin-post-editor',
 			mediaOnRight: false
 		},
@@ -64,7 +64,7 @@ export const linkedinChannel = {
 			subtitle: 'Cross-account plugs',
 			title: 'Comment your company page or reshare from another LinkedIn account, widen reach with plugs, after publish goes live',
 			description:
-				'After go-live, widen reach without switching accounts. Enable cross-account comment or reshare plugs on the publishing channel, pick other connected profiles in your workspace, and set delays so engagement lands when buyers are online.',
+				'After go-live, widen reach without switching accounts. Enable cross-account comment or reshare plugs on the publishing channel. Pick other connected profiles in your workspace. Set delays so engagement lands when buyers are online.',
 			bentoId: 'linkedin-settings',
 			mediaOnRight: true
 		},
@@ -72,7 +72,7 @@ export const linkedinChannel = {
 			subtitle: 'Outcomes over vanity',
 			title: 'Track Page impressions, spot buyer reach, scale what works',
 			description:
-				'Likes do not always mean pipeline — many buyers read without engaging. OpenQuok surfaces Page impressions, follower growth, and clicks so you can schedule more of what shows up when prospects compare vendors.',
+				'Likes do not always mean pipeline. Many buyers read without engaging. OpenQuok surfaces Page impressions, follower growth, and clicks. Then you can schedule more of what shows up when prospects compare vendors.',
 			bentoId: 'linkedin-insights',
 			mediaOnRight: false
 		}

@@ -2,7 +2,7 @@
 title: Overview - Setup Guides for different agents
 description: Platform-specific setup for running the OpenQuok CLI and openquok-core skill with AI agent hosts (OpenClaw, Hermes Agent, Grok Bot, and ThinkRail).
 order: 0
-lastUpdated: 2026-08-29
+lastUpdated: 2026-09-21
 sidebar:
   label: Overview
 ---
@@ -20,10 +20,10 @@ Each page covers where to install the skill, where the <Badge text="openquok" va
 For **native MCP clients** (Cursor, Claude Code, Codex, VS Code Copilot), you can skip the CLI skill and connect directly to OpenQuok HTTP streaming with your programmatic <Badge text="opo_" variant="default" /> token. See <a href="/docs/getting-started-for-mcp">MCP introduction</a>.
 
 <CardGrid>
-<LinkCard title="OpenClaw" description="Set up OpenQuok on an OpenClaw host and sign in from Telegram or chat" href="/docs/agent-setup-guides/openclaw" />
-<LinkCard title="Hermes Agent" description="Set up OpenQuok on Hermes Agent and sign in from Telegram, Discord, or Slack" href="/docs/agent-setup-guides/hermes" />
-<LinkCard title="Grok Bot" description="Skills and CLI workflows for Grok Bot teammates on a shared cloud computer." href="/docs/agent-setup-guides/grok-bot" />
-<LinkCard title="ThinkRail" description="Skills and CLI workflows for ThinkRail — worktree IDE for the pi coding agent." href="/docs/agent-setup-guides/thinkrail" />
+<LinkCard title="OpenClaw" description="OpenClaw is a personal AI assistant you run on your own devices. Message it from Telegram, WhatsApp, or Slack." href="/docs/agent-setup-guides/openclaw" />
+<LinkCard title="Hermes Agent" description="Hermes Agent runs on a laptop, a VPS, or serverless infrastructure. Talk to it from Telegram." href="/docs/agent-setup-guides/hermes" />
+<LinkCard title="Grok Bot" description="Grok Bot teammates run on a persistent cloud computer. Message them from macOS, Windows, or iOS." href="/docs/agent-setup-guides/grok-bot" />
+<LinkCard title="ThinkRail" description="ThinkRail is a worktree IDE. Install openquok-core as a pi skill. Schedule posts. You approve on OpenQuok." href="/docs/agent-setup-guides/thinkrail" />
 </CardGrid>
 
 ## Related Section(s)

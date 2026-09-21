@@ -24,12 +24,12 @@ export const instagramChannel = {
 	icon: icons.InstagramGlyph.name,
 	heroTitle: 'Schedule Instagram feed posts, Reels, carousels, and Stories',
 	heroDescription:
-		'Connect via Instagram or Facebook Business login, queue content on the OpenQuok calendar or through the public API, and tune per-post Instagram settings before publish.',
+		'Connect via Instagram or Facebook Business login. Queue content on the OpenQuok calendar or through the public API. Tune per-post Instagram settings before publish.',
 	metaTitle: 'Instagram Post, Reel & Story Scheduler',
 	metaDescription:
-		'Schedule Instagram feed posts, Reels, carousels, and Stories with OpenQuok. Business or Standalone login, calendar scheduling, per-post settings, follow-up comments, and analytics.',
+		'Schedule Instagram feed posts, Reels, carousels, and Stories with OpenQuok. Use Business or Standalone login. Schedule on the calendar. Set options per post. Add follow-up comments. Track analytics.',
 	hubDescription:
-		'Feed posts, Reels, carousels, and Stories — with trial Reels, collaborator tags, and follow-up comments.',
+		'Feed posts, Reels, carousels, and Stories. Trial Reels, collaborator tags, and follow-up comments.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Instagram post scheduler',
@@ -47,7 +47,7 @@ export const instagramChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue Instagram posts, batch Reels and carousels, weeks ahead',
 			description:
-				'Schedule photo, carousels, MP4 Reels, and Stories onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule photos, carousels, MP4 Reels, and Stories onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready to publish.',
 			bentoId: 'instagram-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -55,7 +55,7 @@ export const instagramChannel = {
 			subtitle: 'Post editor',
 			title: 'Compose feed posts and Reels, queue follow-up comments, before publish goes live',
 			description:
-				'Switch between feed/Reel and Story in the composer, attach photos, carousels, or MP4 Reels, and queue text-only follow-up comments with delays — from the dashboard or via provider Settings in the API.',
+				'Switch between feed, Reel, and Story in the composer. Attach photos, carousels, or MP4 Reels. Queue text-only follow-up comments with delays. Use the dashboard or provider Settings in the API.',
 			bentoId: 'instagram-post-editor',
 			mediaOnRight: false
 		},
@@ -63,7 +63,7 @@ export const instagramChannel = {
 			subtitle: 'Instagram settings',
 			title: 'Enable Trial Reels, tag collaborators, tune per-post options',
 			description:
-				'Tag up to three collaborators on single-media feed or Reel posts, enable Trial Reels with manual or performance-based graduation, and set post-type options before anything goes live — without leaving channel settings.',
+				'Tag up to three collaborators on single-media feed or Reel posts. Enable Trial Reels with manual or performance-based graduation. Set post-type options before anything goes live. Stay in channel settings.',
 			bentoId: 'instagram-settings',
 			mediaOnRight: true
 		},
@@ -71,7 +71,7 @@ export const instagramChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on Instagram, track reach and engagement, and iterate',
 			description:
-				'Track reach, views, likes, saves, and comments from connected Instagram accounts inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track reach, views, likes, saves, and comments from connected Instagram accounts inside OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'instagram-insights',
 			mediaOnRight: false
 		}

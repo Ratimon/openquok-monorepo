@@ -17,9 +17,9 @@ export const grokBotAgent = {
 	available: true,
 	metaTitle: 'Grok Bot Social Media Skill for OpenQuok',
 	metaDescription:
-		'Grok Bot is an AI teammate on a shared cloud computer with desktop and iOS apps. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
+		'Grok Bot is an AI teammate on a shared cloud computer with desktop and iOS apps. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
 	hubDescription:
-		'Grok Bot teammates run on a persistent cloud computer with browser, filesystem, and terminal. Message them from macOS, Windows, or iOS, install openquok-core as a skill, and schedule posts while you approve on OpenQuok.',
+		'Grok Bot teammates run on a persistent cloud computer with browser, filesystem, and terminal. Message them from macOS, Windows, or iOS. Install openquok-core as a skill. Schedule posts. You approve on OpenQuok.',
 	keywords: [
 		'Grok Bot social media',
 		'Grok Bot skill',
@@ -34,14 +34,14 @@ export const grokBotAgent = {
 	],
 	heroTitle: 'Schedule social media from Grok Bot then you approve',
 	heroDescription:
-		'Grok Bot is an AI teammate on a shared cloud computer — message it from the macOS or Windows desktop app or iOS. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+		'Grok Bot is an AI teammate on a shared cloud computer. Message it from the macOS or Windows desktop app or iOS. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/grok-bot',
 	skillInstallOptions: GROK_BOT_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your desktop teammate',
 		title: 'Message Grok Bot from macOS, Windows, or iOS',
 		description:
-			'Ask your Bot to draft and schedule like any other teammate message. The openquok-core skill runs on its cloud computer, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
+			'Ask your Bot to draft and schedule like any other teammate message. The openquok-core skill runs on its cloud computer. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
 		deviceMock: 'desktop',
 		deviceMockContent: 'agent-parallel-schedule',
 		imageAlt: 'Grok Bot desktop chat scheduling social posts via OpenQuok'
@@ -62,7 +62,7 @@ export const grokBotAgent = {
 			iconClass: 'text-zinc-400',
 			title: 'Desktop-first operators',
 			description:
-				'Each Bot gets a cloud computer — install the CLI once, then message it to run openquok.',
+				'Each Bot gets a cloud computer. Install the CLI once. Then message it to run openquok.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -70,7 +70,7 @@ export const grokBotAgent = {
 			iconClass: 'text-stone-400',
 			title: 'Founders & small teams',
 			description:
-				'Keep approval on the calendar while your Bot handles volume. Load skills via Plugins — no MCP bloat.',
+				'Keep approval on the calendar while your Bot handles volume. Load skills via Plugins. You do not need MCP for this path.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

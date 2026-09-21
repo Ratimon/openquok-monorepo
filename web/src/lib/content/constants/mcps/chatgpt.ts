@@ -6,11 +6,11 @@ export const chatgptMcpSeed = {
 		label: 'ChatGPT',
 		mcpClient: 'ChatGPT',
 		icon: icons.ChatGPT.name,
-		hubDescription: 'Custom connector / developer-mode MCP URL',
+		hubDescription: 'Add OpenQuok as a custom connector. Paste the MCP URL with your token.',
 		heroDescription:
-			'ChatGPT connects remote MCP servers as custom connectors — once OpenQuok is added, you schedule and manage social posts in plain English. Connect over MCP so ChatGPT drafts and schedules posts while you review and approve on the calendar or kanban.',
+			'ChatGPT connects remote MCP servers as custom connectors. Add OpenQuok. Then you schedule and manage social posts in plain English. ChatGPT drafts and schedules posts. You review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to ChatGPT — schedule social posts from a custom connector. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to ChatGPT. Schedule social posts from a custom connector. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'ChatGPT',
 		setupSteps: [
 			'Open ChatGPT on the web (Plus, Pro, Business, Enterprise, or Education) and enable Developer mode under Settings → Security and login when adding a custom MCP app.',

@@ -431,21 +431,23 @@ Add a constant in `channels/{slug}.ts` and register it in `channels/index.ts` (r
 
 **Go live:** flip `available: true` (and ensure backend integration is registered). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
 
-### Landing copy voice (problem-first)
+### Landing copy voice (problem-first, ASD-STE100)
 
-Write `heroTitle`, `heroDescription`, `featureSections`, `audienceCards`, and FAQ answers for **the person scheduling posts** — lead with the pain or outcome, not a settings checklist.
+Write `heroTitle`, `heroDescription`, `hubDescription`, `featureSections`, `audienceCards`, and FAQ answers for **the person scheduling posts** — lead with the pain or outcome, not a settings checklist.
+
+Use **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** keep ≥3 comma-separated phrases for hero theme; **descriptions** stay STE100.
 
 | Prefer | Avoid |
 | --- | --- |
 | What the user struggles with or wants (reach, consistency, time saved, approval control) | Feature inventories (`privacy_level`, `providerSettings`, toggle names, API paths) |
-| Plain outcomes (“queue to your inbox, pick trending audio in the app”) |
+| Plain outcomes (“Queue to your inbox. Pick trending audio in the app.”) | Long clauses joined with em dashes |
 | Second person (“you”, “your posts”, “your workspace”) | Passive product specs (“supports X, Y, Z settings”) |
 
 **`featureSections` pattern:**
 
 - **`subtitle`** — user problem or job-to-be-done (e.g. `Trending audio`, `Bulk scheduling`), not an internal label (`Compose settings`).
 - **`title`** — see **Feature section titles** below.
-- **`description`** — problem → how OpenQuok helps → result; mention shipped workflow steps the bento shows.
+- **`description`** — problem → how OpenQuok helps → result; mention shipped workflow steps the bento shows. One idea per sentence.
 
 **Reference:** TikTok `featureSections[1]` in `channels/tiktok.ts` — inbox drafts + manual trending audio for algorithm reach; bento still shows composer settings, but copy sells the user problem.
 
@@ -797,7 +799,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **`web/src/data/social-providers.ts`:** display name + icon for new slug; **`SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS`** includes exact `provider.identifier` when `analytics()` / `postAnalytics()` ship (not a parent alias like `instagram` for `instagram-business`).
 - **`channels/{slug}.ts`:** `slug` / `platformId` match `provider.identifier`; `docsPath` matches setup guide; `available` reflects ship state; **`featureSections` use `bentoId`**, not generic `/landing/*.mp4`, at go-live; **each `featureSections[].title` has ≥3 comma-separated phrases**.
 - **Feature bento:** IDs in `publicChannelFeatureBentoConfig.ts`; branches in `BentoPublicChannelFeature.svelte`; mock + preview Svelte under `bento/minor-templates/`; showcases match shipped features only.
-- **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first and user-facing** (not feature/spec lists); CTAs are only `Get Started For Free` → `/pricing`.
+- **Landing page:** hero + feature sections + FAQ filled; **copy is problem-first, user-facing, and ASD-STE100** (short sentences, active voice, `you`; not feature/spec lists); CTAs are only `Get Started For Free` → `/pricing`.
 - **Main landing icons:** when go-live-ing a channel, update `web/src/data/landing-social-platforms.ts` — add the provider to `HERO_SOCIAL_PLATFORMS` and `FEATURES_GRID_SOCIAL_PLATFORMS` / `FEATURES_GRID_SOCIAL_ROWS` (not only `/channels/{slug}`). Prefer glyph icons (`icons.*Glyph`) with `GLYPH_TILE` when peers use them.
 - **Hub:** new channel appears on `/channels` (coming-soon badge or live link).
 - **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.

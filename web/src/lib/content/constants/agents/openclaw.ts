@@ -16,8 +16,8 @@ export const openclawAgent = {
 	icon: icons.OpenClaw.name,
 	available: true,
 	metaTitle: 'OpenClaw Social Media Skill for OpenQuok',
-	metaDescription: 'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
-	hubDescription: 'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use — with voice on macOS, iOS, and Android, and a live Canvas you control.',
+	metaDescription: 'OpenClaw is a self-hosted personal AI assistant for Telegram, WhatsApp, Slack, and more. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
+	hubDescription: 'OpenClaw is a personal AI assistant you run on your own devices. It answers on the channels you already use. You get voice on macOS, iOS, and Android, and a live Canvas you control.',
 	keywords: [
 		'OpenClaw social media',
 		'OpenClaw skill',
@@ -31,14 +31,14 @@ export const openclawAgent = {
 		'OpenQuok OpenClaw integration'
 	],
 	heroTitle: 'Schedule social media from OpenClaw then you approve',
-	heroDescription: 'OpenClaw is a personal AI assistant on your own devices — message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	heroDescription: 'OpenClaw is a personal AI assistant on your own devices. Message it from Telegram, WhatsApp, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/openclaw',
 	skillInstallOptions: OPENCLAW_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your messaging apps',
 		title: 'Text from Telegram, WhatsApp, or Slack',
 		description:
-			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
+			'Send a scheduling request to OpenClaw like any other message. The openquok-core skill runs on your host. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'OpenClaw chat scheduling social posts via OpenQuok'

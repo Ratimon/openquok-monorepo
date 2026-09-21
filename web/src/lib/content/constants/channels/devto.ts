@@ -25,12 +25,12 @@ export const devtoChannel = {
 	icon: icons.DevtoGlyph.name,
 	heroTitle: 'Schedule Dev.to posts, tags, and series you approve',
 	heroDescription:
-		'Paste your DEV Community API key, queue markdown articles on the calendar, and set title, tags, series, cover, organization, and canonical URL before anything goes live — then approve on the kanban board before OpenQuok publishes.',
+		'Paste your DEV Community API key. Queue markdown articles on the calendar. Set title, tags, series, cover, organization, and canonical URL before anything goes live. Approve on the kanban board before OpenQuok publishes.',
 	metaTitle: 'Dev.to Scheduler — Schedule Posts, Tags, and Series',
 	metaDescription:
-		'Schedule Dev.to posts, tags, and series with OpenQuok. Connect with an API key, queue markdown articles with cover, organization, and canonical URL, track Dev.to analytics, and publish from the dashboard, public API, or CLI.',
+		'Schedule Dev.to posts, tags, and series with OpenQuok. Connect with an API key. Queue markdown articles with cover, organization, and canonical URL. Track Dev.to analytics. Publish from the dashboard, public API, or CLI.',
 	hubDescription:
-		'Schedule Dev.to posts with tags and series — plus cover, organization, canonical URL, and analytics for page views, reactions, and comments.',
+		'Schedule Dev.to posts with tags and series. Add cover, organization, and canonical URL. Track page views, reactions, and comments.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'schedule Dev.to posts',
@@ -52,7 +52,7 @@ export const devtoChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue Dev.to posts with tags and series, batch drafts weeks ahead',
 			description:
-				'Technical writing stalls when drafts sit unpublished. Put articles on the OpenQuok calendar with tags and series set, review agent and human drafts on the kanban board, then move them to Scheduled when ready.',
+				'Technical writing stalls when drafts sit unpublished. Put articles on the OpenQuok calendar with tags and series set. Review agent and human drafts on the kanban board. Move them to Scheduled when ready.',
 			bentoId: 'devto-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -60,7 +60,7 @@ export const devtoChannel = {
 			subtitle: 'Post editor',
 			title: 'Write markdown articles in Dev.to, review drafts on the kanban board, before you approve',
 			description:
-				'Write the body as markdown in the usual editor, preview formatting, and schedule onto the calendar. Review agent and human drafts on the kanban board before anything goes live on DEV Community.',
+				'Write the body as markdown in the usual editor. Preview formatting. Schedule onto the calendar. Review agent and human drafts on the kanban board before anything goes live on DEV Community.',
 			bentoId: 'devto-post-editor',
 			mediaOnRight: false
 		},
@@ -68,7 +68,7 @@ export const devtoChannel = {
 			subtitle: 'Article settings',
 			title: 'Craft tags and series, tune cover, and canonical URL',
 			description:
-				'Tune Dev.to settings per article — title, up to four tags, series name, optional cover (1000×420), organization, and canonical URL for syndication. Pass the same fields via provider Settings when you schedule from the API or CLI.',
+				'Tune Dev.to settings per article. Set title, up to four tags, series name, optional cover (1000×420), organization, and canonical URL for syndication. Pass the same fields via provider Settings when you schedule from the API or CLI.',
 			bentoId: 'devto-settings',
 			mediaOnRight: true
 		},
@@ -76,7 +76,7 @@ export const devtoChannel = {
 			subtitle: 'Dev.to insights',
 			title: 'See what resonates on Dev.to, track views and reactions, and iterate',
 			description:
-				'Track page views, reactions, and comments from your connected DEV Community account over 7, 30, or 90 days inside OpenQuok analytics — plus per-article insights once a post is published — so you can schedule more of what already works.',
+				'Track page views, reactions, and comments from your connected DEV Community account over 7, 30, or 90 days inside OpenQuok analytics. Use per-article insights once a post is published. Then schedule more of what already works.',
 			bentoId: 'devto-insights',
 			mediaOnRight: false
 		}

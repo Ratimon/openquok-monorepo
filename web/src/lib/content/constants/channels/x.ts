@@ -26,12 +26,12 @@ export const xChannel = {
 	icon: icons.X.name,
 	heroTitle: 'Schedule X tweets, re-tweets, and thread replies',
 	heroDescription:
-		'Connect an X profile with OAuth, queue tweets and thread replies on the calendar, tune who can reply and community settings per post, and publish from the dashboard, public API, or CLI.',
+		'Connect an X profile with OAuth. Queue tweets and thread replies on the calendar. Tune who can reply and community settings per post. Publish from the dashboard, public API, or CLI.',
 	metaTitle: 'X Post Scheduler',
 	metaDescription:
-		'Schedule X posts with OpenQuok. Connect X with OAuth, queue text and media, chain thread replies, and publish from the dashboard, API, or CLI.',
+		'Schedule X posts with OpenQuok. Connect X with OAuth. Queue text and media. Chain thread replies. Publish from the dashboard, API, or CLI.',
 	hubDescription:
-		'Weighted 280-character tweets (4000 for Verified), up to four images or one video, and scheduled thread replies.',
+		'Weighted 280-character tweets (4000 for Verified). Up to four images or one video. Scheduled thread replies.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'X post scheduler',
@@ -47,7 +47,7 @@ export const xChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Schedule X posts, batch drafts on the calendar, weeks ahead',
 			description:
-				'Schedule tweets and media onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule tweets and media onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready to publish.',
 			bentoId: 'x-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -55,7 +55,7 @@ export const xChannel = {
 			subtitle: 'Post editor',
 			title: 'Schedule thread replies on X, keep the conversation, on schedule',
 			description:
-				'A strong tweet deserves a conversation — not another tab open on X. Add follow-up replies in the composer with delays, preview text and media before you schedule, and chain the full thread from one draft.',
+				'A strong tweet deserves a conversation. You do not need another tab open on X. Add follow-up replies in the composer with delays. Preview text and media before you schedule. Chain the full thread from one draft.',
 			bentoId: 'x-post-editor',
 			mediaOnRight: false
 		},
@@ -63,7 +63,7 @@ export const xChannel = {
 			subtitle: 'Reply rules & Cross-posting',
 			title: 'Set reply rules per tweet, close threads with a finisher, repost from other profiles',
 			description:
-				'In custom mode, open the Settings accordion. Choose who can reply, enable Thread finisher for a closing line after your replies, and turn on Add re-posters to pick other connected profiles and a delay. OpenQuok publishes the main thread first, then reposts from each account.',
+				'In custom mode, open the Settings accordion. Choose who can reply. Enable Thread finisher for a closing line after your replies. Turn on Add re-posters to pick other connected profiles and a delay. OpenQuok publishes the main thread first. Then it reposts from each account.',
 			bentoId: 'x-settings',
 			mediaOnRight: true
 		},
@@ -71,7 +71,7 @@ export const xChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on X, track impressions and engagement, and iterate',
 			description:
-				'Track likes, replies, reposts, quotes, and impressions from connected X profiles inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track likes, replies, reposts, quotes, and impressions from connected X profiles inside OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'x-insights',
 			mediaOnRight: false
 		}
@@ -92,7 +92,7 @@ export const xChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Social managers',
 			description:
-				'Batch a week of X posts, control reply settings per tweet, and track engagement with your other channels.',
+				'Batch a week of X posts. Control reply settings per tweet. Track engagement with your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -116,7 +116,7 @@ export const xChannel = {
 		{
 			title: 'Can I schedule X posts with images or video?',
 			description:
-				'Yes. Attach up to four images or one video when composing an X post in OpenQuok. The post editpr validates media rules before publish — one video or up to four images per tweet, not both.'
+				'Yes. Attach up to four images or one video when composing an X post in OpenQuok. The post editor validates media rules before publish. Use one video or up to four images per tweet, not both.'
 		},
 		{
 			title: 'Does OpenQuok respect X character limits?',

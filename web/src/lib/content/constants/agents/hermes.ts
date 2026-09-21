@@ -17,8 +17,8 @@ export const hermesAgent = {
 	icon: icons.HermesAgent.name,
 	available: true,
 	metaTitle: 'Hermes Agent Social Media Skill for OpenQuok',
-	metaDescription: 'Hermes Agent is an autonomous AI assistant with a built-in learning loop, 20+ messaging gateways, and MCP support. Connect OpenQuok to draft and schedule social posts from chat — approve every publish on the calendar or kanban.',
-	hubDescription: 'Hermes Agent runs wherever you put it — a laptop, a $5 VPS, or serverless infrastructure. Talk to it from Telegram while it works on a host you never SSH into, with skills that load on demand.',
+	metaDescription: 'Hermes Agent is an autonomous AI assistant with a built-in learning loop, 20+ messaging gateways, and MCP support. Connect OpenQuok to draft and schedule social posts from chat. You approve every publish on the calendar or kanban.',
+	hubDescription: 'Hermes Agent autonomously runs on a laptop, a VPS, or serverless infrastructure. Talk to it from Telegram while it works on a host you never SSH into. Skills load on demand.',
 	keywords: [
 		'Hermes Agent social media',
 		'Hermes Agent skill',
@@ -32,14 +32,14 @@ export const hermesAgent = {
 		'OpenQuok Hermes integration'
 	],
 	heroTitle: 'Schedule social media from Hermes then you approve',
-	heroDescription: 'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM — message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts while you review and approve on the calendar or kanban.',
+	heroDescription: 'Hermes Agent is a self-improving AI assistant you run on your own hardware or a cloud VM. Message it from Telegram, Discord, or Slack. Add the openquok-core skill so it drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/hermes',
 	skillInstallOptions: HERMES_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your messaging gateways',
 		title: 'Message Hermes from Telegram, Discord, or Slack',
 		description:
-			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar — you sign off before publish.',
+			'Send a scheduling request through any gateway Hermes already bridges. The openquok-core skill drafts posts, uploads media, and queues them on your OpenQuok calendar. You sign off before publish.',
 		deviceMock: 'iphone-15-pro',
 		deviceMockContent: 'agent-chat-schedule',
 		imageAlt: 'Hermes chat scheduling social posts via OpenQuok'

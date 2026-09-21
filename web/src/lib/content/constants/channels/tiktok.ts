@@ -25,12 +25,12 @@ export const tiktokChannel = {
 	icon: icons.TikTok.name,
 	heroTitle: 'Schedule TikTok videos and carousels',
 	heroDescription:
-		'Connect a TikTok account, schedule vertical videos or image carousels on the calendar, set privacy and posting method, and publish through the official TikTok APIs — from the dashboard, public API, or CLI.',
+		'Connect a TikTok account. Schedule vertical videos or image carousels on the calendar. Set privacy and posting method. Publish through the official TikTok APIs from the dashboard, public API, or CLI.',
 	metaTitle: 'TikTok Video & Photo Scheduler',
 	metaDescription:
-		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account, queue MP4 or image posts with privacy and interaction settings, and publish from one workspace.',
+		'Schedule TikTok videos and photo carousels with OpenQuok. Connect your account. Queue MP4 or image posts with privacy and interaction settings. Publish from one workspace.',
 	hubDescription:
-		'Vertical video and photo carousels — direct publish or queue to your TikTok inbox to add trending audio.',
+		'Vertical video and photo carousels. Direct publish or queue to your TikTok inbox so you can add trending audio.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'TikTok post scheduler',
@@ -46,7 +46,7 @@ export const tiktokChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue TikTok clips and carousels, batch drafts on the calendar, weeks ahead',
 			description:
-				'Schedule viral videos and photo carousels onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule viral videos and photo carousels onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready to publish.',
 			bentoId: 'tiktok-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -54,7 +54,7 @@ export const tiktokChannel = {
 			subtitle: 'Post editor',
 			title: 'Schedule vertical videos and photo carousels, review before publish, from one draft',
 			description:
-				'Attach a single MP4 or one or more images for a carousel, write your caption, and schedule onto the calendar. Review agent and human drafts on the kanban board before TikTok publishes from your connected account.',
+				'Attach a single MP4 or one or more images for a carousel. Write your caption. Schedule onto the calendar. Review agent and human drafts on the kanban board before TikTok publishes from your connected account.',
 			bentoId: 'tiktok-post-editor',
 			mediaOnRight: false
 		},
@@ -62,7 +62,7 @@ export const tiktokChannel = {
 			subtitle: 'TikTok settings',
 			title: 'Set privacy, inbox upload to manually select trending audio, and AI Labeling',
 			description:
-				'Set privacy, comments, duet, and stitch before you schedule. Dont act like bot by useing inbox upload to queue carousels and clips then pick trending audio in the TikTok app. Flag AI-generated content so TikTok applies the right label and encourages good visibility.',
+				'Set privacy, comments, duet, and stitch before you schedule. Queue clips and carousels to your TikTok inbox. Pick trending audio in the TikTok app. Flag AI-generated content so TikTok can apply the right label.',
 			bentoId: 'tiktok-settings',
 			mediaOnRight: true
 		},
@@ -70,7 +70,7 @@ export const tiktokChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on TikTok, track followers and engagement, and iterate',
 			description:
-				'Track followers, likes, video counts, and recent video engagement from connected TikTok accounts inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track followers, likes, video counts, and recent video engagement from connected TikTok accounts inside OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'tiktok-insights',
 			mediaOnRight: false
 		}
@@ -83,7 +83,7 @@ export const tiktokChannel = {
 			iconClass: 'text-rose-400',
 			title: 'App & SaaS Founders',
 			description:
-				'Ship product while TikTok runs. Queue carousels as inbox drafts and add trending audio before publish.',
+				'Ship product while TikTok runs. Queue carousels as inbox drafts. Add trending audio before publish.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -91,7 +91,7 @@ export const tiktokChannel = {
 			iconClass: 'text-lime-400',
 			title: 'TikTok creators',
 			description:
-				'Batch a week of TikTok content, review drafts before publish, and track growth with your other channels.',
+				'Batch a week of TikTok content. Review drafts before publish. Track growth with your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{

@@ -43,14 +43,14 @@ function buildMcpAudienceSection(
 				iconName: icons.CustomizedDrawnLaptop.name,
 				iconClass: 'text-sky-400',
 				title: 'IDE & workflow users',
-				description: `Stay in ${workflowPhrase}. Schedule posts from your agent without opening another dashboard.`,
+				description: `Stay in ${workflowPhrase}. Schedule posts from your agent. You do not open another dashboard.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
 				iconName: icons.CustomizedDrawnRobot.name,
 				iconClass: 'text-cyan-400',
 				title: 'Developers & builders',
-				description: `Connect OpenQuok over MCP with a programmatic token. ${label} lists channels and schedules with structured tools.`,
+				description: `Connect OpenQuok over MCP with a programmatic token. ${label} lists channels. It schedules with structured tools.`,
 				containerClass: 'h-full min-h-[18rem]'
 			},
 			{
@@ -70,23 +70,23 @@ function buildMcpFaqItems(label: string, slug: string): PublicFaqItem[] {
 	return [
 		{
 			title: `What is OpenQuok MCP for ${label}?`,
-			description: `OpenQuok exposes scheduling tools over MCP so ${label} can list channels, read platform limits, and draft or schedule posts — you approve in your workspace. See ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)}.`
+			description: `OpenQuok exposes scheduling tools over MCP. ${label} can list channels, read platform limits, and draft or schedule posts. You approve in your workspace. See ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)}.`
 		},
 		{
 			title: 'Do I need the CLI or openquok-core skill?',
-			description: `No — ${label} connects over MCP with an opo_ token. Use openquok-core on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} when you need shell scripts, parallel sessions, or richer skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
+			description: `No. ${label} connects over MCP with an opo_ token. Use openquok-core on ${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} or ${faqLink(faqHrefAgent('hermes'), 'Hermes')} when you need shell scripts, parallel sessions, or richer skill workflows. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}.`
 		},
 		{
 			title: `Why use ${label} MCP instead of an agent host?`,
-			description: `${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat from Telegram, Discord, or Slack. ${label} fits when OpenQuok should live in your editor or terminal. Pick ${label} for in-repo workflows; pick an agent host for messaging and scale. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
+			description: `${faqLink(faqHrefAgent('openclaw'), 'OpenClaw')} and ${faqLink(faqHrefAgent('hermes'), 'Hermes')} fit always-on chat from Telegram, Discord, or Slack. ${label} fits when OpenQuok should live in your editor or terminal. Pick ${label} for in-repo workflows. Pick an agent host for messaging and scale. Browse ${faqLink(publicFaqHref.agents, 'agent hosts and MCP clients')}.`
 		},
 		{
 			title: 'How do I authenticate?',
-			description: `Create an OAuth app, generate an opo_ token under Developers → Access, then paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and the ${faqLink(mcpClientGuide, `${label} MCP setup`)}.`
+			description: `Create an OAuth app. Generate an opo_ token under Developers → Access. Paste the MCP config. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and the ${faqLink(mcpClientGuide, `${label} MCP setup`)}.`
 		},
 		{
 			title: 'How do I verify the connection?',
-			description: `Start a fresh session and ask: List my connected social media accounts. See the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)} for the verify step.`
+			description: `Start a fresh session. Ask: List my connected social media accounts. See the ${faqLink(mcpClientGuide, `${label} MCP setup guide`)} for the verify step.`
 		},
 		{
 			title: 'Which social platforms are supported?',
@@ -99,7 +99,7 @@ function buildMcpIntegrationsSetupStep(stepId: number, label: string): FeaturesO
 	return {
 		id: stepId,
 		title: `${stepId}. Integrate & customize other skills or MCPs`,
-		content: `Add Bloom, RevenueCat, or any skill or MCP beside openquok-core in ${label} — find your own viral formats and scale!`,
+		content: `Add Bloom, RevenueCat, or any skill or MCP beside openquok-core in ${label}. Find your own viral formats and scale.`,
 		animatedContent: 'agent-integrations',
 		mediaAlt: 'Agent skills and integrations with OpenQuok',
 		iconName: icons.Sparkles.name
@@ -286,7 +286,7 @@ function buildMcpWorkflowSection(
 	return {
 		subtitle: `Prompt from ${workflowPhrase}`,
 		title: 'One prompt, cross-channel schedule',
-		description: `Describe what to publish in ${label}. Agent lists your connected channels, attaches media, and queues drafts for the time you pick — you approve on the calendar before anything goes live.`,
+		description: `Describe what to publish in ${label}. The agent lists your connected channels, attaches media, and queues drafts for the time you pick. You approve on the calendar before anything goes live.`,
 		deviceMock: 'desktop',
 		deviceMockContent: getMcpWorkflowScheduleContentId(mcpClient),
 		imageAlt: `Schedule social posts from ${label} via OpenQuok MCP`
@@ -301,7 +301,7 @@ function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAge
 		{
 			subtitle: 'Minimal setup',
 			title: 'stay in your editor or terminal, connect once, schedule without switching apps',
-			description: `${label} is built for focused sessions where you already ship work — paste one MCP config, and OpenQuok tools live inside that flow. List channels, draft posts, and queue schedules, without opening another dashboard or chat app.`,
+			description: `${label} is built for focused sessions where you already ship work. Paste one MCP config. OpenQuok tools live inside that flow. List channels, draft posts, and queue schedules. You do not open another dashboard or chat app.`,
 			parallelMocks: [
 				{
 					deviceMock: 'settings-panel',
@@ -323,7 +323,7 @@ function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAge
 			subtitle: 'Kanban + smart filters',
 			title: 'Review every AI draft, sign off confidently, before it goes live',
 			description:
-				'Move agent-generated posts from draft to review to scheduled on a kanban board — with the same smart filters as your calendar. Approve quality at scale instead of trusting autopilot.',
+				'Move agent-generated posts from draft to review to scheduled on a kanban board. Use the same smart filters as your calendar. Approve quality at scale. Do not trust autopilot.',
 			bentoId: 'agent-multi-platform-bulk-scheduling',
 			mediaOnRight: false,
 			cliCommandsTitle: 'Example prompts',
@@ -332,7 +332,7 @@ function buildMcpFeatureSections(label: string, mcpClient: McpClient): PublicAge
 		{
 			subtitle: 'Analytics',
 			title: 'Ask what worked, see winners, and adapt from chat',
-			description: `Ask ${label} to pull impressions, engagement, and post insights for any connected channel — compare without opening the dashboard.`,
+			description: `Ask ${label} to pull impressions, engagement, and post insights for any connected channel. Compare without opening the dashboard.`,
 			deviceMock: 'desktop',
 			deviceMockContent: analyticsContentId,
 			imageAlt: `${label} chat showing OpenQuok platform and post analytics`,
@@ -344,7 +344,7 @@ Break down likes, comments, and shares for post <id>`
 		{
 			subtitle: 'Scale what works',
 			title: 'when a format hits, scale by adding workspaces and parallel sessions',
-			description: `Spot a winner in analytics, then clone more dedicated workspaces for the next client or brand while parallel ${label} sessions queue posts and pull metrics — multi-workspace isolation keeps credentials and channels from mixing as you scale.`,
+			description: `Spot a winner in analytics. Clone more dedicated workspaces for the next client or brand. Parallel ${label} sessions queue posts and pull metrics. Multi-workspace isolation keeps credentials and channels from mixing as you scale.`,
 			parallelMocks: [
 				{
 					deviceMock: 'desktop',
@@ -379,23 +379,23 @@ function buildMcpComparisonSection(
 		subtitle: 'comparisons',
 		title: 'MCP-native scheduling, not another dashboard',
 		description:
-			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for MCP clients in your editor and terminal',
+			'Most social scheduler SaaS keeps you in a browser tab. OpenQuok is built for MCP clients in your editor and terminal.',
 		withoutTitle: 'Typical social scheduler SaaS',
 		withTitle: `OpenQuok + ${label}`,
 		points: [
 			{
 				pain: 'Copy posts between your AI session and a separate scheduling tool',
-				feature: `Stay in ${workflowPhrase} — Schedule from ${label} in one session`
+				feature: `Stay in ${workflowPhrase}. Schedule from ${label} in one session`
 			},
 			{
 				pain: 'Siloed API keys and workflows that do not compose with your agent stack',
 				feature:
-					'Connect over MCP — credentials stay in your workspace'
+					'Connect over MCP. Credentials stay in your workspace'
 			},
 			{
 				pain: 'Custom integrations you maintain for every tool and channel',
 				feature:
-					'Built-in MCP tools that upload media, and schedule with structured responses'
+					'Built-in MCP tools that upload media and schedule with structured responses'
 			},
 			{
 				pain: "Locked to one vendor's models or automation layer",
@@ -404,7 +404,7 @@ function buildMcpComparisonSection(
 			{
 				pain: 'Autopilot publishing with no human checkpoint',
 				feature:
-					'Every post lands as draft or scheduled — you approve before anything goes live'
+					'Every post lands as draft or scheduled. You approve before anything goes live'
 			}
 		]
 	};

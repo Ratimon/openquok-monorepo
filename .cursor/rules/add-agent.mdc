@@ -35,6 +35,8 @@ Two product surfaces share the `/agents` hub but use **different** content trees
 
 Follow **source-project-neutrality** and **company-brand-icons**. Reference MCP client: **`chatgpt.ts`**, **`claude-cowork.ts`**, **`warp.ts`**. Reference agent host: **`openclaw.ts`**, **`hermes.ts`**, **`grok-bot.ts`**, **`thinkrail.ts`**.
 
+**User-facing landing copy** (`agents/{slug}.ts`, `mcps/{slug}.ts`, `agents/hub.ts`, MCP `builders.ts`, and `/agents` presenters): write in **ASD-STE100 Simplified Technical English**. Use short sentences. Put one idea in each sentence. Use active voice. Address the reader as **you**. Use plain words. Do not explain in the copy (or in chat) that you follow this style. Feature **titles** may keep comma-split lines for hero theme; **descriptions**, hub blurbs, heroes, audience cards, and FAQ answers must still be STE100.
+
 **Do not edit `backend/supabase/db/**`** for agent launches (no listing-tag seeds, no blog seeds, no migration re-aggregate). Catalog tags and launch blog posts go in through secret-admin UI — see **C. CMS (blog + listing tag)** below.
 
 ---
@@ -82,7 +84,7 @@ Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface 
 
 ### 3. Landing seed
 
-**`web/src/lib/content/constants/mcps/{slug}.ts`** — export `{name}McpSeed` satisfying `McpLandingSeed` (`slug`, `label`, `mcpClient`, `icon`, `hubDescription`, `heroDescription`, `metaDescription`, `workflowPhrase`, four `setupSteps`).
+**`web/src/lib/content/constants/mcps/{slug}.ts`** — export `{name}McpSeed` satisfying `McpLandingSeed` (`slug`, `label`, `mcpClient`, `icon`, `hubDescription`, `heroDescription`, `metaDescription`, `workflowPhrase`, four `setupSteps`). Write those strings in ASD-STE100 (see above).
 
 **`web/src/lib/content/constants/mcps/index.ts`** — import, re-export, append to `MCP_LANDING_SEEDS`.
 
@@ -126,6 +128,7 @@ Do **not** add MCP clients under `agent-setup-guides/` (that section is for CLI 
 - [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the client label
 - [ ] Mock verify/install/workflow/analytics unions + theme
 - [ ] `mcp-setup-guides/{slug}.md` + index `LinkCard` + `getting-started-for-mcp/setup.md` table
+- [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
 - [ ] Smoke `/agents/{slug}`, Developers → Access client chip, `/docs/mcp-setup-guides/{slug}`
 
 ---
@@ -138,7 +141,7 @@ Same as MCP clients — `branded-icons.ts`.
 
 ### 2. Agent landing seed
 
-**`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/index.ts`** (and hub copy in `hub.ts` / shared FAQs when needed).
+**`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/index.ts`** (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
 
 Add host-specific **`skillInstallOptions`** in **`openquokCliCommandReference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
 
@@ -188,6 +191,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - [ ] `agent-setup-guides/{slug}.md` + index card + cross-mentions in hub/CLI/FAQ copy
 - [ ] Channel SEO in `agents/channels/` if `/agents/{slug}/{channel}` is in scope
 - [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
+- [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
 - [ ] Smoke `/agents/{slug}` and docs page
 
 ---

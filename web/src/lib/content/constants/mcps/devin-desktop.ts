@@ -6,11 +6,11 @@ export const devin_desktopMcpSeed = {
 		label: 'Devin Desktop',
 		mcpClient: 'Devin Desktop',
 		icon: icons.Devin.name,
-		hubDescription: 'Global ~/.codeium/mcp_config.json for Devin Local',
+		hubDescription: 'Add OpenQuok in ~/.codeium/mcp_config.json for Devin Local.',
 		heroDescription:
-			'Devin Desktop is Cognition\'s local AI coding agent — Devin Local runs in your editor with MCP tool support. Connect OpenQuok so Devin drafts and schedules social posts while you review and approve on the calendar or kanban.',
+			'Devin Desktop is a local AI coding agent. Devin Local runs in your editor with MCP tool support. Connect OpenQuok. Devin drafts and schedules social posts. You review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Devin Desktop — schedule social posts from Devin Local. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to Devin Desktop. Schedule social posts from Devin Local. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your editor',
 		setupSteps: [
 			'Download and install Devin Desktop from docs.devin.ai',

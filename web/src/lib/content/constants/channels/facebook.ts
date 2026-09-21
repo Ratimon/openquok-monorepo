@@ -26,12 +26,12 @@ export const facebookChannel = {
 	icon: icons.FacebookGlyph.name,
 	heroTitle: 'Schedule Facebook posts, Reels, Stories, and follow-up comments',
 	heroDescription:
-		'Keep your Facebook Page active without living in Meta Business Suite. Queue feed posts, photos, Reels, Stories, and follow-up comments from the OpenQuok calendar or your agents — you approve every post before publish.',
+		'Keep your Facebook Page active without living in Meta Business Suite. Queue feed posts, photos, Reels, Stories, and follow-up comments from the OpenQuok calendar or your agents. You approve every post before publish.',
 	metaTitle: 'Facebook Page Post, Reel & Story Scheduler',
 	metaDescription:
-		'Schedule Facebook Page posts, Reels, Stories, and follow-up comments with OpenQuok. Queue from the calendar or API, publish through Meta’s official API, and approve every post before it goes live.',
+		'Schedule Facebook Page posts, Reels, Stories, and follow-up comments with OpenQuok. Queue from the calendar or API. Publish through Meta’s official API. Approve every post before it goes live.',
 	hubDescription:
-		'Page feed posts, MP4 Reels, Stories, link-preview cards, and scheduled follow-up comments — built for Facebook Pages, not personal profiles.',
+		'Page feed posts, MP4 Reels, Stories, link-preview cards, and scheduled follow-up comments. Built for Facebook Pages, not personal profiles.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Facebook post scheduler',
@@ -49,7 +49,7 @@ export const facebookChannel = {
 			subtitle: 'Plan weeks ahead',
 			title: 'Queue Facebook posts, schedule Reels in bulk, weeks ahead',
 			description:
-				'Batch feed posts, carousels, and MP4 Reels onto your calendar for days or weeks ahead. Your Page stays active whether you compose by hand or pipe drafts in from an agent.',
+				'Batch feed posts, carousels, and MP4 Reels onto your calendar for days or weeks ahead. Your Page stays active. Compose by hand or pipe drafts in from an agent.',
 			bentoId: 'facebook-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -57,7 +57,7 @@ export const facebookChannel = {
 			subtitle: 'Reels and link previews',
 			title: 'Publish Reels from MP4, schedule follow-up comments, add link previews',
 			description:
-				'Upload one MP4 and OpenQuok publishes it as a Reel on your Page. Add a URL on text posts for link-preview cards, and queue follow-up comments with delays — all in one composer draft.',
+				'Upload one MP4. OpenQuok publishes it as a Reel on your Page. Add a URL on text posts for link-preview cards. Queue follow-up comments with delays. Do this in one composer draft.',
 			bentoId: 'facebook-post-editor',
 			mediaOnRight: false
 		},
@@ -65,7 +65,7 @@ export const facebookChannel = {
 			subtitle: 'Stories and post types',
 			title: 'Pick feed, Reel, or Story, publish from one composer, set options per post',
 			description:
-				'Choose feed, Reel, or Story before you schedule. Attach images or MP4 for Stories and adjust Page options from channel settings — in the dashboard or through the public API.',
+				'Choose feed, Reel, or Story before you schedule. Attach images or MP4 for Stories. Adjust Page options from channel settings. Use the dashboard or the public API.',
 			bentoId: 'facebook-settings',
 			mediaOnRight: true
 		},
@@ -73,7 +73,7 @@ export const facebookChannel = {
 			subtitle: 'See what works',
 			title: 'See what resonates on your Page, track impressions and clicks, double down on winners',
 			description:
-				'Track post impressions, reactions, and clicks plus Page video views in OpenQuok analytics, so you can schedule more of what already works.',
+				'Track post impressions, reactions, and clicks plus Page video views in OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'facebook-insights',
 			mediaOnRight: false
 		}
@@ -94,7 +94,7 @@ export const facebookChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Marketing teams',
 			description:
-				'Batch weeks of Page content and review drafts before anything goes live, so campaigns ship on time without weekend scrambles.',
+				'Batch weeks of Page content. Review drafts before anything goes live. Campaigns ship on time without weekend scrambles.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -102,7 +102,7 @@ export const facebookChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Agencies',
 			description:
-				'Manage multiple Facebook Pages in one workspace. Schedule at scale and track insights per brand.',
+				'Manage multiple Facebook Pages in one workspace. Schedule at scale. Track insights per brand.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

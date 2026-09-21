@@ -6,11 +6,11 @@ export const claude_codeMcpSeed = {
 		label: 'Claude Code',
 		mcpClient: 'Claude Code',
 		icon: icons.Claude.name,
-		hubDescription: 'claude mcp add with HTTP transport',
+		hubDescription: 'Add OpenQuok with claude mcp add over HTTP.',
 		heroDescription:
-			'Claude Code is Anthropic\'s terminal-first coding agent — run it from your shell with remote MCP servers over HTTP. Connect OpenQuok so Claude Code drafts and schedules social posts while you review and approve on the calendar or kanban.',
+			'Claude Code is a terminal-first coding agent. Run it from your shell with remote MCP servers over HTTP. Connect OpenQuok. Claude Code drafts and schedules social posts. You review and approve on the calendar or kanban.',
 		metaDescription:
-			'Connect OpenQuok MCP to Claude Code — schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
+			'Connect OpenQuok MCP to Claude Code. Schedule social posts from your terminal agent. Approve every publish on the calendar or kanban.',
 		workflowPhrase: 'your terminal',
 		setupSteps: [
 			'Install Claude Code from the official Anthropic docs',

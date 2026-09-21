@@ -61,16 +61,18 @@ Forward `pageMetaTags` and `schemaData` through universal `+page.ts` on client n
 
 **No hub FAQ block** on category/tag index routes (`/playbooks/categories/…`, `/building-blocks/tags/…`, `/blog/topic`, etc.) unless product explicitly adds one.
 
-## FAQ answers — ASD-STE100
+## Landing and FAQ copy — ASD-STE100
 
-Every pSEO FAQ answer (channel, agent, tool, hub config) must use **ASD-STE100 Simplified Technical English**:
+Every pSEO FAQ answer **and** user-facing landing string (channel, agent, MCP, tool, hub config: heroes, hub blurbs, feature descriptions, audience cards) must use **ASD-STE100 Simplified Technical English**:
 
 - Short sentences; one idea per sentence.
 - Active voice; second person when addressing the reader (`you`, `your workspace`).
 - Approved, plain vocabulary — avoid jargon stacks and passive spec lists.
 - **Do not** meta-comment in user-facing copy (never write “this answer uses STE100”).
 
-Questions stay plain text; answers are HTML fragments from `faqLink` / `faqLinkSelfHostChannelSetup`.
+Feature **titles** may keep comma-split lines for hero theme. **Descriptions** still follow STE100.
+
+Questions stay plain text; answers are HTML fragments from `faqLink` / `faqLinkSelfHostChannelSetup`. New agent/MCP hosts: **add-agent**. New channels: **add-social-provider-integration**.
 
 ## FAQ link helpers (`publicFaqLinks.ts`)
 
@@ -151,7 +153,7 @@ New pSEO routes that should be discoverable from every page belong here or in he
 
 ## PR checklist (pSEO FAQ + copy)
 
-- [ ] FAQ answers follow ASD-STE100 (short, active, one idea per sentence).
+- [ ] FAQ answers and landing copy (hero, hub, feature descriptions, audience) follow ASD-STE100 (short, active, one idea per sentence).
 - [ ] Connect questions: sign-up and/or connect guide before operator docs.
 - [ ] Any `/docs/social-integration/` link uses `faqLinkSelfHostChannelSetup` or anchor text containing `self-host`.
 - [ ] `publicFaqLinks.test.ts` + channel-level tests: `href="/sign-up"` or connect guide on connect FAQs; no unlabeled social-integration anchors.

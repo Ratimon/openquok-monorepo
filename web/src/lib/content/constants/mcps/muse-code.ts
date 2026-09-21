@@ -7,11 +7,11 @@ export const muse_codeMcpSeed = {
 	label: 'Muse Code',
 	mcpClient: 'Muse Code',
 	icon: icons.MuseCode.name,
-	hubDescription: 'Meta terminal agent — ~/.config/muse/settings.json streamable_http MCP',
+	hubDescription: 'Add OpenQuok in ~/.config/muse/settings.json with streamable HTTP MCP.',
 	heroDescription:
-		'Muse Code is Meta\'s terminal coding agent — plan, edit, and run commands from your shell with approvals and sandboxing. Connect OpenQuok over MCP so Muse Code drafts and schedules social posts while you review and approve on the calendar or kanban.',
+		'Muse Code is Meta\'s terminal coding agent. Plan, edit, and run commands from your shell with approvals and sandboxing. Connect OpenQuok over MCP. Muse Code drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	metaDescription:
-		'Connect OpenQuok MCP to Muse Code — draft and schedule social posts from Meta\'s terminal coding agent. Approve every publish on the calendar or kanban.',
+		'Connect OpenQuok MCP to Muse Code. Draft and schedule social posts from a terminal coding agent. Approve every publish on the calendar or kanban.',
 	workflowPhrase: 'your terminal',
 	setupSteps: [
 		'Install Muse Code from the official Meta developer docs and authenticate with muse in your project directory.',

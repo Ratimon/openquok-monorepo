@@ -17,9 +17,9 @@ export const thinkrailAgent = {
 	available: true,
 	metaTitle: 'ThinkRail Social Media Skill for OpenQuok',
 	metaDescription:
-		'ThinkRail is a worktree IDE for the pi coding agent. Connect OpenQuok to draft and schedule social posts from chat, Monaco, and terminals — approve every publish on the calendar or kanban.',
+		'ThinkRail is a worktree IDE for the pi coding agent. Connect OpenQuok to draft and schedule social posts from chat, Monaco, and terminals. You approve every publish on the calendar or kanban.',
 	hubDescription:
-		'ThinkRail is a worktree IDE: each workspace is its own git branch and cwd. Install openquok-core as a pi skill, run the CLI in the worktree terminal, and schedule posts while you approve on OpenQuok.',
+		'ThinkRail is a worktree IDE. Each workspace is its own git branch and cwd. Install openquok-core as a pi skill. Run the CLI in the worktree terminal. Schedule posts. You approve on OpenQuok.',
 	keywords: [
 		'ThinkRail social media',
 		'ThinkRail skill',
@@ -34,14 +34,14 @@ export const thinkrailAgent = {
 	],
 	heroTitle: 'Schedule social media from ThinkRail then you approve',
 	heroDescription:
-		'ThinkRail hosts the pi coding agent in a real IDE — git worktrees, Monaco tabs, terminals, and concurrent chats. Add the openquok-core skill so the agent drafts and schedules social posts while you review and approve on the calendar or kanban.',
+		'ThinkRail hosts the pi coding agent in a real IDE. You get git worktrees, Monaco tabs, terminals, and concurrent chats. Add the openquok-core skill so the agent drafts and schedules social posts. You review and approve on the calendar or kanban.',
 	docsPath: '/docs/agent-setup-guides/thinkrail',
 	skillInstallOptions: THINKRAIL_SKILL_INSTALL_OPTIONS,
 	workflowSection: {
 		subtitle: 'Your worktree IDE',
 		title: 'Chat with pi in ThinkRail, keep main clean',
 		description:
-			'Open a repo, cut a workspace worktree, and ask the agent to draft and schedule like any other task. The openquok-core skill runs in that worktree’s shell, finds connected channels, attaches media, and queues drafts — you approve on the calendar before anything publishes.',
+			'Open a repo. Cut a workspace worktree. Ask the agent to draft and schedule like any other task. The openquok-core skill runs in that worktree’s shell. It finds connected channels, attaches media, and queues drafts. You approve on the calendar before anything publishes.',
 		deviceMock: 'desktop',
 		deviceMockContent: 'agent-parallel-schedule',
 		imageAlt: 'ThinkRail desktop chat scheduling social posts via OpenQuok'

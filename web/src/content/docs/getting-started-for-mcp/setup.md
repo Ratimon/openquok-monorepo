@@ -61,7 +61,7 @@ For step-by-step guides with troubleshooting, see <a href="/docs/mcp-setup-guide
 | --- | --- | --- |
 | <Badge text="Claude Code" variant="default" /> | Terminal <Badge text="claude mcp add" variant="default" /> command | <a href="/docs/mcp-setup-guides/claude-code">Claude Code</a> |
 | <Badge text="Claude Cowork" variant="default" /> | Custom connector or <Badge text="managedMcpServers" variant="param" /> entry | <a href="/docs/mcp-setup-guides/claude-cowork">Claude Cowork</a> |
-| <Badge text="ChatGPT" variant="default" /> | Custom connector / developer-mode MCP URL | <a href="/docs/mcp-setup-guides/chatgpt">ChatGPT</a> |
+| <Badge text="ChatGPT" variant="default" /> | Custom connector. Paste the MCP URL with your token. | <a href="/docs/mcp-setup-guides/chatgpt">ChatGPT</a> |
 | <Badge text="Cursor" variant="default" /> | <Badge text=".cursor/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/cursor">Cursor</a> |
 | <Badge text="VS Code / Copilot" variant="default" /> | <Badge text=".vscode/mcp.json" variant="path" /> | <a href="/docs/mcp-setup-guides/vscode-copilot">VS Code / Copilot</a> |
 | <Badge text="Devin Desktop" variant="default" /> | <Badge text="~/.codeium/mcp_config.json" variant="path" /> | <a href="/docs/mcp-setup-guides/devin-desktop">Devin Desktop</a> |

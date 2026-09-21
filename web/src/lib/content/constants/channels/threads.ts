@@ -26,12 +26,12 @@ export const threadsChannel = {
 	icon: icons.Threads.name,
 	heroTitle: 'Schedule Threads posts, media, and follow-up replies',
 	heroDescription:
-		'Connect a Meta Threads profile, queue text and media on the calendar, schedule follow-up replies with delays, and publish through the official Meta API — from the dashboard, public API, CLI, or MCP chat in Cursor and other assistants.',
+		'Connect a Meta Threads profile. Queue text and media on the calendar. Schedule follow-up replies with delays. Publish through the official Meta API from the dashboard, public API, CLI, or MCP chat.',
 	metaTitle: 'Threads Post Scheduler',
 	metaDescription:
-		'Schedule Threads posts with OpenQuok. Connect Meta Threads, queue text and media, chain follow-up replies, and publish from the dashboard, API, CLI, or MCP — ask your assistant in chat to schedule while you approve on the calendar.',
+		'Schedule Threads posts with OpenQuok. Connect Meta Threads. Queue text and media. Chain follow-up replies. Publish from the dashboard, API, CLI, or MCP. Ask your assistant in chat to schedule. You approve on the calendar.',
 	hubDescription:
-		'500-character posts with media and scheduled follow-up reply chains — conversation-first text on Meta Threads.',
+		'500-character posts with media and scheduled follow-up reply chains. Conversation-first text on Meta Threads.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Threads post scheduler',
@@ -48,7 +48,7 @@ export const threadsChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue Threads posts, batch drafts on the calendar, weeks ahead',
 			description:
-				'Schedule text and media posts onto the calendar for weeks ahead. Review agent and human drafts on the kanban board, then scheduled when you are ready to publish.',
+				'Schedule text and media posts onto the calendar for weeks ahead. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready to publish.',
 			bentoId: 'threads-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -56,7 +56,7 @@ export const threadsChannel = {
 			subtitle: 'Post editor',
 			title: 'Attach media to Threads posts, queue follow-up replies with delays, before go-live',
 			description:
-				'Compose within Threads\'s 500-character limit, attach a single image, carousel, or video, and queue same-account follow-up replies before the main thread goes live — preview the full thread from one draft.',
+				'Compose within the 500-character limit. Attach a single image, a carousel, or a video. Queue same-account follow-up replies before the main thread goes live. Preview the full thread from one draft.',
 			bentoId: 'threads-post-editor',
 			mediaOnRight: false
 		},
@@ -64,7 +64,7 @@ export const threadsChannel = {
 			subtitle: 'Cross-account plugs',
 			title: 'Let another Threads profile comment, widen reach with plugs, after your post publishes',
 			description:
-				'Enable the cross-account comment plug on the publishing channel, select another connected Threads profile in your workspace, and set comment text plus delay. OpenQuok publishes the main thread first, then posts the acting-account comment.',
+				'Enable the cross-account comment plug on the publishing channel. Select another connected Threads profile in your workspace. Set comment text and delay. OpenQuok publishes the main thread first. Then it posts the acting-account comment.',
 			bentoId: 'threads-settings',
 			mediaOnRight: true
 		},
@@ -72,7 +72,7 @@ export const threadsChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on Threads, track views and engagement, and iterate',
 			description:
-				'Track views, likes, replies, reposts, and quotes from connected Threads profiles inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track views, likes, replies, reposts, and quotes from connected Threads profiles inside OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'threads-insights',
 			mediaOnRight: false
 		}
@@ -85,7 +85,7 @@ export const threadsChannel = {
 			iconClass: 'text-rose-400',
 			title: 'Creators & founders',
 			description:
-				'Stay consistent on Threads without daily manual posting. Ask agent to schedule, reply and reposts while you focus on building.',
+				'Stay consistent on Threads without daily manual posting. Ask your agent to schedule, reply, and repost while you focus on building.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -93,7 +93,7 @@ export const threadsChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Social managers',
 			description:
-				'Batch a week of Threads, review drafts before they publish, and track engagement alongside your other channels.',
+				'Batch a week of Threads. Review drafts before they publish. Track engagement alongside your other channels.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -101,7 +101,7 @@ export const threadsChannel = {
 			iconClass: 'text-emerald-400',
 			title: 'Developers & agents',
 			description:
-				'Pipe Threads drafts from your backend via the public API, CLI, or MCP. You can configure Thread-specific setting eg. follow-up replies.',
+				'Pipe Threads drafts from your backend via the public API, CLI, or MCP. Configure Thread-specific settings such as follow-up replies.',
 			containerClass: 'h-full min-h-[18rem]'
 		}
 	],

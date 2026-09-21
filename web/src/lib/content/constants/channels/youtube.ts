@@ -26,12 +26,12 @@ export const youtubeChannel = {
 	icon: icons.YouTubeGlyph.name,
 	heroTitle: 'Schedule YouTube videos and Shorts',
 	heroDescription:
-		'Connect a YouTube channel you manage, queue MP4 videos and Shorts on the calendar, set title, privacy, tags, and thumbnail in the composer, and publish through the official Google APIs — from the dashboard, public API, or CLI.',
+		'Connect a YouTube channel you manage. Queue MP4 videos and Shorts on the calendar. Set title, privacy, tags, and thumbnail in the composer. Publish through the official Google APIs from the dashboard, public API, or CLI.',
 	metaTitle: 'YouTube Video & Short Upload Scheduler',
 	metaDescription:
-		'Schedule YouTube videos and Shorts with OpenQuok. Connect your channel, queue MP4 uploads with title, privacy, tags, and optional thumbnail, cross-post to other channels, and track analytics from one workspace.',
+		'Schedule YouTube videos and Shorts with OpenQuok. Connect your channel. Queue MP4 uploads with title, privacy, tags, and optional thumbnail. Cross-post to other channels. Track analytics from one workspace.',
 	hubDescription:
-		'Long-form MP4 uploads and vertical Shorts — title, privacy, tags, and custom thumbnail per video.',
+		'Long-form MP4 uploads and vertical Shorts. Title, privacy, tags, and custom thumbnail per video.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'YouTube video scheduler',
@@ -50,7 +50,7 @@ export const youtubeChannel = {
 			subtitle: 'Bulk scheduling',
 			title: 'Queue YouTube videos and Shorts, batch MP4 uploads, weeks ahead',
 			description:
-				'Schedule long-form videos and vertical Shorts onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board, then move them to Scheduled when you are ready to publish.',
+				'Schedule long-form videos and vertical Shorts onto the calendar for days or weeks ahead. Review agent and human drafts on the kanban board. Move them to Scheduled when you are ready to publish.',
 			bentoId: 'youtube-bulk-scheduling',
 			mediaOnRight: true
 		},
@@ -58,7 +58,7 @@ export const youtubeChannel = {
 			subtitle: 'Post editor',
 			title: 'Attach MP4 uploads, write descriptions, queue videos and Shorts',
 			description:
-				'Attach a single MP4 — long-form or Short — and write the video description as your post body. Preview the upload, schedule onto the calendar, and review drafts on the kanban board before anything goes live.',
+				'Attach a single MP4 — long-form or Short. Write the video description as your post body. Preview the upload. Schedule onto the calendar. Review drafts on the kanban board before anything goes live.',
 			bentoId: 'youtube-post-editor',
 			mediaOnRight: false
 		},
@@ -66,7 +66,7 @@ export const youtubeChannel = {
 			subtitle: 'YouTube settings',
 			title: 'Set title, privacy, tags, and thumbnail for every upload',
 			description:
-				'Tune YouTube-specific settings per video: title, public or unlisted privacy, made-for-kids, tags, and an optional custom thumbnail. Pass the same fields via provider Settings when you schedule from the API or CLI.',
+				'Tune YouTube-specific settings per video. Set title, public or unlisted privacy, made-for-kids, tags, and an optional custom thumbnail. Pass the same fields via provider Settings when you schedule from the API or CLI.',
 			bentoId: 'youtube-settings',
 			mediaOnRight: true
 		},
@@ -74,7 +74,7 @@ export const youtubeChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on your channel, track views and watch time, and iterate',
 			description:
-				'Track views, watch time, average view duration, subscribers gained, and likes from connected YouTube channels inside OpenQuok analytics — so you can schedule more of what already works.',
+				'Track views, watch time, average view duration, subscribers gained, and likes from connected YouTube channels inside OpenQuok analytics. Then schedule more of what already works.',
 			bentoId: 'youtube-insights',
 			mediaOnRight: false
 		}
