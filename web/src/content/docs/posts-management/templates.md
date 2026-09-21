@@ -95,7 +95,7 @@ import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/do
 | <Badge text="Edit" variant="param" /> | Reopens the composer in template mode with the saved snapshot |
 | <Badge text="Delete" variant="deprecated" /> | Removes the template after you confirm |
 
-<p>Use <Badge text="Add filters" variant="param" /> to narrow the table by social channel, tags, name, or body preview.
+<p>Use <Badge text="Add filters" variant="param" /> to narrow the table by social channel, tags, name, or body preview.</p>
 
 <p>The <Badge text="Open calendar to schedule posts" variant="param" /> on the Templates page jumps to the calendar when you are ready to turn a loaded preset into a scheduled post.</p>
 

@@ -97,8 +97,8 @@ Create a programmatic token under **Account → Settings → Developers → Acce
 
 | Package | Description |
 |---|---|
-| [`@openquok/auto-cli`](./agent) | CLI-first scheduling interface for AI agents and automation scripts |
-| [`@openquok/node-sdk`](./sdk) | Typed Node.js client for the OpenQuok public API |
+| [`@openquok/auto-cli`](https://www.npmjs.com/package/@openquok/auto-cli) · [source](./agent) | CLI-first scheduling interface for AI agents and automation scripts |
+| [`@openquok/node-sdk`](https://www.npmjs.com/package/@openquok/node-sdk) · [source](./sdk) | Typed Node.js client for the OpenQuok public API |
 
 ---
 
