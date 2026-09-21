@@ -39,6 +39,7 @@ This section covers calendar views, the Home kanban board, moving posts between 
 <LinkCard title="Moving posts" description="Drag on the calendar, published reschedule dialog, and programmatic reschedule" href="/docs/posts-management/moving-posts" />
 <LinkCard title="Actions and stats" description="Duplicate, delete, export, statistics, and connect" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Approvals" description="Preview links and client comments before you schedule" href="/docs/posts-management/approvals" />
+<LinkCard title="Templates" description="Saved composer presets — channels, captions, media, and tags" href="/docs/posts-management/templates" />
 </CardGrid>
 
 ## Kanban vs calendar

@@ -32,7 +32,7 @@ Billing is separate. It lives under the same account menu, not inside Settings. 
 | **Approved Apps** | Third-party apps you authorized through OpenQuok OAuth |
 | **Signatures** | Reusable sign-offs in post editor — see <a href="/docs/settings/signatures">Signatures</a> |
 
-Templates and saved channel bundles live outside Settings — on <a href="/account/templates">Templates</a> and in the <a href="/account/calendar">calendar</a> scheduler.
+Templates and saved channel bundles live outside Settings — on <a href="/account/templates">Templates</a> (see <a href="/docs/posts-management/templates">Templates</a>) and in the <a href="/account/calendar">calendar</a> scheduler.
 
 ## When a section looks limited
 

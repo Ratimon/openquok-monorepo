@@ -27,7 +27,7 @@ On Home and the calendar it opens as a modal. The same editor powers <Badge text
 | --- | --- |
 | <Badge text="Create Post" variant="new" /> | <a href="/account">Home</a> |
 | Click a day or empty slot | <a href="/account/calendar">Calendar</a> |
-| <Badge text="Select a template" variant="default" /> | Home — restores a saved <a href="/docs/getting-started/glossary#template">template</a> |
+| <Badge text="Create Post" variant="new" /> (with saved templates) | Home or calendar — picker loads a saved <a href="/docs/posts-management/templates">template</a> or continues without one |
 | Open an existing post | <a href="/account">Home</a> kanban or <a href="/account/calendar">calendar</a> — see <a href="/docs/posts-management/kanban">Kanban board</a> and <a href="/docs/posts-management/moving-posts">Moving posts</a> |
 
 You need at least one connected channel before the editor is useful. See <a href="/docs/channels/connect">Connect a channel</a>.
@@ -80,7 +80,7 @@ Choose a date and time in the footer, then save as a draft, add to the calendar,
 
 ## Starting from a template
 
-If you saved <a href="/docs/getting-started/glossary#template">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok can offer one when you start a new post. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week.
+If you saved <a href="/docs/posts-management/templates">templates</a> at <a href="/account/templates">/account/templates</a>, OpenQuok offers the **Select a template** picker when you start a new post from Home or the calendar. A template brings back a channel selection, caption, media, tags, and provider settings so you do not rebuild the same bundle every week. See <a href="/docs/posts-management/templates">Templates</a> for create, edit, and filter workflows.
 
 You can always continue without a template and pick channels manually.
 
@@ -124,7 +124,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Scheduling" description="Pick a publish time and save as draft or scheduled" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Links and validation" description="Link previews, character limits, and save-time errors" href="/docs/creating-posts/links-and-validation" />
 <LinkCard title="Tags" description="Colored labels on posts for campaigns and filters" href="/docs/getting-started/glossary#tag" />
-<LinkCard title="Templates" description="Saved composer presets for repeat workflows" href="/docs/getting-started/glossary#template" />
+<LinkCard title="Templates" description="Saved composer presets for repeat workflows" href="/docs/posts-management/templates" />
 </CardGrid>
 
 ## Related

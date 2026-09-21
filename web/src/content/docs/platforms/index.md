@@ -1,5 +1,5 @@
 ---
-title: Overview
+title: Overview - Supported Platforms
 description: Posting rules for the OpenQuok social scheduler — character limits, media requirements, follow-ups, and per-network settings for every shipped channel.
 order: 0
 lastUpdated: 2026-09-10

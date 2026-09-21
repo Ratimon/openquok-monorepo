@@ -80,7 +80,7 @@ A **template** is a saved preset of selected channels, caption (global or per-ch
 
 ![Select a Template](/docs/_assets/glossary/select-a-template.webp)
 
-<p>Templates are created at <a href="/account/templates">/account/templates</a>. See <a href="/docs/creating-posts#starting-from-a-template">Starting from a template</a> on the creating-posts overview for the composer flow.</p>
+<p>Templates are created at <a href="/account/templates">/account/templates</a>. See <a href="/docs/posts-management/templates">Templates</a> for the full guide and <a href="/docs/creating-posts#starting-from-a-template">Starting from a template</a> on the creating-posts overview for the composer flow.</p>
 
 Templates are workspace-scoped. They speed up repeat workflows; they do not auto-publish on their own.
 

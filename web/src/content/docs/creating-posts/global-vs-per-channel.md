@@ -117,7 +117,7 @@ Some things only make sense on one network:
 
 ## Quick Tip: Use Templates !
 
-<p>If you often use the same channels and make the same caption or media changes, save that as a <a href="/docs/getting-started/glossary#template">template</a> at <a href="/account/templates">/account/templates</a>. Next time, open the template and your channels, captions, and attachments are already filled in.</p>
+<p>If you often use the same channels and make the same caption or media changes, save that as a <a href="/docs/posts-management/templates">template</a> at <a href="/account/templates">/account/templates</a>. Next time, pick the template when you start a post and your channels, captions, and attachments are already filled in.</p>
 
 ## Agents, CLI, and API
 
@@ -139,7 +139,7 @@ See <a href="/docs/public-api-providers">Provider settings</a> and <a href="/doc
 <LinkCard title="Media" description="Attach images and video in the composer" href="/docs/creating-posts/media" />
 <LinkCard title="Links and validation" description="Character limits and save-time errors" href="/docs/creating-posts/links-and-validation" />
 <LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Template" description="Saved composer presets — channels, caption, media, and tags" href="/docs/getting-started/glossary#template" />
+<LinkCard title="Templates" description="Saved composer presets — channels, caption, media, and tags" href="/docs/posts-management/templates" />
 <LinkCard title="Posting rules by platform" description="Per-network fields and media rules" href="/docs/platforms" />
 <LinkCard title="Glossary" description="Global mode and provider settings defined" href="/docs/getting-started/glossary" />
 </CardGrid>

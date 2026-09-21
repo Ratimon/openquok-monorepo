@@ -31,7 +31,7 @@ Settings and Billing sit under the account menu.
 | --- | --- | --- |
 | <Badge text="Home" variant="default" /> | <Badge text="/account" variant="path" /> | Connected channels, Getting started checklist, kanban, <Badge text="Create Post" variant="new" /> |
 | <Badge text="Calendar" variant="default" /> | <Badge text="/account/calendar" variant="path" /> | Month or week of scheduled and published posts |
-| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/getting-started/glossary#template">Template</a> in the glossary |
+| <Badge text="Templates" variant="default" /> | <Badge text="/account/templates" variant="path" /> | Saved composer presets — see <a href="/docs/posts-management/templates">Templates</a> |
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
 | <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/global-plugs">Global plugs</a> |
 | <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish (fields vary by network) |
@@ -57,7 +57,7 @@ Home is where to manage channel cards, the Getting started checklist, and kanban
 
 The calendar is the same posts laid out by date.
 
-The post editor (also called the composer) is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" />, or <Badge text="Select a template" variant="default" />. See <a href="/docs/creating-posts">Creating posts</a> for layout, flow, and save options.
+The post editor is a modal, not a sidebar page. Open it with <Badge text="Create Post" variant="new" /> on Home or from a calendar slot — when the workspace has saved templates, the **Select a template** picker appears first. See <a href="/docs/creating-posts">Creating posts</a> and <a href="/docs/posts-management/templates">Templates</a> for layout, flow, and preset workflows.
 
 | Action | Where it lives |
 | --- | --- |
