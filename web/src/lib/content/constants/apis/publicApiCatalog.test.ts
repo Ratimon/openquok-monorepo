@@ -107,11 +107,24 @@ describe('publicApiCatalog', () => {
 
 		expect(posting.audienceCards).toHaveLength(3);
 		expect(posting.audienceCards.map((card) => card.title)).toEqual([
-			'SaaS developers',
 			'Vibe coders',
-			'Startup teams'
+			'CLI and SDK users',
+			'Agent operators'
 		]);
+		expect(scheduling.audienceCards.map((card) => card.title)).toEqual([
+			'Vibe coders',
+			'CLI and SDK users',
+			'Agent operators'
+		]);
+		expect(posting.audienceSubtitle).toContain('connect their own channels');
+		expect(posting.audienceCards[0]?.description).toMatch(/OAuth/i);
 		expect(scheduling.audienceTitle).toContain('scheduling API');
+
+		for (const card of [...posting.audienceCards, ...scheduling.audienceCards]) {
+			expect(card.description).not.toMatch(/unlimited channels/i);
+			expect(card.description).not.toMatch(/Keep OAuth out/i);
+			expect(card.description).not.toMatch(/SaaS/i);
+		}
 
 		const tiktokPosting = getPublicApiPlatformAudienceSection('posting', 'TikTok');
 		expect(tiktokPosting.audienceTitle).toContain('TikTok');

@@ -114,6 +114,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'quickly',
 	'threads',
 	'winners',
+	'workflow',
 	'youtube',
 	'agents',
 	'Dev.to',

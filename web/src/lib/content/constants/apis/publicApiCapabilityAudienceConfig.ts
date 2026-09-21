@@ -12,66 +12,66 @@ const AUDIENCE_CARD_CONTAINER_CLASS = 'h-full min-h-[18rem]';
 
 const POSTING_HUB_CARDS: readonly AudienceCard[] = [
 	{
-		iconName: icons.Code.name,
-		iconClass: 'text-lime-400',
-		title: 'SaaS developers',
-		description:
-			'Add multi-platform posting to your Next.js or TypeScript backend with one REST API. One programmatic token powers POST /public/posts to every connected channel. Do not register OAuth for each network.',
-		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
-	},
-	{
 		iconName: icons.Sparkles.name,
 		iconClass: 'text-emerald-400',
 		title: 'Vibe coders',
 		description:
-			'Use curl, the Node SDK, MCP, or CLI in one session. Draft JSON in the payload validator. Publish from TypeScript scripts or AI agents.',
+			'Connect your own social accounts in OpenQuok Cloud. Complete OAuth for each channel yourself. Then publish with curl, the Node SDK, MCP, or CLI. Draft JSON in the payload validator.',
+		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
+	},
+	{
+		iconName: icons.Code.name,
+		iconClass: 'text-lime-400',
+		title: 'CLI and SDK users',
+		description:
+			'Call POST /public/posts from a script or CI job. One opo_ token covers every channel you connected. Your plan still caps channels and posts per month.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
 		iconName: icons.Rocket.name,
 		iconClass: 'text-rose-400',
-		title: 'Startup teams',
+		title: 'Agent operators',
 		description:
-			'Ship social publishing before you hire a backend integrations team. Connect channels once in OpenQuok Cloud. Keep OAuth out of your Next.js or TypeScript app.',
+			'Point Cursor, Claude Code, or another MCP host at your workspace. The agent posts only to accounts you already authorized.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	}
 ];
 
 const SCHEDULING_HUB_CARDS: readonly AudienceCard[] = [
 	{
-		iconName: icons.Code.name,
-		iconClass: 'text-lime-400',
-		title: 'SaaS developers',
-		description:
-			'Add post scheduling to your Next.js or TypeScript backend with one REST API. Set scheduledAt once. OpenQuok delivers on time. Do not run cron jobs per platform.',
-		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
-	},
-	{
 		iconName: icons.Sparkles.name,
 		iconClass: 'text-emerald-400',
 		title: 'Vibe coders',
 		description:
-			'Schedule with curl, the Node SDK, MCP, or CLI the same day you connect channels. UTC timestamps and repeat intervals stay predictable in JSON.',
+			'Connect your channels in OpenQuok Cloud. Complete OAuth in the dashboard. Then set scheduledAt with curl, the Node SDK, MCP, or CLI. UTC timestamps stay predictable in JSON.',
+		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
+	},
+	{
+		iconName: icons.Code.name,
+		iconClass: 'text-lime-400',
+		title: 'CLI and SDK users',
+		description:
+			'Queue publish times in one REST call. OpenQuok delivers on the worker. You do not run cron per platform. Channel and post caps on your plan still apply.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	},
 	{
 		iconName: icons.Rocket.name,
 		iconClass: 'text-rose-400',
-		title: 'Startup teams',
+		title: 'Agent operators',
 		description:
-			'Launch calendar features before platform work blocks your roadmap. Connect once, queue posts, and track delivery through one REST API.',
+			'Ask your agent to schedule into your workspace. It uses the accounts you connected. It does not onboard other people’s customers onto your token.',
 		containerClass: AUDIENCE_CARD_CONTAINER_CLASS
 	}
 ];
 
 const HUB_SECTION_BY_CAPABILITY: Record<PublicApiCapability, PublicApiAudienceSection> = {
 	posting: {
-		audienceSubtitle: 'Built for API-first teams',
+		audienceSubtitle: 'Built for people who connect their own channels',
 		audienceTitle: 'Who builds with,the posting API?',
 		audienceCards: POSTING_HUB_CARDS
 	},
 	scheduling: {
-		audienceSubtitle: 'Built for API-first teams',
+		audienceSubtitle: 'Built for people who connect their own channels',
 		audienceTitle: 'Who builds with,the scheduling API?',
 		audienceCards: SCHEDULING_HUB_CARDS
 	}

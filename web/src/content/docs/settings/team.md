@@ -19,7 +19,7 @@ A **workspace** is the boundary for channels, posts, media, and teammates. You c
 
 The first person who creates a workspace is the **owner**. Everything in that workspace — channels, posts, templates — stays with the workspace when someone leaves.
 
-![Invite a team member](/docs/_assets/glossary/workspace-invite.webp)
+![OpenQuok Workspace Tab in Setting](/docs/_assets/glossary/workspace-setting.webp)
 
 ## Roles
 
@@ -41,7 +41,11 @@ Invites offer **Member** or **Admin** only. The owner role is assigned when the 
 
 On <Badge text="Workspace" variant="default" />, find **Team Members** for the current workspace. Click <Badge text="Add another member" variant="new" />.
 
+![Invite a team member](/docs/_assets/settings/workspace-invite-dialog.webp)
+
+<Callout type="note">
 Only **admins** and the **owner** see this button.
+</Callout>
 
 ### Enter email and role
 
@@ -49,11 +53,15 @@ Type the person’s email. Pick **Member** or **Admin**.
 
 ### Choose email delivery
 
-Leave <Badge text="Send invitation email" variant="default" /> checked to mail them the link. Clear it when you want to copy the link yourself — useful when email is unreliable or you prefer Slack.
+Leave <Badge text="Send invitation email" variant="default" /> checked to mail them the link. Clear it when you want to copy the link yourself — useful when email is unreliable.
 
-### They accept
+### The invitees accept
 
-The invite link expires after a set time. Send a new invite if it lapses. They can also accept from **Workspace Invites** at the bottom of the same Settings page, or from the join page when they open the link.
+The invite link expires after a set time. they can accept from the join page when they open the link. Send a new invite if it lapses.
+
+<Callout type="tip">
+They can also accept from **Workspace Invites** at the bottom of the same Settings page.
+</Callout>
 
 </Steps>
 
@@ -63,13 +71,13 @@ The invite link expires after a set time. Send a new invite if it lapses. They c
 
 **Workspace Invites** lists invitations sent <strong>to you</strong>. Click <Badge text="Accept" variant="new" /> to join that workspace with the role shown on the row.
 
-<Callout type="note" title="OpenQuok Cloud seats">
+<Callout type="note">
 <p>Each pending invite counts toward your team seat cap until it is accepted or cancelled. At the limit, upgrade on <a href="/account/billing">Billing</a> or cancel a pending invite. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
 </Callout>
 
 ## Multiple workspaces
 
-The **All Workspaces** block lists every workspace you belong to.
+The **All Workspaces** lists every workspace you belong to.
 
 | Action | Who |
 | --- | --- |
@@ -79,13 +87,17 @@ The **All Workspaces** block lists every workspace you belong to.
 | **Leave workspace** | Any member who is not the owner |
 | **Delete workspace** | Owner only — removes the workspace and its data |
 
+![Open workspace's actions modal as Owner](/docs/_assets/settings/workspace-actions.webp)
+
 Click <Badge text="Create New Workspace" variant="new" /> to start a separate workspace with its own channels and member list. Cloud plans cap how many workspaces you can own. See <a href="/pricing">Pricing</a>.
 
 ## Working with clients
 
+<Callout type="tip">
 Team seats are for people who work <strong>inside</strong> your OpenQuok workspace. For clients, lighter options usually work better:
+</Callout>
 
-- **Channel invite links** let a client connect their own social account without an OpenQuok login. See <a href="/docs/channels/connect">Connect a channel</a>.
+- **Channel invite links** let a client connect their own social account without an OpenQuok login. See <a href="/docs/channels/connect#let-clients-connect-their-own-account">Let clients connect their own account</a>.
 - **Preview links** let a client review and comment on specific posts without seeing the rest of the workspace. See <a href="/docs/posts-management/approvals">Approvals</a>.
 - **Channel groups** keep each client’s channels together on Home and the calendar. See <a href="/docs/channels/channel-groups">Channel groups</a>.
 

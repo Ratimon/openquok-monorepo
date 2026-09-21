@@ -23,7 +23,7 @@ A **workspace** is the top-level boundary you own for your data: channels, posts
 
 <p>The first registrant owns the workspace. Teammates join through <Badge text="Settings" variant="default" /> → <Badge text="Workspace" variant="default" />. See <a href="/docs/settings/team">Team</a>.</p>
 
-![Invite Team Member in Setting](/docs/_assets/glossary/workspace-invite.webp)
+![Invite Team Member in Setting](/docs/_assets/glossary/workspace-setting.webp)
 
 The public API calls the same object an **organization**. Cloud billing is one subscription per workspace. Plan limits are on <a href="/pricing">Pricing</a> and <a href="/docs/cloud/limits">Cloud limits</a>.
 
