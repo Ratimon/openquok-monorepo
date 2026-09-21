@@ -93,6 +93,7 @@ const LANDING_HERO_TITLE_HIGHLIGHT_WORDS = [
 	'one place',
 	'questions',
 	'Muse Code',
+	'Claude',
 	'ThinkRail',
 	'thumbnail',
 	'workspace',
