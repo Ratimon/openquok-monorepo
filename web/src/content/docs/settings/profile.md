@@ -87,8 +87,6 @@ Click <Badge text="Update picture" variant="default" /> to upload or replace you
 - **Max size:** 4 MB
 - **Optional** — a custom picture is shown on blog posts; without one, posts use a default avatar
 
-You can remove the picture from the upload dialog before saving.
-
 ## Website
 
 Click <Badge text="Update website" variant="default" /> to add or change your author site. The URL must start with <code>http://</code> or <code>https://</code>. Leave the field empty to clear it. The link appears on blog posts you author.
@@ -100,8 +98,6 @@ Click <Badge text="Update website" variant="default" /> to add or change your au
 | **Your account** (this page) | Full name, username, email display, password, avatar, website |
 | **A workspace** | Name, team, invites, roles — see <a href="/docs/settings/team">Team</a> |
 | **Display preferences** | Clock format and posting timezone — see <a href="/docs/settings/timezone">Timezone</a> |
-
-Profile has no plan gate on Cloud or self-hosted. See <a href="/docs/settings">Settings overview</a> for sections that do.
 
 ## Related
 

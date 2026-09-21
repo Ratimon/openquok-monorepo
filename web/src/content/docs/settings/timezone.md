@@ -25,7 +25,7 @@ Switch between **AM or PM** and **24 hours**.
 
 Pick the IANA zone used for schedule slots, the calendar, and the Time table editor. This is your working timezone for OpenQuok — not necessarily your laptop clock.
 
-<Callout type="note" title="Stored in this browser">
+<Callout type="note" title="Stored the browser">
 <p>Both clock format and timezone are saved in <strong>local storage</strong> on your device. They do not sync to your account. Open Settings on another machine if you need the same display there.</p>
 </Callout>
 

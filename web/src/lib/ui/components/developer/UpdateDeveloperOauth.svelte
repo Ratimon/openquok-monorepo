@@ -115,7 +115,11 @@
 
 	const mediaPickerBusy = $derived(mediaPickerLoading || mediaPickerUploadBusy);
 	const defaultProfilePreviewUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
-	const createProfilePreviewUrl = $derived(formPicturePreviewUrl ?? defaultProfilePreviewUrl);
+	const createProfilePreviewUrl = $derived(
+		formPictureId && formPicturePreviewUrl?.trim()
+			? formPicturePreviewUrl
+			: defaultProfilePreviewUrl
+	);
 
 	// /docs/oauth2-for-apps
 	const rootPathPublicDocs = getRootPathPublicDocs();

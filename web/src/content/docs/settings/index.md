@@ -39,13 +39,13 @@ Templates and saved channel bundles live outside Settings — on <a href="/accou
 <Tabs items={["OpenQuok Cloud", "Self-hosted"]} variant="line">
 <TabItem label="OpenQuok Cloud">
 
-<p>Every Settings section is visible on every plan. Limits apply to <strong>actions</strong>, not to tabs.</p>
+<p>New accounts on the <strong>FREE</strong> tier hit the <strong>first-billing gate</strong> before the app loads — pick a plan and complete Stripe checkout. You can start a <a href="/docs/cloud/trial">7-day trial</a> with <strong>$0 due today</strong>.</p>
 
 | Area | Typical gate |
 | --- | --- |
 | Team seats | Invite or accept blocked at the seat cap — see <a href="/docs/cloud/limits">Cloud limits</a> |
 | Workspaces | Cannot create another workspace past the plan cap |
-| Developers | Public API, programmatic token, and OAuth apps need a paid tier that includes the API |
+| Developers | First-billing gate until a paid tier or trial is active; programmatic token and OAuth apps need a plan that includes the Public API — see <a href="/docs/settings/developers">Developers</a> |
 | Shareable preview | Client preview links need Team or above — see <a href="/docs/posts-management/approvals">Approvals</a> |
 
 <p>Exact numbers are on <a href="/pricing">Pricing</a>.</p>

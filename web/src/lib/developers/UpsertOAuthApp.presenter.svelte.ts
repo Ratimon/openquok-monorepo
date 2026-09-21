@@ -4,12 +4,9 @@ import type { WorkspaceSettingsPresenter } from '$lib/settings/WorkspaceSettings
 import type { GetMediaPresenter, MediaLibraryItemViewModel } from '$lib/medias/GetMedia.presenter.svelte';
 import type { MediaRepository } from '$lib/medias/Media.repository.svelte';
 
-import { url } from '$lib/utils/path';
+import { publicUrlForMediaStorageKey } from '$lib/medias/utils/mediaUrls';
 
-import {
-	OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH,
-	OPENQUOK_HOSTED_OAUTH_REDIRECT_URL
-} from '$lib/developers/constants/oauthAppDefaults';
+import { OPENQUOK_HOSTED_OAUTH_REDIRECT_URL } from '$lib/developers/constants/oauthAppDefaults';
 
 export enum OAuthAppsPresenterStatus {
 	IDLE = 'IDLE',
@@ -125,8 +122,6 @@ export class UpsertOAuthAppsPresenter {
 		this.editing = false;
 		this.plaintextClientSecret = null;
 		this.formRedirectUrl = OPENQUOK_HOSTED_OAUTH_REDIRECT_URL;
-		this.formPicturePreviewUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
-		void this.applyDefaultOAuthAppPicture();
 	}
 
 	public cancelCreate(): void {
@@ -273,7 +268,7 @@ export class UpsertOAuthAppsPresenter {
 
 	public selectMediaItem(vm: MediaLibraryItemViewModel): void {
 		this.formPictureId = vm.id;
-		this.formPicturePreviewUrl = vm.thumbnailPublicUrl ?? vm.publicUrl ?? vm.path ?? null;
+		this.formPicturePreviewUrl = this.resolveMediaPreviewUrl(vm);
 		this.mediaPickerOpen = false;
 	}
 
@@ -282,52 +277,17 @@ export class UpsertOAuthAppsPresenter {
 	}
 
 	public clearPicture(): void {
-		if (this.creating) {
-			this.formPictureId = null;
-			this.formPicturePreviewUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
-			void this.applyDefaultOAuthAppPicture();
-			return;
-		}
 		this.formPictureId = null;
 		this.formPicturePreviewUrl = null;
 	}
 
-	private async applyDefaultOAuthAppPicture(): Promise<void> {
-		const orgId = this.currentOrganizationId;
-		if (!orgId || !this.creating || this.formPictureId) return;
-
-		try {
-			const assetUrl = url(OAUTH_APP_DEFAULT_PROFILE_IMAGE_PATH);
-			const response = await fetch(assetUrl);
-			if (!response.ok) return;
-
-			const blob = await response.blob();
-			const file = new File([blob], 'openquok-oauth-app-icon.png', {
-				type: blob.type || 'image/png'
-			});
-
-			const result = await this.mediaRepository.uploadMedia(file, orgId);
-			if (!result.success || !this.creating || this.formPictureId) return;
-
-			const previewFromUpload = result.data.publicUrl ?? null;
-			await this.refreshMediaPickerItems();
-
-			const match = this.mediaPickerItemsVm.find(
-				(m) => m.path === result.data.filePath || m.virtualPath === result.data.filePath
-			);
-			if (match) {
-				this.formPictureId = match.id;
-				this.formPicturePreviewUrl =
-					match.thumbnailPublicUrl ?? match.publicUrl ?? previewFromUpload ?? assetUrl;
-				return;
-			}
-
-			if (previewFromUpload) {
-				this.formPicturePreviewUrl = previewFromUpload;
-			}
-		} catch {
-			// Static preview remains; pictureId stays optional on create.
-		}
+	private resolveMediaPreviewUrl(vm: MediaLibraryItemViewModel): string | null {
+		const thumbnail = vm.thumbnailPublicUrl?.trim();
+		if (thumbnail) return thumbnail;
+		const publicUrl = vm.publicUrl?.trim();
+		if (publicUrl) return publicUrl;
+		const fromPath = publicUrlForMediaStorageKey(vm.path);
+		return fromPath || null;
 	}
 
 	private pushToast(message: string, isError: boolean): void {
