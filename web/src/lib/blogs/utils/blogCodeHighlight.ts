@@ -9,11 +9,30 @@ import githubDark from 'shiki/themes/github-dark.mjs';
 import githubLight from 'shiki/themes/github-light.mjs';
 
 import { isAllowedShikiLanguageId } from '$lib/shiki/limitedLanguages';
+import { stripHtmlToPlainText } from '$lib/utils/plainTextFromHtml';
 
 type Highlighter = Awaited<ReturnType<typeof createHighlighterCore>>;
 
 const BLOG_CODE_BLOCK_RE =
 	/<pre\b([^>]*)>\s*<code\b([^>]*)>([\s\S]*?)<\/code>\s*<\/pre>/gi;
+
+const BLOG_HEADING_BEFORE_CODE_RE = /<h([23])\b[^>]*>([\s\S]*?)<\/h\1>/gi;
+
+export type ParsedBlogCodeBlock = {
+	index: number;
+	start: number;
+	end: number;
+	/** Shiki grammar id used for syntax highlighting. */
+	highlightLanguage: string;
+	/** True when `class="language-*"` or `data-language` was set in saved HTML. */
+	languageExplicit: boolean;
+	/** Schema.org `programmingLanguage` — only when the author set a language in the editor/HTML. */
+	programmingLanguageLabel: string | null;
+	/** Normalized plain source text. */
+	text: string;
+	/** Section title from the nearest preceding h2/h3. */
+	name: string;
+};
 
 let highlighterPromise: Promise<Highlighter> | null = null;
 
@@ -95,17 +114,113 @@ function resolveBlogCodeLanguage(rawLanguage: string | null): string | null {
 	return null;
 }
 
-export async function highlightBlogCodeSnippet(code: string, language: string): Promise<string> {
+const BLOG_CODE_LANGUAGE_LABELS: Record<string, string> = {
+	typescript: 'TypeScript',
+	javascript: 'JavaScript',
+	json: 'JSON',
+	shellscript: 'Shell',
+	python: 'Python',
+	plaintext: 'Plain text'
+};
+
+export function blogCodeProgrammingLanguageLabel(language: string): string {
+	return BLOG_CODE_LANGUAGE_LABELS[language] ?? language;
+}
+
+export function blogCodeEncodingFormat(language: string): string | undefined {
+	switch (language) {
+		case 'typescript':
+			return 'text/typescript';
+		case 'javascript':
+			return 'text/javascript';
+		case 'json':
+			return 'application/json';
+		case 'shellscript':
+			return 'text/x-shellscript';
+		case 'python':
+			return 'text/x-python';
+		default:
+			return undefined;
+	}
+}
+
+function resolveCodeBlockName(html: string, blockStartIndex: number, index: number): string {
+	const before = html.slice(0, blockStartIndex);
+	let lastTitle = '';
+	const headingRe = new RegExp(BLOG_HEADING_BEFORE_CODE_RE.source, 'gi');
+	let headingMatch: RegExpExecArray | null;
+	while ((headingMatch = headingRe.exec(before)) !== null) {
+		lastTitle = stripHtmlToPlainText(headingMatch[2] ?? '').trim();
+	}
+	if (lastTitle) return lastTitle;
+	return `Code example ${index + 1}`;
+}
+
+/** Parse `<pre><code>` blocks for Shiki rendering and Schema.org `SoftwareSourceCode` nodes. */
+export function parseBlogCodeBlocksFromHtml(html: string): ParsedBlogCodeBlock[] {
+	if (!html.trim() || !/<pre\b/i.test(html)) return [];
+
+	const blocks: ParsedBlogCodeBlock[] = [];
+	const re = new RegExp(BLOG_CODE_BLOCK_RE.source, 'gi');
+	let match: RegExpExecArray | null;
+	let index = 0;
+
+	while ((match = re.exec(html)) !== null) {
+		const preAttrs = match[1] ?? '';
+		const codeAttrs = match[2] ?? '';
+		if (/\bclass\s*=\s*["'][^"']*\bshiki\b/i.test(preAttrs)) continue;
+
+		const rawCode = decodeHtmlEntities(match[3] ?? '');
+		const rawLanguage =
+			readLanguageFromCodeAttrs(codeAttrs) ?? readLanguageFromCodeAttrs(preAttrs);
+		const languageExplicit = Boolean(rawLanguage?.trim());
+		const resolvedLanguage = resolveBlogCodeLanguage(rawLanguage);
+		const highlightLanguage = resolvedLanguage ?? 'typescript';
+		const text = normalizeBlogCodeBlockIndentation(rawCode);
+		const programmingLanguageLabel =
+			languageExplicit && resolvedLanguage
+				? blogCodeProgrammingLanguageLabel(resolvedLanguage)
+				: null;
+
+		blocks.push({
+			index,
+			start: match.index,
+			end: match.index + match[0].length,
+			highlightLanguage,
+			languageExplicit,
+			programmingLanguageLabel,
+			text,
+			name: resolveCodeBlockName(html, match.index, index)
+		});
+		index += 1;
+	}
+
+	return blocks;
+}
+
+function withBlogCodeBlockAnchor(html: string, index: number): string {
+	const anchorId = `code-block-${index + 1}`;
+	if (/\bid\s*=/.test(html)) return html;
+	return html.replace(/^<pre\b/, `<pre id="${anchorId}"`);
+}
+
+export async function highlightBlogCodeSnippet(
+	code: string,
+	language: string,
+	index?: number
+): Promise<string> {
 	const h = await getBlogCodeHighlighter();
 	const normalizedCode = normalizeBlogCodeBlockIndentation(code);
+	let html: string;
 	try {
-		return h.codeToHtml(normalizedCode, {
+		html = await h.codeToHtml(normalizedCode, {
 			lang: language,
 			themes: { light: 'github-light', dark: 'github-dark' }
 		});
 	} catch {
-		return `<pre class="shiki blog-code-fallback"><code>${escapeHtml(normalizedCode)}</code></pre>`;
+		html = `<pre class="shiki blog-code-fallback"><code>${escapeHtml(normalizedCode)}</code></pre>`;
 	}
+	return index == null ? html : withBlogCodeBlockAnchor(html, index);
 }
 
 /**
@@ -113,43 +228,14 @@ export async function highlightBlogCodeSnippet(code: string, language: string): 
  * Skips blocks that are already highlighted. Defaults to TypeScript when no language is set.
  */
 export async function highlightBlogCodeBlocksInHtml(html: string): Promise<string> {
-	if (!html.trim() || !/<pre\b/i.test(html)) return html;
-
-	const matches: Array<{
-		start: number;
-		end: number;
-		code: string;
-		language: string;
-	}> = [];
-
-	let match: RegExpExecArray | null;
-	const re = new RegExp(BLOG_CODE_BLOCK_RE.source, 'gi');
-	while ((match = re.exec(html)) !== null) {
-		const preAttrs = match[1] ?? '';
-		const codeAttrs = match[2] ?? '';
-		if (/\bclass\s*=\s*["'][^"']*\bshiki\b/i.test(preAttrs)) continue;
-
-		const rawCode = decodeHtmlEntities(match[3] ?? '');
-		const language =
-			resolveBlogCodeLanguage(readLanguageFromCodeAttrs(codeAttrs)) ??
-			resolveBlogCodeLanguage(readLanguageFromCodeAttrs(preAttrs)) ??
-			'typescript';
-
-		matches.push({
-			start: match.index,
-			end: match.index + match[0].length,
-			code: rawCode,
-			language
-		});
-	}
-
-	if (matches.length === 0) return html;
+	const blocks = parseBlogCodeBlocksFromHtml(html);
+	if (blocks.length === 0) return html;
 
 	let cursor = 0;
 	const parts: string[] = [];
-	for (const block of matches) {
+	for (const block of blocks) {
 		parts.push(html.slice(cursor, block.start));
-		parts.push(await highlightBlogCodeSnippet(block.code, block.language));
+		parts.push(await highlightBlogCodeSnippet(block.text, block.highlightLanguage, block.index));
 		cursor = block.end;
 	}
 	parts.push(html.slice(cursor));

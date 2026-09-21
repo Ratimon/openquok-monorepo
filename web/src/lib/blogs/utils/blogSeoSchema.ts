@@ -12,6 +12,7 @@ import type {
 	Product,
 	ProfilePage,
 	Question,
+	SoftwareSourceCode,
 	Thing
 } from 'schema-dts';
 
@@ -38,6 +39,10 @@ import {
 import { prepareBlogRichTextForDisplay } from '$lib/blogs/utils/blogContent';
 import { createBlogChildPageBreadcrumbListSchema } from '$lib/blogs/utils/buildBlogBreadcrumbItems';
 import { getBlogAuthorProfilePath } from '$lib/blogs/utils/blogAuthorPaths';
+import {
+	blogCodeEncodingFormat,
+	parseBlogCodeBlocksFromHtml
+} from '$lib/blogs/utils/blogCodeHighlight';
 import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { createOpenQuokMerchantReturnPolicy } from '$lib/seo/createMerchantReturnPolicySEOSchema';
@@ -453,6 +458,10 @@ function blogPostInlineImageId(canonicalUrl: string, index: number): string {
 	return `${canonicalUrl}#inline-image-${index + 1}`;
 }
 
+function blogPostCodeBlockId(canonicalUrl: string, index: number): string {
+	return `${canonicalUrl}#code-block-${index + 1}`;
+}
+
 function blogPostingNodeId(canonicalUrl: string): string {
 	return `${canonicalUrl}#blogposting`;
 }
@@ -497,6 +506,37 @@ function createBlogHeroImageObjectNode(params: {
 		author: context.author,
 		isPartOf: jsonLdNodeRef(context.blogPostingId)
 	} satisfies ImageObject;
+}
+
+function createBlogSoftwareSourceCodeNodes(params: {
+	html: string;
+	canonicalUrl: string;
+	blogPostingId: string;
+	author: Person;
+}): SoftwareSourceCode[] {
+	const { html, canonicalUrl, blogPostingId, author } = params;
+
+	return parseBlogCodeBlocksFromHtml(html).map((block) => {
+		const encodingFormat =
+			block.programmingLanguageLabel != null
+				? blogCodeEncodingFormat(block.highlightLanguage)
+				: undefined;
+
+		return {
+			'@type': 'SoftwareSourceCode',
+			'@id': blogPostCodeBlockId(canonicalUrl, block.index),
+			name: block.name,
+			url: blogPostCodeBlockId(canonicalUrl, block.index),
+			text: block.text,
+			codeSampleType: 'code snippet',
+			...(block.programmingLanguageLabel
+				? { programmingLanguage: block.programmingLanguageLabel }
+				: {}),
+			...(encodingFormat ? { encodingFormat } : {}),
+			author,
+			isPartOf: jsonLdNodeRef(blogPostingId)
+		} satisfies SoftwareSourceCode;
+	});
 }
 
 function createBlogInlineImageObjectNodes(params: {
@@ -621,6 +661,13 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		context: imageContext
 	});
 
+	const softwareSourceCodeNodes = createBlogSoftwareSourceCodeNodes({
+		html: post.content ?? '',
+		canonicalUrl,
+		blogPostingId,
+		author
+	});
+
 	const interactionStatistic: Record<string, unknown>[] = [];
 	if (post.likeCount != null && post.likeCount > 0) {
 		interactionStatistic.push({
@@ -683,6 +730,11 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 	}
 	if (interactionStatistic.length) {
 		blogPosting.interactionStatistic = interactionStatistic;
+	}
+	if (softwareSourceCodeNodes.length > 0) {
+		blogPosting.hasPart = jsonLdNodeRefs(
+			softwareSourceCodeNodes.map((node) => String(node['@id']))
+		);
 	}
 
 	const commentNodes: Record<string, unknown>[] = [];
@@ -753,6 +805,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		blogPosting,
 		breadcrumbList,
 		...imageGraphNodes,
+		...softwareSourceCodeNodes,
 		...commentNodes,
 		...extraNodes
 	] as Thing[]);

@@ -12,9 +12,13 @@ export {
 	type BlogInlineImageFromHtml
 } from '$lib/blogs/utils/blogImages';
 export {
+	blogCodeEncodingFormat,
+	blogCodeProgrammingLanguageLabel,
 	highlightBlogCodeBlocksInHtml,
 	highlightBlogCodeSnippet,
-	normalizeBlogCodeBlockIndentation
+	normalizeBlogCodeBlockIndentation,
+	parseBlogCodeBlocksFromHtml,
+	type ParsedBlogCodeBlock
 } from '$lib/blogs/utils/blogCodeHighlight';
 export {
 	isExternalBlogHref,

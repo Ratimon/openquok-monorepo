@@ -340,6 +340,81 @@ describe('createBlogPostSEOSchema author Person', () => {
 	});
 });
 
+describe('createBlogPostSEOSchema code blocks', () => {
+	it('emits SoftwareSourceCode nodes linked from BlogPosting.hasPart', () => {
+		const schema = createPostSchema({
+			content: `<h2>TypeScript sketch</h2>
+<p>Intro</p>
+<pre><code class="language-typescript" data-language="typescript">const decision = await jev.systemOne({
+  state: { proposal: { caption: globalCaption } },
+});</code></pre>`
+		});
+
+		const blogPosting = findBlogPosting(schema);
+		expect(blogPosting?.hasPart).toEqual({
+			'@id': `${POST_CANONICAL_URL}#code-block-1`
+		});
+
+		const codeNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'SoftwareSourceCode'
+		) as Record<string, unknown> | undefined;
+
+		expect(codeNode).toMatchObject({
+			'@type': 'SoftwareSourceCode',
+			'@id': `${POST_CANONICAL_URL}#code-block-1`,
+			name: 'TypeScript sketch',
+			programmingLanguage: 'TypeScript',
+			codeSampleType: 'code snippet',
+			encodingFormat: 'text/typescript',
+			text: `const decision = await jev.systemOne({
+  state: { proposal: { caption: globalCaption } },
+});`,
+			isPartOf: {
+				'@id': `${POST_CANONICAL_URL}#blogposting`
+			}
+		});
+	});
+
+	it('omits SoftwareSourceCode when the post has no code blocks', () => {
+		const schema = createPostSchema({ content: '<p>No code here.</p>' });
+		expect(findBlogPosting(schema)).not.toHaveProperty('hasPart');
+		expect(graphNodeTypes(schema)).not.toContain('SoftwareSourceCode');
+	});
+
+	it('omits programmingLanguage when the code block has no saved language', () => {
+		const schema = createPostSchema({
+			content: '<h2>Example</h2><pre><code>print("hi")</code></pre>'
+		});
+
+		const codeNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'SoftwareSourceCode'
+		) as Record<string, unknown> | undefined;
+
+		expect(codeNode).toBeDefined();
+		expect(codeNode).not.toHaveProperty('programmingLanguage');
+		expect(codeNode).not.toHaveProperty('encodingFormat');
+	});
+
+	it('uses Python in schema when language-python is saved', () => {
+		const schema = createPostSchema({
+			content:
+				'<h2>Python sample</h2><pre><code class="language-python" data-language="python">print("hi")</code></pre>'
+		});
+
+		const codeNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'SoftwareSourceCode'
+		) as Record<string, unknown> | undefined;
+
+		expect(codeNode).toMatchObject({
+			programmingLanguage: 'Python',
+			encodingFormat: 'text/x-python'
+		});
+	});
+});
+
 describe('createBlogPostSEOSchema product node', () => {
 	it('includes a free Offer so Google Product snippets validate', () => {
 		const schema = createBlogPostSEOSchema({
