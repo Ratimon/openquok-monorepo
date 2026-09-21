@@ -532,7 +532,7 @@
 						<div class="flex flex-col gap-2">
 							<Field.Label>Content</Field.Label>
 							<Field.Description>
-								Main post body. Use the toolbar for headings, lists, and links. Prefer Visual mode;
+								Main post body. Use the toolbar for headings, lists, code blocks, and links. Prefer Visual mode;
 								HTML source is for edits. Each inline image has an alt text field under the preview;
 								you can also use the toolbar alt button when an image is selected. External links get
 								nofollow on save; internal paths stay followable.

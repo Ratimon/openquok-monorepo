@@ -113,8 +113,10 @@
 
 	let normalizedContent = $state<string>('');
 
-	const preparedContent = $derived(
-		prepareBlogContentForDisplay(currentPostVm.content ?? '')
+	let highlightedContentHtml = $derived(data.highlightedContentHtml ?? '');
+	let preparedContent = $derived(
+		highlightedContentHtml ||
+			prepareBlogContentForDisplay(currentPostVm.content ?? '')
 	);
 
 	$effect(() => {

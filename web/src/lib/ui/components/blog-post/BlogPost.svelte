@@ -203,7 +203,7 @@
 
 					<div
 						bind:this={proseEl}
-						class="blog-post-prose prose prose-lg min-w-0 max-w-none break-words text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+						class="blog-post-prose prose prose-lg min-w-0 max-w-none break-words text-base-content prose-headings:font-semibold prose-headings:!text-primary prose-h2:mt-9 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-3 prose-h3:mt-7 prose-h3:mb-3 prose-headings:scroll-mt-28 prose-p:text-base-content/90 prose-strong:text-base-content prose-a:text-primary prose-blockquote:border-primary/30 prose-blockquote:text-base-content/80 prose-code:text-base-content prose-li:marker:text-base-content/60 [&_pre]:min-w-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_pre.shiki]:whitespace-pre-wrap [&_pre.shiki]:[overflow-wrap:anywhere]"
 					>
 						{@html contentHtml}
 					</div>

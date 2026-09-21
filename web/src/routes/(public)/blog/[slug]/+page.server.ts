@@ -5,7 +5,13 @@ import { error } from '@sveltejs/kit';
 
 import { ApiError } from '$lib/core/HttpGateway';
 
-import { buildBlogInlineImageSrc, createBlogPostSEOSchema, guessImageMimeFromFilename } from '$lib/blogs/utils';
+import {
+	buildBlogInlineImageSrc,
+	createBlogPostSEOSchema,
+	guessImageMimeFromFilename,
+	highlightBlogCodeBlocksInHtml,
+	prepareBlogContentForDisplay
+} from '$lib/blogs/utils';
 import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
 import { getRootPathPublicBlog, getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -141,6 +147,9 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		requestUrl: url
 	});
 
+	const preparedContentHtml = prepareBlogContentForDisplay(currentPostVm.content ?? '');
+	const highlightedContentHtml = await highlightBlogCodeBlocksInHtml(preparedContentHtml);
+
 	return {
 		pageMetaTags,
 		isLoggedIn,
@@ -151,6 +160,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		currentPostVm,
 		otherPostsVm,
 		comments,
-		schemaData
+		schemaData,
+		highlightedContentHtml
 	};
 }

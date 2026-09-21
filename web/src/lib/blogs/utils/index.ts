@@ -12,6 +12,11 @@ export {
 	type BlogInlineImageFromHtml
 } from '$lib/blogs/utils/blogImages';
 export {
+	highlightBlogCodeBlocksInHtml,
+	highlightBlogCodeSnippet,
+	normalizeBlogCodeBlockIndentation
+} from '$lib/blogs/utils/blogCodeHighlight';
+export {
 	isExternalBlogHref,
 	normalizeBlogContentLinks,
 	parseHeadersFromHTMLString,

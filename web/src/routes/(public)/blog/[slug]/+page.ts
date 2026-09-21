@@ -21,6 +21,7 @@ export const load: PageLoad = async ({ parent, data }) => {
 			otherPostsVm: unknown;
 			comments: unknown;
 			schemaData: Record<string, unknown>;
+			highlightedContentHtml: string;
 		};
 
 		const roles = currentUser && 'roles' in currentUser ? currentUser.roles : [];
@@ -42,7 +43,8 @@ export const load: PageLoad = async ({ parent, data }) => {
 			currentPostVm: serverData.currentPostVm,
 			otherPostsVm: serverData.otherPostsVm,
 			comments: serverData.comments,
-			schemaData: serverData.schemaData
+			schemaData: serverData.schemaData,
+			highlightedContentHtml: serverData.highlightedContentHtml
 		};
 	}
 

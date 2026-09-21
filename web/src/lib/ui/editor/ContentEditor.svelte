@@ -23,6 +23,7 @@
 		flushPendingBlogImageAlts,
 		isBlogImageAltEditing
 	} from '$lib/ui/editor/extensions/contentEditorBlogImage';
+	import { ContentEditorCodeBlock } from '$lib/ui/editor/extensions/contentEditorCodeBlock';
 
 	let element: HTMLElement;
 	let editor = $state<TiptapEditor>();
@@ -69,9 +70,15 @@
 			element: element,
 			extensions: [
 				StarterKit.configure({
+					codeBlock: false,
 					link: {
 						openOnClick: false
 						// rel/target applied in normalizeBlogContentLinks (ExternalLink-aligned)
+					}
+				}),
+				ContentEditorCodeBlock.configure({
+					HTMLAttributes: {
+						class: 'blog-editor-code-block'
 					}
 				}),
 				Placeholder.configure({
@@ -505,6 +512,31 @@
 	:global(.content-editor .ProseMirror blockquote p),
 	:global(.content-editor blockquote p) {
 		margin: 0;
+	}
+
+	/* Code blocks */
+	:global(.content-editor .ProseMirror pre),
+	:global(.content-editor pre) {
+		margin: 1rem 0;
+		padding: 0.875rem 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid oklch(var(--bc) / 0.15);
+		background: oklch(var(--b2));
+		overflow-x: auto;
+	}
+
+	:global(.content-editor .ProseMirror pre code),
+	:global(.content-editor pre code) {
+		display: block;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+			'Courier New', monospace;
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		color: oklch(var(--bc));
+		background: transparent;
+		padding: 0;
 	}
 
 	/* Nested lists */

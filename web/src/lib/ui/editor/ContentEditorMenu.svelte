@@ -9,6 +9,11 @@
 	import ContentEditorImageAltDialog from '$lib/ui/editor/ContentEditorImageAltDialog.svelte';
 	import ContentEditorMenuButton from '$lib/ui/editor/ContentEditorMenuButton.svelte';
 	import ContentEditorMenuButtonImage from '$lib/ui/editor/ContentEditorMenuButtonImage.svelte';
+	import {
+		BLOG_CODE_BLOCK_LANGUAGES,
+		DEFAULT_BLOG_CODE_BLOCK_LANGUAGE,
+		type BlogCodeBlockLanguageId
+	} from '$lib/ui/editor/extensions/contentEditorCodeBlock';
 
 	type Props = {
 		editor: TiptapEditor;
@@ -26,6 +31,15 @@
 	let imageSelected = $derived.by(() => {
 		void toolbarRevision;
 		return editor.isActive('image');
+	});
+	let codeBlockActive = $derived.by(() => {
+		void toolbarRevision;
+		return editor.isActive('codeBlock');
+	});
+	let codeBlockLanguage = $derived.by(() => {
+		void toolbarRevision;
+		const language = editor.getAttributes('codeBlock').language;
+		return (language as BlogCodeBlockLanguageId | null) ?? DEFAULT_BLOG_CODE_BLOCK_LANGUAGE;
 	});
 
 	function handleLinkClick() {
@@ -56,6 +70,33 @@
 
 	function handleAltEditCancel() {
 		altDialogOpen = false;
+	}
+
+	function handleCodeBlockClick() {
+		if (editor.isActive('codeBlock')) {
+			editor.chain().focus().toggleCodeBlock().run();
+			return;
+		}
+		editor
+			.chain()
+			.focus()
+			.toggleCodeBlock()
+			.updateAttributes('codeBlock', { language: DEFAULT_BLOG_CODE_BLOCK_LANGUAGE })
+			.run();
+	}
+
+	function handleCodeLanguageChange(event: Event) {
+		const next = (event.currentTarget as HTMLSelectElement).value as BlogCodeBlockLanguageId;
+		if (!editor.isActive('codeBlock')) {
+			editor
+				.chain()
+				.focus()
+				.toggleCodeBlock()
+				.updateAttributes('codeBlock', { language: next })
+				.run();
+			return;
+		}
+		editor.chain().focus().updateAttributes('codeBlock', { language: next }).run();
 	}
 </script>
 
@@ -143,6 +184,30 @@
 	>
 		<AbstractIcon name={icons.Trash.name} width="18" height="18" />
 	</ContentEditorMenuButton>
+
+	<ContentEditorMenuButton
+		editor={editor}
+		toolbarRevision={toolbarRevision}
+		onClick={handleCodeBlockClick}
+		name="codeBlock"
+		title="Code block"
+	>
+		<AbstractIcon name={icons.Code.name} width="18" height="18" />
+	</ContentEditorMenuButton>
+
+	{#if codeBlockActive}
+		<label class="sr-only" for="blog-editor-code-language">Code language</label>
+		<select
+			id="blog-editor-code-language"
+			class="h-9 min-w-[7.5rem] rounded-md border border-base-300 bg-base-100 px-2 text-xs text-base-content"
+			value={codeBlockLanguage}
+			onchange={handleCodeLanguageChange}
+		>
+			{#each BLOG_CODE_BLOCK_LANGUAGES as option (option.id)}
+				<option value={option.id}>{option.label}</option>
+			{/each}
+		</select>
+	{/if}
 
 	<ContentEditorMenuButton
 		editor={editor}
