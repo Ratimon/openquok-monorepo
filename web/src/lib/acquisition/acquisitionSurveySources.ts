@@ -96,6 +96,12 @@ export const ACQUISITION_SURVEY_SOURCE_OPTIONS: AcquisitionSurveySourceOption[] 
 		iconTileClass: 'bg-transparent'
 	},
 	{
+		slug: 'github',
+		label: 'GitHub',
+		iconName: icons.Github.name,
+		iconTileClass: 'bg-transparent'
+	},
+	{
 		slug: 'other',
 		label: 'Other',
 		iconName: icons.AcquisitionOther.name,

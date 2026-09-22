@@ -15,6 +15,7 @@ export const ACQUISITION_SURVEY_SOURCE_SLUGS = [
 	'newsletter',
 	'podcast',
 	'linkedin',
+	'github',
 	'other'
 ] as const;
 
