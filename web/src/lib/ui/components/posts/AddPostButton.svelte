@@ -33,10 +33,10 @@
 		type="button"
 		onclick={onclick}
 		disabled={disabled}
-		class="select-none cursor-pointer h-[34px] rounded-[6px] flex bg-[#D82D7E] gap-[8px] justify-center items-center pl-[16px] pr-[20px] text-[13px] font-[600] text-white disabled:opacity-60 disabled:cursor-not-allowed"
+		class="select-none cursor-pointer inline-flex min-h-[34px] max-w-full items-center justify-center gap-2 rounded-[6px] bg-[#D82D7E] px-4 py-2 text-center text-[13px] font-[600] leading-snug text-white disabled:cursor-not-allowed disabled:opacity-60"
 	>
-		<AbstractIcon name={icons.Plus.name} class="size-4" width="16" height="16" />
-		<span>{label}</span>
+		<AbstractIcon name={icons.Plus.name} class="size-4 shrink-0" width="16" height="16" />
+		<span class="min-w-0 text-balance">{label}</span>
 	</button>
 
 	{#if onOpenPlugSettings}
@@ -44,7 +44,7 @@
 			type="button"
 			onclick={onOpenPlugSettings}
 			disabled={disabled}
-			class="select-none cursor-pointer h-[34px] rounded-[6px] flex border border-base-300 bg-base-100/40 gap-[8px] justify-center items-center px-[14px] text-[13px] font-[600] text-base-content/80 hover:bg-base-100/70 disabled:opacity-60 disabled:cursor-not-allowed"
+			class="select-none cursor-pointer inline-flex min-h-[34px] max-w-full items-center justify-center gap-2 rounded-[6px] border border-base-300 bg-base-100/40 px-3.5 py-2 text-center text-[13px] font-[600] leading-snug text-base-content/80 hover:bg-base-100/70 disabled:cursor-not-allowed disabled:opacity-60"
 		>
 			<AbstractIcon name={icons.Cog.name} class="size-4" width="16" height="16" />
 			<span>Plug settings</span>

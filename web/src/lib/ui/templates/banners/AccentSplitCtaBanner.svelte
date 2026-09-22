@@ -26,6 +26,11 @@
 			<p class="text-sm leading-relaxed text-primary-content/90 sm:text-base">{description}</p>
 		</div>
 
-		<BannerCtaLink {ctaText} {ctaHref} variant="accent" />
+		<BannerCtaLink
+			{ctaText}
+			{ctaHref}
+			variant="accent"
+			class="w-full sm:w-auto"
+		/>
 	</div>
 </section>

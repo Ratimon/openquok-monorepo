@@ -88,8 +88,8 @@
 
 <div class="mx-auto flex w-full max-w-[min(100vw-2rem,1400px)] flex-col gap-5">
 	<div class="rounded-lg border border-base-300 bg-base-100 p-6 shadow-sm space-y-4">
-		<div class="flex flex-wrap items-start justify-between gap-3">
-			<div class="space-y-1">
+		<div class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+			<div class="min-w-0 space-y-1">
 				<div class="flex items-center gap-3">
 					<AbstractIcon name={icons.Sparkles.name} class="text-primary size-8 shrink-0" width="32" height="32" />
 					<h1 class="text-2xl font-bold text-base-content">
@@ -100,11 +100,11 @@
 					Compose a post with the normal UI, then copy a JSON payload for <span class="font-mono text-base-content">POST /api/v1/public/posts</span>.
 				</p>
 			</div>
-			<div class="flex items-center gap-2">
+			<div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
 				<Button
 					variant="ghost"
 					href={accountPath}
-					class="gap-2"
+					class="w-full justify-center gap-2 sm:w-auto"
 				>
 					<AbstractIcon name={icons.ArrowLeft.name} class="size-4" width="16" height="16" />
 					Back
@@ -112,7 +112,7 @@
 				<Button
 					variant="outline"
 					href={accountPath}
-					class="gap-2"
+					class="w-full justify-center gap-2 sm:w-auto"
 				>
 					<AbstractIcon name={icons.Gauge.name} class="size-4" width="16" height="16" />
 					Go to Home
@@ -120,7 +120,7 @@
 				<Button
 					variant="secondary"
 					type="button"
-					class="gap-2"
+					class="w-full justify-center gap-2 sm:w-auto"
 					disabled={!wizardPayload}
 					onclick={scheduleViaUi}
 				>

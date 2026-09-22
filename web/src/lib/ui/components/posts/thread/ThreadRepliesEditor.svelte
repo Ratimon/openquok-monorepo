@@ -179,10 +179,10 @@
 
 {#if postComment === 'POST' || postComment === 'COMMENT' || postComment === 'ALL'}
 	<div class="rounded-lg border border-base-300 bg-base-100/30 p-3">
-		<div class="flex items-center justify-between gap-3">
+		<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 			<div class="text-sm font-medium text-base-content/80">
 				Follow-up comments</div>
-			<div class="flex items-center gap-2">
+			<div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
 				<AddPostButton onclick={onAddReply} {postComment} disabled={disabled} />
 				{#if onOpenPlugSettings}
 					<button
@@ -208,7 +208,7 @@
 		{:else if id === 'x' && !hideProviderHelp}
 			<p class="mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug text-base-content/75">
 				<span class="font-medium text-base-content/90">X timing:</span>
-				Each reply publishes as a quote-less reply after your chosen delay once the main thread goes live.
+				Each reply publishes as a reply after your chosen delay once the main thread goes live.
 			</p>
 		{:else if id.startsWith('instagram') && !hideProviderHelp}
 			<p class="text-base-content/75 mt-2 rounded-md border border-base-300/80 bg-base-200/25 px-3 py-2 text-sm leading-snug">

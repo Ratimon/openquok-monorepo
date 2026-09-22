@@ -65,7 +65,7 @@
 				{/each}
 			</ul>
 		{/if}
-		<div class={landingHeroTheme.dualCtaRowClass}>
+		<div class="{landingHeroTheme.dualCtaRowClass} lg:justify-center">
 			<ButtonGlitchBrightness
 				class={landingHeroTheme.compactCtaButtonClass}
 				variant="primary"

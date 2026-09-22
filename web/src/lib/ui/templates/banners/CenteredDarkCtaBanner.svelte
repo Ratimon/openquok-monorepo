@@ -54,11 +54,12 @@
 				{description}
 			</p>
 
-			<div class="mt-8">
+			<div class="mt-8 w-full max-w-md px-2 sm:max-w-none sm:px-0">
 				<BannerCtaLink
 					{ctaText}
 					{ctaHref}
 					variant="inverted"
+					class="w-full sm:w-auto"
 				/>
 			</div>
 		</div>
