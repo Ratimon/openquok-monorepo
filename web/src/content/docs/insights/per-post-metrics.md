@@ -13,7 +13,11 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > Performance for one published release — not workspace-wide totals.
 
-**Where:** Open a post from <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, then choose **Statistics** in **Post actions**. Step-by-step for the modal menu is in <a href="/docs/posts-management/actions-and-stats#statistics">Actions and stats</a>.
+**Where:** Open a post from <a href="/account">Home</a> or the <a href="/account/calendar">calendar</a>, then choose **Statistics** in **Post actions**.
+
+![Post Actions Modal](/docs/_assets/glossary/post-actions-modal.webp)
+
+Step-by-step for the modal menu is in <a href="/docs/posts-management/actions-and-stats#statistics">Actions and stats</a>.
 
 Account-level charts on the **Analytics** sidebar page do not list individual posts. Use <a href="/docs/insights/workspace-analytics">Workspace analytics</a> for channel-wide trends.
 
@@ -28,7 +32,7 @@ Account-level charts on the **Analytics** sidebar page do not list individual po
 | **7 days** · **30 days** · **90 days** | Same lookback windows as workspace **Analytics** and the public API |
 | Metric rows | Views, engagement, and other fields the provider returns for that release |
 
-While data loads you see **Loading analytics…**. When the platform has nothing for that post yet, the dialog shows **No statistics available for this post.**
+![Statistics for each post](/docs/_assets/insights/per-post-statistics.webp)
 
 Statistics need a published release id from the network. If OpenQuok never stored one — or the provider changed ids — you may need **Connect** first.
 
@@ -57,7 +61,7 @@ The CLI equivalent is <Badge text="posts:connect" variant="default" /> — list 
 ## Related
 
 <CardGrid>
-<LinkCard title="Workspace analytics" description="Targeted channels and overview cards" href="/docs/insights/workspace-analytics" />
+<LinkCard title="Workspace analytics" description="Targeted channels, Trends, and metric cards" href="/docs/insights/workspace-analytics" />
 <LinkCard title="Platforms → Analytics" description="Per-post coverage by network and channel key" href="/docs/platforms/analytics" />
 <LinkCard title="Actions and stats" description="Full post actions menu including Statistics" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Managing posts (CLI)" description="posts:connect and analytics:post" href="/docs/cli-usages/managing-posts" />

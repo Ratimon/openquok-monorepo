@@ -23,7 +23,6 @@ OpenQuok keeps your content in two places. Both views read the same post groups 
 
 ![Calendar View](/docs/_assets/posts-management/calendar-unfiltered-posts.webp)
 
-
 2) The **kanban board** on <a href="/account">Home</a> shows posts in different **stage** (draft, scheduled, published):
 
 ![Kanban View](/docs/_assets/getting-started/5-kanban-board.webp)

@@ -1,6 +1,6 @@
 ---
 title: Workspace analytics
-description: Account-level performance in the Analytics sidebar — targeted channels, 7/30/90 day windows, Trends chart and summary row, per-channel overview cards with platform attribution, and empty states.
+description: Account-level performance in the Analytics sidebar — targeted channels, window periods, trends plus per-channel metric cards.
 order: 1
 lastUpdated: 2026-09-22
 ---
@@ -11,55 +11,80 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Workspace analytics
 
-> Account-level performance for connected channels that expose insights through their APIs.
+> Account-level performance for connected channels that expose insights through their figures.
 
 **Where:** Choose <Badge text="Analytics" variant="default" /> in the account sidebar.
 
-The page loads metrics for every **analytics-capable** channel in your workspace that matches the current platform filter. Channels without a backend insights implementation never appear under **Targeted channels**, even if you can publish to them from the composer. Which networks qualify is in <a href="/docs/platforms/analytics">Platforms → Analytics</a>.
+The page shows account-level performance for connected channels that send insights through their APIs. Each qualifying connection appears as a chip under **Targeted channels**.
+
+![Targeted Channels and Overview Analytics Panel](/docs/_assets/insights/targeted-chips-overview.webp)
 
 <Callout type="warning">
-<p>Metric names and availability come from each platform’s API for your account type. OpenQuok cannot show fields the network does not return for that connection.</p>
+<p>Not all platforms are supported. Metric names and availability only come from each supported platform’s API for your connected accounts.</p>
 </Callout>
+
+Which channels report account-level insights, and how <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, and <Badge text="90" variant="param" /> day windows apply per connection are in <a href="/docs/platforms/analytics">Platforms → Analytics</a>.
 
 ## Targeted channels and date range
 
 | Control | What it does |
 | --- | --- |
-| **Targeted channels** | Chips for each connected channel whose provider supports account analytics. Use the platform filter to narrow the list. |
-| **Date range** (e.g. **7 Days**, **30 Days**, sometimes **90 Days**) | Lookback for every series on the page. The menu lists only windows **every** targeted channel supports — **Threads-only** (or Instagram / TikTok / personal LinkedIn) shows **7** and **30** only; **90 Days** appears when no targeted network caps below 90 (see the table in <a href="/docs/platforms/analytics#date-range-windows">Platforms → Analytics → Date range windows</a>). Changing the range reloads all targeted channels. |
+| **Targeted channels** | Chips for each connected channel whose provider supports analytics. Use the platform filter to narrow down. |
+| **Date range** (e.g. <Badge text="7 Days" variant="param" />, <Badge text="30 Days" variant="param" />, sometimes <Badge text="90 Days" variant="param" />) | Lookback for every series on the page. The menu lists only windows **every** targeted channel supports. Changing the range reloads all targeted channels. |
 
-The **Overview** grid shows one card per metric **per targeted channel**. OpenQuok does not add up or merge series across channels, even when two networks use the same label (for example **Comments** on Instagram and LinkedIn Page each get their own card).
+<Callout type="note">
+<p>Instagram, Threads, and TikTok do not support a 90-day account window. If <strong>any</strong> targeted chip is one of those networks, the menu offers <Badge text="7 Days" variant="param" /> and <Badge text="30 Days" variant="param" /> only. <Badge text="90 Days" variant="param" /> shows up when <strong>every</strong> targeted channel allows 90 days — for example you target only Facebook Page, YouTube, or X. See <a href="/docs/platforms/analytics#date-range-windows">Platforms → Analytics → Date range windows</a>.</p>
+</Callout>
 
-When you target more than one channel, cards are **grouped under a header** for that connection (avatar, channel name, and platform). Each card also shows a compact **source row** under the metric title — platform icon, network name, and truncated channel name — so you can scan the grid without matching chips mentally.
+## Overview Panel
 
-## Trends chart and summary row
+Below the filters, the **Overview** heading matches the app. It contains **Trends** first, then **metric cards** for each targeted channel.
 
-Above the card grid, **Trends** adds a cross-channel view built only from the daily series already loaded for each targeted channel:
+![Overview and Metrics Cards ](/docs/_assets/insights/overview-metric-cards.webp)
+
+## Trends
+
+**Trends** compares channels using each network’s closest matching metric.
+
+<Callout type="warning">
+<p>Each headline total adds <strong>one number per channel</strong>. Networks use different metric names, so the total is a rough sum for comparison. It is not a single official stat every platform agrees on.</p>
+</Callout>
+
+<Callout type="note">
+<p>For example, the <strong>Views</strong> headline might add Instagram <strong>Reach</strong>, Facebook <strong>Content views</strong>, and TikTok <strong>Views</strong>. You get one combined figure to scan quickly, but each network still counts views its own way.</p>
+</Callout>
+
 
 | Piece | What it shows |
 | --- | --- |
-| **Summary row** | Three headline totals — **Views**, **Engagement**, and **Followers** — each summing one primary metric per channel (the label that best matches that family on that network). |
-| **Metric toggle** | **Views**, **Engagement**, or **Followers** selects which family the line chart plots. |
-| **Line chart** | One line per targeted channel, using that channel’s best-matching series for the selected family. |
+| **Summary row** | Three totals — **Views**, **Engagement**, and **Followers** — with a channel count. Labels may show **mixed labels** when networks use different names for the same family. |
+| **Metric tabs** | **Views**, **Engagement**, or **Followers** picks which family the line chart plots. |
+| **Line chart** | One line per targeted channel. The legend lists the real API label per line (for example **Reach** on Instagram, **Content views** on Facebook). |
 
-Networks name metrics differently (for example **Impressions** vs **Reach** vs **Page views**). OpenQuok maps labels into families heuristically; the legend shows which source metric each line uses. Summary totals are **approximate rollups** for quick comparison — per-card metrics below remain authoritative for each connection.
+<Callout type="tip">
+Use <strong>Trends</strong> for a quick cross-channel read. For each network’s exact label and total, use the metric cards below.
+</Callout>
 
-## Reading the overview cards
 
-Each metric appears as a card with:
+## Channel metric cards
 
-- A **source row** (platform icon, network label, channel name) tying the series to one connection
-- A **sparkline** of daily values across the selected window
-- A **total** for the period (formatted per metric)
-- A **trend** vs the previous period of the same length — shown as a percentage, or percentage points when the backend marks the series as an average
+Under **Trends**, the grid shows one **metric card** per API series **per targeted channel**.
 
-Similar metric names from different platforms stay **separate** on individual cards. The optional **Trends** summary adds approximate cross-channel totals; use the card grid when you need each network’s exact label and total.
 
-While data loads, the overview shows **Loading analytics…**. A hard failure surfaces the API error message in red.
+<Callout type="warning">
+<p>OpenQuok does not merge cards across channels, even when two networks share a name (for example **Comments** on Instagram and LinkedIn Page stay separate).</p>
+</Callout>
+
+![Series of Metrics Cards ](/docs/_assets/insights/metric-cards.webp)
+
+With more than one channel targeted, cards group under a <strong>channel header</strong> (avatar and name). Each card has a <strong>source row</strong> under the title — platform icon, network name, and channel name.
+
+Each card includes a **sparkline**, a **total** for the selected window, and a **trend** vs the previous period of the same length (percentage, or percentage points for average series).
+
 
 ## Typical metrics by network
 
-Labels on the cards mirror what each provider returns. The set can change when a platform updates its API. The table below is indicative, not exhaustive.
+Card titles mirror what each provider returns. The set can change when a platform updates its API. The table below is indicative, not exhaustive.
 
 | Network | Typical account-level metrics |
 | --- | --- |
@@ -71,10 +96,6 @@ Labels on the cards mirror what each provider returns. The set can change when a
 | **Threads** | Views, likes, replies, reposts, quotes |
 | **X** | Impressions, likes, quotes, replies, reposts, bookmarks |
 | **Dev.to** | Page views, reactions, comments |
-
-<Callout type="note">
-<p><strong>LinkedIn Page</strong> analytics require a Company Page you administer. Personal <strong>LinkedIn</strong> profiles do not expose the same insights API — see <a href="/docs/platforms/analytics">Platforms → Analytics</a>.</p>
-</Callout>
 
 ## When charts are empty
 

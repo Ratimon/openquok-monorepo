@@ -112,7 +112,7 @@ Let AI agents handle volume — drafting and scheduling at scale. You handle qua
 
 | <a href="assets/readme/2-calendar-filters-views.gif"><img src="assets/readme/2-calendar-filters-views.gif" alt="Calendar day, week, month, and list views with smart filters" width="440" /></a> | <a href="assets/readme/3-kanban-filters-drag-drop.gif"><img src="assets/readme/3-kanban-filters-drag-drop.gif" alt="Kanban drag-and-drop review workflow" width="440" /></a> |
 | :---: | :---: |
-| <a href="assets/readme/4-file-manager.gif"><img src="assets/readme/4-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/5-analytics.gif"><img src="assets/readme/5-analytics.gif" alt="Analytics" width="440" /></a> |
+| <a href="assets/readme/4-file-manager.gif"><img src="assets/readme/4-file-manager.gif" alt="File manager" width="440" /></a> | <a href="assets/readme/5-analytics.mp4"><video src="assets/readme/5-analytics.mp4" width="440" autoplay loop muted playsinline></video></a> |
 
 </div>
 
