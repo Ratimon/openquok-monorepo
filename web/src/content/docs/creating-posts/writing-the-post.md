@@ -79,7 +79,7 @@ A <code>count/limit</code> badge under the caption box tracks how much you have 
 | **Focused channel**  | Count and limit for **that network** |
 | **X focused** | **Weighted** count — links and mentions can cost more than one character; limit is **280** or **4000** |
 
-Per-network caps and save-time length errors are in <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>. When one channel is over its limit, customize that caption — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
+Per-network caps and save-time length errors are in <a href="/docs/platforms/media-rules">Media rules</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>. When one channel is over its limit, customize that caption — see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
 ## Mentions
 
@@ -126,6 +126,6 @@ Supported networks (Threads, X, Instagram) can add delayed **Follow-up comments*
 <LinkCard title="Links and validation" description="Link previews and save-time errors" href="/docs/creating-posts/links-and-validation" />
 <LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="AI generation" description="Draft posts with agents, MCP, and the API" href="/docs/creating-posts/ai-generation" />
-<LinkCard title="Posting rules by platform" description="Per-network character and media limits" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Per-network character and media limits" href="/docs/platforms/media-rules" />
 <LinkCard title="Signatures" description="Reusable sign-offs from Settings" href="/docs/settings/signatures" />
 </CardGrid>

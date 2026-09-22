@@ -50,7 +50,7 @@ When you reference a channel inside a post payload, use the channel's <strong>UU
 <p>The provider catalog is sourced from <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/integrations/integrationManager.ts"><Badge text="backend/integrations/integrationManager.ts" variant="path" /></DocsExternalLink>. Re-fetching <Badge text="GET /api/v1/public/integrations" variant="default" /> is the safest way to see what's available in any given OpenQuok deployment.</p>
 </Callout>
 
-Character limits, media requirements, and composer rules for each network are summarized in <a href="/docs/platforms">Platform limits</a>.
+Character limits and media rules are in <a href="/docs/platforms/media-rules">Media rules</a>. Composer **Settings** fields are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a>.
 
 <Callout type="tip">
 <p>Rather than memorizing field names, fill out a real post in the <a href="/account/payload-wizard">Payload Wizard</a>, click <strong>Copy scheduled payload</strong>, and inspect the <Badge text="providerSettingsByIntegrationId" variant="param" /> object — it is always the source of truth for what the backend currently accepts (and the cleanest way to spot the difference between platform-specific settings and cross-provider features like Follow-up comments).</p>
@@ -131,7 +131,8 @@ Channels omitted from <Badge text="mediaByIntegrationId" variant="param" /> inhe
 <LinkCard title="Public API Overview" description="Authentication, channel groups, global plugs, SDK quickstart, and the Payload Wizard" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Integrations APIs" description="Connect / inspect / trigger endpoints around connected channels" href="/docs/apis-integrations" />
 <LinkCard title="Posts APIs" description="Schedule, update, and delete post groups against connected channels" href="/docs/apis-posts" />
-<LinkCard title="Platform limits" description="Character caps, media rules, and follow-up comment support by network" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Character caps, media rules, and caption editors" href="/docs/platforms/media-rules" />
+<LinkCard title="Per-channel settings" description="Composer Settings fields by network" href="/docs/platforms/per-channel-settings" />
 <LinkCard title="Global vs per-channel" description="How isGlobal, bodiesByIntegrationId, and mediaByIntegrationId map to the composer" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="CLI examples" description="Copy-paste openquok recipes by network" href="/docs/cli-examples" />
 </CardGrid>

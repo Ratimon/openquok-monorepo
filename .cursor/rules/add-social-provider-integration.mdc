@@ -578,7 +578,7 @@ Required sections (see **agent-skill** rule): **Supported features**, **Agent ta
 
 **Page sections** (mirror `web/src/content/docs/public-api-providers/threads.md`):
 
-1. **Quick reference** — identifier, connect URL (`GET /api/v1/public/social/{identifier}` or “dashboard credentials” for Dev.to), setup guide link, character cap, media rules (from `web/src/content/docs/platforms/index.md`)
+1. **Quick reference** — identifier, connect URL (`GET /api/v1/public/social/{identifier}` or “dashboard credentials” for Dev.to), setup guide link, character cap, media rules (from `web/src/content/docs/platforms/connect-rules.md`, `media-rules.md`, and `per-channel-settings.md`)
 2. **Settings on create post** — `providerSettingsByIntegrationId[<uuid>]` with flat CLI keys + nested composer bucket
 3. **Field reference table** — from backend publish/settings resolver + unit tests
 4. **Follow-up comments** — `{bucket}.replies` when `comment()` ships; omit section when `postComment: 'NONE'`
@@ -589,7 +589,7 @@ Required sections (see **agent-skill** rule): **Supported features**, **Agent ta
 **Hub updates** (required in the same PR):
 
 - `web/src/content/docs/public-api-providers/index.md` — add row to **Provider catalog** table + `LinkCard` in **Provider settings reference** CardGrid
-- `web/src/content/docs/platforms/index.md` — add network to limits table if not already listed
+- `web/src/content/docs/platforms/connect-rules.md` — add network to catalog table if not already listed; update `media-rules.md`, `per-channel-settings.md`, `platforms/index.md` (naming / follow-ups when needed), and `analytics.md` when behavior differs
 
 **Content sources:** `resources/{identifier}-examples.md`, `cli-examples/{id}.md`, backend `*Publish.ts` / `resolve*Settings.ts`. Do **not** duplicate the old monolithic `supported-social-channels.md` pattern.
 
@@ -805,7 +805,7 @@ Configs for agent hosts are built from `listPublicChannelsForHub()` in `openclaw
 - **Site footer:** no manual `PUBLIC_FOOTER_LINKS` / `buildPublicFooterLinks.ts` edits for the provider slug — **Supported Channels** picks up the catalog entry; **How to self-host with different social channels** picks up `social-integration/{identifier}.md` (non-draft, with `title` + `order`); tool columns follow live-channel rules above. Spot-check footer labels and hrefs before merge.
 - **Connect user guide:** `web/src/content/docs/channels/connect.md` — OAuth provider listed under OAuth redirect (and follow-up picker table when `isBetweenSteps`); credentials provider row in the credentials table; invite-link note if `customFields`.
 - **Agent skill:** `resources/{identifier}-examples.md` with Supported features + Agent tasks + Provider settings + recipes; `SKILL.md` **Channels** row updated; `web/src/content/docs/cli-examples/{id}.md` shipped or updated for human docs; sync `web/src/content/docs/public-api-providers/{identifier}.md` when `providerSettingsByIntegrationId` shapes change.
-- **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/index.md` row when new network; follow-up/plug sections match shipped backend only.
+- **Public API provider docs:** `web/src/content/docs/public-api-providers/{identifier}.md` with correct `{DisplayName} Settings` title; hub `index.md` catalog row + LinkCard; `platforms/connect-rules.md` and `media-rules.md` rows when new network; follow-up/plug sections match shipped backend only.
 - **Self-host (OAuth):** new OAuth env keys in `infra/self-host/.env.example` (Social provider apps); matching row in `web/src/content/docs/installation/docker-compose.md` **Optional: Social provider apps**; do not add secrets to the `web` Compose service (API/workers only via `.env`).
 - **Self-host (credentials):** no `{PROVIDER}_*` keys; docker-compose notes that the channel uses a user API key in the dashboard.
 - **Skill Builder SEO:** `CHANNEL_PROVIDER_IDENTIFIERS` + `CHANNEL_RECIPES` in `publicSkillBuilderChannelConfig.ts`; example payloads in `skillBuilderChannelExamplePayloads.ts`; `/tools/skill-builder/{slug}` resolves for live channels; Tools hub card exposes channel picker.

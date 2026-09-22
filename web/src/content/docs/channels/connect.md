@@ -19,9 +19,11 @@ A **channel** is one linked social account — one X profile, one LinkedIn Page,
 
 The calendar, post editor, analytics, and templates all need at least one channel before they can do anything useful, so connecting is the first step in a new workspace.
 
-![Add Channel](/docs/_assets/getting-started/2-add-channel.webp)
+![Click buttons to add Social Channels](/docs/_assets/getting-started/2-add-channel.webp)
 
 Pick the network you want. OpenQuok picks the connection flow for that platform — you do not choose it yourself.
+
+![The modal to choose a channel to be added](/docs/_assets/channel-groups/add-channel-modal.webp)
 
 ## The two connection flows
 

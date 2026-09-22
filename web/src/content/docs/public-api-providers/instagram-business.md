@@ -118,5 +118,5 @@ Publish a Story (one attachment; collaborators are not supported on Stories):
 <LinkCard title="Provider settings overview" description="Hub catalog and per-channel media overrides" href="/docs/public-api-providers" />
 <LinkCard title="Instagram CLI examples" description="openquok recipes for Reels, Stories, and trial reels" href="/docs/cli-examples/instagram" />
 <LinkCard title="Instagram setup" description="Meta app, Page link, and OAuth" href="/docs/social-integration/instagram" />
-<LinkCard title="Platform limits" description="Carousel, story, and reel constraints" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Carousel, story, and reel constraints" href="/docs/platforms/media-rules" />
 </CardGrid>

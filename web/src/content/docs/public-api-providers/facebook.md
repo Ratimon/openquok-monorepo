@@ -116,5 +116,5 @@ Story with one image:
 <LinkCard title="Facebook CLI examples" description="openquok recipes for link previews, Reels, and Stories" href="/docs/cli-examples/facebook" />
 <LinkCard title="Facebook setup" description="Meta developer app and Page permissions" href="/docs/social-integration/facebook" />
 <LinkCard title="Threads and comments" description="Follow-up comment support by network" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Platform limits" description="Facebook media and caption rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Facebook media and caption rules" href="/docs/platforms/media-rules" />
 </CardGrid>

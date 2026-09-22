@@ -118,7 +118,7 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 
 Cross-account **plugs** (from **Plug settings**) are separate from same-account Follow-up comments. **Threads**, **X**, and **LinkedIn** support them — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> and <a href="#cross-account-plugs">below</a>.
 
-Per-network caps on the main post still apply. See <a href="/docs/platforms">Posting rules by platform</a>.
+Per-network caps on the main post still apply. See <a href="/docs/platforms/media-rules">Media rules</a>.
 
 ## Thread finisher
 
@@ -197,5 +197,5 @@ See <a href="/docs/cli-usages/managing-posts">Managing posts</a> and <a href="/d
 <LinkCard title="Cross-account plugs" description="Other connected channels comment, repost, or reshare" href="/docs/automations/cross-account-plugs" />
 <LinkCard title="CLI examples — Threads" description="Reply chains and thread finisher" href="/docs/cli-examples/threads" />
 <LinkCard title="CLI examples — X" description="Reply chains on X" href="/docs/cli-examples/x" />
-<LinkCard title="Posting rules by platform" description="Per-network limits and settings" href="/docs/platforms" />
+<LinkCard title="Platforms overview" description="Follow-up terminology and naming" href="/docs/platforms" />
 </CardGrid>

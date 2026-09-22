@@ -91,5 +91,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="YouTube CLI examples" description="openquok recipes for title, tags, and thumbnails" href="/docs/cli-examples/youtube" />
 <LinkCard title="YouTube setup" description="Google Cloud project and OAuth consent" href="/docs/social-integration/youtube" />
 <LinkCard title="Upload APIs" description="Multipart upload before scheduling video posts" href="/docs/apis-uploads" />
-<LinkCard title="Platform limits" description="YouTube media and description rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="YouTube media and description rules" href="/docs/platforms/media-rules" />
 </CardGrid>

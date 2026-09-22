@@ -98,5 +98,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="Dev.to setup" description="API key and dashboard connect" href="/docs/social-integration/devto" />
 <LinkCard title="Trigger integration tool" description="List tags and organizations before publishing" href="/docs/apis-integrations/integration-trigger" />
 <LinkCard title="Writing the post" description="Markdown editor for Dev.to" href="/docs/creating-posts/writing-the-post" />
-<LinkCard title="Platform limits" description="Body and title constraints" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Body and title constraints" href="/docs/platforms/media-rules" />
 </CardGrid>

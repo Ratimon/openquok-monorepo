@@ -135,5 +135,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="Threads setup" description="Meta developer app, OAuth scopes, and backend env" href="/docs/social-integration/threads" />
 <LinkCard title="Internal plugs" description="Same-account engagement after follow-ups complete" href="/docs/automations/internal-plugs" />
 <LinkCard title="Threads and comments" description="Composer follow-up panel and delay semantics" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Platform limits" description="Character caps and media rules for every network" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Character caps and media rules for every network" href="/docs/platforms/media-rules" />
 </CardGrid>

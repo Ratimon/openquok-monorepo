@@ -230,7 +230,7 @@ Full model list, editing, aspect ratios, and provider deep dives: <DocsExternalL
 ## Troubleshooting
 
 <Callout type="note" title="Invalid or expired code">
-<p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about 15 minutes. Pre-login at openquok.com alone does not validate the device code.</p>
+<p>The user must open the exact <Badge text="verification_uri_complete" variant="param" /> link from <Badge text="auth:login --json" variant="default" /> while the CLI is still polling. Codes expire in about <strong>15 minutes</strong>. Pre-login at openquok.com alone does not validate the device code.</p>
 </Callout>
 
 <Callout type="warning">

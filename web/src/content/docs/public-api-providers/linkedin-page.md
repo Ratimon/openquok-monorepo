@@ -106,6 +106,6 @@ After publish, fetch Page insights with <Badge text="GET /api/v1/analytics/&lt;i
 <LinkCard title="Provider settings overview" description="Hub catalog and authentication" href="/docs/public-api-providers" />
 <LinkCard title="LinkedIn CLI examples" description="openquok recipes shared with personal LinkedIn" href="/docs/cli-examples/linkedin" />
 <LinkCard title="LinkedIn Page setup" description="Two-step OAuth and Page picker" href="/docs/social-integration/linkedin-page" />
-<LinkCard title="Platform limits" description="Carousel and media rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Carousel and media rules" href="/docs/platforms/media-rules" />
 <LinkCard title="Analytics APIs" description="Account and post metrics for supported channels" href="/docs/apis-analytics" />
 </CardGrid>

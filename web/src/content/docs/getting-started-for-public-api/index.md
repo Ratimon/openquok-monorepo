@@ -252,6 +252,6 @@ Every Public API section plus CLI, MCP, and dashboard platform limits.
 <LinkCard title="OAuth2 for apps" description="Authorization Code flow for third-party apps acting on behalf of users" href="/docs/oauth2-for-apps" />
 <LinkCard title="MCP (HTTP streaming)" description="Native MCP client setup for Cursor, Claude Code, Codex, and more" href="/docs/getting-started-for-mcp" />
 <LinkCard title="CLI" description="Same public API surface as openquok auth/posts/integrations commands" href="/docs/getting-started-for-cli" />
-<LinkCard title="Platform limits" description="Composer and publish rules by network (dashboard reference)" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Composer and publish rules by network (dashboard reference)" href="/docs/platforms/media-rules" />
 </CardGrid>
 

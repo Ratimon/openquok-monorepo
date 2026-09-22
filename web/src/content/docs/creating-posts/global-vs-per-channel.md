@@ -40,7 +40,7 @@ Open the composer and you are already in Global mode. The globe is highlighted. 
 Keep editing in Global so future caption and attachment changes stay in one place.
 
 <Callout type="tip">
-<p>Images and video you attach in Global mode go to every selected channel. Some networks accept fewer files or different formats; the preview and character counter warn you before save. See <a href="/docs/creating-posts/media">Media</a> and <a href="/docs/platforms">Posting rules by platform</a>.</p>
+<p>Images and video you attach in Global mode go to every selected channel. Some networks accept fewer files or different formats; the preview and character counter warn you before save. See <a href="/docs/creating-posts/media">Media</a> and <a href="/docs/platforms/media-rules">Media rules</a>.</p>
 </Callout>
 
 ## Customize one channel
@@ -75,7 +75,7 @@ After you unlock, changes on that channel **no longer** follow the Global captio
 
 <p>When you are focused on one network, use <strong>← Back to global</strong>. OpenQuok asks you to confirm — going back drops <strong>all</strong> per-channel caption and attachment and returns to the shared draft.</p>
 
-<p>If you only needed different <strong>settings</strong> (a YouTube title, Dev.to tags, an Instagram post type) and not different words, you can often stay in Global and open <strong>Settings</strong> instead. See <a href="/docs/creating-posts/links-and-validation">Links and validation</a> and <a href="/docs/platforms">Posting rules by platform</a>.</p>
+<p>If you only needed different <strong>settings</strong> (a YouTube title, Dev.to tags, an Instagram post type) and not different words, you can often stay in Global and open <strong>Settings</strong> instead. See <a href="/docs/creating-posts/links-and-validation">Links and validation</a> and <a href="/docs/platforms/per-channel-settings">Per-channel settings</a>.</p>
 
 ## What works per-channel only
 
@@ -140,6 +140,7 @@ See <a href="/docs/public-api-providers">Provider settings</a> and <a href="/doc
 <LinkCard title="Links and validation" description="Character limits and save-time errors" href="/docs/creating-posts/links-and-validation" />
 <LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Templates" description="Saved composer presets — channels, caption, media, and tags" href="/docs/posts-management/templates" />
-<LinkCard title="Posting rules by platform" description="Per-network fields and media rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Attachments and character caps" href="/docs/platforms/media-rules" />
+<LinkCard title="Per-channel settings" description="Composer Settings fields per network" href="/docs/platforms/per-channel-settings" />
 <LinkCard title="Glossary" description="Global mode and provider settings defined" href="/docs/getting-started/glossary" />
 </CardGrid>

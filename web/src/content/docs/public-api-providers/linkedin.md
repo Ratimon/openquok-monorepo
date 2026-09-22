@@ -120,5 +120,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="LinkedIn CLI examples" description="openquok recipes for carousels and follow-up comments" href="/docs/cli-examples/linkedin" />
 <LinkCard title="LinkedIn setup" description="OAuth app and redirect URI" href="/docs/social-integration/linkedin" />
 <LinkCard title="Cross-account plugs" description="Acting channels and plug catalog ids" href="/docs/automations/cross-account-plugs" />
-<LinkCard title="Platform limits" description="Carousel and video rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Carousel and video rules" href="/docs/platforms/media-rules" />
 </CardGrid>

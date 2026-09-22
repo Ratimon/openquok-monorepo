@@ -48,7 +48,7 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 
 The post editor accepts images and videos only. The media library, CLI, and Uploads API also accept audio and PDF.
 
-Platform rules vary by platform: YouTube wants exactly one video, Instagram needs at least one attachment, and TikTok does not mix photos and video. See <a href="/docs/platforms">Posting rules by platform</a>. The **Post Preview** column and the validation under the media strip warn you before save.
+Platform rules vary by platform: YouTube wants exactly one video, Instagram needs at least one attachment, and TikTok does not mix photos and video. See <a href="/docs/platforms/media-rules">Media rules</a>. The **Post Preview** column and the validation under the media strip warn you before save.
 
 ## Reorder and remove
 
@@ -72,7 +72,7 @@ Changes save to the **workspace media library**. The same **Media details** dial
 
 At publish time, Instagram uses the video poster **timestamp** for reel cover offset. OpenQuok does not send alt text to Meta or X APIs.
 
-Channel-specific visuals that are part of publish settings stay in **Settings** — for example a **YouTube custom thumbnail** or a **Dev.to cover image**. See <a href="/docs/platforms">Posting rules by platform</a>.
+Channel-specific visuals that are part of publish settings stay in **Settings** — for example a **YouTube custom thumbnail** or a **Dev.to cover image**. See <a href="/docs/platforms/per-channel-settings">Per-channel settings</a>.
 
 ## Photo Editor
 
@@ -118,7 +118,7 @@ OpenQuok stores per-channel lists only for channels you edited while unlocked. E
 | --- | --- |
 | Unsupported file type | The composer rejects files that are not `image/*` or `video/*`. The library and API also allow `audio/*` and `application/pdf`. You see an error toast when the type is not allowed |
 | File too large | Images over **30 MB** are blocked in the browser before upload. Images over **10 MB** are rejected on the server. Videos over **1 GB** are rejected. A multi-file batch over **1 GB** total is rejected |
-| Platform rules after upload | Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms">Posting rules by platform</a> |
+| Platform rules after upload | Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms/media-rules">Media rules</a> |
 | Workspace storage full | On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
 
 ## Public API and CLI
@@ -134,7 +134,7 @@ Upload assets first with <Badge text="openquok upload" variant="default" /> or <
 <LinkCard title="Global vs per-channel" description="One caption or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Tour the app" description="Sidebar, media library, and composer entry points" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Photo Editor" description="Public Photo Editor — same canvas as Design Media in the composer" href="/tools/photo-editor" />
-<LinkCard title="Posting rules by platform" description="Image, video, and carousel limits per network" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Image, video, and carousel limits per network" href="/docs/platforms/media-rules" />
 <LinkCard title="Media upload (CLI)" description="openquok upload and upload-from-url recipes" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Uploads APIs" description="Attach media via the public API" href="/docs/apis-uploads" />
 </CardGrid>

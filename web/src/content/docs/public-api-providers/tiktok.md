@@ -131,5 +131,5 @@ Send to creator inbox (finish trending audio in the TikTok app):
 <LinkCard title="Provider settings overview" description="Hub catalog and media upload flow" href="/docs/public-api-providers" />
 <LinkCard title="TikTok CLI examples" description="openquok recipes for inbox, private drafts, and carousels" href="/docs/cli-examples/tiktok" />
 <LinkCard title="TikTok setup" description="Developer app and Content Posting API review" href="/docs/social-integration/tiktok" />
-<LinkCard title="Platform limits" description="Photo carousel and video rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Photo carousel and video rules" href="/docs/platforms/media-rules" />
 </CardGrid>

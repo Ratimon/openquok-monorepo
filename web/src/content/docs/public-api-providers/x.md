@@ -128,5 +128,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="X setup" description="OAuth app, callback URL, and env keys" href="/docs/social-integration/x" />
 <LinkCard title="Cross-account plugs" description="Acting channels, delayMs, and plug catalog" href="/docs/automations/cross-account-plugs" />
 <LinkCard title="Threads and comments" description="Follow-up delay semantics across networks" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Platform limits" description="X media rules and character caps" href="/docs/platforms" />
+<LinkCard title="Media rules" description="X media rules and character caps" href="/docs/platforms/media-rules" />
 </CardGrid>

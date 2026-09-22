@@ -70,7 +70,7 @@ Drag a file in, use <strong>Add media</strong> from the toolbar, or pick from yo
 
 ### Fill network-specific fields
 
-Some channels need extra details — a YouTube title, Dev.to tags, an Instagram post type. Open **Settings** when a channel is focused. The editor blocks save until required fields are filled. See <a href="/docs/platforms">Posting rules by platform</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.
+Some channels need extra details — a YouTube title, Dev.to tags, an Instagram post type. Open **Settings** when a channel is focused. The editor blocks save until required fields are filled. See <a href="/docs/platforms/per-channel-settings">Per-channel settings</a> and <a href="/docs/creating-posts/links-and-validation">Links and validation</a>.
 
 ### Pick a time and save
 
@@ -134,6 +134,6 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Tour the app" description="Sidebar, Home, calendar, and where the composer opens" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Glossary" description="Global mode, provider settings, and calendar vs kanban" href="/docs/getting-started/glossary" />
 <LinkCard title="Channels" description="Connect, group, and maintain social accounts" href="/docs/channels" />
-<LinkCard title="Posting rules by platform" description="Character limits, media rules, and per-network settings" href="/docs/platforms" />
+<LinkCard title="Platforms" description="Naming, connect catalog, media rules, and analytics" href="/docs/platforms" />
 <LinkCard title="Posts management" description="Kanban, calendar, moving posts, actions, and client approvals" href="/docs/posts-management" />
 </CardGrid>

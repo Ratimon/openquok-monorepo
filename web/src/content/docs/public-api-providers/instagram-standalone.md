@@ -90,5 +90,5 @@ curl -X POST https://api.openquok.com/api/v1/public/posts \
 <LinkCard title="Provider settings overview" description="Hub catalog and authentication" href="/docs/public-api-providers" />
 <LinkCard title="Instagram CLI examples" description="openquok recipes — swap in standalone UUID" href="/docs/cli-examples/instagram" />
 <LinkCard title="Instagram setup" description="IG Login app and redirect URI" href="/docs/social-integration/instagram" />
-<LinkCard title="Platform limits" description="Story, reel, and carousel rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Story, reel, and carousel rules" href="/docs/platforms/media-rules" />
 </CardGrid>

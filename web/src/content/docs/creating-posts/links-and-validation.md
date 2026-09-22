@@ -79,7 +79,7 @@ Media limits are checked separately. See <a href="/docs/creating-posts/media">Me
 
 For length, unlock the tight channel and write a shorter caption. Do not cut the text for every network. See <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
-For media, check the platform rules first. See <a href="/docs/platforms">Posting rules by platform</a>.
+For media, check the platform rules first. See <a href="/docs/platforms/media-rules">Media rules</a>.
 
 For required settings, focus the channel and fill the **Settings** panel. The platform refuses the post without those fields.
 
@@ -94,5 +94,5 @@ For required settings, focus the channel and fill the **Settings** panel. The pl
 <LinkCard title="Global vs per-channel" description="One caption or per-network overrides" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Threads and comments" description="Put a link in a follow-up comment" href="/docs/creating-posts/threads-and-comments" />
 <LinkCard title="Media" description="Attachments and inline media validation" href="/docs/creating-posts/media" />
-<LinkCard title="Posting rules by platform" description="Character limits and media rules" href="/docs/platforms" />
+<LinkCard title="Media rules" description="Character limits and media rules" href="/docs/platforms/media-rules" />
 </CardGrid>
