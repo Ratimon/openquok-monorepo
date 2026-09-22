@@ -20,8 +20,15 @@ export { AnalyticsRepository } from '$lib/platform-analytics/Analytics.repositor
 export {
 	GetAnalyticsPresenter,
 	mapAnalyticsSeriesVm,
+	flattenIntegrationAnalyticsSeriesVm,
 	mergeAnalyticsSeriesVm,
-	formatAnalyticsSeriesTotalsVm
+	formatAnalyticsSeriesTotalsVm,
+	ANALYTICS_METRIC_FAMILIES,
+	ANALYTICS_METRIC_FAMILY_LABELS,
+	pickSeriesForMetricFamily,
+	buildAnalyticsOverviewSummaryVm,
+	buildAnalyticsOverviewChartVm,
+	alignChartLineValues
 } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 export type {
 	PostStatisticsAnalyticsParams,
@@ -31,7 +38,14 @@ export {
 	SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS,
 	type SupportedAnalyticsProviderIdentifier
 } from '$data/social-providers';
-export type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
+export type {
+	AnalyticsSeriesChannelSourceVm,
+	AnalyticsSeriesViewModel,
+	AnalyticsMetricFamily,
+	AnalyticsOverviewSummaryItemVm,
+	AnalyticsOverviewChartLineVm,
+	AnalyticsOverviewChartVm
+} from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 export type {
 	AnalyticsSeriesProgrammerModel,
 	GetPostAnalyticsResultPm

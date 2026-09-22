@@ -19,7 +19,11 @@
 
 	// --- Data / icons ---
 	import { icons } from '$data/icons';
-	import { socialProviderIcon } from '$data/social-providers';
+	import {
+		clampAnalyticsDateWindow,
+		intersectAnalyticsDateWindows,
+		socialProviderIcon
+	} from '$data/social-providers';
 
 	// --- UI ---
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -31,6 +35,7 @@
 		type ChannelCapContext
 	} from '$lib/ui/components/channels/channelCapContext';
 	import ChannelKindFilter from '$lib/ui/components/filters/ChannelKindFilter.svelte';
+	import AnalyticsOverviewPanel from '$lib/ui/components/platform-analytics/AnalyticsOverviewPanel.svelte';
 	import RenderAnalyticsGrid from '$lib/ui/components/platform-analytics/RenderAnalyticsGrid.svelte';
 	import { Select, SelectContent, SelectItem, SelectTrigger } from '$lib/ui/select';
 
@@ -58,8 +63,19 @@
 	/** Triggers reload when targeted integration set changes (platform filter / disconnect). */
 	const analyticsIntegrationIdsKey = $derived.by(() => filteredIntegrationsVm.map((i) => i.id).join(','));
 
+	const allowedDateWindowDays = $derived(
+		intersectAnalyticsDateWindows(filteredIntegrationsVm.map((i) => String(i.identifier ?? '')))
+	);
+
 	// --- Page-local UI state ---
 	let dateWindowDays = $state<number>(7);
+
+	$effect(() => {
+		const next = clampAnalyticsDateWindow(dateWindowDays, allowedDateWindowDays);
+		if (next !== dateWindowDays) {
+			dateWindowDays = next;
+		}
+	});
 
 	// --- Handlers (Pattern B: toast in route after mutation-style results) ---
 	function goToCalendarToAddChannels() {
@@ -194,9 +210,9 @@
 								<span class="text-sm">{dateWindowDays} Days</span>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="7">7 Days</SelectItem>
-								<SelectItem value="30">30 Days</SelectItem>
-								<SelectItem value="90">90 Days</SelectItem>
+								{#each allowedDateWindowDays as windowDays (windowDays)}
+									<SelectItem value={String(windowDays)}>{windowDays} Days</SelectItem>
+								{/each}
 							</SelectContent>
 						</Select>
 					</div>
@@ -232,6 +248,11 @@
 			<h3 class="text-lg font-semibold text-base-content">
 				Overview
 			</h3>
+			{#if !analyticsPresenter.loading && !analyticsPresenter.error && analyticsPresenter.mergedSeriesVm.length > 0}
+				<AnalyticsOverviewPanel
+					seriesVm={analyticsPresenter.mergedSeriesVm}
+				/>
+			{/if}
 			<RenderAnalyticsGrid
 				integrationVm={filteredIntegrationsVm}
 				loading={analyticsPresenter.loading}

@@ -54,7 +54,7 @@
 		onCopy: () => Promise<void> | void;
 		onDelete: () => Promise<void> | void;
 		onPreview?: () => void;
-		onStatistics?: (postId: string) => void;
+		onStatistics?: (postId: string, providerIdentifier?: string) => void;
 		/** When set, show a separate "create in this slot" action (mobile / touch calendar). */
 		createAtIso?: string | null;
 		onCreatePost?: (iso: string) => void;
@@ -489,8 +489,14 @@
 				onclick={() => {
 					const id = firstPostId;
 					if (!id) return;
+					const row = channelLookupPosts.find((p) => p.id === id);
+					const fromConnected = row?.integrationId
+						? channels.find((c) => c.id === row.integrationId)
+						: undefined;
+					const providerIdentifier =
+						fromConnected?.identifier ?? summary?.channels[0]?.channelIdentifier;
 					onClose();
-					onStatistics?.(id);
+					onStatistics?.(id, providerIdentifier);
 				}}
 			>
 				<AbstractIcon name={icons.ChartBar.name} class="size-4 shrink-0" width="16" height="16" />

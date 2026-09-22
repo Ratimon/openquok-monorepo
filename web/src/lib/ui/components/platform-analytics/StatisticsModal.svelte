@@ -2,6 +2,11 @@
 	import type { ProtectedCalendarPagePresenter } from '$lib/area-protected/ProtectedCalendarPage.presenter.svelte';
 	import type { AnalyticsSeriesViewModel } from '$lib/platform-analytics/GetAnalytics.presenter.svelte';
 
+	import {
+		ANALYTICS_DATE_WINDOW_DAYS_OPTIONS,
+		analyticsDateWindowsForProvider,
+		clampAnalyticsDateWindow
+	} from '$data/social-providers';
 	import { icons } from '$data/icons';
 
 	import AbstractIcon from '$lib/ui/icons/AbstractIcon.svelte';
@@ -13,6 +18,8 @@
 	type Props = {
 		open: boolean;
 		postId: string | null;
+		/** Channel `identifier` for provider-specific date window limits. */
+		providerIdentifier?: string | null;
 		organizationId: string | null;
 		loadPostAnalytics: ProtectedCalendarPagePresenter['loadPostStatisticsAnalyticsVm'];
 		loadMissingCandidates: ProtectedCalendarPagePresenter['loadMissingPublishCandidatesForPost'];
@@ -23,6 +30,7 @@
 	let {
 		open = $bindable(false),
 		postId,
+		providerIdentifier = null,
 		organizationId,
 		loadPostAnalytics,
 		loadMissingCandidates,
@@ -31,6 +39,20 @@
 	}: Props = $props();
 
 	let dateWindowDays = $state(7);
+
+	const allowedDateWindowDays = $derived(
+		providerIdentifier
+			? analyticsDateWindowsForProvider(providerIdentifier)
+			: ANALYTICS_DATE_WINDOW_DAYS_OPTIONS
+	);
+
+	$effect(() => {
+		const next = clampAnalyticsDateWindow(dateWindowDays, allowedDateWindowDays);
+		if (next !== dateWindowDays) {
+			dateWindowDays = next;
+		}
+	});
+
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let showMissing = $state(false);
@@ -101,9 +123,9 @@
 								<span class="text-sm">{dateWindowDays} days</span>
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="7">7 days</SelectItem>
-								<SelectItem value="30">30 days</SelectItem>
-								<SelectItem value="90">90 days</SelectItem>
+								{#each allowedDateWindowDays as windowDays (windowDays)}
+									<SelectItem value={String(windowDays)}>{windowDays} days</SelectItem>
+								{/each}
 							</SelectContent>
 						</Select>
 					</div>

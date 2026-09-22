@@ -19,6 +19,70 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 export type SupportedAnalyticsProviderIdentifier =
 	(typeof SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS)[number];
 
+/** Allowed lookback windows for account and post analytics (API accepts only these values). */
+export const ANALYTICS_DATE_WINDOW_DAYS_OPTIONS = [7, 30, 90] as const;
+
+export type AnalyticsDateWindowDays = (typeof ANALYTICS_DATE_WINDOW_DAYS_OPTIONS)[number];
+
+const ANALYTICS_DATE_WINDOWS_ALL: readonly AnalyticsDateWindowDays[] = [7, 30, 90];
+const ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY: readonly AnalyticsDateWindowDays[] = [7, 30];
+
+/**
+ * Maximum lookback each provider’s insights API supports in the dashboard.
+ * Aligns with platform API limits (e.g. Meta / Threads / TikTok cap at 30 days).
+ */
+export const ANALYTICS_DATE_WINDOWS_BY_PROVIDER: Record<
+	SupportedAnalyticsProviderIdentifier,
+	readonly AnalyticsDateWindowDays[]
+> = {
+	facebook: ANALYTICS_DATE_WINDOWS_ALL,
+	instagram: ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	'instagram-business': ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	'instagram-standalone': ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	linkedin: ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	'linkedin-page': ANALYTICS_DATE_WINDOWS_ALL,
+	tiktok: ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	youtube: ANALYTICS_DATE_WINDOWS_ALL,
+	threads: ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
+	x: ANALYTICS_DATE_WINDOWS_ALL,
+	devto: ANALYTICS_DATE_WINDOWS_ALL
+};
+
+export function analyticsDateWindowsForProvider(identifier: string): readonly AnalyticsDateWindowDays[] {
+	const key = identifier.trim() as SupportedAnalyticsProviderIdentifier;
+	return ANALYTICS_DATE_WINDOWS_BY_PROVIDER[key] ?? ANALYTICS_DATE_WINDOWS_ALL;
+}
+
+/** Windows valid for every targeted channel (intersection). Empty selection → all options. */
+export function intersectAnalyticsDateWindows(
+	providerIdentifiers: readonly string[]
+): AnalyticsDateWindowDays[] {
+	const ids = providerIdentifiers.map((id) => id.trim()).filter(Boolean);
+	if (ids.length === 0) {
+		return [...ANALYTICS_DATE_WINDOW_DAYS_OPTIONS];
+	}
+	return ANALYTICS_DATE_WINDOW_DAYS_OPTIONS.filter((day) =>
+		ids.every((id) => analyticsDateWindowsForProvider(id).includes(day))
+	);
+}
+
+/** When the current window is not allowed, pick the largest allowed value at or below it, else the smallest allowed. */
+export function clampAnalyticsDateWindow(
+	days: number,
+	allowed: readonly AnalyticsDateWindowDays[]
+): AnalyticsDateWindowDays {
+	const pool = allowed.length > 0 ? allowed : ANALYTICS_DATE_WINDOWS_ALL;
+	const sorted = [...pool].sort((a, b) => a - b);
+	if (sorted.includes(days as AnalyticsDateWindowDays)) {
+		return days as AnalyticsDateWindowDays;
+	}
+	const atOrBelow = sorted.filter((d) => d <= days);
+	if (atOrBelow.length > 0) {
+		return atOrBelow[atOrBelow.length - 1];
+	}
+	return sorted[0];
+}
+
 /**
  * Human-readable labels for integration catalog `identifier` values.
  * Matches backend `SocialProvider.name` where listed; used anywhere the URL or VM only exposes the slug.

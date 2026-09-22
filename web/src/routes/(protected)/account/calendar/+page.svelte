@@ -100,6 +100,7 @@
 
 	let statisticsOpen = $state(false);
 	let statisticsPostId = $state<string | null>(null);
+	let statisticsProviderIdentifier = $state<string | null>(null);
 
 	// --- Routes & workspace ---
 	const accountRoot = accountPath;
@@ -551,8 +552,9 @@
 		closeActions();
 		void openCreatePostForCurrentScopeAtIso(iso);
 	}}
-	onStatistics={(postId) => {
+	onStatistics={(postId, providerIdentifier) => {
 		statisticsPostId = postId;
+		statisticsProviderIdentifier = providerIdentifier ?? null;
 		statisticsOpen = true;
 	}}
 />
@@ -570,12 +572,14 @@
 <StatisticsModal
 	bind:open={statisticsOpen}
 	postId={statisticsPostId}
+	providerIdentifier={statisticsProviderIdentifier}
 	organizationId={workspaceId}
 	loadPostAnalytics={(p) => calendarPresenter.loadPostStatisticsAnalyticsVm(p)}
 	loadMissingCandidates={(p) => calendarPresenter.loadMissingPublishCandidatesForPost(p)}
 	updatePostRelease={(p) => calendarPresenter.updatePostReleaseIdForStatistics(p)}
 	onClose={() => {
 		statisticsPostId = null;
+		statisticsProviderIdentifier = null;
 	}}
 />
 

@@ -38,6 +38,28 @@ Some networks also expose **per-post metrics** on individual post cards and in t
 
 Self-hosted operators can disable X analytics with <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> in backend environment. See <a href="/docs/social-integration/x">Social integrations → X</a>.
 
+## Date range windows
+
+The workspace **Analytics** page and per-post **Statistics** dialog use a lookback picker whose options are a **subset** of <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, and <Badge text="90" variant="param" /> days — never more than the table below allows for your connection. **Threads** (and Instagram, TikTok, and personal LinkedIn) cap account insights at **30 days**, so when those channels are targeted you see only **7** and **30** in the menu; **90** appears only when every targeted channel supports it (for example Facebook Page, YouTube, or X alone or in a mix that still includes 90-day networks). With multiple channels, OpenQuok uses the **intersection** across all targeted connections.
+
+| Network | Channel key | 7 days | 30 days | 90 days |
+| --- | --- | --- | --- | --- |
+| **Facebook Page** | <Badge text="facebook" variant="param" /> | Yes | Yes | Yes |
+| **Instagram (Business)** | <Badge text="instagram-business" variant="param" /> | Yes | Yes | No |
+| **Instagram (Standalone)** | <Badge text="instagram-standalone" variant="param" /> | Yes | Yes | No |
+| **LinkedIn Page** | <Badge text="linkedin-page" variant="param" /> | Yes | Yes | Yes |
+| **TikTok** | <Badge text="tiktok" variant="param" /> | Yes | Yes | No |
+| **YouTube** | <Badge text="youtube" variant="param" /> | Yes | Yes | Yes |
+| **Threads** | <Badge text="threads" variant="param" /> | Yes | Yes | No |
+| **X** | <Badge text="x" variant="param" /> | Yes | Yes | Yes |
+| **Dev.to** | <Badge text="devto" variant="param" /> | Yes | Yes | Yes |
+
+<Callout type="note">
+<p>Instagram, Threads, and TikTok insights APIs do not expose a full 90-day account window. If you mix those channels with networks that support 90 days, the dashboard keeps <Badge text="7" variant="param" /> and <Badge text="30" variant="param" /> only until you narrow **Targeted channels**.</p>
+</Callout>
+
+CLI and public API calls still accept <Badge text="7" variant="param" />, <Badge text="30" variant="param" />, or <Badge text="90" variant="param" /> for any integration; provider APIs may return shorter series when a window is not supported.
+
 ## Per-post metrics
 
 Per-post stats follow the same split as account insights. When a row is **Yes**, OpenQuok shows numbers only if the platform API returns data for that post.
