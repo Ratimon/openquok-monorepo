@@ -59,7 +59,9 @@ Channel keys: <Badge text="instagram-business" variant="param" />, <Badge text="
 | **Graduation strategy** | How a trial reel graduates when performance thresholds are met |
 | **Collaborators** | Invite collaborators on feed posts (not on Story or carousel) |
 
+<Callout type="warning">
 Instagram (Business) connects through Meta and requires a linked Facebook Page during OAuth. Instagram (Standalone) uses Instagram Login with a separate developer app on self-host.
+</Callout>
 
 ### LinkedIn and LinkedIn Page
 
@@ -70,8 +72,8 @@ Channel keys: <Badge text="linkedin" variant="param" />, <Badge text="linkedin-p
 | **Post as images carousel** | **≥2 images**, no video — OpenQuok builds a PDF document carousel at publish time |
 | **Carousel name** | Optional document title for the carousel |
 
-<Callout type="strong">
-Follow-up comments are text-only. <strong>LinkedIn Page</strong> exposes account and per-post analytics, while personal <strong>LinkedIn</strong> does not. See <a href="/docs/platforms/analytics">Analytics</a>.
+<Callout type="note">
+<p>Follow-up comments are text-only. <strong>LinkedIn Page</strong> exposes account and per-post analytics, while personal <strong>LinkedIn</strong> does not. See <a href="/docs/platforms/analytics">Analytics</a>.</p>
 </Callout>
 
 
@@ -87,7 +89,9 @@ Channel key: <Badge text="youtube" variant="param" />
 | **Tags** | Optional video tags |
 | **Custom thumbnail** | Optional still image (Settings — not the media strip) |
 
-The caption field is the video **description** (up to **5,000** characters). Exactly **one MP4** belongs on the media strip.
+<Callout type="note">
+<p>The caption field is the video <strong>description</strong> (up to <strong>5,000</strong> characters). Exactly <strong>one MP4</strong> belongs on the media strip.</p>
+</Callout>
 
 ### Facebook Page
 

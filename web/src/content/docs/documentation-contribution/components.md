@@ -38,7 +38,7 @@ This is a danger callout. Use it for critical warnings about destructive or irre
 You can also customize the title:
 
 <Callout type="note" title="Custom Title">
-Callouts support custom titles via the `title` prop.
+<p>Callouts support custom titles via the <code>title</code> prop. Use <strong>HTML emphasis</strong> in the body, not Markdown <code>**bold**</code>.</p>
 </Callout>
 
 ## Tabs

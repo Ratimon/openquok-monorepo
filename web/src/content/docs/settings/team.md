@@ -44,7 +44,7 @@ On <Badge text="Workspace" variant="default" />, find **Team Members** for the c
 ![Invite a team member](/docs/_assets/settings/workspace-invite-dialog.webp)
 
 <Callout type="note">
-Only **admins** and the **owner** see this button.
+<p>Only <strong>admins</strong> and the <strong>owner</strong> see this button.</p>
 </Callout>
 
 ### Enter email and role
@@ -60,7 +60,7 @@ Leave <Badge text="Send invitation email" variant="default" /> checked to mail t
 The invite link expires after a set time. they can accept from the join page when they open the link. Send a new invite if it lapses.
 
 <Callout type="tip">
-They can also accept from **Workspace Invites** at the bottom of the same Settings page.
+<p>They can also accept from <strong>Workspace Invites</strong> at the bottom of the same Settings page.</p>
 </Callout>
 
 </Steps>

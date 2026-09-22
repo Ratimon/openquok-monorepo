@@ -48,11 +48,11 @@ When you **self-host** OpenQuok, the **operator** (who runs the server) must reg
 The last column marks which channels need that operator setup (**Yes** for OAuth networks, **No** when the user pastes a personal API key instead).
 
 <Callout type="tip">
-On <a href="/docs/cloud">OpenQuok Cloud</a>, those OAuth apps are already configured — you only sign in to your account. For self-hosting, See <a href="/docs/social-integration">Social integrations</a> and <a href="/docs/installation/docker-compose#optional-social-provider-apps">Docker Compose → Social provider apps</a>.
+<p>On <a href="/docs/cloud">OpenQuok Cloud</a>, those OAuth apps are already configured — you only sign in to your account. For <strong>self-hosting</strong>, see <a href="/docs/social-integration">Social integrations</a> and <a href="/docs/installation/docker-compose#optional-social-provider-apps">Docker Compose → Social provider apps</a>.</p>
 </Callout>
 
 <Callout type="note">
-Naming in the dashboard vs the API is in <a href="/docs/platforms">Platforms overview</a>. Caption length, media, and editors are in <a href="/docs/platforms/media-rules">Media rules</a>. Fields in the composer **Settings** panel are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a>.
+<p>Naming in the dashboard vs the API is in <a href="/docs/platforms">Platforms overview</a>. Caption length, media, and editors are in <a href="/docs/platforms/media-rules">Media rules</a>. Fields in the composer <strong>Settings</strong> panel are in <a href="/docs/platforms/per-channel-settings">Per-channel settings</a>.</p>
 </Callout>
 
 
@@ -74,8 +74,6 @@ Naming in the dashboard vs the API is in <a href="/docs/platforms">Platforms ove
 Most channels use **OAuth**: you click the network in **Add Channel**, sign in on the platform site, and return to OpenQuok.
 
 **Dev.to** is different. You paste a **personal API key** in Add Channel. There is no OAuth redirect for Dev.to.
-
-You can schedule Dev.to posts through the API after the channel is connected. You **cannot** start a new Dev.to connection through the public OAuth connect URL.
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 

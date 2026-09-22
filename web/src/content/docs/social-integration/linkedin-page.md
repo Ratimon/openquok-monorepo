@@ -16,7 +16,7 @@ Connect a **LinkedIn company Page** with identifier <Badge text="linkedin-page" 
 For **personal profiles**, see <a href="/docs/social-integration/linkedin">LinkedIn</a>. Both channels share the same LinkedIn developer app credentials.
 
 <Callout type="note" title="One LinkedIn app">
-Page and personal channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register **both** OAuth redirect URIs if you connect either or both channel types.
+<p>Page and personal channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register <strong>both</strong> OAuth redirect URIs if you connect either or both channel types.</p>
 </Callout>
 
 ## Features

@@ -142,7 +142,7 @@ Plan limits are edited in <Badge text="pricing.ts" variant="path" />, not in Str
 ## Steps for Stripe Dashboard
 
 <Callout type="note">
-Use Test mode before going live. Complete setup in **Test mode** in the <DocsExternalLink href="https://dashboard.stripe.com/test/dashboard">Stripe Dashboard</DocsExternalLink>. Repeat with live keys only when checkout and webhooks work end-to-end.
+<p>Use Test mode before going live. Complete setup in <strong>Test mode</strong> in the <DocsExternalLink href="https://dashboard.stripe.com/test/dashboard">Stripe Dashboard</DocsExternalLink>. Repeat with live keys only when checkout and webhooks work end-to-end.</p>
 </Callout>
 
 <Steps
@@ -225,7 +225,7 @@ stripe listen --forward-to localhost:3000/api/v1/billing/webhooks/stripe
 The CLI prints a **webhook signing secret** for this session. Put that value in <Badge text="STRIPE_WEBHOOK_SECRET" variant="envBackend" /> in <Badge text="backend/.env.development.local" variant="envBackend" /> and restart the API.
 
 <Callout type="warning" title="CLI vs Dashboard secret">
-The signing secret from <code>stripe listen</code> is **different** from the secret on a Dashboard webhook endpoint. Use the CLI secret only while forwarding locally; use the Dashboard <code>whsec_</code> in deployed environments.
+<p>The signing secret from <code>stripe listen</code> is <strong>different</strong> from the secret on a Dashboard webhook endpoint. Use the CLI secret only while forwarding locally; use the Dashboard <code>whsec_</code> in deployed environments.</p>
 </Callout>
 
 ### Trigger a test subscription flow

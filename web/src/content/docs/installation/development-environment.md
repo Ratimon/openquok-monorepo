@@ -23,10 +23,7 @@ Use this page once prerequisites (see <a href="/docs/getting-started-for-dev/qui
 You can work from the **monorepo root** (as defined in the root `package.json`) or <Badge text="backend/" variant="path" />. Pick one.
 
 <Callout type="note">
-Some backend features rely on <code>pg&#95;cron</code> on Supabase.
-For example, the `user-auth` module periodically removes expired rows from `public.refresh_tokens`.
-If you deploy to Supabase and cron is not enabled, those jobs won’t run even if migrations are pushed.
-See <a href="/docs/configuration-backend/database">Database & migrations</a> for pg_cron setup.
+<p>Some backend features rely on <code>pg&#95;cron</code> on Supabase. For example, the <code>user-auth</code> module periodically removes expired rows from <code>public.refresh_tokens</code>. If you deploy to Supabase and cron is not enabled, those jobs won’t run even if migrations are pushed. See <a href="/docs/configuration-backend/database">Database &amp; migrations</a> for pg_cron setup.</p>
 </Callout>
 
 <Tabs items={["Repository root", "In backend"]}>

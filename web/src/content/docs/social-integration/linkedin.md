@@ -15,8 +15,8 @@ Connect a **personal LinkedIn profile** to OpenQuok with identifier <Badge text=
 
 For **company Pages**, see <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a>. Both channels share the same LinkedIn developer app credentials.
 
-<Callout type="note" title="One LinkedIn app">
-Personal profile and Page channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register **both** OAuth redirect URIs if you connect either or both channel types.
+<Callout type="note">
+<p>Personal profile and Page channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register <strong>both</strong> OAuth redirect URIs if you connect either or both channel types.</p>
 </Callout>
 
 ## Features

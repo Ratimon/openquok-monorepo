@@ -38,7 +38,7 @@ If you opened the post editor from a calendar slot, that time is already filled 
 For a new post, OpenQuok suggests the next free time from your channels' <a href="/docs/channels/time-slots">time slots</a>.
 
 <Callout type="tip">
-Times you pick follow your **browser clock**. You can configure under Settings → <Badge text="Timezone" variant="default" />. See <a href="/docs/settings/timezone">Timezone</a>.
+<p>Times you pick follow your <strong>browser clock</strong>. You can configure under Settings → <Badge text="Timezone" variant="default" />. See <a href="/docs/settings/timezone">Timezone</a>.</p>
 </Callout>
 
 <Callout type="note">

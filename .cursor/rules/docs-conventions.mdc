@@ -61,10 +61,13 @@ Applies to Markdown and MDsvex files under `web/src/content/docs/`.
 Children passed to custom MDX components (especially **`<Callout>`**) are **not** run through the Markdown parser. Syntax such as `**bold**`, `_italic_`, `` `code` ``, and `[label](https://…)` is emitted **literally** on the page — readers see the asterisks or brackets, not formatted text or links.
 
 - **Use HTML** (or docs components) inside component bodies:
-  - emphasis → `<strong>…</strong>`, `<em>…</em>`
-  - inline literals → `<code>…</code>` or **`Badge`**
+  - prose emphasis (dashboard labels, “same”, “not”, product names in a sentence) → `<strong>…</strong>` or `<em>…</em>` — **never** Markdown `**bold**` or `_italic_` inside `<Callout>` (readers see literal asterisks).
+  - typed identifiers where color helps (env vars, CLI `group:verb` commands, flags, channel keys, REST lines) → **`Badge`** with the right variant — same rules as the **Badges** section above.
+  - other short literals (JSON keys, file names, SQL identifiers) → `<code>…</code>` — **never** Markdown `` `backticks` `` inside `<Callout>`.
   - external links → **`<DocsExternalLink href="…">…</DocsExternalLink>`** (or `<a href="…">` for rare in-site cases; see `DocsCallout`)
-  - lists / multi-sentence blocks → wrap in **`<p>…</p>`**, **`<ul><li>…</li></ul>`**, etc.
+  - lists / multi-sentence blocks → wrap in **`<p>…</p>`**, **`<ul><li>…</li></ul>`**, etc. (a single `<p>` around the body avoids MDsveX “missing words” between adjacent components).
+- **`title="…"` on `<Callout>`** is plain text only (no Markdown, no backticks). Put command or env names in the body with **`Badge`** / `<code>` instead of `` `posts:missing` `` in the title.
+- **Audit**: when editing any `<Callout>`, scan for `**`, `_…_`, and bare `` `…` `` in the body and convert to HTML before merging.
 - **Plain Markdown prose** (including `**bold**` and `` `backticks` ``) remains fine **outside** component tags — e.g. in `##` sections, `<Steps>` step bodies, and normal paragraphs.
 
 **Bad** (literal `**same**` on the rendered page):
@@ -79,7 +82,15 @@ Instagram (Business) and Facebook can use the **same** developer app.
 
 ```html
 <Callout type="note" title="One Meta app">
-Instagram (Business) and Facebook can use the <strong>same</strong> developer app.
+<p>Instagram (Business) and Facebook can use the <strong>same</strong> developer app.</p>
+</Callout>
+```
+
+**Good** (CLI + flag in a callout — prefer **`Badge`**, not backticks):
+
+```html
+<Callout type="tip">
+<p>Run <Badge text="integrations:settings" variant="default" /> first so you know which <Badge text="--settings" variant="param" /> keys to pass to <Badge text="posts:create" variant="default" />.</p>
 </Callout>
 ```
 

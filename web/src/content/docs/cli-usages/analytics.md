@@ -120,7 +120,7 @@ Response shape mirrors `analytics:platform`. Common metrics:
 ```
 
 <Callout type="warning">
-<p>Drafts and queued posts return an empty array. Per-post analytics are only available for posts that have been published. Drafts, queued rows, and rows whose <Badge text="release_id" variant="param" /> is still <Badge text="missing" variant="default" /> all resolve to <code>[]</code>. Reconnect missing rows with <a href="/docs/cli-usages/managing-posts">`openquok posts:connect`</a> to unlock analytics.</p>
+<p>Drafts and queued posts return an empty array. Per-post analytics are only available for posts that have been published. Drafts, queued rows, and rows whose <Badge text="release_id" variant="param" /> is still <Badge text="missing" variant="default" /> all resolve to <code>[]</code>. Reconnect missing rows with <Badge text="posts:connect" variant="default" /> (see <a href="/docs/cli-usages/managing-posts">Managing posts</a>) to unlock analytics.</p>
 </Callout>
 
 ### Scripting examples

@@ -6,14 +6,20 @@ lastUpdated: 2026-09-22
 ---
 
 <script>
-import { Badge, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Analytics by network
 
 > Which connected channels return account-level and per-post metrics in your workspace **Analytics** area.
 
-OpenQuok pulls **account-level insights** for connected channels in the workspace **Analytics** area. Some networks also expose **per-post metrics** on individual post cards and in post statistics. Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.
+OpenQuok pulls **account-level insights** for connected channels in the workspace **Analytics** area.
+
+Some networks also expose **per-post metrics** on individual post cards and in post statistics.
+
+<Callout type="warning">
+Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.
+</Callout>
 
 ## Account insights
 

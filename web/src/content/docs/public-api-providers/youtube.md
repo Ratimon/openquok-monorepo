@@ -22,7 +22,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Main-post media | Exactly **one MP4** video — required |
 
 <Callout type="note">
-<p><Badge text="title" variant="param" /> is required (**2–100** characters) in provider settings. The top-level <Badge text="body" variant="param" /> is the video <strong>description</strong>. YouTube does not support scheduled follow-up comments in OpenQuok.</p>
+<p><Badge text="title" variant="param" /> is required (<strong>2–100</strong> characters) in provider settings. The top-level <Badge text="body" variant="param" /> is the video <strong>description</strong>. YouTube does not support scheduled follow-up comments in OpenQuok.</p>
 </Callout>
 
 ## Settings on create post

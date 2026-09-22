@@ -16,7 +16,7 @@ Threads publishing uses Meta’s **Threads API** behind an OAuth 2.0 flow. You n
 For Meta’s product requirements and API surface, see <DocsExternalLink href="https://developers.facebook.com/docs/threads">Threads API documentation</DocsExternalLink>. The steps below add **OpenQuok-specific** URLs and envs.
 
 <Callout type="note" title="Complex setup">
-Meta’s onboarding can take time. If something fails, double-check redirect URIs **character-for-character** and that the backend picked up new env vars after a restart.
+<p>Meta’s onboarding can take time. If something fails, double-check redirect URIs <strong>character-for-character</strong> and that the backend picked up new env vars after a restart.</p>
 </Callout>
 
 ## Backend environment

@@ -72,7 +72,7 @@ When adding or editing components under <Badge text="web/src/lib/ui/" variant="p
 </Steps>
 
 <Callout type="warning" title="Why this matters">
-Hardcoded colors and `dark:*` variants bypass DaisyUI themes and create inconsistent UI across themes.
+<p>Hardcoded colors and <code>dark:*</code> variants bypass DaisyUI themes and create inconsistent UI across themes.</p>
 </Callout>
 
 ## References

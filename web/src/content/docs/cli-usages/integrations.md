@@ -60,7 +60,7 @@ openquok integrations:settings <integration-id>
 ```
 
 <Callout type="tip">
-Run it before scripting a new platform so you know which `--settings` keys to send to `posts:create`.
+<p>Run it before scripting a new platform so you know which <Badge text="--settings" variant="param" /> keys to send to <Badge text="posts:create" variant="default" />.</p>
 </Callout>
 
 

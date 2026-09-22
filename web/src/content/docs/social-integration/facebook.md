@@ -16,7 +16,7 @@ Facebook Page publishing uses Meta’s **Graph API** with **Facebook Login for B
 You need a <DocsExternalLink href="https://developers.facebook.com/apps">Meta for Developers</DocsExternalLink> app, OAuth redirect URIs, and backend environment variables <Badge text="FACEBOOK_APP_ID" variant="envBackend" /> and <Badge text="FACEBOOK_APP_SECRET" variant="envBackend" />.
 
 <Callout type="tip">
-Instagram (Business) and Facebook can use the same developer app.
+<p>Instagram (Business) and Facebook can use the <strong>same</strong> developer app.</p>
 </Callout>
 
 
@@ -159,7 +159,7 @@ Meta reorganizes this screen from time to time. If a scope name differs slightly
 </Callout>
 
 <Callout type="note" title="self-host">
-For a personal or team-only install where every publisher is an app Admin or Tester, Development mode is often enough without App Review. Production use for other people’s Pages requires **Live** mode and approved permissions.
+<p>For a personal or team-only install where every publisher is an app Admin or Tester, Development mode is often enough without App Review. Production use for other people’s Pages requires <strong>Live</strong> mode and approved permissions.</p>
 </Callout>
 
 

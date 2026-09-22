@@ -146,7 +146,7 @@ openquok posts:create \
 </Callout>
 
 <Callout type="warning" title="Per-platform media rules">
-<p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own validation — Check with <a href="/docs/cli-usages/integrations">`openquok integrations:settings`</a> before you script a batch.</p>
+<p>Instagram requires at least one attachment for <code>scheduled</code> posts; Threads accepts text-only. Each provider has its own validation — check with <Badge text="integrations:settings" variant="default" /> (see <a href="/docs/cli-usages/integrations">Integrations</a>) before you script a batch.</p>
 </Callout>
 
 ### Multi-channel post (same body)
@@ -272,7 +272,7 @@ To find post rows whose provider id could not be mapped yet (database column <co
 
 Some platforms do not return a stable published asset id right away. The worker then stores <code>release_id = 'missing'</code> on the row; the list API exposes that as <code>releaseId: "missing"</code> (camelCase). Per-post analytics stay blocked until you link the row to the real provider id.
 
-<Callout type="note" title="When `posts:missing` returns nothing">
+<Callout type="note" title="When posts:missing returns nothing">
 <p>The backend only calls a provider-specific enumerator when the integration implements the optional <code>missing</code> hook and the row still has <code>release_id === "missing"</code>. Otherwise the list-missing endpoint returns <code>data.items: []</code>. See <a href="/docs/apis-posts/missing">Get missing content</a>.</p>
 </Callout>
 

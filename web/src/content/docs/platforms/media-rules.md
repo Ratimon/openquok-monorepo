@@ -35,11 +35,11 @@ The **Characters** column is the main caption or body. The same cap applies to e
 | **Dev.to** | <Badge text="devto" variant="param" /> | Markdown body; optional **cover image** in Settings (not required on the media strip) | **100,000** (body) |
 
 <Callout type="note">
-<p><strong>X is the exception in that table.</strong> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>
+<p> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>
 </Callout>
 
 <Callout type="warning">
-<p>OpenQuok does not ship article mode. The post editor uses <strong>weighted</strong> counting; links and mentions can cost more than one character. See <a href="/docs/creating-posts/writing-the-post#character-count">Writing the post → Character count</a>.</p>
+<p>OpenQuok does not ship article mode. The post editor uses <strong>weighted</strong> counting, while links and mentions can cost more than one character. See <a href="/docs/creating-posts/writing-the-post#character-count">Writing the post → Character count</a>.</p>
 </Callout>
 
 <Callout type="tip">
@@ -71,8 +71,6 @@ Terminology for thread replies vs comments is in <a href="/docs/platforms">Platf
 | <Badge text="youtube" variant="param" /> | Custom thumbnail | Optional still image for the video |
 | <Badge text="devto" variant="param" /> | Cover image | Optional hero image for the article |
 
-Upload can succeed even when a network rule would block publish. The preview column and save-time checks under the media strip warn you before you schedule.
-
 ## Caption editors
 
 Each channel uses one caption editor mode when you unlock it in per-channel mode. **Global** mode always uses the **Standard** plain textarea.
@@ -83,7 +81,9 @@ Each channel uses one caption editor mode when you unlock it in per-channel mode
 | **Markdown** | <Badge text="devto" variant="param" /> |
 | **HTML** | <Badge text="x" variant="param" /> (published as plain text after strip) |
 
+<Callout type="note">
 Toolbar details are in <a href="/docs/creating-posts/writing-the-post#editor-by-platform">Writing the post → Editor by platform</a>.
+</Callout>
 
 ## Related
 

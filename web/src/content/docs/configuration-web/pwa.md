@@ -53,7 +53,7 @@ Restart the web dev server or rebuild the web app so the updated PWA metadata is
 ```
 
 <Callout type="note" title="Icons are path-sensitive">
-Icon paths in `web-config.json` are resolved relative to the web project layout, so update them together if you move assets.
+<p>Icon paths in <code>web-config.json</code> are resolved relative to the web project layout, so update them together if you move assets.</p>
 </Callout>
 
 ## Related configuration
