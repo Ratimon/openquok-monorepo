@@ -73,6 +73,10 @@ While data loads you see **Loading analytics…**. When the platform has nothing
 
 Statistics need a published release id from the network. If OpenQuok never stored one — or the provider changed ids — you may need **Connect** first.
 
+<Callout type="note">
+Workspace-wide charts and per-post detail are in <a href="/docs/insights">Insights</a> — see <a href="/docs/insights/workspace-analytics">Workspace analytics</a> and <a href="/docs/insights/per-post-metrics">Per-post metrics</a>.
+</Callout>
+
 ## Connect a missing release
 
 Inside **Statistics**, when analytics cannot match the post to provider content, OpenQuok shows:
@@ -81,7 +85,11 @@ Inside **Statistics**, when analytics cannot match the post to provider content,
 
 Pick the correct thumbnail from the grid and click **Connect post**. Success toast: **Post connected.**
 
-If the provider does not expose searchable content, you may see *No content found from this provider. The provider may not support this feature.*
+<Callout type="note">
+If the provider does not expose searchable content, you may see <strong>No content found from this provider. The provider may not support this feature.</strong>
+</Callout>
+
+
 
 The CLI equivalent is <Badge text="posts:connect" variant="default" /> — list candidates with <Badge text="posts:missing" variant="default" />, then pass the post row id and provider release id. See <a href="/docs/cli-usages/managing-posts#connect-a-post">Managing posts → Connect a post</a> and <a href="/docs/apis-posts/release-id">Update Release ID</a>.
 

@@ -19,7 +19,19 @@ import { CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 
 OpenQuok is a **social scheduler** for volume without the headache. Agents draft and queue at scale, while you keep quality. You can review and approve on the **calendar** and **kanban** before anything publishes.
 
-Connect channels in a workspace. Write a post/content in the post editor, reuse templates, or send drafts from an agent. CLI, MCP, and the public API all land in the same review queue.
+Connect channels in a workspace. Write a post/content in the post editor, reuse templates, or send drafts from an agent. This can be done via CLI, MCP, and the public API (Typescript Nodejs sdk is also supportd).
+
+<p class="not-prose flex flex-wrap items-center gap-3">
+<a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
+<a href="/channels/threads" title="Threads"><img src="/docs/_assets/platforms/socials/threads.svg" alt="Threads" width="32" height="32" /></a>
+<a href="/channels/instagram" title="Instagram"><img src="/docs/_assets/platforms/socials/instagram.svg" alt="Instagram" width="32" height="32" /></a>
+<a href="/channels/linkedin" title="LinkedIn"><img src="/docs/_assets/platforms/socials/linkedin.svg" alt="LinkedIn" width="32" height="32" /></a>
+<a href="/channels/x" title="X"><img src="/docs/_assets/platforms/socials/x.svg" alt="X" width="32" height="32" /></a>
+<a href="/channels/youtube" title="YouTube"><img src="/docs/_assets/platforms/socials/youtube.svg" alt="YouTube" width="32" height="32" /></a>
+<a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
+<a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
+</p>
+
 
 ## Choose your paths
 

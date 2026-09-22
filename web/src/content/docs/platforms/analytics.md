@@ -1,6 +1,6 @@
 ---
 title: Analytics
-description: Which OpenQuok channels report account-level and per-post insights in the workspace Analytics area.
+description: Which OpenQuok channels report account-level and per-post insights in the workspace Analytics area and Statistics modal.
 order: 4
 lastUpdated: 2026-09-22
 ---
@@ -11,14 +11,14 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Analytics by network
 
-> Which connected channels return account-level and per-post metrics in your workspace **Analytics** area.
+> Which connected channels return account-level and per-post metrics — and how to open each view in the app.
 
-OpenQuok pulls **account-level insights** for connected channels in the workspace **Analytics** area.
+OpenQuok pulls **account-level insights** for connected channels in the workspace **Analytics** area. See <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
 
-Some networks also expose **per-post metrics** on individual post cards and in post statistics.
+Some networks also expose **per-post metrics** on individual post cards and in the **Statistics** dialog. See <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
 
 <Callout type="warning">
-Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.
+<p>Availability depends on what each platform's API returns for the connected account type. OpenQuok cannot show insights when the network does not expose them for that channel.</p>
 </Callout>
 
 ## Account insights
@@ -55,12 +55,12 @@ Per-post stats follow the same split as account insights. When a row is **Yes**,
 | **X** | <Badge text="x" variant="param" /> | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
 
-Open a published post from Home or the calendar to view post-level numbers where available. See <a href="/docs/posts-management/actions-and-stats">Actions and stats</a>.
-
 ## Related
 
 <CardGrid>
-<LinkCard title="Actions and stats" description="Post card actions, failures, and statistics modal" href="/docs/posts-management/actions-and-stats" />
+<LinkCard title="Workspace analytics" description="Targeted channels, date ranges, and overview cards" href="/docs/insights/workspace-analytics" />
+<LinkCard title="Per-post metrics" description="Statistics from Home and the calendar" href="/docs/insights/per-post-metrics" />
+<LinkCard title="Actions and stats" description="Post card actions, failures, and the Statistics entry point" href="/docs/posts-management/actions-and-stats" />
 <LinkCard title="Connect rules" description="Full channel catalog and connect methods" href="/docs/platforms/connect-rules" />
-<LinkCard title="CLI examples" description="openquok analytics:platform and analytics:post" href="/docs/cli-examples" />
+<LinkCard title="CLI Examples" description="CLI commands for analytics" href="/docs/cli-examples" />
 </CardGrid>

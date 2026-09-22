@@ -54,20 +54,25 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'posts-management' }
 	},
 	{
-		label: 'Settings',
-		icon: icons.Settings.name,
-		autogenerate: { directory: 'settings' }
-	},
-	{
-		label: 'Platforms',
-		icon: icons.Globe.name,
-		autogenerate: { directory: 'platforms' }
+		label: 'Insights',
+		icon: icons.ChartBar.name,
+		autogenerate: { directory: 'insights' }
 	},
 	{
 		label: 'Automations',
 		icon: icons.Bot.name,
 		autogenerate: { directory: 'automations' }
-	}
+	},
+	{
+		label: 'Settings',
+		icon: icons.Settings.name,
+		autogenerate: { directory: 'settings' }
+	},
+	{
+		label: 'Platform rules',
+		icon: icons.Globe.name,
+		autogenerate: { directory: 'platforms' }
+	},
 ];
 
 /** Hosted plans, trial, and billing. */

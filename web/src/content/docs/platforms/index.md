@@ -88,7 +88,7 @@ Upload limits (file size and format) are separate from per-network rules. See <a
 <LinkCard title="Connect rules" description="How you connect each channel in Add Channel and channel keys" href="/docs/platforms/connect-rules" />
 <LinkCard title="Media rules" description="Media, character caps, follow-up attachments, and caption editors" href="/docs/platforms/media-rules" />
 <LinkCard title="Per-channel settings" description="Composer Settings fields per network" href="/docs/platforms/per-channel-settings" />
-<LinkCard title="Analytics" description="Account and post insights in the workspace Analytics area" href="/docs/platforms/analytics" />
+<LinkCard title="Analytics" description="Account and per-post insights by network and channel key" href="/docs/platforms/analytics" />
 </CardGrid>
 
 ## Related Section(s)

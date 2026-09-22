@@ -73,7 +73,7 @@ Channel keys: <Badge text="linkedin" variant="param" />, <Badge text="linkedin-p
 | **Carousel name** | Optional document title for the carousel |
 
 <Callout type="note">
-<p>Follow-up comments are text-only. <strong>LinkedIn Page</strong> exposes account and per-post analytics, while personal <strong>LinkedIn</strong> does not. See <a href="/docs/platforms/analytics">Analytics</a>.</p>
+<p>Follow-up comments are text-only. <strong>LinkedIn Page</strong> exposes account and per-post analytics, while personal <strong>LinkedIn</strong> does not. See <a href="/docs/platforms/analytics">Platforms → Analytics</a>.</p>
 </Callout>
 
 
