@@ -205,16 +205,39 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 - [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup
 - [Configuration – Backend](https://www.openquok.com/docs/configuration-backend), [Web](https://www.openquok.com/docs/configuration-web), [Workers](https://www.openquok.com/docs/configuration-worker), and [CLI auth server](https://www.openquok.com/docs/configuration-agent)
 
+**Compare & alternatives**
+
+- [Compare](https://www.openquok.com/compare) — head-to-head feature and pricing comparisons with other schedulers
+- [Alternatives](https://www.openquok.com/alternatives) — best-alternatives guides when you evaluate Buffer, Hootsuite, and similar tools
+
+**Extensions Hub directories**
+
+- [All Playbooks](https://www.openquok.com/playbooks)
+- [All Building Blocks](https://www.openquok.com/building-blocks)
+- [All Creators](https://www.openquok.com/creators)
+- [Playbook Categories](https://www.openquok.com/playbooks/categories)
+- [Playbook Tags](https://www.openquok.com/playbooks/tags)
+- [Building Block Categories](https://www.openquok.com/building-blocks/categories)
+- [Building Block Tags](https://www.openquok.com/building-blocks/tags)
+
+**Social**
+
+- [X (Twitter)](https://x.com/openquok)
+- [Facebook](https://www.facebook.com/profile.php?id=61591368794883)
+- [Instagram](https://www.instagram.com/openquok)
+- [LinkedIn](https://www.linkedin.com/company/openquok)
+- [Discord](https://discord.gg/wXgWcYzU4)
+
+**Blog**
+
+- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
+
 **Contributing**
 
 - [Developer guidelines](https://www.openquok.com/docs/developer-guidelines) and [Security guidelines](https://www.openquok.com/docs/developer-guidelines/security)
 - [Contribution opportunities](https://www.openquok.com/docs/contribution-opportunities) — add a provider, translate docs, and more
 - [Publish listings](https://www.openquok.com/docs/publish-listings) — Extensions Hub playbooks and building blocks
 - [Documentation contribution](https://www.openquok.com/docs/documentation-contribution)
-
-**Blog**
-
-- [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
 
 ---
 
