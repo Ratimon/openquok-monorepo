@@ -25,7 +25,7 @@ A **workspace** is the top-level boundary you own for your data: channels, posts
 
 ![Invite Team Member in Setting](/docs/_assets/glossary/workspace-setting.webp)
 
-The public API calls the same object an **organization**. Cloud billing is one subscription per workspace. Plan limits are on <a href="/pricing">Pricing</a> and <a href="/docs/cloud/limits">Cloud limits</a>.
+The public API calls the same object an **organization**. Cloud billing is one subscription per workspace. Plan limits are on <a href="/pricing">Pricing</a> and <a href="/docs/billing/limits">Cloud limits</a>.
 
 ## Channel
 
@@ -35,7 +35,7 @@ A **channel** is one connected social account — one X profile, one LinkedIn Pa
 <p>The app says <strong>channel</strong>. The public API and the CLI say <strong>integration</strong>. They are the same object. Anywhere the API asks for an integration id, it wants the UUID of a channel.</p>
 </Callout>
 
-<strong>Disable</strong> pauses new posts but keeps the channel in the workspace — on Cloud it still uses a connected slot. <strong>Delete</strong> removes the channel and frees a slot once its posts are gone. See <a href="/docs/channels/manage">Manage a channel</a> and <a href="/docs/cloud/limits">Cloud limits</a>.
+<strong>Disable</strong> pauses new posts but keeps the channel in the workspace — on Cloud it still uses a connected slot. <strong>Delete</strong> removes the channel and frees a slot once its posts are gone. See <a href="/docs/channels/manage">Manage a channel</a> and <a href="/docs/billing/limits">Cloud limits</a>.
 
 ## Channel groups
 
@@ -163,7 +163,7 @@ Every post can expose a **preview link**. You can open the link from the post ac
 
 Share it so someone without an OpenQuok account can read the post and leave comments.
 
-On Cloud, shareable previews require Team plan or above — see <a href="/docs/cloud/limits">Cloud limits</a>.
+On Cloud, shareable previews require Team plan or above — see <a href="/docs/billing/limits">Cloud limits</a>.
 
 ## Follow-up comments
 

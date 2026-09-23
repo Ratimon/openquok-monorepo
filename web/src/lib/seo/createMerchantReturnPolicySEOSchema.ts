@@ -3,7 +3,7 @@ import type { MerchantReturnPolicy } from 'schema-dts';
 import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 
 /** Docs path for OpenQuok Cloud refund / support policy (no leading slash). */
-export const OPENQUOK_REFUND_POLICY_DOCS_PATH = `${getRootPathPublicDocs()}/cloud/refunds-and-support`;
+export const OPENQUOK_REFUND_POLICY_DOCS_PATH = `${getRootPathPublicDocs()}/billing/refunds-and-support`;
 
 /** Absolute URL for the refund policy page used in JSON-LD `merchantReturnLink`. */
 export function resolveOpenQuokRefundPolicyUrl(origin: string): string {

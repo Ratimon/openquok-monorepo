@@ -40,7 +40,7 @@ The library page accepts **images and videos only**. Other file types may work t
 | --- | --- |
 | **View controls** | Switch between list, grid, split panels, and gallery layouts — see <a href="/docs/media/browse-and-organize">Browse and organize</a> |
 | **Upload**, **Design**, **Import** | Add new files — see <a href="/docs/media/add-media">Add media</a> |
-| **Storage banner** | Shows how much of your workspace media quota is in use. When the cap is full, new uploads are blocked until you free space or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
+| **Storage banner** | Shows how much of your workspace media quota is in use. When the cap is full, new uploads are blocked until you free space or upgrade — see <a href="/docs/billing/limits">Cloud limits</a> |
 | **Main pane** | Folder tree, file list, or gallery grid depending on the view you chose |
 
 Uploads and new designs save to the **folder you have open** in list, grid, or panels view (often **General**). Composer attachments are filed under **Posts** automatically. You can move files to another folder later — see <a href="/docs/media/browse-and-organize#folders">Browse and organize → Folders</a>.
@@ -62,6 +62,6 @@ In the composer, open **Media library** from the toolbar to attach files you alr
 <CardGrid>
 <LinkCard title="Media in the composer" description="Attach, reorder, and per-channel attachments" href="/docs/creating-posts/media" />
 <LinkCard title="Tour the app" description="Where Media lives in the sidebar" href="/docs/getting-started/tour-the-app" />
-<LinkCard title="Cloud limits" description="Workspace media storage caps on hosted plans" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="Workspace media storage caps on hosted plans" href="/docs/billing/limits" />
 <LinkCard title="Media rules" description="Per-network image and video limits at publish time" href="/docs/platforms/media-rules" />
 </CardGrid>

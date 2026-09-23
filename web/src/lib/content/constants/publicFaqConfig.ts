@@ -57,7 +57,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'Can I get a refund?',
 		description:
-			`Within 7 days of payment, you can request a refund if you have not used the product during that billing period. Email support from your account email with your workspace name and billing date. If you have used the product during that period, contact support and we will work with you on a fair resolution. Full details are in the ${faqLink(faqHrefDocs('cloud/refunds-and-support'), 'Refunds and support')} guide. Self-hosted deployments follow your own billing policies.`
+			`Within 7 days of payment, you can request a refund if you have not used the product during that billing period. Email support from your account email with your workspace name and billing date. If you have used the product during that period, contact support and we will work with you on a fair resolution. Full details are in the ${faqLink(faqHrefDocs('billing/refunds-and-support'), 'Refunds and support')} guide. Self-hosted deployments follow your own billing policies.`
 	},
 	{
 		title: 'Can I change plans later?',

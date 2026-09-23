@@ -113,7 +113,7 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 | --- | --- |
 | Connect errors after you approve on the network | <a href="/docs/troubleshooting/oauth-connect">OAuth and channel connect</a> |
 | Posts fail right after connect | <a href="/docs/troubleshooting/failed-posts">A post failed to publish</a> — often API approval on the developer app |
-| Blocked with a billing message | Plan cap — <a href="/docs/cloud/limits">Cloud limits</a> |
+| Blocked with a billing message | Plan cap — <a href="/docs/billing/limits">Cloud limits</a> |
 | Self-host: network always errors | <a href="/docs/social-integration">Social integrations</a> and <a href="/docs/help">Help</a> |
 
 ## Related

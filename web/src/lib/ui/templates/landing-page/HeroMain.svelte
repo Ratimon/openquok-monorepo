@@ -196,7 +196,10 @@
 			<div class="mx-auto max-w-3xl text-center">
 				<div class="mb-6 flex flex-wrap items-center justify-center gap-3">
 					{#if githubOwner && githubRepo}
-						<Stargazers owner={githubOwner} name={githubRepo} />
+						<Stargazers
+							owner={githubOwner}
+							name={githubRepo}
+						/>
 					{/if}
 					<ExternalLink
 						href={PEERPUSH_PROFILE_HREF}

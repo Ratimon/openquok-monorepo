@@ -1,74 +1,102 @@
 ---
-title: Trial
-description: OpenQuok Cloud 7-day free trial for the social scheduler — no credit card required to start, plan limits apply, cancel anytime from billing.
+title: Free trial
+description: OpenQuok Cloud 7-day trial — eligibility, abuse policy, payment checks, limits, early finish, cancel, and day 7 billing.
 order: 2
-lastUpdated: 2026-09-18
+lastUpdated: 2026-09-23
+sidebar:
+  label: Free Trial
 ---
 
 <script>
 import { Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Overview
+## The free trial
 
-Eligible OpenQuok Cloud accounts can start **one 7-day free trial** per account and per Stripe payment customer. You can create an account, connect channels, and schedule posts **without a credit card**. The trial is 100% free for those seven days; cancel from billing settings at any time.
+OpenQuok Cloud offers a **7-day trial** on the paid plan you pick. You use the full plan for those seven days. There is no permanent free Cloud tier.
 
-There is no ongoing free Cloud plan. After the trial, you need an active subscription to keep using the hosted scheduler. Creating another workspace, canceling and resubscribing, or opening a new account does **not** grant a second trial.
-
-<Callout type="warning">
-<p>Canceling your subscription and subscribing again does <strong>not</strong> start another free trial. Trial eligibility is limited to one per account and per payment customer. See <a href="/terms">Terms of Service</a> §5.</p>
-</Callout>
+This page applies to **hosted Cloud** at openquok.com.
 
 <Callout type="tip">
-<p>Plan limits still apply during the trial — they match the tier you pick, time-boxed to seven days. See <a href="/docs/cloud/limits">Limits</a> and <a href="/pricing">Pricing</a>.</p>
+<p>Self-hosted installs use your own Stripe setup, or none. See <a href="/docs/cloud">Cloud overview</a>.</p>
 </Callout>
+
+## Who gets a trial
+
+You may receive **one** trial per **account** and per **payment customer**. This matches <a href="/terms">Terms of Service</a>.
+
+You will not be eligible for a trial if:
+
+- You already started or finished a Cloud trial on this account
+- You already subscribed on this account or payment customer
+- You canceled and try to subscribe again
+- You create another workspace after you used your trial
+
+The trial is **one per person**, not one per email address. If you register again with a different email to get another trial, that breaks the rules even when checkout allows it.
+
+<Callout type="warning">
+<p>If we find repeat trials, shared payment details, or other signs that one person is abusing eligibility, we may <strong>end the trial</strong>, require <strong>immediate paid billing</strong>, or <strong>suspend or close</strong> the affected accounts. We do not owe a second trial.
+.</p>
+</Callout>
+
+If you expect a trial and do not get one, you likely used it already. Contact support if you think that is wrong.
+
+## Payment method
+
+You can sign up  **without a credit card**. The checkout still asks for a card so billing can start after day 7.
+
+When a card is required, Stripe may place a small **authorization** to verify the card. It is not a charge.
+
+If authorization fails, fix the card or use another one. The trial does not start until checkout succeeds.
+
+## What applies during the trial
+
+During the trial you get the **same limits** as the tier you chose. Scheduling, channels, posts, seats, storage, and API access follow that plan. See <a href="/docs/billing/limits">Limits</a> and <a href="/pricing">Pricing</a>.
+
+We do not hide any features during the trial. Limits still block actions when you hit them, same as on a paid subscription.
 
 ## Start the trial
 
 <Steps
-	howToName="How to Start the trial"
-	howToDescription="OpenQuok Cloud 7-day free trial — no credit card required, cancel anytime."
+	howToName="Start the Cloud trial"
+	howToDescription="Sign up, pick a plan, and subscribe with a 7-day trial when your account is eligible."
 >
 
-### Create a Cloud account
+### Create an account
 
-Sign up from the marketing site and confirm your email if prompted. Your first workspace is created automatically.
+Sign up and confirm your email if we ask you to. Your first workspace is created automatically.
 
-### Choose a plan
+### Pick a plan
 
-Open <a href="/account/billing">Billing</a> (or the first-billing screen if Cloud asks you to pick a plan). Select Solo, Team, Ultimate, or Max. If your account is eligible, checkout includes a 7-day trial.
+Open <a href="/account/billing">Billing</a>, or the first-billing screen after sign-up. Choose Solo, Team, Ultimate, or Max, and monthly or yearly billing.
 
-### Use the scheduler
+### Complete checkout
 
-Connect a channel, compose, and schedule as in the [Quickstart](/docs/getting-started/quickstart). Trial quotas are the same categories as paid plans (workspaces, channels, posts per month, seats, storage).
+If your account is eligible, checkout includes a 7-day trial. Connect a channel and schedule from the <a href="/docs/getting-started/quickstart">Quickstart</a>.
 
 </Steps>
 
-## What you pay
-
-- **Days 1–7** — no charge for the trial period.
-- **After day 7** — the subscription for the plan you selected begins unless you cancelled.
-- You can **cancel anytime** from <a href="/account/billing">Billing</a> during the trial so you are not billed when it ends.
-
-<Callout type="note">
-<p>Some checkout flows confirm a card so billing can start after the trial. The public trial still does <strong>not</strong> require a card to <em>explore</em> the scheduler — if a card is collected, you can cancel before the trial ends without being charged for those seven days.</p>
-</Callout>
-
 ## End the trial early
 
-If you are ready to start paid billing before day 7, Billing can **finish the trial** and activate the subscription immediately. Wait until the spinner confirms the subscription is active.
+Open <a href="/account/billing">Billing</a> and use **Finish trial** when you want paid billing to start now. Wait until the UI confirms the subscription is active.
 
-## When the trial expires
+Use this when you are ready to pay before day 7 ends.
 
-If the trial ends without an active paid subscription, Cloud blocks scheduling and similar actions until you subscribe. Existing drafts remain in the workspace; they do not publish until the account is on a plan again.
+## When the trial ends
 
-Self-hosted deployments are not on this trial — they follow your operator’s Stripe configuration (or none).
+On day 7, Stripe charges the plan you selected unless you canceled. The app keeps the same tier and limits. Nothing new unlocks because you already had the full plan.
+
+If the trial ends without a paid subscription, the features is locked until you subscribe afain. Drafts stay in the workspace. They do not publish until billing is active again.
+
+## Cancel during the trial
+
+Cancel from <a href="/account/billing">Billing</a> before day 7 and you are not charged for the trial period. Cancellation stops future renewals. See <a href="/docs/billing/subscription">Subscription</a> for portal access and reactivation.
 
 ## Related
 
 <CardGrid>
-<LinkCard title="Plans" description="How Solo, Team, Ultimate, and Max differ" href="/docs/cloud/plans" />
-<LinkCard title="Subscription" description="Checkout, portal, and cancel from Billing" href="/docs/cloud/subscription" />
-<LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
-<LinkCard title="Pricing" description="Current Cloud prices and included limits" href="/pricing" />
+<LinkCard title="Plans" description="Solo, Team, Ultimate, and Max limits" href="/docs/cloud/plans" />
+<LinkCard title="Subscription" description="Checkout, portal, cancel, and invoices" href="/docs/billing/subscription" />
+<LinkCard title="Limits" description="What happens when you hit a plan cap" href="/docs/billing/limits" />
+<LinkCard title="Pricing" description="Current Cloud prices" href="/pricing" />
 </CardGrid>

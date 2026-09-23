@@ -14,7 +14,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 > Put new images and videos into the workspace library from **Upload**, **Canvas**, or drag-and-drop on <a href="/account/media">/account/media</a>.
 
 <Callout type="warning">
-<p>All paths respect your <strong>workspace storage quota</strong>. When storage is full, the page shows a warning and limit your new adds until you delete files or <a href="/docs/cloud/limits">upgrade your plan</a>.</p>
+<p>All paths respect your <strong>workspace storage quota</strong>. When storage is full, the page shows a warning and limit your new adds until you delete files or <a href="/docs/billing/limits">upgrade your plan</a>.</p>
 </Callout>
 
 ## Upload
@@ -104,6 +104,6 @@ Reuse them in the composer via **Media library**, or open **Media details** on t
 <CardGrid>
 <LinkCard title="Browse and organize" description="Folders, views, and file actions" href="/docs/media/browse-and-organize" />
 <LinkCard title="Media in the composer" description="Attach library files while writing a post" href="/docs/creating-posts/media" />
-<LinkCard title="Cloud limits" description="Storage caps by plan" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="Storage caps by plan" href="/docs/billing/limits" />
 <LinkCard title="Media upload (CLI)" description="Upload from scripts and agents" href="/docs/cli-usages/media-upload" />
 </CardGrid>

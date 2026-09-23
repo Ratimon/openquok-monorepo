@@ -132,7 +132,7 @@ describe('publicFaqLinks', () => {
 		for (const hubFaq of [PUBLIC_API_POSTING_HUB_FAQ, PUBLIC_API_SCHEDULING_HUB_FAQ]) {
 			const html = hubFaq.faqItems.map((item) => item.description).join('\n');
 			expect(html).toContain('30 requests per hour');
-			expect(html).toContain('href="/docs/cloud/limits"');
+			expect(html).toContain('href="/docs/billing/limits"');
 			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
 			expect(html).toMatch(/not per-post credits|bills workspaces/);
 		}
@@ -173,7 +173,7 @@ describe('publicFaqLinks', () => {
 
 				const billingFaq = platform.faqItems.find((item) => item.title.includes('bill per'));
 				expect(billingFaq?.description).toContain('30 requests per hour');
-				expect(billingFaq?.description).toContain('href="/docs/cloud/limits"');
+				expect(billingFaq?.description).toContain('href="/docs/billing/limits"');
 			}
 		}
 	});

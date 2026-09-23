@@ -3,6 +3,7 @@
 
 	import { page } from '$app/state';
 	import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
+	import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/publicSelfHostingWhoIsForConfig';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -16,6 +17,7 @@
 	import FeaturesSectionHeader from '$lib/ui/templates/feature-grid/FeaturesSectionHeader.svelte';
 	import SimpleCardGrid from '$lib/ui/templates/feature-grid/SimpleCardGrid.svelte';
 	import SimpleLinkCard from '$lib/ui/templates/feature-grid/SimpleLinkCard.svelte';
+	import WhoIsFor from '$lib/ui/templates/WhoIsFor.svelte';
 	import {
 		landingHeroTheme,
 		type LandingHeroTheme
@@ -78,12 +80,13 @@
 
 <SectionOuterContainer class="py-0 md:py-0">
 	<PublicSelfHostingHero
-		subtitle={landing.hero.subtitle}
 		title={landing.hero.title}
 		description={landing.hero.description}
 		primaryCta={landing.hero.primaryCta}
 		secondaryCta={landing.hero.secondaryCta}
 		trustBadges={landing.trustBadges}
+		githubOwner="Ratimon"
+		githubRepo="openquok-monorepo"
 	/>
 
 	<section
@@ -154,6 +157,15 @@
 			{/each}
 		</div>
 	</section>
+
+	<div class="mt-16 sm:mt-20">
+		<WhoIsFor
+			heroTheme={landingHeroTheme}
+			landingSubtitle={PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceSubtitle}
+			landingTitle={PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceTitle}
+			cards={[...PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceCards]}
+		/>
+	</div>
 
 	<SimpleCardGrid
 		heroTheme={sectionHeroTheme}

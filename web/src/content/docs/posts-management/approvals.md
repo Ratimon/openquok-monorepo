@@ -69,7 +69,7 @@ If you run social for multiple clients, the usual flow is:
 ## Limits worth knowing
 
 <Callout type="note" title="Cloud plans">
-<p>Shareable preview links and collaboration comments need <strong>Team</strong> or above on OpenQuok Cloud. Lower tiers can still open previews from the post menu for your own review. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
+<p>Shareable preview links and collaboration comments need <strong>Team</strong> or above on OpenQuok Cloud. Lower tiers can still open previews from the post menu for your own review. See <a href="/docs/billing/limits">Cloud limits</a>.</p>
 </Callout>
 
 <Callout type="warning">
@@ -87,5 +87,5 @@ If you run social for multiple clients, the usual flow is:
 <LinkCard title="Scheduling" description="Save as draft until client sign-off, then add to calendar" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Channel groups" description="Bundle a client’s channels and filter the calendar" href="/docs/channels/channel-groups" />
 <LinkCard title="Glossary" description="Draft, scheduled, and preview link terminology" href="/docs/getting-started/glossary" />
-<LinkCard title="Cloud limits" description="Shareable preview availability by plan" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="Shareable preview availability by plan" href="/docs/billing/limits" />
 </CardGrid>

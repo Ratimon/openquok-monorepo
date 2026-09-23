@@ -1,53 +1,91 @@
 ---
-title: Plans
-description: OpenQuok Cloud plans for the social scheduler — Solo, Team, Ultimate, and Max. See Pricing for current limits; this page does not duplicate the price matrix.
+title: OpenQuok 's Plans and limits
+description: Every Cloud tier — Solo, Team, Ultimate, and Max. Their prices, and what features are included.
 order: 1
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-23
 ---
 
 <script>
 import { Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-## Overview
+OpenQuok Social Scheuler has four paid cloud tiers as specified in below table.
 
-OpenQuok Cloud sells four paid tiers: **Solo**, **Team**, **Ultimate**, and **Max**. Current prices, workspace counts, channel caps, posts per month, seats, and storage are on <a href="/pricing">Pricing</a> — this page does not copy that matrix so it cannot drift.
+## The plans
 
-Every paid plan includes the same product surfaces: multi-channel publishing, calendar and kanban, media library, templates, signatures, analytics, agent integrations, public API, and one OAuth app (and MCP endpoint) per workspace.
+Yearly billing gives a 20% discount compared to paying monthly for the same year.
+
+| | Solo | Team | Ultimate | 10X Max |
+| --- | --- | --- | --- | --- |
+| **Per month** | \$29 | \$49 | \$69 | \$129 |
+| **Per year** | \$278 | \$470 | \$662 | \$1,238 |
+| **Agent workspaces** | 1 | 3 | 5 | 10 |
+| **Total channels** | 15 | 45 (15/ workspace) | 100 (20/ workspace) | 250 (25/ workspace) |
+| **Posts per month** | 500 | Unlimited | Unlimited | Unlimited |
+| **Team members** | 1 | 9 (3/ workspace) | Unlimited | Unlimited |
+| **Cloud media storage** | 5 GiB | 15 GiB (5 GiB/ workspace) | 25 GiB (5 GiB/ workspace) | 60 GiB (6 GiB/ workspace) |
+| **Shareable preview post to clients** | No | Yes | Yes | Yes |
+| **Public API, CLI, and MCP** | Yes | Yes | Yes | Yes |
+| **OAuth apps and MCP servers** | 1 | 3 (1/ workspace) | 5 (1/ workspace) | 10 (1/ workspace) |
+| **AI Writer and Summarizer** | Unlimited (experimental) | Unlimited (experimental) | Unlimited (experimental) | Unlimited (experimental) |
+| **Scheduling, analytics, agents, plugs** | Yes | Yes | Yes | Yes |
 
 <Callout type="note">
-<p>Need exact numbers for channels, seats, or storage? Open <a href="/pricing">Pricing</a>. The comparison table there is generated from the same plan catalog the app enforces.</p>
+<p>These numbers match the plan catalog the app enforces. The live <a href="/pricing">Pricing</a> page list the same catalog with more details and FAQs. If anything disagrees, treat Pricing as the commercial source of truth.</p>
 </Callout>
 
-## Which plan to pick
+## What the rows mean
 
-- **Solo** — one agent workspace for an individual or solo creator. Tight channel and post-per-month caps; one seat.
-- **Team** — more workspaces and invited editors so a small team can review drafts before publish.
-- **Ultimate** — several brands or agents, higher channel totals, unlimited seats per workspace.
-- **Max** — high-volume agencies and many parallel agents (most workspaces and channels).
+<Callout type="tip">
+<p>Terms such as workspace, channel, plugs, and templates have longer definitions in the <a href="/docs/getting-started/glossary">Glossary</a>.</p>
+</Callout>
 
-Channel caps are **per workspace**. Totals on Pricing multiply per-workspace channels by the workspace count (for example 15 channels × 3 workspaces). You can connect several accounts on the same network — they all count toward the channel cap.
+**Agent workspaces** separate brands, clients, or agents. One workspace is one agent context. Higher tiers add more workspaces before you hit the cap.
 
-## What every Cloud plan includes
+**Total channels** is the count of connected social accounts across all workspaces on the plan. Each profile, page, or server you connect uses one channel. Caps apply per workspace; the table shows the account total. See <a href="/docs/channels/manage">Manage a channel</a>.
 
-Shared capabilities (not a substitute for the Pricing table):
+**Posts per month** counts scheduled and published posts on your billing account. Solo has a fixed cap; Team, Ultimate, and Max treat volume as unlimited for normal use.
 
-- Multi-channel scheduling, calendar, and kanban review
-- Media library, reusable templates and signatures, post delays and comments
-- Public API, programmatic tokens, and one MCP server per workspace
-- One OAuth application per workspace for third-party apps
+**Team members** are invited editors on your organisation. Seats are per workspace on Team; Ultimate and Max do not cap seats per workspace. Solo is one seat only.
 
-Shareable post previews start on **Team**. See Pricing for the full compare rows.
+**Cloud media storage** is shared inside each workspace. The table shows total storage on the plan and the per-workspace share when you have more than one workspace.
 
-## Self-hosted plans
+**Shareable post previews** are public links to review a draft before publish. They start on Team.
 
-Self-hosting does not require a Cloud subscription. Leave Stripe unset and the hosted paywall stays off — [Stripe billing](/docs/configuration-backend/stripe). Operators who turn Stripe on for their own instance enforce the same catalog.
+**Public API, CLI, and MCP** use the same programmatic token per workspace. See <a href="/docs/getting-started-for-public-api">Public API getting started</a> and <a href="/docs/getting-started-for-mcp">MCP getting started</a>.
+
+**OAuth apps and MCP servers** — each workspace can register one OAuth app (and one MCP endpoint tied to that app) when public API access is on.
+
+**On-device AI Writer and Summarizer** run in a supported Chromium browser. They do not use Cloud credits. Status is experimental.
+
+**Scheduling, analytics, agents, plugs** covers calendar, kanban, multi-channel publish, templates, signatures, agent skills, and plug rules. Every paid tier includes these.
+
+## There is no free plan
+
+A Cloud organisation without a subscription cannot schedule. The app shows the plan picker until you subscribe or start a <a href="/docs/cloud/trial">7-day trial</a>.
+
+Self-hosting does not require Cloud billing. Leave Stripe unset and the hosted paywall stays off — <a href="/docs/configuration-backend/stripe">Stripe billing</a>.
+
+## Choosing a plan
+
+| Plan | Who it is for |
+| --- | --- |
+| **Solo** | Individuals and solo creators. One agent workspace keeps posting experiments in one place until you know what works. |
+| **Team** | Growing teams and businesses. Add workspaces, editors, and reviewers; share drafts with clients; comment in the app and publish after sign-off instead of chasing approval in chat. |
+| **Ultimate** | Multiple brands or AI agents. Split brands across workspaces, invite the full team, and skip per-seat limits. |
+| **10x Max** | Heavy use at scale — many agents, workspaces, and channels when volume is the main job and your format is already proven. |
+
+Count the channels and workspaces you need first. Channel and workspace caps are hard limits. Other limits are easier to work around.
+
+## Hitting a limit
+
+Each cap returns a clear error and a path to fix it. See <a href="/docs/billing/limits">Limits</a>.
 
 ## Related
 
 <CardGrid>
 <LinkCard title="Trial" description="Start a 7-day Cloud trial without a credit card" href="/docs/cloud/trial" />
-<LinkCard title="Limits" description="What the app blocks when a cap is reached" href="/docs/cloud/limits" />
-<LinkCard title="Subscription" description="Upgrade, downgrade, and manage Stripe billing" href="/docs/cloud/subscription" />
-<LinkCard title="Pricing" description="Live plan names, prices, and included limits" href="/pricing" />
+<LinkCard title="Limits" description="What the app blocks when a cap is reached" href="/docs/billing/limits" />
+<LinkCard title="Subscription" description="Upgrade, downgrade, and manage Stripe billing" href="/docs/billing/subscription" />
+<LinkCard title="Pricing" description="Interactive compare table and plan cards" href="/pricing" />
 </CardGrid>

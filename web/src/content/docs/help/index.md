@@ -1,6 +1,6 @@
 ---
 title: Help and support
-description: How to get help with OpenQuok Cloud or self-hosted installs — docs, Discord, email, and what to include.
+description: How to get help with OpenQuok, what support to expect on Cloud vs self-host, and what to include when you contact us.
 order: 0
 lastUpdated: 2026-09-23
 sidebar:
@@ -13,7 +13,11 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 
 ## Help and support
 
-> Most answers are already in the docs. When you need a person, the route depends on Cloud vs self-host.
+> Where you go for answers and what we can realistically offer. It depends on whether you use **OpenQuok Cloud** or **self-host** OpenQuok on your own infrastructure.
+
+The contact paths are not the same, and neither are the commitments behind them.
+
+Most questions are already covered in the docs below. When you need a person, pick the tab that matches your setup in **Talk to us**.
 
 ## Check the docs first
 
@@ -21,7 +25,7 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } f
 <LinkCard title="Troubleshooting" description="Connect errors, uploads, login, failed posts, known issues" href="/docs/troubleshooting" />
 <LinkCard title="Platforms" description="Rules when a network rejects a post" href="/docs/platforms" />
 <LinkCard title="Installation" description="Self-host setup, CORS, Redis, and workers" href="/docs/installation" />
-<LinkCard title="Cloud billing" description="Plans, limits, refunds, and Stripe portal" href="/docs/cloud/refunds-and-support" />
+<LinkCard title="OpenQuok Cloud" description="Hosted vs self-host, plans, trial, and billing" href="/docs/cloud" />
 </CardGrid>
 
 ## Talk to us
@@ -82,6 +86,6 @@ Failed post messages often come from the social network, not from OpenQuok — t
 
 <CardGrid>
 <LinkCard title="Troubleshooting overview" description="Step-by-step fixes for common errors" href="/docs/troubleshooting" />
-<LinkCard title="Refunds and support" description="Cloud refund window and billing contact" href="/docs/cloud/refunds-and-support" />
+<LinkCard title="Refunds and support" description="Cloud refund window and billing contact" href="/docs/billing/refunds-and-support" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
 </CardGrid>

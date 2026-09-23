@@ -33,7 +33,7 @@ If your problem is not listed here, see <a href="/docs/help">Help</a> for how to
 | --- | --- |
 | Install, CORS, Redis, workers | <a href="/docs/installation">Installation</a> and <a href="/docs/installation/production-deployment">Production deployment</a> |
 | Provider keys and connect always fails | <a href="/docs/social-integration">Social integrations</a> |
-| Plan caps and payment | <a href="/docs/cloud/limits">Cloud limits</a> and <a href="/docs/cloud/refunds-and-support">Refunds and support</a> |
+| Plan caps and payment | <a href="/docs/billing/limits">Cloud limits</a> and <a href="/docs/billing/refunds-and-support">Refunds and support</a> |
 
 <Callout type="note">
 <p>OpenQuok Cloud customers can also use <a href="/docs/help">Help</a> for Discord and email. Self-hosters rely mainly on community channels listed there.</p>

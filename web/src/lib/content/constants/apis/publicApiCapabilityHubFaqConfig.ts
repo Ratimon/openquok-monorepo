@@ -10,7 +10,7 @@ export type PublicApiCapabilityHubFaqSection = {
 };
 
 function buildPublicApiRateLimitsFaqAnswer(): string {
-	return `Each opo_ token allows 30 requests per hour on OpenQuok Cloud. The limit counts HTTP requests, not posts. Send one POST for many channels when you can. OpenQuok bills workspaces on ${faqLink(publicFaqHref.pricing, 'paid plans')}, not per-post credits. Scheduled posts still use your monthly post quota. See ${faqLink(faqHrefDocs('cloud/limits'), 'cloud limits')} for all limits.`;
+	return `Each opo_ token allows 30 requests per hour on OpenQuok Cloud. The limit counts HTTP requests, not posts. Send one POST for many channels when you can. OpenQuok bills workspaces on ${faqLink(publicFaqHref.pricing, 'paid plans')}, not per-post credits. Scheduled posts still use your monthly post quota. See ${faqLink(faqHrefDocs('billing/limits'), 'cloud limits')} for all limits.`;
 }
 
 function buildPostingHubFaq(): PublicApiCapabilityHubFaqSection {
@@ -33,7 +33,7 @@ function buildPostingHubFaq(): PublicApiCapabilityHubFaqSection {
 			{
 				title: 'Does OpenQuok charge credits per post like other posting APIs?',
 				description:
-					`No. OpenQuok bills workspaces, not per-post credits. Scheduled posts use your monthly post quota. Each opo_ token allows 30 requests per hour. See ${faqLink(faqHrefDocs('cloud/limits'), 'cloud limits')} and ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+					`No. OpenQuok bills workspaces, not per-post credits. Scheduled posts use your monthly post quota. Each opo_ token allows 30 requests per hour. See ${faqLink(faqHrefDocs('billing/limits'), 'cloud limits')} and ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 			},
 			{
 				title: 'What are the public API rate limits?',
@@ -78,7 +78,7 @@ function buildSchedulingHubFaq(): PublicApiCapabilityHubFaqSection {
 			{
 				title: 'Do scheduled API posts count toward my plan quota?',
 				description:
-					`Yes. Scheduled posts count toward your monthly post limit. API rate limits are separate: 30 requests per hour per opo_ token. See ${faqLink(faqHrefDocs('cloud/limits'), 'cloud limits')} and ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+					`Yes. Scheduled posts count toward your monthly post limit. API rate limits are separate: 30 requests per hour per opo_ token. See ${faqLink(faqHrefDocs('billing/limits'), 'cloud limits')} and ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 			},
 			{
 				title: 'What are the scheduling API rate limits?',

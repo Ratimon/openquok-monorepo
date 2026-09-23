@@ -72,7 +72,7 @@ The invite link expires after a set time. they can accept from the join page whe
 **Workspace Invites** lists invitations sent <strong>to you</strong>. Click <Badge text="Accept" variant="new" /> to join that workspace with the role shown on the row.
 
 <Callout type="note">
-<p>Each pending invite counts toward your team seat cap until it is accepted or cancelled. At the limit, upgrade on <a href="/account/billing">Billing</a> or cancel a pending invite. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
+<p>Each pending invite counts toward your team seat cap until it is accepted or cancelled. At the limit, upgrade on <a href="/account/billing">Billing</a> or cancel a pending invite. See <a href="/docs/billing/limits">Cloud limits</a>.</p>
 </Callout>
 
 ## Multiple workspaces
@@ -109,5 +109,5 @@ None of these consume a team seat.
 <LinkCard title="Settings overview" description="All Settings sections and plan gates" href="/docs/settings" />
 <LinkCard title="Connect a channel" description="OAuth, credentials, and client invite links" href="/docs/channels/connect" />
 <LinkCard title="Approvals" description="Preview links for client sign-off" href="/docs/posts-management/approvals" />
-<LinkCard title="Cloud limits" description="Team seats, workspaces, and upgrade paths" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="Team seats, workspaces, and upgrade paths" href="/docs/billing/limits" />
 </CardGrid>

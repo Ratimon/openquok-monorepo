@@ -19,7 +19,7 @@ import { Badge, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/components/doc
 
 ![Open Settings Menu on the top right](/docs/_assets/settings/open-settings.webp)
 
-Billing is separate. It lives under the same account menu, not inside Settings. Only the workspace <strong>owner</strong> can change a Cloud subscription. See <a href="/docs/cloud/subscription">Subscription</a>.
+Billing is separate. It lives under the same account menu, not inside Settings. Only the workspace <strong>owner</strong> can change a Cloud subscription. See <a href="/docs/billing/subscription">Subscription</a>.
 
 ## The sections
 
@@ -43,7 +43,7 @@ Templates and saved channel bundles live outside Settings — on <a href="/accou
 
 | Area | Typical gate |
 | --- | --- |
-| Team seats | Invite or accept blocked at the seat cap — see <a href="/docs/cloud/limits">Cloud limits</a> |
+| Team seats | Invite or accept blocked at the seat cap — see <a href="/docs/billing/limits">Cloud limits</a> |
 | Workspaces | Cannot create another workspace past the plan cap |
 | Developers | First-billing gate until a paid tier or trial is active; programmatic token and OAuth apps need a plan that includes the Public API — see <a href="/docs/settings/developers">Developers</a> |
 | Shareable preview | Client preview links need Team or above — see <a href="/docs/posts-management/approvals">Approvals</a> |
@@ -67,7 +67,7 @@ Templates and saved channel bundles live outside Settings — on <a href="/accou
 
 <p>Channels, scheduled posts, media storage, and public API calls are also not capped by plan guards.</p>
 
-<p>HTTP rate limits still apply when <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> is on. See <a href="/docs/cloud/limits">Cloud limits</a> and <a href="/docs/configuration-backend/rate-limiting">Rate limiting</a>.</p>
+<p>HTTP rate limits still apply when <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> is on. See <a href="/docs/billing/limits">Cloud limits</a> and <a href="/docs/configuration-backend/rate-limiting">Rate limiting</a>.</p>
 
 </TabItem>
 </Tabs>
@@ -87,6 +87,6 @@ Templates and saved channel bundles live outside Settings — on <a href="/accou
 
 <CardGrid>
 <LinkCard title="Tour the app" description="Where Settings sits in the signed-in layout" href="/docs/getting-started/tour-the-app" />
-<LinkCard title="Cloud limits" description="What happens when a workspace hits a plan cap" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="What happens when a workspace hits a plan cap" href="/docs/billing/limits" />
 <LinkCard title="Glossary" description="Workspace, channel, and organization terms" href="/docs/getting-started/glossary" />
 </CardGrid>

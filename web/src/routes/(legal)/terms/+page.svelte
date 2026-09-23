@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 20, 2026</SectionDescription>
+			<SectionDescription>Last updated September 23, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -110,7 +110,7 @@
 				<p>
 					Except where required by applicable law or expressly stated in our written refund policy
 					(for Cloud billing, see
-					<a href="/docs/cloud/refunds-and-support" class="link link-hover">Refunds and support</a>),
+					<a href="/docs/billing/refunds-and-support" class="link link-hover">Refunds and support</a>),
 					fees are non-refundable, including for partially used periods. Cancelling stops future
 					renewals; it does not entitle you to a pro-rata refund of the current period. Fees are
 					exclusive of taxes, duties, and similar charges, which are your responsibility where
@@ -132,8 +132,10 @@
 					Where we offer a Cloud free trial (for example a seven-day trial on a paid plan), you may
 					receive <strong>one</strong> such trial per person or account and per payment customer (for
 					example the Stripe customer on file). Repeat trials after cancellation, resubscription, a
-					new workspace, or re-registration are not permitted. We may end or adjust a trial, or
-					require immediate paid billing, when eligibility rules are not met.
+					new workspace, re-registration, or use of a different email address by the same person are
+					not permitted. We may end or adjust a trial, require immediate paid billing, or suspend or
+					close accounts when eligibility rules are not met or when we reasonably believe trial
+					eligibility was abused.
 				</p>
 
 				<h2>6. Your content</h2>

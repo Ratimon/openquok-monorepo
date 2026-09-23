@@ -35,7 +35,7 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
 - <img src="./assets/readme/features/calendar.svg" alt="" width="24" height="24" align="top"> **[Posts management](https://www.openquok.com/docs/posts-management).** Plan posts on the calendar, drag to reschedule, and review drafts on Home kanban — see [Kanban board](https://www.openquok.com/docs/posts-management/kanban) and [Moving posts](https://www.openquok.com/docs/posts-management/moving-posts).
 - <img src="./assets/readme/features/approvals.svg" alt="" width="24" height="24" align="top"> **[Review and approvals](https://www.openquok.com/docs/posts-management/approvals).** Share preview links and collect client comments before you schedule. Humans give final sign-off before anything goes live.
 - <img src="./assets/readme/features/calendar.svg" alt="" width="24" height="24" align="top"> **[Scheduling and time slots](https://www.openquok.com/docs/creating-posts/scheduling).** Save drafts, pick a publish time, or use [posting time slots](https://www.openquok.com/docs/channels/time-slots) per channel. Bundle channels into [channel groups](https://www.openquok.com/docs/channels/channel-groups) for clients or brands.
-- <img src="./assets/readme/features/media.svg" alt="" width="24" height="24" align="top"> **[Media library](https://www.openquok.com/docs/creating-posts/media).** Upload from your device, reuse files from your workspace library, or attach saved media without uploading again. Per-channel lists apply when networks disagree on formats.
+- <img src="./assets/readme/features/media.svg" alt="" width="24" height="24" align="top"> **[Media library](https://www.openquok.com/docs/media).** Upload from your device, organize folders, and reuse files in the composer — see [Media in posts](https://www.openquok.com/docs/creating-posts/media) for per-channel attachments.
 - <img src="./assets/readme/features/threads.svg" alt="" width="24" height="24" align="top"> **[Threads and follow-up comments](https://www.openquok.com/docs/creating-posts/threads-and-comments).** Schedule multi-part posts and timed replies on supported networks. Delays, thread finisher, and cross-account plugs are covered in [Automations](https://www.openquok.com/docs/automations).
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Templates and tags](https://www.openquok.com/docs/getting-started/glossary#template).** Save composer presets at [/account/templates](https://www.openquok.com/account/templates) for repeat workflows and label campaigns with [tags](https://www.openquok.com/docs/getting-started/glossary#tag) in the composer footer.
 - <img src="./assets/readme/features/analytics.svg" alt="" width="24" height="24" align="top"> **[Analytics](https://www.openquok.com/docs/posts-management/actions-and-stats).** Compare post results and track audience changes across connected accounts. Per-network availability is listed under [Platforms → Analytics](https://www.openquok.com/docs/platforms/analytics).
@@ -166,7 +166,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 - Vercel
 - Railway
 
-Learn more at [Architecture](https://www.openquok.com/docs/geandtting-started-for-dev/architecture)
+Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
 
 ---
 
@@ -184,8 +184,11 @@ Learn more at [Architecture](https://www.openquok.com/docs/geandtting-started-fo
 - [Platforms](https://www.openquok.com/docs/platforms) — character limits, media rules, and per-network settings
 - [Automations](https://www.openquok.com/docs/automations) — [plugs](https://www.openquok.com/docs/automations/plugs), internal, cross-account, and global rules
 - [Settings](https://www.openquok.com/docs/settings) — timezone, team, profile, developers, signatures, and approved apps
+- [Troubleshooting](https://www.openquok.com/docs/troubleshooting) — connect errors, uploads, login, failed posts, and [known issues](https://www.openquok.com/docs/troubleshooting/known-issues)
+- [Help](https://www.openquok.com/docs/help) — support channels and how to describe a problem
 - [Free tools](https://www.openquok.com/tools) — [Humanizer](https://www.openquok.com/tools/humanizer), [Photo editor](https://www.openquok.com/tools/photo-editor), [Skill Builder](https://www.openquok.com/tools/skill-builder), and [Best time to post](https://www.openquok.com/tools/best-time-to-post)
-- [Cloud](https://www.openquok.com/docs/cloud) — hosted plans, [trial](https://www.openquok.com/docs/cloud/trial), [limits](https://www.openquok.com/docs/cloud/limits), and billing
+- [OpenQuok Cloud](https://www.openquok.com/docs/cloud) — hosted vs self-host, [plans](https://www.openquok.com/docs/cloud/plans), and [trial](https://www.openquok.com/docs/cloud/trial)
+- [Billing](https://www.openquok.com/docs/billing) — [subscription](https://www.openquok.com/docs/billing/subscription), [limits](https://www.openquok.com/docs/billing/limits), [downgrades](https://www.openquok.com/docs/billing/downgrades), and [refunds and support](https://www.openquok.com/docs/billing/refunds-and-support)
 
 **CLI, MCP, and Public API**
 

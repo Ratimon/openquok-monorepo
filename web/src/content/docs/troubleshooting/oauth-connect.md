@@ -76,7 +76,7 @@ The OpenQuok API could not reach the provider, or your browser could not reach t
 | Symptom | What to try |
 | --- | --- |
 | Error on <Badge text="POST" variant="default" /> connect right after approve | Retry once. On Cloud, transient provider outages are common. |
-| CORS or blocked preflight in the browser console | Fix frontend origin on the API — <a href="/docs/installation/vercel#cors">Vercel CORS</a> and <a href="/docs/configuration-web/vite">Vite configuration</a>. |
+| CORS or blocked preflight in the browser console | Fix frontend origin on the API — <a href="/docs/installation/vercel">Production Vercel</a> and <a href="/docs/installation/production-deployment">Production deployment</a> (CORS and canonical URLs), plus <a href="/docs/configuration-web/vite">Vite configuration</a>. |
 | Self-host only | Check egress, DNS, and TLS from the server. Confirm Redis and env keys. |
 
 ## Setup incomplete after OAuth

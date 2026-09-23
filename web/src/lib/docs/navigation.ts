@@ -74,7 +74,12 @@ function isGeneralDocsPath(segmentOrSlug: string): boolean {
 }
 
 function isCloudDocsPath(segmentOrSlug: string): boolean {
-	return segmentOrSlug === 'cloud' || segmentOrSlug.startsWith('cloud/');
+	return (
+		segmentOrSlug === 'cloud' ||
+		segmentOrSlug.startsWith('cloud/') ||
+		segmentOrSlug === 'billing' ||
+		segmentOrSlug.startsWith('billing/')
+	);
 }
 
 function isSelfHostingDocsPath(segmentOrSlug: string): boolean {

@@ -9,18 +9,29 @@
 	import AuroraBackground from '$lib/ui/background/AuroraBackground.svelte';
 	import ButtonGlitchBrightness from '$lib/ui/buttons/ButtonGlitchBrightness.svelte';
 	import ExternalLink from '$lib/ui/links/ExternalLink.svelte';
+	import Stargazers from '$lib/ui/icons/Stargazers.svelte';
+	import PublicSelfHostingLandingBreadcrumb from '$lib/ui/templates/landing-page/PublicSelfHostingLandingBreadcrumb.svelte';
 	import { landingHeroTheme } from '$lib/ui/templates/landing-page/landingHeroTheme';
 
 	type Props = {
-		subtitle: string;
 		title: string;
 		description: string;
 		primaryCta: PublicSelfHostingCta;
 		secondaryCta: PublicSelfHostingCta;
 		trustBadges: readonly PublicSelfHostingTrustBadge[];
+		githubOwner?: string;
+		githubRepo?: string;
 	};
 
-	let { subtitle, title, description, primaryCta, secondaryCta, trustBadges }: Props = $props();
+	let {
+		title,
+		description,
+		primaryCta,
+		secondaryCta,
+		trustBadges,
+		githubOwner = '',
+		githubRepo = ''
+	}: Props = $props();
 
 	const headingId = 'public-self-hosting-hero-heading';
 
@@ -34,7 +45,15 @@
 
 <AuroraBackground class="relative isolate !min-h-0 overflow-hidden">
 	<header class="relative z-10 container mx-auto max-w-4xl space-y-6 px-4 py-10 text-center md:py-14">
-		<p class={landingHeroTheme.subtitleClass}>{subtitle}</p>
+		{#if githubOwner && githubRepo}
+			<div class="mb-2 flex flex-wrap items-center justify-center gap-3">
+				<Stargazers owner={githubOwner} name={githubRepo} />
+			</div>
+		{/if}
+
+		<div class="flex justify-center">
+			<PublicSelfHostingLandingBreadcrumb />
+		</div>
 
 		<h1
 			id={headingId}

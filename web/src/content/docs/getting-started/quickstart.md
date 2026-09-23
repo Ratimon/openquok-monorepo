@@ -147,7 +147,7 @@ Sign in, connect a channel, compose, pick a time, then confirm the post on the c
 | Channel disconnected or expired token | On Home, open the channel menu and reconnect. For API-key channels ( eg. Dev.to), paste a new key. Then reconnect. For Self-host, you may also check keys in <a href="/docs/social-integration">Social integrations</a>. |
 | Draft never leaves Home | Confirm a **future** time and at least one channel. Drag the card to **Scheduled posts**, or open it and use <Badge text="Add to calendar" variant="param" />. Check <Badge text="Timezone" variant="default" /> in Settings if it is right. Agent and API drafts still need a schedule time. CLI: <code>openquok posts:status &lt;post-id&gt; -s schedule</code> — see <a href="/docs/cli-usages/managing-posts">Managing posts</a>. |
 | Failed at publish time | Open it, read the provider error, fix copy or media, reconnect if the error mentions auth, and schedule again. See <a href="/docs/platforms">Posting rules by platform</a>. |
-| Connect, upload, invite, or schedule blocked with a billing message | That is a plan cap, not a product bug — see <a href="/docs/cloud/limits">Cloud limits</a> and <a href="/account/billing">Billing</a>. |
+| Connect, upload, invite, or schedule blocked with a billing message | That is a plan cap, not a product bug — see <a href="/docs/billing/limits">Cloud limits</a> and <a href="/account/billing">Billing</a>. |
 
 CLI, MCP, or API **401** errors usually mean a rotated token. Generate a new one under Settings → <Badge text="Developers" variant="default" /> → **Access**. See <a href="/docs/getting-started-for-cli/authentication">CLI authentication</a>.
 

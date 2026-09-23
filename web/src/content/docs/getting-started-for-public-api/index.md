@@ -60,7 +60,7 @@ The path prefix <Badge text="/api/v1" variant="path" /> is configurable via <Bad
 ## Rate limits
 
 <Callout type="warning">
-<p>A <strong>30 requests per hour</strong> limit applies per <Badge text="opo_" variant="default" /> token across all <Badge text="/api/v1/public/*" variant="path" /> endpoints on OpenQuok Cloud. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput. Public API access requires a <a href="/pricing">paid workspace plan</a>; scheduled posts still count toward your monthly post quota. OpenQuok bills workspaces, not per-post credits. See <a href="/docs/cloud/limits">cloud limits</a> for every cap.</p>
+<p>A <strong>30 requests per hour</strong> limit applies per <Badge text="opo_" variant="default" /> token across all <Badge text="/api/v1/public/*" variant="path" /> endpoints on OpenQuok Cloud. This does not mean you can only post 30 times per hour — each API call counts as one request, so <strong>schedule multiple posts in a single request</strong> (for example a multi-channel post group) to maximize throughput. Public API access requires a <a href="/pricing">paid workspace plan</a>; scheduled posts still count toward your monthly post quota. OpenQuok bills workspaces, not per-post credits. See <a href="/docs/billing/limits">cloud limits</a> for every cap.</p>
 </Callout>
 
 ## Public API documentation

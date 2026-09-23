@@ -78,7 +78,7 @@ Channel-specific visuals that are part of publish settings stay in **Settings** 
 
 **Design Media** in the post editor opens the same canvas editor as <a href="/tools/photo-editor">/tools/photo-editor</a>. Draw, add text, or start from a template, then export with **Use this media** to add the image to the post.
 
-Cloud save requires a signed-in workspace. If workspace storage is full, save is blocked — see <a href="/docs/cloud/limits">Cloud limits</a>.
+Cloud save requires a signed-in workspace. If workspace storage is full, save is blocked — see <a href="/docs/billing/limits">Cloud limits</a>.
 
 ## Global mode (default)
 
@@ -119,7 +119,7 @@ OpenQuok stores per-channel lists only for channels you edited while unlocked. E
 | Unsupported file type | The composer rejects files that are not `image/*` or `video/*`. The library and API also allow `audio/*` and `application/pdf`. You see an error toast when the type is not allowed |
 | File too large | Images over **30 MB** are blocked in the browser before upload. Images over **10 MB** are rejected on the server. Videos over **1 GB** are rejected. A multi-file batch over **1 GB** total is rejected |
 | Platform rules after upload | Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms/media-rules">Media rules</a> |
-| Workspace storage full | On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
+| Workspace storage full | On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/billing/limits">Cloud limits</a> |
 
 More detail (API payloads, <Badge text="upload-from-url" variant="param" />, and video formats): <a href="/docs/troubleshooting/uploads">Troubleshooting → Uploads and media</a>.
 

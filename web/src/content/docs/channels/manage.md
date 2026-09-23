@@ -52,7 +52,7 @@ A few things to keep in mind:
 
 ## Pause or remove
 
-On Cloud, plan limits treat channels in two ways. A **connected** cap counts every non-deleted channel (including disabled ones). An **active** cap counts only channels that are not disabled. See <a href="/docs/cloud/limits">Cloud limits</a>.
+On Cloud, plan limits treat channels in two ways. A **connected** cap counts every non-deleted channel (including disabled ones). An **active** cap counts only channels that are not disabled. See <a href="/docs/billing/limits">Cloud limits</a>.
 
 <strong>Disable</strong> leaves the channel in the workspace but takes it out of service. You cannot schedule <strong>new</strong> posts to it until you click <Badge text="Enable channel" variant="default" />.
 
@@ -65,7 +65,7 @@ After a plan downgrade, OpenQuok may auto-disable the most recently connected ch
 That includes sibling rows on other channels in the same post group. Already-published copies on the social network stay up. You can connect that account again later.
 
 <Callout type="note" title="Freeing a connected slot">
-<p>To free a <strong>connected</strong> slot on Cloud, delete a channel you no longer need, or upgrade. Disable does not free a connected slot. See <a href="/docs/cloud/limits">Cloud limits</a>.</p>
+<p>To free a <strong>connected</strong> slot on Cloud, delete a channel you no longer need, or upgrade. Disable does not free a connected slot. See <a href="/docs/billing/limits">Cloud limits</a>.</p>
 </Callout>
 
 On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and delete are only about whether you still want that account in the workspace.
@@ -76,6 +76,6 @@ On self-hosted OpenQuok with billing unset, there is no channel cap. Disable and
 <LinkCard title="Connect a channel" description="Add Channel, sign-in flows, API keys, and invite links" href="/docs/channels/connect" />
 <LinkCard title="Posting time slots" description="Usual posting hours per channel and how suggestions use them" href="/docs/channels/time-slots" />
 <LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />
-<LinkCard title="Cloud limits" description="What happens when a workspace hits the channel cap" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="What happens when a workspace hits the channel cap" href="/docs/billing/limits" />
 <LinkCard title="Glossary" description="Channel vs integration, time slots, and calendar vs kanban" href="/docs/getting-started/glossary" />
 </CardGrid>

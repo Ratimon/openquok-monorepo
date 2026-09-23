@@ -47,7 +47,7 @@ Our Settings uses two sub-tabs:
 
 <p>After a paid tier or trial is active, the <Badge text="Developers" variant="default" /> tab unlocks programmatic tokens the Public API, OAuth apps, and MCP snippets.</p>
 
-<p>See <a href="/docs/cloud/limits">Cloud limits</a>, <a href="/docs/cloud/subscription">Subscription</a>, and <a href="/pricing">Pricing</a>.</p>
+<p>See <a href="/docs/billing/limits">Cloud limits</a>, <a href="/docs/billing/subscription">Subscription</a>, and <a href="/pricing">Pricing</a>.</p>
 
 </TabItem>
 <TabItem label="Self-hosted">
@@ -56,7 +56,7 @@ Our Settings uses two sub-tabs:
 
 <p>When billing is off or <Badge text="STRIPE_PUBLISHABLE_KEY" variant="envBackend" /> is unset, plan guards are skipped on the server. The UI treats your account as <strong>SOLO</strong>, which includes the Public API — programmatic tokens, OAuth apps, and MCP snippets work without a Cloud subscription.</p>
 
-<p>HTTP rate limits still apply when <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> is on. See <a href="/docs/cloud/limits">Cloud limits</a> and <a href="/docs/configuration-backend/rate-limiting">Rate limiting</a>.</p>
+<p>HTTP rate limits still apply when <Badge text="RATE_LIMIT_ENABLED" variant="envBackend" /> is on. See <a href="/docs/billing/limits">Cloud limits</a> and <a href="/docs/configuration-backend/rate-limiting">Rate limiting</a>.</p>
 
 </TabItem>
 </Tabs>
@@ -206,5 +206,5 @@ Automate your own posting with a programmatic token. Build an OAuth app only whe
 <LinkCard title="CLI authentication" description="Device login vs programmatic tokens" href="/docs/getting-started-for-cli/authentication" />
 <LinkCard title="OAuth2 for apps" description="Authorization code flow for third-party integrations" href="/docs/oauth2-for-apps" />
 <LinkCard title="Approved apps" description="Review and revoke apps you authorized" href="/docs/settings/approved-apps" />
-<LinkCard title="Cloud limits" description="API rate limits and plan gates" href="/docs/cloud/limits" />
+<LinkCard title="Cloud limits" description="API rate limits and plan gates" href="/docs/billing/limits" />
 </CardGrid>

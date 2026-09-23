@@ -97,6 +97,11 @@ export const docsSidebarCloud: DocsSidebarSection[] = [
 		label: 'OpenQuok Cloud',
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'cloud' }
+	},
+	{
+		label: 'Billing',
+		icon: icons.CreditCard.name,
+		autogenerate: { directory: 'billing' }
 	}
 ];
 

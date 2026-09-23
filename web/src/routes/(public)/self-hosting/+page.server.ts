@@ -3,6 +3,8 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
+import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/publicSelfHostingWhoIsForConfig';
+import { createPublicAudienceSectionSEOSchema } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicSelfHostPricingOffer } from '$lib/content/utils/createPublicPricingSEOSchema';
 import { createMetaData } from '$lib/seo/createMetaData';
@@ -66,6 +68,12 @@ export async function load({ url, cookies, parent }) {
 					origin: url.origin
 				})
 			},
+			createPublicAudienceSectionSEOSchema({
+				pageUrl: canonical,
+				sectionTitle: PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceTitle,
+				sectionSubtitle: PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceSubtitle,
+				cards: PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION.audienceCards
+			}),
 			createPublicFaqSEOSchema({
 				pageUrl: `${canonical}#faq`,
 				name: faqSection.faqTitle,

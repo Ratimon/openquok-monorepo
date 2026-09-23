@@ -444,7 +444,7 @@ describe('createBlogPostSEOSchema product node', () => {
 				url: 'https://www.openquok.com/tools/humanizer',
 				hasMerchantReturnPolicy: {
 					'@type': 'MerchantReturnPolicy',
-					merchantReturnLink: 'https://www.openquok.com/docs/cloud/refunds-and-support'
+					merchantReturnLink: 'https://www.openquok.com/docs/billing/refunds-and-support'
 				}
 			}
 		});

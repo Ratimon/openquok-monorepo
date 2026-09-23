@@ -103,7 +103,7 @@ describe('pSEO hub FAQ funnel links', () => {
 		for (const section of [PUBLIC_API_POSTING_HUB_FAQ, PUBLIC_API_SCHEDULING_HUB_FAQ]) {
 			const html = section.faqItems.map((item) => item.description).join('\n');
 			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
-			expect(html).toContain('href="/docs/cloud/limits"');
+			expect(html).toContain('href="/docs/billing/limits"');
 			expect(html).toContain('30 requests per hour');
 		}
 	});

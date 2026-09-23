@@ -130,7 +130,7 @@ On OpenQuok Cloud, developer apps are already registered; users **sign up** and 
 | `/compare` | `publicCompareHubFaqConfig.ts` | `/compare/openquok/buffer`, `/pricing`, `/alternatives` |
 | `/creators` | `publicCreatorsHubFaqConfig.ts` | `/playbooks`, `/building-blocks`, sign-up to publish |
 | `/roadmap` | `publicRoadmapHubFaqConfig.ts` | Feedback on roadmap page, Discord |
-| `/social-media-posting-api`, `/social-media-scheduling-api` | `publicApiCapabilityHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/pricing`, `/docs/cloud/limits` — connect before operator docs on platform pages |
+| `/social-media-posting-api`, `/social-media-scheduling-api` | `publicApiCapabilityHubFaqConfig.ts` | `/sign-up`, `/docs/channels/connect`, `/pricing`, `/docs/billing/limits` — connect before operator docs on platform pages |
 
 ## Footer inventory (`PUBLIC_FOOTER_LINKS`)
 

@@ -218,7 +218,7 @@ export function buildPublicApiPlatformFaqItems(
 		{
 			title: `Does OpenQuok bill per ${platformLabel} API call?`,
 			description:
-				`No. OpenQuok bills workspaces on ${faqLink(publicFaqHref.pricing, 'paid plans')}, not per-post credits. Public API access requires a paid tier. Each opo_ token gets 30 requests per hour on OpenQuok Cloud. Scheduled posts still count toward your monthly post quota. See ${faqLink(faqHrefDocs('cloud/limits'), 'cloud limits')}.`
+				`No. OpenQuok bills workspaces on ${faqLink(publicFaqHref.pricing, 'paid plans')}, not per-post credits. Public API access requires a paid tier. Each opo_ token gets 30 requests per hour on OpenQuok Cloud. Scheduled posts still count toward your monthly post quota. See ${faqLink(faqHrefDocs('billing/limits'), 'cloud limits')}.`
 		},
 		{
 			title: `Where can I test the ${platformLabel} payload before I ship code?`,

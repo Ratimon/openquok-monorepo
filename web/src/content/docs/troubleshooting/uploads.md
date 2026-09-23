@@ -34,7 +34,7 @@ The media library page accepts **images and videos only**. The post composer acc
 
 ## Workspace storage full
 
-On OpenQuok Cloud, each workspace has a media storage cap. When you hit it, new uploads are blocked until you delete files or upgrade. See the banner on <a href="/account/media">Media</a> and <a href="/docs/cloud/limits">Cloud limits</a>.
+On OpenQuok Cloud, each workspace has a media storage cap. When you hit it, new uploads are blocked until you delete files or upgrade. See the banner on <a href="/account/media">Media</a> and <a href="/docs/billing/limits">Cloud limits</a>.
 
 ## Upload succeeded but publish failed
 

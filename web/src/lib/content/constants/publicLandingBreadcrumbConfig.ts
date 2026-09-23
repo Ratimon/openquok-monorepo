@@ -3,6 +3,7 @@ export const PUBLIC_LANDING_BREADCRUMB = {
 	agentsHub: 'Agents',
 	autonomousAgentIntegrations: 'Autonomous Agent Integrations',
 	mcpIntegrations: 'MCP Integrations',
+	selfHosting: 'Self-Hosting',
 	supportedChannels: 'Supported Channels'
 } as const;
 

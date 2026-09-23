@@ -32,7 +32,7 @@ When a post is loaded, the modal title is **Post actions**. The header shows cha
 | <Badge text="Statistics" variant="default" /> | Opens performance metrics for the published release |
 | <Badge text="Delete" variant="deprecated" /> | Removes the entire post group after confirmation |
 
-Preview may show **Preview (upgrade required)** on plans without shareable links — see <a href="/docs/cloud/limits">Cloud limits</a>.
+Preview may show **Preview (upgrade required)** on plans without shareable links — see <a href="/docs/billing/limits">Cloud limits</a>.
 
 Export succeeds with toast **Debug JSON copied to clipboard.**
 
