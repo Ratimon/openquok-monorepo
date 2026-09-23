@@ -17,7 +17,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 Open the library from the account sidebar: <Badge text="Media" variant="default" /> at <Badge text="/account/media" variant="path" />. The page title shows the **current workspace**. Switch workspaces in the header to manage another team’s files.
 
-![Open OpenQuok Media Tab on left sidebar](/docs/_assets/media/my-files.webp)
+![Open OpenQuok Media Tab on the Left Sidebar](/docs/_assets/media/my-files.webp)
 
 <Callout type="note">
 <p>You must select a workspace before the library loads. If the page is empty, pick a workspace from the header switcher.</p>
@@ -30,7 +30,7 @@ Open the library from the account sidebar: <Badge text="Media" variant="default"
 | **Upload** on this page | Images and videos from your device |
 | **Design** on this page | Exports from the built-in canvas (same editor as <strong>Design Media</strong> in the composer) |
 | **Import** | Files copied from a connected third-party source (when your workspace has that connector) |
-| **Post composer** | Uploads and designs you attach while writing a post |
+| **Post Editor** | Uploads and designs you attach while composing a post |
 
 The library page accepts **images and videos only**. Other file types may work through the <a href="/docs/cli-usages/media-upload">CLI</a> or <a href="/docs/apis-uploads">Uploads API</a> — see <a href="/docs/creating-posts/media">Media in the composer</a> for how those attach to posts.
 
@@ -43,7 +43,7 @@ The library page accepts **images and videos only**. Other file types may work t
 | **Storage banner** | Shows how much of your workspace media quota is in use. When the cap is full, new uploads are blocked until you free space or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
 | **Main pane** | Folder tree, file list, or gallery grid depending on the view you chose |
 
-Uploads and new designs save to the **folder you have open** in list, grid, or panels view. You can move files to another folder later.
+Uploads and new designs save to the **folder you have open** in list, grid, or panels view (often **General**). Composer attachments are filed under **Posts** automatically. You can move files to another folder later — see <a href="/docs/media/browse-and-organize#folders">Browse and organize → Folders</a>.
 
 ## Use files in posts
 

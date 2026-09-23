@@ -435,9 +435,6 @@
 										class="bg-base-200 text-base-content/70 flex min-h-32 flex-col items-center justify-center gap-1 rounded-lg px-4 text-center text-sm"
 									>
 										<p>Could not load this video for frame capture.</p>
-										<p class="text-xs text-base-content/55">
-											On localhost, re-attach the file or check storage CORS if the preview URL is remote.
-										</p>
 									</div>
 								{:else}
 									<div class="bg-base-200 text-base-content/60 flex min-h-32 items-center justify-center rounded-lg text-sm">

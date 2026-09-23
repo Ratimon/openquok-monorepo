@@ -15,13 +15,17 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 The main browser is a **file manager**.
 
+![Open OpenQuok Media Tab on the Left Sidebar](/docs/_assets/media/file-manager.webp)
+
 - a navigation tree on the left
 - the current folder in the center
 - a toolbar for search and display options
 
 ## View modes
 
-Use the four buttons next to the page title.
+Use the four buttons next to the page title. **Grid view** is the default.
+
+![Select Your View Modes](/docs/_assets/media/view-modes.webp)
 
 | Mode | Best for |
 | --- | --- |
@@ -32,24 +36,42 @@ Use the four buttons next to the page title.
 
 In list, grid, or panels mode, turn the **preview** control (eye icon) on or off to show file details beside the list.
 
-Gallery view uses **pagination** at the bottom. Change page size (12, 24, 48, or 96 items) when you have many files.
-
-<Callout type="tip">
-<p>In gallery view you can still upload by dragging files onto the grid or the empty-state drop zone.</p>
-</Callout>
+See **Gallery view** below for the workspace-wide thumbnail grid, pagination, and tile actions.
 
 ## Folders
 
-Virtual folders group files inside a workspace. They do not change where files are stored on the server; they are labels you use to stay organized.
+Every workspace includes two top-level folders:
+
+| Folder | What goes here |
+| --- | --- |
+| **General** | Uploads, designs, and imports from the <a href="/account/media">Media library</a> page. This is the default when you upload from that page. |
+| **Posts** | Media you attach from the post ediotor — see <a href="/docs/creating-posts/media">Media</a>. |
+
+![OpenQuok 's Parent Folder in Grid View](/docs/_assets/media/my-files.webp)
+
+| Folder | What goes here |
+| --- | --- |
+| **Posts/unscheduled** | Composer attachments when the post has no publish date yet. |
+| **Posts/YYYY-MM-DD** | Composer attachments for scheduled posts (UTC calendar day). |
+
+<Callout type="tip">
+<p>You can create additional folders with <strong>New folder</strong>.</p>
+</Callout>
+
+<Callout type="warning">
+<p>You can create additional folders with <strong>New folder</strong>. <strong>General</strong>, <strong>Posts</strong>, and <strong>Posts/unscheduled</strong> are built in and cannot be deleted.</p>
+</Callout>
 
 | Action | How |
 | --- | --- |
 | **Open a folder** | Click it in the tree or in the main pane |
-| **Go up** | Use breadcrumbs or **back to parent folder** |
+| **Open the parent folder** | Click a breadcrumb segment, or choose **Back to parent folder** |
 | **Create a folder** | In the navigation pane, choose <strong>Add New</strong> → <strong>New folder</strong>, enter a name, confirm |
 | **Delete a folder** | Select the folder, then delete from the context menu or keyboard (see below) |
 
-New uploads and designs from <a href="/docs/media/add-media">Add media</a> go into the folder that is open when you add them.
+<Callout type="tip">
+<p>Uploads and designs from <a href="/docs/media/add-media">Add media</a> save to the folder you have open in the file manager at that moment. Move them later if needed.</p>
+</Callout>
 
 ## File actions
 
@@ -67,17 +89,34 @@ Select one or more files or folders, then use the **right-click menu** or shortc
 | **Open file location** from search results | Ctrl+Alt+O |
 | **Select all** in the current folder | Ctrl+A |
 
-Copy and paste work across folders. In **panels view**, open source and destination in each panel, then cut or copy and paste.
+![OpenQuok file manager 's file actions](/docs/_assets/media/file-actions.webp)
 
-Open a **file** (not a folder) to open **Media details** when the item is a library asset — see <a href="/docs/media/media-details">Media details</a>. You can also pick **Media settings** from the context menu.
+<Callout type="note">
+<p>See more regarding <a href="/docs/media/media-details">Media details</a>.</p>
+</Callout>
 
-## Gallery view actions
+<Callout type="tip">
+<p>You can copy and paste work across folders in <strong>panels view</strong> by opening source and destination in each panel, then cut or copy and paste..</p>
+</Callout>
 
-Each tile has controls to **preview**, open **settings**, or **delete**. Preview opens a larger view; delete asks you to confirm.
+![OpenQuok 's Panel View](/docs/_assets/media/panel-view.webp)
 
-## While uploads run
+## Gallery view
 
-The file manager is **read-only** until the current upload batch finishes. Wait for the progress overlay to clear before you move or delete files.
+Gallery mode hides the folder tree and file-manager layout. You get one paginated thumbnail grid of **every file in the workspace**, across **General**, **Posts**, and any custom folders.
+
+It is the fastest way to scan the whole library when you are not sure which folder holds an asset. Page through results at the bottom — page sizes are **12**, **24**, **48**, or **96** items.
+
+![OpenQuok Gallery View](/docs/_assets/media/gallery-view.webp)
+
+Each tile offers **preview**, **settings**, and **delete**:
+- **Preview** opens a larger view
+- **Settings** opens **Media details** for alt text and video posters
+- **Delete** asks you to confirm. You can still **upload** by dragging files onto the grid.
+
+<Callout type="note">
+<p>Copy, move, rename, and folder actions live in <strong>list</strong>, <strong>grid</strong>, or <strong>panels</strong> view. Switch back when you need the full file manager. See <a href="/docs/media/media-details">Media details</a>.</p>
+</Callout>
 
 ## Related
 

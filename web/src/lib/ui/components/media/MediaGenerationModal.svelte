@@ -104,7 +104,7 @@
 		<Dialog.Header class="border-base-300 shrink-0 border-b px-4 py-3 sm:px-6">
 			<Dialog.Title class="flex items-center gap-2 text-base font-semibold">
 				<AbstractIcon name={icons.PaintRoller.name} class="size-5" width="20" height="20" />
-				Design Media
+				Canvas Editor
 			</Dialog.Title>
 			<Dialog.Description class="text-base-content/70 text-sm">
 				Pick tools, stock, or upload an image from the left; compose on the canvas on the right.

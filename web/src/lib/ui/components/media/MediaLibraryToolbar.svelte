@@ -98,7 +98,7 @@
 		<span class="inline-flex shrink-0 text-secondary-content">
 			<GlyphDesignEditor badgeSurfaceClass="rounded-sm bg-secondary shadow-none ring-0" />
 		</span>
-		Design
+		Canvas
 	</Button>
 	
 	<ThirdPartyMediaLibrary

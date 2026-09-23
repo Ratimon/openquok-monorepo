@@ -1,6 +1,6 @@
 ---
 title: Media
-description: Attach images and video in the post editor — device upload, library, Design Media, limits, and Global vs per-channel lists.
+description: Attach images and video in the post editor — device upload, library, Canvas Editor (aka Design Media), limits, and Global vs per-channel lists.
 order: 4
 lastUpdated: 2026-09-01
 ---
@@ -26,7 +26,7 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 | **Add media** | First toolbar button opens a device picker. Choose one or more images or videos. Files upload to your workspace. |
 | **Drag and drop** | Drop images or videos onto the area below toolbar. |
 | **Media library** | Second toolbar button — attach files already stored at <a href="/account/media">/account/media</a>. See <a href="/docs/media">Media library</a> for uploads, folders, and storage. |
-| **Design Media** | Canvas toolbar button — open the **Photo Editor**, create or edit a visual, then choose **Use this media** to attach the export. Same canvas as the public <a href="/tools/photo-editor">Photo Editor</a> tool. |
+| **Canvas Editor** | Design Media toolbar button — open the **Photo Editor**, create or edit a visual, then choose **Use this media** to attach the export. Same canvas as the public <a href="/tools/photo-editor">Photo Editor</a> tool. |
 
 ![Media toolbar with modal and drag&drop ](/docs/_assets/creating-posts/editor-media-modal.webp)
 
@@ -76,7 +76,7 @@ Channel-specific visuals that are part of publish settings stay in **Settings** 
 
 ## Photo Editor
 
-**Design Media** in the composer opens the same Konva canvas as <a href="/tools/photo-editor">/tools/photo-editor</a>. Draw, add text, or start from a template, then export with **Use this media** to add the image to the post.
+**Design Media** in the post editor opens the same canvas editor as <a href="/tools/photo-editor">/tools/photo-editor</a>. Draw, add text, or start from a template, then export with **Use this media** to add the image to the post.
 
 Cloud save requires a signed-in workspace. If workspace storage is full, save is blocked — see <a href="/docs/cloud/limits">Cloud limits</a>.
 
@@ -134,7 +134,7 @@ Upload assets first with <Badge text="openquok upload" variant="default" /> or <
 <LinkCard title="Global vs per-channel" description="One caption or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Media library" description="Upload, folders, views, and workspace storage" href="/docs/media" />
 <LinkCard title="Tour the app" description="Sidebar and composer entry points" href="/docs/getting-started/tour-the-app" />
-<LinkCard title="Photo Editor" description="Public Photo Editor — same canvas as Design Media in the composer" href="/tools/photo-editor" />
+<LinkCard title="Photo Editor" description="Public Photo Editor — same canvas edior as the post editor" href="/tools/photo-editor" />
 <LinkCard title="Media rules" description="Image, video, and carousel limits per network" href="/docs/platforms/media-rules" />
 <LinkCard title="Media upload (CLI)" description="openquok upload and upload-from-url recipes" href="/docs/cli-usages/media-upload" />
 <LinkCard title="Uploads APIs" description="Attach media via the public API" href="/docs/apis-uploads" />

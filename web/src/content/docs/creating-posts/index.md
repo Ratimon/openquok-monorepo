@@ -119,7 +119,7 @@ Closing the composer asks you to confirm — unsaved work is discarded. If you n
 <LinkCard title="Global vs per-channel" description="One caption for every channel or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
 <LinkCard title="Writing the post" description="Captions, the toolbar, and per-network previews in detail" href="/docs/creating-posts/writing-the-post" />
 <LinkCard title="Threads and comments" description="Multi-part posts and follow-up comments" href="/docs/creating-posts/threads-and-comments" />
-<LinkCard title="Media" description="Device upload, library, Design Media, limits, and per-channel lists" href="/docs/creating-posts/media" />
+<LinkCard title="Media" description="Device upload, library, Canvas Editor, limits, and per-channel lists" href="/docs/creating-posts/media" />
 <LinkCard title="AI generation" description="Draft posts with agents, MCP, and the public API" href="/docs/creating-posts/ai-generation" />
 <LinkCard title="Scheduling" description="Pick a publish time and save as draft or scheduled" href="/docs/creating-posts/scheduling" />
 <LinkCard title="Links and validation" description="Link previews, character limits, and save-time errors" href="/docs/creating-posts/links-and-validation" />
