@@ -2,11 +2,11 @@
 title: Connect a channel
 description: The two ways OpenQuok connects a social account today — OAuth redirect or credentials you paste in Add Channel.
 order: 1
-lastUpdated: 2026-08-24
+lastUpdated: 2026-09-23
 ---
 
 <script>
-import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, TabItem, Tabs } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Where to start
@@ -107,25 +107,14 @@ The channel shows on Home with its avatar. Status badges on the channel grid sum
 
 ## If connecting fails
 
-| Problem | What to try |
+See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and channel connect</a> for <Badge text="Invalid state" variant="param" />, provider token errors, CORS, and self-host Redis setup.
+
+| Problem | Where to look |
 | --- | --- |
-| Platform missing or always errors | See Cloud vs self-host below |
-| <Badge text="Invalid state" variant="param" /> right after you approved | Start again in one fresh browser tab. Privacy extensions or extra tabs can drop the security token that ties the redirect to your session |
-| Connected but posts fail immediately | The platform may require extra approval for API posting until a developer app is reviewed. Check the error on the failed post card |
-| Blocked with a billing message | Plan cap, not a bug — see <a href="/docs/cloud/limits">Cloud limits</a> |
-
-<Tabs items={["Cloud", "Self-hosting"]} variant="line">
-<TabItem label="Cloud">
-
-<p>Every listed network should connect when you click it. If one consistently fails, contact support on <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink>.</p>
-
-</TabItem>
-<TabItem label="Self-hosting">
-
-<p>OpenQuok lists platforms even when operator keys are missing. A network that always fails at connect usually needs its developer app registered and env keys set. See <a href="/docs/social-integration">Social integrations</a>.</p>
-
-</TabItem>
-</Tabs>
+| Connect errors after you approve on the network | <a href="/docs/troubleshooting/oauth-connect">OAuth and channel connect</a> |
+| Posts fail right after connect | <a href="/docs/troubleshooting/failed-posts">A post failed to publish</a> — often API approval on the developer app |
+| Blocked with a billing message | Plan cap — <a href="/docs/cloud/limits">Cloud limits</a> |
+| Self-host: network always errors | <a href="/docs/social-integration">Social integrations</a> and <a href="/docs/help">Help</a> |
 
 ## Related
 
@@ -135,4 +124,5 @@ The channel shows on Home with its avatar. Status badges on the channel grid sum
 <LinkCard title="Channel groups" description="Group channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />
 <LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
+<LinkCard title="OAuth and channel connect" description="Invalid state, Redis, and provider errors" href="/docs/troubleshooting/oauth-connect" />
 </CardGrid>

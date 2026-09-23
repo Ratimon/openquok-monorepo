@@ -29,8 +29,10 @@ This is OpenQuok&apos;s written refund policy for Cloud billing. It matches the 
 
 ## How to get help
 
+See <a href="/docs/help">Help and support</a> for the full guide (troubleshooting links, Cloud vs self-host, and what to include in a question).
+
 - **Billing, invoices, plan changes** — workspace owners use <a href="/account/billing">Billing</a> and the Stripe portal first (cards, invoices, cancel).
-- **Product questions** — [Overview](/docs/getting-started) and [Quickstart](/docs/getting-started/quickstart).
+- **Product questions** — <a href="/docs/troubleshooting">Troubleshooting</a>, <a href="/docs/getting-started">Overview</a>, and <a href="/docs/getting-started/quickstart">Quickstart</a>.
 - **Talk to a person** — join the OpenQuok <DocsExternalLink href="https://discord.gg/wXgWcYzU4">Discord</DocsExternalLink> and describe the workspace, plan, and what you already tried.
 - **Email** — <a href="mailto:admin@openquok.com">admin@openquok.com</a>. Company address and phone are on <DocsExternalLink href="https://www.openquok.com/about">About</DocsExternalLink>.
 
@@ -44,4 +46,5 @@ Do not paste programmatic tokens, Stripe secret keys, or provider app secrets in
 <LinkCard title="Cloud overview" description="Hosted vs self-host comparison" href="/docs/cloud" />
 <LinkCard title="Pricing" description="Current Cloud plans" href="/pricing" />
 <LinkCard title="About" description="Support email, phone, and company contact" href="/about" />
+<LinkCard title="Help and support" description="Docs-first help, Discord, email, and how to ask" href="/docs/help" />
 </CardGrid>

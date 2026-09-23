@@ -85,4 +85,6 @@ More product guides plus automation and contribution paths.
 <LinkCard title="MCP" description="Connect Cursor, Claude Code, and other MCP clients" href="/docs/getting-started-for-mcp" />
 <LinkCard title="Public API" description="Posts, channels, and analytics over HTTP" href="/docs/getting-started-for-public-api" />
 <LinkCard title="Contributing" description="Code guidelines, catalog listings, and docs authoring" href="/docs/developer-guidelines" />
+<LinkCard title="Troubleshooting" description="Connect, uploads, login, and failed posts" href="/docs/troubleshooting" />
+<LinkCard title="Help" description="Support channels and how to describe a problem" href="/docs/help" />
 </CardGrid>

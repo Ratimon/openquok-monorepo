@@ -53,7 +53,7 @@ When publish fails, the calendar chip keeps shows a **red ring** . Hover the chi
 Open the post (**Edit** from **Post actions**) for the full error. To edit content, reconnect the channel if auth expired, adjust copy to match <a href="/docs/platforms">posting rules</a>, then schedule again.
 
 <Callout type="note">
-See <a href="/docs/posts-management/calendar#post-chips">Calendar → Post chips</a> for how failed chips differ from draft and scheduled rows.
+See <a href="/docs/posts-management/calendar#post-chips">Calendar → Post chips</a> for how failed chips differ from draft and scheduled rows. Common causes and fixes: <a href="/docs/troubleshooting/failed-posts">Troubleshooting → A post failed to publish</a>.
 </Callout>
 
 <Callout type="tip">

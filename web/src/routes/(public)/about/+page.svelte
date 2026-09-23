@@ -4,8 +4,10 @@
 	import { page } from '$app/state';
 	import { generalFeedbackPresenter } from '$lib/feedbacks';
 
+	import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPublicDocs';
 	import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 	import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
+	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
 	import { route } from '$lib/utils/path';
 
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
@@ -15,6 +17,9 @@
 	// /roadmap
 	const rootPathPublicRoadmap = getRootPathPublicRoadmap();
 	const publicRoadmapPath = route(rootPathPublicRoadmap);
+	// /docs/help
+	const publicDocsHelpPath = route(`${getRootPathPublicDocs()}/help`);
+	let publicDocsHelpHref = $derived(hostedMarketingHref(publicDocsHelpPath, page.url.origin));
 
 	type Props = { data: PageData };
 
@@ -66,6 +71,10 @@
 		</p>
 
 		<div class="mt-6 space-y-2 text-secondary">
+			<p>
+				Product help and support are in our
+				<a class="underline" href={publicDocsHelpHref}>Help documentation</a>.
+			</p>
 			<p>
 				Contact us at
 				<a

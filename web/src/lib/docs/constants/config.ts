@@ -78,12 +78,23 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'platforms' }
 	},
+	{
+		label: 'Troubleshooting',
+		icon: icons.CircleAlert.name,
+		autogenerate: { directory: 'troubleshooting' }
+	},
+	{
+		label: 'Help',
+		icon: icons.MessageCircle.name,
+		autogenerate: { directory: 'help' }
+	},
 ];
+
 
 /** Hosted plans, trial, and billing. */
 export const docsSidebarCloud: DocsSidebarSection[] = [
 	{
-		label: 'Cloud',
+		label: 'OpenQuok Cloud',
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'cloud' }
 	}

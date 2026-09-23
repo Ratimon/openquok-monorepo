@@ -121,6 +121,8 @@ OpenQuok stores per-channel lists only for channels you edited while unlocked. E
 | Platform rules after upload | Upload can succeed and save-time validation still fails — for example too many images on X, mixed photos and video on TikTok, or no media on Instagram. Fix the strip or unlock that channel and adjust. See <a href="/docs/platforms/media-rules">Media rules</a> |
 | Workspace storage full | On OpenQuok Cloud, uploads stop when the workspace hits its media storage cap. Delete files in the library or upgrade — see <a href="/docs/cloud/limits">Cloud limits</a> |
 
+More detail (API payloads, <Badge text="upload-from-url" variant="param" />, and video formats): <a href="/docs/troubleshooting/uploads">Troubleshooting → Uploads and media</a>.
+
 ## Public API and CLI
 
 Outside the dashboard, pass shared attachments in <Badge text="media" variant="param" /> and channel-specific lists in <Badge text="mediaByIntegrationId" variant="param" /> (keyed by integration UUID). Channels omitted from the map inherit the top-level <Badge text="media" variant="param" /> array.
