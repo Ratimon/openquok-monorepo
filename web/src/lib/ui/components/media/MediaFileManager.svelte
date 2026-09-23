@@ -80,8 +80,16 @@
 	const FOLDER_PAGINATION_HIDDEN = 'data-media-pagination-hidden';
 	const FOLDER_PAGE_SIZE_OPTIONS = [12, 24, 48, 96] as const;
 	const CARD_FOLDER_SLOT = 'data-media-card-folder-icon';
+	const VIDEO_PREVIEW_SLOT = 'data-media-video-preview';
 	let emptyPreviewCleanup: (() => void) | null = null;
 	const cardFolderCleanups = new Map<Element, () => void>();
+	const videoPreviewCleanups = new Map<Element, () => void>();
+
+	type FileManagerMediaRow = IEntity & {
+		publicUrl?: string;
+		thumbnailPublicUrl?: string;
+		kind?: string;
+	};
 
 	function teardownEmptyPreview(): void {
 		emptyPreviewCleanup?.();
@@ -93,9 +101,132 @@
 		cardFolderCleanups.clear();
 	}
 
+	function teardownVideoPreviews(): void {
+		for (const cleanup of videoPreviewCleanups.values()) cleanup();
+		videoPreviewCleanups.clear();
+	}
+
 	function teardownDecorations(): void {
 		teardownEmptyPreview();
 		teardownCardFolderIcons();
+		teardownVideoPreviews();
+	}
+
+	function videoElementSrcForRow(row: FileManagerMediaRow | null | undefined): string | null {
+		if (!row || row.type !== 'file' || row.kind !== 'video') return null;
+		const src = row.publicUrl?.trim();
+		if (!src) return null;
+		if (row.thumbnailPublicUrl?.trim()) return null;
+		return src;
+	}
+
+	function mountVideoPreview(
+		host: HTMLElement,
+		videoSrc: string,
+		className: string
+	): () => void {
+		for (const img of host.querySelectorAll('img')) img.remove();
+		for (const icon of host.querySelectorAll('i.wxi-file')) icon.remove();
+
+		let video = host.querySelector(`[${VIDEO_PREVIEW_SLOT}]`) as HTMLVideoElement | null;
+		if (!video) {
+			video = document.createElement('video');
+			video.setAttribute(VIDEO_PREVIEW_SLOT, '');
+			host.appendChild(video);
+		}
+
+		video.src = videoSrc;
+		video.className = className;
+		video.muted = true;
+		video.playsInline = true;
+		video.setAttribute('playsinline', '');
+		video.preload = 'metadata';
+		video.setAttribute('aria-label', 'Video preview');
+
+		return () => {
+			video?.remove();
+		};
+	}
+
+	function fileManagerIdFromDom(raw: string | null | undefined): string | null {
+		const value = raw?.trim();
+		if (!value) return null;
+		return value.startsWith(':') ? value.slice(1) : value;
+	}
+
+	async function syncVideoPreviews(): Promise<void> {
+		await tick();
+		if (!hostEl) {
+			teardownVideoPreviews();
+			return;
+		}
+
+		const activeHosts = new Set<Element>();
+		const rowsById = new Map<string, FileManagerMediaRow>();
+		const videoPublicUrls = new Set<string>();
+
+		for (const row of data as FileManagerMediaRow[]) {
+			if (row.type !== 'file') continue;
+			rowsById.set(String(row.id), row);
+			const src = videoElementSrcForRow(row);
+			if (src) videoPublicUrls.add(src);
+		}
+
+		const queueHost = (host: Element | null, src: string, className: string) => {
+			if (!host || !(host instanceof HTMLElement)) return;
+			activeHosts.add(host);
+			if (videoPreviewCleanups.has(host)) {
+				const existing = host.querySelector(`[${VIDEO_PREVIEW_SLOT}]`) as HTMLVideoElement | null;
+				if (existing) {
+					if (existing.src !== src) existing.src = src;
+					if (existing.className !== className) existing.className = className;
+				}
+				return;
+			}
+			videoPreviewCleanups.set(host, mountVideoPreview(host, src, className));
+		};
+
+		for (const itemEl of hostEl.querySelectorAll('.wx-cards .wx-item[data-id]')) {
+			const id = fileManagerIdFromDom(itemEl.getAttribute('data-id'));
+			if (!id) continue;
+			const row = rowsById.get(id) ?? (fmApi?.getFile(id) as FileManagerMediaRow | null);
+			const src = videoElementSrcForRow(row);
+			if (!src) continue;
+			queueHost(itemEl.querySelector('.wx-file-preview'), src, 'wx-card-preview');
+		}
+
+		for (const img of hostEl.querySelectorAll('.wx-file-preview img, .wx-img-wrapper img')) {
+			const src = img.getAttribute('src')?.trim() ?? '';
+			if (!src || !videoPublicUrls.has(src)) continue;
+			queueHost(img.parentElement, src, img.className || 'wx-card-preview');
+		}
+
+		if (fmApi) {
+			try {
+				const state = fmApi.getState();
+				const panel = state.panels?.[state.activePanel ?? 0];
+				const selected = panel?._selected ?? [];
+				if (selected.length === 1) {
+					const src = videoElementSrcForRow(selected[0] as FileManagerMediaRow);
+					if (src) {
+						const infoPreview = hostEl.querySelector('.wx-content > .wx-info .wx-preview');
+						const wrapper =
+							infoPreview?.querySelector('.wx-img-wrapper') ??
+							infoPreview?.querySelector('.wx-icon-wrapper');
+						queueHost(wrapper ?? null, src, 'wx-info-video-preview');
+					}
+				}
+			} catch {
+				// ignore — file manager may be mid-init
+			}
+		}
+
+		for (const [host, cleanup] of videoPreviewCleanups) {
+			if (!activeHosts.has(host)) {
+				cleanup();
+				videoPreviewCleanups.delete(host);
+			}
+		}
 	}
 
 	function mountFolderIcon(
@@ -211,6 +342,7 @@
 	function scheduleDecorationSync(): void {
 		scheduleEmptyPreviewSync();
 		void syncFolderIcons();
+		void syncVideoPreviews();
 		scheduleFolderPagination();
 	}
 
@@ -522,11 +654,15 @@
 		teardownDecorations();
 	});
 
-	function previewUrl(file: IParsedEntity & { publicUrl?: string; kind?: string }, _w: number, _h: number) {
+	function previewUrl(file: IParsedEntity & { publicUrl?: string; kind?: string; thumbnailPublicUrl?: string }, _w: number, _h: number) {
 		if (file.type !== 'file') return null;
-		const url = file.publicUrl;
+		const url = file.publicUrl?.trim();
 		if (!url) return null;
-		if (file.kind === 'image' || file.kind === 'video') return url;
+		if (file.kind === 'image') return url;
+		if (file.kind === 'video') {
+			const poster = file.thumbnailPublicUrl?.trim();
+			return poster || null;
+		}
 		return null;
 	}
 
@@ -738,6 +874,12 @@
 			object-fit: cover;
 		}
 
+		.media-file-manager-host :global(.wx-cards .wx-item .wx-file-preview video.wx-card-preview) {
+			height: 154px;
+			width: 100%;
+			object-fit: cover;
+		}
+
 		.media-file-manager-host :global(.wx-cards .wx-item .wx-file-icon .wx-card-preview) {
 			height: 3.5rem;
 			width: 3.5rem;
@@ -856,6 +998,12 @@
 		color: color-mix(in oklab, var(--color-base-content) 55%, transparent);
 	}
 
+	.media-file-manager-host :global(.wx-cards .wx-item .wx-file-preview video.wx-card-preview) {
+		height: 154px;
+		width: 100%;
+		object-fit: cover;
+	}
+
 	.media-file-manager-host :global(.wx-cards .wx-item:has(.wx-folder-name) .wx-preview) {
 		background: color-mix(in oklab, var(--color-primary) 6%, var(--color-base-200));
 	}
@@ -948,6 +1096,19 @@
 
 	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview .wx-icon-wrapper > i.wxi-folder) {
 		display: none;
+	}
+
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview video.wx-info-video-preview) {
+		display: block;
+		max-height: 100%;
+		max-width: 100%;
+		width: 100%;
+		height: auto;
+		object-fit: contain;
+	}
+
+	.media-file-manager-host :global(.wx-content > .wx-info .wx-preview .wx-icon-wrapper:has(video.wx-info-video-preview)) {
+		background: var(--color-base-200);
 	}
 
 	/* Sidebar tree: leaf folders use a placeholder; parents use a chevron — same column width */

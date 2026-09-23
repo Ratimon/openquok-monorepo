@@ -66,7 +66,7 @@ Click the avatars at the top. Picking a <a href="/docs/channels/channel-groups">
 
 ### Add media (optional)
 
-Drag a file in, use <strong>Add media</strong> from the toolbar, or pick from your <a href="/account/media">media library</a>. See <a href="/docs/creating-posts/media">Media</a>.
+Drag a file in, use <strong>Add media</strong> from the toolbar, or pick from your <a href="/account/media">media library</a>. See <a href="/docs/creating-posts/media">Media</a> in the composer and <a href="/docs/media">Media library</a> for the full page.
 
 ### Fill network-specific fields
 

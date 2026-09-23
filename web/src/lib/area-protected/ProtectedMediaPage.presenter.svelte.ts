@@ -57,6 +57,7 @@ function treeEntityToVm(row: MediaFileTreeEntityProgrammerModel): IEntity {
 		...(row.mediaId ? { mediaId: row.mediaId } : {}),
 		...(row.displayName ? { displayName: row.displayName } : {}),
 		...(row.publicUrl ? { publicUrl: row.publicUrl } : {}),
+		...(row.thumbnailPublicUrl ? { thumbnailPublicUrl: row.thumbnailPublicUrl } : {}),
 		...(row.kind ? { kind: row.kind } : {})
 	};
 }

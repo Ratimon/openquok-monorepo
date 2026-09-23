@@ -54,14 +54,19 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'posts-management' }
 	},
 	{
+		label: 'Automations',
+		icon: icons.Bot.name,
+		autogenerate: { directory: 'automations' }
+	},
+	{
 		label: 'Insights',
 		icon: icons.ChartBar.name,
 		autogenerate: { directory: 'insights' }
 	},
 	{
-		label: 'Automations',
-		icon: icons.Bot.name,
-		autogenerate: { directory: 'automations' }
+		label: 'Media library',
+		icon: icons.Image.name,
+		autogenerate: { directory: 'media' }
 	},
 	{
 		label: 'Settings',
@@ -69,7 +74,7 @@ export const docsSidebarGeneral: DocsSidebarSection[] = [
 		autogenerate: { directory: 'settings' }
 	},
 	{
-		label: 'Platform rules',
+		label: 'Social Platform rules',
 		icon: icons.Globe.name,
 		autogenerate: { directory: 'platforms' }
 	},

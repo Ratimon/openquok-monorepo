@@ -35,7 +35,7 @@ Settings and Billing sit under the account menu.
 | <Badge text="Playbooks" variant="default" /> | <Badge text="/account/playbooks" variant="path" /> | Browse, bookmark, and edit playbooks and building blocks |
 | <Badge text="Auto Plugs" variant="default" /> | <Badge text="/account/plugs" variant="path" /> | Global channel rules after publish — see <a href="/docs/automations/global-plugs">Global plugs</a> |
 | <Badge text="Analytics" variant="default" /> | <Badge text="/account/analytics" variant="path" /> | Reach and engagement after publish — see <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a> |
-| <Badge text="Media" variant="default" /> | <Badge text="/account/media" variant="path" /> | Image and video library for the composer. Cloud caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
+| <Badge text="Media" variant="default" /> | <Badge text="/account/media" variant="path" /> | Image and video library — see <a href="/docs/media">Media library</a>. Cloud caps are on <a href="/docs/cloud/limits">Cloud limits</a> |
 
 
 ## Header

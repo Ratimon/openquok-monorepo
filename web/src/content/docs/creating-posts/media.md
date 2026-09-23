@@ -25,7 +25,7 @@ In **Global** mode, one attachment list is copied to every channel selected. You
 | --- | --- |
 | **Add media** | First toolbar button opens a device picker. Choose one or more images or videos. Files upload to your workspace. |
 | **Drag and drop** | Drop images or videos onto the area below toolbar. |
-| **Media library** | Second toolbar button — attach files already stored at <a href="/account/media">/account/media</a>. See <a href="/docs/getting-started/tour-the-app">Tour the app</a> for where the library lives in the sidebar. |
+| **Media library** | Second toolbar button — attach files already stored at <a href="/account/media">/account/media</a>. See <a href="/docs/media">Media library</a> for uploads, folders, and storage. |
 | **Design Media** | Canvas toolbar button — open the **Photo Editor**, create or edit a visual, then choose **Use this media** to attach the export. Same canvas as the public <a href="/tools/photo-editor">Photo Editor</a> tool. |
 
 ![Media toolbar with modal and drag&drop ](/docs/_assets/creating-posts/editor-media-modal.webp)
@@ -132,7 +132,8 @@ Upload assets first with <Badge text="openquok upload" variant="default" /> or <
 <CardGrid>
 <LinkCard title="Creating posts overview" description="Editor layout, flow, and save options" href="/docs/creating-posts" />
 <LinkCard title="Global vs per-channel" description="One caption or a version per network" href="/docs/creating-posts/global-vs-per-channel" />
-<LinkCard title="Tour the app" description="Sidebar, media library, and composer entry points" href="/docs/getting-started/tour-the-app" />
+<LinkCard title="Media library" description="Upload, folders, views, and workspace storage" href="/docs/media" />
+<LinkCard title="Tour the app" description="Sidebar and composer entry points" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Photo Editor" description="Public Photo Editor — same canvas as Design Media in the composer" href="/tools/photo-editor" />
 <LinkCard title="Media rules" description="Image, video, and carousel limits per network" href="/docs/platforms/media-rules" />
 <LinkCard title="Media upload (CLI)" description="openquok upload and upload-from-url recipes" href="/docs/cli-usages/media-upload" />

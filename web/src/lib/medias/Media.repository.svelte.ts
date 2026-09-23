@@ -12,6 +12,7 @@ export interface MediaFileTreeEntityProgrammerModel {
 	mediaId?: string;
 	displayName?: string;
 	publicUrl?: string | null;
+	thumbnailPublicUrl?: string | null;
 	kind?: MediaLibraryItemProgrammerModel['kind'];
 }
 
