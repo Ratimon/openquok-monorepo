@@ -89,7 +89,9 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_device_requests_user_code
     ON device_requests (user_code) WHERE status = 'pending'
   `);
-  await pool.query(`DELETE FROM device_requests WHERE created_at < NOW() - INTERVAL '${EXPIRY_MINUTES} minutes'`);
+  await pool.query("DELETE FROM device_requests WHERE created_at < NOW() - ($1 * INTERVAL '1 minute')", [
+    EXPIRY_MINUTES,
+  ]);
 }
 
 /** Vercel mounts this app under `/api/*`; strip that prefix before routing. */
@@ -206,9 +208,9 @@ async function handleVerifySubmit(req: IncomingMessage, res: ServerResponse) {
   const result = await pool.query(
     `SELECT device_code FROM device_requests
      WHERE user_code = $1 AND status = 'pending'
-     AND created_at > NOW() - INTERVAL '${EXPIRY_MINUTES} minutes'
+     AND created_at > NOW() - ($2 * INTERVAL '1 minute')
      LIMIT 1`,
-    [userCode]
+    [userCode, EXPIRY_MINUTES]
   );
 
   if (result.rows.length === 0) {
@@ -258,8 +260,8 @@ async function handleOAuthCallback(req: IncomingMessage, res: ServerResponse) {
   const result = await pool.query(
     `SELECT device_code FROM device_requests
      WHERE device_code = $1 AND status = 'pending'
-     AND created_at > NOW() - INTERVAL '${EXPIRY_MINUTES} minutes'`,
-    [state]
+     AND created_at > NOW() - ($2 * INTERVAL '1 minute')`,
+    [state, EXPIRY_MINUTES]
   );
 
   if (result.rows.length === 0) {
@@ -396,7 +398,9 @@ export async function handleRequest(req: IncomingMessage, res: ServerResponse): 
 export function startCleanupInterval(): ReturnType<typeof setInterval> {
   return setInterval(async () => {
     try {
-      await pool.query(`DELETE FROM device_requests WHERE created_at < NOW() - INTERVAL '${EXPIRY_MINUTES} minutes'`);
+      await pool.query("DELETE FROM device_requests WHERE created_at < NOW() - ($1 * INTERVAL '1 minute')", [
+        EXPIRY_MINUTES,
+      ]);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("Cleanup error:", err);
