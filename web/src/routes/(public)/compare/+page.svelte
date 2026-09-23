@@ -54,6 +54,10 @@
 			containerClass:
 				'bg-linear-to-br from-orange-400/30 via-amber-300/20 to-yellow-300/20 text-orange-100 ring-orange-300/35'
 		},
+		heropost: {
+			containerClass:
+				'bg-linear-to-br from-amber-500/30 via-orange-400/20 to-rose-400/25 text-amber-50 ring-amber-400/40'
+		},
 		'hopper-hq': {
 			containerClass:
 				'bg-linear-to-br from-blue-500/30 via-sky-400/20 to-cyan-300/20 text-blue-100 ring-blue-400/35'

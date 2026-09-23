@@ -37,6 +37,7 @@ export type BrandedIconName =
     | "GoogleChat"
     | "GrokBot"
     | "HermesAgent"
+    | "Heropost"
     | "Hootsuite"
     | "HopperHQ"
     | "IMessage"
@@ -352,6 +353,13 @@ export const brandedIcons = {
         box: 640,
         fill: true,
         svg: `<circle cx="320" cy="320" r="320" fill="#ffffff"/><image href="/icons/hermesagent.png" x="96" y="96" width="448" height="448"/>`
+    },
+    /** Heropost product mark. Heropost is a trademark of its respective owner. */
+    Heropost: {
+        name: "Heropost",
+        box: 24,
+        fill: true,
+        svg: `<rect width="24" height="24" rx="6" fill="#0A0A0A"/><image href="/icons/heropost.png" x="2" y="2" width="20" height="20"/>`
     },
     /** Hootsuite product mark. Hootsuite is a trademark of its respective owner. */
     Hootsuite: {

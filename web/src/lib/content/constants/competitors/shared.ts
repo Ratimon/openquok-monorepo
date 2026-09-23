@@ -27,6 +27,7 @@ export const COMPARE_HUB_BASE_SLUG = 'openquok' as const;
 export const COMPARE_PRODUCT_WEBSITE_URLS = {
 	openquok: 'https://www.openquok.com',
 	hootsuite: 'https://www.hootsuite.com',
+	heropost: 'https://heropost.ai',
 	'hopper-hq': 'https://www.hopperhq.com',
 	later: 'https://later.com',
 	buffer: 'https://buffer.com',
@@ -44,6 +45,7 @@ export const COMPARE_PRODUCT_WEBSITE_URLS = {
 } as const satisfies Record<
 	| typeof COMPARE_HUB_BASE_SLUG
 	| 'hootsuite'
+	| 'heropost'
 	| 'hopper-hq'
 	| 'later'
 	| 'buffer'
