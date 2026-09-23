@@ -6,6 +6,7 @@
 	import { createForm } from '@tanstack/svelte-form';
 
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
+	import { calculateReadingTimeMinutes } from '$lib/docs/utils/content/readingTime';
 	import {
 		isBlogTopicEligibleForGuide,
 		isBlogTopicEligibleForHowTo,
@@ -75,7 +76,8 @@
 			is_admin_approved: values.is_admin_approved ?? false,
 			faq_items: values.faq_items?.map((item) => ({ ...item })) ?? null,
 			howto_steps: values.howto_steps?.map((step) => ({ ...step })) ?? null,
-			product: values.product ? { ...values.product } : null
+			product: values.product ? { ...values.product } : null,
+			reading_time_minutes: values.reading_time_minutes ?? null
 		};
 	}
 
@@ -175,6 +177,7 @@
 					is_featured: value.is_featured,
 					is_user_published: value.is_user_published,
 					is_admin_approved: value.is_admin_approved,
+					reading_time_minutes: value.reading_time_minutes ?? null,
 					...seoFields
 				};
 				const result = blogPostFormSchema.safeParse(payload);
@@ -527,6 +530,48 @@
 						</div>
 					{/snippet}
 				</form.Field>
+				<form.Subscribe selector={(state) => state.values.content ?? ''}>
+					{#snippet children(contentForEstimate)}
+						{@const estimatedMinutes = calculateReadingTimeMinutes(contentForEstimate)}
+						<form.Field name="reading_time_minutes">
+							{#snippet children(field)}
+								<div class="flex flex-col gap-2 max-w-xs">
+									<Field.Label>Reading time (minutes)</Field.Label>
+									<Field.Description>
+										Leave empty to calculate from content when you save (about {estimatedMinutes} min
+										from the current body). Enter a number to override, or clear a wrong value and save
+										to recalculate.
+									</Field.Description>
+									<input
+										id="blog-reading-time"
+										type="number"
+										min="1"
+										max="999"
+										step="1"
+										class="input input-bordered w-full"
+										placeholder={`Auto (~${estimatedMinutes} min)`}
+										value={field.state.value ?? ''}
+										onblur={field.handleBlur}
+										oninput={(e) => {
+											const raw = e.currentTarget.value.trim();
+											field.handleChange(raw === '' ? null : Number.parseInt(raw, 10));
+										}}
+									/>
+									{#if field.state.value != null}
+										<p class="text-xs text-base-content/60">
+											Manual override: {field.state.value} min read
+										</p>
+									{:else}
+										<p class="text-xs text-base-content/60">
+											Estimated: {estimatedMinutes} min read
+										</p>
+									{/if}
+									<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
+								</div>
+							{/snippet}
+						</form.Field>
+					{/snippet}
+				</form.Subscribe>
 				<form.Field name="content">
 					{#snippet children(field)}
 						<div class="flex flex-col gap-2">

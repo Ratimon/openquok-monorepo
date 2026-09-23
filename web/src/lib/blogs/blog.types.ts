@@ -55,7 +55,14 @@ export const blogPostFormSchema = z.object({
 	is_admin_approved: z.boolean().default(false),
 	faq_items: z.array(blogSeoFaqItemSchema).optional().nullable(),
 	howto_steps: z.array(blogSeoHowtoStepSchema).optional().nullable(),
-	product: blogSeoProductSchema.optional().nullable()
+	product: blogSeoProductSchema.optional().nullable(),
+	reading_time_minutes: z
+		.number()
+		.int()
+		.min(1, 'Reading time must be at least 1 minute')
+		.max(999, 'Reading time must be at most 999 minutes')
+		.optional()
+		.nullable()
 });
 
 export type BlogPostFormSchemaType = z.infer<typeof blogPostFormSchema>;

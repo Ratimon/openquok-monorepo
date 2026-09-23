@@ -55,6 +55,14 @@ const blogPostFields = {
     howto_steps: z.array(blogHowtoStepSchema).optional().nullable(),
     /** Optional product summary; null clears. */
     product: blogProductSchema.optional().nullable(),
+    /** Optional manual read time in minutes; omit or null to auto-calculate from content on save. */
+    reading_time_minutes: z
+        .number()
+        .int()
+        .min(1, "Reading time must be at least 1 minute")
+        .max(999, "Reading time must be at most 999 minutes")
+        .optional()
+        .nullable(),
 };
 
 /** Schema for creating a blog post (POST /posts). Id optional (ignored on create). */

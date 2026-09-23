@@ -125,13 +125,31 @@ SET search_path = public
 AS $$
 DECLARE
     words_per_minute INTEGER := 200;
+    stripped TEXT;
     word_count INTEGER;
 BEGIN
-    -- Count words in content (rough estimate)
-    word_count := array_length(regexp_split_to_array(NEW.content, '\\s+'), 1);
-    
-    -- Calculate reading time in minutes (rounded up)
-    NEW.reading_time_minutes := CEILING(word_count::float / words_per_minute);
+    IF NEW.reading_time_minutes IS NOT NULL THEN
+        RETURN NEW;
+    END IF;
+
+    stripped := regexp_replace(COALESCE(NEW.content, ''), '<[^>]*>', ' ', 'g');
+    stripped := regexp_replace(stripped, E'\\s+', ' ', 'g');
+    stripped := btrim(stripped);
+
+    IF stripped = '' THEN
+        NEW.reading_time_minutes := 1;
+        RETURN NEW;
+    END IF;
+
+    word_count := array_length(
+        regexp_split_to_array(stripped, '[[:space:]]+'),
+        1
+    );
+
+    NEW.reading_time_minutes := GREATEST(
+        1,
+        CEILING(COALESCE(word_count, 0)::float / words_per_minute)
+    );
     
     RETURN NEW;
 END;

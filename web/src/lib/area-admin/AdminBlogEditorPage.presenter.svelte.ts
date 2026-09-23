@@ -189,7 +189,8 @@ export class AdminBlogEditorPagePresenter {
 				is_admin_approved: false,
 				faq_items: null,
 				howto_steps: null,
-				product: null
+				product: null,
+				reading_time_minutes: null
 			};
 		}
 		return {
@@ -205,7 +206,8 @@ export class AdminBlogEditorPagePresenter {
 			is_admin_approved: p.isAdminApproved,
 			faq_items: p.faqItems?.length ? [...p.faqItems] : null,
 			howto_steps: p.howtoSteps?.length ? [...p.howtoSteps] : null,
-			product: p.product ?? null
+			product: p.product ?? null,
+			reading_time_minutes: p.readingTimeMinutes ?? null
 		};
 	}
 }

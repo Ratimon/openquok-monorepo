@@ -5972,13 +5972,31 @@ SET search_path = public
 AS $$
 DECLARE
     words_per_minute INTEGER := 200;
+    stripped TEXT;
     word_count INTEGER;
 BEGIN
-    -- Count words in content (rough estimate)
-    word_count := array_length(regexp_split_to_array(NEW.content, '\\s+'), 1);
-    
-    -- Calculate reading time in minutes (rounded up)
-    NEW.reading_time_minutes := CEILING(word_count::float / words_per_minute);
+    IF NEW.reading_time_minutes IS NOT NULL THEN
+        RETURN NEW;
+    END IF;
+
+    stripped := regexp_replace(COALESCE(NEW.content, ''), '<[^>]*>', ' ', 'g');
+    stripped := regexp_replace(stripped, E'\\s+', ' ', 'g');
+    stripped := btrim(stripped);
+
+    IF stripped = '' THEN
+        NEW.reading_time_minutes := 1;
+        RETURN NEW;
+    END IF;
+
+    word_count := array_length(
+        regexp_split_to_array(stripped, '[[:space:]]+'),
+        1
+    );
+
+    NEW.reading_time_minutes := GREATEST(
+        1,
+        CEILING(COALESCE(word_count, 0)::float / words_per_minute)
+    );
     
     RETURN NEW;
 END;
@@ -6088,6 +6106,63 @@ REVOKE ALL ON FUNCTION public.increment_blog_view_count() FROM anon, authenticat
 
 REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.update_blog_post_like_count() FROM anon, authenticated;
+
+
+-- Module: blog, File: 402_20260922_functions.sql
+-- ---------------------------
+-- MODULE NAME: Blog System Functions
+-- MODULE DATE: 20260922
+-- MODULE SCOPE: Functions
+-- ---------------------------
+
+BEGIN;
+
+-- Fix reading-time estimation (HTML-aware word count; skip when minutes are set explicitly).
+CREATE OR REPLACE FUNCTION public.calculate_blog_reading_time()
+RETURNS TRIGGER
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    words_per_minute INTEGER := 200;
+    stripped TEXT;
+    word_count INTEGER;
+BEGIN
+    IF NEW.reading_time_minutes IS NOT NULL THEN
+        RETURN NEW;
+    END IF;
+
+    stripped := regexp_replace(COALESCE(NEW.content, ''), '<[^>]*>', ' ', 'g');
+    stripped := regexp_replace(stripped, E'\\s+', ' ', 'g');
+    stripped := btrim(stripped);
+
+    IF stripped = '' THEN
+        NEW.reading_time_minutes := 1;
+        RETURN NEW;
+    END IF;
+
+    word_count := array_length(
+        regexp_split_to_array(stripped, '[[:space:]]+'),
+        1
+    );
+
+    NEW.reading_time_minutes := GREATEST(
+        1,
+        CEILING(COALESCE(word_count, 0)::float / words_per_minute)
+    );
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Recalculate stored reading times (previous trigger treated whole HTML as one token).
+UPDATE public.blog_posts
+SET reading_time_minutes = NULL
+WHERE content IS NOT NULL;
+
+UPDATE public.blog_posts
+SET content = content
+WHERE content IS NOT NULL;
 
 
 -- Module: listing-categories, File: 401_20260628_functions.sql
@@ -9581,18 +9656,45 @@ BEGIN;
 -- ---------------------------
 -- Required for scheduled deletion of expired refresh tokens.
 -- On Supabase 1.169.8+, pg_cron must be in pg_catalog schema.
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
+-- Supabase Cloud often enables pg_cron via Dashboard (Integrations → Cron) first;
+-- CREATE EXTENSION then fails with SQLSTATE 2BP01 (dependent privileges exist).
+DO $openquok_pg_cron$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_cron') THEN
+        RAISE NOTICE 'pg_cron already installed; skipping CREATE EXTENSION';
+        RETURN;
+    END IF;
+
+    CREATE EXTENSION pg_cron WITH SCHEMA pg_catalog;
+EXCEPTION
+    WHEN SQLSTATE '2BP01' THEN
+        RAISE NOTICE 'pg_cron already installed with dependent privileges; skipping CREATE EXTENSION';
+END
+$openquok_pg_cron$;
 
 -- ---------------------------
 -- Schedule: Delete Expired Refresh Tokens
 -- Runs every Saturday at 3:30 AM (GMT)
 -- ---------------------------
 
-SELECT cron.schedule(
-  'delete-expired-refresh-tokens', -- name of the cron job
-  '30 3 * * 6', -- Saturday at 3:30 AM (GMT) - cron syntax: minute hour day month weekday
-  $$ DELETE FROM public.refresh_tokens WHERE expires_at < now() $$
-);
+DO $openquok_refresh_token_cron$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM cron.job
+        WHERE jobname = 'delete-expired-refresh-tokens'
+    ) THEN
+        RAISE NOTICE 'cron job delete-expired-refresh-tokens already scheduled; skipping';
+        RETURN;
+    END IF;
+
+    PERFORM cron.schedule(
+        'delete-expired-refresh-tokens',
+        '30 3 * * 6',
+        $$ DELETE FROM public.refresh_tokens WHERE expires_at < now() $$
+    );
+END
+$openquok_refresh_token_cron$;
 
 -- ---------------------------
 -- END OF FILE

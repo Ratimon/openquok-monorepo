@@ -2,7 +2,7 @@
 title: Database & migrations
 description: Supabase CLI, migrations, pg_cron notes, and type generation for OpenQuok.
 order: 6
-lastUpdated: 2026-08-28
+lastUpdated: 2026-09-23
 ---
 
 <script>
@@ -91,7 +91,7 @@ pnpm db:production:push-db
 ```
 
 <Callout type="tip" title="SQL editor + migration repair">
-<p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>migration repair --linked --status applied &lt;YYYYMMDD&gt;</code> afterward so CLI history matches the remote. Full operator steps (RLS in one batch, dry-run vs push) are on <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a>.</p>
+<p>If you apply module SQL manually in the Supabase Dashboard instead of <code>db push</code>, run <code>migration repair --linked --status applied &lt;YYYYMMDD&gt;</code> afterward so CLI history matches the remote. See <a href="/docs/installation/production-deployment#supabase-production-migrations">Production — deployment → Supabase production migrations</a> for Option 1 vs Option 2 and when to use <code>applied</code> vs <code>reverted</code>.</p>
 </Callout>
 
 ## Supabase Cloud notes (pg_cron)

@@ -166,6 +166,8 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 - Vercel
 - Railway
 
+Learn more at [Architecture](https://www.openquok.com/docs/geandtting-started-for-dev/architecture)
+
 ---
 
 ### Links
@@ -178,6 +180,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 - [Channels](https://www.openquok.com/docs/channels) — [connect](https://www.openquok.com/docs/channels/connect), [manage](https://www.openquok.com/docs/channels/manage), [time slots](https://www.openquok.com/docs/channels/time-slots), and [channel groups](https://www.openquok.com/docs/channels/channel-groups)
 - [Creating posts](https://www.openquok.com/docs/creating-posts) — composer, [media](https://www.openquok.com/docs/creating-posts/media), [scheduling](https://www.openquok.com/docs/creating-posts/scheduling), [kanban](https://www.openquok.com/docs/posts-management/kanban), and [AI generation](https://www.openquok.com/docs/creating-posts/ai-generation)
 - [Posts management](https://www.openquok.com/docs/posts-management) — [moving posts](https://www.openquok.com/docs/posts-management/moving-posts), [actions and stats](https://www.openquok.com/docs/posts-management/actions-and-stats), and [approvals](https://www.openquok.com/docs/posts-management/approvals)
+- [Insights](https://www.openquok.com/docs/insights) — [workspace analytics](https://www.openquok.com/docs/insights/workspace-analytics), [per-post metrics](https://www.openquok.com/docs/insights/per-post-metrics), and which networks report stats ([Platforms → Analytics](https://www.openquok.com/docs/platforms/analytics))
 - [Platforms](https://www.openquok.com/docs/platforms) — character limits, media rules, and per-network settings
 - [Automations](https://www.openquok.com/docs/automations) — [plugs](https://www.openquok.com/docs/automations/plugs), internal, cross-account, and global rules
 - [Settings](https://www.openquok.com/docs/settings) — timezone, team, profile, developers, signatures, and approved apps
@@ -193,7 +196,7 @@ When the stack is up, open the UI at **http://localhost:4007** (API at **http://
 
 **Self-host & setup**
 
-- [Developer quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start) and [Architecture](https://www.openquok.com/docs/getting-started-for-dev/architecture)
+- [Developer quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start)
 - [Installation](https://www.openquok.com/docs/installation) — [Docker Compose](https://www.openquok.com/docs/installation/docker-compose), [system requirements](https://www.openquok.com/docs/installation/system-requirements), [development environment](https://www.openquok.com/docs/installation/development-environment), and [production deployment](https://www.openquok.com/docs/installation/production-deployment)
 - [Social integrations](https://www.openquok.com/docs/social-integration) — operator OAuth apps, env keys, and provider dashboards
 - [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup

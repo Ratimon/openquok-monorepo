@@ -24,12 +24,23 @@ import type { BlogActivityLike, BlogPostLike } from "../utils/dtos/BlogDTO";
 
 import { DatabaseError, DatabaseEntityNotFoundError, ValidationError } from "../errors/InfraError";
 import { logger } from "../utils/Logger";
+import { calculateBlogReadingTimeMinutes } from "../utils/blog/calculateBlogReadingTimeMinutes";
 import { stringToSlug } from "../utils/blog/slug";
 
 /** Empty array or null/undefined clears optional SEO JSON array columns. */
 function normalizeSeoJsonArray<T>(value: T[] | null | undefined): T[] | null {
     if (value == null || value.length === 0) return null;
     return value;
+}
+
+/** Uses explicit minutes when set; otherwise matches docs-style content estimate. */
+function resolveBlogReadingTimeMinutes(
+    post: BlogPostCreateSchemaType | BlogPostUpdateSchemaType
+): number {
+    if (post.reading_time_minutes != null && post.reading_time_minutes > 0) {
+        return post.reading_time_minutes;
+    }
+    return calculateBlogReadingTimeMinutes(post.content);
 }
 
 const RPC_GET_PUBLISHED_BLOG_AUTHORS = "get_published_blog_authors";
@@ -405,6 +416,7 @@ export class BlogRepository {
             faq_items: normalizeSeoJsonArray(post.faq_items),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
+            reading_time_minutes: resolveBlogReadingTimeMinutes(post),
         };
         const { data, error } = await this.supabase
             .from(TABLE_NAME_BLOG_POSTS)
@@ -470,6 +482,7 @@ export class BlogRepository {
             faq_items: normalizeSeoJsonArray(post.faq_items),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
+            reading_time_minutes: resolveBlogReadingTimeMinutes(post),
         };
         const { data, error } = await this.supabase
             .from(TABLE_NAME_BLOG_POSTS)

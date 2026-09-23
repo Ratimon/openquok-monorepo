@@ -2,7 +2,7 @@
 title: Production - deployment
 description: Production setup for the OpenQuok web, backend, optional CLI auth server, and optional orchestrator workers.
 order: 1
-lastUpdated: 2026-09-19
+lastUpdated: 2026-09-23
 ---
 
 <script>
@@ -81,28 +81,39 @@ cd backend
 pnpm db:production:migration-list
 ```
 
-<p> There are two ways to apply migrations. One is <strong>CLI push</strong> — runs the aggregated file under <Badge text="backend/supabase/migrations/" variant="path" />:</p>
+<p>Re-aggregation produces one file such as <Badge text="20260923_core_structure.sql" variant="path" />; Supabase history uses its <strong>date segment</strong> (<Badge text="20260923" variant="param" />), not module names like <Badge text="402_20260922_functions.sql" variant="path" />.</p>
 
+<p>Older aggregate files are removed from git, so production may still list a previous date until you push or repair.</p>
+
+<p><code>migration repair</code> only updates <code>supabase_migrations.schema_migrations</code> — it does not run or undo DDL. <code>--status applied &lt;YYYYMMDD&gt;</code> marks a version as applied (after manual SQL or when history lags schema). <code>--status reverted &lt;YYYYMMDD&gt;</code> removes a stale history row when the matching file is gone from the repo (common after squash); use the <strong>remote</strong> date from <code>migration list</code>, not the new local filename.</p>
+
+### Option 1 — CLI push
 
 ```bash
 pnpm db:production:push-db:dry-run
 pnpm db:production:push-db
 ```
 
-<p>Another one is copy & paste SQL from the module folder (e.g. <Badge text="backend/supabase/db/acquisition/" variant="path" />) into the <strong>Supabase Dashboard → SQL Editor</strong>. </p>
-
-<p>After the SQL succeeds, mark the matching aggregated migration as applied so <code>migration list</code> stays in sync with the remote (use the <strong>date segment</strong> from the filename, e.g. <Badge text="20260919" variant="param" /> from <Badge text="20260919_core_structure.sql" variant="path" />):</p>
+<p>Back up before the first push after a large re-aggregate. If dry-run fails with <strong>Remote migration versions not found in local migrations directory</strong>, revert the old remote date, then push the new aggregate:</p>
 
 ```bash
-npx supabase@latest migration repair --linked --status applied 20260919
+npx supabase@latest migration repair --linked --status reverted 20260919
+pnpm db:production:push-db:dry-run
+pnpm db:production:push-db
+```
+
+### Option 2 — SQL editor
+
+<p>Run module delta SQL only (e.g. <Badge text="backend/supabase/db/blog/402_20260922_functions.sql" variant="path" />) in <strong>Dashboard → SQL Editor</strong>, then sync history to your local aggregate date:</p>
+
+```bash
+npx supabase@latest migration repair --linked --status applied 20260923
 pnpm db:production:migration-list
 ```
 
-<p>After a region restore, prefer <code>pnpm prod-backup:relink</code> from the repo root. It links to the target project and repairs the current aggregate date only when remote history is behind. Do not run <code>db push</code> during cutover — restore already applied the schema.</p>
+<p>Skip <code>db push</code> unless dry-run still shows SQL you mean to run. Prefer Option 2 for small changes instead of reverting history and re-pushing the full aggregate.</p>
 
-<Callout type="warning">
-<p>Do not revert old migration rows. If production already has an earlier aggregated migration recorded, only <strong>add</strong> the new version as <code>applied</code>. Do not run <code>repair --status reverted</code> on migrations that are already live unless you are deliberately rolling back schema.</p>
-</Callout>
+<p>After a region restore, use <code>pnpm prod-backup:relink</code> (no <code>db push</code> — restore already applied schema).</p>
 
 Optional — refresh backend table types from the linked project:
 

@@ -6511,6 +6511,19 @@ var init_FeedbackRepository = __esm({
   }
 });
 
+// utils/blog/calculateBlogReadingTimeMinutes.ts
+function calculateBlogReadingTimeMinutes(content) {
+  let stripped = content.replace(/```[\s\S]*?```/g, "");
+  stripped = stripped.replace(/`[^`]*`/g, "");
+  stripped = stripped.replace(/<[^>]*>/g, "");
+  const words = stripped.split(/\s+/).filter((word) => word.length > 0);
+  return Math.max(1, Math.ceil(words.length / 200));
+}
+var init_calculateBlogReadingTimeMinutes = __esm({
+  "utils/blog/calculateBlogReadingTimeMinutes.ts"() {
+  }
+});
+
 // utils/blog/slug.ts
 function stringToSlug(value) {
   return value.toLowerCase().trim().replace(/[^\p{L}\p{N}\s-]/gu, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "") || "post";
@@ -6524,6 +6537,12 @@ var init_slug = __esm({
 function normalizeSeoJsonArray(value) {
   if (value == null || value.length === 0) return null;
   return value;
+}
+function resolveBlogReadingTimeMinutes(post) {
+  if (post.reading_time_minutes != null && post.reading_time_minutes > 0) {
+    return post.reading_time_minutes;
+  }
+  return calculateBlogReadingTimeMinutes(post.content);
 }
 function resolveOrderKey(candidate, fallback, allowlist) {
   const key = candidate?.toString().trim();
@@ -6551,6 +6570,7 @@ var init_BlogRepository = __esm({
   "repositories/BlogRepository.ts"() {
     init_InfraError();
     init_Logger();
+    init_calculateBlogReadingTimeMinutes();
     init_slug();
     RPC_GET_PUBLISHED_BLOG_AUTHORS = "get_published_blog_authors";
     RPC_GET_ACTIVE_BLOG_TOPICS = "get_active_blog_topics";
@@ -6821,7 +6841,8 @@ var init_BlogRepository = __esm({
           slug,
           faq_items: normalizeSeoJsonArray(post.faq_items),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
-          product: post.product ?? null
+          product: post.product ?? null,
+          reading_time_minutes: resolveBlogReadingTimeMinutes(post)
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).insert(row).select("id, title, slug").single();
         if (error || !data?.id) {
@@ -6867,7 +6888,8 @@ var init_BlogRepository = __esm({
           updated_at: updatedAt,
           faq_items: normalizeSeoJsonArray(post.faq_items),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
-          product: post.product ?? null
+          product: post.product ?? null,
+          reading_time_minutes: resolveBlogReadingTimeMinutes(post)
         };
         const { data, error } = await this.supabase.from(TABLE_NAME_BLOG_POSTS).update(row).eq("id", id).select("id, title, slug").single();
         if (error) {
@@ -35545,6 +35567,7 @@ var ACQUISITION_SURVEY_SOURCE_SLUGS = [
   "newsletter",
   "podcast",
   "linkedin",
+  "github",
   "other"
 ];
 var acquisitionSurveySourceSchema = zod.z.enum(ACQUISITION_SURVEY_SOURCE_SLUGS);
@@ -36456,7 +36479,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-19T15:33:20.840Z",
+  generated: "2026-09-23T00:10:19.175Z",
   routes: [
     {
       path: "/docs",
@@ -36717,6 +36740,12 @@ var routes_manifest_default = {
       type: "public-catalog"
     },
     {
+      path: "/agents/muse-code",
+      priority: 0.8,
+      changeFreq: "monthly",
+      type: "public-catalog"
+    },
+    {
       path: "/agents/vscode-copilot",
       priority: 0.8,
       changeFreq: "monthly",
@@ -36790,6 +36819,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/buffer/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/buffer/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -36879,6 +36914,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/claw-post/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/claw-post/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36958,6 +36999,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hootsuite/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37047,6 +37094,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hopper-hq/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37113,6 +37166,96 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/later/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37132,6 +37275,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/mixpost/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/mixpost/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37221,6 +37370,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openpost/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openpost/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37300,6 +37455,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openquok/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openquok/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37389,6 +37550,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/post-bridge/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/post-bridge/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37468,6 +37635,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postfast/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postfast/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37557,6 +37730,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postiz/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postiz/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37636,6 +37815,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postpeer/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postpeer/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37725,6 +37910,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/recurpost/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/recurpost/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37804,6 +37995,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/socialclaw/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/socialclaw/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37893,6 +38090,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/typefully/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/typefully/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37977,6 +38180,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/usebard/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/usebard/mixpost",
       priority: 0.75,
       changeFreq: "monthly",
@@ -38056,6 +38265,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/later",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -38692,6 +38907,54 @@ var routes_manifest_default = {
     },
     {
       path: "/agents/devin-desktop/youtube",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/devto",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/facebook",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/instagram",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/linkedin",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/threads",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/tiktok",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/x",
+      priority: 0.7,
+      changeFreq: "monthly",
+      type: "programmatic-agent-channel"
+    },
+    {
+      path: "/agents/muse-code/youtube",
       priority: 0.7,
       changeFreq: "monthly",
       type: "programmatic-agent-channel"
@@ -40057,7 +40320,9 @@ var blogPostFields = {
   /** Optional HowTo steps; empty array or null clears. */
   howto_steps: zod.z.array(blogHowtoStepSchema).optional().nullable(),
   /** Optional product summary; null clears. */
-  product: blogProductSchema.optional().nullable()
+  product: blogProductSchema.optional().nullable(),
+  /** Optional manual read time in minutes; omit or null to auto-calculate from content on save. */
+  reading_time_minutes: zod.z.number().int().min(1, "Reading time must be at least 1 minute").max(999, "Reading time must be at most 999 minutes").optional().nullable()
 };
 var blogPostCreateSchema = zod.z.object(blogPostFields);
 var blogPostUpdateSchema = zod.z.object(blogPostFields);
@@ -42996,7 +43261,6 @@ var trustedClientIp = (req) => {
   if (!shouldTrustCfConnectingIp(req, cfConnectingIp)) return proxyIp;
   return normalizeIpAddress(cfConnectingIp) ?? proxyIp;
 };
-var clientIpFromRequest = trustedClientIp;
 
 // middlewares/rateLimit.ts
 init_rateLimitStore();
@@ -43072,7 +43336,7 @@ var tryResolveUserIdFromRequest = (req) => {
   if (!token) return null;
   return decodeJwtSubForRateLimitKey(token);
 };
-var clientIpKey = (req) => rateLimit.ipKeyGenerator(clientIpFromRequest(req));
+var clientIpKey = (req) => rateLimit.ipKeyGenerator(trustedClientIp(req));
 var sessionKeyGenerator = (req) => {
   const userId = tryResolveUserIdFromRequest(req);
   if (userId) return `session:${userId}`;
