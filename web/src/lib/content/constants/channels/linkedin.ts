@@ -72,7 +72,7 @@ export const linkedinChannel = {
 			subtitle: 'Outcomes over vanity',
 			title: 'Track Page impressions, spot buyer reach, scale what works',
 			description:
-				'Likes do not always mean pipeline. Many buyers read without engaging. OpenQuok surfaces Page impressions, follower growth, and clicks. Then you can schedule more of what shows up when prospects compare vendors.',
+				'LinkedIn Page analytics—Trends summary totals and per-Page impressions, follower growth, and clicks. Then schedule more of what already works.',
 			bentoId: 'linkedin-insights',
 			mediaOnRight: false
 		}

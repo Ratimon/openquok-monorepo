@@ -453,16 +453,18 @@ Use **ASD-STE100 Simplified Technical English**. Use short sentences. Put one id
 
 ### Feature section titles (comma parts)
 
-`HeroWithLeftMedia` / `HeroWithRightMedia` split `featureSections[].title` on commas into separate lines (`landingHeroTheme.ts`). **Every section title needs at least three comma-separated phrases** — fewer parts skip the pink accent line and often look flat.
+Applies to **`featureSections[].title` only** (feature-row `<h2>` via `HeroWithLeftMedia` / `HeroWithRightMedia`). It does **not** apply to **`heroTitle`** on the page `<h1>` — channel/agent heroes parse the full string without comma splitting (**web-landingpage** → Page hero vs feature-row titles).
+
+`HeroWithLeftMedia` / `HeroWithRightMedia` pass titles into `PublicLandingSectionHeading` with **`gradientMode="part"`** when the string contains a comma (per-clause colors + highlight chips from `landingHeroTheme.ts`). **Every section title needs at least three comma-separated phrases** — fewer parts skip the pink accent line and often look flat.
 
 Pattern: `{lead with platform name}, {middle with a highlight word}, {closing phrase}`
 
-| Comma parts | Hero styling |
+| Comma parts | Feature-row styling (`gradientMode="part"`) |
 | --- | --- |
 | 1–2 | Plain + partial gradient only |
 | 3+ | Plain first line → emerald/lime/amber middle → fuchsia/rose/orange accent on last |
 
-Each phrase must read cleanly on its own line — do not break mid-thought (e.g. `…TikTok, add the sound…` renders as `,add` on the next line). Reuse words from `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in `landingHeroTheme.ts` where natural (`plugs`, `track`, `threads`, `carousels`, `linkedin`, …) for white pill highlights.
+Each phrase must read cleanly on its own line — do not break mid-thought (e.g. `…TikTok, add the sound…` renders as `,add` on the next line). Reuse words from `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` in `landingHeroTheme.ts` where natural (`plugs`, `track`, `threads`, `carousels`, `linkedin`, `winners`, …) for white pill highlights.
 
 Apply on **add and update** — when editing any `channels/{slug}.ts` feature row, keep all section titles at 3+ parts.
 

@@ -72,7 +72,7 @@ export const threadsChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on Threads, track views and engagement, and iterate',
 			description:
-				'Track views, likes, replies, reposts, and quotes from connected Threads profiles inside OpenQuok analytics. Then schedule more of what already works.',
+				'Threads analytics—Trends summary totals and per-profile views, likes, replies, reposts, and quotes. Then schedule more of what already works.',
 			bentoId: 'threads-insights',
 			mediaOnRight: false
 		}

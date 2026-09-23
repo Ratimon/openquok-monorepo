@@ -1,5 +1,6 @@
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
 import type { PublicAgentFeatureSection } from '$lib/content/constants/publicAgentConfig';
+import { CHANNEL_INSIGHTS_BENTO_SUFFIX } from '$lib/content/constants/channels/shared';
 import type {
 	PublicChannelFeatureSection,
 	PublicChannelLandingPageViewModel
@@ -14,8 +15,11 @@ const ANALYTICS_SECTION_SUBTITLE = 'Analytics';
  */
 const CHANNEL_COMPOSE_FEATURE_INDEX = 1;
 
-/** Insights row on `/channels/{slug}` — reused for the agent channel Analytics slot. */
-const CHANNEL_INSIGHTS_FEATURE_INDEX = 3;
+function findChannelInsightsSection(
+	sections: PublicChannelFeatureSection[]
+): PublicChannelFeatureSection | undefined {
+	return sections.find((section) => section.bentoId?.endsWith(CHANNEL_INSIGHTS_BENTO_SUFFIX));
+}
 
 function mergeChannelFeatureIntoAgentSection(
 	agentSection: PublicAgentFeatureSection,
@@ -54,7 +58,7 @@ export function customizeAgentsChannelFeatureSections(
 	mode: 'agent-host' | 'mcp-client'
 ): PublicAgentFeatureSection[] {
 	const composeSection = channel.featureSections[CHANNEL_COMPOSE_FEATURE_INDEX];
-	const insightsSection = channel.featureSections[CHANNEL_INSIGHTS_FEATURE_INDEX];
+	const insightsSection = findChannelInsightsSection(channel.featureSections);
 
 	return sections.map((section) => {
 		if (section.subtitle === KANBAN_SECTION_SUBTITLE) {

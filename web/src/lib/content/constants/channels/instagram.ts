@@ -71,7 +71,7 @@ export const instagramChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on Instagram, track reach and engagement, and iterate',
 			description:
-				'Track reach, views, likes, saves, and comments from connected Instagram accounts inside OpenQuok analytics. Then schedule more of what already works.',
+				'Instagram analytics—Trends summary totals and per-account reach, views, likes, saves, and comments. Then schedule more of what already works.',
 			bentoId: 'instagram-insights',
 			mediaOnRight: false
 		}

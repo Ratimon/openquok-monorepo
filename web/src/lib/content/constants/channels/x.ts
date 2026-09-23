@@ -71,7 +71,7 @@ export const xChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on X, track impressions and engagement, and iterate',
 			description:
-				'Track likes, replies, reposts, quotes, and impressions from connected X profiles inside OpenQuok analytics. Then schedule more of what already works.',
+				'X analytics—Trends summary totals and per-profile impressions, likes, replies, reposts, and quotes. Then schedule more of what already works.',
 			bentoId: 'x-insights',
 			mediaOnRight: false
 		}

@@ -73,7 +73,7 @@ export const facebookChannel = {
 			subtitle: 'See what works',
 			title: 'See what resonates on your Page, track impressions and clicks, double down on winners',
 			description:
-				'Track post impressions, reactions, and clicks plus Page video views in OpenQuok analytics. Then schedule more of what already works.',
+				'Facebook Page analytics—Trends summary totals and per-Page cards for impressions, engagement, and video views. Then schedule more of what already works.',
 			bentoId: 'facebook-insights',
 			mediaOnRight: false
 		}

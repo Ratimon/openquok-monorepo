@@ -17,6 +17,29 @@ export const FACEBOOK_LANDING_MOCK_CHANNEL: CreateSocialPostChannelViewModel = {
 	editor: 'normal'
 };
 
+export const FACEBOOK_LANDING_MOCK_CHANNEL_COMMUNITY: CreateSocialPostChannelViewModel = {
+	id: 'landing-mock-facebook-community',
+	internalId: 'landing-mock-facebook-community-internal',
+	name: 'OpenQuok Community',
+	identifier: 'facebook',
+	picture: '/landing/social-profile.webp',
+	type: 'social',
+	disabled: false,
+	inBetweenSteps: false,
+	refreshNeeded: false,
+	schedulable: true,
+	unschedulableReason: null,
+	group: null,
+	postingTimes: [{ time: 720 }],
+	editor: 'normal'
+};
+
+/** Insights bento: two Pages so previews show per-channel overview sections. */
+export const FACEBOOK_LANDING_ANALYTICS_MOCK_CHANNELS: CreateSocialPostChannelViewModel[] = [
+	FACEBOOK_LANDING_MOCK_CHANNEL,
+	FACEBOOK_LANDING_MOCK_CHANNEL_COMMUNITY
+];
+
 export const FACEBOOK_LANDING_MOCK_BODY =
 	'Friday Reel is ready — queue this Page post now and OpenQuok publishes while you prep the next shoot.';
 

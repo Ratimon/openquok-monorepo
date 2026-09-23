@@ -42,6 +42,13 @@ When `heroTitle` introduces new product names or phrases that should pop, append
 
 Optional `heroTheme` prop on `PublicLandingHeroTitle` when a page passes a custom theme object (defaults to `landingHeroTheme`).
 
+## `PublicLandingSectionHeading` — `gradientMode`
+
+- **`part`** — Titles split on commas (FAQ, WhoIsFor, HeroDemo; feature rows when `landingTitle` contains a comma). Gradient applies per clause (`titlePartClass`).
+- **`segment`** (default) — No comma split; gradient alternates inside the line (`titleSegmentClass`). Use for single-clause section headings.
+
+Page `<h1>` heroes use `PublicLandingHeroTitle` on the full string — not `PublicLandingSectionHeading`, and commas are not clause breaks.
+
 ---
 
 # Web: landing-page breadcrumbs

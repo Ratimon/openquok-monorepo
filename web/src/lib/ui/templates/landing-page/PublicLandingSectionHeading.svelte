@@ -17,7 +17,7 @@
 		headingLevel?: HeadingLevel;
 		/** Split on commas for multi-clause titles. Defaults to true when the title contains a comma. */
 		commaSeparated?: boolean;
-		/** `segment` — per-word gradients inside each clause (feature rows). `part` — per-clause gradients (FAQ, audience). */
+		/** `part` — per-clause gradients (feature rows with commas, FAQ, audience). `segment` — per-word gradients inside each clause when the title has no commas. */
 		gradientMode?: GradientMode;
 	};
 

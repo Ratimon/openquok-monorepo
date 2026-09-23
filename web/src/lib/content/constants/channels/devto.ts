@@ -76,7 +76,7 @@ export const devtoChannel = {
 			subtitle: 'Dev.to insights',
 			title: 'See what resonates on Dev.to, track views and reactions, and iterate',
 			description:
-				'Track page views, reactions, and comments from your connected DEV Community account over 7, 30, or 90 days inside OpenQuok analytics. Use per-article insights once a post is published. Then schedule more of what already works.',
+				'Dev.to analytics—Trends summary totals and per-account page views, reactions, and comments (7, 30, or 90 days). Then schedule more of what already works.',
 			bentoId: 'devto-insights',
 			mediaOnRight: false
 		}

@@ -121,6 +121,7 @@
 								title={landingTitle}
 								{heroTheme}
 								commaSeparated={commaSeparatedTitle}
+								gradientMode={commaSeparatedTitle ? 'part' : 'segment'}
 							/>
 						{/if}
 

@@ -70,7 +70,7 @@ export const tiktokChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on TikTok, track followers and engagement, and iterate',
 			description:
-				'Track followers, likes, video counts, and recent video engagement from connected TikTok accounts inside OpenQuok analytics. Then schedule more of what already works.',
+				'TikTok analytics—Trends summary totals and per-account followers, likes, videos, and recent engagement. Then schedule more of what already works.',
 			bentoId: 'tiktok-insights',
 			mediaOnRight: false
 		}

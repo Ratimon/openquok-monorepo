@@ -74,7 +74,7 @@ export const youtubeChannel = {
 			subtitle: 'Insights',
 			title: 'See what resonates on your channel, track views and watch time, and iterate',
 			description:
-				'Track views, watch time, average view duration, subscribers gained, and likes from connected YouTube channels inside OpenQuok analytics. Then schedule more of what already works.',
+				'YouTube analytics—Trends summary totals and per-channel views, watch time, subscribers, and likes. Then schedule more of what already works.',
 			bentoId: 'youtube-insights',
 			mediaOnRight: false
 		}

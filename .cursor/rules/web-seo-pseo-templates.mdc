@@ -74,8 +74,9 @@ Category/tag sub-hubs: grid + pagination only — **no** `PublicFaq` unless prod
 
 ## `landingHeroTheme`
 
-`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` drives gradient highlights in `HeroMain` and agent/channel heroes.
+`web/src/lib/ui/templates/landing-page/landingHeroTheme.ts` drives gradient highlights in `HeroMain`, page heroes, and feature-row headings.
 
+- Page `<h1>` heroes parse the **full** `heroTitle`; feature-row `<h2>` titles split on commas with `gradientMode="part"` — see **web-landingpage** → Page hero vs feature-row titles.
 - Append new product names to `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` when `heroTitle` should emphasize a label (case-insensitive; multi-word phrases need the full string).
 - Rotating landing copy: `LANDING_HERO_HOURS_ROTATE_TEXTS`, `LANDING_HERO_SLOGAN_NOT_ROTATE_TEXTS`.
 

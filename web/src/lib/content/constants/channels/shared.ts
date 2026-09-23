@@ -5,6 +5,9 @@ import {
 	type ToolChannelFaqLinks
 } from '$lib/content/utils/publicFaqLinks';
 
+/** `featureSections[].bentoId` suffix for workspace analytics rows on channel landings. */
+export const CHANNEL_INSIGHTS_BENTO_SUFFIX = '-insights';
+
 /** Shared SEO terms appended to every live channel landing page. */
 export const SHARED_CHANNEL_SEO_KEYWORDS = [
 	'social media scheduler',
