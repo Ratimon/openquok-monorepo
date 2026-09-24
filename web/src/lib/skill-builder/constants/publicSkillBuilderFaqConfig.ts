@@ -45,12 +45,12 @@ const GENERIC_SKILL_BUILDER_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
 		title: 'What does Skill Builder do?',
 		description:
-			`Pick building blocks from the skill and MCP servers catalog, arrange CLI commands and notes in a workflow, and preview a SKILL.md file you can download or save as a ${faqLink(publicFaqHref.playbooks, 'playbook')}. It is open source and free to use — no workspace required to export.`
+			`Pick building blocks from the skill and MCP servers catalog, arrange CLI commands and notes in a workflow, and preview a SKILL.md file you can download or save as a ${faqLink(publicFaqHref.playbooks, 'playbook')}. Sign in to hand off to <a href="/account/playbooks">Account → Playbooks</a> — see ${faqLink(publicFaqHref.docsPlaybooksCompose, 'Compose a playbook')}. It is open source and free to use — no workspace required to export.`
 	},
 	{
 		title: 'Do I need an OpenQuok account to use it?',
 		description:
-			'No for editing and downloading SKILL.md. Sign in when you want to save or bookmark the MARKDOWN file in your account or you want to publish your skill to the catalog.'
+			`No for editing and downloading SKILL.md. Sign in when you want to save a playbook draft or publish to the catalog from <a href="/account/playbooks">Account → Playbooks</a>. The ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'My Playbooks library guide')} covers drafts, review, and hub visibility.`
 	},
 	{
 		title: PLATFORM_EXAMPLES_FAQ_TITLE,

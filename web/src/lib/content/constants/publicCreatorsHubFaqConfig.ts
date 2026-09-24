@@ -36,12 +36,12 @@ export const PUBLIC_CREATORS_HUB_FAQ = {
 		{
 			title: 'How do I publish as a creator on OpenQuok?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, set a public username in account settings, then submit a listing from your workspace. The ${faqLink(publicFaqHref.publishListingGuide, 'publish guide')} covers metadata, tags, and review. You appear here after at least one building block or playbook is live.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, set a public username in account settings, then open <a href="/account/playbooks">Account → Playbooks</a> to create a listing. The ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'My Playbooks library guide')} walks through drafts and publish status; the ${faqLink(publicFaqHref.publishListingGuide, 'publish guide')} covers review and approval. You appear here after at least one building block or playbook is live.`
 		},
 		{
 			title: 'What is the difference between a building block and a playbook?',
 			description:
-				`Building blocks are installable skills or MCP servers you add to an agent from ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}. Playbooks on ${faqLink(publicFaqHref.playbooks, 'Playbooks')} chain multiple blocks into reusable step-by-step workflows. Start with a block for one capability; start with a playbook for a full automation template.`
+				`Building blocks are installable skills or MCP servers you add to an agent from ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}. Playbooks on ${faqLink(publicFaqHref.playbooks, 'Playbooks')} chain multiple blocks into reusable step-by-step workflows. See ${faqLink(publicFaqHref.listingTypesGuide, 'Listing types explained')} and the ${faqLink(publicFaqHref.docsPlaybooks, 'Playbooks docs')} for how the account page fits the public hubs.`
 		},
 		{
 			title: 'Can I browse everything one creator shipped?',

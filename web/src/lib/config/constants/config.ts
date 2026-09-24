@@ -797,18 +797,18 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 		ctaText: 'View publish guide'
 	},
 	playbooks: {
-		docsPath: '/docs/publish-listings/publish-your-listing',
-		title: 'Publish your own playbook',
+		docsPath: '/docs/playbooks',
+		title: 'Playbooks in your account',
 		description:
-			'Bundle building blocks into a workflow others can install — submit from your account or Skill Builder.',
-		ctaText: 'View publish guide'
+			'Explore the public catalog, bookmark favorites, compose stacks in Skill Builder, and manage drafts from Account → Playbooks.',
+		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 	},
 	creators: {
-		docsPath: '/docs/publish-listings/publish-your-listing',
-		title: 'Publish your own listing',
+		docsPath: '/docs/playbooks/my-library',
+		title: 'Manage your catalog listings',
 		description:
-			'Sign in, choose a public username, and submit building blocks or playbooks from your account.',
-		ctaText: 'View publish guide'
+			'Track drafts and published playbooks and building blocks, then submit for review from Account → Playbooks.',
+		ctaText: 'View Playbooks guide'
 	},
 	compare: PUBLIC_SELF_HOST_DOCS_BANNER,
 	alternatives: PUBLIC_SELF_HOST_DOCS_BANNER,

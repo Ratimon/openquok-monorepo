@@ -9,17 +9,22 @@ import {
 import { PUBLIC_COMPARE_HUB_FAQ } from '$lib/content/constants/publicCompareHubFaqConfig';
 import { PUBLIC_CREATORS_HUB_FAQ } from '$lib/content/constants/publicCreatorsHubFaqConfig';
 import {
+	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
+	PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS,
 	PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS,
-	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS,
-	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
-	PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS,
-	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
 import { PUBLIC_ROADMAP_HUB_FAQ } from '$lib/content/constants/publicRoadmapHubFaqConfig';
 import { PUBLIC_TOOLS_HUB_FAQ } from '$lib/content/constants/publicToolsHubFaqConfig';
+import {
+	PUBLIC_BUILDING_BLOCKS_HUB,
+	PUBLIC_PLAYBOOKS_HUB
+} from '$lib/listings/constants/publicListingsHubConfig';
 import {
 	assertNoNofollowOnFirstPartyFaqLinks,
 	assertSelfHostLabelsOnSocialIntegrationLinks
@@ -38,6 +43,16 @@ const HUB_FAQ_SECTIONS = [
 		name: '/social-media-scheduling-api hub',
 		section: PUBLIC_API_SCHEDULING_HUB_FAQ,
 		ids: PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS
+	},
+	{
+		name: '/playbooks hub',
+		section: PUBLIC_PLAYBOOKS_HUB.faqSection,
+		ids: PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
+	},
+	{
+		name: '/building-blocks hub',
+		section: PUBLIC_BUILDING_BLOCKS_HUB.faqSection,
+		ids: PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
 	}
 ] as const;
 
@@ -78,5 +93,21 @@ describe('pSEO hub FAQ funnel links', () => {
 			const html = section.faqItems.map((item) => item.description).join('\n');
 			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
 		}
+	});
+
+	it('playbooks hub links account Playbooks docs from tailored copy', () => {
+		const html = PUBLIC_PLAYBOOKS_HUB.faqSection.faqItems
+			.map((item) => item.description)
+			.join('\n');
+		expect(html).toContain(`href="${publicFaqHref.docsPlaybooks}"`);
+		expect(html).toContain(`href="${publicFaqHref.docsPlaybooksExplore}"`);
+		expect(html).toContain('href="/account/playbooks"');
+	});
+
+	it('building-blocks hub links My Playbooks library docs from tailored copy', () => {
+		const html = PUBLIC_BUILDING_BLOCKS_HUB.faqSection.faqItems
+			.map((item) => item.description)
+			.join('\n');
+		expect(html).toContain(`href="${publicFaqHref.docsPlaybooksMyLibrary}"`);
 	});
 });

@@ -80,7 +80,12 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 			{
 				title: 'How do I install a building block or combine several into one skill?',
 				description:
-					`Open a listing on ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}, expand the card, and copy the skill install command or MCP server config for your platform. Each entry links to a setup guide with transport details (stdio, HTTP, or SSE), auth steps, and environment variables. To merge multiple blocks, select Add to skill builder and open ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} for a single SKILL.md export.`
+					`Open a listing on ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}, expand the card, and copy the skill install command or MCP server config for your platform. Each entry links to a setup guide with transport details (stdio, HTTP, or SSE), auth steps, and environment variables. To merge multiple blocks, select Add on cards in ${faqLink(publicFaqHref.docsPlaybooksExplore, 'Account → Playbooks → Explore')} or open ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} — see ${faqLink(publicFaqHref.docsPlaybooksCompose, 'Compose a playbook')}.`
+			},
+			{
+				title: 'Where do I manage my own building blocks and playbooks?',
+				description:
+					`Sign in and open <a href="/account/playbooks">Account → Playbooks</a>. The **My Playbooks** tab lists your drafts and published listings. The ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'My Playbooks library guide')} covers stats, edit, unpublish, and delete. To go live on the hub, follow the ${faqLink(publicFaqHref.publishListingGuide, 'publish guide')}.`
 			}
 		],
 			PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
@@ -142,6 +147,16 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 				title: 'Which social platforms do playbooks cover?',
 				description:
 					`Filter ${faqLink(publicFaqHref.playbooks, 'Playbooks')} by tag for Threads, TikTok, Instagram, YouTube, LinkedIn, X, and other networks on ${faqLink(publicFaqHref.channels, 'Channels')}. Each channel landing page links platform-specific playbooks and scheduling features. ${faqLink(publicFaqHref.signUp, 'Sign up for free')} to connect accounts and approve drafts on the calendar before anything goes live.`
+			},
+			{
+				title: 'How do I bookmark or manage playbooks in my account?',
+				description:
+					`Open <a href="/account/playbooks">Account → Playbooks</a>. Use **Explore** to search the hub, save bookmarks on a paid plan, and start a stack from selected building blocks. **My Playbooks** holds your drafts and published workflows. Read the ${faqLink(publicFaqHref.docsPlaybooks, 'Playbooks docs')} — ${faqLink(publicFaqHref.docsPlaybooksExplore, 'Explore and bookmarks')} and ${faqLink(publicFaqHref.docsPlaybooksMyLibrary, 'My Playbooks library')}.`
+			},
+			{
+				title: 'How do I publish my own playbook?',
+				description:
+					`Compose blocks in ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} or select **New playbook** on **My Playbooks**, then enable **Publish** when metadata and stack members are ready. Step-by-step: ${faqLink(publicFaqHref.docsPlaybooksCompose, 'Compose a playbook')} and the ${faqLink(publicFaqHref.publishListingGuide, 'publish guide')}. Community listings need admin approval before they appear on ${faqLink(publicFaqHref.playbooks, 'Playbooks')}.`
 			}
 		],
 			PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
