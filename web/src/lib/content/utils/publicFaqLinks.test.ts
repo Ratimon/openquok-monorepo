@@ -39,6 +39,14 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.signUp).toBe('/sign-up');
 		expect(publicFaqHref.connectChannelsGuide).toBe('/docs/channels/connect');
 		expect(publicFaqHref.pricing).toBe('/pricing');
+		expect(publicFaqHref.billing).toBe('/docs/billing');
+		expect(publicFaqHref.billingLimits).toBe('/docs/billing/limits');
+		expect(publicFaqHref.cloud).toBe('/docs/cloud');
+		expect(publicFaqHref.cloudTrial).toBe('/docs/cloud/trial');
+		expect(publicFaqHref.docsSchedulingRepeat).toBe(
+			'/docs/creating-posts/scheduling#repeating-a-post'
+		);
+		expect(publicFaqHref.docsChannelGroups).toBe('/docs/channels/channel-groups');
 		expect(publicFaqHref.channels).toBe('/channels');
 		expect(publicFaqHref.cliGettingStarted).toBe('/docs/getting-started-for-cli');
 		expect(publicFaqHref.cliSetupGuides).toBe('/docs/getting-started-for-cli');

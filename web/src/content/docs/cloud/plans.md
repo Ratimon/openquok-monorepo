@@ -1,8 +1,10 @@
 ---
-title: OpenQuok 's Plans and limits
+title: OpenQuok's Plans and limits
 description: Every Cloud tier — Solo, Team, Ultimate, and Max. Their prices, and what features are included.
 order: 1
 lastUpdated: 2026-09-23
+sidebar:
+  label: Paid Plans
 ---
 
 <script>

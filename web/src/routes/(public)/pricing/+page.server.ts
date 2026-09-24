@@ -6,6 +6,7 @@ import { CONFIG_SCHEMA_COMPANY } from '$lib/config/constants/config';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
 import { createPublicPricingOffers } from '$lib/content/utils/createPublicPricingSEOSchema';
+import { getPublicPricingFaqItems } from '$lib/content/constants/publicFaqConfig';
 import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl, withCanonicalMetaTags } from '$lib/seo/buildCanonicalUrl';
@@ -31,8 +32,8 @@ export async function load({ url, cookies, parent }) {
 		console.error('[pricing/+page.server] Failed to fetch public FAQ config:', error);
 	}
 
-	const { configVm: publicFaqConfigPm, itemsVm: publicFaqItemsVm } =
-		parsePublicFaqConfigModule(publicFaqRaw);
+	const { configVm: publicFaqConfigPm } = parsePublicFaqConfigModule(publicFaqRaw);
+	const publicFaqItemsVm = getPublicPricingFaqItems();
 
 	const customTitle = 'Pricing';
 	const customDescription =

@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 
 	import { page } from '$app/state';
+	import { PUBLIC_HUB_DOCS_BANNERS } from '$lib/config/constants/config';
 	import { PUBLIC_SELF_HOSTING_LANDING_CONFIG } from '$lib/content/constants/publicSelfHostingLandingConfig';
 	import { PUBLIC_SELF_HOSTING_WHO_IS_FOR_SECTION } from '$lib/content/constants/publicSelfHostingWhoIsForConfig';
 	import { hostedMarketingHref } from '$lib/utils/hostedMarketingHref';
@@ -28,6 +29,7 @@
 	let { data }: Props = $props();
 
 	const landing = PUBLIC_SELF_HOSTING_LANDING_CONFIG;
+	const selfHostingHubDocsBanner = PUBLIC_HUB_DOCS_BANNERS.selfHosting;
 
 	let schemaData = $derived(data.schemaData);
 
@@ -241,6 +243,22 @@
 			faqDescription={landing.faqSection.faqDescription}
 			faqItems={[...landing.faqSection.faqItems]}
 			sectionClass="mt-20 scroll-mt-24"
+		/>
+
+		<AccentSplitCtaBanner
+			title={selfHostingHubDocsBanner.title}
+			description={selfHostingHubDocsBanner.description}
+			ctaText={selfHostingHubDocsBanner.ctaText}
+			ctaHref={selfHostingHubDocsBanner.docsPath}
+			sectionClass="mt-12"
+		/>
+
+		<AccentSplitCtaBanner
+			title={landing.cloudBillingDocsBanner.title}
+			description={landing.cloudBillingDocsBanner.description}
+			ctaText={landing.cloudBillingDocsBanner.cta.label}
+			ctaHref={landing.cloudBillingDocsBanner.cta.href}
+			sectionClass="mt-8"
 		/>
 
 		<AccentSplitCtaBanner

@@ -263,7 +263,9 @@ openquok analytics:post <post-id> -d 30`
 	const rootPathSignUp = getRootPathSignup();
 	const signUpPath = route(rootPathSignUp);
 
+	const gettingStartedDocsBanner = PUBLIC_HUB_DOCS_BANNERS.gettingStarted;
 	const landingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.landing;
+	const billingDocsBanner = PUBLIC_HUB_DOCS_BANNERS.pricing;
 
 	const whoIsForCards: AudienceCard[] = [...PUBLIC_LANDING_WHO_IS_FOR_CARDS];
 
@@ -431,10 +433,27 @@ openquok analytics:post <post-id> -d 30`
 	/>
 
 	<AccentSplitCtaBanner
+		title={gettingStartedDocsBanner.title}
+		description={gettingStartedDocsBanner.description}
+		ctaText={gettingStartedDocsBanner.ctaText}
+		ctaHref={gettingStartedDocsBanner.docsPath}
+		sectionClass="mt-8"
+	/>
+
+	<AccentSplitCtaBanner
 		title={landingDocsBanner.title}
 		description={landingDocsBanner.description}
 		ctaText={landingDocsBanner.ctaText}
 		ctaHref={landingDocsBanner.docsPath}
+		sectionClass="mt-8"
+	/>
+
+	<AccentSplitCtaBanner
+		title={billingDocsBanner.title}
+		description={billingDocsBanner.description}
+		ctaText={billingDocsBanner.ctaText}
+		ctaHref={billingDocsBanner.docsPath}
+		sectionClass="mt-8"
 	/>
 
 	<CenteredDarkCtaBanner

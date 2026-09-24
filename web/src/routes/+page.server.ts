@@ -25,7 +25,10 @@ import {
 	withSchemaOrgAudience
 } from '$lib/content/utils/createPublicAudienceSEOSchema';
 import { PUBLIC_LANDING_WHO_IS_FOR_CARDS } from '$lib/content/constants/publicLandingWhoIsForConfig';
-import { parsePublicFaqConfigModule } from '$lib/content/utils/parsePublicFaqConfig';
+import {
+	parsePublicFaqConfigModule,
+	resolvePublicFaqItemsVm
+} from '$lib/content/utils/parsePublicFaqConfig';
 import { createMetaData, openGraphForPublicPage } from '$lib/seo/createMetaData';
 import { buildCanonicalUrl } from '$lib/seo/buildCanonicalUrl';
 import { applyPublicCmsPageCacheHeaders } from '$lib/seo/publicCmsPageCache';
@@ -70,8 +73,9 @@ export const load: PageServerLoad = async ({ parent, url, fetch, cookies, setHea
 		landingPageRaw
 	);
 
-	const { configVm: publicFaqConfigVm, itemsVm: publicFaqItemsVm } =
+	const { configVm: publicFaqConfigVm, itemsVm: parsedPublicFaqItemsVm } =
 		parsePublicFaqConfigModule(publicFaqRaw);
+	const publicFaqItemsVm = resolvePublicFaqItemsVm(parsedPublicFaqItemsVm);
 	const publicFaqDefaults = getPublicFaqConfigDefaults();
 
 	const listingsPreviewVm = await loadAgentListingsPreviewStateless({

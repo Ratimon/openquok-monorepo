@@ -94,6 +94,11 @@ export type PublicSelfHostingLandingConfig = {
 		description: string;
 		cta: PublicSelfHostingCta;
 	};
+	cloudBillingDocsBanner: {
+		title: string;
+		description: string;
+		cta: PublicSelfHostingCta;
+	};
 };
 
 export type PublicSelfHostPricingFootnoteLink = {
@@ -268,6 +273,22 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 				href: publicFaqHref.socialIntegration,
 				ctaLabel: 'Open guides',
 				iconName: icons.Settings.name
+			},
+			{
+				id: 'cloud-overview',
+				title: 'OpenQuok Cloud overview',
+				description: 'How hosted plans, trials, and support differ from operator-run stacks.',
+				href: publicFaqHref.cloud,
+				ctaLabel: 'Read overview',
+				iconName: icons.Globe.name
+			},
+			{
+				id: 'cloud-billing',
+				title: 'Cloud billing',
+				description: 'Subscriptions, limits, downgrades, offers, and refunds on openquok.com.',
+				href: publicFaqHref.billing,
+				ctaLabel: 'Open billing docs',
+				iconName: icons.CreditCard.name
 			}
 		]
 	},
@@ -602,7 +623,7 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			{
 				title: 'Does self-hosting cost money?',
 				description:
-					`OpenQuok charges no software fee on operator-run paths under AGPL-3.0-or-later. You still pay for servers, Supabase, bandwidth, TLS, and any social developer apps you register. The hosted cloud plan on openquok.com follows ${faqLink(publicFaqHref.pricing, 'pricing')} tiers. Compare all three paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
+					`OpenQuok charges no software fee on operator-run paths under AGPL-3.0-or-later. You still pay for servers, Supabase, bandwidth, TLS, and any social developer apps you register. ${faqLink(publicFaqHref.cloud, 'OpenQuok Cloud')} follows ${faqLink(publicFaqHref.pricing, 'pricing')} tiers with Stripe billing — see the ${faqLink(publicFaqHref.billing, 'billing guide')}. Compare all three paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
 			},
 			{
 				title: 'What services do I need to run?',
@@ -631,6 +652,15 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 			}
 		]
 	},
+	cloudBillingDocsBanner: {
+		title: 'Choosing the hosted cloud plan?',
+		description:
+			'Trials, Stripe checkout, plan limits, and refunds are documented for OpenQuok Cloud — separate from operator-run Docker Compose and production stacks.',
+		cta: {
+			label: 'View billing docs',
+			href: publicFaqHref.billing
+		}
+	},
 	hostedFallbackBanner: {
 		title: 'Lazy and don\'t want to operate a server?',
 		description:
@@ -651,6 +681,11 @@ export const PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG = {
 			id: 'hosted-cloud',
 			label: 'Hosted cloud',
 			href: publicFaqHref.pricing
+		},
+		{
+			id: 'cloud-billing',
+			label: 'Cloud billing',
+			href: publicFaqHref.billing
 		},
 		{
 			id: 'docker-compose',

@@ -1,4 +1,7 @@
-import { PUBLIC_FAQ_ITEMS, type PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	resolvePublicFaqItemsByIds,
+	type PublicFaqItem
+} from '$lib/content/constants/publicFaqConfig';
 import { PUBLIC_PRICING_COMPARE_ROWS } from '$lib/billing/constants/publicPricingCatalog';
 
 import type {
@@ -72,12 +75,6 @@ export const PUBLIC_COMPARE_PRODUCTS: readonly CompareProduct[] = [
 	usebardCompareProduct
 ];
 
-const FAQ_ITEM_INDEX_BY_ID: Record<PublicFaqItemId, number> = {
-	'switch-from-buffer-hootsuite': 0,
-	'try-free': 1,
-	'multi-workspace': 5
-};
-
 const productBySlug = new Map(PUBLIC_COMPARE_PRODUCTS.map((product) => [product.slug, product]));
 
 export function getCompareProduct(slug: string): CompareProduct | undefined {
@@ -106,14 +103,7 @@ export function listComparePairsForHub(
 	}));
 }
 
-export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): PublicFaqItem[] {
-	return ids
-		.map((id) => {
-			const index = FAQ_ITEM_INDEX_BY_ID[id];
-			return PUBLIC_FAQ_ITEMS[index];
-		})
-		.filter((item): item is PublicFaqItem => item != null);
-}
+export { resolvePublicFaqItemsByIds };
 
 /** Row labels shared with the pricing comparison table. */
 export const PUBLIC_COMPARE_FEATURE_ROW_IDS = PUBLIC_PRICING_COMPARE_ROWS.map((row) => row.id);

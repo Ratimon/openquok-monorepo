@@ -1,10 +1,69 @@
+import type { Question } from 'schema-dts';
+
 import { describe, expect, it } from 'vitest';
 
-import { resolvePublicFaqItemsByIds } from '$lib/content/constants/competitors';
-import { PUBLIC_FAQ_ITEMS } from '$lib/content/constants/publicFaqConfig';
+import {
+	getPublicPricingFaqItems,
+	PUBLIC_FAQ_ITEMS,
+	PUBLIC_PRICING_FAQ_ITEM_IDS,
+	resolvePublicFaqItemsByIds
+} from '$lib/content/constants/publicFaqConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
+import { resolvePublicFaqItemsVm } from '$lib/content/utils/parsePublicFaqConfig';
 import { assertNoNofollowOnFirstPartyFaqLinks } from '$lib/content/utils/publicFaqFunnel.test-utils';
 import { publicFaqHref } from '$lib/content/utils/publicFaqLinks';
+
+function firstFaqAnswerPlainText(schema: ReturnType<typeof createPublicFaqSEOSchema>): string {
+	if (schema['@type'] !== 'FAQPage' || !schema.mainEntity) {
+		return '';
+	}
+
+	const first = Array.isArray(schema.mainEntity) ? schema.mainEntity[0] : schema.mainEntity;
+	const question = first as Question | undefined;
+	const accepted = question?.acceptedAnswer;
+
+	if (!accepted || typeof accepted !== 'object' || !('text' in accepted)) {
+		return '';
+	}
+
+	return typeof accepted.text === 'string' ? accepted.text : '';
+}
+
+describe('resolvePublicFaqItemsVm', () => {
+	it('falls back to git defaults when the route passes no items', () => {
+		expect(resolvePublicFaqItemsVm([])).toEqual([...PUBLIC_FAQ_ITEMS]);
+		expect(resolvePublicFaqItemsVm(undefined)).toEqual([...PUBLIC_FAQ_ITEMS]);
+	});
+
+	it('keeps CMS items when present', () => {
+		const custom = [{ title: 'Custom?', description: 'Custom answer.' }];
+		expect(resolvePublicFaqItemsVm(custom)).toEqual(custom);
+	});
+});
+
+describe('getPublicPricingFaqItems', () => {
+	it('uses git-default copy from PUBLIC_FAQ_ITEMS with doc links', () => {
+		const items = getPublicPricingFaqItems();
+		const tryFree = PUBLIC_FAQ_ITEMS.find((item) => item.id === 'try-free');
+
+		expect(items.length).toBe(PUBLIC_PRICING_FAQ_ITEM_IDS.length);
+		expect(items[0]?.title).toBe(tryFree?.title);
+		expect(items[0]?.description).toBe(tryFree?.description);
+		expect(items[0]?.description).toContain('href="/docs/');
+	});
+
+	it('keeps first-party FAQ links followable', () => {
+		assertNoNofollowOnFirstPartyFaqLinks(getPublicPricingFaqItems());
+	});
+
+	it('omits general how-to and MCP-only landing questions', () => {
+		const titles = getPublicPricingFaqItems().map((item) => item.title);
+
+		expect(titles).not.toContain('Why switch from Buffer or Hootsuite?');
+		expect(titles).not.toContain('How do I schedule social media posts with OpenQuok?');
+		expect(titles).not.toContain('What is MCP and how does OpenQuok use it?');
+	});
+});
 
 describe('PUBLIC_FAQ_ITEMS', () => {
 	it('resolves compare-page FAQ items by stable ids', () => {
@@ -33,10 +92,34 @@ describe('PUBLIC_FAQ_ITEMS', () => {
 		expect(description).toContain(publicFaqHref.selfHostingLanding);
 		expect(description).toContain('free alternative social media scheduler');
 		expect(description).toContain('hosted cloud plan');
+		expect(description).toContain(publicFaqHref.cloud);
+		expect(description).toContain(publicFaqHref.billing);
 		expect(description).toContain('Docker Compose self-host');
 		expect(description).toContain(publicFaqHref.productionDeployment);
 		expect(description).toContain('production deployment on your own cloud');
 		expect(description).toContain('CLI device-login walkthrough');
+	});
+
+	it('links repeated posts to scheduling anchor and kanban docs', () => {
+		const description =
+			PUBLIC_FAQ_ITEMS.find((item) => item.title === 'How does repeated posts work')?.description ??
+			'';
+
+		expect(description).toContain(publicFaqHref.docsSchedulingRepeat);
+		expect(publicFaqHref.docsSchedulingRepeat).toContain('#repeating-a-post');
+		expect(description).toContain(publicFaqHref.docsKanban);
+	});
+
+	it('documents cloud billing in a dedicated FAQ answer', () => {
+		const description =
+			PUBLIC_FAQ_ITEMS.find((item) => item.title === 'Where do I manage OpenQuok Cloud billing?')
+				?.description ?? '';
+
+		expect(description).toContain('href="/account/billing"');
+		expect(description).toContain(publicFaqHref.billing);
+		expect(description).toContain(publicFaqHref.billingSubscription);
+		expect(description).toContain(publicFaqHref.billingLimits);
+		expect(description).toContain(publicFaqHref.cloud);
 	});
 });
 
@@ -54,8 +137,7 @@ describe('createPublicFaqSEOSchema', () => {
 		});
 
 		expect(schema['@type']).toBe('FAQPage');
-		const answer = (schema.mainEntity as { acceptedAnswer: { text: string } }[])[0]
-			?.acceptedAnswer.text;
+		const answer = firstFaqAnswerPlainText(schema);
 		expect(answer).toContain('open source on GitHub');
 		expect(answer).toContain('free alternative social media scheduler');
 		expect(answer).toContain('hosted cloud plan');

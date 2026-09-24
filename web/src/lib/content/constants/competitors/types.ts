@@ -1,5 +1,7 @@
 import type { PublicAgentComparisonSection } from '$lib/content/constants/agents/types';
-import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import type { PublicFaqItem, PublicFaqItemId } from '$lib/content/constants/publicFaqConfig';
+
+export type { PublicFaqItemId };
 import type { PublicPricingCompareRowId } from '$lib/billing/constants/publicPricingCatalog';
 import type { IconName } from '$data/icons';
 
@@ -85,11 +87,6 @@ export type CompareProduct = {
 	featureSupport: Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>;
 	comparison: CompareProductComparison;
 };
-
-export type PublicFaqItemId =
-	| 'switch-from-buffer-hootsuite'
-	| 'try-free'
-	| 'multi-workspace';
 
 export type ComparePair = {
 	productASlug: CompareProductSlug;

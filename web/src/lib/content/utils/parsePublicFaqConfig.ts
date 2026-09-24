@@ -30,6 +30,13 @@ export function parsePublicFaqItems(raw: unknown): PublicFaqItem[] {
 	return items.length > 0 ? items : [...PUBLIC_FAQ_ITEMS];
 }
 
+/** Git defaults when CMS `ITEMS` is missing or the route passes an empty list. */
+export function resolvePublicFaqItemsVm(
+	items?: readonly PublicFaqItem[] | null
+): PublicFaqItem[] {
+	return items && items.length > 0 ? [...items] : [...PUBLIC_FAQ_ITEMS];
+}
+
 export function parsePublicFaqConfigModule(raw?: Record<string, unknown> | null): {
 	configVm: Record<string, string>;
 	itemsVm: PublicFaqItem[];
@@ -44,6 +51,6 @@ export function parsePublicFaqConfigModule(raw?: Record<string, unknown> | null)
 
 	return {
 		configVm,
-		itemsVm: parsePublicFaqItems(raw?.ITEMS)
+		itemsVm: resolvePublicFaqItemsVm(parsePublicFaqItems(raw?.ITEMS))
 	};
 }

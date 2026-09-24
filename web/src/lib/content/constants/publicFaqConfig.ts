@@ -5,146 +5,250 @@ import {
 	publicFaqHref
 } from '$lib/content/utils/publicFaqLinks';
 
+export type PublicFaqItemId =
+	| 'switch-from-buffer-hootsuite'
+	| 'try-free'
+	| 'self-host-openquok'
+	| 'schedule-posts'
+	| 'agent-workspace'
+	| 'multi-workspace'
+	| 'oauth-app-counts'
+	| 'ai-writer-summarizer'
+	| 'refund'
+	| 'change-plans'
+	| 'cloud-billing'
+	| 'agent-host-vs-mcp-billing'
+	| 'what-is-mcp'
+	| 'mcp-oauth-app'
+	| 'what-is-channel'
+	| 'duplicate-platform-channels'
+	| 'team-members'
+	| 'reach-official-api'
+	| 'repeated-posts'
+	| 'templates'
+	| 'signatures'
+	| 'analytics'
+	| 'schedule-comments-threads'
+	| 'what-are-plugs'
+	| 'plugs-platform-support'
+	| 'delay-between-posts'
+	| 'too-many-channels';
+
 export type PublicFaqItem = {
+	/** Set on git defaults; CMS overrides may omit. */
+	id?: PublicFaqItemId;
 	title: string;
 	description: string;
 };
 
 export { OPENQUOK_GITHUB_REPO_HREF };
 
+/**
+ * `/pricing` FAQ — billing, limits, and plan features only.
+ * Order is display order; copy always comes from {@link PUBLIC_FAQ_ITEMS}.
+ */
+export const PUBLIC_PRICING_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'try-free',
+	'self-host-openquok',
+	'agent-workspace',
+	'multi-workspace',
+	'oauth-app-counts',
+	'ai-writer-summarizer',
+	'what-is-channel',
+	'duplicate-platform-channels',
+	'team-members',
+	'refund',
+	'change-plans',
+	'cloud-billing',
+	'agent-host-vs-mcp-billing',
+	'templates',
+	'signatures',
+	'analytics',
+	'repeated-posts',
+	'what-are-plugs',
+	'too-many-channels'
+];
+
 /** Default Q&A copy when `public_faq.ITEMS` is missing from stored config. */
 export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 	{
+		id: 'switch-from-buffer-hootsuite',
 		title: 'Why switch from Buffer or Hootsuite?',
 		description:
 			`Buffer and Hootsuite charge $75–$200/month for enterprise feature most teams never use. OpenQuok covers the same UI scheduling basics including connect channels, compose, calendar, multi-channel publish. We also cover agent-first features like workspaces, integrations, and API/CLI access. Same workflow when you post by hand; built for when agents do the work. Less cost, less clutter, and real support from Meta and OpenQuok team. See ${faqLink(publicFaqHref.compareOpenquokBuffer, 'OpenQuok vs Buffer')} and the ${faqLink(publicFaqHref.blogBufferAlternatives, 'Buffer alternatives guide')}.`
 	},
 	{
+		id: 'try-free',
 		title: 'Can I try OpenQuok for free?',
 		description:
-			`Yes. OpenQuok offers one 7-day free trial per account and per payment customer so you can schedule social media posts across your connected channels before you choose a plan. Create an account and start today — no credit card required to explore the scheduler. Canceling and resubscribing, or creating another workspace, does not grant a second trial. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}; trial rules are in the ${faqLink(faqHrefDocs('cloud/trial'), 'Cloud trial guide')}.`
+			`Yes. OpenQuok offers one 7-day free trial per payment customer so you can run social media accounts on auto-pilot before you subscribe the plan. Create an account and start today — no credit card required. Canceling and resubscribing, or creating another workspace, does not grant a second trial. Plan limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')} and in the ${faqLink(publicFaqHref.billingLimits, 'billing limits guide')}; trial rules are in the ${faqLink(publicFaqHref.cloudTrial, 'Cloud trial guide')}.`
 	},
 	{
-		title: 'How do I schedule social media posts with OpenQuok?',
-		description:
-			`Connect your channels, compose or import a draft, pick a date and time on the calendar (or kanban), and publish. You can schedule social media posts by hand, from reusable templates, or pipe drafts in from AI agents — then review everything before it goes live. For agents and automation, see the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')} guide, ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}, and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
-	},
-	{
+		id: 'self-host-openquok',
 		title: 'Can I self-host OpenQuok?',
 		description:
-			`Yes. OpenQuok is a ${faqLink(publicFaqHref.selfHostingLanding, 'free alternative social media scheduler')} — ${faqLink(OPENQUOK_GITHUB_REPO_HREF, 'open source on GitHub')} with no software fee when you operate it yourself. Pick your path: hosted cloud plan, ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host')}, or ${faqLink(publicFaqHref.productionDeployment, 'production deployment on your own cloud')}. For CLI device login without API keys on the agent host, see the ${faqLink(publicFaqHref.blogSelfHost, 'CLI device-login walkthrough')}.`
+			`Yes. OpenQuok is a ${faqLink(publicFaqHref.selfHostingLanding, 'free alternative social media scheduler')} — ${faqLink(OPENQUOK_GITHUB_REPO_HREF, 'open source on GitHub')} with no software fee when you operate it yourself. Pick your path: ${faqLink(publicFaqHref.cloud, 'hosted cloud plan')}, ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose self-host')}, or ${faqLink(publicFaqHref.productionDeployment, 'production deployment on your own cloud')}. ${faqLink(publicFaqHref.cloud, 'OpenQuok Cloud')} uses ${faqLink(publicFaqHref.billing, 'Stripe billing')}; operator paths do not. For CLI device login without API keys on the agent host, see the ${faqLink(publicFaqHref.blogSelfHost, 'CLI device-login walkthrough')}.`
 	},
 	{
+		id: 'schedule-posts',
+		title: 'How do I schedule social media posts with OpenQuok?',
+		description:
+			`${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')}, write in ${faqLink(publicFaqHref.docsCreatingPosts, 'Creating posts')}, then pick a time on the ${faqLink(publicFaqHref.docsCalendar, 'calendar')} or ${faqLink(publicFaqHref.docsKanban, 'kanban')}. Agents can use the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI')}, ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')}, or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
+	},
+	{
+		id: 'agent-workspace',
 		title: 'What is the agent workspace?',
 		description:
-			`An agent workspace is where you connect channels, schedule posts, and collaborate. Workspaces exist to keep agent and automation context focused. Too many channels or tasks in one place can cause context rot or hallucinations. Use separate workspaces for different brands or clients when things get crowded. Workspace limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')}; agent hosts live under ${faqLink(publicFaqHref.agents, 'Agents')}.`
+			`A workspace holds your channels, posts, and team in one place. Use separate workspaces for different brands or clients. See the ${faqLink(publicFaqHref.docsGlossary, 'Glossary')}. Limits are on ${faqLink(publicFaqHref.pricing, 'Pricing')} and ${faqLink(publicFaqHref.billingLimits, 'billing limits')}. Agent hosts: ${faqLink(publicFaqHref.agents, 'Agents')}.`
 	},
 	{
+		id: 'multi-workspace',
 		title: "Why should I use OpenQuok's multi-workspace?",
 		description:
-			`Most schedulers treat one account as one pile of channels — fine at first, risky when you add clients, brands, or agents. OpenQuok gives each workspace its own channels, OAuth app, programmatic token, and MCP endpoint so credentials and drafts never cross wires. Spin up a workspace per client or brand when a format wins, run parallel sessions inside each, and scale volume without an agent posting to the wrong Page or mixing analytics. It is the safeguard Buffer and Hootsuite do not ship for agent-driven workflows. See ${faqLink(publicFaqHref.pricing, 'plan workspace counts')} and ${faqLink(publicFaqHref.compare, 'how we compare')}.`
+			`Use one workspace per client or brand. Each workspace keeps its own channels and sign-in details separate. That lowers the risk that an AI agent hallucinates posts to the wrong account. See ${faqLink(publicFaqHref.pricing, 'plan workspace counts')}, ${faqLink(publicFaqHref.billingLimits, 'billing limits')}, and ${faqLink(publicFaqHref.compare, 'how we compare')}.`
 	},
 	{
+		id: 'oauth-app-counts',
 		title: 'What do OAuth app counts on pricing plans mean?',
 		description:
-			`Each workspace includes one OAuth application. The totals on ${faqLink(publicFaqHref.pricing, 'pricing plans')} match your workspace limit — for example, Solo includes 1 OAuth app (1 workspace), Team includes 3, Ultimate includes 5, and Max includes 10. Register the app under Developers → Apps to get client credentials for third-party OAuth flows. See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')}.\n\nIf you need separate apps for different products, clients, or redirect URLs — such as one integration built with our SDK and another product with its own OAuth consent screen — create an additional workspace and register one app there. Each workspace keeps its own channels, credentials, and tokens isolated.\n\nWithin one workspace, that single OAuth app also backs your workspace programmatic token (opo_…) for the ${faqLink(publicFaqHref.publicApi, 'Public API')}, SDK, CI scripts, and MCP.`
+			`Each workspace has one OAuth app. The count matches your plan — see ${faqLink(publicFaqHref.pricing, 'pricing plans')} and ${faqLink(publicFaqHref.billingLimits, 'billing limits')}. Need another app? Add a workspace. Register under ${faqLink(publicFaqHref.docsDevelopers, 'Developers')} or ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')}.`
 	},
 	{
+		id: 'ai-writer-summarizer',
 		title: 'What are Unlimited AI Writer and AI Summarizer?',
 		description:
-			'Unlimited AI Writer and Unlimited AI Summarizer are experimental, on-device features that run in supported Chromium browsers. Post drafting stays on your device. Writer and rewrite flows use the Writer API (<a href="https://developer.chrome.com/docs/ai/writer-api">https://developer.chrome.com/docs/ai/writer-api</a>) and Rewriter API (<a href="https://developer.chrome.com/docs/ai/rewriter-api">https://developer.chrome.com/docs/ai/rewriter-api</a>); summarization uses the Summarizer API, including techniques for longer text described in Scale client-side summarization (<a href="https://developer.chrome.com/docs/ai/scale-summarization">https://developer.chrome.com/docs/ai/scale-summarization</a>). Availability depends on browser support, hardware, and Chrome’s origin-trial status, and the APIs may change as the experiments evolve.'
+			`They draft or shorten captions in your browser on supported Chromium builds. Text stays on your device. The feature is experimental. See ${faqLink(publicFaqHref.docsAiGeneration, 'AI generation in the composer')}.`
 	},
 	{
+		id: 'refund',
 		title: 'Can I get a refund?',
 		description:
-			`Within 7 days of payment, you can request a refund if you have not used the product during that billing period. Email support from your account email with your workspace name and billing date. If you have used the product during that period, contact support and we will work with you on a fair resolution. Full details are in the ${faqLink(faqHrefDocs('billing/refunds-and-support'), 'Refunds and support')} guide. Self-hosted deployments follow your own billing policies.`
+			`Within 7 days of payment, you can request a refund if you have not used the product during that billing period. Email support from your account email with your workspace name and billing date. If you have used the product during that period, contact support and we will work with you on a fair resolution. Full details are in the ${faqLink(faqHrefDocs('billing/refunds-and-support'), 'Refunds and support')} guide and the ${faqLink(publicFaqHref.billing, 'billing overview')}. Self-hosted deployments follow your own billing policies.`
 	},
 	{
+		id: 'change-plans',
 		title: 'Can I change plans later?',
 		description:
-			`Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled. Current tiers are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			`Yes. Upgrade or downgrade from account billing settings. Proration and timing follow your Stripe subscription when cloud billing is enabled. Read ${faqLink(publicFaqHref.billingSubscription, 'Subscription')} and ${faqLink(publicFaqHref.billingDowngrades, 'Downgrades')} before you shrink a plan. Current tiers are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
 	},
 	{
+		id: 'cloud-billing',
+		title: 'Where do I manage OpenQuok Cloud billing?',
+		description:
+			`Workspace owners open <a href="/account/billing">Billing</a> from the account menu. The ${faqLink(publicFaqHref.billing, 'billing guide')} covers ${faqLink(publicFaqHref.billingSubscription, 'subscriptions')}, ${faqLink(publicFaqHref.billingLimits, 'limits')}, downgrades, promotion codes, and refunds. Compare hosted OpenQuok with self-host in ${faqLink(publicFaqHref.cloud, 'OpenQuok Cloud')}.`
+	},
+	{
+		id: 'agent-host-vs-mcp-billing',
 		title: 'How do I pay for agent hosts vs MCP clients?',
 		description:
-			`OpenQuok and your LLM are billed separately. OpenQuok covers workspaces, channels, and scheduling; agent hosts and MCP clients bill on their own. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')} and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}. OpenQuok MCP only needs your programmatic token.`
+			`OpenQuok bills separately from your LLM and from agent host fees. OpenQuok covers workspaces and scheduling. See ${faqLink(publicFaqHref.agentSetupGuides, 'agent setup guides')} and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guides')}.`
 	},
 	{
+		id: 'what-is-mcp',
 		title: 'What is MCP and how does OpenQuok use it?',
 		description:
 			`MCP (Model Context Protocol) lets AI assistants connect to the tools you use. Connect OpenQuok in your MCP client and your agent can list channels, read platform rules, and schedule posts without opening the dashboard. Start with ${faqLink(publicFaqHref.mcpGettingStarted, 'MCP getting started')} or a ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup guide')}.`
 	},
 	{
+		id: 'mcp-oauth-app',
 		title: 'How does MCP relate to my OAuth app?',
 		description:
-			`Each workspace has one MCP server. It uses the same programmatic token (opo_…) as ${faqLink(publicFaqHref.publicApi, 'Public API')} and SDK — issued from that workspace’s single OAuth app. Setup: Developers → Apps (create OAuth app) → Access (generate token, copy MCP client config). See ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}. Multi-workspace plans get one MCP endpoint per workspace; switch workspace to manage credentials separately.`
+			`Each workspace has one MCP endpoint. It uses the same token as the ${faqLink(publicFaqHref.publicApi, 'Public API')}. Create the app under ${faqLink(publicFaqHref.docsDevelopers, 'Developers')}, then follow ${faqLink(publicFaqHref.oauthApps, 'OAuth2 for apps')} and ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}.`
 	},
 	{
+		id: 'what-is-channel',
 		title: 'What counts as a channel?',
 		description:
-			`A channel is a connected social account (for example Facebook, Instagram, LinkedIn, TikTok, YouTube, Reddit, Threads, or Pinterest). You schedule posts to the channels you connect. See every network on ${faqLink(publicFaqHref.channels, 'Supported channels')} and the ${faqLink(publicFaqHref.socialIntegration, 'channel setup guides')}.`
+			`A channel is one connected social account (Facebook, Instagram, LinkedIn, TikTok, YouTube, Threads, and more). ${faqLink(publicFaqHref.connectChannelsGuide, 'Connect channels')} in the dashboard. Browse networks on ${faqLink(publicFaqHref.channels, 'Supported channels')}.`
 	},
 	{
+		id: 'duplicate-platform-channels',
 		title: 'Can I connect 2 channels to the same platform?',
 		description:
-			`Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts. Totals are on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			`Yes. Example: SOLO plan can connect 15 total accounts, all of them can be tiktok accounts. Totals are on ${faqLink(publicFaqHref.pricing, 'Pricing')} and in ${faqLink(publicFaqHref.billingLimits, 'billing limits')}.`
 	},
 	{
+		id: 'team-members',
 		title: 'How does team member work?',
 		description:
-			`Team members are people you invite to a workspace. They can collaborate on content and connect their own channels where your plan allows. Seat limits are shown as invites plus you as owner. For example, “2 + 1 (you) per workspace” means four invited members and one seat for you on each workspace you own. Seat counts are listed on ${faqLink(publicFaqHref.pricing, 'Pricing')}.`
+			`You invite people to a workspace. They can draft and schedule within your plan seat limit. See ${faqLink(publicFaqHref.docsTeam, 'Team')} and ${faqLink(publicFaqHref.billingLimits, 'billing limits')}.`
 	},
 	{
+		id: 'reach-official-api',
 		title: 'Will my post get less reach or banned if I use multi-channel publishing with OpenQuok?',
 		description:
-			`No ! We use the official API for each platform. Your posts should perform the same as if you published them directly on each platform. We had the same concern that algorithms might favor in-app posting, but in our own tests we did not see lower reach when scheduling through OpenQuok. Connect via the ${faqLink(publicFaqHref.socialIntegration, 'official channel setup guides')}.`
+			`No. OpenQuok publishes through each network’s official API. Reach should match posting in the native app. See ${faqLink(publicFaqHref.docsConnectRules, 'Connect rules')}.`
 	},
 	{
+		id: 'repeated-posts',
 		title: 'How does repeated posts work',
 		description:
-			`Repeated posts let you automatically republish evergreen content on a schedule (daily, weekly, or a custom cadence). It’s a great way to keep promoting ongoing offers, quotes, or other timeless content without manually rescheduling. Agents can also queue repeats from ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}.`
+			`Set a repeat cadence on a post. OpenQuok schedules the next run after each publish. See ${faqLink(publicFaqHref.docsSchedulingRepeat, 'Repeating a post')} and ${faqLink(publicFaqHref.docsKanban, 'Kanban')}. Agents: ${faqLink(publicFaqHref.cliManagingPosts, 'CLI post commands')}.`
 	},
 	{
+		id: 'templates',
 		title: 'What are reusable templates and how does it work?',
 		description:
-			'Templates are pre-defined groups of channels with custom message templates. If you frequently post to the same combination of accounts (e.g., your personal X + company LinkedIn + Facebook page), you can save it as a Set for one-click posting.'
+			`Templates save your usual channels, captions, and media as a preset. Pick one when you start a post. See ${faqLink(publicFaqHref.docsTemplates, 'Templates')}.`
 	},
 	{
+		id: 'signatures',
 		title: 'What are reusable signatures and how does it work?',
 		description:
-			'Signatures are snippets of text you can automatically append to posts (hashtags, links, promos). If you often use the same call-to-action or signature across multiple posts, save it once and reuse it everywhere.'
+			`Signatures are reusable sign-offs (hashtags, links, promos) you insert from the composer. See ${faqLink(publicFaqHref.docsSignatures, 'Signatures')}.`
 	},
 	{
+		id: 'analytics',
 		title: 'What analytics does OpenQuok offer?',
 		description:
-			`Get detailed analytics across connected platforms—impressions, likes, comments, shares, bookmarks, and engagement rate—so you can track results over time and see what content resonates most. Pull the same metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or ask an agent after ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP setup')}.`
+			`Track impressions, engagement, and trends per post and workspace. See ${faqLink(publicFaqHref.docsInsights, 'Insights')}, the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')}, or ${faqLink(publicFaqHref.mcpSetupGuides, 'MCP')}.`
 	},
 	{
+		id: 'schedule-comments-threads',
 		title: 'Can I schedule comments or threads',
 		description:
-			`Yes. You can schedule follow-up comments to help drive engagement. On platforms like X and Threads, you can also schedule full threads, while on LinkedIn and Facebook scheduled comments are posted as replies to your main post. See ${faqLink(publicFaqHref.cliX, 'X CLI examples')} and ${faqLink(publicFaqHref.cliThreads, 'Threads CLI examples')}.`
+			`Yes. Add follow-up rows with optional delays in the composer. See ${faqLink(publicFaqHref.docsThreadsComments, 'Threads and comments')}.`
 	},
 	{
+		id: 'what-are-plugs',
 		title: 'What are OpenQuok plugs?',
 		description:
-			`A plug runs after your post goes live. It does not change your scheduled caption. ${faqLink(faqHrefDocs('automations/internal-plugs'), 'Internal plugs')} add a same-account delayed engagement reply on one post. ${faqLink(faqHrefDocs('automations/cross-account-plugs'), 'Cross-account plugs')} use other connected channels to comment, repost, or reshare. ${faqLink(faqHrefDocs('automations/global-plugs'), 'Global plugs')} are channel rules when likes on a live post reach your threshold. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} to compare all three.`
+			`Plugs run automated steps after a post goes live. They do not change your caption. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')}.`
 	},
 	{
+		id: 'plugs-platform-support',
 		title: 'Which social platforms support plugs?',
 		description:
-			`Support depends on the network and plug type. Internal plugs add a same-account follow-up on one post. Threads supports internal plugs today. Cross-account plugs use another connected channel in your workspace. Threads, X, and LinkedIn support cross-account plugs. On X, the acting channel reposts — it does not reply from another account. Global plugs are channel rules when likes on a live post reach your threshold. X and LinkedIn Page support auto-repost and auto-reply. Threads supports auto-reply only. Instagram, Facebook, YouTube, TikTok, and Dev.to do not support cross-account or global plugs yet. See the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')} for the full table by network.`
+			`Support varies by network and plug type. See the table in the ${faqLink(faqHrefDocs('automations/plugs'), 'Plugs overview')}.`
 	},
 	{
+		id: 'delay-between-posts',
 		title: 'What is the delay feature between posts?',
 		description:
-			'Use the delay feature to add time gaps between posts and scheduled comments for a more natural publishing cadence—space them out by minutes or hours instead of posting everything at once.'
+			`Set a delay on each follow-up row so parts publish minutes or hours apart. See ${faqLink(publicFaqHref.docsThreadsComments, 'Threads and comments')}.`
 	},
 	{
+		id: 'too-many-channels',
 		title: 'I have connnected too many channels, what should I do?',
 		description:
-			`The Group management feature let you organize connected channels by client, brand, or any structure you like—making it simple to manage multiple clients or keep personal and business accounts separate. This can be selected to create post later or used by smart filters. Programmatic group lists are in ${faqLink(publicFaqHref.channelGroups, 'channel groups API')} docs.`
+			`Group channels by client or brand, or disable ones you do not need. See ${faqLink(publicFaqHref.docsChannelGroups, 'Channel groups')} and ${faqLink(publicFaqHref.docsManageChannels, 'Manage channels')}. API: ${faqLink(publicFaqHref.channelGroups, 'channel groups')}.`
 	}
 ];
+
+const PUBLIC_FAQ_ITEM_BY_ID = Object.fromEntries(
+	PUBLIC_FAQ_ITEMS.map((item) => [item.id, item])
+) as Record<PublicFaqItemId, PublicFaqItem>;
+
+export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): PublicFaqItem[] {
+	return ids
+		.map((id) => PUBLIC_FAQ_ITEM_BY_ID[id])
+		.filter((item): item is PublicFaqItem => item != null);
+}
+
+/** Curated `/pricing` FAQ — same copy as {@link PUBLIC_FAQ_ITEMS}, billing and plan features only. */
+export function getPublicPricingFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_PRICING_FAQ_ITEM_IDS);
+}
 
 export type PublicFaqConfigItem = {
 	question: string;

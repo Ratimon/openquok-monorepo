@@ -72,6 +72,9 @@ const publicCreatorsPath = route(getRootPathPublicCreators());
 const publicDocsPath = route(getRootPathPublicDocs());
 const publicDocsGettingStartedForDevPath = route(getRootPathPublicDocsGettingStartedForDev());
 const publicDocsInstallationDockerComposePath = route(getRootPathPublicDocsInstallationDockerCompose());
+const publicDocsCloudPath = route(`${getRootPathPublicDocs()}/cloud`);
+const publicDocsBillingPath = route(`${getRootPathPublicDocs()}/billing`);
+const publicDocsGettingStartedPath = route(`${getRootPathPublicDocs()}/getting-started`);
 const publicDocsGettingStartedForMcpPath = route(`${getRootPathPublicDocs()}/getting-started-for-mcp`);
 const publicDocsGettingStartedForCliPath = route(`${getRootPathPublicDocs()}/getting-started-for-cli`);
 const publicGettingStartedForPublicApiDocsPath = route(
@@ -754,6 +757,22 @@ const PUBLIC_SELF_HOST_DOCS_BANNER = {
 	ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
 } as const;
 
+const PUBLIC_CLOUD_BILLING_DOCS_BANNER = {
+	docsPath: publicDocsBillingPath,
+	title: 'Cloud billing guide',
+	description:
+		'Stripe subscriptions, plan limits, downgrades, promotion codes, and refunds for OpenQuok Cloud workspaces.',
+	ctaText: 'View billing docs'
+} as const;
+
+const PUBLIC_CLOUD_OVERVIEW_DOCS_BANNER = {
+	docsPath: publicDocsCloudPath,
+	title: 'OpenQuok Cloud vs self-host',
+	description:
+		'How hosted plans, trials, and billing differ from running Docker Compose or your own production stack.',
+	ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
+} as const;
+
 /** Top accent banner on public hub index pages — links to the section overview doc. */
 export const PUBLIC_HUB_DOCS_BANNERS = {
 	agents: {
@@ -793,8 +812,16 @@ export const PUBLIC_HUB_DOCS_BANNERS = {
 	},
 	compare: PUBLIC_SELF_HOST_DOCS_BANNER,
 	alternatives: PUBLIC_SELF_HOST_DOCS_BANNER,
-	pricing: PUBLIC_SELF_HOST_DOCS_BANNER,
+	pricing: PUBLIC_CLOUD_BILLING_DOCS_BANNER,
+	selfHosting: PUBLIC_CLOUD_OVERVIEW_DOCS_BANNER,
 	tools: PUBLIC_SELF_HOST_DOCS_BANNER,
+	gettingStarted: {
+		docsPath: publicDocsGettingStartedPath,
+		title: 'Read the OpenQuok guide',
+		description:
+			'Connect channels, create posts, and use the calendar — step-by-step product docs.',
+		ctaText: PUBLIC_DOCS_BANNER_CTA_TEXT
+	},
 	landing: {
 		docsPath: '/docs/getting-started-for-cli',
 		title: 'Get started with the OpenQuok CLI',
@@ -923,9 +950,6 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 		{ label: 'Privacy', href: '/privacy-policy' },
 		{ label: 'Cookies', href: '/cookie-policy' }
 	],
-	APIs: publicFooterApisLinks,
-	'Posting API Platforms': publicFooterPostingApiPlatformLinks,
-	'Scheduling API Platforms': publicFooterSchedulingApiPlatformLinks,
 	Tools: [
 		{ label: 'All Free tools', href: publicToolsPath },
 		{ label: 'Skill Builder', href: publicSkillBuilderPath },
@@ -951,6 +975,9 @@ export const PUBLIC_FOOTER_LINKS_STATIC: PublicFooterLinksMap = {
 	'Photo Editor Tools': publicFooterPhotoEditorLinks,
 	'Humanizer Tools': publicFooterHumanizerLinks,
 	'Best Time to Post Tools': publicFooterBestTimeToPostLinks,
+	APIs: publicFooterApisLinks,
+	'Posting API Platforms': publicFooterPostingApiPlatformLinks,
+	'Scheduling API Platforms': publicFooterSchedulingApiPlatformLinks,
 };
 
 /** Full footer columns including doc-derived sections. Await from server loads after docs preload. */

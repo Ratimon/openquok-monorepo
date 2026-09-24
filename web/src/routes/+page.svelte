@@ -5,6 +5,7 @@
 
 	import { publicLayoutPagePresenter } from '$lib/area-public/index';
 	import { getLandingPageConfigDefaults, getPublicFaqConfigDefaults } from '$lib/config/constants/config';
+	import { resolvePublicFaqItemsVm } from '$lib/content/utils/parsePublicFaqConfig';
 
 	import PublicArea from '$lib/ui/templates/PublicArea.svelte';
 	import LandingPage from '$lib/ui/templates/landing-page/LandingPage.svelte';
@@ -62,7 +63,7 @@
 			? data.publicFaqConfigVm
 			: getPublicFaqConfigDefaults()
 	);
-	let publicFaqItemsVm = $derived(data.publicFaqItemsVm ?? []);
+	let publicFaqItemsVm = $derived(resolvePublicFaqItemsVm(data.publicFaqItemsVm));
 	let listingsPreviewVm = $derived(data.listingsPreviewVm);
 	let schemaData = $derived(data.schemaData);
 </script>

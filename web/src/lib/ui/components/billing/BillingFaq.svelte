@@ -22,7 +22,7 @@
 				{
 					title: 'Can I get another free trial later?',
 					description:
-						'No. Cloud includes one 7-day trial per account and per payment customer. Canceling and resubscribing, opening another workspace, or registering again does not start a new trial.'
+						'No. Cloud includes one 7-day trial per payment customer. Canceling and resubscribing, opening another workspace, or registering again does not start a new trial.'
 				}
 			);
 		}
