@@ -289,7 +289,9 @@
 
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div>
-			<h1 class="text-2xl font-semibold text-base-content">Playbooks</h1>
+			<h1 class="text-2xl font-semibold text-base-content">
+				My Playbooks
+			</h1>
 			<p class="mt-1 max-w-2xl text-sm text-base-content/65">
 				Explore playbooks and building blocks from the hub, save bookmarks, and publish your own.
 			</p>

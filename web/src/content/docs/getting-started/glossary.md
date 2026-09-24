@@ -203,13 +203,13 @@ A **global plug** is a saved channel rule at <a href="/account/plugs">/account/p
 
 A **building block** is one catalog entry you can install into an agent setup — a skill, an MCP server, or both. It ships a single capability: install steps, and docs on the <a href="/building-blocks">Building Blocks</a> hub.
 
-Create and edit yours from <a href="/account/playbooks">/account/playbooks</a>. A block is one piece of the stack; add it when you need a specific tool or instruction set, not a full workflow.
+Create and edit yours from <a href="/account/playbooks">/account/playbooks</a> — see <a href="/docs/playbooks">Playbooks</a>. A block is one piece of the stack; add it when you need a specific tool or instruction set, not a full workflow.
 
 ## Playbook
 
 A **playbook** is a curated stack of building blocks with a shared workflow. Playbooks appear on the <a href="/playbooks">Playbooks</a> hub and under **My Playbooks** in your account.
 
-Browse **Explore** to bookmark community playbooks, or publish your own when you want readers to adopt a whole routine. You can also draft one in <a href="/tools/skill-builder">Skill Builder</a>.
+Browse **Explore** to bookmark community playbooks, or publish your own when you want readers to adopt a whole routine. You can also draft one in <a href="/tools/skill-builder">Skill Builder</a> — walkthrough in <a href="/docs/playbooks/compose-a-playbook">Compose a playbook</a>.
 
 ## Agents
 
@@ -226,6 +226,7 @@ Agent-created drafts can include a **review note** on the kanban card. Clear or 
 <CardGrid>
 <LinkCard title="Creating posts" description="Post editor layout, flow, and Payload Wizard" href="/docs/creating-posts" />
 <LinkCard title="Quickstart" description="First channel and first scheduled post" href="/docs/getting-started/quickstart" />
+<LinkCard title="Playbooks" description="Explore, bookmarks, and your catalog library" href="/docs/playbooks" />
 <LinkCard title="Tour the app" description="Sidebar, header, composer, settings, and the public site" href="/docs/getting-started/tour-the-app" />
 <LinkCard title="Team" description="Workspace invites and roles" href="/docs/settings/team" />
 <LinkCard title="Channel groups" description="Bundle channels by client or brand" href="/docs/channels/channel-groups" />

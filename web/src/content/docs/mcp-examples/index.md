@@ -1,6 +1,6 @@
 ---
 title: Overview - MCP Examples
-description: OpenQuok MCP agent workflows — prompts and payloads for scheduling, post management, analytics, plugs, and per-platform recipes.
+description: OpenQuok MCP agent workflows — prompts and payloads for scheduling, posts management, analytics, plugs, and per-platform recipes.
 order: 0
 lastUpdated: 2026-09-10
 sidebar:

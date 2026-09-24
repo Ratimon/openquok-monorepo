@@ -197,7 +197,7 @@ Fetch a public HTTPS image or video URL into workspace media. Returns <Badge tex
 <p>Alternatively, pass public URLs on <Badge text="schedulePostTool.attachments" variant="param" /> — OpenQuok uploads them automatically. Use <Badge text="uploadFromUrl" variant="default" /> when you need the <Badge text="id" variant="param" /> / <Badge text="path" variant="param" /> pair for provider settings that reference media by id.</p>
 </Callout>
 
-## Post management
+## Posts management
 
 ### postsList
 
@@ -503,6 +503,6 @@ Delete a saved global plug rule.
 <LinkCard title="MCP introduction" description="Endpoints, authentication, and typical list → schedule → manage workflows" href="/docs/getting-started-for-mcp" />
 <LinkCard title="MCP examples" description="Agent prompts for scheduling, plugs, analytics, and cross-account Threads" href="/docs/mcp-examples" />
 <LinkCard title="Provider settings" description="Per-provider settings for Threads, X, and LinkedIn" href="/docs/public-api-providers" />
-<LinkCard title="Posts APIs" description="REST equivalent of schedulePostTool and post management" href="/docs/apis-posts" />
+<LinkCard title="Posts APIs" description="REST equivalent of schedulePostTool and posts management" href="/docs/apis-posts" />
 <LinkCard title="Integrations APIs" description="REST list, trigger, and global plug endpoints" href="/docs/apis-integrations" />
 </CardGrid>

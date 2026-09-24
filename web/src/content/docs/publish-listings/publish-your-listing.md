@@ -41,7 +41,7 @@ Decide whether you are sharing a single **building block** or a **playbook** sta
 
 ### Open your Playbooks workspace
 
-Go to <a href="/account/playbooks">Account → Playbooks</a> and open the **My Playbooks** tab.
+Go to <a href="/account/playbooks">Account → Playbooks</a> and open the **My Playbooks** tab. For a full tour of that page, see <a href="/docs/playbooks">Playbooks</a>.
 
 ### Start a new building block
 

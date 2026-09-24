@@ -33,6 +33,12 @@ Published listings appear under your creator profile at <code>/creators/your-use
 <LinkCard title="Publish via the UI" description="Sign in, set a username, and submit from your account or Skill Builder" href="/docs/publish-listings/publish-your-listing" />
 </CardGrid>
 
+## Account Playbooks page
+
+<CardGrid>
+<LinkCard title="Playbooks (docs)" description="Explore tab, bookmarks, My Playbooks, and Skill Builder handoff" href="/docs/playbooks" />
+</CardGrid>
+
 ## Browse the catalog
 
 <CardGrid>
