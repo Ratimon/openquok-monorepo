@@ -325,14 +325,23 @@ function pushSitemapPaths(
     urls: SitemapUrl[],
     paths: string[],
     changeFreq: string,
-    lastMod: string,
+    lastMod?: string,
 ): void {
     for (const urlPath of paths) {
-        urls.push({ url: urlPath, lastMod, changeFreq });
+        urls.push(lastMod ? { url: urlPath, lastMod, changeFreq } : { url: urlPath, changeFreq });
     }
 }
 
-function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[] {
+/** Stable YYYY-MM-DD from routes-manifest `generated` (updates on deploy / manifest regen, not per request). */
+function lastModFromManifestGenerated(manifest: RouteManifest): string {
+    return manifest.generated.slice(0, 10);
+}
+
+function readFolderStructure(
+    dirPath: string,
+    previousFolder = "",
+    staticLastMod?: string,
+): SitemapUrl[] {
     const urls: SitemapUrl[] = [];
     const disabledIncludes = ["(protected)", "(auth)", "not-found"];
     const disabledStartsWith = ["_", "["];
@@ -361,17 +370,18 @@ function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[]
                     previousFolder === "" ? `/${dirName}` : `/${previousFolder}/${dirName}`;
 
                 if (!EXCLUDED_PATHS.some((ex) => urlPath === ex || urlPath.startsWith(ex + "/"))) {
-                    urls.push({
-                        url: urlPath,
-                        lastMod: new Date().toISOString().slice(0, 10),
-                        changeFreq: "weekly",
-                    });
+                    urls.push(
+                        staticLastMod
+                            ? { url: urlPath, lastMod: staticLastMod, changeFreq: "weekly" }
+                            : { url: urlPath, changeFreq: "weekly" },
+                    );
                 }
             }
 
             const childUrls = readFolderStructure(
                 fullPath,
-                isRouteGroup ? previousFolder : previousFolder ? `${previousFolder}/${dirName}` : dirName
+                isRouteGroup ? previousFolder : previousFolder ? `${previousFolder}/${dirName}` : dirName,
+                staticLastMod,
             );
             urls.push(...childUrls);
         }
@@ -386,19 +396,29 @@ function readFolderStructure(dirPath: string, previousFolder = ""): SitemapUrl[]
     return urls;
 }
 
-function sitemapUrlsFromManifest(manifest: RouteManifest, source: string): SitemapUrl[] {
+interface LoadedRoutesManifest {
+    urls: SitemapUrl[];
+    staticLastMod: string;
+}
+
+function sitemapUrlsFromManifest(manifest: RouteManifest, source: string): LoadedRoutesManifest {
+    const staticLastMod = lastModFromManifestGenerated(manifest);
+
     logger.info({
         msg: "Loaded routes from manifest",
         source,
         routeCount: manifest.routes.length,
         generated: manifest.generated,
+        staticLastMod,
     });
 
-    return manifest.routes.map((route) => ({
+    const urls = manifest.routes.map((route) => ({
         url: route.path,
-        lastMod: new Date().toISOString().slice(0, 10),
+        lastMod: staticLastMod,
         changeFreq: route.changeFreq || "monthly",
     }));
+
+    return { urls, staticLastMod };
 }
 
 /**
@@ -406,7 +426,7 @@ function sitemapUrlsFromManifest(manifest: RouteManifest, source: string): Sitem
  * serverless build. Vercel only ships the tsup `api/*.js` output — `static/` is not on disk
  * at runtime, so without the bundled fallback hubs like `/alternatives` never enter the sitemap.
  */
-function loadRoutesFromManifest(manifestPath?: string): SitemapUrl[] {
+function loadRoutesFromManifest(manifestPath?: string): LoadedRoutesManifest {
     if (manifestPath && fs.existsSync(manifestPath)) {
         try {
             const manifestData = fs.readFileSync(manifestPath, "utf-8");
@@ -617,9 +637,14 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
     const { supabaseClient, routesPath, routesManifestPath } = options;
     const urls: SitemapUrl[] = [];
 
+    const { urls: manifestRoutes, staticLastMod } = loadRoutesFromManifest(routesManifestPath);
+    const indexableManifestUrls = manifestRoutes.filter((entry) =>
+        isIndexableManifestPath(entry.url),
+    );
+
     urls.push({
         url: "/",
-        lastMod: new Date().toISOString().slice(0, 10),
+        lastMod: staticLastMod,
         changeFreq: "weekly",
     });
 
@@ -628,14 +653,11 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
             msg: "Using routes manifest for static and programmatic pages",
             path: routesManifestPath,
         });
-        const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter((entry) =>
-            isIndexableManifestPath(entry.url),
-        );
-        urls.push(...manifestUrls);
+        urls.push(...indexableManifestUrls);
     } else if (routesPath && fs.existsSync(routesPath)) {
         logger.info({ msg: "Scanning file system for routes", path: routesPath });
         try {
-            urls.push(...readFolderStructure(routesPath));
+            urls.push(...readFolderStructure(routesPath, "", staticLastMod));
         } catch (error) {
             logger.error({ msg: "Error reading routes folder for sitemap", error, routesPath });
         }
@@ -645,10 +667,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
             manifestPath: routesManifestPath,
             routesPath,
         });
-        const manifestUrls = loadRoutesFromManifest().filter((entry) =>
-            isIndexableManifestPath(entry.url),
-        );
-        urls.push(...manifestUrls);
+        urls.push(...indexableManifestUrls);
     }
 
     try {
@@ -658,7 +677,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 url: `/blog/${p.slug}`,
                 lastMod: p.updated_at
                     ? new Date(p.updated_at).toISOString().slice(0, 10)
-                    : new Date().toISOString().slice(0, 10),
+                    : staticLastMod,
                 changeFreq: "weekly",
             });
         }
@@ -684,7 +703,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 if (t.slug) {
                     urls.push({
                         url: `/blog/topic/${encodeURIComponent(t.slug)}`,
-                        lastMod: new Date().toISOString().slice(0, 10),
+                        lastMod: staticLastMod,
                         changeFreq: "weekly",
                     });
                 }
@@ -713,7 +732,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 const segment = (a.username && a.username.trim()) || a.id;
                 urls.push({
                     url: `/blog/author/${encodeURIComponent(segment)}`,
-                    lastMod: new Date().toISOString().slice(0, 10),
+                    lastMod: staticLastMod,
                     changeFreq: "monthly",
                 });
             }
@@ -730,13 +749,11 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         const catalog = loadPublicCatalogSlugs(routesPath);
         if (catalog) {
             const { agents, channels } = publicCatalogSlugsToSitemapPaths(catalog);
-            const today = new Date().toISOString().slice(0, 10);
-
             for (const agentUrl of agents) {
-                urls.push({ url: agentUrl, lastMod: today, changeFreq: "monthly" });
+                urls.push({ url: agentUrl, lastMod: staticLastMod, changeFreq: "monthly" });
             }
             for (const channelUrl of channels) {
-                urls.push({ url: channelUrl, lastMod: today, changeFreq: "monthly" });
+                urls.push({ url: channelUrl, lastMod: staticLastMod, changeFreq: "monthly" });
             }
 
             logger.info({
@@ -748,8 +765,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
             const constantsDir = resolveWebConstantsDir(routesPath);
             if (constantsDir) {
                 const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
-                const today = new Date().toISOString().slice(0, 10);
-                pushSitemapPaths(urls, programmaticPaths, "monthly", today);
+                pushSitemapPaths(urls, programmaticPaths, "monthly", staticLastMod);
                 logger.info({
                     msg: "Added programmatic SEO URLs to sitemap",
                     count: programmaticPaths.length,
@@ -778,7 +794,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 url: `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
-                    : new Date().toISOString().slice(0, 10),
+                    : staticLastMod,
                 changeFreq: "weekly",
             });
         }
@@ -789,7 +805,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
                 url: `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`,
                 lastMod: listing.updated_at
                     ? new Date(listing.updated_at).toISOString().slice(0, 10)
-                    : new Date().toISOString().slice(0, 10),
+                    : staticLastMod,
                 changeFreq: "weekly",
             });
         }
@@ -797,7 +813,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
         for (const username of creatorUsernames) {
             urls.push({
                 url: `/creators/${encodeURIComponent(username)}`,
-                lastMod: new Date().toISOString().slice(0, 10),
+                lastMod: staticLastMod,
                 changeFreq: "monthly",
             });
         }
@@ -821,8 +837,7 @@ async function generateSitemapUrls(options: GenerateSitemapOptions): Promise<Sit
             fetchActiveListingTagSlugs(supabaseClient),
         ]);
         const hubPaths = listingHubPathsFromSlugs(categorySlugs, tagSlugs);
-        const today = new Date().toISOString().slice(0, 10);
-        pushSitemapPaths(urls, hubPaths, "weekly", today);
+        pushSitemapPaths(urls, hubPaths, "weekly", staticLastMod);
         logger.info({
             msg: "Added listing hub filter URLs to sitemap",
             categoryCount: categorySlugs.length,
@@ -882,8 +897,11 @@ export function generateSitemapMiddleware(options: GenerateSitemapOptions): Requ
                 msg: "Sitemap generation error",
                 error: error instanceof Error ? error.message : String(error),
             });
+            const fallbackLastMod = lastModFromManifestGenerated(
+                bundledRoutesManifest as RouteManifest,
+            );
             const fallback = toSitemapXml(
-                [{ url: "/", changeFreq: "daily", lastMod: new Date().toISOString().slice(0, 10) }],
+                [{ url: "/", changeFreq: "daily", lastMod: fallbackLastMod }],
                 baseURL
             );
             res.type("application/xml").send(fallback);
