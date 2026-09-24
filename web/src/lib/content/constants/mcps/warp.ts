@@ -2,7 +2,6 @@ import { icons } from '$data/icons';
 
 import type { McpLandingSeed } from '$lib/content/constants/mcps/types';
 import { faqHrefAgent, faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
-import { getMcpVerifySafariContentId } from '$lib/ui/templates/device-mocks/safari/mcpClientVerifyMockConfig';
 
 export const warpMcpSeed = {
 	slug: 'warp',
@@ -62,7 +61,7 @@ export const warpMcpSeed = {
 				},
 				{
 					deviceMock: 'desktop',
-					deviceMockContent: getMcpVerifySafariContentId('Warp'),
+					deviceMockContent: 'mcp-verify-warp',
 					imageAlt: 'Verify OpenQuok MCP connection inside Warp'
 				}
 			],

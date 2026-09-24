@@ -4,19 +4,8 @@ import {
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
 import { buildMcpLandingPage, toSkillSetupSteps } from '$lib/content/constants/mcps/builders';
-import type { McpLandingSeed, PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
-
-import { antigravity_cliMcpSeed } from '$lib/content/constants/mcps/antigravity-cli';
-import { chatgptMcpSeed } from '$lib/content/constants/mcps/chatgpt';
-import { codexMcpSeed } from '$lib/content/constants/mcps/codex';
-import { cursorMcpSeed } from '$lib/content/constants/mcps/cursor';
-import { claude_codeMcpSeed } from '$lib/content/constants/mcps/claude-code';
-import { claude_coworkMcpSeed } from '$lib/content/constants/mcps/claude-cowork';
-import { vscode_copilotMcpSeed } from '$lib/content/constants/mcps/vscode-copilot';
-import { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop';
-import { ampMcpSeed } from '$lib/content/constants/mcps/amp';
-import { warpMcpSeed } from '$lib/content/constants/mcps/warp';
-import { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
+import { MCP_LANDING_SEEDS } from '$lib/content/constants/mcps/seeds';
+import type { PublicMcpIntegrationViewModel, PublicMcpLandingPageViewModel } from '$lib/content/constants/mcps/types';
 
 export * from '$lib/content/constants/mcps/types';
 export * from '$lib/content/constants/mcps/builders';
@@ -31,20 +20,7 @@ export { devin_desktopMcpSeed } from '$lib/content/constants/mcps/devin-desktop'
 export { ampMcpSeed } from '$lib/content/constants/mcps/amp';
 export { warpMcpSeed } from '$lib/content/constants/mcps/warp';
 export { muse_codeMcpSeed } from '$lib/content/constants/mcps/muse-code';
-
-const MCP_LANDING_SEEDS: readonly McpLandingSeed[] = [
-	antigravity_cliMcpSeed,
-	chatgptMcpSeed,
-	codexMcpSeed,
-	cursorMcpSeed,
-	claude_codeMcpSeed,
-	claude_coworkMcpSeed,
-	vscode_copilotMcpSeed,
-	devin_desktopMcpSeed,
-	ampMcpSeed,
-	warpMcpSeed,
-	muse_codeMcpSeed
-];
+export { MCP_LANDING_SEEDS, listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 
 export const PUBLIC_MCP_LANDING_PAGES: readonly PublicMcpLandingPageViewModel[] =
 	MCP_LANDING_SEEDS.map(buildMcpLandingPage);

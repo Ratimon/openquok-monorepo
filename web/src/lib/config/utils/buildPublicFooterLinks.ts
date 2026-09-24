@@ -9,8 +9,9 @@ import { getRootPathPublicDocs } from '$lib/area-public/constants/getRootPathPub
 import { listHumanizeChannelsForHub } from '$lib/ai-humanize/constants/publicHumanizeChannelConfig';
 import { listBestTimeChannelsForHub } from '$lib/best-time-to-post/constants/publicBestTimeToPostChannelConfig';
 import { listCanvasChannelsForHub } from '$lib/canvas/constants/publicCanvasChannelConfig';
-import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
-import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
+import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/seeds';
+import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiSchedulingPlatformBySlug,
@@ -28,20 +29,6 @@ export type PublicFooterLink = { label: string; href: string };
 export type PublicFooterLinksMap = Record<string, PublicFooterLink[]>;
 
 type PublicFooterHubEntry = { platformLabel: string; href: string };
-
-/** Slug + label only — keep order aligned with `MCP_LANDING_SEEDS` in `mcps/index.ts`. */
-const MCP_HUB_FOOTER_ENTRIES = [
-	{ slug: 'antigravity-cli', label: 'Antigravity CLI' },
-	{ slug: 'chatgpt', label: 'ChatGPT' },
-	{ slug: 'codex', label: 'Codex' },
-	{ slug: 'cursor', label: 'Cursor' },
-	{ slug: 'claude-code', label: 'Claude Code' },
-	{ slug: 'claude-cowork', label: 'Claude Cowork' },
-	{ slug: 'vscode-copilot', label: 'VS Code / Copilot' },
-	{ slug: 'devin-desktop', label: 'Devin Desktop' },
-	{ slug: 'amp', label: 'Amp' },
-	{ slug: 'warp', label: 'Warp' }
-] as const;
 
 const SOCIAL_INTEGRATION_DOCS_DIRECTORY = 'social-integration';
 
@@ -114,8 +101,8 @@ export function buildPublicFooterAutonomousAgentIntegrationLinks(
 	return buildPublicFooterHubLinks(
 		'All Autonomous Agent Integrations',
 		agentsHubHref,
-		listPublicAgentsForHub().map((agent) => ({
-			platformLabel: agent.agentLabel,
+		listPublicAgentHostSeedsForFooter().map((agent) => ({
+			platformLabel: agent.label,
 			href: route(getRootPathPublicAgent(agent.slug))
 		}))
 	);
@@ -125,7 +112,7 @@ export function buildPublicFooterMcpIntegrationLinks(agentsHubHref: string): Pub
 	return buildPublicFooterHubLinks(
 		'All MCP Integrations',
 		agentsHubHref,
-		MCP_HUB_FOOTER_ENTRIES.map((mcp) => ({
+		listPublicMcpLandingSeedsForFooter().map((mcp) => ({
 			platformLabel: mcp.label,
 			href: route(getRootPathPublicAgent(mcp.slug))
 		}))
@@ -136,8 +123,8 @@ export function buildPublicFooterSupportedChannelLinks(channelsHubHref: string):
 	return buildPublicFooterHubLinks(
 		'All Supported Channels',
 		channelsHubHref,
-		listPublicChannelsForHub().map((channel) => ({
-			platformLabel: channel.platformLabel,
+		listPublicChannelLandingSeedsForFooter().map((channel) => ({
+			platformLabel: channel.label,
 			href: route(getRootPathPublicChannel(channel.slug))
 		}))
 	);

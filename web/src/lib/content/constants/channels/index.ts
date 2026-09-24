@@ -3,15 +3,7 @@ import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
-
-import { facebookChannel } from '$lib/content/constants/channels/facebook';
-import { threadsChannel } from '$lib/content/constants/channels/threads';
-import { instagramChannel } from '$lib/content/constants/channels/instagram';
-import { youtubeChannel } from '$lib/content/constants/channels/youtube';
-import { tiktokChannel } from '$lib/content/constants/channels/tiktok';
-import { linkedinChannel } from '$lib/content/constants/channels/linkedin';
-import { xChannel } from '$lib/content/constants/channels/x';
-import { devtoChannel } from '$lib/content/constants/channels/devto';
+import { PUBLIC_CHANNEL_LANDING_PAGES } from '$lib/content/constants/channels/seeds';
 
 export * from '$lib/content/constants/channels/types';
 export { SHARED_CHANNEL_SEO_KEYWORDS } from '$lib/content/constants/channels/shared';
@@ -23,21 +15,10 @@ export { tiktokChannel } from '$lib/content/constants/channels/tiktok';
 export { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 export { xChannel } from '$lib/content/constants/channels/x';
 export { devtoChannel } from '$lib/content/constants/channels/devto';
-
-/** Coming-soon entries appear on the hub but do not have detail pages yet. */
-const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
-
-export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageViewModel[] = [
-	facebookChannel,
-	threadsChannel,
-	instagramChannel,
-	youtubeChannel,
-	tiktokChannel,
-	linkedinChannel,
-	xChannel,
-	devtoChannel,
-	...COMING_SOON_CHANNELS
-];
+export {
+	PUBLIC_CHANNEL_LANDING_PAGES,
+	listPublicChannelLandingSeedsForFooter
+} from '$lib/content/constants/channels/seeds';
 
 const channelBySlug = new Map(PUBLIC_CHANNEL_LANDING_PAGES.map((page) => [page.slug, page]));
 

@@ -18,6 +18,7 @@ globs:
   - web/src/routes/(protected)/secret-admin/blog-manager/**
   - web/src/routes/(protected)/secret-admin/listing-manager/tags/**
   - web/src/lib/ui/templates/landing-page/landingHeroTheme.ts
+  - web/src/lib/config/utils/buildPublicFooterLinks.ts
   - .cursor/rules/add-agent.mdc
 alwaysApply: false
 ---
@@ -86,9 +87,11 @@ Applies to agent-host and MCP landing pages, the `/agents` hub, and any surface 
 
 **`web/src/lib/content/constants/mcps/{slug}.ts`** — export `{name}McpSeed` satisfying `McpLandingSeed` (`slug`, `label`, `mcpClient`, `icon`, `hubDescription`, `heroDescription`, `metaDescription`, `workflowPhrase`, four `setupSteps`). Write those strings in ASD-STE100 (see above).
 
-**`web/src/lib/content/constants/mcps/index.ts`** — import, re-export, append to `MCP_LANDING_SEEDS`.
+**`web/src/lib/content/constants/mcps/seeds.ts`** — import the seed and append to **`MCP_LANDING_SEEDS`** (registry order drives hub, nav, and footer). Re-export from **`mcps/index.ts`** if the seed should be public.
 
-This auto-wires `/agents/{slug}`, the agents hub MCP grid, and `PublicAgentsNavDropdown`.
+**Do not** import **`getMcpClientConfig`**, **`mcpClientVerifyMockConfig`**, or other developer/mock modules at the top level of **`mcps/{slug}.ts`** seed files. Those pull in **`config.ts`** while the footer builder loads seeds and causes an init cycle. Use string literals for mock content ids (e.g. `'mcp-verify-warp'`) or keep mock wiring in **`builders.ts`**.
+
+This auto-wires `/agents/{slug}`, the agents hub MCP grid, `PublicAgentsNavDropdown`, and the sitewide footer **MCP Integrations** column (`buildPublicFooterMcpIntegrationLinks` → `listPublicMcpLandingSeedsForFooter()`). Do **not** maintain a separate MCP slug list in `buildPublicFooterLinks.ts` or `config.ts`.
 
 ### 4. Device-mock themes / content ids
 
@@ -124,12 +127,12 @@ Do **not** add MCP clients under `agent-setup-guides/` (that section is for CLI 
 ### MCP client PR checklist
 
 - [ ] Icon + `MCP_CLIENTS` + `MCP_CLIENT_DOCS_SLUG` + both auth branches + unit test
-- [ ] `{slug}.ts` seed registered in `mcps/index.ts`
+- [ ] `{slug}.ts` seed registered in `mcps/seeds.ts` (`MCP_LANDING_SEEDS`; footer MCP column follows automatically)
 - [ ] `landingHeroTheme.ts` — `LANDING_HERO_TITLE_HIGHLIGHT_WORDS` includes the client label
 - [ ] Mock verify/install/workflow/analytics unions + theme
 - [ ] `mcp-setup-guides/{slug}.md` + index `LinkCard` + `getting-started-for-mcp/setup.md` table
 - [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
-- [ ] Smoke `/agents/{slug}`, Developers → Access client chip, `/docs/mcp-setup-guides/{slug}`
+- [ ] Smoke `/agents/{slug}`, Developers → Access client chip, `/docs/mcp-setup-guides/{slug}`, footer **MCP Integrations** link to `/agents/{slug}`
 
 ---
 
@@ -141,7 +144,9 @@ Same as MCP clients — `branded-icons.ts`.
 
 ### 2. Agent landing seed
 
-**`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/index.ts`** (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
+**`web/src/lib/content/constants/agents/{slug}.ts`** + register in **`agents/seeds.ts`** (`PUBLIC_AGENT_HOST_LANDING_PAGES`) and re-export from **`agents/index.ts`** when needed (and hub copy in `hub.ts` / shared FAQs when needed). Write `heroDescription`, `hubDescription`, `metaDescription`, workflow, audience, and FAQ in ASD-STE100.
+
+Registering in **`agents/seeds.ts`** also auto-wires the sitewide footer **Autonomous Agent Integrations** column via `listPublicAgentHostSeedsForFooter()` — no footer list edit in `config.ts`.
 
 Add host-specific **`skillInstallOptions`** in **`openquokCliCommandReference.ts`** when install differs from OpenClaw (Hermes CLI, Grok Bot workspace + Plugins, etc.).
 
@@ -192,7 +197,7 @@ Update `agent/skills/openquok-core/` (`SKILL.md` metadata JSON for the host when
 - [ ] Channel SEO in `agents/channels/` if `/agents/{slug}/{channel}` is in scope
 - [ ] **CMS:** listing tag + launch blog via secret-admin (see **C**); no `backend/supabase/db` edits
 - [ ] Landing copy (hero, hub, audience, FAQ) is concise ASD-STE100 (short sentences, active voice, `you`)
-- [ ] Smoke `/agents/{slug}` and docs page
+- [ ] Smoke `/agents/{slug}`, docs page, footer **Autonomous Agent Integrations** link to `/agents/{slug}`
 
 ---
 
@@ -234,3 +239,4 @@ Deliver paste-ready HTML/FAQ/How-to in the PR description or operator handoff �
 - Name third-party source projects or external repo paths in seeds, docs, or comments (see **source-project-neutrality**).
 - Create or edit **`backend/supabase/db/**`** listing-tag or blog seeds for agent launches — use secret-admin (**C**).
 - Classify a desktop/cloud teammate or skill-based IDE host as an MCP client when it uses CLI + skills (Grok Bot, ThinkRail → agent host).
+- Hand-edit MCP or agent-host rows in **`buildPublicFooterLinks.ts`** or **`PUBLIC_FOOTER_LINKS`** for catalog slugs — append to **`mcps/seeds.ts`** or **`agents/seeds.ts`** instead.

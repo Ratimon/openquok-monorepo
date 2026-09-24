@@ -413,7 +413,9 @@ Navbar link to `/channels` is already in `web/src/lib/config/constants/config.ts
 
 ### Catalog entry (`PublicChannelLandingPageViewModel`)
 
-Add a constant in `channels/{slug}.ts` and register it in `channels/index.ts` (re-exported as `PUBLIC_CHANNEL_LANDING_PAGES` via `publicChannelConfig.ts`).
+Add a constant in `channels/{slug}.ts` and register it in **`channels/seeds.ts`** (`PUBLIC_CHANNEL_LANDING_PAGES`; append to `COMING_SOON_CHANNELS` only for minimal stubs before the full file exists). Re-export from **`channels/index.ts`** as today via `publicChannelConfig.ts`.
+
+Registering in **`channels/seeds.ts`** auto-wires the sitewide footer **Supported Channels** column (`buildPublicFooterSupportedChannelLinks` → `listPublicChannelLandingSeedsForFooter()`). Do **not** hand-edit `config.ts` or `buildPublicFooterLinks.ts` for each new slug.
 
 | Field | Rule |
 | --- | --- |
@@ -427,7 +429,7 @@ Add a constant in `channels/{slug}.ts` and register it in `channels/index.ts` (r
 | `docsPath` | Setup guide path, e.g. `/docs/social-integration/{id}` — must match the doc you ship |
 | `available` | `true` when Skill Builder / Photo Editor channel routes and live hero CTAs should ship; `false` for **Soon** badges on hub/nav and a coming-soon hero on `/channels/{slug}` and `/agents/{agentSlug}/{slug}` (full landing sections still render) |
 
-**Coming soon (provider not ready):** add a full catalog entry in `web/src/lib/content/constants/channels/{slug}.ts` with `available: false` (or append a minimal stub to `COMING_SOON_CHANNELS` in `channels/index.ts` before the full file exists). Hub and header show a **Soon** badge; `/channels/{slug}` and agent channel pages use `PublicComingSoonIntegrationPage` (`heroOnly`) for the hero and omit listings preview — all other sections still render from the catalog copy.
+**Coming soon (provider not ready):** add a full catalog entry in `web/src/lib/content/constants/channels/{slug}.ts` with `available: false` (or append a minimal stub to `COMING_SOON_CHANNELS` in **`channels/seeds.ts`** before the full file exists). Hub and header show a **Soon** badge; `/channels/{slug}` and agent channel pages use `PublicComingSoonIntegrationPage` (`heroOnly`) for the hero and omit listings preview — all other sections still render from the catalog copy.
 
 **Go live:** flip `available: true` (and ensure backend integration is registered). Ship **provider-specific bento showcases** for all three feature sections (see below). Copy must describe **only features already implemented** — do not oversell.
 
@@ -524,13 +526,13 @@ Footer columns are assembled in `web/src/lib/config/constants/config.ts` from bu
 
 | Footer section | Ship in this PR | Auto-wired from |
 | --- | --- | --- |
-| **Supported Channels** | `channels/{slug}.ts` catalog entry | `listPublicChannelsForHub()` → `/channels/{slug}` |
+| **Supported Channels** | `channels/{slug}.ts` + append to **`PUBLIC_CHANNEL_LANDING_PAGES`** in `channels/seeds.ts` | `listPublicChannelLandingSeedsForFooter()` → `/channels/{slug}` |
 | **How to self-host with different social channels** | `social-integration/{id}.md` + `social-integration/index.md` LinkCard | Eager glob on `web/src/content/docs/social-integration/**`; frontmatter `title`, `order` (omit `draft: true`) |
 | **Skill Builder Tools** | Live channel (`available: true`) + Skill Builder recipes | `listSkillBuilderChannelsForHub()` |
 | **Photo Editor Tools** | Live channel + aspect presets (recommended at go-live) | `listCanvasChannelsForHub()` |
 | **Best Time to Post Tools** | Live channel + `PLATFORM_WINDOWS['{identifier}']` | `listBestTimeChannelsForHub()` |
 | **Humanizer Tools** | Any `publicChannelConfig` entry (including coming-soon) | `listHumanizeChannelsForHub()` |
-| **Autonomous Agent Integrations** | Agent channel SEO (bento + CLI when go-live) | Agent hosts from `listPublicAgentsForHub()`; per-channel rows from `/agents/{agentSlug}/{slug}` catalog |
+| **Autonomous Agent Integrations** | Agent channel SEO (bento + CLI when go-live) | Agent hosts from `listPublicAgentHostSeedsForFooter()`; per-channel rows from `/agents/{agentSlug}/{slug}` catalog |
 
 **Self-host setup doc frontmatter:** filename slug must match `provider.identifier` (link → `/docs/social-integration/{identifier}`). Set `title` for the footer label, `order` to sort among sibling guides, and optional `sidebar.label` when the footer label should differ from the page title.
 

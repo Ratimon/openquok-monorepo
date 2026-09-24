@@ -140,7 +140,7 @@ Sitewide footer columns in `web/src/lib/config/constants/config.ts`. Hub-level l
 | --- | --- |
 | **Tools** | `/tools`, `/tools/skill-builder`, `/tools/photo-editor`, `/tools/humanizer`, `/tools/best-time-to-post` |
 | **Skill Builder / Photo Editor / Humanizer / Best Time to Post Tools** | Auto: `/tools/{tool}/{channelSlug}` from live channel catalogs |
-| **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelsForHub()` |
+| **Supported Channels** | Auto: `/channels/{slug}` from `listPublicChannelLandingSeedsForFooter()` (`channels/seeds.ts`) |
 | **Social Media Posting / Scheduling API** | Auto: `/social-media-posting-api/{slug}` and `/social-media-scheduling-api/{slug}` from `listPublicApiPostingPlatformsForHub()` / `listPublicApiSchedulingPlatformsForHub()` |
 | **How to self-host with different social channels** | Auto: `/docs/social-integration/{slug}` from setup-guide markdown |
 | **Autonomous Agent / MCP Integrations** | Auto: `/agents/{slug}` from agent/MCP catalogs |

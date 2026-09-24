@@ -3,11 +3,7 @@ import {
 	appendPublicGeneralFaqItems,
 	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
 } from '$lib/content/constants/publicFaqConfig';
-
-import { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
-import { hermesAgent } from '$lib/content/constants/agents/hermes';
-import { openclawAgent } from '$lib/content/constants/agents/openclaw';
-import { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
+import { PUBLIC_AGENT_HOST_LANDING_PAGES } from '$lib/content/constants/agents/seeds';
 
 export * from '$lib/content/constants/agents/types';
 export * from '$lib/content/constants/agents/shared';
@@ -16,13 +12,10 @@ export { openclawAgent } from '$lib/content/constants/agents/openclaw';
 export { hermesAgent } from '$lib/content/constants/agents/hermes';
 export { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
 export { thinkrailAgent } from '$lib/content/constants/agents/thinkrail';
-
-export const PUBLIC_AGENT_HOST_LANDING_PAGES: readonly PublicAgentHostLandingPageViewModel[] = [
-	openclawAgent,
-	hermesAgent,
-	grokBotAgent,
-	thinkrailAgent
-];
+export {
+	PUBLIC_AGENT_HOST_LANDING_PAGES,
+	listPublicAgentHostSeedsForFooter
+} from '$lib/content/constants/agents/seeds';
 
 const agentHostBySlug = new Map(
 	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])

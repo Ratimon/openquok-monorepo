@@ -15,8 +15,9 @@ import {
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { getPublicFooterLinks, PUBLIC_FOOTER_LINKS_STATIC } from '$lib/config/constants/config';
 import { preloadDocsRegistry } from '$lib/docs/content';
-import { listPublicAgentsForHub } from '$lib/content/constants/agents/index';
-import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
+import { listPublicAgentHostSeedsForFooter } from '$lib/content/constants/agents/seeds';
+import { listPublicChannelLandingSeedsForFooter } from '$lib/content/constants/channels/seeds';
+import { listPublicMcpLandingSeedsForFooter } from '$lib/content/constants/mcps/seeds';
 import {
 	getPublicApiPostingPlatformBySlug,
 	getPublicApiSchedulingPlatformBySlug,
@@ -59,8 +60,8 @@ describe('buildPublicFooterLinks', () => {
 			href: '/agents'
 		});
 		expect(links.slice(1)).toEqual(
-			listPublicAgentsForHub().map((agent) => ({
-				label: agent.agentLabel,
+			listPublicAgentHostSeedsForFooter().map((agent) => ({
+				label: agent.label,
 				href: route(getRootPathPublicAgent(agent.slug))
 			}))
 		);
@@ -70,8 +71,13 @@ describe('buildPublicFooterLinks', () => {
 		const links = buildPublicFooterMcpIntegrationLinks('/agents');
 
 		expect(links[0]).toEqual({ label: 'All MCP Integrations', href: '/agents' });
-		expect(links.some((link) => link.href === route(getRootPathPublicAgent('cursor')))).toBe(true);
-		expect(links.some((link) => link.label === 'Cursor')).toBe(true);
+		expect(links.slice(1)).toEqual(
+			listPublicMcpLandingSeedsForFooter().map((mcp) => ({
+				label: mcp.label,
+				href: route(getRootPathPublicAgent(mcp.slug))
+			}))
+		);
+		expect(links.some((link) => link.label === 'Muse Code')).toBe(true);
 	});
 
 	it('lists every public channel under the channels hub', () => {
@@ -79,8 +85,8 @@ describe('buildPublicFooterLinks', () => {
 
 		expect(links[0]).toEqual({ label: 'All Supported Channels', href: '/channels' });
 		expect(links.slice(1)).toEqual(
-			listPublicChannelsForHub().map((channel) => ({
-				label: channel.platformLabel,
+			listPublicChannelLandingSeedsForFooter().map((channel) => ({
+				label: channel.label,
 				href: route(getRootPathPublicChannel(channel.slug))
 			}))
 		);
