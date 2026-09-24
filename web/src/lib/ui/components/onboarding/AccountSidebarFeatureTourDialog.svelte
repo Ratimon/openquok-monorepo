@@ -99,13 +99,27 @@
 			</div>
 
 			<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-5">
+				{#if step.image}
+					<img
+						src={step.image.src}
+						alt={step.image.alt}
+						class="mb-4 w-full rounded-lg border border-base-300 object-cover"
+						loading="lazy"
+						decoding="async"
+					/>
+				{/if}
+
 				<div class="space-y-4">
 					{#each step.paragraphs as paragraph, i (`${tourId}-${stepIndex}-${i}`)}
 						<AccountSidebarTourParagraph parts={paragraph} />
 					{/each}
 				</div>
 
-				{#if step.remember}
+				{#if step.rememberParts?.length}
+					<div class="mt-5">
+						<AccountSidebarTourParagraph parts={step.rememberParts} />
+					</div>
+				{:else if step.remember}
 					<p class="mt-5 text-sm leading-relaxed text-base-content/75">
 						<span aria-hidden="true">💡</span>
 						<span class="font-medium text-base-content"> Remember:</span>

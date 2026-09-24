@@ -30280,6 +30280,7 @@ function buildMediaTreeEntities(items, extraFolderPaths = []) {
       mediaId: item.id,
       displayName,
       publicUrl: item.publicUrl,
+      thumbnailPublicUrl: item.thumbnailPublicUrl,
       kind: item.kind
     });
   }
@@ -36479,7 +36480,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-23T00:10:19.175Z",
+  generated: "2026-09-24T02:56:51.858Z",
   routes: [
     {
       path: "/docs",
@@ -36812,6 +36813,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/buffer/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/buffer/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36902,6 +36909,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/claw-post/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/claw-post/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36986,6 +36999,102 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/heropost/buffer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/hootsuite",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/hopper-hq",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/later",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/mixpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/openpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/openquok",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/post-bridge",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/postfast",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/postiz",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/postpeer",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/recurpost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/socialclaw",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/typefully",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/heropost/usebard",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hootsuite/buffer",
       priority: 0.75,
       changeFreq: "monthly",
@@ -36993,6 +37102,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/hootsuite/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/hootsuite/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37088,6 +37203,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/hopper-hq/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/hopper-hq/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37173,6 +37294,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/later/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/later/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37268,6 +37395,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/mixpost/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/mixpost/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37353,6 +37486,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/openpost/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/openpost/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37448,6 +37587,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/openquok/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/openquok/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37533,6 +37678,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/post-bridge/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/post-bridge/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37628,6 +37779,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postfast/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postfast/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37713,6 +37870,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/postiz/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/postiz/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37808,6 +37971,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/postpeer/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/postpeer/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -37893,6 +38062,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/recurpost/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/recurpost/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -37988,6 +38163,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/socialclaw/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/socialclaw/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -38073,6 +38254,12 @@ var routes_manifest_default = {
     },
     {
       path: "/compare/typefully/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
+      path: "/compare/typefully/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-compare"
@@ -38168,6 +38355,12 @@ var routes_manifest_default = {
       type: "programmatic-compare"
     },
     {
+      path: "/compare/usebard/heropost",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-compare"
+    },
+    {
       path: "/compare/usebard/hootsuite",
       priority: 0.75,
       changeFreq: "monthly",
@@ -38253,6 +38446,12 @@ var routes_manifest_default = {
     },
     {
       path: "/alternatives/claw-post",
+      priority: 0.75,
+      changeFreq: "monthly",
+      type: "programmatic-alternatives"
+    },
+    {
+      path: "/alternatives/heropost",
       priority: 0.75,
       changeFreq: "monthly",
       type: "programmatic-alternatives"
@@ -39587,10 +39786,13 @@ function buildProgrammaticSitemapPaths(constantsDir) {
 }
 function pushSitemapPaths(urls, paths, changeFreq, lastMod) {
   for (const urlPath of paths) {
-    urls.push({ url: urlPath, lastMod, changeFreq });
+    urls.push(lastMod ? { url: urlPath, lastMod, changeFreq } : { url: urlPath, changeFreq });
   }
 }
-function readFolderStructure(dirPath, previousFolder = "") {
+function lastModFromManifestGenerated(manifest) {
+  return manifest.generated.slice(0, 10);
+}
+function readFolderStructure(dirPath, previousFolder = "", staticLastMod) {
   const urls = [];
   const disabledIncludes = ["(protected)", "(auth)", "not-found"];
   const disabledStartsWith = ["_", "["];
@@ -39607,16 +39809,15 @@ function readFolderStructure(dirPath, previousFolder = "") {
       if (!isRouteGroup) {
         const urlPath = previousFolder === "" ? `/${dirName}` : `/${previousFolder}/${dirName}`;
         if (!EXCLUDED_PATHS.some((ex) => urlPath === ex || urlPath.startsWith(ex + "/"))) {
-          urls.push({
-            url: urlPath,
-            lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-            changeFreq: "weekly"
-          });
+          urls.push(
+            staticLastMod ? { url: urlPath, lastMod: staticLastMod, changeFreq: "weekly" } : { url: urlPath, changeFreq: "weekly" }
+          );
         }
       }
       const childUrls = readFolderStructure(
         fullPath,
-        isRouteGroup ? previousFolder : previousFolder ? `${previousFolder}/${dirName}` : dirName
+        isRouteGroup ? previousFolder : previousFolder ? `${previousFolder}/${dirName}` : dirName,
+        staticLastMod
       );
       urls.push(...childUrls);
     }
@@ -39630,17 +39831,20 @@ function readFolderStructure(dirPath, previousFolder = "") {
   return urls;
 }
 function sitemapUrlsFromManifest(manifest, source) {
+  const staticLastMod = lastModFromManifestGenerated(manifest);
   logger.info({
     msg: "Loaded routes from manifest",
     source,
     routeCount: manifest.routes.length,
-    generated: manifest.generated
+    generated: manifest.generated,
+    staticLastMod
   });
-  return manifest.routes.map((route) => ({
+  const urls = manifest.routes.map((route) => ({
     url: route.path,
-    lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+    lastMod: staticLastMod,
     changeFreq: route.changeFreq || "monthly"
   }));
+  return { urls, staticLastMod };
 }
 function loadRoutesFromManifest(manifestPath) {
   if (manifestPath && fs2__default.default.existsSync(manifestPath)) {
@@ -39800,9 +40004,13 @@ function listingHubPathsFromSlugs(categorySlugs, tagSlugs) {
 async function generateSitemapUrls(options2) {
   const { supabaseClient, routesPath, routesManifestPath } = options2;
   const urls = [];
+  const { urls: manifestRoutes, staticLastMod } = loadRoutesFromManifest(routesManifestPath);
+  const indexableManifestUrls = manifestRoutes.filter(
+    (entry) => isIndexableManifestPath(entry.url)
+  );
   urls.push({
     url: "/",
-    lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+    lastMod: staticLastMod,
     changeFreq: "weekly"
   });
   if (routesManifestPath) {
@@ -39810,14 +40018,11 @@ async function generateSitemapUrls(options2) {
       msg: "Using routes manifest for static and programmatic pages",
       path: routesManifestPath
     });
-    const manifestUrls = loadRoutesFromManifest(routesManifestPath).filter(
-      (entry) => isIndexableManifestPath(entry.url)
-    );
-    urls.push(...manifestUrls);
+    urls.push(...indexableManifestUrls);
   } else if (routesPath && fs2__default.default.existsSync(routesPath)) {
     logger.info({ msg: "Scanning file system for routes", path: routesPath });
     try {
-      urls.push(...readFolderStructure(routesPath));
+      urls.push(...readFolderStructure(routesPath, "", staticLastMod));
     } catch (error) {
       logger.error({ msg: "Error reading routes folder for sitemap", error, routesPath });
     }
@@ -39827,17 +40032,14 @@ async function generateSitemapUrls(options2) {
       manifestPath: routesManifestPath,
       routesPath
     });
-    const manifestUrls = loadRoutesFromManifest().filter(
-      (entry) => isIndexableManifestPath(entry.url)
-    );
-    urls.push(...manifestUrls);
+    urls.push(...indexableManifestUrls);
   }
   try {
     const posts = await fetchPublishedPostSlugs(supabaseClient);
     for (const p of posts) {
       urls.push({
         url: `/blog/${p.slug}`,
-        lastMod: p.updated_at ? new Date(p.updated_at).toISOString().slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        lastMod: p.updated_at ? new Date(p.updated_at).toISOString().slice(0, 10) : staticLastMod,
         changeFreq: "weekly"
       });
     }
@@ -39861,7 +40063,7 @@ async function generateSitemapUrls(options2) {
         if (t.slug) {
           urls.push({
             url: `/blog/topic/${encodeURIComponent(t.slug)}`,
-            lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+            lastMod: staticLastMod,
             changeFreq: "weekly"
           });
         }
@@ -39887,7 +40089,7 @@ async function generateSitemapUrls(options2) {
         const segment = a.username && a.username.trim() || a.id;
         urls.push({
           url: `/blog/author/${encodeURIComponent(segment)}`,
-          lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+          lastMod: staticLastMod,
           changeFreq: "monthly"
         });
       }
@@ -39903,12 +40105,11 @@ async function generateSitemapUrls(options2) {
     const catalog = loadPublicCatalogSlugs(routesPath);
     if (catalog) {
       const { agents, channels } = publicCatalogSlugsToSitemapPaths(catalog);
-      const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
       for (const agentUrl of agents) {
-        urls.push({ url: agentUrl, lastMod: today, changeFreq: "monthly" });
+        urls.push({ url: agentUrl, lastMod: staticLastMod, changeFreq: "monthly" });
       }
       for (const channelUrl of channels) {
-        urls.push({ url: channelUrl, lastMod: today, changeFreq: "monthly" });
+        urls.push({ url: channelUrl, lastMod: staticLastMod, changeFreq: "monthly" });
       }
       logger.info({
         msg: "Added public catalog URLs to sitemap",
@@ -39918,8 +40119,7 @@ async function generateSitemapUrls(options2) {
       const constantsDir = resolveWebConstantsDir(routesPath);
       if (constantsDir) {
         const programmaticPaths = buildProgrammaticSitemapPaths(constantsDir);
-        const today2 = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-        pushSitemapPaths(urls, programmaticPaths, "monthly", today2);
+        pushSitemapPaths(urls, programmaticPaths, "monthly", staticLastMod);
         logger.info({
           msg: "Added programmatic SEO URLs to sitemap",
           count: programmaticPaths.length
@@ -39944,7 +40144,7 @@ async function generateSitemapUrls(options2) {
       if (!listing.owner_username) continue;
       urls.push({
         url: `/creators/${encodeURIComponent(listing.owner_username)}/building-blocks/${encodeURIComponent(listing.slug)}`,
-        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : staticLastMod,
         changeFreq: "weekly"
       });
     }
@@ -39952,14 +40152,14 @@ async function generateSitemapUrls(options2) {
       if (!listing.owner_username) continue;
       urls.push({
         url: `/creators/${encodeURIComponent(listing.owner_username)}/playbooks/${encodeURIComponent(listing.slug)}`,
-        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        lastMod: listing.updated_at ? new Date(listing.updated_at).toISOString().slice(0, 10) : staticLastMod,
         changeFreq: "weekly"
       });
     }
     for (const username of creatorUsernames) {
       urls.push({
         url: `/creators/${encodeURIComponent(username)}`,
-        lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+        lastMod: staticLastMod,
         changeFreq: "monthly"
       });
     }
@@ -39981,8 +40181,7 @@ async function generateSitemapUrls(options2) {
       fetchActiveListingTagSlugs(supabaseClient)
     ]);
     const hubPaths = listingHubPathsFromSlugs(categorySlugs, tagSlugs);
-    const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    pushSitemapPaths(urls, hubPaths, "weekly", today);
+    pushSitemapPaths(urls, hubPaths, "weekly", staticLastMod);
     logger.info({
       msg: "Added listing hub filter URLs to sitemap",
       categoryCount: categorySlugs.length,
@@ -40038,8 +40237,11 @@ function generateSitemapMiddleware(options2) {
         msg: "Sitemap generation error",
         error: error instanceof Error ? error.message : String(error)
       });
+      const fallbackLastMod = lastModFromManifestGenerated(
+        routes_manifest_default
+      );
       const fallback = toSitemapXml(
-        [{ url: "/", changeFreq: "daily", lastMod: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) }],
+        [{ url: "/", changeFreq: "daily", lastMod: fallbackLastMod }],
         baseURL
       );
       res.type("application/xml").send(fallback);

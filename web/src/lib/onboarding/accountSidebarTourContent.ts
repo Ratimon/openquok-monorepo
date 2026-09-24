@@ -2,6 +2,26 @@ import { icons } from '$data/icons';
 
 import type { AccountSidebarTourDefinition } from '$lib/onboarding/accountSidebarTour.types';
 
+/** In-app product tour links to the user Guide (`/docs/…`). */
+const GUIDE = {
+	tourTheApp: '/docs/getting-started/tour-the-app',
+	quickstart: '/docs/getting-started/quickstart',
+	connectChannels: '/docs/channels/connect',
+	kanban: '/docs/posts-management/kanban',
+	calendar: '/docs/posts-management/calendar',
+	templates: '/docs/posts-management/templates',
+	creatingPosts: '/docs/creating-posts',
+	playbooks: '/docs/playbooks',
+	explorePlaybooks: '/docs/playbooks/explore-and-bookmarks',
+	composePlaybook: '/docs/playbooks/compose-a-playbook',
+	plugsOverview: '/docs/automations/plugs',
+	globalPlugs: '/docs/automations/global-plugs',
+	internalPlugs: '/docs/automations/internal-plugs',
+	insights: '/docs/insights/workspace-analytics',
+	media: '/docs/media',
+	addMedia: '/docs/media/add-media'
+} as const;
+
 export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 	AccountSidebarTourDefinition['id'],
 	AccountSidebarTourDefinition
@@ -11,44 +31,52 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		steps: [
 			{
 				title: 'Welcome to your workspace',
-				subtitle:
-					'Home is your center for channels, drafts, and everything scheduled to go live.',
+				subtitle: 'Home shows your channels, your checklist, and posts in every stage.',
 				iconName: icons.House.name,
+				image: {
+					src: '/docs/_assets/getting-started/5-kanban-board.webp',
+					alt: 'Kanban board on Home with draft, scheduled, and published columns'
+				},
 				paragraphs: [
 					[
-						'Connect your ',
-						{ highlight: 'social channels' },
-						' and open the post editor, then track posts on the ',
-						{ highlight: 'kanban board' },
+						'Connect ',
+						{ link: { label: 'channels', href: GUIDE.connectChannels } },
+						', then open the post editor to write and schedule.'
 					],
 					[
-						'Use the ',
-						{ highlight: 'Getting started' },
-						' checklist to connect a channel, set your timezone, and schedule your first post.'
+						'Track work on the ',
+						{ link: { label: 'kanban board', href: GUIDE.kanban } },
+						'. Use the Getting started checklist to add a channel, set your timezone, and schedule your first post. See ',
+						{ link: { label: 'Quickstart', href: GUIDE.quickstart } },
+						' for the full path.'
 					]
 				]
 			},
 			{
 				title: 'Stay on top of publishing',
-				subtitle: 'Home surfaces what needs attention before it goes out.',
+				subtitle: 'See what needs review before it goes live.',
 				iconName: icons.House.name,
 				paragraphs: [
 					[
-						'Filter the board by channel group, drag cards between columns, and ',
-						{ highlight: 'open any post' },
-						' to edit or reschedule.'
+						'Filter the board by channel group. Drag cards between columns. Open any post to edit or reschedule. Details are in ',
+						{ link: { label: 'Kanban board', href: GUIDE.kanban } },
+						'.'
 					],
 					[
-						'When you are ready to scale, explore ',
-						{ highlight: 'Playbooks' },
+						'When you want to move faster, use ',
+						{ link: { label: 'Playbooks', href: GUIDE.playbooks } },
 						', ',
-						{ highlight: 'Templates' },
+						{ link: { label: 'Templates', href: GUIDE.templates } },
 						', and ',
-						{ highlight: 'Auto Plugs' },
+						{ link: { label: 'Auto Plugs', href: GUIDE.globalPlugs } },
 						' from the sidebar.'
 					]
 				],
-				remember: 'You can reopen these guides anytime with Reset product tours in the sidebar footer.'
+				rememberParts: [
+					'Remember: You can reopen these guides anytime with Reset product tours in the sidebar footer. For a map of every page, open ',
+					{ link: { label: 'Tour the app', href: GUIDE.tourTheApp } },
+					' in the Guide.'
+				]
 			}
 		]
 	},
@@ -57,18 +85,20 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		steps: [
 			{
 				title: 'Calendar',
-				subtitle: 'Plan publishing around dates.',
+				subtitle: 'See scheduled and published posts by date.',
 				iconName: icons.CalendarClock.name,
+				image: {
+					src: '/docs/_assets/posts-management/calendar-month-view.webp',
+					alt: 'Calendar month view with scheduled posts'
+				},
 				paragraphs: [
 					[
-						'The calendar shows ',
-						{ highlight: 'scheduled and published posts' },
-						' across your workspace so you can spot gaps and busy days.'
+						'The calendar shows what will go live and what already published. You can spot quiet days and busy weeks at a glance. Read ',
+						{ link: { label: 'Calendar', href: GUIDE.calendar } },
+						' in the Guide for filters and views.'
 					],
 					[
-						'Connect your channels, click a day to see what is queued, jump into the post editor, and ',
-						{ highlight: 'keep every channel on rhythm' },
-						' without leaving the month view.'
+						'Click a day to see that queue. Jump into the post editor from a slot. The calendar and Home kanban use the same posts.'
 					]
 				]
 			}
@@ -79,18 +109,24 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		steps: [
 			{
 				title: 'Templates',
-				subtitle: 'Save reusable content sets so you do not rebuild the same post from scratch.',
+				subtitle: 'Save post presets so you do not start from a blank editor every time.',
 				iconName: icons.LayoutTemplate.name,
+				image: {
+					src: '/docs/_assets/glossary/select-a-template.webp',
+					alt: 'Select a template dialog when you create a post'
+				},
 				paragraphs: [
 					[
-						'Templates store ',
-						{ highlight: 'captions, media, and channel-specific fields' },
-						' you use often—product launches, weekly updates, or campaign shells.'
+						'A template stores ',
+						{ highlight: 'captions, media, and channel fields' },
+						' you use often. Examples: product launches, weekly updates, and campaign shells.'
 					],
 					[
-						'Start from a template in the composer to ',
-						{ highlight: 'ship faster' },
-						' while keeping tone and structure consistent across channels.'
+						'Pick a template when you ',
+						{ link: { label: 'create a post', href: GUIDE.creatingPosts } },
+						'. Edit what changed, then schedule. Full steps are in ',
+						{ link: { label: 'Templates', href: GUIDE.templates } },
+						'.'
 					]
 				]
 			}
@@ -100,39 +136,40 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		id: 'playbooks',
 		steps: [
 			{
-				title: 'What are Playbooks?',
-				subtitle:
-					'Reusable strategies and/or workflows you can run or share with the community.',
+				title: 'Playbooks',
+				subtitle: 'Save and reuse workflows for content and agents.',
 				iconName: icons.Bookmark.name,
+				image: {
+					src: '/docs/_assets/playbooks/overview.webp',
+					alt: 'Playbooks page with Explore and My Playbooks tabs'
+				},
 				paragraphs: [
 					[
-						'Playbooks bundle ',
+						'A playbook groups ',
 						{ highlight: 'building blocks' },
-						'—hooks, outlines, CTAs, and formats—into flows you can follow for each campaign.'
+						' into one flow. Use hooks, outlines, and formats you can run again for each campaign.'
 					],
 					[
-						'Browse ',
-						{ highlight: 'Explore' },
-						' for inspiration, bookmark favorites, and fork ideas into ',
-						{ highlight: 'your own playbooks' },
-						' under Mine.'
+						'On ',
+						{ link: { label: 'Explore', href: GUIDE.explorePlaybooks } },
+						', browse the catalog and bookmark favorites. Under Mine, edit ',
+						{ link: { label: 'your playbooks', href: GUIDE.composePlaybook } },
+						'. The ',
+						{ link: { label: 'Playbooks overview', href: GUIDE.playbooks } },
+						' explains both tabs.'
 					]
 				]
 			},
 			{
-				title: 'Building blocks & stacks',
-				subtitle: 'Mix small pieces into larger workflows or agent skill stacks.',
+				title: 'Building blocks',
+				subtitle: 'Mix small pieces into larger stacks.',
 				iconName: icons.Bookmark.name,
 				paragraphs: [
 					[
-						'Building blocks are ',
-						{ highlight: 'single-purpose prompts or patterns' },
-						'; stacks combine several blocks for repeatable multi-step creation.'
+						'A building block is one skill or MCP entry. A playbook stacks several blocks into a repeatable workflow.'
 					],
 					[
-						'Publish your own blocks to the catalog or keep them private while you ',
-						{ highlight: 'iterate on what converts' },
-						'.'
+						'Publish blocks to the public catalog or keep them private while you test what works.'
 					]
 				]
 			}
@@ -142,45 +179,44 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		id: 'plugs',
 		steps: [
 			{
-				title: 'What are Auto Plugs?',
-				subtitle:
-					'Channel-level rules that boost posts after they go live—when engagement crosses a likes threshold.',
+				title: 'Auto Plugs',
+				subtitle: 'Rules that run after a post goes live when engagement hits your target.',
 				iconName: icons.Sparkles.name,
+				image: {
+					src: '/docs/_assets/glossary/global-plug.webp',
+					alt: 'Global plug rule settings on a connected channel'
+				},
 				paragraphs: [
 					[
-						'Global plugs are saved on a ',
+						'A plug can repost, reply, or comment after publish. ',
+						{ link: { label: 'Global plugs', href: GUIDE.globalPlugs } },
+						' apply to a ',
 						{ highlight: 'connected channel' },
-						' (Threads, X, or LinkedIn Page). Examples: ',
-						{ highlight: 'auto-repost' },
-						' when a post hits enough likes, or ',
-						{ highlight: 'auto plug post' },
-						'—a follow-up reply or comment you write in advance.'
+						' (Threads, X, or LinkedIn Page). Set a likes threshold and the message copy in advance.'
 					],
 					[
-						'After publish, OpenQuok ',
-						{ highlight: 're-checks engagement' },
-						' on a schedule (up to three passes, every six hours) and runs the rule when the threshold is met.'
+						'After publish, OpenQuok checks engagement on a schedule and runs the rule when the threshold is met. See ',
+						{ link: { label: 'Plugs overview', href: GUIDE.plugsOverview } },
+						' for supported networks.'
 					]
 				]
 			},
 			{
 				title: 'Global vs per-post plugs',
-				subtitle: 'This page is for channel rules; the composer handles one-off follow-ups.',
+				subtitle: 'This page is for channel rules. The post editor handles one-off follow-ups.',
 				iconName: icons.Sparkles.name,
 				paragraphs: [
 					[
-						'Use ',
-						{ highlight: 'Add Global Rule' },
-						' to set likes thresholds and message copy per channel. Filter the grid, edit rows, and pause rules without deleting them.'
+						'Use Add Global Rule to set likes thresholds and message copy per channel. Filter the grid, edit rows, and pause rules without deleting them.'
 					],
 					[
-						'For ',
-						{ highlight: 'internal plugs' },
-						'—delayed same-account replies, cross-account comments, or reposts from other channels—configure them when you schedule a post (or from Calendar for post-level settings).'
+						'For a single post, set ',
+						{ link: { label: 'internal plugs', href: GUIDE.internalPlugs } },
+						' in the post editor or from Calendar. Those follow-ups are not the same as global channel rules.'
 					]
 				],
 				remember:
-					'Global plugs never change your original post—they add a repost or a new reply/comment only after likes reach your target.'
+					'Global plugs never change your original post. They add a repost or a new reply only after likes reach your target.'
 			}
 		]
 	},
@@ -191,16 +227,20 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 				title: 'Analytics',
 				subtitle: 'See how posts perform after they leave the queue.',
 				iconName: icons.ChartBar.name,
+				image: {
+					src: '/docs/_assets/insights/overview-metric-cards.webp',
+					alt: 'Analytics overview with metric cards'
+				},
 				paragraphs: [
 					[
-						'Connect channels on Home, then open Analytics to compare ',
+						'Connect channels on Home, then open Analytics. Compare ',
 						{ highlight: 'reach, engagement, and trends' },
-						' across integrations.'
+						' across integrations. The ',
+						{ link: { label: 'Workspace analytics', href: GUIDE.insights } },
+						' page describes each chart.'
 					],
 					[
-						'Filter by channel and date range to ',
-						{ highlight: 'make data-driven decisions' },
-						' about what to publish next.'
+						'Filter by channel and date range. Use the numbers to decide what to publish next.'
 					]
 				]
 			}
@@ -211,18 +251,24 @@ export const ACCOUNT_SIDEBAR_TOUR_CONTENT: Record<
 		steps: [
 			{
 				title: 'Media library',
-				subtitle: 'Central place for images and videos you reuse in posts and templates.',
+				subtitle: 'One place for images and videos you reuse in posts and templates.',
 				iconName: icons.Image.name,
+				image: {
+					src: '/docs/_assets/media/file-manager.webp',
+					alt: 'Media library file manager grid'
+				},
 				paragraphs: [
 					[
-						'Upload once, then ',
-						{ highlight: 'attach assets from the post editor' },
-						' or template editor without hunting through downloads.'
+						'Upload once. Attach files from the post editor or template editor without searching your downloads. See ',
+						{ link: { label: 'Add media', href: GUIDE.addMedia } },
+						'.'
 					],
 					[
-						'Organize files by workspace so ',
-						{ highlight: 'your team shares the same source of truth' },
-						' for campaign visuals.'
+						'Files belong to your workspace so ',
+						{ highlight: 'your team shares the same library' },
+						'. Browse and organize in the ',
+						{ link: { label: 'Media library', href: GUIDE.media } },
+						' guide.'
 					]
 				]
 			}
