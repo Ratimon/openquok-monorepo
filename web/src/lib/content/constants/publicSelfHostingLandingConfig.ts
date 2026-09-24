@@ -4,6 +4,10 @@ import type { IconName } from '$data/icons';
 import { getRootPathPublicSelfHosting } from '$lib/area-public/constants/getRootPathPublicSelfHosting';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
+import {
 	faqHrefDocs,
 	faqLink,
 	OPENQUOK_GITHUB_REPO_HREF,
@@ -614,43 +618,46 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 		faqTitle: 'Self-host OpenQuok, answered',
 		faqDescription:
 			'Common questions about cost, stack size, parity with hosted OpenQuok, social apps, CLI auth, and exposing Compose on a VPS.',
-		faqItems: [
-			{
-				title: 'What is the difference between Docker Compose and production deployment?',
-				description:
-					`Docker Compose is a single-host operator bundle under infra/self-host/ — API, web, Redis, and workers on one machine you control. Production deployment splits the same services across cloud hosts you choose (for example Vercel for web, Railway for API and workers). Both paths need an external Supabase project; neither is a hosted plan tier. Start with ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')} or ${faqLink(publicFaqHref.productionDeployment, 'production deployment')}.`
-			},
-			{
-				title: 'Does self-hosting cost money?',
-				description:
-					`OpenQuok charges no software fee on operator-run paths under AGPL-3.0-or-later. You still pay for servers, Supabase, bandwidth, TLS, and any social developer apps you register. ${faqLink(publicFaqHref.cloud, 'OpenQuok Cloud')} follows ${faqLink(publicFaqHref.pricing, 'pricing')} tiers with Stripe billing — see the ${faqLink(publicFaqHref.billing, 'billing guide')}. Compare all three paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
-			},
-			{
-				title: 'What services do I need to run?',
-				description:
-					`Docker Compose runs web, API, Redis, and three BullMQ workers from infra/self-host/docker-compose.yml. Production deployment wires the same roles across separate cloud services — see ${faqLink(publicFaqHref.productionDeployment, 'production deployment')} and ${faqLink(configurationWorkerHref, 'worker configuration')}. You supply an external Supabase project in both paths. Optional --profile cli adds Postgres and the device-login auth server. Start with ${faqLink(systemRequirementsHref, 'system requirements')}.`
-			},
-			{
-				title: 'Is self-hosted OpenQuok the same product as hosted?',
-				description:
-					`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools. Hosted plan limits apply only to the cloud plan on openquok.com. Operator-run Compose and production stacks skip hosted billing and use your own developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
-			},
-			{
-				title: 'Do I need my own Meta or Google developer apps?',
-				description:
-					`On self-host, yes — for OAuth networks you connect. Fill only the environment for channels you use, then recreate API and workers. Dev.to uses a user API key in the dashboard with no operator app. See ${faqLink(publicFaqHref.socialIntegration, 'social integration docs')} and the optional provider table in ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
-			},
-			{
-				title: 'Can agents authenticate without API keys on the host?',
-				description:
-					`Yes. Start Compose with --profile cli, register an OAuth app with the device callback URL, and use openquok auth:login from the agent host. Read ${faqLink(configurationAgentHref, 'agent configuration')} and ${faqLink(oauthServerHref, 'OAuth server admin')} — or follow the ${faqLink(publicFaqHref.blogSelfHost, 'device-login walkthrough')}.`
-			},
-			{
-				title: 'Is it safe to expose Docker Compose on a public VPS?',
-				description:
-					`The stack targets trusted local or private-network operators — not a multi-tenant public edge by default. Put TLS in front, set NOT_SECURED=false, restrict published ports, rotate secrets, and read ${faqLink(publicSelfHostingPath, 'operator responsibilities')} before you open registration on the internet.`
-			}
-		]
+		faqItems: appendPublicGeneralFaqItems(
+			[
+				{
+					title: 'What is the difference between Docker Compose and production deployment?',
+					description:
+						`Docker Compose is a single-host operator bundle under infra/self-host/ — API, web, Redis, and workers on one machine you control. Production deployment splits the same services across cloud hosts you choose (for example Vercel for web, Railway for API and workers). Both paths need an external Supabase project; neither is a hosted plan tier. Start with ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')} or ${faqLink(publicFaqHref.productionDeployment, 'production deployment')}.`
+				},
+				{
+					title: 'Does self-hosting cost money?',
+					description:
+						`OpenQuok charges no software fee on operator-run paths under AGPL-3.0-or-later. You still pay for servers, Supabase, bandwidth, TLS, and any social developer apps you register. ${faqLink(publicFaqHref.cloud, 'OpenQuok Cloud')} follows ${faqLink(publicFaqHref.pricing, 'pricing')} tiers with Stripe billing — see the ${faqLink(publicFaqHref.billing, 'billing guide')}. Compare all three paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
+				},
+				{
+					title: 'What services do I need to run?',
+					description:
+						`Docker Compose runs web, API, Redis, and three BullMQ workers from infra/self-host/docker-compose.yml. Production deployment wires the same roles across separate cloud services — see ${faqLink(publicFaqHref.productionDeployment, 'production deployment')} and ${faqLink(configurationWorkerHref, 'worker configuration')}. You supply an external Supabase project in both paths. Optional --profile cli adds Postgres and the device-login auth server. Start with ${faqLink(systemRequirementsHref, 'system requirements')}.`
+				},
+				{
+					title: 'Is self-hosted OpenQuok the same product as hosted?',
+					description:
+						`Yes. You get the same calendar, kanban, composer, agents, Public API, and MCP tools. Hosted plan limits apply only to the cloud plan on openquok.com. Operator-run Compose and production stacks skip hosted billing and use your own developer apps. Compare paths on ${faqLink(publicSelfHostingPath, 'Self-host OpenQuok')}.`
+				},
+				{
+					title: 'Do I need my own Meta or Google developer apps?',
+					description:
+						`On self-host, yes — for OAuth networks you connect. Fill only the environment for channels you use, then recreate API and workers. Dev.to uses a user API key in the dashboard with no operator app. See ${faqLink(publicFaqHref.socialIntegration, 'social integration docs')} and the optional provider table in ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
+				},
+				{
+					title: 'Can agents authenticate without API keys on the host?',
+					description:
+						`Yes. Start Compose with --profile cli, register an OAuth app with the device callback URL, and use openquok auth:login from the agent host. Read ${faqLink(configurationAgentHref, 'agent configuration')} and ${faqLink(oauthServerHref, 'OAuth server admin')} — or follow the ${faqLink(publicFaqHref.blogSelfHost, 'device-login walkthrough')}.`
+				},
+				{
+					title: 'Is it safe to expose Docker Compose on a public VPS?',
+					description:
+						`The stack targets trusted local or private-network operators — not a multi-tenant public edge by default. Put TLS in front, set NOT_SECURED=false, restrict published ports, rotate secrets, and read ${faqLink(publicSelfHostingPath, 'operator responsibilities')} before you open registration on the internet.`
+				}
+			],
+			PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS
+		)
 	},
 	cloudBillingDocsBanner: {
 		title: 'Choosing the hosted cloud plan?',

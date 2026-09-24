@@ -24,12 +24,13 @@ Marketing copy that crawlers should index must not rely on client-only presenter
 
 ## CMS FAQ vs pSEO catalog FAQ
 
-Two FAQ surfaces share `faqLink` / `publicFaqHref` but differ in **where copy lives**:
+Three FAQ patterns share `faqLink` / `publicFaqHref` but differ in **where copy lives** (full wiring: **web-landing-faqs**):
 
 | Surface | Routes | Copy source | Rule |
 | --- | --- | --- | --- |
-| **Landing / pricing CMS FAQ** | `/`, `/pricing` | Secret-admin **Public FAQ** (`public_faq.ITEMS`) with git defaults in `publicFaqConfig.ts` | This file |
-| **pSEO catalog FAQ** | `/channels`, `/agents`, `/tools`, hubs, detail landings | TypeScript constants (`channels/{slug}.ts`, `public*HubFaqConfig.ts`, tool `public*FaqConfig.ts`) | **web-seo-pseo** |
+| **Landing CMS FAQ** | `/` | Secret-admin **Public FAQ** (`public_faq.ITEMS`); empty → `PUBLIC_FAQ_ITEMS` via `resolvePublicFaqItemsVm` | This file + **web-landing-faqs** |
+| **Pricing FAQ** | `/pricing` | `getPublicPricingFaqItems()` from `PUBLIC_PRICING_FAQ_ITEM_IDS` (not the full CMS list) | **web-landing-faqs** |
+| **pSEO catalog FAQ** | `/channels`, `/agents`, `/tools`, hubs, detail landings | Tailored TypeScript copy + `appendPublicGeneralFaqItems(..., PUBLIC_*_FAQ_ITEM_IDS)` | **web-seo-pseo** + **web-landing-faqs** |
 
 Channel connect funnel (sign-up first, `connectChannelsGuide` primary, `self-host` on `social-integration` links) applies to **pSEO** channel and hub FAQs — not to generic landing/pricing Q&A unless the question is about connecting a network.
 
@@ -46,7 +47,7 @@ Template section order and `PublicFaq` wiring on programmatic routes: **web-seo-
 | `landing_page` | `getLandingPageConfigDefaults()` | Hero, demo, landing FAQ **headers** |
 | `public_faq` | `getPublicFaqConfigDefaults()` | FAQ section headers + Q&A **items** |
 
-Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicFaqItemsVm` for `PublicFaq` and `createPublicFaqSEOSchema`.
+Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicFaqItemsVm`. On `/`, run `resolvePublicFaqItemsVm` before JSON-LD. On `/pricing`, use `getPublicPricingFaqItems()` for items (see **web-landing-faqs**).
 
 ## Landing vs pricing FAQ headers
 
@@ -55,7 +56,7 @@ Parse FAQ with `parsePublicFaqConfigModule()` → `publicFaqConfigPm` / `publicF
 
 Q&A item copy lives in `public_faq.ITEMS` (secret-admin **Public FAQ**, not Landing page). `publicFaqConfig.ts` (`PUBLIC_FAQ_ITEMS`) supplies code defaults when config is empty.
 
-Default `items` is `PUBLIC_FAQ_ITEMS`; override only when a route renders a different FAQ list.
+Home defaults to `PUBLIC_FAQ_ITEMS` when CMS is empty. `/pricing` always uses the pricing id subset — do not pass the full CMS list there.
 
 Stored `public_faq.ITEMS` **replaces** git defaults when non-empty. After changing default answers, re-save Public FAQ in admin (or clear `ITEMS`) so production matches `PUBLIC_FAQ_ITEMS`.
 
@@ -105,6 +106,7 @@ Chrome Writer/Rewriter/Summarizer docs stay third-party (`nofollow` applied on d
 
 ## Related rules
 
+- Landing FAQ ids, append sets, getters: **web-landing-faqs**
 - Meta tags from CMS strings: **web-seo-meta-tags**
 - JSON-LD builders: **web-seo-jsonld**
 - pSEO catalog FAQs, funnel, ASD-STE100: **web-seo-pseo**

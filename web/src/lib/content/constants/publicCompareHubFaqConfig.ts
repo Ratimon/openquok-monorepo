@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -14,7 +18,8 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 	faqTitle: 'Product Comparison, answered',
 	faqDescription:
 		'How head-to-head pages work, where to start with Buffer or Later, how pricing stacks up, and how to browse alternative directories.',
-	faqItems: [
+	faqItems: appendPublicGeneralFaqItems(
+		[
 		{
 			title: 'How do OpenQuok comparison pages work?',
 			description:
@@ -40,5 +45,7 @@ export const PUBLIC_COMPARE_HUB_FAQ = {
 			description:
 				`Use ${faqLink(publicFaqHref.alternatives, 'Alternatives')} directory pages. Each page ranks OpenQuok first, then peer schedulers, with links back to matching compare pages and official product sites.`
 		}
-	]
+	],
+		PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS
+	)
 } satisfies PublicCompareHubFaqSection;

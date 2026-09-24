@@ -245,9 +245,151 @@ export function resolvePublicFaqItemsByIds(ids: readonly PublicFaqItemId[]): Pub
 		.filter((item): item is PublicFaqItem => item != null);
 }
 
+/**
+ * Keeps page-specific FAQ copy first, then appends curated git-default items by id.
+ * Skips general items when the same `id` or `title` already appears in `tailoredItems`.
+ */
+export function appendPublicGeneralFaqItems(
+	tailoredItems: readonly PublicFaqItem[],
+	generalIds: readonly PublicFaqItemId[]
+): PublicFaqItem[] {
+	const seenIds = new Set(
+		tailoredItems.map((item) => item.id).filter((id): id is PublicFaqItemId => id != null)
+	);
+	const seenTitles = new Set(tailoredItems.map((item) => item.title));
+	const general = resolvePublicFaqItemsByIds(generalIds).filter((item) => {
+		if (item.id && seenIds.has(item.id)) return false;
+		if (seenTitles.has(item.title)) return false;
+		return true;
+	});
+
+	return [...tailoredItems, ...general];
+}
+
 /** Curated `/pricing` FAQ — same copy as {@link PUBLIC_FAQ_ITEMS}, billing and plan features only. */
 export function getPublicPricingFaqItems(): PublicFaqItem[] {
 	return resolvePublicFaqItemsByIds(PUBLIC_PRICING_FAQ_ITEM_IDS);
+}
+
+/** `/agents` hub — MCP primer, trial, scheduling (billing stays on tailored hub copy). */
+export const PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'what-is-mcp',
+	'try-free',
+	'schedule-posts'
+];
+
+/** `/self-hosting` — operator paths, trial, cloud billing contrast. */
+export const PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'self-host-openquok',
+	'try-free',
+	'cloud-billing'
+];
+
+/** `/channels` hub. */
+export const PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'what-is-channel',
+	'schedule-posts',
+	'try-free'
+];
+
+/** `/tools` hub. */
+export const PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'schedule-posts',
+	'try-free',
+	'ai-writer-summarizer'
+];
+
+/** `/compare` hub. */
+export const PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'switch-from-buffer-hootsuite',
+	'try-free',
+	'multi-workspace'
+];
+
+/** `/creators` hub. */
+export const PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'agent-workspace',
+	'schedule-posts',
+	'try-free'
+];
+
+/** `/roadmap` hub. */
+export const PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'schedule-posts',
+	'try-free',
+	'agent-workspace'
+];
+
+/** `/playbooks` and `/building-blocks` hubs. */
+export const PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'what-is-mcp',
+	'schedule-posts',
+	'agent-workspace'
+];
+
+/** `/social-media-posting-api` hub. */
+export const PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'oauth-app-counts',
+	'schedule-posts',
+	'try-free'
+];
+
+/** `/social-media-scheduling-api` hub. */
+export const PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'schedule-posts',
+	'repeated-posts',
+	'try-free'
+];
+
+/** API marketing platform slugs (`/social-media-*-api/{slug}`). */
+export const PUBLIC_API_PLATFORM_FAQ_ITEM_IDS: readonly PublicFaqItemId[] = [
+	'what-is-channel',
+	'oauth-app-counts',
+	'schedule-posts'
+];
+
+export function getPublicAgentsHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicSelfHostingFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS);
+}
+
+export function getPublicChannelsHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicToolsHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicCompareHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicCreatorsHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicRoadmapHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicListingsHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicApiPostingHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicApiSchedulingHubFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS);
+}
+
+export function getPublicApiPlatformFaqItems(): PublicFaqItem[] {
+	return resolvePublicFaqItemsByIds(PUBLIC_API_PLATFORM_FAQ_ITEM_IDS);
 }
 
 export type PublicFaqConfigItem = {

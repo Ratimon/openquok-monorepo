@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { faqHrefAgent, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -56,7 +60,8 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 		faqTitle: 'Social scheduling skills, MCP servers, and building blocks explained',
 		faqDescription:
 			'What building blocks are, how they help you schedule social posts, how skills differ from MCP servers, and how they connect to playbooks and Skill Builder on OpenQuok.',
-		faqItems: [
+		faqItems: appendPublicGeneralFaqItems(
+			[
 			{
 				title: 'What is a building block in OpenQuok?',
 				description:
@@ -77,7 +82,9 @@ export const PUBLIC_BUILDING_BLOCKS_HUB = {
 				description:
 					`Open a listing on ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')}, expand the card, and copy the skill install command or MCP server config for your platform. Each entry links to a setup guide with transport details (stdio, HTTP, or SSE), auth steps, and environment variables. To merge multiple blocks, select Add to skill builder and open ${faqLink(publicFaqHref.skillBuilderTool, 'Skill Builder')} for a single SKILL.md export.`
 			}
-		]
+		],
+			PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
+		)
 	}
 } satisfies PublicListingsHubConfig;
 
@@ -114,7 +121,8 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 		faqTitle: 'Social media scheduling agent playbooks and workflows explained',
 		faqDescription:
 			'What marketing playbooks are, how they help you schedule social posts, how they differ from building blocks, and how to publish your own workflow on OpenQuok.',
-		faqItems: [
+		faqItems: appendPublicGeneralFaqItems(
+			[
 			{
 				title: 'What is a social media scheduling playbook?',
 				description:
@@ -135,6 +143,8 @@ export const PUBLIC_PLAYBOOKS_HUB = {
 				description:
 					`Filter ${faqLink(publicFaqHref.playbooks, 'Playbooks')} by tag for Threads, TikTok, Instagram, YouTube, LinkedIn, X, and other networks on ${faqLink(publicFaqHref.channels, 'Channels')}. Each channel landing page links platform-specific playbooks and scheduling features. ${faqLink(publicFaqHref.signUp, 'Sign up for free')} to connect accounts and approve drafts on the calendar before anything goes live.`
 			}
-		]
+		],
+			PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS
+		)
 	}
 } satisfies PublicListingsHubConfig;

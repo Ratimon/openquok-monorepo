@@ -1,5 +1,10 @@
 import type { PublicApiCapability } from '$lib/content/constants/apis/types';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS,
+	PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 import { faqHrefDocs, faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
 export type PublicApiCapabilityHubFaqSection = {
@@ -19,7 +24,8 @@ function buildPostingHubFaq(): PublicApiCapabilityHubFaqSection {
 		faqTitle: 'Social media posting API, answered',
 		faqDescription:
 			'Plain answers about posting through the OpenQuok public API, workspace plans, and limits.',
-		faqItems: [
+		faqItems: appendPublicGeneralFaqItems(
+			[
 			{
 				title: 'What is the OpenQuok social media posting API?',
 				description:
@@ -49,7 +55,9 @@ function buildPostingHubFaq(): PublicApiCapabilityHubFaqSection {
 				description:
 					`Yes. Use the Payload Wizard on this page with sample channels. Copy JSON for free. Sign in for the full wizard, or follow the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')} guide for local scripts.`
 			}
-		]
+		],
+			PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS
+		)
 	};
 }
 
@@ -59,7 +67,8 @@ function buildSchedulingHubFaq(): PublicApiCapabilityHubFaqSection {
 		faqTitle: 'Social media scheduling API, answered',
 		faqDescription:
 			'Plain answers about scheduled posts, time zones, repeat rules, and workspace limits.',
-		faqItems: [
+		faqItems: appendPublicGeneralFaqItems(
+			[
 			{
 				title: 'How do I schedule a post through the API?',
 				description:
@@ -89,7 +98,9 @@ function buildSchedulingHubFaq(): PublicApiCapabilityHubFaqSection {
 				description:
 					`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and connect networks with the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}. Then ${faqLink(faqHrefDocs('apis-integrations/list'), 'list integrations')} to copy channel UUIDs for your first scheduled post.`
 			}
-		]
+		],
+			PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS
+		)
 	};
 }
 

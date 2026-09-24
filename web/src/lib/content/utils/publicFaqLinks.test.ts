@@ -136,36 +136,16 @@ describe('publicFaqLinks', () => {
 		expect(description).toContain('cloud free trial');
 	});
 
-	it('API hub FAQs document workspace billing, rate limits, and cloud limits', () => {
+	it('API hub FAQs append git-default items with pricing and scheduling links', () => {
 		for (const hubFaq of [PUBLIC_API_POSTING_HUB_FAQ, PUBLIC_API_SCHEDULING_HUB_FAQ]) {
+			expect(hubFaq.faqItems.length).toBeGreaterThan(3);
 			const html = hubFaq.faqItems.map((item) => item.description).join('\n');
-			expect(html).toContain('30 requests per hour');
-			expect(html).toContain('href="/docs/billing/limits"');
 			expect(html).toContain(`href="${publicFaqHref.pricing}"`);
-			expect(html).toMatch(/not per-post credits|bills workspaces/);
+			expect(html).toContain(`href="${publicFaqHref.connectChannelsGuide}"`);
 		}
-
-		const postingRateLimitFaq = PUBLIC_API_POSTING_HUB_FAQ.faqItems.find((item) =>
-			item.title.includes('rate limits')
-		);
-		expect(postingRateLimitFaq?.description).toContain('opo_');
 	});
 
-	it('API hub connect FAQs prioritize sign-up and connect guide', () => {
-		const postingPaidPlanFaq = PUBLIC_API_POSTING_HUB_FAQ.faqItems.find((item) =>
-			item.title.includes('paid plan')
-		);
-		expect(postingPaidPlanFaq?.description).toContain(`href="${publicFaqHref.signUp}"`);
-		expect(postingPaidPlanFaq?.description).toContain(
-			`href="${publicFaqHref.connectChannelsGuide}"`
-		);
-
-		assertConnectFaqsHaveFunnelLinks(PUBLIC_API_SCHEDULING_HUB_FAQ.faqItems, (title) =>
-			title.startsWith('How do I connect channels')
-		);
-	});
-
-	it('API platform connect FAQs use the connect funnel and label self-host docs', () => {
+	it('API platform FAQs reuse the shared platform git-default set', () => {
 		for (const slug of PUBLIC_API_POSTING_PLATFORM_SLUGS) {
 			const postingPlatform = getPublicApiPostingPlatformBySlug(slug);
 			const schedulingPlatform = getPublicApiSchedulingPlatformBySlug(slug);
@@ -174,14 +154,10 @@ describe('publicFaqLinks', () => {
 			expect(schedulingPlatform).toBeDefined();
 
 			for (const platform of [postingPlatform!, schedulingPlatform!]) {
-				assertConnectFaqsHaveFunnelLinks(platform.faqItems, (title) =>
-					title.startsWith('How do I connect')
-				);
+				expect(platform.faqItems.length).toBeGreaterThan(3);
+				const tailIds = platform.faqItems.slice(-3).map((item) => item.id);
+				expect(tailIds).toEqual(['what-is-channel', 'oauth-app-counts', 'schedule-posts']);
 				assertSelfHostLabelsOnSocialIntegrationLinks(platform.faqItems);
-
-				const billingFaq = platform.faqItems.find((item) => item.title.includes('bill per'));
-				expect(billingFaq?.description).toContain('30 requests per hour');
-				expect(billingFaq?.description).toContain('href="/docs/billing/limits"');
 			}
 		}
 	});

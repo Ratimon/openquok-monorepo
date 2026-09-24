@@ -3,9 +3,17 @@ import type { Question } from 'schema-dts';
 import { describe, expect, it } from 'vitest';
 
 import {
+	appendPublicGeneralFaqItems,
+	getPublicAgentsHubFaqItems,
+	getPublicApiPlatformFaqItems,
+	getPublicChannelsHubFaqItems,
 	getPublicPricingFaqItems,
+	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS,
+	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS,
+	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS,
 	PUBLIC_FAQ_ITEMS,
 	PUBLIC_PRICING_FAQ_ITEM_IDS,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS,
 	resolvePublicFaqItemsByIds
 } from '$lib/content/constants/publicFaqConfig';
 import { createPublicFaqSEOSchema } from '$lib/content/utils/createPublicFaqSEOSchema';
@@ -29,6 +37,27 @@ function firstFaqAnswerPlainText(schema: ReturnType<typeof createPublicFaqSEOSch
 	return typeof accepted.text === 'string' ? accepted.text : '';
 }
 
+describe('appendPublicGeneralFaqItems', () => {
+	it('keeps tailored items first and appends git-default copy by id', () => {
+		const tailored = [{ title: 'Custom?', description: 'Tailored answer.' }];
+		const merged = appendPublicGeneralFaqItems(tailored, PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS);
+
+		expect(merged[0]?.title).toBe('Custom?');
+		expect(merged.length).toBe(1 + PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS.length);
+		expect(merged.at(-1)?.id).toBe(PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS.at(-1));
+	});
+
+	it('skips general items already present by id', () => {
+		const tryFree = PUBLIC_FAQ_ITEMS.find((item) => item.id === 'try-free');
+		const merged = appendPublicGeneralFaqItems(
+			tryFree ? [tryFree] : [],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		);
+
+		expect(merged.filter((item) => item.id === 'try-free')).toHaveLength(1);
+	});
+});
+
 describe('resolvePublicFaqItemsVm', () => {
 	it('falls back to git defaults when the route passes no items', () => {
 		expect(resolvePublicFaqItemsVm([])).toEqual([...PUBLIC_FAQ_ITEMS]);
@@ -38,6 +67,23 @@ describe('resolvePublicFaqItemsVm', () => {
 	it('keeps CMS items when present', () => {
 		const custom = [{ title: 'Custom?', description: 'Custom answer.' }];
 		expect(resolvePublicFaqItemsVm(custom)).toEqual(custom);
+	});
+});
+
+describe('public landing hub FAQ getters', () => {
+	it('resolves three agents hub items from PUBLIC_FAQ_ITEMS', () => {
+		const items = getPublicAgentsHubFaqItems();
+		expect(items).toHaveLength(3);
+		expect(items.map((item) => item.id)).toEqual([...PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS]);
+	});
+
+	it('resolves channels and API platform sets with stable ids', () => {
+		expect(getPublicChannelsHubFaqItems().map((item) => item.id)).toEqual([
+			...PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+		]);
+		expect(getPublicApiPlatformFaqItems().map((item) => item.id)).toEqual([
+			...PUBLIC_API_PLATFORM_FAQ_ITEM_IDS
+		]);
 	});
 });
 

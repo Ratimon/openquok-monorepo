@@ -108,9 +108,9 @@ Do not add login-dependent hero CTAs on indexable landings. FAQ and banners may 
 />
 ```
 
-- Items: `{ title: string; description: string }` — `description` is HTML from `faqLink` helpers.
+- Items: `{ title: string; description: string; id?: PublicFaqItemId }` — `description` is HTML from `faqLink` helpers.
 - `FaqAccordion` runs `prepareBlogRichTextForDisplay` + `rewriteHtmlHostedMarketingHrefs` before render.
-- Hub configs: spread readonly arrays (`[...PUBLIC_CHANNELS_HUB_FAQ.faqItems]`) when passing to `PublicFaq`.
+- Hub configs: spread readonly arrays (`[...PUBLIC_CHANNELS_HUB_FAQ.faqItems]`) when passing to `PublicFaq`. Lists are **tailored + appended** git-default rows — see **web-landing-faqs** (do not replace hub copy with id-only subsets).
 
 ## Guest mocks (tools)
 
@@ -125,4 +125,5 @@ Public tool UIs mock workspace features without OAuth or post APIs:
 - Catalog constants, FAQ funnel, ASD-STE100: **web-seo-pseo**
 - SSR meta + canonical: **web-seo-meta-tags**, **web-seo-canonical**
 - Landing/pricing CMS FAQ: **web-seo-cms-copy**
+- FAQ id catalog and append sets: **web-landing-faqs**
 - Universal load forwarding: **web-sveltekit-universal-page-load**

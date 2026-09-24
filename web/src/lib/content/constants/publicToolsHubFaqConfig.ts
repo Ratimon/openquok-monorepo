@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -14,7 +18,8 @@ export const PUBLIC_TOOLS_HUB_FAQ = {
 	faqTitle: 'Free OpenQuok tools,answered',
 	faqDescription:
 		'What each tool does, when you need an account, how channel-specific pages work, and how to move from a free draft to a scheduled post.',
-	faqItems: [
+	faqItems: appendPublicGeneralFaqItems(
+		[
 		{
 			title: 'What free tools does OpenQuok offer?',
 			description:
@@ -35,5 +40,7 @@ export const PUBLIC_TOOLS_HUB_FAQ = {
 			description:
 				`Finish your draft in the tool, then ${faqLink(publicFaqHref.signUp, 'create a free account')} and connect channels with the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}. Schedule from the workspace calendar or kanban. Agents can also enqueue posts through the ${faqLink(publicFaqHref.cliGettingStarted, 'CLI getting started')} guide.`
 		}
-	]
+	],
+		PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+	)
 } satisfies PublicToolsHubFaqSection;

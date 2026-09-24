@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import {
 	buildChannelFaqLinks,
@@ -22,7 +26,8 @@ export const PUBLIC_CHANNELS_HUB_FAQ = {
 	faqTitle: 'Supported Channels, answered',
 	faqDescription:
 		'How to connect networks on OpenQuok Cloud, which channel pages cover, and when self-host operator setup applies.',
-	faqItems: [
+	faqItems: appendPublicGeneralFaqItems(
+		[
 		{
 			title: 'How do I connect a social channel?',
 			description:
@@ -43,5 +48,7 @@ export const PUBLIC_CHANNELS_HUB_FAQ = {
 			description:
 				`Public API ${faqLink(publicFaqHref.publicApiProviders, 'provider settings')} document field-level shapes for each network — for example ${faqLink(faqHrefDocs('public-api-providers/youtube'), 'YouTube Settings')}. The ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} covers the dashboard flow every cloud user follows. Self-host operator guides live under social-integration docs and must be labeled self-host when linked from FAQs.`
 		}
-	]
+	],
+		PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+	)
 } satisfies PublicChannelsHubFaqSection;

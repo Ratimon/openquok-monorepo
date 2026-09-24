@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { BENCHMARK_SLOTS_LAST_REVIEWED } from '$lib/best-time-to-post/constants/benchmarkSlots';
 import {
@@ -128,7 +132,10 @@ export function buildBestTimeToPostFaqSection(
 			faqSubtitle: 'Best Time to Post FAQs',
 			faqTitle: `${label} timing tests, answered`,
 			faqDescription: `How ${label} benchmark windows, audience vs shown timezone, and controlled tests relate to your real posting schedule — plus how to schedule in OpenQuok.`,
-			faqItems: buildChannelBestTimeFaqItems(slug, label)
+			faqItems: appendPublicGeneralFaqItems(
+				buildChannelBestTimeFaqItems(slug, label),
+				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			)
 		};
 	}
 
@@ -137,6 +144,9 @@ export function buildBestTimeToPostFaqSection(
 		faqTitle: 'Timing tests, answered',
 		faqDescription:
 			'How benchmark tables, audience vs shown timezone, and controlled tests relate to your real posting schedule — plus how to run tests in OpenQuok.',
-		faqItems: [...GENERIC_BEST_TIME_FAQ_ITEMS]
+		faqItems: appendPublicGeneralFaqItems(
+			[...GENERIC_BEST_TIME_FAQ_ITEMS],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }

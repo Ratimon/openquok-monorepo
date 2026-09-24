@@ -37,6 +37,7 @@ Root layout (`+layout.server.ts` → `baseMetaTags`) merges with page data in `+
 | Canonical URLs, query params, UTM, robots | **web-seo-canonical** |
 | JSON-LD (`schema-dts`, builders, `JsonLdHead`) | **web-seo-jsonld** |
 | Landing / FAQ CMS copy on the server | **web-seo-cms-copy** |
+| Public FAQ ids, tailored + general append, pricing subset | **web-landing-faqs** |
 | Programmatic SEO catalogs, FAQ funnel, ASD-STE100 copy | **web-seo-pseo** |
 | pSEO template section order, CTAs, guest mocks | **web-seo-pseo-templates** |
 | Blog CMS HTML, Skill Builder / specific tool links, FAQ/HowTo fields | **web-seo-blog** |

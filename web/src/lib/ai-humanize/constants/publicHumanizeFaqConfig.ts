@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import {
 	buildToolChannelFaqLinks,
@@ -137,7 +141,10 @@ export function buildHumanizeFaqSection(
 			faqSubtitle: 'Humanizer FAQs',
 			faqTitle: `${label} Humanizer, answered`,
 			faqDescription: `How Human and Roughen work for ${label} drafts, when Chrome is required, and when to sign in to schedule.`,
-			faqItems: buildChannelHumanizeFaqItems(slug, label)
+			faqItems: appendPublicGeneralFaqItems(
+				buildChannelHumanizeFaqItems(slug, label),
+				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			)
 		};
 	}
 
@@ -146,6 +153,9 @@ export function buildHumanizeFaqSection(
 		faqTitle: 'Humanizer, answered',
 		faqDescription:
 			'Free AI humanizer questions — no sign up, word limits, languages, Human vs Roughen, and when to connect channels to schedule.',
-		faqItems: [...GENERIC_HUMANIZE_FAQ_ITEMS]
+		faqItems: appendPublicGeneralFaqItems(
+			[...GENERIC_HUMANIZE_FAQ_ITEMS],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }

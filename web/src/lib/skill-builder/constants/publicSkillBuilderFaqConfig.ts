@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import {
 	buildToolChannelFaqLinks,
@@ -130,7 +134,10 @@ export function buildSkillBuilderFaqSection(
 			faqSubtitle: 'Skill Builder FAQs',
 			faqTitle: `${label} Skill builder, answered`,
 			faqDescription: `What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, ThinkRail, Claude Code, and MCP hosts, and how to compose a ${label} skill with pre-loaded CLI steps.`,
-			faqItems: buildChannelSkillBuilderFaqItems(slug, label)
+			faqItems: appendPublicGeneralFaqItems(
+				buildChannelSkillBuilderFaqItems(slug, label),
+				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			)
 		};
 	}
 
@@ -139,6 +146,9 @@ export function buildSkillBuilderFaqSection(
 		faqTitle: 'Skill builder, answered',
 		faqDescription:
 			'What SKILL.md is, where to use it with OpenClaw, Hermes, Grok Bot, ThinkRail, Claude Code, and MCP hosts, and how Skill Builder helps you compose and export one.',
-		faqItems: [...GENERIC_SKILL_BUILDER_FAQ_ITEMS]
+		faqItems: appendPublicGeneralFaqItems(
+			[...GENERIC_SKILL_BUILDER_FAQ_ITEMS],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }

@@ -1,4 +1,8 @@
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/channels/types';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { facebookChannel } from '$lib/content/constants/channels/facebook';
 import { threadsChannel } from '$lib/content/constants/channels/threads';
@@ -39,7 +43,13 @@ const channelBySlug = new Map(PUBLIC_CHANNEL_LANDING_PAGES.map((page) => [page.s
 
 export function getPublicChannelBySlug(slug: string): PublicChannelLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
-	return channelBySlug.get(key);
+	const page = channelBySlug.get(key);
+	if (!page) return undefined;
+
+	return {
+		...page,
+		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS)
+	};
 }
 
 export function listPublicChannelsForHub(): PublicChannelLandingPageViewModel[] {

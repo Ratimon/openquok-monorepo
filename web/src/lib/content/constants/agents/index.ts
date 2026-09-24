@@ -1,4 +1,8 @@
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/agents/types';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { grokBotAgent } from '$lib/content/constants/agents/grok-bot';
 import { hermesAgent } from '$lib/content/constants/agents/hermes';
@@ -24,9 +28,19 @@ const agentHostBySlug = new Map(
 	PUBLIC_AGENT_HOST_LANDING_PAGES.map((page) => [page.slug, page])
 );
 
+function withAgentHostGeneralFaqs(
+	page: PublicAgentHostLandingPageViewModel
+): PublicAgentHostLandingPageViewModel {
+	return {
+		...page,
+		faqItems: appendPublicGeneralFaqItems(page.faqItems, PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS)
+	};
+}
+
 export function getPublicAgentHostBySlug(slug: string): PublicAgentHostLandingPageViewModel | undefined {
 	const key = slug.trim().toLowerCase();
-	return agentHostBySlug.get(key);
+	const page = agentHostBySlug.get(key);
+	return page ? withAgentHostGeneralFaqs(page) : undefined;
 }
 
 export function getAvailablePublicAgentHostBySlug(

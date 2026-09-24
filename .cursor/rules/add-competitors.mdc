@@ -157,7 +157,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 | File | When |
 | --- | --- |
 | `web/src/lib/config/constants/config.ts` | `PUBLIC_HUB_DOCS_BANNERS.alternatives.description` or pricing banner copy that names competitors |
-| `web/src/lib/content/constants/publicFaqConfig.ts` | FAQ answers that mention specific schedulers by name |
+| `web/src/lib/content/constants/publicFaqConfig.ts` | FAQ answers that mention specific schedulers by name; compare `faqItemIds` use `PublicFaqItemId` + `resolvePublicFaqItemsByIds` (**web-landing-faqs**) |
 
 ---
 

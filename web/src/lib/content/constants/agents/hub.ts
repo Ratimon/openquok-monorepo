@@ -1,4 +1,8 @@
 import type { PublicAgentsHubCompareSection, PublicAgentsHubFaqSection } from '$lib/content/constants/agents/types';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 export const PUBLIC_AGENTS_HUB = {
 	subtitle: 'Agents',
@@ -53,7 +57,8 @@ export const PUBLIC_AGENTS_HUB = {
 		faqTitle: 'Agent hosts vs MCP clients, answered',
 		faqDescription:
 			'How OpenClaw, Hermes, Grok Bot, and ThinkRail differ from Cursor, Codex, and Claude Code. When to pick each path. How they connect to OpenQuok. What each costs to run. Why many teams use both.',
-		faqItems: [
+		faqItems: appendPublicGeneralFaqItems(
+			[
 			{
 				title: 'When should I choose an agent host?',
 				description:
@@ -89,7 +94,9 @@ export const PUBLIC_AGENTS_HUB = {
 				description:
 					'Yes, regardless of path. Agent hosts and MCP clients create drafts or scheduled items in your OpenQuok workspace. Nothing goes live on autopilot — review on the calendar or kanban and approve what should publish.'
 			}
-		]
+		],
+			PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS
+		)
 	} satisfies PublicAgentsHubFaqSection
 } as const;
 

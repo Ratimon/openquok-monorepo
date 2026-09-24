@@ -8,6 +8,10 @@ import type {
 	PublicApiPlatformSlug
 } from '$lib/content/constants/apis/types';
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_API_PLATFORM_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 import { buildPublicApiPlatformHeroTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
 import {
 	buildChannelFaqLinks,
@@ -199,7 +203,8 @@ export function buildPublicApiPlatformFaqItems(
 			? 'Set `scheduledAt` to an ISO-8601 UTC timestamp for the publish time. OpenQuok stores the instant in UTC and publishes when the worker dequeues the row.'
 			: 'Set `status` to `scheduled` and `scheduledAt` to publish immediately or at a future time. Use `draft` when you want to persist without enqueuing.';
 
-	return [
+	return appendPublicGeneralFaqItems(
+		[
 		{
 			title: `How do I connect ${platformLabel} before I call the API?`,
 			description:
@@ -225,7 +230,9 @@ export function buildPublicApiPlatformFaqItems(
 			description:
 				`Use the interactive Payload Wizard on this page with sample channels, or open the full wizard in your workspace after you sign in. Copy JSON stays free on public pages. Provider field reference: ${faqLink(providerDocsHref, `${platformLabel} settings`)}. Channel landing: ${faqLink(links.channelLanding, platformLabel)}.`
 		}
-	];
+	],
+		PUBLIC_API_PLATFORM_FAQ_ITEM_IDS
+	);
 }
 
 type BuildPlatformPageParams = {

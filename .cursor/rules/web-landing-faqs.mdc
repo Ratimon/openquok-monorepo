@@ -1,0 +1,146 @@
+---
+description: Public landing FAQ system — git-default ids, CMS vs pSEO copy, tailored + general append, pricing subset, JSON-LD parity
+globs:
+  - web/src/lib/content/constants/publicFaqConfig.ts
+  - web/src/lib/content/constants/publicFaqConfig.test.ts
+  - web/src/lib/content/constants/publicHubFaqLinks.test.ts
+  - web/src/lib/content/constants/public*HubFaqConfig.ts
+  - web/src/lib/content/constants/apis/publicApiCapabilityHubFaqConfig.ts
+  - web/src/lib/content/constants/apis/shared.ts
+  - web/src/lib/content/constants/channels/index.ts
+  - web/src/lib/content/constants/agents/index.ts
+  - web/src/lib/content/constants/agents/hub.ts
+  - web/src/lib/content/constants/mcps/index.ts
+  - web/src/lib/content/constants/publicSelfHostingLandingConfig.ts
+  - web/src/lib/listings/constants/publicListingsHubConfig.ts
+  - web/src/lib/**/constants/public*FaqConfig.ts
+  - web/src/lib/content/utils/parsePublicFaqConfig.ts
+  - web/src/lib/content/utils/publicFaqLinks.ts
+  - web/src/lib/content/utils/createPublicFaqSEOSchema.ts
+  - web/src/lib/content/constants/competitors/buildComparePair.ts
+  - web/src/lib/ui/templates/faq/PublicFaq.svelte
+  - web/src/routes/+page.server.ts
+  - web/src/routes/+page.svelte
+  - web/src/routes/(public)/pricing/+page.server.ts
+  - web/src/routes/(public)/**/+page.server.ts
+alwaysApply: false
+---
+
+# Web: Landing page FAQs (`PublicFaq`)
+
+Marketing routes render `<PublicFaq … />` with SSR `faqItems` and matching `createPublicFaqSEOSchema` in `+page.server.ts`. Link copy uses `faqLink` / `publicFaqHref` (**web-seo-pseo** funnel for connect questions; **web-seo-cms-copy** for landing/pricing CMS).
+
+## Three copy sources (do not mix patterns)
+
+| Kind | Routes | Q&A source | IDs on items |
+| --- | --- | --- | --- |
+| **CMS home FAQ** | `/` | Secret-admin `public_faq.ITEMS`; git fallback `PUBLIC_FAQ_ITEMS` via `resolvePublicFaqItemsVm` | CMS rows may omit `id`; defaults have `PublicFaqItemId` |
+| **Pricing FAQ** | `/pricing` | `getPublicPricingFaqItems()` only — **not** full CMS list | From `PUBLIC_PRICING_FAQ_ITEM_IDS` |
+| **pSEO / hub / detail** | Hubs, channels, agents, tools, API marketing, self-hosting, … | **Tailored** constants first, then **append** shared git-default rows | Appended rows always have `id` |
+
+**Do not** replace tailored hub or channel FAQ arrays with only `getPublic*HubFaqItems()` — that drops page-specific questions. **Do not** duplicate full `PUBLIC_FAQ_ITEMS` on every hub.
+
+## Single source of truth: `publicFaqConfig.ts`
+
+| Export | Role |
+| --- | --- |
+| `PublicFaqItemId` | Stable kebab-case id for every git-default question |
+| `PUBLIC_FAQ_ITEMS` | Full default catalog (`id`, `title`, `description`); seeds secret-admin defaults |
+| `resolvePublicFaqItemsByIds(ids)` | Map ids → items (compare pairs, curated lists) |
+| `appendPublicGeneralFaqItems(tailored, generalIds)` | Tailored first; append 2–3 shared items; skip duplicate `id` or **exact `title`** |
+| `PUBLIC_*_FAQ_ITEM_IDS` | Per-route general append set (see table below) |
+| `getPublicPricingFaqItems()` | Pricing-only subset (`PUBLIC_PRICING_FAQ_ITEM_IDS`) |
+
+Add or edit **global** Q&A copy once in `PUBLIC_FAQ_ITEMS`, assign a new `PublicFaqItemId`, then reference the id from pricing lists, hub append arrays, or `ComparePair.faqItemIds`.
+
+### General append id sets (typical 3 each)
+
+| Constant | Used on |
+| --- | --- |
+| `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS` | `/channels` hub, `getPublicChannelBySlug()` detail |
+| `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS` | `/agents` hub, agent host + MCP landing getters |
+| `PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS` | `/tools` hub, tool `build*FaqSection` helpers |
+| `PUBLIC_COMPARE_HUB_FAQ_ITEM_IDS` | `/compare` hub (`appendPublicGeneralFaqItems` on tailored hub copy) |
+| `PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS` | `/creators` hub |
+| `PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS` | `/roadmap` hub |
+| `PUBLIC_LISTINGS_HUB_FAQ_ITEM_IDS` | `/playbooks`, `/building-blocks` hubs |
+| `PUBLIC_SELF_HOSTING_FAQ_ITEM_IDS` | `/self-hosting` (after operator-tailored block) |
+| `PUBLIC_API_POSTING_HUB_FAQ_ITEM_IDS` | Posting API hub |
+| `PUBLIC_API_SCHEDULING_HUB_FAQ_ITEM_IDS` | Scheduling API hub |
+| `PUBLIC_API_PLATFORM_FAQ_ITEM_IDS` | `buildPublicApiPlatformFaqItems()` in `apis/shared.ts` |
+| `PUBLIC_PRICING_FAQ_ITEM_IDS` | `/pricing` only — **no** `appendPublicGeneralFaqItems` |
+
+Pick general ids that **do not** repeat a tailored question title (e.g. agents hub uses `try-free` instead of `agent-host-vs-mcp-billing` because the hub already asks how agent vs MCP billing works).
+
+## Wiring patterns
+
+### Hub config (`public*HubFaqConfig.ts`, `agents/hub.ts`, listings hub)
+
+```ts
+faqItems: appendPublicGeneralFaqItems(
+  [
+    { title: '…', description: `… ${faqLink(publicFaqHref.signUp, 'Sign up')} …` }
+  ],
+  PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS
+)
+```
+
+### Detail getters (avoid editing every channel file)
+
+- `getPublicChannelBySlug()` — append `PUBLIC_CHANNELS_HUB_FAQ_ITEM_IDS`
+- `getPublicAgentHostBySlug()` / `getPublicMcpLandingBySlug()` — append `PUBLIC_AGENTS_HUB_FAQ_ITEM_IDS`
+
+### API platform pages
+
+Tailored per-slug copy stays in `buildPublicApiPlatformFaqItems()`; return `appendPublicGeneralFaqItems(tailored, PUBLIC_API_PLATFORM_FAQ_ITEM_IDS)`.
+
+### Compare head-to-head
+
+`buildComparePair()` sets `faqItemIds` (defaults: switch / trial / multi-workspace). Presenter uses `resolvePublicFaqItemsByIds` — no tailored block unless you extend `ComparePair`.
+
+### Home (`/`)
+
+- Server: `parsePublicFaqConfigModule` → `resolvePublicFaqItemsVm(parsed)` for JSON-LD
+- Client: `resolvePublicFaqItemsVm(data.publicFaqItemsVm)` in `+page.svelte`
+- Empty CMS → full `PUBLIC_FAQ_ITEMS`
+
+### Pricing (`/pricing`)
+
+- `getPublicPricingFaqItems()` in `+page.server.ts` for accordion + schema
+- FAQ **headers** from `public_faq` config only (**web-seo-cms-copy**)
+
+### `PublicFaq.svelte`
+
+If `faqItems` is empty, component falls back to `[...PUBLIC_FAQ_ITEMS]` — routes should pass explicit lists in production.
+
+## SEO and admin
+
+- Visible accordion and `createPublicFaqSEOSchema({ items })` must use the **same** `faqItems` array from the server load.
+- After changing `PUBLIC_FAQ_ITEMS` defaults, re-save **Public FAQ** in secret-admin (or clear `ITEMS`) so production CMS matches git (**web-seo-cms-copy**).
+- Channel connect funnel and self-host anchor rules: **web-seo-pseo** (not duplicated here).
+
+## Tests (extend when adding ids or routes)
+
+| File | Covers |
+| --- | --- |
+| `publicFaqConfig.test.ts` | ids, pricing subset, `appendPublicGeneralFaqItems`, `resolvePublicFaqItemsVm` |
+| `publicHubFaqLinks.test.ts` | Hub tailored + general ids present, funnel links |
+| `publicFaqLinks.test.ts` | API hub/platform append |
+| `channelFaqLinks.test.ts` | Per-channel tailored funnel (catalog constants; runtime append via getter) |
+
+## PR checklist (FAQ touch)
+
+- [ ] New global question: `PublicFaqItemId` + row in `PUBLIC_FAQ_ITEMS` with `faqLink` / `publicFaqHref`
+- [ ] Hub or detail: tailored array **unchanged in intent** + `appendPublicGeneralFaqItems(..., PUBLIC_*_FAQ_ITEM_IDS)` (or getter that appends)
+- [ ] Pricing-only topics: add id to `PUBLIC_PRICING_FAQ_ITEM_IDS` if `/pricing` should show it
+- [ ] No duplicate titles between tailored and appended general rows
+- [ ] `+page.server.ts` schema uses same items as `<PublicFaq faqItems={…} />`
+- [ ] Tests updated for new hub or id set
+
+## Related rules
+
+- CMS landing/pricing headers and admin editor: **web-seo-cms-copy**
+- pSEO copy style, connect funnel, hub inventory: **web-seo-pseo**
+- Section order on programmatic pages: **web-seo-pseo-templates**
+- Compare `faqItemIds`: **add-competitors**
+- JSON-LD FAQPage: **web-seo-jsonld**

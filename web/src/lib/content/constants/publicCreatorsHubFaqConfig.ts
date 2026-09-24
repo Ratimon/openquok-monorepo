@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { faqLink, publicFaqHref } from '$lib/content/utils/publicFaqLinks';
 
@@ -22,7 +26,8 @@ export const PUBLIC_CREATORS_HUB_FAQ = {
 	faqTitle: 'Community Creators, answered',
 	faqDescription:
 		'Who appears in the directory, how to publish your own listings, and how building blocks differ from playbooks.',
-	faqItems: [
+	faqItems: appendPublicGeneralFaqItems(
+		[
 		{
 			title: 'Who appears on the creators page?',
 			description:
@@ -43,5 +48,7 @@ export const PUBLIC_CREATORS_HUB_FAQ = {
 			description:
 				`Yes. Open a creator profile to see their public building blocks and playbooks. Tag hubs such as ${faqLink(publicFaqHref.buildingBlocks, 'Building Blocks')} and ${faqLink(publicFaqHref.playbooks, 'Playbooks')} filter the wider catalog when you want cross-creator discovery.`
 		}
-	]
+	],
+		PUBLIC_CREATORS_HUB_FAQ_ITEM_IDS
+	)
 } satisfies PublicCreatorsHubFaqSection;

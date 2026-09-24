@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { getPublicApiPostingPlatformBySlug } from '$lib/content/constants/apis/index';
 import {
@@ -127,7 +131,10 @@ export function buildPayloadWizardFaqSection(
 			faqSubtitle: 'Payload Wizard FAQs',
 			faqTitle: `${label} Payload Wizard, answered`,
 			faqDescription: `How sample channels work for ${label}, which endpoint the JSON targets, and when to open your workspace wizard.`,
-			faqItems: buildChannelPayloadWizardFaqItems(slug, label)
+			faqItems: appendPublicGeneralFaqItems(
+				buildChannelPayloadWizardFaqItems(slug, label),
+				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			)
 		};
 	}
 
@@ -136,6 +143,9 @@ export function buildPayloadWizardFaqSection(
 		faqTitle: 'Payload Wizard, answered',
 		faqDescription:
 			'Free JSON preview for POST /public/posts — sample channels, copy without sign up, and when to use the workspace wizard.',
-		faqItems: [...GENERIC_PAYLOAD_WIZARD_FAQ_ITEMS]
+		faqItems: appendPublicGeneralFaqItems(
+			[...GENERIC_PAYLOAD_WIZARD_FAQ_ITEMS],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }

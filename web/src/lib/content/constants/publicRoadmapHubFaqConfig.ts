@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import { getRootPathPublicRoadmap } from '$lib/area-public/constants/getRootPathPublicRoadmap';
 import { getSocialProfileHref } from '$lib/config/constants/config';
@@ -20,7 +24,8 @@ export const PUBLIC_ROADMAP_HUB_FAQ = {
 		faqTitle: 'Product Roadmap, answered',
 	faqDescription:
 		'What the public roadmap shows, how to propose features on this page, and where to discuss ideas with the team.',
-	faqItems: [
+	faqItems: appendPublicGeneralFaqItems(
+		[
 		{
 			title: 'What does the OpenQuok roadmap show?',
 			description:
@@ -41,5 +46,7 @@ export const PUBLIC_ROADMAP_HUB_FAQ = {
 			description:
 				`Join the ${faqLink(discordHref, 'Discord community')} to ask questions, share use cases, and hear early announcements. For formal tracking, still submit a proposal from this ${faqLink(roadmapHref, 'roadmap')} page so the team can link your idea to delivery work.`
 		}
-	]
+	],
+		PUBLIC_ROADMAP_HUB_FAQ_ITEM_IDS
+	)
 } satisfies PublicRoadmapHubFaqSection;

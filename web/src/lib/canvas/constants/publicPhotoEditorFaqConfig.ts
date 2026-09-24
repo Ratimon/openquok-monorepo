@@ -1,4 +1,8 @@
 import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
+import {
+	appendPublicGeneralFaqItems,
+	PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+} from '$lib/content/constants/publicFaqConfig';
 
 import {
 	buildToolChannelFaqLinks,
@@ -100,7 +104,10 @@ export function buildPhotoEditorFaqSection(
 			faqSubtitle: 'Photo Editor FAQs',
 			faqTitle: `${label} Photo Editor, answered`,
 			faqDescription: `How the canvas works, which ${label} sizes are available, and when to sign in to save designs to your library.`,
-			faqItems: buildChannelPhotoEditorFaqItems(slug, label)
+			faqItems: appendPublicGeneralFaqItems(
+				buildChannelPhotoEditorFaqItems(slug, label),
+				PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+			)
 		};
 	}
 
@@ -109,6 +116,9 @@ export function buildPhotoEditorFaqSection(
 		faqTitle: 'Photo Editor, answered',
 		faqDescription:
 			'How the canvas works, which aspect ratios are available, and when to sign in to save designs to your library.',
-		faqItems: [...GENERIC_PHOTO_EDITOR_FAQ_ITEMS]
+		faqItems: appendPublicGeneralFaqItems(
+			[...GENERIC_PHOTO_EDITOR_FAQ_ITEMS],
+			PUBLIC_TOOLS_HUB_FAQ_ITEM_IDS
+		)
 	};
 }
