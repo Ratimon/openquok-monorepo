@@ -25,9 +25,12 @@ FROM deps AS build
 COPY common common
 COPY backend backend
 COPY orchestrator orchestrator
+COPY scripts/generate-routes-manifest.mjs scripts/
+COPY web/src/routes web/src/routes
 ENV NODE_ENV=production
 ENV NODE_OPTIONS=--max-old-space-size=8192
 RUN pnpm --filter openquok-common build \
+	&& node scripts/generate-routes-manifest.mjs \
 	&& pnpm --filter backend build \
 	&& pnpm --filter openquok-orchestrator build
 
