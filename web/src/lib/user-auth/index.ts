@@ -43,6 +43,8 @@ const verifyEmailPresenter = new VerifyEmailPresenter(authenticationRepository);
 const resetPasswordPresenter = new ResetPasswordPresenter(authenticationRepository);
 
 export {
+	RESET_PASSWORD_CODE_MAX_LENGTH,
+	RESET_PASSWORD_CODE_MIN_LENGTH,
 	resetPasswordCodeSchema,
 	resetPasswordEmailSchema,
 	signinFormSchema,

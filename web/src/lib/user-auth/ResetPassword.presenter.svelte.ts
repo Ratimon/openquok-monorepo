@@ -6,6 +6,8 @@ export enum ResetPasswordStatus {
 	RESET_REQUEST_SENT = 'reset_request_sent',
 	CODE_VERIFICATION_PENDING = 'code_verify_pending',
 	CODE_VERIFICATION_SUBMITTING = 'code_verification_submitting',
+	/** OTP verified; user must set a new password (stay on auth routes — not the account dashboard). */
+	NEW_PASSWORD_PENDING = 'new_password_pending',
 	CODE_VERIFICATION_SUCCESS = 'code_verification_success'
 }
 
@@ -33,6 +35,8 @@ export class ResetPasswordPresenter {
 		const authPm = await this.authenticationRepository.verifyReset({ email, code, type });
 		this.showToastMessage = true;
 		this.toastMessage = authPm.message;
-		this.status = authPm.success ? ResetPasswordStatus.CODE_VERIFICATION_SUCCESS : ResetPasswordStatus.UNKNOWN;
+		this.status = authPm.success
+			? ResetPasswordStatus.NEW_PASSWORD_PENDING
+			: ResetPasswordStatus.UNKNOWN;
 	}
 }

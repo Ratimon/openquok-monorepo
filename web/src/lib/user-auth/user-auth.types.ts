@@ -3,11 +3,15 @@ import { z } from 'zod';
 /** Forgot / reset password: email step. */
 export const resetPasswordEmailSchema = z.string().email('Please enter a valid email.').trim();
 
+/** Supabase recovery OTP length (email may show 6–8 digits). */
+export const RESET_PASSWORD_CODE_MIN_LENGTH = 6;
+export const RESET_PASSWORD_CODE_MAX_LENGTH = 8;
+
 /** Forgot / reset password: OTP from email (Supabase recovery codes are 6–8 digits). */
 export const resetPasswordCodeSchema = z
 	.string()
-	.min(6, 'Code must be at least 6 characters.')
-	.max(8, 'Code must be at most 8 characters.')
+	.min(RESET_PASSWORD_CODE_MIN_LENGTH, `Code must be at least ${RESET_PASSWORD_CODE_MIN_LENGTH} digits.`)
+	.max(RESET_PASSWORD_CODE_MAX_LENGTH, `Code must be at most ${RESET_PASSWORD_CODE_MAX_LENGTH} digits.`)
 	.regex(/^\d+$/, 'Code must be digits only.')
 	.trim();
 

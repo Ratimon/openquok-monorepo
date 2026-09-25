@@ -10,7 +10,8 @@
 	import PostsLimitProvider from '$lib/ui/components/posts/PostsLimitProvider.svelte';
 	import ChannelCapProvider from '$lib/ui/components/channels/ChannelCapProvider.svelte';
 	import AcquisitionSurveyModal from '$lib/ui/components/onboarding/AcquisitionSurveyModal.svelte';
-	import { protectedBillingPagePresenter } from '$lib/area-protected';
+	import { getRootPathAccount, protectedBillingPagePresenter } from '$lib/area-protected';
+	import { route } from '$lib/utils/path';
 	import { acquisitionSurveyPresenter } from '$lib/acquisition';
 	import { firstBillingGatePresenter, ownedAccountBillingPresenter, preloadStripe } from '$lib/billing';
 	import { workspaceSettingsPresenter } from '$lib/settings';
@@ -30,6 +31,10 @@
 	const isPlatformAdmin = $derived(
 		(currentUser as { isPlatformAdmin?: boolean } | null)?.isPlatformAdmin === true
 	);
+	// /account/settings/password — allow password change without the first-billing paywall (recovery / settings email).
+	const accountPasswordSettingsPath = route(`${getRootPathAccount()}/settings/password`);
+	const isAccountPasswordSettings = $derived(page.url.pathname === accountPasswordSettingsPath);
+
 	const checkoutId = $derived(page.url.searchParams.get('checkout'));
 	const checkoutBypass = $derived(firstBillingGatePresenter.isCheckoutBypassed(checkoutId));
 	const checkoutReturnInFlight = $derived(
@@ -52,6 +57,7 @@
 	/** Hold the shell until billing gate is known — avoids flashing the free dashboard. */
 	const gatePending = $derived(
 		!isPlatformAdmin &&
+			!isAccountPasswordSettings &&
 			!checkoutBypass &&
 			!checkoutReturnInFlight &&
 			!firstBillingGatePresenter.hasResolvedGate(currentWorkspaceId)
@@ -59,6 +65,7 @@
 
 	const showFirstBilling = $derived(
 		!isPlatformAdmin &&
+			!isAccountPasswordSettings &&
 			firstBillingGatePresenter.restrictFreeUser &&
 			!checkoutBypass &&
 			!checkoutReturnInFlight

@@ -34,7 +34,7 @@
 		errorMessage = null;
 		try {
 			await resetPasswordPresenter.verifyReset(email, token, 'recovery');
-			if (resetPasswordPresenter.status === ResetPasswordStatus.CODE_VERIFICATION_SUCCESS) {
+			if (resetPasswordPresenter.status === ResetPasswordStatus.NEW_PASSWORD_PENDING) {
 				goto('/account/settings/password', { replaceState: true });
 			} else {
 				errorMessage = resetPasswordPresenter.toastMessage || 'Verification failed. The link may have expired.';

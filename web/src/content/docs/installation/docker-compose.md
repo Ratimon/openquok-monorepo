@@ -210,7 +210,7 @@ If release notes mention database changes, run migrations on Supabase. Docker do
 
 If orchestrator build fails with <strong>already exists</strong>, update the repo or use Option B <code>pull</code>.
 
-## Security
+## Security and exposure
 
 This stack targets **your machine or a trusted private network**. It is not a hardened public SaaS edge.
 
