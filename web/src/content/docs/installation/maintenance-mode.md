@@ -1,7 +1,7 @@
 ---
 title: Maintenance mode
 description: Tiered write-freeze across backend, web, and workers — for Supabase region cutover and other maintenance windows.
-order: 6
+order: 7
 lastUpdated: 2026-09-19
 ---
 

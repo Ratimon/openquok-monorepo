@@ -19,7 +19,7 @@ import { Callout, Tabs, TabItem, Steps, Card, CardGrid, LinkCard, Badge, FileTre
 
 <CardGrid>
 <LinkCard title="System requirements" description="CPU, RAM, ports, Docker, and operator-provided Supabase for self-host" href="/docs/installation/system-requirements" />
-<LinkCard title="Docker Compose (self-host)" description="Full app stack from the monorepo" href="/docs/installation/docker-compose" />
+<LinkCard title="Docker Compose (self-host)" description="Install, update, env, and bring-up from the monorepo" href="/docs/installation/docker-compose" />
 <LinkCard title="Docker (pre-built images)" description="Pull API and workers from GHCR or Docker Hub" href="/docs/installation/docker" />
 <LinkCard title="Production deployment" description="Vercel API and web, Redis, optional BullMQ workers" href="/docs/installation/production-deployment" />
 <LinkCard title="Maintenance mode" description="MAINTENANCE_MODE write-freeze across backend, web, and workers" href="/docs/installation/maintenance-mode" />

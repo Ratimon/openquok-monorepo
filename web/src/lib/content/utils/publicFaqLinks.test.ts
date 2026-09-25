@@ -57,6 +57,7 @@ describe('publicFaqLinks', () => {
 		expect(publicFaqHref.docsPlaybooksCompose).toBe('/docs/playbooks/compose-a-playbook');
 		expect(publicFaqHref.selfHostingLanding).toBe('/self-hosting');
 		expect(publicFaqHref.dockerCompose).toBe('/docs/installation/docker-compose');
+		expect(publicFaqHref.dockerPreBuiltImages).toBe('/docs/installation/docker');
 		expect(publicFaqHref.productionDeployment).toBe('/docs/installation/production-deployment');
 		expect(publicFaqHref.publicApiProviders).toBe('/docs/public-api-providers');
 		expect(publicFaqHref.socialMediaPostingApi).toBe('/social-media-posting-api');

@@ -9,6 +9,7 @@ import { getRootPathPublicChannel, getRootPathPublicChannels } from '$lib/area-p
 import { getRootPathPublicCompare, getRootPathPublicComparePair } from '$lib/area-public/constants/getRootPathPublicCompare';
 import {
 	getRootPathPublicDocs,
+	getRootPathPublicDocsInstallationDocker,
 	getRootPathPublicDocsInstallationDockerCompose
 } from '$lib/area-public/constants/getRootPathPublicDocs';
 import { getRootPathPublicPlaybooks, getRootPathPublicPlaybooksTag } from '$lib/area-public/constants/getRootPathPublicPlaybooks';
@@ -110,6 +111,7 @@ export const publicFaqHref = {
 	buildingBlocks: route(getRootPathPublicBuildingBlocks()),
 	selfHostingLanding: route(getRootPathPublicSelfHosting()),
 	dockerCompose: route(getRootPathPublicDocsInstallationDockerCompose()),
+	dockerPreBuiltImages: route(getRootPathPublicDocsInstallationDocker()),
 	productionDeployment: faqHrefDocs('installation/production-deployment'),
 	cliGettingStarted: faqHrefDocs('getting-started-for-cli'),
 	cliManagingPosts: faqHrefDocs('cli-usages/managing-posts'),

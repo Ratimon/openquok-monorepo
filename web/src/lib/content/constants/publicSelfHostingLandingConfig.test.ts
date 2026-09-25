@@ -37,6 +37,7 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 		);
 
 		expect(hrefById['docker-compose']).toBe(publicFaqHref.dockerCompose);
+		expect(hrefById['docker-pre-built-images']).toBe(publicFaqHref.dockerPreBuiltImages);
 		expect(hrefById['production-deployment']).toBe(publicFaqHref.productionDeployment);
 		expect(hrefById['system-requirements']).toBe('/docs/installation/system-requirements');
 		expect(hrefById['self-hosting-docs']).toBe('/docs/getting-started-for-dev');
@@ -98,6 +99,15 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 		);
 	});
 
+	it('explains pre-built images in FAQ', () => {
+		const faqItem = PUBLIC_SELF_HOSTING_LANDING_CONFIG.faqSection.faqItems.find(
+			(item) => item.title === 'Can I pull container images instead of building from source?'
+		);
+
+		expect(faqItem?.description).toContain(publicFaqHref.dockerPreBuiltImages);
+		expect(faqItem?.description).toContain(publicFaqHref.dockerCompose);
+	});
+
 	it('explains Compose vs production deployment in FAQ', () => {
 		const faqItem = PUBLIC_SELF_HOSTING_LANDING_CONFIG.faqSection.faqItems.find(
 			(item) =>
@@ -123,8 +133,8 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 			(item) => item.title === 'Is self-hosted OpenQuok the same product as hosted?'
 		);
 
-		expect(faqItem?.description).toContain('Hosted plan limits');
-		expect(faqItem?.description).toContain('production stacks');
+		expect(faqItem?.description).toContain('Plan limits on openquok.com');
+		expect(faqItem?.description).toContain('self-host');
 	});
 
 	it('links FAQ answers to Self-hosting docs tab destinations', () => {
@@ -138,6 +148,7 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 			(item) => item.title === 'Do I need my own Meta or Google developer apps?'
 		);
 
+		expect(servicesFaq?.description).toContain(publicFaqHref.dockerPreBuiltImages);
 		expect(servicesFaq?.description).toContain(publicFaqHref.productionDeployment);
 		expect(servicesFaq?.description).toContain('/docs/configuration-worker');
 		expect(servicesFaq?.description).toContain('/docs/installation/system-requirements');
@@ -157,9 +168,10 @@ describe('PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG', () => {
 	it('links all three operator paths plus the self-hosting overview', () => {
 		const links = PUBLIC_SELF_HOST_PRICING_FOOTNOTE_CONFIG.links;
 
-		expect(links).toHaveLength(4);
+		expect(links).toHaveLength(5);
 		expect(links.map((link) => link.id)).toEqual([
 			'hosted-cloud',
+			'cloud-billing',
 			'docker-compose',
 			'cloud-production-stack',
 			'self-hosting-overview'

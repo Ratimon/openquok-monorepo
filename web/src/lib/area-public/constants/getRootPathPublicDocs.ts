@@ -12,3 +12,8 @@ export function getRootPathPublicDocsGettingStartedForDev(): string {
 export function getRootPathPublicDocsInstallationDockerCompose(): string {
 	return `${getRootPathPublicDocs()}/installation/docker-compose`;
 }
+
+/** Pre-built self-host container images: `docs/installation/docker`. */
+export function getRootPathPublicDocsInstallationDocker(): string {
+	return `${getRootPathPublicDocs()}/installation/docker`;
+}
