@@ -137,13 +137,15 @@ Day-to-day commands (dev servers, tests, DB, deploy) live under [Development env
 
 ### Self-host (Docker Compose)
 
-Run the full app stack from the repo:
+**Build from clone (default)** — configure env, then build all services from the monorepo:
 
 ```bash
 cp infra/self-host/.env.example infra/self-host/.env
 # fill PUBLIC_SUPABASE_* / SUPABASE_SECRET_KEY (and matching VITE_* for the web image)
 docker compose -f infra/self-host/docker-compose.yml up --build
 ```
+
+**Pull pre-built images (optional)** — skip local builds for API and workers when published tags exist (`ghcr.io/ratimon/openquok-*` or `docker.io/ratimon/openquok-*`). Set `OPENQUOK_IMAGE_TAG` in `.env`, use the `docker-compose.images.yml` overlay, `pull`, then `up` — you still **`compose build web`** unless your `VITE_*` match the published web bake. Details: [Docker (pre-built images)](https://www.openquok.com/docs/installation/docker). Maintainers: [infra/self-host/PUBLISHING.md](infra/self-host/PUBLISHING.md) (tag `self-host-v<semver>` → CI publish).
 
 When the stack is up, open the UI at **http://localhost:4007** (API at **http://localhost:3000**). Full env and bring-up steps: [Docker Compose (self-host)](https://www.openquok.com/docs/installation/docker-compose).
 
@@ -200,7 +202,7 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 **Self-host & setup**
 
 - [Developer quick start](https://www.openquok.com/docs/getting-started-for-dev/quick-start)
-- [Installation](https://www.openquok.com/docs/installation) — [Docker Compose](https://www.openquok.com/docs/installation/docker-compose), [system requirements](https://www.openquok.com/docs/installation/system-requirements), [development environment](https://www.openquok.com/docs/installation/development-environment), and [production deployment](https://www.openquok.com/docs/installation/production-deployment)
+- [Installation](https://www.openquok.com/docs/installation) — [Docker Compose](https://www.openquok.com/docs/installation/docker-compose), [pre-built Docker images](https://www.openquok.com/docs/installation/docker), [system requirements](https://www.openquok.com/docs/installation/system-requirements), [development environment](https://www.openquok.com/docs/installation/development-environment), and [production deployment](https://www.openquok.com/docs/installation/production-deployment)
 - [Social integrations](https://www.openquok.com/docs/social-integration) — operator OAuth apps, env keys, and provider dashboards
 - [Admin setup](https://www.openquok.com/docs/admin) — platform admin, OAuth apps, and post-deploy setup
 - [Configuration – Backend](https://www.openquok.com/docs/configuration-backend), [Web](https://www.openquok.com/docs/configuration-web), [Workers](https://www.openquok.com/docs/configuration-worker), and [CLI auth server](https://www.openquok.com/docs/configuration-agent)

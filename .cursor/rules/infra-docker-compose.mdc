@@ -26,7 +26,7 @@ Follow **source-project-neutrality**: no third-party product names in Compose se
 - **`web` must not `env_file` the full `.env`** — only explicit runtime env; `VITE_*` go through `build.args`. API/workers may load `.env`.
 - Document exposure limits in `web/src/content/docs/installation/docker-compose.md` when changing ports or env wiring.
 
-User-facing steps live in `web/src/content/docs/installation/` (`system-requirements`, `docker-compose`, `development-environment`, `configuration-backend/docker`). Update those when bring-up commands, ports, or env contracts change.
+User-facing steps live in `web/src/content/docs/installation/` (`system-requirements`, `docker-compose`, `docker` for pre-built registry pulls, `development-environment`, `configuration-backend/docker`). Update those when bring-up commands, ports, or env contracts change.
 
 ## Self-host env
 
@@ -66,11 +66,13 @@ User-facing steps live in `web/src/content/docs/installation/` (`system-requirem
 - Named volumes: `redis-data`, `uploads-data` (API + workers share uploads; `uploads-init` may `chown` for uid 1000).
 - `depends_on` with Redis healthcheck; workers and API after Redis healthy.
 - Host ports via env overrides (`OPENQUOK_WEB_HOST_PORT`, `OPENQUOK_API_HOST_PORT`, etc.) documented in `.env.example`.
+- **Pre-built images (optional):** `image:` on API, web, orchestrator, and agent-server; defaults `OPENQUOK_IMAGE_REGISTRY=ghcr.io/ratimon`, `OPENQUOK_IMAGE_TAG=latest`. Overlay `infra/self-host/docker-compose.images.yml` sets registry-first `pull_policy` on pulled services. `OPENQUOK_PULL_WEB=false` by default — web keeps `pull_policy: build` until operators opt into a published web bake that matches their `VITE_*`.
+- **Release tags:** git tag `self-host-v<semver>` drives CI image tags `<semver>` and `latest` (multi-arch manifests). Maintainer cut/verify steps: `infra/self-host/PUBLISHING.md`. Operator pull/pin docs: `web/src/content/docs/installation/docker.md`.
 
 ## Out of scope for `infra/` v1
 
-- Publishing images to a registry / CI push
 - Bundling Supabase containers inside Compose
 - Checked-in reverse proxy configs (document “put a proxy in front” in docs only)
+- Runtime injection of `VITE_*` for a single universal pulled web image (operators rebuild `web` or use `OPENQUOK_PULL_WEB` only when keys match CI bake)
 
 The assistant should follow this layout when adding or editing Compose services, self-host env keys, or Dockerfiles.

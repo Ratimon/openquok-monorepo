@@ -1,0 +1,31 @@
+# Registry-first overlay for infra/self-host/docker-compose.yml
+#
+# From repo root (after filling infra/self-host/.env):
+#   docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml pull
+#   docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml up -d --build
+#
+# Pin versions with OPENQUOK_IMAGE_TAG in .env (e.g. 1.0.0). Mirror: OPENQUOK_IMAGE_REGISTRY=docker.io/ratimon
+#
+# Web still builds locally by default (VITE_* baked at build). Set OPENQUOK_PULL_WEB=true in .env
+# to pull a pre-built web image when your Supabase / public URL match the published bake.
+
+services:
+  api:
+    pull_policy: always
+
+  worker-integration-refresh:
+    pull_policy: always
+
+  worker-notification-email:
+    pull_policy: always
+
+  worker-scheduled-social-post:
+    pull_policy: always
+
+  agent-server:
+    pull_policy: always
+
+  # Pre-built web: only when OPENQUOK_PULL_WEB=true in .env and your VITE_* match CI.
+  # Uncomment to pull instead of build (overrides base pull_policy: build on web):
+  # web:
+  #   pull_policy: missing

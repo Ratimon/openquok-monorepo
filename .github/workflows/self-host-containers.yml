@@ -1,0 +1,231 @@
+name: Self-host containers
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver image tag (e.g. 1.0.0) — used when not triggered by a git tag
+        required: true
+        type: string
+  push:
+    tags:
+      - self-host-v*
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY_GHCR: ghcr.io/ratimon
+  REGISTRY_DOCKERHUB: docker.io/ratimon
+
+jobs:
+  parse-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Resolve image version
+        id: version
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref_type }}" == "tag" ]]; then
+            tag="${{ github.ref_name }}"
+            if [[ ! "$tag" =~ ^self-host-v(.+)$ ]]; then
+              echo "Expected tag self-host-v<semver>, got: $tag" >&2
+              exit 1
+            fi
+            echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ver="${{ inputs.version }}"
+            if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+              echo "Version must be semver (e.g. 1.0.0), got: $ver" >&2
+              exit 1
+            fi
+            echo "version=$ver" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unsupported event: ${{ github.event_name }}" >&2
+            exit 1
+          fi
+
+  build-images:
+    needs: parse-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: openquok-api
+            dockerfile: backend/Dockerfile
+            runnertags: ubuntu-latest
+            arch: amd64
+          - image: openquok-api
+            dockerfile: backend/Dockerfile
+            runnertags: ubuntu-24.04-arm
+            arch: arm64
+          - image: openquok-web
+            dockerfile: web/Dockerfile
+            runnertags: ubuntu-latest
+            arch: amd64
+            web_build_args: true
+          - image: openquok-web
+            dockerfile: web/Dockerfile
+            runnertags: ubuntu-24.04-arm
+            arch: arm64
+            web_build_args: true
+          - image: openquok-orchestrator
+            dockerfile: orchestrator/Dockerfile
+            runnertags: ubuntu-latest
+            arch: amd64
+          - image: openquok-orchestrator
+            dockerfile: orchestrator/Dockerfile
+            runnertags: ubuntu-24.04-arm
+            arch: arm64
+          - image: openquok-agent-server
+            dockerfile: agent/server/Dockerfile
+            runnertags: ubuntu-latest
+            arch: amd64
+          - image: openquok-agent-server
+            dockerfile: agent/server/Dockerfile
+            runnertags: ubuntu-24.04-arm
+            arch: arm64
+    runs-on: ${{ matrix.runnertags }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push per-arch image
+        env:
+          VERSION: ${{ needs.parse-version.outputs.version }}
+          IMAGE: ${{ matrix.image }}
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          ref="${REGISTRY_GHCR}/${IMAGE}:${VERSION}-${ARCH}"
+
+          web_args=()
+          if [[ "${{ matrix.web_build_args }}" == "true" ]]; then
+            web_args+=(
+              --build-arg "VITE_API_BASE_URL="
+              --build-arg "VITE_FRONTEND_DOMAIN_URL=http://localhost:4007"
+              --build-arg "VITE_PUBLIC_SUPABASE_URL="
+              --build-arg "VITE_PUBLIC_SUPABASE_PUBLISHABLE_KEY="
+              --build-arg "VITE_PUBLIC_STRIPE_PUBLISHABLE_KEY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_MONTHLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_SOLO_YEARLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_MONTHLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_TEAM_YEARLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_MONTHLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_ULTIMATE_YEARLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_MAX_MONTHLY="
+              --build-arg "VITE_PUBLIC_STRIPE_PRICE_ID_MAX_YEARLY="
+              --build-arg "VITE_MEDIA_LIBRARY_UPLOAD=local"
+              --build-arg "VITE_STORAGE_R2_PUBLIC_BASE_URL="
+              --build-arg "VITE_SUPPORT_EMAIL_ADDRESS="
+              --build-arg "VITE_PUBLIC_GOOGLE_ANALYTICS_MEASUREMENT_ID="
+              --build-arg "VITE_PUBLIC_POSTHOG_KEY="
+              --build-arg "VITE_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com"
+              --build-arg "VITE_PUBLIC_FACEBOOK_PIXEL="
+            )
+          fi
+
+          docker buildx build --platform "linux/${ARCH}" \
+            -f "${DOCKERFILE}" \
+            -t "${ref}" \
+            "${web_args[@]}" \
+            --pull \
+            --provenance=false --sbom=false \
+            --cache-from type=gha,scope="${IMAGE}-${ARCH}" \
+            --cache-to type=gha,mode=max,scope="${IMAGE}-${ARCH}" \
+            --push \
+            .
+
+  publish-manifests:
+    needs: [parse-version, build-images]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - openquok-api
+          - openquok-web
+          - openquok-orchestrator
+          - openquok-agent-server
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Create and push multi-arch manifest
+        env:
+          VERSION: ${{ needs.parse-version.outputs.version }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          base="${REGISTRY_GHCR}/${IMAGE}"
+          amd64="${base}:${VERSION}-amd64"
+          arm64="${base}:${VERSION}-arm64"
+
+          echo "Verifying AMD64 image:"
+          docker buildx imagetools inspect "${amd64}"
+          echo "Verifying ARM64 image:"
+          docker buildx imagetools inspect "${arm64}"
+
+          docker buildx imagetools create -t "${base}:${VERSION}" "${amd64}" "${arm64}"
+          docker buildx imagetools create -t "${base}:latest" "${amd64}" "${arm64}"
+
+          echo "Manifest ${base}:${VERSION}:"
+          docker buildx imagetools inspect "${base}:${VERSION}"
+
+  mirror-dockerhub:
+    needs: [parse-version, publish-manifests]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        image:
+          - openquok-api
+          - openquok-web
+          - openquok-orchestrator
+          - openquok-agent-server
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Mirror GHCR manifest to Docker Hub
+        env:
+          VERSION: ${{ needs.parse-version.outputs.version }}
+          IMAGE: ${{ matrix.image }}
+        run: |
+          set -euo pipefail
+          src="${REGISTRY_GHCR}/${IMAGE}:${VERSION}"
+          hub="${REGISTRY_DOCKERHUB}/${IMAGE}"
+
+          docker buildx imagetools inspect "${src}"
+          docker buildx imagetools create \
+            -t "${hub}:${VERSION}" \
+            -t "${hub}:latest" \
+            "${src}"
+
+          echo "Docker Hub manifest ${hub}:${VERSION}:"
+          docker buildx imagetools inspect "${hub}:${VERSION}"

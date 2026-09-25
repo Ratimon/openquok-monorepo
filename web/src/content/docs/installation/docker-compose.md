@@ -2,7 +2,7 @@
 title: Self-host - Docker Compose
 description: Self-host OpenQuok with Docker Compose — env setup, Supabase, and bring-up of API, web, Redis, and BullMQ workers.
 order: 5
-lastUpdated: 2026-09-19
+lastUpdated: 2026-09-25
 ---
 
 <script>
@@ -12,6 +12,10 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 ## Overview
 
 The canonical **self-host** path builds images from this monorepo and runs API, web, Redis, and BullMQ workers via Compose under <Badge text="infra/self-host/" variant="path" />. Use it when <strong>you</strong> want OpenQuok on your own computer or private network — not the hosted product at openquok.com.
+
+<Callout type="tip" title="Pre-built container images">
+<p>Maintainers publish <code>openquok-api</code>, <code>openquok-orchestrator</code>, and related images to GHCR and Docker Hub. You can <code>docker compose pull</code> those services and still <code>build web</code> locally when your <Badge text="VITE_*" variant="envWeb" /> differ from the published bake. See <a href="/docs/installation/docker">Docker (pre-built images)</a> for registry URLs, <Badge text="OPENQUOK_IMAGE_*" variant="envBackend" /> env vars, and the <Badge text="docker-compose.images.yml" variant="path" /> overlay.</p>
+</Callout>
 
 <Callout type="note" title="Two Compose files">
 <p><Badge text="infra/docker-compose.yml" variant="path" /> is for <strong>contributors</strong> developing the hosted OpenQuok product: local Redis and optional CLI-auth Postgres only (API/web still via <code>pnpm</code>). The full app stack for operators is <Badge text="infra/self-host/docker-compose.yml" variant="path" />. See <a href="/docs/installation/system-requirements">System requirements</a> and <a href="/docs/configuration-backend/docker">Docker (local services)</a>.</p>
@@ -169,7 +173,7 @@ docker compose -f infra/self-host/docker-compose.yml --profile cli down
 | <code>worker-scheduled-social-post</code> | BullMQ worker |
 | <code>postgres</code> / <code>agent-server</code> | Only with <code>--profile cli</code> |
 
-Images build from the monorepo root (<code>context: ../..</code>). No registry is required for v1.
+Images build from the monorepo root (<code>context: ../..</code>) when you use <code>up --build</code>. Optional registry pulls use the same <code>image:</code> names — see <a href="/docs/installation/docker">Docker (pre-built images)</a>.
 
 ## Security and exposure
 
@@ -198,6 +202,7 @@ This stack is designed for **trusted local / private-network** operators, not a 
 ## Related
 
 <CardGrid>
+<LinkCard title="Docker (pre-built images)" description="GHCR and Docker Hub pulls, version pins, and web rebuild rules" href="/docs/installation/docker" />
 <LinkCard title="System requirements" description="CPU, RAM, ports, and operator-provided Supabase" href="/docs/installation/system-requirements" />
 <LinkCard title="Production deployment" description="Vercel / Railway SaaS path vs self-host Compose" href="/docs/installation/production-deployment" />
 <LinkCard title="Maintenance mode" description="MAINTENANCE_MODE for self-host cutover and ops windows" href="/docs/installation/maintenance-mode" />
