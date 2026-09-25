@@ -17,7 +17,7 @@ Edit the docs config in:
 - <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — assembled <Badge text="docsConfig" variant="param" /> (merged sidebar, and TOC defaults)
 
 <Callout type="note" title="Two MCP servers">
-<p><Badge text="docsMcpPath" variant="param" /> enables <strong>Connect to Cursor</strong> on docs pages and powers the documentation MCP (<Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, …) on the web host. Workspace scheduling MCP stays on the API at <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /><Badge text="/mcp" variant="path" /> with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp">MCP overview</a>.</p>
+<p><Badge text="docsMcpPath" variant="param" /> enables <strong>Copy MCP URL</strong> and <strong>Connect to Cursor</strong> on docs pages and powers the documentation MCP (<Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, …) on the web host. Workspace scheduling MCP stays on the API at <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /><Badge text="/mcp" variant="path" /> with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp">MCP overview</a>.</p>
 </Callout>
 
 The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Contributing**.

@@ -38,7 +38,7 @@ The **product** server is what this guide focuses on: list connected channels, s
 Use the same <Badge text="opo_" variant="default" /> programmatic access token you generate under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> for the product server only.
 
 <Callout type="tip">
-<p>On any docs page, use <strong>Connect to Cursor</strong> to install <Badge text="OpenQuok Documentation" variant="default" /> pointing at your site <Badge text="/mcp" variant="path" />. Use <strong>Open in Cursor</strong> for a one-off prompt about the current page. Scheduling still requires the product server (<Badge text="openquok" variant="default" /> in <Badge text=".cursor/mcp.json" variant="path" />) with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp/setup">Client setup</a>.</p>
+<p>On any docs page, use <strong>Copy MCP URL</strong> for manual client config and <strong>Connect to Cursor</strong> for one-click install of documentation MCP (<Badge text="OpenQuok Documentation" variant="default" /> pointing at your site <Badge text="/mcp" variant="path" />). Scheduling still requires the product server (<Badge text="openquok" variant="default" /> in <Badge text=".cursor/mcp.json" variant="path" />) with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp/setup">Client setup</a>.</p>
 </Callout>
 
 ## MCP documentation

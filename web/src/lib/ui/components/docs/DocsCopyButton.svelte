@@ -7,10 +7,7 @@
 		docsMarkdownPath,
 		docsPagePath
 	} from '$lib/docs/utils/site/docShareUrls';
-	import {
-		buildCursorMcpInstallDeeplink,
-		buildCursorPromptDeeplink
-	} from '$lib/docs/utils/site/cursorDeeplinks';
+	import { buildCursorMcpInstallDeeplink } from '$lib/docs/utils/site/cursorDeeplinks';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
@@ -53,16 +50,14 @@
 
 	const docsMcpPath = docsConfig.site.docsMcpPath?.trim() ?? '';
 
-	let cursorPromptUrl = $derived(
-		buildCursorPromptDeeplink(
-			`Read from ${markdownAbsolute} so I can ask questions about it.`
-		)
+	let docsMcpAbsoluteUrl = $derived(
+		docsMcpPath ? absoluteDocsUrl(docsMcpPath, origin) : ''
 	);
 
 	let cursorDocsMcpInstallUrl = $derived(
 		docsMcpPath
 			? buildCursorMcpInstallDeeplink('OpenQuok Documentation', {
-					url: absoluteDocsUrl(docsMcpPath, origin)
+					url: docsMcpAbsoluteUrl
 				})
 			: ''
 	);
@@ -93,6 +88,19 @@
 		}
 	}
 
+	async function copyDocsMcpUrl() {
+		if (!docsMcpAbsoluteUrl) {
+			toast.error('Documentation MCP URL is not configured.');
+			return;
+		}
+		try {
+			await navigator.clipboard.writeText(docsMcpAbsoluteUrl);
+			toast.success('Copied documentation MCP URL.');
+		} catch {
+			toast.error('Could not copy to clipboard.');
+		}
+	}
+
 	/**
 	 * Opens in a new tab with explicit `rel` (window.open has no `rel`; its 3rd arg is window features).
 	 * External URLs: match ExternalLink.svelte defaults (trusted=false, follow=false).
@@ -114,10 +122,6 @@
 
 	function openExternal(url: string) {
 		openInNewTab(url, 'noopener noreferrer nofollow');
-	}
-
-	function openCursorPrompt() {
-		openInNewTab(cursorPromptUrl, 'noopener noreferrer nofollow');
 	}
 
 	function openCursorDocsMcpInstall() {
@@ -238,7 +242,23 @@
 			</div>
 		</DropdownMenu.Item>
 
-		{#if cursorDocsMcpInstallUrl}
+		{#if docsMcpPath}
+			<DropdownMenu.Item class="cursor-pointer p-0" onclick={() => void copyDocsMcpUrl()}>
+				<div class="flex w-full items-start gap-3 px-2 py-2.5">
+					<span
+						class="border-base-300 bg-base-200/50 flex size-9 shrink-0 items-center justify-center rounded-md border"
+					>
+						<AbstractIcon name={icons.Copy.name} class="size-4" width="16" height="16" />
+					</span>
+					<div class="min-w-0 flex-1">
+						<div class="text-base-content font-medium leading-tight">Copy MCP URL</div>
+						<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
+							Documentation MCP server URL for any client
+						</div>
+					</div>
+				</div>
+			</DropdownMenu.Item>
+
 			<DropdownMenu.Item class="cursor-pointer p-0" onclick={openCursorDocsMcpInstall}>
 				<div class="flex w-full items-start gap-3 px-2 py-2.5">
 					<span
@@ -263,30 +283,6 @@
 				</div>
 			</DropdownMenu.Item>
 		{/if}
-
-		<DropdownMenu.Item class="cursor-pointer p-0" onclick={openCursorPrompt}>
-			<div class="flex w-full items-start gap-3 px-2 py-2.5">
-				<span
-					class="flex size-9 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-200/50"
-				>
-					<AbstractIcon name={icons.Cursor.name} class="size-5" width="20" height="20" />
-				</span>
-				<div class="min-w-0 flex-1">
-					<div class="text-base-content flex items-center gap-1 font-medium leading-tight">
-						Open in Cursor
-						<AbstractIcon
-							name={icons.Link.name}
-							class="text-base-content/50 size-3.5"
-							width="14"
-							height="14"
-						/>
-					</div>
-					<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
-						Ask questions about this page
-					</div>
-				</div>
-			</div>
-		</DropdownMenu.Item>
 	</DropdownMenu.Content>
 	</DropdownMenu.Root>
 </div>

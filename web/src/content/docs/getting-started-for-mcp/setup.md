@@ -44,7 +44,7 @@ Install a **second** MCP entry when you want agents to search and read OpenQuok 
 | --- | --- | --- |
 | Cursor server name | <Badge text="openquok" variant="default" /> | <Badge text="OpenQuok Documentation" variant="default" /> |
 | URL | <Badge text="https://api.openquok.com/mcp" variant="new" /> (+ <Badge text="opo_" variant="default" /> auth) | <Badge text="https://www.openquok.com/mcp" variant="new" /> (no API key) |
-| Dashboard generator | <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → MCP client configuration | <strong>Connect to Cursor</strong> on any docs page |
+| Dashboard generator | <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → MCP client configuration | <strong>Copy MCP URL</strong> and <strong>Connect to Cursor</strong> on any docs page |
 
 On self-hosted sites, use your public web origin for documentation MCP (for example <Badge text="https://docs.yourcompany.com/mcp" variant="new" />). Keep product MCP on the API host.
 
