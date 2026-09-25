@@ -2,7 +2,7 @@
 title: Config defaults
 description: How the OpenQuok web app derives default values from Vite env and fallbacks (backend URL, company, landing, navigation).
 order: 2
-lastUpdated: 2026-05-08
+lastUpdated: 2026-09-25
 ---
 
 <script>
@@ -30,9 +30,9 @@ Some defaults are resolved from Vite env first, then fall back to a safe constan
 
 Examples:
 
-- **API base URL** — if <Badge text="VITE_API_BASE_URL" variant="envWeb" /> is set in <Badge text=".env.development.local" variant="envWeb" />, that value is used as the origin for API requests. If it is <strong>not</strong> set and Vite is in <strong>development</strong> mode, the default is an <strong>empty</strong> base so requests use same-origin paths such as <code>/api/v1/...</code> (required for HTTPS local dev; see <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite (SvelteKit) → HTTPS local development</a>). In non-dev builds when the variable is still unset, the fallback is <Badge text="http://localhost:3000" variant="new" />.
+- **API base URL** — <Badge text="VITE_API_BASE_URL" variant="envWeb" /> sets the API origin when present. In <strong>development</strong>, leaving it unset uses same-origin <code>/api/v1/...</code> (Vite proxy for HTTPS local dev — <a href="/docs/configuration-web/vite#https-local-development-and-the-api-base-url">Vite → HTTPS local development</a>). Otherwise the fallback is <Badge text="http://localhost:3000" variant="new" />.
 
-<Callout type="note" title="Vite env changes require restart/rebuild">
+<Callout type="note">
 When you change <Badge text="VITE_*" variant="envWeb" /> values, restart the web dev server or rebuild so Vite picks them up.
 </Callout>
 

@@ -1,4 +1,5 @@
 # Output
+/src/lib/docs/mcp/generated/searchIndex.json
 .output
 .vercel
 .netlify

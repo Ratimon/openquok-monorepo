@@ -2,7 +2,7 @@
 title: Introduction to OpenQuok MCP
 description: Connect Cursor, Claude Code, Codex, and other MCP (Model Context Protocol) clients to OpenQuok.
 order: 0
-lastUpdated: 2026-09-10
+lastUpdated: 2026-09-25
 sidebar:
   label: Overview
 ---
@@ -26,9 +26,20 @@ const mcpFlow = `sequenceDiagram
 
 ## What is OpenQuok MCP?
 
-OpenQuok exposes a **hosted MCP server** so AI clients can list connected channels, schedule and manage posts, configure plugs, and read analytics without installing the CLI skill.
+OpenQuok ships **two separate MCP servers** on different origins. Both use the path <Badge text="/mcp" variant="path" />, but they do not share tools or credentials.
 
-Use the same <Badge text="opo_" variant="default" /> programmatic access token you generate under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" />.
+| Server | Typical host | Auth | What agents use it for |
+| --- | --- | --- | --- |
+| **Product (workspace)** | <Badge text="https://api.openquok.com" variant="new" /> (or your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" />) | <Badge text="opo_" variant="default" /> Bearer or token in URL | Channels, scheduling, posts, plugs, analytics |
+| **Documentation** | <Badge text="https://www.openquok.com" variant="new" /> (or your web app origin) | None — published docs only | <Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, <Badge text="get_site_overview" variant="default" />, <Badge text="submit_feedback" variant="default" /> |
+
+The **product** server is what this guide focuses on: list connected channels, schedule and manage posts, configure plugs, and read analytics without installing the CLI skill.
+
+Use the same <Badge text="opo_" variant="default" /> programmatic access token you generate under <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> for the product server only.
+
+<Callout type="tip">
+<p>On any docs page, use <strong>Connect to Cursor</strong> to install <Badge text="OpenQuok Documentation" variant="default" /> pointing at your site <Badge text="/mcp" variant="path" />. Use <strong>Open in Cursor</strong> for a one-off prompt about the current page. Scheduling still requires the product server (<Badge text="openquok" variant="default" /> in <Badge text=".cursor/mcp.json" variant="path" />) with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp/setup">Client setup</a>.</p>
+</Callout>
 
 ## MCP documentation
 
@@ -58,22 +69,31 @@ All of this can happen when you ask your agent something like:
 
 > Schedule a post to X for tomorrow at 10am: Excited to announce our new feature!
 
-## Endpoints
+## Endpoints (product MCP)
+
+These routes live on the **API** host. Do not point workspace automation at the web origin <Badge text="/mcp" variant="path" /> — that entry is the documentation catalog.
 
 | Endpoint | Auth | Purpose |
 | --- | --- | --- |
-| <Badge text="GET/POST /mcp" variant="path" /> | <Badge text="Authorization: Bearer opo_…" variant="default" /> | Streamable HTTP MCP |
+| <Badge text="GET/POST /mcp" variant="path" /> | <Badge text="Authorization: Bearer opo_…" variant="default" /> | Streamable HTTP product MCP |
 | <Badge text="GET/POST /mcp/:token" variant="path" /> | API key in URL path | Clients that cannot set headers |
 | <Badge text="OPTIONS" variant="default" /> on both | CORS <Badge text="*" variant="default" /> | Browser-based MCP clients |
 
-### Base URL
+### Base URL (product)
 
-| Environment | MCP URL |
+| Environment | Product MCP URL |
 | --- | --- |
 | OpenQuok Cloud | <Badge text="https://api.openquok.com/mcp" variant="new" /> |
 | Self-hosted | Your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> origin + <Badge text="/mcp" variant="path" /> |
 
-<Callout type="tip" title="Dashboard generator">
+### Base URL (documentation)
+
+| Environment | Documentation MCP URL |
+| --- | --- |
+| OpenQuok Cloud | <Badge text="https://www.openquok.com/mcp" variant="new" /> |
+| Self-hosted | Your public web origin + <Badge text="/mcp" variant="path" /> (same host as <Badge text="/docs" variant="path" /> and <Badge text="/llms.txt" variant="path" />) |
+
+<Callout type="tip">
 <p>Copy ready-to-run snippets from <Badge text="Account" variant="default" /> → <Badge text="Settings" variant="default" /> → <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → <strong>MCP client configuration</strong>. See <a href="/docs/getting-started-for-mcp/setup">Client setup</a>.</p>
 </Callout>
 

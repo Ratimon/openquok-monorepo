@@ -47,6 +47,11 @@ export {
 	docsMarkdownPath,
 	docsPagePath
 } from '$lib/docs/utils/site/docShareUrls';
+export {
+	buildCursorMcpInstallDeeplink,
+	buildCursorPromptDeeplink,
+	type CursorHttpMcpServerConfig
+} from '$lib/docs/utils/site/cursorDeeplinks';
 export { docSectionKey, sidebarLabelForSection } from '$lib/docs/utils/site/docsSidebarLabel';
 export { markdownResourceHeaders } from '$lib/docs/utils/site/markdownRouteHeaders';
 export { mergeDocsUrlsIntoUrlset } from '$lib/docs/utils/site/mergeDocsSitemap';

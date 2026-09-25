@@ -402,6 +402,9 @@ importers:
       '@internationalized/date':
         specifier: ^3.12.0
         version: 3.12.0
+      '@modelcontextprotocol/sdk':
+        specifier: 1.29.0
+        version: 1.29.0(zod@3.25.76)
       '@preact/signals':
         specifier: ^2.9.0
         version: 2.9.0(preact@10.29.1)

@@ -2,7 +2,7 @@
 title: Documentation Configuration
 description: How to configure docs tabs, sidebars, and site metadata for the OpenQuok documentation site.
 order: 2
-lastUpdated: 2026-08-22
+lastUpdated: 2026-09-25
 ---
 
 <script>
@@ -13,8 +13,12 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 Edit the docs config in:
 
--  <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — site metadata (title/description/social), <Badge text="docsTabs" variant="param" /> (one sidebar per tab), i18n
-- <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — assembled <Badge text="docsConfig" variant="param" /> (merged sidebar, TOC defaults, optional version selector)
+-  <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — site metadata, <Badge text="docsTabs" variant="param" /> (one sidebar per tab), i18n, optional <Badge text="docsMcpPath" variant="param" /> (relative path to the documentation MCP typically <Badge text="/mcp" variant="path" />)
+- <Badge text="web/src/lib/docs/constants/config.ts" variant="path" /> — assembled <Badge text="docsConfig" variant="param" /> (merged sidebar, and TOC defaults)
+
+<Callout type="note" title="Two MCP servers">
+<p><Badge text="docsMcpPath" variant="param" /> enables <strong>Connect to Cursor</strong> on docs pages and powers the documentation MCP (<Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, …) on the web host. Workspace scheduling MCP stays on the API at <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /><Badge text="/mcp" variant="path" /> with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp">MCP overview</a>.</p>
+</Callout>
 
 The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Contributing**.
 

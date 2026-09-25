@@ -10,6 +10,11 @@ export const docsSite = {
 	title: 'OpenQuok Documentation',
 	description: 'Developer Reference',
 	url: '',
+	/**
+	 * Path on the docs site for an HTTP MCP server (e.g. Mintlify-style `/mcp`).
+	 * When set, docs share menus can offer one-click Cursor MCP install for the full docs catalog.
+	 */
+	docsMcpPath: '/mcp',
 	social: {
 		/** Repo URL for sidebar GitHub + “Edit this page” links. */
 		github: 'https://github.com/Ratimon/openquok-monorepo'

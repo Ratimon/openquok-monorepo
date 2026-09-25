@@ -1,11 +1,16 @@
 <script lang="ts">
 	import { page } from '$app/state';
 
+	import { docsConfig } from '$lib/docs/constants';
 	import {
 		absoluteDocsUrl,
 		docsMarkdownPath,
 		docsPagePath
 	} from '$lib/docs/utils/site/docShareUrls';
+	import {
+		buildCursorMcpInstallDeeplink,
+		buildCursorPromptDeeplink
+	} from '$lib/docs/utils/site/cursorDeeplinks';
 	import { cn } from '$lib/ui/helpers/common';
 	import { toast } from '$lib/ui/sonner';
 	import { icons } from '$data/icons';
@@ -44,6 +49,22 @@
 		`https://claude.ai/new?q=${encodeURIComponent(
 			`Read from ${markdownAbsolute} so I can ask questions about it.`
 		)}`
+	);
+
+	const docsMcpPath = docsConfig.site.docsMcpPath?.trim() ?? '';
+
+	let cursorPromptUrl = $derived(
+		buildCursorPromptDeeplink(
+			`Read from ${markdownAbsolute} so I can ask questions about it.`
+		)
+	);
+
+	let cursorDocsMcpInstallUrl = $derived(
+		docsMcpPath
+			? buildCursorMcpInstallDeeplink('OpenQuok Documentation', {
+					url: absoluteDocsUrl(docsMcpPath, origin)
+				})
+			: ''
 	);
 
 	async function resolveMarkdownForCopy(): Promise<string> {
@@ -93,6 +114,15 @@
 
 	function openExternal(url: string) {
 		openInNewTab(url, 'noopener noreferrer nofollow');
+	}
+
+	function openCursorPrompt() {
+		openInNewTab(cursorPromptUrl, 'noopener noreferrer nofollow');
+	}
+
+	function openCursorDocsMcpInstall() {
+		if (!cursorDocsMcpInstallUrl) return;
+		openInNewTab(cursorDocsMcpInstallUrl, 'noopener noreferrer nofollow');
 	}
 </script>
 
@@ -200,6 +230,56 @@
 					<div class="text-base-content flex items-center gap-1 font-medium leading-tight">
 						Open in Claude
 						<AbstractIcon name={icons.Link.name} class="text-base-content/50 size-3.5" width="14" height="14" />
+					</div>
+					<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
+						Ask questions about this page
+					</div>
+				</div>
+			</div>
+		</DropdownMenu.Item>
+
+		{#if cursorDocsMcpInstallUrl}
+			<DropdownMenu.Item class="cursor-pointer p-0" onclick={openCursorDocsMcpInstall}>
+				<div class="flex w-full items-start gap-3 px-2 py-2.5">
+					<span
+						class="flex size-9 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-200/50"
+					>
+						<AbstractIcon name={icons.Cursor.name} class="size-5" width="20" height="20" />
+					</span>
+					<div class="min-w-0 flex-1">
+						<div class="text-base-content flex items-center gap-1 font-medium leading-tight">
+							Connect to Cursor
+							<AbstractIcon
+								name={icons.Link.name}
+								class="text-base-content/50 size-3.5"
+								width="14"
+								height="14"
+							/>
+						</div>
+						<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
+							Install MCP server on Cursor
+						</div>
+					</div>
+				</div>
+			</DropdownMenu.Item>
+		{/if}
+
+		<DropdownMenu.Item class="cursor-pointer p-0" onclick={openCursorPrompt}>
+			<div class="flex w-full items-start gap-3 px-2 py-2.5">
+				<span
+					class="flex size-9 shrink-0 items-center justify-center rounded-md border border-base-300 bg-base-200/50"
+				>
+					<AbstractIcon name={icons.Cursor.name} class="size-5" width="20" height="20" />
+				</span>
+				<div class="min-w-0 flex-1">
+					<div class="text-base-content flex items-center gap-1 font-medium leading-tight">
+						Open in Cursor
+						<AbstractIcon
+							name={icons.Link.name}
+							class="text-base-content/50 size-3.5"
+							width="14"
+							height="14"
+						/>
 					</div>
 					<div class="text-base-content/55 mt-0.5 text-xs leading-snug">
 						Ask questions about this page

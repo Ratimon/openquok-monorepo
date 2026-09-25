@@ -2,7 +2,7 @@
 title: MCP Client Setup
 description: Configure Cursor, Claude Code, Claude Cowork, ChatGPT, Codex, VS Code, and other MCP clients to connect to OpenQuok HTTP streaming.
 order: 1
-lastUpdated: 2026-07-29
+lastUpdated: 2026-09-25
 ---
 
 <script>
@@ -35,6 +35,18 @@ Follow the hint under the snippet (project <Badge text=".cursor/mcp.json" varian
 <Callout type="note" title="Self-hosted">
 <p>Replace <Badge text="https://api.openquok.com" variant="new" /> with your <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /> origin. Align <Badge text="VITE_API_BASE_URL" variant="envWeb" /> on the web app with the same API host in production.</p>
 </Callout>
+
+## Documentation MCP
+
+Install a **second** MCP entry when you want agents to search and read OpenQuok docs.
+
+| | Product MCP | Documentation MCP |
+| --- | --- | --- |
+| Cursor server name | <Badge text="openquok" variant="default" /> | <Badge text="OpenQuok Documentation" variant="default" /> |
+| URL | <Badge text="https://api.openquok.com/mcp" variant="new" /> (+ <Badge text="opo_" variant="default" /> auth) | <Badge text="https://www.openquok.com/mcp" variant="new" /> (no API key) |
+| Dashboard generator | <Badge text="Developers" variant="default" /> → <Badge text="Access" variant="default" /> → MCP client configuration | <strong>Connect to Cursor</strong> on any docs page |
+
+On self-hosted sites, use your public web origin for documentation MCP (for example <Badge text="https://docs.yourcompany.com/mcp" variant="new" />). Keep product MCP on the API host.
 
 ## Authentication methods
 

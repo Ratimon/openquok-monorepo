@@ -52,6 +52,8 @@ export interface SiteConfig {
 	title: string;
 	description: string;
 	url?: string;
+	/** HTTP MCP path on the docs origin (e.g. `/mcp`) for Cursor one-click install. */
+	docsMcpPath?: string;
 	logo?: string;
 	logoDark?: string;
 	favicon?: string;

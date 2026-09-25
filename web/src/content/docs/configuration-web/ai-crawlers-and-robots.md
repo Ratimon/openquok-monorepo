@@ -2,7 +2,7 @@
 title: AI crawlers and robots.txt
 description: Allow Claude, Gemini, ChatGPT, and Perplexity to discover OpenQuok public pages when Cloudflare managed robots.txt is enabled.
 order: 5
-lastUpdated: 2026-08-12
+lastUpdated: 2026-09-25
 ---
 
 <script>
@@ -11,9 +11,11 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 ## Overview
 
-OpenQuok serves <Badge text="/robots.txt" variant="path" /> from the web app and publishes <Badge text="/llms.txt" variant="path" /> plus <Badge text="/llms-full.txt" variant="path" /> for documentation discovery. Marketing pages, docs, and channel hubs are meant to be crawlable; auth and workspace routes stay disallowed.
+The web app exposes <Badge text="/robots.txt" variant="path" />, <Badge text="/llms.txt" variant="path" />, and <Badge text="/llms-full.txt" variant="path" /> so bots can find public docs and marketing pages. Sign-in and workspace URLs stay off-limits.
 
-If a **directory or AI visibility tool** reports that **Claude** or **Gemini** “has not found you”, check production <Badge text="/robots.txt" variant="path" /> first. On OpenQuok, the usual cause is **Cloudflare managed robots.txt** (“block training in robots.txt”), not the SvelteKit route alone.
+<Badge text="/mcp" variant="path" /> on the <strong>website</strong> is docs-only (no API key). Workspace automation uses <Badge text="/mcp" variant="path" /> on the **API** — same path, different host.
+
+If an AI visibility checker says Claude or Gemini cannot see you, read live <Badge text="/robots.txt" variant="path" /> first. On Cloudflare, turning off <strong>block training in robots.txt</strong> (managed robots) fixes this more often than changing OpenQuok settings alone.
 
 ## Why “Training → Allow” is not enough
 
@@ -22,11 +24,11 @@ Cloudflare has <strong>two separate controls</strong>:
 | Control | What it does | Claude / Gemini |
 | --- | --- | --- |
 | <strong>Training → Allow (do not block)</strong> under Configure AI bot policies | Stops Cloudflare from <strong>HTTP-blocking</strong> training crawlers at the edge | Necessary, but not sufficient |
-| <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) | Prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, … | This is what PeerPush reads |
+| <strong>Set your preference to block training in robots.txt</strong> (managed robots.txt) | Prepends <Badge text="Disallow: /" variant="path" /> for <Badge text="ClaudeBot" variant="default" />, <Badge text="Google-Extended" variant="default" />, <Badge text="GPTBot" variant="default" />, … | What robots-based visibility checkers see |
 
-Cloudflare’s Training UI even points at the robots preference (“To exclude such crawlers, set your preference <em>here</em>”). Having Training on <strong>Allow</strong> while managed robots.txt stays on is exactly the state that produces: crawlers are not WAF-blocked, but <Badge text="/robots.txt" variant="path" /> still tells them the site is off-limits — and coverage tools treat that as “Claude / Gemini hasn’t found you.”
+<strong>Training → Allow</strong> without turning off managed robots.txt leaves <Badge text="/robots.txt" variant="path" /> telling crawlers to stay away — which is why visibility tools still say Claude or Gemini cannot find you.
 
-<Callout type="warning" title="Confirm with curl, not the Training toggle">
+<Callout type="warning">
 If <code>curl -sS https://www.openquok.com/robots.txt</code> still shows <code># BEGIN Cloudflare Managed content</code> with <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> and <Badge text="Disallow: /" variant="path" />, managed robots.txt is still on — regardless of Training Allow.
 </Callout>
 
@@ -82,13 +84,11 @@ Pass criteria:
 
 </Steps>
 
-## After robots is fixed: Al crawlers may still lag
+## After robots is fixed: AI crawlers may still lag
 
-Once <code>pnpm --filter ./web run verify:ai-robots</code> passes, the crawl <strong>gate</strong> is open. PeerPush’s “AI engine coverage map” is not only a robots check — the percentages (e.g. ChatGPT 73% / Copilot 24% / Perplexity 3%) are a <strong>visibility mix</strong> across engines that have already retrieved or attributed your product.
+When <code>pnpm --filter ./web run verify:ai-robots</code> passes, bots are allowed in,but Claude or Gemini may still not show your site for days or weeks. Each engine crawls and updates on its own schedule.
 
-So <strong>Claude hasn’t found you</strong> / <strong>Gemini hasn’t found you</strong> after a successful Cloudflare change usually means:
-
-That is no longer fixed by more <Badge text="robots.txt" variant="path" /> edits. Keep <Badge text="/llms.txt" variant="path" />, pricing, compare, and docs public; watch Cloudflare <strong>AI Crawl Control</strong> for <Badge text="ClaudeBot" variant="default" /> / <Badge text="Google-Extended" variant="default" /> request logs; and re-check PeerPush after a rescan.
+More <Badge text="robots.txt" variant="path" /> changes will not speed that up. Keep docs, pricing, compare, and <Badge text="/llms.txt" variant="path" /> public, and use Cloudflare <strong>AI Crawl Control</strong> to confirm <Badge text="ClaudeBot" variant="default" /> and <Badge text="Google-Extended" variant="default" /> are actually hitting your domain.
 
 ## What the web app emits
 
@@ -107,4 +107,5 @@ Every public HTML page also advertises the LLM index via <Badge text="&lt;link r
 <LinkCard title="SEO & marketing defaults" description="Meta tags and CONFIG_SCHEMA_MARKETING" href="/docs/configuration-web/seo" />
 <LinkCard title="Production deployment" description="Canonical origins and redeploying web + API" href="/docs/installation/production-deployment" />
 <LinkCard title="Configuration - Web" description="Web env and Vite settings" href="/docs/configuration-web" />
+<LinkCard title="MCP overview" description="Product MCP on the API vs documentation MCP on the web origin" href="/docs/getting-started-for-mcp" />
 </CardGrid>

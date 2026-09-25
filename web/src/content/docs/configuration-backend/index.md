@@ -2,7 +2,7 @@
 title: Configuration - Backend
 description: Getting Started to Backend configuration — env vars, Supabase, and services OpenQuok.
 order: 0
-lastUpdated: 2026-09-19
+lastUpdated: 2026-09-25
 sidebar:
   label: Overview
 ---
@@ -17,7 +17,7 @@ The **backend** reads its runtime settings from **environment variables**, and y
 
 An example file with the most commonly used settings is checked in at <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/.env.development.example"><Badge text="backend/.env.development.example" variant="envBackend" /></DocsExternalLink>. Copy it to <Badge text="backend/.env.development.local" variant="envBackend" /> under <Badge text="backend/" variant="path" /> (the example header explains load order and how it relates to <Badge text="backend/.env" variant="path" />). Use that local file for secrets and overrides you do not commit.
 
-For **production**, follow the same naming convention: maintain <Badge text="backend/.env.production.local" variant="envBackend" /> (or inject the same keys from your host’s secret store). In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development**; for deployment, use **production**.
+For **production**, follow the same naming convention: maintain <Badge text="backend/.env.production.local" variant="envBackend" /> . In local development, keep <Badge text="NODE_ENV" variant="envRuntime" /> set to **development**; for deployment, use **production**.
 
 ```bash
 NODE_ENV=development
@@ -25,9 +25,11 @@ FRONTEND_DOMAIN_URL=https://localhost:5173
 ```
 
 <Callout type="warning">
-<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must match the <strong>exact</strong> origin you use to open the web app, including the scheme (<code>http</code> vs <code>https</code>) and hostname (<code>www</code> vs apex). The backend uses it to build OAuth redirect/callback URLs (for example <code>/integration/oauth/threads</code>).</p>
-<p>The web dev server in this repo uses <strong>HTTPS</strong> on <code>https://localhost:5173</code>; use that value unless you intentionally run the web app on plain HTTP.</p>
-<p>Keep it aligned with the web app’s <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" /> so links and OAuth redirects point to the same scheme and host. Third-party dashboards (Meta, Stripe, etc.) must list the <strong>same</strong> origin in every full redirect URL—swapping <code>www</code> only in Meta while the API still sends the apex host (or the reverse) produces “invalid redirect” style errors.</p>
+<p><Badge text="FRONTEND_DOMAIN_URL" variant="envBackend" /> must be the <strong>exact</strong> browser origin (<code>http</code>/<code>https</code>, <code>www</code> vs apex). The backend builds OAuth callbacks from it. Local dev: <code>https://localhost:5173</code> (HTTPS).</p>
+</Callout>
+
+<Callout type="tip">
+<p>Keep it equal to <Badge text="VITE_FRONTEND_DOMAIN_URL" variant="envWeb" />. Provider consoles (Meta, Stripe, …) must use that <strong>same</strong> origin in every redirect URI, or OAuth fails with invalid-redirect errors.</p>
 </Callout>
 
 ## Common setup steps
@@ -43,11 +45,11 @@ Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 ### Configure Supabase in the dashboard
 
-Create a Supabase project, then collect the URL + keys you need for the backend (API keys and JWT settings). Some features (like cron integration on Supabase Cloud) require enabling a dashboard integration before running migrations.
+Create a Supabase project, then collect the URL + keys you need (API keys and JWT settings). Some features (like cron  on Supabase Cloud) require enabling a dashboard integration before running migrations.
 
 ### Add optional services as needed
 
-Configure Redis (recommended for production), Sentry (optional), Google OAuth (optional), email (Resend in production), and storage (Cloudflare R2 or local disk) depending on what you enable in your environment variables.
+Configure Redis, Sentry (optional), Google OAuth (optional), email (Resend in production), and storage (Cloudflare R2 or local disk) depending on what you enable in your environment variables.
 
 </Steps>
 
