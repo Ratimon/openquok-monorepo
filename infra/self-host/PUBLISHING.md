@@ -103,12 +103,14 @@ Load [installation/docker](https://www.openquok.com/docs/installation/docker) lo
 
 ## First release checklist (`self-host-v0.1.0`)
 
-- [ ] Container workflow and compose overlay merged to `main`
+- [ ] Container workflow and compose overlay merged to `main` (commit ready locally: push `main` if not on GitHub yet)
 - [ ] GHCR packages public; Docker Hub secrets set (optional mirror)
-- [ ] `git tag self-host-v0.1.0 && git push origin self-host-v0.1.0`
+- [ ] `git tag self-host-v0.1.0 && git push origin self-host-v0.1.0` (tag the pushed `main` commit)
 - [ ] CI **Self-host containers** green for all matrix legs + manifest + mirror
 - [ ] `docker pull` + `imagetools inspect` for `0.1.0` on amd64 **and** arm64 hosts (or inspect manifest)
 - [ ] Compose smoke with pinned `OPENQUOK_IMAGE_TAG=0.1.0`, local `web` build, UI reachable on port 4007
+
+**Local pre-push checks (no registry):** `docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml config` should exit 0.
 
 ## Tag already exists / bad tag
 
