@@ -210,7 +210,11 @@ Display directory structures with nested Markdown lists inside **`<FileTree>`** 
 
 ## API request / response panels
 
-This repo ships **`RequestExample`** and **`ResponseExample`** cards (similar to common docs-site patterns) plus **`OpenApiOperationExamples`**, which loads **`GET /api/v1/openapi.json`** and fills curl + JSON from the **`openapi:`** frontmatter line. **`OpenApiPlayground`** renders the full try-it UI from the same spec.
+This repo ships **`RequestExample`** and **`ResponseExample`** cards (similar to common docs-site patterns) plus **`OpenApiOperationExamples`**, which loads **`GET /api/v1/openapi.json`** and fills request + JSON from the **`openapi:`** frontmatter line. **`OpenApiPlayground`** renders the full try-it UI from the same spec.
+
+**`RequestExample`** on Public API pages accepts an optional **`samples`** array from **`renderHttpClientSamples`** (`$lib/docs/utils/openapi/httpClientSamples.ts`). When **`dropdown={true}`** and there is more than one sample, the card header shows a language menu (cURL, Python, JavaScript, PHP, Go, Java, Ruby). Shiki highlighting and the copy button follow the **selected** sample. For custom MDX, pass **`samples`** explicitly; for a single static block, **`code`** + **`language`** still work with no dropdown.
+
+**`OpenApiDocSplit`**, **`OpenApiOperationExamples`**, and **`OpenApiPlayground`** build **`samples`** from the loaded operation (static descriptor) or from live playground path/query/auth/body (live descriptor). API key placeholders use **`YOUR_API_KEY`** and the header name from the OpenAPI security scheme.
 
 Pages with **`openapi`** in YAML get a **desktop split layout** from **`DocsDocRenderer`**: the **endpoint bar** (method, URL, **Try it**) sits in the **main column** under the page title, with **request/response** code panels in the **right rail**. The **left nav** shows a compact **HTTP method badge** for those pages, and the **right “Search / On this page” sidebar** is hidden so the examples rail is the only right column. To keep the **standard** docs chrome (right sidebar + no method badge) on a page that still declares **`openapi`** for the split + playground, add **`docsLayout: standard`** to the frontmatter.
 

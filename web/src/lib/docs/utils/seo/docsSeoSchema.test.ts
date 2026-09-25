@@ -5,6 +5,7 @@ import { dirname, join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { DOCS_FALLBACK_SOCIAL_IMAGE_ALT, DOCS_FALLBACK_SOCIAL_IMAGE_SRC } from '$lib/docs/constants/docsSeoDefaults';
+import { extractDocsCodeBlocksFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 import {
 	dedupeDocsImagesFromRaw,
 	extractDocsImagesFromRaw
@@ -20,6 +21,11 @@ import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImages
 
 const quickstartFixture = readFileSync(
 	join(dirname(fileURLToPath(import.meta.url)), '../../../../content/docs/getting-started/quickstart.md'),
+	'utf8'
+);
+
+const dockerComposeFixture = readFileSync(
+	join(dirname(fileURLToPath(import.meta.url)), '../../../../content/docs/installation/docker-compose.md'),
 	'utf8'
 );
 
@@ -232,5 +238,52 @@ describe('createDocsPageSeoSchema', () => {
 			encodingFormat: 'image/svg+xml',
 			representativeOfPage: true
 		});
+	});
+
+	it('emits SoftwareSourceCode nodes from fenced markdown and links them via TechArticle.hasPart', () => {
+		const codeBlocks = extractDocsCodeBlocksFromRaw(dockerComposeFixture).slice(0, 1);
+		const canonical = 'https://www.openquok.com/docs/installation/docker-compose';
+		const schema = createDocsPageSeoSchema({
+			title: 'Docker Compose',
+			description: 'Run OpenQuok with Docker Compose.',
+			canonicalUrl: canonical,
+			requestUrl: new URL(canonical),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/installation/docker-compose', new URL(canonical)),
+			images: [],
+			codeBlocks
+		});
+
+		const techArticle = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'TechArticle'
+		) as Record<string, unknown> | undefined;
+
+		expect(techArticle?.hasPart).toEqual({
+			'@id': `${canonical}#doc-code-1`
+		});
+
+		const codeNode = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@type' in node &&
+				node['@type'] === 'SoftwareSourceCode'
+		) as Record<string, unknown> | undefined;
+
+		expect(codeNode).toMatchObject({
+			'@id': `${canonical}#doc-code-1`,
+			codeSampleType: 'code snippet',
+			programmingLanguage: 'Shell',
+			encodingFormat: 'text/x-shellscript',
+			isPartOf: { '@id': `${canonical}#techarticle` },
+			author: {
+				'@type': 'Organization',
+				name: 'OpenQuok Docs',
+				url: 'https://www.openquok.com'
+			}
+		});
+		expect(typeof codeNode?.text).toBe('string');
+		expect((codeNode?.text as string).length).toBeGreaterThan(0);
 	});
 });

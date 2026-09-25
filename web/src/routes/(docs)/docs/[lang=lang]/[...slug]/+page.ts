@@ -33,7 +33,7 @@ export async function entries() {
 	return results;
 }
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params, url }) => {
 	await preloadDocsRegistry(params.lang);
 	const doc = getDoc(params.slug, params.lang);
 	if (!doc) throw error(404, `Page not found: ${params.slug}`);
@@ -49,6 +49,6 @@ export const load: PageLoad = async ({ params }) => {
 		next,
 		rawContent,
 		content: await doc.loadContent(),
-		...buildDocsPageLoadExtras(rawContent)
+		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
 	};
 };

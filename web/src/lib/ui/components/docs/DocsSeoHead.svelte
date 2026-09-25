@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { docsConfig } from '$lib/docs/constants';
+	import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 	import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 	import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 	import {
@@ -21,7 +22,8 @@
 		ogImage,
 		ogImageAlt,
 		howToBlocks = [],
-		docImages = []
+		docImages = [],
+		codeBlocks = []
 	}: {
 		title: string;
 		description?: string;
@@ -29,6 +31,7 @@
 		ogImageAlt?: string;
 		howToBlocks?: DocsHowToBlock[];
 		docImages?: DocsImageFromRaw[];
+		codeBlocks?: DocsCodeBlockFromRaw[];
 	} = $props();
 
 	let siteTitle = docsConfig.site.title;
@@ -57,6 +60,7 @@
 			breadcrumbItems,
 			howToBlocks,
 			images: docImages,
+			codeBlocks,
 			ogImage,
 			ogImageAlt
 		})

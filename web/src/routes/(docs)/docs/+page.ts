@@ -5,7 +5,7 @@ import { error } from '@sveltejs/kit';
 // SSR only: a prerendered `/docs` page becomes a file and blocks `/docs/<slug>` children.
 export const prerender = false;
 
-export async function load() {
+export async function load({ url }) {
 	await preloadDocsRegistry(undefined);
 	const doc = getDoc('getting-started');
 	if (!doc) throw error(404, 'Documentation not found');
@@ -20,6 +20,6 @@ export async function load() {
 		next,
 		rawContent,
 		content: await doc.loadContent(),
-		...buildDocsPageLoadExtras(rawContent)
+		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
 	};
 }

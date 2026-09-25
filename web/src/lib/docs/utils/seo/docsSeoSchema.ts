@@ -1,9 +1,18 @@
-import type { BreadcrumbList, ImageObject, ListItem, TechArticle, WebSite } from 'schema-dts';
+import type {
+	BreadcrumbList,
+	ImageObject,
+	ListItem,
+	Organization,
+	SoftwareSourceCode,
+	TechArticle,
+	WebSite
+} from 'schema-dts';
 
 import {
 	DOCS_FALLBACK_SOCIAL_IMAGE_ALT,
 	DOCS_FALLBACK_SOCIAL_IMAGE_SRC
 } from '$lib/docs/constants/docsSeoDefaults';
+import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 import { resolvePublicSiteUrl } from '$lib/docs/utils/site/resolvePublicSiteUrl';
@@ -14,6 +23,7 @@ import {
 	filterNonEmptyJsonLdNodes,
 	type JsonLdGraphSchema
 } from '$lib/seo/jsonLdSchema';
+import { createSoftwareSourceCodeNodes } from '$lib/seo/softwareSourceCodeNodes';
 
 function docsTechArticleId(canonicalUrl: string): string {
 	return `${canonicalUrl}#techarticle`;
@@ -169,6 +179,7 @@ export type CreateDocsPageSeoSchemaParams = {
 	breadcrumbItems: ListItem[];
 	howToBlocks?: DocsHowToBlock[];
 	images?: DocsImageFromRaw[];
+	codeBlocks?: DocsCodeBlockFromRaw[];
 	/** Frontmatter override for the primary / social preview image. */
 	ogImage?: string;
 	ogImageAlt?: string;
@@ -185,12 +196,18 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		breadcrumbItems,
 		howToBlocks = [],
 		images = [],
+		codeBlocks = [],
 		ogImage,
 		ogImageAlt
 	} = params;
 
 	const siteOrigin = resolvePublicSiteUrl(requestUrl);
 	const techArticleId = docsTechArticleId(canonicalUrl);
+	const docsAuthor = {
+		'@type': 'Organization',
+		name: siteTitle,
+		url: siteOrigin
+	} satisfies Organization;
 	const primaryImage = resolveDocsPrimaryImageForSeo({
 		ogImage,
 		ogImageAlt,
@@ -210,6 +227,13 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		pageTitle: title
 	});
 
+	const softwareSourceCodeNodes: SoftwareSourceCode[] = createSoftwareSourceCodeNodes({
+		blocks: codeBlocks,
+		canonicalUrl,
+		parentId: techArticleId,
+		author: docsAuthor
+	});
+
 	const techArticle: TechArticle = {
 		'@type': 'TechArticle',
 		'@id': techArticleId,
@@ -222,6 +246,12 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 			url: siteOrigin
 		} satisfies WebSite
 	};
+
+	if (softwareSourceCodeNodes.length > 0) {
+		techArticle.hasPart = jsonLdNodeRefs(
+			softwareSourceCodeNodes.map((node) => String(node['@id']))
+		);
+	}
 
 	if (imageNodes.length === 1) {
 		techArticle.image = jsonLdNodeRef(String(imageNodes[0]['@id']));
@@ -249,5 +279,11 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		)
 	);
 
-	return createJsonLdGraph([techArticle, breadcrumbList, ...imageNodes, ...howToNodes]);
+	return createJsonLdGraph([
+		techArticle,
+		breadcrumbList,
+		...imageNodes,
+		...howToNodes,
+		...softwareSourceCodeNodes
+	]);
 }

@@ -1,12 +1,18 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { OpenapiDocsParamPayload, OpenapiDocsBodyPayload, OpenapiDocsResponsePayload } from '$lib/docs/utils/openapi/openapiExamples';
+	import type { HttpClientSample } from '$lib/docs/utils/openapi/httpClientSamples';
+	import type {
+		OpenapiDocsParamPayload,
+		OpenapiDocsBodyPayload,
+		OpenapiDocsResponsePayload
+	} from '$lib/docs/utils/openapi/openapiExamples';
 
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
+
 	import {
 		fetchOpenapiOperationForDocs,
 		resolveOpenapiSpecUrl
@@ -37,6 +43,7 @@
 	let loading = $state(true);
 	let errorText = $state<string | null>(null);
 	let curl = $state('');
+	let clientSamples = $state<HttpClientSample[]>([]);
 	let jsonPretty = $state('');
 	let reqTitle = $state('Request');
 	let httpMethod = $state('');
@@ -73,6 +80,7 @@
 			if (!result.ok) {
 				errorText = result.error;
 				curl = '';
+				clientSamples = [];
 				jsonPretty = '';
 				httpMethod = '';
 				apiPath = '';
@@ -85,6 +93,7 @@
 				const p = result.payload;
 				reqTitle = p.reqTitle;
 				curl = p.curl;
+				clientSamples = p.clientSamples;
 				jsonPretty = p.jsonPretty;
 				httpMethod = p.httpMethod;
 				apiPath = p.apiPath;
@@ -344,7 +353,7 @@
 						Examples unavailable.
 					</div>
 				{:else}
-					<RequestExample title={reqTitle} code={curl} language="bash" dropdown={true} />
+					<RequestExample title={reqTitle} code={curl} samples={clientSamples} dropdown={true} />
 					<ResponseExample status={selectedResponseStatus} code={railResponseCode} />
 				{/if}
 			</div>

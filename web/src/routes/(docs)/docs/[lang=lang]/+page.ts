@@ -15,7 +15,7 @@ function landingSlugForLocale(lang: string): string {
 // SSR only: a prerendered `/docs/<lang>` page becomes a file and blocks localized slug children.
 export const prerender = false;
 
-export const load: PageLoad = async ({ params }) => {
+export const load: PageLoad = async ({ params, url }) => {
 	await preloadDocsRegistry(params.lang);
 	const slug = landingSlugForLocale(params.lang);
 	const doc = getDoc(slug, params.lang);
@@ -32,6 +32,6 @@ export const load: PageLoad = async ({ params }) => {
 		next,
 		rawContent,
 		content: await doc.loadContent(),
-		...buildDocsPageLoadExtras(rawContent)
+		...(await buildDocsPageLoadExtras(rawContent, { meta: doc.meta, origin: url.origin }))
 	};
 };

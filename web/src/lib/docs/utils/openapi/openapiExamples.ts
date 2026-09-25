@@ -1,28 +1,31 @@
-import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
-import { normalizeApiBaseUrl } from '$lib/utils/path';
+import {
+	httpRequestDescriptorFromLivePlayground,
+	httpRequestDescriptorFromOpenapiStatic,
+	type HttpClientSample,
+	renderCurlFromDescriptor,
+	renderHttpClientSamples
+} from '$lib/docs/utils/openapi/httpClientSamples';
+import { readConfiguredApiBaseUrl } from '$lib/docs/utils/openapi/openapiRequestUrl';
 
 /** Minimal OpenAPI 3 types for resolving examples (avoid coupling to a heavy schema lib). */
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [k: string]: JsonValue };
 
 const DEFAULT_OPENAPI_SPEC_PATH = '/api/v1/openapi.json';
 
-function configuredApiBaseUrl(): string {
-	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
-}
-
-/** API origin for docs examples and playground (`VITE_API_BASE_URL` when set, else the page origin). */
-export function resolveDocsApiOrigin(pageOrigin: string): string {
-	const configured = configuredApiBaseUrl();
-	if (configured) return configured;
-	return pageOrigin.replace(/\/$/, '');
-}
+export {
+	buildQueryString,
+	fillPathExample,
+	resolveApiBaseUrl,
+	resolveDocsApiOrigin,
+	substitutePathParams
+} from '$lib/docs/utils/openapi/openapiRequestUrl';
 
 /** OpenAPI spec URL for docs UI (cross-host in production when `VITE_API_BASE_URL` is set). */
 export function resolveOpenapiSpecUrl(pageOrigin: string, override?: string): string {
 	const explicit = override?.trim();
 	if (explicit && explicit !== DEFAULT_OPENAPI_SPEC_PATH) return explicit;
 
-	const configured = configuredApiBaseUrl();
+	const configured = readConfiguredApiBaseUrl();
 	if (configured) return `${configured}${DEFAULT_OPENAPI_SPEC_PATH}`;
 
 	return explicit || DEFAULT_OPENAPI_SPEC_PATH;
@@ -182,15 +185,6 @@ export function resolveOpenapiOperationNode(spec: OasDoc, method: string, path: 
 	return applyDocsParameterSupplements(getOperation(spec, method, path), method, path);
 }
 
-/** Placeholder values for curl samples (readable, copy-paste friendly). */
-export function fillPathExample(path: string): string {
-	return path.replace(/\{([^}]+)\}/g, (_, raw: string) => {
-		const name = String(raw).toLowerCase();
-		if (name.includes('integration') || name === 'id') return 'twitter';
-		return 'example';
-	});
-}
-
 /** Resolve example JSON from OpenAPI 3 `content.*` (media type object). */
 function pickExampleFromMedia(
 	spec: OasDoc | null,
@@ -314,20 +308,7 @@ export function buildCurlSample(opts: {
 	/** Header name from OpenAPI `components.securitySchemes` (defaults to `Authorization`). */
 	apiKeyHeaderName?: string | null;
 }): string {
-	const pathFilled = fillPathExample(opts.pathPattern);
-	let base = opts.serverUrl.trim();
-	if (base.startsWith('/')) {
-		base = `${resolveDocsApiOrigin(opts.origin)}${base}`;
-	}
-	const url = `${base.replace(/\/$/, '')}${pathFilled.startsWith('/') ? pathFilled : `/${pathFilled}`}`;
-	const lines = [`curl --request ${opts.method} \\`, `  --url '${url}' \\`];
-	if (opts.apiKeyHeader) {
-		const hk = (opts.apiKeyHeaderName ?? 'Authorization').trim() || 'Authorization';
-		lines.push(`  --header '${hk}: YOUR_API_KEY'`);
-	} else {
-		lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, '');
-	}
-	return lines.join('\n');
+	return renderCurlFromDescriptor(httpRequestDescriptorFromOpenapiStatic(opts));
 }
 
 export function inferApiKeyAuth(spec: OasDoc): boolean {
@@ -408,6 +389,7 @@ export type OpenapiDocsBodyPayload = {
 export type OpenapiDocsOperationPayload = {
 	reqTitle: string;
 	curl: string;
+	clientSamples: HttpClientSample[];
 	jsonPretty: string;
 	status: string;
 	httpMethod: string;
@@ -605,7 +587,7 @@ export async function fetchOpenapiOperationForDocs(
 	const server = defaultServerUrl(spec);
 	const serverDisplay = stripServerUrlForDisplay(server);
 	const useAuth = operationRequiresApiKey(spec, opNode);
-	const curl = buildCurlSample({
+	const staticDescriptor = httpRequestDescriptorFromOpenapiStatic({
 		origin,
 		serverUrl: server,
 		method: parsed.method,
@@ -613,6 +595,8 @@ export async function fetchOpenapiOperationForDocs(
 		apiKeyHeader: useAuth,
 		apiKeyHeaderName: getApiKeyHeaderName(spec)
 	});
+	const curl = renderCurlFromDescriptor(staticDescriptor);
+	const clientSamples = renderHttpClientSamples(staticDescriptor);
 	const responseDocs = buildDocsResponsePayload(spec, opNode);
 	const primaryStatus =
 		responseDocs && responseDocs.variants.length > 0 ? responseDocs.variants[0]!.status : '200';
@@ -629,6 +613,7 @@ export async function fetchOpenapiOperationForDocs(
 		payload: {
 			reqTitle: opNode?.summary ?? `${parsed.method} ${parsed.path}`,
 			curl,
+			clientSamples,
 			jsonPretty,
 			status: primaryStatus,
 			httpMethod: parsed.method,
@@ -641,35 +626,8 @@ export async function fetchOpenapiOperationForDocs(
 	};
 }
 
-/** Absolute API base (handles relative `servers[0].url` like `/api/v1`). */
-export function resolveApiBaseUrl(origin: string, serverUrl: string): string {
-	const s = serverUrl.trim();
-	if (/^https?:\/\//i.test(s)) return s.replace(/\/$/, '');
-	const path = s.startsWith('/') ? s : `/${s}`;
-	return `${resolveDocsApiOrigin(origin)}${path}`;
-}
-
-/** Replace `{name}` segments with encoded values; missing keys leave `{name}` unchanged. */
-export function substitutePathParams(pathPattern: string, values: Record<string, string>): string {
-	return pathPattern.replace(/\{([^}]+)\}/g, (_, raw: string) => {
-		const key = String(raw).trim();
-		const v = values[key];
-		if (v !== undefined && v.trim() !== '') return encodeURIComponent(v.trim());
-		return `{${key}}`;
-	});
-}
-
 export function pathHasUnresolvedParams(resolvedPath: string): boolean {
 	return /\{[^}]+\}/.test(resolvedPath);
-}
-
-export function buildQueryString(query: Record<string, string>): string {
-	const p = new URLSearchParams();
-	for (const [k, v] of Object.entries(query)) {
-		if (v.trim() !== '') p.set(k, v.trim());
-	}
-	const s = p.toString();
-	return s ? `?${s}` : '';
 }
 
 export function getApiKeyHeaderName(spec: OasDoc): string | null {
@@ -794,31 +752,7 @@ export function buildLiveCurlSample(opts: {
 	authHeaderValue?: string;
 	body?: string;
 }): string {
-	const base = resolveApiBaseUrl(opts.origin, opts.serverUrl);
-	const pathResolved = substitutePathParams(opts.pathPattern, opts.pathValues);
-	const qs = buildQueryString(opts.queryValues);
-	const url = `${base}${pathResolved.startsWith('/') ? pathResolved : `/${pathResolved}`}${qs}`;
-	const parts: string[] = [`curl --request ${opts.method} \\`, `  --url '${url}'`];
-	const hk = opts.authHeaderName;
-	const hv = opts.authHeaderValue?.trim();
-	const method = opts.method.toUpperCase();
-	const withBody =
-		method !== 'GET' &&
-		method !== 'HEAD' &&
-		opts.body !== undefined &&
-		opts.body.trim() !== '';
-
-	if (hk && hv) {
-		parts[parts.length - 1] += ' \\';
-		parts.push(`  --header '${hk}: ${hv.replace(/'/g, `'\\''`)}'`);
-	}
-	if (withBody) {
-		parts[parts.length - 1] += ' \\';
-		parts.push(`  --header 'Content-Type: application/json' \\`);
-		const escaped = opts.body!.replace(/'/g, `'\\''`);
-		parts.push(`  --data '${escaped}'`);
-	}
-	return parts.join('\n');
+	return renderCurlFromDescriptor(httpRequestDescriptorFromLivePlayground(opts));
 }
 
 export function jsonBodyExampleOrEmpty(op: OasOperation | null): string {

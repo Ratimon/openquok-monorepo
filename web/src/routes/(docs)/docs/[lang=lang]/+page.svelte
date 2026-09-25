@@ -13,6 +13,7 @@
 	let meta = $derived(data.meta);
 	let howToBlocks = $derived(data.howToBlocks ?? []);
 	let docImages = $derived(data.docImages ?? []);
+	let codeBlocks = $derived(data.codeBlocks ?? []);
 	let slug = $derived(data.slug);
 	let locale = $derived(data.locale);
 	let prev = $derived(data.prev);
@@ -30,6 +31,7 @@
 	ogImageAlt={meta.ogImageAlt}
 	{howToBlocks}
 	{docImages}
+	{codeBlocks}
 />
 
 {#key slug}

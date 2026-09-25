@@ -184,6 +184,7 @@ Edit `web/src/data/docs.ts` and `web/src/lib/docs/constants/config.ts` with your
 - **Directory trees and ASCII layout** (not executable commands): use **` ```text `**, not **` ```bash `** and not a bare **` ``` `**.
 - **URLs, redirect URIs, or label-only examples** where shell highlighting is wrong: **` ```txt `** or **` ```text `** as fits.
 - **Other languages** (`typescript`, `svelte`, `json`, `yaml`, `html`, …): keep the correct language tag.
+- **SEO (automatic)**: Fenced source blocks in docs markdown (everything except **`text`**, **`txt`**, **`markdown`**, and bare **` ``` `** fences) are extracted at SSR load and emitted as Schema.org **`SoftwareSourceCode`** JSON-LD linked from the page **`TechArticle`** via **`hasPart`**. No extra frontmatter or per-block markup is required — use the correct fence language tag as usual.
 
 ## Agent chat prompts (MCP / AI assistant examples)
 

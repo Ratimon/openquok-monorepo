@@ -1,9 +1,12 @@
 <script lang="ts">
+	import type { HttpClientSample } from '$lib/docs/utils/openapi/httpClientSamples';
+
 	import { browser } from '$app/environment';
 	import { page } from '$app/state';
 	import { getContext } from 'svelte';
 
 	import { DOCS_PLAYGROUND, type DocsPlaygroundContext } from '$lib/docs/docs-playground-context';
+
 
 	import {
 		fetchOpenapiOperationForDocs,
@@ -29,6 +32,7 @@
 	let loading = $state(true);
 	let errorText = $state<string | null>(null);
 	let curl = $state('');
+	let clientSamples = $state<HttpClientSample[]>([]);
 	let jsonPretty = $state('');
 	let reqTitle = $state('Request');
 	let status = $state('200');
@@ -54,6 +58,7 @@
 			if (!result.ok) {
 				errorText = result.error;
 				curl = '';
+				clientSamples = [];
 				jsonPretty = '';
 				httpMethod = '';
 				apiPath = '';
@@ -63,6 +68,7 @@
 				const p = result.payload;
 				reqTitle = p.reqTitle;
 				curl = p.curl;
+				clientSamples = p.clientSamples;
 				jsonPretty = p.jsonPretty;
 				status = p.status;
 				httpMethod = p.httpMethod;
@@ -101,7 +107,7 @@
 			pathPattern={apiPath}
 			onTryIt={openPlayground}
 		/>
-		<RequestExample title={reqTitle} code={curl} language="bash" dropdown={true} />
+		<RequestExample title={reqTitle} code={curl} samples={clientSamples} dropdown={true} />
 		<ResponseExample {status} code={jsonPretty} />
 	{/if}
 </div>

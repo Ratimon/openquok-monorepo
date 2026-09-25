@@ -30,6 +30,9 @@ export const LIMITED_SHIKI_LANGUAGE_IDS = [
 	'shellscript',
 	'python',
 	'go',
+	'php',
+	'java',
+	'ruby',
 	'rust',
 	'sql',
 	'docker',
@@ -123,6 +126,18 @@ export const limitedStreamdownLanguages: LimitedLanguageInfo[] = [
 	{
 		id: 'go',
 		import: () => import('shiki/langs/go.mjs')
+	},
+	{
+		id: 'php',
+		import: () => import('shiki/langs/php.mjs')
+	},
+	{
+		id: 'java',
+		import: () => import('shiki/langs/java.mjs')
+	},
+	{
+		id: 'ruby',
+		import: () => import('shiki/langs/ruby.mjs')
 	},
 	{
 		id: 'rust',

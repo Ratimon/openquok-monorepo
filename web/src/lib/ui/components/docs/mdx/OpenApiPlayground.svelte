@@ -3,6 +3,11 @@
 	import { page } from '$app/state';
 
 	import {
+		httpRequestDescriptorFromLivePlayground,
+		renderHttpClientSamples
+	} from '$lib/docs/utils/openapi/httpClientSamples';
+
+	import {
 		buildLiveCurlSample,
 		buildQueryString,
 		defaultPathPlaceholder,
@@ -81,6 +86,22 @@
 			authHeaderValue: wantsAuth ? authValue : undefined,
 			body: operationHasJsonBody(opNode) ? bodyJson : undefined
 		});
+	});
+
+	let liveClientSamples = $derived.by(() => {
+		const origin = page.url.origin;
+		const descriptor = httpRequestDescriptorFromLivePlayground({
+			origin,
+			serverUrl,
+			method,
+			pathPattern,
+			pathValues,
+			queryValues,
+			authHeaderName: wantsAuth ? apiKeyHeaderName : null,
+			authHeaderValue: wantsAuth ? authValue : undefined,
+			body: operationHasJsonBody(opNode) ? bodyJson : undefined
+		});
+		return renderHttpClientSamples(descriptor);
 	});
 
 	let previewUrl = $derived.by(() => {
@@ -449,7 +470,12 @@
 				</div>
 			{/if}
 
-			<RequestExample title={opNode?.summary ?? 'Request'} code={liveCurl} language="bash" dropdown={true} />
+			<RequestExample
+				title={opNode?.summary ?? 'Request'}
+				code={liveCurl}
+				samples={liveClientSamples}
+				dropdown={true}
+			/>
 
 			<ResponseExample status="200" code={exampleJson} />
 		</div>
