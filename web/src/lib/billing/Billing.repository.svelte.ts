@@ -1,6 +1,7 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import type { PaidSubscriptionTier, SubscriptionPeriod, SubscriptionTier } from 'openquok-common';
 import { UNLIMITED_POSTS_PER_MONTH, UNLIMITED_TEAM_MEMBERS_PER_WORKSPACE } from 'openquok-common';
+import { cloudTrialBrowserSignalRequestField } from '$lib/billing/utils/cloudTrialBrowserSignal';
 
 export interface BillingConfig {
 	endpoints: {
@@ -239,7 +240,8 @@ export class BillingRepository {
 				organizationId: params.organizationId,
 				billing: params.billing,
 				period: params.period,
-				stripePriceId: params.stripePriceId
+				stripePriceId: params.stripePriceId,
+				...cloudTrialBrowserSignalRequestField()
 			},
 			{ withCredentials: true }
 		);
@@ -266,7 +268,8 @@ export class BillingRepository {
 				organizationId: params.organizationId,
 				billing: params.billing,
 				period: params.period,
-				stripePriceId: params.stripePriceId
+				stripePriceId: params.stripePriceId,
+				...cloudTrialBrowserSignalRequestField()
 			},
 			{ withCredentials: true }
 		);

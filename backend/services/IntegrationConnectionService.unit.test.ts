@@ -1826,5 +1826,3 @@ describe("IntegrationConnectionService", () => {
         });
     });
 });
-
-});

@@ -7,9 +7,9 @@ var Sentry = require('@sentry/node');
 var IORedis = require('ioredis');
 var clientS3 = require('@aws-sdk/client-s3');
 var s3RequestPresigner = require('@aws-sdk/s3-request-presigner');
+var zod = require('zod');
 var uuid = require('uuid');
 var crypto = require('crypto');
-var zod = require('zod');
 var nodemailer = require('nodemailer');
 var clientSesv2 = require('@aws-sdk/client-sesv2');
 var YAML = require('yaml');
@@ -2991,6 +2991,24 @@ var init_sessionCookies = __esm({
     authConfig = config.auth;
   }
 });
+function normalizeCloudTrialBrowserSignal(raw) {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const parsed = uuidSchema.safeParse(trimmed);
+  return parsed.success ? parsed.data : null;
+}
+function resolveCloudTrialBrowserSignalFromRequest(req, bodyField) {
+  const fromBody = normalizeCloudTrialBrowserSignal(bodyField);
+  if (fromBody) return fromBody;
+  return normalizeCloudTrialBrowserSignal(req.cloudTrialBrowserSignalId ?? null);
+}
+var uuidSchema;
+var init_resolveCloudTrialBrowserSignal = __esm({
+  "utils/billing/resolveCloudTrialBrowserSignal.ts"() {
+    uuidSchema = zod.z.string().uuid();
+  }
+});
 
 // controllers/AuthController.ts
 var serverConfig4, AuthController;
@@ -3006,6 +3024,7 @@ var init_AuthController = __esm({
     init_email();
     init_AuthUserDTO();
     init_sessionCookies();
+    init_resolveCloudTrialBrowserSignal();
     serverConfig4 = config.server;
     AuthController = class {
       userRepository;
@@ -3014,6 +3033,7 @@ var init_AuthController = __esm({
       emailService;
       organizationService;
       rbacService;
+      trialBrowserService;
       /**
        * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
        *
@@ -3107,13 +3127,21 @@ var init_AuthController = __esm({
         if (Array.isArray(allowed) && allowed.includes(origin)) return;
         throw new AuthError(`Origin ${origin} not allowed`, 403);
       }
-      constructor(authenticationService2, userRepository2, userService2, emailService2, organizationService2, rbacService2) {
+      constructor(authenticationService2, userRepository2, userService2, emailService2, organizationService2, rbacService2, trialBrowserService2) {
         this.authenticationService = authenticationService2;
         this.userRepository = userRepository2;
         this.userService = userService2;
         this.emailService = emailService2;
         this.organizationService = organizationService2;
         this.rbacService = rbacService2;
+        this.trialBrowserService = trialBrowserService2;
+      }
+      async persistCloudTrialBrowserSignalForAuthUser(req, authUserId, bodyField) {
+        const signal = resolveCloudTrialBrowserSignalFromRequest(req, bodyField);
+        if (signal) {
+          await this.trialBrowserService.persistUserBrowserSignal(authUserId, signal);
+        }
+        return signal;
       }
       /**
        * Start Google OAuth (Supabase PKCE).
@@ -3223,6 +3251,12 @@ var init_AuthController = __esm({
             {
               name: fullName || "My Organization",
               email
+            },
+            {
+              browserSignalId: await this.persistCloudTrialBrowserSignalForAuthUser(
+                req,
+                authUser.id
+              )
             }
           );
           if (!defaultOrg) {
@@ -3242,7 +3276,7 @@ var init_AuthController = __esm({
       };
       signUp = async (req, res, next) => {
         try {
-          const { email: rawEmail, password, fullName } = req.body;
+          const { email: rawEmail, password, fullName, cloudTrialBrowserSignalId } = req.body;
           const email = normalizeEmail(rawEmail);
           const isEmailVerified = await this.userRepository.checkIfEmailVerified(email);
           if (isEmailVerified) {
@@ -3287,10 +3321,19 @@ var init_AuthController = __esm({
             this.setRefreshTokenCookie(res, session.refresh_token);
           }
           if (newUser?.id) {
-            const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
-              name: fullName ?? "My Organization",
-              email
-            });
+            const browserSignal = await this.persistCloudTrialBrowserSignalForAuthUser(
+              req,
+              newUser.id,
+              cloudTrialBrowserSignalId
+            );
+            const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(
+              newUser.id,
+              {
+                name: fullName ?? "My Organization",
+                email
+              },
+              { browserSignalId: browserSignal }
+            );
             if (!defaultOrg) {
               logger.warn({ msg: "Default organization creation failed at signup", userId: newUser.id });
             }
@@ -5733,6 +5776,31 @@ var init_UserRepository = __esm({
         });
         return { updateError, rowsAffected: typeof data === "number" ? data : 0 };
       }
+      async updateCloudTrialBrowserSignalId(publicUserId, signalId) {
+        const { error } = await this.supabase.from(TABLE_NAME2).update({
+          cloud_trial_browser_signal_id: signalId,
+          updated_at: (/* @__PURE__ */ new Date()).toISOString()
+        }).eq("id", publicUserId);
+        if (error) {
+          throw new DatabaseError("Failed to update cloud trial browser signal on user", {
+            cause: error,
+            operation: "updateCloudTrialBrowserSignalId",
+            resource: { type: "table", name: TABLE_NAME2 }
+          });
+        }
+      }
+      async getCloudTrialBrowserSignalId(publicUserId) {
+        const { data, error } = await this.supabase.from(TABLE_NAME2).select("cloud_trial_browser_signal_id").eq("id", publicUserId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to read cloud trial browser signal on user", {
+            cause: error,
+            operation: "getCloudTrialBrowserSignalId",
+            resource: { type: "table", name: TABLE_NAME2 }
+          });
+        }
+        const raw = data?.cloud_trial_browser_signal_id;
+        return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+      }
       /** Set verification token for a user by email (e.g. after signup). */
       async updateVerificationTokenByEmail(email, hashedToken, expiresAt) {
         const normalizedEmail = email.trim().toLowerCase();
@@ -6096,13 +6164,17 @@ var init_OrganizationRepository = __esm({
        * (bypasses RLS; required when the Supabase client is not service_role).
        */
       async createOrganization(params) {
+        const rpcArgs = {
+          p_user_id: params.userId,
+          p_name: params.name,
+          p_description: params.description ?? null
+        };
+        if (params.allowTrial === false) {
+          rpcArgs.p_allow_trial = false;
+        }
         const { data, error } = await this.supabase.rpc(
           "internal_create_organization_with_owner",
-          {
-            p_user_id: params.userId,
-            p_name: params.name,
-            p_description: params.description ?? null
-          }
+          rpcArgs
         );
         if (error) {
           return { organization: null, error };
@@ -11364,8 +11436,50 @@ var init_AcquisitionSurveyRepository = __esm({
   }
 });
 
+// repositories/TrialBrowserRepository.ts
+var TABLE7, TrialBrowserRepository;
+var init_TrialBrowserRepository = __esm({
+  "repositories/TrialBrowserRepository.ts"() {
+    init_InfraError();
+    TABLE7 = "cloud_trial_browser_consumptions";
+    TrialBrowserRepository = class {
+      constructor(supabase2) {
+        this.supabase = supabase2;
+      }
+      async hasBrowserConsumedTrial(browserSignalId) {
+        const { data, error } = await this.supabase.from(TABLE7).select("browser_signal_id").eq("browser_signal_id", browserSignalId).maybeSingle();
+        if (error) {
+          throw new DatabaseError("Failed to lookup cloud trial browser consumption", {
+            cause: error,
+            operation: "hasBrowserConsumedTrial",
+            resource: { type: "table", name: TABLE7 }
+          });
+        }
+        return Boolean(data);
+      }
+      async recordBrowserTrialConsumption(browserSignalId, userId) {
+        const { error } = await this.supabase.from(TABLE7).upsert(
+          {
+            browser_signal_id: browserSignalId,
+            user_id: userId,
+            consumed_at: (/* @__PURE__ */ new Date()).toISOString()
+          },
+          { onConflict: "browser_signal_id", ignoreDuplicates: true }
+        );
+        if (error) {
+          throw new DatabaseError("Failed to record cloud trial browser consumption", {
+            cause: error,
+            operation: "recordBrowserTrialConsumption",
+            resource: { type: "table", name: TABLE7 }
+          });
+        }
+      }
+    };
+  }
+});
+
 // repositories/index.ts
-var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository;
+var refreshTokenRepository, userRepository, configRepository, organizationRepository, rbacRepository, feedbackRepository, blogRepository, listingRepository, listingCategoryRepository, listingTagRepository, r2Slice, r2Connection, storageR2Repository, mediaRepository, storageSupabaseRepository, integrationRepository, plugRepository, notificationRepository, postsRepository, signatureRepository, setsRepository, oauthAppRepository, subscriptionRepository, acquisitionSurveyRepository, trialBrowserRepository;
 var init_repositories = __esm({
   "repositories/index.ts"() {
     init_GlobalConfig();
@@ -11393,6 +11507,7 @@ var init_repositories = __esm({
     init_OauthAppRepository();
     init_SubscriptionRepository();
     init_AcquisitionSurveyRepository();
+    init_TrialBrowserRepository();
     init_RefreshTokenRepository();
     init_UserRepository();
     init_ConfigRepository();
@@ -11416,6 +11531,7 @@ var init_repositories = __esm({
     init_OauthAppRepository();
     init_SubscriptionRepository();
     init_AcquisitionSurveyRepository();
+    init_TrialBrowserRepository();
     refreshTokenRepository = new RefreshTokenRepository(supabaseServiceClientConnection);
     userRepository = new UserRepository(supabaseServiceClientConnection);
     configRepository = new ConfigRepository(supabaseServiceClientConnection);
@@ -11446,6 +11562,7 @@ var init_repositories = __esm({
     oauthAppRepository = new OauthAppRepository(supabaseServiceClientConnection);
     subscriptionRepository = new SubscriptionRepository(supabaseServiceClientConnection);
     acquisitionSurveyRepository = new AcquisitionSurveyRepository(supabaseServiceClientConnection);
+    trialBrowserRepository = new TrialBrowserRepository(supabaseServiceClientConnection);
   }
 });
 
@@ -12466,7 +12583,7 @@ var init_OrganizationService = __esm({
     };
     ORG_CACHE_TTL_SEC = 300;
     OrganizationService = class {
-      constructor(organizationRepository2, userRepository2, emailService2, cache, cacheInvalidator, subscriptionGuard2, oauthAppService2) {
+      constructor(organizationRepository2, userRepository2, emailService2, cache, cacheInvalidator, subscriptionGuard2, oauthAppService2, trialBrowserService2) {
         this.organizationRepository = organizationRepository2;
         this.userRepository = userRepository2;
         this.emailService = emailService2;
@@ -12474,6 +12591,7 @@ var init_OrganizationService = __esm({
         this.cacheInvalidator = cacheInvalidator;
         this.subscriptionGuard = subscriptionGuard2;
         this.oauthAppService = oauthAppService2;
+        this.trialBrowserService = trialBrowserService2;
       }
       /** Invite a team member by email: create signed invite link and optionally send email. */
       async inviteTeamMemberByEmail(authUserId, organizationId, params) {
@@ -12653,6 +12771,11 @@ var init_OrganizationService = __esm({
         }
         return userId;
       }
+      async resolveAllowTrialForNewOrganization(browserSignalId) {
+        if (!this.trialBrowserService?.billingEnabled()) return void 0;
+        const consumed = await this.trialBrowserService.hasBrowserConsumedTrial(browserSignalId);
+        return consumed ? false : void 0;
+      }
       /** Get role level for permission checks. */
       getRoleLevel(role) {
         return ROLE_LEVEL[role] ?? -1;
@@ -12704,15 +12827,17 @@ var init_OrganizationService = __esm({
         return factory();
       }
       /** Create organization and add the current user as owner. Returns row; controller maps to DTO. */
-      async createOrganization(authUserId, params) {
+      async createOrganization(authUserId, params, options2) {
         await this.subscriptionGuard?.assert(SubscriptionSection.WORKSPACES, {
           scope: "account",
           authUserId
         });
         const userId = await this.resolveAuthUserToUserId(authUserId);
+        const allowTrial = await this.resolveAllowTrialForNewOrganization(options2?.browserSignalId);
         const { organization, error } = await this.organizationRepository.createOrganization({
           ...params,
-          userId
+          userId,
+          ...allowTrial === false ? { allowTrial: false } : {}
         });
         if (error) throw error;
         await this._invalidateOrganizationRelatedCaches({ authUserId });
@@ -12730,12 +12855,16 @@ var init_OrganizationService = __esm({
        * Used at signup so the user has one org and is owner.
        * Returns the created org row or null on failure or skip (caller should not fail signup).
        */
-      async createDefaultOrganizationForNewUser(authUserId, params) {
+      async createDefaultOrganizationForNewUser(authUserId, params, options2) {
         try {
-          return await this.createOrganization(authUserId, {
-            name: params?.name?.trim() || "My Organization",
-            description: null
-          });
+          return await this.createOrganization(
+            authUserId,
+            {
+              name: params?.name?.trim() || "My Organization",
+              description: null
+            },
+            options2
+          );
         } catch (err) {
           logger.warn({
             msg: "createDefaultOrganizationForNewUser failed",
@@ -12750,13 +12879,13 @@ var init_OrganizationService = __esm({
        * Google OAuth historically skipped default-org creation; call this on OAuth callback
        * and any other auth path that may land a user with zero memberships.
        */
-      async ensureDefaultOrganizationForUser(authUserId, params) {
+      async ensureDefaultOrganizationForUser(authUserId, params, options2) {
         try {
           const { organizations } = await this.listMyOrganizations(authUserId);
           if (organizations.length > 0) {
             return organizations[0] ?? null;
           }
-          return await this.createDefaultOrganizationForNewUser(authUserId, params);
+          return await this.createDefaultOrganizationForNewUser(authUserId, params, options2);
         } catch (err) {
           logger.warn({
             msg: "ensureDefaultOrganizationForUser failed",
@@ -14659,7 +14788,7 @@ var init_ConfigService = __esm({
 // utils/content/htmlToPlain.ts
 function htmlToPlainText(html) {
   if (!html) return "";
-  return html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(?:p|div|li|h[1-6])>/gi, "\n").replace(/<[^>]+>/g, "").replace(/[ \t]+\n/g, "\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  return html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "").replace(/<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi, "$1").replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(?:p|div|li|h[1-6])>/gi, "\n").replace(/<[^>]+>/g, "").replace(/[ \t]+\n/g, "\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
 }
 var init_htmlToPlain = __esm({
   "utils/content/htmlToPlain.ts"() {
@@ -26991,7 +27120,7 @@ var init_stripe = __esm({
     stripeClient = null;
   }
 });
-var STRIPE_SERVICE_METADATA, STRIPE_PRICE_LOOKUP_KEYS, StripeService;
+var STRIPE_SERVICE_METADATA, STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL, STRIPE_PRICE_LOOKUP_KEYS, StripeService;
 var init_StripeService = __esm({
   "services/StripeService.ts"() {
     init_dist();
@@ -27001,17 +27130,20 @@ var init_StripeService = __esm({
     init_UserError();
     init_makeId();
     init_Logger();
+    init_resolveCloudTrialBrowserSignal();
     STRIPE_SERVICE_METADATA = "openquok";
+    STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL = "cloudTrialBrowserSignalId";
     STRIPE_PRICE_LOOKUP_KEYS = PAID_SUBSCRIPTION_TIERS.flatMap((tier) => [
       `${tier.toLowerCase()}_monthly`,
       `${tier.toLowerCase()}_yearly`
     ]);
     StripeService = class {
-      constructor(subscriptionRepository2, subscriptionService2, organizationRepository2, userRepository2) {
+      constructor(subscriptionRepository2, subscriptionService2, organizationRepository2, userRepository2, trialBrowserService2) {
         this.subscriptionRepository = subscriptionRepository2;
         this.subscriptionService = subscriptionService2;
         this.organizationRepository = organizationRepository2;
         this.userRepository = userRepository2;
+        this.trialBrowserService = trialBrowserService2;
       }
       frontendUrl() {
         return String(config.server.frontendDomainUrl ?? "").replace(
@@ -27139,12 +27271,15 @@ var init_StripeService = __esm({
         return Boolean(stripeCfg2?.publishableKey?.trim());
       }
       /** One 7-day Cloud trial per account and per Stripe customer (org flag + user + Stripe history). */
-      async resolveCheckoutTrialEligibility(organizationId, userId) {
+      async resolveCheckoutTrialEligibility(organizationId, userId, browserSignalId) {
         const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
         if (!org?.allow_trial) {
           return false;
         }
         if (await this.subscriptionRepository.hasUserConsumedCloudTrial(userId)) {
+          return false;
+        }
+        if (this.billingEnabled() && await this.trialBrowserService?.hasBrowserConsumedTrial(browserSignalId)) {
           return false;
         }
         const customer = org.stripe_customer_id?.trim();
@@ -27307,6 +27442,9 @@ var init_StripeService = __esm({
       async subscribe(params) {
         const customer = await this.createOrGetCustomer(params.organizationId);
         const uniqueId = makeId(12);
+        const browserSignalMetadata = this.cloudTrialBrowserStripeMetadata(
+          params.cloudTrialBrowserSignalId
+        );
         const priceId = await this.resolvePriceId(
           params.body.billing,
           params.body.period,
@@ -27340,7 +27478,8 @@ var init_StripeService = __esm({
                   period: params.body.period,
                   uniqueId,
                   userId: params.userId,
-                  organizationId: params.organizationId
+                  organizationId: params.organizationId,
+                  ...browserSignalMetadata
                 }
               });
               await this.syncSubscriptionFromStripe(updated);
@@ -27381,7 +27520,8 @@ var init_StripeService = __esm({
                 period: params.body.period,
                 uniqueId,
                 userId: params.userId,
-                organizationId: params.organizationId
+                organizationId: params.organizationId,
+                ...browserSignalMetadata
               }
             },
             metadata: {
@@ -27727,6 +27867,9 @@ var init_StripeService = __esm({
           )
         ]);
         const uniqueId = makeId(12);
+        const browserSignalMetadata = this.cloudTrialBrowserStripeMetadata(
+          params.cloudTrialBrowserSignalId
+        );
         const frontend = this.frontendUrl();
         if (!frontend) {
           throw new UserValidationError(
@@ -27751,7 +27894,8 @@ var init_StripeService = __esm({
                 period: params.body.period,
                 uniqueId,
                 userId: params.userId,
-                organizationId: params.organizationId
+                organizationId: params.organizationId,
+                ...browserSignalMetadata
               }
             },
             metadata: {
@@ -27850,6 +27994,19 @@ var init_StripeService = __esm({
       periodFromMetadata(metadata) {
         return metadata?.period === "YEARLY" ? "YEARLY" : "MONTHLY";
       }
+      cloudTrialBrowserStripeMetadata(signalId) {
+        const normalized = normalizeCloudTrialBrowserSignal(signalId);
+        if (!normalized) return {};
+        return { [STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL]: normalized };
+      }
+      async resolveBrowserSignalForTrialConsumption(metadata, publicUserId) {
+        const fromMeta = normalizeCloudTrialBrowserSignal(
+          typeof metadata[STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL] === "string" ? metadata[STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL] : null
+        );
+        if (fromMeta) return fromMeta;
+        if (!publicUserId?.trim() || !this.trialBrowserService) return null;
+        return this.trialBrowserService.getUserBrowserSignal(publicUserId);
+      }
       /**
        * Aligns the local subscription row with Stripe (e.g. after Dashboard cancel or missed webhooks).
        * Soft-deletes the DB row when the customer has no open billable openquok subscription.
@@ -27903,6 +28060,7 @@ var init_StripeService = __esm({
         const uniqueId = typeof metadata.uniqueId === "string" ? metadata.uniqueId : subscription.id;
         const period = this.periodFromMetadata(metadata);
         const isTrialing = subscription.status === "trialing";
+        const publicUserId = typeof metadata.userId === "string" ? metadata.userId.trim() : "";
         const cancelAt = this.resolveCancelAtFromStripe(subscription);
         const cps = typeof subscription?.current_period_start === "number" ? new Date(subscription.current_period_start * 1e3).toISOString() : null;
         const cpe = typeof subscription?.current_period_end === "number" ? new Date(subscription.current_period_end * 1e3).toISOString() : null;
@@ -27917,6 +28075,18 @@ var init_StripeService = __esm({
           currentPeriodStart: cps,
           currentPeriodEnd: cpe
         });
+        if (isTrialing && publicUserId) {
+          const browserSignal = await this.resolveBrowserSignalForTrialConsumption(
+            metadata,
+            publicUserId
+          );
+          if (browserSignal) {
+            await this.trialBrowserService?.recordBrowserTrialConsumption(
+              browserSignal,
+              publicUserId
+            );
+          }
+        }
       }
       async handleWebhookEvent(event) {
         if (event.type === "customer.subscription.deleted") {
@@ -27941,6 +28111,62 @@ var init_StripeService = __esm({
             break;
           }
         }
+      }
+    };
+  }
+});
+
+// services/TrialBrowserService.ts
+var TrialBrowserService;
+var init_TrialBrowserService = __esm({
+  "services/TrialBrowserService.ts"() {
+    init_GlobalConfig();
+    init_resolveCloudTrialBrowserSignal();
+    init_Logger();
+    TrialBrowserService = class {
+      constructor(trialBrowserRepository2, userRepository2) {
+        this.trialBrowserRepository = trialBrowserRepository2;
+        this.userRepository = userRepository2;
+      }
+      billingEnabled() {
+        const stripeCfg2 = config.stripe;
+        return Boolean(stripeCfg2?.publishableKey?.trim());
+      }
+      normalizeSignal(raw) {
+        return normalizeCloudTrialBrowserSignal(raw);
+      }
+      async hasBrowserConsumedTrial(signalId) {
+        if (!this.billingEnabled()) return false;
+        const normalized = this.normalizeSignal(signalId);
+        if (!normalized) return false;
+        return this.trialBrowserRepository.hasBrowserConsumedTrial(normalized);
+      }
+      async recordBrowserTrialConsumption(signalId, userId) {
+        if (!this.billingEnabled()) return;
+        const normalized = this.normalizeSignal(signalId);
+        const publicUserId = userId?.trim();
+        if (!normalized || !publicUserId) return;
+        await this.trialBrowserRepository.recordBrowserTrialConsumption(normalized, publicUserId);
+      }
+      /** `authUserId` is Supabase auth uid; resolves to public.users.id when needed. */
+      async persistUserBrowserSignal(authUserId, signalId) {
+        if (!this.billingEnabled()) return;
+        const normalized = this.normalizeSignal(signalId);
+        if (!normalized) return;
+        const { userId, error } = await this.userRepository.findUserIdByAuthId(authUserId);
+        if (error || !userId) {
+          logger.warn({
+            msg: "persistUserBrowserSignal: could not resolve public user id",
+            authUserId,
+            error: error instanceof Error ? error.message : String(error ?? "missing user")
+          });
+          return;
+        }
+        await this.userRepository.updateCloudTrialBrowserSignalId(userId, normalized);
+      }
+      async getUserBrowserSignal(publicUserId) {
+        if (!this.billingEnabled()) return null;
+        return this.userRepository.getCloudTrialBrowserSignalId(publicUserId);
       }
     };
   }
@@ -28237,7 +28463,7 @@ var init_AcquisitionSurveyService = __esm({
 });
 
 // services/index.ts
-var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
+var integrationManager, userService, emailService, transactionalNotificationEmailService, companyService, marketingService, internalOpsEmailService, notificationService, refreshIntegrationService, authenticationService, rbacService, feedbackService, configService, integrationService, plugService, subscriptionService, subscriptionGuard, blogService, listingService, listingTagService, userSessionService, integrationConnectionService, oauthAppService, trialBrowserService, organizationService, oauthService, postsService, stripeService, trackService, acquisitionSurveyService, mediaService, signatureService, setsService, analyticsService;
 var init_services = __esm({
   "services/index.ts"() {
     init_connections();
@@ -28272,6 +28498,7 @@ var init_services = __esm({
     init_UserSessionService();
     init_SubscriptionGuardService();
     init_StripeService();
+    init_TrialBrowserService();
     init_TrackService();
     init_InternalOpsEmailService();
     init_AcquisitionSurveyService();
@@ -28301,6 +28528,7 @@ var init_services = __esm({
     init_SubscriptionService();
     init_SubscriptionGuardService();
     init_StripeService();
+    init_TrialBrowserService();
     init_TrackService();
     init_InternalOpsEmailService();
     init_AcquisitionSurveyService();
@@ -28430,6 +28658,7 @@ var init_services = __esm({
       mediaRepository,
       subscriptionGuard
     );
+    trialBrowserService = new TrialBrowserService(trialBrowserRepository, userRepository);
     organizationService = new OrganizationService(
       organizationRepository,
       userRepository,
@@ -28437,7 +28666,8 @@ var init_services = __esm({
       cacheServiceConnection,
       cacheInvalidationServiceConnection,
       subscriptionGuard,
-      oauthAppService
+      oauthAppService,
+      trialBrowserService
     );
     oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
     postsService = new PostsService(
@@ -28455,7 +28685,8 @@ var init_services = __esm({
       subscriptionRepository,
       subscriptionService,
       organizationRepository,
-      userRepository
+      userRepository,
+      trialBrowserService
     );
     trackService = new TrackService();
     acquisitionSurveyService = new AcquisitionSurveyService(
@@ -31203,13 +31434,15 @@ var init_BillingController = __esm({
     init_GlobalConfig();
     init_billingDiscountToken();
     init_Logger();
+    init_resolveCloudTrialBrowserSignal();
     BillingController = class {
-      constructor(subscriptionService2, subscriptionGuard2, stripeService2, subscriptionRepository2, emailService2) {
+      constructor(subscriptionService2, subscriptionGuard2, stripeService2, subscriptionRepository2, emailService2, trialBrowserService2) {
         this.subscriptionService = subscriptionService2;
         this.subscriptionGuard = subscriptionGuard2;
         this.stripeService = stripeService2;
         this.subscriptionRepository = subscriptionRepository2;
         this.emailService = emailService2;
+        this.trialBrowserService = trialBrowserService2;
       }
       getPlans = async (_req, res, next) => {
         try {
@@ -31282,7 +31515,8 @@ var init_BillingController = __esm({
           const data = await this.buildCurrentBillingData(
             organizationId,
             authUser?.id,
-            authUser?.publicId
+            authUser?.publicId,
+            resolveCloudTrialBrowserSignalFromRequest(req)
           );
           res.status(200).json({ success: true, data });
         } catch (error) {
@@ -31308,9 +31542,17 @@ var init_BillingController = __esm({
           if (!publicUserId) {
             throw new UserValidationError("Authentication required");
           }
+          const browserSignal = resolveCloudTrialBrowserSignalFromRequest(
+            req,
+            body.cloudTrialBrowserSignalId
+          );
+          if (browserSignal) {
+            await this.trialBrowserService.persistUserBrowserSignal(authUser.id, browserSignal);
+          }
           const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
             organizationId,
-            publicUserId
+            publicUserId,
+            browserSignal
           );
           const result = await this.stripeService.subscribe({
             organizationId,
@@ -31320,7 +31562,8 @@ var init_BillingController = __esm({
               billing: body.billing,
               stripePriceId: body.stripePriceId
             },
-            allowTrial
+            allowTrial,
+            cloudTrialBrowserSignalId: browserSignal
           });
           res.status(200).json({ success: true, data: result });
         } catch (error) {
@@ -31346,9 +31589,17 @@ var init_BillingController = __esm({
           if (!publicUserId) {
             throw new UserValidationError("Authentication required");
           }
+          const browserSignal = resolveCloudTrialBrowserSignalFromRequest(
+            req,
+            body.cloudTrialBrowserSignalId
+          );
+          if (browserSignal) {
+            await this.trialBrowserService.persistUserBrowserSignal(authUser.id, browserSignal);
+          }
           const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
             organizationId,
-            publicUserId
+            publicUserId,
+            browserSignal
           );
           const result = await this.stripeService.createEmbeddedCheckout({
             organizationId,
@@ -31358,7 +31609,8 @@ var init_BillingController = __esm({
               billing: body.billing,
               stripePriceId: body.stripePriceId
             },
-            allowTrial
+            allowTrial,
+            cloudTrialBrowserSignalId: browserSignal
           });
           res.status(200).json({ success: true, data: result });
         } catch (error) {
@@ -31552,7 +31804,7 @@ ${feedback}`,
           next(error);
         }
       };
-      async buildCurrentBillingData(organizationId, authUserId, publicUserId) {
+      async buildCurrentBillingData(organizationId, authUserId, publicUserId, browserSignalId) {
         try {
           await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
         } catch (error) {
@@ -31612,7 +31864,8 @@ ${feedback}`,
               try {
                 effectiveAllowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
                   billingOrganizationId,
-                  publicUserId
+                  publicUserId,
+                  browserSignalId
                 );
               } catch (error) {
                 logger.warn({
@@ -33930,7 +34183,8 @@ var init_controllers = __esm({
       userService,
       emailService,
       organizationService,
-      rbacService
+      rbacService,
+      trialBrowserService
     );
     userController = new UserController(
       userService,
@@ -33962,7 +34216,8 @@ var init_controllers = __esm({
       subscriptionGuard,
       stripeService,
       subscriptionRepository,
-      emailService
+      emailService,
+      trialBrowserService
     );
     stripeWebhookController = new StripeWebhookController(stripeService);
     configController = new ConfigController(configService);
@@ -35418,7 +35673,8 @@ var tokenRequirements = zod.z.string().regex(/^[a-f0-9]{64}$/i, { message: "Toke
 var SignUpFormSchema = zod.z.object({
   email: emailRequirements,
   password: passwordRequirements,
-  fullName: fullNameRequirements.optional()
+  fullName: fullNameRequirements.optional(),
+  cloudTrialBrowserSignalId: zod.z.string().uuid().optional()
 });
 var validateSignUpRequest = validateRequest({ body: SignUpFormSchema });
 var SignInFormSchema = zod.z.object({
@@ -36480,7 +36736,7 @@ init_Logger();
 
 // static/routes-manifest.json
 var routes_manifest_default = {
-  generated: "2026-09-24T02:56:51.858Z",
+  generated: "2026-09-25T00:05:57.017Z",
   routes: [
     {
       path: "/docs",
@@ -42497,7 +42753,8 @@ var billingSubscribeBodySchema = zod.z.object({
   organizationId: optionalOrganizationId,
   period: zod.z.enum(["MONTHLY", "YEARLY"]),
   billing: purchasableBillingTierSchema,
-  stripePriceId: zod.z.string().trim().regex(/^price_/, "stripePriceId must be a Stripe Price id (price_\u2026)")
+  stripePriceId: zod.z.string().trim().regex(/^price_/, "stripePriceId must be a Stripe Price id (price_\u2026)"),
+  cloudTrialBrowserSignalId: zod.z.string().uuid().optional()
 });
 var billingOrganizationQuerySchema = zod.z.object({
   organizationId: zod.z.string().uuid("organizationId must be a valid UUID").optional()
@@ -43879,6 +44136,20 @@ var applyRateLimiting = (app2) => {
   });
 };
 
+// constants/cloudTrialBrowserSignal.ts
+var CLOUD_TRIAL_BROWSER_COOKIE_NAME = "oq_cloud_trial_browser";
+
+// middlewares/trialBrowserSignalMiddleware.ts
+init_resolveCloudTrialBrowserSignal();
+function trialBrowserSignalMiddleware(req, _res, next) {
+  const raw = req.cookies?.[CLOUD_TRIAL_BROWSER_COOKIE_NAME];
+  const normalized = normalizeCloudTrialBrowserSignal(typeof raw === "string" ? raw : null);
+  if (normalized) {
+    req.cloudTrialBrowserSignalId = normalized;
+  }
+  next();
+}
+
 // middlewares/core.ts
 init_Logger();
 function configureCoreMiddleware(app2, config2, supabase2) {
@@ -43897,6 +44168,7 @@ function configureCoreMiddleware(app2, config2, supabase2) {
     return express__default.default.urlencoded({ extended: true, limit })(req, res, next);
   });
   app2.use(cookieParser__default.default());
+  app2.use(trialBrowserSignalMiddleware);
   app2.use((req, res, next) => {
     req.id = uuid.v4();
     res.setHeader("X-Request-Id", req.id);

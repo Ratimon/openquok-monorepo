@@ -181,6 +181,44 @@ export class UserRepository {
         return { updateError, rowsAffected: typeof data === "number" ? data : 0 };
     }
 
+    async updateCloudTrialBrowserSignalId(publicUserId: string, signalId: string): Promise<void> {
+        const { error } = await this.supabase
+            .from(TABLE_NAME)
+            .update({
+                cloud_trial_browser_signal_id: signalId,
+                updated_at: new Date().toISOString(),
+            })
+            .eq("id", publicUserId);
+
+        if (error) {
+            throw new DatabaseError("Failed to update cloud trial browser signal on user", {
+                cause: error as unknown as Error,
+                operation: "updateCloudTrialBrowserSignalId",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+    }
+
+    async getCloudTrialBrowserSignalId(publicUserId: string): Promise<string | null> {
+        const { data, error } = await this.supabase
+            .from(TABLE_NAME)
+            .select("cloud_trial_browser_signal_id")
+            .eq("id", publicUserId)
+            .maybeSingle();
+
+        if (error) {
+            throw new DatabaseError("Failed to read cloud trial browser signal on user", {
+                cause: error as unknown as Error,
+                operation: "getCloudTrialBrowserSignalId",
+                resource: { type: "table", name: TABLE_NAME },
+            });
+        }
+
+        const raw = (data as { cloud_trial_browser_signal_id?: string | null } | null)
+            ?.cloud_trial_browser_signal_id;
+        return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+    }
+
     /** Set verification token for a user by email (e.g. after signup). */
     async updateVerificationTokenByEmail(
         email: string,

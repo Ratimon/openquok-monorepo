@@ -7,6 +7,7 @@ import { UserValidationError } from "../errors/UserError";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { SubscriptionRepository } from "../repositories/SubscriptionRepository";
 import type { UserRepository } from "../repositories/UserRepository";
+import type { TrialBrowserService } from "./TrialBrowserService";
 import type { SubscriptionService } from "./SubscriptionService";
 import { StripeService } from "./StripeService";
 
@@ -103,6 +104,16 @@ function createMockOrganizationRepo(): jest.Mocked<OrganizationRepository> {
     } as unknown as jest.Mocked<OrganizationRepository>;
 }
 
+function createMockTrialBrowserService(): jest.Mocked<
+    Pick<TrialBrowserService, "hasBrowserConsumedTrial" | "recordBrowserTrialConsumption" | "getUserBrowserSignal">
+> {
+    return {
+        hasBrowserConsumedTrial: jest.fn().mockResolvedValue(false),
+        recordBrowserTrialConsumption: jest.fn().mockResolvedValue(undefined),
+        getUserBrowserSignal: jest.fn().mockResolvedValue(null),
+    };
+}
+
 function createMockUserRepo(): jest.Mocked<Pick<UserRepository, "findFullUserByUserId">> {
     return {
         findFullUserByUserId: jest.fn(),
@@ -142,6 +153,7 @@ describe("StripeService", () => {
     let subscriptionService: ReturnType<typeof createMockSubscriptionService>;
     let organizationRepo: jest.Mocked<OrganizationRepository>;
     let userRepo: jest.Mocked<Pick<UserRepository, "findFullUserByUserId">>;
+    let trialBrowserService: ReturnType<typeof createMockTrialBrowserService>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -153,6 +165,7 @@ describe("StripeService", () => {
         subscriptionService = createMockSubscriptionService();
         organizationRepo = createMockOrganizationRepo();
         userRepo = createMockUserRepo();
+        trialBrowserService = createMockTrialBrowserService();
     });
 
     function service(): StripeService {
@@ -160,7 +173,8 @@ describe("StripeService", () => {
             subscriptionRepo,
             subscriptionService as unknown as SubscriptionService,
             organizationRepo,
-            userRepo as unknown as UserRepository
+            userRepo as unknown as UserRepository,
+            trialBrowserService as unknown as TrialBrowserService
         );
     }
 
@@ -646,6 +660,28 @@ describe("StripeService", () => {
                 service().resolveCheckoutTrialEligibility(organizationId, userId)
             ).resolves.toBe(true);
             expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+        });
+
+        it("returns false when the browser signal already consumed a trial", async () => {
+            const signal = faker.string.uuid();
+            trialBrowserService.hasBrowserConsumedTrial.mockResolvedValue(true);
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId, signal)
+            ).resolves.toBe(false);
+            expect(trialBrowserService.hasBrowserConsumedTrial).toHaveBeenCalledWith(signal);
+            expect(mockStripe.subscriptions.list).not.toHaveBeenCalled();
+        });
+
+        it("keeps existing behavior when browser signal is absent", async () => {
+            (subscriptionRepo.getOrganizationBilling as jest.Mock).mockResolvedValue({
+                ...defaultOrganizationBilling(),
+                allow_trial: true,
+            });
+            mockStripe.subscriptions.list.mockResolvedValue({ data: [] });
+            await expect(
+                service().resolveCheckoutTrialEligibility(organizationId, userId, null)
+            ).resolves.toBe(true);
+            expect(trialBrowserService.hasBrowserConsumedTrial).toHaveBeenCalledWith(null);
         });
     });
 

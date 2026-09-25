@@ -163,14 +163,24 @@ export class OrganizationRepository {
         name: string;
         description?: string | null;
         userId: string;
+        allowTrial?: boolean;
     }): Promise<{ organization: OrganizationLike; error: unknown }> {
+        const rpcArgs: {
+            p_user_id: string;
+            p_name: string;
+            p_description: string | null;
+            p_allow_trial?: boolean;
+        } = {
+            p_user_id: params.userId,
+            p_name: params.name,
+            p_description: params.description ?? null,
+        };
+        if (params.allowTrial === false) {
+            rpcArgs.p_allow_trial = false;
+        }
         const { data, error } = await this.supabase.rpc(
             "internal_create_organization_with_owner" as never,
-            {
-                p_user_id: params.userId,
-                p_name: params.name,
-                p_description: params.description ?? null,
-            } as never
+            rpcArgs as never
         );
         if (error) {
             return { organization: null as unknown as OrganizationLike, error };

@@ -5,6 +5,7 @@ import type { SubscriptionGuardService } from "../guards/subscription/Subscripti
 import { SubscriptionError } from "../errors/SubscriptionError";
 
 import { OrganizationService } from "./OrganizationService";
+import type { TrialBrowserService } from "./TrialBrowserService";
 import { signInviteToken, verifyInviteToken } from "../utils/auth/inviteToken";
 import { logger } from "../utils/Logger";
 import { faker } from "@faker-js/faker";
@@ -297,6 +298,42 @@ describe("OrganizationService", () => {
             expect(createArgs).not.toHaveProperty("p_allow_trial");
             expect(createArgs).not.toHaveProperty("p_is_trialing");
         });
+
+        it("passes allowTrial false when the browser signal already consumed a Cloud trial", async () => {
+            const browserSignalId = faker.string.uuid();
+            const trialBrowserService: jest.Mocked<
+                Pick<TrialBrowserService, "billingEnabled" | "hasBrowserConsumedTrial">
+            > = {
+                billingEnabled: jest.fn().mockReturnValue(true),
+                hasBrowserConsumedTrial: jest.fn().mockResolvedValue(true),
+            };
+            (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const service = new OrganizationService(
+                orgRepo,
+                userRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                trialBrowserService as unknown as TrialBrowserService
+            );
+            await service.createOrganization(
+                authUserId,
+                { name: orgName, description: orgDescription },
+                { browserSignalId }
+            );
+            expect(trialBrowserService.hasBrowserConsumedTrial).toHaveBeenCalledWith(browserSignalId);
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: orgName,
+                description: orgDescription,
+                userId,
+                allowTrial: false,
+            });
+        });
     });
 
     describe("createDefaultOrganizationForNewUser", () => {
@@ -328,6 +365,42 @@ describe("OrganizationService", () => {
                 name: "My Organization",
                 description: null,
                 userId,
+            });
+        });
+
+        it("passes allowTrial false when the browser signal already consumed a Cloud trial", async () => {
+            const browserSignalId = faker.string.uuid();
+            const trialBrowserService: jest.Mocked<
+                Pick<TrialBrowserService, "billingEnabled" | "hasBrowserConsumedTrial">
+            > = {
+                billingEnabled: jest.fn().mockReturnValue(true),
+                hasBrowserConsumedTrial: jest.fn().mockResolvedValue(true),
+            };
+            (orgRepo.createOrganization as jest.Mock).mockResolvedValue({
+                organization: orgRow,
+                error: null,
+            });
+            const service = new OrganizationService(
+                orgRepo,
+                userRepo,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                trialBrowserService as unknown as TrialBrowserService
+            );
+            await service.createDefaultOrganizationForNewUser(
+                authUserId,
+                { name: orgName },
+                { browserSignalId }
+            );
+            expect(trialBrowserService.hasBrowserConsumedTrial).toHaveBeenCalledWith(browserSignalId);
+            expect(orgRepo.createOrganization).toHaveBeenCalledWith({
+                name: orgName,
+                description: null,
+                userId,
+                allowTrial: false,
             });
         });
 

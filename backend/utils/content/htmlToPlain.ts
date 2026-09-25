@@ -7,6 +7,8 @@ export function htmlToPlainText(html: string): string {
     return html
         .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
         .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+        .replace(/<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>[\s\S]*?<\/a>/gi, "$1")
+        .replace(/<a\b[^>]*>[\s\S]*?<\/a>/gi, "")
         .replace(/<br\s*\/?>/gi, "\n")
         .replace(/<\/(?:p|div|li|h[1-6])>/gi, "\n")
         .replace(/<[^>]+>/g, "")

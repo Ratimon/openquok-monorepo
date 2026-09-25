@@ -33,7 +33,7 @@
 				Back
 			</Button>
 			<SectionTitle>Cookie Policy</SectionTitle>
-			<SectionDescription>Last updated Mar 11, 2025</SectionDescription>
+			<SectionDescription>Last updated September 24, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -57,9 +57,27 @@
 				How We Use Cookies</h2>
 			<p>
 				We use cookies for essential functionality, to personalize your experience, and to
-				analyze usage. Essential cookies are necessary for the site to work and cannot be
-				disabled.
+				analyze usage. Essential cookies are necessary for the site to work, including
+				security and fraud prevention. They are strictly necessary and are not controlled by
+				a marketing or analytics consent choice. Analytics cookies, when we use them, stay
+				separate from these essential cookies.
 			</p>
+
+			<h2>
+				Essential cookies we set</h2>
+			<ul>
+				<li>
+					<strong><code>oq_cloud_trial_browser</code></strong> — a first-party cookie that
+					stores a random identifier so we can offer <strong>one</strong> Cloud free trial
+					per browser. We use it to prevent repeat trials, including when someone registers
+					again with a different email on the same browser. We keep it for about one year.
+					See section 5 of our
+					<a href="/terms" class="link link-hover">Terms of Service</a>
+					and the
+					<a href="/docs/cloud/trial" class="link link-hover">free trial</a>
+					documentation.
+				</li>
+			</ul>
 
 			<h2>
 				Managing Cookies</h2>

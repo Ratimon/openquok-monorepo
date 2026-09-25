@@ -3,6 +3,7 @@ import type { AuthenticationService } from "../services/AuthenticationService";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
 import type { OrganizationService } from "../services/OrganizationService";
+import type { TrialBrowserService } from "../services/TrialBrowserService";
 import type { UserService } from "../services/UserService";
 import type { RbacService } from "../guards/rbac/RbacService";
 
@@ -28,6 +29,7 @@ import { logger } from "../utils/Logger";
 import { normalizeEmail } from "../utils/validation/email";
 import { AuthUserDTOMapper } from "../utils/dtos/AuthUserDTO";
 import { clearWorkspaceSessionCookies } from "../utils/session/sessionCookies";
+import { resolveCloudTrialBrowserSignalFromRequest } from "../utils/billing/resolveCloudTrialBrowserSignal";
 
 const serverConfig = config.server as {
     nodeEnv?: string;
@@ -42,6 +44,7 @@ export class AuthController {
     private emailService: EmailService;
     private organizationService: OrganizationService;
     private rbacService: RbacService;
+    private trialBrowserService: TrialBrowserService;
 
     /**
      * Best-effort "site" key for SameSite decisions (eTLD+1-ish).
@@ -160,7 +163,8 @@ export class AuthController {
         userService: UserService,
         emailService: EmailService,
         organizationService: OrganizationService,
-        rbacService: RbacService
+        rbacService: RbacService,
+        trialBrowserService: TrialBrowserService
     ) {
         this.authenticationService = authenticationService;
         this.userRepository = userRepository;
@@ -168,6 +172,19 @@ export class AuthController {
         this.emailService = emailService;
         this.organizationService = organizationService;
         this.rbacService = rbacService;
+        this.trialBrowserService = trialBrowserService;
+    }
+
+    private async persistCloudTrialBrowserSignalForAuthUser(
+        req: Request,
+        authUserId: string,
+        bodyField?: string | null
+    ): Promise<string | null> {
+        const signal = resolveCloudTrialBrowserSignalFromRequest(req, bodyField);
+        if (signal) {
+            await this.trialBrowserService.persistUserBrowserSignal(authUserId, signal);
+        }
+        return signal;
     }
 
     /**
@@ -296,6 +313,12 @@ export class AuthController {
                 {
                     name: fullName || "My Organization",
                     email,
+                },
+                {
+                    browserSignalId: await this.persistCloudTrialBrowserSignalForAuthUser(
+                        req,
+                        authUser.id
+                    ),
                 }
             );
             if (!defaultOrg) {
@@ -325,7 +348,7 @@ export class AuthController {
 
     public signUp: validateSignUpRequestHandler = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const { email: rawEmail, password, fullName } = req.body;
+            const { email: rawEmail, password, fullName, cloudTrialBrowserSignalId } = req.body;
             const email = normalizeEmail(rawEmail);
 
             const isEmailVerified = await this.userRepository.checkIfEmailVerified(email);
@@ -377,10 +400,19 @@ export class AuthController {
 
             // Create default organization for new user (best-effort).
             if (newUser?.id) {
-                const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(newUser.id, {
-                    name: fullName ?? "My Organization",
-                    email,
-                });
+                const browserSignal = await this.persistCloudTrialBrowserSignalForAuthUser(
+                    req,
+                    newUser.id,
+                    cloudTrialBrowserSignalId
+                );
+                const defaultOrg = await this.organizationService.createDefaultOrganizationForNewUser(
+                    newUser.id,
+                    {
+                        name: fullName ?? "My Organization",
+                        email,
+                    },
+                    { browserSignalId: browserSignal }
+                );
                 if (!defaultOrg) {
                     logger.warn({ msg: "Default organization creation failed at signup", userId: newUser.id });
                 }

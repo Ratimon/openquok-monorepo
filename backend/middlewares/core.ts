@@ -15,6 +15,7 @@ import {
 import { applyPublicCmsCacheHeaders } from "../middlewares/publicCmsCacheHeaders";
 import { applyMaintenanceMode } from "../middlewares/maintenanceMode";
 import { applyRateLimiting } from "../middlewares/rateLimit";
+import { trialBrowserSignalMiddleware } from "../middlewares/trialBrowserSignalMiddleware";
 import { logger } from "../utils/Logger";
 
 interface RequestWithId extends Request {
@@ -41,6 +42,7 @@ function configureCoreMiddleware(app: Express, config: ConfigObject, supabase: S
         return express.urlencoded({ extended: true, limit })(req, res, next);
     });
     app.use(cookieParser());
+    app.use(trialBrowserSignalMiddleware);
 
     app.use((req: RequestWithId, res: Response, next: NextFunction) => {
         req.id = uuidv4();

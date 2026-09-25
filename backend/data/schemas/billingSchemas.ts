@@ -16,6 +16,7 @@ export const billingSubscribeBodySchema = z.object({
         .string()
         .trim()
         .regex(/^price_/, "stripePriceId must be a Stripe Price id (price_…)"),
+    cloudTrialBrowserSignalId: z.string().uuid().optional(),
 });
 
 export const billingOrganizationQuerySchema = z.object({

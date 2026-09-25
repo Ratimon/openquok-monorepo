@@ -21,6 +21,7 @@ import {
     storageSupabaseRepository,
     subscriptionRepository,
     acquisitionSurveyRepository,
+    trialBrowserRepository,
 } from "../repositories/index";
 import { AuthenticationService } from "./AuthenticationService";
 import { UserService } from "./UserService";
@@ -52,6 +53,7 @@ import { SubscriptionService } from "./SubscriptionService";
 import { UserSessionService } from "./UserSessionService";
 import { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import { StripeService } from "./StripeService";
+import { TrialBrowserService } from "./TrialBrowserService";
 import { TrackService } from "./TrackService";
 import { InternalOpsEmailService } from "./InternalOpsEmailService";
 import { AcquisitionSurveyService } from "./AcquisitionSurveyService";
@@ -187,6 +189,8 @@ export const oauthAppService = new OauthAppService(
     subscriptionGuard
 );
 
+export const trialBrowserService = new TrialBrowserService(trialBrowserRepository, userRepository);
+
 export const organizationService = new OrganizationService(
     organizationRepository,
     userRepository,
@@ -194,7 +198,8 @@ export const organizationService = new OrganizationService(
     cacheServiceConnection,
     cacheInvalidationServiceConnection,
     subscriptionGuard,
-    oauthAppService
+    oauthAppService,
+    trialBrowserService
 );
 export const oauthService = new OauthService(oauthAppRepository, organizationRepository, mediaRepository);
 export const postsService = new PostsService(
@@ -212,7 +217,8 @@ export const stripeService = new StripeService(
     subscriptionRepository,
     subscriptionService,
     organizationRepository,
-    userRepository
+    userRepository,
+    trialBrowserService
 );
 export const trackService = new TrackService();
 export const acquisitionSurveyService = new AcquisitionSurveyService(
@@ -266,6 +272,7 @@ export { AnalyticsService } from "./AnalyticsService";
 export { SubscriptionService } from "./SubscriptionService";
 export { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 export { StripeService } from "./StripeService";
+export { TrialBrowserService } from "./TrialBrowserService";
 export { TrackService } from "./TrackService";
 export { InternalOpsEmailService } from "./InternalOpsEmailService";
 export { AcquisitionSurveyService } from "./AcquisitionSurveyService";

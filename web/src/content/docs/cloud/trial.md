@@ -2,7 +2,7 @@
 title: Free trial
 description: OpenQuok Cloud 7-day trial — eligibility, abuse policy, payment checks, limits, early finish, cancel, and day 7 billing.
 order: 2
-lastUpdated: 2026-09-23
+lastUpdated: 2026-09-24
 sidebar:
   label: Free Trial
 ---
@@ -23,7 +23,7 @@ This page applies to **hosted Cloud** at openquok.com.
 
 ## Who gets a trial
 
-You may receive **one** trial per **account** and per **payment customer**. This matches <a href="/terms">Terms of Service</a>.
+You may receive **one** trial per **account**, per **payment customer**, and per **browser**. This matches <a href="/terms">Terms of Service</a> section 5.
 
 You will not be eligible for a trial if:
 
@@ -31,8 +31,15 @@ You will not be eligible for a trial if:
 - You already subscribed on this account or payment customer
 - You canceled and try to subscribe again
 - You create another workspace after you used your trial
+- This browser already used a Cloud trial
 
-The trial is **one per person**, not one per email address. If you register again with a different email to get another trial, that breaks the rules even when checkout allows it.
+<Callout type="warning">
+<p>
+Trials are also limited by a first-party browser cookie, <code>oq&#95;cloud&#95;trial&#95;browser</code>, which we keep for about one year. We use it so the same browser cannot start another Cloud trial, including after a new signup with a different email. Clearing cookies does not create a new trial entitlement. See the <a href="/cookie-policy">Cookie Policy</a>.
+</p>
+</Callout>
+
+The trial is **one per person**, not one per email address. Registering again with a different email on the same browser does not start another trial.
 
 <Callout type="warning">
 <p>If we find repeat trials, shared payment details, or other signs that one person is abusing eligibility, we may <strong>end the trial</strong>, require <strong>immediate paid billing</strong>, or <strong>suspend or close</strong> the affected accounts. We do not owe a second trial.

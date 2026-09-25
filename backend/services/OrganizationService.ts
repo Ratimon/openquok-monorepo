@@ -11,6 +11,7 @@ import type CacheService from "../connections/cache/CacheService";
 import type CacheInvalidationService from "../connections/cache/CacheInvalidationService";
 import type { SubscriptionGuardService } from "../guards/subscription/SubscriptionGuardService";
 import type { OauthAppService } from "./OauthAppService";
+import type { TrialBrowserService } from "./TrialBrowserService";
 
 import { OrganizationNotFoundError, OrganizationForbiddenError } from "../errors/OrganizationError";
 import { UserNotFoundError } from "../errors/UserError";
@@ -47,7 +48,8 @@ export class OrganizationService {
         private readonly cache?: CacheService,
         private readonly cacheInvalidator?: CacheInvalidationService,
         private readonly subscriptionGuard?: SubscriptionGuardService,
-        private readonly oauthAppService?: OauthAppService
+        private readonly oauthAppService?: OauthAppService,
+        private readonly trialBrowserService?: TrialBrowserService
     ) {}
 
     /** Invite a team member by email: create signed invite link and optionally send email. */
@@ -257,6 +259,14 @@ export class OrganizationService {
         return userId;
     }
 
+    private async resolveAllowTrialForNewOrganization(
+        browserSignalId?: string | null
+    ): Promise<boolean | undefined> {
+        if (!this.trialBrowserService?.billingEnabled()) return undefined;
+        const consumed = await this.trialBrowserService.hasBrowserConsumedTrial(browserSignalId);
+        return consumed ? false : undefined;
+    }
+
     /** Get role level for permission checks. */
     private getRoleLevel(role: string): number {
         return ROLE_LEVEL[role] ?? -1;
@@ -335,16 +345,19 @@ export class OrganizationService {
     /** Create organization and add the current user as owner. Returns row; controller maps to DTO. */
     async createOrganization(
         authUserId: string,
-        params: { name: string; description?: string | null }
+        params: { name: string; description?: string | null },
+        options?: { browserSignalId?: string | null }
     ): Promise<OrganizationLike> {
         await this.subscriptionGuard?.assert(SubscriptionSection.WORKSPACES, {
             scope: "account",
             authUserId,
         });
         const userId = await this.resolveAuthUserToUserId(authUserId);
+        const allowTrial = await this.resolveAllowTrialForNewOrganization(options?.browserSignalId);
         const { organization, error } = await this.organizationRepository.createOrganization({
             ...params,
             userId,
+            ...(allowTrial === false ? { allowTrial: false } : {}),
         });
         if (error) throw error as Error;
         await this._invalidateOrganizationRelatedCaches({ authUserId });
@@ -366,13 +379,18 @@ export class OrganizationService {
      */
     async createDefaultOrganizationForNewUser(
         authUserId: string,
-        params?: { name?: string; email?: string }
+        params?: { name?: string; email?: string },
+        options?: { browserSignalId?: string | null }
     ): Promise<OrganizationLike | null> {
         try {
-            return await this.createOrganization(authUserId, {
-                name: params?.name?.trim() || "My Organization",
-                description: null,
-            });
+            return await this.createOrganization(
+                authUserId,
+                {
+                    name: params?.name?.trim() || "My Organization",
+                    description: null,
+                },
+                options
+            );
         } catch (err) {
             logger.warn({
                 msg: "createDefaultOrganizationForNewUser failed",
@@ -390,14 +408,15 @@ export class OrganizationService {
      */
     async ensureDefaultOrganizationForUser(
         authUserId: string,
-        params?: { name?: string; email?: string }
+        params?: { name?: string; email?: string },
+        options?: { browserSignalId?: string | null }
     ): Promise<OrganizationLike | null> {
         try {
             const { organizations } = await this.listMyOrganizations(authUserId);
             if (organizations.length > 0) {
                 return organizations[0] ?? null;
             }
-            return await this.createDefaultOrganizationForNewUser(authUserId, params);
+            return await this.createDefaultOrganizationForNewUser(authUserId, params, options);
         } catch (err) {
             logger.warn({
                 msg: "ensureDefaultOrganizationForUser failed",

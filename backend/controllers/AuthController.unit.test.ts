@@ -6,6 +6,7 @@ import type { AuthenticationService } from "../services/AuthenticationService";
 import type { UserRepository } from "../repositories/UserRepository";
 import type { EmailService } from "../services/EmailService";
 import type { OrganizationService } from "../services/OrganizationService";
+import type { TrialBrowserService } from "../services/TrialBrowserService";
 import type { UserService } from "../services/UserService";
 import type { RbacService } from "../guards/rbac/RbacService";
 import type { UserLike } from "../utils/dtos/UserDTO";
@@ -77,6 +78,9 @@ describe("AuthController.signUp", () => {
         organizationService = {
             createDefaultOrganizationForNewUser: jest.fn().mockResolvedValue({ id: "org-1" }),
         };
+        const trialBrowserService = {
+            persistUserBrowserSignal: jest.fn().mockResolvedValue(undefined),
+        };
 
         controller = new AuthController(
             authenticationService as unknown as AuthenticationService,
@@ -84,7 +88,8 @@ describe("AuthController.signUp", () => {
             {} as UserService,
             emailService as unknown as EmailService,
             organizationService as unknown as OrganizationService,
-            {} as RbacService
+            {} as RbacService,
+            trialBrowserService as unknown as TrialBrowserService
         );
     });
 

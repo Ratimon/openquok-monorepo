@@ -1,5 +1,6 @@
 import type { HttpGateway } from '$lib/core/HttpGateway';
 import type { AuthStatusModel } from '$lib/user-auth/AuthStatus.model.svelte';
+import { cloudTrialBrowserSignalRequestField } from '$lib/billing/utils/cloudTrialBrowserSignal';
 import { ApiError } from '$lib/core/HttpGateway';
 import { AuthStatus } from '$lib/user-auth/AuthStatus.model.svelte';
 import { dev } from '$app/environment';
@@ -343,7 +344,12 @@ export class AuthenticationRepository {
 		try {
 			const response = await this.httpGateway.post<SignupResponseDto>(
 				this.config.endpoints.signup,
-				{ email: credentials.email, password: credentials.password, fullName: credentials.fullName },
+				{
+					email: credentials.email,
+					password: credentials.password,
+					fullName: credentials.fullName,
+					...cloudTrialBrowserSignalRequestField()
+				},
 				{ withCredentials: true, skipInterceptors: true }
 			);
 			const { data: signupDto, ok } = response;

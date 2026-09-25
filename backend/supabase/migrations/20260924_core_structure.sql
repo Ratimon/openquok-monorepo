@@ -86,6 +86,22 @@ COMMENT ON COLUMN public.user_profiles.website_url IS 'User website URL (renamed
 -- ---------------------------
 
 
+-- Module: user-management, File: 101_20260924_tables.sql
+-- ---------------------------
+-- MODULE NAME: User Management
+-- MODULE DATE: 20260924
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+ALTER TABLE public.users
+    ADD COLUMN cloud_trial_browser_signal_id UUID NULL;
+
+COMMENT ON COLUMN public.users.cloud_trial_browser_signal_id IS
+    'Last seen first-party browser signal for Cloud trial enforcement (signup, OAuth, billing).';
+
+
 -- Module: user-auth, File: 102_20260227_tables.sql
 -- ---------------------------
 -- MODULE NAME: User Auth
@@ -250,6 +266,31 @@ COMMENT ON COLUMN public.organization_subscriptions.current_period_end IS 'Strip
 CREATE INDEX IF NOT EXISTS idx_organization_subscriptions_customer
     ON public.organization_subscriptions (organization_id)
     WHERE deleted_at IS NULL;
+
+
+-- Module: billing, File: 102_20260924_tables.sql
+-- ---------------------------
+-- MODULE NAME: Billing
+-- MODULE DATE: 20260924
+-- MODULE SCOPE: Tables
+-- ---------------------------
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS public.cloud_trial_browser_consumptions (
+    browser_signal_id UUID PRIMARY KEY,
+    consumed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE
+);
+
+COMMENT ON TABLE public.cloud_trial_browser_consumptions IS
+    'Browsers that have consumed a Cloud free trial; one row per browser_signal_id (first-party cookie).';
+COMMENT ON COLUMN public.cloud_trial_browser_consumptions.browser_signal_id IS
+    'Stable UUID from oq_cloud_trial_browser cookie / cloudTrialBrowserSignalId request field.';
+COMMENT ON COLUMN public.cloud_trial_browser_consumptions.consumed_at IS
+    'When the trial was first consumed on this browser signal.';
+COMMENT ON COLUMN public.cloud_trial_browser_consumptions.user_id IS
+    'User account that consumed the trial on this browser (audit and support).';
 
 
 -- Module: media, File: 102_20260417_tables.sql
@@ -2177,6 +2218,29 @@ GRANT ALL ON public.organization_subscriptions TO service_role;
 DROP POLICY IF EXISTS organization_subscriptions_service_role_all ON public.organization_subscriptions;
 CREATE POLICY organization_subscriptions_service_role_all
     ON public.organization_subscriptions
+    FOR ALL
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+
+-- Module: billing, File: 302_20260924_rlsgrants.sql
+-- ---------------------------
+-- MODULE NAME: Billing
+-- MODULE DATE: 20260924
+-- MODULE SCOPE: RLS + grants
+-- ---------------------------
+-- Backend service_role only; no authenticated client access.
+
+BEGIN;
+
+ALTER TABLE public.cloud_trial_browser_consumptions ENABLE ROW LEVEL SECURITY;
+
+GRANT ALL ON public.cloud_trial_browser_consumptions TO service_role;
+
+DROP POLICY IF EXISTS cloud_trial_browser_consumptions_service_role_all ON public.cloud_trial_browser_consumptions;
+CREATE POLICY cloud_trial_browser_consumptions_service_role_all
+    ON public.cloud_trial_browser_consumptions
     FOR ALL
     TO service_role
     USING (true)

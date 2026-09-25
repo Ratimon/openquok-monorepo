@@ -23,8 +23,11 @@ import type {
 import type { SubscriptionService } from "./SubscriptionService";
 import type { OrganizationRepository } from "../repositories/OrganizationRepository";
 import type { UserRepository } from "../repositories/UserRepository";
+import type { TrialBrowserService } from "./TrialBrowserService";
+import { normalizeCloudTrialBrowserSignal } from "../utils/billing/resolveCloudTrialBrowserSignal";
 
 const STRIPE_SERVICE_METADATA = "openquok";
+const STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL = "cloudTrialBrowserSignalId";
 
 export type CheckoutPollStatus = {
     status: 0 | 1 | 2;
@@ -57,7 +60,8 @@ export class StripeService {
         private readonly subscriptionRepository: SubscriptionRepository,
         private readonly subscriptionService: SubscriptionService,
         private readonly organizationRepository: OrganizationRepository,
-        private readonly userRepository: UserRepository
+        private readonly userRepository: UserRepository,
+        private readonly trialBrowserService?: TrialBrowserService
     ) {}
 
     private frontendUrl(): string {
@@ -214,13 +218,17 @@ export class StripeService {
     /** One 7-day Cloud trial per account and per Stripe customer (org flag + user + Stripe history). */
     async resolveCheckoutTrialEligibility(
         organizationId: string,
-        userId: string
+        userId: string,
+        browserSignalId?: string | null
     ): Promise<boolean> {
         const org = await this.subscriptionRepository.getOrganizationBilling(organizationId);
         if (!org?.allow_trial) {
             return false;
         }
         if (await this.subscriptionRepository.hasUserConsumedCloudTrial(userId)) {
+            return false;
+        }
+        if (this.billingEnabled() && (await this.trialBrowserService?.hasBrowserConsumedTrial(browserSignalId))) {
             return false;
         }
         const customer = org.stripe_customer_id?.trim();
@@ -425,9 +433,13 @@ export class StripeService {
         userId: string;
         body: BillingSubscribeBody;
         allowTrial: boolean;
+        cloudTrialBrowserSignalId?: string | null;
     }): Promise<{ url?: string; clientSecret?: string; updated?: boolean; portal?: string }> {
         const customer = await this.createOrGetCustomer(params.organizationId);
         const uniqueId = makeId(12);
+        const browserSignalMetadata = this.cloudTrialBrowserStripeMetadata(
+            params.cloudTrialBrowserSignalId
+        );
         const priceId = await this.resolvePriceId(
             params.body.billing,
             params.body.period,
@@ -464,6 +476,7 @@ export class StripeService {
                             uniqueId,
                             userId: params.userId,
                             organizationId: params.organizationId,
+                            ...browserSignalMetadata,
                         },
                     });
                     await this.syncSubscriptionFromStripe(updated);
@@ -507,6 +520,7 @@ export class StripeService {
                         uniqueId,
                         userId: params.userId,
                         organizationId: params.organizationId,
+                        ...browserSignalMetadata,
                     },
                 },
                 metadata: {
@@ -951,6 +965,7 @@ export class StripeService {
         userId: string;
         body: BillingSubscribeBody;
         allowTrial: boolean;
+        cloudTrialBrowserSignalId?: string | null;
     }): Promise<{ clientSecret?: string }> {
         // Customer lookup and price assert are independent Stripe round-trips — overlap them.
         const [customer, priceId] = await Promise.all([
@@ -962,6 +977,9 @@ export class StripeService {
             ),
         ]);
         const uniqueId = makeId(12);
+        const browserSignalMetadata = this.cloudTrialBrowserStripeMetadata(
+            params.cloudTrialBrowserSignalId
+        );
         const frontend = this.frontendUrl();
         if (!frontend) {
             throw new UserValidationError(
@@ -988,6 +1006,7 @@ export class StripeService {
                         uniqueId,
                         userId: params.userId,
                         organizationId: params.organizationId,
+                        ...browserSignalMetadata,
                     },
                 },
                 metadata: {
@@ -1132,6 +1151,28 @@ export class StripeService {
         return metadata?.period === "YEARLY" ? "YEARLY" : "MONTHLY";
     }
 
+    private cloudTrialBrowserStripeMetadata(
+        signalId?: string | null
+    ): Record<string, string> {
+        const normalized = normalizeCloudTrialBrowserSignal(signalId);
+        if (!normalized) return {};
+        return { [STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL]: normalized };
+    }
+
+    private async resolveBrowserSignalForTrialConsumption(
+        metadata: Stripe.Metadata,
+        publicUserId: string | null
+    ): Promise<string | null> {
+        const fromMeta = normalizeCloudTrialBrowserSignal(
+            typeof metadata[STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL] === "string"
+                ? metadata[STRIPE_METADATA_CLOUD_TRIAL_BROWSER_SIGNAL]
+                : null
+        );
+        if (fromMeta) return fromMeta;
+        if (!publicUserId?.trim() || !this.trialBrowserService) return null;
+        return this.trialBrowserService.getUserBrowserSignal(publicUserId);
+    }
+
     /**
      * Aligns the local subscription row with Stripe (e.g. after Dashboard cancel or missed webhooks).
      * Soft-deletes the DB row when the customer has no open billable openquok subscription.
@@ -1203,6 +1244,8 @@ export class StripeService {
             typeof metadata.uniqueId === "string" ? metadata.uniqueId : subscription.id;
         const period = this.periodFromMetadata(metadata);
         const isTrialing = subscription.status === "trialing";
+        const publicUserId =
+            typeof metadata.userId === "string" ? metadata.userId.trim() : "";
         const cancelAt = this.resolveCancelAtFromStripe(subscription);
         const cps =
             typeof (subscription as any)?.current_period_start === "number"
@@ -1224,6 +1267,19 @@ export class StripeService {
             currentPeriodStart: cps,
             currentPeriodEnd: cpe,
         });
+
+        if (isTrialing && publicUserId) {
+            const browserSignal = await this.resolveBrowserSignalForTrialConsumption(
+                metadata,
+                publicUserId
+            );
+            if (browserSignal) {
+                await this.trialBrowserService?.recordBrowserTrialConsumption(
+                    browserSignal,
+                    publicUserId
+                );
+            }
+        }
     }
 
     async handleWebhookEvent(event: Stripe.Event): Promise<void> {

@@ -10,6 +10,12 @@ describe("stripComposerBodyForEditor", () => {
         expect(stripComposerBodyForEditor("normal", "<p>Hello<br>world</p>")).toBe("Hello\nworld");
     });
 
+    it("normal mode uses link hrefs in plain text output", () => {
+        expect(
+            stripComposerBodyForEditor("normal", '<p>Hello <a href="https://example.com">link</a></p>')
+        ).toBe("Hello https://example.com");
+    });
+
     it("none mode matches normal plain-text output today", () => {
         const html = "<p><strong>Bold</strong> text</p>";
         expect(stripComposerBodyForEditor("none", html)).toBe(

@@ -2,7 +2,7 @@
 title: Development environment
 description: Run OpenQuok's agent, backend, workers and web apps locally, execute tests, database scripts, and deployment commands.
 order: 0
-lastUpdated: 2026-07-16
+lastUpdated: 2026-09-24
 ---
 
 <script>
@@ -42,6 +42,8 @@ pnpm backend:test:unit
 pnpm backend:test:integration
 pnpm backend:test:e2e
 ```
+
+Append a name or file path after `--` to run a subset of backend unit tests (for example `pnpm backend:test:unit -- TrialBrowserService`).
 
 <Callout type="note">
 <p>Some integration tests are designed to verify connectivity for third-party services (eg. R2 or Redis). They are <strong>disabled by default</strong> to avoid accidental calls to production.</p>
@@ -104,6 +106,8 @@ pnpm test:unit
 pnpm test:integration
 pnpm test:e2e
 ```
+
+Same filter: `pnpm test:unit -- TrialBrowserService` (or `pnpm test:unit:trial-browser`).
 
 **Aggregate SQL migrations**
 

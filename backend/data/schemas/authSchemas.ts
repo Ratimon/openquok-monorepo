@@ -35,6 +35,7 @@ const SignUpFormSchema = z.object({
     email: emailRequirements,
     password: passwordRequirements,
     fullName: fullNameRequirements.optional(),
+    cloudTrialBrowserSignalId: z.string().uuid().optional(),
 });
 const validateSignUpRequest: RequestHandler = validateRequest({ body: SignUpFormSchema });
 export type validateSignUpRequestHandler = typeof validateSignUpRequest;

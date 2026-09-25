@@ -14,6 +14,7 @@ import {
     type SubscriptionGuardService,
 } from "../guards/subscription/SubscriptionGuardService";
 import type { StripeService } from "../services/StripeService";
+import type { TrialBrowserService } from "../services/TrialBrowserService";
 import type {
     OrganizationSubscriptionRow,
     SubscriptionRepository,
@@ -24,6 +25,7 @@ import { resolveActiveOrganizationId } from "../utils/session/resolveActiveOrgan
 import { config } from "../config/GlobalConfig";
 import { signBillingDiscountToken } from "../utils/auth/billingDiscountToken";
 import { logger } from "../utils/Logger";
+import { resolveCloudTrialBrowserSignalFromRequest } from "../utils/billing/resolveCloudTrialBrowserSignal";
 
 export class BillingController {
     constructor(
@@ -31,7 +33,8 @@ export class BillingController {
         private readonly subscriptionGuard: SubscriptionGuardService,
         private readonly stripeService: StripeService,
         private readonly subscriptionRepository: SubscriptionRepository,
-        private readonly emailService: EmailService
+        private readonly emailService: EmailService,
+        private readonly trialBrowserService: TrialBrowserService
     ) {}
 
     getPlans = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -112,7 +115,8 @@ export class BillingController {
             const data = await this.buildCurrentBillingData(
                 organizationId,
                 authUser?.id,
-                authUser?.publicId
+                authUser?.publicId,
+                resolveCloudTrialBrowserSignalFromRequest(req)
             );
             res.status(200).json({ success: true, data });
         } catch (error) {
@@ -132,6 +136,7 @@ export class BillingController {
                 period: "MONTHLY" | "YEARLY";
                 billing: PaidSubscriptionTier;
                 stripePriceId: string;
+                cloudTrialBrowserSignalId?: string;
             };
 
             const organizationId =
@@ -150,9 +155,18 @@ export class BillingController {
                 throw new UserValidationError("Authentication required");
             }
 
+            const browserSignal = resolveCloudTrialBrowserSignalFromRequest(
+                req,
+                body.cloudTrialBrowserSignalId
+            );
+            if (browserSignal) {
+                await this.trialBrowserService.persistUserBrowserSignal(authUser.id, browserSignal);
+            }
+
             const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
                 organizationId,
-                publicUserId
+                publicUserId,
+                browserSignal
             );
 
             const result = await this.stripeService.subscribe({
@@ -164,6 +178,7 @@ export class BillingController {
                     stripePriceId: body.stripePriceId,
                 },
                 allowTrial,
+                cloudTrialBrowserSignalId: browserSignal,
             });
 
             res.status(200).json({ success: true, data: result });
@@ -184,6 +199,7 @@ export class BillingController {
                 period: "MONTHLY" | "YEARLY";
                 billing: PaidSubscriptionTier;
                 stripePriceId: string;
+                cloudTrialBrowserSignalId?: string;
             };
 
             const organizationId =
@@ -202,9 +218,18 @@ export class BillingController {
                 throw new UserValidationError("Authentication required");
             }
 
+            const browserSignal = resolveCloudTrialBrowserSignalFromRequest(
+                req,
+                body.cloudTrialBrowserSignalId
+            );
+            if (browserSignal) {
+                await this.trialBrowserService.persistUserBrowserSignal(authUser.id, browserSignal);
+            }
+
             const allowTrial = await this.stripeService.resolveCheckoutTrialEligibility(
                 organizationId,
-                publicUserId
+                publicUserId,
+                browserSignal
             );
 
             const result = await this.stripeService.createEmbeddedCheckout({
@@ -216,6 +241,7 @@ export class BillingController {
                     stripePriceId: body.stripePriceId,
                 },
                 allowTrial,
+                cloudTrialBrowserSignalId: browserSignal,
             });
 
             res.status(200).json({ success: true, data: result });
@@ -442,7 +468,8 @@ export class BillingController {
     async buildCurrentBillingData(
         organizationId: string,
         authUserId?: string,
-        publicUserId?: string
+        publicUserId?: string,
+        browserSignalId?: string | null
     ) {
         try {
             await this.stripeService.reconcileSubscriptionWithStripe(organizationId, authUserId);
@@ -515,7 +542,8 @@ export class BillingController {
                         effectiveAllowTrial =
                             await this.stripeService.resolveCheckoutTrialEligibility(
                                 billingOrganizationId,
-                                publicUserId
+                                publicUserId,
+                                browserSignalId
                             );
                     } catch (error) {
                         logger.warn({

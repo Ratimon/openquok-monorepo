@@ -84,3 +84,12 @@ export {
 	wouldRemoveTeamMembers,
 	TEAM_MEMBER_DOWNGRADE_MESSAGE
 } from '$lib/billing/utils/planChangeWarnings';
+export {
+	CLOUD_TRIAL_BROWSER_COOKIE_MAX_AGE_SECONDS,
+	CLOUD_TRIAL_BROWSER_COOKIE_NAME
+} from '$lib/billing/constants/cloudTrialBrowserSignal';
+export {
+	cloudTrialBrowserSignalRequestField,
+	ensureCloudTrialBrowserSignal,
+	getCloudTrialBrowserSignalId
+} from '$lib/billing/utils/cloudTrialBrowserSignal';

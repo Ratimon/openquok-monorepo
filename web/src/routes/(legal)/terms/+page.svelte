@@ -37,7 +37,7 @@
 				Back
 			</Button>
 			<SectionTitle>Terms and Conditions of Use for {companyName}</SectionTitle>
-			<SectionDescription>Last updated September 23, 2026</SectionDescription>
+			<SectionDescription>Last updated September 24, 2026</SectionDescription>
 		</SectionHeaderContainer>
 		<SubSectionOuterContainer class="max-w-3xl !py-4">
 			<SubSectionInnerContainer
@@ -133,7 +133,9 @@
 					receive <strong>one</strong> such trial per person or account and per payment customer (for
 					example the Stripe customer on file). Repeat trials after cancellation, resubscription, a
 					new workspace, re-registration, or use of a different email address by the same person are
-					not permitted. We may end or adjust a trial, require immediate paid billing, or suspend or
+					not permitted. We may use a strictly necessary browser cookie, described in our
+					<a href="/cookie-policy" class="link link-hover">Cookie Policy</a>, to apply this
+					limit. We may end or adjust a trial, require immediate paid billing, or suspend or
 					close accounts when eligibility rules are not met or when we reasonably believe trial
 					eligibility was abused.
 				</p>

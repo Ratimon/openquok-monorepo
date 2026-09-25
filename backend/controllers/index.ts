@@ -56,6 +56,7 @@ import {
     analyticsService,
     userSessionService,
     acquisitionSurveyService,
+    trialBrowserService,
 } from "../services/index";
 import { TrackController } from "./TrackController";
 import { subscriptionRepository } from "../repositories/index";
@@ -68,7 +69,8 @@ export const authController = new AuthController(
     userService,
     emailService,
     organizationService,
-    rbacService
+    rbacService,
+    trialBrowserService
 );
 export const userController = new UserController(
     userService,
@@ -100,7 +102,8 @@ export const billingController = new BillingController(
     subscriptionGuard,
     stripeService,
     subscriptionRepository,
-    emailService
+    emailService,
+    trialBrowserService
 );
 export const stripeWebhookController = new StripeWebhookController(stripeService);
 export { MAX_MEDIA_UPLOAD_BYTES };

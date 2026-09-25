@@ -17,6 +17,7 @@
 	import GoogleAnalytics from '$lib/product-analytics/GoogleAnalytics.svelte';
 	import PostHogPageview from '$lib/product-analytics/PostHogPageview.svelte';
 	import UtmAttribution from '$lib/product-analytics/UtmAttribution.svelte';
+	import CloudTrialBrowserSignal from '$lib/billing/CloudTrialBrowserSignal.svelte';
 
 	type Props = {
 		data: PageData & App.LayoutData;
@@ -81,6 +82,7 @@
 <GoogleAnalytics {MEASUREMENT_ID} />
 <PostHogPageview />
 <UtmAttribution />
+<CloudTrialBrowserSignal />
 <FacebookPixel />
 <MetaTags {...metaTags} />
 <svelte:head>
