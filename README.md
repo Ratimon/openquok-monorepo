@@ -230,9 +230,10 @@ Learn more at [Architecture](https://www.openquok.com/docs/getting-started-for-d
 - [LinkedIn](https://www.linkedin.com/company/openquok)
 - [Discord](https://discord.gg/wXgWcYzU4)
 
-**Blog**
+**Featured Blogs**
 
 - [Warm up a TikTok account](https://www.openquok.com/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience) — device setup and posting cadence before you scale carousels or agent-scheduled posts
+- [Meta Business verification for Facebook apps](https://www.openquok.com/blog/how-to-pass-meta-business-verification-for-a-facebook-app-or-skip-it-with-openquok) — pass Meta’s checks or connect Facebook through OpenQuok without a standalone app review path
 
 **Contributing**
 
