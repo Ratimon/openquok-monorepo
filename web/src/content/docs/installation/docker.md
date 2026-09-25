@@ -13,11 +13,9 @@ import { Badge, Callout, CardGrid, DocsExternalLink, LinkCard, Steps } from '$li
 
 OpenQuok publishes **multi-architecture** container images for the self-host stack so you can skip local TypeScript builds for the API, BullMQ workers, and (optionally) the agent server. Images are built from this monorepo when maintainers push a git tag such as <Badge text="self-host-v1.0.0" variant="default" /> (image tag <Badge text="1.0.0" variant="default" />).
 
-<Callout type="tip" title="Default path for most operators">
+<Callout type="tip" title="Default path">
 <p>Clone the repo, configure <Badge text="infra/self-host/.env" variant="path" />, and run <code>docker compose … up --build</code> — see <a href="/docs/installation/docker-compose">Docker Compose (self-host)</a>. Use this page when you want <strong>registry pulls</strong> for faster bring-up on the same machine architecture.</p>
 </Callout>
-
-Compose definitions live in the monorepo under <Badge text="infra/self-host/" variant="path" /> — there is no separate compose-only repository. You still need a **Supabase** project (hosted or local on the host) and a filled <Badge text=".env" variant="path" /> before the stack will run.
 
 ## Registries and image names
 
@@ -64,7 +62,7 @@ Base compose file <Badge text="infra/self-host/docker-compose.yml" variant="path
 <p><Badge text="VITE_*" variant="envWeb" /> values are baked into the <code>web</code> image at <strong>build</strong> time. CI publishes a web image with self-host-friendly defaults (empty Supabase/Stripe keys, <Badge text="VITE_API_BASE_URL" variant="envWeb" /> empty for same-origin proxy, <Badge text="VITE_FRONTEND_DOMAIN_URL=http://localhost:4007" variant="envWeb" />). If your Supabase URL, publishable key, or public site URL differ, <strong>build the web service locally</strong> — do not set <Badge text="OPENQUOK_PULL_WEB" variant="envBackend" /> unless you know the pulled bundle matches your <Badge text=".env" variant="path" />.</p>
 </Callout>
 
-<Callout type="note" title="Future: runtime VITE injection">
+<Callout type="note">
 <p>A single universal pulled web image for every Supabase project would require runtime injection of public config — that is not available today. Until then, treat pulled <code>openquok-web</code> as an optional shortcut for localhost demos, not a substitute for <code>compose build web</code> on real projects.</p>
 </Callout>
 
@@ -103,6 +101,10 @@ This downloads <code>openquok-api</code>, <code>openquok-orchestrator</code>, an
 ```bash
 docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml up -d --build
 ```
+
+<Callout type="note" title="First start takes a while">
+<p>The first time you run this, Docker still builds the web UI — often <strong>15–30 minutes</strong> or more. Later restarts are much faster. If it seems stuck, give Docker more memory; see <a href="/docs/installation/system-requirements">System requirements</a>.</p>
+</Callout>
 
 The <code>--build</code> step compiles the <code>web</code> image with your <Badge text="VITE_*" variant="envWeb" /> build args. Omit <code>--build</code> only when you intentionally pull web (see below).
 

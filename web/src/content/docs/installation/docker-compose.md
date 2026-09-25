@@ -58,7 +58,7 @@ Leave these empty until you connect a channel. Fill only the pairs for networks 
 | <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> / <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" /> | LinkedIn / LinkedIn Page |
 | <Badge text="X_API_KEY" variant="envBackend" /> / <Badge text="X_API_SECRET" variant="envBackend" /> | X |
 
-<Callout type="note" title="Dev.to needs no operator app">
+<Callout type="note">
 <p>Dev.to (<Badge text="devto" variant="default" />) connects with a <strong>personal API key</strong> the user pastes in Add Channel. Do not add operator ID/secret env vars for it. Setup: <a href="/docs/social-integration/devto">Dev.to</a>.</p>
 </Callout>
 
@@ -119,13 +119,38 @@ Copy <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/m
 
 ### Bring the stack up
 
-From the **repository root**:
+Clone this monorepo and run every command below from the **repository root**. Compose definitions live under <Badge text="infra/self-host/" variant="path" /> — published images on GHCR or Docker Hub replace **local builds for API and workers only**; you still need these files and <Badge text="infra/self-host/.env" variant="path" />. Registry URLs and pins: <a href="/docs/installation/docker">Docker (pre-built images)</a>.
+
+**Option 1 — Build from clone (default)** — compiles API, web, and workers from source (no registry required). The three BullMQ workers share one orchestrator image; Compose builds it **once** on <code>worker-integration-refresh</code> (same tag, different <code>command</code> per service).
 
 ```bash
 docker compose -f infra/self-host/docker-compose.yml up --build
 ```
 
-Detach with <code>-d</code> when you want background containers. The <code>web</code> service waits until <code>api</code> passes its <code>/health</code> check so SSR does not call the API before it is listening.
+<Callout type="note">
+<p>The first time you run this, Docker builds every service from source — often <strong>20–40 minutes</strong> or more before the UI is ready. Later restarts are much faster. If it seems stuck, give Docker more memory; see <a href="/docs/installation/system-requirements">System requirements</a>.</p>
+</Callout>
+
+Add <code>-d</code> to run in the background. The <code>web</code> service waits until <code>api</code> passes its <code>/health</code> check.
+
+**Option 2 — Pull API and workers from a registry** — faster when published tags exist.
+
+In <Badge text="infra/self-host/.env" variant="path" />, set for example:
+
+```bash
+OPENQUOK_IMAGE_REGISTRY=ghcr.io/ratimon
+# OPENQUOK_IMAGE_REGISTRY=docker.io/ratimon
+OPENQUOK_IMAGE_TAG=0.1.0
+```
+
+Then pull and start (note the second compose file):
+
+```bash
+docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml pull
+docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml up -d --build
+```
+
+Use the same <code>-f … -f …</code> pair for <code>down</code>, logs, and recreate when you started with Option 2.
 
 ### Open the UI
 
@@ -148,15 +173,28 @@ Register an OAuth app (Settings → Developers → Apps) with redirect <Badge te
 
 ### Stop the stack
 
+**Option 1 (build from clone):**
+
 ```bash
-# From repo root
 docker compose -f infra/self-host/docker-compose.yml down
+```
+
+**Option 2 (registry overlay):** include both compose files:
+
+```bash
+docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml down
 ```
 
 If you started with <code>--profile cli</code>, include the same profile so Compose tears down those services too:
 
 ```bash
 docker compose -f infra/self-host/docker-compose.yml --profile cli down
+```
+
+With Option 2 and <code>cli</code>:
+
+```bash
+docker compose -f infra/self-host/docker-compose.yml -f infra/self-host/docker-compose.images.yml --profile cli down
 ```
 
 </Steps>
@@ -173,7 +211,17 @@ docker compose -f infra/self-host/docker-compose.yml --profile cli down
 | <code>worker-scheduled-social-post</code> | BullMQ worker |
 | <code>postgres</code> / <code>agent-server</code> | Only with <code>--profile cli</code> |
 
-Images build from the monorepo root (<code>context: ../..</code>) when you use <code>up --build</code>. Optional registry pulls use the same <code>image:</code> names — see <a href="/docs/installation/docker">Docker (pre-built images)</a>.
+Images build from the monorepo root (<code>context: ../..</code>) when you use <code>up --build</code>. The orchestrator image is built on <code>worker-integration-refresh</code> only; the other workers reuse that tag. Optional registry pulls use the same <code>image:</code> names — see <a href="/docs/installation/docker">Docker (pre-built images)</a>.
+
+## Troubleshooting local builds
+
+<Callout type="warning" title="Docker Hub login or 401 during build">
+<p>If <code>docker compose … up --build</code> fails authorizing to <code>registry-1.docker.io</code>, stale Docker Hub credentials are often the cause. Run <code>docker logout docker.io</code> and retry (anonymous pulls work for public base images). You do not need Hub login to pull <Badge text="ghcr.io/ratimon" variant="path" /> app images when packages are public — use Option 2 with <Badge text="OPENQUOK_IMAGE_REGISTRY=ghcr.io/ratimon" variant="envBackend" />.</p>
+</Callout>
+
+<Callout type="note" title="Orchestrator tag already exists">
+<p>If an older Compose file built all three workers in parallel, BuildKit could fail exporting <code>openquok-orchestrator:latest</code> with <strong>already exists</strong>. Current compose builds orchestrator once on <code>worker-integration-refresh</code>. Update the repo and retry, or use Option 2 <code>pull</code> for API and workers.</p>
+</Callout>
 
 ## Security and exposure
 

@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Build from monorepo root: docker build -f agent/server/Dockerfile .
 # Optional Compose profile `cli` — device-flow OAuth helper for the CLI.
 

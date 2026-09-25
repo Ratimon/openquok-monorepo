@@ -60,8 +60,13 @@ x-openquok-web-image: &openquok-web-image
       VITE_PUBLIC_POSTHOG_HOST: ${VITE_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       VITE_PUBLIC_FACEBOOK_PIXEL: ${VITE_PUBLIC_FACEBOOK_PIXEL:-}
 
+# Image name shared by all three BullMQ workers (different command per service).
 x-openquok-orchestrator-image: &openquok-orchestrator-image
   image: ${OPENQUOK_IMAGE_REGISTRY:-ghcr.io/ratimon}/openquok-orchestrator:${OPENQUOK_IMAGE_TAG:-latest}
+
+# Build once on worker-integration-refresh only — parallel build on the same tag caused export races.
+x-openquok-orchestrator-build: &openquok-orchestrator-build
+  <<: *openquok-orchestrator-image
   build:
     context: ../..
     dockerfile: orchestrator/Dockerfile
@@ -158,7 +163,7 @@ services:
       - openquok
 
   worker-integration-refresh:
-    <<: [*supabase-host-gateway, *openquok-orchestrator-image]
+    <<: [*supabase-host-gateway, *openquok-orchestrator-build]
     restart: unless-stopped
     env_file:
       - .env

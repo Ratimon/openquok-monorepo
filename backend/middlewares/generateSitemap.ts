@@ -1,10 +1,27 @@
 import type { RequestHandler } from "express";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "node:url";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { logger } from "../utils/Logger";
 
-import bundledRoutesManifest from "../static/routes-manifest.json";
+const bundledRoutesManifestPath = path.join(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../static/routes-manifest.json",
+);
+
+function readBundledRoutesManifest(): RouteManifest {
+    return JSON.parse(fs.readFileSync(bundledRoutesManifestPath, "utf8")) as RouteManifest;
+}
+
+let bundledRoutesManifestCache: RouteManifest | undefined;
+
+function getBundledRoutesManifest(): RouteManifest {
+    if (!bundledRoutesManifestCache) {
+        bundledRoutesManifestCache = readBundledRoutesManifest();
+    }
+    return bundledRoutesManifestCache;
+}
 
 export interface GenerateSitemapOptions {
     supabaseClient: SupabaseClient;
@@ -446,7 +463,7 @@ function loadRoutesFromManifest(manifestPath?: string): LoadedRoutesManifest {
         });
     }
 
-    return sitemapUrlsFromManifest(bundledRoutesManifest as RouteManifest, "bundled");
+    return sitemapUrlsFromManifest(getBundledRoutesManifest(), "bundled");
 }
 
 function escapeXml(s: string): string {
@@ -897,9 +914,7 @@ export function generateSitemapMiddleware(options: GenerateSitemapOptions): Requ
                 msg: "Sitemap generation error",
                 error: error instanceof Error ? error.message : String(error),
             });
-            const fallbackLastMod = lastModFromManifestGenerated(
-                bundledRoutesManifest as RouteManifest,
-            );
+            const fallbackLastMod = lastModFromManifestGenerated(getBundledRoutesManifest());
             const fallback = toSitemapXml(
                 [{ url: "/", changeFreq: "daily", lastMod: fallbackLastMod }],
                 baseURL

@@ -66,7 +66,7 @@ User-facing steps live in `web/src/content/docs/installation/` (`system-requirem
 - Named volumes: `redis-data`, `uploads-data` (API + workers share uploads; `uploads-init` may `chown` for uid 1000).
 - `depends_on` with Redis healthcheck; workers and API after Redis healthy.
 - Host ports via env overrides (`OPENQUOK_WEB_HOST_PORT`, `OPENQUOK_API_HOST_PORT`, etc.) documented in `.env.example`.
-- **Pre-built images (optional):** `image:` on API, web, orchestrator, and agent-server; defaults `OPENQUOK_IMAGE_REGISTRY=ghcr.io/ratimon`, `OPENQUOK_IMAGE_TAG=latest`. Overlay `infra/self-host/docker-compose.images.yml` sets registry-first `pull_policy` on pulled services. `OPENQUOK_PULL_WEB=false` by default — web keeps `pull_policy: build` until operators opt into a published web bake that matches their `VITE_*`.
+- **Pre-built images (optional):** `image:` on API, web, orchestrator, and agent-server; defaults `OPENQUOK_IMAGE_REGISTRY=ghcr.io/ratimon`, `OPENQUOK_IMAGE_TAG=latest`. Overlay `infra/self-host/docker-compose.images.yml` sets registry-first `pull_policy` on pulled services. `OPENQUOK_PULL_WEB=false` by default — web keeps `pull_policy: build` until operators opt into a published web bake that matches their `VITE_*`. **Orchestrator `build:`** is declared only on `worker-integration-refresh`; the other two workers reuse the same image tag (avoids parallel BuildKit export races on `up --build`).
 - **Release tags:** git tag `self-host-v<semver>` drives CI image tags `<semver>` and `latest` (multi-arch manifests). Maintainer cut/verify steps: `infra/self-host/PUBLISHING.md`. Operator pull/pin docs: `web/src/content/docs/installation/docker.md`.
 
 ## Out of scope for `infra/` v1

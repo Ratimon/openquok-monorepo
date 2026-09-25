@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Build from monorepo root: docker build -f backend/Dockerfile .
 
 ARG NODE_VERSION=24-bookworm-slim

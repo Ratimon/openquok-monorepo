@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Build from monorepo root: docker build -f web/Dockerfile .
 # Pass VITE_* build args (see ARG list below) for client bundle configuration.
 

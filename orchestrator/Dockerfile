@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1
 # Build from monorepo root: docker build -f orchestrator/Dockerfile .
 # Override CMD in Compose for each BullMQ worker entrypoint.
 
