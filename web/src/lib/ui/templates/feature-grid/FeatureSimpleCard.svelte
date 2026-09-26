@@ -34,6 +34,8 @@
 		compact?: boolean;
 		href?: string;
 		onActivate?: () => void;
+		/** Highlights the card when it matches the current agent or MCP slug. */
+		isActive?: boolean;
 	};
 
 	let {
@@ -46,7 +48,8 @@
 		stripedTone = 'emerald',
 		compact = false,
 		href,
-		onActivate
+		onActivate,
+		isActive = false
 	}: Props = $props();
 
 	const cardClass = $derived(
@@ -57,7 +60,9 @@
 					? 'border border-amber-500/25 bg-gradient-to-b from-amber-500/12 via-base-100 to-base-100 shadow-sm transition duration-300 hover:border-amber-400/45 hover:shadow-md'
 					: 'border border-emerald-500/25 bg-gradient-to-b from-emerald-500/12 via-base-100 to-base-100 shadow-sm transition duration-300 hover:border-emerald-400/45 hover:shadow-md'
 				: 'border border-base-content/5 bg-gradient-to-b from-base-200/80 to-base-100 shadow-sm transition duration-300 hover:border-primary/20 hover:shadow-md',
-			compact && 'p-5'
+			compact && 'p-5',
+			isActive &&
+				'border-primary/25 bg-primary/8 ring-1 ring-primary/15 hover:border-primary/30 hover:bg-primary/10'
 		)
 	);
 
@@ -81,6 +86,13 @@
 		{stripedTone}
 	/>
 	<div class="relative z-20 flex flex-col gap-3">
+		{#if isActive}
+			<div class="flex justify-end">
+				<span class="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
+					You're here
+				</span>
+			</div>
+		{/if}
 		<span
 			class={cn(
 				'grid size-11 place-items-center rounded-xl',
@@ -102,6 +114,6 @@
 	</div>
 {/snippet}
 
-<PatternedCardShell class={cardClass} {href} {onActivate}>
+<PatternedCardShell class={cardClass} {href} {onActivate} aria-current={isActive ? 'page' : undefined}>
 	{@render cardBody()}
 </PatternedCardShell>

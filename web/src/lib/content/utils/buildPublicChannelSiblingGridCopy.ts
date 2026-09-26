@@ -33,11 +33,15 @@ export function buildPublicAgentChannelSiblingGridTitle(
 
 export function buildPublicAgentChannelSiblingGridHubTitle(agentLabel: string): string {
 	const agent = agentLabel.trim();
-	return agent.length > 0 ? `Every Supported Platform for ${agent}` : 'Every Supported Platform';
+	return agent.length > 0 ? `${agent}: Every Supported Channels` : 'Every Supported Channel';
 }
 
-export function buildPublicAgentChannelSiblingGridHubDescription(): string {
-	return 'Choose a channel for platform-specific workflows, examples, and FAQs.';
+export function buildPublicAgentChannelSiblingGridHubDescription(agentLabel: string): string {
+	const agent = agentLabel.trim();
+	if (agent.length > 0) {
+		return `Pick a channel for ${agent} workflows, CLI or MCP examples, and platform FAQs.`;
+	}
+	return 'Pick a channel for agent workflows, examples, and FAQs.';
 }
 
 export function buildPublicChannelSiblingGridDescription(platformLabel: string): string {

@@ -144,6 +144,15 @@ export async function withClientErrorFallback<T>(run: () => Promise<T>, fallback
 	}
 }
 
+/** Map any API or transport failure to `fallback` for optional public CMS blocks (listings preview, etc.). */
+export async function withOptionalCmsFallback<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+	try {
+		return await run();
+	} catch {
+		return fallback;
+	}
+}
+
 export class ApiError extends Error {
 	public status: number;
 	public statusText: string;

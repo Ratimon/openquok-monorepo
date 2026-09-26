@@ -51,6 +51,7 @@
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import CliCommandReference from '$lib/ui/templates/CliCommandReference.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
+	import PublicAgentIntegrationsSiblingGrid from '$lib/ui/templates/landing-page/PublicAgentIntegrationsSiblingGrid.svelte';
 
 	type Props = {
 		agentVm: PublicAgentHostLandingPageViewModel;
@@ -248,6 +249,12 @@
 		agentLabel={agentVm.agentLabel}
 	/>
 {/if}
+
+<PublicAgentIntegrationsSiblingGrid
+	agentLabel={agentVm.agentLabel}
+	activeAgentSlug={agentVm.slug}
+	channelSlug={activeChannelSlug}
+/>
 
 <div class="container mx-auto px-4">
 	<PublicFaq

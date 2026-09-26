@@ -35,10 +35,10 @@ describe('buildPublicChannelSiblingGridCopy', () => {
 			'Beyond Facebook: Every Supported Platform for Grok Bot'
 		);
 		expect(buildPublicAgentChannelSiblingGridHubTitle('Grok Bot')).toBe(
-			'Every Supported Platform for Grok Bot'
+			'Grok Bot: Every Supported Channels'
 		);
-		expect(buildPublicAgentChannelSiblingGridHubDescription()).toBe(
-			'Choose a channel for platform-specific workflows, examples, and FAQs.'
+		expect(buildPublicAgentChannelSiblingGridHubDescription('Grok Bot')).toBe(
+			'Pick a channel for Grok Bot workflows, CLI or MCP examples, and platform FAQs.'
 		);
 		expect(buildPublicAgentChannelSiblingGridDescription('Facebook', 'Grok Bot')).toBe(
 			'Start with Facebook, then schedule every other network from Grok Bot.'

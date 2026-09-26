@@ -2,13 +2,13 @@ export function buildPublicChannelAgentIntegrationsGridSubtitle(): string {
 	return 'Agents & MCP integrations';
 }
 
-/** Comma-separated title for `FeaturesSectionHeader` / hero theme segments. */
+/** Title for `FeaturesSectionHeader` — use a colon (not commas) so wrapped lines do not show leading commas. */
 export function buildPublicChannelAgentIntegrationsGridTitle(platformLabel: string): string {
 	const label = platformLabel.trim();
 	if (label.length > 0) {
-		return `${label} from OpenClaw, from Cursor and Claude Code, every agent landing page`;
+		return `Schedule ${label} from agents: OpenClaw Cursor and every MCP landing page`;
 	}
-	return 'Schedule from OpenClaw, from Cursor and Claude Code, every agent landing page';
+	return 'Schedule from agents: OpenClaw Cursor and every MCP landing page';
 }
 
 export function buildPublicChannelAgentIntegrationsGridDescription(platformLabel: string): string {

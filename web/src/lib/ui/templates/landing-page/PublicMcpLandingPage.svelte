@@ -37,6 +37,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import WithWithout from '$lib/ui/templates/WithWithout.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
+	import PublicAgentIntegrationsSiblingGrid from '$lib/ui/templates/landing-page/PublicAgentIntegrationsSiblingGrid.svelte';
 
 	type Props = {
 		mcpVm: PublicMcpLandingPageViewModel;
@@ -199,6 +200,12 @@
 		agentLabel={mcpVm.agentLabel}
 	/>
 {/if}
+
+<PublicAgentIntegrationsSiblingGrid
+	agentLabel={mcpVm.agentLabel}
+	activeAgentSlug={mcpVm.slug}
+	channelSlug={activeChannelSlug}
+/>
 
 <div class="container mx-auto px-4">
 	<PublicFaq

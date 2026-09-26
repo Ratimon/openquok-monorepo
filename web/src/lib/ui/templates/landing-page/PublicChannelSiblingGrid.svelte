@@ -43,11 +43,13 @@
 				: buildPublicAgentChannelSiblingGridHubTitle(agentLabel)
 			: buildPublicChannelSiblingGridTitle(activePlatformLabel)
 	);
+	const resolvedAgentLabel = $derived(agentLabel?.trim() ?? '');
+
 	const sectionDescription = $derived(
-		agentLabel?.trim()
+		resolvedAgentLabel
 			? activePlatformLabel.trim()
-				? buildPublicAgentChannelSiblingGridDescription(activePlatformLabel, agentLabel)
-				: buildPublicAgentChannelSiblingGridHubDescription()
+				? buildPublicAgentChannelSiblingGridDescription(activePlatformLabel, resolvedAgentLabel)
+				: buildPublicAgentChannelSiblingGridHubDescription(resolvedAgentLabel)
 			: buildPublicChannelSiblingGridDescription(activePlatformLabel)
 	);
 

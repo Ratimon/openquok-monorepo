@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
 	import { Pagination as PaginationPrimitive } from 'bits-ui';
 	import { cn } from '$lib/ui/helpers/common';
 	import { buttonVariants } from '$lib/ui/buttons/Button.svelte';
@@ -8,10 +10,11 @@
 		class: className,
 		isActive,
 		page,
-		children,
+		children: linkChildren,
 		...restProps
 	}: PaginationPrimitive.PageProps & {
 		isActive?: boolean;
+		children?: Snippet;
 	} = $props();
 </script>
 
@@ -28,8 +31,8 @@
 	{...restProps}
 >
 	{#snippet children()}
-		{#if children}
-			{@render children()}
+		{#if linkChildren}
+			{@render linkChildren()}
 		{:else}
 			{page.value}
 		{/if}

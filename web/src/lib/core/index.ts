@@ -58,6 +58,7 @@ export {
 	isApiError,
 	withNotFoundFallback,
 	withClientErrorFallback,
+	withOptionalCmsFallback,
 	type ApiRequestOptions,
 	type ApiResponse
 } from '$lib/core/HttpGateway';

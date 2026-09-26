@@ -9,9 +9,11 @@
 		onActivate?: () => void;
 		class?: ClassValue;
 		children: Snippet;
+		'aria-current'?: 'page' | 'step' | 'location' | 'date' | 'time' | boolean | undefined;
 	};
 
-	let { href, onActivate, class: className, children }: Props = $props();
+	let { href, onActivate, class: className, children, 'aria-current': ariaCurrent }: Props =
+		$props();
 </script>
 
 {#if onActivate}
@@ -19,7 +21,7 @@
 		{@render children()}
 	</button>
 {:else if href}
-	<a {href} class={className}>
+	<a {href} class={className} aria-current={ariaCurrent}>
 		{@render children()}
 	</a>
 {:else}

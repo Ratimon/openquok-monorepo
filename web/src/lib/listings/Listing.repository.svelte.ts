@@ -1,4 +1,4 @@
-import { HttpGateway, HttpMethod, withClientErrorFallback } from '$lib/core/HttpGateway';
+import { HttpGateway, HttpMethod, withClientErrorFallback, withOptionalCmsFallback } from '$lib/core/HttpGateway';
 import { publicCmsServerRequestOptions } from '$lib/core/publicCmsFetch';
 
 import {
@@ -735,7 +735,7 @@ export class ListingRepository {
 		if (sortByKey) params.sortByKey = sortByKey;
 		if (sortByOrder != null) params.sortByOrder = sortByOrder;
 
-		return withClientErrorFallback(async () => {
+		return withOptionalCmsFallback(async () => {
 			const { data: getPublishedListingsDto, ok } =
 				await this.httpGateway.get<GetListingsCollectionResponseDto>(
 					this.config.endpoints.getPublishedListings,
