@@ -39,6 +39,7 @@ const TYPEFULLY_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	ai_writer: { kind: 'text', text: 'Writing Assistant, Rewrite & Improve (usage by plan)' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'text', text: 'No Info' },
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'included' },

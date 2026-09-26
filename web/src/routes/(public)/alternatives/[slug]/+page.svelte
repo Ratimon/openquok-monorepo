@@ -146,6 +146,12 @@
 			cardContainerClass:
 				'bg-linear-to-br from-red-500/20 via-rose-400/16 to-orange-300/16 text-red-50 ring-red-400/28'
 		},
+		socialync: {
+			heroContainerClass:
+				'bg-linear-to-br from-violet-500/35 via-purple-400/25 to-fuchsia-400/20 text-violet-50 ring-violet-400/40',
+			cardContainerClass:
+				'bg-linear-to-br from-violet-500/22 via-purple-400/18 to-fuchsia-400/14 text-violet-50 ring-violet-400/30'
+		},
 		typefully: {
 			heroContainerClass:
 				'bg-linear-to-br from-blue-500/30 via-indigo-400/20 to-sky-300/20 text-blue-100 ring-blue-400/35',

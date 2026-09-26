@@ -52,6 +52,7 @@ const SOCIALCLAW_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Comp
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'text', text: 'Hosted MCP (workspace key)' },

@@ -49,6 +49,7 @@ const HEROPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 	ai_writer: { kind: 'text', text: 'HeroAI captions & hashtags (unlimited)' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'text', text: 'No Info' },
 	public_api: { kind: 'text', text: 'Coming soon' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'excluded' },

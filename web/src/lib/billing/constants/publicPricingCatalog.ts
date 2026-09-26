@@ -51,6 +51,7 @@ export const PUBLIC_PRICING_LANDING_TAB_FEATURE_LIMIT = 11;
 
 /** Product capabilities included on every paid plan (marketing copy for cards). */
 export const PUBLIC_PRICING_SHARED_CARD_FEATURES: readonly string[] = [
+	'Official platform APIs',
 	'Multi-channel publishing',
 	'Agent integrations',
 	'Analytics',
@@ -78,6 +79,7 @@ export type PublicPricingCompareRowId =
 	| 'posts_per_month'
 	| 'team_members'
 	| 'share_post_preview'
+	| 'official_api'
 	| 'public_api'
 	| 'oauth_apps'
 	| 'mcp_server'
@@ -152,6 +154,12 @@ export const PUBLIC_PRICING_COMPARE_ROWS: readonly PublicPricingCompareRowDefini
 		id: 'share_post_preview',
 		label: 'Shareable post previews',
 		tooltip: 'Public links to preview scheduled posts before they go live.'
+	},
+	{
+		id: 'official_api',
+		label: 'Official platform APIs',
+		tooltip:
+			'Publish through each network’s official API — not browser extensions, scrapers, or unofficial workarounds.'
 	},
 	{
 		id: 'public_api',

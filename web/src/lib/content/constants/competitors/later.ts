@@ -45,6 +45,7 @@ const LATER_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareFe
 	ai_writer: { kind: 'text', text: 'Caption Writer & Ideas — 5 / 50 / 100 AI credits per month' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'text', text: 'External review links on Growth+' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'excluded' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'excluded' },

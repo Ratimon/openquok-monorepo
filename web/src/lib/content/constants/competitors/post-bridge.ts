@@ -49,6 +49,7 @@ const POST_BRIDGE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Com
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'text', text: '$5/mo API add-on (requires paid plan)' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'text', text: 'With API add-on only' },

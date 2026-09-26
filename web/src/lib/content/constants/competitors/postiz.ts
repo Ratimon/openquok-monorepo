@@ -55,6 +55,7 @@ const POSTIZ_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'text', text: 'Only 1 for all plans' },
 	mcp_server: { kind: 'text', text: 'Only 1 for all plans' },

@@ -73,6 +73,7 @@ function buildOpenQuokFeatureSupport(): Partial<Record<PublicPricingCompareRowId
 		share_post_preview: solo.share_post_preview
 			? { kind: 'included' }
 			: { kind: 'text', text: 'Team plan+' },
+		official_api: { kind: 'included' },
 		public_api: { kind: 'included' },
 		oauth_apps: { kind: 'text', text: '1 per workspace' },
 		mcp_server: { kind: 'text', text: '1 per workspace' },

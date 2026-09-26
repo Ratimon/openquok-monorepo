@@ -133,6 +133,8 @@ function compareCellForRow(
 			return formatTeamMembersCell(limits);
 		case 'share_post_preview':
 			return limits.share_post_preview ? { kind: 'included' } : { kind: 'excluded' };
+		case 'official_api':
+			return { kind: 'included' };
 		case 'public_api':
 			return limits.public_api ? { kind: 'included' } : { kind: 'excluded' };
 		case 'oauth_apps':

@@ -21,6 +21,7 @@ const USEBARD_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compare
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'text', text: 'No Info' },
 	public_api: { kind: 'excluded' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'excluded' },

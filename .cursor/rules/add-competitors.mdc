@@ -82,6 +82,35 @@ Export a `CompareProduct` with:
 | `featureSupport` | `Partial<Record<PublicPricingCompareRowId, CompareFeatureCell>>` — one cell per row in `PUBLIC_PRICING_COMPARE_ROWS` (`included` / `excluded` / `text`) |
 | `comparison` | `headline`, `notAnother`, `builtFor`, `positioningWhenLeft`, optional `withoutTitle`, and `talkingPoints` — all ASD-STE100 |
 
+### Official platform APIs (`official_api`)
+
+This row is **not** the same as **Public API** (`public_api`). It answers whether the product **publishes to social networks** through each platform’s **official APIs** (OAuth, Graph API, Content Posting API, official Bot API, and similar approved routes) — as opposed to browser extensions, logged-in session automation, scrapers, or other unofficial workarounds. See the tooltip on `official_api` in `PUBLIC_PRICING_COMPARE_ROWS` (`publicPricingCatalog.ts`).
+
+**Every new competitor** (and any refresh of an existing one) must set `featureSupport.official_api` from **that vendor’s public site**, not from inference or industry reputation alone.
+
+#### Where to look
+
+Search and read the competitor’s **marketing site**, **help center**, **channel/integration pages**, **trust/legal pages**, and **first-party docs** on their domain (e.g. `postiz.com/channels/instagram`, `support.*`, `docs.*`, blog posts that describe how publishing works). Do not treat “we have a REST API” or “official SDK” as proof of official **platform** publishing.
+
+#### How to set the cell
+
+| Value | When |
+| --- | --- |
+| `{ kind: 'included' }` | The vendor **explicitly states** that scheduling/publishing uses official platform APIs, OAuth to the platform, Graph API / partner APIs, “official APIs only,” Meta Business Partner publishing routes, or equivalent wording tied to **posting**. |
+| `{ kind: 'excluded' }` | The vendor **explicitly states** a non-official publish path (e.g. Chrome extension with an existing browser session, password login, browser automation, “no official API”). |
+| `{ kind: 'text', text: 'No Info' }` | No clear publish-method statement after a reasonable pass over their site — **do not guess**. |
+
+#### Common mistakes
+
+- Marking **included** because the product is a well-known scheduler or a Meta partner **without** a publish-method quote on their site.
+- Marking **included** because docs describe **your** integration with **their** HTTP API (`public_api`).
+- Marking **excluded** without evidence; default to **No Info** when publish mechanics are undocumented.
+- Confusing **analytics** (“data via the official X API”) with **publishing** unless they also state official APIs for posts.
+
+#### PR evidence
+
+In the PR description (or review notes), cite **one or two URLs** and a short phrase from each page that justify `included`, `excluded`, or **No Info**. No need to paste quotes into repo comments unless useful for future audits.
+
 **Talking points** (`CompareTalkingPointId` keys in `shared.ts` → `COMPARE_TALKING_POINT_ORDER`):
 
 - For a pair row to appear in the with/without section, the **left** product needs `strength` and the **right** product needs `weakness` for the **same** topic id.
@@ -166,6 +195,7 @@ Update when the new competitor should appear in marketing prose (not required fo
 - [ ] `CompareProductSlug`, `{slug}.ts`, `PUBLIC_COMPARE_PRODUCTS`, and `COMPARE_PRODUCT_WEBSITE_URLS` updated together.
 - [ ] Branded icon added; `icons.{Brand}.name` used in the constant (no string literals).
 - [ ] `featureSupport` covers every `PublicPricingCompareRowId` you intend to show (missing rows default to `excluded` on compare detail).
+- [ ] `official_api` verified on the competitor’s site (`included` / `excluded` / `No Info` per table above); PR notes link the source pages (not guesswork).
 - [ ] `talkingPoints` pairs with OpenQuok (and peers) so with/without sections are not empty.
 - [ ] `PRODUCT_ICON_STYLES` updated in all **four** compare/alternatives route Svelte files.
 - [ ] Channel labels match public channel compare labels.

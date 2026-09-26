@@ -73,6 +73,7 @@ export type BrandedIconName =
     | "Signal"
     | "Slack"
     | "SocialClaw"
+    | "Socialync"
     | "Stripe"
     | "Telegram"
     | "ThinkRail"
@@ -622,6 +623,13 @@ export const brandedIcons = {
         box: 512,
         fill: true,
         svg: `<image href="/icons/socialclaw.png" width="512" height="512"/>`
+    },
+    /** Socialync product mark. Socialync is a trademark of its respective owner. */
+    Socialync: {
+        name: "Socialync",
+        box: 24,
+        fill: true,
+        svg: `<path fill="#A855F7" d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1.2 5.5h2.4v2.2H10.8V7.5zm0 4.3h2.4v5.2H10.8v-5.2zm4.8-4.3h2.4v11.7h-2.4V7.5zM6 7.5h2.4v11.7H6V7.5z"/>`
     },
     Stripe: {
         name: "Stripe",

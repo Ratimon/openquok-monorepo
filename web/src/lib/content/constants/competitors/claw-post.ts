@@ -39,6 +39,7 @@ const CLAW_POST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'excluded' },
+	official_api: { kind: 'excluded' },
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'text', text: 'Streamable HTTP MCP with OAuth' },

@@ -31,6 +31,11 @@
 		Whether you are a solopreneur, a creator team, or AI practitioner using agent at a scale, we have options that scale
         with you.
 	</p>
+	<p
+		class="mt-4 text-sm font-semibold tracking-wide text-pretty text-base-content/60 sm:text-base"
+	>
+		Every paid plan uses official platform APIs, plus Public API, MCP, and OAuth apps per workspace.
+	</p>
 
 	<div class="mt-8 flex w-full justify-center [&_[data-slot=tabs]]:!w-auto">
 		<BillingPeriodToggle {period} {onPeriodChange} />

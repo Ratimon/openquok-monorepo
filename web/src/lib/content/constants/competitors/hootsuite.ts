@@ -51,6 +51,7 @@ const HOOTSUITE_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compa
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'excluded' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'text', text: 'MCP connectors (in-product)' },

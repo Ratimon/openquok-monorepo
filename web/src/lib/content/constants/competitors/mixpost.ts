@@ -47,6 +47,7 @@ const MIXPOST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compare
 	ai_writer: { kind: 'text', text: 'AI Assistant (Pro+)' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'text', text: 'REST API (Pro+)' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'text', text: 'MCP server (Pro+)' },

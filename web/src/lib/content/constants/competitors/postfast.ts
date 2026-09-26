@@ -60,6 +60,7 @@ const POSTFAST_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, Compar
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'included' },
 	oauth_apps: { kind: 'text', text: 'ChatGPT & Claude connectors (not third-party OAuth apps)' },
 	mcp_server: { kind: 'included' },

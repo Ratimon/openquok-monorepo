@@ -45,6 +45,7 @@ const BUFFER_FEATURE_SUPPORT: Partial<Record<PublicPricingCompareRowId, CompareF
 	ai_writer: { kind: 'excluded' },
 	ai_summarizer: { kind: 'excluded' },
 	share_post_preview: { kind: 'included' },
+	official_api: { kind: 'included' },
 	public_api: { kind: 'text', text: 'REST API (rate limits by plan)' },
 	oauth_apps: { kind: 'excluded' },
 	mcp_server: { kind: 'excluded' },
