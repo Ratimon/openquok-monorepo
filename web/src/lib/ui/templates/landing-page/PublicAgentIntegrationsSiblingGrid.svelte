@@ -3,6 +3,7 @@
 
 	import { page } from '$app/state';
 	import {
+		buildPublicAgentIntegrationsGridCoreLabel,
 		buildPublicAgentIntegrationsGridDescription,
 		buildPublicAgentIntegrationsGridExtensionLabel,
 		buildPublicAgentIntegrationsGridSubtitle,
@@ -34,6 +35,7 @@
 	const sectionTitle = $derived(buildPublicAgentIntegrationsGridTitle(agentLabel));
 	const sectionDescription = $derived(buildPublicAgentIntegrationsGridDescription(agentLabel));
 	const sectionSubtitle = buildPublicAgentIntegrationsGridSubtitle();
+	const coreLabel = buildPublicAgentIntegrationsGridCoreLabel();
 	const extensionLabel = buildPublicAgentIntegrationsGridExtensionLabel();
 
 	const normalizedActiveSlug = $derived(activeAgentSlug.trim().toLowerCase());
@@ -64,6 +66,7 @@
 		title={sectionTitle}
 		description={sectionDescription}
 		subtitle={sectionSubtitle}
+		{coreLabel}
 		{extensionLabel}
 		items={coreCardItems}
 		extensionItems={extensionCardItems}

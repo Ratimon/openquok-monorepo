@@ -19,6 +19,10 @@ export function buildPublicAgentIntegrationsGridDescription(agentLabel: string):
 	return 'Open the landing page for another autonomous agent or MCP client. Compare setup steps and scheduling workflows.';
 }
 
+export function buildPublicAgentIntegrationsGridCoreLabel(): string {
+	return 'Autonomous agents';
+}
+
 export function buildPublicAgentIntegrationsGridExtensionLabel(): string {
 	return 'MCP clients';
 }

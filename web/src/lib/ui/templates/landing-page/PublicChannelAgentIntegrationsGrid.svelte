@@ -3,6 +3,7 @@
 
 	import { page } from '$app/state';
 	import {
+		buildPublicChannelAgentIntegrationsGridCoreLabel,
 		buildPublicChannelAgentIntegrationsGridDescription,
 		buildPublicChannelAgentIntegrationsGridExtensionLabel,
 		buildPublicChannelAgentIntegrationsGridSubtitle,
@@ -35,6 +36,7 @@
 		buildPublicChannelAgentIntegrationsGridDescription(platformLabel)
 	);
 	const sectionSubtitle = buildPublicChannelAgentIntegrationsGridSubtitle();
+	const coreLabel = buildPublicChannelAgentIntegrationsGridCoreLabel();
 	const extensionLabel = buildPublicChannelAgentIntegrationsGridExtensionLabel();
 
 	const showSection = $derived(agentHostItems.length > 0 || mcpClientItems.length > 0);
@@ -63,6 +65,7 @@
 		title={sectionTitle}
 		description={sectionDescription}
 		subtitle={sectionSubtitle}
+		{coreLabel}
 		{extensionLabel}
 		items={coreCardItems}
 		extensionItems={extensionCardItems}

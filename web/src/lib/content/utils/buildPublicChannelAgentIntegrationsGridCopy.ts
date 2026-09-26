@@ -19,6 +19,10 @@ export function buildPublicChannelAgentIntegrationsGridDescription(platformLabel
 	return 'Open a dedicated page for each autonomous agent or MCP client. You get platform workflows, CLI or prompt examples, and FAQs for that integration.';
 }
 
+export function buildPublicChannelAgentIntegrationsGridCoreLabel(): string {
+	return 'Autonomous agents';
+}
+
 export function buildPublicChannelAgentIntegrationsGridExtensionLabel(): string {
 	return 'MCP clients';
 }

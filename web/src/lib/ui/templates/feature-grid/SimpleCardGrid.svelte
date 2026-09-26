@@ -29,6 +29,8 @@
 				}
 			]
 		>;
+		/** Uppercase label above the primary card grid (e.g. autonomous agent hosts). */
+		coreLabel?: string;
 		extensionLabel?: string;
 		extensionItems?: Item[];
 		sectionClass?: string;
@@ -45,6 +47,7 @@
 		items,
 		getItemKey,
 		card,
+		coreLabel = '',
 		extensionLabel = '',
 		extensionItems = [],
 		sectionClass = 'py-16 sm:py-20',
@@ -61,18 +64,27 @@
 
 		<div
 			class={title || description || subtitle
-				? 'mx-auto mt-12 grid max-w-7xl grid-cols-1 gap-4 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3'
-				: 'mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'}
-			aria-label={title || headingId}
+				? 'mx-auto mt-12 max-w-7xl space-y-5 sm:mt-14'
+				: 'mx-auto max-w-7xl space-y-5'}
 		>
-			{#each items as item, index (getItemKey(item, index))}
-				{@render card(item, {
-					index,
-					pattern: cardPatternAtIndex(index),
-					patternComponent,
-					patternClass
-				})}
-			{/each}
+			{#if coreLabel && items.length > 0}
+				<p class="text-center text-sm font-bold tracking-wide text-base-content/60 uppercase">
+					{coreLabel}
+				</p>
+			{/if}
+			<div
+				class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+				aria-label={coreLabel || title || headingId}
+			>
+				{#each items as item, index (getItemKey(item, index))}
+					{@render card(item, {
+						index,
+						pattern: cardPatternAtIndex(index),
+						patternComponent,
+						patternClass
+					})}
+				{/each}
+			</div>
 		</div>
 
 		{#if extensionItems.length > 0}
