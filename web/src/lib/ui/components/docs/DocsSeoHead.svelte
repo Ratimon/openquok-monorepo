@@ -23,7 +23,8 @@
 		ogImageAlt,
 		howToBlocks = [],
 		docImages = [],
-		codeBlocks = []
+		codeBlocks = [],
+		pricingSchema = false
 	}: {
 		title: string;
 		description?: string;
@@ -32,6 +33,7 @@
 		howToBlocks?: DocsHowToBlock[];
 		docImages?: DocsImageFromRaw[];
 		codeBlocks?: DocsCodeBlockFromRaw[];
+		pricingSchema?: boolean;
 	} = $props();
 
 	let siteTitle = docsConfig.site.title;
@@ -62,7 +64,8 @@
 			images: docImages,
 			codeBlocks,
 			ogImage,
-			ogImageAlt
+			ogImageAlt,
+			pricingSchema
 		})
 	);
 </script>

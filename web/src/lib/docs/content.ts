@@ -89,7 +89,8 @@ function buildDocs(
 				ogImage: meta?.ogImage,
 				ogImageAlt: meta?.ogImageAlt,
 				openapi: meta?.openapi,
-				docsLayout: meta?.docsLayout
+				docsLayout: meta?.docsLayout,
+				pricingSchema: meta?.pricingSchema
 			},
 			loadContent: async (): Promise<Component> => {
 				const mod = await loader();

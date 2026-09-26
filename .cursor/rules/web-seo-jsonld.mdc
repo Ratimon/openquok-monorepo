@@ -112,7 +112,7 @@ Put non-trivial logic in `$lib/<domain>/utils/`; call from `+page.server.ts` onl
 | `createPublicSetupStepsSEOSchema` | `$lib/content/utils/createPublicSetupStepsSEOSchema.ts` | `HowTo` (`#setup-steps`) from `FeaturesOrdered` steps or `{}` |
 | `createPublicPricingSectionSEOSchema` | `$lib/content/utils/createPublicPricingSEOSchema.ts` | `WebPage` (`#pricing`) with paid + self-host `Offer` list or `{}` |
 | `createHowToSEOSchema` | `$lib/seo/createHowToSEOSchema.ts` | Low-level `HowTo` + `HowToStep` builder (docs, blog, setup steps) |
-| `createDocsPageSeoSchema` | `$lib/docs/utils/seo/docsSeoSchema.ts` | `JsonLdGraphSchema` (`TechArticle`, breadcrumbs, images, optional `HowTo` from `<Steps>`) |
+| `createDocsPageSeoSchema` | `$lib/docs/utils/seo/docsSeoSchema.ts` | `JsonLdGraphSchema` (`Organization` + docs `WebSite`, `TechArticle`, breadcrumbs, images, optional `HowTo` from `<Steps>`) |
 | `createSoftwareSourceCodeNodes` | `$lib/seo/softwareSourceCodeNodes.ts` | `SoftwareSourceCode[]` from markdown/OpenAPI code blocks (`isPartOf` → parent article) |
 | `buildDocsPageLoadExtras` | `$lib/docs/utils/seo/buildDocsPageLoadExtras.ts` | `howToBlocks`, `docImages`, `codeBlocks` (raw fences + optional OpenAPI client samples when `meta.openapi` fetch succeeds) |
 | `createLandingDemoSEOSchema` | `$lib/content/utils/createLandingDemoSEOSchema.ts` | `VideoObject` or `{}` |
@@ -139,7 +139,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 | **API marketing hub / platform** | `CollectionPage` or `WebPage` + `SoftwareApplication` + `ItemList` + `HowTo` (`#setup-steps`) + `WebPage` (`#pricing` offers) + `ItemList` (`#audience`) + `FAQPage` |
 | **Tool pages** | `WebApplication` (+ `WebSite` `isPartOf` on channel routes) |
 | **Blog / post preview** | `BlogPosting` or `SocialMediaPosting` + `BreadcrumbList` (+ `FAQPage` / `HowTo` / `Product` with a free `Offer`) + optional `SoftwareSourceCode` via `BlogPosting.hasPart` |
-| **Docs article** | `TechArticle` + `BreadcrumbList` (+ optional `HowTo` from `<Steps>`) + `ImageObject` + `SoftwareSourceCode` via `TechArticle.hasPart` (fenced markdown + OpenAPI client samples when load-time spec fetch succeeds) |
+| **Docs article** | `Organization` (logo) + docs `WebSite` + `TechArticle` + `BreadcrumbList` (+ optional `HowTo` from `<Steps>`) + `ImageObject` + `SoftwareSourceCode` via `TechArticle.hasPart` (fenced markdown + OpenAPI client samples when load-time spec fetch succeeds) |
 | **Blog hubs** | `Blog` + `CollectionPage` + `ItemList` (index); `ProfilePage` + `Person` (author); topic `CollectionPage` + breadcrumbs |
 | **Creator profile** | `ProfilePage` + `Person` |
 | **Playbook / building block detail** | `WebPage` + `Person` + `HowTo` / `CreativeWork` / merged CMS schema |
@@ -179,7 +179,7 @@ Hub loads (`loadPlaybooksHubPage.server.ts`, `loadBuildingBlocksHubPage.server.t
 
 ### Organization (`createOrganizationSEOSchema`)
 
-- Landing and about only — not sitewide. Use `organizationSchemaId(origin)` for stable `@id`.
+- Landing, about, and **docs** (`createDocsPageSeoSchema` via `createOrganizationSEOSchema`). Use `organizationSchemaId(origin)` for stable `@id`. Docs use a separate `WebSite` at `{origin}/docs#website` (not marketing `/#website`).
 
 ### Product (`createBlogPostSEOSchema`)
 
@@ -188,7 +188,8 @@ Google Product snippets require **`offers`**, **`review`**, or **`aggregateRatin
 ### Docs code snippets (`createDocsPageSeoSchema` + `createSoftwareSourceCodeNodes`)
 
 - **`buildDocsPageLoadExtras`** parses raw markdown (`extractDocsCodeBlocksFromRaw`) and, when frontmatter includes **`openapi:`**, best-effort merges static HTTP client samples from **`fetchOpenapiOperationForDocs`** (cURL, Python, JavaScript, PHP, Go, Java, Ruby). Omit OpenAPI blocks when the spec fetch fails so prerender does not break.
-- **`createDocsPageSeoSchema`** sets **`TechArticle.hasPart`** to `@id` refs of each **`SoftwareSourceCode`** node (same pattern as **`BlogPosting.hasPart`** for blog posts). Author on doc code nodes is **`Organization`** (site title + origin), not **`Person`**.
+- Frontmatter **`pricingSchema: true`** (e.g. **`cloud/plans`**) adds a docs **`WebPage`** at `{canonical}#plan-offers` with paid + self-host **`Offer`** nodes from **`createPublicPricingSectionSEOSchema`** (same catalog as **`/pricing`**).
+- **`createDocsPageSeoSchema`** emits **`Organization`** (logo) and a docs **`WebSite`** (`publisher` → org; `TechArticle.publisher` / `isPartOf` → same entities). Sets **`TechArticle.hasPart`** to `@id` refs of each **`SoftwareSourceCode`** node (same pattern as **`BlogPosting.hasPart`** for blog posts). Code snippet **`author`** references the org `@id`, not **`Person`**.
 - Wired from docs **`+page.ts`** loads → **`DocsSeoHead.svelte`**. Extraction uses raw markdown, not rendered HTML.
 
 ## Canonical alignment

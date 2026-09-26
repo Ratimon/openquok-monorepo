@@ -12,6 +12,11 @@ import {
 	DOCS_FALLBACK_SOCIAL_IMAGE_ALT,
 	DOCS_FALLBACK_SOCIAL_IMAGE_SRC
 } from '$lib/docs/constants/docsSeoDefaults';
+import { createPublicPricingSectionSEOSchema } from '$lib/content/utils/createPublicPricingSEOSchema';
+import {
+	createOrganizationSEOSchema,
+	organizationSchemaId
+} from '$lib/content/utils/createOrganizationSEOSchema';
 import type { DocsCodeBlockFromRaw } from '$lib/docs/utils/content/extractDocsCodeBlocksFromRaw';
 import type { DocsHowToBlock } from '$lib/docs/utils/content/extractDocsHowToFromRaw';
 import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
@@ -24,6 +29,15 @@ import {
 	type JsonLdGraphSchema
 } from '$lib/seo/jsonLdSchema';
 import { createSoftwareSourceCodeNodes } from '$lib/seo/softwareSourceCodeNodes';
+
+function docsSiteHomeUrl(origin: string): string {
+	return `${origin.replace(/\/$/, '')}/docs`;
+}
+
+/** Docs `WebSite` `@id` — distinct from marketing `/#website` on the same origin. */
+export function docsWebsiteSchemaId(origin: string): string {
+	return `${docsSiteHomeUrl(origin)}#website`;
+}
 
 function docsTechArticleId(canonicalUrl: string): string {
 	return `${canonicalUrl}#techarticle`;
@@ -183,9 +197,11 @@ export type CreateDocsPageSeoSchemaParams = {
 	/** Frontmatter override for the primary / social preview image. */
 	ogImage?: string;
 	ogImageAlt?: string;
+	/** Emit paid + self-host `Offer` nodes on a docs `WebPage` (e.g. Cloud plans reference). */
+	pricingSchema?: boolean;
 };
 
-/** JSON-LD `@graph` for a docs page: `TechArticle`, breadcrumbs, optional HowTo, and inline images. */
+/** JSON-LD `@graph` for a docs page: `Organization`, docs `WebSite`, `TechArticle`, breadcrumbs, optional HowTo, and inline images. */
 export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): JsonLdGraphSchema {
 	const {
 		title,
@@ -198,16 +214,36 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		images = [],
 		codeBlocks = [],
 		ogImage,
-		ogImageAlt
+		ogImageAlt,
+		pricingSchema = false
 	} = params;
 
 	const siteOrigin = resolvePublicSiteUrl(requestUrl);
 	const techArticleId = docsTechArticleId(canonicalUrl);
-	const docsAuthor = {
-		'@type': 'Organization',
+	const organizationId = organizationSchemaId(siteOrigin);
+	const docsHomeUrl = docsSiteHomeUrl(siteOrigin);
+	const organizationLogoUrl = resolveDocsImageUrl(
+		DOCS_FALLBACK_SOCIAL_IMAGE_SRC,
+		requestUrl,
+		canonicalUrl
+	);
+	const organization = createOrganizationSEOSchema({
 		name: siteTitle,
-		url: siteOrigin
-	} satisfies Organization;
+		url: docsHomeUrl,
+		origin: siteOrigin,
+		logo: organizationLogoUrl
+	});
+	const websiteId = docsWebsiteSchemaId(siteOrigin);
+	const website: WebSite = {
+		'@type': 'WebSite',
+		'@id': websiteId,
+		name: siteTitle,
+		url: docsHomeUrl,
+		publisher: jsonLdNodeRef(organizationId)
+	};
+	const docsAuthor = {
+		'@id': organizationId
+	} as Organization;
 	const primaryImage = resolveDocsPrimaryImageForSeo({
 		ogImage,
 		ogImageAlt,
@@ -240,11 +276,8 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		headline: title,
 		description: description?.trim() || undefined,
 		url: canonicalUrl,
-		isPartOf: {
-			'@type': 'WebSite',
-			name: siteTitle,
-			url: siteOrigin
-		} satisfies WebSite
+		publisher: jsonLdNodeRef(organizationId),
+		isPartOf: jsonLdNodeRef(websiteId)
 	};
 
 	if (softwareSourceCodeNodes.length > 0) {
@@ -279,11 +312,26 @@ export function createDocsPageSeoSchema(params: CreateDocsPageSeoSchemaParams): 
 		)
 	);
 
-	return createJsonLdGraph([
-		techArticle,
-		breadcrumbList,
-		...imageNodes,
-		...howToNodes,
-		...softwareSourceCodeNodes
-	]);
+	const pricingWebPage = pricingSchema
+		? createPublicPricingSectionSEOSchema({
+				pageUrl: canonicalUrl,
+				origin: siteOrigin,
+				fragmentId: 'plan-offers',
+				pageName: title,
+				includeSelfHost: true
+			})
+		: {};
+
+	return createJsonLdGraph(
+		filterNonEmptyJsonLdNodes([
+			organization,
+			website,
+			techArticle,
+			breadcrumbList,
+			pricingWebPage,
+			...imageNodes,
+			...howToNodes,
+			...softwareSourceCodeNodes
+		])
+	);
 }

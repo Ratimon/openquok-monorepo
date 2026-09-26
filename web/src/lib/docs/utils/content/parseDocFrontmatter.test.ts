@@ -14,4 +14,14 @@ ogImageAlt: Kanban preview
 		expect(meta.ogImage).toBe('/docs/_assets/getting-started/5-kanban-board.webp');
 		expect(meta.ogImageAlt).toBe('Kanban preview');
 	});
+
+	it('parses pricingSchema boolean from frontmatter', () => {
+		const meta = docMetaFromRawSource(`---
+title: Plans
+description: Example
+pricingSchema: true
+---`);
+
+		expect(meta.pricingSchema).toBe(true);
+	});
 });

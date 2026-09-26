@@ -13,10 +13,12 @@ import {
 import { buildDocsBreadcrumbListItems } from '$lib/docs/utils/seo/buildDocsBreadcrumbJsonLd';
 import {
 	createDocsPageSeoSchema,
+	docsWebsiteSchemaId,
 	orderDocsImagesForSeo,
 	pickDocsSocialPreview,
 	resolveDocsImageUrl
 } from '$lib/docs/utils/seo/docsSeoSchema';
+import { organizationSchemaId } from '$lib/content/utils/createOrganizationSEOSchema';
 import type { DocsImageFromRaw } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 
 const quickstartFixture = readFileSync(
@@ -120,6 +122,61 @@ describe('orderDocsImagesForSeo', () => {
 });
 
 describe('createDocsPageSeoSchema', () => {
+	it('emits Organization (logo), docs WebSite, and links TechArticle publisher / isPartOf', () => {
+		const schema = createDocsPageSeoSchema({
+			title: 'Plain doc',
+			description: 'Text-only documentation page.',
+			canonicalUrl: 'https://www.openquok.com/docs/example/plain',
+			requestUrl: new URL('https://www.openquok.com/docs/example/plain'),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems(
+				'/docs/example/plain',
+				new URL('https://www.openquok.com/docs/example/plain')
+			),
+			images: []
+		});
+
+		const organizationId = organizationSchemaId('https://www.openquok.com');
+		const websiteId = docsWebsiteSchemaId('https://www.openquok.com');
+
+		const organization = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@type' in node &&
+				node['@type'] === 'Organization'
+		) as Record<string, unknown> | undefined;
+
+		expect(organization).toMatchObject({
+			'@id': organizationId,
+			name: 'OpenQuok Docs',
+			url: 'https://www.openquok.com/docs',
+			logo: `https://www.openquok.com${DOCS_FALLBACK_SOCIAL_IMAGE_SRC}`
+		});
+
+		const website = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'WebSite'
+		) as Record<string, unknown> | undefined;
+
+		expect(website).toMatchObject({
+			'@id': websiteId,
+			name: 'OpenQuok Docs',
+			url: 'https://www.openquok.com/docs',
+			publisher: { '@id': organizationId }
+		});
+
+		const techArticle = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'TechArticle'
+		) as Record<string, unknown> | undefined;
+
+		expect(techArticle).toMatchObject({
+			publisher: { '@id': organizationId },
+			isPartOf: { '@id': websiteId }
+		});
+	});
+
 	it('emits ImageObject nodes in the graph and links them from TechArticle', () => {
 		const images = dedupeDocsImagesFromRaw(extractDocsImagesFromRaw(quickstartFixture));
 		const schema = createDocsPageSeoSchema({
@@ -240,6 +297,34 @@ describe('createDocsPageSeoSchema', () => {
 		});
 	});
 
+	it('emits plan Offer WebPage when pricingSchema is enabled', () => {
+		const canonical = 'https://www.openquok.com/docs/cloud/plans';
+		const schema = createDocsPageSeoSchema({
+			title: 'Plans and limits',
+			description: 'Cloud tiers and caps.',
+			canonicalUrl: canonical,
+			requestUrl: new URL(canonical),
+			siteTitle: 'OpenQuok Docs',
+			breadcrumbItems: buildDocsBreadcrumbListItems('/docs/cloud/plans', new URL(canonical)),
+			images: [],
+			pricingSchema: true
+		});
+
+		const pricingWebPage = schema['@graph'].find(
+			(node) =>
+				typeof node === 'object' &&
+				node !== null &&
+				'@type' in node &&
+				node['@type'] === 'WebPage' &&
+				'@id' in node &&
+				node['@id'] === `${canonical}#plan-offers`
+		) as Record<string, unknown> | undefined;
+
+		expect(pricingWebPage?.name).toBe('Plans and limits');
+		expect(Array.isArray(pricingWebPage?.offers)).toBe(true);
+		expect((pricingWebPage?.offers as unknown[]).length).toBeGreaterThan(0);
+	});
+
 	it('emits SoftwareSourceCode nodes from fenced markdown and links them via TechArticle.hasPart', () => {
 		const codeBlocks = extractDocsCodeBlocksFromRaw(dockerComposeFixture).slice(0, 1);
 		const canonical = 'https://www.openquok.com/docs/installation/docker-compose';
@@ -278,9 +363,7 @@ describe('createDocsPageSeoSchema', () => {
 			encodingFormat: 'text/x-shellscript',
 			isPartOf: { '@id': `${canonical}#techarticle` },
 			author: {
-				'@type': 'Organization',
-				name: 'OpenQuok Docs',
-				url: 'https://www.openquok.com'
+				'@id': organizationSchemaId('https://www.openquok.com')
 			}
 		});
 		expect(typeof codeNode?.text).toBe('string');

@@ -8,7 +8,7 @@ sidebar:
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, Steps } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
 ## Managing your subscription
@@ -34,6 +34,25 @@ On Billing, use the **monthly / yearly** toggle, then choose a tier (Solo, Team,
 - **First checkout** (no active Stripe subscription yet): you may pay on the **First Billing** screen after sign-up. Eligible accounts see **Start 7 days free trial** instead of **Purchase**.
 
 - **Plan change** (you already have an active or trialing subscription): Stripe updates the subscription in place. New limits apply when the update succeeds.
+
+<Steps
+	howToName="Change your OpenQuok Cloud plan"
+	howToDescription="Upgrade, downgrade, or switch monthly and yearly billing from the workspace Billing page."
+>
+
+### Open Billing
+
+Sign in as the workspace owner. Open the account menu, choose Billing, and confirm the correct workspace when you own more than one.
+
+### Pick monthly or yearly and a tier
+
+Use the billing period toggle, then select Solo, Team, Ultimate, or 10x Max. Stripe applies the new limits when the update succeeds.
+
+### Review Pay Today
+
+When proration applies, plan cards show Pay Today for the rest of the current period. Upgrades usually charge the difference; downgrades may credit unused time.
+
+</Steps>
 
 When you change tier or billing period, other plan cards can show **Pay Today** — a proration preview for the rest of the current period. Upgrades usually charge the difference. Downgrades credit unused time (Pay Today may show <strong>$0</strong>).
 
@@ -69,8 +88,24 @@ Do not send card numbers to support. Portal changes stay in Stripe.
 
 Use **Cancel subscription** on Billing when you are the owner and the plan is not already set to end at period end.
 
-1. Confirm in the cancel dialog (you may see a warning if canceling would exceed team limits on a free tier).
-2. You may see a **retention offer** — <strong>50% off for three months</strong>. It appears only when you qualify: typically a **monthly** plan, at least one prior paid charge over <strong>$10</strong>, and no discount already on the subscription. See <a href="/docs/billing/codes-and-offers">Codes and offers</a>.
+<Steps
+	howToName="Cancel your OpenQuok Cloud subscription"
+	howToDescription="Stop future renewals from Billing while keeping workspace data in your account."
+>
+
+### Start cancel from Billing
+
+As the workspace owner, open Billing and choose Cancel subscription when the plan is not already set to end at period end.
+
+### Confirm in the dialog
+
+Complete the cancel flow. You may see a warning if canceling would exceed team limits on a smaller tier.
+
+### Accept or decline retention offers
+
+You may be offered 50% off for three months when you qualify. See Codes and offers for eligibility.
+
+</Steps>
 
 When cancel succeeds:
 

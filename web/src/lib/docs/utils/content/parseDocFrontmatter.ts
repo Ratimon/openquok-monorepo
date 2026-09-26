@@ -72,6 +72,7 @@ export function docMetaFromRawSource(raw: string): DocMeta {
 		ogImage: typeof data.ogImage === 'string' ? data.ogImage : undefined,
 		ogImageAlt: typeof data.ogImageAlt === 'string' ? data.ogImageAlt : undefined,
 		openapi: typeof data.openapi === 'string' ? data.openapi : undefined,
-		docsLayout: normalizeDocsLayout(data.docsLayout)
+		docsLayout: normalizeDocsLayout(data.docsLayout),
+		pricingSchema: data.pricingSchema === true
 	};
 }

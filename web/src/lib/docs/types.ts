@@ -22,6 +22,8 @@ export interface DocMeta {
 	 * `standard`: same chrome as non-OpenAPI pages (right sidebar + no HTTP badge).
 	 */
 	docsLayout?: DocsLayoutMode;
+	/** When true, JSON-LD includes Schema.org `Offer` list for Cloud plans (see `/pricing`). */
+	pricingSchema?: boolean;
 }
 
 export interface DocFile {

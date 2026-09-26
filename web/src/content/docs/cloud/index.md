@@ -1,6 +1,6 @@
 ---
 title: Overview - OpenQuok Cloud
-description: Comaprison between Cloud hosted Paid Plan vs self-host free plan.
+description: Comparison between Cloud hosted Paid Plan vs self-host free plan.
 order: 0
 lastUpdated: 2026-09-23
 sidebar:

@@ -85,9 +85,9 @@ export function createPublicPricingOffers(params: CreatePublicPricingOffersParam
  * `PublicMarketingPricingSection` (home, API marketing hubs/platforms).
  */
 export function createPublicPricingSectionSEOSchema(
-	params: CreatePublicPricingOffersParams & { fragmentId?: string }
+	params: CreatePublicPricingOffersParams & { fragmentId?: string; pageName?: string }
 ): WebPage | Record<string, never> {
-	const { fragmentId = 'pricing', ...offerParams } = params;
+	const { fragmentId = 'pricing', pageName = 'Pricing', ...offerParams } = params;
 	const canonical = resolveCanonicalUrl(offerParams.pageUrl);
 	const offers = createPublicPricingOffers({ ...offerParams, pageUrl: canonical });
 
@@ -98,7 +98,7 @@ export function createPublicPricingSectionSEOSchema(
 	return {
 		'@type': 'WebPage',
 		'@id': `${canonical}#${fragmentId}`,
-		name: 'Pricing',
+		name: pageName,
 		url: `${canonical}#${fragmentId}`,
 		offers
 	};

@@ -28,6 +28,7 @@
 	description={meta.description}
 	ogImage={meta.ogImage}
 	ogImageAlt={meta.ogImageAlt}
+	pricingSchema={meta.pricingSchema}
 	{howToBlocks}
 	{docImages}
 	{codeBlocks}
