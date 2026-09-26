@@ -16,6 +16,7 @@ export interface BlogPostViewModel {
 	title: string;
 	description: string | null;
 	slug: string;
+	topicId: string | null;
 	topicName: string | null;
 	isSponsored: boolean;
 	isFeatured: boolean;
@@ -386,6 +387,7 @@ export class GetBlogPresenter {
 			title: post.title,
 			description: post.description,
 			slug: post.slug,
+			topicId: post.topicId?.trim() ? post.topicId : post.topic?.id ?? null,
 			topicName: post.topic?.name ?? null,
 			isSponsored: post.isSponsored,
 			isFeatured: post.isFeatured,

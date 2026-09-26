@@ -21,6 +21,8 @@
 		id: string;
 		title: string;
 		description?: string | null;
+		topicId?: string | null;
+		topicName?: string | null;
 		createdAt: string;
 		isUserPublished: boolean;
 		isAdminApproved: boolean;
@@ -29,18 +31,31 @@
 		content?: string | null;
 	};
 
+	type TopicFilterChoice = { value: string; label: string };
+
 	type Props = {
 		posts: BlogPostTableItem[];
+		topicFilterChoices?: TopicFilterChoice[];
 		getEditHref: (post: BlogPostTableItem) => string;
 		onPostDeleted: (post: BlogPostTableItem) => void | Promise<void>;
 	};
 
-	let { posts, getEditHref, onPostDeleted }: Props = $props();
+	let { posts, topicFilterChoices = [], getEditHref, onPostDeleted }: Props = $props();
+
+	const ALL_TOPICS_VALUE = 'all';
+
+	let selectedTopicId = $state(ALL_TOPICS_VALUE);
+
+	const postsMatchingTopic = $derived(
+		selectedTopicId === ALL_TOPICS_VALUE
+			? posts
+			: posts.filter((post) => (post.topicId ?? '') === selectedTopicId)
+	);
 
 	let pagination = $derived(
 		createPagination({
 			initialItemsPerPage: 5,
-			initialData: posts,
+			initialData: postsMatchingTopic,
 			searchField: 'title'
 		})
 	);
@@ -81,10 +96,25 @@
 </script>
 
 <div class="mt-6 w-full">
-	<div class="flex w-full justify-end">
+	<div class="flex w-full flex-wrap items-center justify-end gap-2">
+		{#if topicFilterChoices.length > 0}
+			<label class="flex items-center gap-2 text-sm text-base-content/70">
+				<span class="sr-only">Filter by topic</span>
+				<span class="hidden sm:inline">Topic</span>
+				<select
+					class="border-input bg-transparent focus-visible:ring-ring h-9 min-w-[12rem] max-w-full rounded-md border border-base-300 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
+					bind:value={selectedTopicId}
+				>
+					<option value={ALL_TOPICS_VALUE}>All topics</option>
+					{#each topicFilterChoices as choice (choice.value)}
+						<option value={choice.value}>{choice.label}</option>
+					{/each}
+				</select>
+			</label>
+		{/if}
 		<input
 			type="text"
-			class="border-input bg-transparent focus-visible:ring-ring h-9 w-60 rounded-md border border-base-300 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
+			class="border-input bg-transparent focus-visible:ring-ring h-9 w-60 max-w-full rounded-md border border-base-300 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1"
 			placeholder="Search by title..."
 			bind:value={pagination.searchTerm}
 		/>
@@ -96,6 +126,7 @@
 				<TableRow class="text-sm">
 					<TableHead class="hidden w-24 sm:table-cell"></TableHead>
 					<TableHead>Title</TableHead>
+					<TableHead class="hidden md:table-cell">Topic</TableHead>
 					<TableHead class="hidden sm:table-cell">Description</TableHead>
 					<TableHead class="hidden sm:table-cell">Status</TableHead>
 					<TableHead class="hidden sm:table-cell">Created</TableHead>
@@ -105,7 +136,7 @@
 			<TableBody>
 				{#if currentData.length === 0}
 					<TableRow>
-						<TableCell colspan={6} class="py-6 text-center text-base-content/60">
+						<TableCell colspan={7} class="py-6 text-center text-base-content/60">
 							No posts found.
 						</TableCell>
 					</TableRow>
@@ -127,6 +158,13 @@
 							</TableCell>
 							<TableCell class="font-medium">
 								{post.title}
+							</TableCell>
+							<TableCell class="hidden text-sm text-base-content/70 md:table-cell">
+								{#if post.topicName}
+									{post.topicName}
+								{:else}
+									<span class="text-base-content/50">—</span>
+								{/if}
 							</TableCell>
 							<TableCell class="hidden overflow-hidden text-xs text-base-content/70 sm:table-cell">
 								{#if post.description}

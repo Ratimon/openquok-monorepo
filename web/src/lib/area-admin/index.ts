@@ -35,6 +35,7 @@ const adminBlogNewPostPagePresenter = new AdminBlogEditorPagePresenter(blogRepos
 
 const adminBlogPostsManagerPagePresenter = new AdminBlogPostsManagerPagePresenter(
 	getBlogPresenter,
+	blogRepository,
 	imageRepository
 );
 

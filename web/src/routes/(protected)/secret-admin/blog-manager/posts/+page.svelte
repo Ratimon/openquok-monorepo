@@ -34,11 +34,15 @@
 	const getEditHref = (post: BlogPostTableItem) =>
 		url(getRootPathSecretAdminBlogManagerPostEditor(post.id));
 
+	const topicFilterChoices = $derived(adminBlogPostsManagerPagePresenter.topicFilterChoices);
+
 	const tablePosts: BlogPostTableItem[] = $derived(
 		posts.map((p) => ({
 			id: p.id,
 			title: p.title,
 			description: p.description,
+			topicId: p.topicId,
+			topicName: p.topicName,
 			createdAt: p.createdAt,
 			isUserPublished: p.isUserPublished,
 			isAdminApproved: p.isAdminApproved,
@@ -106,7 +110,12 @@
 			</div>
 		</div>
 	{:else}
-		<BlogPostsTable posts={tablePosts} {getEditHref} onPostDeleted={handlePostDeleted} />
+		<BlogPostsTable
+			posts={tablePosts}
+			{topicFilterChoices}
+			{getEditHref}
+			onPostDeleted={handlePostDeleted}
+		/>
 	{/if}
 </div>
 

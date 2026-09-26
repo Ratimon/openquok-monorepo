@@ -1,8 +1,10 @@
 import type { GetBlogPresenter } from '$lib/blogs/GetBlog.presenter.svelte';
 import type { BlogPostViewModel } from '$lib/blogs/GetBlog.presenter.svelte';
+import type { BlogRepository } from '$lib/blogs/Blog.repository.svelte';
 import type { ImageRepository } from '$lib/core/Image.repository.svelte';
 
 import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
+import { createSortedTopicChoices } from '$lib/blogs/Blog.repository.svelte';
 import { extractBlogImageStoragePathsFromHtml } from '$lib/blogs/utils';
 
 export type PostDeleteStorageCleanupResultVm =
@@ -10,19 +12,30 @@ export type PostDeleteStorageCleanupResultVm =
 	| { kind: 'ok'; deletedCount: number }
 	| { kind: 'failed'; failedPaths: string[]; deletedCount: number };
 
+export type BlogPostTopicFilterChoice = { value: string; label: string };
+
 export class AdminBlogPostsManagerPagePresenter {
 	public allPostsToManageVm: BlogPostViewModel[] = $state([]);
+	public topicFilterChoices: BlogPostTopicFilterChoice[] = $state([]);
 	public loading = $state(false);
 
 	constructor(
 		private readonly getBlogPresenter: GetBlogPresenter,
+		private readonly blogRepository: BlogRepository,
 		private readonly imageRepository: ImageRepository
 	) {}
 
 	public async loadAllPosts(fetch?: typeof globalThis.fetch): Promise<BlogPostViewModel[]> {
 		this.loading = true;
 		try {
-			const posts = await this.getBlogPresenter.loadAdminPosts({ limit: 100 }, fetch);
+			const [posts, topics] = await Promise.all([
+				this.getBlogPresenter.loadAdminPosts({ limit: 100 }, fetch),
+				this.blogRepository.getBlogTopics(fetch)
+			]);
+			this.topicFilterChoices = createSortedTopicChoices(topics).map((choice) => ({
+				value: choice.value,
+				label: choice.label
+			}));
 			this.allPostsToManageVm = posts;
 			return this.allPostsToManageVm;
 		} finally {
