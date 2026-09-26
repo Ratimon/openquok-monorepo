@@ -24,12 +24,12 @@ export const BLOG_SEO_TOPIC_IDS_PRODUCT = [
 	'd5f7a000-0000-4000-a000-000000000303'
 ] as const;
 
+/** True when the post has a topic — admins may add optional HowTo steps on any topic. */
 export function isBlogTopicEligibleForHowTo(
 	topicSlug: string | null | undefined,
 	topicId?: string | null | undefined
 ): boolean {
-	if (topicId === BLOG_SEO_TOPIC_ID_HOWTO) return true;
-	return topicSlug === BLOG_SEO_TOPIC_SLUG_HOWTO;
+	return Boolean(topicId?.trim() || topicSlug?.trim());
 }
 
 export function isBlogTopicEligibleForGuide(
@@ -40,13 +40,10 @@ export function isBlogTopicEligibleForGuide(
 	return topicSlug === BLOG_SEO_TOPIC_SLUG_GUIDE;
 }
 
+/** True when the post has a topic — admins may add an optional product summary on any topic. */
 export function isBlogTopicEligibleForProduct(
 	topicSlug: string | null | undefined,
 	topicId?: string | null | undefined
 ): boolean {
-	if (topicId && (BLOG_SEO_TOPIC_IDS_PRODUCT as readonly string[]).includes(topicId)) {
-		return true;
-	}
-	if (!topicSlug) return false;
-	return (BLOG_SEO_TOPIC_SLUGS_PRODUCT as readonly string[]).includes(topicSlug);
+	return Boolean(topicId?.trim() || topicSlug?.trim());
 }

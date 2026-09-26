@@ -656,7 +656,7 @@
 								<Field.Error errors={field.state.meta.errors as unknown as Array<{ message?: string }>} />
 								{#if !field.state.value}
 									<p class="text-sm text-base-content/60">
-										Choose a topic to unlock Structured SEO. FAQ is available for every topic; How-to steps and product summary appear only for matching topics. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
+										Choose a topic to unlock Structured SEO. FAQ, How-to steps, and product summary are optional for every topic. Feature Walkthroughs by Use Case also adds Guide on the BlogPosting in JSON-LD automatically—no extra fields.
 									</p>
 								{/if}
 							</div>
@@ -680,7 +680,7 @@
 						Structured SEO
 					</h3>
 					<p class="text-sm font-medium text-base-content/70">
-						Optional FAQ (any topic), How-to steps, or product summary for eligible topics. Visible on the public post and included in JSON-LD when filled in. Feature Walkthroughs by Use Case posts add Guide on the BlogPosting automatically—no extra fields.
+						Optional FAQ, How-to steps, and product summary for any topic. Visible on the public post and included in JSON-LD when filled in. Feature Walkthroughs by Use Case posts add Guide on the BlogPosting automatically—no extra fields.
 					</p>
 					{#if showGuideTopic}
 						<p class="text-sm text-base-content/60">

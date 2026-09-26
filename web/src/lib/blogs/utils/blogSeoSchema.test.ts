@@ -5,7 +5,9 @@ import {
 	BLOG_SEO_TOPIC_ID_GUIDE,
 	BLOG_SEO_TOPIC_IDS_PRODUCT,
 	BLOG_SEO_TOPIC_SLUG_GUIDE,
-	isBlogTopicEligibleForGuide
+	isBlogTopicEligibleForGuide,
+	isBlogTopicEligibleForHowTo,
+	isBlogTopicEligibleForProduct
 } from '$lib/blogs/constants/blogSeoSchemaTopics';
 import { buildBlogInlineImageSrc } from '$lib/blogs/utils/blogImages';
 import { createBlogPostSEOSchema } from '$lib/blogs/utils/blogSeoSchema';
@@ -296,6 +298,16 @@ describe('isBlogTopicEligibleForGuide', () => {
 		expect(isBlogTopicEligibleForGuide(BLOG_SEO_TOPIC_SLUG_GUIDE, null)).toBe(true);
 		expect(isBlogTopicEligibleForGuide(null, BLOG_SEO_TOPIC_ID_GUIDE)).toBe(true);
 		expect(isBlogTopicEligibleForGuide('product-updates', BLOG_SEO_TOPIC_IDS_PRODUCT[0])).toBe(false);
+	});
+});
+
+describe('isBlogTopicEligibleForHowTo and Product', () => {
+	it('allows structured SEO fields on any topic with id or slug', () => {
+		const educationalGuidesId = 'd5f7a000-0000-4000-a000-000000000201';
+		expect(isBlogTopicEligibleForHowTo('educationalguides', educationalGuidesId)).toBe(true);
+		expect(isBlogTopicEligibleForProduct('educationalguides', educationalGuidesId)).toBe(true);
+		expect(isBlogTopicEligibleForHowTo(null, null)).toBe(false);
+		expect(isBlogTopicEligibleForProduct(null, null)).toBe(false);
 	});
 });
 
