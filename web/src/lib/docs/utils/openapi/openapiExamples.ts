@@ -37,6 +37,46 @@ export function openapiSpecFetchInit(specUrl: string, pageOrigin: string): Reque
 	return { credentials: crossOrigin ? 'omit' : 'same-origin' };
 }
 
+const openapiSpecPromiseByUrl = new Map<string, Promise<OasDoc>>();
+
+/** Clears in-process OpenAPI spec cache (tests only). */
+export function clearOpenapiSpecCacheForTests(): void {
+	openapiSpecPromiseByUrl.clear();
+}
+
+/**
+ * Fetch and parse `openapi.json` once per resolved URL per process (prerender / SSR).
+ */
+export async function loadOpenapiSpec(
+	pageOrigin: string,
+	specUrlOverride?: string
+): Promise<
+	{ ok: true; spec: OasDoc; resolvedSpecUrl: string } | { ok: false; error: string }
+> {
+	const resolvedSpecUrl = resolveOpenapiSpecUrl(pageOrigin, specUrlOverride);
+
+	let pending = openapiSpecPromiseByUrl.get(resolvedSpecUrl);
+	if (!pending) {
+		pending = fetch(resolvedSpecUrl, openapiSpecFetchInit(resolvedSpecUrl, pageOrigin)).then(
+			async (res) => {
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				return (await res.json()) as OasDoc;
+			}
+		);
+		pending.catch(() => {
+			openapiSpecPromiseByUrl.delete(resolvedSpecUrl);
+		});
+		openapiSpecPromiseByUrl.set(resolvedSpecUrl, pending);
+	}
+
+	try {
+		const spec = await pending;
+		return { ok: true, spec, resolvedSpecUrl };
+	} catch (e) {
+		return { ok: false, error: e instanceof Error ? e.message : String(e) };
+	}
+}
+
 export type OasParameter = {
 	in?: string;
 	name?: string;
@@ -572,16 +612,9 @@ export async function fetchOpenapiOperationForDocs(
 		return { ok: false, error: `Invalid openapi line: ${operation}` };
 	}
 
-	const resolvedSpecUrl = resolveOpenapiSpecUrl(origin, specUrl);
-
-	let spec: OasDoc;
-	try {
-		const res = await fetch(resolvedSpecUrl, openapiSpecFetchInit(resolvedSpecUrl, origin));
-		if (!res.ok) return { ok: false, error: `HTTP ${res.status}` };
-		spec = (await res.json()) as OasDoc;
-	} catch (e) {
-		return { ok: false, error: e instanceof Error ? e.message : String(e) };
-	}
+	const loaded = await loadOpenapiSpec(origin, specUrl);
+	if (!loaded.ok) return { ok: false, error: loaded.error };
+	const spec = loaded.spec;
 
 	const opNode = resolveOpenapiOperationNode(spec, parsed.method, parsed.path);
 	const server = defaultServerUrl(spec);

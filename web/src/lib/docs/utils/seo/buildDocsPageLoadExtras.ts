@@ -12,30 +12,12 @@ import {
 	type DocsImageFromRaw
 } from '$lib/docs/utils/content/extractDocsImagesFromRaw';
 import type { DocMeta } from '$lib/docs/types';
-import { fetchOpenapiOperationForDocs } from '$lib/docs/utils/openapi/openapiExamples';
 
 export type BuildDocsPageLoadExtrasOptions = {
 	meta?: Pick<DocMeta, 'title' | 'openapi'>;
 	/** Request origin for OpenAPI spec fetch during SSR / prerender. */
 	origin?: string;
 };
-
-async function fetchOpenApiSeoCodeBlocks(params: {
-	openapi: string;
-	title: string;
-	origin: string;
-	startIndex: number;
-}): Promise<DocsCodeBlockFromRaw[]> {
-	const result = await fetchOpenapiOperationForDocs(params.openapi, '/api/v1/openapi.json', params.origin);
-	if (!result.ok) return [];
-
-	return result.payload.clientSamples.map((sample, offset) => ({
-		index: params.startIndex + offset,
-		language: sample.shikiLanguage,
-		text: sample.code,
-		name: `${params.title} — ${sample.label} request example`
-	}));
-}
 
 export async function buildDocsPageLoadExtras(
 	rawContent: string,
@@ -54,6 +36,8 @@ export async function buildDocsPageLoadExtras(
 	const pageTitle = options?.meta?.title?.trim();
 
 	if (openapiLine && origin && pageTitle) {
+		const { fetchOpenApiSeoCodeBlocks } =
+			await import('$lib/docs/utils/openapi/openapiSeoClientSamples');
 		const openApiBlocks = await fetchOpenApiSeoCodeBlocks({
 			openapi: openapiLine,
 			title: pageTitle,
