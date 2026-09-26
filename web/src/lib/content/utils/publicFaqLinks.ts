@@ -87,6 +87,7 @@ export const publicFaqHref = {
 	docsTemplates: faqHrefDocs('posts-management/templates'),
 	docsSignatures: faqHrefDocs('settings/signatures'),
 	docsTeam: faqHrefDocs('settings/team'),
+	docsApprovals: faqHrefDocs('posts-management/approvals'),
 	docsDevelopers: faqHrefDocs('settings/developers'),
 	docsInsights: faqHrefDocs('insights/workspace-analytics'),
 	docsPlaybooks: faqHrefDocs('playbooks'),
@@ -157,6 +158,9 @@ export const publicFaqHref = {
 	blogThinkrail: faqHrefBlogPost('schedule-social-posts-from-thinkrail-with-openquok'),
 	blogHumanizerRewrite: faqHrefBlogPost(
 		'how-openquok-humanizer-rewrites-a-draft-in-the-browser'
+	),
+	blogTeamCollaboration: faqHrefBlogPost(
+		'team-collaboration-in-openquok-workspaces-clients-and-preview-links'
 	)
 } as const;
 

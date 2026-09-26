@@ -2,7 +2,7 @@
 	import type { BlogPostFormSchemaType, BlogSeoHowtoStep, BlogSeoProduct, TopicChoice } from '$lib/blogs/blog.types';
 	import type { DatabaseName } from '$lib/core/Image.repository.svelte';
 
-	import { onMount, untrack } from 'svelte';
+	import { untrack } from 'svelte';
 	import { createForm } from '@tanstack/svelte-form';
 
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
@@ -38,7 +38,6 @@
 		isSubmitting: boolean;
 		slugDisplay?: string;
 		noPostFound?: boolean;
-		companyName?: string;
 		onSave: (formData: BlogPostFormSchemaType) => void | Promise<void>;
 		onDiscard: () => void;
 	};
@@ -51,7 +50,6 @@
 		isSubmitting,
 		slugDisplay = '',
 		noPostFound = false,
-		companyName = '',
 		onSave,
 		onDiscard
 	}: Props = $props();
@@ -206,52 +204,22 @@
 	let hasPendingHeroFile = $state(false);
 	let contentEditorMode = $state<'visual' | 'html'>('visual');
 	let htmlSourceContent = $state('');
-	const seoTopicStore = form.useStore((state) => ({
-		topicId: state.values.topic_id ?? '',
-		title: state.values.title ?? '',
-		description: state.values.description ?? '',
-		product: state.values.product ?? null
-	}));
 
-	function buildProductPrefill(
-		title: string,
-		description: string,
-		product: BlogSeoProduct | null
-	): BlogSeoProduct | null {
-		const trimmedTitle = title.trim();
-		const trimmedDescription = description.trim();
-		if (!trimmedTitle && !trimmedDescription) return null;
-
-		return {
-			name: product?.name?.trim() || trimmedTitle,
-			description: product?.description?.trim() || trimmedDescription,
-			brand: product?.brand?.trim() || companyName || null,
-			url: product?.url?.trim() || null
-		};
-	}
-
-	function prefillProductFields(): void {
-		const { topicId, title, description, product } = seoTopicStore.current;
-		const topicSlug = resolveTopicSlug(topicId);
-		if (!isBlogTopicEligibleForProduct(topicSlug, topicId)) return;
-		if (product?.name?.trim() && product?.description?.trim()) return;
-
-		const nextProduct = buildProductPrefill(title, description, product);
-		if (!nextProduct) return;
-
-		const unchanged =
-			product?.name === nextProduct.name &&
-			product?.description === nextProduct.description &&
-			(product?.brand ?? null) === nextProduct.brand &&
-			(product?.url ?? null) === nextProduct.url;
-		if (unchanged) return;
-
-		form.setFieldValue('product', nextProduct);
-	}
-
-	onMount(() => {
-		prefillProductFields();
+	const emptyProductFields = (): BlogSeoProduct => ({
+		name: '',
+		description: '',
+		brand: null,
+		url: null
 	});
+
+	function normalizeProductFieldValue(product: BlogSeoProduct): BlogSeoProduct | null {
+		const name = product.name.trim();
+		const description = product.description.trim();
+		const brand = product.brand?.trim() || null;
+		const url = product.url?.trim() || null;
+		if (!name && !description && !brand && !url) return null;
+		return { name, description, brand, url };
+	}
 
 	function prettyFormatHtml(html: string): string {
 		const trimmed = html.trim();
@@ -646,7 +614,6 @@
 									value={field.state.value || undefined}
 									onValueChange={(v) => {
 										field.handleChange(v ?? '');
-										prefillProductFields();
 									}}
 								>
 									<Select.Trigger class="w-full max-w-md">
@@ -815,7 +782,7 @@
 				{#if showProductSection}
 					<form.Field name="product">
 						{#snippet children(field)}
-							{@const product = field.state.value ?? { name: '', description: '', brand: null, url: null }}
+							{@const product = field.state.value ?? emptyProductFields()}
 							<div class="space-y-4">
 								<div>
 									<Field.Label>Product summary</Field.Label>
@@ -832,10 +799,12 @@
 											placeholder="Enter product name"
 											value={product.name ?? ''}
 											oninput={(e) =>
-												field.handleChange({
-													...product,
-													name: e.currentTarget.value
-												} satisfies BlogSeoProduct)}
+												field.handleChange(
+													normalizeProductFieldValue({
+														...product,
+														name: e.currentTarget.value
+													})
+												)}
 										/>
 									</div>
 									<div class="flex flex-col gap-2">
@@ -846,10 +815,12 @@
 											placeholder="Enter brand name"
 											value={product.brand ?? ''}
 											oninput={(e) =>
-												field.handleChange({
-													...product,
-													brand: e.currentTarget.value || null
-												} satisfies BlogSeoProduct)}
+												field.handleChange(
+													normalizeProductFieldValue({
+														...product,
+														brand: e.currentTarget.value || null
+													})
+												)}
 										/>
 									</div>
 								</div>
@@ -860,10 +831,12 @@
 										placeholder="Enter product description"
 										value={product.description ?? ''}
 										oninput={(e) =>
-											field.handleChange({
-												...product,
-												description: e.currentTarget.value
-											} satisfies BlogSeoProduct)}
+											field.handleChange(
+												normalizeProductFieldValue({
+													...product,
+													description: e.currentTarget.value
+												})
+											)}
 									/>
 								</div>
 								<div class="flex flex-col gap-2">
@@ -874,10 +847,12 @@
 										placeholder="https://example.com/product"
 										value={product.url ?? ''}
 										oninput={(e) =>
-											field.handleChange({
-												...product,
-												url: e.currentTarget.value || null
-											} satisfies BlogSeoProduct)}
+											field.handleChange(
+												normalizeProductFieldValue({
+													...product,
+													url: e.currentTarget.value || null
+												})
+											)}
 									/>
 								</div>
 							</div>

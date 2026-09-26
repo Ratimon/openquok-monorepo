@@ -109,6 +109,14 @@ describe('getPublicPricingFaqItems', () => {
 		expect(titles).not.toContain('How do I schedule social media posts with OpenQuok?');
 		expect(titles).not.toContain('What is MCP and how does OpenQuok use it?');
 	});
+
+	it('links team collaboration walkthrough on pricing FAQ', () => {
+		const teamMembers =
+			getPublicPricingFaqItems().find((item) => item.id === 'team-members')?.description ?? '';
+
+		expect(teamMembers).toContain(publicFaqHref.blogTeamCollaboration);
+		expect(teamMembers).toContain(publicFaqHref.docsApprovals);
+	});
 });
 
 describe('PUBLIC_FAQ_ITEMS', () => {

@@ -27,6 +27,7 @@
 	import CenteredDarkCtaBanner from '$lib/ui/templates/banners/CenteredDarkCtaBanner.svelte';
 	import JsonLdHead from '$lib/ui/components/seo/JsonLdHead.svelte';
 	import PublicComingSoonIntegrationPage from '$lib/ui/templates/landing-page/PublicComingSoonIntegrationPage.svelte';
+	import PublicChannelAgentIntegrationsGrid from '$lib/ui/templates/landing-page/PublicChannelAgentIntegrationsGrid.svelte';
 	import PublicChannelSiblingGrid from '$lib/ui/templates/landing-page/PublicChannelSiblingGrid.svelte';
 	import { listPublicChannelsForHub } from '$lib/content/constants/channels/index';
 	import { getRootPathPublicChannel } from '$lib/area-public/constants/getRootPathPublicChannels';
@@ -125,6 +126,11 @@
 			/>
 		{/if}
 	{/each}
+
+	<PublicChannelAgentIntegrationsGrid
+		channelSlug={channelVm.slug}
+		platformLabel={channelVm.platformLabel}
+	/>
 
 	<PublicChannelSiblingGrid
 		channelsVm={siblingChannels}

@@ -105,7 +105,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'multi-workspace',
 		title: "Why should I use OpenQuok's multi-workspace?",
 		description:
-			`Use one workspace per client or brand. Each workspace keeps its own channels and sign-in details separate. That lowers the risk that an AI agent hallucinates posts to the wrong account. See ${faqLink(publicFaqHref.pricing, 'plan workspace counts')}, ${faqLink(publicFaqHref.billingLimits, 'billing limits')}, and ${faqLink(publicFaqHref.compare, 'how we compare')}.`
+			`Use one workspace per client or brand. Each workspace keeps its own channels and sign-in details separate. That lowers the risk that an AI agent hallucinates posts to the wrong account. See ${faqLink(publicFaqHref.pricing, 'plan workspace counts')}, ${faqLink(publicFaqHref.billingLimits, 'billing limits')}, and ${faqLink(publicFaqHref.compare, 'how we compare')}. Agencies group channels by client in the ${faqLink(publicFaqHref.blogTeamCollaboration, 'team collaboration walkthrough')}.`
 	},
 	{
 		id: 'oauth-app-counts',
@@ -171,7 +171,7 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'team-members',
 		title: 'How does team member work?',
 		description:
-			`You invite people to a workspace. They can draft and schedule within your plan seat limit. See ${faqLink(publicFaqHref.docsTeam, 'Team')} and ${faqLink(publicFaqHref.billingLimits, 'billing limits')}.`
+			`You invite people to a workspace. They can draft and schedule within your plan seat limit. See ${faqLink(publicFaqHref.docsTeam, 'Team')}, ${faqLink(publicFaqHref.docsApprovals, 'Approvals')} for shareable preview links, and ${faqLink(publicFaqHref.billingLimits, 'billing limits')}. For workspaces, clients, and client review without a login, read the ${faqLink(publicFaqHref.blogTeamCollaboration, 'team collaboration walkthrough')}.`
 	},
 	{
 		id: 'reach-official-api',
@@ -189,13 +189,13 @@ export const PUBLIC_FAQ_ITEMS: readonly PublicFaqItem[] = [
 		id: 'templates',
 		title: 'What are reusable templates and how does it work?',
 		description:
-			`Templates save your usual channels, captions, and media as a preset. Pick one when you start a post. See ${faqLink(publicFaqHref.docsTemplates, 'Templates')}.`
+			`Templates save your usual channels, captions, and media as a preset. Pick one when you start a post. See ${faqLink(publicFaqHref.docsTemplates, 'Templates')} and how teams share presets in the ${faqLink(publicFaqHref.blogTeamCollaboration, 'team collaboration walkthrough')}.`
 	},
 	{
 		id: 'signatures',
 		title: 'What are reusable signatures and how does it work?',
 		description:
-			`Signatures are reusable sign-offs (hashtags, links, promos) you insert from the composer. See ${faqLink(publicFaqHref.docsSignatures, 'Signatures')}.`
+			`Signatures are reusable sign-offs (hashtags, links, promos) you insert from the composer. See ${faqLink(publicFaqHref.docsSignatures, 'Signatures')} and the ${faqLink(publicFaqHref.blogTeamCollaboration, 'team collaboration walkthrough')}.`
 	},
 	{
 		id: 'analytics',
