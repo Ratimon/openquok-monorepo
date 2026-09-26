@@ -10,6 +10,7 @@ import {
 	buildChannelFreeTrialFaqDescription,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
+	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
@@ -122,12 +123,12 @@ export const devtoChannel = {
 		{
 			title: 'Do I write the article body as markdown?',
 			description:
-				'Yes. Use our post editor — the body is sent as markdown. Title, tags, cover, organization, series, and canonical URL live in Dev.to settings, not in a separate markdown editor.'
+				`Yes. Use our post editor — the body is sent as markdown. Title, tags, cover, organization, series, and canonical URL live in Dev.to settings, not in a separate markdown editor. See ${faqLink(faqHrefDocs('creating-posts/writing-the-post'), 'editor by platform')} and ${faqLink(faqHrefDocs('public-api-providers/devto'), 'Dev.to API settings')}.`
 		},
 		{
 			title: 'How many tags can I set on a scheduled article?',
 			description:
-				'Dev.to allows at most four tags. OpenQuok loads tag suggestions from the connected account when available, or you can type names freely. Title must be at least two characters before you can schedule.'
+				`Dev.to allows at most four tags. OpenQuok loads tag suggestions from the connected account when available, or you can type names freely. Title must be at least two characters before you can schedule. See ${faqLink(faqHrefDocs('public-api-providers/devto'), 'Dev.to API settings')} and ${faqLink(publicFaqHref.cliDevto, 'Dev.to CLI examples')}.`
 		},
 		{
 			title: 'Can I set a cover image and organization?',
@@ -137,12 +138,12 @@ export const devtoChannel = {
 		{
 			title: 'Can I add an article to a Dev.to series?',
 			description:
-				'Yes. Enter a free-text series name in Dev.to settings (or pass series in providerSettings). Dev.to creates the series if it does not already exist.'
+				`Yes. Enter a free-text series name in Dev.to settings (or pass series in providerSettings). Dev.to creates the series if it does not already exist. See ${faqLink(faqHrefDocs('public-api-providers/devto'), 'Dev.to API settings')}.`
 		},
 		{
 			title: 'Can I syndicate a post that already lives on my site?',
 			description:
-				'Yes. Set Canonical URL in Dev.to settings (or pass canonical in providerSettings). OpenQuok sends that URL with the article so Dev.to can point at the original.'
+				`Yes. Set Canonical URL in Dev.to settings (or pass canonical in providerSettings). OpenQuok sends that URL with the article so Dev.to can point at the original. See ${faqLink(faqHrefDocs('public-api-providers/devto'), 'Dev.to API settings')} and ${faqLink(publicFaqHref.cliDevto, 'Dev.to CLI examples')}.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('Dev.to articles'),

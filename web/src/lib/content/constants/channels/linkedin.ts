@@ -113,7 +113,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can you schedule LinkedIn posts with OpenQuok?',
 			description:
-				`Yes. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect your personal profile or a company Page, write your post, and pick a time on the OpenQuok calendar. OpenQuok publishes through LinkedIn’s official API — text, images, video, and Page document carousels. Review drafts on the kanban board before anything goes live. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
+				`Yes. ${faqLink(publicFaqHref.signUp, 'Sign up for free')}, connect your personal profile or a company Page, write your post, and pick a time on the OpenQuok calendar. OpenQuok publishes through LinkedIn’s official API — text, images, video, and Page document carousels. Review drafts on the kanban board before anything goes live. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}, ${faqLink(publicFaqHref.docsCalendar, 'calendar guide')}, and ${faqLink(publicFaqHref.docsKanban, 'kanban board guide')}.`
 		},
 		{
 			title: 'How do I schedule posts on a LinkedIn company Page?',
@@ -123,7 +123,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can you schedule LinkedIn document carousels in OpenQuok?',
 			description:
-				'Yes. Attach two or more images (no video), enable Post as image carousel in composer settings, and OpenQuok combines them into a PDF document share at publish time — the native carousel format LinkedIn expects. Optional carousel title defaults to slides.'
+				`Yes. Attach two or more images (no video), enable Post as image carousel in composer settings, and OpenQuok combines them into a PDF document share at publish time — the native carousel format LinkedIn expects. Optional carousel title defaults to slides. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'LinkedIn per-channel settings')} and ${faqLink(publicFaqHref.cliLinkedin, 'LinkedIn CLI examples')}.`
 		},
 		{
 			title: 'Can I schedule follow-up comments on LinkedIn?',
@@ -148,12 +148,12 @@ export const linkedinChannel = {
 		{
 			title: 'How many LinkedIn posts can I queue in OpenQuok?',
 			description:
-				`Draft and schedule posts on the calendar as far ahead as you need — drag to reschedule or use recurring slots for a steady cadence. Monthly publish volume follows your workspace plan; see ${faqLink(publicFaqHref.pricing, 'Pricing')} for posts-per-month limits on each tier.`
+				`Draft and schedule posts on the calendar as far ahead as you need — drag to reschedule or use recurring slots for a steady cadence. Monthly publish volume follows your workspace plan; see ${faqLink(publicFaqHref.pricing, 'Pricing')} for posts-per-month limits on each tier, the ${faqLink(publicFaqHref.docsCalendar, 'calendar guide')}, and ${faqLink(publicFaqHref.docsSchedulingRepeat, 'repeating a post')}.`
 		},
 		{
 			title: 'Does OpenQuok show LinkedIn Page analytics?',
 			description:
-				`Yes, for connected LinkedIn Page channels. Workspace analytics show Page views, follower gains, impressions, clicks, and engagement, plus per-post metrics on published Page content. Personal profile channels do not expose the same account-level insights API. Pull metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or dashboard.`
+				`Yes, for connected LinkedIn Page channels. Workspace analytics show Page views, follower gains, impressions, clicks, and engagement, plus per-post metrics on published Page content. Personal profile channels do not expose the same account-level insights API. Pull metrics from the ${faqLink(publicFaqHref.cliAnalytics, 'analytics CLI')} or the ${faqLink(publicFaqHref.docsInsights, 'workspace analytics guide')}.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('LinkedIn posts'),
@@ -168,7 +168,7 @@ export const linkedinChannel = {
 		{
 			title: 'Can OpenQuok auto-repost LinkedIn Page posts?',
 			description:
-				'Yes. On a LinkedIn Page channel, open Plugs and set a like threshold for auto-repost. OpenQuok checks published posts automatically. It reshares from the Page when likes reach your threshold. This is separate from cross-posting to other networks.'
+				`Yes. On a LinkedIn Page channel, open Plugs and set a like threshold for auto-repost. OpenQuok checks published posts automatically. It reshares from the Page when likes reach your threshold. This is separate from cross-posting to other networks. See ${faqLink(faqHrefDocs('automations/internal-plugs'), 'internal plugs')}.`
 		},
 		{
 			title: 'Can I cross-post LinkedIn content to other channels?',

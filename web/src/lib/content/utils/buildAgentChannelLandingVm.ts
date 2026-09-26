@@ -1,3 +1,4 @@
+import type { PublicFaqItem } from '$lib/content/constants/publicFaqConfig';
 import type { PublicAgentChannelPageConfig } from '$lib/content/constants/publicAgentChannelConfig';
 import type { PublicAgentHostLandingPageViewModel } from '$lib/content/constants/publicAgentConfig';
 import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/publicChannelConfig';
@@ -15,6 +16,16 @@ import {
 } from '$lib/content/utils/publicFaqLinks';
 
 const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);
+
+/** Agent/MCP channel landings keep host/client FAQs first, then channel catalog FAQs (deduped by title). */
+export function appendChannelLandingFaqItems(
+	tailored: PublicFaqItem[],
+	channelItems: readonly PublicFaqItem[]
+): PublicFaqItem[] {
+	const seenTitles = new Set(tailored.map((item) => item.title));
+	const extra = channelItems.filter((item) => !seenTitles.has(item.title));
+	return [...tailored, ...extra];
+}
 
 /** Merge a base agent host VM with channel-specific SEO copy and showcases. */
 export function buildAgentChannelLandingVm(params: {
@@ -92,8 +103,9 @@ export function buildAgentChannelLandingVm(params: {
 			: undefined,
 		faqSubtitle: baseAgent.faqSubtitle,
 		faqTitle: `${agentLabel} + ${platformLabel}, answered`,
-		faqDescription: `What ${agentLabel} is, how to install openquok-core, scheduling ${platformLabel} posts, human approval, and how agents draft from chat.`,
-		faqItems: baseAgent.faqItems.map((item) => {
+		faqDescription: `What ${agentLabel} is, how to install openquok-core, scheduling ${platformLabel} posts, human approval, and ${platformLabel} setup questions.`,
+		faqItems: appendChannelLandingFaqItems(
+			baseAgent.faqItems.map((item) => {
 			if (item.title === 'Which social media platforms are supported?') {
 				return {
 					...item,
@@ -117,6 +129,8 @@ export function buildAgentChannelLandingVm(params: {
 				};
 			}
 			return item;
-		})
+			}),
+			channel.faqItems
+		)
 	};
 }

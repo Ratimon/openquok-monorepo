@@ -4,6 +4,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 import {
 	buildChannelLandingFaqLinks,
 	buildChannelMcpSeoKeywords,
+	buildMetaBusinessVerificationChannelFaqItem,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
@@ -116,15 +117,16 @@ export const facebookChannel = {
 			description:
 				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → Facebook Page. Complete Meta OAuth and pick the Page you manage. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(FACEBOOK_DOCS_PATH, 'Facebook')}.`
 		},
+		buildMetaBusinessVerificationChannelFaqItem('your Facebook Page'),
 		{
 			title: 'Can I connect my personal Facebook profile?',
 			description:
-				'No. OpenQuok connects to Facebook Pages you manage, not personal profiles. Meta’s Graph API supports third-party publishing to Pages — not scheduling to individual user timelines. Use a Facebook Page for your brand, business, or creator presence.'
+				`No. OpenQuok connects to Facebook Pages you manage, not personal profiles. Meta's Graph API supports third-party publishing to Pages — not scheduling to individual user timelines. Use a Facebook Page for your brand, business, or creator presence. See ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} and ${faqLink(faqHrefDocs('platforms/connect-rules'), 'platform connect rules')}.`
 		},
 		{
 			title: 'Can OpenQuok post to Facebook Groups?',
 			description:
-				'No. OpenQuok publishes to Facebook Pages you manage via the Graph API. Meta deprecated public Group publishing APIs; Page posting is the supported path for businesses and creators.'
+				`No. OpenQuok publishes to Facebook Pages you manage via the Graph API. Meta deprecated public Group publishing APIs; Page posting is the supported path for businesses and creators. See ${faqLink(faqHrefDocs('platforms/connect-rules'), 'platform connect rules')}.`
 		},
 		{
 			title: 'How do I publish Facebook Reels from OpenQuok?',
@@ -143,7 +145,7 @@ export const facebookChannel = {
 		{
 			title: 'Does OpenQuok support link previews on Facebook?',
 			description:
-				'Yes. When you include a URL in a text-only Facebook Page post, OpenQuok passes link-preview settings supported by the integration so shared links render with the right metadata. Link URLs are ignored when photos or video are attached.'
+				`Yes. When you include a URL in a text-only Facebook Page post, OpenQuok passes link-preview settings supported by the integration so shared links render with the right metadata. Link URLs are ignored when photos or video are attached. See ${faqLink(faqHrefDocs('public-api-providers/facebook'), 'Facebook API settings')} and ${faqLink(publicFaqHref.cliFacebook, 'Facebook CLI examples')}.`
 		},
 		{
 			title: 'Can I schedule follow-up comments on Facebook?',

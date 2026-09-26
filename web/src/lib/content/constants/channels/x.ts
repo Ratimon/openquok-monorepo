@@ -116,7 +116,7 @@ export const xChannel = {
 		{
 			title: 'Can I schedule X posts with images or video?',
 			description:
-				'Yes. Attach up to four images or one video when composing an X post in OpenQuok. The post editor validates media rules before publish. Use one video or up to four images per tweet, not both.'
+				`Yes. Attach up to four images or one video when composing an X post in OpenQuok. The post editor validates media rules before publish. Use one video or up to four images per tweet, not both. See ${faqLink(faqHrefDocs('platforms/media-rules'), 'media rules by platform')} and the ${faqLink(xLinks.photoEditor.toolChannel, 'X photo editor')}.`
 		},
 		{
 			title: 'Does OpenQuok respect X character limits?',
@@ -126,7 +126,7 @@ export const xChannel = {
 		{
 			title: 'Which X settings can I control before publishing?',
 			description:
-				'For each scheduled tweet you can choose who can reply (everyone, followers, mentioned accounts, subscribers, or verified users), post into an X community by URL, and flag Made with AI or Paid partnership. Set these in the composer or pass x.whoCanReplyPost, x.communityUrl, and label flags via the API.'
+				`For each scheduled tweet you can choose who can reply, post into an X community by URL, and flag Made with AI or Paid partnership. Set these in the composer or pass provider settings via the API. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'X per-channel settings')} and ${faqLink(faqHrefDocs('public-api-providers/x'), 'X API settings')}.`
 		},
 		{
 			title: 'Can I schedule thread replies in advance?',
@@ -146,7 +146,7 @@ export const xChannel = {
 		{
 			title: 'Can OpenQuok auto-repost or plug high-performing X posts?',
 			description:
-				'Yes. Open channel Plugs and set a like threshold. Choose auto-repost or auto-plug with your promo reply text. OpenQuok checks published tweets automatically and reposts or replies when likes reach your threshold. You can also pick other connected X accounts to repost right after publish. Use recurring schedule slots to recycle evergreen tweets.'
+				`Yes. Open channel Plugs and set a like threshold. Choose auto-repost or auto-plug with your promo reply text. OpenQuok checks published tweets automatically and reposts or replies when likes reach your threshold. You can also pick other connected X accounts to repost right after publish. See ${faqLink(faqHrefDocs('automations/internal-plugs'), 'internal plugs')} and ${faqLink(publicFaqHref.docsSchedulingRepeat, 'repeating a post')}.`
 		},
 		{
 			title: 'What X analytics does OpenQuok track?',

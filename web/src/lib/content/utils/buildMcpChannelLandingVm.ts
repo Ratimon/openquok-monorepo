@@ -6,6 +6,7 @@ import {
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 
+import { appendChannelLandingFaqItems } from '$lib/content/utils/buildAgentChannelLandingVm';
 import { customizeAgentsChannelFeatureSections } from '$lib/content/utils/buildAgentsChannelFeatureSections';
 import { buildAgentsChannelAudienceSection } from '$lib/content/utils/buildAgentsChannelAudienceSection';
 import { buildMcpChannelMetaTitle } from '$lib/content/utils/buildProgrammaticSeoTitles';
@@ -90,8 +91,9 @@ export function buildMcpChannelLandingVm(params: {
 			: undefined,
 		faqSubtitle: baseMcp.faqSubtitle,
 		faqTitle: `${clientLabel} + ${platformLabel}, answered`,
-		faqDescription: `What ${clientLabel} MCP is, how to connect OpenQuok, scheduling ${platformLabel} posts, human approval, and example prompts.`,
-		faqItems: baseMcp.faqItems.map((item) => {
+		faqDescription: `What ${clientLabel} MCP is, how to connect OpenQuok, scheduling ${platformLabel} posts, human approval, and ${platformLabel} setup questions.`,
+		faqItems: appendChannelLandingFaqItems(
+			baseMcp.faqItems.map((item) => {
 			if (item.title === 'Which social platforms are supported?') {
 				return {
 					...item,
@@ -110,6 +112,8 @@ export function buildMcpChannelLandingVm(params: {
 				};
 			}
 			return item;
-		})
+			}),
+			channel.faqItems
+		)
 	};
 }

@@ -10,6 +10,7 @@ import {
 	buildChannelFreeTrialFaqDescription,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
+	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
@@ -116,12 +117,12 @@ export const tiktokChannel = {
 		{
 			title: 'Can I schedule TikTok posts from my desktop or phone browser?',
 			description:
-				'Yes. OpenQuok is cloud-based and runs in the browser — connect your TikTok account once, then use the same calendar, and kanban board on desktop, laptop, or mobile without installing a separate app.'
+				`Yes. OpenQuok runs in your browser. Connect TikTok once, then use the same calendar and kanban on desktop, laptop, or mobile. You do not need a separate app. See the ${faqLink(publicFaqHref.docsCalendar, 'calendar guide')} and ${faqLink(publicFaqHref.docsKanban, 'kanban board guide')}.`
 		},
 		{
 			title: 'Can I set TikTok privacy, comments, duet, and stitch before scheduling?',
 			description:
-				'Yes. TikTok settings in the composer let you pick privacy (public, friends, followers, or private), toggle comments, duet, and stitch, and flag branded content or AI-generated media before the post goes out. Choose direct publish or send to your TikTok inbox when you want to finish in the app.'
+				`Yes. TikTok settings in the composer let you pick privacy, toggle comments, duet, and stitch, and flag branded or AI-generated content. Choose direct publish or inbox upload when you want to finish in the TikTok app. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'TikTok per-channel settings')} and ${faqLink(faqHrefDocs('public-api-providers/tiktok'), 'TikTok API settings')}.`
 		},
 		{
 			title: 'Does OpenQuok support TikTok carousels, not just videos?',
@@ -131,7 +132,7 @@ export const tiktokChannel = {
 		{
 			title: 'Can I add trending audio when scheduling TikTok?',
 			description:
-				'Not through direct publish. TikTok’s API does not let third-party schedulers attach trending sounds to clips. Use the inbox upload method to queue carousels or videos to your TikTok inbox, then pick trending audio and publish inside the TikTok app in about a minute.'
+				`Not through direct publish. TikTok's API does not let third-party schedulers attach trending sounds. Use inbox upload to send the clip to your TikTok inbox. Open the TikTok app, pick trending audio, and publish in about a minute. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'TikTok per-channel settings')}, the ${faqLink(publicFaqHref.docsKanban, 'kanban board guide')}, and ${faqLink(faqHrefDocs('cli-examples/tiktok'), 'TikTok CLI examples')}.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('TikTok posts'),
@@ -156,7 +157,7 @@ export const tiktokChannel = {
 		{
 			title: 'Can my team review TikTok drafts before they publish?',
 			description:
-				'Yes. Save TikTok posts as drafts, review them on the kanban board, and move them to Scheduled when you are ready. Workspaces keep each brand’s TikTok account and content separate when you manage multiple clients.'
+				`Yes. Save TikTok posts as drafts, review them on the kanban board, and move them to Scheduled when you are ready. Workspaces keep each brand's TikTok account and content separate when you manage multiple clients. See the ${faqLink(publicFaqHref.docsKanban, 'kanban board guide')} and ${faqLink(faqHrefDocs('settings/team'), 'team workspaces guide')}.`
 		},
 		{
 			title: 'What TikTok analytics does OpenQuok track?',

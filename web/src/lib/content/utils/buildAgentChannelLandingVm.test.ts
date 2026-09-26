@@ -54,3 +54,28 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		expect(description).toContain('posts:create');
 	});
 });
+
+describe('buildAgentChannelLandingVm channel FAQ merge', () => {
+	it('appends Instagram channel FAQs including music licensing', () => {
+		const baseAgent = getPublicAgentHostBySlug('openclaw');
+		const instagramChannel = getPublicChannelBySlug('instagram');
+		const instagramConfig = getPublicAgentChannelBySlug('openclaw', 'instagram');
+
+		expect(baseAgent).toBeDefined();
+		expect(instagramChannel).toBeDefined();
+		expect(instagramConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: instagramChannel!,
+			channelConfig: instagramConfig!
+		});
+
+		const musicFaq = vm.faqItems.find((item) =>
+			item.title.includes('trending or copyrighted music')
+		);
+		expect(musicFaq).toBeDefined();
+		expect(musicFaq!.description).toContain('Business and Standalone');
+		expect(vm.faqItems.length).toBeGreaterThan(baseAgent!.faqItems.length);
+	});
+});

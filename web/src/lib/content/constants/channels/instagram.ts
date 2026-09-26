@@ -4,11 +4,13 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 import {
 	buildChannelLandingFaqLinks,
 	buildChannelMcpSeoKeywords,
+	buildMetaBusinessVerificationChannelFaqItem,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
+	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
@@ -112,27 +114,33 @@ export const instagramChannel = {
 		{
 			title: 'What is the difference between Instagram Business and Standalone in OpenQuok?',
 			description:
-				`Instagram Business uses Facebook Login and is suited to accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Both share the same publish pipeline — pick the integration that matches how your account is set up in Meta. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}.`
+				`Instagram Business uses Facebook Login and suits accounts linked to a Facebook Page. Instagram Standalone uses Instagram Login directly. Both share the same publish pipeline. Pick the option that matches how your account is set up in Meta. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')} and ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'Instagram per-channel settings')}.`
+		},
+		{
+			title: 'Can I schedule Instagram Reels with trending or copyrighted music?',
+			description:
+				`OpenQuok publishes the video file you attach. It does not add tracks from Instagram's music library. Meta licenses in-app music mainly for personal, non-commercial use. Business and professional accounts face tighter rules on mainstream copyrighted audio. Edit royalty-free music into your video before upload, or add allowed audio in the Instagram app when Meta permits it. We offer Business and Standalone login so you can connect the account type that fits your setup. See ${faqLink(faqHrefDocs('channels/connect'), 'how to connect Instagram')}.`
 		},
 		{
 			title: 'How do I connect Instagram to OpenQuok?',
 			description:
 				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel. Select the Instagram integration that matches your account type. Complete OAuth and, if Business login requires a Page selection, pick the correct profile in the connect flow. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(INSTAGRAM_DOCS_PATH, 'Instagram')}.`
 		},
+		buildMetaBusinessVerificationChannelFaqItem('Instagram Business or Standalone'),
 		{
 			title: 'Can I schedule Instagram Reels, carousels, and Stories?',
 			description:
-				`Yes. Attach a single MP4 for a Reel, 2–10 images or videos for a carousel, or one attachment with post type set to Story. Captions can run up to 2,200 characters on feed posts and Reels. Size assets in the ${faqLink(instagramLinks.photoEditor.toolChannel, 'Instagram photo editor')}.`
+				`Yes. Attach a single MP4 for a Reel, 2–10 images or videos for a carousel, or one attachment with post type set to Story. Captions can run up to 2,200 characters on feed posts and Reels. Size assets in the ${faqLink(instagramLinks.photoEditor.toolChannel, 'Instagram photo editor')}. See ${faqLink(faqHrefDocs('platforms/media-rules'), 'media rules by platform')}.`
 		},
 		{
 			title: 'Does OpenQuok support Trial Reels and collaborators?',
 			description:
-				'Yes. Enable Trial Reel on a single MP4 feed post and choose manual or performance-based graduation. Add up to three collaborator usernames on single-media feed or Reel posts — not on carousels or Stories.'
+				`Yes. Enable Trial Reel on a single MP4 feed post and choose manual or performance-based graduation. Add up to three collaborator usernames on single-media feed or Reel posts — not on carousels or Stories. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'Instagram per-channel settings')} and ${faqLink(publicFaqHref.cliInstagram, 'Instagram CLI examples')}.`
 		},
 		{
 			title: 'Can I schedule text follow-up comments on Instagram?',
 			description:
-				'Yes. Add follow-up comment in the post editor (or pass instagram.replies via the API). Each comment publishes as text after the delay you set once the main post goes live.'
+				`Yes. Add follow-up comment in the post editor (or pass instagram.replies via the API). Each comment publishes as text after the delay you set once the main post goes live. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'follow-up comments guide')} and ${faqLink(publicFaqHref.cliInstagram, 'Instagram CLI examples')}.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('Instagram posts'),
@@ -152,7 +160,7 @@ export const instagramChannel = {
 		{
 			title: 'Does OpenQuok include an Instagram DM or comment inbox?',
 			description:
-				'Not today. OpenQuok schedules posts and scheduled text follow-up comments — not DM replies, keyword auto-replies, or Story link stickers.'
+				`Not today. OpenQuok schedules posts and scheduled text follow-up comments — not DM replies, keyword auto-replies, or Story link stickers. See ${faqLink(faqHrefDocs('creating-posts/threads-and-comments'), 'what each platform supports for follow-ups')}.`
 		},
 		{
 			title: 'Where can I find setup steps for Meta app credentials?',

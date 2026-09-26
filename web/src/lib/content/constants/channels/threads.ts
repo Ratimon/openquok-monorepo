@@ -4,6 +4,7 @@ import type { PublicChannelLandingPageViewModel } from '$lib/content/constants/c
 import {
 	buildChannelLandingFaqLinks,
 	buildChannelMcpSeoKeywords,
+	buildMetaBusinessVerificationChannelFaqItem,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
 import {
@@ -114,15 +115,16 @@ export const threadsChannel = {
 			description:
 				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Connect channel → Threads. Complete Meta OAuth and OpenQuok links the profile to that workspace. OpenQuok Cloud registers the Meta app for you. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(THREADS_DOCS_PATH, 'Threads')}.`
 		},
+		buildMetaBusinessVerificationChannelFaqItem('Threads'),
 		{
 			title: 'Can I schedule Threads posts with images, video, or carousels?',
 			description:
-				'Yes. Attach one image or video, or multiple files for a carousel, when composing a Threads post in OpenQuok. In per-platform mode, unsupported formats (such as SVG) are blocked early with a clear error before publish.'
+				`Yes. Attach one image or video, or multiple files for a carousel, when composing a Threads post in OpenQuok. In per-platform mode, unsupported formats (such as SVG) are blocked early with a clear error before publish. See ${faqLink(faqHrefDocs('platforms/media-rules'), 'media rules by platform')} and the ${faqLink(threadsLinks.photoEditor.toolChannel, 'Threads photo editor')}.`
 		},
 		{
 			title: 'Does OpenQuok respect the Threads 500-character limit?',
 			description:
-				`Yes. The post editor shows the 500-character cap and prevent from publishing from the dashboard. Scheduled posts via the API or CLI are rejected with an error when the main caption or any follow-up reply exceeds 500 characters. However, Saving as drafts can save longer copy.`
+				`Yes. The post editor shows the 500-character cap and prevents publishing from the dashboard. Scheduled posts via the API or CLI are rejected when the main caption or any follow-up reply exceeds 500 characters. Saving as drafts can store longer copy. Tighten cross-posted copy in the ${faqLink(threadsLinks.humanizer.toolChannel, 'Threads humanizer tool')}.`
 		},
 		{
 			title: buildChannelProgrammaticSchedulingFaqTitle('Threads'),
@@ -142,7 +144,7 @@ export const threadsChannel = {
 		{
 			title: 'Can I auto-repost evergreen content on Threads?',
 			description:
-				'OpenQuok includes auto-repost and recurring schedule slots, so you can recycle evergreen Threads posts on intervals from one day up to one month. Combine it with the media library to keep reusing your best-performing images, videos, and captions without rebuilding posts from scratch.'
+				`OpenQuok includes auto-repost and recurring schedule slots, so you can recycle evergreen Threads posts on intervals from one day up to one month. Combine it with the media library to keep reusing your best-performing images, videos, and captions without rebuilding posts from scratch. See ${faqLink(publicFaqHref.docsSchedulingRepeat, 'repeating a post')} and ${faqLink(publicFaqHref.docsCalendar, 'calendar guide')}.`
 		},
 		{
 			title: 'Can I schedule Threads follow-up replies in advance?',

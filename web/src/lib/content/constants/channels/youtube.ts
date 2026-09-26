@@ -10,6 +10,7 @@ import {
 	buildChannelFreeTrialFaqDescription,
 	buildChannelProgrammaticSchedulingFaqDescription,
 	buildChannelProgrammaticSchedulingFaqTitle,
+	faqHrefDocs,
 	faqLink,
 	faqLinkSelfHostChannelSetup,
 	publicFaqHref
@@ -128,17 +129,17 @@ export const youtubeChannel = {
 		{
 			title: 'What video format does OpenQuok require for YouTube?',
 			description:
-				`Each scheduled YouTube post needs exactly one MP4 attachment. Our video editor validates format before publish; attach your video file from the media library or upload via the ${faqLink(publicFaqHref.publicApi, 'Public API')}.`
+				`Each scheduled YouTube post needs exactly one MP4 attachment. Our video editor validates format before publish; attach your video file from the media library or upload via the ${faqLink(publicFaqHref.publicApi, 'Public API')}. See ${faqLink(faqHrefDocs('platforms/media-rules'), 'media rules by platform')}.`
 		},
 		{
 			title: 'Can I schedule YouTube Shorts with OpenQuok?',
 			description:
-				'Yes. Upload a vertical MP4 with the same one-video workflow as long-form uploads — add your title, description, tags, and optional thumbnail, then queue it on the calendar. YouTube classifies qualifying vertical uploads as Shorts on its side, while OpenQuok uses the standard video upload API, not a separate Shorts publish mode.'
+				`Yes. Upload a vertical MP4 with the same one-video workflow as long-form uploads — add your title, description, tags, and optional thumbnail, then queue it on the calendar. YouTube classifies qualifying vertical uploads as Shorts on its side. See ${faqLink(faqHrefDocs('platforms/media-rules'), 'media rules by platform')} and ${faqLink(publicFaqHref.cliYoutube, 'YouTube CLI examples')}.`
 		},
 		{
 			title: 'Can I set the video title, privacy, and tags in OpenQuok?',
 			description:
-				'Yes. Use YouTube settings in our video editor (or pass flat keys or a youtube bucket via provider Settings in the API). Title, privacy (public, unlisted, or private), made-for-kids, tags, and an optional custom thumbnail are supported.'
+				`Yes. Use YouTube settings in our video editor (or pass flat keys or a youtube bucket via provider Settings in the API). Title, privacy, made-for-kids, tags, and an optional custom thumbnail are supported. See ${faqLink(faqHrefDocs('platforms/per-channel-settings'), 'YouTube per-channel settings')} and ${faqLink(faqHrefDocs('public-api-providers/youtube'), 'YouTube API settings')}.`
 		},
 		{
 			title: 'Does the post body become the YouTube description?',
@@ -162,7 +163,7 @@ export const youtubeChannel = {
 		{
 			title: 'Does OpenQuok support YouTube playlists or community posts?',
 			description:
-				'Not today. OpenQuok schedules MP4 video uploads to channels you manage — not playlist placement, community posts, or YouTube-side scheduled publish times inside Studio.'
+				`Not today. OpenQuok schedules MP4 video uploads to channels you manage — not playlist placement, community posts, or YouTube-side scheduled publish times inside Studio. See ${faqLink(faqHrefDocs('platforms/index'), 'supported platform features')}.`
 		},
 		{
 			title: 'Is OpenQuok a good fit for faceless YouTube channels?',

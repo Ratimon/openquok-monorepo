@@ -351,6 +351,9 @@
 							{/each}
 						</Tooltip.Provider>
 					</div>
+					<p class="mt-3 text-center text-xs text-base-content/45 sm:text-sm">
+						More channels on the way
+					</p>
 				</div>
 
 				<div class="mt-10 flex items-center justify-center pb-2">
