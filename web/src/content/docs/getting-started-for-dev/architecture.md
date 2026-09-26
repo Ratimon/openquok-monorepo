@@ -331,7 +331,7 @@ Splitting them means you can **unit test** presenters with a stubbed repository 
 
 This is where in-app documentation markdown lives. Each  <Badge text=".md" variant="path" /> file becomes a page; URLs follow the folder path.
 
-Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constants/config.ts" variant="path" /> as <code>docsTabs</code>: General, Cloud, Self-hosting, CLI, MCP, Public API, Contributing.
+Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constants/config.ts" variant="path" /> as <code>docsTabs</code>: General, Cloud, Self-hosting, CLI, MCP, Public API, Add OpenQuok to your app, Contributing.
 
 <FileTree>
 
@@ -385,7 +385,7 @@ Sidebar tabs and section order are declared in <Badge text="src/lib/docs/constan
 
 The documentation engine:
 
-- <Badge text="constants/config.ts" variant="path" /> — Defines docs site metadata, <code>docsTabs</code> (General, Cloud, Self-hosting, CLI, MCP, Public API, Contributing), i18n, and assembles `docsConfig`
+- <Badge text="constants/config.ts" variant="path" /> — Defines docs site metadata, <code>docsTabs</code> (General, Cloud, Self-hosting, CLI, MCP, Public API, Add OpenQuok to your app, Contributing), i18n, and assembles `docsConfig`
 - <Badge text="content.ts" variant="path" /> — Content loader that discovers and parses markdown files
 - <Badge text="navigation.ts" variant="path" /> — Generates sidebar navigation and maps paths/slugs to the active tab
 - <Badge text="types.ts" variant="path" /> — TypeScript types for docs, navigation, and config

@@ -2,7 +2,7 @@
 title: Documentation Configuration
 description: How to configure docs tabs, sidebars, and site metadata for the OpenQuok documentation site.
 order: 2
-lastUpdated: 2026-09-25
+lastUpdated: 2026-09-26
 ---
 
 <script>
@@ -20,7 +20,7 @@ Edit the docs config in:
 <p><Badge text="docsMcpPath" variant="param" /> enables <strong>Copy MCP URL</strong> and <strong>Connect to Cursor</strong> on docs pages and powers the documentation MCP (<Badge text="search_docs" variant="default" />, <Badge text="read_page" variant="default" />, …) on the web host. Workspace scheduling MCP stays on the API at <Badge text="BACKEND_DOMAIN_URL" variant="envBackend" /><Badge text="/mcp" variant="path" /> with an <Badge text="opo_" variant="default" /> key — see <a href="/docs/getting-started-for-mcp">MCP overview</a>.</p>
 </Callout>
 
-The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Contributing**.
+The header tab bar is <Badge text="docsTabs" variant="param" />, left to right: **General**, **Cloud**, **Self-hosting**, **CLI**, **MCP**, **Public API**, **Add OpenQuok to your app**, **Contributing**.
 
 <Callout type="note">
 <p><Badge text="/docs" variant="path" /> loads the General introduction (the <Badge text="/getting-started" variant="path" /> folder) without redirecting. The same page is also available at <Badge text="/docs/getting-started" variant="path" />. Do not treat a root <Badge text="docs/index.md" variant="path" /> as the tab home.</p>
@@ -34,6 +34,7 @@ export const docsTabs: DocsTabDefinition[] = [
   { id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
   { id: 'mcp', label: 'MCP', sidebar: docsSidebarMcp },
   { id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
+  { id: 'oauth-for-apps', label: 'Add OpenQuok to your app', sidebar: docsSidebarOAuthForApps },
   { id: 'contributing', label: 'Contributing', sidebar: docsSidebarContributing }
 ];
 
@@ -55,10 +56,11 @@ export const docsConfig: DocsConfig = {
 | Self-hosting | <Badge text="docsSidebarSelfHosting" variant="param" /> | <Badge text="/docs/getting-started-for-dev" variant="path" /> |
 | CLI | <Badge text="docsSidebarCli" variant="param" /> | <Badge text="/docs/getting-started-for-cli" variant="path" /> |
 | MCP | <Badge text="docsSidebarMcp" variant="param" /> | <Badge text="/docs/getting-started-for-mcp" variant="path" /> |
-| Public API | <Badge text="docsSidebarPublicApi" variant="param" /> (includes <Badge text="oauth2-for-apps" variant="path" />) | <Badge text="/docs/getting-started-for-public-api" variant="path" /> |
+| Public API | <Badge text="docsSidebarPublicApi" variant="param" /> | <Badge text="/docs/getting-started-for-public-api" variant="path" /> |
+| Add OpenQuok to your app | <Badge text="docsSidebarOAuthForApps" variant="param" /> (<Badge text="oauth2-for-apps" variant="path" />) | <Badge text="/docs/oauth2-for-apps" variant="path" /> |
 | Contributing | <Badge text="docsSidebarContributing" variant="param" /> | <Badge text="/docs/developer-guidelines" variant="path" /> |
 
-Third-party app OAuth (<Badge text="oauth2-for-apps" variant="path" />) belongs on Public API. Operator OAuth server setup stays under Self-hosting (<Badge text="admin" variant="path" />).
+Third-party app OAuth lives on the <strong>Add OpenQuok to your app</strong> tab. Operator OAuth server setup stays under Self-hosting (<Badge text="admin" variant="path" />).
 
 Path matching lives in <Badge text="web/src/lib/docs/navigation.ts" variant="path" />. Unknown slugs resolve to <strong>General</strong>, not Self-hosting.
 

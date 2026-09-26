@@ -2,12 +2,35 @@
 title: Implementation
 description: Register an OAuth app, run the Authorization Code flow, and manage credentials in the OpenQuok dashboard.
 order: 1
-lastUpdated: 2026-07-05
+lastUpdated: 2026-09-26
 ---
 
 <script>
-import { Badge, Callout } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, Mermaid } from '$lib/ui/components/docs/mdx/index.js';
+
+const serverSideExchange = `sequenceDiagram
+    participant Browser
+    participant App as Your server
+    participant Web as OpenQuok web
+    participant API as OpenQuok API
+
+    Browser->>App: GET /connect (or similar)
+    App->>Browser: 302 /oauth/authorize?client_id&state
+    Browser->>Web: Sign in, select workspace, approve
+    Web->>Browser: 302 redirect URL ?code=&state=
+    Browser->>App: GET callback
+    Note over App: Verify state matches
+    App->>API: POST /api/v1/oauth/token
+    API-->>App: organizationId + opo_ access_token
+    App->>API: Bearer opo_ on /api/v1/public/*
+`;
 </script>
+
+## Flow overview
+
+<Mermaid string={serverSideExchange} />
+
+Register the redirect URL on your OAuth app. OpenQuok checks it when the user approves. You do **not** send <Badge text="redirect_uri" variant="param" /> in the token request.
 
 ## Register your OAuth app
 
@@ -27,7 +50,7 @@ After creation you'll receive:
 - **Client ID** — public identifier (prefix <Badge text="oqc_..." variant="default" />)
 - **Client secret** — secret key for token exchange (prefix <Badge text="oqs_..." variant="default" />)
 
-<Callout type="warning" title="Secret is shown once">
+<Callout type="danger">
 Copy the client secret immediately and store it securely. If you lose it, rotate it from the same settings page.
 </Callout>
 
@@ -152,8 +175,8 @@ If your client secret is compromised, go to <Badge text="Developers" variant="de
 
 This invalidates the old secret immediately — any token exchange requests using the old secret will fail.
 
-<Callout type="warning" title="Existing access tokens are not invalidated">
-Rotating the secret does not invalidate existing access tokens. Only new token exchange requests require the new secret.
+<Callout type="warning">
+<p>Rotating the secret does not invalidate existing access tokens. Only new token exchange requests require the new secret.</p>
 </Callout>
 
 ### Delete your app

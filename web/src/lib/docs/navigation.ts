@@ -103,13 +103,17 @@ function isSelfHostingDocsPath(segmentOrSlug: string): boolean {
 	);
 }
 
+function isOAuthForAppsDocsPath(segmentOrSlug: string): boolean {
+	return (
+		segmentOrSlug === 'oauth2-for-apps' || segmentOrSlug.startsWith('oauth2-for-apps/')
+	);
+}
+
 function isPublicApiDocsPath(segmentOrSlug: string): boolean {
 	return (
 		segmentOrSlug === 'getting-started-for-public-api' ||
 		segmentOrSlug.startsWith('getting-started-for-public-api/') ||
 		segmentOrSlug.startsWith('apis-') ||
-		segmentOrSlug === 'oauth2-for-apps' ||
-		segmentOrSlug.startsWith('oauth2-for-apps/') ||
 		segmentOrSlug === 'public-api-providers' ||
 		segmentOrSlug.startsWith('public-api-providers/')
 	);
@@ -223,6 +227,7 @@ export function getDocsTabIdFromPathname(pathname: string): DocsDocTabId {
 	if (isCloudDocsPath(first)) return 'cloud';
 	if (isGeneralDocsPath(first)) return 'general';
 	if (isMcpDocsPath(first)) return 'mcp';
+	if (isOAuthForAppsDocsPath(first)) return 'oauth-for-apps';
 	if (isPublicApiDocsPath(first)) return 'public-api';
 	if (isCliDocsPath(first)) return 'cli';
 	if (isContributingDocsPath(first)) return 'contributing';
@@ -235,6 +240,7 @@ export function getDocsTabIdFromSlug(slug: string): DocsDocTabId {
 	if (isCloudDocsPath(slug)) return 'cloud';
 	if (isCliDocsPath(slug)) return 'cli';
 	if (isMcpDocsPath(slug)) return 'mcp';
+	if (isOAuthForAppsDocsPath(slug)) return 'oauth-for-apps';
 	if (isPublicApiDocsPath(slug)) return 'public-api';
 	if (isContributingDocsPath(slug)) return 'contributing';
 	if (isSelfHostingDocsPath(slug)) return 'self-hosting';
@@ -262,6 +268,8 @@ export function docsTabHref(tabId: DocsDocTabId, locale?: string): string {
 			return `${base}/getting-started-for-cli`;
 		case 'public-api':
 			return `${base}/getting-started-for-public-api`;
+		case 'oauth-for-apps':
+			return `${base}/oauth2-for-apps`;
 		case 'mcp':
 			return `${base}/getting-started-for-mcp`;
 		case 'contributing':

@@ -2,13 +2,29 @@
 title: Overview - OAuth2 for apps
 description: Build third-party OpenQuok apps that act on behalf of subscribed users using OAuth2 Authorization Code flow.
 order: 0
-lastUpdated: 2026-09-19
+lastUpdated: 2026-09-26
 sidebar:
   label: Overview
 ---
 
 <script>
-import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
+import { Badge, Callout, CardGrid, LinkCard, Mermaid } from '$lib/ui/components/docs/mdx/index.js';
+
+const authorizationCodeFlow = `sequenceDiagram
+    participant User
+    participant YourApp as Your app
+    participant Web as OpenQuok web
+    participant API as OpenQuok API
+
+    User->>YourApp: Start connect
+    YourApp->>Web: Redirect GET /oauth/authorize
+    Web->>User: Consent screen (select workspace)
+    User->>Web: Authorize
+    Web->>YourApp: Redirect with authorization code
+    YourApp->>API: POST /api/v1/oauth/token (server only)
+    API-->>YourApp: opo_ access_token + organizationId
+    YourApp->>API: Public API with Bearer token
+`;
 </script>
 
 <Callout type="note">
@@ -17,9 +33,17 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Overview
 
-OpenQuok supports OAuth2 **Authorization Code** flow, allowing you to build **third-party applications** that act on behalf of OpenQuok users.
+OpenQuok uses OAuth2 **Authorization Code** flow for third-party apps. You register an app in the dashboard. Users approve access on OpenQuok. Your server exchanges the code for an <Badge text="opo_" variant="default" /> token and calls <Badge text="/api/v1/public/*" variant="path" /> for that workspace.
 
-Your app redirects users to OpenQuok where they approve access, and you receive an <Badge text="opo_" variant="default" /> access token to call the public API on their behalf.
+## How it works
+
+<Mermaid string={authorizationCodeFlow} />
+
+The user picks **one workspace** on the consent screen. The token applies only to that <Badge text="organizationId" variant="default" />. Exchange the code on your **server** with your <Badge text="oqs_" variant="default" /> client secret. Do not put the secret in a browser or mobile app.
+
+<Callout type="tip">
+<p>Step-by-step parameters, callback query strings, and curl examples are on <a href="/docs/oauth2-for-apps/implementation">Implementation</a>. A runnable Express sample is on <a href="/docs/oauth2-for-apps/nodejs-example">Node.js example</a>.</p>
+</Callout>
 
 <CardGrid>
 <LinkCard title="Implementation" description="Register your app, Authorization Code flow, API calls, and credential management" href="/docs/oauth2-for-apps/implementation" />

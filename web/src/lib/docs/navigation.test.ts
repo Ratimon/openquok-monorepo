@@ -26,7 +26,8 @@ describe('getDocsTabIdFromPathname', () => {
 		['/docs/cli-usages', 'cli'],
 		['/docs/getting-started-for-mcp', 'mcp'],
 		['/docs/getting-started-for-public-api', 'public-api'],
-		['/docs/oauth2-for-apps', 'public-api'],
+		['/docs/oauth2-for-apps', 'oauth-for-apps'],
+		['/docs/oauth2-for-apps/implementation', 'oauth-for-apps'],
 		['/docs/public-api-providers', 'public-api'],
 		['/docs/public-api-providers/threads', 'public-api'],
 		['/docs/developer-guidelines', 'contributing'],
@@ -58,7 +59,8 @@ describe('getDocsTabIdFromSlug', () => {
 		['getting-started-for-cli', 'cli'],
 		['getting-started-for-mcp', 'mcp'],
 		['getting-started-for-public-api', 'public-api'],
-		['oauth2-for-apps', 'public-api'],
+		['oauth2-for-apps', 'oauth-for-apps'],
+		['oauth2-for-apps/implementation', 'oauth-for-apps'],
 		['public-api-providers', 'public-api'],
 		['public-api-providers/threads', 'public-api'],
 		['developer-guidelines', 'contributing'],
@@ -101,6 +103,7 @@ describe('docsTabHref', () => {
 		expect(docsTabHref('cli')).toBe('/docs/getting-started-for-cli');
 		expect(docsTabHref('mcp')).toBe('/docs/getting-started-for-mcp');
 		expect(docsTabHref('public-api')).toBe('/docs/getting-started-for-public-api');
+		expect(docsTabHref('oauth-for-apps')).toBe('/docs/oauth2-for-apps');
 		expect(docsTabHref('contributing')).toBe('/docs/developer-guidelines');
 	});
 });

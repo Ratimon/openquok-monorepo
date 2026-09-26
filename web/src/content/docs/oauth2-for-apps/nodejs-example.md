@@ -2,14 +2,16 @@
 title: Node.js example
 description: Express server implementing OpenQuok OAuth2 Authorization Code flow end to end.
 order: 2
-lastUpdated: 2026-07-05
+lastUpdated: 2026-09-26
 ---
 
 <script>
 import { CardGrid, DocsExternalLink, LinkCard } from '$lib/ui/components/docs/mdx/index.js';
 </script>
 
-Redirect URL is registered on the OAuth app in the dashboard — it is **not** sent again in the token exchange body (`POST /api/v1/oauth/token` accepts only `grant_type`, `code`, `client_id`, and `client_secret`).
+This sample follows the sequence on <a href="/docs/oauth2-for-apps/implementation#flow-overview">Implementation → Flow overview</a>: browser steps for authorize and callback, server-only token exchange.
+
+Redirect URL is registered on the OAuth app in the dashboard. It is **not** sent again in the token exchange body (`POST /api/v1/oauth/token` accepts only `grant_type`, `code`, `client_id`, and `client_secret`).
 
 A copy-pasteable version with `@openquok/node-sdk` for the public API call lives in <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/sdk/examples/oauth2-express.mjs">sdk/examples/oauth2-express.mjs</DocsExternalLink>.
 

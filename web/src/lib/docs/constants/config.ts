@@ -167,17 +167,12 @@ export const docsSidebarMcp: DocsSidebarSection[] = [
 ];
 
 
-/** Programmatic HTTP API plus third-party OAuth apps (`oauth2-for-apps`). */
+/** Programmatic HTTP API reference (`apis-*`, provider settings). */
 export const docsSidebarPublicApi: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
 		icon: icons.Code.name,
 		autogenerate: { directory: 'getting-started-for-public-api' }
-	},
-	{
-		label: 'Provider settings',
-		icon: icons.Share2.name,
-		autogenerate: { directory: 'public-api-providers' }
 	},
 	{
 		label: 'Integrations APIs',
@@ -205,13 +200,22 @@ export const docsSidebarPublicApi: DocsSidebarSection[] = [
 		autogenerate: { directory: 'apis-uploads' }
 	},
 	{
-		label: 'OAuth2 for apps',
-		icon: icons.Globe.name,
-		autogenerate: { directory: 'oauth2-for-apps' }
+		label: 'Provider settings',
+		icon: icons.Share2.name,
+		autogenerate: { directory: 'public-api-providers' }
 	},
 ];
 
-/** Operator install, configuration, and self-hosted deployment. Third-party app OAuth lives on Public API (`oauth2-for-apps`). */
+/** Third-party OAuth apps (`oauth2-for-apps`). */
+export const docsSidebarOAuthForApps: DocsSidebarSection[] = [
+	{
+		label: 'OAuth2 for apps',
+		icon: icons.Lock.name,
+		autogenerate: { directory: 'oauth2-for-apps' }
+	}
+];
+
+/** Operator install, configuration, and self-hosted deployment. */
 export const docsSidebarSelfHosting: DocsSidebarSection[] = [
 	{
 		label: 'Getting Started',
@@ -286,6 +290,11 @@ export const docsTabs: DocsTabDefinition[] = [
 	{ id: 'cli', label: 'CLI', sidebar: docsSidebarCli },
 	{ id: 'mcp', label: 'MCP', sidebar: docsSidebarMcp },
 	{ id: 'public-api', label: 'Public API', sidebar: docsSidebarPublicApi },
+	{
+		id: 'oauth-for-apps',
+		label: 'Add OpenQuok to your app',
+		sidebar: docsSidebarOAuthForApps
+	},
 	{ id: 'contributing', label: 'Contributing', sidebar: docsSidebarContributing }
 ];
 

@@ -88,6 +88,7 @@ export type DocsDocTabId =
 	| 'cli'
 	| 'mcp'
 	| 'public-api'
+	| 'oauth-for-apps'
 	| 'contributing';
 
 export interface DocsTabDefinition {
@@ -99,7 +100,7 @@ export interface DocsTabDefinition {
 export interface DocsConfig {
 	site: SiteConfig;
 	sidebar: SidebarSection[];
-	/** Primary docs areas (General, Cloud, Self-hosting, CLI, MCP, Public API, Contributing); sidebar chrome is scoped to the active tab. */
+	/** Primary docs areas (General, Cloud, Self-hosting, CLI, MCP, Public API, OAuth for apps, Contributing); sidebar chrome is scoped to the active tab. */
 	tabs?: DocsTabDefinition[];
 	toc?: { minDepth?: number; maxDepth?: number };
 	versions?: VersionConfig;
