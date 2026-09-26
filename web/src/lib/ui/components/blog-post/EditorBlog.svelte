@@ -75,6 +75,7 @@
 			is_user_published: values.is_user_published ?? false,
 			is_admin_approved: values.is_admin_approved ?? false,
 			faq_items: values.faq_items?.map((item) => ({ ...item })) ?? null,
+			howto_name: values.howto_name ?? null,
 			howto_steps: values.howto_steps?.map((step) => ({ ...step })) ?? null,
 			product: values.product ? { ...values.product } : null,
 			reading_time_minutes: values.reading_time_minutes ?? null
@@ -94,7 +95,7 @@
 		value: BlogPostFormSchemaType,
 		topicSlug: string,
 		topicId: string
-	): Pick<BlogPostFormSchemaType, 'faq_items' | 'howto_steps' | 'product'> {
+	): Pick<BlogPostFormSchemaType, 'faq_items' | 'howto_name' | 'howto_steps' | 'product'> {
 		const faqItems =
 			value.faq_items?.filter(
 				(item) => item.question.trim() && stripHtmlToPlainText(item.answer).trim()
@@ -107,8 +108,14 @@
 		const hasProduct =
 			!!product?.name?.trim() && !!product?.description?.trim();
 
+		const howtoName = value.howto_name?.trim() || null;
+
 		return {
 			faq_items: faqItems.length > 0 ? faqItems : null,
+			howto_name:
+				isBlogTopicEligibleForHowTo(topicSlug, topicId) && howtoSteps.length > 0
+					? howtoName
+					: null,
 			howto_steps:
 				isBlogTopicEligibleForHowTo(topicSlug, topicId) && howtoSteps.length > 0 ? howtoSteps : null,
 			product:
@@ -707,6 +714,24 @@
 				{/if}
 
 				{#if showHowToSection}
+					<form.Field name="howto_name">
+						{#snippet children(field)}
+							<div class="flex flex-col gap-2">
+								<Field.Label>How-to title</Field.Label>
+								<Field.Description>
+									Shown above the step list on the public post and as the HowTo name in JSON-LD. Leave empty to use the post title.
+								</Field.Description>
+								<input
+									type="text"
+									class="input input-bordered w-full"
+									placeholder="Defaults to post title when empty"
+									value={field.state.value ?? ''}
+									maxlength={200}
+									oninput={(e) => field.handleChange(e.currentTarget.value || null)}
+								/>
+							</div>
+						{/snippet}
+					</form.Field>
 					<form.Field name="howto_steps">
 						{#snippet children(field)}
 							{@const steps = field.state.value ?? []}

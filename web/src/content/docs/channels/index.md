@@ -29,7 +29,7 @@ Connecting the same network twice (for example two different Instagram accounts)
 
 After you connect, the channel appears on <a href="/account">Home</a> with its avatar. You can also pick channels at the top of the post editor when you compose.
 
-OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Page, YouTube, TikTok, LinkedIn profile and Page, X, and Dev.to. The public <a href="/channels">channel catalog</a> lists each network with setup links.
+OpenQuok supports Meta Threads, Instagram (Business and Standalone), Facebook Page, YouTube, TikTok, LinkedIn profile and Page, X, Dev.to, and Bluesky. The public <a href="/channels">channel catalog</a> lists each network with setup links.
 
 ## In this section
 

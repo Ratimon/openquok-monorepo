@@ -33,6 +33,11 @@ function normalizeSeoJsonArray<T>(value: T[] | null | undefined): T[] | null {
     return value;
 }
 
+function normalizeHowtoName(value: string | null | undefined): string | null {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
+}
+
 /** Uses explicit minutes when set; otherwise matches docs-style content estimate. */
 function resolveBlogReadingTimeMinutes(
     post: BlogPostCreateSchemaType | BlogPostUpdateSchemaType
@@ -138,6 +143,7 @@ const SELECT_BLOG_POST = `
   like_count,
   updated_at,
   faq_items,
+  howto_name,
   howto_steps,
   product,
   topic:blog_topics(id, name, slug),
@@ -414,6 +420,7 @@ export class BlogRepository {
             user_id: userId,
             slug,
             faq_items: normalizeSeoJsonArray(post.faq_items),
+            howto_name: normalizeHowtoName(post.howto_name),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
             reading_time_minutes: resolveBlogReadingTimeMinutes(post),
@@ -480,6 +487,7 @@ export class BlogRepository {
             slug,
             updated_at: updatedAt,
             faq_items: normalizeSeoJsonArray(post.faq_items),
+            howto_name: normalizeHowtoName(post.howto_name),
             howto_steps: normalizeSeoJsonArray(post.howto_steps),
             product: post.product ?? null,
             reading_time_minutes: resolveBlogReadingTimeMinutes(post),

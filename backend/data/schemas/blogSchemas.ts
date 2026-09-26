@@ -51,6 +51,12 @@ const blogPostFields = {
     is_admin_approved: z.boolean().default(false),
     /** Optional FAQ Q&A pairs; empty array or null clears. */
     faq_items: z.array(blogFaqItemSchema).optional().nullable(),
+    /** Optional HowTo title; empty or null uses post title in JSON-LD and on-page heading. */
+    howto_name: z
+        .string()
+        .max(200, "How-to title must be at most 200 characters")
+        .optional()
+        .nullable(),
     /** Optional HowTo steps; empty array or null clears. */
     howto_steps: z.array(blogHowtoStepSchema).optional().nullable(),
     /** Optional product summary; null clears. */

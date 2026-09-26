@@ -92,7 +92,8 @@ describe('PUBLIC_SELF_HOSTING_LANDING_CONFIG', () => {
 			'social-integration-linkedin',
 			'social-integration-linkedin-page',
 			'social-integration-x',
-			'social-integration-devto'
+			'social-integration-devto',
+			'social-integration-bluesky'
 		]);
 		expect(items.find((item) => item.id === 'social-integration-threads')?.href).toBe(
 			'/docs/social-integration/threads'

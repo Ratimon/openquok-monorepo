@@ -71,6 +71,7 @@ export interface BlogPostBySlugPublicViewModel {
 	} | null;
 	likeCount: number | null;
 	faqItems: BlogSeoFaqItem[] | null;
+	howtoName: string | null;
 	howtoSteps: BlogSeoHowtoStep[] | null;
 	product: BlogSeoProduct | null;
 }
@@ -303,6 +304,7 @@ export class GetBlogPresenter {
 				: null,
 			likeCount: post.likeCount ?? null,
 			faqItems: post.faqItems?.length ? [...post.faqItems] : null,
+			howtoName: post.howtoName?.trim() || null,
 			howtoSteps: post.howtoSteps?.length ? [...post.howtoSteps] : null,
 			product: post.product ?? null
 		};

@@ -98,7 +98,8 @@ export const socialProviderDisplayNameByIdentifier: Record<string, string> = {
 	x: 'X',
 	linkedin: 'LinkedIn',
 	'linkedin-page': 'LinkedIn Page',
-	devto: 'Dev.to'
+	devto: 'Dev.to',
+	bluesky: 'Bluesky'
 };
 
 export function socialProviderDisplayLabel(identifier: string): string {
@@ -164,7 +165,8 @@ export function socialProviderEmoji(identifier: string): string {
 		x: '𝕏',
 		linkedin: '[in]',
 		'linkedin-page': '[in]',
-		devto: 'DEV'
+		devto: 'DEV',
+		bluesky: '🦋'
 	};
 	return byId[key] ?? '🔗';
 }
@@ -239,7 +241,9 @@ const SOCIAL_PROVIDER_ICON_SPECS: readonly SocialProviderIconSpec[] = [
 		labels: ['Dev.to', 'DEV', 'DEV.to']
 	},
 	{
-		icon: icons.Bluesky.name,
+		identifiers: ['bluesky'],
+		icon: icons.BlueskyGlyph.name,
+		listIcon: icons.Bluesky.name,
 		labels: ['Bluesky']
 	},
 	{

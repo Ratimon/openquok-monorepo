@@ -23,7 +23,7 @@ OpenQuok ships social provider integrations behind a single create-post API. Eac
 
 Customize-mode captions and attachments use <Badge text="bodiesByIntegrationId" variant="param" /> and <Badge text="mediaByIntegrationId" variant="param" /> respectively. For how the dashboard maps Global mode and per-channel content to those fields, see <a href="/docs/creating-posts/global-vs-per-channel">Global vs per-channel</a>.
 
-<strong>OAuth channels</strong> use the provider short identifier (for example <Badge text="threads" variant="default" />) at connect time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> <em>which</em> platform to authorize. <strong>Credentials channels</strong> (Dev.to) are connected in the dashboard with an API key — <Badge text="GET /api/v1/public/social/devto" variant="path" /> returns <strong>400</strong> and is not a connect URL.
+<strong>OAuth channels</strong> use the provider short identifier (for example <Badge text="threads" variant="default" />) at connect time, when you tell <a href="/docs/apis-integrations/connect">Connect Channel</a> <em>which</em> platform to authorize. <strong>Credentials channels</strong> (Dev.to, Bluesky) are connected in the dashboard — <Badge text="GET /api/v1/public/social/devto" variant="path" /> and <Badge text="GET /api/v1/public/social/bluesky" variant="path" /> return <strong>400</strong> and are not connect URLs.
 
 Each provider page below documents the JSON shape under <Badge text="providerSettingsByIntegrationId[<uuid>]" variant="param" /> for that network — flat CLI keys, nested composer buckets, follow-up replies, and plugs where supported.
 
@@ -41,6 +41,7 @@ Each provider page below documents the JSON shape under <Badge text="providerSet
 | YouTube | <Badge text="youtube" variant="default" /> | <Badge text="GET /api/v1/public/social/youtube" variant="default" /> | <a href="/docs/social-integration/youtube">YouTube</a> |
 | TikTok | <Badge text="tiktok" variant="default" /> | <Badge text="GET /api/v1/public/social/tiktok" variant="default" /> | <a href="/docs/social-integration/tiktok">TikTok</a> |
 | Dev.to | <Badge text="devto" variant="default" /> | Dashboard API key — not <Badge text="GET /api/v1/public/social/devto" variant="default" /> | <a href="/docs/social-integration/devto">Dev.to</a> |
+| Bluesky | <Badge text="bluesky" variant="default" /> | Dashboard app password — not <Badge text="GET /api/v1/public/social/bluesky" variant="default" /> | <a href="/docs/social-integration/bluesky">Bluesky</a> |
 
 The <strong>Identifier</strong> column matches the <Badge text="identifier" variant="param" /> field returned by <a href="/docs/apis-integrations/integration-settings">Channel settings &amp; tools</a> for each connected channel. For OAuth providers it also matches the <Badge text=":integration" variant="param" /> path parameter on <a href="/docs/apis-integrations/connect">Connect Channel (OAuth)</a>.
 
@@ -69,13 +70,14 @@ Character limits and media rules are in <a href="/docs/platforms/media-rules">Me
 <LinkCard title="YouTube Settings" description="Title, privacy, tags, made-for-kids, and custom thumbnail" href="/docs/public-api-providers/youtube" />
 <LinkCard title="TikTok Settings" description="Direct post vs inbox upload, privacy, photo title, and brand toggles" href="/docs/public-api-providers/tiktok" />
 <LinkCard title="Dev.to Settings" description="Title, tags, canonical URL, organization, and cover image" href="/docs/public-api-providers/devto" />
+<LinkCard title="Bluesky Settings" description="300-character cap, media rules, and bluesky.replies follow-ups" href="/docs/public-api-providers/bluesky" />
 </CardGrid>
 
 ## Plugs and follow-up comments
 
 Some optional features apply across **multiple** providers without being a single-network setting. They still live on <Badge text="providerSettingsByIntegrationId[<channel-uuid>]" variant="param" /> for the **publishing** channel.
 
-- **Follow-up comments** — same-account replies or comments after the main post publishes. Bucket keys differ per platform (for example <Badge text="threads.replies" variant="param" /> or <Badge text="instagram.replies" variant="param" />). Field tables and JSON examples are on each provider page that supports them.
+- **Follow-up comments** — same-account replies or comments after the main post publishes. Bucket keys differ per platform (for example <Badge text="threads.replies" variant="param" />, <Badge text="bluesky.replies" variant="param" />, or <Badge text="instagram.replies" variant="param" />). Field tables and JSON examples are on each provider page that supports them.
 - **Internal plugs** — same-account engagement after follow-ups complete. See <a href="/docs/automations/internal-plugs">Internal plugs</a> and <a href="/docs/public-api-providers/threads#internal-plugs">Threads Settings → Internal plugs</a>.
 - **Cross-account plugs** — comments or reposts from other connected channels in your workspace. See <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> and the Threads, X, and LinkedIn provider pages for catalog plug ids and example payloads.
 

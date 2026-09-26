@@ -908,7 +908,8 @@ async function maybePublishThreadsReplies(params: {
         pid.startsWith("instagram") ||
         pid === "linkedin" ||
         pid === "linkedin-page" ||
-        pid === "facebook";
+        pid === "facebook" ||
+        pid === "bluesky";
     if (!supportsFollowUps) return publishedPostId;
     if (typeof social.comment !== "function") return publishedPostId;
     if (!publishedPostId) return publishedPostId;
@@ -1001,7 +1002,9 @@ async function maybePublishThreadsReplies(params: {
             ? "LinkedIn"
             : pid === "facebook"
               ? "Facebook"
-              : "Threads";
+              : pid === "bluesky"
+                ? "Bluesky"
+                : "Threads";
 
     let lastCommentId: string | undefined = publishedPostId;
     for (const r of replies) {

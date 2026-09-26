@@ -221,7 +221,7 @@
 
 		{#if !supportsFollowUps}
 			<p class="text-base-content/60 mt-2 text-sm">
-				Follow-up comments are supported on Threads, X, Instagram, LinkedIn, and Facebook.
+				Follow-up comments are supported on Threads, X, Instagram, LinkedIn, Facebook, and Bluesky.
 			</p>
 		{:else if replies.length === 0}
 			<p class="text-base-content/60 mt-2 text-sm">

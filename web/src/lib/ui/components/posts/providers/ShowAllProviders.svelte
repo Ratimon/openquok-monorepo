@@ -13,6 +13,7 @@
 	import XPreview from '$lib/ui/components/posts/providers/x/XPreview.svelte';
 	import YoutubePreview from '$lib/ui/components/posts/providers/youtube/YoutubePreview.svelte';
 	import DevtoPreview from '$lib/ui/components/posts/providers/devto/DevtoPreview.svelte';
+	import BlueskyPreview from '$lib/ui/components/posts/providers/bluesky/BlueskyPreview.svelte';
 
 	type Props = {
 		channel: CreateSocialPostChannelViewModel | null;
@@ -159,6 +160,17 @@
 		{previewMetaLabel}
 		{providerSettings}
 		crossAccountPlugs={effectiveCrossAccountPlugs}
+	/>
+{:else if identifier === 'bluesky'}
+	<BlueskyPreview
+		{channel}
+		{previewText}
+		{mediaUrls}
+		{mediaStoragePaths}
+		maximumCharacters={maxChars}
+		{threadReplies}
+		{threadFinisher}
+		{previewMetaLabel}
 	/>
 {:else if identifier === 'devto'}
 	<DevtoPreview

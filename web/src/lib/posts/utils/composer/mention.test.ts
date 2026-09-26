@@ -9,10 +9,11 @@ import {
 } from '$lib/posts/utils/composer/mention';
 
 describe('providerSupportsComposerMentions', () => {
-	it('returns true for X and LinkedIn channel identifiers', () => {
+	it('returns true for X, LinkedIn, and Bluesky channel identifiers', () => {
 		expect(providerSupportsComposerMentions('x')).toBe(true);
 		expect(providerSupportsComposerMentions('linkedin')).toBe(true);
 		expect(providerSupportsComposerMentions('linkedin-page')).toBe(true);
+		expect(providerSupportsComposerMentions('bluesky')).toBe(true);
 	});
 
 	it('returns false for other providers', () => {
@@ -54,6 +55,16 @@ describe('formatIntegrationMentionText', () => {
 				image: ''
 			})
 		).toBe('@[OpenQuok](urn:li:organization:987654)');
+	});
+
+	it('formats Bluesky mentions as @handle', () => {
+		expect(
+			formatIntegrationMentionText('bluesky', {
+				id: 'bob.bsky.social',
+				label: 'Bob (@bob.bsky.social)',
+				image: ''
+			})
+		).toBe('@bob.bsky.social');
 	});
 });
 

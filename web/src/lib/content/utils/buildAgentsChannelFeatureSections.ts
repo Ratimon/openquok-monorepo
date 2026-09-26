@@ -21,6 +21,16 @@ function findChannelInsightsSection(
 	return sections.find((section) => section.bentoId?.endsWith(CHANNEL_INSIGHTS_BENTO_SUFFIX));
 }
 
+/** Channels without platform analytics use a follow-up / threads feature row on agent landings. */
+function findChannelAnalyticsFeatureSection(
+	sections: PublicChannelFeatureSection[]
+): PublicChannelFeatureSection | undefined {
+	return (
+		findChannelInsightsSection(sections) ??
+		sections.find((section) => section.bentoId?.endsWith('-threads'))
+	);
+}
+
 function mergeChannelFeatureIntoAgentSection(
 	agentSection: PublicAgentFeatureSection,
 	channelSection: PublicChannelFeatureSection | undefined,
@@ -58,7 +68,7 @@ export function customizeAgentsChannelFeatureSections(
 	mode: 'agent-host' | 'mcp-client'
 ): PublicAgentFeatureSection[] {
 	const composeSection = channel.featureSections[CHANNEL_COMPOSE_FEATURE_INDEX];
-	const insightsSection = findChannelInsightsSection(channel.featureSections);
+	const insightsSection = findChannelAnalyticsFeatureSection(channel.featureSections);
 
 	return sections.map((section) => {
 		if (section.subtitle === KANBAN_SECTION_SUBTITLE) {

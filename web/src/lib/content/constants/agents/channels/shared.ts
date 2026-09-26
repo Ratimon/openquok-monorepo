@@ -4,9 +4,11 @@ import {
 	buildChannelMcpSeoKeywords,
 	SHARED_CHANNEL_SEO_KEYWORDS
 } from '$lib/content/constants/channels/shared';
+import { SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS } from '$data/social-providers';
 import {
 	buildAgentChannelAnalyticsCliCommands,
 	buildAgentChannelCliCommandReference,
+	buildAgentChannelFollowUpCliCommands,
 	buildAgentChannelKanbanCliCommands
 } from '$lib/content/utils/buildAgentChannelCliCommandReference';
 
@@ -25,7 +27,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	tiktok: ['tiktok'],
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
-	devto: ['devto']
+	devto: ['devto'],
+	bluesky: ['bluesky']
 };
 
 const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -36,7 +39,8 @@ const KANBAN_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
 	tiktok: 'tiktok-bulk-scheduling',
 	linkedin: 'linkedin-bulk-scheduling',
 	x: 'x-bulk-scheduling',
-	devto: 'devto-bulk-scheduling'
+	devto: 'devto-bulk-scheduling',
+	bluesky: 'bluesky-bulk-scheduling'
 };
 
 const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = {
@@ -47,8 +51,11 @@ const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = 
 	tiktok: 'tiktok-insights',
 	linkedin: 'linkedin-insights',
 	x: 'x-insights',
-	devto: 'devto-insights'
+	devto: 'devto-insights',
+	bluesky: 'bluesky-threads'
 };
+
+const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);
 
 export function buildAgentChannelPageConfig(
 	host: PublicAgentChannelHostConfig,
@@ -56,6 +63,7 @@ export function buildAgentChannelPageConfig(
 ): PublicAgentChannelPageConfig {
 	const providerIdentifiers =
 		CHANNEL_PROVIDER_IDENTIFIERS[channel.slug] ?? [channel.platformId || channel.slug];
+	const supportsAnalytics = providerIdentifiers.some((id) => ANALYTICS_CAPABLE_IDENTIFIERS.has(id));
 
 	return {
 		channelSlug: channel.slug,
@@ -78,13 +86,14 @@ export function buildAgentChannelPageConfig(
 		cliExamplesPath: `/docs/cli-examples/${channel.slug}`,
 		commands: buildAgentChannelCliCommandReference(channel.slug),
 		kanbanCliCommands: buildAgentChannelKanbanCliCommands(channel.slug, channel.platformLabel),
-		analyticsCliCommands: buildAgentChannelAnalyticsCliCommands(
-			channel.platformLabel,
-			providerIdentifiers
-		),
+		analyticsCliCommands: supportsAnalytics
+			? buildAgentChannelAnalyticsCliCommands(channel.platformLabel, providerIdentifiers)
+			: buildAgentChannelFollowUpCliCommands(channel.slug, channel.platformLabel),
 		kanbanMcpPrompts: `Schedule a ${channel.platformLabel} post for tomorrow at 9am — move to review with a note to check the CTA before it goes live`,
-		analyticsMcpPrompts: `What performed best on my ${channel.platformLabel} account over the last 30 days?
+		analyticsMcpPrompts: supportsAnalytics
+			? `What performed best on my ${channel.platformLabel} account over the last 30 days?
 Break down likes, comments, and shares for post <id>`
+			: `Schedule a ${channel.platformLabel} post with a follow-up reply five minutes after the main post goes live`
 	};
 }
 

@@ -16,7 +16,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each page chains <a href="/docs/cli-usages/integrations"><Badge text="integrations:list" variant="default" /></a>, <a href="/docs/cli-usages/media-upload"><Badge text="upload" variant="default" /></a>, and <a href="/docs/cli-usages/managing-posts"><Badge text="posts:create" variant="default" /></a> into the kind of scripts AI agents and CI jobs actually run.
 
 <Callout type="note">
-<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, and <strong>Dev.to</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
+<p>OpenQuok ships first-party providers for <strong>Meta Threads</strong>, <strong>Facebook Page</strong>, <strong>Instagram</strong> (Business and Standalone), <strong>YouTube</strong>, <strong>TikTok</strong>, <strong>X</strong>, <strong>Dev.to</strong>, and <strong>Bluesky</strong>. Additional pages appear here when new providers land in <Badge text="backend/integrations/providers/" variant="path" />.</p>
 </Callout>
 
 <CardGrid>
@@ -27,6 +27,7 @@ Copy-pasteable recipes for the `openquok` CLI grouped by social network. Each pa
 <LinkCard title="TikTok" description="Videos and photo carousels with privacy and settings" href="/docs/cli-examples/tiktok" />
 <LinkCard title="X" description="Tweets, media, thread replies, finisher, and analytics" href="/docs/cli-examples/x" />
 <LinkCard title="Dev.to" description="Markdown articles with title, tags, canonical URL, and organization" href="/docs/cli-examples/devto" />
+<LinkCard title="Bluesky" description="Text, images, video, and bluesky.replies follow-ups" href="/docs/cli-examples/bluesky" />
 </CardGrid>
 
 ## Conventions used in these pages

@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	catalogItemHasCustomFields,
+	credentialsConnectFormUsesSingleApiKey,
 	encodeCredentialsConnectCode,
+	initialCredentialsConnectValues,
 	isExternalHttpUrl,
 	normalizeCatalogCustomFields,
 	parseCatalogFieldValidation,
@@ -36,6 +38,35 @@ describe('credentialsConnect', () => {
 		};
 		expect(validateCatalogCustomFieldValue(field, 'ab')).toBe('API key is invalid.');
 		expect(validateCatalogCustomFieldValue(field, 'abc')).toBeNull();
+	});
+
+	it('seeds connect values from field defaultValue', () => {
+		expect(
+			initialCredentialsConnectValues([
+				{
+					key: 'service',
+					label: 'Service',
+					validation: '/^https:\\/\\/.+/',
+					type: 'text',
+					defaultValue: 'https://bsky.social'
+				},
+				{ key: 'identifier', label: 'Handle', validation: '/.*/', type: 'text' }
+			])
+		).toEqual({ service: 'https://bsky.social', identifier: '' });
+	});
+
+	it('detects single-field API key forms vs multi-field account forms', () => {
+		expect(
+			credentialsConnectFormUsesSingleApiKey([
+				{ key: 'apiKey', label: 'API key', validation: '/.*/', type: 'password' }
+			])
+		).toBe(true);
+		expect(
+			credentialsConnectFormUsesSingleApiKey([
+				{ key: 'service', label: 'Service', validation: '/.*/', type: 'text' },
+				{ key: 'password', label: 'App password', validation: '/.*/', type: 'password' }
+			])
+		).toBe(false);
 	});
 
 	it('encodes credentials as base64 JSON and detects non-URL authorize states', () => {

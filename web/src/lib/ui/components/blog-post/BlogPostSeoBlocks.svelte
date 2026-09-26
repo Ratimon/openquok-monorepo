@@ -30,7 +30,7 @@
 			!!postVm.product?.description?.trim()
 	);
 
-	const howToPostTitle = $derived(postVm.title.trim());
+	const howToHeading = $derived(postVm.howtoName?.trim() || postVm.title.trim());
 </script>
 
 {#if showFaq || showHowTo || showProduct}
@@ -53,11 +53,9 @@
 
 		{#if showHowTo && postVm.howtoSteps}
 			<section id="blog-post-howto" class="mt-10 space-y-4" aria-labelledby="blog-post-howto-heading">
+				<p class="text-sm font-medium text-base-content/60">Step-by-step summary</p>
 				<h2 id="blog-post-howto-heading" class="text-2xl font-bold text-base-content">
-					<span class="block">Step-by-step summary</span>
-					{#if howToPostTitle}
-						<span class="mt-2 block text-lg font-semibold text-base-content/90">{howToPostTitle}</span>
-					{/if}
+					{howToHeading}
 				</h2>
 				<ol class="list-none space-y-6">
 					{#each postVm.howtoSteps as step, index (index)}

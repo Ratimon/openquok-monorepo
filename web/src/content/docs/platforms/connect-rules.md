@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > How you link each network to your workspace in **Add Channel**, and which **channel key** the API uses for that connection.
 
-OpenQuok registers **ten** channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
+OpenQuok registers **eleven** channels. Connect each one once per workspace account. See <a href="/docs/channels/connect">Connect a channel</a>.
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -26,6 +26,7 @@ OpenQuok registers **ten** channels. Connect each one once per workspace account
 <a href="/channels/youtube" title="YouTube"><img src="/docs/_assets/platforms/socials/youtube.svg" alt="YouTube" width="32" height="32" /></a>
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
+<a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
 </p>
 
 Instagram and LinkedIn each map to **two** channel keys in the table below (Business and Standalone, or personal profile and Page).
@@ -68,12 +69,13 @@ The last column marks which channels need that operator setup (**Yes** for OAuth
 | **TikTok** | <Badge text="tiktok" variant="param" /> | OAuth | Yes |
 | **X** | <Badge text="x" variant="param" /> | OAuth | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Credentials in OpenQuok | No |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Credentials in OpenQuok | No |
 
 ## Connect in the dashboard only
 
 Most channels use **OAuth**: you click the network in **Add Channel**, sign in on the platform site, and return to OpenQuok.
 
-**Dev.to** is different. You paste a **personal API key** in Add Channel. There is no OAuth redirect for Dev.to.
+**Dev.to** and **Bluesky** are different. You paste credentials in Add Channel — a Dev.to API key or a Bluesky app password with your service URL and handle. There is no OAuth redirect for those channels.
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 

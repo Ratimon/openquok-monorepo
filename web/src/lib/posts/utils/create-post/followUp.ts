@@ -3,7 +3,13 @@ import type { CreateSocialPostMode, ThreadFollowUpReply } from '$lib/posts/creat
 import type { SetSharedFollowUpReplyViewModel, SetSnapshotViewModel } from '$lib/sets/GetSet.presenter.svelte';
 import { readFacebookLaunchSettings } from '$lib/ui/components/posts/providers/facebook/facebook.provider';
 
-export type FollowUpProviderBucket = 'threads' | 'instagram' | 'x' | 'linkedin' | 'facebook';
+export type FollowUpProviderBucket =
+	| 'threads'
+	| 'instagram'
+	| 'x'
+	| 'linkedin'
+	| 'facebook'
+	| 'bluesky';
 
 export function channelSupportsFollowUpComments(identifier: string | null | undefined): boolean {
 	const id = (identifier ?? '').toLowerCase();
@@ -13,7 +19,8 @@ export function channelSupportsFollowUpComments(identifier: string | null | unde
 		id.startsWith('instagram') ||
 		id === 'linkedin' ||
 		id === 'linkedin-page' ||
-		id === 'facebook'
+		id === 'facebook' ||
+		id === 'bluesky'
 	);
 }
 
@@ -37,6 +44,7 @@ export function followUpBucketForChannel(
 	if (id === 'x') return 'x';
 	if (id === 'linkedin' || id === 'linkedin-page') return 'linkedin';
 	if (id === 'facebook') return 'facebook';
+	if (id === 'bluesky') return 'bluesky';
 	return 'threads';
 }
 

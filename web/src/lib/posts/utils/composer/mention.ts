@@ -3,7 +3,7 @@ import type { IntegrationMentionProgrammerModel } from '$lib/integrations';
 /** Minimum characters after `@` before calling the mentions API (matches composer UX elsewhere). */
 export const COMPOSER_MENTION_MIN_QUERY_LENGTH = 2;
 
-const MENTION_PROVIDER_IDENTIFIERS = new Set(['x', 'linkedin', 'linkedin-page']);
+const MENTION_PROVIDER_IDENTIFIERS = new Set(['x', 'linkedin', 'linkedin-page', 'bluesky']);
 
 export type ActiveComposerMentionQuery = {
 	start: number;
@@ -12,7 +12,7 @@ export type ActiveComposerMentionQuery = {
 
 export function providerSupportsComposerMentions(
 	providerIdentifier: string | null | undefined
-): providerIdentifier is 'x' | 'linkedin' | 'linkedin-page' {
+): providerIdentifier is 'x' | 'linkedin' | 'linkedin-page' | 'bluesky' {
 	return Boolean(providerIdentifier && MENTION_PROVIDER_IDENTIFIERS.has(providerIdentifier));
 }
 
@@ -51,6 +51,11 @@ export function formatIntegrationMentionText(
 	if (providerIdentifier === 'linkedin' || providerIdentifier === 'linkedin-page') {
 		const name = mention.label.replace(/^@/u, '').trim();
 		return `@[${name}](urn:li:organization:${mention.id})`;
+	}
+	if (providerIdentifier === 'bluesky') {
+		const handle =
+			mention.id.replace(/^@/u, '').trim() || xHandleFromMentionLabel(mention.label);
+		return `@${handle}`;
 	}
 	return mention.label.trim();
 }

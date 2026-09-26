@@ -23,7 +23,7 @@ Some networks also expose **per-post metrics** on individual post cards and in t
 
 ## Account insights
 
-OpenQuok supports <strong>ten</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return account-level data in workspace <strong>Analytics</strong>. How the dashboard uses these connections is in <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
+OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return account-level data in workspace <strong>Analytics</strong>. How the dashboard uses these connections is in <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
 
 | Network | Channel key | Account insights |
 | --- | --- | --- |
@@ -37,6 +37,7 @@ OpenQuok supports <strong>ten</strong> channel keys for posting (<a href="/docs/
 | **Threads** | <Badge text="threads" variant="param" /> | Yes |
 | **X** | <Badge text="x" variant="param" /> | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | No |
 
 <Callout type="tip">
 <p>For Self-hosting, X charges you for every call you makr for analytics. You can disable X analytics with <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> in backend environment. See <a href="/docs/social-integration/x">Social integrations → X</a>.</p>
@@ -69,7 +70,7 @@ The workspace **Analytics** page and per-post **Statistics** dialog use a lookba
 
 ## Per-post metrics
 
-OpenQuok supports <strong>ten</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from Home and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
+OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from Home and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
 
 | Network | Channel key | Per-post insights |
 | --- | --- | --- |
@@ -83,6 +84,7 @@ OpenQuok supports <strong>ten</strong> channel keys for posting (<a href="/docs/
 | **Threads** | <Badge text="threads" variant="param" /> | Yes |
 | **X** | <Badge text="x" variant="param" /> | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | No |
 
 ## Related
 

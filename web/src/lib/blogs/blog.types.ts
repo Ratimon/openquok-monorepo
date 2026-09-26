@@ -54,6 +54,11 @@ export const blogPostFormSchema = z.object({
 	is_user_published: z.boolean().default(false),
 	is_admin_approved: z.boolean().default(false),
 	faq_items: z.array(blogSeoFaqItemSchema).optional().nullable(),
+	howto_name: z
+		.string()
+		.max(200, 'How-to title must be at most 200 characters')
+		.optional()
+		.nullable(),
 	howto_steps: z.array(blogSeoHowtoStepSchema).optional().nullable(),
 	product: blogSeoProductSchema.optional().nullable(),
 	reading_time_minutes: z

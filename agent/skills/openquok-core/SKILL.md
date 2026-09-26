@@ -214,6 +214,7 @@ Provider settings overview: [resources/provider-settings.md](./resources/provide
 | LinkedIn Page | `linkedin-page` | Page picker, document carousel, internal + global plugs, Page + post analytics | [linkedin-page-examples.md](./resources/linkedin-page-examples.md) |
 | X | `x` | text/media, thread replies, finisher, reply settings, internal + global plugs, analytics | [x-examples.md](./resources/x-examples.md) |
 | Dev.to | `devto` | markdown article, title/tags/cover/canonical/org/series, `tags` + `organizations` tools, analytics | [devto-examples.md](./resources/devto-examples.md) |
+| Bluesky | `bluesky` | text/media (≤4 images or 1 MP4), follow-up replies (`bluesky.replies`), mentions | [bluesky-examples.md](./resources/bluesky-examples.md) |
 
 Threads publish failures: [threads-publish.md](./resources/threads-publish.md).
 

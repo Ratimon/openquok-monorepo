@@ -14,6 +14,7 @@ import { TiktokProvider } from "./providers/tiktok/tiktokProvider";
 import { YoutubeProvider } from "./providers/youtube/youtubeProvider";
 import { XProvider } from "./providers/x/xProvider";
 import { DevToProvider } from "./providers/devto/devtoProvider";
+import { BlueskyProvider } from "./providers/bluesky/blueskyProvider";
 
 const socialIntegrationList: SocialProvider[] = [
     new ThreadsProvider(),
@@ -26,6 +27,7 @@ const socialIntegrationList: SocialProvider[] = [
     new TiktokProvider(),
     new XProvider(),
     new DevToProvider(),
+    new BlueskyProvider(),
 ];
 
 export class IntegrationManager {

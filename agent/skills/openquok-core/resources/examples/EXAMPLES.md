@@ -98,6 +98,14 @@ Shared recipes — use the same JSON with `instagram-standalone` or `instagram-b
 | [devto-canonical.json](./devto-canonical.json) | Canonical URL syndication |
 | [devto-organization.json](./devto-organization.json) | Organization id + cover `mainImage.path` |
 
+## Bluesky
+
+| File | Scenario |
+| --- | --- |
+| [bluesky-text-only.json](./bluesky-text-only.json) | Text-only scheduled post |
+| [bluesky-images.json](./bluesky-images.json) | Multi-image post |
+| [bluesky-follow-up.json](./bluesky-follow-up.json) | `bluesky.replies` follow-up |
+
 ## Multi-channel
 
 | File | Scenario |

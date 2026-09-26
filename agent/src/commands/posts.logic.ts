@@ -116,12 +116,13 @@ export function withAgentCreatePayload(payload: Record<string, unknown>): Record
 /** Keep aligned with `replyChainBucketForProvider` in `backend/utils/dtos/PostDTO.ts`. */
 export function replyChainBucketForProvider(
   providerIdentifier: string | null | undefined
-): "threads" | "instagram" | "x" | "linkedin" | "facebook" {
+): "threads" | "instagram" | "x" | "linkedin" | "facebook" | "bluesky" {
   const id = (providerIdentifier ?? "").trim().toLowerCase();
   if (id.startsWith("instagram")) return "instagram";
   if (id === "x") return "x";
   if (id === "linkedin" || id === "linkedin-page") return "linkedin";
   if (id === "facebook") return "facebook";
+  if (id === "bluesky") return "bluesky";
   return "threads";
 }
 

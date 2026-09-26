@@ -320,6 +320,22 @@ const CHANNEL_CLI_RECIPES: Record<string, readonly AgentChannelCliRecipe[]> = {
 			command: 'openquok analytics:post "$POST_ID" -d 7',
 			description: 'Pull 7-day insights for a published Dev.to article'
 		}
+	],
+	bluesky: [
+		{
+			command: discoverIntegrationCommand(['bluesky']),
+			description: 'Discover your Bluesky integration UUID'
+		},
+		{
+			command: 'openquok integrations:settings "$BLUESKY_ID"',
+			description: 'Get Bluesky posting rules and character limits'
+		},
+		postsCreateJsonCommand('bluesky-text-only.json', 'Schedule a text-only Bluesky post'),
+		postsCreateJsonCommand('bluesky-images.json', 'Schedule up to four images on one Bluesky post'),
+		postsCreateJsonCommand(
+			'bluesky-follow-up.json',
+			'Schedule a post and follow-up replies on bluesky.replies'
+		)
 	]
 };
 
@@ -338,7 +354,8 @@ const KANBAN_EXAMPLE_BY_CHANNEL: Record<string, string> = {
 	tiktok: 'tiktok-video-direct-post.json',
 	linkedin: 'linkedin-text-post.json',
 	x: 'x-text-only.json',
-	devto: 'devto-article-title-tags.json'
+	devto: 'devto-article-title-tags.json',
+	bluesky: 'bluesky-text-only.json'
 };
 
 /** Kanban feature section CLI snippet for a platform. */
@@ -364,6 +381,17 @@ openquok analytics:platform "$INTEGRATION_ID" -d 30
 
 # Per-post insights
 openquok analytics:post <post-id> -d 7`;
+}
+
+/** Follow-up reply CLI snippet when platform analytics is not available. */
+export function buildAgentChannelFollowUpCliCommands(
+	channelSlug: string,
+	platformLabel: string
+): string {
+	const exampleFile =
+		channelSlug === 'bluesky' ? 'bluesky-follow-up.json' : `${channelSlug}-follow-up-replies.json`;
+	return `# ${platformLabel} post with follow-up reply
+openquok posts:create --json ./examples/${exampleFile}`;
 }
 
 /** Canonical / syndication CLI snippet for channels without date-range analytics. */

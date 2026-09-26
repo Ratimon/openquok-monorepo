@@ -8,6 +8,7 @@ import { tiktokChannel } from '$lib/content/constants/channels/tiktok';
 import { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 import { xChannel } from '$lib/content/constants/channels/x';
 import { devtoChannel } from '$lib/content/constants/channels/devto';
+import { blueskyChannel } from '$lib/content/constants/channels/bluesky';
 
 /** Coming-soon entries appear on the hub but do not have detail pages yet. */
 const COMING_SOON_CHANNELS: PublicChannelLandingPageViewModel[] = [];
@@ -22,6 +23,7 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageView
 	linkedinChannel,
 	xChannel,
 	devtoChannel,
+	blueskyChannel,
 	...COMING_SOON_CHANNELS
 ];
 

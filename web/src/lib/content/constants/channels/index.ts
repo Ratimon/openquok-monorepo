@@ -15,6 +15,7 @@ export { tiktokChannel } from '$lib/content/constants/channels/tiktok';
 export { linkedinChannel } from '$lib/content/constants/channels/linkedin';
 export { xChannel } from '$lib/content/constants/channels/x';
 export { devtoChannel } from '$lib/content/constants/channels/devto';
+export { blueskyChannel } from '$lib/content/constants/channels/bluesky';
 export {
 	PUBLIC_CHANNEL_LANDING_PAGES,
 	listPublicChannelLandingSeedsForFooter

@@ -353,3 +353,35 @@ export const DEVTO_ORGANIZATION_PAYLOAD = {
 		}
 	}
 } as const;
+
+export const BLUESKY_TEXT_ONLY_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Hello from Bluesky — text-only post.',
+	integrationIds: ['<integration-id>']
+} as const;
+
+export const BLUESKY_IMAGES_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Two photos in one Bluesky post.',
+	integrationIds: ['<integration-id>'],
+	media: [
+		{ id: '<media-id-1>', path: 'https://cdn.example.com/a.jpg' },
+		{ id: '<media-id-2>', path: 'https://cdn.example.com/b.jpg' }
+	]
+} as const;
+
+export const BLUESKY_FOLLOW_UP_PAYLOAD = {
+	scheduledAt: '2026-01-01T12:00:00.000Z',
+	status: 'scheduled',
+	body: 'Launch post on Bluesky.',
+	integrationIds: ['<integration-id>'],
+	providerSettingsByIntegrationId: {
+		'<integration-id>': {
+			bluesky: {
+				replies: [{ id: 'reply-1', message: 'Details in the reply below.', delaySeconds: 300 }]
+			}
+		}
+	}
+} as const;

@@ -454,7 +454,7 @@ export class PublicPayloadWizardComposerPresenter {
 		const targets = this.listThreadFollowUpSupportedIntegrationIds();
 		if (targets.length === 0) {
 			toast.message(
-				'Select at least one supported channel (Threads, X, Instagram, LinkedIn, or Facebook) to add follow-up comments.'
+				'Select at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, or Bluesky) to add follow-up comments.'
 			);
 			return;
 		}

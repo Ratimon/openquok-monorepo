@@ -41,6 +41,7 @@ function productPost(overrides?: Partial<BlogPostBySlugPublicViewModel>): BlogPo
 		},
 		likeCount: null,
 		faqItems: null,
+		howtoName: null,
 		howtoSteps: null,
 		product: {
 			name: 'OpenQuok Humanizer',
@@ -308,6 +309,29 @@ describe('isBlogTopicEligibleForHowTo and Product', () => {
 		expect(isBlogTopicEligibleForProduct('educationalguides', educationalGuidesId)).toBe(true);
 		expect(isBlogTopicEligibleForHowTo(null, null)).toBe(false);
 		expect(isBlogTopicEligibleForProduct(null, null)).toBe(false);
+	});
+});
+
+describe('createBlogPostSEOSchema HowTo title', () => {
+	it('uses howtoName when set, otherwise post title', () => {
+		const withCustom = createPostSchema({
+			title: 'Long blog headline for SEO',
+			howtoName: 'Humanize a social draft in the browser',
+			howtoSteps: [{ name: 'Paste draft', text: 'Open Humanizer and paste your caption.' }]
+		});
+		const howToCustom = withCustom['@graph'].find(
+			(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'HowTo'
+		) as Record<string, unknown> | undefined;
+		expect(howToCustom?.name).toBe('Humanize a social draft in the browser');
+
+		const withDefault = createPostSchema({
+			title: 'Long blog headline for SEO',
+			howtoSteps: [{ name: 'Paste draft', text: 'Open Humanizer and paste your caption.' }]
+		});
+		const howToDefault = withDefault['@graph'].find(
+			(node) => typeof node === 'object' && node !== null && '@type' in node && node['@type'] === 'HowTo'
+		) as Record<string, unknown> | undefined;
+		expect(howToDefault?.name).toBe('Long blog headline for SEO');
 	});
 });
 

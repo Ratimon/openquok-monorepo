@@ -33,6 +33,7 @@ The **Characters** column is the main caption or body. The same cap applies to e
 | **YouTube** | <Badge text="youtube" variant="param" /> | Exactly **one MP4** video | **5,000** (description) |
 | **TikTok** | <Badge text="tiktok" variant="param" /> | **≥1** attachment; **one MP4** <strong>or</strong> **1–35** JPEG/PNG/WEBP photos (never mixed) | **2,000** |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Markdown body; optional **cover image** in Settings (not required on the media strip) | **100,000** (body) |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Text-only OK; up to **4** images <strong>or</strong> **1** MP4 (never mixed) | **300** |
 
 <Callout type="note">
 <p> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>
@@ -57,7 +58,7 @@ Connect methods are in <a href="/docs/platforms/connect-rules">Connect rules</a>
 
 | Channel key | Media on follow-ups |
 | --- | --- |
-| <Badge text="threads" variant="param" />, <Badge text="x" variant="param" /> | Yes |
+| <Badge text="threads" variant="param" />, <Badge text="x" variant="param" />, <Badge text="bluesky" variant="param" /> | Yes |
 | <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" /> | Text only |
 | <Badge text="facebook" variant="param" /> | One image per follow-up (no video) |
 | <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="devto" variant="param" /> | Follow-ups not supported |
@@ -77,7 +78,7 @@ Each channel uses one caption editor mode when you unlock it in per-channel mode
 
 | Editor | Channel keys |
 | --- | --- |
-| **Standard** | <Badge text="threads" variant="param" />, <Badge text="facebook" variant="param" />, <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" />, <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" /> |
+| **Standard** | <Badge text="threads" variant="param" />, <Badge text="facebook" variant="param" />, <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" />, <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="bluesky" variant="param" /> |
 | **Markdown** | <Badge text="devto" variant="param" /> |
 | **HTML** | <Badge text="x" variant="param" /> (published as plain text after strip) |
 

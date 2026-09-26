@@ -2,7 +2,11 @@
 	import type { IntegrationCatalogCustomField } from '$lib/integrations/utils/credentialsConnect';
 
 	import { page } from '$app/state';
-	import { validateCatalogCustomFieldValue } from '$lib/integrations/utils/credentialsConnect';
+	import {
+		credentialsConnectFormUsesSingleApiKey,
+		initialCredentialsConnectValues,
+		validateCatalogCustomFieldValue
+	} from '$lib/integrations/utils/credentialsConnect';
 	import { isOpenquokHostedOrigin } from '$lib/utils/hostedMarketingHref';
 	import { toast } from '$lib/ui/sonner';
 	import Button from '$lib/ui/buttons/Button.svelte';
@@ -19,7 +23,15 @@
 
 	let values = $state<Record<string, string>>({});
 
+	const fieldsKey = $derived(fields.map((field) => field.key).join('\0'));
+
+	$effect(() => {
+		void fieldsKey;
+		values = initialCredentialsConnectValues(fields);
+	});
+
 	const isHostedCloud = $derived(isOpenquokHostedOrigin(page.url.origin));
+	const isSingleApiKeyForm = $derived(credentialsConnectFormUsesSingleApiKey(fields));
 
 	const canSubmit = $derived(
 		!submitting && fields.every((field) => (values[field.key] ?? '').trim().length > 0)
@@ -51,12 +63,20 @@
 
 <form class="space-y-4" onsubmit={handleSubmit}>
 	<p class="text-sm text-base-content/70">
-		{#if isHostedCloud}
-			Paste your {providerName} API key. OpenQuok encrypts it on the server to publish for you — it is
-			not saved in your browser.
+		{#if isSingleApiKeyForm}
+			{#if isHostedCloud}
+				Paste your {providerName} API key. OpenQuok encrypts it on the server to publish for you — it is
+				not saved in your browser.
+			{:else}
+				Paste your {providerName} API key. OpenQuok keeps it on the server to publish for you — it is not
+				saved in your browser.
+			{/if}
+		{:else if isHostedCloud}
+			Enter your {providerName} account details below. OpenQuok encrypts them on the server to publish for
+			you — they are not saved in your browser.
 		{:else}
-			Paste your {providerName} API key. OpenQuok keeps it on the server to publish for you — it is not
-			saved in your browser.
+			Enter your {providerName} account details below. OpenQuok keeps them on the server to publish for you
+			— they are not saved in your browser.
 		{/if}
 	</p>
 

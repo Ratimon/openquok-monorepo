@@ -411,6 +411,16 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 				iconName: icons.Devto.name,
 				iconContainerClass: 'bg-[#0a0a0a] text-white ring-neutral-800/40',
 				iconClass: 'size-5'
+			},
+			{
+				id: 'social-integration-bluesky',
+				title: 'Bluesky',
+				description: 'No operator app — users connect with an app password in the dashboard.',
+				href: faqHrefDocs('social-integration/bluesky'),
+				ctaLabel: 'Open guide',
+				iconName: icons.Bluesky.name,
+				iconContainerClass: 'bg-[#0085FF]/15 text-[#0085FF] ring-[#0085FF]/25',
+				iconClass: 'size-5'
 			}
 		]
 	},
@@ -657,7 +667,7 @@ export const PUBLIC_SELF_HOSTING_LANDING_CONFIG = {
 				{
 					title: 'Do I need my own Meta or Google developer apps?',
 					description:
-						`On self-host, yes — for networks that use OAuth sign-in. Set up only the channels your team will use, then restart the API. Dev.to uses each user's API key in the dashboard; you do not register a developer app for it. See ${faqLink(publicFaqHref.socialIntegration, 'social integration guides')} and ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
+						`On self-host, yes — for networks that use OAuth sign-in. Set up only the channels your team will use, then restart the API. Dev.to and Bluesky use credentials each user pastes in the dashboard; you do not register a developer app for them. See ${faqLink(publicFaqHref.socialIntegration, 'social integration guides')} and ${faqLink(publicFaqHref.dockerCompose, 'Docker Compose')}.`
 				},
 				{
 					title: 'Can agents authenticate without API keys on the host?',

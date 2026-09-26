@@ -114,6 +114,7 @@ On **Threads**, the UI may add a small buffer for publish. Meta can still take l
 | **Instagram** | Yes | Comments on the main post | Text only | No |
 | **LinkedIn** | Yes | Comments on the main post | Text only | Comment or reshare from other LinkedIn channels |
 | **Facebook** | Yes | Comments on the main post | One image per follow-up comment row via reply toolbar (no video) | No |
+| **Bluesky** | Yes | Same-account replies on the main post | Images (up to four) or one MP4 per reply — not mixed | No |
 | **YouTube**, **TikTok**, **Dev.to**, … | No | — | — | No |
 
 Cross-account **plugs** (from **Plug settings**) are separate from same-account Follow-up comments. **Threads**, **X**, and **LinkedIn** support them — see <a href="/docs/automations/cross-account-plugs">Cross-account plugs</a> and <a href="#cross-account-plugs">below</a>.

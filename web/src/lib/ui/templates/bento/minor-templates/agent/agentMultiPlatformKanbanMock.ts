@@ -12,6 +12,7 @@ import { TIKTOK_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templ
 import { X_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/x/xLandingMock';
 import { YOUTUBE_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/youtube/youtubeLandingMock';
 import { DEVTO_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/devto/devtoLandingMock';
+import { BLUESKY_LANDING_MOCK_CHANNEL } from '$lib/ui/templates/bento/minor-templates/bluesky/blueskyLandingMock';
 
 function channelSlot(
 	channel: typeof FACEBOOK_LANDING_MOCK_CHANNEL
@@ -32,6 +33,7 @@ const tiktokSlot = channelSlot(TIKTOK_LANDING_MOCK_CHANNEL);
 const linkedinSlot = channelSlot(LINKEDIN_LANDING_MOCK_CHANNEL);
 const xSlot = channelSlot(X_LANDING_MOCK_CHANNEL);
 const devtoSlot = channelSlot(DEVTO_LANDING_MOCK_CHANNEL);
+const blueskySlot = channelSlot(BLUESKY_LANDING_MOCK_CHANNEL);
 
 /** Mixed-platform kanban cards for generic agent host landing pages. */
 export function getAgentMultiPlatformKanbanCards(): PostKanbanCardViewModel[] {
@@ -174,6 +176,23 @@ export function getAgentMultiPlatformKanbanCards(): PostKanbanCardViewModel[] {
 		),
 		applyLandingKanbanMockSchedule(
 			{
+				postId: 'landing-agent-kanban-bluesky-draft',
+				postGroup: 'landing-agent-kanban-group-10',
+				column: 'draft',
+				contentPreview: 'Bluesky draft — images queued with a follow-up reply.',
+				note: 'Review reply delay',
+				channelSlots: [blueskySlot],
+				hiddenChannelCount: 0,
+				primaryChannelName: BLUESKY_LANDING_MOCK_CHANNEL.name,
+				isAgentEdited: true,
+				isReviewed: false,
+				tagNames: ['product']
+			},
+			18,
+			{ hour: 10 }
+		),
+		applyLandingKanbanMockSchedule(
+			{
 				postId: 'landing-agent-kanban-fb-published',
 				postGroup: 'landing-agent-kanban-group-9',
 				column: 'published',
@@ -200,5 +219,6 @@ export const AGENT_MULTI_PLATFORM_MOCK_CHANNELS = [
 	TIKTOK_LANDING_MOCK_CHANNEL,
 	LINKEDIN_LANDING_MOCK_CHANNEL,
 	X_LANDING_MOCK_CHANNEL,
-	DEVTO_LANDING_MOCK_CHANNEL
+	DEVTO_LANDING_MOCK_CHANNEL,
+	BLUESKY_LANDING_MOCK_CHANNEL
 ];

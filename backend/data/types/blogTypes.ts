@@ -77,6 +77,8 @@ export interface BlogPost {
     like_count: number | null;
     updated_at: string | null;
     faq_items: BlogSeoFaqItem[] | null;
+    /** Optional HowTo title; falls back to post title in JSON-LD and on-page heading when null. */
+    howto_name: string | null;
     howto_steps: BlogSeoHowtoStep[] | null;
     product: BlogSeoProduct | null;
     topic: BlogTopic | null;

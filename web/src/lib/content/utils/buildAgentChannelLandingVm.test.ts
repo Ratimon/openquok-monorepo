@@ -53,6 +53,24 @@ describe('buildAgentChannelLandingVm analytics FAQ honesty', () => {
 		expect(description).toContain('draft and schedule');
 		expect(description).toContain('posts:create');
 	});
+
+	it('omits analytics on real Bluesky agent channel config', () => {
+		expect(baseAgent).toBeDefined();
+		const blueskyChannel = getPublicChannelBySlug('bluesky');
+		const blueskyConfig = getPublicAgentChannelBySlug('openclaw', 'bluesky');
+		expect(blueskyChannel).toBeDefined();
+		expect(blueskyConfig).toBeDefined();
+
+		const vm = buildAgentChannelLandingVm({
+			baseAgent: baseAgent!,
+			channel: blueskyChannel!,
+			channelConfig: blueskyConfig!
+		});
+
+		const description = capabilitiesFaqDescription(vm.faqItems);
+		expect(description).not.toContain('analytics:platform');
+		expect(blueskyConfig!.analyticsCliCommands).not.toContain('analytics:platform');
+	});
 });
 
 describe('buildAgentChannelLandingVm channel FAQ merge', () => {

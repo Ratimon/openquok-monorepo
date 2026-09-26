@@ -1,11 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+	channelSupportsFollowUpComments,
+	followUpBucketForChannel,
 	integrationSupportsFollowUpComments,
 	listThreadFollowUpSupportedIntegrationIds,
 	syncThreadFollowUpRepliesAcrossSelectedChannels,
 	syncThreadFollowUpRepliesToFocusedChannel
 } from '$lib/posts/utils/create-post/followUp';
+
+describe('channelSupportsFollowUpComments', () => {
+	it('includes Bluesky', () => {
+		expect(channelSupportsFollowUpComments('bluesky')).toBe(true);
+	});
+
+	it('maps Bluesky to bluesky bucket', () => {
+		expect(followUpBucketForChannel('bluesky')).toBe('bluesky');
+	});
+});
 
 describe('integrationSupportsFollowUpComments', () => {
 	it('allows Facebook feed posts', () => {

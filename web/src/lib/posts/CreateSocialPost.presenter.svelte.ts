@@ -606,7 +606,7 @@ export class CreateSocialPostPresenter {
 			});
 			if (!hasSupport) {
 				toast.message(
-					'Add at least one supported channel (Threads, X, Instagram, LinkedIn, or Facebook) to use follow-up comments.'
+					'Add at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, or Bluesky) to use follow-up comments.'
 				);
 				return false;
 			}
@@ -621,11 +621,11 @@ export class CreateSocialPostPresenter {
 		if (targets.length === 0) {
 			if (this.mode === 'custom') {
 				toast.message(
-					'Follow-up comments are supported on Threads, X, Instagram, LinkedIn, and Facebook.'
+					'Follow-up comments are supported on Threads, X, Instagram, LinkedIn, Facebook, and Bluesky.'
 				);
 			} else {
 				toast.message(
-					'Select at least one supported channel (Threads, X, Instagram, LinkedIn, or Facebook) to add follow-up comments.'
+					'Select at least one supported channel (Threads, X, Instagram, LinkedIn, Facebook, or Bluesky) to add follow-up comments.'
 				);
 			}
 			return false;

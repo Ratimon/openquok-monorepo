@@ -81,7 +81,7 @@ Leave provider keys empty until you connect a channel. Fill only the networks yo
 | <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> / <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" /> | LinkedIn / LinkedIn Page |
 | <Badge text="X_API_KEY" variant="envBackend" /> / <Badge text="X_API_SECRET" variant="envBackend" /> | X |
 
-Dev.to uses a user API key in the dashboard. You do not add operator env vars for it. See <a href="/docs/social-integration/devto">Dev.to</a>.
+Dev.to uses a user API key in the dashboard; Bluesky uses an app password in Add Channel. You do not add operator env vars for either. See <a href="/docs/social-integration/devto">Dev.to</a> and <a href="/docs/social-integration/bluesky">Bluesky</a>.
 
 For cutover windows, set <Badge text="MAINTENANCE_MODE" variant="envBackend" /> and recreate containers. See <a href="/docs/installation/maintenance-mode">Maintenance mode</a>.
 

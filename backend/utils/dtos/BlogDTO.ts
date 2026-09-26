@@ -51,6 +51,7 @@ export interface BlogPostLike {
     like_count?: number | null;
     updated_at?: string | null;
     faq_items?: BlogSeoFaqItem[] | null;
+    howto_name?: string | null;
     howto_steps?: BlogSeoHowtoStep[] | null;
     product?: BlogSeoProduct | null;
     topic?: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
@@ -101,6 +102,7 @@ export interface BlogPostDTO {
     likeCount: number | null;
     updatedAt: string | null;
     faqItems: BlogSeoFaqItem[] | null;
+    howtoName: string | null;
     howtoSteps: BlogSeoHowtoStep[] | null;
     product: BlogSeoProduct | null;
     topic: { id: string; name: string; slug: string } | null;
@@ -181,6 +183,11 @@ function normalizeFaqItems(value: BlogPostLike["faq_items"]): BlogSeoFaqItem[] |
     return value;
 }
 
+function normalizeHowtoName(value: BlogPostLike["howto_name"]): string | null {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
+}
+
 function normalizeHowtoSteps(value: BlogPostLike["howto_steps"]): BlogSeoHowtoStep[] | null {
     if (value == null || !Array.isArray(value) || value.length === 0) return null;
     return value;
@@ -240,6 +247,7 @@ export const BlogDTOMapper = {
             likeCount: (row.like_count ?? null) as number | null,
             updatedAt: (row.updated_at ?? null) as string | null,
             faqItems: normalizeFaqItems(row.faq_items),
+            howtoName: normalizeHowtoName(row.howto_name),
             howtoSteps: normalizeHowtoSteps(row.howto_steps),
             product: normalizeProduct(row.product),
             topic: normalizeTopic(row.topic),

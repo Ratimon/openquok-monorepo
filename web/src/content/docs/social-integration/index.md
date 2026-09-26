@@ -35,6 +35,7 @@ Never commit <Badge text="THREADS_APP_SECRET" variant="envBackend" /> or other p
 <LinkCard title="LinkedIn Page" description="Connect a Company Page to post and view page insights" href="/docs/social-integration/linkedin-page" />
 <LinkCard title="X" description="Connect X (Twitter) so you can schedule posts" href="/docs/social-integration/x" />
 <LinkCard title="Dev.to" description="Connect with a personal API key and schedule markdown articles" href="/docs/social-integration/devto" />
+<LinkCard title="Bluesky" description="Connect with an app password and schedule text, media, and follow-up replies" href="/docs/social-integration/bluesky" />
 <LinkCard title="Adding a provider" description="How to add a new social channel as a contributor" href="/docs/contribution-opportunities/add-provider" />
 </CardGrid>
 

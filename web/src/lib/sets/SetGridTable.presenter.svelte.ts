@@ -157,7 +157,8 @@ const FOLLOW_UP_PROVIDER_BUCKETS: readonly FollowUpProviderBucket[] = [
 	'instagram',
 	'x',
 	'linkedin',
-	'facebook'
+	'facebook',
+	'bluesky'
 ];
 
 function countThreadsAutoReplies(

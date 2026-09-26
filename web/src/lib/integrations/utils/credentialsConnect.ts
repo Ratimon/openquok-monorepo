@@ -47,6 +47,23 @@ export function catalogItemHasCustomFields(item: { customFields?: unknown } | nu
 	return normalizeCatalogCustomFields(item?.customFields).length > 0;
 }
 
+/** Seed connect form state from catalog `defaultValue` entries (e.g. Bluesky service URL). */
+export function initialCredentialsConnectValues(
+	fields: IntegrationCatalogCustomField[]
+): Record<string, string> {
+	const out: Record<string, string> = {};
+	for (const field of fields) {
+		out[field.key] = typeof field.defaultValue === 'string' ? field.defaultValue : '';
+	}
+	return out;
+}
+
+export function credentialsConnectFormUsesSingleApiKey(
+	fields: IntegrationCatalogCustomField[]
+): boolean {
+	return fields.length === 1 && fields[0]?.key === 'apiKey';
+}
+
 /** Fallback field when the catalog has no customFields but authorize returned a non-URL state. */
 export const DEFAULT_API_KEY_CUSTOM_FIELDS: IntegrationCatalogCustomField[] = [
 	{ key: 'apiKey', label: 'API key', validation: '/^.{3,}$/', type: 'password' }

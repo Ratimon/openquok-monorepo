@@ -390,16 +390,16 @@ function createBlogPostFaqPageNode(params: {
 
 function createBlogPostHowToNode(params: {
 	canonicalUrl: string;
-	postTitle: string;
+	howToName: string;
 	description: string;
 	steps: BlogSeoHowtoStep[];
 }): HowTo | Record<string, never> {
-	const { canonicalUrl, postTitle, description, steps } = params;
+	const { canonicalUrl, howToName, description, steps } = params;
 	if (steps.length === 0) return {};
 
 	return createHowToSEOSchema({
 		canonicalUrl,
-		name: postTitle,
+		name: howToName,
 		description,
 		steps: steps.map((step) => ({
 			name: step.name,
@@ -779,7 +779,7 @@ export function createBlogPostSEOSchema(params: CreateBlogPostSEOSchemaParams): 
 		isBlogTopicEligibleForHowTo(topicSlug, topicId) && howtoSteps.length > 0
 			? createBlogPostHowToNode({
 					canonicalUrl,
-					postTitle: post.title,
+					howToName: post.howtoName?.trim() || post.title.trim(),
 					description,
 					steps: howtoSteps
 				})

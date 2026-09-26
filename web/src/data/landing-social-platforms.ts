@@ -66,6 +66,12 @@ export const HERO_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		icon: icons.DevtoGlyph.name,
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
+	},
+	{
+		id: 'bluesky',
+		icon: icons.BlueskyGlyph.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
 	}
 ];
 
@@ -129,6 +135,12 @@ export const FEATURES_GRID_SOCIAL_PLATFORMS: LandingSocialPlatform[] = [
 		label: 'Dev.to',
 		containerClass: GLYPH_TILE,
 		...GLYPH_SIZE
+	},
+	{
+		id: 'bluesky',
+		icon: icons.BlueskyGlyph.name,
+		containerClass: GLYPH_TILE,
+		...GLYPH_SIZE
 	}
 ];
 
@@ -144,7 +156,7 @@ export const FEATURES_GRID_SOCIAL_ROWS: { offsetClass: string; platformIds: stri
 	},
 	{
 		offsetClass: '-translate-x-4 sm:-translate-x-8 md:-translate-x-12',
-		platformIds: ['x', 'instagram-standalone', 'devto']
+		platformIds: ['x', 'instagram-standalone', 'devto', 'bluesky']
 	}
 ];
 

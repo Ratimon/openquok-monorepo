@@ -40,7 +40,10 @@ import {
 	DEVTO_ARTICLE_TITLE_TAGS_PAYLOAD,
 	DEVTO_SERIES_PAYLOAD,
 	DEVTO_CANONICAL_PAYLOAD,
-	DEVTO_ORGANIZATION_PAYLOAD
+	DEVTO_ORGANIZATION_PAYLOAD,
+	BLUESKY_TEXT_ONLY_PAYLOAD,
+	BLUESKY_IMAGES_PAYLOAD,
+	BLUESKY_FOLLOW_UP_PAYLOAD
 } from '$lib/skill-builder/constants/skillBuilderChannelExamplePayloads';
 
 type SkillBuilderChannelRecipe = {
@@ -86,7 +89,8 @@ const CHANNEL_PROVIDER_IDENTIFIERS: Record<string, readonly string[]> = {
 	tiktok: ['tiktok'],
 	linkedin: ['linkedin', 'linkedin-page'],
 	x: ['x'],
-	devto: ['devto']
+	devto: ['devto'],
+	bluesky: ['bluesky']
 };
 
 const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
@@ -272,6 +276,26 @@ const CHANNEL_RECIPES: Record<string, readonly SkillBuilderChannelRecipe[]> = {
 			prompt: 'Publish to a Dev.to organization with an optional cover image.',
 			examplePayload: { ...DEVTO_ORGANIZATION_PAYLOAD }
 		}
+	],
+	bluesky: [
+		{
+			id: 'bluesky-text',
+			label: 'Text-only post',
+			prompt: 'Schedule a 300-character Bluesky post with posts:create.',
+			examplePayload: { ...BLUESKY_TEXT_ONLY_PAYLOAD }
+		},
+		{
+			id: 'bluesky-images',
+			label: 'Image carousel',
+			prompt: 'Attach up to four images on one Bluesky post (no video in the same post).',
+			examplePayload: { ...BLUESKY_IMAGES_PAYLOAD }
+		},
+		{
+			id: 'bluesky-follow-up',
+			label: 'Follow-up reply',
+			prompt: 'Schedule a main post and a delayed reply on bluesky.replies.',
+			examplePayload: { ...BLUESKY_FOLLOW_UP_PAYLOAD }
+		}
 	]
 };
 
@@ -283,7 +307,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	tiktok: 'Direct video posts with privacy controls.',
 	linkedin: 'Profile and company Page text posts; Page global plugs.',
 	x: 'Text posts, reply threads, cross-account reposts, and global plugs.',
-	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.'
+	devto: 'Markdown articles with title, tags, cover, series, and canonical URL.',
+	bluesky: 'Text posts, image carousels, one video per post, and follow-up replies.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): SkillBuilderChannelPageConfig {

@@ -28,7 +28,7 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
 
 ## What you can do
 
-- <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, and Dev.to to a workspace. Each network keeps its own posting rules and limits — see the [channel catalog](https://www.openquok.com/channels).
+- <img src="./assets/readme/features/accounts.svg" alt="" width="24" height="24" align="top"> **[Connect channels](https://www.openquok.com/docs/channels/connect).** Add Facebook Page, Threads, Instagram, LinkedIn, X, YouTube, TikTok, Dev.to, and Bluesky to a workspace. Each network keeps its own posting rules and limits — see the [channel catalog](https://www.openquok.com/channels).
 - <img src="./assets/readme/features/compose.svg" alt="" width="24" height="24" align="top"> **[Compose for each platform](https://www.openquok.com/docs/creating-posts).** Write once in Global mode or unlock a channel for its own caption, media, and settings. Preview each version before you schedule — see [Global vs per-channel](https://www.openquok.com/docs/creating-posts/global-vs-per-channel).
 - <img src="./assets/readme/features/photo-editor.svg" alt="" width="24" height="24" align="top"> **[Photo editor](https://www.openquok.com/tools/photo-editor).** Design and resize visuals for social channels in your browser. Pick platform aspect ratios, export PNG free, or save to your workspace when signed in.
 - <img src="./assets/readme/features/humanizer.svg" alt="" width="24" height="24" align="top"> **[Humanizer](https://www.openquok.com/tools/humanizer).** Rewrite drafts so they read less machine-written. Human and Roughen modes run on-device in Chrome — no account required to copy results.
@@ -57,9 +57,10 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
   <a href="https://www.openquok.com/channels/youtube"><img src="./assets/readme/socials/youtube.svg" alt="YouTube" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/tiktok"><img src="./assets/readme/socials/tiktok.svg" alt="TikTok" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/devto"><img src="./assets/readme/socials/devto.svg" alt="Dev.to" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/bluesky"><img src="./assets/readme/socials/bluesky.svg" alt="Bluesky" width="32" height="32"></a>
 </p>
 
-OpenQuok ships integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, and **Dev.to**. Dev.to connects with a personal API key in Add Channel — no OAuth redirect.
+OpenQuok ships integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Dev.to**, and **Bluesky**. Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect.
 
 Posting formats, follow-up comments, and analytics vary by platform. Some integrations require provider app approval or publicly reachable media URLs on self-hosted deployments.
 

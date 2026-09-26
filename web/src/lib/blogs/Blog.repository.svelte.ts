@@ -35,6 +35,7 @@ export interface BlogPostDto {
 	likeCount: number | null;
 	updatedAt: string | null;
 	faqItems: BlogSeoFaqItem[] | null;
+	howtoName: string | null;
 	howtoSteps: BlogSeoHowtoStep[] | null;
 	product: BlogSeoProduct | null;
 	topic: { id: string; name: string; slug: string } | null;
@@ -335,6 +336,7 @@ export interface BlogPostProgrammerModel {
 	likeCount: number | null;
 	updatedAt: string | null;
 	faqItems: BlogSeoFaqItem[] | null;
+	howtoName: string | null;
 	howtoSteps: BlogSeoHowtoStep[] | null;
 	product: BlogSeoProduct | null;
 	topic: { id: string; name: string; slug: string } | null;
@@ -967,6 +969,7 @@ export class BlogRepository {
 			likeCount: postDto.likeCount ?? null,
 			updatedAt: postDto.updatedAt ?? null,
 			faqItems: postDto.faqItems?.length ? [...postDto.faqItems] : null,
+			howtoName: postDto.howtoName?.trim() || null,
 			howtoSteps: postDto.howtoSteps?.length ? [...postDto.howtoSteps] : null,
 			product: postDto.product ?? null,
 			topic: postDto.topic ? { ...postDto.topic } : null,

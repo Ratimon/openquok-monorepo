@@ -53,7 +53,8 @@ const CHANNEL_HUB_DESCRIPTIONS: Record<string, string> = {
 	tiktok: 'Clean or roughen captions for short-video posts.',
 	linkedin: 'Drop stock phrasing from professional feed posts.',
 	x: 'Shorten drafts for a more conversational post.',
-	devto: 'Rewrite technical articles so they read less machine-written.'
+	devto: 'Rewrite technical articles so they read less machine-written.',
+	bluesky: 'Tighten microblog drafts for a more natural Bluesky voice.'
 };
 
 function buildChannelPageConfig(channel: PublicChannelLandingPageViewModel): HumanizeChannelPageConfig {

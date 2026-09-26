@@ -15,7 +15,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 > What each connected channel accepts before OpenQuok sends a post.
 
-Diferent platforms has diffetent rules on caption length, attachment count, and extra fields. OpenQuok ships **ten** channels today.
+Diferent platforms has diffetent rules on caption length, attachment count, and extra fields. OpenQuok ships **eleven** channels today.
 
 <p class="not-prose flex flex-wrap items-center gap-3">
 <a href="/channels/facebook" title="Facebook Page"><img src="/docs/_assets/platforms/socials/facebook.svg" alt="Facebook Page" width="32" height="32" /></a>
@@ -26,6 +26,7 @@ Diferent platforms has diffetent rules on caption length, attachment count, and 
 <a href="/channels/youtube" title="YouTube"><img src="/docs/_assets/platforms/socials/youtube.svg" alt="YouTube" width="32" height="32" /></a>
 <a href="/channels/tiktok" title="TikTok"><img src="/docs/_assets/platforms/socials/tiktok.svg" alt="TikTok" width="32" height="32" /></a>
 <a href="/channels/devto" title="Dev.to"><img src="/docs/_assets/platforms/socials/devto.svg" alt="Dev.to" width="32" height="32" /></a>
+<a href="/channels/bluesky" title="Bluesky"><img src="/docs/_assets/platforms/socials/bluesky.svg" alt="Bluesky" width="32" height="32" /></a>
 </p>
 
 This section is the reference how they disagree when you write in the dashboard, schedule through the API, or use MCP tools.
@@ -44,6 +45,7 @@ The dashboard and marketing site use short labels. The public API, CLI, MCP tool
 | **Facebook** / **Facebook Page** | <Badge text="facebook" variant="param" /> |
 | **LinkedIn Page** | <Badge text="linkedin-page" variant="param" /> |
 | **Dev.to** | <Badge text="devto" variant="param" /> |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> |
 
 Most other networks use the same name in the app and in the API (for example <Badge text="threads" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="x" variant="param" />). The full list with channel keys is in <a href="/docs/platforms/connect-rules">Connect rules</a>.
 
@@ -66,7 +68,7 @@ This table then shows whether you can add multi-part in the post editor, and whi
 
 | Network | Channel key | Follow-up comments | What OpenQuok calls the extra part |
 | --- | --- | --- | --- |
-| **Threads**, **X** | <Badge text="threads" variant="param" />, <Badge text="x" variant="param" /> | Yes | Thread reply (media allowed on follow-ups) |
+| **Threads**, **X**, **Bluesky** | <Badge text="threads" variant="param" />, <Badge text="x" variant="param" />, <Badge text="bluesky" variant="param" /> | Yes | Thread reply (media allowed on follow-ups) |
 | **Instagram** (both), **LinkedIn** (both) | <Badge text="instagram-business" variant="param" />, <Badge text="instagram-standalone" variant="param" />, <Badge text="linkedin" variant="param" />, <Badge text="linkedin-page" variant="param" /> | Yes | Comment (text only on follow-ups) |
 | **Facebook Page** | <Badge text="facebook" variant="param" /> | Yes | Comment (one image per follow-up, no video) |
 | **YouTube**, **TikTok**, **Dev.to** | <Badge text="youtube" variant="param" />, <Badge text="tiktok" variant="param" />, <Badge text="devto" variant="param" /> | No | — |

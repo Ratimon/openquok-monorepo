@@ -112,6 +112,12 @@ Channel key: <Badge text="threads" variant="param" />
 
 Thread finisher, delayed engagement reply, and plug options live in Settings. See <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a>.
 
+### Bluesky
+
+Channel key: <Badge text="bluesky" variant="param" />
+
+Bluesky has <strong>no</strong> extra fields in **Settings** — only the shared caption and media strip. Scheduled follow-up replies use the <strong>Follow-up comments</strong> panel; see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> and <a href="/docs/public-api-providers/bluesky">Bluesky Settings</a> for the <Badge text="bluesky.replies" variant="param" /> API shape.
+
 ### Dev.to
 
 Channel key: <Badge text="devto" variant="param" />

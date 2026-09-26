@@ -17,6 +17,7 @@ describe("PostDTO follow-up buckets", () => {
             ["linkedin", "linkedin"],
             ["linkedin-page", "linkedin"],
             ["facebook", "facebook"],
+            ["bluesky", "bluesky"],
             ["unknown-provider", "threads"],
         ] as const)("maps %s to %s bucket", (provider, bucket) => {
             expect(replyChainBucketForProvider(provider)).toBe(bucket);

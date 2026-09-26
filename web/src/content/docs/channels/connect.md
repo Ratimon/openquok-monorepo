@@ -63,11 +63,12 @@ OpenQuok currently supports **two** ways to connect. Which one you get depends o
 
 <p>Some networks skip the browser redirect. OpenQuok asks for credentials in a short form inside <Badge text="Add Channel" variant="new" />. There is no platform redirect and no developer app for you to register.</p>
 
-<p>Today that includes <strong>Dev.to</strong>:</p>
+<p>Today that includes <strong>Dev.to</strong> and <strong>Bluesky</strong>:</p>
 
 | Platform | What you paste |
 | --- | --- |
 | Dev.to | API key from Dev.to settings |
+| Bluesky | Service URL (default <code>https://bsky.social</code>), handle or email, and app password from Bluesky settings |
 
 <Callout type="tip">
 <p>Use a platform-specific API key or app password when one exists, not your main login password. You can revoke those keys without locking yourself out of the account.</p>
@@ -123,6 +124,7 @@ See <a href="/docs/troubleshooting/oauth-connect">Troubleshooting → OAuth and 
 <LinkCard title="Posting time slots" description="Set usual posting hours after you connect" href="/docs/channels/time-slots" />
 <LinkCard title="Channel groups" description="Group channels by client or brand" href="/docs/channels/channel-groups" />
 <LinkCard title="Dev.to" description="Create an API key and connect Dev.to" href="/docs/social-integration/devto" />
+<LinkCard title="Bluesky" description="Create an app password and connect Bluesky" href="/docs/social-integration/bluesky" />
 <LinkCard title="Quickstart" description="Connect a channel and schedule your first post" href="/docs/getting-started/quickstart" />
 <LinkCard title="OAuth and channel connect" description="Invalid state, Redis, and provider errors" href="/docs/troubleshooting/oauth-connect" />
 </CardGrid>
