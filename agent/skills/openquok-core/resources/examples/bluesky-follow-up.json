@@ -1,0 +1,19 @@
+{
+  "scheduledAt": "2026-01-01T12:00:00.000Z",
+  "status": "scheduled",
+  "body": "Launch post on Bluesky.",
+  "integrationIds": ["<integration-id>"],
+  "providerSettingsByIntegrationId": {
+    "<integration-id>": {
+      "bluesky": {
+        "replies": [
+          {
+            "id": "reply-1",
+            "message": "Details in the reply below.",
+            "delaySeconds": 300
+          }
+        ]
+      }
+    }
+  }
+}
