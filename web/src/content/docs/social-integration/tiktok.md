@@ -1,6 +1,6 @@
 ---
 title: TikTok
-description: How to configure TikTok for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars.
+description: How to configure TikTok for OpenQuok
 order: 6
 lastUpdated: 2026-06-18
 ---
@@ -15,40 +15,12 @@ TikTok publishing uses **TikTok OAuth 2.0** (with PKCE).
 
 You need a TikTok Developer, with **Login Kit**, **Share Kit** and **Content Posting API**, with backend env vars <Badge text="TIKTOK_CLIENT_ID" variant="envBackend" /> and <Badge text="TIKTOK_CLIENT_SECRET" variant="envBackend" />.
 
-TikTok servers fetch media from your storage via **HTTPS** URLs (“pull from URL” flow). That makes your **public media base URL** and TikTok **domain verification** critical for successful publish.
+TikTok servers fetch media from your storage via **HTTPS** URLs (“pull from URL” flow).
 
-CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a>.
+That makes your **public media base URL** and TikTok **domain verification** critical for successful publish.
 
 <Callout type="note">
 <p>Connecting TikTok in OpenQuok does not replace account warm-up. For new or barely used accounts, follow <a href="/blog/how-to-warm-up-a-tiktok-account-to-reach-a-us-audience">How to warm up a TikTok account to reach a US audience</a> before you rely on reach or schedule heavy posting.</p>
-</Callout>
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Video publish | Exactly **one** video attachment |
-| Photo carousel publish | One or more images (no mixed video + images) |
-| Caption length | Up to 2,000 characters (TikTok provider limit) |
-| Privacy | `PUBLIC_TO_EVERYONE`, `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR`, `SELF_ONLY` (availability depends on account) |
-| Posting method | `DIRECT_POST` (publish immediately) or `UPLOAD` (send to user inbox) |
-| Duet / Stitch / Comments toggles | Optional per post |
-| Brand disclosure toggles | Optional per post (brand/organic) |
-| Platform analytics | Account metrics (followers, following, likes, video count) plus aggregated recent-video engagement (views, likes, comments, shares) via <Badge text="user.info.stats" variant="default" /> and <Badge text="video.list" variant="default" /> |
-| Per-post analytics | Views, likes, comments, and shares on a published video when the post row has a linked TikTok video id |
-| Missing release id recovery | List recent TikTok videos and link inbox uploads (<Badge text="releaseId=missing" variant="param" />) via <Badge text="posts:missing" variant="default" /> → <Badge text="posts:connect" variant="default" /> — see <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a> |
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Mixed media (video + images) | TikTok publish requires either a single video or an image carousel |
-| Binary upload from OpenQuok | OpenQuok publishes via public HTTPS URLs; it does not stream bytes directly to TikTok |
-
-<Callout type="warning">
-<p>When your TikTok app is not audited/approved for broader access, TikTok can restrict publishing to <code>SELF_ONLY</code> (private). If you see privacy-level errors or unexpected private posts, complete the relevant TikTok review steps for your app.</p>
 </Callout>
 
 ## Backend environment
@@ -216,6 +188,38 @@ In <strong>Sandbox settings</strong> → <strong>Target users</strong>, click <s
 </Callout>
 
 </Steps>
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Video publish | Exactly **one** video attachment |
+| Photo carousel publish | One or more images (no mixed video + images) |
+| Caption length | Up to 2,000 characters (TikTok provider limit) |
+| Privacy | `PUBLIC_TO_EVERYONE`, `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR`, `SELF_ONLY` (availability depends on account) |
+| Posting method | `DIRECT_POST` (publish immediately) or `UPLOAD` (send to user inbox) |
+| Duet / Stitch / Comments toggles | Optional per post |
+| Brand disclosure toggles | Optional per post (brand/organic) |
+| Platform analytics | Account metrics (followers, following, likes, video count) plus aggregated recent-video engagement (views, likes, comments, shares) via <Badge text="user.info.stats" variant="default" /> and <Badge text="video.list" variant="default" /> |
+| Per-post analytics | Views, likes, comments, and shares on a published video when the post row has a linked TikTok video id |
+| Missing release id recovery | List recent TikTok videos and link inbox uploads (<Badge text="releaseId=missing" variant="param" />) via <Badge text="posts:missing" variant="default" /> → <Badge text="posts:connect" variant="default" /> — see <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a> |
+
+<Callout type="tip">
+<p>CLI walkthroughs: <a href="/docs/cli-examples/tiktok">CLI Examples — TikTok</a>.</p>
+</Callout>
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Mixed media (video + images) | TikTok publish requires either a single video or an image carousel |
+| Binary upload from OpenQuok | OpenQuok publishes via public HTTPS URLs; it does not stream bytes directly to TikTok |
+
+<Callout type="warning">
+<p>When your TikTok app is not audited/approved for broader access, TikTok can restrict publishing to <code>SELF_ONLY</code> (private). If you see privacy-level errors or unexpected private posts, complete the relevant TikTok review steps for your app.</p>
+</Callout>
 
 ## Troubleshooting
 

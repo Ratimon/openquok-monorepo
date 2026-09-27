@@ -1,6 +1,10 @@
 import type { CreateSocialPostChannelViewModel } from '$lib/area-protected/ProtectedHomePage.presenter.svelte';
 import type { CreateSocialPostMode } from '$lib/posts/createSocialPost.types';
 import { stripComposerBodyForEditor } from './stripBodyForEditor';
+import {
+	blueskyGraphemeLength,
+	validateBlueskyCaptionLength
+} from './blueskyGraphemeLength';
 import { xMaxCharactersForChannel, xWeightedLength } from './xWeightedLength';
 import { getLaunchProviderConfig } from '$lib/ui/components/posts/providers';
 
@@ -43,6 +47,17 @@ export function selectedIdsIncludeXChannel(
 	return false;
 }
 
+export function selectedIdsIncludeBlueskyChannel(
+	selectedIds: string[],
+	baseSocialChannelsVm: CreateSocialPostChannelViewModel[]
+): boolean {
+	for (const id of selectedIds) {
+		const ch = baseSocialChannelsVm.find((c) => c.id === id);
+		if ((ch?.identifier ?? '').toLowerCase() === 'bluesky') return true;
+	}
+	return false;
+}
+
 function resolveChannelScheduleBody(args: {
 	mode: CreateSocialPostMode;
 	integrationId: string;
@@ -62,6 +77,7 @@ function measureChannelCaptionLength(
 	const stripped = stripComposerBodyForEditor(channel.editor ?? 'normal', rawBody);
 	const id = (channel.identifier ?? '').toLowerCase();
 	if (id === 'x') return xWeightedLength(stripped);
+	if (id === 'bluesky') return blueskyGraphemeLength(stripped);
 	return stripped.length;
 }
 
@@ -85,6 +101,16 @@ export function validateScheduledCaptionsForChannels(args: {
 		});
 		const stripped = stripComposerBodyForEditor(ch.editor ?? 'normal', rawBody);
 		if (!stripped) continue;
+
+		const channelId = (ch.identifier ?? '').toLowerCase();
+		if (channelId === 'bluesky') {
+			const blueskyError = validateBlueskyCaptionLength(stripped);
+			if (blueskyError) {
+				const label = (ch.name ?? ch.identifier ?? 'Channel').trim() || 'Channel';
+				return `${label} caption ${blueskyError}`;
+			}
+			continue;
+		}
 
 		const limit = maxCharactersForChannel(ch);
 		const used = measureChannelCaptionLength(ch, rawBody);

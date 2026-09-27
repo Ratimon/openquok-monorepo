@@ -79,6 +79,10 @@ openquok posts:create \
 
 When you set <Badge text="content_posting_method=UPLOAD" variant="param" />, TikTok can return a status that indicates the post was sent to the user inbox for final action.
 
+You can see your inbox in the **System Notification** tab:
+
+![Your Inbox in Tiktok App](/docs/_assets/cli-examples/tiktok-inbox.webp)
+
 ```bash
 openquok posts:create \
   -c "Send to inbox instead of direct publish." \

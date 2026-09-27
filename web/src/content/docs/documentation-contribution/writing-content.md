@@ -64,7 +64,7 @@ Conventions for callouts, **`CardGrid`** / **`LinkCard`**, **`Steps`**, **`Badge
 
 ### Mermaid diagrams
 
-Use **`Mermaid`** for sequence diagrams, flowcharts, and other [Mermaid](https://mermaid.js.org/) syntax. Store the diagram source in a `<script>` constant (template literal), then pass it with **`string={…}`**. The component follows the docs light/dark theme automatically.
+Use **`Mermaid`** for sequence diagrams, flowcharts, and other <DocsExternalLink href="https://mermaid.js.org/">Mermaid</DocsExternalLink> syntax. Store the diagram source in a `<script>` constant (template literal), then pass it with **`string={…}`**. The component follows the docs light/dark theme automatically.
 
 Reference: <Badge text="web/src/content/docs/getting-started-for-mcp/index.md" variant="path" />, <Badge text="web/src/content/docs/configuration-agent/architecture.md" variant="path" />.
 

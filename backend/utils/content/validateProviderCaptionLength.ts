@@ -6,6 +6,7 @@ import {
     isVerifiedFromAdditionalSettings,
     parseAdditionalSettings,
 } from "../integrations/additionalSettings.js";
+import { blueskyGraphemeLength, validateBlueskyText } from "../../integrations/providers/bluesky/blueskyText.js";
 import { stripComposerBodyForEditor } from "./stripComposerBodyForEditor.js";
 
 const CROSS_ACCOUNT_PLUG_BUCKETS = ["threads", "x", "linkedin"] as const;
@@ -42,6 +43,8 @@ function providerCaptionDisplayName(providerIdentifier: string): string {
             return "YouTube";
         case "devto":
             return "Dev.to";
+        case "bluesky":
+            return "Bluesky";
         default:
             return providerIdentifier.trim() || "Channel";
     }
@@ -59,8 +62,12 @@ function pushCaptionText(out: CaptionTextWithLabel[], text: unknown, label: stri
  */
 export function measureProviderCaptionLength(providerIdentifier: string, strippedText: string): number {
     const text = typeof strippedText === "string" ? strippedText : "";
-    if (providerIdentifier.trim().toLowerCase() === "x") {
+    const id = providerIdentifier.trim().toLowerCase();
+    if (id === "x") {
         return twitterText.parseTweet(text).weightedLength;
+    }
+    if (id === "bluesky") {
+        return blueskyGraphemeLength(text);
     }
     return text.length;
 }
@@ -83,6 +90,17 @@ export function validateProviderCaptionLength(input: {
 }): string | null {
     const stripped = stripComposerBodyForEditor(input.provider.editor ?? "normal", input.message ?? "");
     if (!stripped) return null;
+
+    const providerId = input.providerIdentifier.trim().toLowerCase();
+    if (providerId === "bluesky") {
+        const blueskyError = validateBlueskyText(stripped);
+        if (blueskyError) {
+            const label =
+                (input.label ?? `${input.provider.name} caption`).trim() || `${input.provider.name} caption`;
+            return `${label} ${blueskyError}`;
+        }
+        return null;
+    }
 
     const used = measureProviderCaptionLength(input.providerIdentifier, stripped);
     const max = resolveProviderMaxLength(input.provider, input.additionalSettings);

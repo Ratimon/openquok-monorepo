@@ -47,11 +47,18 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 1
 	},
 	{
-		id: 'ai-editor',
-		title: 'Free AI Content Editor',
+		id: 'photo-editor (Canva style)',
+		title: 'Free Photo Editor',
 		categoryId: 'product',
-		columnId: 'complete',
-		priority: 1
+		columnId: 'planned',
+		priority: 2
+	},
+	{
+		id: 'video-editor (capcut style)',
+		title: 'Free Video Editor',
+		categoryId: 'product',
+		columnId: 'planned',
+		priority: 2
 	},
 	{
 		id: 'auto-short-links',
@@ -82,10 +89,38 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 3
 	},
 	{
-		id: 'integration',
-		title: 'Integration',
-		categoryId: 'product',
-		columnId: 'planned',
+		id: 'facebook-provider',
+		title: 'Facebook Provider',
+		categoryId: 'integrations',
+		columnId: 'complete',
+		priority: 1
+	},
+	{
+		id: 'instagram-provider',
+		title: 'Instagram Provider',
+		categoryId: 'integrations',
+		columnId: 'complete',
+		priority: 1
+	},
+	{
+		id: 'threads-provider',
+		title: 'Threads Provider',
+		categoryId: 'integrations',
+		columnId: 'complete',
+		priority: 1
+	},
+	{
+		id: 'grok-build-integration',
+		title: 'Grok Build Integration',
+		categoryId: 'integrations',
+		columnId: 'complete',
+		priority: 2
+	},
+	{
+		id: 'grok-build-integration',
+		title: 'Perplexity Integration',
+		categoryId: 'integrations',
+		columnId: 'complete',
 		priority: 2
 	},
 	{
@@ -96,66 +131,73 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		priority: 2
 	},
 	{
-		id: 'facebook-provider',
-		title: 'Facebook Provider',
-		categoryId: 'integrations',
-		columnId: 'in_progress',
-		priority: 1
-	},
-	{
-		id: 'instagram-provider',
-		title: 'Instagram Provider',
-		categoryId: 'integrations',
-		columnId: 'in_progress',
-		priority: 1
-	},
-	{
-		id: 'threads-provider',
-		title: 'Threads Provider',
-		categoryId: 'integrations',
-		columnId: 'in_progress',
-		priority: 1
-	},
-	{
 		id: 'bluesky-provider',
 		title: 'Bluesky Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'complete',
 		priority: 2
 	},
 	{
 		id: 'reddit-provider',
 		title: 'Reddit Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
+		priority: 2
+	},
+	{
+		id: 'google-my-business-provider',
+		title: 'Google My Business Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
+		priority: 2
+	},
+	{
+		id: 'beehiiv-provider',
+		title: 'Beehiiv Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
+		priority: 2
+	},
+	{
+		id: 'mastodon-provider',
+		title: 'Mastodon Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'pinterest-provider',
 		title: 'Pinterest Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
+		priority: 2
+	},
+	{
+		id: 'Tumblr-provider',
+		title: 'Tumblr Provider',
+		categoryId: 'integrations',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'discord-provider',
 		title: 'Discord Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'slack-provider',
 		title: 'Slack Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'telegram-provider',
 		title: 'Telegram Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
@@ -169,35 +211,28 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		id: 'medium-provider',
 		title: 'Medium Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
-		priority: 2
-	},
-	{
-		id: 'devto-provider',
-		title: 'Dev.to Provider',
-		categoryId: 'integrations',
-		columnId: 'complete',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'twitch-provider',
 		title: 'Twitch Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 2
 	},
 	{
 		id: 'warpcast-provider',
 		title: 'Warpcast Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 3
 	},
 	{
 		id: 'farcaster-provider',
 		title: 'Farcaster Provider',
 		categoryId: 'integrations',
-		columnId: 'planned',
+		columnId: 'in_progress',
 		priority: 3
 	},
 	{
@@ -211,7 +246,7 @@ export const ROADMAP_ITEMS: readonly RoadmapItemViewModel[] = [
 		id: 'dockerization',
 		title: 'Dockerization',
 		categoryId: 'platform',
-		columnId: 'planned',
+		columnId: 'complete',
 		priority: 1
 	}
 ] as const;

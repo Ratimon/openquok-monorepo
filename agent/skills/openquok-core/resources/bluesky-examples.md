@@ -19,7 +19,12 @@ JSON recipes: [examples/EXAMPLES.md](./examples/EXAMPLES.md#bluesky).
 | 300-grapheme cap | Yes | Main `body`, each `bluesky.replies[].message` on schedule |
 | Scheduled follow-up replies | Yes | `bluesky.replies[]` with `delaySeconds`; optional `media` per reply |
 | Mention autocomplete | Yes | Composer `@handle`; publish uses facets |
-| Channel / post analytics | No | Not exposed in OpenQuok for Bluesky |
+| Link card embed | Yes | `bluesky.linkUrl` (+ optional title/description) on text-only posts — not with media or quote |
+| Quote post | Yes | `bluesky.quoteUrl` (`bsky.app` or AT URI) — not with media or link card |
+| Thread gate | Yes | `bluesky.threadGate` — who can reply after publish |
+| Video limits | Yes | One MP4 — max **300 MB**, **10** minutes |
+| Global plugs | Yes | Auto-repost / auto-plug on like threshold — channel **Plugs** tab, not create-post payload |
+| Channel / post analytics | Yes | `analytics:platform` / `analytics:post` — likes, replies, reposts, quotes via public App View |
 | Cross-post to other channels | Yes | Separate `-i` UUIDs per channel |
 
 ## Agent tasks
@@ -37,9 +42,12 @@ Use nested keys under `bluesky` in `--providerSettingsByIntegrationId` (matches 
 
 | Key | Shape | When |
 | --- | --- | --- |
+| `bluesky.threadGate` | `"everyone"` \| `"mentioned"` \| `"following"` \| `"followers"` \| `"nobody"` | Who can reply (default `everyone`) |
+| `bluesky.linkUrl` | HTTPS URL | Optional link card — text-only; optional `linkTitle`, `linkDescription` |
+| `bluesky.quoteUrl` | `bsky.app` or AT post URI | Quote another post — not with media or link card |
 | `bluesky.replies` | `[{ "id": "…", "message": "…", "delaySeconds": 60, "media": [...] }]` | Follow-up replies after the root post publishes |
 
-No flat CLI aliases — follow-ups use the `bluesky` bucket only.
+No flat CLI aliases — compose settings and follow-ups use the `bluesky` bucket only.
 
 ### Reply media (`bluesky.replies[].media`)
 

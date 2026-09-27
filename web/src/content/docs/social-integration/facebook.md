@@ -19,33 +19,6 @@ You need a <DocsExternalLink href="https://developers.facebook.com/apps">Meta fo
 <p>Instagram (Business) and Facebook can use the <strong>same</strong> developer app.</p>
 </Callout>
 
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Text posts | Up to 63,206 characters |
-| Link posts | Optional URL via <Badge text="providerSettings.url" variant="param" /> in API payloads |
-| Photo posts | Single image or multi-photo feed post |
-| Video posts | Single <Badge text=".mp4" variant="param" /> attachment published as a Page video |
-| Stories | Set post type to Story; image or <Badge text=".mp4" variant="param" /> required; each attachment publishes as its own Story |
-| Follow-up comments | Text replies after the main post; one image attachment per comment (feed posts only — not Stories) |
-| Page analytics | Account-level and per-post insights when <Badge text="read_insights" variant="default" /> is granted |
-
-Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> to publish to the Story surface. Link URLs are ignored for Stories.
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Automatic inbox replies | No keyword or DM automation |
-| Media on every comment type | Follow-up rows in the composer are text-only by default |
-| Follow-up comments on Stories | Stories are not feed posts; scheduled reply chains apply to Page feed posts only |
-
-CLI walkthroughs: <a href="/docs/cli-examples/facebook">CLI Examples — Facebook</a>.
-
 ## Backend environment
 
 OpenQuok reads credentials only through <DocsExternalLink href="https://github.com/Ratimon/openquok-monorepo/blob/main/backend/config/GlobalConfig.ts"><Badge text="backend/config/GlobalConfig.ts" variant="path" /></DocsExternalLink>. Set:
@@ -177,6 +150,34 @@ In the Meta app **Settings** area, copy **App ID** → <Badge text="FACEBOOK_APP
 Restart the backend. Otherwise, the backend may not pick up your new environment variables.
 
 </Steps>
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Text posts | Up to 63,206 characters |
+| Link posts | Optional URL via <Badge text="providerSettings.url" variant="param" /> in API payloads |
+| Photo posts | Single image or multi-photo feed post |
+| Video posts | Single <Badge text=".mp4" variant="param" /> attachment published as a Page video |
+| Stories | Set post type to Story; image or <Badge text=".mp4" variant="param" /> required; each attachment publishes as its own Story |
+| Follow-up comments | Text replies after the main post; one image attachment per comment (feed posts only — not Stories) |
+| Page analytics | Account-level and per-post insights when <Badge text="read_insights" variant="default" /> is granted |
+
+Set <Badge text="post_type: story" variant="param" /> (CLI/API) or <Badge text="facebook.postType: story" variant="param" /> to publish to the Story surface. Link URLs are ignored for Stories.
+
+<Callout type="tip">
+<p>CLI walkthroughs: <a href="/docs/cli-examples/facebook">CLI Examples — Facebook</a>.</p>
+</Callout>
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Automatic inbox replies | No keyword or DM automation |
+| Media on every comment type | Follow-up rows in the composer are text-only by default |
+| Follow-up comments on Stories | Stories are not feed posts; scheduled reply chains apply to Page feed posts only |
 
 ## Troubleshooting
 

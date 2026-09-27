@@ -28,7 +28,9 @@ const integrationsConfig: IntegrationsConfig = {
 			`${integrationsBase}/internal-plugs/${encodeURIComponent(providerIdentifier)}`,
 		triggerTool: (integrationId: string) =>
 			`${integrationsBase}/${encodeURIComponent(integrationId)}/trigger`,
-		mentions: `${integrationsBase}/mentions`
+		mentions: `${integrationsBase}/mentions`,
+		connectPrefill: (providerIdentifier: string) =>
+			`${integrationsBase}/connect-prefill/${encodeURIComponent(providerIdentifier)}`
 	}
 };
 

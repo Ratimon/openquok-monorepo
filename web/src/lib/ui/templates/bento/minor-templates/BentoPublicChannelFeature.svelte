@@ -38,6 +38,7 @@
 	import BentoDevtoPostEditor from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoPostEditor.svelte';
 	import BentoDevtoSettings from '$lib/ui/templates/bento/minor-templates/devto/BentoDevtoSettings.svelte';
 	import BentoBlueskyBulkScheduling from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyBulkScheduling.svelte';
+	import BentoBlueskyInsights from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyInsights.svelte';
 	import BentoBlueskyMedia from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyMedia.svelte';
 	import BentoBlueskyThreads from '$lib/ui/templates/bento/minor-templates/bluesky/BentoBlueskyThreads.svelte';
 
@@ -127,4 +128,6 @@
 	<BentoBlueskyMedia {isLoggedIn} />
 {:else if bentoId === 'bluesky-threads'}
 	<BentoBlueskyThreads {isLoggedIn} />
+{:else if bentoId === 'bluesky-insights'}
+	<BentoBlueskyInsights />
 {/if}

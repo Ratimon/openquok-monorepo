@@ -1,6 +1,6 @@
 ---
 title: LinkedIn
-description: How to configure LinkedIn personal profile for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
+description: How to configure LinkedIn personal profile for OpenQuok
 order: 7
 lastUpdated: 2026-08-26
 ---
@@ -18,30 +18,6 @@ For **company Pages**, see <a href="/docs/social-integration/linkedin-page">Link
 <Callout type="note">
 <p>Personal profile and Page channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register <strong>both</strong> OAuth redirect URIs if you connect either or both channel types.</p>
 </Callout>
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Text posts | Up to 3,000 characters |
-| Images | Multi-image posts |
-| MP4 video | One attachment per post |
-| Follow-up text comments | Text-only replies after the main post |
-| Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in per-channel composer settings — OpenQuok converts images to a PDF at publish time. Optional **Carousel document title** (default: `slides`) |
-| Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
-| Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
-| @-mention lookup | Unlock the LinkedIn channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Account analytics | Available on <Badge text="linkedin-page" variant="default" /> channels only — see <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a> |
-| Per-post analytics | Available on <Badge text="linkedin-page" variant="default" /> channels only |
-| Page auto-repost / auto-plug | <Badge text="linkedin-page" variant="default" /> channel plugs only — see <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a> |
-| Direct PDF file upload | Attach images instead; OpenQuok builds the document carousel at publish time |
 
 ## Backend environment
 
@@ -118,6 +94,30 @@ In **Auth**, add the **personal profile OAuth redirect URI** (see <a class="not-
 Copy <strong>Client ID</strong> and <strong>Client Secret</strong> into <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />.
 
 </Steps>
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Text posts | Up to 3,000 characters |
+| Images | Multi-image posts |
+| MP4 video | One attachment per post |
+| Follow-up text comments | Text-only replies after the main post |
+| Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in per-channel composer settings — OpenQuok converts images to a PDF at publish time. Optional **Carousel document title** (default: `slides`) |
+| Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
+| Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
+| @-mention lookup | Unlock the LinkedIn channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Account analytics | Available on <Badge text="linkedin-page" variant="default" /> channels only — see <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a> |
+| Per-post analytics | Available on <Badge text="linkedin-page" variant="default" /> channels only |
+| Page auto-repost / auto-plug | <Badge text="linkedin-page" variant="default" /> channel plugs only — see <a href="/docs/social-integration/linkedin-page">LinkedIn Page</a> |
+| Direct PDF file upload | Attach images instead; OpenQuok builds the document carousel at publish time |
 
 ## Related
 

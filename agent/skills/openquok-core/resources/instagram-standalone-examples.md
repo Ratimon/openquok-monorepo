@@ -36,7 +36,8 @@ Settings mechanics: [provider-settings.md](./provider-settings.md). JSON recipes
 | Graduation strategy | Yes | `MANUAL` or `SS_PERFORMANCE` when `is_trial_reel` is true |
 | Text follow-up comments | Yes | `instagram.replies` in provider settings |
 | Story link stickers | No | — |
-| Automatic comment auto-reply | No | — |
+| Automatic inbox / keyword replies | No | Not visitor-comment or DM bots; use `instagram.replies` for scheduled follow-ups on your post |
+| Plugs (internal, cross-account, global) | No | Instagram not in automations/plugs matrix |
 
 ## Provider settings (`--settings`)
 

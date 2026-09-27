@@ -5,14 +5,14 @@
 		"OPENQUOK_SKIP_STANDALONE_LISTEN": "1"
 	},
 	"outputDirectory": "public",
-	"installCommand": "cd .. && pnpm install --frozen-lockfile",
+	"installCommand": "cd .. && pnpm install --frozen-lockfile && pnpm rebuild sharp --filter backend",
 	"buildCommand": "pnpm run build:vercel",
 	"functions": {
 		"api/index.js": {
-			"includeFiles": "static/routes-manifest.json"
+			"includeFiles": "{static/routes-manifest.json,../node_modules/.pnpm/@img+*/**,../node_modules/.pnpm/sharp@*/node_modules/@img/**}"
 		},
 		"api/[[...path]].js": {
-			"includeFiles": "static/routes-manifest.json"
+			"includeFiles": "{static/routes-manifest.json,../node_modules/.pnpm/@img+*/**,../node_modules/.pnpm/sharp@*/node_modules/@img/**}"
 		}
 	},
 	"rewrites": [

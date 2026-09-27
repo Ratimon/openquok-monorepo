@@ -2,7 +2,7 @@
 title: Per-channel settings
 description: Composer Settings per network — privacy, post type, titles, disclosures, and publish options in OpenQuok.
 order: 3
-lastUpdated: 2026-09-22
+lastUpdated: 2026-09-27
 sidebar:
   label: Per-channel settings
 ---
@@ -116,7 +116,14 @@ Thread finisher, delayed engagement reply, and plug options live in Settings. Se
 
 Channel key: <Badge text="bluesky" variant="param" />
 
-Bluesky has <strong>no</strong> extra fields in **Settings** — only the shared caption and media strip. Scheduled follow-up replies use the <strong>Follow-up comments</strong> panel; see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> and <a href="/docs/public-api-providers/bluesky">Bluesky Settings</a> for the <Badge text="bluesky.replies" variant="param" /> API shape.
+| Setting | Purpose |
+| --- | --- |
+| **Who can reply** | Thread gate after publish: everyone (default), accounts you mention, accounts you follow, your followers, or nobody |
+| **Quote post** | Optional <code>bsky.app</code> URL — embeds another post; not with media or a link card |
+| **Link card URL** | Optional external preview on <strong>text-only</strong> posts; optional title and description |
+| **Follow-up comments** | Same-account reply chain — not in this panel; see <a href="/docs/creating-posts/threads-and-comments">Threads and comments</a> |
+
+API keys for the table above live under the <Badge text="bluesky" variant="default" /> bucket in <Badge text="providerSettingsByIntegrationId" variant="param" />. See <a href="/docs/public-api-providers/bluesky">Bluesky Settings</a>.
 
 ### Dev.to
 
@@ -147,7 +154,9 @@ You do not upload a PDF yourself. Comments on LinkedIn are <strong>text-only</st
 
 - **Direct post** publishes to the account and applies your privacy and interaction settings.
 
-- **Upload** sends media to the TikTok app inbox only. Duet, stitch, and AI disclosure apply to video; some photo-only settings apply to carousels. Settings that do not match your attachment type are dropped.
+- **Inbox Upload** sends media to the TikTok app inbox only. Duet, stitch, and AI disclosure apply to video,while some photo-only settings apply to carousels.
+
+![Your Inbox in Tiktok App](/docs/_assets/cli-examples/tiktok-inbox.webp)
 
 ### Instagram: stories and trial reels
 

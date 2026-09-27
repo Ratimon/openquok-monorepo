@@ -1,8 +1,10 @@
 import {
     BLUESKY_MAX_IMAGES,
+    BLUESKY_MAX_VIDEO_BYTES,
     classifyBlueskyMedia,
     extractBlueskyMediaFromSettings,
     validateBlueskyMediaMix,
+    validateBlueskyVideoByteSize,
 } from "./blueskyMedia.js";
 
 describe("blueskyMedia", () => {
@@ -33,5 +35,10 @@ describe("blueskyMedia", () => {
     it("allows text-only (empty media)", () => {
         expect(classifyBlueskyMedia([])).toBe("empty");
         expect(validateBlueskyMediaMix([])).toBeNull();
+    });
+
+    it("rejects videos over 300 MB", () => {
+        expect(validateBlueskyVideoByteSize(BLUESKY_MAX_VIDEO_BYTES)).toBeNull();
+        expect(validateBlueskyVideoByteSize(BLUESKY_MAX_VIDEO_BYTES + 1)).toMatch(/300 MB/);
     });
 });

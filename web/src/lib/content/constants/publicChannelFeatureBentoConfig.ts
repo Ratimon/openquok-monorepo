@@ -36,4 +36,5 @@ export type PublicChannelFeatureBentoId =
 	| 'devto-insights'
 	| 'bluesky-bulk-scheduling'
 	| 'bluesky-media'
-	| 'bluesky-threads';
+	| 'bluesky-threads'
+	| 'bluesky-insights';

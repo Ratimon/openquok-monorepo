@@ -233,10 +233,7 @@ For the full method table — posts, integrations, plugs, analytics, notificatio
 
 ### References
 
-<CardGrid>
-<LinkCard title="NodeJs SDK" description="Official NodeJs SDK" href="https://www.npmjs.com/package/@openquok/node-sdk" />
-</CardGrid>
-
+<DocsExternalLink href="https://www.npmjs.com/package/@openquok/node-sdk">@openquok/node-sdk on npm</DocsExternalLink> — official Node.js package for the public API.
 
 ## Related Section(s)
 

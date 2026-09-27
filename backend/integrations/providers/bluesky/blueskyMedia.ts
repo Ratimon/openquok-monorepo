@@ -8,7 +8,23 @@ const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
 const VIDEO_EXTENSIONS = new Set(["mp4"]);
 
 export const BLUESKY_MAX_IMAGES = 4;
-export const BLUESKY_MAX_LENGTH = 300;
+/** AT Protocol video upload cap (300 MB). */
+export const BLUESKY_MAX_VIDEO_BYTES = 300 * 1024 * 1024;
+/** AT Protocol video duration cap (10 minutes). */
+export const BLUESKY_MAX_VIDEO_DURATION_SECONDS = 10 * 60;
+
+export function validateBlueskyVideoByteSize(byteLength: number): string | null {
+    if (!Number.isFinite(byteLength) || byteLength < 0) {
+        return "Invalid Bluesky video file size.";
+    }
+    if (byteLength > BLUESKY_MAX_VIDEO_BYTES) {
+        return "Bluesky videos must be 300 MB or smaller.";
+    }
+    return null;
+}
+
+export { BLUESKY_MAX_GRAPHEMES, BLUESKY_MAX_UTF8_BYTES } from "./blueskyText.js";
+export { BLUESKY_MAX_GRAPHEMES as BLUESKY_MAX_LENGTH } from "./blueskyText.js";
 
 export function extractBlueskyMediaFromSettings(settings: unknown): BlueskyMediaItem[] {
     if (!settings || typeof settings !== "object") return [];

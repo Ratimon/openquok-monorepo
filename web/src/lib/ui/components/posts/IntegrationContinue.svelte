@@ -680,6 +680,7 @@
 		<div class="mt-6 rounded-lg border border-base-300 bg-base-100 p-6">
 			<CredentialsConnectForm
 				providerName={providerLabel}
+				providerIdentifier={provider}
 				fields={credentialsFields}
 				submitting={credentialsSubmitting}
 				onSubmit={submitCredentials}

@@ -64,6 +64,14 @@ export function credentialsConnectFormUsesSingleApiKey(
 	return fields.length === 1 && fields[0]?.key === 'apiKey';
 }
 
+/** Bluesky email logins keep the submitted Service URL; handles and DIDs resolve PDS at connect. */
+export function blueskyIdentifierSkipsPdsResolve(identifier: string): boolean {
+	const trimmed = identifier.trim();
+	if (!trimmed || trimmed.startsWith('did:')) return false;
+	const at = trimmed.indexOf('@');
+	return at > 0;
+}
+
 /** Fallback field when the catalog has no customFields but authorize returned a non-URL state. */
 export const DEFAULT_API_KEY_CUSTOM_FIELDS: IntegrationCatalogCustomField[] = [
 	{ key: 'apiKey', label: 'API key', validation: '/^.{3,}$/', type: 'password' }

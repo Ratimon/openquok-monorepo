@@ -3,7 +3,7 @@ import type { BlueskyStoredCredentials } from "./blueskyCredentials";
 import type { BlueskyMediaItem } from "./blueskyMedia";
 
 import { AtUri, BlobRef, BskyAgent, RichText } from "@atproto/api";
-import sharp from "sharp";
+import type { AppBskyFeedPost, AppBskyFeedThreadgate } from "@atproto/api";
 import { UploadFactory } from "../../../connections/upload/upload.factory";
 import { publicUrlForObjectKey } from "../../../repositories/MediaRepository";
 import { storageR2Repository } from "../../../repositories/index";
@@ -11,11 +11,20 @@ import { stripComposerBodyForEditor } from "../../../utils/content/stripComposer
 import { mediaExtFromUrlOrKey } from "../tiktok/tiktokPublishValidation";
 import { parseBlueskyToken } from "./blueskyCredentials";
 import {
-    BLUESKY_MAX_LENGTH,
+    BLUESKY_MAX_GRAPHEMES,
     classifyBlueskyMedia,
     extractBlueskyMediaFromSettings,
     validateBlueskyMediaMix,
+    validateBlueskyVideoByteSize,
 } from "./blueskyMedia";
+import {
+    type BlueskyResolvedPublishSettings,
+    type BlueskyThreadGateSetting,
+    parseBlueskyAppPostUrl,
+    resolveBlueskySettings,
+    validateBlueskySettingsForMedia,
+} from "./resolveBlueskySettings.js";
+import { validateBlueskyText } from "./blueskyText.js";
 
 /** Bluesky blob upload limit (~976 KB). */
 export const BLUESKY_BLOB_MAX_BYTES = 976_000;
@@ -87,6 +96,7 @@ async function loadMediaBuffer(path: string): Promise<Buffer> {
 }
 
 async function resizeImageForBlueskyBlob(raw: Buffer, ext: string): Promise<Buffer> {
+    const sharp = (await import("sharp")).default;
     let quality = 85;
     let width = 2000;
     let attempt = 0;
@@ -142,6 +152,10 @@ async function waitForVideoBlob(agent: BskyAgent, jobId: string): Promise<BlobRe
 
 async function uploadVideoEmbed(agent: BskyAgent, item: BlueskyMediaItem) {
     const raw = await loadMediaBuffer(item.path);
+    const videoSizeError = validateBlueskyVideoByteSize(raw.length);
+    if (videoSizeError) {
+        throw new Error(videoSizeError);
+    }
     const upload = await agent.app.bsky.video.uploadVideo(raw, { encoding: "video/mp4" });
     const blob = await waitForVideoBlob(agent, upload.data.jobStatus.jobId);
     const alt = typeof item.alt === "string" ? item.alt.trim() : "";
@@ -150,15 +164,123 @@ async function uploadVideoEmbed(agent: BskyAgent, item: BlueskyMediaItem) {
 
 async function buildRichTextRecord(agent: BskyAgent, message: string) {
     const text = stripComposerBodyForEditor("normal", message);
+    const limitError = validateBlueskyText(text);
+    if (limitError) {
+        throw new Error(`Bluesky text ${limitError}`);
+    }
     const rt = new RichText({ text });
     await rt.detectFacets(agent);
-    if (rt.length > BLUESKY_MAX_LENGTH) {
-        throw new Error(`Bluesky text exceeds the ${BLUESKY_MAX_LENGTH} character limit.`);
+    if (rt.length > BLUESKY_MAX_GRAPHEMES) {
+        throw new Error(`Bluesky text exceeds the ${BLUESKY_MAX_GRAPHEMES} grapheme limit.`);
     }
     return {
         text: rt.text,
         facets: rt.facets,
     };
+}
+
+async function resolveBlueskyQuoteRef(
+    agent: BskyAgent,
+    quoteUrl: string
+): Promise<{ uri: string; cid: string }> {
+    const trimmed = quoteUrl.trim();
+    const parsed = parseBlueskyAppPostUrl(trimmed);
+    if (parsed) {
+        const profileRes = await agent.getProfile({ actor: parsed.actor });
+        const did = profileRes.data.did?.trim();
+        if (!did) {
+            throw new Error("Bluesky could not resolve the quoted profile");
+        }
+        const uri = `at://${did}/app.bsky.feed.post/${parsed.rkey}`;
+        return resolveStrongRef(agent, uri);
+    }
+    return resolveStrongRef(agent, trimmed);
+}
+
+function buildExternalLinkEmbed(
+    settings: BlueskyResolvedPublishSettings
+): AppBskyFeedPost.Record["embed"] | undefined {
+    const uri = settings.linkUrl?.trim();
+    if (!uri) return undefined;
+    return {
+        $type: "app.bsky.embed.external",
+        external: {
+            uri,
+            title: settings.linkTitle?.trim() ?? "",
+            description: settings.linkDescription?.trim() ?? "",
+        },
+    };
+}
+
+async function buildQuoteEmbed(
+    agent: BskyAgent,
+    settings: BlueskyResolvedPublishSettings
+): Promise<AppBskyFeedPost.Record["embed"] | undefined> {
+    const quoteUrl = settings.quoteUrl?.trim();
+    if (!quoteUrl) return undefined;
+    const record = await resolveBlueskyQuoteRef(agent, quoteUrl);
+    return {
+        $type: "app.bsky.embed.record",
+        record,
+    };
+}
+
+async function buildSettingsEmbed(
+    agent: BskyAgent,
+    settings: BlueskyResolvedPublishSettings,
+    hasMedia: boolean
+): Promise<AppBskyFeedPost.Record["embed"] | undefined> {
+    if (hasMedia) return undefined;
+    if (settings.quoteUrl) {
+        return buildQuoteEmbed(agent, settings);
+    }
+    if (settings.linkUrl) {
+        return buildExternalLinkEmbed(settings);
+    }
+    return undefined;
+}
+
+function threadGateAllowRules(
+    threadGate: BlueskyThreadGateSetting
+): AppBskyFeedThreadgate.Record["allow"] | null {
+    switch (threadGate) {
+        case "everyone":
+            return null;
+        case "nobody":
+            return [];
+        case "mentioned":
+            return [{ $type: "app.bsky.feed.threadgate#mentionRule" }];
+        case "followers":
+            return [{ $type: "app.bsky.feed.threadgate#followerRule" }];
+        case "following":
+            return [{ $type: "app.bsky.feed.threadgate#followingRule" }];
+        default:
+            return null;
+    }
+}
+
+async function applyBlueskyThreadGate(
+    agent: BskyAgent,
+    postUri: string,
+    threadGate: BlueskyThreadGateSetting
+): Promise<void> {
+    const allow = threadGateAllowRules(threadGate);
+    if (allow === null) return;
+
+    const did = agent.did;
+    if (!did) {
+        throw new Error("Bluesky login did not return an account id");
+    }
+
+    const rkey = new AtUri(postUri).rkey;
+    await agent.app.bsky.feed.threadgate.create(
+        { repo: did, rkey },
+        {
+            post: postUri,
+            allow,
+            createdAt: new Date().toISOString(),
+        }
+    );
 }
 
 async function buildPostEmbed(agent: BskyAgent, media: BlueskyMediaItem[]) {
@@ -220,19 +342,27 @@ export async function publishBlueskyPost(
     const mixError = validateBlueskyMediaMix(media);
     if (mixError) throw new Error(mixError);
 
+    const blueskySettings = resolveBlueskySettings(postDetails.settings);
+    const settingsError = validateBlueskySettingsForMedia(blueskySettings, media);
+    if (settingsError) throw new Error(settingsError);
+
     const message = postDetails.message ?? "";
-    if (!message.trim() && media.length === 0) {
+    if (!message.trim() && media.length === 0 && !blueskySettings.linkUrl && !blueskySettings.quoteUrl) {
         throw new Error("Bluesky requires text or at least one image or video.");
     }
 
     const rich = await buildRichTextRecord(agent, message);
-    const embed = await buildPostEmbed(agent, media);
+    const mediaEmbed = await buildPostEmbed(agent, media);
+    const settingsEmbed = await buildSettingsEmbed(agent, blueskySettings, media.length > 0);
+    const embed = (mediaEmbed ?? settingsEmbed) as AppBskyFeedPost.Record["embed"] | undefined;
 
     const created = await agent.post({
         text: rich.text,
         ...(rich.facets?.length ? { facets: rich.facets } : {}),
         ...(embed ? { embed } : {}),
     });
+
+    await applyBlueskyThreadGate(agent, created.uri, blueskySettings.threadGate);
 
     const handle =
         (await agent.getProfile({ actor: agent.did! }).catch(() => null))?.data.handle?.trim() ||
@@ -262,6 +392,10 @@ export async function publishBlueskyReply(
     const mixError = validateBlueskyMediaMix(media);
     if (mixError) throw new Error(mixError);
 
+    const blueskySettings = resolveBlueskySettings(postDetails.settings);
+    const settingsError = validateBlueskySettingsForMedia(blueskySettings, media);
+    if (settingsError) throw new Error(settingsError);
+
     const message = postDetails.message ?? "";
     if (!message.trim() && media.length === 0) {
         throw new Error("Bluesky reply text or media is required");
@@ -271,7 +405,9 @@ export async function publishBlueskyReply(
     const parent = await resolveStrongRef(agent, parentPostId);
 
     const rich = await buildRichTextRecord(agent, message);
-    const embed = await buildPostEmbed(agent, media);
+    const mediaEmbed = await buildPostEmbed(agent, media);
+    const settingsEmbed = await buildSettingsEmbed(agent, blueskySettings, media.length > 0);
+    const embed = (mediaEmbed ?? settingsEmbed) as AppBskyFeedPost.Record["embed"] | undefined;
 
     const created = await agent.post({
         text: rich.text,

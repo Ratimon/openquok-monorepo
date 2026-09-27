@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	catalogItemHasCustomFields,
+	blueskyIdentifierSkipsPdsResolve,
 	credentialsConnectFormUsesSingleApiKey,
 	encodeCredentialsConnectCode,
 	initialCredentialsConnectValues,
@@ -53,6 +54,12 @@ describe('credentialsConnect', () => {
 				{ key: 'identifier', label: 'Handle', validation: '/.*/', type: 'text' }
 			])
 		).toEqual({ service: 'https://bsky.social', identifier: '' });
+	});
+
+	it('detects Bluesky email identifiers that skip PDS resolve', () => {
+		expect(blueskyIdentifierSkipsPdsResolve('user@example.com')).toBe(true);
+		expect(blueskyIdentifierSkipsPdsResolve('@alice.bsky.social')).toBe(false);
+		expect(blueskyIdentifierSkipsPdsResolve('did:plc:abc')).toBe(false);
 	});
 
 	it('detects single-field API key forms vs multi-field account forms', () => {

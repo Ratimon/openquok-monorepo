@@ -2,7 +2,7 @@
 title: Bluesky Settings
 description: OpenQuok public API provider settings for Bluesky — 300-character cap, images or video, and follow-up replies.
 order: 11
-lastUpdated: 2026-09-26
+lastUpdated: 2026-09-27
 sidebar:
   label: Bluesky Settings
 ---
@@ -19,7 +19,7 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 | Connect | Dashboard credentials — <Badge text="GET /api/v1/public/social/bluesky" variant="path" /> returns <strong>400</strong> |
 | Setup guide | <a href="/docs/social-integration/bluesky">Bluesky</a> |
 | Character cap | **300** graphemes (main caption and each follow-up) |
-| Main-post media | Text-only OK; up to <strong>4</strong> images <strong>or</strong> <strong>1</strong> MP4 (never mixed) |
+| Main-post media | Text-only OK; up to <strong>4</strong> images <strong>or</strong> <strong>1</strong> MP4 (never mixed; max <strong>300 MB</strong>, <strong>10</strong> min) |
 
 <Callout type="note">
 <p>Keys in <Badge text="providerSettingsByIntegrationId" variant="param" /> use the channel <strong>UUID</strong> from <Badge text="GET /api/v1/public/integrations" variant="default" /> — not the <Badge text="bluesky" variant="default" /> identifier. See the <a href="/docs/public-api-providers">Provider settings overview</a> for terminology.</p>
@@ -27,9 +27,30 @@ import { Badge, Callout, CardGrid, LinkCard } from '$lib/ui/components/docs/mdx/
 
 ## Settings on create post
 
-Bluesky has <strong>no</strong> title, tags, or privacy fields in <Badge text="providerSettingsByIntegrationId" variant="param" />. The main caption is <Badge text="body" variant="param" />; attachments use top-level <Badge text="media" variant="param" /> or <Badge text="mediaByIntegrationId" variant="param" />.
+The main caption is <Badge text="body" variant="param" />; attachments use top-level <Badge text="media" variant="param" /> or <Badge text="mediaByIntegrationId" variant="param" />. Optional compose fields and follow-up replies use the nested <Badge text="bluesky" variant="default" /> bucket:
 
-Scheduled same-account replies use the nested <Badge text="bluesky" variant="default" /> bucket only:
+```json
+{
+  "providerSettingsByIntegrationId": {
+    "<bluesky-integration-id>": {
+      "bluesky": {
+        "threadGate": "everyone",
+        "linkUrl": "https://example.com/article",
+        "linkTitle": "Optional title",
+        "linkDescription": "Optional summary",
+        "quoteUrl": "https://bsky.app/profile/handle/post/abc",
+        "replies": []
+      }
+    }
+  }
+}
+```
+
+<Callout type="warning">
+<p>Do not combine <Badge text="linkUrl" variant="param" /> with attachments, <Badge text="quoteUrl" variant="param" />, or both embed types on one post. Link cards are for text-only publishes.</p>
+</Callout>
+
+Scheduled same-account replies example:
 
 ```json
 {
@@ -54,6 +75,11 @@ Scheduled same-account replies use the nested <Badge text="bluesky" variant="def
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
+| <Badge text="bluesky.threadGate" variant="param" /> | string | No | <Badge text="everyone" variant="param" /> (default), <Badge text="mentioned" variant="param" />, <Badge text="following" variant="param" />, <Badge text="followers" variant="param" />, or <Badge text="nobody" variant="param" /> |
+| <Badge text="bluesky.linkUrl" variant="param" /> | string | No | External link card — text-only posts only |
+| <Badge text="bluesky.linkTitle" variant="param" /> | string | No | Optional link card title |
+| <Badge text="bluesky.linkDescription" variant="param" /> | string | No | Optional link card description |
+| <Badge text="bluesky.quoteUrl" variant="param" /> | string | No | <code>bsky.app</code> or AT URI of post to quote — not with media or link card |
 | <Badge text="bluesky.replies" variant="param" /> | array | No | Follow-up replies after the root post publishes |
 | <Badge text="bluesky.replies[].id" variant="param" /> | string | No | Stable row id (composer-generated) |
 | <Badge text="bluesky.replies[].message" variant="param" /> | string | Yes (per row) | Reply text; **300** graphemes when <Badge text="status" variant="param" /> is <Badge text="scheduled" variant="param" /> |

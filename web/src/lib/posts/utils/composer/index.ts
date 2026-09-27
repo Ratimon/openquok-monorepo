@@ -4,9 +4,16 @@ export { stripComposerBodyForEditor, type StripComposerBodyOptions } from './str
 export {
 	computeSoftCharLimitAcrossSelected,
 	maxCharactersForChannel,
+	selectedIdsIncludeBlueskyChannel,
 	selectedIdsIncludeXChannel,
 	validateScheduledCaptionsForChannels
 } from './charLimit';
+export {
+	BLUESKY_MAX_GRAPHEMES,
+	BLUESKY_MAX_UTF8_BYTES,
+	blueskyGraphemeLength,
+	validateBlueskyCaptionLength
+} from './blueskyGraphemeLength';
 export {
 	createComposerTextHistory,
 	snapshotFromTextarea,

@@ -78,7 +78,6 @@ Alternatiely, you may either:
 - **Instagram app** → **Settings and activity** → **Account type and tools** → **Connect to Facebook Page** → choose your Page, or
 
 
-
 ### Re-authorize Page during connect in Openquok Dashboard
 
 When OpenQuok redirects you to Meta, click **Edit settings** (not **Continue with previous settings**) so Meta includes the Page and its linked Instagram account.
@@ -90,36 +89,6 @@ Select your **Facebook Page** and finish consent. OpenQuok then lists business i
 <Callout type="note">
 Instagram and Facebook can use the same developer app — there is no need to create two separate apps.
 </Callout>
-
-##  Features
-
-Both **Instagram (Business)** and **Instagram (Standalone)** use the same Content Publishing pipeline.
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Feed image post | At least one attachment required when scheduling |
-| Carousel | 2–10 images and/or videos; one caption for the whole post |
-| Reel | Single `.mp4` attachment is published as a Reel (max 180 seconds) |
-| Story | Set post type to Story; one attachment (max 60 seconds for video) |
-| Trial Reel | Optional trial audience before full publish; graduation **Manual** or **Auto (performance)** |
-| Collaborators | Up to 3 public usernames on feed/Reel posts with **single** media |
-| Text follow-up comments | Schedule comment replies after the main post (text-only on Instagram) |
-
-Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, <Badge text="post_type: story" variant="param" /> → Story surface.
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Story link stickers | Meta sticker APIs are not wired in OpenQuok |
-| Automatic comment auto-reply | No inbox automation or keyword replies |
-| Collaborators on carousel | Validation rejects collaborator tags when more than one attachment is attached |
-| Media on follow-up comments | Thread reply rows are caption-only for Instagram |
-
-
-CLI walkthroughs: <a href="/docs/cli-examples/instagram">CLI Examples — Instagram</a>.
 
 ## Backend environment
 
@@ -336,6 +305,38 @@ Accept it to finish tester setup for that account.
 
 </Steps>
 
+
+## Features
+
+Both **Instagram (Business)** and **Instagram (Standalone)** use the same Content Publishing pipeline.
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Feed image post | At least one attachment required when scheduling |
+| Carousel | 2–10 images and/or videos; one caption for the whole post |
+| Reel | Single `.mp4` attachment is published as a Reel (max 180 seconds) |
+| Story | Set post type to Story; one attachment (max 60 seconds for video) |
+| Trial Reel | Optional trial audience before full publish; graduation **Manual** or **Auto (performance)** |
+| Collaborators | Up to 3 public usernames on feed/Reel posts with **single** media |
+| Text follow-up comments | Schedule comment replies after the main post (text-only on Instagram) |
+
+Media routing is automatic: one video → Reel, multiple attachments on a feed post → carousel, <Badge text="post_type: story" variant="param" /> → Story surface.
+
+<Callout type="tip">
+<p>CLI walkthroughs: <a href="/docs/cli-examples/instagram">CLI Examples — Instagram</a>.</p>
+</Callout>
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Story link stickers | Meta sticker APIs are not wired in OpenQuok |
+| Automatic inbox / keyword replies | No DM inbox, keyword triggers, or bots on visitor comments — unlike scheduled <strong>follow-up comments</strong> on your own post (supported above) |
+| Plugs | No internal, cross-account, or global plugs on Instagram — see <a href="/docs/automations/plugs">Plugs overview</a> (Threads, X, LinkedIn Page, Bluesky global rules, etc.) |
+| Collaborators on carousel | Validation rejects collaborator tags when more than one attachment is attached |
+| Media on follow-up comments | Thread reply rows are caption-only for Instagram |
 
 ## References
 

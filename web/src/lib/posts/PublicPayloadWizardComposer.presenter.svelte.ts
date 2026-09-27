@@ -45,6 +45,8 @@ import {
 	maxCharactersForChannel,
 	postMediaPreviewUrls,
 	revokeLocalMediaPreviewUrls,
+	blueskyGraphemeLength,
+	selectedIdsIncludeBlueskyChannel,
 	selectedIdsIncludeXChannel,
 	stripComposerBodyForEditor,
 	xWeightedLength
@@ -205,9 +207,21 @@ export class PublicPayloadWizardComposerPresenter {
 			selectedIdsIncludeXChannel(this.selectedIds, this.baseSocialChannelsVm)
 		);
 	});
+	usesBlueskyGraphemeCount = $derived.by(() => {
+		if (this.usesWeightedCharCount) return false;
+		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'bluesky') return true;
+		return (
+			this.mode === 'global' &&
+			this.selectedIds.length > 0 &&
+			selectedIdsIncludeBlueskyChannel(this.selectedIds, this.baseSocialChannelsVm)
+		);
+	});
 	charCount = $derived.by(() => {
 		if (this.usesWeightedCharCount) {
 			return xWeightedLength(this.charCountText);
+		}
+		if (this.usesBlueskyGraphemeCount) {
+			return blueskyGraphemeLength(this.charCountText);
 		}
 		return this.charCountText.length;
 	});

@@ -21,6 +21,7 @@
 	import ImageSlider from '$lib/ui/media-files/ImageSlider.svelte';
 	import PreviewScheduledSocialReplies from '$lib/ui/components/preview/PreviewScheduledSocialReplies.svelte';
 	import { classifyBlueskyPreviewMediaMode } from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
+	import { blueskyGraphemeLength } from '$lib/posts/utils/composer/blueskyGraphemeLength';
 
 	let {
 		channel,
@@ -34,7 +35,8 @@
 	}: BlueskyPreviewProps = $props();
 
 	const handle = $derived((channel.name || '').trim() || 'handle.bsky.social');
-	const overLimit = $derived(previewText.length > maximumCharacters);
+	const usedGraphemes = $derived(blueskyGraphemeLength(previewText));
+	const overLimit = $derived(usedGraphemes > maximumCharacters);
 
 	/**
 	 * Bluesky post layout (composer preview approximation).
@@ -88,13 +90,13 @@
 			</div>
 
 			<div class="mt-1 text-[15px] leading-6">
-				{#if previewText.length === 0}
+				{#if usedGraphemes === 0 && previewText.length === 0}
 					<p class="text-base-content/60">Start writing your post for a preview</p>
 				{:else}
 					<p class="whitespace-pre-wrap {overLimit ? 'text-error' : ''}">{previewText}</p>
 					{#if overLimit}
 						<p class="mt-1 text-xs text-error">
-							{previewText.length}/{maximumCharacters} characters
+							{usedGraphemes}/{maximumCharacters} graphemes
 						</p>
 					{/if}
 				{/if}

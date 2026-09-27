@@ -11,6 +11,11 @@ import { isAllowedShikiLanguageId } from './src/lib/shiki/limitedLanguages';
 const webRoot = path.dirname(fileURLToPath(import.meta.url));
 const limitedShikiBundle = path.join(webRoot, 'src/lib/shiki/limitedBundle.ts');
 
+const devHttpsCertPath = path.join(webRoot, '.cert/localhost.pem');
+const devHttpsKeyPath = path.join(webRoot, '.cert/localhost-key.pem');
+const devHttpsEnabled =
+	fs.existsSync(devHttpsKeyPath) && fs.existsSync(devHttpsCertPath);
+
 /** After the last `/node_modules/`, yields npm scope+name or package name (pnpm-safe). */
 function npmPackageChunkLabel(id: string): string | undefined {
 	const normalized = id.replace(/\\/g, '/');
@@ -261,11 +266,18 @@ export default defineConfig({
 	server: {
 		// mkcert certs are local-dev-only (gitignored) and absent during `vite build`
 		// (Docker/self-host image build has no dev server to serve). Skip https there instead of crashing.
-		...(fs.existsSync('./.cert/localhost-key.pem') && fs.existsSync('./.cert/localhost.pem')
+		...(devHttpsEnabled
 			? {
 					https: {
-						key: fs.readFileSync('./.cert/localhost-key.pem'),
-						cert: fs.readFileSync('./.cert/localhost.pem')
+						key: fs.readFileSync(devHttpsKeyPath),
+						cert: fs.readFileSync(devHttpsCertPath)
+					},
+					// Align HMR WebSocket with the HTTPS dev origin (avoids failed wss:// then fallback).
+					hmr: {
+						protocol: 'wss',
+						host: 'localhost',
+						port: 5173,
+						clientPort: 5173
 					}
 				}
 			: {}),

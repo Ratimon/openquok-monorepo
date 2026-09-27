@@ -27,6 +27,7 @@ async function listRegularFiles(dir, relativeDir = '') {
 }
 
 async function main() {
+	console.log(`Pagefind: scanning ${siteDir}…`);
 	const files = await listRegularFiles(siteDir);
 	const htmlFiles = [];
 
@@ -49,6 +50,9 @@ async function main() {
 
 	let indexed = 0;
 	for (const file of htmlFiles) {
+		if (indexed > 0 && indexed % 50 === 0) {
+			console.log(`Pagefind: indexed ${indexed}/${htmlFiles.length} pages…`);
+		}
 		const result = await index.addHTMLFile({
 			sourcePath: file.relativePath,
 			content: file.content

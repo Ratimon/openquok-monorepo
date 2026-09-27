@@ -177,6 +177,7 @@ export function attachComposerMediaFromLocalFiles(args: {
 	const items: PostMediaProgrammerModel[] = list.map((file) => ({
 		id: crypto.randomUUID(),
 		path: localPathForComposerFile(file),
+		byteSize: file.size,
 		localPreviewUrl: URL.createObjectURL(file)
 	}));
 	return { ok: true, items };

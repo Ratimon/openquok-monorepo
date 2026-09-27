@@ -1,6 +1,6 @@
 ---
 title: YouTube
-description: How to configure YouTube channel for OpenQuok — Google Cloud OAuth, APIs, and backend env vars.
+description: How to configure YouTube channel for OpenQuok
 order: 5
 lastUpdated: 2026-06-10
 ---
@@ -21,35 +21,6 @@ OpenQuok uploads **one MP4 video**, with optional title, privacy, tags, made-for
 <p>YouTube channel OAuth uses its own Google Cloud OAuth client (<Badge text="YOUTUBE_CLIENT_ID" variant="envBackend" /> / <Badge text="YOUTUBE_CLIENT_SECRET" variant="envBackend" />). That is <strong>not</strong> the same credentials as Supabase Auth Google sign-in — see <a href="/docs/configuration-backend/google-oauth">Google OAuth (Supabase)</a> if you also offer Google login to your workspace.</p>
 </Callout>
 
-CLI walkthroughs: <a href="/docs/cli-examples/youtube">CLI Examples — YouTube</a>.
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Video upload | Exactly **one** <Badge text=".mp4" variant="param" /> attachment per scheduled post |
-| Title | 2–100 characters via provider settings |
-| Description | Post body (<Badge text="-c" variant="param" /> / composer), up to 5,000 characters |
-| Privacy | <Badge text="public" variant="default" />, <Badge text="private" variant="default" />, or <Badge text="unlisted" variant="default" /> |
-| Tags | Optional string labels in provider settings |
-| Custom thumbnail | Optional image path after upload |
-| Made for kids | <Badge text="selfDeclaredMadeForKids" variant="param" /> — <Badge text="yes" variant="default" /> or <Badge text="no" variant="default" /> |
-| Shorts | Vertical MP4 uploads use the same video upload path; YouTube may classify qualifying uploads as Shorts |
-| Channel analytics | Time-series metrics (views, watch time, subscribers, likes, …) for 7 / 30 / 90 days |
-| Per-video snapshot | Views, likes, comments, favorites on published videos |
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Text-only posts | A video attachment is required |
-| Follow-up comments | No threaded replies after publish |
-| Playlists or categories | Not wired in OpenQuok today |
-| YouTube-side scheduled publish | OpenQuok schedules; upload uses immediate publish with privacy status |
-| Community posts | Not available through the public YouTube Data API |
-| Shorts-specific publish mode | Standard video upload only — no separate Shorts API or composer toggle |
 
 ## Backend environment
 
@@ -117,7 +88,7 @@ Follow <DocsExternalLink href="https://developers.google.com/youtube/registering
 
 <Steps
 	howToName="General Youtube Setup"
-	howToDescription="Follow Obtaining authorization credentials for the underlying Google requirements."
+	howToDescription="How to configure Youtube for OpenQuok."
 >
 
 ### Open Google Cloud Console
@@ -223,8 +194,8 @@ Use this section when the YouTube channel is a **Brand account** (managed separa
 
 or when publishers sign in through **Google Workspace** and the OAuth screen blocks access until an admin trusts the app.
 
-<Callout type="note" title="Setup in Test mode">
-<p>For brand-managed channels, keep the OAuth app on <strong>External</strong> user type, add each connecting Google account as a <strong>test user</strong>, and complete the workspace trust steps below if your organization restricts third-party OAuth. You do not need to publish the app for an internal pilot, but Google can take several hours to propagate admin trust changes.</p>
+<Callout type="note">
+<p>For brand-managed channels, keep the OAuth app on <strong>External</strong> user type, add each connecting Google account as a <strong>test user</strong>. You do not need to publish the app for an internal pilot, but Google can take several hours to propagate admin trust changes.</p>
 </Callout>
 
 <Steps
@@ -265,6 +236,38 @@ After propagation, remove any stale YouTube integration in OpenQuok and run **Co
 - After you pick a channel, OpenQuok stores the channel id as the integration’s internal id and keeps the user OAuth token for refresh (unlike Meta Page tokens).
 
 API prefix defaults to <Badge text="/api/v1" variant="path" /> (see <Badge text="API_PREFIX" variant="envBackend" />).
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Video upload | Exactly **one** <Badge text=".mp4" variant="param" /> attachment per scheduled post |
+| Title | 2–100 characters via provider settings |
+| Description | Post body (<Badge text="-c" variant="param" /> / composer), up to 5,000 characters |
+| Privacy | <Badge text="public" variant="default" />, <Badge text="private" variant="default" />, or <Badge text="unlisted" variant="default" /> |
+| Tags | Optional string labels in provider settings |
+| Custom thumbnail | Optional image path after upload |
+| Made for kids | <Badge text="selfDeclaredMadeForKids" variant="param" /> — <Badge text="yes" variant="default" /> or <Badge text="no" variant="default" /> |
+| Shorts | Vertical MP4 uploads use the same video upload path; YouTube may classify qualifying uploads as Shorts |
+| Channel analytics | Time-series metrics (views, watch time, subscribers, likes, …) for 7 / 30 / 90 days |
+| Per-video snapshot | Views, likes, comments, favorites on published videos 
+
+<Callout type="tip">
+<p>CLI walkthroughs: <a href="/docs/cli-examples/youtube">CLI Examples — YouTube</a>.</p>
+</Callout>
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Text-only posts | A video attachment is required |
+| Follow-up comments | No threaded replies after publish |
+| Playlists or categories | Not wired in OpenQuok today |
+| YouTube-side scheduled publish | OpenQuok schedules; upload uses immediate publish with privacy status |
+| Community posts | Not available through the public YouTube Data API |
+| Shorts-specific publish mode | Standard video upload only — no separate Shorts API or composer toggle |
 
 ## Troubleshooting
 

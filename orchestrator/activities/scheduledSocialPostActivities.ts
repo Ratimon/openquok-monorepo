@@ -507,7 +507,8 @@ async function runPostPublishPlugPipeline(
         provider === "threads" ||
         provider === "x" ||
         provider === "linkedin" ||
-        provider === "linkedin-page";
+        provider === "linkedin-page" ||
+        provider === "bluesky";
     if (!supportsPlugs) return;
 
     let internal: PlugTodo[] = [];

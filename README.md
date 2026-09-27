@@ -56,8 +56,8 @@ OpenQuok helps individuals and teams run many social accounts at scale — espec
   <a href="https://www.openquok.com/channels/x"><img src="./assets/readme/socials/x.svg" alt="X" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/youtube"><img src="./assets/readme/socials/youtube.svg" alt="YouTube" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/tiktok"><img src="./assets/readme/socials/tiktok.svg" alt="TikTok" width="32" height="32"></a>
-  <a href="https://www.openquok.com/channels/devto"><img src="./assets/readme/socials/devto.svg" alt="Dev.to" width="32" height="32"></a>
   <a href="https://www.openquok.com/channels/bluesky"><img src="./assets/readme/socials/bluesky.svg" alt="Bluesky" width="32" height="32"></a>
+  <a href="https://www.openquok.com/channels/devto"><img src="./assets/readme/socials/devto.svg" alt="Dev.to" width="32" height="32"></a>
 </p>
 
 OpenQuok ships integrations for **Facebook Page**, **Threads**, **Instagram** (Business and Standalone), **LinkedIn** profile and Page, **X**, **YouTube**, **TikTok**, **Dev.to**, and **Bluesky**. Dev.to and Bluesky connect with credentials you paste in Add Channel — no OAuth redirect.

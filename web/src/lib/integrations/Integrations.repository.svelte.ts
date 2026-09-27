@@ -158,6 +158,7 @@ export interface IntegrationsConfig {
 		internalPlugs: (providerIdentifier: string) => string;
 		triggerTool: (integrationId: string) => string;
 		mentions: string;
+		connectPrefill: (providerIdentifier: string) => string;
 	};
 }
 
@@ -622,6 +623,40 @@ export class IntegrationsRepository {
 			return [];
 		} catch {
 			return [];
+		}
+	}
+
+	/** GET `/integrations/connect-prefill/:provider?field=&value=` — credentials connect form prefill. */
+	public async connectPrefill(
+		providerIdentifier: string,
+		field: string,
+		value: string
+	): Promise<
+		| { ok: true; skipped: true }
+		| { ok: true; updates: Record<string, string>; did?: string }
+		| { ok: false; error: string }
+	> {
+		try {
+			const path = this.config.endpoints.connectPrefill(providerIdentifier);
+			const { ok, data: dto } = await this.httpGateway.get<{
+				success?: boolean;
+				data?: { skipped?: true; updates?: Record<string, string>; did?: string };
+				message?: string;
+			}>(path, { field, value }, { withCredentials: true });
+			if (ok && dto?.success === true && dto.data?.skipped === true) {
+				return { ok: true, skipped: true };
+			}
+			const updates = dto?.data?.updates;
+			if (ok && dto?.success === true && updates && typeof updates === 'object') {
+				return { ok: true, updates, did: dto.data?.did };
+			}
+			const message = typeof dto?.message === 'string' ? dto.message : null;
+			return { ok: false, error: message || 'Connect prefill failed.' };
+		} catch (e) {
+			if (e instanceof ApiError && typeof e.message === 'string') {
+				return { ok: false, error: e.message };
+			}
+			return { ok: false, error: 'Connect prefill failed.' };
 		}
 	}
 

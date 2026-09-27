@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	BLUESKY_MAX_IMAGES,
+	BLUESKY_MAX_VIDEO_BYTES,
+	blueskyVideoByteSizeError,
 	checkBlueskyLaunchValidity,
-	classifyBlueskyPreviewMediaMode
+	classifyBlueskyPreviewMediaMode,
+	readBlueskyLaunchSettings
 } from '$lib/ui/components/posts/providers/bluesky/bluesky.provider';
 
 describe('classifyBlueskyPreviewMediaMode', () => {
@@ -51,5 +54,54 @@ describe('checkBlueskyLaunchValidity', () => {
 
 	it('allows text-only posts', () => {
 		expect(checkBlueskyLaunchValidity({ settings: {}, media: [] })).toBe(true);
+	});
+
+	it('rejects oversized MP4 when byteSize is known', () => {
+		expect(
+			checkBlueskyLaunchValidity({
+				settings: {},
+				media: [{ id: '1', path: 'clip.mp4', byteSize: BLUESKY_MAX_VIDEO_BYTES + 1 }]
+			})
+		).toMatch(/300 MB/);
+	});
+
+	it('allows MP4 within size cap when byteSize is known', () => {
+		expect(
+			checkBlueskyLaunchValidity({
+				settings: {},
+				media: [{ id: '1', path: 'clip.mp4', byteSize: BLUESKY_MAX_VIDEO_BYTES }]
+			})
+		).toBe(true);
+	});
+
+	it('rejects link cards with media', () => {
+		expect(
+			checkBlueskyLaunchValidity({
+				settings: { bluesky: { linkUrl: 'https://example.com' } },
+				media: [{ path: 'a.png' }]
+			})
+		).toMatch(/link cards/i);
+	});
+});
+
+describe('blueskyVideoByteSizeError', () => {
+	it('returns null within the cap', () => {
+		expect(blueskyVideoByteSizeError(BLUESKY_MAX_VIDEO_BYTES)).toBeNull();
+	});
+});
+
+describe('readBlueskyLaunchSettings', () => {
+	it('reads nested bluesky bucket fields', () => {
+		expect(
+			readBlueskyLaunchSettings({
+				bluesky: {
+					quoteUrl: 'https://bsky.app/profile/alice/post/abc',
+					threadGate: 'followers'
+				}
+			})
+		).toEqual({
+			quoteUrl: 'https://bsky.app/profile/alice/post/abc',
+			threadGate: 'followers'
+		});
 	});
 });

@@ -17,6 +17,7 @@ export default defineConfig({
 	/** Workspace packages are ESM (`"type": "module"`); CJS output must not `require()` them — bundle them in. */
 	noExternal: ["openquok-common"],
 	external: [
+		"sharp",
 		"fs",
 		"path",
 		"http",

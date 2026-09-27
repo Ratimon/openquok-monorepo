@@ -6,7 +6,8 @@
 		TiktokContentPostingMethod,
 		TiktokPrivacyLevel,
 		XReplySetting,
-		YoutubeTagOption
+		YoutubeTagOption,
+		BlueskyThreadGateSetting
 	} from '$lib/ui/components/posts/providers/provider.types';
 
 	import { icons } from '$data/icons';
@@ -24,6 +25,7 @@
 	import DevtoSettings from '$lib/ui/components/posts/providers/devto/DevtoSettings.svelte';
 	import TiktokSettings from '$lib/ui/components/posts/providers/tiktok/TiktokSettings.svelte';
 	import XSettings from '$lib/ui/components/posts/providers/x/XSettings.svelte';
+	import BlueskySettings from '$lib/ui/components/posts/providers/bluesky/BlueskySettings.svelte';
 
 	type ProviderSettings = {
 		threads: {
@@ -88,6 +90,13 @@
 			series?: string;
 			tags: DevtoTagOption[];
 			mainImage?: { path: string };
+		};
+		bluesky: {
+			linkUrl?: string;
+			linkTitle?: string;
+			linkDescription?: string;
+			quoteUrl?: string;
+			threadGate?: BlueskyThreadGateSetting;
 		};
 	};
 
@@ -191,6 +200,12 @@
 	let dtSeries = $state('');
 	let dtTags = $state<DevtoTagOption[]>([]);
 	let dtMainImage = $state<{ path: string } | undefined>(undefined);
+
+	let bskyLinkUrl = $state('');
+	let bskyLinkTitle = $state('');
+	let bskyLinkDescription = $state('');
+	let bskyQuoteUrl = $state('');
+	let bskyThreadGate = $state<BlueskyThreadGateSetting>('everyone');
 
 	let crossAccountPlugDefs = $state<CrossAccountPlugDefinition[]>([]);
 
@@ -414,6 +429,27 @@
 			dtTags = [];
 			dtMainImage = undefined;
 		}
+		if (s.bluesky && typeof s.bluesky === 'object') {
+			bskyLinkUrl = typeof s.bluesky.linkUrl === 'string' ? s.bluesky.linkUrl : '';
+			bskyLinkTitle = typeof s.bluesky.linkTitle === 'string' ? s.bluesky.linkTitle : '';
+			bskyLinkDescription =
+				typeof s.bluesky.linkDescription === 'string' ? s.bluesky.linkDescription : '';
+			bskyQuoteUrl = typeof s.bluesky.quoteUrl === 'string' ? s.bluesky.quoteUrl : '';
+			const tg = s.bluesky.threadGate;
+			bskyThreadGate =
+				tg === 'mentioned' ||
+				tg === 'following' ||
+				tg === 'followers' ||
+				tg === 'nobody' ?
+					tg
+				:	'everyone';
+		} else {
+			bskyLinkUrl = '';
+			bskyLinkTitle = '';
+			bskyLinkDescription = '';
+			bskyQuoteUrl = '';
+			bskyThreadGate = 'everyone';
+		}
 	});
 
 	let lastEmitted = $state('');
@@ -516,6 +552,20 @@
 					...(dtOrganization ? { organization: dtOrganization } : {}),
 					...(series ? { series } : {}),
 					...(dtMainImage?.path ? { mainImage: dtMainImage } : {})
+				}
+			};
+		} else if (identifier === 'bluesky') {
+			const linkUrl = bskyLinkUrl.trim();
+			const linkTitle = bskyLinkTitle.trim();
+			const linkDescription = bskyLinkDescription.trim();
+			const quoteUrl = bskyQuoteUrl.trim();
+			next = {
+				bluesky: {
+					...(bskyThreadGate !== 'everyone' ? { threadGate: bskyThreadGate } : {}),
+					...(quoteUrl ? { quoteUrl } : {}),
+					...(linkUrl ? { linkUrl } : {}),
+					...(linkTitle ? { linkTitle } : {}),
+					...(linkDescription ? { linkDescription } : {})
 				}
 			};
 		} else {
@@ -656,6 +706,14 @@
 			integrationId={channel.id}
 			{uploadUid}
 			{disabled}
+		/>
+	{:else if identifier === 'bluesky'}
+		<BlueskySettings
+			bind:linkUrl={bskyLinkUrl}
+			bind:linkTitle={bskyLinkTitle}
+			bind:linkDescription={bskyLinkDescription}
+			bind:quoteUrl={bskyQuoteUrl}
+			bind:threadGate={bskyThreadGate}
 		/>
 	{:else}
 		<p class="text-sm text-base-content/60">No settings available for this provider yet.</p>

@@ -13,7 +13,8 @@ export const SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS = [
 	'youtube',
 	'threads',
 	'x',
-	'devto'
+	'devto',
+	'bluesky'
 ] as const;
 
 export type SupportedAnalyticsProviderIdentifier =
@@ -45,7 +46,8 @@ export const ANALYTICS_DATE_WINDOWS_BY_PROVIDER: Record<
 	youtube: ANALYTICS_DATE_WINDOWS_ALL,
 	threads: ANALYTICS_DATE_WINDOWS_SEVEN_AND_THIRTY,
 	x: ANALYTICS_DATE_WINDOWS_ALL,
-	devto: ANALYTICS_DATE_WINDOWS_ALL
+	devto: ANALYTICS_DATE_WINDOWS_ALL,
+	bluesky: ANALYTICS_DATE_WINDOWS_ALL
 };
 
 export function analyticsDateWindowsForProvider(identifier: string): readonly AnalyticsDateWindowDays[] {

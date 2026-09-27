@@ -24,14 +24,14 @@ export const blueskyChannel = {
 	platformId: 'bluesky',
 	platformLabel: 'Bluesky',
 	icon: icons.BlueskyGlyph.name,
-	heroTitle: 'Schedule Bluesky posts, images, and replies',
+	heroTitle: 'Schedule Bluesky posts, links, media, and replies',
 	heroDescription:
-		'Connect with your handle and an app password. Queue text and media on the calendar. Chain follow-up replies before anything goes live. Approve on the kanban board before OpenQuok publishes.',
-	metaTitle: 'Bluesky Post Scheduler — Text, Media, and Replies',
+		'Connect Bluesky with an app password. Schedule posts and media on your calendar. @mentions and links in your caption work when the post goes live. Turn on link previews in post Settings for text-only posts. Add follow-up replies and approve each post before it publishes.',
+	metaTitle: 'Bluesky Post Scheduler — Text, Media, Links, and Replies',
 	metaDescription:
-		'Schedule Bluesky posts with OpenQuok. Connect with an app password. Queue text, up to four images or one video, and follow-up replies. Publish from the dashboard, public API, or CLI.',
+		'Schedule Bluesky posts with OpenQuok. App-password connect (custom PDS supported). Queue 300-grapheme text, optional link cards and quotes, @mentions, up to four images or one MP4 (300 MB, 10 min), follow-up replies, and analytics. Dashboard, public API, CLI, or MCP.',
 	hubDescription:
-		'300-character posts with up to four images or one MP4. Scheduled replies on the same account.',
+		'300-grapheme posts with @mentions, optional link cards, and up to four images or one MP4. Same-account reply chains and workspace analytics.',
 	keywords: [
 		...SHARED_CHANNEL_SEO_KEYWORDS,
 		'Bluesky scheduler',
@@ -41,6 +41,9 @@ export const blueskyChannel = {
 		'AT Protocol scheduler',
 		'Bluesky follow-up replies',
 		'Bluesky image post',
+		'Bluesky link preview',
+		'Bluesky mentions',
+		'Bluesky custom PDS',
 		...buildChannelMcpSeoKeywords('Bluesky')
 	],
 	featureSections: [
@@ -53,10 +56,10 @@ export const blueskyChannel = {
 			mediaOnRight: true
 		},
 		{
-			subtitle: 'Media posts',
-			title: 'Attach images or one video, preview the feed card, before you schedule',
+			subtitle: 'Compose & links',
+			title: 'Write 300 graphemes, add @mentions, optional link cards, preview before you queue',
 			description:
-				'Compose within the 300-character limit. Attach up to four images or one MP4 — never mixed in one post. Preview letterboxed photos and video in the composer before you queue the slot.',
+				'Stay inside the 300-grapheme limit. URLs in the caption become clickable facets; add an optional link-card embed in Settings when the post has no media. Use @handle autocomplete. Attach up to four images or one MP4 — never mixed. Preview letterboxed media before you queue the slot.',
 			bentoId: 'bluesky-media',
 			mediaOnRight: false
 		},
@@ -67,6 +70,14 @@ export const blueskyChannel = {
 				'Add follow-up rows in the composer with delays and optional media. OpenQuok publishes the main post first. Then it posts each reply on your connected account.',
 			bentoId: 'bluesky-threads',
 			mediaOnRight: true
+		},
+		{
+			subtitle: 'Insights',
+			title: 'See what resonates on Bluesky, track likes and reposts, and iterate',
+			description:
+				'Bluesky analytics — Trends summary totals and per-post likes, replies, reposts, and quotes from the public App View feed (7, 30, or 90 days). Then schedule more of what already works.',
+			bentoId: 'bluesky-insights',
+			mediaOnRight: false
 		}
 	],
 	audienceSubtitle: 'Built for the open social web',
@@ -85,7 +96,7 @@ export const blueskyChannel = {
 			iconClass: 'text-lime-400',
 			title: 'Community managers',
 			description:
-				'Review agent drafts on kanban. Schedule images, video, and threaded follow-ups in one workflow.',
+				'Review agent drafts on kanban. Schedule link posts, images, video, and threaded follow-ups in one workflow.',
 			containerClass: 'h-full min-h-[18rem]'
 		},
 		{
@@ -100,12 +111,17 @@ export const blueskyChannel = {
 	faqSubtitle: 'Frequently asked questions',
 	faqTitle: 'Bluesky scheduling, media, and replies',
 	faqDescription:
-		'App-password connect, character limits, media rules, follow-up replies, and automation — what OpenQuok supports for Bluesky today.',
+		'App-password connect, PDS service URL, character limits, links and mentions, media rules, follow-up replies, and automation — what OpenQuok supports for Bluesky today.',
 	faqItems: [
 		{
 			title: 'How do I connect Bluesky to OpenQuok?',
 			description:
-				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Add Channel → Bluesky. Enter your PDS service URL (default https://bsky.social), handle or email, and an app password from Bluesky settings. OpenQuok encrypts those credentials on the server; connect APIs never return them. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(BLUESKY_DOCS_PATH, 'Bluesky')}.`
+				`${faqLink(publicFaqHref.signUp, 'Sign up for free')}, open a workspace, and choose Add Channel → Bluesky. Enter your PDS service URL (default https://bsky.social for most accounts), handle or email, and an app password from Bluesky settings. OpenQuok encrypts those credentials on the server; connect APIs never return them. See the ${faqLink(publicFaqHref.connectChannelsGuide, 'connect channels guide')}. For self-hosted deployments, see the ${faqLinkSelfHostChannelSetup(BLUESKY_DOCS_PATH, 'Bluesky')}.`
+		},
+		{
+			title: 'Do links and @mentions work in scheduled Bluesky posts?',
+			description:
+				`Yes. URLs in your caption become rich-text facets (clickable links) at publish. For a large preview card, set <strong>Link card URL</strong> in composer Settings on a text-only post — not combined with images, video, or a quote post. Type @handle in the composer and pick a match from autocomplete; facets apply on the main post and on follow-up reply rows.`
 		},
 		{
 			title: 'Do I need to turn off two-factor authentication?',
@@ -134,7 +150,7 @@ export const blueskyChannel = {
 		{
 			title: 'Does OpenQuok show Bluesky analytics?',
 			description:
-				`Not today. You can schedule and publish Bluesky posts, images, video, and follow-up replies from OpenQuok. Workspace analytics and post statistics do not include Bluesky yet.`
+				`Yes. Open workspace ${faqLink(faqHrefDocs('insights/workspace-analytics'), 'Analytics')} to see likes, replies, reposts, and quotes summed by day for your connected account. Open ${faqLink(faqHrefDocs('insights/per-post-metrics'), 'Statistics')} on a published post for per-post engagement from the public App View API.`
 		},
 		{
 			title: 'Is there a free trial for Bluesky scheduling?',

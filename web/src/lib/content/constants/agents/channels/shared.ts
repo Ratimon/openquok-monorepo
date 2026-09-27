@@ -52,7 +52,7 @@ const ANALYTICS_BENTO_BY_CHANNEL: Record<string, PublicChannelFeatureBentoId> = 
 	linkedin: 'linkedin-insights',
 	x: 'x-insights',
 	devto: 'devto-insights',
-	bluesky: 'bluesky-threads'
+	bluesky: 'bluesky-insights'
 };
 
 const ANALYTICS_CAPABLE_IDENTIFIERS = new Set<string>(SUPPORTED_ANALYTICS_PROVIDER_IDENTIFIERS);

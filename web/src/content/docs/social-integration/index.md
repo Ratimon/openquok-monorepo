@@ -1,6 +1,6 @@
 ---
 title: Overview - Integrate with Your Own Social Key
-description: Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
+description: How to Connect social channels to OpenQuok — OAuth apps or a personal API key, backend env, and dashboard settings.
 order: 0
 lastUpdated: 2026-08-20
 sidebar:

@@ -96,6 +96,20 @@ export const integrationMentionsBodySchema = z.object({
     query: z.string().trim().min(1, "query is required").max(200),
 });
 
+export const integrationConnectPrefillParamsSchema = z.object({
+    providerIdentifier: z.string().min(1, "providerIdentifier is required"),
+});
+
+export const integrationConnectPrefillQuerySchema = z.object({
+    field: z.string().trim().min(1, "field is required").max(100),
+    value: z.string().trim().min(1, "value is required").max(512),
+});
+
+export const validateIntegrationConnectPrefillRequest: RequestHandler = validateRequest({
+    params: integrationConnectPrefillParamsSchema,
+    query: integrationConnectPrefillQuerySchema,
+});
+
 export const validateIntegrationMentionsRequest: RequestHandler = validateRequest({
     body: integrationMentionsBodySchema,
 });

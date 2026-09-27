@@ -20,6 +20,9 @@ var stream = require('stream');
 var googleapis = require('googleapis');
 var twitterApiV2 = require('twitter-api-v2');
 var twitterText = require('twitter-text');
+var net = require('net');
+var dns = require('dns/promises');
+var api = require('@atproto/api');
 var Stripe2 = require('stripe');
 var groupBy = require('lodash/groupBy.js');
 var facebookNodejsBusinessSdk = require('facebook-nodejs-business-sdk');
@@ -72,6 +75,7 @@ var dayjs6__default = /*#__PURE__*/_interopDefault(dayjs6);
 var fs__default = /*#__PURE__*/_interopDefault(fs);
 var path3__default = /*#__PURE__*/_interopDefault(path3);
 var twitterText__default = /*#__PURE__*/_interopDefault(twitterText);
+var dns__default = /*#__PURE__*/_interopDefault(dns);
 var Stripe2__default = /*#__PURE__*/_interopDefault(Stripe2);
 var groupBy__default = /*#__PURE__*/_interopDefault(groupBy);
 var http__default = /*#__PURE__*/_interopDefault(http);
@@ -5217,6 +5221,10 @@ function normalizeFaqItems(value) {
   if (value == null || !Array.isArray(value) || value.length === 0) return null;
   return value;
 }
+function normalizeHowtoName(value) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 function normalizeHowtoSteps(value) {
   if (value == null || !Array.isArray(value) || value.length === 0) return null;
   return value;
@@ -5344,6 +5352,7 @@ var init_BlogDTO = __esm({
           likeCount: row.like_count ?? null,
           updatedAt: row.updated_at ?? null,
           faqItems: normalizeFaqItems(row.faq_items),
+          howtoName: normalizeHowtoName(row.howto_name),
           howtoSteps: normalizeHowtoSteps(row.howto_steps),
           product: normalizeProduct(row.product),
           topic: normalizeTopic(row.topic),
@@ -6611,6 +6620,10 @@ function normalizeSeoJsonArray(value) {
   if (value == null || value.length === 0) return null;
   return value;
 }
+function normalizeHowtoName2(value) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
 function resolveBlogReadingTimeMinutes(post) {
   if (post.reading_time_minutes != null && post.reading_time_minutes > 0) {
     return post.reading_time_minutes;
@@ -6699,6 +6712,7 @@ var init_BlogRepository = __esm({
   like_count,
   updated_at,
   faq_items,
+  howto_name,
   howto_steps,
   product,
   topic:blog_topics(id, name, slug),
@@ -6913,6 +6927,7 @@ var init_BlogRepository = __esm({
           user_id: userId,
           slug,
           faq_items: normalizeSeoJsonArray(post.faq_items),
+          howto_name: normalizeHowtoName2(post.howto_name),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
           product: post.product ?? null,
           reading_time_minutes: resolveBlogReadingTimeMinutes(post)
@@ -6960,6 +6975,7 @@ var init_BlogRepository = __esm({
           slug,
           updated_at: updatedAt,
           faq_items: normalizeSeoJsonArray(post.faq_items),
+          howto_name: normalizeHowtoName2(post.howto_name),
           howto_steps: normalizeSeoJsonArray(post.howto_steps),
           product: post.product ?? null,
           reading_time_minutes: resolveBlogReadingTimeMinutes(post)
@@ -9782,6 +9798,7 @@ function replyChainBucketForProvider(providerIdentifier) {
   if (id === "x") return "x";
   if (id === "linkedin" || id === "linkedin-page") return "linkedin";
   if (id === "facebook") return "facebook";
+  if (id === "bluesky") return "bluesky";
   return "threads";
 }
 function parseFollowUpReplyMedia(raw) {
@@ -21267,6 +21284,1303 @@ var init_devtoProvider = __esm({
     };
   }
 });
+function normalizeBlueskyServiceUrl(raw) {
+  const trimmed = raw.trim();
+  if (!trimmed) return DEFAULT_SERVICE;
+  return trimmed.replace(/\/+$/, "");
+}
+function parseConnectPayload(raw) {
+  const decoded = Buffer.from(raw.trim(), "base64").toString("utf8");
+  const parsed = JSON.parse(decoded);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error("Invalid account details");
+  }
+  return parsed;
+}
+function decodeBlueskyConnectCode(code) {
+  try {
+    const o = parseConnectPayload(code);
+    const service = normalizeBlueskyServiceUrl(
+      typeof o.service === "string" && o.service.trim() ? o.service : DEFAULT_SERVICE
+    );
+    const identifier = typeof o.identifier === "string" ? o.identifier.trim() : typeof o.handle === "string" ? o.handle.trim() : "";
+    const password = typeof o.password === "string" ? o.password.trim() : "";
+    if (!identifier || identifier.length < 1) {
+      throw new Error("Invalid account details");
+    }
+    if (!password || password.length < 1) {
+      throw new Error("Invalid account details");
+    }
+    return { service, identifier, password };
+  } catch (e) {
+    if (e instanceof Error && e.message === "Invalid account details") throw e;
+    throw new Error("Invalid account details");
+  }
+}
+function parseBlueskyToken(token) {
+  const trimmed = token.trim();
+  if (!trimmed) {
+    throw new Error("Bluesky credentials are missing");
+  }
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (typeof parsed.service !== "string" || typeof parsed.identifier !== "string" || typeof parsed.password !== "string") {
+      throw new Error("Invalid Bluesky credentials");
+    }
+    return {
+      service: normalizeBlueskyServiceUrl(parsed.service),
+      identifier: parsed.identifier.trim(),
+      password: parsed.password
+    };
+  } catch {
+    throw new Error("Invalid Bluesky credentials");
+  }
+}
+function serializeBlueskyToken(credentials) {
+  return JSON.stringify({
+    service: normalizeBlueskyServiceUrl(credentials.service),
+    identifier: credentials.identifier.trim(),
+    password: credentials.password
+  });
+}
+function isPrivateIpv4(ip) {
+  const parts = ip.split(".").map((x) => Number(x));
+  if (parts.length !== 4 || parts.some((n) => !Number.isFinite(n))) return true;
+  const [a, b] = parts;
+  if (a === 10 || a === 127 || a === 0) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true;
+  return false;
+}
+function isPrivateIpv6(ip) {
+  const n = ip.toLowerCase();
+  if (n === "::1" || n === "::") return true;
+  if (n.startsWith("fc") || n.startsWith("fd")) return true;
+  if (n.startsWith("fe80")) return true;
+  return false;
+}
+function isBlockedIpAddress(ip) {
+  const kind = net.isIP(ip);
+  if (kind === 4) return isPrivateIpv4(ip);
+  if (kind === 6) return isPrivateIpv6(ip);
+  return true;
+}
+function isBlockedHostname(hostname) {
+  const host = hostname.trim().toLowerCase();
+  if (!host) return true;
+  if (host === "localhost" || host.endsWith(".localhost")) return true;
+  if (host.endsWith(".local") || host.endsWith(".internal")) return true;
+  if (host === "0.0.0.0") return true;
+  const ipKind = net.isIP(host);
+  if (ipKind) return isBlockedIpAddress(host);
+  return false;
+}
+async function assertPublicHttpsBlueskyService(service) {
+  let url;
+  try {
+    url = new URL(normalizeBlueskyServiceUrl(service));
+  } catch {
+    throw new Error("Bluesky service URL must be a valid HTTPS address");
+  }
+  if (url.protocol !== "https:") {
+    throw new Error("Bluesky service URL must use HTTPS");
+  }
+  if (url.username || url.password) {
+    throw new Error("Bluesky service URL must not include credentials");
+  }
+  const hostname = url.hostname;
+  if (isBlockedHostname(hostname)) {
+    throw new Error("Bluesky service URL must be a public HTTPS host");
+  }
+  const ipKind = net.isIP(hostname);
+  if (ipKind) {
+    if (isBlockedIpAddress(hostname)) {
+      throw new Error("Bluesky service URL must be a public HTTPS host");
+    }
+    return;
+  }
+  const records = await dns__default.default.lookup(hostname, { all: true, verbatim: true });
+  if (!records.length) {
+    throw new Error("Bluesky service URL could not be resolved");
+  }
+  for (const rec of records) {
+    if (isBlockedIpAddress(rec.address)) {
+      throw new Error("Bluesky service URL must be a public HTTPS host");
+    }
+  }
+}
+var DEFAULT_SERVICE;
+var init_blueskyCredentials = __esm({
+  "integrations/providers/bluesky/blueskyCredentials.ts"() {
+    DEFAULT_SERVICE = "https://bsky.social";
+  }
+});
+
+// integrations/providers/bluesky/blueskyText.ts
+function blueskyGraphemeLength(text) {
+  const input = typeof text === "string" ? text : "";
+  if (input.length === 0) return 0;
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter(void 0, { granularity: "grapheme" });
+    let count = 0;
+    for (const _ of segmenter.segment(input)) {
+      count += 1;
+    }
+    return count;
+  }
+  return [...input].length;
+}
+function blueskyUtf8ByteLength(text) {
+  return Buffer.byteLength(typeof text === "string" ? text : "", "utf8");
+}
+function validateBlueskyText(text) {
+  const graphemes = blueskyGraphemeLength(text);
+  if (graphemes > BLUESKY_MAX_GRAPHEMES) {
+    return `exceeds the ${BLUESKY_MAX_GRAPHEMES} grapheme limit (${graphemes}/${BLUESKY_MAX_GRAPHEMES}).`;
+  }
+  const bytes = blueskyUtf8ByteLength(text);
+  if (bytes > BLUESKY_MAX_UTF8_BYTES) {
+    return `exceeds the ${BLUESKY_MAX_UTF8_BYTES} UTF-8 byte limit (${bytes}/${BLUESKY_MAX_UTF8_BYTES}).`;
+  }
+  return null;
+}
+var BLUESKY_MAX_GRAPHEMES, BLUESKY_MAX_UTF8_BYTES;
+var init_blueskyText = __esm({
+  "integrations/providers/bluesky/blueskyText.ts"() {
+    BLUESKY_MAX_GRAPHEMES = 300;
+    BLUESKY_MAX_UTF8_BYTES = 3e3;
+  }
+});
+
+// integrations/providers/bluesky/blueskyMedia.ts
+function validateBlueskyVideoByteSize(byteLength) {
+  if (!Number.isFinite(byteLength) || byteLength < 0) {
+    return "Invalid Bluesky video file size.";
+  }
+  if (byteLength > BLUESKY_MAX_VIDEO_BYTES) {
+    return "Bluesky videos must be 300 MB or smaller.";
+  }
+  return null;
+}
+function extractBlueskyMediaFromSettings(settings) {
+  if (!settings || typeof settings !== "object") return [];
+  const media = settings.media;
+  if (Array.isArray(media)) {
+    return media.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  const items = media?.items;
+  if (Array.isArray(items)) {
+    return items.filter((m) => !!m && typeof m.path === "string" && m.path.length > 0);
+  }
+  return [];
+}
+function classifyBlueskyMedia(media) {
+  if (media.length === 0) return "empty";
+  const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path));
+  const hasVideo = exts.some((ext) => VIDEO_EXTENSIONS2.has(ext));
+  const hasImage = exts.some((ext) => IMAGE_EXTENSIONS2.has(ext));
+  if (hasVideo && hasImage) return "empty";
+  if (hasVideo) return media.length === 1 ? "video" : "empty";
+  if (hasImage) return media.length <= BLUESKY_MAX_IMAGES ? "images" : "empty";
+  return "empty";
+}
+function validateBlueskyMediaMix(media) {
+  if (media.length === 0) return null;
+  const kind = classifyBlueskyMedia(media);
+  if (kind === "images") return null;
+  if (kind === "video") return null;
+  const exts = media.map((m) => mediaExtFromUrlOrKey3(m.path)).join(", ");
+  const videoCount = media.filter((m) => mediaExtFromUrlOrKey3(m.path) === "mp4").length;
+  if (videoCount > 1) {
+    return "Bluesky allows one MP4 video or up to four images per post, not multiple videos.";
+  }
+  if (videoCount === 1 && media.length > 1) {
+    return "Bluesky does not support mixing images and video in one post.";
+  }
+  if (media.length > BLUESKY_MAX_IMAGES) {
+    return `Bluesky allows up to ${BLUESKY_MAX_IMAGES} images or one MP4 video per post.`;
+  }
+  return `Bluesky media type is not supported (extensions: ${exts || "unknown"}).`;
+}
+var IMAGE_EXTENSIONS2, VIDEO_EXTENSIONS2, BLUESKY_MAX_IMAGES, BLUESKY_MAX_VIDEO_BYTES;
+var init_blueskyMedia = __esm({
+  "integrations/providers/bluesky/blueskyMedia.ts"() {
+    init_tiktokPublishValidation();
+    init_blueskyText();
+    init_blueskyText();
+    IMAGE_EXTENSIONS2 = /* @__PURE__ */ new Set(["jpg", "jpeg", "png", "webp", "gif"]);
+    VIDEO_EXTENSIONS2 = /* @__PURE__ */ new Set(["mp4"]);
+    BLUESKY_MAX_IMAGES = 4;
+    BLUESKY_MAX_VIDEO_BYTES = 300 * 1024 * 1024;
+  }
+});
+
+// integrations/providers/bluesky/resolveBlueskyPds.ts
+function isBlueskyEmailLoginIdentifier(identifier) {
+  const trimmed = identifier.trim();
+  if (!trimmed || trimmed.startsWith("did:")) return false;
+  const at = trimmed.indexOf("@");
+  return at > 0;
+}
+function normalizeBlueskyHandleForResolve(identifier) {
+  let trimmed = identifier.trim();
+  if (trimmed.startsWith("@")) trimmed = trimmed.slice(1);
+  return trimmed;
+}
+function readAtprotoPdsEndpoint(doc) {
+  for (const svc of doc.service ?? []) {
+    const id = typeof svc.id === "string" ? svc.id : "";
+    const type = typeof svc.type === "string" ? svc.type : "";
+    if (!id.endsWith("#atproto_pds") && type !== "AtprotoPersonalDataServer") continue;
+    const endpoint = svc.serviceEndpoint;
+    if (typeof endpoint === "string" && endpoint.trim()) return endpoint.trim();
+    if (Array.isArray(endpoint)) {
+      const first = endpoint.find((v) => typeof v === "string" && v.trim());
+      if (typeof first === "string") return first.trim();
+    }
+  }
+  return null;
+}
+function didWebDocumentUrl(did) {
+  if (!did.startsWith("did:web:")) {
+    throw new Error("Invalid did:web identifier");
+  }
+  const rest = did.slice("did:web:".length);
+  const segments = rest.split(":").map((part) => decodeURIComponent(part));
+  const host = segments[0];
+  if (!host) {
+    throw new Error("Invalid did:web identifier");
+  }
+  const pathParts = segments.slice(1);
+  const path7 = pathParts.length > 0 ? `/${pathParts.join("/")}/did.json` : "/.well-known/did.json";
+  return `https://${host}${path7}`;
+}
+async function fetchJsonDocument(url) {
+  await assertPublicHttpsBlueskyService(url);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), RESOLVE_FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, {
+      headers: { accept: "application/json" },
+      redirect: "error",
+      signal: controller.signal
+    });
+    if (!res.ok) {
+      throw new Error(`Bluesky identity lookup failed (HTTP ${res.status})`);
+    }
+    return await res.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+async function resolveHandleToDid(handle) {
+  const url = `${BSKY_PUBLIC_API}/xrpc/com.atproto.identity.resolveHandle?handle=${encodeURIComponent(handle)}`;
+  const body = await fetchJsonDocument(url);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("Could not resolve Bluesky handle");
+  }
+  const did = body.did;
+  if (typeof did !== "string" || !did.startsWith("did:")) {
+    throw new Error("Could not resolve Bluesky handle");
+  }
+  return did;
+}
+async function fetchDidDocument(did) {
+  let docUrl;
+  if (did.startsWith("did:plc:")) {
+    docUrl = `${PLC_DIRECTORY}/${encodeURIComponent(did)}`;
+  } else if (did.startsWith("did:web:")) {
+    docUrl = didWebDocumentUrl(did);
+  } else {
+    throw new Error("Unsupported Bluesky account id");
+  }
+  const body = await fetchJsonDocument(docUrl);
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    throw new Error("Could not load Bluesky account document");
+  }
+  return body;
+}
+async function resolvePdsUrlFromDid(did) {
+  const doc = await fetchDidDocument(did);
+  const endpoint = readAtprotoPdsEndpoint(doc);
+  if (!endpoint) {
+    throw new Error("Could not find Bluesky PDS for this account");
+  }
+  let normalized;
+  try {
+    normalized = normalizeBlueskyServiceUrl(endpoint);
+  } catch {
+    throw new Error("Bluesky PDS URL is invalid");
+  }
+  if (!normalized.startsWith("https://")) {
+    throw new Error("Bluesky PDS URL must use HTTPS");
+  }
+  await assertPublicHttpsBlueskyService(normalized);
+  return normalized;
+}
+async function resolveBlueskyPdsFromIdentifier(identifier) {
+  const trimmed = identifier.trim();
+  if (!trimmed) {
+    throw new Error("Bluesky handle is required");
+  }
+  if (isBlueskyEmailLoginIdentifier(trimmed)) {
+    return null;
+  }
+  const did = trimmed.startsWith("did:") ? trimmed : await resolveHandleToDid(normalizeBlueskyHandleForResolve(trimmed));
+  const serviceUrl = await resolvePdsUrlFromDid(did);
+  return { serviceUrl, did };
+}
+async function applyBlueskyResolvedPdsToCredentials(credentials) {
+  const resolved = await resolveBlueskyPdsFromIdentifier(credentials.identifier);
+  if (!resolved) {
+    return credentials;
+  }
+  const submitted = normalizeBlueskyServiceUrl(credentials.service);
+  if (submitted !== resolved.serviceUrl) {
+    logger.warn({
+      msg: "Bluesky service URL overridden by resolved PDS",
+      submitted,
+      resolved: resolved.serviceUrl
+    });
+  }
+  return { ...credentials, service: resolved.serviceUrl };
+}
+var BSKY_PUBLIC_API, PLC_DIRECTORY, RESOLVE_FETCH_TIMEOUT_MS;
+var init_resolveBlueskyPds = __esm({
+  "integrations/providers/bluesky/resolveBlueskyPds.ts"() {
+    init_blueskyCredentials();
+    init_Logger();
+    BSKY_PUBLIC_API = "https://public.api.bsky.app";
+    PLC_DIRECTORY = "https://plc.directory";
+    RESOLVE_FETCH_TIMEOUT_MS = 15e3;
+  }
+});
+function formatDateFromIso2(iso) {
+  if (!iso) return dayjs6__default.default().format("YYYY-MM-DD");
+  return dayjs6__default.default(iso).format("YYYY-MM-DD");
+}
+function postIndexedAt(post) {
+  return post.indexedAt ?? post.recordCreatedAt;
+}
+function readPostMetrics(post) {
+  return {
+    likes: post.likeCount ?? 0,
+    replies: post.replyCount ?? 0,
+    reposts: post.repostCount ?? 0,
+    quotes: post.quoteCount ?? 0
+  };
+}
+function mapBlueskyPostBucketsToAnalytics(buckets) {
+  const dates = Object.keys(buckets).sort((a, b) => dayjs6__default.default(a).valueOf() - dayjs6__default.default(b).valueOf());
+  if (dates.length === 0) return [];
+  return METRIC_LABELS3.map(({ key, label }) => ({
+    label,
+    percentageChange: 0,
+    data: dates.map((date) => ({
+      date,
+      total: String(buckets[date]?.[key] ?? 0)
+    }))
+  }));
+}
+function mapBlueskyPostViewToAnalytics(post) {
+  const date = formatDateFromIso2(postIndexedAt(post));
+  const metrics = readPostMetrics(post);
+  return METRIC_LABELS3.map(({ key, label }) => ({
+    label,
+    percentageChange: 0,
+    data: [{ total: String(metrics[key]), date }]
+  }));
+}
+async function loginBlueskyAgentForCredentials(credentials, createAgent) {
+  const agent = createAgent(credentials.service);
+  await agent.login({
+    identifier: credentials.identifier,
+    password: credentials.password
+  });
+  return agent;
+}
+async function resolveActorDid(actorId, accessToken2, createAgent) {
+  const trimmed = actorId.trim();
+  if (trimmed.startsWith("did:")) {
+    return trimmed;
+  }
+  if (trimmed) {
+    return trimmed;
+  }
+  const credentials = parseBlueskyToken(accessToken2);
+  const agent = await loginBlueskyAgentForCredentials(credentials, createAgent);
+  const did = agent.did?.trim();
+  if (!did) {
+    throw new Error("Bluesky account id is required for analytics");
+  }
+  return did;
+}
+async function fetchBlueskyAccountAnalytics(actorId, accessToken2, dateWindowDays, deps) {
+  const actor = await resolveActorDid(actorId, accessToken2, deps.createAgent);
+  const days = Number.isFinite(dateWindowDays) && dateWindowDays > 0 ? Math.floor(dateWindowDays) : 7;
+  const since = dayjs6__default.default().subtract(days, "day").startOf("day");
+  const agent = deps.createAgent(BSKY_APP_VIEW_SERVICE);
+  const buckets = {};
+  let cursor;
+  for (let page = 0; page < MAX_FEED_PAGES; page++) {
+    const res = await agent.app.bsky.feed.getAuthorFeed({
+      actor,
+      limit: FEED_PAGE_LIMIT,
+      cursor
+    });
+    const feed = res.data.feed ?? [];
+    if (feed.length === 0) break;
+    let stopPaging = false;
+    for (const item of feed) {
+      const post = item.post;
+      if (!post) continue;
+      const indexedAt = postIndexedAt(post);
+      const at = indexedAt ? dayjs6__default.default(indexedAt) : null;
+      if (at && at.isBefore(since)) {
+        stopPaging = true;
+        continue;
+      }
+      if (!at || at.isAfter(dayjs6__default.default().endOf("day"))) continue;
+      const date = formatDateFromIso2(indexedAt);
+      const metrics = readPostMetrics(post);
+      const bucket = buckets[date] ?? { likes: 0, replies: 0, reposts: 0, quotes: 0 };
+      bucket.likes += metrics.likes;
+      bucket.replies += metrics.replies;
+      bucket.reposts += metrics.reposts;
+      bucket.quotes += metrics.quotes;
+      buckets[date] = bucket;
+    }
+    cursor = res.data.cursor;
+    if (!cursor || stopPaging) break;
+  }
+  return mapBlueskyPostBucketsToAnalytics(buckets);
+}
+async function fetchBlueskyPostAnalytics(releaseId, deps) {
+  const uri = releaseId.trim();
+  if (!uri.includes("://")) {
+    throw new Error("Missing Bluesky post URI for post analytics");
+  }
+  const agent = deps.createAgent(BSKY_APP_VIEW_SERVICE);
+  const res = await agent.getPosts({ uris: [uri] });
+  const post = res.data.posts?.[0];
+  if (!post) return [];
+  return mapBlueskyPostViewToAnalytics(post);
+}
+var BSKY_APP_VIEW_SERVICE, FEED_PAGE_LIMIT, MAX_FEED_PAGES, METRIC_LABELS3;
+var init_blueskyAnalyticsCore = __esm({
+  "integrations/providers/bluesky/blueskyAnalyticsCore.ts"() {
+    init_blueskyCredentials();
+    BSKY_APP_VIEW_SERVICE = "https://public.api.bsky.app";
+    FEED_PAGE_LIMIT = 100;
+    MAX_FEED_PAGES = 10;
+    METRIC_LABELS3 = [
+      { key: "likes", label: "Likes" },
+      { key: "replies", label: "Replies" },
+      { key: "reposts", label: "Reposts" },
+      { key: "quotes", label: "Quotes" }
+    ];
+  }
+});
+function createBlueskyAppViewAgent() {
+  return new api.BskyAgent({ service: BSKY_APP_VIEW_SERVICE });
+}
+function toEngagementSnapshot(post) {
+  return {
+    indexedAt: post.indexedAt,
+    recordCreatedAt: post.record?.createdAt,
+    likeCount: post.likeCount,
+    replyCount: post.replyCount,
+    repostCount: post.repostCount,
+    quoteCount: post.quoteCount
+  };
+}
+function wrapBskyAgent(agent) {
+  return {
+    did: agent.did,
+    login: (credentials) => agent.login(credentials),
+    getPosts: async (params) => {
+      const res = await agent.getPosts(params);
+      return {
+        data: {
+          posts: res.data.posts?.map(toEngagementSnapshot)
+        }
+      };
+    },
+    app: {
+      bsky: {
+        feed: {
+          getAuthorFeed: async (params) => {
+            const res = await agent.app.bsky.feed.getAuthorFeed(params);
+            return {
+              data: {
+                cursor: res.data.cursor,
+                feed: res.data.feed?.map((item) => ({
+                  post: item.post ? toEngagementSnapshot(item.post) : void 0
+                }))
+              }
+            };
+          }
+        }
+      }
+    }
+  };
+}
+function defaultAgentFactory(service) {
+  return wrapBskyAgent(new api.BskyAgent({ service }));
+}
+async function fetchBlueskyAccountAnalytics2(actorId, accessToken2, dateWindowDays, deps) {
+  const createAgent = defaultAgentFactory;
+  return fetchBlueskyAccountAnalytics(actorId, accessToken2, dateWindowDays, { createAgent });
+}
+async function fetchBlueskyPostAnalytics2(releaseId, deps) {
+  const createAgent = defaultAgentFactory;
+  return fetchBlueskyPostAnalytics(releaseId, { createAgent });
+}
+var init_blueskyAnalytics = __esm({
+  "integrations/providers/bluesky/blueskyAnalytics.ts"() {
+    init_blueskyAnalyticsCore();
+  }
+});
+
+// integrations/providers/bluesky/resolveBlueskySettings.ts
+function isPlainObject14(value) {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+function readTrimmedString(source, key) {
+  const raw = source[key];
+  if (typeof raw !== "string") return void 0;
+  const trimmed = raw.trim();
+  return trimmed || void 0;
+}
+function readThreadGate(source) {
+  const raw = source.threadGate ?? source.thread_gate;
+  if (typeof raw === "string") {
+    const normalized = raw.trim().toLowerCase();
+    if (THREAD_GATE_VALUES.includes(normalized)) {
+      return normalized;
+    }
+  }
+  return "everyone";
+}
+function resolveBlueskySettings(postDetailsSettings) {
+  if (!isPlainObject14(postDetailsSettings)) {
+    return { threadGate: "everyone" };
+  }
+  let source = { ...postDetailsSettings };
+  const providerSettings = postDetailsSettings.providerSettings;
+  if (isPlainObject14(providerSettings)) {
+    const { bluesky: blueskyBucket, ...flatProviderSettings } = providerSettings;
+    source = { ...source, ...flatProviderSettings };
+    if (isPlainObject14(blueskyBucket)) {
+      source = { ...source, ...blueskyBucket };
+    }
+  } else if (isPlainObject14(postDetailsSettings.bluesky)) {
+    source = { ...source, ...postDetailsSettings.bluesky };
+  }
+  const linkUrl = readTrimmedString(source, "linkUrl") ?? readTrimmedString(source, "link_url");
+  const linkTitle = readTrimmedString(source, "linkTitle") ?? readTrimmedString(source, "link_title");
+  const linkDescription = readTrimmedString(source, "linkDescription") ?? readTrimmedString(source, "link_description");
+  const quoteUrl = readTrimmedString(source, "quoteUrl") ?? readTrimmedString(source, "quote_url");
+  const threadGate = readThreadGate(source);
+  return {
+    ...linkUrl ? { linkUrl } : {},
+    ...linkTitle ? { linkTitle } : {},
+    ...linkDescription ? { linkDescription } : {},
+    ...quoteUrl ? { quoteUrl } : {},
+    threadGate
+  };
+}
+function isValidHttpUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+function parseBlueskyAppPostUrl(url) {
+  const trimmed = url.trim();
+  const match = trimmed.match(BSKY_APP_POST_URL);
+  if (!match?.[1] || !match[2]) return null;
+  try {
+    return {
+      actor: decodeURIComponent(match[1]),
+      rkey: decodeURIComponent(match[2])
+    };
+  } catch {
+    return null;
+  }
+}
+function isBlueskyQuoteTarget(value) {
+  const trimmed = value.trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith("at://")) return true;
+  return parseBlueskyAppPostUrl(trimmed) !== null;
+}
+function validateBlueskySettingsForMedia(settings, media) {
+  const hasMedia = media.length > 0;
+  const hasLink = !!settings.linkUrl;
+  const hasQuote = !!settings.quoteUrl;
+  if (hasLink && !isValidHttpUrl(settings.linkUrl)) {
+    return "Bluesky link URL must be a valid http(s) URL.";
+  }
+  if (hasQuote && !isBlueskyQuoteTarget(settings.quoteUrl)) {
+    return "Bluesky quote URL must be a bsky.app post link or an AT Protocol URI.";
+  }
+  if (hasLink && hasQuote) {
+    return "Bluesky posts cannot include both a link card and a quote at the same time.";
+  }
+  if (hasMedia && hasLink) {
+    return "Bluesky link cards are only supported on text-only posts without media.";
+  }
+  if (hasMedia && hasQuote) {
+    return "Bluesky quote posts cannot include image or video attachments.";
+  }
+  return null;
+}
+var THREAD_GATE_VALUES, BSKY_APP_POST_URL;
+var init_resolveBlueskySettings = __esm({
+  "integrations/providers/bluesky/resolveBlueskySettings.ts"() {
+    THREAD_GATE_VALUES = [
+      "everyone",
+      "mentioned",
+      "following",
+      "followers",
+      "nobody"
+    ];
+    BSKY_APP_POST_URL = /^https:\/\/bsky\.app\/profile\/([^/?#]+)\/post\/([^/?#]+)(?:[/?#]|$)/i;
+  }
+});
+function createBlueskyAgent(service) {
+  return new api.BskyAgent({ service });
+}
+async function loginBlueskyAgent(agent, credentials) {
+  await agent.login({
+    identifier: credentials.identifier,
+    password: credentials.password
+  });
+}
+async function fetchBlueskyProfileForCredentials(credentials) {
+  const agent = createBlueskyAgent(credentials.service);
+  await loginBlueskyAgent(agent, credentials);
+  const did = agent.did;
+  if (!did) {
+    throw new Error("Bluesky login did not return an account id");
+  }
+  const profileRes = await agent.getProfile({ actor: did });
+  const handle = profileRes.data.handle?.trim() || credentials.identifier;
+  const display = profileRes.data.displayName?.trim() || handle;
+  return {
+    id: did,
+    name: display,
+    username: handle,
+    picture: profileRes.data.avatar?.trim() || ""
+  };
+}
+function resolvePublicMediaUrl5(path7) {
+  const raw = path7.trim();
+  if (!raw) throw new Error("Media path is empty");
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  const url = publicUrlForObjectKey(raw);
+  if (!url) {
+    throw new Error(
+      "Cannot build a public media URL for Bluesky (set STORAGE_R2_PUBLIC_BASE_URL for R2, or use full https:// URLs)"
+    );
+  }
+  return url;
+}
+async function loadMediaBuffer3(path7) {
+  const resolved = path7.startsWith("http://") || path7.startsWith("https://") ? path7 : resolvePublicMediaUrl5(path7);
+  if (resolved.startsWith("http://") || resolved.startsWith("https://")) {
+    const res = await fetch(resolved);
+    if (!res.ok) {
+      throw new Error(`Failed to download media for Bluesky (HTTP ${res.status})`);
+    }
+    return Buffer.from(await res.arrayBuffer());
+  }
+  const upload4 = UploadFactory.createStorage(storageR2Repository);
+  const { buffer } = await upload4.downloadObject(path7);
+  return buffer;
+}
+async function resizeImageForBlueskyBlob(raw, ext) {
+  const sharp = (await import('sharp')).default;
+  let quality = 85;
+  let width = 2e3;
+  let attempt = 0;
+  while (attempt < 12) {
+    const pipeline = sharp(raw, { animated: ext === "gif" }).rotate().resize({ width, withoutEnlargement: true });
+    const out = ext === "png" ? await pipeline.png({ compressionLevel: 9 }).toBuffer() : await pipeline.jpeg({ quality, mozjpeg: true }).toBuffer();
+    if (out.length <= BLUESKY_BLOB_MAX_BYTES) {
+      return out;
+    }
+    if (quality > 50) {
+      quality -= 10;
+    } else if (width > 800) {
+      width = Math.floor(width * 0.85);
+      quality = 80;
+    } else {
+      throw new Error("Bluesky image is too large after resizing");
+    }
+    attempt += 1;
+  }
+  throw new Error("Bluesky image is too large after resizing");
+}
+async function uploadImageBlob(agent, item) {
+  const ext = mediaExtFromUrlOrKey3(item.path) || "jpeg";
+  const raw = await loadMediaBuffer3(item.path);
+  const body = await resizeImageForBlueskyBlob(raw, ext);
+  const encoding = ext === "png" ? "image/png" : "image/jpeg";
+  const uploaded = await agent.uploadBlob(body, { encoding });
+  const alt = typeof item.alt === "string" ? item.alt.trim() : "";
+  return { blob: uploaded.data.blob, alt };
+}
+async function waitForVideoBlob(agent, jobId) {
+  const deadline = Date.now() + VIDEO_JOB_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const status = await agent.app.bsky.video.getJobStatus({ jobId });
+    const job = status.data.jobStatus;
+    if (job.state === "JOB_STATE_FAILED") {
+      throw new Error(job.error || job.message || "Bluesky video processing failed");
+    }
+    if (job.state === "JOB_STATE_COMPLETED" && job.blob) {
+      return job.blob;
+    }
+    await new Promise((r) => setTimeout(r, VIDEO_POLL_INTERVAL_MS));
+  }
+  throw new Error("Bluesky video processing timed out after six minutes");
+}
+async function uploadVideoEmbed(agent, item) {
+  const raw = await loadMediaBuffer3(item.path);
+  const videoSizeError = validateBlueskyVideoByteSize(raw.length);
+  if (videoSizeError) {
+    throw new Error(videoSizeError);
+  }
+  const upload4 = await agent.app.bsky.video.uploadVideo(raw, { encoding: "video/mp4" });
+  const blob = await waitForVideoBlob(agent, upload4.data.jobStatus.jobId);
+  const alt = typeof item.alt === "string" ? item.alt.trim() : "";
+  return { blob, alt };
+}
+async function buildRichTextRecord(agent, message) {
+  const text = stripComposerBodyForEditor("normal", message);
+  const limitError = validateBlueskyText(text);
+  if (limitError) {
+    throw new Error(`Bluesky text ${limitError}`);
+  }
+  const rt = new api.RichText({ text });
+  await rt.detectFacets(agent);
+  if (rt.length > BLUESKY_MAX_GRAPHEMES) {
+    throw new Error(`Bluesky text exceeds the ${BLUESKY_MAX_GRAPHEMES} grapheme limit.`);
+  }
+  return {
+    text: rt.text,
+    facets: rt.facets
+  };
+}
+async function resolveBlueskyQuoteRef(agent, quoteUrl) {
+  const trimmed = quoteUrl.trim();
+  const parsed = parseBlueskyAppPostUrl(trimmed);
+  if (parsed) {
+    const profileRes = await agent.getProfile({ actor: parsed.actor });
+    const did = profileRes.data.did?.trim();
+    if (!did) {
+      throw new Error("Bluesky could not resolve the quoted profile");
+    }
+    const uri = `at://${did}/app.bsky.feed.post/${parsed.rkey}`;
+    return resolveStrongRef(agent, uri);
+  }
+  return resolveStrongRef(agent, trimmed);
+}
+function buildExternalLinkEmbed(settings) {
+  const uri = settings.linkUrl?.trim();
+  if (!uri) return void 0;
+  return {
+    $type: "app.bsky.embed.external",
+    external: {
+      uri,
+      title: settings.linkTitle?.trim() ?? "",
+      description: settings.linkDescription?.trim() ?? ""
+    }
+  };
+}
+async function buildQuoteEmbed(agent, settings) {
+  const quoteUrl = settings.quoteUrl?.trim();
+  if (!quoteUrl) return void 0;
+  const record = await resolveBlueskyQuoteRef(agent, quoteUrl);
+  return {
+    $type: "app.bsky.embed.record",
+    record
+  };
+}
+async function buildSettingsEmbed(agent, settings, hasMedia) {
+  if (hasMedia) return void 0;
+  if (settings.quoteUrl) {
+    return buildQuoteEmbed(agent, settings);
+  }
+  if (settings.linkUrl) {
+    return buildExternalLinkEmbed(settings);
+  }
+  return void 0;
+}
+function threadGateAllowRules(threadGate) {
+  switch (threadGate) {
+    case "everyone":
+      return null;
+    case "nobody":
+      return [];
+    case "mentioned":
+      return [{ $type: "app.bsky.feed.threadgate#mentionRule" }];
+    case "followers":
+      return [{ $type: "app.bsky.feed.threadgate#followerRule" }];
+    case "following":
+      return [{ $type: "app.bsky.feed.threadgate#followingRule" }];
+    default:
+      return null;
+  }
+}
+async function applyBlueskyThreadGate(agent, postUri, threadGate) {
+  const allow = threadGateAllowRules(threadGate);
+  if (allow === null) return;
+  const did = agent.did;
+  if (!did) {
+    throw new Error("Bluesky login did not return an account id");
+  }
+  const rkey = new api.AtUri(postUri).rkey;
+  await agent.app.bsky.feed.threadgate.create(
+    { repo: did, rkey },
+    {
+      post: postUri,
+      allow,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    }
+  );
+}
+async function buildPostEmbed(agent, media) {
+  const mixError = validateBlueskyMediaMix(media);
+  if (mixError) throw new Error(mixError);
+  const kind = classifyBlueskyMedia(media);
+  if (kind === "empty") return void 0;
+  if (kind === "video") {
+    const video = await uploadVideoEmbed(agent, media[0]);
+    return {
+      $type: "app.bsky.embed.video",
+      video: video.blob,
+      ...video.alt ? { alt: video.alt } : {}
+    };
+  }
+  const images = await Promise.all(media.map((m) => uploadImageBlob(agent, m)));
+  return {
+    $type: "app.bsky.embed.images",
+    images: images.map((img) => ({
+      image: img.blob,
+      ...img.alt ? { alt: img.alt } : {}
+    }))
+  };
+}
+function blueskyReleaseUrl(handle, uri) {
+  const at = new api.AtUri(uri);
+  const safeHandle = handle.replace(/^@/, "").trim();
+  return `https://bsky.app/profile/${encodeURIComponent(safeHandle)}/post/${at.rkey}`;
+}
+async function resolveStrongRef(agent, uriOrRef) {
+  const trimmed = uriOrRef.trim();
+  if (!trimmed) {
+    throw new Error("Bluesky post reference is required");
+  }
+  if (trimmed.includes("://")) {
+    const res = await agent.getPosts({ uris: [trimmed] });
+    const post = res.data.posts?.[0];
+    if (!post?.uri || !post.cid) {
+      throw new Error("Bluesky could not resolve the post to reply to");
+    }
+    return { uri: post.uri, cid: post.cid };
+  }
+  throw new Error("Bluesky post reference must be an AT Protocol URI");
+}
+async function publishBlueskyPost(token, postDetails, deps) {
+  const credentials = parseBlueskyToken(token);
+  const createAgent = createBlueskyAgent;
+  const agent = createAgent(credentials.service);
+  await loginBlueskyAgent(agent, credentials);
+  const media = extractBlueskyMediaFromSettings(postDetails.settings);
+  const mixError = validateBlueskyMediaMix(media);
+  if (mixError) throw new Error(mixError);
+  const blueskySettings = resolveBlueskySettings(postDetails.settings);
+  const settingsError = validateBlueskySettingsForMedia(blueskySettings, media);
+  if (settingsError) throw new Error(settingsError);
+  const message = postDetails.message ?? "";
+  if (!message.trim() && media.length === 0 && !blueskySettings.linkUrl && !blueskySettings.quoteUrl) {
+    throw new Error("Bluesky requires text or at least one image or video.");
+  }
+  const rich = await buildRichTextRecord(agent, message);
+  const mediaEmbed = await buildPostEmbed(agent, media);
+  const settingsEmbed = await buildSettingsEmbed(agent, blueskySettings, media.length > 0);
+  const embed = mediaEmbed ?? settingsEmbed;
+  const created = await agent.post({
+    text: rich.text,
+    ...rich.facets?.length ? { facets: rich.facets } : {},
+    ...embed ? { embed } : {}
+  });
+  await applyBlueskyThreadGate(agent, created.uri, blueskySettings.threadGate);
+  const handle = (await agent.getProfile({ actor: agent.did }).catch(() => null))?.data.handle?.trim() || credentials.identifier;
+  return {
+    id: postDetails.id,
+    postId: created.uri,
+    status: "success",
+    releaseURL: blueskyReleaseUrl(handle, created.uri)
+  };
+}
+async function publishBlueskyReply(token, rootPostId, parentPostId, postDetails, deps) {
+  const credentials = parseBlueskyToken(token);
+  const createAgent = createBlueskyAgent;
+  const agent = createAgent(credentials.service);
+  await loginBlueskyAgent(agent, credentials);
+  const media = extractBlueskyMediaFromSettings(postDetails.settings);
+  const mixError = validateBlueskyMediaMix(media);
+  if (mixError) throw new Error(mixError);
+  const blueskySettings = resolveBlueskySettings(postDetails.settings);
+  const settingsError = validateBlueskySettingsForMedia(blueskySettings, media);
+  if (settingsError) throw new Error(settingsError);
+  const message = postDetails.message ?? "";
+  if (!message.trim() && media.length === 0) {
+    throw new Error("Bluesky reply text or media is required");
+  }
+  const root = await resolveStrongRef(agent, rootPostId);
+  const parent = await resolveStrongRef(agent, parentPostId);
+  const rich = await buildRichTextRecord(agent, message);
+  const mediaEmbed = await buildPostEmbed(agent, media);
+  const settingsEmbed = await buildSettingsEmbed(agent, blueskySettings, media.length > 0);
+  const embed = mediaEmbed ?? settingsEmbed;
+  const created = await agent.post({
+    text: rich.text,
+    ...rich.facets?.length ? { facets: rich.facets } : {},
+    ...embed ? { embed } : {},
+    reply: {
+      root,
+      parent
+    }
+  });
+  const handle = (await agent.getProfile({ actor: agent.did }).catch(() => null))?.data.handle?.trim() || credentials.identifier;
+  return {
+    id: postDetails.id,
+    postId: created.uri,
+    status: "success",
+    releaseURL: blueskyReleaseUrl(handle, created.uri)
+  };
+}
+async function searchBlueskyActors(token, query, deps) {
+  const q = query.trim().replace(/^@/, "");
+  if (!q) return { none: true };
+  const credentials = parseBlueskyToken(token);
+  const createAgent = createBlueskyAgent;
+  const agent = createAgent(credentials.service);
+  await loginBlueskyAgent(agent, credentials);
+  const res = await agent.searchActors({ q, limit: 10 });
+  const actors = res.data.actors ?? [];
+  if (!actors.length) return { none: true };
+  return actors.map((actor) => ({
+    id: actor.handle || actor.did,
+    label: actor.displayName ? `${actor.displayName} (@${actor.handle})` : `@${actor.handle}`,
+    image: actor.avatar?.trim() || ""
+  }));
+}
+var BLUESKY_BLOB_MAX_BYTES, VIDEO_JOB_TIMEOUT_MS, VIDEO_POLL_INTERVAL_MS;
+var init_blueskyPublish = __esm({
+  "integrations/providers/bluesky/blueskyPublish.ts"() {
+    init_upload_factory();
+    init_MediaRepository();
+    init_repositories();
+    init_stripComposerBodyForEditor();
+    init_tiktokPublishValidation();
+    init_blueskyCredentials();
+    init_blueskyMedia();
+    init_resolveBlueskySettings();
+    init_blueskyText();
+    BLUESKY_BLOB_MAX_BYTES = 976e3;
+    VIDEO_JOB_TIMEOUT_MS = 6 * 60 * 1e3;
+    VIDEO_POLL_INTERVAL_MS = 2e3;
+  }
+});
+
+// integrations/providers/bluesky/blueskyPlugs.ts
+function sleepMs7(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+async function fetchBlueskyPostLikeCount(postUri, deps) {
+  const uri = postUri.trim();
+  if (!uri.includes("://")) {
+    throw new Error("Missing Bluesky post URI for like lookup");
+  }
+  const createAppViewAgent = createBlueskyAppViewAgent;
+  const agent = createAppViewAgent();
+  const res = await agent.getPosts({ uris: [uri] });
+  const post = res.data.posts?.[0];
+  return post?.likeCount ?? 0;
+}
+async function resolvePostStrongRef(agent, postUri) {
+  const uri = postUri.trim();
+  if (!uri.includes("://")) {
+    throw new Error("Bluesky post reference must be an AT Protocol URI");
+  }
+  const res = await agent.getPosts({ uris: [uri] });
+  const post = res.data.posts?.[0];
+  if (!post?.uri || !post.cid) {
+    throw new Error("Bluesky could not resolve the post to repost");
+  }
+  return { uri: post.uri, cid: post.cid };
+}
+async function repostBlueskyPost(token, postUri, deps) {
+  const credentials = parseBlueskyToken(token);
+  const createAgent = createBlueskyAgent;
+  const agent = createAgent(credentials.service);
+  await loginBlueskyAgent(agent, credentials);
+  const subject = await resolvePostStrongRef(agent, postUri);
+  await agent.repost(subject.uri, subject.cid);
+}
+async function runBlueskyAutoRepostPlug(integration, postUri, fields, deps) {
+  const threshold = Number(fields.likesAmount);
+  if (!Number.isFinite(threshold) || threshold < 0) return false;
+  const likes = await fetchBlueskyPostLikeCount(postUri);
+  if (likes < threshold) return false;
+  await sleepMs7(2e3);
+  await repostBlueskyPost(integration.token, postUri);
+  return true;
+}
+async function runBlueskyAutoPlugPost(integration, postUri, fields, publishReply, deps) {
+  const threshold = Number(fields.likesAmount);
+  if (!Number.isFinite(threshold) || threshold < 0) return false;
+  const likes = await fetchBlueskyPostLikeCount(postUri);
+  if (likes < threshold) return false;
+  await sleepMs7(2e3);
+  const text = stripComposerBodyForEditor("normal", fields.post ?? "");
+  if (text.length < 3) return false;
+  const trimmed = postUri.trim();
+  await publishReply(text, trimmed, trimmed);
+  return true;
+}
+var BLUESKY_GLOBAL_PLUG_CATALOG;
+var init_blueskyPlugs = __esm({
+  "integrations/providers/bluesky/blueskyPlugs.ts"() {
+    init_stripComposerBodyForEditor();
+    init_blueskyAnalytics();
+    init_blueskyCredentials();
+    init_blueskyPublish();
+    BLUESKY_GLOBAL_PLUG_CATALOG = [
+      {
+        methodName: "autoRepostPost",
+        identifier: "bluesky-auto-repost",
+        title: "Auto repost posts",
+        description: "When a post reaches a certain number of likes, repost it to increase engagement (runs up to 3 times, every 6 hours).",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the repost",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          }
+        ]
+      },
+      {
+        methodName: "autoPlugPost",
+        identifier: "bluesky-auto-plug",
+        title: "Auto plug post",
+        description: "When a post reaches a certain number of likes, publish a reply from this account to promote it.",
+        runEveryMilliseconds: 216e5,
+        totalRuns: 3,
+        fields: [
+          {
+            name: "likesAmount",
+            description: "The number of likes required to trigger the reply",
+            type: "number",
+            placeholder: "Amount of likes",
+            validation: "/^\\d+$/"
+          },
+          {
+            name: "post",
+            description: "Message content for the reply",
+            type: "richtext",
+            placeholder: "Post to plug",
+            validation: "/^[\\s\\S]{3,}$/g"
+          }
+        ]
+      }
+    ];
+  }
+});
+function tokenTtlSeconds2() {
+  return dayjs6__default.default().add(BLUESKY_TOKEN_TTL_YEARS, "year").unix() - dayjs6__default.default().unix();
+}
+function authTokenFromProfile2(token, profile) {
+  return {
+    id: profile.id,
+    name: profile.name,
+    accessToken: token,
+    refreshToken: token,
+    expiresIn: tokenTtlSeconds2(),
+    picture: profile.picture,
+    username: profile.username
+  };
+}
+var BLUESKY_TOKEN_TTL_YEARS, BlueskyProvider;
+var init_blueskyProvider = __esm({
+  "integrations/providers/bluesky/blueskyProvider.ts"() {
+    init_makeId();
+    init_blueskyCredentials();
+    init_blueskyMedia();
+    init_resolveBlueskyPds();
+    init_blueskyAnalytics();
+    init_blueskyPublish();
+    init_blueskyPlugs();
+    BLUESKY_TOKEN_TTL_YEARS = 100;
+    BlueskyProvider = class {
+      identifier = "bluesky";
+      name = "Bluesky";
+      editor = "normal";
+      isBetweenSteps = false;
+      scopes = [];
+      toolTip = "Connect with your Bluesky handle and an app password";
+      rules = "Bluesky posts support plain text up to 300 characters, up to four images or one MP4 video (not mixed), and scheduled thread replies on the same account. Links and @handles become rich-text facets at publish time.";
+      globalPlugCatalog() {
+        return BLUESKY_GLOBAL_PLUG_CATALOG;
+      }
+      maxLength(_additionalSettings) {
+        return BLUESKY_MAX_GRAPHEMES;
+      }
+      validateCreatePost(input) {
+        const media = extractBlueskyMediaFromSettings(input.providerSettings);
+        const mixError = validateBlueskyMediaMix(media);
+        if (mixError) return mixError;
+        if (input.status !== "scheduled") return null;
+        const message = (input.message ?? "").trim();
+        if (message.length > 0) return null;
+        if (input.mediaCount > 0 || media.length > 0) return null;
+        return "Bluesky requires text or at least one image or video.";
+      }
+      async connectPrefill(input) {
+        if (input.field !== "identifier") {
+          return { skipped: true };
+        }
+        const resolved = await resolveBlueskyPdsFromIdentifier(input.value);
+        if (!resolved) {
+          return { skipped: true };
+        }
+        return { updates: { service: resolved.serviceUrl }, did: resolved.did };
+      }
+      async customFields() {
+        return [
+          {
+            key: "service",
+            label: "Service",
+            defaultValue: "https://bsky.social",
+            validation: "/^https:\\/\\/.+/",
+            type: "text"
+          },
+          {
+            key: "identifier",
+            label: "Handle or email",
+            validation: "/^.{1,}$/",
+            type: "text"
+          },
+          {
+            key: "password",
+            label: "App password",
+            validation: "/^.{1,}$/",
+            type: "password"
+          }
+        ];
+      }
+      async generateAuthUrl() {
+        const state = makeId(6);
+        const codeVerifier = makeId(10);
+        return { url: state, codeVerifier, state };
+      }
+      async authenticate(params) {
+        try {
+          const decoded = decodeBlueskyConnectCode(params.code);
+          const credentials = await applyBlueskyResolvedPdsToCredentials(decoded);
+          await assertPublicHttpsBlueskyService(credentials.service);
+          const profile = await fetchBlueskyProfileForCredentials(credentials);
+          const token = serializeBlueskyToken(credentials);
+          return authTokenFromProfile2(token, profile);
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "Invalid account details";
+          if (/invalid account details/i.test(msg)) {
+            return "Invalid account details";
+          }
+          if (/service url|https|handle|pds|resolve|account id/i.test(msg)) {
+            return msg;
+          }
+          return "Invalid account details";
+        }
+      }
+      /** Re-validates stored credentials and extends expiry; does not persist session JWTs. */
+      async refreshToken(refreshToken) {
+        const credentials = parseBlueskyToken(refreshToken);
+        await assertPublicHttpsBlueskyService(credentials.service);
+        const profile = await fetchBlueskyProfileForCredentials(credentials);
+        const token = serializeBlueskyToken(credentials);
+        return authTokenFromProfile2(token, profile);
+      }
+      async post(_id, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const result = await publishBlueskyPost(accessToken2, postDetails[0]);
+        return [result];
+      }
+      async comment(_userId, postId, lastCommentId, accessToken2, postDetails, _integration) {
+        if (!postDetails.length) return [];
+        const parentId = (lastCommentId ?? postId ?? "").trim();
+        if (!postId.trim() || !parentId) {
+          throw new Error("Bluesky reply root and parent references are required");
+        }
+        const result = await publishBlueskyReply(accessToken2, postId, parentId, postDetails[0]);
+        return [result];
+      }
+      async mention(token, data, _id, _integration) {
+        return searchBlueskyActors(token, data.query ?? "");
+      }
+      mentionFormat(idOrHandle, name) {
+        const handle = idOrHandle.replace(/^@/, "").trim();
+        const display = name.replace(/^@/, "").trim();
+        return `@${handle || display}`;
+      }
+      /** Account insights from the public App View author feed (`internal_id` = account DID). */
+      async analytics(id, accessToken2, dateWindowDays) {
+        try {
+          return await fetchBlueskyAccountAnalytics2(id, accessToken2, dateWindowDays);
+        } catch {
+          return [];
+        }
+      }
+      /** Per-post likes, replies, reposts, and quotes (`release_id` = AT Protocol post URI). */
+      async postAnalytics(_integrationId, _accessToken, releaseId, _fromDateDays) {
+        try {
+          return await fetchBlueskyPostAnalytics2(releaseId);
+        } catch {
+          return [];
+        }
+      }
+      async autoRepostPost(integration, postUri, fields) {
+        return runBlueskyAutoRepostPlug(integration, postUri, fields);
+      }
+      async autoPlugPost(integration, postUri, fields) {
+        return runBlueskyAutoPlugPost(integration, postUri, fields, async (message, rootUri, parentUri) => {
+          await this.comment(
+            integration.internal_id,
+            rootUri,
+            parentUri,
+            integration.token,
+            [{ id: makeId(10), message, settings: {} }],
+            integration
+          );
+        });
+      }
+    };
+  }
+});
 
 // integrations/integrationManager.ts
 var socialIntegrationList, IntegrationManager;
@@ -21282,6 +22596,7 @@ var init_integrationManager = __esm({
     init_youtubeProvider();
     init_xProvider();
     init_devtoProvider();
+    init_blueskyProvider();
     socialIntegrationList = [
       new ThreadsProvider(),
       new FacebookProvider(),
@@ -21292,7 +22607,8 @@ var init_integrationManager = __esm({
       new YoutubeProvider(),
       new TiktokProvider(),
       new XProvider(),
-      new DevToProvider()
+      new DevToProvider(),
+      new BlueskyProvider()
     ];
     IntegrationManager = class {
       getAllIntegrations() {
@@ -22199,6 +23515,28 @@ var init_PlugService = __esm({
     };
   }
 });
+
+// services/integrationConnectPrefill.ts
+async function runConnectPrefill(manager, providerIdentifier, field, value) {
+  if (!manager.getAllowedSocialsIntegrations().includes(providerIdentifier)) {
+    throw new AppError("Integration not allowed", 400);
+  }
+  const provider = manager.getSocialIntegration(providerIdentifier);
+  if (!provider?.connectPrefill) {
+    throw new AppError("Connect prefill is not supported for this channel", 400);
+  }
+  try {
+    return await provider.connectPrefill({ field, value });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "Connect prefill failed";
+    throw new AppError(msg, 400);
+  }
+}
+var init_integrationConnectPrefill = __esm({
+  "services/integrationConnectPrefill.ts"() {
+    init_AppError();
+  }
+});
 function rootInternalId(internalId) {
   const parts = internalId.split("_");
   return parts.length > 1 ? parts.pop() ?? null : internalId;
@@ -22244,6 +23582,7 @@ var init_IntegrationConnectionService = __esm({
     init_AppError();
     init_InfraError();
     init_ProviderIntegrationErrors();
+    init_integrationConnectPrefill();
     init_mirrorIntegrationProfilePicture();
     init_allowedExternalImageHosts();
     init_providerProfilePictureFetch();
@@ -22653,6 +23992,10 @@ var init_IntegrationConnectionService = __esm({
           const result = await invoke({ ...row, token: refreshed.accessToken });
           return { output: result };
         }
+      }
+      /** GET /integrations/connect-prefill/:providerIdentifier — credentials connect form prefill. */
+      async connectPrefill(_authUserId, providerIdentifier, field, value) {
+        return runConnectPrefill(this.manager, providerIdentifier, field, value);
       }
       /** POST /integrations/mentions — provider @-mention autocomplete for composer. */
       async searchIntegrationMentions(authUserId, organizationId, integrationId, query) {
@@ -23360,7 +24703,7 @@ var init_TransactionalNotificationEmailService = __esm({
     };
   }
 });
-function isPlainObject14(value) {
+function isPlainObject15(value) {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function providerCaptionDisplayName(providerIdentifier) {
@@ -23386,6 +24729,8 @@ function providerCaptionDisplayName(providerIdentifier) {
       return "YouTube";
     case "devto":
       return "Dev.to";
+    case "bluesky":
+      return "Bluesky";
     default:
       return providerIdentifier.trim() || "Channel";
   }
@@ -23397,8 +24742,12 @@ function pushCaptionText(out, text, label) {
 }
 function measureProviderCaptionLength(providerIdentifier, strippedText) {
   const text = typeof strippedText === "string" ? strippedText : "";
-  if (providerIdentifier.trim().toLowerCase() === "x") {
+  const id = providerIdentifier.trim().toLowerCase();
+  if (id === "x") {
     return twitterText__default.default.parseTweet(text).weightedLength;
+  }
+  if (id === "bluesky") {
+    return blueskyGraphemeLength(text);
   }
   return text.length;
 }
@@ -23409,6 +24758,15 @@ function resolveProviderMaxLength(provider, additionalSettingsJson) {
 function validateProviderCaptionLength(input) {
   const stripped = stripComposerBodyForEditor(input.provider.editor ?? "normal", input.message ?? "");
   if (!stripped) return null;
+  const providerId = input.providerIdentifier.trim().toLowerCase();
+  if (providerId === "bluesky") {
+    const blueskyError = validateBlueskyText(stripped);
+    if (blueskyError) {
+      const label2 = (input.label ?? `${input.provider.name} caption`).trim() || `${input.provider.name} caption`;
+      return `${label2} ${blueskyError}`;
+    }
+    return null;
+  }
   const used = measureProviderCaptionLength(input.providerIdentifier, stripped);
   const max = resolveProviderMaxLength(input.provider, input.additionalSettings);
   if (used <= max) return null;
@@ -23424,12 +24782,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   const id = providerIdentifier.trim().toLowerCase();
   if (id === "threads") {
-    const threads = isPlainObject14(providerSettings.threads) ? providerSettings.threads : null;
+    const threads = isPlainObject15(providerSettings.threads) ? providerSettings.threads : null;
     if (threads) {
       if (threads.enabled === true) {
         pushCaptionText(out, threads.message, `${displayName} thread finisher`);
       }
-      const engagement = isPlainObject14(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
+      const engagement = isPlainObject15(threads.internalEngagementPlug) ? threads.internalEngagementPlug : null;
       if (engagement?.enabled === true) {
         pushCaptionText(out, engagement.message, `${displayName} delayed engagement`);
       }
@@ -23437,12 +24795,12 @@ function collectCaptionTextsFromProviderSettings(providerIdentifier, providerSet
   }
   for (const bucket of CROSS_ACCOUNT_PLUG_BUCKETS) {
     const bucketSettings = providerSettings[bucket];
-    if (!isPlainObject14(bucketSettings)) continue;
+    if (!isPlainObject15(bucketSettings)) continue;
     const plugs = bucketSettings.crossAccountPlugs;
     if (!Array.isArray(plugs)) continue;
     for (const plug of plugs) {
-      if (!isPlainObject14(plug)) continue;
-      const fields = isPlainObject14(plug.fields) ? plug.fields : null;
+      if (!isPlainObject15(plug)) continue;
+      const fields = isPlainObject15(plug.fields) ? plug.fields : null;
       pushCaptionText(out, fields?.comment, `${displayName} cross-account plug comment`);
     }
   }
@@ -23477,6 +24835,7 @@ var init_validateProviderCaptionLength = __esm({
   "utils/content/validateProviderCaptionLength.ts"() {
     init_PostDTO();
     init_additionalSettings();
+    init_blueskyText();
     init_stripComposerBodyForEditor();
     CROSS_ACCOUNT_PLUG_BUCKETS = ["threads", "x", "linkedin"];
   }
@@ -23599,7 +24958,7 @@ var init_expandRecurringPostsForCalendarRange = __esm({
     init_recurringPublishDate();
   }
 });
-function sleepMs7(ms) {
+function sleepMs8(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 function tagsListCacheKey(organizationId) {
@@ -24871,7 +26230,7 @@ var init_PostsService = __esm({
           }
           integrationRow.token = refreshed.accessToken;
           if (provider?.refreshWait) {
-            await sleepMs7(1e4);
+            await sleepMs8(1e4);
           }
         }
         return integrationRow;
@@ -32525,6 +33884,27 @@ var init_IntegrationController = __esm({
           next(error);
         }
       };
+      /** GET /integrations/connect-prefill/:providerIdentifier?field=&value= */
+      connectPrefill = async (req, res, next) => {
+        try {
+          const authReq = req;
+          const authUserId = authReq.user?.id;
+          if (!authUserId) {
+            return next(new UserAuthorizationError("Not authenticated"));
+          }
+          const providerIdentifier = req.params.providerIdentifier;
+          const { field, value } = req.query;
+          const data = await this.integrationConnectionService.connectPrefill(
+            authUserId,
+            providerIdentifier,
+            field,
+            value
+          );
+          res.status(200).json({ success: true, data });
+        } catch (error) {
+          next(error);
+        }
+      };
       /** POST /integrations/mentions — @-mention autocomplete for a connected channel. */
       searchIntegrationMentions = async (req, res, next) => {
         try {
@@ -37678,6 +39058,8 @@ var blogPostFields = {
   is_admin_approved: zod.z.boolean().default(false),
   /** Optional FAQ Q&A pairs; empty array or null clears. */
   faq_items: zod.z.array(blogFaqItemSchema).optional().nullable(),
+  /** Optional HowTo title; empty or null uses post title in JSON-LD and on-page heading. */
+  howto_name: zod.z.string().max(200, "How-to title must be at most 200 characters").optional().nullable(),
   /** Optional HowTo steps; empty array or null clears. */
   howto_steps: zod.z.array(blogHowtoStepSchema).optional().nullable(),
   /** Optional product summary; null clears. */
@@ -38704,6 +40086,17 @@ var integrationMentionsBodySchema = zod.z.object({
   integrationId: zod.z.string().uuid("Invalid integration id"),
   query: zod.z.string().trim().min(1, "query is required").max(200)
 });
+var integrationConnectPrefillParamsSchema = zod.z.object({
+  providerIdentifier: zod.z.string().min(1, "providerIdentifier is required")
+});
+var integrationConnectPrefillQuerySchema = zod.z.object({
+  field: zod.z.string().trim().min(1, "field is required").max(100),
+  value: zod.z.string().trim().min(1, "value is required").max(512)
+});
+var validateIntegrationConnectPrefillRequest = validateRequest({
+  params: integrationConnectPrefillParamsSchema,
+  query: integrationConnectPrefillQuerySchema
+});
 var validateIntegrationMentionsRequest = validateRequest({
   body: integrationMentionsBodySchema
 });
@@ -38796,6 +40189,11 @@ init_dist();
 var integrationSessionRouter = express.Router();
 var auth2 = requireFullAuth(supabase);
 integrationSessionRouter.use(auth2);
+integrationSessionRouter.get(
+  "/connect-prefill/:providerIdentifier",
+  validateIntegrationConnectPrefillRequest,
+  integrationController.connectPrefill
+);
 integrationSessionRouter.get("/plug/list", integrationController.getPlugCatalog);
 integrationSessionRouter.get(
   "/internal-plugs/:providerIdentifier",

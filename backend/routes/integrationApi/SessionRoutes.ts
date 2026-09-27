@@ -11,6 +11,7 @@ import {
     validateIntegrationCreateCustomerBody,
     validateIntegrationGroup,
     validateIntegrationMentionsRequest,
+    validateIntegrationConnectPrefillRequest,
 } from "../../data/schemas/integrationSchemas";
 import {
     validateIntegrationInternalPlugsRequest,
@@ -30,6 +31,11 @@ const auth = requireFullAuth(supabaseAnonClient);
 
 integrationSessionRouter.use(auth);
 
+integrationSessionRouter.get(
+    "/connect-prefill/:providerIdentifier",
+    validateIntegrationConnectPrefillRequest,
+    integrationController.connectPrefill
+);
 integrationSessionRouter.get("/plug/list", integrationController.getPlugCatalog);
 integrationSessionRouter.get(
     "/internal-plugs/:providerIdentifier",

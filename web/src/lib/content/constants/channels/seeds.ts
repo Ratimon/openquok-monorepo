@@ -22,8 +22,8 @@ export const PUBLIC_CHANNEL_LANDING_PAGES: readonly PublicChannelLandingPageView
 	tiktokChannel,
 	linkedinChannel,
 	xChannel,
-	devtoChannel,
 	blueskyChannel,
+	devtoChannel,
 	...COMING_SOON_CHANNELS
 ];
 

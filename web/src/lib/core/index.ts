@@ -7,7 +7,7 @@ import { DownloadImagePresenter } from '$lib/core/DownloadImage.presenter.svelte
 import { SupabaseImageUploadAreaPresenter } from '$lib/core/SupabaseImageUploadArea.presenter.svelte';
 import { UploadImagePresenter } from '$lib/core/UploadImage.presenter.svelte';
 import { AvatarUploadPresenter } from '$lib/core/AvatarUpload.presenter.svelte';
-import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
+import { getApiBaseUrl } from '$lib/config/constants/apiBaseUrl';
 
 export const imageEndpoints = {
 	getImageBlob: '/api/v1/image/download',
@@ -20,7 +20,7 @@ export const imageEndpoints = {
 
 const imageConfig: ImageConfig = { endpoints: imageEndpoints };
 
-const httpGateway = new HttpGateway(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default as string, {
+const httpGateway = new HttpGateway(getApiBaseUrl(), {
 	headers: {
 		'Content-Type': 'application/json',
 		Accept: 'application/json'

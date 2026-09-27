@@ -439,6 +439,7 @@
 <CredentialsConnectDialog
 	bind:open={credentialsOpen}
 	providerName={credentialsProviderName}
+	providerIdentifier={credentialsProviderIdentifier}
 	fields={credentialsFields}
 	submitting={credentialsSubmitting}
 	onSubmit={submitCredentials}

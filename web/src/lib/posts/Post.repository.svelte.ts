@@ -38,6 +38,8 @@ export type PostMediaProgrammerModel = {
 	thumbnailTimestamp?: number | null;
 	/** Client preview only — from upload/list APIs; not sent on create/update payloads. */
 	publicUrl?: string | null;
+	/** Client-only upload size (bytes) for provider validation; not sent on create/update payloads. */
+	byteSize?: number;
 };
 
 function isComposerMediaFile(file: File): boolean {
@@ -87,6 +89,7 @@ export async function uploadSocialPostComposerMediaFiles(
 				id: resolvePostMediaLibraryRowId(result.data.id),
 				path: result.data.filePath,
 				bucket: 'social_media',
+				byteSize: file.size,
 				...(localPreviewUrl ? { localPreviewUrl } : {}),
 				...(publicUrl ? { publicUrl } : {})
 			});

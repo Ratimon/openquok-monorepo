@@ -2,7 +2,7 @@
 title: Bluesky
 description: OpenQuok CLI examples for Bluesky — text, images, video, and follow-up replies with an app-password channel.
 order: 11
-lastUpdated: 2026-09-26
+lastUpdated: 2026-09-27
 ---
 
 <script>
@@ -49,7 +49,7 @@ openquok posts:create \
 
 ## Post with video
 
-One MP4 per post — do not attach images in the same post.
+One MP4 per post — do not attach images in the same post. Bluesky rejects files over **300 MB** or longer than **10 minutes**.
 
 ```bash
 MEDIA=$(openquok upload ./clip.mp4 | jq -c '[{id: .data.id, path: (.data.path // .data.filePath)}]')
@@ -65,6 +65,29 @@ openquok posts:create \
 <Callout type="note">
 <p>Bluesky caps scheduled text at <strong>300</strong> graphemes for the main <Badge text="-c" variant="param" /> caption and each <Badge text="bluesky.replies[].message" variant="param" /> row. Use <Badge text="-t draft" variant="param" /> to store longer copy until you shorten it.</p>
 </Callout>
+
+## Link card or quote (text-only)
+
+Set embed fields under <Badge text="bluesky" variant="default" /> — no <Badge text="-m" variant="param" /> media on the same post:
+
+```bash
+openquok posts:create \
+  -s "2026-01-15T10:00:00Z" \
+  -t schedule \
+  -c "Read the full write-up on our site." \
+  -i "$BLUESKY_ID" \
+  --providerSettingsByIntegrationId "$(jq -nc --arg id "$BLUESKY_ID" '
+    {
+      ($id): {
+        bluesky: {
+          linkUrl: "https://example.com/post",
+          linkTitle: "Example article",
+          threadGate: "everyone"
+        }
+      }
+    }
+  ')"
+```
 
 ## Follow-up reply
 

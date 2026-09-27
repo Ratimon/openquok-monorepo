@@ -1502,6 +1502,14 @@ describe("IntegrationConnectionService", () => {
             expect(threadsEntry?.plugs.some((g) => g.methodName === "autoPlugPost")).toBe(true);
         });
 
+        it("getPlugCatalog returns bluesky global plugs shape", () => {
+            const out = service().getPlugCatalog();
+            expect(out.plugs.map((p) => p.identifier)).toContain("bluesky");
+            const blueskyEntry = out.plugs.find((p) => p.identifier === "bluesky");
+            expect(blueskyEntry?.plugs.some((g) => g.methodName === "autoRepostPost")).toBe(true);
+            expect(blueskyEntry?.plugs.some((g) => g.methodName === "autoPlugPost")).toBe(true);
+        });
+
         it("getInternalPlugDefinitions requires membership and returns Threads internal plugs", async () => {
             mockActiveMember();
             const out = await service().getInternalPlugDefinitions(authUserId, orgId, "threads");

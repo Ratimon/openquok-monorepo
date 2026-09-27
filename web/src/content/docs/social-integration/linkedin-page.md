@@ -1,6 +1,6 @@
 ---
 title: LinkedIn Page
-description: How to configure a LinkedIn company page for OpenQuok — TikTok Developer portal, OAuth redirect URI, scopes, and backend env vars
+description: How to configure a LinkedIn company page for OpenQuok
 order: 8
 lastUpdated: 2026-08-26
 ---
@@ -17,34 +17,6 @@ For **personal profiles**, see <a href="/docs/social-integration/linkedin">Linke
 
 <Callout type="note" title="One LinkedIn app">
 <p>Page and personal channels use the same <Badge text="LINKEDIN_CLIENT_ID" variant="envBackend" /> and <Badge text="LINKEDIN_CLIENT_SECRET" variant="envBackend" />. Register <strong>both</strong> OAuth redirect URIs if you connect either or both channel types.</p>
-</Callout>
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Text posts | Up to 3,000 characters |
-| Images | Multi-image posts |
-| MP4 video | One attachment per post |
-| Follow-up text comments | Text-only replies after the main post |
-| Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in composer settings — OpenQuok combines images into a PDF document share at publish time. Optional **Carousel document title** (default: `slides`). LinkedIn is the only OpenQuok provider with document-carousel posts |
-| Account analytics | Page-level insights |
-| Per-post analytics | Engagement metrics on published posts |
-| Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
-| Page auto-repost / auto-plug | On a connected <Badge text="linkedin-page" variant="default" /> channel, open **Plugs**: **Auto repost posts** (reshare when likes reach a threshold, up to 3 times every 6 hours) and **Auto plug post** (promotional comment from the Page) |
-| Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
-| @-mention lookup | Same as personal LinkedIn — unlock the Page channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions |
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| Direct PDF file upload | Attach ≥2 images (no video); OpenQuok builds the PDF at publish time — the public media upload API does not accept `application/pdf` |
-
-<Callout type="note" title="Other providers">
-The public media upload API does not accept <code>application/pdf</code> for other social channels.
 </Callout>
 
 ## Backend environment
@@ -135,6 +107,34 @@ Copy <strong>Client ID</strong> and <strong>Client Secret</strong> into <Badge t
 
 </Steps>
 
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Text posts | Up to 3,000 characters |
+| Images | Multi-image posts |
+| MP4 video | One attachment per post |
+| Follow-up text comments | Text-only replies after the main post |
+| Image → PDF document carousel | ≥2 images, no video; enable **Post as image carousel** in composer settings — OpenQuok combines images into a PDF document share at publish time. Optional **Carousel document title** (default: `slides`). LinkedIn is the only OpenQuok provider with document-carousel posts |
+| Account analytics | Page-level insights |
+| Per-post analytics | Engagement metrics on published posts |
+| Cross-account comment / reshare plugs | In per-channel settings, enable **Add comments by a different account** or **Add re-posters**; pick other connected LinkedIn channels, set a delay, and (for comments) the message text. Rules run after the post is live |
+| Page auto-repost / auto-plug | On a connected <Badge text="linkedin-page" variant="default" /> channel, open **Plugs**: **Auto repost posts** (reshare when likes reach a threshold, up to 3 times every 6 hours) and **Auto plug post** (promotional comment from the Page) |
+| Company mention | Composer toolbar LinkedIn icon — paste a `linkedin.com/company/…` URL to insert an organization mention tag |
+| @-mention lookup | Same as personal LinkedIn — unlock the Page channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick an organization from suggestions |
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| Direct PDF file upload | Attach ≥2 images (no video); OpenQuok builds the PDF at publish time — the public media upload API does not accept `application/pdf` |
+
+<Callout type="note" title="Other providers">
+The public media upload API does not accept <code>application/pdf</code> for other social channels.
+</Callout>
 
 ## Related
 

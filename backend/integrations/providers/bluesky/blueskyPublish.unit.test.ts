@@ -35,6 +35,11 @@ function mockAgent(overrides: Partial<BskyAgent> = {}): BskyAgent {
         }),
         app: {
             bsky: {
+                feed: {
+                    threadgate: {
+                        create: jest.fn().mockResolvedValue({ uri: "at://did:plc:alice/app.bsky.feed.threadgate/abc123" }),
+                    },
+                },
                 video: {
                     uploadVideo: jest.fn(),
                     getJobStatus: jest.fn(),
@@ -112,5 +117,75 @@ describe("blueskyPublish", () => {
                 image: "https://cdn.example/avatar.jpg",
             },
         ]);
+    });
+
+    it("publishes external link cards from settings", async () => {
+        const agent = mockAgent();
+        await publishBlueskyPost(
+            TOKEN,
+            {
+                id: "post-link",
+                message: "Read this",
+                settings: {
+                    providerSettings: {
+                        linkUrl: "https://example.com/article",
+                        linkTitle: "Example",
+                        linkDescription: "Summary",
+                    },
+                },
+            },
+            { createAgent: () => agent }
+        );
+        expect(agent.post).toHaveBeenCalledWith(
+            expect.objectContaining({
+                embed: {
+                    $type: "app.bsky.embed.external",
+                    external: {
+                        uri: "https://example.com/article",
+                        title: "Example",
+                        description: "Summary",
+                    },
+                },
+            })
+        );
+    });
+
+    it("publishes quote embeds and thread gates", async () => {
+        const quoteUri = "at://did:plc:bob/app.bsky.feed.post/quoted";
+        const agent = mockAgent({
+            getPosts: jest.fn().mockResolvedValue({
+                data: { posts: [{ uri: quoteUri, cid: "bafyquote" }] },
+            }),
+        });
+
+        await publishBlueskyPost(
+            TOKEN,
+            {
+                id: "post-quote",
+                message: "My take",
+                settings: {
+                    providerSettings: {
+                        quoteUrl: quoteUri,
+                        threadGate: "nobody",
+                    },
+                },
+            },
+            { createAgent: () => agent }
+        );
+
+        expect(agent.post).toHaveBeenCalledWith(
+            expect.objectContaining({
+                embed: {
+                    $type: "app.bsky.embed.record",
+                    record: { uri: quoteUri, cid: "bafyquote" },
+                },
+            })
+        );
+        expect(agent.app.bsky.feed.threadgate.create).toHaveBeenCalledWith(
+            expect.objectContaining({ rkey: "abc123" }),
+            expect.objectContaining({
+                allow: [],
+            })
+        );
     });
 });

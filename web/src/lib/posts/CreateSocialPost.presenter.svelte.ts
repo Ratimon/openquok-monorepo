@@ -73,7 +73,9 @@ import {
 	composerBodyForEditorMode,
 	computeSoftCharLimitAcrossSelected,
 	createComposerTextHistory,
+	blueskyGraphemeLength,
 	maxCharactersForChannel,
+	selectedIdsIncludeBlueskyChannel,
 	selectedIdsIncludeXChannel,
 	stripComposerBodyForEditor,
 	validateScheduledCaptionsForChannels,
@@ -255,9 +257,21 @@ export class CreateSocialPostPresenter {
 			selectedIdsIncludeXChannel(this.selectedIds, this.baseSocialChannelsVm)
 		);
 	});
+	usesBlueskyGraphemeCount = $derived.by(() => {
+		if (this.usesWeightedCharCount) return false;
+		if ((this.focusedProviderIdentifier ?? '').toLowerCase() === 'bluesky') return true;
+		return (
+			this.mode === 'global' &&
+			this.selectedIds.length > 0 &&
+			selectedIdsIncludeBlueskyChannel(this.selectedIds, this.baseSocialChannelsVm)
+		);
+	});
 	charCount = $derived.by(() => {
 		if (this.usesWeightedCharCount) {
 			return xWeightedLength(this.charCountText);
+		}
+		if (this.usesBlueskyGraphemeCount) {
+			return blueskyGraphemeLength(this.charCountText);
 		}
 		return this.charCountText.length;
 	});

@@ -2,9 +2,9 @@ import type { MetaTagsProps } from 'svelte-meta-tags';
 
 import { env } from '$env/dynamic/private';
 
-import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { configRepository } from '$lib/config/Config.repository.svelte';
 import { getCompanyConfigDefaults, getPublicFooterLinks } from '$lib/config/constants/config';
+import { publicLayoutPagePresenter } from '$lib/area-public/index';
 import { mergeModuleConfigDefaults } from '$lib/config/utils/mergeModuleConfigDefaults';
 import {
 	getStaticCompanyInformationPm,

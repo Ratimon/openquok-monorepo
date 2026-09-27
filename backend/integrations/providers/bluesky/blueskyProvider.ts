@@ -1,5 +1,7 @@
 import type {
+    AnalyticsData,
     AuthTokenDetails,
+    ConnectPrefillResult,
     GenerateAuthUrlResponse,
     IntegrationRecord,
     PostDetails,
@@ -7,6 +9,7 @@ import type {
     SocialProvider,
     ValidateCreatePostInput,
 } from "../../social.integrations.interface";
+import type { GlobalPlugCatalogEntryDto } from "../../../utils/dtos/PlugDTO";
 
 import dayjs from "dayjs";
 import { makeId } from "../../../utils/ids/makeId";
@@ -17,12 +20,19 @@ import {
     serializeBlueskyToken,
 } from "./blueskyCredentials";
 import { BLUESKY_MAX_LENGTH, extractBlueskyMediaFromSettings, validateBlueskyMediaMix } from "./blueskyMedia";
+import { applyBlueskyResolvedPdsToCredentials, resolveBlueskyPdsFromIdentifier } from "./resolveBlueskyPds";
+import { fetchBlueskyAccountAnalytics, fetchBlueskyPostAnalytics } from "./blueskyAnalytics";
 import {
     fetchBlueskyProfileForCredentials,
     publishBlueskyPost,
     publishBlueskyReply,
     searchBlueskyActors,
 } from "./blueskyPublish";
+import {
+    BLUESKY_GLOBAL_PLUG_CATALOG,
+    runBlueskyAutoPlugPost,
+    runBlueskyAutoRepostPlug,
+} from "./blueskyPlugs";
 
 const BLUESKY_TOKEN_TTL_YEARS = 100;
 
@@ -60,6 +70,10 @@ export class BlueskyProvider implements SocialProvider {
     rules =
         "Bluesky posts support plain text up to 300 characters, up to four images or one MP4 video (not mixed), and scheduled thread replies on the same account. Links and @handles become rich-text facets at publish time.";
 
+    globalPlugCatalog(): GlobalPlugCatalogEntryDto[] {
+        return BLUESKY_GLOBAL_PLUG_CATALOG;
+    }
+
     maxLength(_additionalSettings?: unknown): number {
         return BLUESKY_MAX_LENGTH;
     }
@@ -73,6 +87,17 @@ export class BlueskyProvider implements SocialProvider {
         if (message.length > 0) return null;
         if (input.mediaCount > 0 || media.length > 0) return null;
         return "Bluesky requires text or at least one image or video.";
+    }
+
+    async connectPrefill(input: { field: string; value: string }): Promise<ConnectPrefillResult> {
+        if (input.field !== "identifier") {
+            return { skipped: true };
+        }
+        const resolved = await resolveBlueskyPdsFromIdentifier(input.value);
+        if (!resolved) {
+            return { skipped: true };
+        }
+        return { updates: { service: resolved.serviceUrl }, did: resolved.did };
     }
 
     async customFields() {
@@ -111,7 +136,8 @@ export class BlueskyProvider implements SocialProvider {
         refresh?: string;
     }): Promise<AuthTokenDetails | string> {
         try {
-            const credentials = decodeBlueskyConnectCode(params.code);
+            const decoded = decodeBlueskyConnectCode(params.code);
+            const credentials = await applyBlueskyResolvedPdsToCredentials(decoded);
             await assertPublicHttpsBlueskyService(credentials.service);
             const profile = await fetchBlueskyProfileForCredentials(credentials);
             const token = serializeBlueskyToken(credentials);
@@ -121,7 +147,7 @@ export class BlueskyProvider implements SocialProvider {
             if (/invalid account details/i.test(msg)) {
                 return "Invalid account details";
             }
-            if (/service url|https/i.test(msg)) {
+            if (/service url|https|handle|pds|resolve|account id/i.test(msg)) {
                 return msg;
             }
             return "Invalid account details";
@@ -178,5 +204,53 @@ export class BlueskyProvider implements SocialProvider {
         const handle = idOrHandle.replace(/^@/, "").trim();
         const display = name.replace(/^@/, "").trim();
         return `@${handle || display}`;
+    }
+
+    /** Account insights from the public App View author feed (`internal_id` = account DID). */
+    async analytics(id: string, accessToken: string, dateWindowDays: number): Promise<AnalyticsData[]> {
+        try {
+            return await fetchBlueskyAccountAnalytics(id, accessToken, dateWindowDays);
+        } catch {
+            return [];
+        }
+    }
+
+    /** Per-post likes, replies, reposts, and quotes (`release_id` = AT Protocol post URI). */
+    async postAnalytics(
+        _integrationId: string,
+        _accessToken: string,
+        releaseId: string,
+        _fromDateDays: number
+    ): Promise<AnalyticsData[]> {
+        try {
+            return await fetchBlueskyPostAnalytics(releaseId);
+        } catch {
+            return [];
+        }
+    }
+
+    async autoRepostPost(
+        integration: IntegrationRecord,
+        postUri: string,
+        fields: { likesAmount: string }
+    ): Promise<boolean> {
+        return runBlueskyAutoRepostPlug(integration, postUri, fields);
+    }
+
+    async autoPlugPost(
+        integration: IntegrationRecord,
+        postUri: string,
+        fields: { likesAmount: string; post: string }
+    ): Promise<boolean> {
+        return runBlueskyAutoPlugPost(integration, postUri, fields, async (message, rootUri, parentUri) => {
+            await this.comment(
+                integration.internal_id,
+                rootUri,
+                parentUri,
+                integration.token,
+                [{ id: makeId(10), message, settings: {} }],
+                integration
+            );
+        });
     }
 }

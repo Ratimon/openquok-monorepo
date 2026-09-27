@@ -2,7 +2,7 @@
 title: Media rules
 description: Per-network media, character caps, follow-up attachments, and caption editors for the OpenQuok composer.
 order: 2
-lastUpdated: 2026-09-22
+lastUpdated: 2026-09-27
 sidebar:
   label: Media rules
 ---
@@ -33,7 +33,7 @@ The **Characters** column is the main caption or body. The same cap applies to e
 | **YouTube** | <Badge text="youtube" variant="param" /> | Exactly **one MP4** video | **5,000** (description) |
 | **TikTok** | <Badge text="tiktok" variant="param" /> | **≥1** attachment; **one MP4** <strong>or</strong> **1–35** JPEG/PNG/WEBP photos (never mixed) | **2,000** |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Markdown body; optional **cover image** in Settings (not required on the media strip) | **100,000** (body) |
-| **Bluesky** | <Badge text="bluesky" variant="param" /> | Text-only OK; up to **4** images <strong>or</strong> **1** MP4 (never mixed) | **300** |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Text-only OK; up to **4** images <strong>or</strong> **1** MP4 (never mixed; MP4 max **300 MB**, **10** min) | **300** graphemes |
 
 <Callout type="note">
 <p> On X, the limit depends on the post type: <strong>280</strong> characters for a standard post, <strong>4,000</strong> when the connected account is verified, and up to <strong>100,000</strong> in long-form <strong>article</strong> mode on the platform. OpenQuok schedules standard and verified posts only — it uses the <strong>280</strong> or <strong>4,000</strong> cap from the table.</p>

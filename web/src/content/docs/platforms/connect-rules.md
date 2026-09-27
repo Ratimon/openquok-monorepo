@@ -68,14 +68,14 @@ The last column marks which channels need that operator setup (**Yes** for OAuth
 | **YouTube** | <Badge text="youtube" variant="param" /> | OAuth (+ channel picker) | Yes |
 | **TikTok** | <Badge text="tiktok" variant="param" /> | OAuth | Yes |
 | **X** | <Badge text="x" variant="param" /> | OAuth | Yes |
-| **Dev.to** | <Badge text="devto" variant="param" /> | Credentials in OpenQuok | No |
 | **Bluesky** | <Badge text="bluesky" variant="param" /> | Credentials in OpenQuok | No |
+| **Dev.to** | <Badge text="devto" variant="param" /> | Credentials in OpenQuok | No |
 
 ## Connect in the dashboard only
 
 Most channels use **OAuth**: you click the network in **Add Channel**, sign in on the platform site, and return to OpenQuok.
 
-**Dev.to** and **Bluesky** are different. You paste credentials in Add Channel — a Dev.to API key or a Bluesky app password with your service URL and handle. There is no OAuth redirect for those channels.
+**Dev.to** and **Bluesky** are different. You just paste credentials in Add Channel.
 
 Operator setup for each OAuth network is in <a href="/docs/social-integration">Social integrations</a>.
 

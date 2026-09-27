@@ -54,7 +54,8 @@ import {
 } from '$lib/config/utils/buildPublicFooterLinks';
 import { docsTabHref } from '$lib/docs/navigation';
 import { preloadDocsRegistry } from '$lib/docs/content';
-import { normalizeApiBaseUrl, route } from '$lib/utils/path';
+import { getApiBaseUrl } from '$lib/config/constants/apiBaseUrl';
+import { route } from '$lib/utils/path';
 import type { PublicFooterLinksMap } from '$lib/config/utils/buildPublicFooterLinks';
 
 const publicBlogPath = route(getRootPathPublicBlog());
@@ -118,28 +119,6 @@ const appDescription =
 	'OpenQuok is a social media scheduler to plan, draft, and schedule social media posts across every channel. Calendar, kanban review, and AI agents — start with a 7-day free trial.';
 const appKeywords =
 	'social media scheduler, social media scheduling tool, schedule social media posts, social media scheduler free, post scheduler, social media posting tool, social media planning tool, free social media scheduling tools, content calendar, multi-platform posting, OpenQuok';
-
-function getApiBaseUrl(): string {
-	const fromMeta =
-		typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_BASE_URL !== undefined
-			? String(import.meta.env.VITE_API_BASE_URL)
-			: undefined;
-	const fromProcess =
-		typeof process !== 'undefined' && process.env?.VITE_API_BASE_URL !== undefined
-			? String(process.env.VITE_API_BASE_URL)
-			: undefined;
-	const explicit = fromMeta ?? fromProcess;
-	if (explicit !== undefined) {
-		return normalizeApiBaseUrl(explicit);
-	}
-	// Dev + Vite proxy: empty base → relative `/api/...` on the web origin so cookies stay same-site with HTTPS dev.
-	if (typeof import.meta !== 'undefined' && import.meta.env.DEV) {
-		return '';
-	}
-	// Production default: use same-origin relative API paths (deploy behind a reverse proxy).
-	// If your backend is on a different host, you must set VITE_API_BASE_URL explicitly.
-	return '';
-}
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
 	API_BASE_URL: {

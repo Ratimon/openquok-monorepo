@@ -81,12 +81,36 @@ export type DevtoLaunchProviderSettings = {
 	mainImage?: { path: string };
 };
 
+export type BlueskyThreadGateSetting =
+	| 'everyone'
+	| 'mentioned'
+	| 'following'
+	| 'followers'
+	| 'nobody';
+
+export type BlueskyLaunchProviderSettings = {
+	linkUrl?: string;
+	linkTitle?: string;
+	linkDescription?: string;
+	quoteUrl?: string;
+	threadGate: BlueskyThreadGateSetting;
+};
+
+export type LaunchProviderCheckMediaItem = {
+	id: string;
+	path: string;
+	/** Known upload size for sync composer validation (bytes). */
+	byteSize?: number;
+	localPreviewUrl?: string;
+	publicUrl?: string | null;
+};
+
 export type LaunchProviderCheckContext = {
-	media: { id: string; path: string }[];
+	media: LaunchProviderCheckMediaItem[];
 	/** Per-integration settings (from the Settings panel), shape is provider-specific. */
 	settings: Record<string, unknown>;
 	/** Follow-up reply drafts from `providerSettings.<bucket>.replies` (when validating thread parts). */
-	threadReplies?: { message?: string; media?: { id: string; path: string }[] }[];
+	threadReplies?: { message?: string; media?: LaunchProviderCheckMediaItem[] }[];
 };
 
 export type LaunchProviderConfig = {

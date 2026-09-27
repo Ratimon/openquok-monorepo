@@ -2,7 +2,7 @@
 title: Analytics
 description: Which OpenQuok channels report account-level and per-post insights in the workspace Analytics area and Statistics modal.
 order: 4
-lastUpdated: 2026-09-22
+lastUpdated: 2026-09-27
 ---
 
 <script>
@@ -23,7 +23,7 @@ Some networks also expose **per-post metrics** on individual post cards and in t
 
 ## Account insights
 
-OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return account-level data in workspace <strong>Analytics</strong>. How the dashboard uses these connections is in <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
+OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return account-level data in workspace <strong>Analytics</strong>. How the dashboard uses these connections is in <a href="/docs/insights/workspace-analytics">Insights → Workspace analytics</a>.
 
 | Network | Channel key | Account insights |
 | --- | --- | --- |
@@ -37,7 +37,7 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 | **Threads** | <Badge text="threads" variant="param" /> | Yes |
 | **X** | <Badge text="x" variant="param" /> | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
-| **Bluesky** | <Badge text="bluesky" variant="param" /> | No |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Yes |
 
 <Callout type="tip">
 <p>For Self-hosting, X charges you for every call you makr for analytics. You can disable X analytics with <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> in backend environment. See <a href="/docs/social-integration/x">Social integrations → X</a>.</p>
@@ -59,6 +59,7 @@ The workspace **Analytics** page and per-post **Statistics** dialog use a lookba
 | **Threads** | <Badge text="threads" variant="param" /> | Yes | Yes | No |
 | **X** | <Badge text="x" variant="param" /> | Yes | Yes | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes | Yes | Yes |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Yes | Yes | Yes |
 
 <Callout type="note">
 <p>Instagram, Threads, and TikTok insights APIs do not expose a full 90-day account window. If you mix those channels with networks that support 90 days, the dashboard keeps <Badge text="7" variant="param" /> and <Badge text="30" variant="param" /> only until you narrow <strong>Targeted channels</strong>.</p>
@@ -70,7 +71,7 @@ The workspace **Analytics** page and per-post **Statistics** dialog use a lookba
 
 ## Per-post metrics
 
-OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Nine</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from Home and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
+OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/docs/platforms/connect-rules">Connect rules</a>). <strong>Ten</strong> return per-post data in the <strong>Statistics</strong> dialog. How to open it from Home and the calendar is in <a href="/docs/insights/per-post-metrics">Insights → Per-post metrics</a>.
 
 | Network | Channel key | Per-post insights |
 | --- | --- | --- |
@@ -84,7 +85,7 @@ OpenQuok supports <strong>eleven</strong> channel keys for posting (<a href="/do
 | **Threads** | <Badge text="threads" variant="param" /> | Yes |
 | **X** | <Badge text="x" variant="param" /> | Yes |
 | **Dev.to** | <Badge text="devto" variant="param" /> | Yes |
-| **Bluesky** | <Badge text="bluesky" variant="param" /> | No |
+| **Bluesky** | <Badge text="bluesky" variant="param" /> | Yes |
 
 ## Related
 

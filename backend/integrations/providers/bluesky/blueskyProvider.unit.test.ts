@@ -41,4 +41,11 @@ describe("BlueskyProvider", () => {
         expect(service?.defaultValue).toBe("https://bsky.social");
         expect(fields).toHaveLength(3);
     });
+
+    it("exposes global auto-repost and auto-plug catalog", () => {
+        const plugs = provider.globalPlugCatalog?.() ?? [];
+        expect(plugs.map((p) => p.methodName)).toEqual(
+            expect.arrayContaining(["autoRepostPost", "autoPlugPost"])
+        );
+    });
 });

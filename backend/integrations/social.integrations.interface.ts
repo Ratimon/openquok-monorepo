@@ -138,6 +138,12 @@ export type FetchPageInformationResult = {
     username: string;
 };
 
+export type ConnectPrefillInput = { field: string; value: string };
+
+export type ConnectPrefillResult =
+    | { skipped: true }
+    | { updates: Record<string, string>; did?: string };
+
 export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration {
     identifier: string;
     name: string;
@@ -177,6 +183,12 @@ export interface SocialProvider extends IAuthenticator, ISocialMediaIntegration 
     ) => Promise<{ id: string; label: string; image: string; doNotCache?: boolean }[] | { none: true }>;
     mentionFormat?(idOrHandle: string, name: string): string;
     fetchPageInformation?(accessToken: string, data: unknown): Promise<FetchPageInformationResult>;
+
+    /**
+     * Optional connect-form prefill (e.g. resolve PDS URL from handle). Invoked by
+     * `GET /integrations/connect-prefill/:providerIdentifier`.
+     */
+    connectPrefill?(input: ConnectPrefillInput): Promise<ConnectPrefillResult>;
 
     /**
      * Optional provider-owned validation for creating/scheduling posts in our app.

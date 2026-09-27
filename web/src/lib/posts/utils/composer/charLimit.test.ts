@@ -7,6 +7,7 @@ import {
 	selectedIdsIncludeXChannel,
 	validateScheduledCaptionsForChannels
 } from '$lib/posts/utils/composer/charLimit';
+import { BLUESKY_MAX_GRAPHEMES } from '$lib/posts/utils/composer/blueskyGraphemeLength';
 import {
 	X_STANDARD_MAX_CHARACTERS,
 	X_VERIFIED_MAX_CHARACTERS
@@ -46,6 +47,12 @@ describe('maxCharactersForChannel', () => {
 
 	it('returns provider maximumCharacters for non-X channels', () => {
 		expect(maxCharactersForChannel(channel({ id: 'li-1', identifier: 'linkedin' }))).toBe(3000);
+	});
+
+	it('returns Bluesky grapheme cap', () => {
+		expect(maxCharactersForChannel(channel({ id: 'bs-1', identifier: 'bluesky' }))).toBe(
+			BLUESKY_MAX_GRAPHEMES
+		);
 	});
 });
 
@@ -147,5 +154,20 @@ describe('validateScheduledCaptionsForChannels', () => {
 			bodiesByIntegrationId: {}
 		});
 		expect(error).toBe('Threads caption exceeds 500 characters (501/500).');
+	});
+
+	it('rejects Bluesky captions over the grapheme limit (emoji count)', () => {
+		const blueskyChannels = [
+			channel({ id: 'bs-1', identifier: 'bluesky', name: 'Bluesky' })
+		];
+		const over = '👋'.repeat(BLUESKY_MAX_GRAPHEMES + 1);
+		const error = validateScheduledCaptionsForChannels({
+			mode: 'global',
+			selectedIds: ['bs-1'],
+			baseSocialChannelsVm: blueskyChannels,
+			globalBody: over,
+			bodiesByIntegrationId: {}
+		});
+		expect(error).toMatch(/Bluesky caption exceeds the 300 grapheme limit/);
 	});
 });

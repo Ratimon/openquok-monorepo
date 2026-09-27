@@ -415,6 +415,28 @@ export class IntegrationController {
         }
     };
 
+    /** GET /integrations/connect-prefill/:providerIdentifier?field=&value= */
+    connectPrefill = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const authReq = req as AuthenticatedRequest;
+            const authUserId = authReq.user?.id;
+            if (!authUserId) {
+                return next(new UserAuthorizationError("Not authenticated"));
+            }
+            const providerIdentifier = (req.params as { providerIdentifier: string }).providerIdentifier;
+            const { field, value } = req.query as { field: string; value: string };
+            const data = await this.integrationConnectionService.connectPrefill(
+                authUserId,
+                providerIdentifier,
+                field,
+                value
+            );
+            res.status(200).json({ success: true, data });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     /** POST /integrations/mentions — @-mention autocomplete for a connected channel. */
     searchIntegrationMentions = async (req: Request, res: Response, next: NextFunction) => {
         try {

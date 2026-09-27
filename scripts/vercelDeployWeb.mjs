@@ -46,6 +46,10 @@ process.stderr.write(
 		"Clear Settings → Build & Development → Output Directory override (not \"public\") unless you intend it.",
 		"",
 		"If the Vercel build fails with ERR_PNPM_OUTDATED_LOCKFILE after editing a workspace package.json, run `pnpm install` at the monorepo root and commit the updated `pnpm-lock.yaml`.",
+		"",
+		"If the CLI keeps spinning after \"✓ built in …\" for many minutes, the remote build may still be running (Pagefind + adapter after Vite) or the CLI is waiting for production to go Ready.",
+		"Open the Inspect URL in the dashboard — if the deployment is Ready, Ctrl+C the CLI (known Vercel CLI wait hang).",
+		"To return immediately after upload starts: pnpm vercel:deploy:web:prod -- --no-wait",
 		""
 	].join("\n")
 );

@@ -1,6 +1,6 @@
 ---
 title: X (Twitter)
-description: How to configure X for OpenQuok — OAuth 1.0a, backend env, and developer portal settings.
+description: How to configure X for OpenQuok
 order: 8
 lastUpdated: 2026-08-26
 ---
@@ -15,38 +15,6 @@ X publishing uses **OAuth 1.0a** (not OAuth 2). You need an X developer app with
 
 <Callout type="warning">Redirect URI must match exactly. The browser callback path is <Badge text="/integration/oauth/x" variant="path" />. Register it character-for-character in the X developer portal.
 </Callout>
-
-CLI walkthroughs: <a href="/docs/cli-examples/x">CLI Examples — X</a>.
-
-## Features
-
-### Supported
-
-| Feature | Details |
-| --- | --- |
-| Text posts | Weighted **280** characters (standard); **4000** when **Verified** is enabled on the connected channel (X Premium) |
-| Image posts | Up to **four** images per tweet |
-| Video posts | **One** video per tweet (≤ **140** seconds validated in the composer) |
-| Who can reply | `following`, `mentionedUsers`, `subscribers`, or `verified` via compose settings |
-| Community posts | Optional community URL (parsed to `community_id` at publish) |
-| Content labels | **Made with AI** and **Paid partnership** toggles |
-| Thread replies | Scheduled quote-less replies via <Badge text="x.replies[]" variant="param" /> with per-reply <Badge text="delaySeconds" variant="param" /> |
-| Thread finisher | Closing reply via <Badge text="x.enabled" variant="param" /> and <Badge text="x.message" variant="param" /> |
-| Platform analytics | Account timeline: likes, replies, reposts, quotes, impressions (unless <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> is <Badge text="true" variant="new" />) |
-| Per-post analytics | Public metrics for a published tweet when the post row has a <Badge text="release_id" variant="param" /> |
-| Channel plugs | Auto-repost and auto-plug when like thresholds are met |
-| Cross-account repost plug | Repost from other connected X channels after publish (<Badge text="x-repost-post-users" variant="default" />) |
-| @-mention lookup | Unlock the X channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
-| OAuth connect | **OAuth 1.0a** single-step flow; long-lived tokens (reconnect on auth errors) |
-
-### Not supported
-
-| Feature | Notes |
-| --- | --- |
-| OAuth 2 / PKCE | OpenQuok uses OAuth 1.0a only for X |
-| Polls, quote tweets, X Articles | Not implemented |
-| Mixed image + video | One media mode per post: up to four images **or** one video |
-| Automatic token refresh | No refresh cron; reconnect the channel when X returns auth errors |
 
 ## Backend environment
 
@@ -89,7 +57,7 @@ https://localhost:5173/integration/oauth/x
 
 <Steps
 	howToName="X developer app setup"
-	howToDescription="How to configure X for OpenQuok — OAuth 1.0a, backend env, and developer portal settings."
+	howToDescription="How to configure X for OpenQuok."
 >
 
 ### Create a project and app
@@ -138,6 +106,40 @@ Per-post options (composer or CLI) include:
 | Thread replies | <Badge text="x.replies[]" variant="param" /> with <Badge text="delaySeconds" variant="param" /> |
 
 Standard accounts use a **280 weighted** character limit; enable **Verified** on the channel (in channel settings) for **4000** when the account has X Premium.
+
+## Features
+
+### Supported
+
+| Feature | Details |
+| --- | --- |
+| Text posts | Weighted **280** characters (standard); **4000** when **Verified** is enabled on the connected channel (X Premium) |
+| Image posts | Up to **four** images per tweet |
+| Video posts | **One** video per tweet (≤ **140** seconds validated in the composer) |
+| Who can reply | `following`, `mentionedUsers`, `subscribers`, or `verified` via compose settings |
+| Community posts | Optional community URL (parsed to `community_id` at publish) |
+| Content labels | **Made with AI** and **Paid partnership** toggles |
+| Thread replies | Scheduled quote-less replies via <Badge text="x.replies[]" variant="param" /> with per-reply <Badge text="delaySeconds" variant="param" /> |
+| Thread finisher | Closing reply via <Badge text="x.enabled" variant="param" /> and <Badge text="x.message" variant="param" /> |
+| Platform analytics | Account timeline: likes, replies, reposts, quotes, impressions (unless <Badge text="DISABLE_X_ANALYTICS" variant="envBackend" /> is <Badge text="true" variant="new" />) |
+| Per-post analytics | Public metrics for a published tweet when the post row has a <Badge text="release_id" variant="param" /> |
+| Channel plugs | Auto-repost and auto-plug when like thresholds are met |
+| Cross-account repost plug | Repost from other connected X channels after publish (<Badge text="x-repost-post-users" variant="default" />) |
+| @-mention lookup | Unlock the X channel in custom mode, type <Badge text="@" variant="param" /> plus at least two characters (or use the toolbar <Badge text="@" variant="param" /> button), then pick from suggestions — backed by <Badge text="POST /integrations/mentions" variant="path" /> |
+| OAuth connect | **OAuth 1.0a** single-step flow; long-lived tokens (reconnect on auth errors) |
+
+<Callout type="tip">
+<p>CLI walkthroughs: <a href="/docs/cli-examples/x">CLI Examples — X</a>.</p>
+</Callout>
+
+### Not supported
+
+| Feature | Notes |
+| --- | --- |
+| OAuth 2 / PKCE | OpenQuok uses OAuth 1.0a only for X |
+| Polls, quote tweets, X Articles | Not implemented |
+| Mixed image + video | One media mode per post: up to four images **or** one video |
+| Automatic token refresh | No refresh cron; reconnect the channel when X returns auth errors |
 
 ## Related
 

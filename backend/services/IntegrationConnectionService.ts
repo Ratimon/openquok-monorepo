@@ -26,6 +26,7 @@ import { OrganizationForbiddenError } from "../errors/OrganizationError";
 import { AppError } from "../errors/AppError";
 import { DatabaseError } from "../errors/InfraError";
 import { ProviderAccessTokenExpiredError } from "../errors/ProviderIntegrationErrors";
+import { runConnectPrefill } from "./integrationConnectPrefill";
 import { resolveIntegrationPictureForStorage } from "../utils/images/mirrorIntegrationProfilePicture";
 import { isExternalCdnProfilePictureUrl } from "../utils/images/allowedExternalImageHosts";
 import {
@@ -628,6 +629,16 @@ export class IntegrationConnectionService {
             const result = await invoke({ ...row, token: refreshed.accessToken });
             return { output: result };
         }
+    }
+
+    /** GET /integrations/connect-prefill/:providerIdentifier — credentials connect form prefill. */
+    async connectPrefill(
+        _authUserId: string,
+        providerIdentifier: string,
+        field: string,
+        value: string
+    ) {
+        return runConnectPrefill(this.manager, providerIdentifier, field, value);
     }
 
     /** POST /integrations/mentions — provider @-mention autocomplete for composer. */

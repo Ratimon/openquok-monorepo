@@ -32,6 +32,11 @@ describe("measureProviderCaptionLength", () => {
         expect(weighted).toBeLessThan(longUrl.length);
         expect(weighted).toBeLessThanOrEqual(23);
     });
+
+    it("returns grapheme length for Bluesky", () => {
+        expect(measureProviderCaptionLength("bluesky", "hello")).toBe(5);
+        expect(measureProviderCaptionLength("bluesky", "👋")).toBe(1);
+    });
 });
 
 describe("resolveProviderMaxLength", () => {
