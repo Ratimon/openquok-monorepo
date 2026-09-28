@@ -20,7 +20,7 @@
 	import { url, route } from '$lib/utils/path';
 	import { getRootPathSignin, getRootPathSignup } from '$lib/user-auth/constants/getRootpathUserAuth';
 	import { getRootPathPublicBlogPost } from '$lib/area-public/constants/getRootPathPublicBlog';
-	import { normalizeBlogInlineImagesInHtml, prepareBlogContentForDisplay } from '$lib/blogs/utils';
+	import { prepareBlogContentForDisplay } from '$lib/blogs/utils';
 
 	import {
 		CENTERED_DARK_CTA_BANNER_DESCRIPTION,
@@ -111,21 +111,10 @@
 	let comments = $derived(data.comments);
 	let schemaData = $derived(data.schemaData);
 
-	let normalizedContent = $state<string>('');
-
 	let highlightedContentHtml = $derived(data.highlightedContentHtml ?? '');
-	let preparedContent = $derived(
+	let contentHtml = $derived(
 		highlightedContentHtml ||
 			prepareBlogContentForDisplay(currentPostVm.content ?? '')
-	);
-
-	$effect(() => {
-		if (!browser) return;
-		normalizedContent = normalizeBlogInlineImagesInHtml(preparedContent);
-	});
-
-	let contentHtml = $derived(
-		browser && normalizedContent ? normalizedContent : preparedContent
 	);
 
 	function postHref(slug: string): string {

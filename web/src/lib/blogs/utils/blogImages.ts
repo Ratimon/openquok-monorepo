@@ -1,7 +1,91 @@
+import { parseFragment, serialize } from 'parse5';
+
 import { CONFIG_SCHEMA_BACKEND } from '$lib/config/constants/config';
 import { normalizeApiBaseUrl } from '$lib/utils/path';
 
 import { BLOG_IMAGES_BUCKET } from '$lib/blogs/constants/config';
+
+type Parse5Element = {
+	nodeName: string;
+	tagName?: string;
+	attrs?: Array<{ name: string; value: string }>;
+	childNodes?: Parse5Node[];
+};
+
+type Parse5Node = Parse5Element | { nodeName: string; value?: string; childNodes?: Parse5Node[] };
+
+function isParse5Element(node: Parse5Node): node is Parse5Element {
+	return 'tagName' in node && typeof node.tagName === 'string';
+}
+
+function classNames(attrs: Parse5Element['attrs']): string[] {
+	const raw = attrs?.find((a) => a.name === 'class')?.value ?? '';
+	return raw.split(/\s+/).filter(Boolean);
+}
+
+function getParse5Attr(node: Parse5Element, name: string): string {
+	return node.attrs?.find((a) => a.name === name)?.value ?? '';
+}
+
+function setParse5Attr(node: Parse5Element, name: string, value: string): void {
+	node.attrs ??= [];
+	const existing = node.attrs.find((a) => a.name === name);
+	if (existing) {
+		existing.value = value;
+		return;
+	}
+	node.attrs.push({ name, value });
+}
+
+function walkParse5Nodes(root: Parse5Node, visit: (node: Parse5Element) => void): void {
+	const stack: Parse5Node[] = [root];
+	while (stack.length > 0) {
+		const node = stack.pop();
+		if (!node) continue;
+		if (isParse5Element(node)) visit(node);
+		for (const child of node.childNodes ?? []) {
+			stack.push(child);
+		}
+	}
+}
+
+function findParse5Parent(root: Parse5Node, target: Parse5Node): Parse5Node | null {
+	const children = root.childNodes ?? [];
+	for (const child of children) {
+		if (child === target) return root;
+		const nested = findParse5Parent(child, target);
+		if (nested) return nested;
+	}
+	return null;
+}
+
+function removeParse5Node(root: Parse5Node, target: Parse5Node): void {
+	const parent = findParse5Parent(root, target);
+	if (!parent?.childNodes) return;
+	const index = parent.childNodes.indexOf(target);
+	if (index !== -1) parent.childNodes.splice(index, 1);
+}
+
+function replaceParse5Node(root: Parse5Node, target: Parse5Node, replacement: Parse5Node): void {
+	const parent = findParse5Parent(root, target);
+	if (!parent?.childNodes) return;
+	const index = parent.childNodes.indexOf(target);
+	if (index !== -1) parent.childNodes.splice(index, 1, replacement);
+}
+
+function findParse5ImgDescendant(node: Parse5Element): Parse5Element | null {
+	let found: Parse5Element | null = null;
+	walkParse5Nodes(node, (el) => {
+		if (el.tagName === 'img' && !found) found = el;
+	});
+	return found;
+}
+
+function mutateBlogHtmlWithParse5(html: string, mutate: (root: Parse5Node) => void): string {
+	const root = parseFragment(html);
+	mutate(root);
+	return serialize(root);
+}
 
 function trimApiBase(): string {
 	return normalizeApiBaseUrl(String(CONFIG_SCHEMA_BACKEND.API_BASE_URL.default ?? ''));
@@ -16,11 +100,34 @@ function encodeStoragePathSegments(storagePath: string): string {
 }
 
 /**
+ * Normalizes hero fields and storage paths to a bare `blog_images` object key
+ * (e.g. `authUid-random.jpg`), accepting legacy full public URLs or `blog_images/` prefixes.
+ */
+export function resolveBlogImageStorageKey(raw: string): string | null {
+	const trimmed = raw.trim();
+	if (!trimmed || trimmed === 'null' || trimmed === 'undefined') return null;
+
+	const fromUrl = extractBlogImageStoragePathFromImageSrc(trimmed);
+	if (fromUrl) return fromUrl.replace(/^\/+/, '');
+
+	let key = trimmed.replace(/^\/+/, '');
+	if (key.startsWith(`${BLOG_IMAGES_BUCKET}/`)) {
+		key = key.slice(BLOG_IMAGES_BUCKET.length + 1);
+	}
+	if (key.includes('://')) return null;
+	if (!key) return null;
+	return key;
+}
+
+/**
  * Builds a browser-usable `src` for an object in `blog_images` after upload.
  * Uses `VITE_PUBLIC_SUPABASE_URL` when set; otherwise falls back to the API download URL.
  */
 export function buildBlogInlineImageSrc(storagePath: string): string {
-	const trimmed = storagePath.replace(/^\/+/, '');
+	const key = resolveBlogImageStorageKey(storagePath);
+	if (!key) return '';
+
+	const trimmed = key;
 	const supabasePublic =
 		typeof import.meta !== 'undefined' && import.meta.env?.VITE_PUBLIC_SUPABASE_URL
 			? String(import.meta.env.VITE_PUBLIC_SUPABASE_URL).replace(/\/$/, '')
@@ -167,29 +274,42 @@ export function extractBlogInlineImagesFromHtml(html: string): BlogInlineImageFr
  * Keeps the inner `<img>` when a wrapper is found. SSR-safe no-op without `document`.
  */
 export function stripContentEditorMarkupFromBlogHtml(html: string): string {
-	if (typeof document === 'undefined' || !html.trim()) return html;
+	if (!html.trim()) return html;
 
-	const doc = document.createElement('div');
-	doc.innerHTML = html;
+	return mutateBlogHtmlWithParse5(html, (root) => {
+		const wraps: Parse5Element[] = [];
+		walkParse5Nodes(root, (el) => {
+			if (el.tagName === 'div' && classNames(el.attrs).includes('content-editor-image-wrap')) {
+				wraps.push(el);
+			}
+		});
 
-	for (const wrap of Array.from(doc.querySelectorAll('.content-editor-image-wrap'))) {
-		const img = wrap.querySelector('img');
-		if (img) {
-			wrap.replaceWith(img.cloneNode(true));
-		} else {
-			wrap.remove();
+		for (const wrap of wraps) {
+			const img = findParse5ImgDescendant(wrap);
+			if (img) {
+				replaceParse5Node(root, wrap, img);
+			} else {
+				removeParse5Node(root, wrap);
+			}
 		}
-	}
 
-	for (const el of Array.from(
-		doc.querySelectorAll(
-			'.content-editor-image-missing-alt, .content-editor-image-delete, .content-editor-image-alt-field, .content-editor-image-alt-label, .content-editor-image-alt-input, .content-editor-image-media'
-		)
-	)) {
-		el.remove();
-	}
-
-	return doc.innerHTML;
+		const removeClasses = new Set([
+			'content-editor-image-missing-alt',
+			'content-editor-image-delete',
+			'content-editor-image-alt-field',
+			'content-editor-image-alt-label',
+			'content-editor-image-alt-input',
+			'content-editor-image-media'
+		]);
+		const toRemove: Parse5Element[] = [];
+		walkParse5Nodes(root, (el) => {
+			const classes = classNames(el.attrs);
+			if (classes.some((c) => removeClasses.has(c))) toRemove.push(el);
+		});
+		for (const el of toRemove) {
+			removeParse5Node(root, el);
+		}
+	});
 }
 
 /**
@@ -197,25 +317,28 @@ export function stripContentEditorMarkupFromBlogHtml(html: string): string {
  * No-ops when `document` is unavailable (SSR).
  */
 export function normalizeBlogInlineImagesInHtml(html: string): string {
-	if (typeof document === 'undefined' || !html.trim()) return html;
+	if (!html.trim()) return html;
 
-	const doc = document.createElement('div');
-	doc.innerHTML = stripContentEditorMarkupFromBlogHtml(html);
+	const stripped = stripContentEditorMarkupFromBlogHtml(html);
 
-	for (const img of Array.from(doc.querySelectorAll('img'))) {
-		const rawAttr = (img.getAttribute('data-storage-path') ?? '').trim();
-		const fromAttr =
-			rawAttr && rawAttr !== 'null' && rawAttr !== 'undefined' ? rawAttr : '';
-		const src = (img.getAttribute('src') ?? '').trim();
-		const path = fromAttr || extractBlogImageStoragePathFromImageSrc(src);
-		if (!path) continue;
+	return mutateBlogHtmlWithParse5(stripped, (root) => {
+		walkParse5Nodes(root, (el) => {
+			if (el.tagName !== 'img') return;
 
-		img.setAttribute('data-storage-path', path);
-		img.setAttribute('src', buildBlogInlineImageSrc(path));
+			const rawAttr = getParse5Attr(el, 'data-storage-path').trim();
+			const fromAttr =
+				rawAttr && rawAttr !== 'null' && rawAttr !== 'undefined' ? rawAttr : '';
+			const src = getParse5Attr(el, 'src').trim();
+			const path =
+				resolveBlogImageStorageKey(fromAttr) ||
+				extractBlogImageStoragePathFromImageSrc(src);
+			if (!path) return;
 
-		const alt = normalizeBlogInlineImageAlt(img.getAttribute('alt') ?? '');
-		img.setAttribute('alt', alt);
-	}
+			setParse5Attr(el, 'data-storage-path', path);
+			setParse5Attr(el, 'src', buildBlogInlineImageSrc(path));
 
-	return doc.innerHTML;
+			const alt = normalizeBlogInlineImageAlt(getParse5Attr(el, 'alt'));
+			setParse5Attr(el, 'alt', alt);
+		});
+	});
 }

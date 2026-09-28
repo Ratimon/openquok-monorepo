@@ -38,6 +38,8 @@
         onPendingFileChange?: (pending: boolean) => void;
         /** When false, VM state is kept across unmount (per-editor presenter). */
         resetOnDestroy?: boolean;
+        /** When this returns false, local file pick is cancelled (e.g. missing blog topic). */
+        beforeLocalFileSelect?: () => boolean;
     };
 
     let {
@@ -57,6 +59,7 @@
         onReset,
         onPendingFileChange,
         resetOnDestroy = true,
+        beforeLocalFileSelect,
     }: Props = $props();
 
     let imageUrl = $derived(uploadAreaVm.imageURL);
@@ -96,13 +99,18 @@
     });
 
     function handleFileChange(event: Event) {
-        const files = (event.target as HTMLInputElement).files;
+        const input = event.target as HTMLInputElement;
+        const files = input.files;
 
         if (files && files.length > 0) {
+            if (beforeLocalFileSelect && !beforeLocalFileSelect()) {
+                input.value = '';
+                return;
+            }
             const file = files[0];
             if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
                 toast.error(`Image must be 4 MB or smaller. This file is ${(file.size / (1024 * 1024)).toFixed(1)} MB.`);
-                (event.target as HTMLInputElement).value = '';
+                input.value = '';
                 return;
             }
             const preview = URL.createObjectURL(file);
@@ -143,6 +151,9 @@
 
     // Expose to parent component — returns new storage path on success, false on failure
     export async function uploadSelectedImage(): Promise<string | false> {
+        if (beforeLocalFileSelect && !beforeLocalFileSelect()) {
+            return false;
+        }
         if (!previewImage?.file) {
             toast.error("Please select an image to upload.");
             return false;

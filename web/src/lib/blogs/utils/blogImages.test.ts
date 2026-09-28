@@ -6,6 +6,7 @@ import {
 	extractBlogImageStoragePathFromImageSrc,
 	extractBlogInlineImagesFromHtml,
 	normalizeBlogInlineImagesInHtml,
+	resolveBlogImageStorageKey,
 	stripContentEditorMarkupFromBlogHtml
 } from '$lib/blogs/utils/blogImages';
 
@@ -195,11 +196,37 @@ describe('extractBlogImageStoragePathFromImageSrc', () => {
 	});
 });
 
+describe('resolveBlogImageStorageKey', () => {
+	it('accepts bare object keys', () => {
+		expect(resolveBlogImageStorageKey('aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.786.jpg')).toBe(
+			'aa1a6c25-d1dc-43d7-9b13-a3e8ac48caf1-0.786.jpg'
+		);
+	});
+
+	it('strips blog_images/ prefix', () => {
+		expect(resolveBlogImageStorageKey('blog_images/user-1/photo.webp')).toBe('user-1/photo.webp');
+	});
+
+	it('extracts key from Supabase public URLs', () => {
+		expect(
+			resolveBlogImageStorageKey(
+				'https://example.supabase.co/storage/v1/object/public/blog_images/user-1/photo.webp'
+			)
+		).toBe('user-1/photo.webp');
+	});
+});
+
 describe('buildBlogInlineImageSrc', () => {
 	it('builds an API download URL when Supabase public URL is unavailable', () => {
 		expect(buildBlogInlineImageSrc('user-1/photo.webp')).toBe(
 			'/api/v1/image/download?databaseName=blog_images&imageUrl=user-1%2Fphoto.webp'
 		);
+	});
+
+	it('rebuilds a correct public URL when given a full Supabase object URL', () => {
+		const key = 'user-1/photo.webp';
+		const broken = `https://wrong.supabase.co/storage/v1/object/public/blog_images/${key}`;
+		expect(buildBlogInlineImageSrc(broken)).toBe(buildBlogInlineImageSrc(key));
 	});
 });
 

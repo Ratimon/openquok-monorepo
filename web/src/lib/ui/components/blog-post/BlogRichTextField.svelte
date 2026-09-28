@@ -11,6 +11,8 @@
 		placeholder?: string;
 		textareaId?: string;
 		class?: string;
+		userId?: string;
+		beforeInlineImageAction?: () => boolean;
 	};
 
 	let {
@@ -18,7 +20,9 @@
 		onChange,
 		placeholder = 'Enter HTML or use Visual to insert links',
 		textareaId,
-		class: className = ''
+		class: className = '',
+		userId = '',
+		beforeInlineImageAction
 	}: Props = $props();
 
 	let mode = $state<EditorMode>('visual');
@@ -60,6 +64,8 @@
 			onChange={onChange}
 			outputType="html"
 			showMenu={true}
+			{userId}
+			{beforeInlineImageAction}
 			placeholder={placeholder}
 			class="prose-sm min-h-24 text-sm"
 		/>

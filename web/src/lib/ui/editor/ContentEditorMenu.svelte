@@ -19,9 +19,11 @@
 		editor: TiptapEditor;
 		toolbarRevision?: number;
 		onInsertLocalImagePreview: (file: File, alt?: string) => void;
+		beforeInlineImageAction?: () => boolean;
 	};
 
-	let { editor, toolbarRevision = 0, onInsertLocalImagePreview }: Props = $props();
+	let { editor, toolbarRevision = 0, onInsertLocalImagePreview, beforeInlineImageAction }: Props =
+		$props();
 
 	let altDialogOpen = $state(false);
 	let imageAlt = $derived.by(() => {
@@ -160,7 +162,11 @@
 		<AbstractIcon name={icons.Link.name} width="18" height="18" />
 	</ContentEditorMenuButton>
 
-	<ContentEditorMenuButtonImage editor={editor} {onInsertLocalImagePreview}>
+	<ContentEditorMenuButtonImage
+		editor={editor}
+		{onInsertLocalImagePreview}
+		{beforeInlineImageAction}
+	>
 		<AbstractIcon name={icons.Image.name} width="18" height="18" />
 	</ContentEditorMenuButtonImage>
 

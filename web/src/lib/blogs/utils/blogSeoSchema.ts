@@ -43,7 +43,11 @@ import {
 	blogCodeEncodingFormat,
 	parseBlogCodeBlocksFromHtml
 } from '$lib/blogs/utils/blogCodeHighlight';
-import { buildBlogInlineImageSrc, extractBlogInlineImagesFromHtml } from '$lib/blogs/utils/blogImages';
+import {
+	buildBlogInlineImageSrc,
+	extractBlogInlineImagesFromHtml,
+	resolveBlogImageStorageKey
+} from '$lib/blogs/utils/blogImages';
 import { createHowToSEOSchema } from '$lib/seo/createHowToSEOSchema';
 import { createOpenQuokMerchantReturnPolicy } from '$lib/seo/createMerchantReturnPolicySEOSchema';
 import { guessImageMimeFromFilename } from '$lib/seo/guessImageMimeFromFilename';
@@ -447,7 +451,7 @@ function createBlogPostProductNode(params: {
 }
 
 function normalizeBlogImageStoragePath(path: string): string {
-	return path.replace(/^\/+/, '').trim();
+	return resolveBlogImageStorageKey(path) ?? path.replace(/^\/+/, '').trim();
 }
 
 function blogPostFeaturedImageId(canonicalUrl: string): string {

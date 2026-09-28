@@ -47,6 +47,8 @@
 		showMenu?: boolean;
 		/** Required for inline image upload in the toolbar (blog storage). */
 		userId?: string;
+		/** When this returns false, inline image pick/upload is blocked (e.g. missing blog topic). */
+		beforeInlineImageAction?: () => boolean;
 		showLength?: boolean;
 		maxLength?: number;
 		placeholder?: string;
@@ -60,6 +62,7 @@
 		class: className = '',
 		showMenu,
 		userId = '',
+		beforeInlineImageAction,
 		showLength,
 		maxLength,
 		placeholder
@@ -191,6 +194,7 @@
 	}
 
 	function insertLocalImagePreview(file: File, alt?: string): void {
+		if (beforeInlineImageAction && !beforeInlineImageAction()) return;
 		if (!editor) return;
 		const blobUrl = URL.createObjectURL(file);
 		pendingInlineImageFiles.set(blobUrl, file);
@@ -223,6 +227,7 @@
 	 */
 	export async function commitPendingInlineImages(): Promise<boolean> {
 		if (!editor || pendingInlineImageFiles.size === 0) return true;
+		if (beforeInlineImageAction && !beforeInlineImageAction()) return false;
 		flushPendingBlogImageAlts();
 		if (!userId) {
 			toast.error('Cannot upload content images: user id is missing.');
@@ -331,6 +336,7 @@
 			editor={editor}
 			toolbarRevision={toolbarRevision}
 			onInsertLocalImagePreview={insertLocalImagePreview}
+			{beforeInlineImageAction}
 		/>
 	{/if}
 

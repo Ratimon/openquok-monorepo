@@ -24,6 +24,8 @@
 		/** Visual + HTML source for answers (internal links). Questions stay plain text. */
 		richTextAnswers?: boolean;
 		answerPlaceholder?: string;
+		userId?: string;
+		beforeInlineImageAction?: () => boolean;
 	};
 
 	let {
@@ -32,7 +34,9 @@
 		label = 'FAQs',
 		description = 'Add frequently asked questions for public pages. Use the arrows on each card to reorder items.',
 		richTextAnswers = false,
-		answerPlaceholder = 'Paste HTML or use Visual → link. Example: /docs/getting-started-for-cli'
+		answerPlaceholder = 'Paste HTML or use Visual → link. Example: /docs/getting-started-for-cli',
+		userId = '',
+		beforeInlineImageAction
 	}: Props = $props();
 
 	function hydrateFaqs(items: FaqEditorItem[]): LocalFaqRow[] {
@@ -151,6 +155,8 @@
 								textareaId="faq-answer-{faq.id}"
 								value={faq.answer}
 								placeholder={answerPlaceholder}
+								{userId}
+								{beforeInlineImageAction}
 								onChange={(next) => updateFaq(index, 'answer', next)}
 							/>
 						{:else}

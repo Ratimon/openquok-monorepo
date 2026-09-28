@@ -4,6 +4,7 @@ export {
 } from '$lib/blogs/utils/blogAuthorPaths';
 export {
 	buildBlogInlineImageSrc,
+	resolveBlogImageStorageKey,
 	extractBlogImageStoragePathFromImageSrc,
 	extractBlogImageStoragePathsFromHtml,
 	extractBlogInlineImagesFromHtml,

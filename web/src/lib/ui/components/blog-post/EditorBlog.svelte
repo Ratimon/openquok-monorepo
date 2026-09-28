@@ -6,6 +6,8 @@
 	import { createForm } from '@tanstack/svelte-form';
 
 	import { blogPostFormSchema } from '$lib/blogs/blog.types';
+	import { requireBlogTopicForImageUpload } from '$lib/blogs/utils/blogEditorImageGuards';
+	import { resolveBlogImageStorageKey } from '$lib/blogs/utils/blogImages';
 	import { calculateReadingTimeMinutes } from '$lib/docs/utils/content/readingTime';
 	import {
 		isBlogTopicEligibleForGuide,
@@ -83,6 +85,17 @@
 	/** Frozen once per EditorBlog mount — prevents createForm from resetting when parent re-renders. */
 	const bootValues = untrack(() => snapshotBlogFormValues(initialValues));
 
+	let selectedTopicId = $state(untrack(() => (initialValues.topic_id ?? '').trim()));
+
+	$effect(() => {
+		const fromInitial = (initialValues.topic_id ?? '').trim();
+		if (fromInitial) selectedTopicId = fromInitial;
+	});
+
+	function guardBlogTopicForImages(): boolean {
+		return requireBlogTopicForImageUpload(selectedTopicId);
+	}
+
 	const heroImagePresenter = new SupabaseImageUploadAreaPresenter(
 		new DownloadImagePresenter(imageRepository),
 		new UploadImagePresenter(imageRepository),
@@ -141,6 +154,17 @@
 	const form = createForm(() => ({
 		defaultValues: bootValues,
 		onSubmit: async ({ value }) => {
+			const topicId = (value.topic_id ?? '').trim();
+			selectedTopicId = topicId;
+
+			const pendingInlineImages =
+				contentEditorMode === 'visual' && contentEditorRef?.hasPendingInlineImages?.();
+			const pendingHeroFile = heroImageUploadRef?.hasSelectedFile?.();
+			if ((pendingInlineImages || pendingHeroFile) && !topicId) {
+				requireBlogTopicForImageUpload(topicId);
+				return;
+			}
+
 			savePhase = 'uploading';
 			try {
 				if (contentEditorMode === 'visual' && contentEditorRef?.hasPendingInlineImages?.()) {
@@ -163,7 +187,17 @@
 					}
 				}
 
-				const topicId = value.topic_id ?? '';
+				const resolvedHeroKey = heroImageFilename
+					? resolveBlogImageStorageKey(heroImageFilename)
+					: null;
+				if (heroImageFilename && !resolvedHeroKey) {
+					toast.error(
+						'Hero image path is invalid. Re-upload the hero image or pick a storage object key.'
+					);
+					return;
+				}
+				heroImageFilename = resolvedHeroKey ?? '';
+
 				const topicSlug = resolveTopicSlug(topicId);
 				const seoFields = normalizeSeoPayload(
 					value as BlogPostFormSchemaType,
@@ -583,6 +617,7 @@
 									outputType="html"
 									showMenu={true}
 									userId={userId}
+									beforeInlineImageAction={guardBlogTopicForImages}
 									placeholder="Enter content"
 									class="prose-sm min-h-48 font-mono text-sm"
 								/>
@@ -608,12 +643,16 @@
 						{#snippet children(field)}
 							<div class="flex flex-col gap-2">
 								<Field.Label>Topic</Field.Label>
-								<Field.Description>Choose the topic for this post.</Field.Description>
+								<Field.Description>
+									Choose the topic for this post. You must select a topic before you upload hero or inline images.
+								</Field.Description>
 								<Select.Root
 									type="single"
 									value={field.state.value || undefined}
 									onValueChange={(v) => {
-										field.handleChange(v ?? '');
+										const next = v ?? '';
+										field.handleChange(next);
+										selectedTopicId = next.trim();
 									}}
 								>
 									<Select.Trigger class="w-full max-w-md">
@@ -674,6 +713,8 @@
 									label="FAQ items"
 									description="Questions stay plain text. Answers use Visual or HTML source so you can link Skill Builder and other first-party pages. JSON-LD stores the answer as plain text. Use the arrows on each card to reorder items."
 									richTextAnswers={true}
+									userId={userId}
+									beforeInlineImageAction={guardBlogTopicForImages}
 								/>
 							</div>
 						{/snippet}
@@ -748,6 +789,8 @@
 												textareaId="howto-step-text-{index}"
 												value={steps[index]?.text ?? ''}
 												placeholder="Paste HTML or use Visual → link. Example: /tools/skill-builder"
+												userId={userId}
+												beforeInlineImageAction={guardBlogTopicForImages}
 												onChange={(next) => {
 													const updated = [...steps];
 													updated[index] = {
@@ -895,6 +938,7 @@
 								databaseName="blog_images"
 								deletePreviousStorage={deletePreviousHeroInStorage}
 								resetOnDestroy={false}
+								beforeLocalFileSelect={guardBlogTopicForImages}
 								onFormTouch={(url) => field.handleChange(url)}
 								onPendingFileChange={(pending) => {
 									hasPendingHeroFile = pending;

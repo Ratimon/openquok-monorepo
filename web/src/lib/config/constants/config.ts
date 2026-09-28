@@ -116,9 +116,9 @@ const publicFooterPayloadWizardLinks = buildPublicFooterPayloadWizardLinks(publi
 const appName = 'OpenQuok';
 const appTitle = 'OpenQuok | Agentic Social Media Scheduler';
 const appDescription =
-	'OpenQuok is a social media scheduler to plan, draft, and schedule social media posts across every channel. Calendar, kanban review, and AI agents — start with a 7-day free trial.';
+	'Save hours on social scheduling. OpenQuok is an open-source, agentic scheduler—post, schedule, and track everywhere. You approve on kanban. CLI, MCP, and API.';
 const appKeywords =
-	'social media scheduler, social media scheduling tool, schedule social media posts, social media scheduler free, post scheduler, social media posting tool, social media planning tool, free social media scheduling tools, content calendar, multi-platform posting, OpenQuok';
+	'social media scheduler, agentic social media scheduler, open source social media scheduler, social media scheduling tool, schedule social media posts, multi-platform posting, content calendar, kanban review, content approval, MCP social media, self-hosted social media scheduler, OpenQuok';
 
 export const CONFIG_SCHEMA_BACKEND: ModuleConfigSchema = {
 	API_BASE_URL: {

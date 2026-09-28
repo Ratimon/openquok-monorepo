@@ -10,6 +10,7 @@ import {
 	createBlogPostSEOSchema,
 	guessImageMimeFromFilename,
 	highlightBlogCodeBlocksInHtml,
+	normalizeBlogInlineImagesInHtml,
 	prepareBlogContentForDisplay
 } from '$lib/blogs/utils';
 import { publicBlogBySlugPagePresenter } from '$lib/area-public/index';
@@ -90,7 +91,7 @@ export async function load({ url, params, fetch, cookies, parent }) {
 
 	let ogImageUrl = '';
 	if (currentPostVm.heroImageFilename) {
-		ogImageUrl = buildBlogInlineImageSrc(currentPostVm.heroImageFilename);
+		ogImageUrl = buildBlogInlineImageSrc(currentPostVm.heroImageFilename.trim());
 	}
 
 	const customImages = ogImageUrl
@@ -147,7 +148,9 @@ export async function load({ url, params, fetch, cookies, parent }) {
 		requestUrl: url
 	});
 
-	const preparedContentHtml = prepareBlogContentForDisplay(currentPostVm.content ?? '');
+	const preparedContentHtml = normalizeBlogInlineImagesInHtml(
+		prepareBlogContentForDisplay(currentPostVm.content ?? '')
+	);
 	const highlightedContentHtml = await highlightBlogCodeBlocksInHtml(preparedContentHtml);
 
 	return {

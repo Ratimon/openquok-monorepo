@@ -12,10 +12,11 @@
 	type Props = {
 		editor: TiptapEditor;
 		onInsertLocalImagePreview: (file: File, alt?: string) => void;
+		beforeInlineImageAction?: () => boolean;
 		children: Snippet;
 	};
 
-	let { editor, onInsertLocalImagePreview, children }: Props = $props();
+	let { editor, onInsertLocalImagePreview, beforeInlineImageAction, children }: Props = $props();
 
 	let altDialogOpen = $state(false);
 	let selectedFile: File | null = $state(null);
@@ -27,6 +28,7 @@
 	}
 
 	function openFilePicker() {
+		if (beforeInlineImageAction && !beforeInlineImageAction()) return;
 		fileInput?.click();
 	}
 
@@ -34,6 +36,11 @@
 		const input = e.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
+
+		if (beforeInlineImageAction && !beforeInlineImageAction()) {
+			input.value = '';
+			return;
+		}
 
 		if (!file.type.startsWith('image/')) {
 			toast.error('Please choose an image file.');
